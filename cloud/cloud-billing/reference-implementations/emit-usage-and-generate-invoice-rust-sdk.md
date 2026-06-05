@@ -157,8 +157,12 @@ async fn main() -> Result<()> {
 ## Run it
 
 ```bash
-cargo run --release
+buck2 run //cloud/cloud-billing:emit-usage-and-generate-invoice-rust-sdk
 ```
+
+If the example is still reference text rather than a checked Buck2 target, first
+promote it into a service-owned Buck2 target; do not use ad-hoc Cargo execution
+as merge or release evidence.
 
 Expected output (trimmed):
 ```
@@ -185,8 +189,11 @@ INFO  focus validation OK
 ## Tests
 
 ```bash
-cargo test --features hermetic
+buck2 test //cloud/cloud-billing:emit-usage-and-generate-invoice-rust-sdk-hermetic
 ```
+
+The `hermetic` behavior belongs in the Buck2 target configuration so Prow can
+run the same evidence path.
 
 The `hermetic` feature uses `oya_cloud_billing_sdk::testkit::Hermetic` to spin a single-process loopback cell with an in-memory
 Kafka stub + in-memory rate card; tests finish in ≤ 90 s.

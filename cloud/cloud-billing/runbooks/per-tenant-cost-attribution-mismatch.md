@@ -137,7 +137,7 @@ doc_status: published
 ## Mitigation
 1. Hold invoices for affected tenant: `oya billing invoice hold --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
 2. Hold FOCUS export: `oya billing focus export hold --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
-3. Hold attribution deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+3. Hold attribution deploys: incident hold PR against `dev` (plain `git`; Buck2/Prow `oya-ci-required` evidence required).
 4. Stop suspect emitter: `oya billing metering emitter pause --tenant $TENANT --source <source> --reason $INCIDENT_ID`.
 5. Freeze ledger snapshot: `oya billing ledger snapshot --tenant $TENANT --period $PERIOD --output evidence/incidents/$INCIDENT_ID-ledger.json`.
 6. Stage replay dry-run: `oya billing attribution replay --tenant $TENANT --period $PERIOD --from trusted-source --dry-run`.
@@ -165,9 +165,9 @@ doc_status: published
 6. Patch ERP adapter if downstream import rejected valid fields.
 7. Add regression fixture for affected vendor source.
 8. Add regression fixture for tenant tree change inside period.
-9. Run domain tests: `cargo test -p oya-cloud-billing-domain attribution -- --nocapture`.
-10. Run tax app tests if invoice lines changed: `cargo test -p oya-cloud-billing-tax-app cloud_billing_invoice_api -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-billing-attribution --production-snapshot --period $PERIOD`.
+9. Run domain tests: `buck2 test //cloud/cloud-billing:oya-cloud-billing-domain-attribution`.
+10. Run tax app tests if invoice lines changed: `buck2 test //cloud/cloud-billing:oya-cloud-billing-tax-app-invoice-api`.
+11. Run production gate: `buck2 run //cloud/cloud-billing:validate-attribution-production-snapshot -- --period $PERIOD`.
 12. Reconcile corrected FOCUS export: `oya billing focus reconcile --tenant $TENANT --period $PERIOD --expect clean`.
 13. Release invoice hold: `oya billing invoice unhold --tenant $TENANT --period $PERIOD --reason resolved-$INCIDENT_ID`.
 14. Release export hold: `oya billing focus export unhold --tenant $TENANT --period $PERIOD --reason resolved-$INCIDENT_ID`.
