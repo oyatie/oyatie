@@ -643,6 +643,12 @@ const RETIRED_ACTIVE_PATHS: &[&str] = &[
     "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
     "docs/ci/forge-of-record.md",
 ];
+const RUNBOOK_STALE_PROMOTION_GATE_PHRASES: &[&str] = &[
+    "Jenkins + `oya gate run-all --ci-required` required",
+    "Jenkins green, `oya gate run-all --ci-required` and `oya verify --ci-required` evidence attached",
+    "green Jenkins CI and `oya gate run-all --ci-required`",
+    "require Jenkins + `oya gate run-all --ci-required` before merge",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -1117,6 +1123,71 @@ pub fn active_policy_context_name_failures(root: &Path) -> Vec<String> {
             if text.contains(forbidden) {
                 failures.push(format!(
                     "{rel}: active policy context field must be capability-named, not provenance-token-named ({forbidden})"
+                ));
+            }
+        }
+    }
+
+    failures
+}
+
+fn collect_runbook_markdown_files(
+    root: &Path,
+    rel: &Path,
+    output: &mut Vec<String>,
+) -> Result<(), String> {
+    let dir = root.join(rel);
+    if !dir.exists() {
+        return Ok(());
+    }
+    for entry in
+        fs::read_dir(&dir).map_err(|error| format!("read dir {}: {}", dir.display(), error))?
+    {
+        let entry =
+            entry.map_err(|error| format!("read dir entry {}: {}", dir.display(), error))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|error| format!("file type {}: {}", entry.path().display(), error))?;
+        let entry_rel = rel.join(entry.file_name());
+        if file_type.is_dir() {
+            collect_runbook_markdown_files(root, &entry_rel, output)?;
+        } else if file_type.is_file()
+            && entry_rel
+                .extension()
+                .and_then(|extension| extension.to_str())
+                == Some("md")
+            && entry_rel
+                .components()
+                .any(|component| component.as_os_str() == "runbooks")
+        {
+            output.push(path_to_repo_string(&entry_rel));
+        }
+    }
+    Ok(())
+}
+
+pub fn runbook_promotion_gate_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let mut runbooks = Vec::new();
+
+    if let Err(error) = collect_runbook_markdown_files(root, Path::new("oya"), &mut runbooks) {
+        failures.push(format!("runbook promotion-gate scan failed: {error}"));
+    }
+    runbooks.sort();
+    runbooks.dedup();
+
+    for rel in runbooks {
+        let path = root.join(&rel);
+        let Ok(text) = fs::read_to_string(&path) else {
+            failures.push(format!(
+                "{rel}: read failed during runbook promotion-gate scan"
+            ));
+            continue;
+        };
+        for phrase in RUNBOOK_STALE_PROMOTION_GATE_PHRASES {
+            if text.contains(phrase) {
+                failures.push(format!(
+                    "{rel}: stale runbook promotion gate references retired Jenkins/oya-gate authority: {phrase:?}; use `oya-ci-required` + Buck2 evidence"
                 ));
             }
         }
@@ -2036,6 +2107,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         python_shell_surface_failures(root, &python_shell_inventory);
     failures.extend(python_shell_surface_failures);
     failures.extend(active_policy_context_name_failures(root));
+    failures.extend(runbook_promotion_gate_failures(root));
 
     for item_id in [
         "legacy_ci_server",
