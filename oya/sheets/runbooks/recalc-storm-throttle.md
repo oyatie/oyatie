@@ -68,7 +68,7 @@ ONE of:
 | Step | Action |
 |---|---|
 | 1 | Engage ops-security + gtm-customer-success. |
-| 2 | Apply per-tenant recalc-rate-limit: `cargo run -p oya-dev-cli -- sheets rate-limit --tenant <h> --burst-multiplier 0.1x --duration 1h`. |
+| 2 | Apply per-tenant recalc-rate-limit with operation `sheets.rate_limit(tenant=<h>, burst_multiplier=0.1x, duration=1h)`. |
 | 3 | Tenant sees 429 banner: "your account is rate-limited; contact support". |
 | 4 | gtm-customer-success contacts tenant; investigate. |
 | 5 | If confirmed abuse: per tenancy ToS, suspend account. |
@@ -86,7 +86,7 @@ ONE of:
 | Step | Action |
 |---|---|
 | 1 | Declare Sev-1; engage ops-sre-reliability + capacity-planning. |
-| 2 | Add cell-cluster nodes: `cargo run -p oya-dev-cli -- cloud-iac scale-cell --pack <pack> --ms sheets --add-nodes 5 --component recalc-engine-worker`. |
+| 2 | Add cell-cluster capacity with Cloud elasticity operation `cloud_cell.scale_out(pack=<pack>, service=sheets, component=recalc-engine-worker, add_nodes=5)`. |
 | 3 | Re-balance recalc lease assignments. |
 | 4 | Verify Postgres + Valkey headroom. |
 | 5 | Update `capacity-model.md` baseline. |

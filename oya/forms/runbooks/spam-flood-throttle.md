@@ -61,7 +61,7 @@ Cause: tenant's form was shared on a popular site (legitimate viral burst).
 | Step | Action |
 |---|---|
 | 1 | Contact tenant via gtm-customer-success to confirm. |
-| 2 | Apply per-form elevated rate-limit: `cargo run -p oya-dev-cli -- forms rate-limit --form <id> --burst-multiplier 5x --duration 2h`. |
+| 2 | Apply per-form elevated rate-limit with operation `forms.rate_limit(form=<id>, burst_multiplier=5x, duration=2h)`. |
 | 3 | Scale response-collector HPA: `kubectl -n forms scale deployment/response-collector-rest --replicas 30`. |
 | 4 | Verify captcha sidecar capacity (HPA scales). |
 | 5 | Monitor; revert rate-limit elevation when burst subsides. |
@@ -73,8 +73,8 @@ Cause: bot pattern matches; tenant's form open to attack.
 | Step | Action | Time |
 |---|---|---|
 | 1 | Engage ops-security + gtm-customer-success. | ≤ 10 min |
-| 2 | Throttle per-form: `cargo run -p oya-dev-cli -- forms rate-limit --form <id> --burst-multiplier 0.1x --duration 1h`. | ≤ 5 min |
-| 3 | Activate WAF anti-bot ruleset: `cargo run -p oya-dev-cli -- waf activate-ruleset --ms forms --ruleset anti-bot-v2`. | ≤ 5 min |
+| 2 | Throttle per-form with operation `forms.rate_limit(form=<id>, burst_multiplier=0.1x, duration=1h)`. | ≤ 5 min |
+| 3 | Activate WAF anti-bot ruleset with operation `waf.activate_ruleset(service=forms, ruleset=anti-bot-v2)`. | ≤ 5 min |
 | 4 | Force fallback captcha (hCaptcha → Friendly Captcha challenge mode). | ≤ 5 min |
 | 5 | Tenant notified; legitimate submitters see "complete a quick puzzle" UX. | – |
 | 6 | If confirmed abuse: per ToS, pause form publish; engage tenant. | per priority |
@@ -86,9 +86,9 @@ Cause: thousands of unique IPs, low per-IP rate, but high cluster rate.
 | Step | Action |
 |---|---|
 | 1 | Declare Sev-1; engage ops-security + ops-sre-reliability + axis-forms. |
-| 2 | Activate WAF DDoS ruleset: `cargo run -p oya-dev-cli -- waf activate-ruleset --ms forms --ruleset emergency-ddos-v1`. |
-| 3 | Enable captcha-hard mode (challenge every submit, no risk-based skip): `cargo run -p oya-dev-cli -- forms captcha-mode --hard --duration 6h`. |
-| 4 | Enable per-ASN rate-limit at WAF: `cargo run -p oya-dev-cli -- waf rate-limit-asn --ms forms --asn auto --rps 5`. |
+| 2 | Activate WAF DDoS ruleset with operation `waf.activate_ruleset(service=forms, ruleset=emergency-ddos-v1)`. |
+| 3 | Enable captcha-hard mode (challenge every submit, no risk-based skip) with operation `forms.captcha_mode(hard=true, duration=6h)`. |
+| 4 | Enable per-ASN rate-limit at WAF with operation `waf.rate_limit_asn(service=forms, asn=auto, rps=5)`. |
 | 5 | Per-pack tenant comms if any tenant impacted. |
 | 6 | If suspect of state-sponsored attack: engage council-legal-compliance per pack regulatory. |
 

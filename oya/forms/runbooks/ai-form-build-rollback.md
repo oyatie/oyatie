@@ -48,8 +48,8 @@ Cause: tenant's BYO-LLM (or pack-default LLM) upgraded silently; emits new forma
 
 | Step | Action |
 |---|---|
-| 1 | Identify provider model version: `cargo run -p oya-dev-cli -- forms ai-build-provider-status --pack <pack>`. |
-| 2 | Pin to previous model version: `cargo run -p oya-dev-cli -- forms ai-build-pin-model --pack <pack> --version <prev>`. |
+| 1 | Identify provider model version with control-plane operation `forms.ai_build_provider_status(pack=<pack>)` through the Forms operations API/operation ledger. |
+| 2 | Pin to previous model version with control-plane operation `forms.ai_build_pin_model(pack=<pack>, version=<prev>)`. |
 | 3 | Verify schema-valid rate recovers (24h window). |
 | 4 | Coordinate with foundry-providers team for model upgrade test on staging before promotion. |
 
@@ -82,7 +82,7 @@ Cause: tenant prompt suggests employment screening / credit / insurance.
 | Step | Action |
 |---|---|
 | 1 | Compare prompt corpus pre/post regression: any tenant-side pattern change? |
-| 2 | Run T2-eval set locally: `cargo run -p oya-dev-cli -- forms ai-build-eval --reference capabilities/eval/t2-auto-reference.jsonl`. |
+| 2 | Run the T2 eval set through the Buck2-owned Forms evaluation target or operation `forms.ai_build_eval(reference=capabilities/eval/t2-auto-reference.jsonl)`; retired CLI runners are not authority. |
 | 3 | If eval pass-rate drops: rollback foundry-providers route to previous LLM version. |
 | 4 | Coordinate with foundry-providers + tenant on next-iteration improvement. |
 
@@ -92,7 +92,7 @@ Cause: cannot trust any AI-form-build output at the moment.
 
 | Step | Action |
 |---|---|
-| 1 | Disable AI-form-build cluster-wide: `cargo run -p oya-dev-cli -- forms ai-build-disable --duration 24h`. |
+| 1 | Disable AI-form-build cluster-wide with control-plane operation `forms.ai_build_disable(duration=24h)` and record the operation-ledger entry. |
 | 2 | Tenant UI shows "AI-form-build temporarily unavailable; use manual builder". |
 | 3 | All existing drafts remain queryable but no new T2 invocations. |
 | 4 | Engineer-on-call investigates; 24h SLA to restore. |

@@ -45,7 +45,7 @@ Sev-1. Tenant data integrity is the product's brand promise.
 1. Determine scope: single row / single shard / pack-wide?
 2. `kubectl -n forms exec postgres-primary -- pg_amcheck -d forms` — index integrity.
 3. `kubectl -n forms exec postgres-primary -- psql -d forms -c "SELECT * FROM forms_audit_chain_verify();"` — chain integrity.
-4. Last clean backup timestamp: `cargo run -p oya-dev-cli -- forms backup-status --pack <pack>`.
+4. Last clean backup timestamp: operation `forms.backup_status(pack=<pack>)`.
 5. Determine root cause: hardware (rare on OCI) / Postgres bug / application bug / malicious tamper?
 
 ## Recovery Path A — Single-row corruption (no chain breakage)
@@ -65,7 +65,7 @@ Cause: isolated row toast tear OR application-bug write.
 
 | Step | Action |
 |---|---|
-| 1 | Drain the shard: `cargo run -p oya-dev-cli -- forms drain-shard --shard <n>`. |
+| 1 | Drain the shard with operation `forms.drain_shard(shard=<n>)`. |
 | 2 | Promote shard replica to primary. |
 | 3 | Restore the corrupted shard from latest WAL ship + last clean backup. |
 | 4 | Replay audit-chain to verify integrity. |
