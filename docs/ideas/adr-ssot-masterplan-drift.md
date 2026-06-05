@@ -66,7 +66,7 @@ get a posted report. Hard-gate is deferred until the 347-ADR backlog is clean (e
   foreground, buck2-verified. Backfill the corpus audit's auto-fix set so it goes green.
 - The decision-node SCHEMA: canonical status FSM + `supersedes`/`superseded_by` + `governs:` +
   `plan_items:` + `last_validated:` (frontmatter-as-schema; body stays prose).
-- The SSOT **projection**: `oya doc adr-index` extended to emit `/registry/adrs.json` + masterplan links.
+- The SSOT **projection**: extend the Rust/Buck2 ADR index regenerator to emit `/registry/adrs.json` + masterplan links.
 - L6 `governs:` drift on ~10 high-value ADRs (Valkey, base-image, http-stack, container-tooling, ...).
 - Reuse the corpus-audit workflow as the **scheduled weekly sweep** (cron) + a thin **on-authoring**
   PR variant.

@@ -366,7 +366,7 @@
       "retirement_phase": "P0.3/P0.7",
       "evidence_path": "specs/adr-hygiene-registry.json + specs/fixtures/phase0-adr-hygiene/ + //:adr-hygiene-check",
       "no_new_oya_cli_surface": true,
-      "claim_boundary": "Buck2-local ADR hygiene, supersession, and active-doc stale-reference evidence only; not live required-context authority; full ADR index regeneration, P0.0 green, and Phase-0 completion remain false until the trusted cloud-ci/oya-ci context proves them.",
+      "claim_boundary": "Buck2-local ADR hygiene, supersession, and active-doc stale-reference evidence only; not live required-context authority; full ADR index regeneration is a separate //:adr-index-regeneration-check concern, while P0.0 green and Phase-0 completion remain false until the trusted cloud-ci/oya-ci context proves them.",
       "verification_command": "buck2 build //:adr-hygiene-check"
     },
     {

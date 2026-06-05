@@ -44,7 +44,7 @@
   "runtime_hooks": [
     {
       "path": "tools/hooks/no-cargo-enforcer.sh",
-      "purpose": "Advisory Buck2/no-cargo guidance for shell commands.",
+      "purpose": "Advisory Buck2/no-cargo guidance for shell commands; Cargo fmt is retired while direct pinned rustfmt remains allowed.",
       "events": {
         "codex": [
           "PreToolUse:Bash"
