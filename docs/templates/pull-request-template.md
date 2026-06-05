@@ -1,37 +1,62 @@
 ---
 doc_status: published
+doc_class: Template
+template_id: TPL-PR
+status: Accepted
+owner_team: axis-foundry + council-architecture
 ---
 
 # PR template
 
-> Per [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2, every PR uses this template. The traceability H2 sections plus automated reviewer-agent verdict are CI-enforced by `traceability-validator` and `oya-pr-review`.
+> Canonical PR body for every Oyatie change. Keep this file current and avoid
+> parallel PR-template variants; legacy aliases should point here.
+
+<!-- agent-instructions:start -->
+canonical_template: docs/templates/pull-request-template.md
+merge_authority: Prow/Kubernetes-native oya-ci-required context + Buck2 evidence
+compatibility_adapter: GitHub pull request + GitHub Actions shadow checks while native SCM/CI matures
+required_local_evidence:
+  - targeted Buck2 build/test/check commands for touched surfaces
+  - multispectrum evidence file under evidence/multispectrum/
+  - stale-reference scan for retired surface names touched by the change
+forbidden_pr_evidence:
+  - non-Buck2 local output as sole merge authority
+  - retired local governance CLI authority
+  - retired external SCM/CI/CD substrates as interim authority
+<!-- agent-instructions:end -->
 
 ## Issue
-Closes #<n> (or Refs #<n> if not closing). One line.
+Refs #<n> or Closes #<n>. Name the change class on this line: `feature | bugfix | refactor | migration | docs | chore | capability | plugin | runbook | ADR | pack-update`.
 
 ## Summary
-- 1-3 bullet points on what changed.
-- Include the *why*; the diff already shows the *what*.
+- 1-3 bullets on what changed and why.
+- Cite the canonical authority read first when the change is policy, template, runtime, CI, or architecture related.
 
 ## Verification
-- ☐ `cargo nextest run --workspace --all-features` (paste the pass/fail line)
-- ☐ `cargo clippy -D warnings` (pass)
-- ☐ ADR-0346 pre-push contract: `./bin/oya verify --ci-required` (canonical local pre-push verifier; MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step before returning success)
-- ☐ Per-change-class fitness lane(s): `<list>`
-- ☐ Per-change-class reviewer agent run (paste verdict)
+Paste fresh command output or concise PASS/FAIL evidence. Prefer Buck2 targets as build/test/check authority.
+
+- [ ] Targeted Buck2 evidence: `<command>` — `<PASS|FAIL>` — `<output excerpt>`
+- [ ] Repo/policy evidence where applicable: `buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check` — `<PASS|FAIL>`
+- [ ] Coverage evidence where applicable: `buck2 build //:rust-llvm-coverage-runner-contract-check //:rust-llvm-coverage-smoke-check` — `<PASS|FAIL>`
+- [ ] Formatting/static checks for touched Rust: `rustfmt --edition 2024 --check <files>` and/or Buck2 lint target — `<PASS|FAIL>`
+- [ ] Retired-surface/stale-reference scan for touched domains — `<PASS|FAIL>`
+- [ ] GitHub adapter checks before merge: governance, buck2-authority, rust-llvm-coverage, affected-build, `github-lane-unlocker-required`, and cd-dry-run — `<PASS|FAIL>`
 
 ## Traceability
-- Catalog records touched: `<list>`
-- Cross-axis contracts touched: `<list>` (per [DESIGN §10](../DESIGN.md))
-- ADRs cited: `<list>`
+- Catalog/spec/registry records touched: `<list>`
+- Cross-axis contracts touched: `<list or none>`
+- Decisions/specs cited: `<list>`
+- Shared-surface conflict risk: `<none|low|medium|high>` and mitigation.
 
 ## Evidence
-- Audit-chain emission: `<event-id>`
-- Foundation-bypass referenced (if any): `<bypass-id>`
-- Per-pack regulator-watch impact (if any): `<list>`
+- Multispectrum evidence: `evidence/multispectrum/<change-id>-<timestamp>.json`
+- Audit-chain emission: `<event-id or none>`
+- Foundation-bypass referenced: `<bypass-id or none>`
+- Per-pack regulator-watch impact: `<list or none>`
 
 ## Code Review
-- Required check: `oya-pr-review`
-- Reviewer runtime: `subagent_runtime_pending=false`
-- Verdict: `<APPROVE|REQUEST_CHANGES>`
-- Fix-loop events: `<none|pr-review-fix-requested>`
+- Required merge context: `oya-ci-required` target; GitHub Actions checks are compatibility/shadow evidence until native cutover.
+- Reviewer evidence: `<agent/human reviewer, or self-review with explicit local+remote evidence when no reviewer service is live>`
+- Verdict: `<APPROVE|REQUEST CHANGES>`
+- Resolved items: `<list or none>`
+- Deferred items: `<list with owners, or none>`

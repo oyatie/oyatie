@@ -16,7 +16,7 @@ related:
 adrs_cited:
   - ADR-0056  # BNF v4.1 + layer enum
   - ADR-0057  # LEAN checks
-  - ADR-0346  # oya verify --ci-required full CI mirror pre-push contract
+  - ADR-0346  # historical local verifier; superseded by Buck2/Prow oya-ci authority
 doc_status: published
 ---
 
@@ -120,8 +120,10 @@ and cite the integration point in the affected µservice's PRD.
 - Bullet list of trade-offs (be honest).
 
 ### Operational
-- CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
-- ADR-0346 pre-push contract: `./bin/oya verify --ci-required` is the canonical local pre-push verifier; it MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step before returning success.
+- CI lane changes (new Buck2/Prow check, policy lane flip from advisory to blocker).
+- Buck2/Prow verification contract: Buck2 owns build/test/check evidence and
+  the trusted `oya-ci-required` context is merge authority; retired local
+  governance CLI output is historical/local-shift-left provenance only.
 
 ---
 
@@ -177,6 +179,6 @@ For each alternative:
 - oyatie memory: `feedback_<slug>.md` (override rationale)
 - ADR-0056 BNF v4.1 (naming authority)
 - ADR-0057 LEAN checks (cross-vertical enforcement)
-- ADR-0346 `oya verify --ci-required` full CI mirror pre-push contract
+- ADR-0346 as historical local-verifier provenance; current authority is the Buck2/Prow `oya-ci-required` path
 - Related oyatie ADRs: list concrete ADR identifiers, or state `-`
 - Issues: `Refs #N`, `Closes #N`

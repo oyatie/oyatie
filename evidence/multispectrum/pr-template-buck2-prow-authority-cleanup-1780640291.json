@@ -1,0 +1,68 @@
+{
+  "change_class_id": "CC-2",
+  "git_sha": "89fa9f52bd3c",
+  "freshness_unix": 1780640291,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Collapsed the duplicate PR-template contract by making pull-request-template.md canonical and reducing pull-request-template-v2.md to a non-copyable alias.",
+        "Removed active Cargo and retired oya verifier instructions from the PR/done/review/ADR authoring surfaces instead of adding another explanatory layer."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "PR evidence now points at Buck2 build/test/check targets plus Prow/Kubernetes-native oya-ci-required, matching the current monorepo lane-unlocker direction.",
+        "GitHub Actions is described as a shadow adapter, not permanent CI authority."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "Targeted stale-reference scans reject Cargo/retired oya verifier/non-live oya-pr-review authority in the active PR template, PR checklist, done checklist, AGENTS PR-shape section, and ADR template.",
+      "findings": [
+        "The previous template could lead agents to claim `./bin/oya verify --ci-required` or Cargo checks as canonical merge evidence despite Buck2/Prow policy.",
+        "The v2 alias previously carried a second full PR body that could drift independently."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 4,
+      "findings": [
+        "Contributors now copy one PR template and see the same current merge-context wording used in root AGENTS guidance.",
+        "The required verification block names the concrete Buck2 targets used by the GitHub adapter checks."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Verification plan covers markdown/reference scans, agent-instruction inventory fence count, multispectrum evidence shape, repo-hygiene and Buck2 authority checks, plus remote GitHub adapter checks before merge."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Leave both PR templates and only update the older canonical file",
+        "Delete pull-request-template-v2.md outright",
+        "Make pull-request-template.md canonical and leave v2 as a retired alias"
+      ],
+      "selected_rationale": "A retired alias preserves inbound links without carrying a second PR body contract.",
+      "rejected_reasons": [
+        "Updating only one full template leaves future drift and conflicting copy points.",
+        "Deleting v2 would break existing links and generated inventories that still mention the path."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": false,
+      "findings": [
+        "This is documentation/template authority cleanup only; no secrets, credentials, tenant data, or runtime code paths are touched."
+      ]
+    }
+  }
+}
