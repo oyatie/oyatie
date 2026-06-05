@@ -12,7 +12,7 @@ license = "Apache-2.0"
 #
 # Used as an exec_dep by the oci_image Starlark rule (tools/oci/defs.bzl).
 # Runs on darwin aarch64 (assemble/inspect) and linux aarch64 (assemble +
-# push via push-and-sign.sh).  ADR-0514 buck2-native OCI destination.
+# push via //tools/oci:oya-oci-push).  ADR-0514 buck2-native OCI destination.
 
 [[bin]]
 name = "oya-oci-assemble"

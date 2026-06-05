@@ -65,7 +65,7 @@ const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
 const REQUIRED_BUCK2_RELEASE: &str = "2026-06-01";
 const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 0;
-const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 44;
+const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 43;
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
@@ -233,7 +233,7 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
         "non-Rust surface inventory must point to the disjoint Python/shell surface inventory",
     ),
     (
-        "\"tracked_nonvendored_python_shell_count\": 44",
+        "\"tracked_nonvendored_python_shell_count\": 43",
         "non-Rust surface inventory must record the audited non-vendored Python/shell count",
     ),
     (

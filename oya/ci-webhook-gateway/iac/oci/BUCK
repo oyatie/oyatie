@@ -38,8 +38,8 @@
 #     (host-arch) — NOT runnable in a Linux container.  The push step is
 #     intentionally gated to Linux CI only.
 #   - On linux (aarch64, CI pod): pass --target-platforms //platforms:linux-aarch64-musl
-#     to get the static ELF.  Run push-and-sign.sh after assembly (see the
-#     controller's push-and-sign.sh for the canonical pattern).
+#     to get the static ELF.  Publish with //tools/oci:oya-oci-push after
+#     assembly; signing and attestation stay in the native promotion lane.
 #
 # Base image:
 #   gcr.io/distroless/static-debian12  (ADR-0146 canonical; founder decision
@@ -49,10 +49,9 @@
 #   the digest when Google publishes a new CVE-patched weekly rebuild.  The digest
 #   is intentionally identical to the controller's so both images share the base.
 #
-# Push target: see the controller's push-and-sign.sh for the canonical pattern
-# (linux CI only).
+# Push target: //tools/oci:oya-oci-push (linux CI only).
 #   Registry: registry.oya-registry.svc.cluster.local:5000
-#   Cosign: --key k8s://oya-ci/cosign-key  (ADR-0181 + verify-image-signed.yaml)
+#   Signing: native promotion lane signs the pushed digest before deployment.
 
 load("//tools/oci:defs.bzl", "oci_image")
 
@@ -65,12 +64,13 @@ load("//tools/oci:defs.bzl", "oci_image")
 #
 # To re-pin (bump to a new CVE-patched rebuild), resolve the linux/arm64 child
 # manifest digest of the desired tag and update the DIGEST argument below:
-#   crane digest --platform linux/arm64 gcr.io/distroless/static-debian12:nonroot
+#   Resolve the linux/arm64 child manifest digest from trusted upstream release
+#   evidence, then update DIGEST below.
 # The puller verifies sha256(manifest_bytes) == DIGEST, so a stale or wrong
 # digest fails the build deterministically.  Keep this digest in lock-step with
 # oya/ci-controller/iac/oci/BUCK so both services share one base layer.
 #
-# The base layout is pulled at build time by the stdlib-only python3 puller
+# The base layout is pulled at build time by the Rust Buck2 puller
 # //tools/oci:oya-oci-pull-base, which speaks the OCI distribution API directly
 # (anon bearer token → manifest-by-digest → config + layer blobs) and writes
 # the oci-layout / index.json / blobs/sha256 tree that oya-oci-assemble reads

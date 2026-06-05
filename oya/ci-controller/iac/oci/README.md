@@ -16,9 +16,10 @@ path for this service per ADR-0514.  ADDITIVE: the gateway Dockerfile is untouch
 - **Darwin (aarch64):** `buck2 audit providers` and `buck2 cquery` resolve cleanly.
   The assembled layout is inspectable (valid OCI Image Layout directory).
   The binary inside is Mach-O (host arch) — NOT runnable on Linux.
-  Push is intentionally blocked on darwin by `push-and-sign.sh`.
+  Push is intentionally blocked on darwin because the assembled binary is a
+  host-arch inspection artifact.
 - **Linux CI (aarch64, Talos node):** the binary is `aarch64-linux` ELF — correct
-  for deployment.  Run `push-and-sign.sh` after assembly.
+  for deployment.  Publish with `//tools/oci:oya-oci-push` after assembly.
 
 ## Base image
 
@@ -43,41 +44,24 @@ The `--target-platforms` flag propagates to all transitive deps; the
 `rust_binary` is automatically compiled with
 `aarch64-unknown-linux-musl` + `-Clink-self-contained=yes -Clinker=rust-lld`.
 
-## Base digest staging and bump procedure
+## Base digest verification and bump procedure
 
-The `sha256` in `BUCK` is the digest of the **OCI layout tarball** (not the image
-manifest digest).  It is a placeholder (`000...000`) until the first real staging.
+The `sha256:` in `BUCK` is the immutable linux/arm64 manifest digest passed to
+`//tools/oci:oya-oci-pull-base`.  The Rust puller verifies
+`sha256(manifest_bytes) == DIGEST`, so a stale or wrong digest fails the build
+deterministically.
 
-To stage or bump the base (requires `crane` on PATH):
+To bump to a new CVE-patched rebuild:
 
-```sh
-# 1. Pull as OCI layout (NOT crane export — that yields a flat rootfs with no index.json)
-crane pull --format oci \
-  gcr.io/distroless/static-debian12:nonroot \
-  /tmp/distroless-static-nonroot-aarch64-$(date +%Y%m%d)
+1. Resolve the linux/arm64 child manifest digest from trusted upstream release
+   evidence.
+2. Update the `DIGEST` argument in the `:distroless-base` genrule.
+3. Verify with `buck2 build root//oya/ci-controller/iac/oci:controller-oci
+   --target-platforms //platforms:linux-aarch64-musl` in the Linux CI lane.
 
-# 2. Tar the layout directory
-tar -cf distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar \
-  -C /tmp/distroless-static-nonroot-aarch64-$(date +%Y%m%d) .
-
-# 3. Capture sha256
-sha256sum distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar
-
-# 4. Push to in-cluster build-inputs registry
-crane push distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar \
-  registry.oya-registry.svc.cluster.local:5000/build-inputs/distroless-static-nonroot-aarch64-$(date +%Y%m%d).tar
-
-# 5. Update BUCK:
-#   - urls[0]: new filename with date
-#   - sha256: output of step 3
-```
-
-**Important:** use `crane pull --format oci`, not `crane export`.
-`crane export` produces a flat merged rootfs tarball with no `index.json` or
-`blobs/sha256/` tree.  The Rust puller (`oya-oci-pull-base`) verifies the
-pinned manifest/config/layer digests, and the assembler (`oya-oci-assemble`)
-requires an OCI Image Layout and will bail with a clear error if `index.json`
-is missing.
+The puller writes an OCI Image Layout (`oci-layout`, `index.json`, and
+`blobs/sha256/`).  The assembler (`oya-oci-assemble`) requires that layout and
+will bail with a clear error if `index.json` is missing.
 
 ## Reproducible layers
 
@@ -92,33 +76,30 @@ The `gzip -n` flag zeroes the gzip header MTIME and omits the filename, so the
 compressed digest is byte-stable across builds.  (`tar --gzip` sets the gzip
 header MTIME to wall-clock time and must not be used here.)
 
-## Push and sign
+## Push, sign, and promote
 
-`push-and-sign.sh` is Linux CI only.  Before running it, export:
-
-```sh
-# From the ESO-projected cosign secret mount:
-export COSIGN_PASSWORD="$(cat /var/run/secrets/cosign/password)"
-# For unencrypted keys:
-export COSIGN_PASSWORD=""
-```
-
-Then:
+The prior local shell wrapper is retired.  The active push surface is the Rust
+Buck2 tool:
 
 ```sh
-./push-and-sign.sh <oci-layout-dir> [<tag>]
-# tag defaults to git short SHA; ADR-0181 target form: ${GIT_SHA}-dev
+buck2 run //tools/oci:oya-oci-push -- \
+  <oci-layout-dir> \
+  registry.oya-registry.svc.cluster.local:5000 \
+  oya-ci-controller \
+  ${GIT_SHA}-dev \
+  --insecure
 ```
 
-The script:
-1. Packs the OCI layout and pushes via `crane push`.
-2. Resolves the pushed digest via `crane digest`.
-3. Signs by digest via `cosign sign --key k8s://oya-ci/cosign-key` (ADR-0181).
-4. Writes the digest to `last-pushed-digest.txt` for the Helm values updater.
+The command prints the pushed manifest digest to stdout.  Prow/native promotion
+then consumes that digest for signing, SBOM/attestation, admission policy, and
+deployment.  This directory no longer writes local digest sidecar files, and no
+Helm adapter update is part of the authority path.
 
-## Follow-up work (Linux CI lane)
+## Follow-up work (native promotion lane)
 
-- Emit tag as `${GIT_SHA}-dev` to match ADR-0181 tagging convention.
-- Write the resolved digest into `values.yaml` `image.digest` and flip `cosign.required=true`.
-- Add SBOM (`cosign attest --type spdxjson`) and Trivy scan evidence per ADR-0039/0181
-  promotion ladder for dev→staging.
+- Keep tag form `${GIT_SHA}-dev`.
+- Sign by digest in the native Prow promotion worker with the pinned Cosign
+  version and key/identity policy from the supply-chain standard.
+- Attach SBOM and vulnerability scan evidence before promotion past dev.
+- Feed the digest into CUE-owned desired state; any Helm artifact remains an
+  adapter/export, not the canonical deployment source.
