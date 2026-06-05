@@ -123,10 +123,11 @@
     },
     {
       "claim_id": "OPS-COORDINATION-NATIVE",
-      "claim_short": "agent-state transitions on ops use Oyatie-native VCS",
+      "claim_short": "agent-state transitions on ops use Oyatie native SCM service evidence",
       "evidence_required": [
-        "Oya VCS claim/verify/done/promote transition evidence per docs/AGENTS.md and ADR-0116 (HG-VCS)",
-        "ChangeBundle -> Promotion -> ReleaseTrain closure evidence from specs/gitops-vcs-replacement.json"
+        "native SCM service snapshot evidence for workspace lease, change graph, review state, and merge projection",
+        "Git/GitHub adapter PR evidence plus Buck2/Prow oya-ci-required evidence for protected-branch admission",
+        "release-conveyor ledger evidence for promotion and rollout closure"
       ],
       "evidence_class_required": [
         "closeout",
@@ -192,8 +193,8 @@
     {
       "gate_id": "HG-VCS",
       "evidence_status": "violation",
-      "have": "ADR-0116 retires grit/icm/rtk/vox and docs/AGENTS.md defines Oya VCS claim/verify/done/promote plus oya-vcs-admission as the closed transition set",
-      "missing": "historical plan-set commit at 5880ce0 used `rtk git commit` directly; future remediation is Oya VCS claim/verify/done/promote with ChangeBundle -> Promotion -> ReleaseTrain evidence. This row is historical and does not restore grit/icm/rtk/vox authority."
+      "have": "ADR-0116 retires grit/icm/rtk/vox; active remediation now routes through native SCM service snapshots, Git/GitHub adapter PR evidence, Buck2/Prow oya-ci-required evidence, and release-conveyor ledger evidence",
+      "missing": "historical plan-set commit at 5880ce0 bypassed the current native SCM service evidence chain; future remediation requires native SCM workspace-lease/change-graph/review-state snapshots plus protected-branch Buck2/Prow evidence. This row is historical and does not restore retired local VCS or gate CLI authority."
     }
   ],
   "purpose": "Defines plan-stage versus operational-stage claims for the ops portal so agents do not overstate implementation readiness."
