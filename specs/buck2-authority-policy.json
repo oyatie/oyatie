@@ -201,7 +201,7 @@
     "scripts/tests/phase0_required_context_rollup_check.rs",
     "scripts/ci/assert-pr-required-context.rs",
     "scripts/ci/regen-third-party.sh",
-    "scripts/gen_first_party_buck.py",
+    "scripts/ci/generate-first-party-buck.rs",
     "scripts/agent-pre-push-validate.sh",
     "scripts/build/build-and-push-cloud-intelligence.sh",
     "cloud/cloud-intelligence/iac/oci/BUCK",

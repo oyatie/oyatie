@@ -39,7 +39,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.domains_checked, 6);
     assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 0);
-    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 50);
+    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 49);
 }
 
 #[test]
@@ -250,7 +250,7 @@ fn python_shell_inventory_matches_checked_in_surface() {
     let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json");
     let files = gate::tracked_python_shell_files(Path::new(&repo_root()))
         .expect("Python/shell surface scan should run");
-    assert_eq!(files.len(), 50, "{files:?}");
+    assert_eq!(files.len(), 49, "{files:?}");
     let (_count, failures) =
         gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(failures.is_empty(), "{failures:?}");
@@ -259,16 +259,13 @@ fn python_shell_inventory_matches_checked_in_surface() {
 #[test]
 fn python_shell_inventory_rejects_missing_current_file() {
     let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json")
-        .replace(
-            "scripts/gen_first_party_buck.py",
-            "scripts/gen-first-party-buck.rs",
-        );
+        .replace("tools/oci/pull-oci-base.py", "tools/oci/pull-oci-base.rs");
     let (_count, failures) =
         gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(
         failures
             .iter()
-            .any(|failure| failure.contains("scripts/gen_first_party_buck.py")),
+            .any(|failure| failure.contains("tools/oci/pull-oci-base.py")),
         "{failures:?}"
     );
 }
@@ -295,16 +292,13 @@ fn python_shell_surface_scan_excludes_vendored_surfaces() {
         "echo third-party\n",
     )
     .unwrap_or_else(|error| panic!("write third-party fixture: {error}"));
-    fs::write(
-        root.join("scripts/gen_first_party_buck.py"),
-        "print('owned')\n",
-    )
-    .unwrap_or_else(|error| panic!("write owned fixture: {error}"));
+    fs::write(root.join("scripts/pending-rewrite.py"), "print('owned')\n")
+        .unwrap_or_else(|error| panic!("write owned fixture: {error}"));
 
     let files =
         gate::tracked_python_shell_files(&root).expect("fixture Python/shell scan should run");
     let _ = fs::remove_dir_all(&root);
-    assert_eq!(files, vec!["scripts/gen_first_party_buck.py".to_string()]);
+    assert_eq!(files, vec!["scripts/pending-rewrite.py".to_string()]);
 }
 
 #[test]
