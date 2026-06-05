@@ -1,0 +1,48 @@
+{
+  "id": "cloud_network_dns_authority_hygiene_20260605T095736Z",
+  "timestamp_utc": "20260605T095736Z",
+  "branch": "chore/active-surface-authority-hygiene-20260605T0952Z",
+  "base_ref": "github-mirror/dev",
+  "claim": "cloud-network-dns active docs no longer teach retired local verifier, Jenkins, ArgoCD, or retired VCS authority; repo-hygiene now rejects the exact stale phrases.",
+  "changed_file_count": 19,
+  "authority": {
+    "ci_context": "oya-ci-required",
+    "build_test_check_authority": "Buck2",
+    "durable_ci": "Rust/Prow/Kubernetes-native",
+    "durable_cd": "release-conveyor-like native seams"
+  },
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test; OYA_REPO_ROOT=/private/tmp/oyatie-active-surface-authority-hygiene-20260605T0952Z repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "observed": "54 passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs; assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "observed": "verdict PASS; failures []"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "exit_code": 0,
+      "observed": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "targeted scan for cloud-network-dns stale active CI/CD/SCM authority phrases",
+      "exit_code": 0,
+      "observed": "no stale active cloud-network-dns authority phrases found"
+    },
+    {
+      "command": "jq . cloud/cloud-network-dns/manifest.json",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

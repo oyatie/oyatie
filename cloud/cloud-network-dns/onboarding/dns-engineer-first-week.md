@@ -13,7 +13,8 @@ set up health-checks, and walk a DoH/DoQ query.
 
 Clone:
 ```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-dns-week1 .worktrees/$USER-dns-week1
+git fetch github-mirror dev
+git worktree add -b onboarding/$USER-dns-week1 .worktrees/$USER-dns-week1 github-mirror/dev
 cd .worktrees/$USER-dns-week1
 ```
 
