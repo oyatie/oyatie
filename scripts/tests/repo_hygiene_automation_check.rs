@@ -891,6 +891,38 @@ fn masterplan_native_scm_hygiene_rejects_stale_cli_alias_and_cargo_authority() {
 }
 
 #[test]
+fn checked_in_m02_exit_gate_validators_use_buck2_prow_authority_wording() {
+    let failures = gate::m02_exit_gate_validator_hygiene_failures(&read_repo_file(
+        "docs/standards/m02-exit-gate-validators.md",
+    ));
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn m02_exit_gate_validator_hygiene_rejects_retired_local_cli_and_tool_rows() {
+    let failures = gate::m02_exit_gate_validator_hygiene_failures(
+        "purpose: oya-dev-cli bindings\n\
+         A lane is wired when `oya gate validate <lane>` dispatches.\n\
+         | `oya gate validate` subcommand |\n\
+         - `cargo-fmt`, `cargo-check`, `cargo-clippy`, `cargo-nextest`, `cargo-deny`, `cargo-machete`\n\
+         - `pnpm-typecheck`, `pnpm-test`\n\
+         Source: crates/oya-dev-cli/tests/gate_cli.rs\n",
+    );
+    for expected in [
+        "oya-dev-cli bindings",
+        "`oya gate validate <lane>` dispatches",
+        "`cargo-fmt`, `cargo-check`",
+        "`pnpm-typecheck`, `pnpm-test`",
+        "historical 14 quality/scalability lane inventory",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn root_jenkinsfile_is_rejected_as_retired_ci_entrypoint() {
     let root = temp_dir("root-jenkinsfile");
     fs::write(root.join("Jenkinsfile"), "pipeline {}\n").unwrap_or_else(|error| {
