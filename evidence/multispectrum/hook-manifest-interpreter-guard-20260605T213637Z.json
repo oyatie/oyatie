@@ -1,0 +1,47 @@
+{
+  "schema": "multispectrum-review.v2.4.0",
+  "change_id": "hook-manifest-interpreter-guard-20260605T213637Z",
+  "change_class_id": "CC-7",
+  "claim_boundary": "local_static_buck2_evidence_only_no_live_mutation",
+  "summary": "Adds a Rust/Buck2 manifest checker guard that rejects unpinned host interpreters in active runtime hook text, making interpreter-free hook hot paths a static read-only policy rather than only a shell fixture expectation.",
+  "facets": {
+    "F1_scope": "P00 read-only hook enhancement slice; Rust manifest checker, its unit test, repo-hygiene backlog status, and audit evidence changed.",
+    "F2_source_authority": "docs/AGENTS.md, specs/agent-hook-runtime-manifest.json, specs/repo-hygiene-automation.json, Git hooks docs, GitHub Actions security hardening, SLSA requirements, OWASP LLM Top 10.",
+    "F3_tests": [
+      "RED: rustc --edition=2024 -D warnings scripts/tests/agent_hook_runtime_manifest_check.rs --test ... failed before guard with rejects_unpinned_host_interpreters_in_runtime_hooks",
+      "rustfmt --edition 2024 scripts/ci/assert-agent-hook-runtime-manifest.rs scripts/tests/agent_hook_runtime_manifest_check.rs; exit 0",
+      "jq empty specs/repo-hygiene-automation.json; exit 0",
+      "rustc --edition=2024 -D warnings scripts/tests/agent_hook_runtime_manifest_check.rs --test ...; 9 passed",
+      "buck2 build //:agent-hook-runtime-manifest-check //:repo-hygiene-automation-check //:buck2-authority-policy-check; BUILD SUCCEEDED, Build ID ce8fb4bc-f210-44ba-9b88-d504e961e3a1",
+      "git diff --check; exit 0"
+    ],
+    "F4_security": "Runtime hook files now fail static Buck2/Prow evidence if they invoke unpinned host interpreter/toolchain commands such as python3, node, pnpm, npm, npx, bun, deno, ruby, perl, php, or lua.",
+    "F5_privacy": "No runtime behavior or payload persistence changed.",
+    "F6_reliability": "Adds a targeted RED/GREEN regression fixture and reuses the existing manifest checker path consumed by Buck2/Prow.",
+    "F7_operability": "No hook command path changed; static checker remains read-only and local/static.",
+    "F8_performance": "No runtime cost added; guard runs in the existing Buck2 manifest checker lane.",
+    "F9_maintainability": "Centralizes interpreter-drift policy in Rust rather than repeating per-hook grep fixtures.",
+    "F10_compatibility": "Checked-in runtime hooks continue to pass; bootstrap shell glue remains allowed when explicitly reviewed outside this active runtime hook guard.",
+    "F11_supply_chain": "No new dependencies.",
+    "F13_traceability": "Implements candidate_read_only_checks.runtime_hook_interpreter_free_hot_path under /specs/repo-hygiene-automation.json."
+  },
+  "verification": {
+    "buck2_build_id": "ce8fb4bc-f210-44ba-9b88-d504e961e3a1",
+    "unit_test_count": 9,
+    "guarded_interpreters": [
+      "python",
+      "python3",
+      "node",
+      "npm",
+      "pnpm",
+      "npx",
+      "bun",
+      "deno",
+      "ruby",
+      "perl",
+      "php",
+      "lua"
+    ],
+    "live_mutation": false
+  }
+}
