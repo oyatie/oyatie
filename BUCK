@@ -321,6 +321,7 @@ genrule(
         "registry/dependency-blessed-allowlist.json": "registry/dependency-blessed-allowlist.json",
         "registry/repo-hygiene/typescript-pnpm-surface-inventory.json": "registry/repo-hygiene/typescript-pnpm-surface-inventory.json",
         "registry/repo-hygiene/python-shell-surface-inventory.json": "registry/repo-hygiene/python-shell-surface-inventory.json",
+        "registry/claim-matrix/ops-portal.json": "registry/claim-matrix/ops-portal.json",
         "registry/vocabulary/retired.yaml": "registry/vocabulary/retired.yaml",
         "registry/docs/pipeline.tsv": "registry/docs/pipeline.tsv",
         "libs/oya-check-documentation-system/src/lib.rs": "//libs/oya-check-documentation-system:lib-src",

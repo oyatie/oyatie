@@ -158,6 +158,7 @@
       "Claude Code harness Buck2 evidence posture scan",
       "Cargo/Buck2 authority boundary active-doc scan",
       "identity vendor native desired-state boundary scan",
+      "ops portal native SCM claim-matrix scan",
       "standards retired external substrate name scan",
       "microservice spec retired CI/CD and local gate authority scan",
       "design-system spec retired local validator authority scan",
@@ -380,6 +381,13 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental identity-vendor active-standard guard only; physical removal or migration of legacy identity IaC directories remains a separate backlog slice"
+    },
+    "ops_portal_native_scm_claim_scan": {
+      "clean_file": "registry/claim-matrix/ops-portal.json",
+      "policy": "Ops portal claim-matrix evidence uses native SCM service snapshots, Git/GitHub adapter PR evidence, Buck2/Prow oya-ci-required evidence, and release-conveyor ledger evidence. It must not restore retired local VCS transition command strings, retired admission aliases, direct legacy commit shortcuts, or legacy change/promotion/release-train command authority.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental ops-portal claim-matrix active-evidence guard only; broader historical claim-matrix cleanup remains a separate backlog slice"
     },
     "standards_retired_external_substrate_scan": {
       "clean_files": [
