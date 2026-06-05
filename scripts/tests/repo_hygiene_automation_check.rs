@@ -228,6 +228,45 @@ fn retired_compatibility_catalog_requires_status_and_notice() {
 }
 
 #[test]
+fn active_foundry_shared_surface_rejects_retired_root_guidance() {
+    let readme = read_repo_file("README.md").replace(
+        "SaaS, Workspace, Vertical, Intelligence, Cloud",
+        "SaaS, Workspace, Vertical, Foundry, Cloud",
+    );
+    let root_hub = read_repo_file("specs/root-hub-pointers.json").replace(
+        "\"owner_team\": \"council-architecture + platform-governance\"",
+        "\"owner_team\": \"council-architecture + axis-foundry\"",
+    );
+    let sequencing = read_repo_file("specs/master-plan-sequencing.json").replace(
+        "\"owner_team\": \"council-architecture + platform-governance\"",
+        "\"owner_team\": \"council-architecture + axis-foundry\"",
+    );
+    let doc_agents = read_repo_file("docs/AGENTS.md")
+        .replace(
+            "intelligence/governance capabilities",
+            "Foundry capabilities",
+        )
+        .replace(
+            "Capability records + metering events consumed by capability runtimes.",
+            "Capability records + metering events (Foundry-consumed).",
+        );
+    let failures =
+        gate::active_foundry_shared_surface_failures(&readme, &root_hub, &sequencing, &doc_agents);
+
+    for expected in [
+        "Vertical, Foundry, Cloud",
+        "axis-foundry",
+        "Foundry capabilities",
+        "Foundry-consumed",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn spec_rejects_reintroduced_python_hygiene_command() {
     let mut spec = read_repo_file("specs/repo-hygiene-automation.json");
     spec = spec.replace(

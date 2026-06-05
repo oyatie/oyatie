@@ -2,7 +2,7 @@
   "_schema": {
     "version": "1.0.0",
     "description": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
-    "owner_team": "council-architecture + axis-foundry",
+    "owner_team": "council-architecture + platform-governance",
     "validation_check": "json-valid + referenced-paths-exist + retired-agentic-vcs-primitives-absent",
     "authority_note": "Execution overlay only; /specs/masterplan.json, /specs/planning-closure-contract.json, the doctrinal substrate (decision-principles.json + forbidden-operations.json + decision-rights.json + governance-amendment.json), ADRs, and checklist templates remain authoritative. docs/MASTERPLAN.md is compatibility projection only."
   },

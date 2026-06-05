@@ -1,0 +1,51 @@
+{
+  "change_id": "root-shared-surface-foundry-retirement-20260605T0931Z",
+  "captured_at": "2026-06-05T09:32:15Z",
+  "lane": "root-agent-guidance-hygiene",
+  "claims": [
+    "root README product-axis wording points to Intelligence instead of the retired Foundry product axis",
+    "root-hub and master-plan sequencing ownership metadata uses platform-governance instead of axis-foundry",
+    "docs/AGENTS active shared-surface language routes capability consumers through intelligence/governance and generic capability runtimes",
+    "repo-hygiene automation now fails if these active shared-surface Foundry phrases return"
+  ],
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "jq -e . specs/root-hub-pointers.json && jq -e . specs/master-plan-sequencing.json",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test && OYA_REPO_ROOT=/private/tmp/oyatie-root-agent-guidance-hygiene-20260605T0927Z repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "summary": "52 tests passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs && assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "summary": "verdict PASS; failures []"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "exit_code": 0,
+      "summary": "BUILD SUCCEEDED; Build ID 7f124f4d-8082-4668-b05a-111030e75a75"
+    },
+    {
+      "command": "targeted stale Foundry shared-surface scan over README, root hub, master sequencing, docs/AGENTS",
+      "exit_code": 0,
+      "summary": "no matches for active retired shared-surface phrases"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "local_static_only": true,
+  "live_mutation_performed": false,
+  "notes": [
+    "Historical Foundry references remain allowed inside ADR/provenance contexts and explicit retirement records.",
+    "This lane targets only active root/shared guidance surfaces to reduce agent confusion and shared edit churn."
+  ]
+}

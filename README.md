@@ -1,6 +1,6 @@
 # Oyatie
 
-Oyatie is a cohesive ecosystem-as-a-service across SaaS, Workspace, Vertical, Foundry, Cloud, Search, and Ads + Analytics.
+Oyatie is a cohesive ecosystem-as-a-service across SaaS, Workspace, Vertical, Intelligence, Cloud, Search, and Ads + Analytics.
 
 Canonical guidance and machine-readable specs live under [`docs/`](docs/) and [`.omc/`](.omc/). Humans typically start here; agents read [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md) for the canonical entry-point pointers into machine-readable artifacts.
 
