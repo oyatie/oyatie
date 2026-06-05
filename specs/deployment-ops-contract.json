@@ -2,168 +2,158 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/deployment-ops-contract.json",
   "title": "DeploymentOpsContract",
-  "description": "Machine-readable deployment entrypoint contract: OpenTofu owns the Cloudflare edge, the cluster fleet is provisioned declaratively by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD, the root Makefile owns operator entry, day-2 changes route through ops, and no manual SSH troubleshooting.",
+  "purpose": "Machine-readable deployment authority contract for Oyatie cloud cells: native release-conveyor and KRM/CUE desired state own deployment, Prow/Kubernetes-native oya-ci owns Buck2 evidence, and controller reconciliation owns day-2 convergence.",
+  "description": "Deployment entrypoints are controller-owned, Kubernetes-native, and Buck2/Prow evidenced. Human-local commands are limited to static validation and PR evidence collection; provider-specific and third-party delivery tools are compatibility adapters only, never active deployment authority.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
-    "spec_id": "EXE-DEPLOYMENT-OPS-CONTRACT",
-    "version": "2.0.0",
-    "status": "Accepted",
-    "owner_team": "axis-cloud + axis-foundry + council-architecture",
+    "version": "3.0.0",
+    "status": "active_native_authority_contract",
+    "owner": "platform-cloud",
     "created_at": "2026-05-16T12:45:00Z",
-    "amended_at": "2026-05-27T00:00:00Z",
-    "amendment_note": "v2.0.0 (ADR-0375): retire the OCI/on-prem OpenTofu+shell deployment model. OpenTofu now owns only the Cloudflare edge; cluster lifecycle moves to Cluster API + Talos (installation media) + Argo CD. The infra/oci + infra/onprem trees and their shell-consolidation inventory are removed.",
+    "amended_at": "2026-06-05T15:45:00Z",
+    "amendment_note": "Reframes deployment authority around native release-conveyor, KRM/CUE desired state, Cluster API/Talos fleet controllers, and Buck2/Prow oya-ci evidence. Historical external IaC/app-delivery and local wrapper entrypoints are archive/provenance only.",
     "source_directives": [
-      "no handrolling; declarative IaC and a minimal, intuitive bootstrap/Makefile.",
-      "once setup, everything managed through ops/GitOps.",
-      "no manual ssh command troubleshooting. just works out of the box.",
-      "everything from control plane to worker auto-installs from installation media; cluster lifecycle via CAPI, apps via Argo CD."
+      "no handrolled mutable deployment paths; desired state is typed, reviewed, and controller-reconciled",
+      "after bootstrap, deployment and day-2 changes flow through native release-conveyor APIs, KRM/CUE desired-state packages, and controller reconciliation",
+      "no ad hoc host-login troubleshooting as the normal path; incident work records audit evidence and restores desired state through PR/controller reconciliation",
+      "cluster lifecycle uses Cluster API and Talos-compatible controllers; application rollout uses native release-conveyor progressive delivery"
     ]
   },
   "deployment_authority": {
-    "primary": "opentofu",
-    "rationale": "OpenTofu declarative state owns the Cloudflare edge (tunnel, DNS, Zero Trust Access). The Talos cluster fleet is provisioned by Cluster API (declared in git, reconciled by controllers) — see cluster_fleet below; it is not a tofu root.",
+    "primary": "native_release_conveyor_krm",
+    "required_context": "oya-ci-required",
+    "rationale": "The durable deployment source of truth is provider-neutral desired state plus signed build/evidence/release ledgers. Buck2/Prow produces immutable artifacts and evidence; the release-conveyor consumes that evidence and reconciles progressive delivery through Kubernetes-native controllers.",
+    "authority_boundaries": [
+      "Buck2 owns build/test/check/coverage evidence",
+      "Prow/Kubernetes-native oya-ci owns trusted required-context publication",
+      "native release-conveyor owns promotion, rollback, and release-ledger state",
+      "KRM/CUE packages own first-party cloud-cell desired state and validation",
+      "provider-specific adapters are replaceable edges and must not become first-class deployment authority"
+    ],
     "roots": [
       {
-        "id": "cloudflare_edge",
-        "path": "infra/cloudflare",
-        "engine": "opentofu",
-        "state_policy": "root-declared backend; tunnel, DNS, and Zero Trust Access are OpenTofu-managed",
-        "managed_concerns": [
-          "tunnel",
-          "dns_records",
-          "access_applications",
-          "access_policies"
-        ]
+        "id": "release_conveyor_lane",
+        "path": "specs/ci/prow-jobs/platform-release-conveyor.json",
+        "engine": "native_release_conveyor",
+        "state_policy": "signed release ledger plus progressive-delivery controller state"
+      },
+      {
+        "id": "oya_ci_controller_config",
+        "path": "specs/generated/oya-ci-controller-config.generated.yaml",
+        "engine": "prow_kubernetes_native_oya_ci",
+        "state_policy": "trusted controller-generated required context and ProwJob inventory"
+      },
+      {
+        "id": "cluster_fleet_desired_state",
+        "path": "infra/capi",
+        "engine": "cluster_api_controller",
+        "state_policy": "cluster lifecycle reconciled from reviewed KRM/CUE-generated desired state"
+      },
+      {
+        "id": "talos_node_lifecycle",
+        "path": "infra/talos",
+        "engine": "talos_compatible_node_lifecycle",
+        "state_policy": "immutable node configuration generated from reviewed desired-state inputs"
+      },
+      {
+        "id": "cell_network_and_policy",
+        "path": "infra/cilium/cell-boundaries",
+        "engine": "kubernetes_network_policy_controller",
+        "state_policy": "cell boundary, service identity, and network-policy intent are controller reconciled"
+      },
+      {
+        "id": "admission_policy",
+        "path": "infra/kyverno/policies",
+        "engine": "policy_as_code_admission",
+        "state_policy": "policy-as-code admission guardrails validate workload identity, privilege, and runtime posture"
       }
-    ],
-    "required_cli_docs": [
-      "https://opentofu.org/docs/cli/commands/",
-      "https://opentofu.org/docs/cli/init/",
-      "https://opentofu.org/docs/cli/run/"
     ]
   },
   "cluster_fleet": {
-    "model": "Cluster API + Talos + Argo CD (ADR-0375; supersedes ADR-0120/0121)",
-    "node_install": "Talos installation-media zero-touch (infra/talos/installation-media) — control-plane config baked offline, nodes fetch config",
-    "cluster_lifecycle": "CAPI (infra/capi): clusterctl init + Talos/OCI/AWS/Metal3 providers; spoke Cluster CRs in infra/capi/clusters/",
-    "bootstrap_addons": "CAPI ClusterResourceSet installs Cilium + Argo CD per cluster (infra/capi/crs)",
-    "app_delivery": "per-cell Argo CD, Helm-first app-of-apps (infra/gitops)"
+    "model": "Cluster API + Talos-compatible node lifecycle + CUE/KRM desired state + native release-conveyor",
+    "node_install": "immutable node bootstrap inputs generated from reviewed desired state; node lifecycle is reconciled by controllers rather than local operator scripts",
+    "cluster_lifecycle": "Cluster API-compatible controllers reconcile cluster and cell resources from lane-owned desired-state shards",
+    "bootstrap_addons": "controller-applied cell baseline includes networking, policy-as-code admission, workload identity, secrets integration, observability, and oya-ci runner isolation",
+    "app_delivery": "native release-conveyor progressive delivery consumes signed Buck2/Prow artifacts and release-ledger approvals"
   },
   "operator_entrypoints": {
-    "makefile": {
-      "path": "Makefile",
-      "required_targets": [
-        "help",
-        "bootstrap",
-        "install",
-        "plan",
-        "apply",
-        "tofu-init",
-        "tofu-fmt-check",
-        "verify",
-        "verify-deploy-contract",
-        "ops"
-      ],
-      "command_policy": "Make targets may invoke cargo/Rust gates and tofu only (Cloudflare edge). They must not embed ssh troubleshooting, oci compute mutation, or terraform CLI. Cluster-fleet bring-up is git/CAPI-driven (see `make fleet`)."
-    },
-    "allowed_human_commands_after_clone": [
-      "make bootstrap",
-      "make install",
-      "make plan",
-      "make apply",
-      "make fleet",
-      "make ops",
-      "make verify"
+    "primary_surface": "native_release_conveyor_api_and_controller",
+    "local_static_evidence_commands": [
+      "buck2 build //:quality-lane-registry-authority-check # lane=deployment-ops-contract",
+      "buck2 build //:kubernetes-native-anti-pattern-check",
+      "buck2 build //:cloud-cell-elasticity-policy-check",
+      "buck2 build //:repo-hygiene-automation-check"
     ],
-    "forbidden_human_commands": [
-      "ssh <host> ... for troubleshooting",
-      "oci compute instance update ...",
-      "terraform ..."
-    ]
+    "allowed_human_commands_after_clone": [
+      "git worktree add -b <lane> <path> github-mirror/dev",
+      "buck2 build //:quality-lane-registry-authority-check # lane=deployment-ops-contract",
+      "buck2 build //:kubernetes-native-anti-pattern-check",
+      "buck2 build //:cloud-cell-elasticity-policy-check",
+      "gh pr create --base dev --head <lane>"
+    ],
+    "command_policy": "Local commands may collect static evidence and open PRs only. Deployment mutation runs through native release-conveyor/controller APIs after trusted Buck2/Prow evidence is green. Local wrapper commands, provider adapter commands, and direct cluster mutation are not active deployment authority."
   },
   "bootstrap_contract": {
-    "goal": "Cold-start the deployment toolchain without bespoke runbooks.",
-    "entrypoint": "make bootstrap",
-    "minimum_behaviour": [
-      "validate this deployment contract with Rust",
-      "verify tofu is installed and point to official OpenTofu install docs if absent",
-      "run tofu init for infra/cloudflare",
-      "avoid networked package installation except OpenTofu/provider downloads requested by tofu init"
-    ],
-    "non_goals": [
-      "SSH into hosts",
-      "mutate cloud resources outside OpenTofu",
-      "run component shell install scripts directly"
-    ]
-  },
-  "install_contract": {
-    "entrypoint": "make install",
-    "scope_note": "`make install` provisions ONLY the OpenTofu-owned Cloudflare edge (it is `install: apply`). It does NOT provision the cluster fleet — fleet bring-up is hardware-gated (boot Talos installation-media on real nodes) and multi-step, and `make fleet` is informational-only (prints the sequence). Treat fleet bring-up as a separate, manual/hardware-gated procedure until the Jenkins fleet-bootstrap pipeline lands (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-jenkins-fleet-bootstrap-pipeline).",
+    "entrypoint": "native controller bootstrap through reviewed desired-state PR",
+    "scope_note": "Bootstrap establishes controller prerequisites and cell baseline desired state. It does not perform local imperative deployment; the release-conveyor and reconcilers converge state from reviewed inputs.",
     "normal_flow": [
-      "run Rust deployment contract gate",
-      "run tofu apply for infra/cloudflare (this is the entire `make install`)"
+      "open a lane PR containing desired-state and release-conveyor inputs",
+      "run Buck2/Prow evidence and publish oya-ci-required from trusted controller state",
+      "release-conveyor records release ledger entry and starts progressive rollout",
+      "controllers reconcile cluster, workload, policy, identity, secrets, and observability resources",
+      "post rollout evidence, SLO, and audit rows before promotion"
     ],
     "fleet_bring_up_separate": [
-      "hardware-gated, NOT part of `make install`:",
-      "build Talos installation-media (infra/talos/installation-media/gen-media.sh) and boot it on the control-plane + node hardware",
-      "clusterctl init onto the formed control plane (infra/capi/init.sh)",
-      "render + apply the CRS bootstrap (infra/capi/crs/render.sh)",
-      "add cells to infra/capi/clusters/values.yaml and helm template | kubectl apply — CAPI reconciles; per-cell Argo CD then owns app delivery"
+      "hardware or provider capacity is declared as desired state",
+      "Cluster API-compatible controllers reconcile control-plane and worker resources",
+      "cell registration and baseline policy are admitted only after Buck2/Prow evidence and policy-as-code checks pass"
     ],
-    "confirmation_policy": "OpenTofu apply prompts by default; do not use hidden auto-approve in the Makefile."
+    "confirmation_policy": "Promotion requires trusted oya-ci-required evidence, release-ledger admission, scoped identity, and progressive-delivery health gates; hidden auto-approve paths are forbidden."
   },
   "ops_management_contract": {
-    "day_2_surface": "https://ops.oyatie.com",
-    "rule": "After bootstrap/install, desired-state changes, drift repair, status, and incident workflows are initiated through ops, Argo CD, or repo-native Rust controllers, not ad hoc SSH sessions.",
+    "day_2_surface": "native release-conveyor and cloud-cell controller APIs",
+    "rule": "After bootstrap, desired-state changes, drift repair, status, and incident workflows are initiated through native APIs/controllers and PR-backed desired-state updates, not ad hoc host sessions or external substrate dashboards.",
     "incident_flow": [
-      "auto-rollback first when canary/health fails",
-      "write registry/incidents/<id>.json evidence",
-      "route fix through CI/CD hotfix PR, OpenTofu desired-state change, or Argo CD git change",
-      "do not page a human and do not manually SSH-troubleshoot"
+      "auto-rollback first when canary, SLO, or health gates fail",
+      "write registry/incidents/<id>.json evidence and dual-attribution audit rows",
+      "route code fixes through hotfix PRs with Buck2/Prow evidence",
+      "route infra/config/capacity fixes through desired-state PRs and controller reconciliation",
+      "restore declarative desired state before closing incident"
     ]
   },
-  "manual_access": {
-    "manual_ssh_troubleshooting_allowed": false,
-    "forbidden_action_kinds": [
-      "ssh_troubleshooting",
-      "oci_cli_mutation",
-      "console_drift",
-      "direct_component_shell_install",
-      "terraform_cli_shadow_path"
+  "break_glass": {
+    "allowed": true,
+    "surface": "controller-scoped emergency action with time-bound identity and audit evidence",
+    "preconditions": [
+      "active production safety incident where native controllers or release-conveyor are unavailable",
+      "dual-attribution audit row emitted before or immediately after action",
+      "time-bound privilege escalation and session revocation are recorded",
+      "follow-up PR restores reviewed desired state"
     ],
-    "break_glass": {
-      "allowed": true,
-      "preconditions": [
-        "active production safety incident where OpenTofu/CAPI/ops is unavailable",
-        "audit-chain row emitted before or immediately after action",
-        "follow-up PR restores declarative desired state"
-      ],
-      "normal_runbook": "not present; break-glass is not a troubleshooting recipe"
-    }
+    "expiration": "emergency privilege expires automatically and cannot become a durable operating path"
   },
   "acceptance_criteria": [
     {
       "id": "DEP-OPS-AC-001",
-      "rule": "root Makefile exists and exposes all required targets"
+      "rule": "deployment mutation authority is native release-conveyor plus KRM/CUE desired state and controller reconciliation"
     },
     {
       "id": "DEP-OPS-AC-002",
-      "rule": "OpenTofu is the only deploy mutation authority for the Cloudflare edge; the cluster fleet is CAPI/Talos/Argo CD declared in git"
+      "rule": "Buck2/Prow oya-ci-required is the trusted merge and release evidence context"
     },
     {
       "id": "DEP-OPS-AC-003",
-      "rule": "manual SSH troubleshooting and OCI CLI mutation are explicitly forbidden"
+      "rule": "provider adapter, third-party delivery, local wrapper, and direct cluster mutation paths are adapter or break-glass only"
     },
     {
-      "id": "DEP-OPS-AC-005",
-      "rule": "the deployment durable goal no longer routes incidents to page-on-call"
+      "id": "DEP-OPS-AC-004",
+      "rule": "incident remediation restores desired state through PR/controller reconciliation and records audit evidence"
     }
   ],
-  "verification_commands": [
+  "validation_commands": [
     "buck2 build //:quality-lane-registry-authority-check # lane=deployment-ops-contract",
-    "make help",
-    "make fleet",
-    "make verify-deploy-contract",
-    "TOFU=tofu make tofu-fmt-check"
+    "buck2 build //:kubernetes-native-anti-pattern-check",
+    "buck2 build //:cloud-cell-elasticity-policy-check",
+    "buck2 build //:repo-hygiene-automation-check"
   ]
 }

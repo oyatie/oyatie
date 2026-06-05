@@ -50,6 +50,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
     assert_eq!(evaluation.design_system_spec_authority_clean_files, 17);
     assert_eq!(evaluation.schema_registry_spec_authority_clean_files, 9);
+    assert_eq!(evaluation.deployment_ops_contract_authority_clean_files, 1);
 }
 
 #[test]
@@ -1080,6 +1081,39 @@ fn schema_registry_spec_authority_scan_rejects_retired_local_validators() {
         "Jenkins",
         "ArgoCD",
         "Helm",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn checked_in_deployment_ops_contract_uses_native_authority_wording() {
+    let failures = gate::deployment_ops_contract_authority_failures(Path::new(&repo_root()));
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn deployment_ops_contract_authority_scan_rejects_retired_external_substrates() {
+    let failures = gate::deployment_ops_contract_authority_text_failures(
+        "specs/deployment-ops-contract.json",
+        "OpenTofu owns Cloudflare edge; Argo CD and Helm deploy through Jenkins; \
+         root Makefile make install make fleet make verify; manual SSH and oya ops are allowed.\n",
+    );
+    for expected in [
+        "OpenTofu",
+        "Cloudflare edge",
+        "Argo CD",
+        "Helm",
+        "Jenkins",
+        "Makefile",
+        "make install",
+        "make fleet",
+        "make verify",
+        "manual SSH",
+        "oya ops",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
