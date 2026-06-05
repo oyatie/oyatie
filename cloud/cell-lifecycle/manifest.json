@@ -133,7 +133,7 @@
       "cue_generated_manifest_buck2_check",
       "scale_to_zero_eligibility_gate"
     ],
-    "non_claim": "Existing Helm templates are compatibility scaffolding until first-party cloud-cell and pod desired state is generated from CUE-owned packages."
+    "non_claim": "First-party Helm templates are retired for this service; CUE/KRM desired-state generation owns future cloud-cell and pod configuration, with Helm reserved for external chart compatibility adapters only."
   },
   "runtime_data_processing": false,
   "cloud_ops_foundation": {
@@ -208,7 +208,7 @@
     "no measured SLO SLI burn-rate Prometheus OpenSLO runtime evidence",
     "no active-active DR failover drill backup restore or cross-region replication evidence",
     "no OpenTofu plan/apply provider SDK Kubernetes controller or provider-live operation",
-    "no CUE-to-manifest generation lane or Helm adapter migration completed",
+    "no CUE-to-manifest generation lane completed; first-party Helm template authority retired",
     "no audit-chain writer Merkle seal persistence or external evidence-store runtime",
     "no runtime autoscaling autosharding migration workflow or tenant move execution",
     "no cell promotion drain decommission lifecycle engine",

@@ -349,9 +349,9 @@ enforced_by:
 278. Static verification confirms manifest JSON parses after adding the ADR-0341 fields.
 279. Static verification confirms PRD has a single `ADR-0341 adoption` section.
 280. Static verification confirms ARCH has a single `ADR-0341 integration` section.
-281. Citation verification runs `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions`.
-282. Cohesion verification runs `cargo run -q -p oya-dev-cli -- gate validate cohesion`.
-283. Inventory refresh runs `cargo run -q -p oya-dev-cli -- doc inventory --write`.
+281. Citation verification is owned by Buck2/Prow ADR-citation evidence before merge; retired local dev-cli gate commands are provenance only.
+282. Cohesion verification is owned by Buck2/Prow cohesion evidence before merge; retired local dev-cli gate commands are provenance only.
+283. Inventory refresh is owned by the Rust/Buck2 documentation pipeline before merge; retired local doc CLI commands are provenance only.
 284. Downstream implementation verification must add unit tests for tier direction, stale evidence, missing gate, idempotency retry, and audit-chain ordering.
 285. Downstream implementation verification must add integration tests with fake observability, tenancy, audit-chain, and policy adapters.
 286. Downstream implementation verification must prove no code path stores raw telemetry or compliance payloads in LifecycleHistory.
