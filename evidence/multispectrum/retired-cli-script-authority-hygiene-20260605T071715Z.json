@@ -1,0 +1,98 @@
+{
+  "evidence_id": "retired-cli-script-authority-hygiene-20260605T071715Z",
+  "captured_at": "20260605T071715Z",
+  "lane": "chore/retired-cli-script-authority-hygiene-20260605T070206Z",
+  "base_commit": "a729d1e97546ce7f27a3571b2de304d4bf0fbd14",
+  "claim_boundary": {
+    "phase0_complete": false,
+    "p0_0_green": false,
+    "protected_branch_authority_proven": false,
+    "live_mutation_performed": false,
+    "remote_checks_pending": true
+  },
+  "change_summary": [
+    "deleted obsolete shell compatibility shims for on-prem bring-up, Trivy CI install, and release image supply-chain validation",
+    "removed retired oya-dev-cli invocation from the GitHub branch-protection adapter",
+    "updated Rust/Buck2 language-discipline and repo-hygiene checks to require zero active retired CLI script shims and 37 tracked non-vendored Python/shell files",
+    "updated supply-chain gate fixtures and admission-kernel text to prefer Rust/Buck2 supply-chain evidence over deleted scripts"
+  ],
+  "local_verification": [
+    {
+      "command": "git diff --check && git diff --cached --check",
+      "exit_code": 0,
+      "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-verify-20260605T071540Z.log"
+    },
+    {
+      "command": "rustfmt --edition 2024 --check <bounded touched Rust files>",
+      "exit_code": 0,
+      "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-verify-20260605T071540Z.log"
+    },
+    {
+      "command": "bash -n scripts/branch-protection-apply.sh && jq empty <changed JSON/JSONL>",
+      "exit_code": 0,
+      "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-verify-20260605T071540Z.log"
+    },
+    {
+      "command": "rg deleted script paths excluding evidence/buck-out/target",
+      "exit_code": 0,
+      "observed": "no matches",
+      "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-verify-20260605T071540Z.log"
+    },
+    {
+      "command": "rg retired oya CLI invocation tokens in active scripts excluding checker tests/Rust sources",
+      "exit_code": 0,
+      "observed": "no matches",
+      "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-verify-20260605T071540Z.log"
+    },
+    {
+      "command": "buck2 build //:language-discipline-check //:repo-hygiene-automation-check //:buck2-authority-policy-check --show-output",
+      "exit_code": 0,
+      "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-verify-20260605T071540Z.log",
+      "outputs": {
+        "language_discipline": "buck-out/v2/art/root/39893c7e49283da4/__language-discipline-check__/out/language-discipline-check.json",
+        "repo_hygiene": "buck-out/v2/art/root/39893c7e49283da4/__repo-hygiene-automation-check__/out/repo-hygiene-automation-check.json",
+        "buck2_authority_policy": "buck-out/v2/art/root/39893c7e49283da4/__buck2-authority-policy-check__/out/buck2-authority-policy-check.json"
+      }
+    },
+    {
+      "command": "scripts/branch-protection-apply.sh --check with fake gh returning canonical context array",
+      "exit_code": 0,
+      "observed": "missing_from_live and extra_in_live are empty",
+      "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-branch-protection-smoke-20260605T071639Z.log"
+    },
+    {
+      "command": "scripts/branch-protection-apply.sh --check with fake gh returning stale context array",
+      "exit_code": 0,
+      "observed": "script exits 1 and the harness asserts fail-closed drift detection",
+      "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-branch-protection-smoke-20260605T071639Z.log"
+    }
+  ],
+  "policy_outputs": {
+    "language_discipline": {
+      "verdict": "PASS",
+      "active_retired_cli_script_count": 0,
+      "backlog_offender_count": 7,
+      "fixture_count": 4,
+      "failures": []
+    },
+    "repo_hygiene": {
+      "verdict": "PASS",
+      "tracked_typescript_pnpm_mjs_count": 0,
+      "tracked_nonvendored_python_shell_count": 37,
+      "failures": []
+    },
+    "buck2_authority_policy": {
+      "verdict": "PASS",
+      "authority_context": "oya-ci-required",
+      "command_scan_files": 149
+    }
+  },
+  "known_local_gap": {
+    "command": "buck2 build //oya/developer-sdk/crates/oya-dev-cli:oya-dev-cli //oya/intelligence/crates/oya-vcs-admission-gate-kernel:oya-vcs-admission-gate-kernel --show-output",
+    "exit_code": 3,
+    "evidence_log": "/tmp/oyatie-retired-cli-script-authority-hygiene-affected-rust-buck2-20260605T071729Z.log",
+    "classification": "local macOS Buck2 third-party build-script linker gap before touched crate code is compiled",
+    "observed_failure": "third-party serde_json build-script link invoked Linux linker flags such as --as-needed and -Bstatic against macOS ld",
+    "follow_up": "remote GitHub/Prow-compatible checks must be watched before merge"
+  }
+}

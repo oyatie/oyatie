@@ -18,6 +18,18 @@ fn read_repo_file(path: &str) -> String {
     })
 }
 
+fn temp_dir(name: &str) -> PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "oyatie-language-discipline-{}-{}",
+        name,
+        std::process::id()
+    ));
+    let _ = fs::remove_dir_all(&path);
+    fs::create_dir_all(&path)
+        .unwrap_or_else(|err| panic!("create temp dir {}: {}", path.display(), err));
+    path
+}
+
 fn json_object_containing_id<'a>(document: &'a str, id: &str) -> &'a str {
     let needle = format!("\"id\": \"{}\"", id);
     let id_position = document
@@ -95,7 +107,7 @@ fn checked_in_registry_and_fixtures_pass() {
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert_eq!(evaluation.fixture_count, 4);
     assert_eq!(evaluation.backlog_offender_count, 7);
-    assert_eq!(evaluation.active_retired_cli_script_count, 4);
+    assert_eq!(evaluation.active_retired_cli_script_count, 0);
     assert!(evaluation.failures.is_empty());
 }
 
@@ -133,15 +145,16 @@ fn registry_rejects_missing_cloud_backlog_offender() {
 }
 
 #[test]
-fn registry_rejects_missing_retired_cli_script_entry() {
+fn registry_rejects_retired_cli_count_reinflation() {
     let mutated = read_repo_file("specs/language-discipline-registry.json").replace(
-        "scripts/branch-protection-apply.sh",
-        "scripts/branch-protection-apply.rs",
+        "\"detected_script_count\": 0",
+        "\"detected_script_count\": 1",
     );
     let failures = gate::registry_failures(&mutated);
     assert!(
-        failures.iter().any(|failure| failure
-            == "missing_active_retired_cli_script:scripts/branch-protection-apply.sh"),
+        failures
+            .iter()
+            .any(|failure| failure == "missing_active_retired_cli_script_count_0"),
         "{:?}",
         failures
     );
@@ -149,13 +162,24 @@ fn registry_rejects_missing_retired_cli_script_entry() {
 
 #[test]
 fn active_script_scan_rejects_unregistered_retired_cli_invocation() {
-    let mutated = read_repo_file("specs/language-discipline-registry.json")
-        .replace("scripts/install-trivy-ci.sh", "scripts/install-trivy-ci.rs");
-    let failures = gate::active_retired_cli_script_failures(Path::new(&repo_root()), &mutated);
+    let root = temp_dir("retired-cli-invocation");
+    fs::create_dir_all(root.join("scripts")).unwrap();
+    fs::write(
+        root.join("scripts/bad.sh"),
+        concat!(
+            "#!/usr/bin/env bash\n",
+            "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate stale\n"
+        ),
+    )
+    .unwrap();
+    let failures = gate::active_retired_cli_script_failures(
+        &root,
+        &read_repo_file("specs/language-discipline-registry.json"),
+    );
     assert!(
         failures
             .iter()
-            .any(|failure| failure == "unregistered_retired_cli_script:scripts/install-trivy-ci.sh"),
+            .any(|failure| failure == "unregistered_retired_cli_script:scripts/bad.sh"),
         "{:?}",
         failures
     );

@@ -7,7 +7,7 @@ Usage: scripts/branch-protection-apply.sh [--check|--apply] [--repo OWNER/REPO] 
 
 Synchronize GitHub required status-check protection with infra/branch-protection/dev.json.
 
-Default mode is --check: read live branch protection, run the repo gate, and exit non-zero on drift.
+Default mode is --check: read live branch protection, compare canonical contexts, and exit non-zero on drift.
 --apply performs the GitHub mutation for required_status_checks only, then re-runs --check.
 
 Auth: uses gh CLI auth or GH_TOKEN. GitHub requires Administration read for --check and
@@ -63,8 +63,6 @@ require_cmd() {
 
 require_cmd gh
 require_cmd jq
-require_cmd buck2
-
 if [[ -n "${GITHUB_ACTIONS:-}" && -z "${GH_TOKEN:-}" ]]; then
   echo "::error::OYA_BRANCH_PROTECTION_READ_TOKEN is required; GitHub branch-protection status-check APIs require Administration read permission, which GITHUB_TOKEN cannot request." >&2
   exit 1
@@ -89,6 +87,7 @@ trap cleanup EXIT
 
 payload="$workdir/required-status-checks-payload.json"
 live="$workdir/live-required-status-checks.json"
+delta="$workdir/required-status-checks-delta.json"
 
 jq '{strict: .required_status_checks.strict, contexts: .required_status_checks.contexts}' \
   "$config" > "$payload"
@@ -125,8 +124,10 @@ if [[ "$mode" == "apply" ]]; then
 fi
 
 fetch_live
-print_delta
-buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate protection-context-match \
-  --branch "$branch" \
-  --applied-branch-protection "$config" \
-  --live-required-contexts "$live"
+print_delta > "$delta"
+jq '.' "$delta"
+
+if ! jq -e '(.missing_from_live | length) == 0 and (.extra_in_live | length) == 0' "$delta" >/dev/null; then
+  echo "required status-check contexts drift from ${config} for ${repo}:${branch}" >&2
+  exit 1
+fi

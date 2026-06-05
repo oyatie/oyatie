@@ -1536,11 +1536,11 @@ fn supply_chain_gate_accepts_full_adr0039_static_wiring() {
         "source-only",
         "cargo audit\ncargo deny check\n",
         Some(
-            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/validate-release-image-supply-chain.sh\n",
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- supply-chain adr0039\n",
         ),
         true,
     );
-    write_supply_chain_adr0039_script(&temp);
+    write_supply_chain_adr0039_wiring(&temp);
     write_supply_chain_branch_protection(&temp);
     write_supply_chain_admission_policy(&temp);
 
@@ -1572,12 +1572,12 @@ fn supply_chain_gate_accepts_full_adr0039_static_wiring_with_pre_release_empty_s
         "source-only",
         "cargo audit\ncargo deny check\n",
         Some(
-            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/validate-release-image-supply-chain.sh\n",
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- supply-chain adr0039\n",
         ),
         false,
     );
     write_pre_release_contract_image_manifest(&temp);
-    write_supply_chain_adr0039_script(&temp);
+    write_supply_chain_adr0039_wiring(&temp);
     write_supply_chain_branch_protection(&temp);
     write_supply_chain_admission_policy(&temp);
 
@@ -1604,11 +1604,11 @@ fn supply_chain_gate_rejects_full_adr0039_without_signed_commit_policy() {
         "source-only",
         "cargo audit\ncargo deny check\n",
         Some(
-            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/validate-release-image-supply-chain.sh\n",
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- supply-chain adr0039\n",
         ),
         true,
     );
-    write_supply_chain_adr0039_script(&temp);
+    write_supply_chain_adr0039_wiring(&temp);
     write_supply_chain_admission_policy(&temp);
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
@@ -4245,9 +4245,9 @@ fn supply_chain_args(root: &Path) -> Vec<String> {
             .expect("utf8 check script")
             .into(),
         "--adr0039-script".into(),
-        root.join("scripts/validate-release-image-supply-chain.sh")
+        root.join("artifacts/supply-chain/adr0039-wiring.txt")
             .to_str()
-            .expect("utf8 adr0039 script")
+            .expect("utf8 adr0039 wiring")
             .into(),
         "--workflows-dir".into(),
         root.join(".github/workflows")
@@ -4417,12 +4417,12 @@ fn release_evidence_pack_args(root: &Path) -> Vec<String> {
     ]
 }
 
-fn write_supply_chain_adr0039_script(root: &Path) {
-    fs::create_dir_all(root.join("scripts")).expect("scripts dir created");
+fn write_supply_chain_adr0039_wiring(root: &Path) {
+    fs::create_dir_all(root.join("artifacts/supply-chain"))
+        .expect("supply-chain artifacts dir created");
     fs::write(
-        root.join("scripts/validate-release-image-supply-chain.sh"),
-        r#"#!/usr/bin/env bash
-trivy fs --severity HIGH,CRITICAL --exit-code 1 .
+        root.join("artifacts/supply-chain/adr0039-wiring.txt"),
+        r#"trivy fs --severity HIGH,CRITICAL --exit-code 1 .
 trivy image --severity HIGH,CRITICAL --exit-code 1 "$image"
 trivy config --severity HIGH,CRITICAL --exit-code 1 infra/
 trivy fs --scanners vuln,secret,license --format sarif --output artifacts/trivy.sarif .
@@ -4433,7 +4433,7 @@ cosign verify --rekor-url https://rekor.sigstore.dev "$image"
 cosign attest --yes --predicate artifacts/provenance.json "$image"
 "#,
     )
-    .expect("ADR-0039 script written");
+    .expect("ADR-0039 wiring evidence written");
 }
 
 fn write_supply_chain_branch_protection(root: &Path) {
