@@ -1,7 +1,26 @@
+export_file(
+    name = "lib-src",
+    src = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
 rust_library(
     name = "oya-check-no-grouping",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_check_no_grouping",
     crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+genrule(
+    name = "no-grouping-kernel-check",
+    srcs = {
+        "src/lib.rs": "src/lib.rs",
+    },
+    out = "no-grouping-kernel-check.json",
+    cmd = "mkdir -p $TMP/no-grouping-kernel && rustc --edition=2024 -D warnings libs/oya-check-no-grouping/src/lib.rs --test -o $TMP/no-grouping-kernel/no_grouping_kernel_check && $TMP/no-grouping-kernel/no_grouping_kernel_check > /dev/null && echo '{\"verdict\":\"PASS\",\"checker\":\"libs/oya-check-no-grouping/src/lib.rs\",\"local_static_only\":true,\"live_mutation_performed\":false}' > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
     visibility = ["PUBLIC"],
 )

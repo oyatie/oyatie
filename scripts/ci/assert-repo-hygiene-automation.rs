@@ -17,6 +17,7 @@ const CANONICAL_PRIMITIVES_PATH: &str = "specs/canonical-primitives.json";
 const AGENT_OPERATING_CONTRACT_PATH: &str = "specs/agent-operating-contract.json";
 const PHASE0_AUTO_MERGE_AFTER_CI_PATH: &str = "specs/phase0-auto-merge-after-ci.json";
 const TENANT_RBAC_SPEC_PATH: &str = "specs/microservices/tenant-rbac.json";
+const TENANT_RBAC_PACKAGING_PATH: &str = "specs/tenant-rbac-packaging.json";
 const MASTERPLAN_PATH: &str = "specs/masterplan.json";
 const SEQUENCING_PATH: &str = "specs/master-plan-sequencing.json";
 const DOC_MASTERPLAN_PATH: &str = "docs/MASTERPLAN.md";
@@ -64,7 +65,7 @@ const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
 const REQUIRED_BUCK2_RELEASE: &str = "2026-06-01";
 const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 28;
-const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 55;
+const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 53;
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
@@ -77,6 +78,9 @@ const KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND: &str =
     "buck2 build //:kubernetes-native-anti-pattern-check";
 const TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND: &str =
     "buck2 build //:latest-toolchain-pin-updater-check";
+const RETIRED_GROUPING_WORDING_COMMAND: &str = "buck2 build //:retired-grouping-wording-check";
+const NO_GROUPING_KERNEL_CHECK_COMMAND: &str =
+    "buck2 build //libs/oya-check-no-grouping:no-grouping-kernel-check";
 const RETIRED_PLANNING_CLOSURE_COMMAND: &str =
     "cargo run -q -p oya-dev-cli -- gate validate planning-closure";
 const RETIRED_OYA_DEV_CLI_PLANNING_CLOSURE_COMMAND: &str =
@@ -103,6 +107,8 @@ const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     OYA_CI_CONTROLLER_CONFIG_COMMAND,
     KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
     TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND,
+    RETIRED_GROUPING_WORDING_COMMAND,
+    NO_GROUPING_KERNEL_CHECK_COMMAND,
 ];
 
 const REQUIRED_SOURCE_URLS: &[&str] = &[
@@ -213,7 +219,7 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
         "non-Rust surface inventory must point to the disjoint Python/shell surface inventory",
     ),
     (
-        "\"tracked_nonvendored_python_shell_count\": 55",
+        "\"tracked_nonvendored_python_shell_count\": 53",
         "non-Rust surface inventory must record the audited non-vendored Python/shell count",
     ),
     (
@@ -1205,6 +1211,33 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
     failures
 }
 
+pub fn tenant_rbac_packaging_failures(packaging: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+    for command in [
+        RETIRED_GROUPING_WORDING_COMMAND,
+        NO_GROUPING_KERNEL_CHECK_COMMAND,
+    ] {
+        require(
+            contains_json_string(packaging, command),
+            &mut failures,
+            format!("tenant RBAC packaging static_gates missing {command}"),
+        );
+    }
+    let retired_shell_gate = ["scripts/", "reject-retired-grouping-wording.sh ."].concat();
+    require(
+        !contains_json_string(packaging, &retired_shell_gate),
+        &mut failures,
+        "tenant RBAC packaging must not keep retired shell grouping-wording gate",
+    );
+    let retired_local_runner = ["cargo", " test -p oya-check-no-grouping"].concat();
+    require(
+        !contains_json_string(packaging, &retired_local_runner),
+        &mut failures,
+        "tenant RBAC packaging must use Buck2 no-grouping kernel check, not a retired local runner",
+    );
+    failures
+}
+
 pub fn rust_toolchain_policy_failures(
     rust_toolchain: &str,
     cargo_toml: &str,
@@ -1468,6 +1501,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let root_hub = read(root, ROOT_HUB_PATH, &mut failures);
     let github_bridge = read(root, GITHUB_BRIDGE_PATH, &mut failures);
     let agent_operating_contract = read(root, AGENT_OPERATING_CONTRACT_PATH, &mut failures);
+    let tenant_rbac_packaging = read(root, TENANT_RBAC_PACKAGING_PATH, &mut failures);
     let masterplan = read(root, MASTERPLAN_PATH, &mut failures);
     let sequencing = read(root, SEQUENCING_PATH, &mut failures);
     let doc_masterplan = read(root, DOC_MASTERPLAN_PATH, &mut failures);
@@ -1498,6 +1532,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let toolchain_updater = read(root, TOOLCHAIN_PIN_UPDATER_PATH, &mut failures);
 
     failures.extend(spec_failures(&spec));
+    failures.extend(tenant_rbac_packaging_failures(&tenant_rbac_packaging));
     failures.extend(rust_toolchain_policy_failures(
         &rust_toolchain,
         &cargo_toml,

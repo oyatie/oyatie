@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T22:55:00Z",
+  "updated_at": "2026-06-05T00:24:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -192,7 +192,9 @@
     "buck2 build //:oya-ci-controller-config-check",
     "buck2 build //:kubernetes-native-anti-pattern-check",
     "buck2 build //:buck2-authority-policy-check",
-    "buck2 build //:latest-toolchain-pin-updater-check"
+    "buck2 build //:latest-toolchain-pin-updater-check",
+    "buck2 build //:retired-grouping-wording-check",
+    "buck2 build //libs/oya-check-no-grouping:no-grouping-kernel-check"
   ],
   "official_sources": [
     {
@@ -446,12 +448,12 @@
   },
   "existing_non_rust_surface_inventory": {
     "status": "classified_no_durable_authority",
-    "updated_at": "2026-06-04T00:00:00Z",
+    "updated_at": "2026-06-05T00:24:00Z",
     "typescript_pnpm_mjs_surface_inventory": "registry/repo-hygiene/typescript-pnpm-surface-inventory.json",
     "tracked_typescript_pnpm_mjs_count": 28,
     "typescript_pnpm_mjs_count_source": "filesystem_scan_excluding_vendored_agent_skills",
     "python_shell_surface_inventory": "registry/repo-hygiene/python-shell-surface-inventory.json",
-    "tracked_nonvendored_python_shell_count": 55,
+    "tracked_nonvendored_python_shell_count": 53,
     "python_shell_count_source": "filesystem_scan_excluding_vendored_surfaces",
     "typescript_pnpm_mjs_disposition": "retirement_review_product_prototype_or_advisory_only_not_merge_authority",
     "python_shell_disposition": "bootstrap_host_prelude_reference_or_pending_rust_buck2_rewrite_only_not_merge_authority",
