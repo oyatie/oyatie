@@ -49,7 +49,7 @@ pub(crate) fn parse_supply_chain_validate_args(
         registry_dir: PathBuf::from("registry/catalog"),
         deny_config_path: PathBuf::from("deny.toml"),
         check_script_path: None,
-        adr0039_script_path: PathBuf::from("scripts/validate-release-image-supply-chain.sh"),
+        adr0039_script_path: PathBuf::from(DEFAULT_ADR0039_RUST_PATH),
         adr0039_rust_path: PathBuf::from(DEFAULT_ADR0039_RUST_PATH),
         workflows_dir: PathBuf::from(".github/workflows"),
         release_images_path: PathBuf::from("registry/release/images.yaml"),

@@ -14,9 +14,6 @@ genrule(
     srcs = {
         "infra/ci/buck2-affected-gate.sh": "infra/ci/buck2-affected-gate.sh",
         "scripts/branch-protection-apply.sh": "scripts/branch-protection-apply.sh",
-        "scripts/onprem-bring-up.sh": "scripts/onprem-bring-up.sh",
-        "scripts/install-trivy-ci.sh": "scripts/install-trivy-ci.sh",
-        "scripts/validate-release-image-supply-chain.sh": "scripts/validate-release-image-supply-chain.sh",
         "scripts/hooks/pre-push.sh": "scripts/hooks/pre-push.sh",
         "scripts/ci/enforce-buck2-authority.rs": "scripts/ci/enforce-buck2-authority.rs",
         "scripts/ci/oya-ci-post.sh": "scripts/ci/oya-ci-post.sh",
