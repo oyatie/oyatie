@@ -27,6 +27,7 @@ const README_PATH: &str = "README.md";
 const AGENTS_PATH: &str = "AGENTS.md";
 const CLAUDE_PATH: &str = "CLAUDE.md";
 const DOC_AGENTS_PATH: &str = "docs/AGENTS.md";
+const DOCS_README_PATH: &str = "docs/README.md";
 const DOC_CATALOG_PATH: &str = "docs/DOC-CATALOG.md";
 const AGENTS_OPERATING_CONTRACT_DOC_PATH: &str = "docs/AGENTS-OPERATING-CONTRACT.md";
 const CANONICAL_PRD_PATH: &str = "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md";
@@ -59,6 +60,9 @@ const PYTHON_SHELL_SURFACE_INVENTORY_PATH: &str =
     "registry/repo-hygiene/python-shell-surface-inventory.json";
 const CODE_STYLE_RUST_PATH: &str = "docs/standards/code-style-rust.md";
 const DEPENDENCY_POLICY_PATH: &str = "docs/standards/dependency-policy.md";
+const HYPERSCALER_ADOPTION_FITNESS_PATH: &str = "docs/standards/hyperscaler-adoption-fitness.md";
+const STANDARDS_INDEX_PATH: &str = "docs/standards/INDEX.md";
+const KUBERNETES_NATIVE_ANTI_PATTERNS_PATH: &str = "specs/kubernetes-native-anti-patterns.json";
 const LTS_VERSIONS_VERIFIED_PATH: &str = "docs/standards/lts-versions-verified.md";
 const OBSERVABILITY_SLO_PATH: &str = "docs/standards/observability-slo.md";
 const DOC_STALENESS_MAIN: &str = "tools/oya-doc-staleness-inventory-app/src/main.rs";
@@ -551,6 +555,11 @@ const REQUIRED_SOURCE_URLS: &[&str] = &[
     "https://sapling-scm.com/docs/introduction/",
     "https://sapling-scm.com/docs/scale/overview/",
     "https://architecture.cncf.io/",
+    "https://sre.google/sre-book/release-engineering/",
+    "https://sre.google/sre-book/eliminating-toil/",
+    "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/",
+    "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+    "https://learn.microsoft.com/en-us/azure/architecture/patterns/deployment-stamp",
     "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
     "https://helm.sh/docs/topics/charts/",
     "https://cloud.google.com/kubernetes-engine/docs/concepts/horizontalpodautoscaler",
@@ -753,6 +762,18 @@ const REQUIRED_DEPENDENCY_REGISTRY_POLICY_NEEDLES: &[(&str, &str)] = &[
         "\"replacement_strategy_required\": true",
         "dependency registry policy must require replacement/wrapper strategy",
     ),
+    (
+        "\"hyperscaler_adoption_fitness_required\": true",
+        "dependency registry policy must require hyperscaler adoption fitness",
+    ),
+    (
+        "\"fitness_standard\": \"docs/standards/hyperscaler-adoption-fitness.md\"",
+        "dependency registry policy must point to hyperscaler adoption fitness standard",
+    ),
+    (
+        "\"hyperscaler_reference_rule\"",
+        "dependency registry policy must record hyperscaler-scale reference rule",
+    ),
 ];
 
 const REQUIRED_BUCK2_RELEASE_POLICY_NEEDLES: &[(&str, &str)] = &[
@@ -781,6 +802,7 @@ const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "shared_surface_substrate_migration_audit",
     "cue_first_cell_pod_config_authority",
     "helm_adapter_compatibility_wrapper",
+    "hyperscaler_adoption_fitness_for_everything",
     "scale_to_zero_eligibility_gate",
     "stale_doc_inventory_followups",
     "retired_external_substrate_residue",
@@ -1578,6 +1600,14 @@ fn require_contains(text: &str, needle: &str, failures: &mut Vec<String>, label:
         text.contains(needle),
         failures,
         format!("{label}: missing {needle:?}"),
+    );
+}
+
+fn require_not_contains(text: &str, needle: &str, failures: &mut Vec<String>, label: &str) {
+    require(
+        !text.contains(needle),
+        failures,
+        format!("{label}: must not contain {needle:?}"),
     );
 }
 
@@ -3269,6 +3299,139 @@ pub fn dependency_registry_policy_failures(
     failures
 }
 
+pub fn hyperscaler_adoption_fitness_failures(
+    standard: &str,
+    standards_index: &str,
+    docs_readme: &str,
+    dependency_policy: &str,
+    masterplan: &str,
+    spec: &str,
+    kubernetes_native_anti_patterns: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for (label, text) in [
+        (HYPERSCALER_ADOPTION_FITNESS_PATH, standard),
+        (DEPENDENCY_POLICY_PATH, dependency_policy),
+        (MASTERPLAN_PATH, masterplan),
+        (SPEC_PATH, spec),
+        (
+            KUBERNETES_NATIVE_ANTI_PATTERNS_PATH,
+            kubernetes_native_anti_patterns,
+        ),
+    ] {
+        for needle in [
+            "hyperscaler",
+            "Google",
+            "AWS",
+            "Azure",
+            "methodology",
+            "reasoning",
+            "technology",
+            "operation",
+            "dependency",
+            "vendored tool",
+            "adopt",
+            "wrap",
+            "shadow",
+            "self_write",
+            "reject",
+            "historical",
+        ] {
+            require_contains(text, needle, &mut failures, label);
+        }
+    }
+
+    for needle in [
+        "# Hyperscaler adoption fitness",
+        "Would Google, AWS, Azure",
+        "Scale and concurrency",
+        "Isolation and blast radius",
+        "Control-plane / data-plane split",
+        "Automation over toil",
+        "Security by default",
+        "Portability and exit",
+        "Build/adopt rule",
+        "Backlog rule",
+        "Buck2/Prow verification target",
+        "https://sre.google/sre-book/release-engineering/",
+        "https://sre.google/sre-book/eliminating-toil/",
+        "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/",
+        "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+        "https://learn.microsoft.com/en-us/azure/architecture/patterns/deployment-stamp",
+    ] {
+        require_contains(
+            standard,
+            needle,
+            &mut failures,
+            HYPERSCALER_ADOPTION_FITNESS_PATH,
+        );
+    }
+
+    for (label, text) in [
+        (STANDARDS_INDEX_PATH, standards_index),
+        (DOCS_README_PATH, docs_readme),
+    ] {
+        require_contains(
+            text,
+            "hyperscaler-adoption-fitness.md",
+            &mut failures,
+            label,
+        );
+    }
+
+    for needle in [
+        "\"hyperscaler_adoption_fitness_policy\"",
+        "\"required_question\": \"would_google_aws_azure_or_comparable_hyperscaler_plausibly_operate_this_at_cloud_provider_scale\"",
+        "\"durable_architecture_rule\": \"no_choice_becomes_durable_architecture_without_hyperscaler_fit_evidence_or_explicit_adapter_self_write_rejection_boundary\"",
+        "\"backlog_rule\": \"choices_that_do_not_yet_pass_but_unblock_parallel_work_enter_backlog_as_shadow_wrap_or_self_write_with_cutover_condition\"",
+        "\"hyperscaler_adoption_fitness_for_everything\"",
+    ] {
+        require_contains(spec, needle, &mut failures, SPEC_PATH);
+    }
+
+    require_contains(
+        masterplan,
+        "Backlog hyperscaler adoption fitness as a universal gate",
+        &mut failures,
+        MASTERPLAN_PATH,
+    );
+    require_contains(
+        masterplan,
+        "hyperscaler_adoption_fitness_backlog_recorded",
+        &mut failures,
+        MASTERPLAN_PATH,
+    );
+
+    require_contains(
+        kubernetes_native_anti_patterns,
+        "\"id\": \"hyperscaler_adoption_fitness_for_everything\"",
+        &mut failures,
+        KUBERNETES_NATIVE_ANTI_PATTERNS_PATH,
+    );
+    require_contains(
+        kubernetes_native_anti_patterns,
+        "\"id\": \"non_hyperscaler_fit_decision_or_cargo_cult_tooling\"",
+        &mut failures,
+        KUBERNETES_NATIVE_ANTI_PATTERNS_PATH,
+    );
+
+    require_not_contains(
+        dependency_policy,
+        "Bazel / Buck2 are **not adopted**",
+        &mut failures,
+        DEPENDENCY_POLICY_PATH,
+    );
+    require_contains(
+        dependency_policy,
+        "Buck2/Prow is the durable build/test/check/coverage authority",
+        &mut failures,
+        DEPENDENCY_POLICY_PATH,
+    );
+
+    failures
+}
+
 pub fn buck2_release_policy_failures(
     spec: &str,
     workflow: &str,
@@ -4323,6 +4486,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let planning_contract = read(root, PLANNING_CLOSURE_CONTRACT_PATH, &mut failures);
     let planning_ledger = read(root, PLANNING_CLOSURE_LEDGER_PATH, &mut failures);
     let readme = read(root, README_PATH, &mut failures);
+    let docs_readme = read(root, DOCS_README_PATH, &mut failures);
     let agents = read(root, AGENTS_PATH, &mut failures);
     let claude = read(root, CLAUDE_PATH, &mut failures);
     let doc_agents = read(root, DOC_AGENTS_PATH, &mut failures);
@@ -4342,6 +4506,10 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let python_shell_inventory = read(root, PYTHON_SHELL_SURFACE_INVENTORY_PATH, &mut failures);
     let code_style = read(root, CODE_STYLE_RUST_PATH, &mut failures);
     let dependency_policy = read(root, DEPENDENCY_POLICY_PATH, &mut failures);
+    let hyperscaler_adoption_fitness = read(root, HYPERSCALER_ADOPTION_FITNESS_PATH, &mut failures);
+    let standards_index = read(root, STANDARDS_INDEX_PATH, &mut failures);
+    let kubernetes_native_anti_patterns =
+        read(root, KUBERNETES_NATIVE_ANTI_PATTERNS_PATH, &mut failures);
     let lts_versions = read(root, LTS_VERSIONS_VERIFIED_PATH, &mut failures);
     let observability_slo = read(root, OBSERVABILITY_SLO_PATH, &mut failures);
     let github_actions_bootstrap = read(root, GITHUB_ACTIONS_BOOTSTRAP_PATH, &mut failures);
@@ -4395,6 +4563,15 @@ pub fn evaluate(root: &Path) -> Evaluation {
         &blessed_allowlist,
         &dependency_policy,
         &masterplan,
+    ));
+    failures.extend(hyperscaler_adoption_fitness_failures(
+        &hyperscaler_adoption_fitness,
+        &standards_index,
+        &docs_readme,
+        &dependency_policy,
+        &masterplan,
+        &spec,
+        &kubernetes_native_anti_patterns,
     ));
     failures.extend(masterplan_native_scm_hygiene_failures(
         &masterplan,

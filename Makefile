@@ -4,22 +4,23 @@ SHELL := /bin/sh
 TOFU ?= tofu
 BUCK2 ?= buck2
 # OpenTofu now owns only the Cloudflare edge. The cluster fleet is provisioned by
-# Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD — see infra/capi, infra/talos/installation-media,
-# infra/gitops (ADR-0375, supersedes the OCI/on-prem deployment model of ADR-0120/0121).
+# Cluster API + Talos bootstrap plus Oyatie-native CUE/KRM desired-state,
+# release-conveyor, and controller reconciliation. This Makefile is a
+# pointer-thin edge convenience surface, not a deployment orchestrator.
 CLOUDFLARE_DIR := infra/cloudflare
 
 .PHONY: help bootstrap install plan apply tofu-init tofu-fmt-check verify verify-deploy-contract ops fleet check-tofu
 
 help:
-	@printf '%s\n' 'Oyatie deployment entrypoints (OpenTofu edge + CAPI/Talos fleet; no SSH troubleshooting)'
+	@printf '%s\n' 'Oyatie deployment entrypoints (OpenTofu Cloudflare edge only; Buck2/Prow + CUE/KRM authority)'
 	@printf '%s\n' ''
 	@printf '%s\n' '  make bootstrap              Verify contract + initialize the OpenTofu edge root'
 	@printf '%s\n' '  make install                Apply OpenTofu desired state (Cloudflare edge)'
 	@printf '%s\n' '  make plan                   Preview Cloudflare edge changes'
 	@printf '%s\n' '  make apply                  Apply Cloudflare edge changes'
-	@printf '%s\n' '  make fleet                  Show the Talos/CAPI fleet bring-up entrypoints'
+	@printf '%s\n' '  make fleet                  Show native fleet desired-state references'
 	@printf '%s\n' '  make ops                    Show day-2 ops surface'
-	@printf '%s\n' '  make verify                 Run deployment contract gate + OpenTofu fmt check'
+	@printf '%s\n' '  make verify                 Run Buck2/Prow hygiene checks + OpenTofu fmt check'
 
 bootstrap: verify-deploy-contract check-tofu tofu-init
 
@@ -40,21 +41,19 @@ tofu-fmt-check: check-tofu
 verify: verify-deploy-contract tofu-fmt-check
 
 verify-deploy-contract:
-	$(BUCK2) run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate deployment-ops-contract
+	$(BUCK2) build //:repo-hygiene-automation-check //:kubernetes-native-anti-pattern-check //:cloud-cell-elasticity-policy-check
 
-# Cluster fleet is declarative + git-driven (CAPI/Talos/Argo CD), not a Makefile concern.
+# Cluster fleet is declarative desired state and controller reconciliation, not a Makefile concern.
 fleet:
-	@printf '%s\n' 'Talos + Cluster API + Argo CD fleet (ADR-0375):'
-	@printf '%s\n' '  Control-plane media : CONTROLPLANE_ENDPOINT=https://<cp-ip>:6443 infra/talos/installation-media/gen-media.sh control-plane'
-	@printf '%s\n' '  Node media    : CONFIG_URL=https://join.oyatie.dev/config infra/talos/installation-media/gen-media.sh node'
-	@printf '%s\n' '  CAPI install  : KUBECONFIG=<control-plane> infra/capi/init.sh   (then infra/capi/crs/render.sh)'
-	@printf '%s\n' '  Spokes        : add cells to infra/capi/clusters/values.yaml, then'
-	@printf '%s\n' '                  helm template oya-spokes infra/capi/clusters -f <cells>.yaml | kubectl apply -f - ; CAPI reconciles'
-	@printf '%s\n' '  NOTE: fleet bring-up is hardware-gated + multi-step (boot media on real nodes); this target only PRINTS the sequence.'
+	@printf '%s\n' 'Fleet authority: specs/deployment-ops-contract.json + specs/kubernetes-native-anti-patterns.json'
+	@printf '%s\n' 'Desired state: service-owned CUE/KRM packages validated by Buck2/Prow required-check evidence'
+	@printf '%s\n' 'Application: native release-conveyor/KRM and Rust controllers converge state through operation ledgers'
+	@printf '%s\n' 'Bootstrap: Talos/CAPI hardware-gated prelude remains documentation-only until native cloud-cell controllers own it'
+	@printf '%s\n' 'This target intentionally prints references only; it does not deploy, template charts, or mutate Kubernetes.'
 
 ops:
 	@printf '%s\n' 'Day-2 operations surface: https://ops.oyatie.com'
-	@printf '%s\n' 'Route drift repair, incident work, and desired-state changes through ops/OpenTofu/Argo CD/Rust controllers.'
+	@printf '%s\n' 'Route drift repair, incident work, and desired-state changes through ops, native release-conveyor/KRM, CUE/KRM packages, OpenTofu edge-only changes, and Rust controllers.'
 	@printf '%s\n' 'Direct host troubleshooting is intentionally not a supported deployment path.'
 
 check-tofu:
