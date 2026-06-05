@@ -51,5 +51,5 @@ retired:
     adr: ""
   - term: ".omc/hooks/grit-claim-intent-gate.sh"
     retired_at: "2026-05-16"
-    canonical_replacement: "native SCM worktree lease plus GitHub PR adapter; do not revive oya vcs"
+    canonical_replacement: "native SCM worktree lease plus GitHub PR adapter; retired CLI remains tombstone/provenance only"
     adr: ""

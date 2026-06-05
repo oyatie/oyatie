@@ -46,6 +46,130 @@ fn checked_in_repo_hygiene_contract_passes() {
 }
 
 #[test]
+fn retired_cli_registry_specs_reject_active_command_authority() {
+    let workspace_hygiene = read_repo_file("specs/workspace-hygiene.json").replace(
+        "\"command\": \"buck2 build //:repo-hygiene-automation-check\"",
+        "\"command\": \"oya gate validate workspace-hygiene\"",
+    );
+    let feature_flag = read_repo_file("specs/feature-flag-substrate-canonical.json").replace(
+        "planned Rust/Buck2/Prow validator",
+        "oya gate validate feature-flag-lifecycle",
+    );
+    let multi_region = read_repo_file("specs/multi-region-disposition-canonical.json")
+        .replace(
+            "planned Rust/Buck2/Prow validator: multi-region-disposition",
+            "oya gate validate multi-region-disposition",
+        )
+        .replace(
+            "planned Rust/Buck2/Prow validator: sovereign-tenant-pin",
+            "oya gate validate sovereign-tenant-pin",
+        );
+    let microservice_migration = read_repo_file("specs/microservice-migration-tooling.json")
+        .replace(
+            "future Rust/Buck2/Prow migration job",
+            "oya dev migrate-microservice --rollback",
+        );
+    let retired_vocabulary = read_repo_file("registry/vocabulary/retired.yaml").replace(
+        "retired CLI remains tombstone/provenance only",
+        "do not revive oya vcs",
+    );
+    let docs_pipeline = read_repo_file("registry/docs/pipeline.tsv")
+        .replace("documentation capability: openapi", "oya doc openapi");
+    let documentation_system_kernel =
+        read_repo_file("libs/oya-check-documentation-system/src/lib.rs").replace(
+            "documented_command must name a documentation capability",
+            "documented_command must name an oya doc subcommand",
+        );
+
+    let failures = gate::retired_cli_registry_spec_failures(
+        &workspace_hygiene,
+        &feature_flag,
+        &multi_region,
+        &microservice_migration,
+        &retired_vocabulary,
+        &docs_pipeline,
+        &documentation_system_kernel,
+    );
+
+    for expected in [
+        "oya gate validate workspace-hygiene",
+        "oya gate validate feature-flag-lifecycle",
+        "oya gate validate multi-region-disposition",
+        "oya gate validate sovereign-tenant-pin",
+        "oya dev migrate-microservice --rollback",
+        "do not revive oya vcs",
+        "oya doc",
+        "documented_command must name an oya doc subcommand",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn retired_cli_registry_specs_require_buck2_prow_replacements() {
+    let workspace_hygiene = read_repo_file("specs/workspace-hygiene.json").replace(
+        "\"cleanup_commands\": []",
+        "\"cleanup_commands\": [\"manual-clean\"]",
+    );
+    let feature_flag = read_repo_file("specs/feature-flag-substrate-canonical.json")
+        .replace("planned Rust/Buck2/Prow validator", "planned validator");
+    let multi_region = read_repo_file("specs/multi-region-disposition-canonical.json")
+        .replace(
+            "planned Rust/Buck2/Prow validator: multi-region-disposition",
+            "planned validator: multi-region-disposition",
+        )
+        .replace(
+            "planned Rust/Buck2/Prow validator: sovereign-tenant-pin",
+            "planned validator: sovereign-tenant-pin",
+        );
+    let microservice_migration = read_repo_file("specs/microservice-migration-tooling.json")
+        .replace(
+            "future Rust/Buck2/Prow migration job",
+            "future migration job",
+        );
+    let retired_vocabulary = read_repo_file("registry/vocabulary/retired.yaml").replace(
+        "retired CLI remains tombstone/provenance only",
+        "retired CLI tombstone",
+    );
+    let docs_pipeline = read_repo_file("registry/docs/pipeline.tsv").replace(
+        "documentation capability: openapi",
+        "documentation generator: openapi",
+    );
+    let documentation_system_kernel =
+        read_repo_file("libs/oya-check-documentation-system/src/lib.rs")
+            .replace("documentation capability: ", "documentation generator: ");
+
+    let failures = gate::retired_cli_registry_spec_failures(
+        &workspace_hygiene,
+        &feature_flag,
+        &multi_region,
+        &microservice_migration,
+        &retired_vocabulary,
+        &docs_pipeline,
+        &documentation_system_kernel,
+    );
+
+    for expected in [
+        "cleanup commands must stay empty",
+        "planned Rust/Buck2/Prow validator",
+        "planned Rust/Buck2/Prow validator: multi-region-disposition",
+        "planned Rust/Buck2/Prow validator: sovereign-tenant-pin",
+        "future Rust/Buck2/Prow migration job",
+        "retired CLI remains tombstone/provenance only",
+        "documentation capability: openapi",
+        "documentation capability: ",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn spec_rejects_reintroduced_python_hygiene_command() {
     let mut spec = read_repo_file("specs/repo-hygiene-automation.json");
     spec = spec.replace(
@@ -684,6 +808,18 @@ fn active_doc_phrase_scanner_rejects_retired_tenant_rbac_gate_refs() {
             "missing {expected:?} in {failures:?}"
         );
     }
+}
+
+#[test]
+fn active_doc_phrase_scanner_rejects_retired_doc_generation_cli_refs() {
+    let failures = gate::active_doc_phrase_failures(
+        "docs/DOCUMENTATION.md",
+        "The documentation registry says oya doc openapi and oya doc adr-index are active commands.",
+    );
+    assert!(
+        failures.iter().any(|failure| failure.contains("oya doc ")),
+        "{failures:?}"
+    );
 }
 
 #[test]

@@ -85,13 +85,13 @@ The toolchain that produces docs:
 
 | Pipeline | Inputs | Outputs |
 |---|---|---|
-| **`oya-doc rustdoc`** | All `oya-*` Rust crates | Per-crate API reference at `docs.rs` mirror + in-tree `target/doc/` |
-| **`oya-doc openapi`** | All `contracts/openapi/**/*.yaml` + proto schemas | Public API reference at `docs.oyatie.com/reference/` + per-language SDK docs |
-| **`oya-doc mdbook`** | Hand-authored `docs/site/**/*.md` | `docs.oyatie.com/{tutorials,guides,concepts,admin,studio,plugins}/` |
-| **`oya-doc adr-index`** | All `decisions/ADR-*.md` | `docs/ADR-INDEX.md` + `machine-readable/decisions.json` |
-| **`oya-doc catalog`** | All `registry/catalog/*.yaml` + `registry/capability-templates/*.yaml` | `dev.oyatie.com/` portal + `machine-readable/{products,catalog,contracts,batches}.json` |
+| **documentation capability: rustdoc** | All `oya-*` Rust crates | Per-crate API reference at `docs.rs` mirror + in-tree `target/doc/` |
+| **documentation capability: openapi** | All `contracts/openapi/**/*.yaml` + proto schemas | Public API reference at `docs.oyatie.com/reference/` + per-language SDK docs |
+| **documentation capability: mdbook** | Hand-authored `docs/site/**/*.md` | `docs.oyatie.com/{tutorials,guides,concepts,admin,studio,plugins}/` |
+| **documentation capability: adr-index** | All `decisions/ADR-*.md` | `docs/ADR-INDEX.md` + `machine-readable/decisions.json` |
+| **documentation capability: catalog** | All `registry/catalog/*.yaml` + `registry/capability-templates/*.yaml` | `dev.oyatie.com/` portal + `machine-readable/{products,catalog,contracts,batches}.json` |
 
-All five live under `oya doc <subcommand>` (sub-CLI of the persona-split per [`TOOLCHAIN.md §3`](TOOLCHAIN.md)). Implementation language: Rust.
+All first-party documentation capabilities are implemented in Rust and enforced through Buck2/Prow-owned checks. Historical local CLI names are tombstone/provenance only and are not merge authority.
 
 Public site (`docs.oyatie.com`) is hosted via Cloud axis with the Leptos portal + mdbook content, served behind the public CDN per regional pack.
 
@@ -106,16 +106,16 @@ For other docs:
 | Kind | Trigger | Cadence | Validator |
 |---|---|---|---|
 | Per-crate rustdoc | every commit to crate | per-commit (CI) | Buck2 rustdoc target succeeds |
-| Per-crate README | crate's public surface changes | per-change | `oya doc lint readme` |
-| OpenAPI / proto reference | `contracts/` change | per-change | `oya doc openapi diff` (semver gate) |
+| Per-crate README | crate's public surface changes | per-change | `buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog` |
+| OpenAPI / proto reference | `contracts/` change | per-change | `buck2 build //oya/intelligence/crates/oya-intelligence-openapi-domain:oya-intelligence-openapi-domain` |
 | SDK docs | SDK source change | per-change | per-SDK CI |
-| Public conceptual docs | concept evolves | quarterly | `oya doc lint concepts` |
+| Public conceptual docs | concept evolves | quarterly | `buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog` |
 | Tutorials | new feature | per feature | manual verification of every step |
-| ADR | new decision | per decision | `oya doc adr-index` regenerates |
-| Runbook | new procedure / drift on existing | per-change + quarterly | `oya doc lint runbooks` |
-| Threat model | service changes auth/data flow | per-change + annually | `oya doc lint threat-model` |
-| Capability YAML | capability published | per-publish | `oya doc lint capability` |
-| Catalog YAML | crate added/role-changed | per-change | `oya catalog validate` |
+| ADR | new decision | per decision | `buck2 build //libs/oya-check-adr-citation:oya-check-adr-citation` |
+| Runbook | new procedure / drift on existing | per-change + quarterly | `buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog` |
+| Threat model | service changes auth/data flow | per-change + annually | `buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog` |
+| Capability YAML | capability published | per-publish | `buck2 build //libs/oya-check-doc-catalog:oya-check-doc-catalog` |
+| Catalog YAML | crate added/role-changed | per-change | `buck2 build //oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain` |
 
 ---
 
@@ -168,15 +168,16 @@ Per [DESIGN §12 Regional Pack Architecture](DESIGN.md), each regional pack supp
 | `decisions/ADR-*.md` | English (canonical engineering) | (not translated; engineering docs stay English) |
 | `docs/*.md` | English (canonical) | (not translated; PM docs stay English) |
 
-Translation pipeline: `oya doc translate` invokes Foundry capabilities to draft translations + human-review queue per pack.
+Translation capability: Foundry capabilities draft translations and enqueue human review per pack; Buck2/Prow-owned documentation checks remain merge authority.
 
 ---
 
 ## 9. Doc generation pipeline (CI lane)
 
 The CI lane `oya-governance-docs` is active as a documentation-system
-contract guard. `oya doc rustdoc`, `oya doc openapi`, `oya doc mdbook`, and
-`oya doc adr-index` are now active generator checks.
+contract guard. `documentation capability: rustdoc`,
+`documentation capability: openapi`, `documentation capability: mdbook`, and
+`documentation capability: adr-index` are active generator checks.
 Rustdoc uses an isolated `target/oya-rustdoc-check` directory and a rustup-pinned
 `rustdoc` to avoid mixed Homebrew/rustup metadata. The OpenAPI lane validates
 versioned `contracts/openapi/**/*.yaml` sources, `x-oyatie-data-class`
@@ -198,17 +199,17 @@ The mdBook lane validates the committed `docs/site` source tree, chapter graph,
 and local links without requiring an external `mdbook` binary in the bootstrap
 environment. The remaining public-doc generators are validated through
 [`registry/docs/pipeline.tsv`](../registry/docs/pipeline.tsv):
-each documented `oya doc` generator is either wired to an active check, guarded
+each documented documentation capability is either wired to an active check, guarded
 for first adoption, or explicitly tracked with a `blocked:` rationale.
 
 The product target remains the six-generator pipeline below:
 
-1. `oya-doc rustdoc` — Buck2-invoked workspace rustdoc with rustup-pinned `rustdoc`; diagnostics 0
-2. `oya doc openapi` — OpenAPI 3.2 source shape, per-field `x-oyatie-data-class` annotations, operation-to-runtime bindings, typed explicit runtime response-status parity, exact response schema refs, schema-to-Rust-struct shape/type parity, and ADR-0037 semver metadata pass; semver-violating change requires explicit ADR
-3. `oya doc mdbook` — committed site source validates; summary chapter graph and local links pass
-4. `oya doc adr-index` — regenerates `ADR-INDEX.md` + `machine-readable/decisions.json`; checks committed copy matches
-5. `oya doc catalog` — regenerates `machine-readable/{products,catalog,contracts,batches}.json`; checks committed copy matches
-6. `oya doc lint` — every doc has Sources-scanned footer with a date ≤ 90 days old (warn) or ≤ 365 days old (block)
+1. `documentation capability: rustdoc` — Buck2-invoked workspace rustdoc with rustup-pinned `rustdoc`; diagnostics 0
+2. `documentation capability: openapi` — OpenAPI 3.2 source shape, per-field `x-oyatie-data-class` annotations, operation-to-runtime bindings, typed explicit runtime response-status parity, exact response schema refs, schema-to-Rust-struct shape/type parity, and ADR-0037 semver metadata pass; semver-violating change requires explicit ADR
+3. `documentation capability: mdbook` — committed site source validates; summary chapter graph and local links pass
+4. `documentation capability: adr-index` — regenerates `ADR-INDEX.md` + `machine-readable/decisions.json`; checks committed copy matches
+5. `documentation capability: catalog` — regenerates `machine-readable/{products,catalog,contracts,batches}.json`; checks committed copy matches
+6. `documentation capability: lint` — every doc has Sources-scanned footer with a date ≤ 90 days old (warn) or ≤ 365 days old (block)
 
 ---
 
