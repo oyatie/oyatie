@@ -8,7 +8,7 @@
     "version": "2.0.0",
     "status": "Accepted",
     "owner_team": "council-architecture",
-    "updated_at": "2026-06-04",
+    "updated_at": "2026-06-05",
     "purpose": "Single source of truth for the canonical-primitives session-context payload. The SessionStart hook (tools/hooks/session-start-context-inject.sh) renders THIS json directly; there is no hand-maintained markdown mirror (retired 2026-05-31 per founder directive). Each section cites its authority ADR(s) so drift is detectable. Detailed/verbose doctrine lives in the per-topic specs/ADRs referenced under `pointers`, not here.",
     "supersedes": "tools/hooks/_canonical-primitives.md (hand-maintained cheat sheet, dated 2026-05-18, deleted)"
   },
@@ -32,7 +32,7 @@
         "Merge authority target: Rust, Prow-shaped, Kubernetes-native oya-ci controller posts source-bound `oya-ci-required` from trusted controller state.",
         "GitHub Actions `github-lane-unlocker-required` is legacy/shadow compatibility evidence only; it is not durable CI authority.",
         "Buck2 remains the build/test/check authority; Cargo is advisory/local only and coverage is LLVM source-based through Buck2 rather than Tarpaulin.",
-        "Governance checks survive as Rust libraries, Buck2 targets, and Prow jobs; `oya gate` / `oya verify` CLI invocations are not merge authority.",
+        "Governance checks survive as Rust libraries, Buck2 targets, and Prow jobs; retired governance CLI invocations are not merge authority.",
         "Retired external SCM/CI/CD substrates are not interim branch-protection, merge, or deployment authorities."
       ],
       "authority": [

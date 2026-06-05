@@ -95,12 +95,14 @@ The current event list is much larger than the 5 oyatie wires: `SessionStart`,
 - `.claude/settings.json` (commit `5cbfae71a`): OS-enforced `sandbox` (Seatbelt) with
   `filesystem.denyRead`/`denyWrite` + `network.allowedDomains`; `permissions.deny`
   mirroring credential reads + `Bash(docker *)`; `disableBypassPermissionsMode:
-  "disable"`. Hooks: `SessionStart`, `UserPromptSubmit`, `Stop`, `PreToolUse`
-  (Bash/Task), `PostToolUse` (Edit|MultiEdit|Write, Bash|WebFetch|WebSearch).
-- `.codex/hooks.json`: same 5-event wiring; PascalCase keys; matches the current
+  "disable"`. Current hook authority is `specs/agent-hook-runtime-manifest.json`;
+  the active Codex/Gemini project hooks are `SessionStart`, `Stop`, `PreToolUse`
+  (Bash only), and `PostToolUse` (Edit|MultiEdit|Write, Bash|WebFetch|WebSearch).
+- `.codex/hooks.json`: same 4-event wiring; PascalCase keys; matches the current
   Codex schema exactly.
-- `tools/hooks/`: 10 shell hooks. `tools/hook-bootstrap/install.sh` is the generator
-  / source-of-truth; `docs/security.md` documents the model.
+- `tools/hooks/`: 7 active advisory shell hooks. `tools/hook-bootstrap/install.sh`
+  renders checked-in Codex/Gemini configs; `specs/agent-hook-runtime-manifest.json`
+  is the hook set/source-of-truth; `docs/security.md` documents the model.
 
 This is already a **strong, current** baseline. The sandbox+permissions redesign and
 the PascalCase Codex schema are both up to date.
@@ -112,7 +114,7 @@ the PascalCase Codex schema are both up to date.
 | # | Gap | Severity | Disposition |
 |---|-----|----------|-------------|
 | G1 | **3 PostToolUse hooks silently no-op under real Claude Code.** `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh` extract the file path with `jq '.path // .file_path'` against the **top-level** stdin object, but Claude Code nests it at `.tool_input.file_path`. So the advisory never fires in production. The CI governance harness only passes because it drives them via a `TOOL_INPUT` env var with a flat `{"path":...}` — a path real Claude Code never uses. | High (dead guidance) | **APPLIED** |
-| G2 | `pre-dispatch-guide.sh` (PreToolUse:Task) reads `.prompt` top-level; real Task input nests at `.tool_input.prompt`, so dispatch guidance never fires. | Medium | **APPLIED** |
+| G2 | `pre-dispatch-guide.sh` (PreToolUse:Task) reads `.prompt` top-level; real Task input nests at `.tool_input.prompt`, so dispatch guidance never fires. | Medium | **RETIRED 2026-06-05** — AGENTS.md/native subagent routing replaced this advisory shell hook. |
 | G3 | Misleading `$TOOL_INPUT` env-var reads across 5 hooks imply Claude Code sets that env var. It does not (docs: "no env var carries event data"). Harmless (stdin fallback covers it) but a latent footgun. | Low | **APPLIED-partial** (kept as documented fallback for the CI harness; comments now state stdin is the real source) |
 | G4 | Pre-existing broken test: `scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh:43` calls `tools/hooks/retired-vcs-surface-inventory.sh`, which commit `451987f24` deleted. Test exits 127. Unrelated to harness currency. | Medium (red test) | **RECOMMENDATION** (out of scope; fixing risks parent's CI work) |
 | G5 | `install.sh` summary still prints/handles `.hermes/hooks.json` and `HERMES_DETECTED` even though Hermes is retired (ADR-0335/0247). Dead branch. | Low | **RECOMMENDATION** |
@@ -124,33 +126,32 @@ the PascalCase Codex schema are both up to date.
 
 ## 5. APPLIED changes (this branch)
 
-All four are minimal, commented-with-WHY, and **backward compatible** — they ADD the
-nested `.tool_input.*` keys to the jq extraction while keeping the existing flat keys,
-so the CI governance harness (`tools/governance/governance-hook-efficacy-harness.sh`, which
-sets `TOOL_INPUT='{"path":...}'`) keeps passing unchanged.
+The three surviving PostToolUse hooks keep their nested `.tool_input.*` extraction
+while retaining flat-key fallback for the CI governance harness
+(`tools/governance/governance-hook-efficacy-harness.sh`, which sets
+`TOOL_INPUT='{"path":...}'`). The former Task dispatch hook is retired.
 
 1. `tools/hooks/spec-version-pin-suggester.sh` — jq filter now
    `.tool_input.file_path // .tool_input.path // .path // .file_path`.
 2. `tools/hooks/adr-orphan-detect.sh` — same nested-first filter.
 3. `tools/hooks/vacuous-green-gate-detect.sh` — same nested-first filter.
-4. `tools/hooks/pre-dispatch-guide.sh` — filter now
-   `.tool_input.prompt // .tool_input.description // .prompt // .description // .input`.
+4. `tools/hooks/pre-dispatch-guide.sh` was later retired from the active hook set
+   (2026-06-05) because AGENTS.md/native subagent routing now owns dispatch guidance.
 
 ### Verification performed
 
 - **Real Claude Code stdin shape** (`env -u TOOL_INPUT`, payload nested under
-  `tool_input`): all four hooks now fire correctly (previously silent).
-- **Legacy env-var shape** (`TOOL_INPUT='{"path":...}'`): all still fire — no regression.
+  `tool_input`): the three surviving PostToolUse hooks fire correctly.
+- **Legacy env-var shape** (`TOOL_INPUT='{"path":...}'`): the same three hooks still
+  fire — no regression.
 - **Existing CI gates** green: `governance-hook-efficacy-harness.sh` `version-pin`,
   `orphan-citation`, `vacuous-green` all pass.
-- `no-cargo-enforcer.sh` (already correct, reads `.tool_input.command`) still blocks
-  `cargo build` with exit 2; `stale-tool-suggester.sh` (already includes
-  `.tool_input.command`) still detects retired `oya git`/`oya vcs`.
+- `no-cargo-enforcer.sh` (already correct, reads `.tool_input.command`) still emits
+  advisory Buck2/no-cargo guidance for Cargo command attempts.
 - All config JSON re-validated with `jq empty`.
 
 Not changed (deliberately): `no-cargo-enforcer.sh` and `injection-content-scanner.sh`
-already parse `.tool_input` correctly via python and need no edit;
-`stale-tool-suggester.sh` already includes `.tool_input.command`.
+already parse `.tool_input` correctly and need no edit.
 
 ---
 

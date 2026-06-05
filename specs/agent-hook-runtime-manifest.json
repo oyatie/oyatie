@@ -90,21 +90,6 @@
       "network": false
     },
     {
-      "path": "tools/hooks/pre-dispatch-guide.sh",
-      "purpose": "Advisory quality guide for subagent/task dispatch prompts.",
-      "events": {
-        "codex": [
-          "PreToolUse:Task"
-        ],
-        "gemini": [
-          "BeforeTool:agent|Task"
-        ]
-      },
-      "reads": [],
-      "writes": [],
-      "network": false
-    },
-    {
       "path": "tools/hooks/spec-version-pin-suggester.sh",
       "purpose": "Warn on contract edits that drift from OpenAPI 3.2.0 or AsyncAPI 3.1.0.",
       "events": {
@@ -218,6 +203,11 @@
     {
       "path": "tools/hooks/stale-tool-suggester.sh",
       "replacement": "none; retired CLI command guidance is out of scope for hooks",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/pre-dispatch-guide.sh",
+      "replacement": "AGENTS.md child-agent protocol plus installed native subagent role routing; no shell advisory hook needed",
       "status": "deleted"
     }
   ],
