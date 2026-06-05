@@ -394,7 +394,7 @@ Ledger R61 OpenTofu modules: add per-context modules before claiming deployabili
 Ledger R62 State backends: publish per-context state backend, locking, encryption, signing, and recovery model.
 Ledger R63 Module signing: connect OpenTofu modules to ADR-0039 sigstore expectations.
 Ledger R64 OS manifest: add Tier-1, Tier-2, out-of-scope, package format, and CI lane declarations.
-Ledger R65 Build invocation: document `cargo build --workspace --release --all-features --locked` or a sanctioned Oya wrapper.
+Ledger R65 Build invocation: document the Buck2 release target and Prow `oya-ci-required` evidence; do not use Cargo or retired Oya wrappers as merge/release authority.
 Ledger R66 SLO files: add OpenSLO for authorize, token issue, introspect, revoke, federation callback, provider translation, and audit append.
 Ledger R67 Capacity model: add role, principal, policy, IdP, token, and audit-event ceilings by tenant_class policy/context.
 Ledger R68 Cost budget: add tenant_class policies cost envelopes, with OCI demo_trial tenant_class explicitly zero paid infrastructure.

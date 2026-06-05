@@ -14,7 +14,8 @@ an Okta SAML inbound federation cycle end-to-end.
 
 Clone:
 ```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-iam-week1 .worktrees/$USER-iam-week1
+git fetch github-mirror dev
+git worktree add -b onboarding/$USER-iam-week1 .worktrees/$USER-iam-week1 github-mirror/dev
 cd .worktrees/$USER-iam-week1
 ```
 

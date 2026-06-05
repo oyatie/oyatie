@@ -1302,3 +1302,44 @@ fn cloud_billing_tax_authority_scan_rejects_retired_cli_and_helm_authority() {
 
     std::fs::remove_dir_all(root).ok();
 }
+
+#[test]
+fn cloud_iam_authority_scan_rejects_retired_cli_cargo_and_helm_authority() {
+    let root = temp_dir("cloud-iam-authority");
+    let runbook_dir = root.join("cloud/cloud-iam/runbooks");
+    let helm_dir = root.join("cloud/cloud-iam/iac/k8s/helm/templates");
+    std::fs::create_dir_all(&runbook_dir).unwrap();
+    std::fs::create_dir_all(&helm_dir).unwrap();
+    std::fs::write(
+        runbook_dir.join("stale.md"),
+        "Production validation still says cargo run -p oya-dev-cli and cargo test --features hermetic.\n",
+    )
+    .unwrap();
+    std::fs::write(
+        helm_dir.join("deployment.yaml"),
+        "metadata:\n  labels:\n    app.kubernetes.io/managed-by: Helm\n",
+    )
+    .unwrap();
+
+    let failures = gate::cloud_iam_authority_failures(&root);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("cargo run -p oya-dev-cli")),
+        "{failures:?}"
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("cargo test --features hermetic")),
+        "{failures:?}"
+    );
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("first-party Helm chart directory must not exist")),
+        "{failures:?}"
+    );
+
+    std::fs::remove_dir_all(root).ok();
+}

@@ -26,8 +26,8 @@ Required controls:
 - ADR-0348: `oya-governance-auto-rebalance-residency-honored` requires auto-rebalance to honor residency and compliance packs; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243.
 - ADR-0348: `oya-governance-dynamic-sharding-threshold-coverage` requires explicit hot-split and cold-merge thresholds; default-fill is rejected.
 - ADR-0348: `oya-governance-audit-chain-emit-on-automation-events` requires every auto-rebalance, hot-split, and cold-merge event to emit per ADR-0263; `oya-governance-tenant-migration-reversibility` requires a rollback path.
-- ADR-0346: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and must mirror cargo fmt, cargo check, cargo clippy, cargo nextest, and `oya gate run-all` before returning success.
+- ADR-0346 — historical local verifier doctrine only; active merge evidence is Buck2 output plus trusted Rust/Prow `oya-ci-required`, not retired local verifier/gate CLI authority.
 - ADR-0347: governance-owned checks use the `oya-governance-*` prefix; threat-model evidence must cite the governance lane names above without reintroducing stale lane vocabulary.
-- ADR-0349: Jenkins/GitHub Actions parity and ArgoCD cosign/audit-chain lanes preserve the same controls in self-hostable CI/CD contexts.
+- ADR-0349: historical Jenkins/ArgoCD doctrine only; active CI/CD authority is ADR-0513 Kubernetes-native oya-ci/Prow plus release-conveyor-like native promotion seams.
 
 Evidence required: every accepted automation event records event_type, tenant_id when tenant-level, cell_id, shard_id when shard-level, pre_state, post_state, residency_check_result, compliance_pack_check_result, cedar_permit_id when applicable, and initiated_by `control_plane:cell-orchestrator` in the audit-chain row. Residual risk remains until Wave 15-ZD proves race-free cutover and rollback under concurrent auto-rebalance, hot-split, and cold-merge jobs.

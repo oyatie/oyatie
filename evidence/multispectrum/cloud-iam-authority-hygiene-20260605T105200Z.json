@@ -1,0 +1,61 @@
+{
+  "schema": "oyatie.multispectrum-evidence.v1",
+  "timestamp_utc": "20260605T105200Z",
+  "lane": "cloud-iam-authority-hygiene",
+  "worktree": "/tmp/oyatie-hygiene-20260605T104017Z",
+  "branch": "chore/cloud-iam-authority-hygiene-20260605T104017Z",
+  "base_head": "318ca88270e1da30693ff183743a8349612c1acf",
+  "claim": "cloud-iam active documentation and first-party Kubernetes desired-state surfaces no longer present retired local CLI, Cargo, Jenkins, ArgoCD, or first-party Helm as authority; a Rust repo-hygiene guard protects the lane.",
+  "changes": [
+    "Deleted cloud/cloud-iam/iac/k8s/helm first-party chart templates and values.",
+    "Added cloud/cloud-iam/iac/k8s/README.md to point at CUE/KRM, Buck2, and Prow authority while keeping Helm as adapter compatibility only.",
+    "Reframed cloud-iam PRD, README, ARCH, IPs, runbooks, SLOs, OpenAPI metadata, DPIA, capability catalog, migration playbook, onboarding, threat model, and reference implementation docs away from retired local CLI/Cargo/Jenkins/ArgoCD authority.",
+    "Added cloud_iam_authority_failures and a regression test to scripts/ci/assert-repo-hygiene-automation.rs and scripts/tests/repo_hygiene_automation_check.rs."
+  ],
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o /tmp/oyatie-verify-iam/repo_hygiene_automation_check && OYA_REPO_ROOT=/private/tmp/oyatie-hygiene-20260605T104017Z /tmp/oyatie-verify-iam/repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "summary": "58 passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o /tmp/oyatie-verify-iam/assert-repo-hygiene-automation && /tmp/oyatie-verify-iam/assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "summary": "repo-hygiene PASS; failures []"
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check --show-output",
+      "exit_code": 0,
+      "summary": "BUILD SUCCEEDED; emitted repo-hygiene-automation-check.json with verdict PASS and failures []"
+    },
+    {
+      "command": "targeted cloud/cloud-iam retired authority scan",
+      "exit_code": 0,
+      "summary": "no matches for retired local CLI, Jenkins/ArgoCD active authority, first-party Helm active authority, or Cargo command phrases"
+    },
+    {
+      "command": "test ! -e cloud/cloud-iam/iac/k8s/helm",
+      "exit_code": 0,
+      "summary": "first-party Helm chart directory absent"
+    },
+    {
+      "command": "Ruby YAML parse for OpenAPI and OpenSLO plus jq parse for manifest.json",
+      "exit_code": 0,
+      "summary": "yaml ok; json ok"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "diff check ok"
+    }
+  ],
+  "buck2_output": "buck-out/v2/art/root/39893c7e49283da4/__repo-hygiene-automation-check__/out/repo-hygiene-automation-check.json",
+  "risks": [
+    "Historical ADR-0346/0349 citations remain as provenance, but active wording points to ADR-0513 Buck2/Prow and native promotion authority.",
+    "The reference implementation now points at target names that may need a future Buck2 example-target materialization lane before executable SDK examples can run."
+  ]
+}
