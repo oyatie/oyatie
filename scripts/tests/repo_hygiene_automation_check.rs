@@ -40,7 +40,9 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 0);
     assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 37);
+    assert_eq!(evaluation.active_context_scan_files, 26);
     assert_eq!(evaluation.active_template_scan_files, 30);
+    assert_eq!(evaluation.retired_exact_name_scan_files, 36);
 }
 
 #[test]
@@ -90,6 +92,32 @@ fn spec_rejects_missing_kubernetes_native_antipattern_tool_example() {
                 .contains("active context drift scan missing required tool example")),
         "{:?}",
         failures
+    );
+}
+
+#[test]
+fn vendored_agent_skills_guidance_rejects_retired_authority_phrases() {
+    let mut guidance = read_repo_file("tools/agent-skills/AGENTS.md");
+    guidance.push_str("\nJenkins CI + oya gate run-all\n");
+    let failures = gate::active_doc_phrase_failures("tools/agent-skills/AGENTS.md", &guidance);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("Jenkins CI + oya gate run-all")),
+        "{failures:?}"
+    );
+}
+
+#[test]
+fn vendored_agent_skills_guidance_rejects_retired_exact_names() {
+    let mut guidance = read_repo_file("tools/agent-skills/AGENTS.md");
+    guidance.push_str("\nRetain Jenkins as canonical.\n");
+    let failures = gate::retired_exact_name_failures("tools/agent-skills/AGENTS.md", &guidance);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("retired exact-name reference")),
+        "{failures:?}"
     );
 }
 

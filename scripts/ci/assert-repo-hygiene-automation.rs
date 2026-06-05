@@ -39,6 +39,7 @@ const VENDOR_PARTNER_LEDGER_PATH: &str = "docs/VENDOR-PARTNER-LEDGER.md";
 const BRIEF_TEMPLATE_PATH: &str = "docs/standards/brief-template.md";
 const AGENTIC_DEV_TEAM_STANDARD_PATH: &str = "docs/standards/agentic-dev-team-optimization.md";
 const CI_LANES_STANDARD_PATH: &str = "docs/standards/ci-lanes.md";
+const TOOLS_AGENT_SKILLS_AGENTS_PATH: &str = "tools/agent-skills/AGENTS.md";
 const PROCEDURE_PATH: &str = "docs/ci/github-actions-lane-unlocker.md";
 const AUTO_MERGE_FLOW_PATH: &str = "docs/ci/auto-merge-flow.md";
 const OPENBAO_ESO_RUNBOOK_PATH: &str = "docs/ci/openbao-eso-runbook.md";
@@ -516,6 +517,7 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     BRIEF_TEMPLATE_PATH,
     AGENTIC_DEV_TEAM_STANDARD_PATH,
     CI_LANES_STANDARD_PATH,
+    TOOLS_AGENT_SKILLS_AGENTS_PATH,
     PROCEDURE_PATH,
     AUTO_MERGE_FLOW_PATH,
     "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
@@ -577,6 +579,7 @@ const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
     BRIEF_TEMPLATE_PATH,
     AGENTIC_DEV_TEAM_STANDARD_PATH,
     CI_LANES_STANDARD_PATH,
+    TOOLS_AGENT_SKILLS_AGENTS_PATH,
     "docs/MASTERPLAN.md",
     PROCEDURE_PATH,
     AUTO_MERGE_FLOW_PATH,
@@ -1689,6 +1692,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let agents = read(root, AGENTS_PATH, &mut failures);
     let claude = read(root, CLAUDE_PATH, &mut failures);
     let doc_agents = read(root, DOC_AGENTS_PATH, &mut failures);
+    let tools_agent_skills_agents = read(root, TOOLS_AGENT_SKILLS_AGENTS_PATH, &mut failures);
     let doc_catalog = read(root, DOC_CATALOG_PATH, &mut failures);
     let procedure = read(root, PROCEDURE_PATH, &mut failures);
     let openbao_eso_runbook = read(root, OPENBAO_ESO_RUNBOOK_PATH, &mut failures);
@@ -1983,6 +1987,23 @@ pub fn evaluate(root: &Path) -> Evaluation {
 
     for (label, text) in [(PROCEDURE_PATH, procedure.as_str())] {
         require_contains(text, "github-lane-unlocker-required", &mut failures, label);
+    }
+
+    for needle in [
+        "root `CLAUDE.md`,\n`docs/AGENTS.md`, and `specs/root-hub-pointers.json` overlay",
+        "Build/test/check authority is Buck2 build/test/check targets",
+        "Prow/Kubernetes-native `oya-ci-required` context",
+        "Coordination uses plain `git`, isolated worktrees, PRs against `dev`",
+        "GitHub flows are compatibility/shadow publication",
+        "CUE packages own first-party Kubernetes desired state",
+        "Helm is adapter compatibility only",
+    ] {
+        require_contains(
+            &tools_agent_skills_agents,
+            needle,
+            &mut failures,
+            TOOLS_AGENT_SKILLS_AGENTS_PATH,
+        );
     }
 
     for rel in ACTIVE_CONTEXT_SCAN_PATHS {

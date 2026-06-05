@@ -8,15 +8,29 @@ A collection of skills for Claude.ai and Claude Code for senior software enginee
 
 ## Oyatie Doctrine References
 
-When this vendored skill guidance is used inside Oyatie, root `CLAUDE.md`, `docs/AGENTS.md`, and `specs/canonical-primitives.json` overlay this inherited base and win on conflict.
+When this inherited skill guidance is used inside Oyatie, root `CLAUDE.md`,
+`docs/AGENTS.md`, and `specs/root-hub-pointers.json` overlay this base and win
+on conflict.
 
-ADR-0346: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix before success; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+Current Oyatie overlay:
 
-ADR-0347: every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request; enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
-
-ADR-0348: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING through a per-µservice `sharding_automation` manifest block; enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-
-ADR-0349: Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions and ArgoCD replaces manual `kubectl apply` and Helm CLI deploy paths; enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- Build/test/check authority is Buck2 build/test/check targets plus the
+  Prow/Kubernetes-native `oya-ci-required` context. Local checks are shift-left
+  evidence only and never grant protected-branch authority.
+- Coordination uses plain `git`, isolated worktrees, PRs against `dev`, reviewer
+  approval, and trusted controller evidence. Do not recreate retired CLI
+  wrappers, ratchets, or governance-command authority.
+- Native SCM/CI/CD is a Rust-biased service/control-plane direction: a
+  Sapling-inspired native SCM service, Prow-shaped oya-ci, and
+  release-conveyor-like CD. GitHub flows are compatibility/shadow publication
+  adapters until native seams mature; exact retired external substrate names
+  live in `specs/retired-external-substrate-registry.json` for tombstone
+  matching, not active guidance.
+- CUE packages own first-party Kubernetes desired state. Generated Kubernetes
+  manifests are Buck2/Prow-checked artifacts; Helm is adapter compatibility only.
+- Cellular topology MUST support autosharding, auto-rebalance, and dynamic
+  sharding through manifest-declared automation blocks with residency,
+  reversibility, and audit-chain evidence.
 
 ## OpenCode Integration
 

@@ -1,0 +1,59 @@
+{
+  "verdict": "PASS",
+  "timestamp_utc": "2026-06-05T08:43:00Z",
+  "lane": "agent-context-authority-hygiene",
+  "branch": "chore/agent-context-authority-hygiene-20260605T0842Z",
+  "scope": [
+    "tools/agent-skills/AGENTS.md",
+    "scripts/ci/assert-repo-hygiene-automation.rs",
+    "scripts/tests/repo_hygiene_automation_check.rs",
+    "BUCK"
+  ],
+  "decision": "Treat vendored agent-skills guidance as an active Oyatie context surface guarded by repo-hygiene automation; remove stale canonical authority claims for retired CLI/CI/CD substrates and preserve Buck2/Prow/Kubernetes-native oya-ci-required direction.",
+  "local_verification": [
+    {
+      "command": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test",
+      "exit_code": 0,
+      "result": "46 passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs && OYA_REPO_ROOT=$PWD assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "result": {
+        "verdict": "PASS",
+        "active_context_scan_files": 26,
+        "active_template_scan_files": 30,
+        "retired_exact_name_scan_files": 36,
+        "failures": []
+      }
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check //:kubernetes-native-anti-pattern-check --show-output",
+      "exit_code": 0,
+      "result": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "targeted retired-authority scan over tools/agent-skills/AGENTS.md",
+      "exit_code": 0,
+      "result": "no matches"
+    },
+    {
+      "command": "git diff --check && git diff --cached --check",
+      "exit_code": 0
+    }
+  ],
+  "buck2_outputs": {
+    "repo_hygiene_automation_check": "PASS",
+    "buck2_authority_policy_check": "PASS",
+    "kubernetes_native_anti_pattern_check": "PASS"
+  },
+  "non_goals": [
+    "No changes to vendored skill workflows beyond Oyatie overlay guidance",
+    "No live CI/CD, SCM, or Kubernetes mutation",
+    "No durable Python or shell automation added"
+  ]
+}
