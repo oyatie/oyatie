@@ -97,7 +97,7 @@ Auditor queries (per-pack, per-anchor) become a Tempo trace filter.
 
 ## Compliance gate
 
-A lint gate (`oya gate validate layered-architecture-discipline`) refuses to merge a µservice IP that adds a `pack-eu` / `pack-kr` / `pack-us-healthcare` / `pack-ksa` / `pack-uae` regulatory pack overlay without composing the matching waypoint Helm release and matching AuthorizationPolicy fragment. The gate also enforces the layer-boundary discipline (Cilium owns L3/L4 only; Istio Ambient owns L7 only) per ADR-0148.
+A Buck2/Prow lint lane (`layered-architecture-discipline`) refuses to merge a µservice IP that adds a `pack-eu` / `pack-kr` / `pack-us-healthcare` / `pack-ksa` / `pack-uae` regulatory pack overlay without composing the matching waypoint desired-state package and matching AuthorizationPolicy fragment. The lane also enforces the layer-boundary discipline (Cilium owns L3/L4 only; Istio Ambient owns L7 only) per ADR-0148 and reports through `oya-ci-required`.
 
 ## Migration from the retired ADR-0174
 

@@ -252,11 +252,12 @@ The log is structured, streamable, and redacted.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI command:
 
-```bash
-oya gate validate twelve-factor-adoption --scope microservices
-```
+- Primary lane: `twelve-factor-adoption`.
+- Scope: microservice manifests and deployment descriptors.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST read each `microservices/<ms>/manifest.json`.
 

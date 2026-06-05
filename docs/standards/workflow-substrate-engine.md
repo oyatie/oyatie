@@ -279,11 +279,12 @@ This passes because authority and deadline are explicit.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI command:
 
-```bash
-oya gate validate workflow-substrate-engine --scope microservices/workflow-engine
-```
+- Primary lane: `workflow-substrate-engine`.
+- Scope: `microservices/workflow-engine`.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST parse workflow templates.
 

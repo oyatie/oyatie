@@ -177,31 +177,29 @@ workspace member's `[dependencies]` table and refuses the following edges:
 | `api → app → domain → kernel` (and `worker → app → domain → kernel`) | **allowed** |
 | `adapter → domain → kernel` | **allowed** |
 
-The lane uses two mechanisms, layered:
+The lane uses two Buck2-owned mechanisms, layered:
 
-1. **`cargo-deny` per-crate `[bans]` blocks**, generated from each
-   crate's `[package.metadata.oya].role`. The generator lives in
-   `oya-governance-naming-convention` (Sub-plan from
-   [`docs/plans/rename-plan-2026-05-12.md`](../plans/rename-plan-2026-05-12.md)).
-2. **A workspace-level lane** (`oya-governance-architecture-conventions`)
-   walks every member manifest, classifies each crate by its
-   `[package.metadata.oya].role`, and refuses any cross-layer edge
-   forbidden by the table above. The lane is implemented in Rust as a
-   small workspace binary that reads `cargo metadata --no-deps`. See
-   [`.omc/governance-lanes/architecture-conventions.md`](../../.omc/governance-lanes/architecture-conventions.md).
+1. **Architecture edge checker** (`oya-governance-architecture-conventions`)
+   walks the canonical Buck2/package registry, classifies each crate by its
+   `[package.metadata.oya].role`, and refuses any cross-layer edge forbidden by
+   the table above. Cargo manifest metadata remains compatibility input only
+   when a Buck2-owned adapter explicitly consumes it.
+2. **Supply-chain compatibility projection** may generate `cargo-deny`
+   `[bans]` policy from the same role data so local Rust ecosystem tooling
+   sees the same boundary, but the merge authority is the Buck2/Prow lane
+   output rather than a direct Cargo command.
 
-A single failing edge is a CI blocker. Severity = **BLOCKER**, lane
-position Top-5.
+A single failing edge is a CI blocker when the Buck2/Prow lane reports through
+`oya-ci-required`. Severity = **BLOCKER**, lane position Top-5.
 
-### 3.1 Why `cargo-deny [bans]` is insufficient alone
+### 3.1 Why generated `cargo-deny [bans]` is insufficient alone
 
 `cargo-deny [bans]` rejects a *named* crate, not a *role-classified
 group of crates*. The role enum is not visible to `cargo-deny`; therefore
-the lane needs the workspace binary to translate role-based rules into
-the per-name bans `cargo-deny` understands. The two run together: the
-workspace binary regenerates `deny.toml` on every commit; `cargo-deny`
-then enforces the resulting deny list. The lane fails if either step
-fails (generator detects a violation, OR `cargo-deny` rejects the build).
+the Buck2-owned lane translates role-based rules into both graph checks and the
+per-name bans `cargo-deny` understands. The generated Cargo ecosystem policy is
+useful developer compatibility evidence, but merge evidence remains the
+Buck2/Prow lane result.
 
 ## 4. Cross-layer contracts
 

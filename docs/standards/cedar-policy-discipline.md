@@ -99,7 +99,7 @@ forbid (...) when { ... };
 
 ## Validation
 
-`oya gate cedar-structural-validator` validates every per-µservice cedar:
+The Buck2/Prow `cedar-structural-validator` lane validates every per-µservice cedar:
 
 1. Filename matches canonical archetype
 2. Header cites `cedar-canonical-imports.cedar`

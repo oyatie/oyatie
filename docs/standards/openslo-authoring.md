@@ -277,17 +277,12 @@ This passes when retries are idempotent and counters use stable labels.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI command:
 
-```bash
-oya gate validate openslo-conformance --scope microservices
-```
-
-Companion command:
-
-```bash
-oya gate validate openslo-promql-feasibility --scope microservices
-```
+- Primary lane: `openslo-conformance`.
+- Companion lane: `openslo-promql-feasibility`.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST parse every `*.openslo.yaml`.
 

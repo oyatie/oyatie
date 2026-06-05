@@ -258,19 +258,13 @@ This fails because it grants every action on every resource.
 
 ## Verification
 
-Primary command:
+Merge evidence is a Buck2/Prow lane, not a retired local CLI command:
 
-```bash
-oya gate validate cedar-policy-authoring --scope microservices
-```
-
-Companion commands:
-
-```bash
-oya gate validate cedar-structural-validator --scope microservices
-oya gate validate capability-tier-cedar-coverage --scope microservices
-oya gate validate autonomy-ceiling --scope capabilities
-```
+- Primary lane: `cedar-policy-authoring`.
+- Companion lanes: `cedar-structural-validator`,
+  `capability-tier-cedar-coverage`, and `autonomy-ceiling`.
+- Native CI evidence: generated ProwJob shard reporting through
+  `oya-ci-required`.
 
 The checker MUST parse every Cedar file.
 

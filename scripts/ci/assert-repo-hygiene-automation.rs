@@ -71,6 +71,27 @@ const DOCUMENTATION_SYSTEM_KERNEL_PATH: &str = "libs/oya-check-documentation-sys
 const GATE_CATALOG_DOMAIN_PATH: &str = "libs/oya-governance-gate-catalog-domain/src/lib.rs";
 const QUALITY_LANE_KERNEL_PATH: &str = "libs/oya-check-quality-lane/src/lib.rs";
 const M02_EXIT_GATE_VALIDATORS_PATH: &str = "docs/standards/m02-exit-gate-validators.md";
+const STANDARDS_RETIRED_COMMAND_CLEAN_FILES: &[&str] = &[
+    "docs/standards/anti-patterns.md",
+    "docs/standards/api-design.md",
+    "docs/standards/asyncapi-3-1-authoring.md",
+    "docs/standards/cedar-policy-authoring.md",
+    "docs/standards/cedar-policy-discipline.md",
+    "docs/standards/clean-architecture.md",
+    "docs/standards/commit-message.md",
+    "docs/standards/fips-hsm-substrate-root-signing.md",
+    "docs/standards/layer-enum-adr-0105.md",
+    "docs/standards/mls-rfc-9420-conformance.md",
+    "docs/standards/naming-convention-bnf-v4.md",
+    "docs/standards/observability-slo.md",
+    "docs/standards/ontology-projection-substrate.md",
+    "docs/standards/openapi-3-2-authoring.md",
+    "docs/standards/openslo-authoring.md",
+    "docs/standards/proto3-authoring.md",
+    "docs/standards/regulatory-pack-authzpolicy-overlays.md",
+    "docs/standards/twelve-factor-adoption.md",
+    "docs/standards/workflow-substrate-engine.md",
+];
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
@@ -990,6 +1011,19 @@ const M02_EXIT_GATE_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "`pnpm-typecheck`, `pnpm-test`",
     "crates/oya-dev-cli/src/scalability_gates.rs",
 ];
+const STANDARDS_RETIRED_COMMAND_PHRASES: &[&str] = &[
+    "oya gate validate",
+    "oya gate verify",
+    "oya gate run",
+    "oya gate cedar",
+    "oya doc ",
+    "oya verify",
+    "oya vcs",
+    "oya policy",
+    "oya signing-service",
+    "cargo fmt --check",
+    "cargo metadata --no-deps",
+];
 const MASTERPLAN_NATIVE_SCM_REQUIRED_PHRASES: &[(&str, &str)] = &[
     (
         MASTERPLAN_PATH,
@@ -1047,6 +1081,7 @@ pub struct Evaluation {
     pub product_operation_doc_clean_files: usize,
     pub intelligence_doc_retired_dev_cli_clean_files: usize,
     pub governance_doc_retired_dev_cli_clean_files: usize,
+    pub standards_retired_command_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2395,6 +2430,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the M02 exit-gate retired authority guard",
         ),
         (
+            "\"standards retired local gate/doc/vcs command scan\"",
+            "documentation sprawl automation targets must include the standards retired local command scan",
+        ),
+        (
+            "\"standards_retired_local_command_scan\"",
+            "documentation sprawl policy must record the standards retired local command guard",
+        ),
+        (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
             "product-operation runbook guard must state its incremental clean-path boundary",
         ),
@@ -3068,6 +3111,49 @@ pub fn m02_exit_gate_validator_hygiene_failures(text: &str) -> Vec<String> {
     failures
 }
 
+pub fn standards_retired_local_command_text_failures(clean_file: &str, text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+    let lowered_text = text.to_ascii_lowercase();
+
+    for phrase in STANDARDS_RETIRED_COMMAND_PHRASES {
+        if lowered_text.contains(&phrase.to_ascii_lowercase()) {
+            failures.push(format!(
+                "{clean_file}: standards doc contains retired local command phrase {phrase:?}; use Buck2/Prow lane evidence and `oya-ci-required` wording"
+            ));
+        }
+    }
+
+    require(
+        lowered_text.contains("buck2")
+            && (lowered_text.contains("prow") || lowered_text.contains("oya-ci-required")),
+        &mut failures,
+        format!(
+            "{clean_file}: standards doc must name Buck2 plus Prow/oya-ci-required evidence after retiring local command examples"
+        ),
+    );
+
+    failures
+}
+
+pub fn standards_retired_local_command_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in STANDARDS_RETIRED_COMMAND_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        failures.extend(standards_retired_local_command_text_failures(
+            clean_file, &text,
+        ));
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -3165,6 +3251,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(m02_exit_gate_validator_hygiene_failures(
         &m02_exit_gate_validators,
     ));
+    failures.extend(standards_retired_local_command_failures(root));
     failures.extend(buck2_release_policy_failures(
         &spec,
         &workflow,
@@ -3541,6 +3628,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
             .len(),
         governance_doc_retired_dev_cli_clean_files: GOVERNANCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES
             .len(),
+        standards_retired_command_clean_files: STANDARDS_RETIRED_COMMAND_CLEAN_FILES.len(),
     }
 }
 
@@ -3552,7 +3640,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -3566,6 +3654,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.product_operation_doc_clean_files,
         evaluation.intelligence_doc_retired_dev_cli_clean_files,
         evaluation.governance_doc_retired_dev_cli_clean_files,
+        evaluation.standards_retired_command_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures

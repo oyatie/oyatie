@@ -202,11 +202,12 @@ The `oya-governance-openslo-conformance` lane (BLOCKER) refuses:
    - µservice owner (axis owning the µservice)
    - axis-observability (review for burn-rate threshold sanity)
    - council-architecture (review for cross-µservice consistency)
-4. CI lanes that MUST green:
-   - `cargo fmt --check`
-   - `oya gate validate openslo-conformance`
-   - `oya gate validate data-class-coverage` (the manifest's labels match the µservice's declared data classes)
-   - `oya gate validate openslo-promql-feasibility` (the PromQL expression returns non-empty data against representative Mimir snapshot)
+4. CI lanes that MUST green through Buck2/Prow evidence:
+   - Rust formatting/check target owned by Buck2.
+   - `openslo-conformance`.
+   - `data-class-coverage` (the manifest's labels match the µservice's declared data classes).
+   - `openslo-promql-feasibility` (the PromQL expression returns non-empty data against representative Mimir snapshot).
+   - Native Prow/Kubernetes evidence reports through `oya-ci-required`.
 5. Merge advances `microservices/<ms>/slos/*.openslo.yaml` through git PR; `slo-engine-worker` consumes the `OpenSloManifestUpdated` event (per `microservices/observability/contracts/asyncapi/eligibility-events.yaml`) and hot-reloads.
 
 ## SLI Type-Specific Guidance
