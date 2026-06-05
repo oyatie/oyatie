@@ -178,7 +178,7 @@ owner_microservice: workflow
 ### Invariant RLS-06: Continuous DB-state validator
 
 A `tenancy-rls-state-validator` cron (every 5min) compares the declarative YAML manifests against live `pg_policies` + `pg_class.relrowsecurity` + `pg_class.relforcerowsecurity`:
-- Any drift (live policy missing / not forced / predicate mismatch) → emits `oya_tenancy_rls_drift_total{table=<name>}` metric → fires Sev-1 page + auto-rollback via ArgoCD to last-green Helm/manifest state.
+- Any drift (live policy missing / not forced / predicate mismatch) → emits `oya_tenancy_rls_drift_total{table=<name>}` metric → fires Sev-1 page + auto-rollback via native release-conveyor reconciliation to last-green CUE/KRM desired state.
 - The validator's own metric is monitored; validator-down for ≥ 2min triggers Sev-2 (gate fails-closed for any RLS-mutating PR until validator recovers).
 
 ### Invariant RLS-07: No client-side filter substitutes for RLS
@@ -236,7 +236,7 @@ Cedar evaluator runs in `tenant-lifecycle-rest` and `dsr-cascade-rest`; non-matc
 
 ### FM-01: RLS policy drift (live state diverges from declared YAML)
 
-**Behaviour:** Continuous validator detects drift; emits `oya_tenancy_rls_drift_total > 0`; fires Sev-1 page; auto-rollback via ArgoCD.
+**Behaviour:** Continuous validator detects drift; emits `oya_tenancy_rls_drift_total > 0`; fires Sev-1 page; auto-rollback via native release-conveyor reconciliation.
 
 **Tenant impact:** Brief window between drift and detection (≤5min); RLS still effective if `FORCE` is intact (which validator ensures).
 
@@ -292,7 +292,7 @@ Every isolation boundary event is audit-chain-emitted per Bominal ADR-0028:
 |---|---|---|---|
 | RLS policy install (CREATE POLICY) | tenancy migration runner | `table, policy_name, predicate, force, applied_by, change_id` | ≥ 7y (or longer per pack legal; HIPAA 6y; KR-FSS 5y) |
 | RLS policy drift detected | tenancy rls-state-validator | `table, expected_policy, live_policy, detected_at` | ≥ 7y |
-| RLS policy drift auto-rollback | ArgoCD + tenancy | `table, prior_state, restored_state, applied_at` | ≥ 7y |
+| RLS policy drift auto-rollback | native release conveyor + tenancy | `table, prior_state, restored_state, applied_at` | ≥ 7y |
 | Postgres role attribute mutation | tenancy postgres-role-audit + pg_event_trigger | `role, attribute, prev, new, mutated_by, mutated_at` | indefinite |
 | Tenant spoofing attempt (JWT forgery) | tenancy isolation-policy-rest | `attempted_tenant_id, source_ip, source_spiffe, request_id, timestamp` | ≥ 1y |
 | Reserved-tenant operation attempt | tenancy tenant-lifecycle-rest | `attempted_tenant_id, source, action, timestamp` | ≥ 1y |
@@ -337,10 +337,10 @@ Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenancy-
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate rls-no-superuser-bypass --microservice tenancy` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate rls-force-on-tenant-tables --microservice tenancy` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate tenant-context-setlocal-present --microservice tenancy` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice tenancy` — exit 0.
+- `Buck2/Prow native gate evidence for rls-no-superuser-bypass --microservice tenancy` — exit 0.
+- `Buck2/Prow native gate evidence for rls-force-on-tenant-tables --microservice tenancy` — exit 0.
+- `Buck2/Prow native gate evidence for tenant-context-setlocal-present --microservice tenancy` — exit 0.
+- `Buck2/Prow native gate evidence for cedar-fragment-coverage --microservice tenancy` — exit 0.
 - Weekly synthetic cross-tenant probe: tenant-A authenticated, attempts cross-tenant read of tenant-B's rows; expected: zero rows returned across all paths.
 - Quarterly chaos drill: induce RLS drift (controlled); verify validator + auto-rollback fire within 5min.
 - Annual pen-test against RLS boundary: scheduled Q4 of each calendar year (October 1 cycle) coinciding with ISO 27001 surveillance audit; documented in `runbooks/rls-pentest.md`.

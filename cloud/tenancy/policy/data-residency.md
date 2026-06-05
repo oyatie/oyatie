@@ -29,7 +29,7 @@ This document is the canonical residency artifact reviewed by EU DPAs (per GDPR 
 
 ### Default: pack-pinning at creation time
 
-Every tenant is assigned a primary pack at creation. The tenant's metadata + RLS-policy state + cell-assignment record are stored in the pack's region-pinned Postgres + Citus cluster. Cross-pack movement is **forbidden by default** and structurally prevented: tenancy crates do not implement any cross-pack write path; cross-pack DB connections are not configured in any tenancy Helm chart's values.
+Every tenant is assigned a primary pack at creation. The tenant's metadata + RLS-policy state + cell-assignment record are stored in the pack's region-pinned Postgres + Citus cluster. Cross-pack movement is **forbidden by default** and structurally prevented: tenancy crates do not implement any cross-pack write path; cross-pack DB connections are not configured in any tenancy CUE/KRM package values; Helm is external adapter compatibility only.
 
 | Pack | Primary region(s) | Postgres + Citus footprint | Activated? |
 |---|---|---|---|
@@ -91,7 +91,7 @@ Cross-pack replication of any tenant data is forbidden by default. Specifically:
 - Postgres replication: only within-pack (Patroni primary → sync + async replicas all in the same pack region or DR pair within-pack).
 - Citus shard moves: only within-pack (between coordinator + workers within the pack cluster).
 - Audit-chain seals: replicate within-pack only (each pack has its own audit-chain instance per the `audit-chain` µservice's residency contract).
-- Tenancy Cargo workspace + Helm charts: configuration is global (git-tracked); operational state is per-pack.
+- Tenancy Cargo compatibility metadata plus CUE/KRM packages: configuration is global (git-tracked); operational state is per-pack.
 
 ### Exception: tenant-executed SCCs (GDPR transfer mechanism)
 
@@ -214,9 +214,9 @@ Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenancy-
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate tenancy-retention-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate tenancy-pack-routing-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cross-pack-transfer-allowed-only-with-scc` — exit 0.
+- `Buck2/Prow native gate evidence for tenancy-retention-conformance` — exit 0.
+- `Buck2/Prow native gate evidence for tenancy-pack-routing-conformance` — exit 0.
+- `Buck2/Prow native gate evidence for cross-pack-transfer-allowed-only-with-scc` — exit 0.
 - Annual residency audit: confirm each tenant's data location matches its assigned pack.
 - Quarterly chaos drill: induce a cross-pack write attempt; verify rejection + alerting.
 

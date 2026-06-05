@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-008-cell-assignment-controller
 status: pending
 owner: axis-tenancy + ops-sre-reliability
-acceptance_lanes: [cargo-check, cargo-nextest, layer-correctness]
+acceptance_lanes: [buck2-check, buck2-test, layer-correctness]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -72,8 +72,8 @@ pub async fn rebalance_shard(deps: &Deps, shard_id: i64, source: &str, target: &
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-cell-assignment-worker --test rebalance_on_unhealthy
-cargo nextest run -p oya-tenancy-cell-assignment-adapter-citus --test rebalance_integrity
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-cell-assignment-worker --test rebalance_on_unhealthy
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-cell-assignment-adapter-citus --test rebalance_integrity
 ```
 
 ## Test Plan

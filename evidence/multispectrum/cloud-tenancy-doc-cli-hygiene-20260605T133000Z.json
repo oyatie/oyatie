@@ -1,0 +1,45 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "cloud-tenancy-doc-cli-hygiene-20260605T133000Z",
+  "created_at": "2026-06-05T13:30:00Z",
+  "scope": [
+    "cloud/tenancy/**",
+    "scripts/ci/assert-repo-hygiene-automation.rs",
+    "scripts/tests/repo_hygiene_automation_check.rs",
+    "specs/repo-hygiene-automation.json"
+  ],
+  "summary": "Retires active cloud/tenancy documentation authority for local oya-dev-cli, Cargo-as-merge-authority, oya gate/vcs/verify/doc/lint/submit bridge commands, and external CI/CD bridge substrates. Buck2/Prow oya-ci-required is the evidence path; Cargo manifests remain compatibility metadata only.",
+  "decisions": [
+    "Buck2 remains the build/test/check/coverage/merge-evidence authority for cloud/tenancy.",
+    "Cargo is compatibility metadata for Rust ecosystem workflows, reindeer/vendor inputs, and optional local mutation-tooling compatibility; it is not CI merge authority.",
+    "CUE/KRM desired-state direction is recorded for first-party tenancy Kubernetes package work; existing Helm adapter leftovers are not claimed migrated in this slice.",
+    "Native Rust/Prow oya-ci-required and native release-conveyor seams replace retired local verifier and external CI/CD bridge wording in active tenancy guidance."
+  ],
+  "nonclaims": [
+    "No live Kubernetes deployment or pod mutation was performed.",
+    "No first-party Helm-to-CUE file migration is claimed.",
+    "No live GitHub branch-protection, Prow controller, or release-conveyor mutation is claimed.",
+    "Historical ADR provenance outside active cloud/tenancy guidance is not globally deleted in this slice."
+  ],
+  "guard_added": {
+    "check": "buck2 build //:repo-hygiene-automation-check",
+    "function": "cloud_tenancy_authority_failures",
+    "scan_root": "cloud/tenancy",
+    "rejects": [
+      "retired local oya-dev-cli command authority",
+      "Cargo commands used as cloud/tenancy merge authority",
+      "retired oya gate/vcs/verify/doc/lint/submit bridge wording",
+      "retired external CI/CD bridge authority",
+      "awkward stale doctrine propagation such as native native oya-ci or local mirror requirements"
+    ]
+  },
+  "verification_plan": [
+    "targeted exact-text scan over cloud/tenancy markdown/json/yaml",
+    "rustfmt --edition 2024 --check for changed Rust checker/test files",
+    "jq -e . for changed JSON registry/evidence files",
+    "rustc --edition=2024 -D warnings test harness run",
+    "rustc --edition=2024 -D warnings checker JSON run",
+    "buck2 build //:repo-hygiene-automation-check",
+    "git diff --check"
+  ]
+}

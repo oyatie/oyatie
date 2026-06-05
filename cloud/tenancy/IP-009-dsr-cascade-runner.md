@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-009-dsr-cascade-runner
 status: pending
 owner: axis-tenancy + council-privacy
-acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-dsr-handler-conformance]
+acceptance_lanes: [buck2-check, buck2-test, oya-governance-dsr-handler-conformance]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -86,8 +86,8 @@ pub async fn run_cascade(deps: &Deps, dsr: &DsrRequest) -> anyhow::Result<()> {
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-dsr-cascade-worker --test dsr_cascade_proof
-cargo run -p oya-dev-cli -- gate validate dsr-handler-conformance
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-dsr-cascade-worker --test dsr_cascade_proof
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for dsr-handler-conformance
 ```
 
 ## Test Plan

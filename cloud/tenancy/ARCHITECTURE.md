@@ -264,8 +264,8 @@ Failure behavior:
   fail closed for cell-scoped paths.
 
 Verification:
-- `RUSTC_WRAPPER= cargo test --manifest-path crates/oya-shuffle-sharding/Cargo.toml`
-  proves deterministic selection and validation.
+- Buck2/Prow required evidence for the shuffle-sharding target proves
+  deterministic selection and validation.
 - `oya-governance-cross-consistency` must verify that tenancy, api-gateway, and
   audit-chain agree on `tenant.cell`, `cell_epoch`, `assignment_width`, and
   `assignment_salt` field names.
@@ -1390,7 +1390,7 @@ This anchor is closed for `tenancy` against ADR-0248 §D-1: cell tier, shard wid
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -1452,7 +1452,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.5: appl
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Buck2/Prow evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.

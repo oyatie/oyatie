@@ -43,11 +43,11 @@ Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`,
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-reserved-namespace-usecase --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-reserved-namespace-usecase --all-features`.
 - Tests include at least 20 reserved-name and confusable cases.
 - Deny path emits `oya.tenancy.reserved-namespace-create-refused` and does not persist the requested slug.
 - Allow path proves a non-reserved tenant slug continues to `CreateTenantUseCase`.
-- `cargo run -p oya-dev-cli -- gate validate cedar-coverage --microservice tenancy` includes the reserved namespace action.
+- `Buck2/Prow native gate evidence for cedar-coverage --microservice tenancy` includes the reserved namespace action.
 
 ## F. Evidence
 

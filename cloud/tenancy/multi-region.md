@@ -82,7 +82,7 @@ For packs with a DR pair:
 | Citus shards | Logical replication on shard moves; transactional cut-over | ≤ 30s within-region; ≤ 5min cross-region | intra-pack only |
 | Patroni DCS (etcd) | Multi-region etcd cluster within-pack | ≤ 5s | intra-pack only |
 | Valkey | Sentinel-managed; warm replica cross-region | ≤ 30s | intra-pack only |
-| Tenancy crates' deployment | Git-versioned + ArgoCD-managed on both sides | 0 (declarative) | intra-pack only |
+| Tenancy crates' deployment | Git-versioned + native release conveyor-managed on both sides | 0 (declarative) | intra-pack only |
 | RLS YAML manifests | Git-versioned | 0 | global (manifests are config; not tenant data) |
 | Cedar policy fragments | Git-versioned | 0 | global |
 | Workspace Cargo.toml + IaC | Git-versioned | 0 | global |
@@ -109,7 +109,7 @@ Per `policy/data-residency.md`, no tenant metadata crosses pack boundaries. The 
 | 1 | Verify DR-pair region healthy (Postgres reachable; Citus warm; tenancy crates buildable) | ≤ 2 min |
 | 2 | Promote DR-pair Postgres replica to primary via Patroni (`patronictl failover`) | ≤ 30 s |
 | 3 | Promote DR-pair Citus coordinator (Patroni-managed; replica → primary) | ≤ 30 s |
-| 4 | Scale DR-pair tenancy crates from 0 to primary-tier replica count | ≤ 3 min (Helm rollout) |
+| 4 | Scale DR-pair tenancy crates from 0 to primary-tier replica count | ≤ 3 min (CUE/KRM/native release-conveyor rollout) |
 | 5 | Update Global Traffic Manager DNS records to DR-pair endpoints | ≤ 1 min (TTL 60s) |
 | 6 | Verify validate hot path reachable from DR-pair; per-µservice JWT-verifier caches refresh | ≤ 5 min |
 | 7 | Verify lifecycle write path resumes; Citus coordinator accepts writes | ≤ 5 min |
@@ -170,7 +170,7 @@ Per-pack BCDR specifics at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tena
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region-conformance --microservice tenancy` — exit 0.
+- `Buck2/Prow native gate evidence for multi-region-conformance --microservice tenancy` — exit 0.
 - Quarterly DR-failover drill audit log: success vs failure rate trend.
 - Annual third-party BCDR audit: alignment with ISO 22301 / NIST SP 800-34 / DORA.
 
@@ -235,6 +235,6 @@ Per ADR-0163, every tenant has three environment tiers — `test`, `staging`, `p
 
 **Operations covered:** DSR delete, tenant offboarding, bulk delete > 100 rows, cell migration, residency-class change.
 
-CI lane `oya gate validate tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier`, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
+Buck2/Prow lane evidence for `tenant-environment-tier` enforces (a) every outbound-effect µservice checks `env_tier`, (b) every API-key issuance validates Cedar tier-grant, (c) every prod destructive op carries the ack header.
 
 See `/specs/tenant-environment-tiers-canonical.json` for the canonical declaration.

@@ -45,11 +45,11 @@ The hierarchy model is an adjacency edge plus materialized path projection: the 
 
 ## E. Acceptance
 
-- `cargo check -p oya-tenancy-sub-scope-registry-kernel --all-features`.
-- `cargo nextest run -p oya-tenancy-sub-scope-registry-kernel --all-features`.
+- `Buck2/Prow check evidence for oya-tenancy-sub-scope-registry-kernel --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-sub-scope-registry-kernel --all-features`.
 - Property tests prove no cycles, max depth 6, stable path ordering, and same-tenant-only parentage.
-- `cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-tenancy-sub-scope-registry-kernel`.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice tenancy`.
+- `Buck2/Prow native gate evidence for layer-correctness --crate oya-tenancy-sub-scope-registry-kernel`.
+- `Buck2/Prow native gate evidence for per-microservice-layout --microservice tenancy`.
 
 ## F. Evidence
 

@@ -47,7 +47,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 | Detection | `oya-tenancy-rls-state-validator` 5min cadence; `oya_tenancy_rls_drift_total > 0` |
 | Tenant impact | Potential cross-tenant data exposure (catastrophic); time-bounded to ≤ 5min by validator cadence |
 | Severity | Sev-1 (security breach risk) |
-| Immediate mitigation | Auto-rollback via ArgoCD to last-green YAML state; engage ops-security; freeze affected schema; begin forensic trace |
+| Immediate mitigation | Auto-rollback via native release conveyor to last-green YAML state; engage ops-security; freeze affected schema; begin forensic trace |
 | RTO | ≤ 5min auto-rollback; investigation days |
 | Recovery runbook | `runbooks/rls-drift-recovery.md` |
 | Postmortem owner | ops-security + axis-tenancy |

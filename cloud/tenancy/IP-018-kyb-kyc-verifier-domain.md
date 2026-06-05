@@ -42,7 +42,7 @@ Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models 
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-kyb-kyc-verifier-domain --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-kyb-kyc-verifier-domain --all-features`.
 - No network, database, HTTP, or provider SDK dependencies appear in the crate.
 - Tests show `TenantStatus::Activated` eligibility only after `Decision::Approve`.
 - Domain events map to `oya.tenancy.kyb-kyc-completed`, `oya.tenancy.kyb-kyc-declined`, and `oya.tenancy.kyb-kyc-escalated` for `IP-024`.

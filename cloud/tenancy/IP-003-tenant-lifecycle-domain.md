@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-003-tenant-lifecycle-domain
 status: pending
 owner: axis-tenancy
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a1, layer-correctness]
+acceptance_lanes: [buck2-check, buck2-build, buck2-clippy, buck2-test, lean-a1, layer-correctness]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -50,9 +50,9 @@ pub fn next_state(current: TenantStatus, transition: Transition) -> Result<Tenan
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-tenancy-tenant-lifecycle-domain --all-features
-cargo nextest run -p oya-tenancy-tenant-lifecycle-domain --all-features
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-tenancy-tenant-lifecycle-domain
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow check evidence for oya-tenancy-tenant-lifecycle-domain --all-features
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-domain --all-features
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for layer-correctness --crate oya-tenancy-tenant-lifecycle-domain
 ```
 
 ## Test Plan

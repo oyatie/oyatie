@@ -41,11 +41,11 @@ Build `oya-tenancy-data-residency-enforcer-adapter` as an adapter crate that wra
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-data-residency-enforcer-adapter --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-data-residency-enforcer-adapter --all-features`.
 - Cedar decision tests use real `microservices/tenancy/policy/data-residency.cedar`.
 - Every denial carries audit evidence and no outbound event/RPC is dispatched.
 - `rg "home_jurisdiction|source_pack|target_pack" microservices/tenancy/contracts` finds the event contract labels after the implementation.
-- `cargo run -p oya-dev-cli -- gate validate tenancy-residency-conformance --microservice tenancy`.
+- `Buck2/Prow native gate evidence for tenancy-residency-conformance --microservice tenancy`.
 
 ## F. Evidence
 

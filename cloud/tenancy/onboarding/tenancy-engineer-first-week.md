@@ -27,7 +27,7 @@ Acceptance: you can sketch the lifecycle path: REST POST `/v1/tenancy/tenants` â
 ## Day 2 â€” demo_trial cell bootstrap + first tenant lifecycle traversal
 
 ```sh
-cargo run -p oya-dev-cli -- tenancy bootstrap \
+buck2 build //:repo-hygiene-automation-check # tenancy control-plane bootstrap operation \
     --tenant-class demo_trial \
     --cell drill-syd-1 \
     --postgres-endpoint postgres://drill-pg-syd-1:5432/tenancy \

@@ -15,9 +15,9 @@ exit_gate: |
   `oya-tenancy-{tenant-lifecycle,isolation-policy,cell-assignment,dsr-cascade}-*` crates exist + build clean;
   branch-protection.yaml carries rls-no-superuser-bypass + rls-force-on-tenant-tables + jwt-key-fingerprint-advertised as required_status_checks on dev;
   Patroni HA + Citus shard cluster live in pack-kr (M01 launch);
-  cargo nextest run --workspace exits 0;
-  `oya gate validate per-microservice-layout --microservice tenancy` exit 0;
-  `oya gate validate authority-cohesion` exit 0 with HG-TEN registered;
+buck2 test //... # native Buck2/Prow workspace test evidence
+  `Buck2/Prow native gate evidence for per-microservice-layout --microservice tenancy` exit 0;
+  `Buck2/Prow native gate evidence for authority-cohesion` exit 0 with HG-TEN registered;
   proof-of-erasure certificate produced end-to-end for a synthetic DSR cascade across all M01 µservices;
   observability self-SLOs green at the µservice level for ≥ 7 days.
 depends_on:
@@ -84,7 +84,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-layer-a-postgres-citus-patroni-iac.md`](IP-001-layer-a-postgres-citus-patroni-iac.md) | Helm/Kustomize charts for Postgres + Citus + Patroni HA at `microservices/tenancy/iac/helm/`; pack-kr overlay | pending | ops-sre-reliability + axis-tenancy | — |
+| [`IP-001-layer-a-postgres-citus-patroni-iac.md`](IP-001-layer-a-postgres-citus-patroni-iac.md) | CUE/KRM packages plus Kustomize adapters for Postgres + Citus + Patroni HA at `microservices/tenancy/iac/cue-krm/`; pack-kr overlay | pending | ops-sre-reliability + axis-tenancy | — |
 | [`IP-002-tenant-lifecycle-kernel.md`](IP-002-tenant-lifecycle-kernel.md) | `oya-tenancy-tenant-lifecycle-kernel` crate: ports + entities (Tenant, TenantId, TenantStatus, JurisdictionCode, PlanTier, TenantContext) | pending | axis-tenancy | IP-001 |
 | [`IP-003-tenant-lifecycle-domain.md`](IP-003-tenant-lifecycle-domain.md) | `-domain` crate: lifecycle FSM, plan-tier rules, jurisdiction validators | pending | axis-tenancy | IP-002 |
 | [`IP-004-tenant-lifecycle-usecase.md`](IP-004-tenant-lifecycle-usecase.md) | `-usecase` crate: create/activate/suspend/resume/delete orchestrators | pending | axis-tenancy | IP-003 |
@@ -106,65 +106,65 @@ Coverage check vs. PRD §"Bounded Contexts": all 35 target crates landed by IPs 
 
 All gates must pass before `exit_gate` is declared.
 
-### Cargo / CI gates (exit 0 required)
+### Buck2 / Prow gates (exit 0 required)
 
 ```bash
-cargo check --workspace --all-features
-cargo build --workspace --all-features
-cargo clippy --workspace --all-features -- -D warnings
-cargo nextest run --workspace --all-features
-cargo deny check
-cargo doc --workspace --no-deps
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow workspace check evidence
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow workspace build evidence
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow workspace lint evidence
+buck2 test //... # native Buck2/Prow workspace test evidence
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow dependency-policy evidence
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow documentation build evidence
 ```
 
 ### Fitness lane gates
 
 ```bash
-oya gate validate lean-a1 --microservice tenancy        # layer ordering
-oya gate validate lean-a2 --microservice tenancy        # cross-product refusal
-oya gate validate port-location --microservice tenancy  # ports in kernel
-oya gate validate layer-correctness --microservice tenancy
-oya gate validate per-microservice-layout --microservice tenancy  # ADR-0131
-oya gate validate statelessness --microservice tenancy  # read path stateless
-oya gate validate shardability --microservice tenancy
-oya gate validate authority-cohesion                    # registers HG-TEN
-oya gate validate hyperscaler-maturity-claims           # ADR-0123
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for lean-a1 --microservice tenancy        # layer ordering
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for lean-a2 --microservice tenancy        # cross-product refusal
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for port-location --microservice tenancy  # ports in kernel
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for layer-correctness --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for per-microservice-layout --microservice tenancy  # ADR-0131
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for statelessness --microservice tenancy  # read path stateless
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for shardability --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for authority-cohesion                    # registers HG-TEN
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for hyperscaler-maturity-claims           # ADR-0123
 ```
 
 ### Substrate gates introduced by this phase
 
 ```bash
-oya gate validate rls-no-superuser-bypass --microservice tenancy
-oya gate validate rls-force-on-tenant-tables --microservice tenancy
-oya gate validate jwt-key-fingerprint-advertised --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for rls-no-superuser-bypass --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for rls-force-on-tenant-tables --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for jwt-key-fingerprint-advertised --microservice tenancy
 ```
 
 ### End-to-end drill gates
 
 | Scenario | Command | Pass criterion |
 |---|---|---|
-| Tenant activation happy path | `cargo nextest run -p oya-tenancy-tenant-lifecycle-worker --test activation_end_to_end` | activation ≤ 5 min p99; RLS installed; cell assigned; events emitted |
-| RLS cross-tenant refusal | `cargo nextest run -p oya-tenancy-isolation-policy-adapter-postgres --test rls_no_cross_tenant_rows` | zero rows returned in cross-tenant probe |
+| Tenant activation happy path | `Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-worker --test activation_end_to_end` | activation ≤ 5 min p99; RLS installed; cell assigned; events emitted |
+| RLS cross-tenant refusal | `Buck2/Prow test evidence for oya-tenancy-isolation-policy-adapter-postgres --test rls_no_cross_tenant_rows` | zero rows returned in cross-tenant probe |
 | Patroni failover availability | `tests/load/patroni-failover-availability.sh` | validate hot path ≥ 99.99% availability during primary loss |
-| Citus rebalance integrity | `cargo nextest run -p oya-tenancy-cell-assignment-adapter-citus --test rebalance_integrity` | row checksums equal before/after rebalance |
-| DSR cascade proof | `cargo nextest run -p oya-tenancy-dsr-cascade-worker --test dsr_cascade_proof` | every µservice emits receipt; Merkle root signed; tenant data unreachable |
-| JWT rotation drill | `cargo nextest run -p oya-tenancy-isolation-policy-worker --test jwt_rotation` | fingerprint event fires; verifier caches refresh ≤ 30s |
+| Citus rebalance integrity | `Buck2/Prow test evidence for oya-tenancy-cell-assignment-adapter-citus --test rebalance_integrity` | row checksums equal before/after rebalance |
+| DSR cascade proof | `Buck2/Prow test evidence for oya-tenancy-dsr-cascade-worker --test dsr_cascade_proof` | every µservice emits receipt; Merkle root signed; tenant data unreachable |
+| JWT rotation drill | `Buck2/Prow test evidence for oya-tenancy-isolation-policy-worker --test jwt_rotation` | fingerprint event fires; verifier caches refresh ≤ 30s |
 | Validate-path load test | `k6 run tests/load/tenant-validate-100krps.js` | p99 ≤ 5 ms at 100k RPS sustained 10 min |
 
 ### Workflow + Ontology integration gates
 
 ```bash
-oya gate validate workflow-event-registry --microservice tenancy
-oya gate validate ontology-type-registry --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for workflow-event-registry --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for ontology-type-registry --microservice tenancy
 ```
 
 ### Compliance gates
 
 ```bash
 # Per pack-kr launch overlay
-oya gate validate compliance-evidence-recency --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for compliance-evidence-recency --microservice tenancy
 # Per-pack retention conformance
-oya gate validate retention-conformance --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for retention-conformance --microservice tenancy
 ```
 
 ## Clean Architecture Compliance
@@ -193,7 +193,7 @@ Cross-product integration check: this phase introduces NO direct imports between
 
 ## ChangeSet Contract per IP
 
-Every IP emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + promotable). Min ChangeSet payload at `microservices/tenancy/evidence/multispectrum/<change_id>-<unix_ts>.json` on `oya vcs done`:
+Every IP emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + promotable). Min ChangeSet payload at `microservices/tenancy/evidence/multispectrum/<change_id>-<unix_ts>.json` in the merged PR evidence bundle:
 
 ```json
 {
@@ -206,7 +206,7 @@ Every IP emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + p
   "intent": "<one-line>",
   "spec_refs": ["microservices/tenancy/PRD.md§<section>", "Bominal ADR-0018"],
   "acceptance_lanes_green": [
-    "cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny",
+    "buck2-check", "buck2-build", "buck2-clippy", "buck2-test", "buck2-dependency-policy",
     "lean-a1", "lean-a2", "lean-a3", "lean-a4",
     "per-microservice-layout",
     "rls-no-superuser-bypass", "rls-force-on-tenant-tables", "jwt-key-fingerprint-advertised"
@@ -235,11 +235,11 @@ Per-IP test thresholds match observability phase 01 (same canonical table):
 | worker | 1 per orchestration arm | ≥ 1 long-lived loop | 1 e2e | 85% line; 75% branch |
 | sdk | 1 per public method (happy + retry + auth-fail) | ≥ 2 against rest | 0 | 90% line; 80% branch |
 | app | composition-root smoke | 0 | 1 startup-shutdown | 60% line |
-| IaC | n/a | ≥ 1 helm-install + helm-test per chart | 1 against kind/k3d | n/a |
+| IaC | n/a | ≥ 1 CUE/KRM reconciliation smoke plus Buck2 validation per package | 1 against kind/k3d | n/a |
 
 Enforced by:
-- `cargo nextest run --workspace --all-features` exits 0.
-- `cargo llvm-cov --workspace --fail-under-lines <threshold>` exits 0.
+- `buck2 test //...` exits 0 for the relevant tenancy targets.
+- `Buck2/Prow LLVM source-based coverage evidence` exits 0.
 - Per-IP `[acceptance_lanes]` frontmatter declares thresholds.
 
 ## branch-protection.yaml diff preview
@@ -287,25 +287,13 @@ branches:
       - oya-governance-rls-force-on-tenant-tables
 ```
 
-## Oya VCS Symbol Locks
+## Isolated Worktree PR Flow
 
-Per ADR-0116, this phase uses `oya vcs` primitives exclusively.
+Per ADR-0513, this phase uses isolated worktree branches, pull requests against `dev`, Buck2 evidence, and the trusted Rust/Prow `oya-ci-required` context. Retired symbol-lock primitives are historical only and must not be revived.
 
 ```bash
 # Claim before beginning each IP
-cargo run -p oya-dev-cli -- vcs claim \
-  --agent <agent-id> \
-  --intent "<IP-NNN-slug>: <one-line intent>" \
-  --paths "microservices/tenancy/src/crates/<crate>/**"
-
-# Verify after each IP's acceptance gates pass
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
-
-# Done — triggers rebase/merge/release primitive
-cargo run -p oya-dev-cli -- vcs done --agent <agent-id> --changeset <id>
-
-# Promote — fast-forward release pointer through the gate
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
+git worktree add /tmp/oyatie-tenancy-<ip-id> -b feat/tenancy-<ip-id> github-mirror/dev
 ```
 
 Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservices/tenancy/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0.

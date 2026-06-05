@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-010-tenancy-rest-and-sdk
 status: pending
 owner: axis-tenancy
-acceptance_lanes: [cargo-check, cargo-nextest, openapi-conformance, oya-governance-tenancy-cedar-coverage]
+acceptance_lanes: [buck2-check, buck2-test, openapi-conformance, oya-governance-tenancy-cedar-coverage]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -75,10 +75,10 @@ impl TenancyClient {
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-tenant-lifecycle-rest
-cargo nextest run -p oya-tenancy-tenant-lifecycle-sdk
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --microservice tenancy
-cargo run -p oya-dev-cli -- gate validate tenancy-cedar-coverage
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-rest
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-sdk
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for openapi-conformance --microservice tenancy
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for tenancy-cedar-coverage
 ```
 
 ## Test Plan

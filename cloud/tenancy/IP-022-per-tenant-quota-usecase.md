@@ -41,7 +41,7 @@ Create `oya-tenancy-per-tenant-quota-usecase` to read tenant class, pack, and li
 
 ## E. Acceptance
 
-- `cargo nextest run -p oya-tenancy-per-tenant-quota-usecase --all-features`.
+- `Buck2/Prow test evidence for oya-tenancy-per-tenant-quota-usecase --all-features`.
 - `microservices/tenancy/capabilities/quota-update.yaml` names the usecase owner and audit events.
 - Cedar tests cover tenant-admin self-read, substrate-principal update, and forbidden over-ceiling update.
 - REST follow-up `IP-026` can expose `GET /v1/tenants/{tid}/quotas` without inventing quota semantics.

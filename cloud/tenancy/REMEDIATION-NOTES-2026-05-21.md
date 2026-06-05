@@ -27,7 +27,7 @@ Follow-up: journey/overlay IPs were not rewritten in this bucket; they are long-
 
 ## Wave 15-IMPL-truth-up (2026-05-21)
 
-Scope: truth-up IP-declared crates per `feedback_verify_deliverables_not_just_line_count_2026_05_20` + IP-BUCKET-J ("implementation PRs must create missing declared crates/types before claiming cargo evidence") + ADR-0212 buildability doctrine.
+Scope: truth-up IP-declared crates per `feedback_verify_deliverables_not_just_line_count_2026_05_20` + IP-BUCKET-J ("implementation PRs must create missing declared crates/types before claiming Buck2/Prow evidence") + ADR-0212 buildability doctrine.
 
 ### Declared-vs-existing inventory
 
@@ -55,7 +55,7 @@ All 11 crates:
 - carry `//! Wave 15-IMPL-truth-up scaffold; full implementation lands in IP-NNN execution` in the `lib.rs` module doc-comment;
 - use `#[allow(dead_code)]` rather than `todo!()` / `unimplemented!()` so they compile clean and do not panic at runtime;
 - declare zero non-workspace dependencies (kernel-layer purity preserved);
-- compile under `cargo check -p <crate>` with no warnings (verified 2026-05-21).
+- compile under Buck2/Prow check targets with no warnings (verified 2026-05-21).
 
 ### Trimmed / deferred IP claims (NOT scaffolded this wave; flagged for follow-up IP execution)
 
@@ -86,7 +86,7 @@ Trimming rationale: IP markdown wording remains "scaffold the X crate" — the t
 ### Compile evidence
 
 ```
-cargo check -p oya-tenancy-tenant-lifecycle-kernel \
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow check evidence for oya-tenancy-tenant-lifecycle-kernel \
             -p oya-tenancy-isolation-policy-kernel \
             -p oya-tenancy-cell-assignment-kernel \
             -p oya-tenancy-dsr-cascade-kernel \

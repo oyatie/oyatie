@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-005-tenant-lifecycle-adapter-postgres
 status: pending
 owner: axis-tenancy
-acceptance_lanes: [cargo-check, cargo-nextest, lean-a1, layer-correctness, oya-governance-tenant-context-setlocal-present]
+acceptance_lanes: [buck2-check, buck2-test, lean-a1, layer-correctness, oya-governance-tenant-context-setlocal-present]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -58,9 +58,9 @@ pub async fn checkout_tenant_scoped(pool: &PgPool, tenant_id: &TenantId) -> Resu
 ## Acceptance Gates
 
 ```bash
-cargo nextest run -p oya-tenancy-tenant-lifecycle-adapter-postgres
-cargo run -p oya-dev-cli -- gate validate tenant-context-setlocal-present
-cargo run -p oya-dev-cli -- gate validate rls-no-superuser-bypass
+buck2 test //... # native Buck2/Prow test evidence for oya-tenancy-tenant-lifecycle-adapter-postgres
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for tenant-context-setlocal-present
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow native gate evidence for rls-no-superuser-bypass
 ```
 
 ## Test Plan

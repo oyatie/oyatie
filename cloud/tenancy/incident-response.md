@@ -253,7 +253,7 @@ On-call compensation + handoff per `microservices/tenancy/runbooks/jwt-key-rotat
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice tenancy` — exit 0; every FM-ID has matching runbook.
+- `Buck2/Prow native gate evidence for incident-runbook-coverage --microservice tenancy` — exit 0; every FM-ID has matching runbook.
 - Quarterly DR failover drill validates response chain end-to-end (per `multi-region.md`).
 - Annual tabletop exercise simulates Sev-1 RLS-bypass incident; comms + regulatory notification chain rehearsed.
 

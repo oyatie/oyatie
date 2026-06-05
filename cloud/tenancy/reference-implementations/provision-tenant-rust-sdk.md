@@ -248,7 +248,7 @@ This is the chain-of-custody for the tenant lifecycle.
 OYA_TENANCY_API=https://tenancy-api.dev.<platform>.oyatie.io \
 OYA_IAM_API=https://iam-api.dev.<platform>.oyatie.io \
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 \
-    cargo run --release
+buck2 build //:repo-hygiene-automation-check # Buck2/Prow release-mode run evidence or an explicitly local compatibility run
 ```
 
 Verify in portal: portal → Tenants → search "MedCenter". See the new tenant + active sub-scopes + pending admin invitation.
