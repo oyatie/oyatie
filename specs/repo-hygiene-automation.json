@@ -151,7 +151,8 @@
       "cloud-tenancy retired CLI/Cargo/external CI authority scan",
       "M02 exit-gate validator retired CLI/Cargo/pnpm authority scan",
       "standards retired local gate/doc/vcs command scan",
-      "standards retired external substrate name scan"
+      "standards retired external substrate name scan",
+      "microservice spec retired CI/CD and local gate authority scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -318,6 +319,17 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental standards external-substrate cleanup only; historical ADR and generated machine-readable mirrors remain separate regeneration/archive backlog slices"
+    },
+    "microservice_spec_authority_scan": {
+      "clean_files": [
+        "specs/microservices/accounting.json",
+        "specs/microservices/hr.json",
+        "specs/microservices/payroll.json"
+      ],
+      "policy": "Cleaned active microservice specs use Buck2/Prow oya-ci-required, native SCM/PR admission, Buck2/Prow api-semver lanes, CUE/KRM desired-state, and native release-conveyor/KRM wording. Retired external CI/CD substrate names, retired local gate authority, direct Cargo command authority, and per-service CI entrypoint paths must not appear as active promotion evidence.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental accounting/hr/payroll spec guard only; remaining microservice specs and historical ADR provenance are separate backlog slices"
     },
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",

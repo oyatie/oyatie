@@ -140,14 +140,14 @@
       "given": "a future HTTP adapter needs accounting wire contracts",
       "when": "contract validation runs",
       "then": "OpenAPI v1 describes journal, payroll-posting, and VAT workflow planning request/response shapes with semver metadata and explicit non-deployed status",
-      "test_ref": "microservices/accounting/contracts/openapi-v1.yaml + microservices/accounting/contracts/openapi-v1.meta.yaml; validated by oya gate validate api-semver --contracts-dir microservices/accounting/contracts"
+      "test_ref": "microservices/accounting/contracts/openapi-v1.yaml + microservices/accounting/contracts/openapi-v1.meta.yaml; Buck2/Prow api-semver lane validates microservices/accounting/contracts as part of oya-ci-required"
     },
     {
       "id": "AC-09",
       "given": "accounting journal changes are proposed for review",
-      "when": "the self-hostable CI quality gate runs",
-      "then": "Jenkins LTS runs fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence emission across accounting domain/app/API packages before promotion",
-      "test_ref": "microservices/accounting/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for oya-accounting-journal-domain, oya-accounting-journal-app, oya-accounting-journal-api; oya gate validate api-semver --contracts-dir microservices/accounting/contracts"
+      "when": "the Buck2/Prow quality gate runs",
+      "then": "Buck2/Prow oya-ci-required runs format, check, lint, tests, OpenAPI semver, native SCM/PR admission, and evidence emission across accounting domain/app/API packages before promotion",
+      "test_ref": "Buck2/Prow affected target set plus accounting quality lane registry; Rust api-semver validation over microservices/accounting/contracts; Buck2-owned checks for oya-accounting-journal-domain, oya-accounting-journal-app, and oya-accounting-journal-api"
     },
     {
       "id": "AC-10",
@@ -371,7 +371,7 @@
       },
       {
         "name": "manual shell/SSH operational glue",
-        "reason": "deployment and day-2 authority belongs to OpenTofu, Makefile targets, Rust oya gates, and ops-managed controllers"
+        "reason": "deployment and day-2 authority belongs to CUE/KRM desired-state, Buck2 targets, Rust validation kernels, and ops-managed controllers"
       },
       {
         "name": "AI-only compliance or close decisions",
@@ -387,8 +387,8 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-accounting-journal-domain -- double_entry",
-      "lane_ref": "cargo-nextest"
+      "verification_ref": "Buck2/Prow lane: accounting-double-entry",
+      "lane_ref": "domain-invariants"
     },
     {
       "name": "vat_deadline_workflow_coverage_pct",
@@ -397,7 +397,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate accounting-vat-deadlines",
+      "verification_ref": "Buck2/Prow lane: accounting-vat-deadlines",
       "lane_ref": "compliance"
     },
     {
@@ -407,7 +407,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate accounting-payroll-bridge",
+      "verification_ref": "Buck2/Prow lane: accounting-payroll-bridge",
       "lane_ref": "audit-chain"
     },
     {
@@ -417,7 +417,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "oya gate validate accounting-close-evidence",
+      "verification_ref": "Buck2/Prow lane: accounting-close-evidence",
       "lane_ref": "audit-chain"
     }
   ],
@@ -503,23 +503,23 @@
   "goals": {
     "scalability": {
       "target": "EnterpriseAccounting supports SME self-serve through conglomerate legal-entity groups without forked code paths",
-      "verification": "oya gate validate enterpriseaccounting-scale-model"
+      "verification": "Buck2/Prow lane: enterpriseaccounting-scale-model"
     },
     "security": {
       "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
-      "verification": "cargo nextest -p oya-security-domain -- cross_tenant"
+      "verification": "Buck2/Prow lane: cross-tenant-security"
     },
     "performance": {
       "target": "operator hot paths p95 <= 200ms for preview and <= 150ms for GA under representative tenant shape",
-      "verification": "cargo bench -p oya-bench -- enterprise_hot_paths"
+      "verification": "Buck2/Prow lane: enterprise-hot-paths"
     },
     "efficiency": {
       "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
-      "verification": "oya gate validate finops-unit-economics"
+      "verification": "Buck2/Prow lane: finops-unit-economics"
     },
     "reliability": {
       "target": "GA availability 99.95%; RPO <= 5m for professional data; rollback evidence emitted before root-cause analysis",
-      "verification": "oya gate validate slo-coverage"
+      "verification": "Buck2/Prow lane: slo-coverage"
     }
   },
   "user_experience": {
@@ -608,7 +608,7 @@
     },
     {
       "id": "D-08",
-      "decision": "Accounting Jenkins LTS quality gate covers the journal domain/app/API package group plus the accounting OpenAPI contract; ArgoCD, Helm, runtime deploy, ledger persistence, tax filing transport, payment execution, and cloud adapters remain out of scope until deployable adapters land.",
+      "decision": "Accounting Buck2/Prow oya-ci-required quality lane covers the journal domain/app/API package group plus the accounting OpenAPI contract; native release-conveyor/KRM runtime deploy, ledger persistence, tax filing transport, payment execution, and cloud adapters remain out of scope until deployable adapters land.",
       "date": "2026-05-23"
     },
     {
