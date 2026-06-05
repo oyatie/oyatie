@@ -60,21 +60,6 @@
       "network": false
     },
     {
-      "path": "tools/hooks/stop-did-you-forget-suggester.sh",
-      "purpose": "Advisory stop-time incomplete-work reminder.",
-      "events": {
-        "codex": [
-          "Stop"
-        ],
-        "gemini": [
-          "AfterAgent"
-        ]
-      },
-      "reads": [],
-      "writes": [],
-      "network": false
-    },
-    {
       "path": "tools/hooks/no-cargo-enforcer.sh",
       "purpose": "Advisory Buck2/no-cargo guidance for shell commands.",
       "events": {
@@ -208,6 +193,11 @@
     {
       "path": "tools/hooks/pre-dispatch-guide.sh",
       "replacement": "AGENTS.md child-agent protocol plus installed native subagent role routing; no shell advisory hook needed",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/stop-did-you-forget-suggester.sh",
+      "replacement": "Verification-before-completion protocol plus CI/controller evidence; no shallow Stop-time assurance hook",
       "status": "deleted"
     }
   ],
