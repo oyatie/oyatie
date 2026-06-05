@@ -1,0 +1,22 @@
+{
+  "id": "cell-lifecycle-authority-hygiene-20260605T102227Z",
+  "created_utc": "20260605T102227Z",
+  "branch": "chore/cell-lifecycle-authority-hygiene-20260605T101930Z",
+  "base": "a361b930a21b6a873e30754786b9cefb0cdcb60d",
+  "scope": "cloud/cell-lifecycle plus repo-hygiene Rust guard",
+  "changes": [
+    "Replaced retired cell-lifecycle oya-dev-cli/Jenkins/ArgoCD authority metadata with Buck2 plus trusted Rust/Prow oya-ci-required wording.",
+    "Removed first-party cell-lifecycle Helm chart directory and added a CUE/KRM/Buck2/Prow desired-state pointer.",
+    "Added cell_lifecycle_authority_failures Rust guard and unit test to reject retired CLI/CI/CD or first-party Helm authority regressions."
+  ],
+  "verification": {
+    "rustfmt": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+    "repo_hygiene_tests": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test; 56 passed, 0 failed",
+    "repo_hygiene_json": "verdict PASS; failures []",
+    "buck2": "buck2 build //:repo-hygiene-automation-check --show-output; BUILD SUCCEEDED",
+    "targeted_scan": "cell-lifecycle retired authority targeted scan clean",
+    "helm_absence": "cloud/cell-lifecycle/iac/k8s/helm absent",
+    "syntax": "Ruby YAML load for OpenAPI ok; jq manifest ok",
+    "diff_check": "git diff --check passed"
+  }
+}
