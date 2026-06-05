@@ -133,7 +133,7 @@ Verify-at-deploy: peak factors assume working-hours bias of 4× over avg.
 
 | Quarter | Forecast PRs/month | Forecast cost / month | Actual PRs/month | Actual cost | Notes |
 |---|---|---|---|---|---|
-| 2026-Q2 (M01) | 1000 | $2000 | populated by `oya-dev-cli capacity quarterly-actual --quarter 2026-Q2` on quarter close (writes Actual PRs/month from `gh api graphql` PR-history + Actual cost from `gcloud billing` aggregated query) | populated by same command (cost dimension) | first measurement |
+| 2026-Q2 (M01) | 1000 | $2000 | populated by the governance capacity quarterly-actual controller on quarter close (writes Actual PRs/month from PR-history + Actual cost from aggregated billing query) | populated by the same controller evidence bundle (cost dimension) | first measurement |
 | 2026-Q3 | 2000 | $3500 | — | — | |
 | 2026-Q4 | 4000 | $7000 | — | — | |
 | 2027-Q1 | 8000 | $12500 | — | — | |

@@ -5,14 +5,14 @@ milestone: M01-foundation
 phase: P01-ci-fitness-consolidation
 status: Active
 entry_gate: |
-  ADR-0131 + ADR-0132 + ADR-0133 accepted; /specs/per-microservice-flat-layout.json + /specs/industry-best-practice-conformance.json published; cargo workspace ready to accept the 36 new umbrella crates + the migrated ~50 oya-check-* crates under microservices/governance/src/crates/.
+  ADR-0131 + ADR-0132 + ADR-0133 accepted; /specs/per-microservice-flat-layout.json + /specs/industry-best-practice-conformance.json published; Buck2 target graph and Rust package metadata ready to accept the 36 new umbrella crates + the migrated ~50 oya-check-* crates under microservices/governance/src/crates/.
 exit_gate: |
-  All 15 IPs merged; the full ~50-lane fitness suite executes on every PR under microservices/governance/; oya-check-industry-best-practice-conformance is a BLOCKER required_status_check on dev; oya-check-per-microservice-layout is a BLOCKER required_status_check on dev; oya-check-aggregation-index-generation is a BLOCKER required_status_check on dev; lane bypass refused without break-glass; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice governance exits 0; oya gate validate authority-cohesion exits 0; HG-GOV gate in /specs/hyperscaler-gates.json registers green.
+  All 15 IPs merged; the full ~50-lane fitness suite executes on every PR under microservices/governance/; oya-check-industry-best-practice-conformance is a BLOCKER required_status_check on dev; oya-check-per-microservice-layout is a BLOCKER required_status_check on dev; oya-check-aggregation-index-generation is a BLOCKER required_status_check on dev; lane bypass refused without break-glass; Buck2/Prow quality-lane jobs pass for per-microservice-layout, authority-cohesion, and HG-GOV registrations in /specs/hyperscaler-gates.json.
 depends_on:
   - milestone: M01-foundation
     phase: prior phases per master-plan-sequencing
-    reason: workspace + branch-protection + Cargo metadata authority must precede gate authoring
-owner_team: axis-foundry
+    reason: Buck2 target graph + branch-protection shadow + Rust package metadata must precede gate authoring
+owner_team: platform-governance
 related_adrs: [ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/industry-best-practice-conformance.json]
 date: 2026-05-17
@@ -26,7 +26,7 @@ doc_status: published
 This phase ships the `governance` µservice as the home of every CI-fitness/governance-lane in oyatie. It does three things:
 
 1. **Scaffolds** the µservice (umbrella BCs `lane-runtime` + `policy-engine` + `evidence-emitter` + `aggregation-indexer` — 36 new crates across 4 BCs × 9 layers per ADR-0105).
-2. **Migrates** the first batch of 10 historical `oya-check-*` crates from `crates/oya-check-*` to `microservices/governance/src/crates/oya-check-*` per ADR-0131 IP-M01-MIGR-014. The remaining ~40 crates migrate in subsequent IPs/phases — tier-A first ten in IP-002..IP-011, tier-B in IP-012..IP-013, tier-C in IP-014..IP-015.
+2. **Migrates** the first batch of 10 historical `oya-check-*` crates from shared `libs/oya-check-*` surfaces to governance-owned package/target metadata per ADR-0131 IP-M01-MIGR-014. The remaining ~40 crates migrate in subsequent IPs/phases — tier-A first ten in IP-002..IP-011, tier-B in IP-012..IP-013, tier-C in IP-014..IP-015.
 3. **Activates** the ADR-0133 `oya-check-industry-best-practice-conformance` BLOCKER lane on `dev` along with the ADR-0131 sibling lanes (`per-microservice-layout`, `aggregation-index-generation`).
 
 It is delivered as one phase in M01-foundation because every other oyatie µservice depends on the fitness suite being available at PR-time to advance past `dev` per the bootstrap-order policy in `/specs/per-microservice-flat-layout.json`.
@@ -48,7 +48,7 @@ This phase advances master-plan principles:
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
 - `.github/branch-protection.yaml` — add `oya-check-industry-best-practice-conformance`, `oya-check-per-microservice-layout`, `oya-check-aggregation-index-generation` to `required_status_checks` on `dev`.
 - `.github/workflows/governance-suite.yml` (NEW) — matrix-fanout per-lane execution.
-- `Cargo.toml` (workspace) — register the 36 new umbrella crates + migrate the 50 `oya-check-*` `[workspace.members]` paths to `microservices/governance/src/crates/oya-check-<topic>`.
+- `BUCK` + Rust package metadata — register the 36 new umbrella crates + migrate the 50 `oya-check-*` package descriptors to `microservices/governance/src/crates/oya-check-<topic>`; Cargo manifests are compatibility metadata only, while Buck2 remains build/test/check authority.
 - `/specs/hyperscaler-gates.json` — register HG-GOV gate per ADR-0123.
 - `/specs/industry-best-practice-conformance.json` — pin initial baselines (SLSA v1.0, NIST SSDF SP 800-218 rev 1, OWASP ASVS 4.0.3, Google SRE Workbook 2nd ed., AWS WAF 2024, Azure WAF 2024-12, OpenSLO v1.0, OpenTelemetry semconv LTS).
 - `docs/standards/agentic-dev-team-optimization.md` — already authored per ADR-0133 §"Output Artifacts"; this phase wires its eight principles into the conformance lane.
@@ -69,21 +69,21 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-scaffold-umbrella-bcs.md`](IP-001-scaffold-umbrella-bcs.md) | Create the 36 new umbrella crates (4 BCs × 9 layers); workspace registration; catalog rows | pending | axis-foundry | — |
-| [`IP-002-migrate-tier-a-check-crates-batch-1.md`](IP-002-migrate-tier-a-check-crates-batch-1.md) | Move `oya-check-{lean-a1,lean-a2,port-location,layer-correctness,naming-bnf-v41}` → `microservices/governance/src/crates/` | pending | axis-foundry | IP-001 |
-| [`IP-003-migrate-tier-a-check-crates-batch-2.md`](IP-003-migrate-tier-a-check-crates-batch-2.md) | Move `oya-check-{data-class,supply-chain,license-policy,placeholder-debt,brand-residue}` | pending | axis-foundry | IP-001 |
-| [`IP-004-lane-runtime-kernel-domain.md`](IP-004-lane-runtime-kernel-domain.md) | `oya-governance-lane-runtime-{kernel,domain}` — port traits + matrix-fanout math | pending | axis-foundry | IP-001 |
-| [`IP-005-lane-runtime-usecase-adapter-rest.md`](IP-005-lane-runtime-usecase-adapter-rest.md) | `-usecase` orchestrator + `-adapter` GitHub Actions matrix invocation + `-rest` HTTP surface | pending | axis-foundry | IP-004 |
-| [`IP-006-policy-engine-kernel-domain.md`](IP-006-policy-engine-kernel-domain.md) | `oya-governance-policy-engine-{kernel,domain}` — Rule/RulePack entities + decision algebra | pending | axis-foundry | IP-001 |
-| [`IP-007-policy-engine-usecase-adapter.md`](IP-007-policy-engine-usecase-adapter.md) | `-usecase` 6-axis evaluator + `-adapter` TOML/YAML reader + HTTPS baseline-diff client | pending | axis-foundry | IP-006 |
+| [`IP-001-scaffold-umbrella-bcs.md`](IP-001-scaffold-umbrella-bcs.md) | Create the 36 new umbrella crates (4 BCs × 9 layers); workspace registration; catalog rows | pending | platform-governance | — |
+| [`IP-002-migrate-tier-a-check-crates-batch-1.md`](IP-002-migrate-tier-a-check-crates-batch-1.md) | Move `oya-check-{lean-a1,lean-a2,port-location,layer-correctness,naming-bnf-v41}` → governance-owned package/target metadata | pending | platform-governance | IP-001 |
+| [`IP-003-migrate-tier-a-check-crates-batch-2.md`](IP-003-migrate-tier-a-check-crates-batch-2.md) | Move `oya-check-{data-class,supply-chain,license-policy,placeholder-debt,brand-residue}` | pending | platform-governance | IP-001 |
+| [`IP-004-lane-runtime-kernel-domain.md`](IP-004-lane-runtime-kernel-domain.md) | `oya-governance-lane-runtime-{kernel,domain}` — port traits + matrix-fanout math | pending | platform-governance | IP-001 |
+| [`IP-005-lane-runtime-usecase-adapter-rest.md`](IP-005-lane-runtime-usecase-adapter-rest.md) | `-usecase` orchestrator + `-adapter` Prow/Buck2 job fanout with GitHub shadow compatibility + `-rest` HTTP surface | pending | platform-governance | IP-004 |
+| [`IP-006-policy-engine-kernel-domain.md`](IP-006-policy-engine-kernel-domain.md) | `oya-governance-policy-engine-{kernel,domain}` — Rule/RulePack entities + decision algebra | pending | platform-governance | IP-001 |
+| [`IP-007-policy-engine-usecase-adapter.md`](IP-007-policy-engine-usecase-adapter.md) | `-usecase` 6-axis evaluator + `-adapter` TOML/YAML reader + HTTPS baseline-diff client | pending | platform-governance | IP-006 |
 | [`IP-008-evidence-emitter-kernel-domain.md`](IP-008-evidence-emitter-kernel-domain.md) | `oya-governance-evidence-emitter-{kernel,domain}` — Finding entities + canonical-JSON + Merkle | pending | ops-security | IP-001 |
 | [`IP-009-evidence-emitter-adapter-rest-worker.md`](IP-009-evidence-emitter-adapter-rest-worker.md) | Postgres + S3 adapter; HTTPS replay surface; long-lived seal worker | pending | ops-security | IP-008 |
-| [`IP-010-aggregation-indexer-full-stack.md`](IP-010-aggregation-indexer-full-stack.md) | `oya-governance-aggregation-indexer-{kernel,domain,usecase,adapter,rest,worker,sdk,app}` — full BC | pending | axis-foundry | IP-001 |
+| [`IP-010-aggregation-indexer-full-stack.md`](IP-010-aggregation-indexer-full-stack.md) | `oya-governance-aggregation-indexer-{kernel,domain,usecase,adapter,rest,worker,sdk,app}` — full BC | pending | platform-governance | IP-001 |
 | [`IP-011-industry-best-practice-conformance-lane.md`](IP-011-industry-best-practice-conformance-lane.md) | New BLOCKER lane on dev; reads `/specs/industry-best-practice-conformance.json`; refuses unaudited new artifacts | pending | council-architecture | IP-006, IP-007 |
-| [`IP-012-per-microservice-layout-lane.md`](IP-012-per-microservice-layout-lane.md) | New BLOCKER lane on dev; refuses out-of-layout artifacts; ADR-0131 sibling | pending | axis-foundry | IP-005 |
-| [`IP-013-aggregation-index-generation-lane.md`](IP-013-aggregation-index-generation-lane.md) | New BLOCKER lane on dev; refuses hand-edits of central indices; ADR-0131 sibling | pending | axis-foundry | IP-010 |
-| [`IP-014-observability-slo-authoring.md`](IP-014-observability-slo-authoring.md) | Author OpenSLO manifests for governance under `microservices/governance/slos/` (self-observability) | pending | axis-foundry + axis-observability | IP-009 |
-| [`IP-015-runbooks-iac-finalization.md`](IP-015-runbooks-iac-finalization.md) | Author 6 runbooks; finalize Helm charts (lane-runner-pool, postgres, evidence-store); register HG-GOV | pending | ops-sre-reliability | IP-005, IP-009 |
+| [`IP-012-per-microservice-layout-lane.md`](IP-012-per-microservice-layout-lane.md) | New BLOCKER lane on dev; refuses out-of-layout artifacts; ADR-0131 sibling | pending | platform-governance | IP-005 |
+| [`IP-013-aggregation-index-generation-lane.md`](IP-013-aggregation-index-generation-lane.md) | New BLOCKER lane on dev; refuses hand-edits of central indices; ADR-0131 sibling | pending | platform-governance | IP-010 |
+| [`IP-014-observability-slo-authoring.md`](IP-014-observability-slo-authoring.md) | Author OpenSLO manifests for governance under `microservices/governance/slos/` (self-observability) | pending | platform-governance + axis-observability | IP-009 |
+| [`IP-015-runbooks-iac-finalization.md`](IP-015-runbooks-iac-finalization.md) | Author 6 runbooks; finalize CUE/KRM packages (lane-runner-pool, postgres, evidence-store); register HG-GOV | pending | ops-sre-reliability | IP-005, IP-009 |
 
 Coverage check vs. ADR-0131 §"Migration DAG → IP-M01-MIGR-014" + ADR-0133 §"Output Artifacts": all four umbrella BCs (IP-004..IP-010), first 10 tier-A `oya-check-*` migrations (IP-002 + IP-003), industry-best-practice-conformance lane (IP-011), per-microservice-layout lane (IP-012), aggregation-index-generation lane (IP-013), OpenSLO self-observability (IP-014), runbooks + IaC + HG-GOV registration (IP-015). The remaining ~40 `oya-check-*` migrations queue for phases P02..P04 under M01.
 
@@ -91,38 +91,27 @@ Coverage check vs. ADR-0131 §"Migration DAG → IP-M01-MIGR-014" + ADR-0133 §"
 
 All gates must pass before `exit_gate` is declared.
 
-### Cargo / CI gates (exit 0 required)
+### Buck2 / oya-ci gates (exit 0 required)
 
 ```bash
-cargo check --workspace --all-features
-cargo build --workspace --all-features
-cargo clippy --workspace --all-features -- -D warnings
-cargo nextest run --workspace --all-features
-cargo deny check
-cargo doc --workspace --no-deps
+buck2 build //:buck2-authority-policy-check
+buck2 build //:repo-hygiene-automation-check
+buck2 build //:quality-lane-registry-authority-check
+buck2 build //:oya-ci-prowjob-registry-check
+buck2 build //:rust-llvm-coverage-policy-check
 ```
 
 ### Fitness lane gates
 
 ```bash
-oya gate validate lean-a1 --microservice governance
-oya gate validate lean-a2 --microservice governance
-oya gate validate port-location --microservice governance
-oya gate validate layer-correctness --microservice governance
-oya gate validate per-microservice-layout --microservice governance
-oya gate validate statelessness --microservice governance
-oya gate validate shardability --microservice governance
-oya gate validate industry-best-practice-conformance --microservice governance
-oya gate validate aggregation-index-generation
-oya gate validate authority-cohesion
-oya gate validate hyperscaler-maturity-claims
+buck2 build //:quality-lane-registry-authority-check # registers lean-a1, lean-a2, port-location, layer-correctness, per-microservice-layout, statelessness, shardability, industry-best-practice-conformance, aggregation-index-generation, authority-cohesion, and hyperscaler-maturity-claims
 ```
 
 ### Substrate gates introduced by this phase
 
 ```bash
-# Run full ~50-lane fitness suite against a dummy PR
-cargo run -p oya-dev-cli -- gate run --all --pr <N>
+# Run full ~50-lane fitness suite through trusted Prow/Buck2 status.
+buck2 build //:quality-lane-registry-authority-check //:oya-ci-prowjob-registry-check
 
 # Verify lane bypass is refused without break-glass
 gh pr merge <N> --admin   # expected: rejected unless break-glass record present
@@ -143,7 +132,7 @@ gh pr merge <N> --admin   # expected: rejected unless break-glass record present
 | app | 70% | 60% |
 | migrated `oya-check-*` | 80% (no change from pre-migration) | 70% |
 
-Coverage measured by `cargo llvm-cov nextest --workspace`.
+Coverage is LLVM source-based coverage emitted by Buck2/Prow; Cargo coverage tooling is compatibility-only local metadata and is not merge authority.
 
 ## Halt Conditions
 

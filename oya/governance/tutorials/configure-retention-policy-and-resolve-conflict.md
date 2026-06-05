@@ -14,7 +14,7 @@ You will: configure a tenant with two competing pack retention policies (default
 ## Pre-requisites
 
 - A tenant with `tenant_class = paid` (ADR-0329 + ADR-0330 + ADR-0331).
-- `oya-dev-cli` ≥ 1.42.0.
+- Governance control-plane access with tenant-admin scope; no local development CLI is authority.
 - Two tenant-admin principals (for dual-approval flow): `u-compliance-admin@acme-corp.com` + `u-legal-counsel@acme-corp.com`.
 
 ## Step 1 — Subscribe tenant to multiple packs (≤ 5 min)

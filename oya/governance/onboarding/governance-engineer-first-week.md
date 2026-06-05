@@ -27,15 +27,9 @@ Acceptance: you can sketch the ingestion path: µservice audit-chain emit → Ka
 ## Day 2 — demo_trial tenant_class cell bootstrap + first retention policy
 
 ```sh
-cargo run -p oya-dev-cli -- governance bootstrap \
-    --tenant-class demo_trial \
-    --cell drill-syd-1 \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/governance \
-    --clickhouse-endpoint http://drill-clickhouse-syd-1:8123 \
-    --kafka-endpoint kafka://drill-kafka-syd-1:9092 \
-    --valkey-endpoint valkey://drill-valkey-syd-1:6379 \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+# Submit governance bootstrap request through the control plane.
+# Inputs: tenant_class=demo_trial, cell=drill-syd-1, packs=kr,eu
+# Evidence: evidence/multispectrum/governance-first-week-<date>.json
 ```
 
 Expected runtime: ≤ 12 min. Verify:

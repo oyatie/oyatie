@@ -28,7 +28,7 @@ related_adrs:
   - ADR-0345
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/industry-best-practice-conformance.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
-owner_team: axis-foundry
+owner_team: platform-governance
 doc_status: published
 ---
 
@@ -74,7 +74,7 @@ This µservice has no Bominal equivalent and originates in oyatie. The historica
 
 | Metric | p50 | p99 | p999 | Notes |
 |---|---|---|---|---|
-| Per-PR fitness suite execution (full ~50 lanes, single PR) | ≤15s | ≤60s | ≤90s | parallel-fanout across GitHub Actions matrix |
+| Per-PR fitness suite execution (full ~50 lanes, single PR) | ≤15s | ≤60s | ≤90s | Prow/Buck2 parallel fanout with GitHub Actions shadow compatibility |
 | Single-lane execution (any individual lane) | ≤3s | ≤10s | ≤30s | matrix entry timeout |
 | Aggregation-index regeneration (full repo) | ≤60s | ≤5min | ≤10min | invoked on every PR + scheduled cron |
 | Finding emission latency (lane fail → Postgres write → audit-chain seal) | ≤200ms | ≤1s | ≤3s | end-to-end |
@@ -216,7 +216,7 @@ Plus the **~50 historical `oya-check-*` crates** (bundled per ADR-0131 IP-M01-MI
 | `oya-check-naming-bnf-v41` | naming-bnf-v41 | BLOCKER | M01-A |
 | `oya-check-no-grouping` (per ADR-0132) | no-grouping | BLOCKER | M01-A |
 
-Total bundled lane crates at the M01 launch tier: **~50** (37 existing in `crates/oya-check-*` + ~13 planned per related ADRs).
+Total bundled lane crates at the M01 launch tier: **~50** (37 existing in shared `libs/oya-check-*` surfaces + ~13 planned per related ADRs).
 
 Naming justification — `lane-runtime`:
 
@@ -302,8 +302,8 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 
 | Port trait | Kernel crate | Implemented in | Data classes touched |
 |---|---|---|---|
-| `LaneRegistry` | `oya-governance-lane-runtime-kernel` | `-adapter` (Cargo workspace introspection) | `INTERNAL_ONLY` |
-| `LaneDispatcher` | `oya-governance-lane-runtime-kernel` | `-adapter` (GitHub Actions matrix invocation) | `INTERNAL_ONLY` |
+| `LaneRegistry` | `oya-governance-lane-runtime-kernel` | `-adapter` (Buck2 target graph + Rust package metadata introspection) | `INTERNAL_ONLY` |
+| `LaneDispatcher` | `oya-governance-lane-runtime-kernel` | `-adapter` (Prow/Buck2 job fanout, with GitHub Actions shadow compatibility only) | `INTERNAL_ONLY` |
 | `RunnerProfileStore` | `oya-governance-lane-runtime-kernel` | `-adapter` (Postgres CRUD) | `INTERNAL_ONLY` |
 | `RulePackRepository` | `oya-governance-policy-engine-kernel` | `-adapter` (TOML/YAML reader; baseline pin reader) | `INTERNAL_ONLY` |
 | `BaselineDiffClient` | `oya-governance-policy-engine-kernel` | `-adapter` (HTTPS fetch + JSON diff against external industry sources) | `INTERNAL_ONLY` |
@@ -320,15 +320,15 @@ Cross-product rule: `governance` MUST NOT import any product µservice crate at 
 
 CI lanes that `governance` must run against itself (the self-application rule; the lane that gates governance is run from governance, so a bootstrap-paradox synthetic-probe fallback exists per ADR-0133 §"Operational"):
 
-- `oya gate validate lean-a1 --microservice governance` — dependency-direction
-- `oya gate validate lean-a2 --microservice governance` — cross-product-refusal
-- `oya gate validate port-location --microservice governance` — ports in kernel
-- `oya gate validate layer-correctness --microservice governance` — layer enum match
-- `oya gate validate per-microservice-layout --microservice governance` — ADR-0131 conformance
-- `oya gate validate statelessness --microservice governance`
-- `oya gate validate shardability --microservice governance`
-- `oya gate validate industry-best-practice-conformance --microservice governance`
-- `oya gate validate authority-cohesion` — HG-GOV registers here
+- Buck2/Prow quality lane `lean-a1` — dependency-direction
+- Buck2/Prow quality lane `lean-a2` — cross-product-refusal
+- Buck2/Prow quality lane `port-location` — ports in kernel
+- Buck2/Prow quality lane `layer-correctness` — layer enum match
+- Buck2/Prow quality lane `per-microservice-layout` — ADR-0131 conformance
+- Buck2/Prow quality lane `statelessness`
+- Buck2/Prow quality lane `shardability`
+- Buck2/Prow quality lane `industry-best-practice-conformance`
+- Buck2/Prow quality lane `authority-cohesion` — HG-GOV registers here
 
 ## Integration via Workflow + Ontology
 
@@ -440,7 +440,7 @@ Sharding:
 | AC-ID | Criterion | Verification method |
 |---|---|---|
 | AC-01 | All ~50 historical `oya-check-*` crates migrated into `microservices/governance/src/crates/` (atomic per IP-M01-MIGR-014) | `find microservices/governance/src/crates/ -name 'oya-check-*' -type d \| wc -l` ≥ 37 |
-| AC-02 | Full ~50-lane fitness suite passes on `dev` HEAD | `cargo run -p oya-dev-cli -- gate run --all` exit 0 |
+| AC-02 | Full ~50-lane fitness suite passes on `dev` HEAD | trusted Buck2/Prow `oya-ci-required` quality-lane evidence exits 0 |
 | AC-03 | Single-lane execution p99 ≤ 10s on representative PR | timed e2e test under `microservices/governance/tests/perf/single-lane.rs` |
 | AC-04 | Aggregation-indexer regenerates indices deterministically (idempotent across 3 runs) | `microservices/governance/tests/e2e/aggregation-determinism.rs` |
 | AC-05 | Hand-edit of central index (`registry/catalog/<crate>.yaml`) refused at PR-time | branch-protection emulation test |
@@ -458,9 +458,9 @@ Sharding:
 |---|---|---|---|
 | 1 | Migration sequencing of the ~50 oya-check-* crates: atomic single-ChangeSet vs. tier-A/tier-B/tier-C waves? | council-architecture | resolved in IP-001..IP-015 (tier-A in IP-001..IP-010; tier-B in IP-011..IP-013; tier-C in IP-014..IP-015) |
 | 2 | Should the historical `oya-check-*` crates rename to `oya-governance-check-*-{kernel,...}` during migration, or retain flat names? | council-architecture | retain flat names for M01 (per ADR-0131 §"Crate naming inside each `microservices/<ms>/crates/` subtree is unchanged"); rename ADR successor-IP subsequent-to-M01-completion |
-| 3 | Bootstrap paradox: governance gates governance. Synthetic-probe fallback during cold-start? | axis-foundry | resolved per ADR-0133 §"Operational"; mirrors observability self-SLO fallback in microservices/observability/PRD.md Open Q4 |
-| 4 | Per-µservice lane-subset selection (run only relevant lanes per PR) vs. full ~50 every time? | axis-foundry | full ~50 for M01 (deterministic posture); subset-selection ADR successor-IP subsequent-to-M01-completion |
-| 5 | Quarterly refresh: PR-bot author identity (council-architecture vs. ops-finops vs. axis-foundry)? | ops-sre-reliability | resolved as `axis-foundry-bot` per `runbooks/industry-baseline-refresh.md` |
+| 3 | Bootstrap paradox: governance gates governance. Synthetic-probe fallback during cold-start? | platform-governance | resolved per ADR-0133 §"Operational"; mirrors observability self-SLO fallback in microservices/observability/PRD.md Open Q4 |
+| 4 | Per-µservice lane-subset selection (run only relevant lanes per PR) vs. full ~50 every time? | platform-governance | full ~50 for M01 (deterministic posture); subset-selection ADR successor-IP subsequent-to-M01-completion |
+| 5 | Quarterly refresh: PR-bot author identity (council-architecture vs. ops-finops vs. platform-governance)? | ops-sre-reliability | resolved as `platform-governance-bot` per `runbooks/industry-baseline-refresh.md` |
 | 6 | Finding severity escalation policy: BLOCKER vs WARN vs INFO; does WARN-stacking promote to BLOCKER? | ops-security | M01 launch: strict severity (no escalation); ADR-#### successor-IP if signal-overload observed |
 | 7 | External-auditor JIT scope: read-only Postgres replica vs. evidence-export tool? | ops-security | evidence-export tool (per `runbooks/evidence-replay.md`); read-only replica is overscoped |
 
@@ -478,12 +478,12 @@ Sharding:
 | ADR-0132 | Product-platform-and-bundle dissolution | governance bundle decision |
 | ADR-0133 | Industry-best-practice + hyperscaler-grade conformance | this µservice IMPLEMENTS the 6-axis program |
 
-## Doctrine refs (ADR-0346..0349)
+## Doctrine refs
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0513 — Buck2 is the canonical build/test/check authority and Prow/Kubernetes-native oya-ci publishes trusted `oya-ci-required` evidence; enforced by `buck2-authority-policy-check`, `quality-lane-registry-authority-check`, and `oya-ci-prowjob-registry-check`.
+- ADR-0516 — GitHub Actions remains temporary lane-unlocker/shadow evidence while native SCM/CI/CD seams mature; enforced by `github-lane-unlocker-bridge-check`.
 - ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `governance` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

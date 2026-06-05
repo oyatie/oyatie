@@ -124,6 +124,37 @@ const INTELLIGENCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES: &[&str] = &[
     "oya/intelligence/runbooks/supervisor-supervision-bus-replay.md",
     "oya/intelligence/tutorials/build-rag-augmented-chat.md",
 ];
+const GOVERNANCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES: &[&str] = &[
+    "oya/governance/IP-NEW-chaos-engineering-substrate.md",
+    "oya/governance/IP-NEW-eu-ai-act-annex-iii-refusal-lane.md",
+    "oya/governance/IP-NEW-slsa-l3-evidence-grounded-lane.md",
+    "oya/governance/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+    "oya/governance/PHASE-01-CI-FITNESS-CONSOLIDATION.md",
+    "oya/governance/PRD.md",
+    "oya/governance/README.md",
+    "oya/governance/backfill-replay.md",
+    "oya/governance/benchmarks/drata-vanta-onetrust-vs-oyatie.md",
+    "oya/governance/capacity-model.md",
+    "oya/governance/compliance.md",
+    "oya/governance/dpia.md",
+    "oya/governance/incident-response.md",
+    "oya/governance/manifest.json",
+    "oya/governance/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
+    "oya/governance/onboarding/governance-engineer-first-week.md",
+    "oya/governance/policy/data-residency.md",
+    "oya/governance/runbooks/aggregation-rebuild.md",
+    "oya/governance/runbooks/audit-event-emission-stall.md",
+    "oya/governance/runbooks/cedar-policy-rollback-protocol.md",
+    "oya/governance/runbooks/consent-collection-pipeline-failure.md",
+    "oya/governance/runbooks/envoy-wasm-filter-rollback.md",
+    "oya/governance/runbooks/evidence-replay.md",
+    "oya/governance/runbooks/industry-baseline-refresh.md",
+    "oya/governance/runbooks/lane-bypass-emergency.md",
+    "oya/governance/runbooks/lane-failure-triage.md",
+    "oya/governance/runbooks/migration-execution.md",
+    "oya/governance/runbooks/wasm-filter-bytecode-quarantine.md",
+    "oya/governance/tutorials/configure-retention-policy-and-resolve-conflict.md",
+];
 const PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES: &[&str] = &[
     "cargo run -p oya-dev-cli",
     "oya-dev-cli",
@@ -898,6 +929,21 @@ const INTELLIGENCE_DOC_RETIRED_DEV_CLI_PHRASES: &[&str] = &[
     "oya-dev-cli",
     "control-plane operation: vcs",
 ];
+const GOVERNANCE_DOC_RETIRED_DEV_CLI_PHRASES: &[&str] = &[
+    "cargo run -p oya-dev-cli",
+    "oya-dev-cli",
+    "crates/oya-dev-cli",
+    "cargo check -p oya-dev-cli",
+    "cargo nextest",
+    "oya gate validate",
+    "oya gate run",
+    "oya verify --ci-required",
+    "./bin/oya verify",
+    "Jenkins",
+    "jenkins",
+    "ArgoCD",
+    "argocd",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -913,6 +959,7 @@ pub struct Evaluation {
     pub product_operation_runbook_clean_paths: usize,
     pub product_operation_doc_clean_files: usize,
     pub intelligence_doc_retired_dev_cli_clean_files: usize,
+    pub governance_doc_retired_dev_cli_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2229,6 +2276,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl automation targets must include product-operation runbook retired authority scan",
         ),
         (
+            "\"governance markdown retired local dev CLI and external substrate scan\"",
+            "documentation sprawl automation targets must include Governance retired local dev CLI and external substrate scan",
+        ),
+        (
+            "\"governance_doc_retired_dev_cli_scan\"",
+            "documentation sprawl policy must record the Governance retired local dev CLI clean-file guard",
+        ),
+        (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
             "product-operation runbook guard must state its incremental clean-path boundary",
         ),
@@ -2776,6 +2831,29 @@ pub fn intelligence_doc_retired_dev_cli_failures(root: &Path) -> Vec<String> {
     failures
 }
 
+pub fn governance_doc_retired_dev_cli_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in GOVERNANCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        for phrase in GOVERNANCE_DOC_RETIRED_DEV_CLI_PHRASES {
+            if text.contains(phrase) {
+                failures.push(format!(
+                    "{clean_file}: Governance doc contains retired local dev CLI or external substrate phrase {phrase:?}; use Buck2/Prow evidence and Governance control-plane operation wording"
+                ));
+            }
+        }
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -2877,6 +2955,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(product_operation_runbook_retired_authority_failures(root));
     failures.extend(product_operation_doc_retired_authority_failures(root));
     failures.extend(intelligence_doc_retired_dev_cli_failures(root));
+    failures.extend(governance_doc_retired_dev_cli_failures(root));
     let (tracked_typescript_pnpm_mjs_count, typescript_pnpm_surface_failures) =
         typescript_pnpm_surface_failures(root, &typescript_pnpm_inventory);
     failures.extend(typescript_pnpm_surface_failures);
@@ -3235,6 +3314,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         product_operation_doc_clean_files: PRODUCT_OPERATION_DOC_CLEAN_FILES.len(),
         intelligence_doc_retired_dev_cli_clean_files: INTELLIGENCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES
             .len(),
+        governance_doc_retired_dev_cli_clean_files: GOVERNANCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES
+            .len(),
     }
 }
 
@@ -3246,7 +3327,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -3259,6 +3340,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.product_operation_runbook_clean_paths,
         evaluation.product_operation_doc_clean_files,
         evaluation.intelligence_doc_retired_dev_cli_clean_files,
+        evaluation.governance_doc_retired_dev_cli_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures

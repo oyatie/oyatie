@@ -9,22 +9,19 @@ CI-fitness substrate. Bundles all ~50 `oya-check-*` crates per ADR-0131 §"gover
 
 ## Owner
 
-`axis-foundry` (primary). Sibling reviewers: `council-architecture`, `ops-security`, `ops-sre-reliability`.
+`platform-governance` (primary). Sibling reviewers: `council-architecture`, `ops-security`, `ops-sre-reliability`.
 
 ## Quick start
 
 ```bash
-# Run the full ~50-lane fitness suite locally against current working tree
-cargo run -p oya-dev-cli -- gate run --all
+# Canonical local evidence: Buck2 is the build/test/check authority.
+buck2 build //:repo-hygiene-automation-check //:quality-lane-registry-authority-check
 
-# Run a single lane
-buck2 build //:quality-lane-registry-authority-check # lane=<lane-name> --microservice <ms>
+# Single-lane selectors are Prow/Buck2 registry inputs, not local CLI authority.
+buck2 build //:quality-lane-registry-authority-check
 
-# Regenerate aggregation indices
-cargo run -p oya-dev-cli -- aggregation-index regenerate
-
-# Replay evidence for a PR
-cargo run -p oya-dev-cli -- governance evidence replay --pr <N>
+# Governance operations such as aggregation-index regeneration and evidence
+# replay are control-plane requests; PR evidence is verified through Buck2/Prow.
 ```
 
 ## Folder map
@@ -52,7 +49,7 @@ dashboards/*.json                                 # Grafana dashboards
 backfill-replay.md                                # replay against new policy
 sdk-plan.md                                       # client SDK roadmap
 competitor-parity-matrix.md                       # vs SonarQube + GHAS + Snyk + ...
-capabilities/                                     # 3 Foundry capabilities
+capabilities/                                     # governance capabilities
 iac/{helm,kustomize,terraform}/                   # Layer-A IaC
 src/crates/                                       # ~50 oya-check-* + 36 umbrella crates
 tests/{integration,e2e,perf,load}/                # cross-crate tests
@@ -78,7 +75,7 @@ SLSA, NIST SSDF (SP 800-218), OWASP ASVS v4, Google SRE Workbook, AWS Well-Archi
 
 ## Doctrine references
 
-- [ADR-0346](../../docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md): `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- [ADR-0347](../../docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md): Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- [ADR-0513](../../docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md): Buck2 is the canonical build/test/check authority and Prow/Kubernetes-native oya-ci publishes trusted `oya-ci-required` evidence.
+- ADR-0347 (lane-prefix bulk-rename): governance-owned CI lane prefixes remain normalized in one bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - [ADR-0348](../../docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- [ADR-0349](../../docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- [ADR-0516](../../docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md): GitHub Actions is temporary lane-unlocker/shadow evidence while native oya-ci remains the durable CI/CD direction.

@@ -178,7 +178,7 @@ See `policy/data-residency.md` for full per-pack transfer matrix. Per-pack DPAs 
 
 | Quarter | Axis | Findings | Remediation IPs |
 |---|---|---|---|
-| 2026-Q2 | all 6 axes (baseline) | findings table populated from `cargo run -p oya-dev-cli -- gate scan --quarterly` output on first quarter close; baseline-quarter row updates to count + breakdown post-run | filed under `microservices/governance/IP-M01-AUDIT-*-NNN.md` |
+| 2026-Q2 | all 6 axes (baseline) | findings table populated from the quarterly Buck2/Prow governance scan output on first quarter close; baseline-quarter row updates to count + breakdown post-run | filed under `microservices/governance/IP-M01-AUDIT-*-NNN.md` |
 
 ## Verification
 

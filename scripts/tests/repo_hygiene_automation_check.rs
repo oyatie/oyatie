@@ -46,6 +46,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.product_operation_runbook_clean_paths, 2);
     assert_eq!(evaluation.product_operation_doc_clean_files, 8);
     assert_eq!(evaluation.intelligence_doc_retired_dev_cli_clean_files, 34);
+    assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
 }
 
 #[test]
@@ -1053,6 +1054,37 @@ fn intelligence_docs_reject_retired_local_dev_cli_authority() {
         "cargo run -p oya-dev-cli",
         "oya-dev-cli",
         "control-plane operation: vcs",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn governance_docs_reject_retired_local_dev_cli_and_external_substrates() {
+    let root = temp_dir("governance-doc-retired-dev-cli");
+    let doc = root.join("oya/governance/README.md");
+    fs::create_dir_all(doc.parent().unwrap()).unwrap_or_else(|error| {
+        panic!(
+            "create governance fixture {}: {}",
+            doc.parent().unwrap().display(),
+            error
+        );
+    });
+    fs::write(
+        &doc,
+        "Run `cargo run -p oya-dev-cli -- gate run --all`; Jenkins and ArgoCD own parity.\n",
+    )
+    .unwrap();
+
+    let failures = gate::governance_doc_retired_dev_cli_failures(&root);
+    for expected in [
+        "cargo run -p oya-dev-cli",
+        "oya-dev-cli",
+        "Jenkins",
+        "ArgoCD",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
