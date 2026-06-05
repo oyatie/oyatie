@@ -27,7 +27,7 @@ purpose: |
 owner_axis: <axis-id>
 co_owners: [<team-id>]
 gates_on: [M0N-1, ...]          # predecessor milestones
-hyperscaler_practices_inherited: [working-backwards | design-doc | postmortem-blameless | 1ES-templated-pipelines | engineering-excellence | trunk-based-development | slsa-l2 | feature-flags-canary | cargo-vet | distroless]
+hyperscaler_practices_inherited: [working-backwards | design-doc | postmortem-blameless | 1ES-templated-pipelines | engineering-excellence | trunk-based-development | slsa-l2 | feature-flags-canary | rust-supply-chain | distroless]
 length_cap: 100
 authority_chain_declaration: |
   docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
@@ -81,7 +81,7 @@ The first symbol/file a fresh agent **MUST** read after this INDEX to enter the 
 ```
 .omc/plans/milestones/M0N/phases/P01-<slug>/INDEX.md
 → then pick the first OPEN IP per its `§Implementation Plans` list
-→ then `grit claim <first symbol from that IP §Symbols to grit-claim>`
+→ then create an isolated git worktree/branch for the IP lane and open a GitHub PR against `dev`
 ```
 
 ## Inherited hyperscaler practices
@@ -91,7 +91,7 @@ The first symbol/file a fresh agent **MUST** read after this INDEX to enter the 
 - Blameless Postmortem — every Sev-1/Sev-2 in milestone scope.
 - Trunk-Based Development + Feature Flags + Canary — release strategy per `docs/RELEASE-MANAGEMENT.md`.
 - SLSA L2 + Cosign keyless OIDC + Syft SBOM — supply-chain (M01-P15).
-- `cargo-vet` + `cargo-deny` + `cargo-audit` triad — Rust supply chain.
+- Rust supply-chain advisory tools projected through Buck2 — dependency, license, advisory, and provenance posture.
 - Distroless / Chainguard images — runtime image policy.
 
 ## Risk register (milestone-scoped slice)

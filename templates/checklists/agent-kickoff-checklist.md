@@ -5,28 +5,28 @@ status: pending approval
 purpose: |
   The agent's first 5 actions before claiming any symbol. Encodes the agentic-navigation contract from `.omc/plans/MASTERPLAN.md §6`. Walked at the start of every agent session that intends to modify the repo.
 lift_target: oyatie/docs/checklists/agent-kickoff.md
-enforcing_fitness_lane: oya-governance-banned-primitives (audits the first `grit claim` was preceded by the kickoff icm-read)
+enforcing_fitness_lane: repo-hygiene-automation-check (audits current git/gh/Buck2 lane primitives)
 owner_team: axis-foundry
 related:
   - .omc/plans/MASTERPLAN.md
   - docs/AGENTS.md
-  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - /templates/checklists/agent-completion-checklist.md
 ---
 
 # Agent Kickoff Checklist
 
-> The first 5 actions every agent **MUST** complete before any `grit claim`. Compact by design: a fresh agent should descend the tree in O(log n) clicks.
+> The first 5 actions every agent **MUST** complete before editing in a PR lane. Compact by design: a fresh agent should descend the tree in O(log n) clicks.
 
 <!-- agent-instructions:start -->
 
-## K1. Recall (icm)
+## K1. Inspect current repo state
 
 ```
-icm recall-context "<change class> <axis> <slug>" --limit 5
+git status --short --branch
+git log --oneline -5
 ```
 
-Read every returned memory. If empty, that's a signal — your work has no prior context; proceed but emit a context-store at completion (per `agent-completion-checklist.md`).
+Read the latest branch state and open PR list before trusting stale plan context.
 
 ## K2. Read the masterplan
 
@@ -37,40 +37,42 @@ Read `.omc/plans/MASTERPLAN.md` end-to-end. **MANDATORY** sections: §2 (compoun
 1. From `MASTERPLAN.md §3 Milestone index`, pick a milestone with `status: open` or `in-progress`.
 2. Open `milestones/<MNN>/INDEX.md`. From its `§Phases` table, pick an `open` phase.
 3. Open `phases/<PNN-slug>/INDEX.md`. From its `§Implementation Plans` table, pick the next `open` IP.
-4. Open the IP file. Read frontmatter + `§Agent prerequisites` + `§Symbols to grit-claim` + `§Acceptance test commands`.
+4. Open the IP file. Read frontmatter + `§Agent prerequisites` + `§Lane-owned paths / symbols` + `§Acceptance test commands`.
 
 If no `open` IP exists at the milestone-active layer, halt and emit `BLOCKED_ON_HUMAN_ORCHESTRATOR` per `/templates/checklists/escalation-checklist.md`.
 
-## K4. Verify no symbol collision
+## K4. Verify lane ownership is disjoint
 
 ```
-oya-tooling-agent-read grit-status <symbol-1> <symbol-2> …
+git diff --name-only origin/dev...HEAD
+gh pr list --base dev --state open --json number,headRefName,title
 ```
 
-Every symbol in the IP `§Symbols to grit-claim` **MUST** show `unclaimed`. If any shows `claimed-by-<agent>`, pick a different IP (per phase INDEX `§Parallelism strategy`).
+Every path in the IP `§Lane-owned paths / symbols` **MUST** be disjoint from active PR lanes. If paths collide, split the IP or pick a different lane (per phase INDEX `§Parallelism strategy`).
 
-## K5. Grit claim + audit emit
+## K5. Create isolated branch/worktree + PR
 
 ```
-grit claim <symbol-1> <symbol-2> … --ip IP-NNN-<slug>
+git worktree add /tmp/<lane-worktree> -b <short-lived-branch> origin/dev
+gh pr create --base dev --head <short-lived-branch>
 ```
 
-The claim emits `EVT-GRIT-CLAIM` to the audit chain automatically. Confirm via `oya-tooling-agent-read audit-tail --last 1`.
+The PR is the temporary publication/lane boundary while the native Rust SCM substrate is built.
 
 <!-- agent-instructions:end -->
 
 ## Hard rules
 
-- **No `git`, no `gh`** outside the documented carve-out (see `.omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md §Cutover bootstrap window` + `§Glossary §Human orchestrator`). If a workflow appears to require `git`/`gh`, emit `BLOCKED_ON_HUMAN_ORCHESTRATOR`.
-- **No claim before the masterplan read.** `oya-governance-banned-primitives` audits the sequence: kickoff icm-read → masterplan read → grit claim. Out-of-order sequences fail the lane.
-- **No silent retry.** If `grit claim` fails, run `icm store -t errors-resolved -c "<failure mode>" -i high -k "grit,claim"` BEFORE retrying.
+- **Use plain `git`, `gh`, and Buck2 only.** Retired local VCS/governance wrappers are not SCM or CI authority.
+- **No lane before the masterplan read.** Repo-hygiene checks audit the current pointer-thin docs and Buck2/Prow authority.
+- **No silent retry.** If a lane collision appears, record the collision in PR notes/evidence and split or rebase before continuing.
 
 ## Stop conditions
 
 - IP frontmatter `final_shape_compliance: false` — refuse to claim; route to `escalation-checklist.md`.
-- IP `§Symbols to grit-claim` is empty or contains non-`file::Identifier` placeholders — refuse to claim; the IP is not in final shape.
+- IP `§Lane-owned paths / symbols` is empty or contains placeholders — refuse to edit; the IP is not in final shape.
 - IP `agent_prerequisites` lists a missing file — refuse to claim; emit issue creation request to human orchestrator.
 
 ## Human path (junior developer)
 
-Same five actions: `icm recall-context` → read masterplan → descend milestone/phase/IP → check symbol availability → start working on the symbols. Use `rtk` prefixes for all terminal commands per `docs/CONSTITUTION.md §4 dual-audience clause`.
+Same five actions: inspect repo/PR state → read masterplan → descend milestone/phase/IP → check lane ownership → create a short-lived branch/worktree and PR. Use terminal-safe commands copied exactly from the checklist.

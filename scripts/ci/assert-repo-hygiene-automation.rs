@@ -468,6 +468,34 @@ const FORBIDDEN_ACTIVE_DOC_PHRASES: &[&str] = &[
     "cargo-machete",
 ];
 
+const FORBIDDEN_ACTIVE_TEMPLATE_PHRASES: &[&str] = &[
+    "oya gate validate",
+    "oya verify",
+    "`oya git`",
+    "pnpm",
+    "Node 20",
+    "typescript-reviewer",
+    "python-reviewer",
+    "bacon",
+    "cargo-machete",
+    "cargo nextest run",
+    "cargo clippy",
+    "cargo deny check",
+    "cargo-semver-checks",
+    "cargo public-api",
+    "cargo vet",
+    "cargo run -p",
+    "cargo metadata diff",
+    "npm --prefix",
+    "grit claim",
+    "grit done",
+    "grit_claim",
+    "grit-status",
+    "oya-tooling-agent-read",
+    "icm store",
+    "Icm-store",
+];
+
 const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     AGENTS_PATH,
     CLAUDE_PATH,
@@ -494,6 +522,39 @@ const ACTIVE_CONTEXT_SCAN_PATHS: &[&str] = &[
     PHASE0_AUTO_MERGE_AFTER_CI_PATH,
     TENANT_RBAC_SPEC_PATH,
     "docs/MASTERPLAN.md",
+];
+
+const ACTIVE_TEMPLATE_SCAN_PATHS: &[&str] = &[
+    "templates/INDEX.md",
+    "templates/adr-template.md",
+    "templates/capability-record-template.yaml",
+    "templates/checklists/agent-completion-checklist.md",
+    "templates/checklists/agent-kickoff-checklist.md",
+    "templates/checklists/cross-axis-contract-change-checklist.md",
+    "templates/checklists/doc-freshness-checklist.md",
+    "templates/checklists/done-definition-checklist.md",
+    "templates/checklists/escalation-checklist.md",
+    "templates/checklists/inventory-update-checklist.md",
+    "templates/checklists/per-implementation-plan-checklist.md",
+    "templates/checklists/per-phase-completion-checklist.md",
+    "templates/checklists/pr-review-checklist.md",
+    "templates/checklists/pre-flight-checklist.md",
+    "templates/checklists/pre-pr-multispectrum.json",
+    "templates/checklists/pre-pr-multispectrum.md",
+    "templates/checklists/release-readiness-checklist.md",
+    "templates/design-doc-template.md",
+    "templates/evidence-bundle-template.json",
+    "templates/foundry-supervisor/claude.toml",
+    "templates/foundry-supervisor/codex.toml",
+    "templates/foundry-supervisor/gemini.toml",
+    "templates/implementation-plan-template.md",
+    "templates/milestone-index-template.md",
+    "templates/mistakes-ledger-row-template.md",
+    "templates/phase-index-template.md",
+    "templates/postmortem-template.md",
+    "templates/prfaq-template.md",
+    "templates/pull-request-template.md",
+    "templates/runbook-template.md",
 ];
 
 const ACTIVE_EXACT_NAME_SCAN_PATHS: &[&str] = &[
@@ -575,6 +636,7 @@ pub struct Evaluation {
     pub tracked_typescript_pnpm_mjs_count: usize,
     pub tracked_nonvendored_python_shell_count: usize,
     pub active_context_scan_files: usize,
+    pub active_template_scan_files: usize,
     pub retired_exact_name_scan_files: usize,
 }
 
@@ -1052,6 +1114,15 @@ pub fn active_doc_phrase_failures(label: &str, text: &str) -> Vec<String> {
         .iter()
         .filter(|phrase| lowered_text.contains(&phrase.to_ascii_lowercase()))
         .map(|phrase| format!("{label}: stale active authority phrase present: {phrase:?}"))
+        .collect()
+}
+
+pub fn active_template_phrase_failures(label: &str, text: &str) -> Vec<String> {
+    let lowered_text = text.to_ascii_lowercase();
+    FORBIDDEN_ACTIVE_TEMPLATE_PHRASES
+        .iter()
+        .filter(|phrase| lowered_text.contains(&phrase.to_ascii_lowercase()))
+        .map(|phrase| format!("{label}: stale active template phrase present: {phrase:?}"))
         .collect()
 }
 
@@ -1916,6 +1987,12 @@ pub fn evaluate(root: &Path) -> Evaluation {
         failures.extend(active_doc_phrase_failures(rel, &text));
     }
 
+    for rel in ACTIVE_TEMPLATE_SCAN_PATHS {
+        let text = read(root, rel, &mut failures);
+        failures.extend(active_doc_phrase_failures(rel, &text));
+        failures.extend(active_template_phrase_failures(rel, &text));
+    }
+
     for rel in ACTIVE_EXACT_NAME_SCAN_PATHS {
         let text = read(root, rel, &mut failures);
         failures.extend(retired_exact_name_failures(rel, &text));
@@ -1982,6 +2059,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
         tracked_typescript_pnpm_mjs_count,
         tracked_nonvendored_python_shell_count,
         active_context_scan_files: ACTIVE_CONTEXT_SCAN_PATHS.len(),
+        active_template_scan_files: ACTIVE_TEMPLATE_SCAN_PATHS.len(),
         retired_exact_name_scan_files: ACTIVE_EXACT_NAME_SCAN_PATHS.len(),
     }
 }
@@ -1994,7 +2072,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"retired_exact_name_scan_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -2002,6 +2080,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.tracked_typescript_pnpm_mjs_count,
         evaluation.tracked_nonvendored_python_shell_count,
         evaluation.active_context_scan_files,
+        evaluation.active_template_scan_files,
         evaluation.retired_exact_name_scan_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),

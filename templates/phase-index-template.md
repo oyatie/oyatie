@@ -3,7 +3,7 @@ doc_class: Template
 template_id: TPL-PHASE
 status: pending approval
 purpose: |
-  Canonical Phase INDEX shape (≤50 lines). One file per phase under `.omc/plans/milestones/M*/phases/P*/INDEX.md`. Anchors the IP list, names symbols touched, names parallelism, names agent-handoff icm event.
+  Canonical Phase INDEX shape (≤50 lines). One file per phase under `.omc/plans/milestones/M*/phases/P*/INDEX.md`. Anchors the IP list, names symbols touched, names parallelism, names phase-handoff evidence.
 lift_target: oyatie/docs/templates/phase-index-template.md
 enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
@@ -57,8 +57,8 @@ One sentence stating what this phase delivers in present tense.
 - `contracts/<surface>.<format>`
 - `docs/<canonical-doc>.md` (per `docs/DOC-CATALOG.md` trigger)
 
-## Agent-handoff (icm event at phase complete)
+## Agent-handoff evidence
 
 ```
-icm store -t phase-handoff -c "P0N-<slug> complete at <git-sha>; IPs merged: <list>; next phase: P0N+1-<slug>; gate: <fitness lane>" -i high -k "M0N,P0N,handoff"
+evidence/multispectrum/P0N-<slug>-phase-handoff-<timestamp>.json
 ```

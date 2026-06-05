@@ -40,6 +40,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 0);
     assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 37);
+    assert_eq!(evaluation.active_template_scan_files, 30);
 }
 
 #[test]
@@ -532,6 +533,31 @@ fn active_doc_phrase_scanner_rejects_manual_bridge_statuses() {
         "{:?}",
         failures
     );
+}
+
+#[test]
+fn active_template_phrase_scanner_rejects_retired_shared_template_commands() {
+    let failures = gate::active_template_phrase_failures(
+        "templates/pull-request-template.md",
+        "Run oya verify, oya gate validate, pnpm test (Node 20), cargo nextest run, cargo deny check, cargo public-api, grit claim, grit done, and oya-tooling-agent-read run-evidence.",
+    );
+    for expected in [
+        "oya verify",
+        "oya gate validate",
+        "pnpm",
+        "Node 20",
+        "cargo nextest run",
+        "cargo deny check",
+        "cargo public-api",
+        "grit claim",
+        "grit done",
+        "oya-tooling-agent-read",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
 }
 
 #[test]
