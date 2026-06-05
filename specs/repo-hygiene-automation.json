@@ -1149,7 +1149,9 @@
         {
           "id": "runtime_hook_interpreter_free_hot_path",
           "purpose": "Warn when active PreToolUse/PostToolUse hook payload parsing depends on unpinned host interpreters instead of Rust/Buck2-owned checkers or minimal shell glue.",
-          "authority_boundary": "advisory only; Buck2/Prow remain enforcement authority"
+          "authority_boundary": "advisory only; Buck2/Prow remain enforcement authority",
+          "implemented_by": "//:agent-hook-runtime-manifest-check",
+          "status": "manifest_checker_guard_landed"
         },
         {
           "id": "github_actions_permissions_and_pinning_advisor",
@@ -1180,7 +1182,7 @@
       "implemented_checks": [
         "//:agent-hook-runtime-manifest-check"
       ],
-      "implementation_status": "first Rust/Buck2 manifest/config drift checker landed; injection-content scanner behavior is covered by governance hook tests; runtime hooks remain advisory/read-only and remaining hook-router hardening stays backlog-only until separately verified",
+      "implementation_status": "first Rust/Buck2 manifest/config drift checker landed; manifest checker rejects unpinned host interpreters in runtime hook text; injection-content scanner behavior is covered by governance hook tests; runtime hooks remain advisory/read-only and remaining hook-router hardening stays backlog-only until separately verified",
       "claim_boundary": "backlog_only_no_live_mutation"
     },
     {

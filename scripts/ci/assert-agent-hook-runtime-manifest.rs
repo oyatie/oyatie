@@ -269,6 +269,14 @@ pub fn forbidden_runtime_behavior_failures(path: &str, text: &str) -> Vec<String
             ));
         }
     }
+    for word in [
+        "python", "python3", "node", "npm", "pnpm", "npx", "bun", "deno", "ruby", "perl", "php",
+        "lua",
+    ] {
+        if contains_shell_word(text, word) || text.contains(&format!("/{}", word)) {
+            failures.push(format!("{}:forbidden_runtime_interpreter:{}", path, word));
+        }
+    }
     for token in [
         "codex exec",
         "claude -p",
