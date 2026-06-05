@@ -8,9 +8,9 @@
     "version": "1.0.0",
     "status": "Accepted",
     "owner_team": "council-architecture",
-    "updated_at": "2026-05-31",
+    "updated_at": "2026-06-05",
     "scope": "First-class non-OMC/non-OMX project hook runtime for Codex and Gemini. Claude Code hook orchestration is owned by OMC; project .claude/settings.json intentionally carries no runtime hook commands.",
-    "purpose": "Declare the only runtime hooks that project Codex/Gemini configs may reference, their side-effect envelope, and the bootstrap exception boundary so stale/missing hook references are removed rather than silently tolerated. Per-prompt canonical reminders are intentionally omitted; canonical primitives are rendered once at SessionStart."
+    "purpose": "Declare the only runtime hooks that project Codex/Gemini configs may reference, their side-effect envelope, and the bootstrap exception boundary so stale/missing hook references are removed rather than silently tolerated. Canonical primitives now live as direct machine-readable authority at specs/canonical-primitives.json instead of a SessionStart runtime hook."
   },
   "config_files": [
     {
@@ -42,23 +42,6 @@
     ]
   },
   "runtime_hooks": [
-    {
-      "path": "tools/hooks/session-start-context-inject.sh",
-      "purpose": "Render canonical session context from specs/canonical-primitives.json as JSON hook output without command-remapping guidance.",
-      "events": {
-        "codex": [
-          "SessionStart"
-        ],
-        "gemini": [
-          "SessionStart"
-        ]
-      },
-      "reads": [
-        "specs/canonical-primitives.json"
-      ],
-      "writes": [],
-      "network": false
-    },
     {
       "path": "tools/hooks/no-cargo-enforcer.sh",
       "purpose": "Advisory Buck2/no-cargo guidance for shell commands.",
@@ -125,7 +108,7 @@
     },
     {
       "path": "tools/hooks/userprompt-canonical-primer.sh",
-      "replacement": "tools/hooks/session-start-context-inject.sh rendering specs/canonical-primitives.json once per session",
+      "replacement": "specs/canonical-primitives.json plus root AGENTS/CLAUDE pointer guidance; no runtime reminder hook",
       "status": "deleted"
     },
     {
@@ -176,6 +159,11 @@
     {
       "path": "tools/hooks/adr-orphan-detect.sh",
       "replacement": "Buck2 governance target //:governance-hook-efficacy-check gate oya-governance-adr-orphan-citation; runtime hook omitted to avoid shell advisory drift",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/session-start-context-inject.sh",
+      "replacement": "specs/canonical-primitives.json plus root AGENTS/CLAUDE pointer guidance; runtime context injection removed to avoid shell/Python hook authority",
       "status": "deleted"
     }
   ],

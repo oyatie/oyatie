@@ -2,37 +2,41 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-tmpdir="$(mktemp -d)"
-cleanup() {
-  rm -rf "$tmpdir"
-}
-trap cleanup EXIT
 
-session_context_output="$tmpdir/session-context.json"
-bash "$repo_root/tools/hooks/session-start-context-inject.sh" >"$session_context_output"
-python3 - "$session_context_output" >"$tmpdir/session-context.txt" <<'PYCTX'
-import json
-import pathlib
-import sys
-payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-print(payload["hookSpecificOutput"]["additionalContext"])
-PYCTX
-grep -q 'specs/canonical-primitives.json' "$tmpdir/session-context.txt"
-grep -q 'OpenAPI 3.2.0' "$tmpdir/session-context.txt"
-grep -q 'AsyncAPI 3.1.0' "$tmpdir/session-context.txt"
-if grep -q 'tools/hooks/_canonical-primitives.md' "$tmpdir/session-context.txt"; then
-  echo "session-start hook still points at retired markdown canonical primitives" >&2
+canonical_primitives="$repo_root/specs/canonical-primitives.json"
+jq -e '
+  ._meta.purpose
+  | contains("Single source of truth for canonical primitives")
+  and contains("no SessionStart runtime renderer")
+' "$canonical_primitives" >/dev/null
+grep -q 'OpenAPI 3.2.0' "$canonical_primitives"
+grep -q 'AsyncAPI 3.1.0' "$canonical_primitives"
+if jq -e '
+  [
+    paths(scalars) as $path
+    | select($path != ["_meta", "supersedes"])
+    | getpath($path)
+    | select(type == "string" and contains("tools/hooks/_canonical-primitives.md"))
+  ]
+  | length > 0
+' "$canonical_primitives" >/dev/null; then
+  echo "canonical primitives still actively point at retired markdown canonical primitives outside the supersedes tombstone" >&2
   exit 1
 fi
-if grep -Eiq 'oya[[:space:]]+(git|vcs|gate|verify)|\.\/bin\/oya|bin/oya|oya --help|Oya CLI|oya CLI' "$tmpdir/session-context.txt"; then
-  echo "session-start hook still emits retired wrapper command guidance" >&2
-  cat "$tmpdir/session-context.txt" >&2
+if grep -Eiq 'oya[[:space:]]+(git|vcs|gate|verify)|\.\/bin\/oya|bin/oya|oya --help|Oya CLI|oya CLI' "$canonical_primitives"; then
+  echo "canonical primitives still emit retired wrapper command guidance" >&2
   exit 1
 fi
 if [ -e "$repo_root/tools/hooks/stale-tool-suggester.sh" ]; then
   echo "stale-tool-suggester hook should be deleted with retired wrapper command guidance" >&2
   exit 1
 fi
+
+tmpdir="$(mktemp -d)"
+cleanup() {
+  rm -rf "$tmpdir"
+}
+trap cleanup EXIT
 
 no_cargo_output="$tmpdir/no-cargo.out"
 set +e
@@ -115,9 +119,9 @@ for config in config_paths:
     with config.open(encoding="utf-8") as handle:
         data = json.load(handle)
     if config.name == "hooks.json" and "UserPromptSubmit" in data.get("hooks", {}):
-        pre_errors.append("Codex UserPromptSubmit hook is intentionally disabled; SessionStart carries canonical context")
+        pre_errors.append("Codex UserPromptSubmit hook is intentionally disabled; AGENTS/root pointers carry canonical context")
     if config.name == "settings.json" and config.parent.name == ".gemini" and "BeforeAgent" in data.get("hooks", {}):
-        pre_errors.append("Gemini BeforeAgent hook is intentionally disabled; SessionStart carries canonical context")
+        pre_errors.append("Gemini BeforeAgent hook is intentionally disabled; AGENTS/root pointers carry canonical context")
     walk(data)
 
 unreferenced = sorted(allowed_commands - referenced)

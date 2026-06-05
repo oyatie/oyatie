@@ -9,7 +9,7 @@
     "status": "Accepted",
     "owner_team": "council-architecture",
     "updated_at": "2026-06-05",
-    "purpose": "Single source of truth for the canonical-primitives session-context payload. The SessionStart hook (tools/hooks/session-start-context-inject.sh) renders THIS json directly; there is no hand-maintained markdown mirror (retired 2026-05-31 per founder directive). Each section cites its authority ADR(s) so drift is detectable. Detailed/verbose doctrine lives in the per-topic specs/ADRs referenced under `pointers`, not here.",
+    "purpose": "Single source of truth for canonical primitives read through root AGENTS/CLAUDE guidance. There is no hand-maintained markdown mirror (retired 2026-05-31 per founder directive) and no SessionStart runtime renderer (retired 2026-06-05). Each section cites its authority ADR(s) so drift is detectable. Detailed/verbose doctrine lives in the per-topic specs/ADRs referenced under `pointers`, not here.",
     "supersedes": "tools/hooks/_canonical-primitives.md (hand-maintained cheat sheet, dated 2026-05-18, deleted)"
   },
   "sections": [

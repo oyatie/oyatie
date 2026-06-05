@@ -11,7 +11,9 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Claude Code harness contract for oyatie. Defines the sanctioned-primitive
-  PostToolUse / Stop / SessionStart hooks ordering. Resolves the
+  PostToolUse / Stop hook ordering plus historical OMC-owned SessionStart
+  behavior. Project Codex/Gemini SessionStart runtime hooks are retired;
+  root AGENTS/CLAUDE plus root-hub pointers carry orientation. Resolves the
   `standards/claude-code-harness.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Claude Code).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json

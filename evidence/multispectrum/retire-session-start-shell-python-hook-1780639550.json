@@ -1,0 +1,68 @@
+{
+  "change_class_id": "CC-2",
+  "git_sha": "c1241247a06b",
+  "freshness_unix": 1780639550,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Deleted the SessionStart shell hook instead of replacing it with another local runtime wrapper.",
+        "Removed duplicated runtime rendering of canonical primitives; the JSON authority is read directly through root AGENTS/CLAUDE guidance and root-hub pointers."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Reduced per-workstation startup behavior and moved orientation to source-controlled machine-readable authority, matching monorepo patterns where CI and controllers consume checked-in contracts.",
+        "Kept active merge/check authority in Buck2 and the Prow/Kubernetes-native oya-ci-required path rather than shell/Python advisory hooks."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "repo-hygiene-automation-check now asserts the non-vendored Python/shell inventory count is 40 and rejects stale registry drift; governance-hooks-retired-vcs-surfaces.test.sh validates canonical primitives directly.",
+      "findings": [
+        "The deleted hook mixed shell and embedded Python for a startup reminder, which was vulnerable to runtime drift and unnecessary after root-hub authority-first reading became the contract.",
+        "ADR-0363 stale wording was amended so historical SessionStart and markdown cheat-sheet references are not phrased as active coordination surfaces."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 3,
+      "findings": [
+        "Hook bootstrap installs one fewer startup hook; contributors validate canonical primitives with jq and rely on root AGENTS/CLAUDE pointers instead of interpreting hook output.",
+        "The hook runtime manifest now has no pending Rust/Buck2 rewrite paths."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Fresh verification plan covers JSON syntax/count checks, JSONL line validation, Rust formatting, the retired-VCS hook manifest test, repo hygiene, governance efficacy, language discipline, Buck2 authority, secret scan, and remote GitHub checks before merge."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Keep session-start-context-inject.sh as an active shell/Python startup hook",
+        "Rewrite the SessionStart renderer as a Rust/Buck2 binary and install it in local agent configs",
+        "Retire runtime context injection and make specs/canonical-primitives.json plus root AGENTS/CLAUDE/root-hub pointers the direct authority"
+      ],
+      "selected_rationale": "Direct machine-readable authority removes duplicated startup rendering and avoids installing a Buck2-run Rust binary into local agent runtime configs while Darwin Buck2 Rust execution remains non-portable.",
+      "rejected_reasons": [
+        "Keeping the shell/Python hook preserves ad-hoc runtime authority and local interpreter drift.",
+        "A Rust/Buck2 runtime hook would still duplicate the root authority path and is not locally portable on current Darwin Buck2 Rust settings."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": false,
+      "findings": [
+        "The retired hook read local docs/specs and emitted context; no network, secret, tenant data, or credential surface is touched by the deletion."
+      ]
+    }
+  }
+}

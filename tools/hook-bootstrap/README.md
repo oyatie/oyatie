@@ -27,10 +27,12 @@ tools/hook-bootstrap/
 └── README.md           # This file
 
 tools/hooks/
-├── session-start-context-inject.sh        # SessionStart — primary orientation
 ├── no-cargo-enforcer.sh                   # PreToolUse(Bash) — Buck2/no-cargo guidance
 ├── injection-content-scanner.sh           # PostToolUse(Bash|Web*) — prompt-injection scan
 └── vacuous-green-gate-detect.sh           # PostToolUse(Edit|Write lanes|check) — gate honesty
+
+specs/canonical-primitives.json
+└── Direct machine-readable orientation authority; no SessionStart hook.
 
 //:governance-hook-efficacy-check
 └── Rust/Buck2 ADR orphan, version-pin, vacuous-green, and buildability fixture checks
@@ -88,8 +90,8 @@ tools/agent-skills/                       # Vendored lifecycle skills (addyosman
 ## How to test hooks locally
 
 ```bash
-# Test session-start hook
-bash tools/hooks/session-start-context-inject.sh
+# Validate canonical primitives directly
+jq empty specs/canonical-primitives.json
 
 # Test the Rust version-pin check in Linux Buck2/Prow lanes
 TOOL_INPUT='{"path":"contracts/example.yaml"}' buck2 run //tools/hooks:spec-version-pin-suggester --
