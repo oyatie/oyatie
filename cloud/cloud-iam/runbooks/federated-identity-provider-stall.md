@@ -134,7 +134,7 @@ doc_status: published
 ```
 
 ## Mitigation
-1. Freeze risky IdP config changes: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+1. Freeze risky IdP config changes: incident hold PR against `dev` (plain `git`; Buck2 evidence plus `oya-ci-required` required).
 2. Enable federation incident hold: `oya flags set oya.cloud_iam.federation.incident_hold=true --cell $CELL --tenant $TENANT`.
 3. Keep signature validation strict: `oya flags set oya.cloud_iam.federation.allow_unsigned_assertions=false --cell $CELL`.
 4. Allow metadata grace only when cached certificate is still valid: `oya iam idp metadata grace enable --tenant $TENANT --idp $IDP --ttl 2h --reason $INCIDENT_ID`.
@@ -163,13 +163,13 @@ doc_status: published
 5. Patch callback ingress when WAF or mTLS blocked ACS or OIDC callback traffic.
 6. Add regression fixture with redacted assertion claims.
 7. Add tenant dual-IdP regression for external ID collision.
-8. Run federation tests: `cargo test -p oya-cloud-iam-api federation -- --nocapture`.
-9. Run JIT tests: `cargo test -p oya-cloud-iam-domain jit -- --nocapture`.
-10. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-iam-federation --production-snapshot --cell $CELL`.
+8. Run Buck2 API target evidence for federation regression coverage and attach the Prow result.
+9. Run Buck2 domain target evidence for JIT regression coverage and attach the Prow result.
+10. Collect oya-ci/Prow production snapshot evidence for cloud-iam federation once the native lane lands and attach the evidence bundle.
 11. Re-enable paused IdP: `oya iam idp resume --tenant $TENANT --idp $IDP --reason resolved-$INCIDENT_ID`.
 12. Disable incident hold: `oya flags set oya.cloud_iam.federation.incident_hold=false --cell $CELL --tenant $TENANT`.
 13. Run login canary: `oya ops probe cloud-iam federation-login --tenant $TENANT --idp $IDP --cell $CELL --expect session-issued`.
-14. Unhold promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold promotion: recovery PR against `dev` (plain `git`; Buck2 evidence plus `oya-ci-required` required).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_IAM_IDP_STALL_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

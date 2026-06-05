@@ -710,6 +710,28 @@ const CLOUD_BILLING_TAX_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "app.kubernetes.io/managed-by: Helm",
     "oyatie.com/adr-0349: argocd-managed",
 ];
+const CLOUD_IAM_STALE_AUTHORITY_PHRASES: &[&str] = &[
+    "canonical local pre-push verifier",
+    "Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates",
+    "Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates",
+    "ArgoCD is the canonical GitOps CD orchestrator",
+    "ArgoCD is the GitOps CD orchestrator",
+    "Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates",
+    "cargo run -p oya-dev-cli",
+    "cargo run -q -p oya-dev-cli",
+    "cargo build --workspace",
+    "cargo run --release",
+    "cargo test --features hermetic",
+    "`./bin/oya git worktree-add",
+    "`./bin/oya vcs verify",
+    "Jenkins/GitHub Actions parity under ADR-0349",
+    "Jenkins + `oya gate run-all --ci-required`",
+    "argocd app get",
+    "Jenkins build id",
+    "ArgoCD sync id",
+    "app.kubernetes.io/managed-by: Helm",
+    "oyatie.com/adr-0349: argocd-managed",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -1438,6 +1460,46 @@ pub fn cloud_billing_tax_authority_failures(root: &Path) -> Vec<String> {
     if helm_dir.exists() {
         failures.push(
             "cloud/cloud-billing-tax/iac/k8s/helm: first-party Helm chart directory must not exist; cloud-billing-tax desired state is CUE/KRM plus Buck2/Prow evidence"
+                .to_string(),
+        );
+    }
+
+    failures
+}
+
+pub fn cloud_iam_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let mut files = Vec::new();
+
+    if let Err(error) =
+        collect_markdown_yaml_json_files(root, Path::new("cloud/cloud-iam"), &mut files)
+    {
+        failures.push(format!("cloud-iam authority scan failed: {error}"));
+    }
+    files.sort();
+    files.dedup();
+
+    for rel in files {
+        let path = root.join(&rel);
+        let Ok(text) = fs::read_to_string(&path) else {
+            failures.push(format!(
+                "{rel}: read failed during cloud-iam authority scan"
+            ));
+            continue;
+        };
+        for phrase in CLOUD_IAM_STALE_AUTHORITY_PHRASES {
+            if text.contains(phrase) {
+                failures.push(format!(
+                    "{rel}: stale cloud-iam active authority phrase present: {phrase:?}; use ADR-0513 Buck2/Prow `oya-ci-required`, CUE/KRM desired state, and native release-conveyor wording"
+                ));
+            }
+        }
+    }
+
+    let helm_dir = root.join("cloud/cloud-iam/iac/k8s/helm");
+    if helm_dir.exists() {
+        failures.push(
+            "cloud/cloud-iam/iac/k8s/helm: first-party Helm chart directory must not exist; cloud-iam desired state is CUE/KRM plus Buck2/Prow evidence"
                 .to_string(),
         );
     }
@@ -2361,6 +2423,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(workplace_integration_authority_failures(root));
     failures.extend(cell_lifecycle_authority_failures(root));
     failures.extend(cloud_billing_tax_authority_failures(root));
+    failures.extend(cloud_iam_authority_failures(root));
 
     for item_id in [
         "legacy_ci_server",
