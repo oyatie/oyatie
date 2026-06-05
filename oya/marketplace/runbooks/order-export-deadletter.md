@@ -310,4 +310,4 @@ evidence_hash: <sha256>
 ## Checkpoint Closure Criteria
 - The runbook remains current when `OrderExportDeadletterCritical`, `OrderExportDeadletterSloBurn`, `oya_marketplace_order_export_deadletter_total`, `oya.marketplace.order_export_deadletter.incident_hold`, and `marketplace-order-export-deadletter-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when PR evidence includes the trusted Prow/Kubernetes-native `oya-ci-required` result and the registered Buck2 runbook-substance target for the five target scopes.

@@ -310,4 +310,4 @@ evidence_hash: <sha256>
 ## Checkpoint Closure Criteria
 - The runbook remains current when `MediationQueueSaturationCritical`, `MediationQueueSaturationSloBurn`, `oya_marketplace_mediation_queue_depth`, `oya.marketplace.mediation_queue_saturation.incident_hold`, and `marketplace-mediation-queue-saturation-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when PR evidence includes the trusted Prow/Kubernetes-native `oya-ci-required` result and the registered Buck2 runbook-substance target for the five target scopes.

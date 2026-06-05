@@ -44,6 +44,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.active_template_scan_files, 30);
     assert_eq!(evaluation.retired_exact_name_scan_files, 36);
     assert_eq!(evaluation.product_operation_runbook_clean_paths, 2);
+    assert_eq!(evaluation.marketplace_runbook_checkpoint_clean_paths, 1);
     assert_eq!(evaluation.product_operation_doc_clean_files, 13);
     assert_eq!(evaluation.intelligence_doc_retired_dev_cli_clean_files, 34);
     assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
@@ -1375,6 +1376,32 @@ fn product_operation_docs_reject_retired_cli_and_bridge_authority() {
         "Foundry",
         "microservices/application",
     ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn marketplace_runbooks_reject_retired_vcs_checkpoint_commands() {
+    let root = temp_dir("marketplace-runbook-retired-vcs-checkpoint");
+    let runbook = root.join("oya/marketplace/runbooks/bad.md");
+    fs::create_dir_all(runbook.parent().unwrap()).unwrap_or_else(|error| {
+        panic!(
+            "create marketplace runbook fixture {}: {}",
+            runbook.parent().unwrap().display(),
+            error
+        );
+    });
+    fs::write(
+        &runbook,
+        "The checkpoint is complete when ./bin/oya vcs verify accepts local evidence.\n",
+    )
+    .unwrap();
+
+    let failures = gate::marketplace_runbook_retired_checkpoint_failures(&root);
+    for expected in ["./bin/oya vcs", "oya vcs verify"] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),
             "missing {expected:?} in {failures:?}"

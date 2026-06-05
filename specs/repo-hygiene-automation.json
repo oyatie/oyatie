@@ -146,6 +146,7 @@
       "git-backed stale documentation inventory",
       "rust-buck2 stale documentation inventory test target",
       "product-operation runbook retired CLI/bridge authority scan",
+      "marketplace runbook retired VCS checkpoint scan",
       "product-operation doc retired authority scan",
       "Intelligence markdown retired local dev CLI scan",
       "governance markdown retired local dev CLI and external substrate scan",
@@ -174,6 +175,15 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental clean-path guard only; remaining product docs are separate backlog slices"
+    },
+    "marketplace_runbook_retired_vcs_checkpoint_scan": {
+      "clean_paths": [
+        "oya/marketplace/runbooks"
+      ],
+      "policy": "Marketplace runbook checkpoint closure uses PR evidence, trusted Prow/Kubernetes-native oya-ci-required, and registered Buck2 runbook-substance targets. It must not reintroduce copyable retired local VCS checkpoint commands.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental exact checkpoint guard only; broader marketplace runbook local CLI and stale path cleanup remains a separate backlog slice"
     },
     "product_operation_doc_retired_authority_scan": {
       "clean_files": [

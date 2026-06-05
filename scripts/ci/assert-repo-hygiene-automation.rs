@@ -148,6 +148,7 @@ const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 0;
 const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 37;
 const PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS: &[&str] =
     &["oya/forms/runbooks", "oya/sheets/runbooks"];
+const MARKETPLACE_RUNBOOK_CHECKPOINT_CLEAN_PATHS: &[&str] = &["oya/marketplace/runbooks"];
 const PRODUCT_OPERATION_DOC_CLEAN_FILES: &[&str] = &[
     "oya/application/onboarding/platform-engineer-first-week.md",
     "oya/developer-sdk/onboarding/sdk-engineer-first-week.md",
@@ -266,6 +267,8 @@ const PRODUCT_OPERATION_DOC_RETIRED_PHRASES: &[&str] = &[
     "argocd",
     "JCasC",
 ];
+const MARKETPLACE_RUNBOOK_RETIRED_CHECKPOINT_PHRASES: &[&str] =
+    &["./bin/oya vcs", "oya vcs verify"];
 const MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
     "Jenkins LTS",
     "static Jenkins lane scan",
@@ -1286,6 +1289,7 @@ pub struct Evaluation {
     pub active_template_scan_files: usize,
     pub retired_exact_name_scan_files: usize,
     pub product_operation_runbook_clean_paths: usize,
+    pub marketplace_runbook_checkpoint_clean_paths: usize,
     pub product_operation_doc_clean_files: usize,
     pub intelligence_doc_retired_dev_cli_clean_files: usize,
     pub governance_doc_retired_dev_cli_clean_files: usize,
@@ -2635,6 +2639,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl automation targets must include product-operation runbook retired authority scan",
         ),
         (
+            "\"marketplace runbook retired VCS checkpoint scan\"",
+            "documentation sprawl automation targets must include marketplace retired VCS checkpoint scan",
+        ),
+        (
+            "\"marketplace_runbook_retired_vcs_checkpoint_scan\"",
+            "documentation sprawl policy must record the marketplace runbook retired VCS checkpoint guard",
+        ),
+        (
             "\"product-operation doc retired authority scan\"",
             "documentation sprawl automation targets must include product-operation doc retired authority scan",
         ),
@@ -3267,6 +3279,40 @@ pub fn product_operation_doc_retired_authority_failures(root: &Path) -> Vec<Stri
     failures
 }
 
+pub fn marketplace_runbook_retired_checkpoint_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_path in MARKETPLACE_RUNBOOK_CHECKPOINT_CLEAN_PATHS {
+        let mut markdown_paths = Vec::new();
+        if let Err(error) = collect_markdown_paths(root, Path::new(clean_path), &mut markdown_paths)
+        {
+            failures.push(format!(
+                "{clean_path}: marketplace runbook checkpoint scan failed: {error}"
+            ));
+            continue;
+        }
+        for rel in markdown_paths {
+            let rel_string = path_to_repo_string(&rel);
+            let text = match fs::read_to_string(root.join(&rel)) {
+                Ok(text) => text,
+                Err(error) => {
+                    failures.push(format!("{rel_string}: read failed: {error}"));
+                    continue;
+                }
+            };
+            for phrase in MARKETPLACE_RUNBOOK_RETIRED_CHECKPOINT_PHRASES {
+                if text.contains(phrase) {
+                    failures.push(format!(
+                        "{rel_string}: marketplace runbook checkpoint contains retired VCS checkpoint phrase {phrase:?}; use trusted Prow/Kubernetes-native oya-ci-required evidence plus Buck2 runbook-substance targets"
+                    ));
+                }
+            }
+        }
+    }
+
+    failures
+}
+
 pub fn intelligence_doc_retired_dev_cli_failures(root: &Path) -> Vec<String> {
     let mut failures = Vec::new();
 
@@ -3821,6 +3867,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(retired_service_ci_entrypoint_failures(root));
     failures.extend(retired_active_path_failures(root));
     failures.extend(product_operation_runbook_retired_authority_failures(root));
+    failures.extend(marketplace_runbook_retired_checkpoint_failures(root));
     failures.extend(product_operation_doc_retired_authority_failures(root));
     failures.extend(intelligence_doc_retired_dev_cli_failures(root));
     failures.extend(governance_doc_retired_dev_cli_failures(root));
@@ -4180,6 +4227,8 @@ pub fn evaluate(root: &Path) -> Evaluation {
         active_template_scan_files: ACTIVE_TEMPLATE_SCAN_PATHS.len(),
         retired_exact_name_scan_files: ACTIVE_EXACT_NAME_SCAN_PATHS.len(),
         product_operation_runbook_clean_paths: PRODUCT_OPERATION_RUNBOOK_CLEAN_PATHS.len(),
+        marketplace_runbook_checkpoint_clean_paths: MARKETPLACE_RUNBOOK_CHECKPOINT_CLEAN_PATHS
+            .len(),
         product_operation_doc_clean_files: PRODUCT_OPERATION_DOC_CLEAN_FILES.len(),
         intelligence_doc_retired_dev_cli_clean_files: INTELLIGENCE_DOC_RETIRED_DEV_CLI_CLEAN_FILES
             .len(),
@@ -4206,7 +4255,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"marketplace_runbook_checkpoint_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"design_system_spec_authority_clean_files\":{},\"schema_registry_spec_authority_clean_files\":{},\"deployment_ops_contract_authority_clean_files\":{},\"agent_durable_goal_deployment_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -4217,6 +4266,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.active_template_scan_files,
         evaluation.retired_exact_name_scan_files,
         evaluation.product_operation_runbook_clean_paths,
+        evaluation.marketplace_runbook_checkpoint_clean_paths,
         evaluation.product_operation_doc_clean_files,
         evaluation.intelligence_doc_retired_dev_cli_clean_files,
         evaluation.governance_doc_retired_dev_cli_clean_files,
