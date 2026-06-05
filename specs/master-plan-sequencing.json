@@ -1740,13 +1740,16 @@
   ],
   "early_prerequisites": [
     {
-      "id": "M01-P07-gitops-vcs-replacement",
+      "id": "M01-P07-native-scm-control-plane",
+      "compatibility_id": "M01-P07-gitops-vcs-replacement",
+      "current_name": "Native SCM control-plane and GitHub adapter transition",
       "source_path": "/specs/gitops-vcs-replacement.json",
+      "source_path_notice": "Existing gitops-vcs path name is compatibility provenance only; active direction is native SCM service/control-plane with Git/GitHub adapters, Buck2/Prow oya-ci, and release-conveyor-like CD.",
       "must_complete_before": [
         "M01-P08",
         "broad M01/M02/M03 parallel fan-out"
       ],
-      "compatibility_window": "P00 core remains the imminent focus. Forward fan-out uses isolated git worktree branches, GitHub as PR/publication adapter and GitHub Actions as shadow compatibility, Buck2 evidence, and reviewer approval. Legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
+      "compatibility_window": "P00 core remains the imminent focus. Forward fan-out uses isolated git worktree branches, GitHub as PR/publication adapter and GitHub Actions as shadow compatibility, Buck2 evidence, and reviewer approval. Sapling-style adapter patterns may only preserve historical provenance or unblock a documented command-surface gap; no retired CLI alias or provider-owned merge truth is revived."
     }
   ],
   "implementation_plan_changeset_contract": {

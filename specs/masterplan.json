@@ -25,6 +25,7 @@
       ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
       "/specs/planning-closure-status-closure-ledger.json"
     ],
+    "source_inputs_note": "gitops-vcs and grit-named inputs are historical source provenance only. Active direction is native SCM service/control-plane plus Git/GitHub adapters, Buck2/Prow oya-ci, and release-conveyor-like CD; do not revive retired CLI aliases.",
     "icm_scaffold_lock_id": "01KRJM0QGGKVCMVS2FFVAHZBYS",
     "gitops_vcs_directive_2026_05_14": "Historical directive, reframed 2026-06-04: move native SCM earlier as a Sapling-inspired Rust-biased service/control-plane with Git/GitHub adapters, Prow/Kubernetes-native oya-ci integration, and release-conveyor-like CD. Do not revive a retired `oya vcs` CLI.",
     "scaffold_lock_ids": [
@@ -488,7 +489,7 @@
     },
     "authority_boundaries": {
       "buck2": "build/test/check authority",
-      "cargo": "local advisory only where dual Cargo+Buck2 is intentionally maintained",
+      "cargo": "compatibility metadata and local advisory tooling only; not CI, merge, coverage, or protected-branch authority",
       "github": "PR/publication adapter only",
       "retired_external_scm_ci_cd_substrates": "not interim authorities",
       "github_actions": "shadow compatibility only",
@@ -531,7 +532,8 @@
         "Automate git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene through repo-hygiene-automation-check.",
         "Port active legacy Python/shell gate surfaces to Rust/Buck2-owned tools where they remain authoritative; keep remaining scripts as explicit migration backlog or bootstrap exceptions only.",
         "Prefer in-house oya-* Rust libraries for durable product/control-plane semantics; keep third-party crates behind owned seams with latest stable/LTS pins, registry rationale, and replacement/wrapper strategy.",
-        "Retire or reframe historical retired `oya vcs` CLI/ChangeBundle language into native SCM service APIs and adapter contracts; do not add CLI surfaces to sanctioned primitives."
+        "Retire or reframe historical retired `oya vcs` CLI/ChangeBundle language into native SCM service APIs and adapter contracts; do not add CLI surfaces to sanctioned primitives.",
+        "Keep active masterplan and sequencing names self-explanatory: use Native SCM control-plane, Git/GitHub adapter, Buck2/Prow oya-ci, and release-conveyor wording; leave gitops-vcs/grit path names as historical compatibility only."
       ],
       "prep_and_unlocks": [
         "GitHub Actions matrix/concurrency workflow fans out governance, Buck2 authority, Rust LLVM coverage, and affected-build lanes.",
@@ -572,6 +574,7 @@
       "security_backlog_recorded": "/specs/repo-hygiene-automation.json#security_backlog_validation maps 40 requested controls/productization anchors to /specs/repo-hygiene-automation.json#security_hardening_backlog as valid backlog-only zero-trust, PBAC/ABAC, PaC, CaC, PaaS, Containers-as-a-Service, Compliance-as-a-Service, dogfood tenant, CI/CD, data, Kubernetes runtime, and multi-account guardrail items",
       "policy_compliance_productization_recorded": "/specs/repo-hygiene-automation.json#security_hardening_backlog includes Policy/Compliance-as-a-Service productization, PaC, CaC, PBAC, mature policy-engine, PaaS, Containers-as-a-Service, Compliance-as-a-Service, and Oyatie-as-tenant dogfood anchors",
       "native_scm_ci_cd_fit_recorded": "masterplan P00 records native SCM owns change graph, oya-ci owns Buck2/Prow required context, and release-conveyor-like CD owns progressive delivery without oya vcs CLI revival",
+      "masterplan_native_scm_name_hygiene": "active masterplan/sequencing wording exposes Native SCM control-plane and GitHub adapter direction without stale CLI-alias or Cargo-as-authority claims",
       "legacy_shadow_bridge_green": "buck2 build //:github-lane-unlocker-bridge-check",
       "prowjob_registry_green": "buck2 build //:oya-ci-prowjob-registry-check",
       "prow_controller_config_green": "buck2 build //:oya-ci-prowjob-registry-check validates specs/generated/oya-ci-controller-config.generated.yaml as local/static controller config evidence",
@@ -612,6 +615,7 @@
         "documentation_sprawl_hygiene"
       ],
       "github_publication_adapter": "native Sapling-inspired SCM service must expose GitHub public/private publication and status adapters while keeping native SCM authoritative; no oya vcs CLI revival",
+      "masterplan_native_scm_name_scan": "active masterplan/sequencing labels must prefer native SCM control-plane and Buck2/Prow authority wording; old gitops-vcs/grit names remain compatibility path provenance only",
       "doc_sprawl_rule": "new docs default to reject unless registered/lane-owned; stale docs older than 3 days are audit/archive candidates; root docs remain pointer-thin",
       "live_mutation": false,
       "shared_surface_mitigation": "/specs/repo-hygiene-automation.json#shared_surface_mitigation",
@@ -636,6 +640,14 @@
       "/specs/cloud-toolchain-target.json",
       "/specs/gitops-vcs-replacement.json"
     ],
+    "native_scm_control_plane": {
+      "status": "active_direction",
+      "compatibility_key": "gitops_vcs_replacement",
+      "current_capability_name": "Native SCM control-plane and Prow lane-unlocker",
+      "summary": "Native SCM owns the change graph, semantic locks, stacked changes, virtual merge projections, Git/GitHub publication adapters, and trusted controller snapshots. oya-ci owns Buck2/ProwJob execution and the oya-ci-required context. Release-conveyor-like CD owns signed release-ledger promotion, progressive delivery, rollback, and audit.",
+      "cargo_boundary": "Cargo.toml/Cargo.lock remain Rust ecosystem compatibility metadata and optional local tooling inputs; Buck2/Prow is the protected-branch build/test/check/coverage authority.",
+      "retired_cli_boundary": "No retired oya vcs/gate/verify CLI alias is revived; reusable semantics must land as Rust libraries, service APIs, Buck2 targets, or Prow jobs."
+    },
     "native_scm_ci_cd": {
       "scm": "Sapling-inspired pure-Rust-biased native SCM service/control-plane; no oya vcs CLI revival",
       "scm_owns": [
@@ -1015,7 +1027,9 @@
       "phases": [
         {
           "id": "P00-gitops-vcs-replacement",
-          "title": "Polyglot GitOps-capable VCS replacement",
+          "title": "Native SCM control-plane and GitHub adapter transition",
+          "current_capability_name": "Native SCM control-plane and Prow lane-unlocker",
+          "compatibility_id_notice": "The P00-gitops-vcs-replacement id and path family are historical compatibility coordinates only; active work uses native SCM service/control-plane, Git/GitHub adapter, Buck2/Prow oya-ci, and release-conveyor terminology.",
           "status": "complete",
           "source_spec": "/specs/gitops-vcs-replacement.json",
           "implementation_plans": [
@@ -1052,9 +1066,9 @@
               "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md"
             },
             {
-              "id": "IP-005-grit-compat-cli-and-migration-ratchet",
+              "id": "IP-005-native-scm-adapter-migration-ratchet",
               "status": "complete",
-              "deliverable": "Grit-compatible CLI aliases, migration from local grit, CI ratchet banning local-only closeout for agent fan-out.",
+              "deliverable": "Git/Sapling-compatible adapter semantics and migration ratchet; no retired CLI aliases, local-only closeout, or provider-owned merge truth for agent fan-out.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
               "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md"
@@ -1269,11 +1283,13 @@
     }
   ],
   "gitops_vcs_replacement": {
+    "compatibility_key_notice": "This key is retained for schema/path compatibility with already-authored P00 materials. Active capability name is Native SCM control-plane and Prow lane-unlocker; gitops-vcs/grit names are provenance only.",
+    "current_capability_name": "Native SCM control-plane and Prow lane-unlocker",
     "source_spec": "/specs/gitops-vcs-replacement.json",
     "status": "core-complete-ci-admission-wired-provider-adapters-followup",
     "milestone": "M01-foundation",
     "phase": "P00-gitops-vcs-replacement",
-    "summary": "Oyatie Native SCM preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/release-conveyor fix loops, dev→staging→production release trains, and Rust compile-latency scheduling. GitHub publication adapter, GitHub Actions shadow evidence, scanner evidence, and native release-conveyor adapters are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
+    "summary": "Oyatie Native SCM preserves Sapling-inspired semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/release-conveyor fix loops, dev→staging→production release trains, and Rust compile-latency scheduling. GitHub publication adapter, GitHub Actions shadow evidence, scanner evidence, and native release-conveyor adapters are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
     "must_precede": [
       "M01-P08-agentic-pipeline-cutover",
       "broad M01/M02/M03 parallel fan-out"
@@ -1308,9 +1324,9 @@
         "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md"
       },
       {
-        "id": "IP-005-grit-compat-cli-and-migration-ratchet",
+        "id": "IP-005-native-scm-adapter-migration-ratchet",
         "status": "complete",
-        "deliverable": "Grit-compatible CLI aliases, migration from local grit, CI ratchet banning local-only closeout for agent fan-out.",
+        "deliverable": "Git/Sapling-compatible adapter semantics and migration ratchet; no retired CLI aliases, local-only closeout, or provider-owned merge truth for agent fan-out.",
         "execution_unit": "ChangeSet",
         "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md"
       },
@@ -1591,7 +1607,9 @@
             "slug": "P07-gitops-vcs-replacement",
             "path": ".omc/plans/milestones/M01-foundation/phases/P07-gitops-vcs-replacement",
             "index": ".omc/plans/milestones/M01-foundation/phases/P07-gitops-vcs-replacement/INDEX.md",
-            "title": "Polyglot GitOps-capable VCS Replacement (Oyatie Native SCM)",
+            "title": "Native SCM Control-Plane and GitHub Adapter Transition (historical P07 compatibility path)",
+            "current_capability_name": "Native SCM control-plane and Prow lane-unlocker",
+            "compatibility_path_notice": "P07-gitops-vcs-replacement is an existing path coordinate; active architecture wording is native SCM service/control-plane plus Git/GitHub adapter, Buck2/Prow oya-ci, and release-conveyor.",
             "status": "complete",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 9,
