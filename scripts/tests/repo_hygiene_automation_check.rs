@@ -48,6 +48,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.intelligence_doc_retired_dev_cli_clean_files, 34);
     assert_eq!(evaluation.governance_doc_retired_dev_cli_clean_files, 29);
     assert_eq!(evaluation.microservice_spec_authority_clean_files, 5);
+    assert_eq!(evaluation.design_system_spec_authority_clean_files, 17);
 }
 
 #[test]
@@ -1011,6 +1012,39 @@ fn microservice_spec_authority_scan_rejects_retired_ci_cd_and_local_gate_authori
         "Rust oya gates",
         "Buck2/Prow oya-ci-required",
         "native release-conveyor/KRM",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
+fn checked_in_design_system_specs_use_buck2_prow_authority_wording() {
+    let failures = gate::design_system_spec_authority_failures(Path::new(&repo_root()));
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn design_system_spec_authority_scan_rejects_retired_local_validators() {
+    let failures = gate::design_system_spec_authority_text_failures(
+        "specs/design-system/example.json",
+        "verification_commands: target/debug/oya gate validate product-prd-json; \
+         cargo test -p oya-dev-cli product_prd_json; crates/oya-dev-cli/tests/product.rs; \
+         cargo clippy -- -D warnings; cargo deny check; OpenTofu and oya ops remediate.\n",
+    );
+    for expected in [
+        "target/debug/oya",
+        "oya gate",
+        "cargo test",
+        "oya-dev-cli",
+        "crates/oya-dev-cli",
+        "cargo clippy",
+        "cargo deny",
+        "OpenTofu",
+        "oya ops",
+        "Buck2 authority command",
     ] {
         assert!(
             failures.iter().any(|failure| failure.contains(expected)),

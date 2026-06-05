@@ -39,7 +39,7 @@
     "copy/export omits hidden secrets and redacted fields"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/product_prd_json.rs::product_prd_json_gate_accepts_repo_specs",
+    "buck2 build //:repo-hygiene-automation-check # product-prd-json coverage",
     "crates/oya-saas-workflow-studio-domain/tests/spec_load.rs::test_load_emit_byte_equal"
   ],
   "consumers": [
@@ -48,9 +48,9 @@
     "$ref:specs/microservices/ontology.json#frontend_components"
   ],
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
-    "python3 -m json.tool specs/design-system/<component>.json",
-    "target/debug/oya gate validate active-artifact-contract"
+    "buck2 build //:repo-hygiene-automation-check # product-prd-json coverage",
+    "buck2 build //:repo-hygiene-automation-check # design-system JSON validity",
+    "buck2 build //:repo-hygiene-automation-check # active-artifact-contract coverage"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

@@ -152,7 +152,8 @@
       "M02 exit-gate validator retired CLI/Cargo/pnpm authority scan",
       "standards retired local gate/doc/vcs command scan",
       "standards retired external substrate name scan",
-      "microservice spec retired CI/CD and local gate authority scan"
+      "microservice spec retired CI/CD and local gate authority scan",
+      "design-system spec retired local validator authority scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -332,6 +333,31 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental accounting/calendar/hr/payroll/plant-maintenance spec guard only; remaining microservice specs and historical ADR provenance are separate backlog slices"
+    },
+    "design_system_spec_authority_scan": {
+      "clean_files": [
+        "specs/design-spec-maturity-claims.json",
+        "specs/design-system/audit-evidence-timeline.json",
+        "specs/design-system/catalog.json",
+        "specs/design-system/cloud-cell-topology-map.json",
+        "specs/design-system/communication-thread-list.json",
+        "specs/design-system/entity-action-policy-preview.json",
+        "specs/design-system/foundry-agent-run-timeline.json",
+        "specs/design-system/ontology-graph-explorer.json",
+        "specs/design-system/ops-deployment-status-panel.json",
+        "specs/design-system/policy-disclosure-banner.json",
+        "specs/design-system/score-card-result-table.json",
+        "specs/design-system/spec-diff-viewer.json",
+        "specs/design-system/tenant-context-switcher.json",
+        "specs/design-system/workflow-canvas.json",
+        "specs/design-system/workflow-node-config-panel.json",
+        "specs/design-system/workflow-replay-timeline.json",
+        "specs/iterative-fix-loop.json"
+      ],
+      "policy": "Cleaned design-system and adjacent design-spec files use Buck2/Prow evidence, native release-conveyor/KRM operations, and native SCM/PR admission wording instead of retired local validator binaries, retired oya gate commands, direct Cargo test/lint/security commands, retired dev-cli test paths, or root ops glue.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental design-system/local-validator authority guard only; remaining schema registries and historical provenance specs are separate backlog slices"
     },
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
