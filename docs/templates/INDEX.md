@@ -29,7 +29,7 @@ doc_status: published
 
 | ID | File | Purpose (1-line) | Owner (per `docs/RACI-OWNERSHIP.md`) | Enforcing fitness lane |
 |---|---|---|---|---|
-| TPL-PR | `pull-request-template-v2.md` | 5-section PR body + agent/human fork + RFC-2119 normative form. | `axis-foundry` + `council-architecture` | `oya-governance-pr-shape` (`traceability-validator`) |
+| TPL-PR | `pull-request-template.md` | 5-section PR body + Buck2/Prow evidence + GitHub adapter shadow checks. | `axis-foundry` + `council-architecture` | PR-shape validation + `oya-ci-required` |
 | TPL-ADR | `adr-template-v2.md` | Architecture Decision Record with autogen-friendly frontmatter. | `crew-adr-promotion` | `oya-governance-adr-shape` |
 | TPL-IP | `implementation-plan-template.md` | Per-IP plan under `milestones/M*/phases/P*/`. | `council-architecture` (cross-axis) | `oya-governance-plan-hierarchy` |
 | TPL-PHASE | `phase-index-template.md` | Phase INDEX (≤50 lines). | `council-architecture` | `oya-governance-plan-hierarchy` |

@@ -230,7 +230,7 @@ scaffold_protocol:
 
 ## PR shape
 
-Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 traceability H2 sections plus the automated reviewer-agent `## Code Review` section, CI-enforced by `traceability-validator` and `oya-pr-review`:
+Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 traceability H2 sections plus `## Code Review`. Current merge authority is the Prow/Kubernetes-native `oya-ci-required` context with Buck2 evidence; GitHub Actions checks are compatibility/shadow evidence while native SCM/CI matures. Reviewer-agent status is future/non-live unless an explicit trusted producer is present:
 
 1. `## Issue` — `Closes #<n>` or `Refs #<n>`.
 2. `## Summary` — 1–3 bullets on what + why.
@@ -238,7 +238,7 @@ Every PR uses [`templates/pull-request-template.md`](templates/pull-request-temp
 4. `## Traceability` — catalog records touched, cross-axis contracts touched, ADRs cited.
 5. `## Evidence` — audit-chain emission ID; foundation-bypass (if any); per-pack regulator-watch impact (if any).
 
-The automated reviewer pipeline supplies `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items. The merge gate refuses any merge without this section.
+The `## Code Review` section records reviewer evidence, or an explicit self-review with local+remote evidence when no trusted reviewer service is live.
 
 ## Done-Definition checklist
 
@@ -258,7 +258,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D12** Buck2 authority policy passes and `oya-ci-required` is green before merge; GitHub Actions bridge checks are shadow/compatibility only. *Test:* policy output + required-context evidence.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
-- [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* `traceability-validator` + `oya-pr-review` lanes.
+- [ ] **D15** PR body has all 5 canonical traceability H2 sections plus `## Code Review`. *Test:* PR-shape validation plus `oya-ci-required` / Buck2 evidence; reviewer-agent status is future/non-live until its trusted producer is live.
 - [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-governance-audit-emission` lane.
 - [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-governance-mistakes-ledger-cite` lane.
 - [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-governance-changelog-row` lane.
@@ -312,7 +312,9 @@ Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definitio
 
 Boundary: do not edit `~/.claude/` from project sessions — user-machine state.
 
-Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harness changes.
+Self-test: run the relevant Buck2/Rust harness target before relying on hook /
+harness changes; do not use npm/pnpm unless the lane has an explicit
+strict-TypeScript tooling exception.
 
 ### Codex (OpenAI Codex CLI)
 

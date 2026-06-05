@@ -35,7 +35,7 @@ doc_status: published
 | `docs/checklists/inventory-update-checklist.md` | 1 | `69` | `73` | yes |
 | `docs/standards/agent-instructions-discipline.md` | 1 | `43` | `45` | yes |
 | `docs/templates/implementation-plan-template.md` | 1 | `75` | `83` | yes |
-| `docs/templates/pull-request-template-v2.md` | 1 | `37` | `42` | yes |
+| `docs/templates/pull-request-template.md` | 1 | `14` | `26` | yes |
 | `docs/templates/runbook-template-v2.md` | 1 | `73` | `78` | yes |
 
 Inventory total: 25 files; 25 fenced sections.
