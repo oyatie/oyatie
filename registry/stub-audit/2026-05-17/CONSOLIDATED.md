@@ -118,10 +118,13 @@ New fitness lane `oya-governance-aspirational-enforcement-detection` that scans:
 
 This lane makes the chained-enforcement contract executable: cite the lane in the ADR ⇒ the crate must exist ⇒ the workflow must wire it ⇒ the test must pass.
 
-## Pending audits
+## Audit completion snapshot
 
-- 13 PRDs (background agent in flight)
-- 42 standards docs + 3 master-plan specs (background agent in flight)
+- ADR corpus captured in `adrs.jsonl`.
+- Spec corpus captured in `specs.jsonl`.
+- IP corpus captured in `ips.jsonl`.
+- PRD corpus captured in `prds.jsonl`.
+- Standards and master-plan corpus captured in `standards-and-plans.jsonl`.
 
 ## Next actions (priority-ordered)
 
@@ -135,5 +138,5 @@ This lane makes the chained-enforcement contract executable: cite the lane in th
 - `registry/stub-audit/2026-05-17/adrs.jsonl` (196 rows)
 - `registry/stub-audit/2026-05-17/specs.jsonl` (180 rows)
 - `registry/stub-audit/2026-05-17/ips.jsonl` (307 rows)
-- `registry/stub-audit/2026-05-17/prds.jsonl` (pending)
-- `registry/stub-audit/2026-05-17/standards-and-plans.jsonl` (pending)
+- `registry/stub-audit/2026-05-17/prds.jsonl` (89 rows)
+- `registry/stub-audit/2026-05-17/standards-and-plans.jsonl` (75 rows)
