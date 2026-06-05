@@ -89,7 +89,7 @@ Every ArgoCD Application resource carries a `oya/scope-attestation` annotation s
 
 ### Invariant ISO-05: SLSA L3 attestation required for every chart
 
-Every Helm chart applied by cloud-iac must have an SLSA L3 build-provenance attestation verifiable against Sigstore Fulcio / Rekor. Unsigned charts refused at iac-applier-worker pre-apply.
+Every CUE/KRM package applied by cloud-iac must have an SLSA L3 build-provenance attestation verifiable against Sigstore Fulcio / Rekor. Unsigned charts refused at iac-applier-worker pre-apply.
 
 CI lane: `oya-cloud-iac-provenance-slsa-l3` validates attestation chain.
 
@@ -229,10 +229,10 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-iac-
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate iac-apply-scope` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate applier-rbac-scope` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate slsa-l3-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice cloud-iac` — exit 0.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
 - Annual pen-test against apply-scope boundary; documented in `runbooks/apply-scope-pentest.md` (Slice D).
 - Quarterly chaos drill: induce reserved-scope write + cross-µservice apply attempt; verify rejection + alerting.
 

@@ -36,7 +36,7 @@ components:
     doctrine_refs:
       ADR-0346:
         purpose: >-
-          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+          - Active merge evidence is Buck2 target output plus trusted Rust/Prow `oya-ci-required`; local verifier wording is retired.
         enforced_by:
           - oya-governance-oya-verify-ci-mirror-coverage
           - oya-governance-oya-verify-ci-step-exit-semantics
@@ -67,7 +67,7 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+          - Active CI/CD evidence is Rust/Prow `oya-ci-required` plus native release-conveyor/CUE-KRM reconciliation; Jenkins/ArgoCD bridge wording is retired.
         enforced_by:
           - oya-governance-jenkins-github-actions-parity
           - oya-governance-argocd-application-cosign-verified

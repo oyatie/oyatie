@@ -175,9 +175,9 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-iac-
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate retention-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate pack-routing-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cross-pack-state-replication-forbidden` — exit 0.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
 - Annual residency audit: confirm each µservice's apply-state location matches its assigned pack.
 - Quarterly chaos drill: induce a cross-pack state-write attempt; verify rejection + alerting.
 

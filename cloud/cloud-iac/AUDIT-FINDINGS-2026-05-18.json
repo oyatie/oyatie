@@ -42,7 +42,7 @@
           "hits": [
             {
               "line": 31,
-              "excerpt": "| `microservices/cloud-iac/iac/helm/argocd/values.yaml` | create | HA replicas + Valkey Sentinel + admission webhook |"
+              "excerpt": "| `microservices/cloud-iac/iac/cue-krm-packages/argocd/values.yaml` | create | HA replicas + Valkey Sentinel + admission webhook |"
             }
           ],
           "hits_total": 1

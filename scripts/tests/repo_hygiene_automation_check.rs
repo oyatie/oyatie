@@ -1440,6 +1440,39 @@ fn cloud_billing_authority_scan_rejects_retired_cli_cargo_and_helm_authority() {
 }
 
 #[test]
+fn cloud_iac_authority_scan_rejects_retired_cli_cargo_and_bridge_dirs() {
+    let root = temp_dir("cloud-iac-authority");
+    let runbook_dir = root.join("cloud/cloud-iac/runbooks");
+    let helm_dir = root.join("cloud/cloud-iac/iac/helm/argocd");
+    let bridge_dir = root.join("cloud/cloud-iac/iac/on-prem/jenkins");
+    std::fs::create_dir_all(&runbook_dir).unwrap();
+    std::fs::create_dir_all(&helm_dir).unwrap();
+    std::fs::create_dir_all(&bridge_dir).unwrap();
+    std::fs::write(
+        runbook_dir.join("stale.md"),
+        "Production validation still says cargo run -p oya-dev-cli, ./bin/oya iac plan, Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates, and app.kubernetes.io/managed-by: Helm.\n",
+    )
+    .unwrap();
+
+    let failures = gate::cloud_iac_authority_failures(&root);
+    for expected in [
+        "cargo run -p oya-dev-cli",
+        "./bin/oya iac",
+        "Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates",
+        "app.kubernetes.io/managed-by: Helm",
+        "cloud/cloud-iac/iac/helm",
+        "cloud/cloud-iac/iac/on-prem/jenkins",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+
+    std::fs::remove_dir_all(root).ok();
+}
+
+#[test]
 fn cloud_iam_authority_scan_rejects_retired_cli_cargo_and_helm_authority() {
     let root = temp_dir("cloud-iam-authority");
     let runbook_dir = root.join("cloud/cloud-iam/runbooks");

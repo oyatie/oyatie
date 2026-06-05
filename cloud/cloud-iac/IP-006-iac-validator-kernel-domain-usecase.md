@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness, oya-check-cedar-fragment-coverage]
+acceptance_lanes: [buck2-build, buck2-build, buck2-authority, buck2-tests, supply-chain-policy, lean-a1, layer-correctness, oya-check-cedar-fragment-coverage]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -75,10 +75,10 @@ where P: PlanComputer, D: DriftDiffer, C: PolicyEvaluator {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-iac-iac-validator-kernel -p oya-cloud-iac-iac-validator-domain -p oya-cloud-iac-iac-validator-usecase -p oya-cloud-iac-iac-validator-api -p oya-cloud-iac-iac-validator-adapter --all-features
-cargo nextest run -p oya-cloud-iac-iac-validator-kernel -p oya-cloud-iac-iac-validator-domain -p oya-cloud-iac-iac-validator-usecase -p oya-cloud-iac-iac-validator-api -p oya-cloud-iac-iac-validator-adapter --all-features
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-iac
-cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice cloud-iac
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for layer-correctness --microservice cloud-iac
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for cedar-fragment-coverage --microservice cloud-iac
 ```
 
 ## Test Plan

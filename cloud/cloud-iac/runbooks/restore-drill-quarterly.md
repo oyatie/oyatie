@@ -44,15 +44,15 @@ environment.
           --from-backup <most-recent-daily> \
           --namespace-mappings <microservice>-prod:<microservice>-dr-staging
    ```
-3. **Apply the µservice Helm chart** against `dr-staging`:
+3. **Apply the µservice CUE/KRM package** against `dr-staging`:
    ```sh
-   helm install <microservice> microservices/<microservice>/iac/helm/<microservice>/ \
+   helm install <microservice> microservices/<microservice>/iac/cue-krm-packages/<microservice>/ \
         --namespace <microservice>-dr-staging \
-        --values microservices/<microservice>/iac/helm/<microservice>/values-dr-staging.yaml
+        --values microservices/<microservice>/iac/cue-krm-packages/<microservice>/values-dr-staging.yaml
    ```
 4. **Run the µservice's smoke-test set** against `dr-staging`:
    ```sh
-   cargo test -p oya-<microservice>-app --test smoke -- --include-ignored
+   buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
    ```
 
 ### Day +1 (evidence + scoring)

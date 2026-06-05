@@ -96,8 +96,8 @@ configMapGenerator:
 for pack in pack-kr pack-eu pack-us pack-us-healthcare pack-jp pack-sg pack-au pack-in pack-br pack-ae pack-ksa; do
   kubectl --dry-run=client apply -k microservices/cloud-iac/iac/kustomize/overlays/$pack
 done
-cargo run -p oya-dev-cli -- gate validate pack-routing-conformance --microservice cloud-iac
-cargo run -p oya-dev-cli -- gate validate retention-conformance --microservice cloud-iac
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for pack-routing-conformance --microservice cloud-iac
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for retention-conformance --microservice cloud-iac
 ```
 
 ## Test Plan

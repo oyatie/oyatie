@@ -38,7 +38,7 @@ doc_status: published
 
 ## Purpose
 
-The `cloud-iac` microservice is oyatie's **meta-IaC** substrate: the µservice that authors, validates, applies, and rolls back every other µservice's Infrastructure-as-Code (Helm charts, Terraform/OpenTofu modules, Kustomize overlays). It runs the IaC pipeline itself. Per ADR-0131 (Cloud-product split: cloud-iac + cloud-k8s + cloud-secrets), this µservice owns the substrate that turns git-tracked IaC into deployed cluster state across every active oyatie pack (pack-kr / pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa).
+The `cloud-iac` microservice is oyatie's **meta-IaC** substrate: the µservice that authors, validates, applies, and rolls back every other µservice's Infrastructure-as-Code (CUE/KRM packages, Terraform/OpenTofu modules, Kustomize overlays). It runs the IaC pipeline itself. Per ADR-0131 (Cloud-product split: cloud-iac + cloud-k8s + cloud-secrets), this µservice owns the substrate that turns git-tracked IaC into deployed cluster state across every active oyatie pack (pack-kr / pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa).
 
 This µservice is **shared substrate**, not a hero product. Every oyatie µservice that ships IaC depends on cloud-iac to render, validate, plan-preview, and apply that IaC; cloud-iac is the precondition for ADR-0117's cloud-native posture and the operational counterpart of ADR-0120's Rust-first on-prem tooling. Its existence eliminates the "ten ways to apply Helm" anti-pattern by canonicalising one apply pipeline + one validator catalog + one drift-detection cycle across the whole estate.
 
@@ -83,7 +83,7 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 ### Security
 
 - All applies are SLSA L3 build-provenance attested per OpenSSF SLSA framework; the attestation is verified pre-apply by the iac-applier.
-- Helm chart signing required via Sigstore Cosign (per docs/standards/observability-slo.md §"Supply-chain conformance"); unsigned charts refused.
+- CUE/KRM package signing required via Sigstore Cosign (per docs/standards/observability-slo.md §"Supply-chain conformance"); unsigned charts refused.
 - Terraform/OpenTofu state encrypted at rest with per-pack KMS keys (no cross-pack key usage); state stored in pack-pinned Postgres (the iac-state-index) + S3-compatible object storage.
 - Per-µservice apply scope enforced: cloud-iac will refuse to apply a manifest that mutates resources outside the µservice's declared scope (Cedar policy `iac-isolation.md`).
 - Secrets (cluster API credentials, Terraform-state encryption keys, ArgoCD admin tokens) follow the local-OpenBao SecretReference pattern; raw secrets never enter the repo, chat, or checkpoints.
@@ -170,7 +170,7 @@ JUSTIFICATION:
     + invoking adapter renderers + writing RenderCompleted events via ports.
   - api: protocol-neutral typed I/O contracts.
   - adapter: protocol-neutral implementations of kernel ports.
-  - adapter-helm: backend-qualified adapter for Helm CLI / SDK; renders Charts.
+  - adapter-helm: backend-qualified adapter for manual package CLI / SDK; renders Charts.
   - adapter-kustomize: backend-qualified adapter for kustomize binary; resolves
     overlays.
   - adapter-opentofu: backend-qualified adapter for OpenTofu CLI; produces tfplan.
@@ -276,7 +276,7 @@ Port traits declared in each kernel (zero business logic; zero I/O; `data_class`
 
 | Port trait | Kernel crate | Implemented in | Data classes touched |
 |---|---|---|---|
-| `ChartSourceReader` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter-helm` (Helm CLI / SDK) | `INTERNAL_ONLY` (chart text) |
+| `ChartSourceReader` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter-helm` (manual package CLI / SDK) | `INTERNAL_ONLY` (chart text) |
 | `KustomizeOverlayReader` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter-kustomize` | `INTERNAL_ONLY` |
 | `TerraformPlanComputer` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter-opentofu` (OpenTofu CLI) | `INTERNAL_ONLY` + `AUDIT` (plan output is an audit artifact) |
 | `RenderEventEmitter` | `oya-cloud-iac-iac-renderer-kernel` | `-adapter` (event bus) | `AUDIT` |
@@ -415,7 +415,7 @@ Sharding:
 
 | AC-ID | Criterion | Verification method |
 |---|---|---|
-| AC-01 | A new µservice's `iac/helm/<chart>/Chart.yaml` + `values.yaml` lands in the registry within 5 minutes of PR merge | end-to-end test under `microservices/cloud-iac/tests/e2e/registry-onboarding.rs` |
+| AC-01 | A new µservice's `iac/cue-krm-packages/<chart>/Chart.yaml` + `values.yaml` lands in the registry within 5 minutes of PR merge | end-to-end test under `microservices/cloud-iac/tests/e2e/registry-onboarding.rs` |
 | AC-02 | Render is deterministic: re-running on the same input produces an identical content digest | integration test `microservices/cloud-iac/tests/integration/render-determinism.rs` |
 | AC-03 | Plan-preview at PR-time surfaces a structured drift report | integration test |
 | AC-04 | Apply refuses to mutate resources outside the µservice's declared scope | Cedar policy unit test + integration |
@@ -423,8 +423,8 @@ Sharding:
 | AC-06 | Drift detector finds a manually-mutated cluster resource within 1h | e2e injection drill |
 | AC-07 | SLSA L3 attestation verified pre-apply | integration test against signed + unsigned chart |
 | AC-08 | All Layer-A IaC components (ArgoCD + OpenTofu + Helm-controller + Kustomize-controller) deploy clean against a kind cluster | CI lane `oya-cloud-iac-iac-smoke` |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-iac` exit 0 | ADR-0131 lane |
-| AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 | ADR-0123 lane; HG-CLOUD-IAC registered |
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
 | AC-11 | Apply latency p99 ≤ 5min per µservice (excluding workload-health waits) | load test under `microservices/cloud-iac/tests/load/apply-latency.rs` |
 | AC-12 | Drift-detection cycle per cluster ≤ 1h validated under nominal load | observability self-SLO |
 
@@ -460,9 +460,9 @@ Per ADR-0171 (2026-05-18), cloud-iac adopts a three-component multi-cluster fede
 
 ### Component 1 — ArgoCD ApplicationSets (application deployment across N clusters)
 
-- Every µservice's `iac/helm/<ms>/` chart references a single `ApplicationSet` declaration.
+- Every µservice's `iac/cue-krm-packages/<ms>/` chart references a single `ApplicationSet` declaration.
 - Cluster-list / cluster-decision-resource generators fan out to each target cluster with per-pack value overrides.
-- Per-pack overlays live as `values-<pack>.yaml` under `microservices/<ms>/iac/helm/<ms>/`.
+- Per-pack overlays live as `values-<pack>.yaml` under `microservices/<ms>/iac/cue-krm-packages/<ms>/`.
 - ArgoCD federation control plane lives in a dedicated meta-pack ("federation") — NOT a tenant data residency boundary; carries only ApplicationSets, CAPI controllers, and routing config.
 
 ### Component 2 — Cluster API (CAPI) (cluster lifecycle)
@@ -490,14 +490,14 @@ This addendum applies from M02 graduation (fleet ≥12 clusters). At M01-foundat
 
 - Federation control plane availability: 99.95% (one nine below the platform — federation outage degrades new-deploy velocity, not tenant-facing traffic).
 - ApplicationSet sync latency p99: ≤2min from PR-merge to first cluster acknowledged apply.
-- CAPI cluster-provision time: ≤30min from `kubectl apply` to ready-cluster.
+- CAPI cluster-provision time: ≤30min from native release-conveyor apply to ready-cluster.
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0346 — historical local verifier doctrine; active merge evidence is Buck2 target output plus the trusted Rust/Prow `oya-ci-required` context. Retired local oya verifier/gate commands must not be reintroduced as cloud-iac authority.
 - ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 — historical Jenkins/ArgoCD bridge doctrine; active delivery target is native release-conveyor reconciliation over CUE/KRM with cosign, tenant namespace isolation, and audit-chain evidence carried by Rust/Prow `oya-ci-required` plus release-conveyor checks.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-iac` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

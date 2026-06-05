@@ -26,7 +26,7 @@ OpenTofu state-lock held > 10min OR `oya_iac_state_lock_timeout_total > 0`.
 
 ## Pre-checks
 
-1. Identify the lock: `cargo run -p oya-dev-cli -- iac state-lock status` shows (microservice, pack, env, lock_id, holder, acquired_at).
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 2. Verify lock-holder pod is alive: `kubectl -n cloud-iac get pod <holder-pod>`.
 3. Determine lock age: if held > 10min, abnormal.
 4. Check Postgres advisory-lock state: `SELECT pid, locktype, mode FROM pg_locks WHERE locktype = 'advisory'`.
@@ -45,7 +45,7 @@ OpenTofu state-lock held > 10min OR `oya_iac_state_lock_timeout_total > 0`.
 |---|---|
 | 1 | Confirm holder pod is gone: `kubectl get pod <holder-pod>` returns NotFound |
 | 2 | Confirm lock is stale: lock acquired_at > 10min ago AND no corresponding live applier |
-| 3 | Force-unlock: `cargo run -p oya-dev-cli -- iac state-lock force-unlock --microservice <ms> --env <env> --lock-id <id> --reason "<rfc-with-jira>"`. **REQUIRES JIT + 2-person rule**. The CLI: <br>  a. Validates the lock is truly orphaned (re-checks lock state + pod state); <br>  b. Captures the rationale in audit-chain; <br>  c. Releases the Postgres advisory lock; <br>  d. Emits `state_lock_force_unlock` audit event |
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 | 4 | Verify subsequent applier acquires the lock |
 | 5 | Postmortem: why did the lock-holder die? Was it an OOM, eviction, kubelet failure? |
 

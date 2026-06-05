@@ -54,11 +54,11 @@ Per ADR-0336, Redis vocabulary replaced with Valkey in:
 - `microservices/cloud-iac/capacity-model.md`
 - `microservices/cloud-iac/runbooks/gitops-reconciler-restart.md`
 - `microservices/cloud-iac/IP-001-layer-a-argocd-flux-iac.md`
-- `microservices/cloud-iac/iac/helm/argocd/values.yaml`
+- `microservices/cloud-iac/iac/cue-krm-packages/argocd/values.yaml`
 
 Counterpart-fact preservations:
-- `redis-ha` retained in `IP-001-layer-a-argocd-flux-iac.md` because it is the upstream Argo CD Helm chart key; backing substrate text is Valkey.
-- `redis-ha` retained in `iac/helm/argocd/values.yaml` because it is the upstream Argo CD Helm chart key; backing substrate text is Valkey.
+- `redis-ha` retained in `IP-001-layer-a-argocd-flux-iac.md` because it is the upstream Argo CD CUE/KRM package key; backing substrate text is Valkey.
+- `redis-ha` retained in `iac/cue-krm-packages/argocd/values.yaml` because it is the upstream Argo CD CUE/KRM package key; backing substrate text is Valkey.
 - `app=argocd-redis` retained in `runbooks/gitops-reconciler-restart.md` because it is the upstream Argo CD component label.
 - `app=argocd-redis` retained in `AUDIT-FINDINGS-2026-05-18.json` excerpts because the audit quotes the same upstream Argo CD label.
 

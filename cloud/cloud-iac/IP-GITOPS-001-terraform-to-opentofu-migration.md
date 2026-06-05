@@ -9,7 +9,7 @@
 Make cloud-iac's IaC execution surface OpenTofu-native without claiming a
 repo-wide migration owned by other microservices. The concrete source of truth is
 the service-local module registry under `microservices/cloud-iac/tofu/modules/`
-and the OpenTofu runner chart under `microservices/cloud-iac/iac/helm/opentofu/`.
+and the OpenTofu runner chart under `microservices/cloud-iac/iac/cue-krm-packages/opentofu/`.
 
 ## Real service paths
 
@@ -21,8 +21,8 @@ and the OpenTofu runner chart under `microservices/cloud-iac/iac/helm/opentofu/`
 | `microservices/cloud-iac/tofu/modules/kms/main.tofu` | KMS key material references for state and backup encryption |
 | `microservices/cloud-iac/tofu/modules/secrets-bootstrap/main.tofu` | OpenBao seed outputs consumed by secret projection |
 | `microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu` | `namespace_name`, `service_account_name`, and `argocd_project_name` outputs |
-| `microservices/cloud-iac/iac/helm/opentofu/Chart.yaml` | runner deployment package |
-| `microservices/cloud-iac/iac/helm/opentofu/values.yaml` | runner image/version/resource contract |
+| `microservices/cloud-iac/iac/cue-krm-packages/opentofu/Chart.yaml` | runner deployment package |
+| `microservices/cloud-iac/iac/cue-krm-packages/opentofu/values.yaml` | runner image/version/resource contract |
 
 ## Implementation contract
 
@@ -50,7 +50,7 @@ and the OpenTofu runner chart under `microservices/cloud-iac/iac/helm/opentofu/`
   roots.
 - `tofu validate` is run for each existing directory under
   `microservices/cloud-iac/tofu/modules/`.
-- `helm lint microservices/cloud-iac/iac/helm/opentofu` passes before any
+- `helm lint microservices/cloud-iac/iac/cue-krm-packages/opentofu` passes before any
   runner image/version change is promoted.
 - No task in this IP edits another microservice's IaC tree.
 
@@ -59,7 +59,7 @@ and the OpenTofu runner chart under `microservices/cloud-iac/iac/helm/opentofu/`
 ```bash
 find microservices/cloud-iac -name "*.tf" -print
 find microservices/cloud-iac/tofu/modules -maxdepth 2 -name main.tofu -print
-helm lint microservices/cloud-iac/iac/helm/opentofu
+helm lint microservices/cloud-iac/iac/cue-krm-packages/opentofu
 ```
 
 ## API Versioning (per ADR-0342)

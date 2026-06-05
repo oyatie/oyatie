@@ -5,7 +5,7 @@ milestone: M01-foundation
 phase: P01-meta-iac-pipeline-substrate
 status: Active
 entry_gate: |
-  ADR-0131 + ADR-0117 accepted; cargo workspace ready to accept the new crates under
+  ADR-0131 + ADR-0117 accepted; Buck2 workspace ready to accept the new crates under
   microservices/cloud-iac/src/crates/; cloud-k8s + cloud-secrets minimal substrate live so the
   bootstrap dependency chain is satisfied.
 exit_gate: |
@@ -64,8 +64,8 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-layer-a-argocd-flux-iac.md`](IP-001-layer-a-argocd-flux-iac.md) | Helm/Kustomize charts for ArgoCD + Flux + Helm-controller + Kustomize-controller under `microservices/cloud-iac/iac/helm/` | pending | axis-cloud-iac | — |
-| [`IP-002-layer-a-opentofu-iac.md`](IP-002-layer-a-opentofu-iac.md) | Helm chart for OpenTofu self-hosted runner + per-pack state-bucket OpenTofu config | pending | axis-cloud-iac | — |
+| [`IP-001-layer-a-argocd-flux-iac.md`](IP-001-layer-a-argocd-flux-iac.md) | Helm/Kustomize charts for ArgoCD + Flux + Helm-controller + Kustomize-controller under `microservices/cloud-iac/iac/cue-krm-packages/` | pending | axis-cloud-iac | — |
+| [`IP-002-layer-a-opentofu-iac.md`](IP-002-layer-a-opentofu-iac.md) | CUE/KRM package for OpenTofu self-hosted runner + per-pack state-bucket OpenTofu config | pending | axis-cloud-iac | — |
 | [`IP-003-iac-renderer-kernel.md`](IP-003-iac-renderer-kernel.md) | `oya-cloud-iac-iac-renderer-kernel`: port traits + entities + sealed traits | pending | axis-cloud-iac | — |
 | [`IP-004-iac-renderer-domain-usecase.md`](IP-004-iac-renderer-domain-usecase.md) | `-domain` + `-usecase`: dependency-ordering + content-digest + render orchestrator | pending | axis-cloud-iac | IP-003 |
 | [`IP-005-iac-renderer-adapter-trio.md`](IP-005-iac-renderer-adapter-trio.md) | `-adapter-helm` + `-adapter-kustomize` + `-adapter-opentofu`: backend-qualified renderers | pending | axis-cloud-iac | IP-003 |
@@ -89,12 +89,12 @@ All gates must pass before `exit_gate` is declared.
 ### Cargo / CI gates (exit 0 required)
 
 ```bash
-cargo check --workspace --all-features
-cargo build --workspace --all-features
-cargo clippy --workspace --all-features -- -D warnings
-cargo nextest run --workspace --all-features
-cargo deny check
-cargo doc --workspace --no-deps
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
 ```
 
 ### Fitness lane gates
@@ -125,11 +125,11 @@ oya gate validate cloud-iac-provenance-slsa-l3
 
 | Scenario | Command | Pass criterion |
 |---|---|---|
-| Render determinism | `cargo nextest run -p oya-cloud-iac-iac-renderer-usecase --test render_determinism` | identical input → identical content digest |
-| Apply scope isolation | `cargo nextest run -p oya-cloud-iac-iac-applier-usecase --test apply_scope_isolation` | apply refused when manifest references resources outside µservice scope |
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
 | Drift detection | scripted e2e: mutate a cluster resource; assert detection within ≤1h | drift report emitted; `DriftDetected` event consumed by observability + audit-chain |
 | Rollback drill | scripted e2e: apply v2; auto-revert to v1; assert ≤2min | live cluster reverts; ApplyRolledBack event sealed |
-| SLSA L3 verification | `cargo nextest run -p oya-cloud-iac-iac-registry-usecase --test slsa_l3_verify` | apply refused for unsigned chart; accepted for signed |
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
 
 ### Workflow + Ontology integration gates
 
@@ -177,7 +177,7 @@ Every IP in this phase emits a ChangeSet per ADR-0110. Minimum ChangeSet payload
   "claim_paths": ["microservices/cloud-iac/src/crates/<crate>/**", "..."],
   "intent": "<one-line>",
   "spec_refs": ["microservices/cloud-iac/PRD.md§<section>", "/specs/per-microservice-flat-layout.json§<section>"],
-  "acceptance_lanes_green": ["cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny", "lean-a1", "lean-a2", "lean-a3", "lean-a4", "per-microservice-layout", "cloud-iac-iac-smoke"],
+  "acceptance_lanes_green": ["buck2-build", "buck2-build", "buck2-authority", "buck2-tests", "supply-chain-policy", "lean-a1", "lean-a2", "lean-a3", "lean-a4", "per-microservice-layout", "cloud-iac-iac-smoke"],
   "test_count": {"unit": <int>, "integration": <int>, "e2e": <int>},
   "coverage_pct": <float>,
   "multispectrum_review_facets": ["F1..F9", "A1..A7", "M1..M2"],
@@ -192,7 +192,7 @@ Validated by `oya-governance-multispectrum-evidence` lane against `/specs/multis
 
 Inherits observability PHASE-01 §"Per-IP Test Coverage Threshold" matrix (kernel 90/80; domain 95/90; usecase 90/80; adapter 85/75 + ≥2 integration against real backend; rest 85/75 + 1 per route; worker 85/75 + 1 e2e; sdk 90/80; app 60/wiring; IaC IPs ≥1 helm-install + helm-test).
 
-Enforced via `cargo nextest run --workspace --all-features` + `cargo llvm-cov --workspace --fail-under-lines <threshold>`.
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
 
 ## Oya VCS Symbol Locks
 
@@ -200,19 +200,19 @@ Per ADR-0116, this phase uses `oya vcs` primitives exclusively.
 
 ```bash
 # Claim before beginning each IP
-cargo run -p oya-dev-cli -- vcs claim \
+GitHub PR lane / native SCM controller action: claim \
   --agent <agent-id> \
   --intent "<IP-NNN-slug>: <one-line intent>" \
   --paths "microservices/cloud-iac/src/crates/<crate>/**"
 
 # Verify
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
+GitHub PR lane / native SCM controller action: verify --agent <agent-id> --changeset <id>
 
 # Done
-cargo run -p oya-dev-cli -- vcs done --agent <agent-id> --changeset <id>
+GitHub PR lane / native SCM controller action: done --agent <agent-id> --changeset <id>
 
 # Promote — fast-forward release pointer through the SLO gate
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
+GitHub PR lane / native SCM controller action: promote --changeset <id>
 ```
 
 Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservices/cloud-iac/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0.

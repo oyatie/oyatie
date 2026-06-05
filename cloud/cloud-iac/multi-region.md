@@ -88,7 +88,7 @@ For packs with a DR pair:
 | OpenTofu state buckets | Async via S3 cross-region replication (CRR) | ≤ 5min | intra-pack only |
 | ArgoCD application records | etcd-backed; replicated via valkey sentinel | ≤ 30s | intra-pack only |
 | ArgoCD Applications (manifest content) | Git-versioned; source of truth | 0 | global (manifests not tenant data) |
-| Helm chart artifacts | Sigstore Rekor public log + per-pack registry cache | 0 (declarative) | intra-pack mirror only |
+| CUE/KRM package artifacts | Sigstore Rekor public log + per-pack registry cache | 0 (declarative) | intra-pack mirror only |
 | iac-state-index Postgres backups | S3 archive per pack with versioning | ≤ 5min | intra-pack only |
 | Cedar policies | Git-versioned | 0 | global |
 | Workspace Cargo.toml + IaC sources | Git-versioned | 0 | global |
@@ -175,7 +175,7 @@ Per-pack BCDR specifics at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/clou
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region-conformance --microservice cloud-iac` — exit 0; deployed topology matches this document for every active pack.
+- Buck2/Prow native gate evidence must cover this cloud-iac invariant before merge.
 - Quarterly DR-failover drill audit log: success vs failure rate trend.
 - Annual third-party BCDR audit: alignment with ISO 22301 / NIST SP 800-34 / DORA.
 

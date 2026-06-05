@@ -17,8 +17,8 @@ consumption.
 |---|---|
 | `microservices/cloud-iac/tofu/modules/secrets-bootstrap/main.tofu` | module variables and OpenBao seed outputs |
 | `microservices/cloud-iac/tofu/modules/secrets-bootstrap/README.md` | operator-facing module contract |
-| `microservices/cloud-iac/iac/helm/seaweedfs/values.yaml` | `openbao://secret/cloud-iac/seaweedfs/*` references |
-| `microservices/cloud-iac/iac/helm/opentofu/values.yaml` | OpenTofu runner secret/config references |
+| `microservices/cloud-iac/iac/cue-krm-packages/seaweedfs/values.yaml` | `openbao://secret/cloud-iac/seaweedfs/*` references |
+| `microservices/cloud-iac/iac/cue-krm-packages/opentofu/values.yaml` | OpenTofu runner secret/config references |
 | `microservices/cloud-iac/policy/ci-scope.cedar` | worker action scoping for registry/apply/render identities |
 | `microservices/cloud-iac/policy/iac-isolation.md` | secret and apply isolation invariants |
 
@@ -54,7 +54,7 @@ consumption.
 ```bash
 rg "openbao://secret/cloud-iac" microservices/cloud-iac/iac microservices/cloud-iac/tofu
 rg "cloud-secrets.secret.rotated|cloud-secrets.secret.revoked" microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml microservices/cloud-iac/cross-microservice-handoffs.md
-rg "accessKeySecretRef|secretKeySecretRef" microservices/cloud-iac/iac/helm/seaweedfs/values.yaml
+rg "accessKeySecretRef|secretKeySecretRef" microservices/cloud-iac/iac/cue-krm-packages/seaweedfs/values.yaml
 ```
 
 ## API Versioning (per ADR-0342)

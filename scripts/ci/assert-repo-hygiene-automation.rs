@@ -781,6 +781,35 @@ const CLOUD_BILLING_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "app.kubernetes.io/managed-by: Helm",
     "oyatie.com/adr-0349: argocd-managed",
 ];
+const CLOUD_IAC_STALE_AUTHORITY_PHRASES: &[&str] = &[
+    "canonical local pre-push verifier",
+    "Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates",
+    "Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates",
+    "ArgoCD is the canonical GitOps CD orchestrator",
+    "ArgoCD is the GitOps CD orchestrator",
+    "Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates",
+    "cargo run -p oya-dev-cli",
+    "cargo run -q -p oya-dev-cli",
+    "cargo run --release",
+    "cargo test --features hermetic",
+    "cargo check --workspace",
+    "cargo clippy",
+    "cargo nextest",
+    "cargo deny",
+    "./bin/oya iac",
+    "./bin/oya policy",
+    "`./bin/oya git worktree-add",
+    "`./bin/oya vcs verify",
+    "oya gate run-all",
+    "oya verify --ci-required is the canonical local pre-push verifier",
+    "Jenkins/GitHub Actions parity under ADR-0349",
+    "Jenkins + `oya gate run-all --ci-required`",
+    "argocd app get",
+    "Jenkins build id",
+    "ArgoCD sync id",
+    "app.kubernetes.io/managed-by: Helm",
+    "oyatie.com/adr-0349: argocd-managed",
+];
 const CLOUD_IAM_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "canonical local pre-push verifier",
     "Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates",
@@ -1653,6 +1682,59 @@ pub fn cloud_billing_authority_failures(root: &Path) -> Vec<String> {
             "cloud/cloud-billing/iac/k8s/helm: first-party Helm chart directory must not exist; cloud-billing desired state is CUE/KRM plus Buck2/Prow evidence"
                 .to_string(),
         );
+    }
+
+    failures
+}
+
+pub fn cloud_iac_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let mut files = Vec::new();
+
+    if let Err(error) =
+        collect_markdown_yaml_json_files(root, Path::new("cloud/cloud-iac"), &mut files)
+    {
+        failures.push(format!("cloud-iac authority scan failed: {error}"));
+    }
+    files.sort();
+    files.dedup();
+
+    for rel in files {
+        let path = root.join(&rel);
+        let Ok(text) = fs::read_to_string(&path) else {
+            failures.push(format!(
+                "{rel}: read failed during cloud-iac authority scan"
+            ));
+            continue;
+        };
+        for phrase in CLOUD_IAC_STALE_AUTHORITY_PHRASES {
+            if text.contains(phrase) {
+                failures.push(format!(
+                    "{rel}: stale cloud-iac active authority phrase present: {phrase:?}; use ADR-0513 Buck2/Prow `oya-ci-required`, CUE/KRM desired state, and native release-conveyor wording"
+                ));
+            }
+        }
+    }
+
+    for retired_dir in [
+        "cloud/cloud-iac/iac/helm",
+        "cloud/cloud-iac/iac/k8s/helm",
+        "cloud/cloud-iac/iac/aws-guest/argocd",
+        "cloud/cloud-iac/iac/aws-guest/jenkins",
+        "cloud/cloud-iac/iac/colo/argocd",
+        "cloud/cloud-iac/iac/colo/jenkins",
+        "cloud/cloud-iac/iac/oci-guest/argocd",
+        "cloud/cloud-iac/iac/oci-guest/jenkins",
+        "cloud/cloud-iac/iac/on-prem/argocd",
+        "cloud/cloud-iac/iac/on-prem/jenkins",
+        "cloud/cloud-iac/iac/oyatie-cloud-provider/argocd",
+        "cloud/cloud-iac/iac/oyatie-cloud-provider/jenkins",
+    ] {
+        if root.join(retired_dir).exists() {
+            failures.push(format!(
+                "{retired_dir}: retired first-party cloud-iac bridge directory must not exist; use CUE/KRM, Buck2/Prow evidence, and native release-conveyor seams"
+            ));
+        }
     }
 
     failures
@@ -2617,6 +2699,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(cell_lifecycle_authority_failures(root));
     failures.extend(cloud_billing_tax_authority_failures(root));
     failures.extend(cloud_billing_authority_failures(root));
+    failures.extend(cloud_iac_authority_failures(root));
     failures.extend(cloud_iam_authority_failures(root));
 
     for item_id in [

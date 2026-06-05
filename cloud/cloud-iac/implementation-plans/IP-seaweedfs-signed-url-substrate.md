@@ -22,8 +22,8 @@ present in this service.
 
 | Path | Contract |
 |---|---|
-| `microservices/cloud-iac/iac/helm/seaweedfs/Chart.yaml` | SeaweedFS 4.22 chart wrapper and dependency |
-| `microservices/cloud-iac/iac/helm/seaweedfs/values.yaml` | S3 gateway replicas, bucket list, OpenBao references, metrics |
+| `microservices/cloud-iac/iac/cue-krm-packages/seaweedfs/Chart.yaml` | SeaweedFS 4.22 chart wrapper and dependency |
+| `microservices/cloud-iac/iac/cue-krm-packages/seaweedfs/values.yaml` | S3 gateway replicas, bucket list, OpenBao references, metrics |
 | `microservices/cloud-iac/contracts/openapi/cloud-iac.yaml` | `getProvenance` and `validateChartSignature` REST surfaces |
 | `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml` | apply/render events that carry artifact lifecycle facts |
 | `microservices/cloud-iac/policy/public-read.cedar` | public SLSA attestation and chart-signature validation boundaries |
@@ -59,7 +59,7 @@ present in this service.
 ## Validation commands
 
 ```bash
-rg "s3:|replicas: 4|accessKeySecretRef|secretKeySecretRef|defaultBuckets" microservices/cloud-iac/iac/helm/seaweedfs/values.yaml
+rg "s3:|replicas: 4|accessKeySecretRef|secretKeySecretRef|defaultBuckets" microservices/cloud-iac/iac/cue-krm-packages/seaweedfs/values.yaml
 rg "getProvenance|validateChartSignature" microservices/cloud-iac/contracts/openapi/cloud-iac.yaml
 rg "read_slsa_attestation_public|validate_chart_signature" microservices/cloud-iac/policy/public-read.cedar
 rg "cloud-secrets.secret.rotated|cloud-secrets.secret.revoked" microservices/cloud-iac/cross-microservice-handoffs.md

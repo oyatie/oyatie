@@ -25,14 +25,14 @@ source_adrs:
 
 ### Data Categories
 - tenant_id, service_id, cell_id, shard_id, region_id, ResidencyClass, compliance_pack, and cell_placement_class.
-- Cedar decision id, audit-chain event id, verifier run id, Jenkins build id, ArgoCD sync id, cosign verification result, and governance lane id.
+- Cedar decision id, audit-chain event id, verifier run id, trusted oya-ci run id, release-conveyor reconciliation id, cosign verification result, and governance lane id.
 - No tenant payload, PHI, payment card data, message body, document body, or secret material is introduced by this doctrine propagation entry.
 
 ### ADR-Bound Controls
-- ADR-0346: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix; it MUST block on exit-0 of EACH step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- Active merge evidence is Buck2 target output plus trusted Rust/Prow `oya-ci-required`; local verifier wording is retired.
 - ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB). Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348: AUTOSHARDING means tenant→cell/shard placement is computed by the control plane automatically; AUTO-REBALANCE automatically migrates tenants from hot cells to cooler cells; DYNAMIC SHARDING adjusts shard count within a cell based on load. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates; Jenkins augments rather than replaces GitHub Actions, and ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- Active CI/CD evidence is Rust/Prow `oya-ci-required` plus native release-conveyor/CUE-KRM reconciliation; Jenkins/ArgoCD bridge wording is retired.
 
 ### DPIA Assessment
 - Necessity: automation evidence is necessary to prove verifier completeness, governance lane vocabulary, tenant placement, rebalance reversibility, dynamic shard threshold decisions, and CI/CD deployment accountability.

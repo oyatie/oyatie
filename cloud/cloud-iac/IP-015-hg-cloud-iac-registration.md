@@ -64,9 +64,9 @@ openbao status
 # This is owned by the cloud-k8s µservice's bootstrap; we assume it ran first.
 
 # 3. Apply cloud-iac substrate via direct helm install (no cloud-iac iac-applier yet)
-helm dep update microservices/cloud-iac/iac/helm/argocd
-helm dep update microservices/cloud-iac/iac/helm/flux
-helm dep update microservices/cloud-iac/iac/helm/opentofu
+helm dep update microservices/cloud-iac/iac/cue-krm-packages/argocd
+helm dep update microservices/cloud-iac/iac/cue-krm-packages/flux
+helm dep update microservices/cloud-iac/iac/cue-krm-packages/opentofu
 kubectl apply -k microservices/cloud-iac/iac/kustomize/overlays/${PACK}
 
 # 4. Wait for ArgoCD + iac-applier-worker + iac-registry-worker pods Ready
@@ -78,7 +78,7 @@ kubectl exec -n cloud-iac iac-state-index-pg-0 -- psql -U cloud_iac -f /migratio
 kubectl exec -n cloud-iac iac-state-index-pg-0 -- psql -U cloud_iac -f /migrations/0003_append_only_trigger.sql
 
 # 6. Register cloud-iac µservice in its own registry (now self-tracking)
-cargo run -p oya-dev-cli -- iac register --microservice cloud-iac --pack ${PACK}
+cloud-iac native operator API action: register --microservice cloud-iac --pack ${PACK}
 
 # 7. From this point onward, cloud-iac applies its own substrate via the normal apply path.
 echo "Bootstrap complete. cloud-iac now self-managed in ${PACK}."
@@ -91,12 +91,12 @@ echo "Bootstrap complete. cloud-iac now self-managed in ${PACK}."
 microservices/cloud-iac/scripts/bootstrap.sh pack-kr
 
 # After bootstrap, verify self-apply works
-cargo nextest run -p oya-cloud-iac-iac-applier-app --test self_apply
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
 
 # HG-CLOUD-IAC gate registers green
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
-cargo run -p oya-dev-cli -- gate validate cloud-iac-iac-smoke --pack pack-kr
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for authority-cohesion
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for hyperscaler-maturity-claims
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for cloud-iac-iac-smoke --pack pack-kr
 ```
 
 ## Test Plan

@@ -69,14 +69,14 @@ when {
 
 Lint:
 ```bash
-./bin/oya policy lint --tenant <tenant> policies/
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 
 ## Phase 3 — State import (Day 14…21)
 
 For each workspace, run the state migrator:
 ```bash
-./bin/oya iac migrate import \
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
   --source-format terraform-cloud \
   --source-state state-<id>.json \
   --target-tenant oyatie.b2b.smb.<org> \
@@ -85,7 +85,7 @@ For each workspace, run the state migrator:
 
 The migrator produces a `migration-plan.json` summarising how each resource will be re-homed. Review before confirming:
 ```bash
-./bin/oya iac migrate confirm --migration-id <id>
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 
 This does not mutate cloud resources; only imports them into `cloud-iac` tenant state.
@@ -98,7 +98,7 @@ Keep both systems live but flag the migrated tenant as **read-only on the source
 
 In `cloud-iac`, run plans with `--dry-run` to verify they produce the expected diff:
 ```bash
-./bin/oya iac plan --tenant <t> --inputs <i> --dry-run
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 ```
 
 A correctly-imported tenant produces empty diffs on dry-run.

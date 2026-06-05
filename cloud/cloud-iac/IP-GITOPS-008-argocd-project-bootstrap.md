@@ -17,8 +17,8 @@ application needs the project that would authorize itself.
 |---|---|
 | `microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu` | declares `argocd_project_name` input and output |
 | `microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/README.md` | operator explanation for namespace/AppProject bootstrap |
-| `microservices/cloud-iac/iac/helm/argocd/Chart.yaml` | ArgoCD control-plane chart wrapper |
-| `microservices/cloud-iac/iac/helm/argocd/values.yaml` | ArgoCD control-plane values |
+| `microservices/cloud-iac/iac/cue-krm-packages/argocd/Chart.yaml` | ArgoCD control-plane chart wrapper |
+| `microservices/cloud-iac/iac/cue-krm-packages/argocd/values.yaml` | ArgoCD control-plane values |
 | `microservices/cloud-iac/iac/kustomize/overlays/pack-kr/kustomization.yaml` | first overlay that depends on bootstrap |
 | `microservices/cloud-iac/policy/ci-scope.cedar` | enforcement that only applier/rollback identities mutate declared scope |
 
@@ -45,7 +45,7 @@ application needs the project that would authorize itself.
 
 - `argocd_project_name` is present as both input and output in the namespace
   bootstrap module.
-- `helm lint microservices/cloud-iac/iac/helm/argocd` passes before project
+- `helm lint microservices/cloud-iac/iac/cue-krm-packages/argocd` passes before project
   bootstrap changes are promoted.
 - This IP does not cite a nonexistent ArgoCD project manifest path.
 
@@ -53,7 +53,7 @@ application needs the project that would authorize itself.
 
 ```bash
 rg "argocd_project_name" microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu
-helm lint microservices/cloud-iac/iac/helm/argocd
+helm lint microservices/cloud-iac/iac/cue-krm-packages/argocd
 rg "validateChartSignature" microservices/cloud-iac/contracts/openapi/cloud-iac.yaml
 ```
 

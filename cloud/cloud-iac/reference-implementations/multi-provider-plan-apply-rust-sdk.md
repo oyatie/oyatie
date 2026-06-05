@@ -151,7 +151,7 @@ modules:
 ## Run it
 
 ```bash
-cargo run --release
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
 ```
 
 Expected output (trimmed):
@@ -173,7 +173,7 @@ INFO  apply success apply_id=apply-… duration_ms=15870 audit_chain_event_id=ce
 ## Tests
 
 ```bash
-cargo test --features hermetic
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
 ```
 
 The hermetic feature uses `oya_cloud_iac_sdk::testkit::Hermetic` to spin a single-process loopback cell with mock providers; tests

@@ -47,14 +47,14 @@ STANCE-019: CI/CD substrate stance is ADR-0349 Jenkins plus ArgoCD parity once t
 STANCE-020: Governance naming stance is ADR-0347; this IP uses governance lane identifiers consistently.
 
 ## 3. Canonical ADR-0346 Wording
-ADR346-PURPOSE-001: `./bin/oya verify --ci-required` is the canonical local pre-push verifier.
+ADR-0346 is historical local verifier doctrine; active merge evidence is Buck2 target output plus the trusted Rust/Prow `oya-ci-required` context.
 ADR346-PURPOSE-002: It MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
 ADR346-PURPOSE-003: Default invocation runs every step; skip flags are limited to `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}`.
 ADR346-PURPOSE-004: Exit-code contract is closed: 0 = ALL passed; 1 = at least one failed; 2 = invalid arguments.
-ADR346-ENFORCED-BY-001: oya-governance-oya-verify-ci-mirror-coverage (new lane; refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis; promoted to BLOCKER 14 days post Wave 15-ZA implementation lands)
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test/coverage gate
 ADR346-ENFORCED-BY-002: oya-governance-oya-verify-ci-step-exit-semantics (new lane; refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps; refuses changes that conflate fmt-fail with check-fail in the exit code emitted to the caller)
 ADR346-ENFORCED-BY-003: oya-governance-oya-verify-skip-flag-allowlist (new lane; refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8; new skip flags require an ADR amendment per `feedback_no_silent_regression`)
-ADR346-ENFORCED-BY-004: oya-governance-oya-submit-calls-verify (new lane; refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10 -- preserves the existing call chain, refuses regressions)
+ADR346-ENFORCED-BY-004: superseded by ADR-0513 trusted Rust/Prow `oya-ci-required`; retired `oya submit` and local verifier call-chain checks must not be revived as merge authority.
 ADR346-ENFORCED-BY-005: oya-governance-oya-verify-exit-code-contract (new lane; refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11)
 
 ## 4. Canonical ADR-0347 Wording
@@ -80,9 +80,9 @@ ADR348-ENFORCED-BY-005: oya-governance-audit-chain-emit-on-automation-events (ne
 ADR348-ENFORCED-BY-006: oya-governance-tenant-migration-reversibility (new lane; refuses any microservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)
 
 ## 6. Canonical ADR-0349 Wording
-ADR349-PURPOSE-001: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-ADR349-PURPOSE-002: Jenkins augments rather than replaces GitHub Actions; GitHub Actions remains the hosted PR review CI surface.
-ADR349-PURPOSE-003: ArgoCD is the canonical GitOps CD orchestrator and replaces manual kubectl apply and manual Helm CLI deploys across all contexts.
+ADR349-PURPOSE-001: Rust/Prow `oya-ci-required` plus native release-conveyor/CUE-KRM seams are the durable self-hostable CI/CD substrate target for the Oyatie corpus.
+- Active CI/CD evidence is Rust/Prow `oya-ci-required` plus native release-conveyor/CUE-KRM reconciliation; Jenkins/ArgoCD bridge wording is retired.
+ADR349-PURPOSE-003: native release-conveyor reconciliation over CUE/KRM replaces manual kubectl and manual package CLI deploys across all contexts.
 ADR349-PURPOSE-004: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/`.
 ADR349-PURPOSE-005: Cosign verification, tenant namespace isolation, JCasC-only Jenkins state, and audit-chain deploy emission are enforced by governance lanes.
 ADR349-ENFORCED-BY-001: oya-governance-jenkins-github-actions-parity (new lane; refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract enumerated in D-3 below; promoted to BLOCKER 30 days post Wave 15-ZE-completion)

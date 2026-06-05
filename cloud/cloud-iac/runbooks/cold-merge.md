@@ -31,7 +31,7 @@ source_adrs:
 - Safety invariant: prefer refusal with evidence over a partially observed automation event.
 
 ## Doctrine Anchors
-- ADR-0346 purpose wording: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
+- Active merge evidence is Buck2 target output plus trusted Rust/Prow `oya-ci-required`; local verifier wording is retired.
 - ADR-0346 enforced_by lanes: `oya-governance-oya-verify-ci-mirror-coverage`; `oya-governance-oya-verify-ci-step-exit-semantics`; `oya-governance-oya-verify-skip-flag-allowlist`; `oya-governance-oya-submit-calls-verify`; `oya-governance-oya-verify-exit-code-contract`.
 - ADR-0347 purpose wording: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
 - ADR-0347 enforced_by lanes: `oya-governance-no-foundry-fitness-residue`; `oya-governance-lane-prefix-vocabulary`; `oya-governance-rename-inventory-presence`.
@@ -39,7 +39,7 @@ source_adrs:
 - ADR-0348 auto-rebalance wording: when cell load skews beyond promotion-gate criteria, the cell-orchestrator automatically migrates tenants from hot cells to cooler cells.
 - ADR-0348 dynamic-sharding wording: shard count within a cell adjusts based on load: HOT-SPLIT when shard p99 latency exceeds SLO OR capacity utilization exceeds 80%; COLD-MERGE when adjacent shards both run below 20% utilization for more than 24 hours.
 - ADR-0348 enforced_by lanes: `oya-governance-sharding-automation-coverage`; `oya-governance-autosharding-manual-mode-refusal`; `oya-governance-auto-rebalance-residency-honored`; `oya-governance-dynamic-sharding-threshold-coverage`; `oya-governance-audit-chain-emit-on-automation-events`; `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 purpose wording: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+- ADR-0349 purpose wording: Rust/Prow `oya-ci-required` plus native release-conveyor/CUE-KRM seams are the durable self-hostable CI/CD substrate target for the Oyatie corpus.
 - ADR-0349 enforced_by lanes: `oya-governance-jenkins-github-actions-parity`; `oya-governance-argocd-application-cosign-verified`; `oya-governance-argocd-tenant-namespace-isolation`; `oya-governance-jenkins-jcasc-only`; `oya-governance-deploy-audit-chain-emit`.
 
 ## Trigger Conditions
@@ -61,8 +61,8 @@ source_adrs:
 6. Verify Cedar decision path: `oya cedar eval --principal ops.sre.oncall --action sharding_automation.execute --resource service:$SERVICE --tenant $TENANT`.
 7. Verify residency and compliance pack filters before any candidate target is accepted.
 8. Verify audit-chain availability: `oya audit-chain health --cell $CELL --tenant $TENANT`.
-9. Verify ArgoCD sync health: `argocd app get $SERVICE --refresh`.
-10. Verify Jenkins/GitHub Actions parity evidence exists for this service before declaring the runbook complete.
+9. Verify native release-conveyor reconciliation health for `$SERVICE`.
+- Active CI/CD evidence is Rust/Prow `oya-ci-required` plus native release-conveyor/CUE-KRM reconciliation; Jenkins/ArgoCD bridge wording is retired.
 
 ## Decision Tree
 1. If Cedar denies the operation, stop the automation and attach the decision id to the incident.
@@ -70,7 +70,7 @@ source_adrs:
 3. If audit-chain emit is unhealthy, freeze the operation before state mutation.
 4. If only observability is stale, refresh telemetry once and compare against the last sealed audit-chain event.
 5. If GitOps sync is pending, pause execution until ArgoCD confirms the service declaration is current.
-6. If Jenkins/GitHub Actions parity is unknown, keep the change in report-only state and run local `oya verify --ci-required` before push.
+- Active CI/CD evidence is Rust/Prow `oya-ci-required` plus native release-conveyor/CUE-KRM reconciliation; Jenkins/ArgoCD bridge wording is retired.
 7. If all gates pass, continue with the smallest reversible cohort.
 8. If the first cohort fails validation, roll back from the audit-chain pointer and do not expand blast radius.
 
@@ -83,7 +83,7 @@ source_adrs:
 6. Review the plan for tenant count, shard count, source cell, target cell, residency result, compliance result, and rollback pointer.
 7. Execute only after two-person incident authorization: `oya cell-rebalancer dynamic-sharding cold-merge execute --service $SERVICE --cell $CELL --tenant $TENANT --incident $INCIDENT_ID --confirm`.
 8. Watch the first cohort until p99 latency, error budget burn, routing convergence, and audit-chain emit all return green.
-9. Keep ArgoCD in sync-only mode; do not run manual `kubectl apply` or manual Helm CLI deploys.
+9. Keep ArgoCD in sync-only mode; do not run manual native release-conveyor apply or manual manual package CLI deploys.
 10. Preserve the generated evidence bundle under the incident id and attach it to the governance review.
 
 ## Evidence Requirements
@@ -93,8 +93,8 @@ source_adrs:
 - Evidence 4: Cedar permit or denial id for every state-mutating step.
 - Evidence 5: residency and compliance pack candidate filter output.
 - Evidence 6: ArgoCD Application sync id and cosign verification policy result.
-- Evidence 7: Jenkins build id or GitHub Actions run id proving CI/CD parity for this service.
-- Evidence 8: `oya verify --ci-required` local mirror result before any push related to this runbook.
+- Evidence 7: trusted oya-ci run id proving Buck2/Prow evidence for this service.
+- Active merge evidence is Buck2 target output plus trusted Rust/Prow `oya-ci-required`; local verifier wording is retired.
 - Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0349 included in the incident handoff.
 - Evidence 10: rollback rehearsal output proving reversibility from the audit-chain trail.
 

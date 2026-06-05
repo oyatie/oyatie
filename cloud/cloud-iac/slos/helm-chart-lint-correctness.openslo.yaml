@@ -3,7 +3,7 @@ apiVersion: openslo/v1
 kind: SLO
 metadata:
   name: oya-cloud-iac-helm-chart-lint-correctness
-  displayName: "cloud-iac: Helm chart lint correctness 100%"
+  displayName: "cloud-iac: CUE/KRM package lint correctness 100%"
   labels:
     microservice: cloud-iac
     bounded_context: iac-validator
@@ -15,7 +15,7 @@ metadata:
 spec:
   service: cloud-iac
   description: |
-    Helm chart lint correctness SLO. A chart is "good" when `helm lint`
+    CUE/KRM package lint correctness SLO. A chart is "good" when `helm lint`
     AND the canonical extended-lint suite (security-hardening rules,
     image-pinning, no-default-secret) both pass on every render. Per
     PRD §"Quality Gates" Helm-lint requirement. Target = 100%.

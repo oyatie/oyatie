@@ -8,7 +8,7 @@ status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 owner: axis-cloud-iac
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, layer-correctness]
+acceptance_lanes: [buck2-build, buck2-build, buck2-authority, buck2-tests, supply-chain-policy, lean-a1, layer-correctness]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -18,7 +18,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 ## Intent
 
 Implement the three backend-qualified adapter crates per ADR-0105 Amendment 3 `*-adapter-<backend>` pattern:
-- `-adapter-helm`: Helm CLI / SDK wrapper for chart rendering.
+- `-adapter-helm`: manual package CLI / SDK wrapper for chart rendering.
 - `-adapter-kustomize`: kustomize binary wrapper for overlay resolution.
 - `-adapter-opentofu`: OpenTofu CLI wrapper for plan computation.
 
@@ -50,7 +50,7 @@ pub struct HelmAdapter {
 #[async_trait]
 impl ChartSourceReader for HelmAdapter {
     async fn read(&self, microservice: &str, sha: &str) -> Result<Vec<ChartSource>, RenderError> {
-        // Walk microservices/<ms>/iac/helm/* at the given SHA
+        // Walk microservices/<ms>/iac/cue-krm-packages/* at the given SHA
         // For each Chart.yaml: parse, verify Cosign signature on dependencies, compute digest
         ...
     }
@@ -76,14 +76,14 @@ impl TerraformPlanComputer for OpenTofuAdapter {
 ## Acceptance Gates
 
 ```bash
-cargo check -p oya-cloud-iac-iac-renderer-adapter -p oya-cloud-iac-iac-renderer-adapter-helm -p oya-cloud-iac-iac-renderer-adapter-kustomize -p oya-cloud-iac-iac-renderer-adapter-opentofu --all-features
-cargo nextest run -p oya-cloud-iac-iac-renderer-adapter -p oya-cloud-iac-iac-renderer-adapter-helm -p oya-cloud-iac-iac-renderer-adapter-kustomize -p oya-cloud-iac-iac-renderer-adapter-opentofu --all-features
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-iac
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //cloud/cloud-iac/... # Buck2-owned Rust/build/test gate
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for layer-correctness --microservice cloud-iac
 ```
 
 ## Test Plan
 
-Per PHASE-01 adapter class: 1 test per port-impl method + ≥ 2 integration against real backend (Helm CLI + kustomize binary + OpenTofu runner containers). Coverage 85% line / 75% branch.
+Per PHASE-01 adapter class: 1 test per port-impl method + ≥ 2 integration against real backend (manual package CLI + kustomize binary + OpenTofu runner containers). Coverage 85% line / 75% branch.
 
 | Test | Verifies |
 |---|---|
@@ -106,7 +106,7 @@ Per PHASE-01 adapter class: 1 test per port-impl method + ≥ 2 integration agai
 ## References
 
 - ADR-0105 Amendment 3 (`*-adapter-<backend>` pattern).
-- Helm CLI — `helm.sh/docs/`.
+- manual package CLI — `helm.sh/docs/`.
 - kustomize — `kubectl.docs.kubernetes.io/references/kustomize/`.
 - OpenTofu CLI — `opentofu.org/docs/cli/`.
 - Sigstore Cosign — `docs.sigstore.dev/cosign/`.

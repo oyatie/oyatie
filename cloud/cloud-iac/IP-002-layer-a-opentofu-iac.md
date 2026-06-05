@@ -17,18 +17,18 @@ acceptance_lanes: [helm-lint, terraform-validate, oya-governance-per-microservic
 
 ## Intent
 
-Helm chart for OpenTofu self-hosted runner (Terraform-Cloud-equivalent) + per-pack S3 state-bucket OpenTofu config under `microservices/cloud-iac/iac/`. Provides the OpenTofu execution surface used by iac-renderer (`-adapter-opentofu`) and iac-applier.
+CUE/KRM package for OpenTofu self-hosted runner (Terraform-Cloud-equivalent) + per-pack S3 state-bucket OpenTofu config under `microservices/cloud-iac/iac/`. Provides the OpenTofu execution surface used by iac-renderer (`-adapter-opentofu`) and iac-applier.
 
 ## ChangeSet boundary
 
-One ChangeSet: 1 Helm chart for OpenTofu runner + 1 OpenTofu module for per-pack state buckets + Kustomize base patches.
+One ChangeSet: 1 CUE/KRM package for OpenTofu runner + 1 OpenTofu module for per-pack state buckets + Kustomize base patches.
 
 ## Concrete File Targets
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/cloud-iac/iac/helm/opentofu/Chart.yaml` | create | OpenTofu runner chart |
-| `microservices/cloud-iac/iac/helm/opentofu/values.yaml` | create | LTS-pinned OpenTofu version; HA runner replicas |
+| `microservices/cloud-iac/iac/cue-krm-packages/opentofu/Chart.yaml` | create | OpenTofu runner chart |
+| `microservices/cloud-iac/iac/cue-krm-packages/opentofu/values.yaml` | create | LTS-pinned OpenTofu version; HA runner replicas |
 | `microservices/cloud-iac/iac/terraform/per-pack-state-bucket.tf` | create | S3-compatible state bucket per pack; SSE-KMS; versioned; WORM |
 | `microservices/cloud-iac/iac/terraform/state-bucket-iam.tf` | create | per-pack IAM policy for state-bucket access |
 | `microservices/cloud-iac/iac/kustomize/base/kustomization.yaml` | update | add opentofu chart to shared base |
@@ -79,9 +79,9 @@ resource "oci_objectstorage_bucket" "cloud_iac_state" {
 ## Acceptance Gates
 
 ```bash
-helm lint microservices/cloud-iac/iac/helm/opentofu
+helm lint microservices/cloud-iac/iac/cue-krm-packages/opentofu
 tofu validate microservices/cloud-iac/iac/terraform/
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-iac
+buck2 build //:repo-hygiene-automation-check # native Buck2/Prow gate evidence for per-microservice-layout --microservice cloud-iac
 ```
 
 ## Test Plan

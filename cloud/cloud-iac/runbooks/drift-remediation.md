@@ -31,7 +31,7 @@ ONE of:
 
 ## Pre-checks
 
-1. Identify drifted resource: `cargo run -p oya-dev-cli -- iac drift report --microservice <ms> --env <env>`.
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 2. Compare live state vs git-declared state.
 3. Check Kubernetes audit log for the actor that mutated the resource: `kubectl get events --all-namespaces --field-selector involvedObject.name=<resource>`.
 4. Check if mutation is recent (< 1h ago) or longstanding.
@@ -88,7 +88,7 @@ Cause: a chart references current timestamp, env var, or non-deterministic sourc
 
 | Step | Action |
 |---|---|
-| 1 | Identify non-deterministic value in the chart: `cargo run -p oya-dev-cli -- iac render --chart <path> --diff` shows the diff between renders |
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 | 2 | Common patterns: `{{ now }}`, `{{ randAlphaNum }}`, env-var interpolation, file-mtime |
 | 3 | Replace with deterministic source: PR review; merge |
 | 4 | LEAN check `oya-cloud-iac-render-determinism` will catch future regressions |
@@ -99,7 +99,7 @@ Cause: a chart references current timestamp, env var, or non-deterministic sourc
 After recovery:
 - `oya_cloud_iac_drift_events_total` rate < 10 / min for affected µservice for ≥ 30min.
 - `oya_cloud_iac_drift_coverage_pct >= 99.5` over 1h window.
-- Live state matches git-declared state (verified via spot-check `cargo run -p oya-dev-cli -- iac diff --microservice <ms>`).
+cloud-iac native operator API action; verify through release-conveyor reconciliation evidence.
 - No security-sensitive resources in drift state.
 
 ## Post-incident updates
