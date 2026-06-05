@@ -39,7 +39,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.domains_checked, 6);
     assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 0);
-    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 46);
+    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 45);
 }
 
 #[test]
@@ -250,7 +250,7 @@ fn python_shell_inventory_matches_checked_in_surface() {
     let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json");
     let files = gate::tracked_python_shell_files(Path::new(&repo_root()))
         .expect("Python/shell surface scan should run");
-    assert_eq!(files.len(), 46, "{files:?}");
+    assert_eq!(files.len(), 45, "{files:?}");
     let (_count, failures) =
         gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(failures.is_empty(), "{failures:?}");

@@ -1,0 +1,24 @@
+[package]
+name = "oya-oci-push-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Build-host tool: pushes an assembled OCI Image Layout directory to an OCI
+# distribution registry without docker/crane/skopeo. Buck2 remains the build
+# authority; this tool is the Rust replacement for the retired Python pusher.
+
+[[bin]]
+name = "oya-oci-push"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true
