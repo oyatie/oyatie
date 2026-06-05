@@ -984,6 +984,26 @@ genrule(
 )
 
 
+# Artifact capability registry command-authority check: local/static evidence
+# that the registry no longer advertises retired local Oya CLI or direct Cargo
+# command authority. Dedicated artifact checks can replace rows later, but this
+# target keeps the shared registry from reintroducing stale command surfaces.
+genrule(
+    name = "artifact-capabilities-authority-check",
+    srcs = {
+        "scripts/ci/assert-artifact-capabilities-authority.rs": "scripts/ci/assert-artifact-capabilities-authority.rs",
+        "scripts/tests/artifact_capabilities_authority_check.rs": "scripts/tests/artifact_capabilities_authority_check.rs",
+        "registry/artifact-capabilities-registry.json": "registry/artifact-capabilities-registry.json",
+    },
+    out = "artifact-capabilities-authority-check.json",
+    cmd = "mkdir -p $TMP/artifact-capabilities-authority && rustc --edition=2024 -D warnings scripts/tests/artifact_capabilities_authority_check.rs --test -o $TMP/artifact-capabilities-authority/artifact_capabilities_authority_check && OYA_REPO_ROOT=$PWD $TMP/artifact-capabilities-authority/artifact_capabilities_authority_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-artifact-capabilities-authority.rs -o $TMP/artifact-capabilities-authority/assert-artifact-capabilities-authority && $TMP/artifact-capabilities-authority/assert-artifact-capabilities-authority > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+
 # AC-0.9 structural-lock/revert check: Rust/Buck2 local/static evidence that
 # structural artifact edits carry serialized path ownership, protected-flow
 # revert evidence, RED fixtures for overlap/stale/false-authority cases, and
