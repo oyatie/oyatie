@@ -631,7 +631,7 @@ Sign-off:
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Pack-overlay sections at `regional-packs/<pack>/foundry-eval-overlay.md` (when activated); each follows the same structure citing the local PII law + cybersecurity framework + AI-governance framework (e.g., Singapore Model AI Governance Framework, India AI Mission, Brazil ANPD AI guidance).
+Pack-overlay sections at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-eval-overlay.md` (when activated); each follows the same structure citing the local PII law + cybersecurity framework + AI-governance framework (e.g., Singapore Model AI Governance Framework, India AI Mission, Brazil ANPD AI guidance).
 
 ## Compliance Cross-Mapping (Globally Enforced)
 

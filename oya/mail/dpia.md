@@ -271,7 +271,7 @@ APPI Arts. 17-27 cover most rules; APPI does not mandate DPIA-equivalent but enc
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md` carry pack-specific legal-citation depth. Each follows this document's 7-step structure with local-law substitution.
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/dpia-overlay.md` carry pack-specific legal-citation depth. Each follows this document's 7-step structure with local-law substitution.
 
 ## Re-review Triggers
 

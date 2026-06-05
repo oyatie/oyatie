@@ -527,7 +527,7 @@ References: HIPAA 45 CFR §164.308 + §164.312 + §164.502 + §164.514; FDA 21 C
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/tasks-overlay.md` (scheduled-for-distinct-tracked-work to per-pack activation IPs).
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tasks-overlay.md` (scheduled-for-distinct-tracked-work to per-pack activation IPs).
 
 ## Re-review Triggers
 

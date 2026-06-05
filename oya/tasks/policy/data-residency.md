@@ -118,7 +118,7 @@ Define where tasks data may be stored, processed, and replicated; how cross-bord
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack data residency at `regional-packs/<pack>/tasks-data-residency-overlay.md`.
+Per-pack data residency at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tasks-data-residency-overlay.md`.
 
 ## Enforcement Layers
 

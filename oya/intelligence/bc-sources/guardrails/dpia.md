@@ -243,7 +243,7 @@ Residual risks after mitigations are all rated L or M. Art. 36 prior consultatio
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/foundry-guardrails-dpia-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-guardrails-dpia-overlay.md`.
 
 ## Re-review Triggers
 

@@ -221,7 +221,7 @@ APPI voluntary risk-assessment scheme satisfied.
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/calendar-dpia-overlay.md`.
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/calendar-dpia-overlay.md`.
 
 ## Re-review Triggers
 

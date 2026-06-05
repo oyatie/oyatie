@@ -197,7 +197,7 @@ Joint controller cascade: tenant <tenant_id_redacted> notified at <ISO8601>.
 
 ### PDPA (Singapore) / Privacy Act 1988 (Australia) / UAE PDPL / KSA PDPL
 
-Per-pack timelines in `regional-packs/<pack>/foundry-runtime-incident-notification-overlay.md`. Universal target: notify-subjects-and-supervisor within 72h.
+Per-pack timelines in `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-runtime-incident-notification-overlay.md`. Universal target: notify-subjects-and-supervisor within 72h.
 
 ### NIS2 (EU 2022/2555)
 

@@ -165,7 +165,7 @@ Right-to-erasure honoured via `oya-dsr-cascade-runner`:
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/sheets-data-residency-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/sheets-data-residency-overlay.md`.
 
 ## Verification
 
@@ -185,7 +185,7 @@ Per-pack overlays at `regional-packs/<pack>/sheets-data-residency-overlay.md`.
 - `microservices/sheets/multi-region.md`.
 - `microservices/sheets/policy/editor-isolation.md`.
 - `microservices/sheets/legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa, ai-act-conformity}.md`.
-- `regional-packs/<pack>/sheets-data-residency-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/sheets-data-residency-overlay.md`.
 - GDPR Arts. 44-50.
 - EDPB Recommendations 01/2020.
 - KR PIPA Art. 23-2 + Art. 28 + PIPC Notice 2020-7.

@@ -203,7 +203,7 @@ Audit log itself stored under `tenant:oya-self` in Mimir + replicated to audit-c
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/foundry-runtime-isolation-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-runtime-isolation-overlay.md`.
 
 ## Verification
 

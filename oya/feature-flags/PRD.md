@@ -34,7 +34,7 @@ In:
 - Per-tenant + per-persona-tier + per-cohort targeting via Cedar fragment predicates.
 - Percentage rollout via deterministic hash on `(tenant_id, flag_key)`.
 - OpenFeature gRPC + REST surface.
-- Per-µservice Rust / TypeScript / Python SDKs.
+- Per-µservice Rust SDK as canonical. Non-Rust OpenFeature SDKs are generated/registered compatibility products only when a product boundary needs them; they do not authorize repo-root pnpm, hand-written TypeScript application logic, or ad-hoc Python surfaces.
 - Flag lifecycle gates (release_toggle / experiment / permission_toggle / kill_switch + sunset_at).
 - Audit-chain emission on definition change + per-evaluation when `audit_required: true`.
 - Per-cell deployment (`active_active` per ADR-0158).
@@ -99,7 +99,7 @@ Out:
 ### API versioning posture (ADR-0342)
 
 - Public API version model: OpenFeature REST/gRPC, AsyncAPI, and proto contracts use the YYYY-MM-DD carrier triplet: `Oyatie-API-Version: <date>`, `/api/feature-flags/<date>/...`, and proto3 `api_version` fields.
-- SDK semver model: Rust/TypeScript/Python/OpenFeature SDKs publish `major.minor.patch`; semver major aligns with breaking changes to a supported date-versioned contract.
+- SDK semver model: Rust/OpenFeature SDKs publish `major.minor.patch`; generated non-Rust compatibility SDKs may publish only from pinned, registry-owned build lanes. Semver major aligns with breaking changes to a supported date-versioned contract.
 - Support window: last N=3 public contract dates are supported for at least 180 days.
 - Per-tenant pinning: yes for server-side providers and SDK clients, because rollouts can span application release windows.
 - Internal-mesh exemption: yes; governance and progressive-delivery direct gRPC keep ADR-0145 behavior while the public OpenFeature surface remains date-versioned.

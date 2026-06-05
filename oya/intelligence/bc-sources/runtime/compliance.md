@@ -219,7 +219,7 @@ Canonical control-to-framework mapping for the foundry-runtime µservice. Tells 
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/foundry-runtime-compliance-overlay.md`:
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-runtime-compliance-overlay.md`:
 - pack-sg: PDPA 2012 + MAS FEAT + Veritas Toolkit (for FS tenants).
 - pack-au: Privacy Act 1988 APP 1–13 + AHRC AI guidance.
 - pack-in: DPDPA 2023 + MeitY AI Advisory 2024 + RBI IT Outsourcing 2023.

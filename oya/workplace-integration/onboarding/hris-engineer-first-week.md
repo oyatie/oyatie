@@ -100,14 +100,14 @@ cargo test -p oya-workplace-integration-payroll-us-states-ca
 ## Day 5 — ship through Foundry
 
 ```bash
-./bin/oya vcs claim \
-  --agent workplace-eng-$USER \
-  --intent workplace-add-ca-2026-payroll \
-  crates/oya-workplace-integration-payroll-us-states-ca microservices/workplace-integration
+git fetch github-mirror dev
+git worktree add /tmp/oyatie-lane-workplace-add-ca-2026-payroll -b chore/workplace-add-ca-2026-payroll github-mirror/dev
+cd /tmp/oyatie-lane-workplace-add-ca-2026-payroll
+buck2 build //:repo-hygiene-automation-check
+gh pr create --base dev --head chore/workplace-add-ca-2026-payroll --repo jason931225/oyatie
 ```
 
-Verify + done + PR. Foundry handles admission. Compliance lanes (`lean-a12-payroll-substance`) verify your tax calculation against
-reference scenarios.
+Open the PR through the temporary GitHub adapter. Merge readiness comes from Buck2 evidence, reviewer approval, and the trusted Rust/Prow `oya-ci-required` controller context. Compliance lanes verify the tax calculation against reference scenarios without reviving retired `oya vcs`/gate CLI authority.
 
 ## Done with week 1
 

@@ -206,7 +206,7 @@ Limitations (documented in DPIA R-09):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Each pack's overlay at `regional-packs/<pack>/mail-residency-overlay.md` carries local data-residency law citations. Pack-pinning + cross-pack-replication-forbidden apply universally.
+Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/mail-residency-overlay.md` carries local data-residency law citations. Pack-pinning + cross-pack-replication-forbidden apply universally.
 
 ## Verification
 
@@ -227,7 +227,7 @@ Each pack's overlay at `regional-packs/<pack>/mail-residency-overlay.md` carries
 - `microservices/mail/policy/dual-context-isolation.md`.
 - `microservices/mail/multi-region.md`.
 - `microservices/mail/legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa}.md`.
-- `regional-packs/<pack>/mail-residency-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/mail-residency-overlay.md`.
 - OCI region documentation.
 - GDPR Arts. 44-50.
 - EDPB Recommendations 01/2020.

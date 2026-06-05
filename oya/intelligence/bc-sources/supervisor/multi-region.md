@@ -159,7 +159,7 @@ Per `incident-response.md` §"Tenant communications":
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics live at `regional-packs/<pack>/foundry-supervisor-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (2022/2554) testing requirements when oyatie has EU financial-services tenants.
+Per-pack BCDR specifics live at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-supervisor-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (2022/2554) testing requirements when oyatie has EU financial-services tenants.
 
 ## Verification
 

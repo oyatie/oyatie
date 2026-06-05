@@ -245,7 +245,7 @@ State-level:
 
 ## Pack-overlay detail: pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/drive-compliance-overlay.md`. Aligned 1:1 with the calendar µservice overlay matrix for consistency across the µservice catalog.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/drive-compliance-overlay.md`. Aligned 1:1 with the calendar µservice overlay matrix for consistency across the µservice catalog.
 
 ## Audit cadence
 

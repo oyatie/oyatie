@@ -80,6 +80,8 @@ buck2 build //:kubernetes-native-anti-pattern-check
 
 Shared docs, root indexes, registries, and workflows stay pointer-thin and should route detail to disjoint lane-owned shards. New Markdown defaults to registered/lane-owned or archived; stale docs older than 3 days are audit/archive candidates before deletion.
 
+Active tool, check, runtime, manifest, policy, and context-field names MUST be self-explanatory capability names. ADR/PRD/PHASE/IP tokens are reserved for actual decision records, product specs, phase docs, or implementation-plan docs; for example, use `context.doctrine.buck2_prow_ci_authority`, not `context.doctrine.adr_0513`.
+
 ## Multispectrum review bar — required on every change
 
 Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). Governance checks run as Rust kernels through Buck2/Prow jobs; retired Oya CLI surfaces are not merge authority. The seam-discipline lane `oya-check-dependency-seam` REFUSES the changeset when:
@@ -142,7 +144,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Recurring failure modes + mechanical preventions | [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> |
 | Per-axis product PRDs | [`products/`](products/) <!-- forward-reference: wave-1 --> |
 | Per-team charters | [`teams/`](teams/) <!-- forward-reference: wave-1 --> |
-| Per-region packs | [`regional-packs/`](regional-packs/) <!-- forward-reference: wave-1 --> |
+| Per-region pack docs | [`regional-packs/`](regional-packs/) <!-- forward-reference: wave-1 --> for legal/localization documentation; cloud-owned sovereign overlay artifacts live under [`../cloud/cloud-iac/sovereign-cloud-overlays/`](../cloud/cloud-iac/sovereign-cloud-overlays/) and are indexed by [`../registry/sovereign-cloud/per-pack-overlay-status.tsv`](../registry/sovereign-cloud/per-pack-overlay-status.tsv). |
 | Runbooks (incident, DR, on-call, per-service) | [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) <!-- forward-reference: wave-1 --> |
 | Templates (PR, ADR, capability, runbook, etc.) | [`templates/`](templates/) <!-- forward-reference: wave-1 --> |
 | Privacy / security / compliance | [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`SECURITY-PROGRAM.md`](SECURITY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) <!-- forward-reference: wave-1 --> |
@@ -271,7 +273,8 @@ If any box is unchecked, the change is not complete. Loop back; do not declare s
 | [`docs/raw/`](raw/) <!-- forward-reference: wave-1 --> | Working drafts. Never authoritative. |
 | [`crates/`](../crates/) <!-- forward-reference: wave-1 --> | Flat-crates target: `oya-<context>-<role>[-<capability>]/`. |
 | `infra/`, `scripts/`, `registry/` | Supporting implementation and governance tree; `registry/catalog/` is the live crate catalog. |
-| `modules/`, `services/`, `platform/`, `tools/` | Retired legacy implementation roots; do not recreate. |
+| `modules/`, `services/`, `platform/`, repo-root `bin/` | Retired legacy implementation roots/wrappers; do not recreate. |
+| `tools/` | Retained only for registered Rust/Buck2 tool apps, vendored `tools/agent-skills/`, and temporary hook/bootstrap shims under migration. Rust is the default; TypeScript is allowed only as a strict-typed, pinned, Buck2-governed tooling exception when Rust is a poor fit. No ad-hoc Python/shell/Node or pnpm authority. |
 | `registry/capability-templates/` | Capability records + metering events (Foundry-consumed). |
 | `contracts/` | Per-cross-axis contract spec files (OpenAPI, Protobuf, AsyncAPI). |
 | Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`) | Redirect-class discovery files. Non-authoritative. ≤25 lines each. Lane: `oya-governance-redirect-thinness`. |
@@ -315,7 +318,7 @@ Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harne
 
 The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENTS.md convention](https://agents.md). Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
 
-Build / test commands: `buck2 build`, `buck2 test`, and lane-owned Buck2 targets. Cargo is advisory only for deliberate dual-build metadata/mutation workflows; pnpm/TypeScript surfaces are retirement-review candidates unless a current product lane explicitly owns them. Lint: Buck2 lint targets and direct `rustfmt` when needed.
+Build / test commands: `buck2 build`, `buck2 test`, and lane-owned Buck2 targets. Cargo is advisory only for deliberate dual-build metadata/mutation workflows. Rust/Buck2 is the default for tooling; strict TypeScript is allowed only as a pinned, registered, Buck2-governed tooling exception when Rust is a poor fit, never as pnpm or product-frontend authority. Lint: Buck2 lint targets and direct `rustfmt` when needed.
 
 Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 

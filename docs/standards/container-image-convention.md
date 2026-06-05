@@ -18,17 +18,19 @@ oci_image(
 )
 ```
 
-The binary layer consumes the service's Buck2 binary target. The push path uses
-`tools/oci/push-oci-image.py` against the OCI layout emitted by Buck2.
+The binary layer consumes the service's Buck2 binary target. The durable push
+path is a Rust/Buck2 release-conveyor target against the OCI layout emitted by
+Buck2. Legacy Python OCI helpers are migration backlog only; they are not CI,
+CD, or merge authority.
 
 ## Required directives
 
 | Directive | Required value | Validator |
 | --- | --- | --- |
-| Base image | `gcr.io/distroless/static-debian12:nonroot` or ADR-approved carve-out | `oya gate validate container-base-image` as local/bridge evidence; cloud-ci owns required status |
+| Base image | `gcr.io/distroless/static-debian12:nonroot` or ADR-approved carve-out | Rust/Buck2 container-base-image check plus trusted Prow/Kubernetes-native `oya-ci-required` |
 | Runtime user | `65532:65532` (or bare `65532`) | same |
 | Assembly | Buck2-native OCI target | `specs/buck2-authority-policy.json` + `//:buck2-authority-policy-check` |
-| Registry push | `tools/oci/push-oci-image.py` consuming Buck2 output | script/static policy |
+| Registry push | Rust/Buck2 release-conveyor target consuming Buck2 OCI output | conveyor/static policy |
 
 ## Production release optimization exception
 
@@ -42,8 +44,8 @@ and grounded in official Rust release-profile/codegen/allocator docs.
 
 1. Put OCI assembly under `cloud/<service>/iac/oci/BUCK` or `oya/<service>/iac/oci/BUCK`.
 2. Consume the service's Buck2 binary target as the layer input.
-3. Wire build/push scripts to `buck2 build --show-full-simple-output //<path>:<service>-oci`
-   and then `tools/oci/push-oci-image.py`.
+3. Wire release-conveyor push through a Rust/Buck2 target that consumes
+   `buck2 build --show-full-simple-output //<path>:<service>-oci`.
 4. Add the target to the Buck2 authority policy or service registry when it becomes a
    required lane.
 

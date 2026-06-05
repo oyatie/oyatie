@@ -15,9 +15,9 @@
     "documented_equivalent": "buck2 build root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype root//oya/application/crates/oya-application-shell-frontend-prototype:oya-application-shell-frontend-prototype-bin",
     "style_entrypoint": "style/app.css",
     "cargo_leptos_config": "Cargo.toml#[package.metadata.leptos] metadata only; not CI/CD/build authority",
-    "hydration_model": "SSR-first static shell with selective Leptos/WASM island mounting; Workflow, Messenger, Mail, and Community interactions keep local visual state and fetch permitted render envelopes when context changes.",
+    "hydration_model": "SSR-first static Rust shell with selective Leptos/WASM island mounting; Workflow, Messenger, Mail, and Community interactions live in Rust/WASM state and fetch permitted render envelopes when context changes.",
     "island_entrypoint": "mount_dashboard_islands() exported from the WASM package",
-    "dev_server_fallback": "The documented Buck2 SSR dev server attempts the WASM island bundle first, then loads /client/prototype-interactions.js so the prototype remains visually interactive without generated /pkg assets."
+    "dev_server_fallback": "The documented Buck2 SSR dev server renders the static Rust shell and mounts generated Leptos/WASM islands when /pkg assets exist; no hand-authored JavaScript fallback is checked in."
   },
   "dev_commands": [
     {
@@ -62,7 +62,7 @@
       "server_endpoint": "src/main.rs serves /api/render-envelope/<context-id> only in the SSR dev server",
       "wasm_island": "src/app.rs DashboardIsland fetches one permitted envelope at a time and does not embed the full server mock catalog",
       "surface_interactions": "src/app.rs ProductSurface, WorkflowTool, Work Hub composer, and Workflow Studio local draft-node state",
-      "visual_fallback": "static/prototype-interactions.js provides the same visual-only local interactions when generated WASM assets are not present in the dev server package directory."
+      "no_hand_authored_javascript_fallback": "The retired static/prototype-interactions.js fallback was deleted; local interactivity belongs in Rust/Leptos/WASM while the server-rendered shell remains visible without generated /pkg assets."
     },
     "context_switching": "Context buttons are inside a selective Leptos/WASM island. The browser requests /api/render-envelope/<context-id>; the SSR/server-only mock catalog derives and serializes only the permitted TenantRenderEnvelope for that tenant/role/accreditation context.",
     "selective_wasm_islands": {

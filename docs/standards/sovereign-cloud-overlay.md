@@ -22,9 +22,13 @@ authorities_cited:
 
 ## Overlay shape
 
-Each regional pack declares
-`regional-packs/<pack-id>/sovereign-cloud-overlay.yaml` per the schema
-in `/specs/sovereign-cloud-overlays.json`. Fields:
+Each sovereign-cloud overlay lives with its owning cloud substrate at
+`cloud/cloud-iac/sovereign-cloud-overlays/<pack-id>/sovereign-cloud-overlay.yaml`
+per the schema in `/specs/sovereign-cloud-overlays.json`.
+Localization/compliance-pack prose remains under `packs/`; the retired
+top-level `regional-packs/` root MUST NOT be recreated. Discovery is through
+`registry/sovereign-cloud/per-pack-overlay-status.tsv`, not a shared root.
+Fields:
 
 | Field | Required | Notes |
 | --- | --- | --- |

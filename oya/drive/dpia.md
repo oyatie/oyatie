@@ -228,7 +228,7 @@ This document is the GDPR Art. 35 DPIA for EU tenant processing.
 
 ### pack-jp (APPI), pack-sg (PDPA), pack-au (Privacy Act), pack-in (DPDPA), pack-br (LGPD), pack-ae (UAE PDPL), pack-ksa (KSA PDPL)
 
-Per-pack DPIA overlays at `regional-packs/<pack>/drive-dpia-overlay.md`. Each cites the supervisory authority + article-level legal basis + residual risk position; aligned 1:1 with the calendar µservice overlay matrix for consistency across the µservice catalog.
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/drive-dpia-overlay.md`. Each cites the supervisory authority + article-level legal basis + residual risk position; aligned 1:1 with the calendar µservice overlay matrix for consistency across the µservice catalog.
 
 ## Re-review Triggers
 

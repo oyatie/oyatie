@@ -79,7 +79,7 @@ doc_status: published
 
 ### pack-update
 - [ ] Regulator-watch impact summarized. *Lane:* `oya-governance-compliance-matrix`.
-- [ ] Regional pack file path enumerated under `regional-packs/<pack>/`. *Lane:* `oya-governance-pack-coverage`.
+- [ ] Regional pack documentation path enumerated under `docs/regional-packs/<pack>/`; sovereign overlay artifacts enumerated through `registry/sovereign-cloud/per-pack-overlay-status.tsv`. *Lane:* `oya-governance-pack-coverage`.
 
 ## Stop conditions
 

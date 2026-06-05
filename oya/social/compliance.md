@@ -191,7 +191,7 @@ Canonical control-to-framework mapping for the social µservice. Tells an extern
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per pack-overlay `regional-packs/<pack>/social-compliance-overlay.md`.
+Per pack-overlay `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/social-compliance-overlay.md`.
 
 ## Continuous Compliance Evidence
 

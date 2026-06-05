@@ -303,7 +303,7 @@ The audit log is itself persisted in the audit-chain Postgres table within Ontol
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/type-isolation-overlay.md` map the local PII law's confidentiality + integrity requirements to TI-01..TI-13.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/type-isolation-overlay.md` map the local PII law's confidentiality + integrity requirements to TI-01..TI-13.
 
 ## Verification
 

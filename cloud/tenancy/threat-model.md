@@ -665,7 +665,7 @@ Additional considerations:
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/tenancy-overlay.md` follow this document's structure with the local PII law's articles substituted in.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenancy-overlay.md` follow this document's structure with the local PII law's articles substituted in.
 
 ## Compliance Cross-Mapping (Globally Enforced)
 

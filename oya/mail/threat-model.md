@@ -705,7 +705,7 @@ Compliance frameworks engaged: GDPR + eIDAS + NIS2 + ePrivacy Directive.
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/mail-overlay.md` carry the pack-specific legal-citation depth. Each overlay follows this document's structure with pack-specific overlays for PII law articles + cybersecurity-framework controls.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/mail-overlay.md` carry the pack-specific legal-citation depth. Each overlay follows this document's structure with pack-specific overlays for PII law articles + cybersecurity-framework controls.
 
 ## Compliance Cross-Mapping (Globally Enforced)
 

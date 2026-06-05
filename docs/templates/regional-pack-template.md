@@ -4,11 +4,11 @@ doc_status: published
 
 # Regional pack template
 
-> See [`regional-packs/_TEMPLATE.md`](../regional-packs/_TEMPLATE.md) for the canonical authoring template; this stub points to it. Validated by `regional-pack-validator` per ADR-0010.
+> See [`docs/regional-packs/_TEMPLATE.md`](../regional-packs/_TEMPLATE.md) for the canonical authoring template; this stub points to it. Validated by `regional-pack-validator` per ADR-0010.
 
-This file exists to satisfy [`STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2 indexing; new regional packs should be authored from `regional-packs/_TEMPLATE.md` directly. The pack-level template lives next to the packs because that is where pack maintainers work; this template-index entry is a discoverability redirect.
+This file exists to satisfy [`STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2 indexing; new regional packs should be authored from `docs/regional-packs/_TEMPLATE.md` directly. The pack-level template lives next to the packs because that is where pack maintainers work; this template-index entry is a discoverability redirect.
 
-## Sections (verbatim from `regional-packs/_TEMPLATE.md`)
+## Sections (verbatim from `docs/regional-packs/_TEMPLATE.md`)
 
 1. Pack id + region + ISO codes
 2. Regulators (per-jurisdiction)

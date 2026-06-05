@@ -263,16 +263,16 @@ Validation command:
 **P00-08: Phase E2E and CI gate**
 ```
 Acceptance:
-  - `scripts/validate-foundry-phase00-evidence.mjs` passes
-  - Local fast: `cargo test --locked -p oya-foundry-account-*`
-  - GitHub Actions Foundry lane: `cargo test --workspace`, secret scans, architecture boundary checks
+  - Buck2-owned Rust validation target passes before any Phase-00 completion claim
+  - Local fast: Buck2 affected Rust unit/integration targets for Foundry account services
+  - Prow/Kubernetes-native Foundry lane: Buck2 workspace checks, secret scans, architecture boundary checks
   - Evidence bundle: account-auth slice delivered or exact gaps honestly stated
   - No stubs, placeholders, fake paths, TODO/TBD markers in acceptance paths
 
-Validator: `validate-foundry-phase00-evidence.mjs`
+Validator: Rust/Buck2 Foundry Phase-00 evidence target (the retired Node shim was removed; do not restore it)
   Checks:
     - Files present: crates, tests, adapters
-    - Executed local commands: cargo test results
+    - Executed local commands: Buck2 target results
     - Live/manual smoke requirements: OpenBao connectivity, if required
     - Credential-gated gaps documented: e.g., "browser OAuth handoff pending browser UI implementation"
     - SecretReference-only posture verified

@@ -25,6 +25,8 @@ OpenFeature provider contract: `contracts/openfeature-sdk-contract.md`.
 
 ## Phase 1 SDKs (this phase)
 
+Rust is the canonical checked-in SDK implementation. Non-Rust OpenFeature providers are compatibility products generated from contracts under pinned, registry-owned lanes; they do not create repo-root pnpm authority, product TypeScript application logic, or ad-hoc Python surfaces.
+
 ### Rust SDK (`oya-feature-flags-sdk`)
 
 - **Crate**: `oya-feature-flags-sdk` (workspace member).
@@ -44,22 +46,10 @@ let variant = client.string_value("button-color", "blue", &ctx).await?;
 let config = client.object_value::<CheckoutConfig>("checkout-config", default, &ctx).await?;
 ```
 
-### TypeScript SDK (`@oyatie/feature-flags`)
+### Generated compatibility SDKs
 
-- **Package**: `@oyatie/feature-flags` (npm workspace).
-- **Interface**: `FlagClient` implementing `OpenFeatureProvider` (CNCF `@openfeature/server-sdk` v1.x).
-- **Local cache**: `Map<string, CachedVariant>` with TTL; `setInterval` refresh.
-- **Transport**: `fetch` over HTTP/3 (node.js 22+ QUIC support); fallback to HTTP/2.
-- **Streaming updates**: EventSource (SSE) for push-based invalidation.
-- **TypeScript strict**: `strict: true`; all evaluation context fields typed.
-
-### Python SDK (`oyatie-feature-flags`)
-
-- **Package**: `oyatie-feature-flags` (PyPI).
-- **Interface**: `FlagClient` implementing `openfeature.provider.AbstractProvider` (OpenFeature Python SDK v1.x).
-- **Local cache**: `threading.local` cache with TTL; background refresh thread.
-- **Transport**: `httpx` with HTTP/3 support (httpx 0.27+).
-- **Async support**: `AsyncFlagClient` for `asyncio` environments.
+- **TypeScript**: allowed only as a strict, generated OpenFeature provider with pinned dependencies, Buck2-owned generation/check targets, and a registry row documenting why Rust/WASM is not sufficient for the consumer boundary.
+- **Python**: allowed only as a generated compatibility provider when a customer integration requires it; no first-party service, CI, or monorepo automation authority.
 
 ## Phase 2 SDKs (Q4 2026)
 
@@ -93,7 +83,7 @@ SDK handling: on event receipt, invalidate affected keys in local cache; next ev
 
 ## SDK feature matrix
 
-| Feature | Rust | TypeScript | Python |
+| Feature | Rust | Generated TypeScript compatibility | Generated Python compatibility |
 |---|---|---|---|
 | Boolean evaluation | ✓ | ✓ | ✓ |
 | String evaluation | ✓ | ✓ | ✓ |

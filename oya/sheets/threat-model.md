@@ -728,7 +728,7 @@ Sign-off:
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Pack-overlay sections at `regional-packs/<pack>/sheets-overlay.md`.
+Pack-overlay sections at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/sheets-overlay.md`.
 
 ## Compliance Cross-Mapping
 

@@ -219,7 +219,7 @@ LLM-assist provider for pack-us-healthcare must be HIPAA BAA-eligible.
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/workflow-studio-overlay.md` with full citations.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/workflow-studio-overlay.md` with full citations.
 
 ## Continuous-Compliance Evidence
 

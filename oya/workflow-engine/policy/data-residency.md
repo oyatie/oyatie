@@ -161,7 +161,7 @@ Limitations (DPIA R-07):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Each pack's overlay at `regional-packs/<pack>/data-residency-overlay.md` carries local citations. Pack-pinning + cross-pack-replication-forbidden apply universally.
+Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/data-residency-overlay.md` carries local citations. Pack-pinning + cross-pack-replication-forbidden apply universally.
 
 ## Verification
 
@@ -179,7 +179,7 @@ Each pack's overlay at `regional-packs/<pack>/data-residency-overlay.md` carries
 - `microservices/workflow-engine/dpia.md` R-09 + R-11 + R-13.
 - `microservices/workflow-engine/multi-region.md`.
 - `microservices/workflow-engine/legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa}.md`.
-- `regional-packs/<pack>/data-residency-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/data-residency-overlay.md`.
 - OCI region documentation.
 - GDPR Arts. 44-50.
 - EDPB Recommendations 01/2020.

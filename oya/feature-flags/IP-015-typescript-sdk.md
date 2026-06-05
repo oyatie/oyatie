@@ -3,16 +3,16 @@
 **microservice**: feature-flags
 **bc**: flag
 **layer**: adapter
-**qualifier**: typescript-sdk
-**status**: design-ready
-**acceptance_status**: design-ready
+**qualifier**: generated-typescript-compatibility-sdk
+**status**: deferred-policy-review
+**acceptance_status**: deferred-policy-review
 **adrs**: ADR-0105, ADR-0131, ADR-0159, ADR-0245, ADR-0248, ADR-0253, ADR-0258
 **companion_ips**: IP-013, IP-014, IP-016
 **references**: contracts/openfeature-sdk-contract.md; sdk-plan.md
 
 ## Scope
 
-TypeScript/JavaScript SDK implementing the OpenFeature `Provider` interface. Browser + Node.js targets. HTTP/3 via `fetch` (browser native); EventSource SSE; LKG cache in `localStorage` (browser) or `fs` (Node). Used by Workflow Studio and all TS µservices.
+Generated TypeScript compatibility SDK implementing the OpenFeature `Provider` interface for external/browser integration boundaries that cannot consume the canonical Rust/WASM client. This IP does **not** authorize a checked-in pnpm workspace, hand-written TypeScript product logic, or Node.js monorepo tooling authority. Before implementation, the owning lane must record pinned dependencies, Buck2 generation/check targets, and an explicit rationale for why Rust/WASM is insufficient.
 
 ## Deliverables
 
@@ -25,7 +25,7 @@ TypeScript/JavaScript SDK implementing the OpenFeature `Provider` interface. Bro
 | 5 | `OyatieEvaluationContext` type | `tenantId`, `audienceType`, `sessionId`, `deviceFingerprintHash`, `packId` |
 | 6 | Error handling | Returns `ResolutionDetails` with `errorCode` and `reason`; never throws on evaluation |
 | 7 | Bundle size | ≤12 KB gzipped (ESM); tree-shakeable; no runtime dependencies beyond `@openfeature/core` |
-| 8 | Tests | Jest unit tests; Playwright browser integration test; bundle size assertion in CI |
+| 8 | Tests | Buck2-owned generation/typecheck test plus browser compatibility fixture; no pnpm-required CI authority |
 
 ## Usage
 

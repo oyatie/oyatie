@@ -48,7 +48,7 @@ doc_status: published
 | **cargo-semver-checks** | Detects SemVer breakage on lib crates. ([cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)) | HIGH | `oya-governance-semver` | ADR-XXX-semver |
 | **cargo-public-api** | Surface diff for `[lib]` crates. | HIGH | same lane | same ADR |
 | **cargo-hakari** | Workspace-hack — deduplicates feature flags across workspace. | MED | `oya-governance-version-cohesion` | ADR-XXX-hakari |
-| **cargo-machete** | Fast text-based unused-dep detection. | HIGH | `oya-governance-unused-deps` | ADR-XXX-unused-deps |
+| **cargo-machete** | Optional unused-dependency signal only if wrapped by a Rust/Buck2 lane; Buck2/Prow evidence remains authoritative. | MED | candidate input to a future Rust/Buck2 unused-deps lane | ADR-XXX-unused-deps |
 | **cargo-udeps** (nightly) | Compiler-driven unused-dep — more accurate, slower. | HIGH | same lane | same ADR |
 | **cargo-binstall** | Binary-install hygiene for CI runners (no opaque curl-pipe-bash). | LOW | n/a (CI policy) | ADR-XXX-binstall |
 | **cargo-auditable** | Embeds SBOM in binary for retro-scan. | MED | extends supply-chain lane | — |
@@ -93,7 +93,7 @@ doc_status: published
 | Tool | Purpose | Priority | Fitness lane | ADR target |
 |---|---|---|---|---|
 | **OpenTelemetry SDK + Collector** | Already in MASTERPLAN; ensure span coverage. | HIGH | `oya-governance-trace-coverage` + `oya-governance-metric-coverage` (new) | ADR-XXX-otel-coverage |
-| **bacon** | Background `cargo check` for dev-loop. | LOW | n/a (AGENTS.md default) | — |
+| **bacon** | Optional editor-local convenience; do not add repo authority or CI dependency because Buck2 is faster and authoritative for parallel work. | LOW | none; local-only | — |
 | **tokio-console** | Async runtime introspection. | LOW | n/a (dev tool) | — |
 | **rust-analyzer** | LSP discipline (dev tool). | LOW | n/a | — |
 | **sccache** | Compiler cache (S3-backed). | MED | speedup, no lane | — |

@@ -239,7 +239,7 @@ The canonical control-to-framework mapping for the ontology µservice. Tells ext
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/compliance-overlay.md`. Each follows this document's structure.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/compliance-overlay.md`. Each follows this document's structure.
 
 ## Continuous Compliance Evidence
 

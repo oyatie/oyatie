@@ -25,7 +25,7 @@ After Slice D closes, Turn 2 (15 observability IPs + per-crate catalog records) 
 - [x] **Mimir tenant model: hashed-customer-id `X-Scope-OrgID` + reserved `oya-ci` tenant.** Predicted, confirmed 2026-05-17.
 - [x] **Self-observability bootstrap: fail-closed (≥3 evaluator cycles clean before verdicts emit).** Predicted, confirmed 2026-05-17.
 - [x] **Layer-A cluster: dedicated observability cluster (not co-located).** Predicted, confirmed 2026-05-17.
-- [ ] **Per-pack legal citations cover every market in scope.** Validated by: cross-reference `regional-packs/<pack>/PACK.md` for each pack against the artifacts' overlay sections.
+- [ ] **Per-pack legal citations cover every market in scope.** Validated by: cross-reference `docs/regional-packs/<pack>/PACK.md` for each pack against the artifacts' overlay sections.
 - [ ] **OpenSLO v1.0 + OpenTelemetry semconv versions stable for the duration of M01.** Validated by: explicit version pinning in `docs/standards/observability-slo.md` (Slice D).
 
 ## Minimum-shippable scope
@@ -44,7 +44,7 @@ There is no smallest-actionable subset. The 30-gap closure ships as one phase ac
 ## Open Questions (deferred to Slice D)
 
 - ADR numbers for follow-up consolidation ADRs (multi-region, federated-Mimir, retired suite ADRs full citation list).
-- Pack-overlay schema for compliance frameworks (the per-pack overlay file at `regional-packs/<pack>/compliance.md` or similar — pack-team owns the actual content; Slice D specifies the contract).
+- Pack-overlay schema for compliance frameworks (the per-pack overlay file at `docs/regional-packs/<pack>/compliance.md` or similar — pack-team owns the actual content; Slice D specifies the contract).
 
 ## Slice Dependency Order
 

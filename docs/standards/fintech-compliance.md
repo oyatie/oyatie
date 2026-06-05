@@ -382,7 +382,7 @@ The fintech vertical lives at `crates/oya-vertical-fintech-*`. Per [DESIGN.md §
 4. **Per-region AML adapter** at `crates/oya-vertical-fintech-aml-{kr,...}-*` for KoFIU / FinCEN / KoFIU / etc.
 5. **Tokenization vault** at `crates/oya-vertical-fintech-tokenvault-*` shared across regions but per-tenant per-cell.
 6. **Audit chain** per ADR-0003 emission for every CDE access, every settlement, every KYC, every AML alert, every regulator notification.
-7. **Per-region license registry** at `regional-packs/<pack>/fintech-licenses.yaml` declaring which postures the pack supports.
+7. **Per-region license registry** under the owning pack documentation (`docs/regional-packs/<pack>/`) with any sovereign cloud overlay artifact indexed through `registry/sovereign-cloud/per-pack-overlay-status.tsv`.
 8. **Workspace integration**: any Workspace surface that touches CDE (e.g. Mail attachment containing PAN) is treated as in-scope; DLP must redact PAN automatically.
 9. **Foundry agent integration**: Foundry capabilities operating on fintech tenant data run with autonomy ceiling T2 max (flag + freeze, human approves SAR / regulator notification); no T3 or T4 for fintech regulated capabilities.
 10. **Search axis**: fintech tenant data is HARD_DENY for cross-tenant search index; per-tenant private search OK with per-class allowlist; PCI / 신용정보 NEVER indexed.

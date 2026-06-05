@@ -205,7 +205,7 @@ Joint controller cascade: tenant <tenant_id_redacted> notified at <ISO8601>;
 
 ### PDPA (Singapore, Australia, etc.)
 
-Per-pack timelines in `regional-packs/<pack>/incident-notification-overlay.md`. Universally: notify-data-subjects-and-supervisor within 72 hours target across the major jurisdictions.
+Per-pack timelines in `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/incident-notification-overlay.md`. Universally: notify-data-subjects-and-supervisor within 72 hours target across the major jurisdictions.
 
 ### NIS2 (EU 2022/2555)
 

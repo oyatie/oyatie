@@ -43,10 +43,6 @@ const RETIRED_CLI_SCRIPT_INVOCATION_TOKENS: &[&str] = &[
 ];
 
 const ACTIVE_RETIRED_CLI_SCRIPT_BACKLOG: &[&str] = &[
-    "scripts/asyncapi-lint.mjs",
-    "scripts/proto-lint.mjs",
-    "scripts/validate-adr-shape.mjs",
-    "scripts/validate-foundry-phase00-evidence.mjs",
     "scripts/branch-protection-apply.sh",
     "scripts/onprem-bring-up.sh",
     "scripts/install-trivy-ci.sh",
@@ -251,8 +247,8 @@ pub fn registry_failures(text: &str) -> Vec<String> {
         }
     }
 
-    if !compact_json_text(text).contains("\"detected_script_count\":8") {
-        failures.push("missing_active_retired_cli_script_count_8".to_owned());
+    if !compact_json_text(text).contains("\"detected_script_count\":4") {
+        failures.push("missing_active_retired_cli_script_count_4".to_owned());
     }
 
     for path in ACTIVE_RETIRED_CLI_SCRIPT_BACKLOG {

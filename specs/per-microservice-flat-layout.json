@@ -238,7 +238,7 @@
       "scope": "aggregation indices and append-only ledgers (promotion-eligibility.jsonl, changeset state, etc.). Per-crate catalog rows live at microservices/<ms>/catalog/; registry/catalog/ becomes a generated aggregation."
     },
     {
-      "path": "regional-packs/",
+      "path": "cloud/cloud-iac/sovereign-cloud-overlays/",
       "scope": "regional packs span multiple microservices; retained as cross-cutting per ADR-0131 open question 3"
     },
     {
@@ -462,8 +462,8 @@
     },
     {
       "id": "Q-003",
-      "question": "regional-packs/ interaction with this layout?",
-      "default": "regional packs span multiple microservices; retain as cross-cutting at regional-packs/",
+      "question": "cloud/cloud-iac/sovereign-cloud-overlays/ interaction with this layout?",
+      "default": "regional packs span multiple microservices; retain as cross-cutting at cloud/cloud-iac/sovereign-cloud-overlays/",
       "resolution": "ADR-#### if rule changes"
     }
   ]

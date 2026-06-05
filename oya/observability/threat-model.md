@@ -619,7 +619,7 @@ Additional considerations:
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Pack-overlay sections authored in the corresponding `regional-packs/<pack>/observability-overlay.md` files; each overlay follows the same structure (citing the local PII law's articles + the local cybersecurity-framework controls) and maps to this document's threat IDs via the cross-mapping table in `microservices/observability/compliance.md` (Slice B).
+Pack-overlay sections authored in the corresponding `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/observability-overlay.md` files; each overlay follows the same structure (citing the local PII law's articles + the local cybersecurity-framework controls) and maps to this document's threat IDs via the cross-mapping table in `microservices/observability/compliance.md` (Slice B).
 
 ## Compliance Cross-Mapping (Globally Enforced)
 

@@ -727,7 +727,7 @@
     "compliance_packs": {
       "doctrine_summary": "Compliance packs are first-class versioned signed bundles. A pack bundles Cedar fragments, IaC overlays, audit-schema additions, data-class registrations, retention policies, and regulator evidence emitters required to operate under a specific regulatory framework.",
       "schema_ref": "/specs/compliance-pack-schema.json",
-      "pack_artifact_layout": "regional-packs/<pack-id>/",
+      "pack_artifact_layout": "cloud/cloud-iac/sovereign-cloud-overlays/<pack-id>/",
       "pack_required_artifacts": [
         "manifest.yaml",
         "cedar-fragments/",

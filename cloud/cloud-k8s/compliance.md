@@ -168,7 +168,7 @@ Enforced by `oya-check-nsa-k8s-hardening` LEAN lane. Mapping in `microservices/c
 
 ### KR-CSAP (Cloud Security Assurance Program)
 
-For KR-resident tenants. Cross-mapped at `regional-packs/pack-kr/compliance-overlay.md`:
+For KR-resident tenants. Cross-mapped at `cloud/cloud-iac/sovereign-cloud-overlays/pack-kr/compliance-overlay.md`:
 - 가용성 (Availability) → multi-AZ + HA control plane
 - 기밀성 (Confidentiality) → mTLS strict + at-rest encryption
 - 무결성 (Integrity) → audit-chain seal
@@ -243,7 +243,7 @@ For KR-resident tenants. Cross-mapped at `regional-packs/pack-kr/compliance-over
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/cloud-k8s-compliance-overlay.md`:
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-k8s-compliance-overlay.md`:
 - pack-sg: PDPA 2012 + MAS Notice 644
 - pack-au: Privacy Act 1988 APP 1–13 + APRA-CPS 234
 - pack-in: DPDPA 2023 + RBI Master Direction on IT Outsourcing 2023

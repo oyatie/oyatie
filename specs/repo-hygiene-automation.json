@@ -3,7 +3,7 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-05T00:24:00Z",
+  "updated_at": "2026-06-05T02:05:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for Rust/Prow/Kubernetes-native oya-ci authority, GitHub PR/publication adapters, and shadow GitHub Actions compatibility.",
   "local_static_only": true,
   "live_mutation_performed": false,
@@ -127,6 +127,8 @@
     "thin_pointer_shared_docs": true,
     "archive_before_delete": true,
     "shared_surface_rule": "Shared docs/indexes/registries should point to disjoint lane-owned shards instead of becoming large mutable collaboration surfaces.",
+    "self_explanatory_active_name_rule": "Active tool, check, runtime, manifest, policy, and context-field names must describe the capability or contract directly. ADR/PRD/PHASE/IP tokens are allowed only in actual decision, product-spec, phase, or implementation-plan documentation paths.",
+    "forbidden_active_name_example": "context.doctrine.adr_0513 is forbidden in active Cedar/runtime context; use context.doctrine.buck2_prow_ci_authority instead.",
     "automation_targets": [
       "root markdown allowlist",
       "root hub pointer presence",
@@ -447,43 +449,25 @@
     "rationale": "Buck2 remains the build/test/check authority; Rust tools reduce ad-hoc script drift and make fanout contracts easier to test under Buck2."
   },
   "existing_non_rust_surface_inventory": {
-    "status": "classified_no_durable_authority",
-    "updated_at": "2026-06-05T00:24:00Z",
+    "status": "zero_product_frontend_typescript_pnpm_surface_enforced",
+    "updated_at": "2026-06-05T02:25:00Z",
     "typescript_pnpm_mjs_surface_inventory": "registry/repo-hygiene/typescript-pnpm-surface-inventory.json",
-    "tracked_typescript_pnpm_mjs_count": 28,
+    "tracked_typescript_pnpm_mjs_count": 0,
     "typescript_pnpm_mjs_count_source": "filesystem_scan_excluding_vendored_agent_skills",
     "python_shell_surface_inventory": "registry/repo-hygiene/python-shell-surface-inventory.json",
-    "tracked_nonvendored_python_shell_count": 53,
+    "tracked_nonvendored_python_shell_count": 51,
     "python_shell_count_source": "filesystem_scan_excluding_vendored_surfaces",
-    "typescript_pnpm_mjs_disposition": "retirement_review_product_prototype_or_advisory_only_not_merge_authority",
+    "typescript_pnpm_mjs_disposition": "zero_product_frontend_surface_allowed_port_to_rust_buck2_leptos_or_delete; strict TypeScript tooling exception requires pinned dependencies, Buck2 authority, registry row, and explicit Rust rejection rationale",
     "python_shell_disposition": "bootstrap_host_prelude_reference_or_pending_rust_buck2_rewrite_only_not_merge_authority",
     "pnpm_or_package_json_repo_authority": false,
     "typescript_runtime_merge_authority": false,
+    "strict_typescript_tooling_exception_allowed": true,
+    "typescript_exception_requires_buck2_target": true,
+    "typescript_exception_requires_registry_row": true,
     "python_shell_durable_gate_authority": false,
     "rewrite_active_gate_surfaces_to_rust_buck2": true,
-    "deletion_rule": "Do not delete recent product prototypes blindly. Classify the surface, identify consumers, preserve or port useful behavior into Rust/Buck2/native product code, then delete/archive in a separate evidence-backed PR.",
-    "current_typescript_pnpm_mjs_surface_groups": [
-      {
-        "id": "app_shell_frontend_prototype",
-        "path_prefix": "oya/app-shell-frontend/",
-        "disposition": "recent product prototype; pnpm metadata is local product-prototype metadata only and is not repo/build/merge authority"
-      },
-      {
-        "id": "workflow_studio_sveltekit_templates",
-        "path_prefix": "oya/workflow-studio/clients/web-sveltekit/src/templates/",
-        "disposition": "template/client prototype surface under retirement review; not CI or monorepo authority"
-      },
-      {
-        "id": "feature_flags_reference_clients",
-        "path_prefix": "oya/feature-flags/reference-implementations/",
-        "disposition": "reference implementation only; Rust service contract remains durable authority"
-      },
-      {
-        "id": "advisory_mjs_doc_contract_tools",
-        "path_prefix": "scripts/",
-        "disposition": "advisory document/API lint/codegen helpers; active durable checks should move to Rust/Buck2 before becoming merge authority"
-      }
-    ],
+    "deletion_rule": "Nonvendored product/frontend TypeScript, JavaScript, Svelte, Node package metadata, and pnpm surfaces are deletion targets. Rust/Buck2 remains the default; strict TypeScript is allowed only as a registered tooling exception when Rust is a poor fit, never as pnpm or product frontend authority.",
+    "current_typescript_pnpm_mjs_surface_groups": [],
     "current_python_shell_surface_groups": [
       {
         "id": "bootstrap_host_prelude",
@@ -509,7 +493,6 @@
           "scripts/",
           "tools/hooks/",
           "tools/oci/",
-          "tools/anchor-sweep/",
           "registry/stub-audit/"
         ],
         "disposition": "not merge authority until rewritten or rehosted as Rust libraries/Buck2 targets"
@@ -581,6 +564,12 @@
       "conflict_mitigation": "Prefer refs and registries over prose expansion in root shared files."
     },
     {
+      "id": "shared_surface_substrate_migration_audit",
+      "lane": "platform-architecture",
+      "action": "Audit top-level cross-cutting roots and shared files for substrate-owned relocation with central registry pointers. First proven pattern: top-level regional-packs moved to cloud/cloud-iac/sovereign-cloud-overlays with registry/sovereign-cloud/per-pack-overlay-status.tsv.",
+      "conflict_mitigation": "Prefer substrate-owned files plus registry indexes over broad shared roots; move only one root family per PR with verifier updates."
+    },
+    {
       "id": "stale_doc_inventory_followups",
       "lane": "council-architecture",
       "action": "Use the Rust stale-doc inventory output to open separate evidence-backed update/archive/delete PRs.",
@@ -611,6 +600,12 @@
       "conflict_mitigation": "Keep adapter retirement in its own lane after runnable bridge scripts are gone so product and GitHub bridge lanes do not contend on native SCM code."
     },
     {
+      "id": "retired_vcs_cli_admission_surface_retirement",
+      "lane": "platform-scm-ci-cd",
+      "action": "Retire or reframe active oya-vcs-admission and oya-dev-cli smoke surfaces that still execute or document retired oya vcs/gate flows; preserve reusable native SCM/Prow validation kernels only.",
+      "conflict_mitigation": "Isolate the VCS admission app/kernel/workspace surgery from documentation cleanup so native SCM lanes do not race product lanes."
+    },
+    {
       "id": "retire_oya_cli_governance_authority",
       "lane": "platform-governance",
       "action": "Stop treating oya gate/verify CLI invocations as CI or merge authority; preserve reusable governance logic as Rust libraries, Buck2 targets, and Prow jobs.",
@@ -621,6 +616,36 @@
       "lane": "product-frontend",
       "action": "Audit stale TypeScript/pnpm surfaces against current Rust/Leptos/product decisions; delete or archive retired app-shell/workflow-studio artifacts in evidence-backed PRs.",
       "conflict_mitigation": "Keep review inventory separate from deletion PRs so product lanes do not race shared frontend registries."
+    },
+    {
+      "id": "product_sdk_language_policy_review",
+      "lane": "product-frontend",
+      "action": "Review stale TypeScript/Python SDK promises and OpenFeature examples against the Rust-first policy; keep non-Rust SDKs only as generated, pinned, explicitly registered compatibility products, not as repo-root TypeScript/pnpm or ad-hoc Python surfaces.",
+      "conflict_mitigation": "Handle SDK-language policy in per-product docs/specs, then update shared standards through a generated registry summary."
+    },
+    {
+      "id": "quoted_path_filename_normalization",
+      "lane": "repo-hygiene",
+      "action": "Normalize tracked quote-prefixed or mojibake filenames into plain UTF-8, self-explanatory paths and update references. ADR/PRD/PHASE/IP tokens stay only in actual docs/specs, not active tools, manifests, policies, runtime contexts, or generated check names.",
+      "conflict_mitigation": "Rename one path family at a time so git history, generated indexes, and references remain reviewable."
+    },
+    {
+      "id": "active_policy_context_name_normalization",
+      "lane": "repo-hygiene",
+      "action": "Rename active policy/runtime context fields such as context.doctrine.adr_0513 into self-explanatory capability names such as context.doctrine.buck2_prow_ci_authority; preserve decision-record numbers only in docs/decisions and historical provenance docs.",
+      "conflict_mitigation": "Normalize per policy family with generated inventory evidence so product lanes do not race broad Cedar/OpenSLO/Kubernetes manifest edits."
+    },
+    {
+      "id": "active_dotdir_state_surface_review",
+      "lane": "repo-hygiene",
+      "action": "Review tracked .omc/.omx/.claude/.gemini/.codex state and command surfaces; retain only intentional agent/tooling contracts and archive or delete stale local-session state.",
+      "conflict_mitigation": "Keep runtime-local state out of shared roots; publish pointer-thin command contracts instead of sprawling generated state."
+    },
+    {
+      "id": "single_file_top_level_root_review",
+      "lane": "platform-toolchain",
+      "action": "Review single-file top-level roots such as platforms/BUCK for relocation under owning toolchain/substrate directories while preserving Buck2 platform semantics.",
+      "conflict_mitigation": "Move only after a Buck2 target/reference audit; do not hand-edit platform references in unrelated product lanes."
     },
     {
       "id": "prow_job_registry_generation",

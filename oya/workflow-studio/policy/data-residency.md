@@ -178,7 +178,7 @@ Limitations (DPIA R-07):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/workflow-studio-data-residency-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/workflow-studio-data-residency-overlay.md`.
 
 ## Verification
 
@@ -198,7 +198,7 @@ Per-pack overlays at `regional-packs/<pack>/workflow-studio-data-residency-overl
 - `microservices/workflow-studio/multi-region.md`.
 - `microservices/workflow-studio/policy/editor-isolation.md`.
 - `microservices/workflow-studio/legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa, ai-act-conformity}.md`.
-- `regional-packs/<pack>/workflow-studio-data-residency-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/workflow-studio-data-residency-overlay.md`.
 - OCI region documentation.
 - GDPR Arts. 44-50.
 - EDPB Recommendations 01/2020.

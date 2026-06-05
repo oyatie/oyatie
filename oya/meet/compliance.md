@@ -182,7 +182,7 @@ Canonical control-to-framework mapping for the meet µservice. Tells an external
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per pack-overlay `regional-packs/<pack>/meet-compliance-overlay.md`.
+Per pack-overlay `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/meet-compliance-overlay.md`.
 
 ## Continuous Compliance Evidence
 

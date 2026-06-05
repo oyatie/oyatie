@@ -157,7 +157,7 @@ Canonical control-to-framework mapping for the messenger µservice. Tells an ext
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per pack-overlay `regional-packs/<pack>/messenger-compliance-overlay.md`.
+Per pack-overlay `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/messenger-compliance-overlay.md`.
 
 ## Continuous Compliance Evidence
 

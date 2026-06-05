@@ -199,7 +199,7 @@ Limitations (DPIA R-09):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/forms-data-residency-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/forms-data-residency-overlay.md`.
 
 ## Verification
 
@@ -222,7 +222,7 @@ Per-pack overlays at `regional-packs/<pack>/forms-data-residency-overlay.md`.
 - `microservices/forms/multi-region.md`.
 - `microservices/forms/policy/dual-context.md`.
 - `legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa, ai-act-conformity}.md`.
-- `regional-packs/<pack>/forms-data-residency-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/forms-data-residency-overlay.md`.
 - OCI region documentation.
 - GDPR Arts. 44-50.
 - EDPB Recommendations 01/2020.

@@ -269,7 +269,7 @@ Audit log itself lives in observability Mimir under `tenant:oya-self` and is rep
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Each pack's overlay at `regional-packs/<pack>/foundry-supervisor-isolation-overlay.md`.
+Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-supervisor-isolation-overlay.md`.
 
 ## Verification
 

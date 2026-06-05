@@ -33,10 +33,10 @@ companion_docs:
 
 This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349 only. It does not implement Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, or Wave 15-ZE bodies.
 
-### ADR-0346 Local CI Mirror
-- `oya verify --ci-required` is the canonical local pre-push verifier for this microservice's future architecture changes.
-- The verifier MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH mandatory mirror step before success: cargo fmt, cargo check, cargo clippy, cargo nextest, and `oya gate run-all --ci-required`.
-- Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume the `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, and `oya-governance-oya-submit-calls-verify` lanes protect the local-to-CI contract.
+### ADR-0346 Local CI Mirror (superseded authority)
+- Historical local verifier/gate CLI doctrine is superseded by ADR-0513 for CI and merge authority.
+- Future architecture changes must collect Buck2 evidence and enter the Rust/Prow Kubernetes-native `oya-ci-required` controller path; local commands remain advisory unless represented by Buck2/Prow evidence.
+- Reusable verifier logic should live as Rust libraries, Buck2 targets, and Prow jobs rather than a revived CLI gate.
 
 ### ADR-0347 Governance Lane Prefix
 - Governance-owned fitness lanes for this microservice use the `oya-governance-*` prefix. The canonical vocabulary is enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
@@ -49,11 +49,10 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT when shard p99 latency exceeds SLO or utilization exceeds 80 percent, and by COLD-MERGE when adjacent shards both run below 20 percent utilization for more than 24 hours; per-microservice overrides must be explicit.
 - Relevant admission lanes are `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, and `oya-governance-audit-chain-emit-on-automation-events`.
 
-### ADR-0349 Jenkins And ArgoCD CI/CD Context
-- Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates for this microservice across air-gap, on-prem, colo, and Oyatie-as-provider deployment contexts.
-- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
-- ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
-- CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
+### ADR-0349 CI/CD Context (superseded authority)
+- Jenkins and ArgoCD are historical context only and are not interim CI/CD authorities for this microservice.
+- Durable direction is Kubernetes-native oya-ci with Prow-style jobs for CI and release-conveyor-like promotion/deployment seams for CD.
+- GitHub and GitHub Actions remain temporary PR/publication and shadow-evidence adapters while native SCM/CI/CD matures; they must not become first-class durable authority.
 
 ## ADR-0339 integration
 - Integration state: PROPOSED for `workplace-integration`; ACCEPTED waits for service wrapper implementation and signed module evidence.

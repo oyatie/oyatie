@@ -559,7 +559,7 @@ References: HIPAA 45 CFR §164.308 + §164.312 + §164.502 + §164.514; FDA 21 C
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/docs-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/docs-overlay.md`.
 
 - PDPA (Singapore) §13 + §24
 - Privacy Act 1988 (Australia) APP 8 + APP 11

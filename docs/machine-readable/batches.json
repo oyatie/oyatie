@@ -636,7 +636,7 @@
     "regional-pack-kr": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-kr/"
+        "docs/regional-packs/oya-pack-kr/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -646,7 +646,7 @@
     "regional-pack-jp": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-jp/"
+        "docs/regional-packs/oya-pack-jp/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -656,7 +656,7 @@
     "regional-pack-us": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-us/"
+        "docs/regional-packs/oya-pack-us/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -666,7 +666,7 @@
     "regional-pack-eu": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-eu/"
+        "docs/regional-packs/oya-pack-eu/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -676,7 +676,7 @@
     "regional-pack-in": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-in/"
+        "docs/regional-packs/oya-pack-in/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -686,7 +686,7 @@
     "regional-pack-br": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-br/"
+        "docs/regional-packs/oya-pack-br/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -696,7 +696,7 @@
     "regional-pack-ksa": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-ksa/"
+        "docs/regional-packs/oya-pack-ksa/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -706,7 +706,7 @@
     "regional-pack-ae": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-ae/"
+        "docs/regional-packs/oya-pack-ae/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -716,7 +716,7 @@
     "regional-pack-au": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-au/"
+        "docs/regional-packs/oya-pack-au/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -726,7 +726,7 @@
     "regional-pack-sg": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-sg/"
+        "docs/regional-packs/oya-pack-sg/"
       ],
       "depends_on": [
         "regional-pack-architecture"

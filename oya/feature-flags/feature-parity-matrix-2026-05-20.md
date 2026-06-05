@@ -214,8 +214,8 @@ Doctrine note: Per `feedback_tenant_class_2026_05_20`, capabilities are NOT tena
 | Language | LaunchDarkly | Statsig | Split.io | oyatie feature-flags | Tenant-class | Evidence |
 |---|---|---|---|---|---|---|
 | Rust | ✗ (community) | ✗ | ✗ | ✓ (Phase 1; canonical) | both | IP-014 + `oya-feature-flags-sdk` |
-| TypeScript / Node.js | ✓ | ✓ | ✓ | ✓ (Phase 1) | both | IP-015 + `@oyatie/feature-flags` |
-| Python | ✓ | ✓ | ✓ | ✓ (Phase 1) | both | IP-016 + `oyatie-feature-flags` |
+| TypeScript / Node.js | ✓ | ✓ | ✓ | ◯ (generated compatibility; deferred policy review) | both | IP-015 + no repo-root pnpm authority |
+| Python | ✓ | ✓ | ✓ | ◯ (generated compatibility; deferred policy review) | both | IP-016 + no ad-hoc Python surface authority |
 | Go | ✓ | ✓ | ✓ | ✓ (Phase 2 roadmap) | both | IP-022 |
 | Java | ✓ | ✓ | ✓ | ✓ (Phase 2 roadmap) | both | IP-023 |
 | Kotlin | ✓ (Android) | partial | ✓ (Android) | ✓ (Phase 2; under frontend allowlist for Android) | both | per `feedback_rust_strict_only_no_python_2026_05_20` frontend allowlist |

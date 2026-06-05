@@ -191,6 +191,6 @@ topology specific to that pack.
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/tasks-multi-region-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tasks-multi-region-overlay.md`.
 
 (Pattern follows calendar's; pack-au + pack-in + pack-br + pack-ae + pack-ksa each carry their own employment-record retention floor per local Labour-Law.)

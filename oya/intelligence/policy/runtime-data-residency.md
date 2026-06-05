@@ -180,7 +180,7 @@ Limitations (per DPIA R-08):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/foundry-runtime-residency-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-runtime-residency-overlay.md`.
 
 ## Verification
 
@@ -198,7 +198,7 @@ Per-pack overlays at `regional-packs/<pack>/foundry-runtime-residency-overlay.md
 - `microservices/intelligence/policy/runtime-isolation.md`.
 - `microservices/intelligence/multi-region.md`.
 - `microservices/intelligence/legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa}.md`.
-- `regional-packs/<pack>/foundry-runtime-residency-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-runtime-residency-overlay.md`.
 - OCI region documentation.
 - GDPR Arts. 44–50; EDPB Recommendations 01/2020.
 - EU AI Act Art. 10.

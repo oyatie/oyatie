@@ -490,7 +490,7 @@ Compliance frameworks engaged: KR-ISMS-P + KR PIPA + KR 전자문서법 + KR FSC
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/foundry-runtime-overlay.md`; each follows this structure with local citations.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-runtime-overlay.md`; each follows this structure with local citations.
 
 ## Compliance Cross-Mapping (Globally Enforced)
 

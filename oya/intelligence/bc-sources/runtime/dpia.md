@@ -256,7 +256,7 @@ APPI Arts. 17–27 + METI voluntary AI governance scheme satisfied.
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md`.
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/dpia-overlay.md`.
 
 ## Re-review Triggers
 

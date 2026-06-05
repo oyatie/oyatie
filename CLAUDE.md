@@ -55,6 +55,8 @@ buck2 build //:github-lane-unlocker-bridge-check
 
 Use `specs/repo-hygiene-automation.json` for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene. Use `/specs/retired-external-substrate-registry.json` for tombstoned external substrate names; active guidance should say "retired external SCM/CI/CD substrates" rather than reintroducing old authorities.
 
+Use capability names for active tools, checks, manifests, policies, and context fields. ADR/PRD/PHASE/IP tokens belong only in actual decision/spec/phase/implementation-plan docs; use `context.doctrine.buck2_prow_ci_authority`, not `context.doctrine.adr_0513`.
+
 
 
 Prow/Kubernetes-native lane unlocker: no retired external SCM/CI/CD substrates interim authority; Cloud auth/shared substrate and Oyatie product auth/shared substrate are decoupled now; no shared contract or shared surface until a later rewrite and rewire of Oyatie products to consume the Cloud IdP. Buck2 remains build/test/check authority. GitHub is a PR/publication adapter and GitHub Actions is shadow/compatibility evidence, not durable CI authority.

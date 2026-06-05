@@ -273,7 +273,7 @@ Authors do not need to write per-pack manifests; the manifest applies universall
 - pack-kr (KR-FSS for financial-services tenants): minimum target 99.95%; audit log retention 5y.
 - pack-eu (NIS2 for in-scope tenants): minimum target 99.9% + incident-reporting timeline integration.
 
-Pack overlays at `regional-packs/<pack>/observability-slo-overlay.md` (per-pack team owned).
+Pack overlays are per-pack team owned: documentation lives under `docs/regional-packs/<pack>/`, and cloud/sovereign overlay artifacts are registered in `registry/sovereign-cloud/per-pack-overlay-status.tsv`.
 
 ## Versioning + Sunset
 

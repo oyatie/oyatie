@@ -168,7 +168,7 @@ Per `incident-response.md`:
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics at `regional-packs/<pack>/audit-chain-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing for EU financial-services tenants.
+Per-pack BCDR specifics at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/audit-chain-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing for EU financial-services tenants.
 
 ## Verification
 

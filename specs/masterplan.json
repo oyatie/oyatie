@@ -1055,7 +1055,7 @@
             {
               "id": "IP-006-polyglot-indexers",
               "status": "complete",
-              "deliverable": "Swift/Kotlin/C#/C++/XAML/TypeScript/config/contract semantic indexers with cross-language dependency edges.",
+              "deliverable": "Swift/Kotlin/C#/C++/XAML/strict-TypeScript-tooling-exception/config/contract semantic indexers with cross-language dependency edges.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
               "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md"
@@ -1310,7 +1310,7 @@
       {
         "id": "IP-006-polyglot-indexers",
         "status": "complete",
-        "deliverable": "Swift/Kotlin/C#/C++/XAML/TypeScript/config/contract semantic indexers with cross-language dependency edges.",
+        "deliverable": "Swift/Kotlin/C#/C++/XAML/strict-TypeScript-tooling-exception/config/contract semantic indexers with cross-language dependency edges.",
         "execution_unit": "ChangeSet",
         "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md"
       },
@@ -1344,7 +1344,7 @@
       "ci_claim_coverage": "100% for promoted bundles",
       "controller_owned_rebases": "100% for promoted bundles",
       "controller_owned_merge_queue_enrollment": "100% for merge-queue-bound bundles",
-      "polyglot_claim_coverage": "100% for promoted Rust/TS/Swift/Kotlin/C#/C++/XAML/schema/config changes",
+      "polyglot_claim_coverage": "100% for promoted Rust/strict-TypeScript-tooling-exception/Swift/Kotlin/C#/C++/XAML/schema/config changes",
       "review_fix_loop_terminal_state_recorded": "100%"
     },
     "review_fix_loop": {
@@ -1359,7 +1359,7 @@
       "source_spec": "/specs/gitops-vcs-replacement.json#agentic_development_requirements",
       "required_languages": [
         "Rust",
-        "TypeScript/JavaScript",
+        "Strict TypeScript tooling exception / generated JavaScript only",
         "Swift",
         "Kotlin",
         "C#",
@@ -3728,7 +3728,7 @@
               {
                 "id": "M02-P02-IP-002",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-visibility-operator-plane/IP-002-dashboard-svelte.md",
-                "title": "SvelteKit dashboard (distroless image per Directive 5)",
+                "title": "Rust/Leptos dashboard (distroless image per Directive 5)",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",

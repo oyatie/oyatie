@@ -186,7 +186,7 @@ For real-time updates: <status.oyatie.dev>
 
 ### PDPA (Singapore + Australia + others)
 
-Per-pack timelines in `regional-packs/<pack>/foundry-supervisor-incident-notification-overlay.md`.
+Per-pack timelines in `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-supervisor-incident-notification-overlay.md`.
 
 ### NIS2 (EU 2022/2555)
 

@@ -222,7 +222,7 @@ APPI voluntary DPIA per PIPC voluntary scheme.
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md` carry pack-specific legal-citation depth. Each follows this document's 7-step structure substituting local laws:
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/dpia-overlay.md` carry pack-specific legal-citation depth. Each follows this document's 7-step structure substituting local laws:
 
 - pack-sg: PDPA 2012 Part III + IV; MAS Notice 644 for financial.
 - pack-au: Privacy Act 1988 APP 1-13; APRA-CPS 234.
