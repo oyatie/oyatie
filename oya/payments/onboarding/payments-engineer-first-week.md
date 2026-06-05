@@ -23,17 +23,13 @@ Acceptance: you can sketch the auth path: tenant API → Cedar gate → routing 
 
 ## Day 2 — DemoTrial payments cell bootstrap
 
-```sh
-cargo run -p oya-dev-cli -- payments bootstrap \
-    --profile demo_trial \
-    --cell drill-syd-1 \
-    --psp-mode sandbox \
-    --stripe-secret-key-secret-name stripe-sandbox-test \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/payments \
-    --valkey-endpoint valkey://drill-valkey-syd-1:6379 \
-    --pulsar-endpoint pulsar://drill-pulsar-syd-1:6650 \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: payments bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 12 min. Verify after bootstrap:

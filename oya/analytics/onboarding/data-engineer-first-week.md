@@ -22,14 +22,13 @@ Acceptance: you can sketch on a whiteboard the request path: tenant API → anal
 
 ## Day 2 — demo_trial analytics cell bootstrap
 
-```sh
-cargo run -p oya-dev-cli -- analytics bootstrap \
-    --tenant-class demo_trial \
-    --cell drill-syd-1 \
-    --keeper-nodes drill-cks-1,drill-cks-2,drill-cks-3 \
-    --clickhouse-nodes drill-ch-1,drill-ch-2 \
-    --pulsar-endpoint pulsar://drill-pulsar-syd-1:6650 \
-    --kubeconfig ./drill-syd-1.kubeconfig
+```text
+Native operation: analytics bootstrap
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 Expected runtime: ≤ 20 min. Watch the bootstrap log for the phases (in order): Keeper quorum elected, ClickHouse server-1 schema applied, ClickHouse server-2 replica synced, Pulsar consumer slots provisioned, MV set applied, smoke-test rollups verified.
@@ -48,13 +47,13 @@ Acceptance: cluster up, you can describe the role of each Keeper Raft member fro
 
 Onboard a synthetic drill tenant:
 
-```sh
-cargo run -p oya-dev-cli -- analytics tenant-onboard \
-    --cell drill-syd-1 \
-    --tenant-id drill-acme \
-    --pack us-default \
-    --tenant-class paid \
-    --tables outbox.workflow_event,outbox.audit_event,outbox.billing_event
+```text
+Native operation: analytics tenant-onboard
+Route: cloud control-plane operation ledger (not local retired CLI/raw Cargo)
+Required evidence:
+- Buck2 target(s) for the changed contract/runtime
+- Prow/Kubernetes-native `oya-ci-required` job URL
+- operation ledger id and emitted audit-chain event ids
 ```
 
 The onboarding controller:
