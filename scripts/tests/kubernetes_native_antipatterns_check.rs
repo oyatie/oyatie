@@ -22,9 +22,9 @@ fn checked_in_kubernetes_native_antipattern_contract_passes() {
     let evaluation = gate::evaluate(Path::new(&repo_root()));
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert!(evaluation.failures.is_empty());
-    assert_eq!(evaluation.required_patterns, 33);
-    assert_eq!(evaluation.forbidden_anti_patterns, 36);
-    assert_eq!(evaluation.official_sources, 31);
+    assert_eq!(evaluation.required_patterns, 36);
+    assert_eq!(evaluation.forbidden_anti_patterns, 37);
+    assert_eq!(evaluation.official_sources, 33);
 }
 
 #[test]
@@ -54,6 +54,23 @@ fn contract_rejects_missing_untrusted_runtime_guard() {
         failures
             .iter()
             .any(|failure| failure == "required_patterns missing sandboxed_untrusted_runtime"),
+        "{:?}",
+        failures
+    );
+}
+
+#[test]
+fn contract_rejects_missing_cue_first_cell_pod_config_authority() {
+    let contract = read_repo_file("specs/kubernetes-native-anti-patterns.json").replace(
+        "\"id\": \"cue_first_cell_pod_config_authority\"",
+        "\"id\": \"cue_first_cell_pod_config_authority_removed\"",
+    );
+    let failures = gate::contract_failures(&contract);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure
+                == "required_patterns missing cue_first_cell_pod_config_authority"),
         "{:?}",
         failures
     );

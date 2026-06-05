@@ -14,11 +14,15 @@
     "decision": "Hyperscaler/cloud/Kubernetes-native lanes must avoid candidate-owned truth, blind live mutation, shared mutable bottlenecks, retired substrate bridges, ad-hoc automation sprawl, unpinned supply-chain inputs, direct CI deploys, and unbounded parallelism.",
     "contract": "specs/kubernetes-native-anti-patterns.json",
     "kubernetes_native_anti_pattern_contract": "specs/kubernetes-native-anti-patterns.json",
+    "cloud_cell_elasticity_policy": "specs/cloud-cell-elasticity-policy.json",
     "check": "buck2 build //:kubernetes-native-anti-pattern-check",
+    "cloud_cell_elasticity_check": "buck2 build //:cloud-cell-elasticity-policy-check",
     "required_patterns": [
       "controller_reconciliation_over_manual_mutation",
       "trusted_controller_owned_oya_ci_required",
       "controller_oriented_kubernetes_scale_pause_drain",
+      "cue_first_cell_pod_config_authority",
+      "scale_to_zero_eligibility_gate",
       "pointer_thin_or_generated_shared_surfaces",
       "native_scm_prow_kubernetes_ci_release_conveyor",
       "rust_buck2_first_gate_authority",
@@ -47,6 +51,7 @@
       "new_python_or_shell_gate_sprawl",
       "github_actions_as_durable_ci_authority",
       "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
+      "first_party_helm_template_authority",
       "floating_unpinned_actions_images_or_toolchains",
       "static_long_lived_pipeline_secrets",
       "candidate_controlled_check_scope",
@@ -195,6 +200,7 @@
     "buck2 build //:kubernetes-native-anti-pattern-check",
     "buck2 build //:buck2-authority-policy-check",
     "buck2 build //:latest-toolchain-pin-updater-check",
+    "buck2 build //:cloud-cell-elasticity-policy-check",
     "buck2 build //:retired-grouping-wording-check",
     "buck2 build //libs/oya-check-no-grouping:no-grouping-kernel-check"
   ],
@@ -230,6 +236,30 @@
     {
       "url": "https://architecture.cncf.io/",
       "establishes": "CNCF Cloud Native Reference Architecture properties for Kubernetes-native systems."
+    },
+    {
+      "url": "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+      "establishes": "CUE can validate and export Kubernetes configuration for first-party cloud-cell desired-state authoring."
+    },
+    {
+      "url": "https://helm.sh/docs/topics/charts/",
+      "establishes": "Helm charts remain useful as packaged Kubernetes-resource adapters for external ecosystems, not first-party policy authority."
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/horizontalpodautoscaler",
+      "establishes": "GKE HPA reference for replica-count autoscaling from metrics."
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/verticalpodautoscaler",
+      "establishes": "GKE VPA reference for workload resource right-sizing."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/best-practices/karpenter.html",
+      "establishes": "AWS EKS Karpenter best-practice reference for cluster capacity provisioning from pending pods."
+    },
+    {
+      "url": "https://keda.sh/docs/2.18/concepts/scaling-deployments/",
+      "establishes": "KEDA reference for event-driven Kubernetes scaling and scale-to-zero patterns."
     },
     {
       "url": "https://kubernetes.io/docs/tasks/run-application/scale-deployment/",
@@ -568,6 +598,24 @@
       "lane": "platform-architecture",
       "action": "Audit top-level cross-cutting roots and shared files for substrate-owned relocation with central registry pointers. First proven pattern: top-level regional-packs moved to cloud/cloud-iac/sovereign-cloud-overlays with registry/sovereign-cloud/per-pack-overlay-status.tsv.",
       "conflict_mitigation": "Prefer substrate-owned files plus registry indexes over broad shared roots; move only one root family per PR with verifier updates."
+    },
+    {
+      "id": "cue_first_cell_pod_config_authority",
+      "lane": "platform-cloud",
+      "action": "Move first-party cloud-cell and pod desired-state authoring from hand-edited Helm/YAML surfaces to CUE packages exported to Kubernetes manifests and checked by Rust/Buck2.",
+      "conflict_mitigation": "Lanes own CUE packages and data shards; generated manifests and any Helm adapter wrappers are reproducible outputs, not shared hand-edit surfaces."
+    },
+    {
+      "id": "helm_adapter_compatibility_wrapper",
+      "lane": "platform-cloud",
+      "action": "Retain Helm only for third-party charts or temporary compatibility wrappers generated from CUE-owned source when ecosystem integration requires it.",
+      "conflict_mitigation": "Do not expand first-party Helm templates; migrate policy-critical templates into CUE-owned packages before live cloud-cell claims."
+    },
+    {
+      "id": "scale_to_zero_eligibility_gate",
+      "lane": "platform-cloud",
+      "action": "Gate scale-to-zero to stateless, event-driven, batch, preview/dev, or async noncritical workloads with explicit trigger, idempotency, cold-start SLO, prewarm/rollback policy, and queue backpressure evidence.",
+      "conflict_mitigation": "Keep scale policy in workload-owned CUE/data shards instead of shared Helm/YAML toggles."
     },
     {
       "id": "stale_doc_inventory_followups",

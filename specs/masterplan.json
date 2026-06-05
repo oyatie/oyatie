@@ -550,6 +550,8 @@
         "Do not revive an oya vcs CLI; current lane work uses plain git/gh adapters and future native control goes through service APIs, Rust libraries, Buck2 targets, and Prow jobs.",
         "Productize Policy-as-Code, Compliance-as-Code, Policy-as-a-Service, Platform-as-a-Service, Containers-as-a-Service, and Compliance-as-a-Service as cloud-native/Kubernetes-native tenant capabilities backed by PBAC/ABAC, mature policy-engine evaluation, signed bundles, dry-run/shadow policy evaluation, audit evidence, and per-tenant SLOs.",
         "Dogfood Oyatie as a tenant: internal product, CI/CD, policy, compliance, observability, and cloud substrate workloads must consume the same PaaS/Containers-as-a-Service/Compliance-as-a-Service/PBAC/PaC/CaC APIs as external tenants, with break-glass as the only hidden privileged path.",
+        "Make CUE the first-party desired-state and validation authority for cloud-cell and pod configuration (cue_first_cell_pod_config_authority); export generated Kubernetes manifests through Buck2/Prow checks, and keep Helm only as a third-party chart or temporary compatibility adapter (helm_adapter_compatibility_wrapper).",
+        "Adopt cloud-cell elasticity policy as immediate work: HPA owns replica demand, VPA owns right-sizing, node autoscalers supply capacity, scale_to_zero_eligibility_gate is gated by workload class/cold-start SLO/idempotency, and cell rebalancing requires residency/compliance permits, capacity headroom, audit, quota, and rollback.",
         "Adopt proven hyperscaler patterns first; reimplement in Rust/Oyatie-native seams only when benchmark/evidence shows better control, performance, portability, tenant isolation, or policy/compliance proof. Reject novelty rewrites, opaque policy engines, candidate-owned truth, cacheless CI, and shared mutable bottlenecks."
       ],
       "non_goals": [
@@ -574,7 +576,8 @@
       "prowjob_registry_green": "buck2 build //:oya-ci-prowjob-registry-check",
       "prow_controller_config_green": "buck2 build //:oya-ci-prowjob-registry-check validates specs/generated/oya-ci-controller-config.generated.yaml as local/static controller config evidence",
       "prow_controller_schema_green": "buck2 build //:oya-ci-controller-config-check validates generated OyaCIControllerConfig schema/admission/security invariants without live cluster mutation",
-      "kubernetes_native_antipatterns_green": "buck2 build //:kubernetes-native-anti-pattern-check validates hyperscaler/cloud/Kubernetes-native anti-pattern guardrails, including stateless Prow pods, cache boundaries, supply-chain provenance, policy-as-code admission, quota/fair scheduling, generated lane fan-in, lease_based_controller_coordination, topology_spread_and_dedicated_node_pools, cluster_admin_or_wildcard_rbac_for_runners rejection, and progressive delivery, without live Kubernetes or GitHub mutation"
+      "kubernetes_native_antipatterns_green": "buck2 build //:kubernetes-native-anti-pattern-check validates hyperscaler/cloud/Kubernetes-native anti-pattern guardrails, including stateless Prow pods, cache boundaries, supply-chain provenance, policy-as-code admission, quota/fair scheduling, generated lane fan-in, lease_based_controller_coordination, topology_spread_and_dedicated_node_pools, cluster_admin_or_wildcard_rbac_for_runners rejection, and progressive delivery, without live Kubernetes or GitHub mutation",
+      "cloud_cell_elasticity_policy_green": "buck2 build //:cloud-cell-elasticity-policy-check validates CUE-first cloud-cell/pod desired-state posture, Helm adapter-only role, HPA/VPA/node autoscaler boundaries, scale-to-zero eligibility, workload identity/metadata lockdown, auto-healing guardrails, cell-rebalance permits, and quota/fairness controls without live Kubernetes or provider mutation"
     },
     "policy_compliance_productization": {
       "status": "p00_p01_backlog_only",
@@ -619,11 +622,14 @@
       "prow_controller_config": "/specs/generated/oya-ci-controller-config.generated.yaml",
       "prow_controller_config_contract": "/specs/oya-ci-controller-config-contract.json",
       "kubernetes_native_anti_pattern_contract": "/specs/kubernetes-native-anti-patterns.json",
+      "cloud_cell_elasticity_policy": "/specs/cloud-cell-elasticity-policy.json",
       "prowjob_registry_check": "buck2 build //:oya-ci-prowjob-registry-check",
-      "kubernetes_native_anti_pattern_check": "buck2 build //:kubernetes-native-anti-pattern-check"
+      "kubernetes_native_anti_pattern_check": "buck2 build //:kubernetes-native-anti-pattern-check",
+      "cloud_cell_elasticity_policy_check": "buck2 build //:cloud-cell-elasticity-policy-check"
     },
     "supporting_specs": [
       "/specs/kubernetes-native-anti-patterns.json",
+      "/specs/cloud-cell-elasticity-policy.json",
       "/specs/repo-hygiene-automation.json",
       "/specs/oya-ci-prowjob-registry.json",
       "/specs/github-lane-unlocker-bridge.json",
@@ -808,7 +814,8 @@
         "sbom_and_provenance_attestations",
         "opentofu_iac_modules",
         "gitops_manifests",
-        "kubernetes_manifests_or_helm_kustomize",
+        "cue_generated_kubernetes_manifests",
+        "helm_adapter_wrapper_when_external_chart_required",
         "cluster_conformance_evidence",
         "host_bootstrap_pack_evidence",
         "talos_remote_config_join_pack",

@@ -52,6 +52,8 @@ const OFFICIAL_SOURCES: &[&str] = &[
     "https://kubernetes.io/docs/reference/access-authn-authz/rbac/",
     "https://kubernetes.io/docs/concepts/configuration/secret/#information-security-for-secrets",
     "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
+    "https://cue.dev/docs/getting-started-with-kubernetes-cue/",
+    "https://helm.sh/docs/topics/charts/",
 ];
 
 const REQUIRED_PATTERNS: &[&str] = &[
@@ -64,6 +66,9 @@ const REQUIRED_PATTERNS: &[&str] = &[
     "sandboxed_untrusted_runtime",
     "service_mesh_mtls_intent",
     "pointer_thin_or_generated_shared_surfaces",
+    "cue_first_cell_pod_config_authority",
+    "helm_adapter_compatibility_wrapper",
+    "scale_to_zero_eligibility_gate",
     "shadow_adapters_not_authority",
     "native_scm_ci_cd_service_seams",
     "cloud_auth_product_auth_decoupled_until_rewire",
@@ -99,6 +104,7 @@ const FORBIDDEN_ANTI_PATTERNS: &[&str] = &[
     "new_python_or_shell_gate_sprawl",
     "oya_cli_revival",
     "cargo_or_tarpaulin_as_monorepo_authority_over_buck2",
+    "first_party_helm_template_authority",
     "node_metadata_access_enabled",
     "default_service_account_token_mount",
     "privileged_or_mutable_container_defaults",
