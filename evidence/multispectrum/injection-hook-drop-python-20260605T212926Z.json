@@ -1,0 +1,48 @@
+{
+  "schema": "multispectrum-review.v2.4.0",
+  "change_id": "injection-hook-drop-python-20260605T212926Z",
+  "change_class_id": "CC-7",
+  "claim_boundary": "local_static_hook_cleanup_only_no_live_mutation",
+  "summary": "Removes the unpinned interpreter from the hot-path prompt-injection advisory runtime hook, locks advisory behavior with stdin fixtures, and records source-backed read-only hook enhancement candidates for future Rust/Buck2 checker lanes.",
+  "facets": {
+    "F1_scope": "P00 read-only hook enhancement cleanup slice; injection-content scanner extraction, governance hook tests, and backlog pointers changed.",
+    "F2_source_authority": "docs/AGENTS.md, specs/agent-hook-runtime-manifest.json, specs/repo-hygiene-automation.json, specs/masterplan.json, official GitHub Actions security guidance, Git hooks documentation, OWASP LLM Top 10, SLSA requirements, Kubernetes Pod Security Standards, CNCF Cloud Native Reference Architecture.",
+    "F3_tests": [
+      "bash scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh; governance hook retired VCS/wrapper surface tests passed",
+      "jq empty specs/repo-hygiene-automation.json specs/masterplan.json; exit 0",
+      "buck2 build //:agent-hook-runtime-manifest-check //:repo-hygiene-automation-check //:buck2-authority-policy-check; BUILD SUCCEEDED, Build ID 5d16c596-ec09-4b78-b549-477b051aad1d",
+      "git diff --check; exit 0",
+      "bash -n tools/hooks/injection-content-scanner.sh scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh; exit 0"
+    ],
+    "F4_security": "Preserves untrusted-tool-result advisory behavior, reduces host interpreter supply-chain exposure, and records future least-privilege/pinning/provenance/Kubernetes-restricted read-only checks without granting live authority.",
+    "F5_privacy": "Hook reads stdin payload only and emits stderr advisory; no payload persistence added.",
+    "F6_reliability": "Regression tests cover non-blocking exit, direct tool_response detection, content-block text detection, Codex tool_input detection, benign silence, and forbidden python3 reintroduction in the active hook file.",
+    "F7_operability": "Runtime hook command path remains unchanged; Buck2/Prow remain authoritative; runtime hook stays advisory and pointer-thin.",
+    "F8_performance": "Avoids spawning python3 for every PostToolUse payload scan; no new runtime dependency introduced.",
+    "F9_maintainability": "Backlog separates future read-only hook concerns into candidate_read_only_checks so lanes can implement disjoint Rust/Buck2 checkers rather than expanding shared scripts.",
+    "F10_compatibility": "Maintains exit 0 advisory contract and scans common tool_response/content/tool_input payload shapes.",
+    "F11_supply_chain": "No new dependencies; source references point to official/upstream guidance.",
+    "F13_traceability": "Follow-up to read_only_hook_enhancement_backlog and //:agent-hook-runtime-manifest-check."
+  },
+  "official_sources": [
+    "https://git-scm.com/docs/githooks",
+    "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions",
+    "https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication",
+    "https://docs.github.com/en/actions/concepts/security/artifact-attestations",
+    "https://slsa.dev/spec/v1.2/requirements",
+    "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+    "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+    "https://architecture.cncf.io/"
+  ],
+  "verification": {
+    "buck2_build_id": "5d16c596-ec09-4b78-b549-477b051aad1d",
+    "hook_behavior": {
+      "tool_response_injection_warns": true,
+      "content_block_injection_warns": true,
+      "tool_input_system_prefix_warns": true,
+      "benign_tool_response_silent": true,
+      "advisory_exit_zero": true,
+      "python3_invocation_removed_from_hook": true
+    }
+  }
+}

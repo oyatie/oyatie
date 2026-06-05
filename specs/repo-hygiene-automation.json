@@ -1137,15 +1137,50 @@
       "conflict_mitigation": "Prefer one Rust/Buck2 checker per hook concern plus generated manifest validation so runtime hooks stay pointer-thin and do not become shared hand-edited policy blobs.",
       "source_references": [
         "https://git-scm.com/docs/githooks",
-        "https://docs.github.com/en/actions/how-tos/security-for-github-actions",
+        "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions",
+        "https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication",
+        "https://docs.github.com/en/actions/concepts/security/artifact-attestations",
         "https://slsa.dev/levels",
+        "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
         "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
         "https://architecture.cncf.io/"
+      ],
+      "candidate_read_only_checks": [
+        {
+          "id": "runtime_hook_interpreter_free_hot_path",
+          "purpose": "Warn when active PreToolUse/PostToolUse hook payload parsing depends on unpinned host interpreters instead of Rust/Buck2-owned checkers or minimal shell glue.",
+          "authority_boundary": "advisory only; Buck2/Prow remain enforcement authority"
+        },
+        {
+          "id": "github_actions_permissions_and_pinning_advisor",
+          "purpose": "Read-only scan for workflow token permissions, long-lived secret usage, mutable action refs, Node runtime deprecation risk, and reusable-workflow drift while GitHub Actions remains a temporary adapter.",
+          "authority_boundary": "advisory only; protected branch/Prow/Buck2 decide merge readiness"
+        },
+        {
+          "id": "artifact_attestation_and_slsa_advisor",
+          "purpose": "Read-only scan that release/image lanes declare artifact attestation, provenance, isolated-build, and dependency-pin expectations before claiming supply-chain evidence.",
+          "authority_boundary": "advisory only; provenance-producing CI lanes are authoritative"
+        },
+        {
+          "id": "kubernetes_restricted_workload_advisor",
+          "purpose": "Read-only scan for privileged pods, writable root filesystems, undeclared capabilities, default service-account token mounts, missing runtime isolation, and absent default-deny network-policy evidence.",
+          "authority_boundary": "advisory only; admission control and workload-owned policy packages enforce"
+        },
+        {
+          "id": "shared_surface_hotspot_advisor",
+          "purpose": "Warn before broad edits to root docs, shared CI, generated registries, or high-conflict specs and point agents to substrate-owned shards or generated aggregators.",
+          "authority_boundary": "advisory only; lane ownership and CODEOWNERS/review gates decide"
+        },
+        {
+          "id": "prompt_injection_trust_boundary_advisor",
+          "purpose": "Scan untrusted tool/web/file output for instruction-override markers and emit trust-boundary reminders without blocking tool execution.",
+          "authority_boundary": "advisory only; agent policy decides trusted instruction hierarchy"
+        }
       ],
       "implemented_checks": [
         "//:agent-hook-runtime-manifest-check"
       ],
-      "implementation_status": "first Rust/Buck2 manifest/config drift checker landed; runtime hooks remain advisory/read-only and remaining hook-router hardening stays backlog-only until separately verified",
+      "implementation_status": "first Rust/Buck2 manifest/config drift checker landed; injection-content scanner behavior is covered by governance hook tests; runtime hooks remain advisory/read-only and remaining hook-router hardening stays backlog-only until separately verified",
       "claim_boundary": "backlog_only_no_live_mutation"
     },
     {
