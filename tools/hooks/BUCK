@@ -1,0 +1,24 @@
+# tools/hooks/BUCK
+#
+# Rust/Buck2-backed advisory hook tools. CI/Prow lanes invoke these with
+# `buck2 run` so durable hook logic stays in Rust instead of ad-hoc shell.
+
+export_file(
+    name = "no-cargo-enforcer-sh",
+    src = "no-cargo-enforcer.sh",
+    visibility = ["PUBLIC"],
+)
+
+rust_binary(
+    name = "spec-version-pin-suggester",
+    srcs = ["spec-version-pin-suggester/src/main.rs"],
+    crate_root = "spec-version-pin-suggester/src/main.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "spec-version-pin-suggester-tests",
+    srcs = ["spec-version-pin-suggester/src/main.rs"],
+    crate_root = "spec-version-pin-suggester/src/main.rs",
+    visibility = ["PUBLIC"],
+)

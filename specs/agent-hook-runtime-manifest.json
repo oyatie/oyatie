@@ -75,21 +75,6 @@
       "network": false
     },
     {
-      "path": "tools/hooks/spec-version-pin-suggester.sh",
-      "purpose": "Warn on contract edits that drift from OpenAPI 3.2.0 or AsyncAPI 3.1.0.",
-      "events": {
-        "codex": [
-          "PostToolUse:Edit|MultiEdit|Write"
-        ],
-        "gemini": [
-          "AfterTool:write_file|replace|edit|write|Edit|Write"
-        ]
-      },
-      "reads": [],
-      "writes": [],
-      "network": false
-    },
-    {
       "path": "tools/hooks/adr-orphan-detect.sh",
       "purpose": "Warn when edited markdown/json references ADR ids without corresponding ADR files.",
       "events": {
@@ -198,6 +183,11 @@
     {
       "path": "tools/hooks/stop-did-you-forget-suggester.sh",
       "replacement": "Verification-before-completion protocol plus CI/controller evidence; no shallow Stop-time assurance hook",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/spec-version-pin-suggester.sh",
+      "replacement": "Rust/Buck2 check target //tools/hooks:spec-version-pin-suggester; runtime hook omitted until local host Rust targets are Buck2-portable",
       "status": "deleted"
     }
   ],
