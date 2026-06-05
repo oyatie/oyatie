@@ -111,7 +111,7 @@
     },
     {
       "id": "ADR-0349",
-      "title": "Jenkins ArgoCD Self Hostable CI CD Substrate",
+      "title": "Historical Jenkins ArgoCD Self Hostable CI CD Substrate",
       "scope": "repo",
       "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
     }

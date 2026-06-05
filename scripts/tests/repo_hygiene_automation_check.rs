@@ -309,6 +309,46 @@ fn runbook_promotion_gate_scan_rejects_retired_jenkins_oya_gate_authority() {
 }
 
 #[test]
+fn cloud_network_dns_authority_scan_rejects_superseded_ci_cd_phrases() {
+    let root = temp_dir("cloud-network-dns-authority");
+    let service_dir = root.join("cloud/cloud-network-dns");
+    fs::create_dir_all(&service_dir).unwrap_or_else(|error| {
+        panic!("create {}: {}", service_dir.display(), error);
+    });
+
+    fs::write(
+        service_dir.join("README.md"),
+        "The canonical local pre-push verifier is still active.\n\
+         Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates.\n\
+         ArgoCD is the canonical GitOps CD orchestrator.\n",
+    )
+    .unwrap_or_else(|error| panic!("write stale cloud-network-dns doc: {error}"));
+    fs::write(
+        service_dir.join("clean.md"),
+        "ADR-0513 Buck2/Prow `oya-ci-required` evidence plus native release-conveyor seams are active.\n",
+    )
+    .unwrap_or_else(|error| panic!("write clean cloud-network-dns doc: {error}"));
+
+    let failures = gate::cloud_network_dns_authority_failures(&root);
+
+    for expected in [
+        "README.md",
+        "canonical local pre-push verifier",
+        "Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates",
+        "ArgoCD is the canonical GitOps CD orchestrator",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+    assert!(
+        failures.iter().all(|failure| !failure.contains("clean.md")),
+        "{failures:?}"
+    );
+}
+
+#[test]
 fn spec_rejects_reintroduced_python_hygiene_command() {
     let mut spec = read_repo_file("specs/repo-hygiene-automation.json");
     spec = spec.replace(
