@@ -9,7 +9,7 @@
   "overlay_consumers": "microservices/<ms>/scorecards/overrides.json#cis_k8s_benchmark",
   "_placeholders": {
     "<ms>": "microservice slug",
-    "<chart>": "Helm chart subdirectory name (defaults to <ms>)"
+    "<desired_state_package>": "service-owned CUE package with generated KRM manifests; Helm adapters are generated compatibility outputs only"
   },
   "categories": {
     "pod_security_standards": {
@@ -18,31 +18,31 @@
         {
           "id": "5.7.1",
           "name": "Pods should run as non-root",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/deployment.yaml#spec.template.spec.securityContext.runAsNonRoot=true",
+          "evidence_pattern": "<service>/iac/cue/workload.cue + <service>/iac/generated/k8s/deployment.yaml#spec.template.spec.securityContext.runAsNonRoot=true",
           "passing": true
         },
         {
           "id": "5.7.2",
           "name": "Pods should have readOnlyRootFilesystem=true",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/deployment.yaml#containers[].securityContext.readOnlyRootFilesystem=true",
+          "evidence_pattern": "<service>/iac/cue/workload.cue + <service>/iac/generated/k8s/deployment.yaml#containers[].securityContext.readOnlyRootFilesystem=true",
           "passing": true
         },
         {
           "id": "5.7.3",
           "name": "Pods should drop ALL capabilities",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/deployment.yaml#containers[].securityContext.capabilities.drop=[ALL]",
+          "evidence_pattern": "<service>/iac/cue/workload.cue + <service>/iac/generated/k8s/deployment.yaml#containers[].securityContext.capabilities.drop=[ALL]",
           "passing": true
         },
         {
           "id": "5.7.4",
           "name": "Pods should not allow privilege escalation",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/deployment.yaml#containers[].securityContext.allowPrivilegeEscalation=false",
+          "evidence_pattern": "<service>/iac/cue/workload.cue + <service>/iac/generated/k8s/deployment.yaml#containers[].securityContext.allowPrivilegeEscalation=false",
           "passing": true
         },
         {
           "id": "5.7.5",
           "name": "Pods should use seccompProfile RuntimeDefault",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/deployment.yaml#spec.template.spec.securityContext.seccompProfile.type=RuntimeDefault",
+          "evidence_pattern": "<service>/iac/cue/workload.cue + <service>/iac/generated/k8s/deployment.yaml#spec.template.spec.securityContext.seccompProfile.type=RuntimeDefault",
           "passing": true
         }
       ]
@@ -53,25 +53,25 @@
         {
           "id": "5.3.1",
           "name": "Default-deny NetworkPolicy in namespace",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/networkpolicy.yaml#default-deny",
+          "evidence_pattern": "<service>/iac/cue/network.cue + <service>/iac/generated/k8s/networkpolicy.yaml#default-deny",
           "passing": true
         },
         {
           "id": "5.3.2",
           "name": "Explicit ingress allow-list via Istio mesh",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/networkpolicy.yaml#allow-mesh-ingress",
+          "evidence_pattern": "<service>/iac/cue/network.cue + <service>/iac/generated/k8s/networkpolicy.yaml#allow-mesh-ingress",
           "passing": true
         },
         {
           "id": "5.3.3",
           "name": "Explicit egress allow-list (no 0.0.0.0/0 to private CIDRs)",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/networkpolicy.yaml#allow-egress (RFC1918 excepted)",
+          "evidence_pattern": "<service>/iac/cue/network.cue + <service>/iac/generated/k8s/networkpolicy.yaml#allow-egress (RFC1918 excepted)",
           "passing": true
         },
         {
           "id": "5.3.4",
           "name": "DNS egress restricted to kube-system",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/networkpolicy.yaml#egress (DNS to kube-system only)",
+          "evidence_pattern": "<service>/iac/cue/network.cue + <service>/iac/generated/k8s/networkpolicy.yaml#egress (DNS to kube-system only)",
           "passing": true
         }
       ]
@@ -100,7 +100,7 @@
         {
           "id": "5.1.5",
           "name": "ServiceAccount token automount disabled where unused",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/templates/deployment.yaml#automountServiceAccountToken=true (only when SA used)",
+          "evidence_pattern": "<service>/iac/cue/workload.cue + <service>/iac/generated/k8s/deployment.yaml#automountServiceAccountToken=true (only when SA used)",
           "passing": true
         }
       ]
@@ -111,7 +111,7 @@
         {
           "id": "5.4.1",
           "name": "Secrets via OpenBao SecretReference URIs (per ADR-0123)",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml#openbao",
+          "evidence_pattern": "<service>/iac/cue/#openbao",
           "passing": true
         },
         {
@@ -134,7 +134,7 @@
         {
           "id": "5.5.1",
           "name": "Images pinned by tag (no :latest)",
-          "evidence_pattern": "microservices/<ms>/iac/helm/<chart>/values.yaml#image.tag (semver-pinned)",
+          "evidence_pattern": "<service>/iac/cue/#image.tag (semver-pinned)",
           "passing": true
         },
         {

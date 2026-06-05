@@ -110,9 +110,27 @@ The current umbrella guard is:
 buck2 build //:kubernetes-native-anti-pattern-check
 ```
 
+## Rust-native engine seam
+
+Oyatie may build a Rust-native CUE-compatible desired-state engine, but it is
+not first-party authority until conformance is proven against upstream CUE
+semantics. The conformance lane must demonstrate a restricted-subset parser,
+constraint/unification compatibility for the repository's CUE packages,
+deterministic generated-KRM output parity, module/import compatibility for
+approved packages, and golden tests comparing Rust output to upstream CUE
+output. Until that evidence exists, CUE remains the compatibility target and
+Buck2/Prow checks treat any Rust engine as an advisory accelerator.
+
+This keeps the hyperscaler pattern intact: adopt a proven interface now,
+replace the high-leverage implementation seam later, and avoid blocking
+parallel product/infra lanes on a language-runtime rewrite.
+
 ## Source-driven basis
 
+- CUE language specification: https://cuelang.org/docs/reference/spec/
 - CUE Kubernetes guide: https://cue.dev/docs/getting-started-with-kubernetes-cue/
+- CUE export command: https://cuelang.org/docs/concept/using-the-cue-export-command/
+- CUE modules reference: https://cuelang.org/docs/reference/modules/
 - Helm chart docs: https://helm.sh/docs/topics/charts/
 - CNCF Cloud Native Architecture: https://architecture.cncf.io/
 - Kubernetes controllers: https://kubernetes.io/docs/concepts/architecture/controller/

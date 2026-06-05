@@ -45,9 +45,9 @@ Do NOT adopt TimescaleDB when:
 }
 ```
 
-### 2. Helm post-install hook
+### 2. CUE/KRM extension job
 
-Add the canonical chart `microservices/<ms>/iac/helm/timescaledb-extension/` to the µservice's Flux Kustomization. The post-install job creates the extension + renders `create_hypertable()` per manifest declarations.
+Declare the TimescaleDB extension job in the service-owned CUE package under `iac/cue/` and export the generated Kubernetes Job/ConfigMap manifests under `iac/generated/k8s/`. The generated job creates the extension and renders `create_hypertable()` per manifest declarations. Helm wrappers are generated adapter outputs only when external chart compatibility is required.
 
 ### 3. Per-µservice refresh + retention worker
 
@@ -103,7 +103,7 @@ refresh + retention worker.
 
 ## Deliverables
 
-1. Helm chart consumption: add `microservices/<ms>/iac/helm/timescaledb-extension/`.
+1. Desired-state package update: add the extension Job and generated KRM output to the service-owned `iac/cue/` package; generate a Helm adapter only if external compatibility requires it.
 2. Manifest update: declare hypertable.
 3. Refresh worker addition: ~30 LOC in `crates/oya-<ms>-worker/`.
 4. SLO authoring: 3-4 OpenSLO sources.

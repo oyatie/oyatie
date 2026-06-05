@@ -23,6 +23,18 @@
       "establishes": "CUE can validate and export Kubernetes configuration, making it suitable as the first-party typed desired-state authority for cloud-cell manifests."
     },
     {
+      "url": "https://cuelang.org/docs/reference/spec/",
+      "establishes": "CUE is a constraint/unification language; Rust feature parity requires language-semantics conformance rather than template replacement."
+    },
+    {
+      "url": "https://cuelang.org/docs/concept/using-the-cue-export-command/",
+      "establishes": "CUE export materializes concrete data from evaluated configuration, so generated KRM parity must be tested before replacing CUE tooling."
+    },
+    {
+      "url": "https://cuelang.org/docs/reference/modules/",
+      "establishes": "CUE modules and imports are part of the compatibility surface for any Rust-native desired-state engine."
+    },
+    {
       "url": "https://helm.sh/docs/topics/charts/",
       "establishes": "Helm charts package Kubernetes resources and are retained as external chart or temporary compatibility adapters, not first-party policy authority."
     },
@@ -213,6 +225,12 @@
       "valid": true,
       "applies_to": ["cloud_cells", "third_party_charts", "kubernetes_manifests"],
       "implementation_hook": "Helm charts can be consumed for external ecosystems or emitted as temporary compatibility wrappers, but hand-authored Helm templates are not first-party policy authority."
+    },
+    {
+      "id": "rust_cue_compatible_desired_state_engine_conformance_lane",
+      "valid": true,
+      "applies_to": ["desired_state", "rust_purity", "buck2", "policy_as_code"],
+      "implementation_hook": "A Rust-native CUE-compatible desired-state engine is a future native seam, not current authority until it proves restricted-subset parsing, CUE unification/constraint compatibility, module/import compatibility, deterministic generated-KRM parity, and golden output comparison against upstream CUE through Buck2/Prow."
     },
     {
       "id": "scale_to_zero_eligibility_gate",

@@ -13,7 +13,7 @@ adr_anchors:
 related_specs:
   - specs/hyperscaler-architecture-invariants.json
   - specs/hyperscaler-gates.json
-canonical_prometheusrule: microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml
+canonical_prometheusrule: observability/iac/generated/k8s/hyperscaler-invariants-canonical-prometheusrule.yaml
 metric_naming_convention: microservices/observability/contracts/metric-naming-convention.md
 status: canonical-base
 ---
@@ -25,7 +25,7 @@ hyperscaler-grade architecture invariants drawn from
 `specs/hyperscaler-architecture-invariants.json`. Per ADR-0064
 canonical-base-and-localization-packs, this document is the seam; the
 canonical PrometheusRule at
-`microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml`
+`observability/iac/generated/k8s/hyperscaler-invariants-canonical-prometheusrule.yaml`
 is the impl; each microservice supplies pure value variation by emitting
 metrics under the convention documented at
 `microservices/observability/contracts/metric-naming-convention.md`.
@@ -86,7 +86,7 @@ Every microservice in `microservices/<ms>/` MUST:
    pod.** This allows the canonical saturation alert to join
    `container_cpu_usage_seconds_total` against `kube_pod_labels` and
    resolve a `microservice` label without per-µservice config. The
-   standard Helm chart `_helpers.tpl` pattern already enforces this.
+   CUE-owned workload schema and generated KRM labels enforce this.
 
 ## The four invariants
 
@@ -166,7 +166,8 @@ halt-the-release signal.
 `OyaErrorBudgetSlowBurn6h6x` (ticket; aggregate).
 
 **Per-microservice surface**: per-SLO burn-rate alerts remain in
-`microservices/<ms>/iac/helm/<chart>/templates/prometheusrule.yaml`
+`<service>/iac/cue/slo.cue` and exported
+`<service>/iac/generated/k8s/prometheusrule.yaml`
 (they reference per-SLI metric names that do not generalize). The
 canonical aggregate alerts above provide the `inv:INV-SLO-ERROR-BUDGET`
 label so the conformance gate can audit by label query without scanning
@@ -204,5 +205,6 @@ Prow/Kubernetes-native `oya-ci-required` evidence.
   INV-* ids.
 - `microservices/observability/contracts/metric-naming-convention.md` —
   canonical-base metric-naming contract.
-- `microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml`
-  — canonical PrometheusRule (the impl).
+- `observability/iac/cue/hyperscaler-invariants.cue` plus
+  `observability/iac/generated/k8s/hyperscaler-invariants-canonical-prometheusrule.yaml`
+  — canonical CUE source and generated PrometheusRule implementation.
