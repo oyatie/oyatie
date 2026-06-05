@@ -39,7 +39,7 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.domains_checked, 6);
     assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 0);
-    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 45);
+    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 44);
 }
 
 #[test]
@@ -250,7 +250,7 @@ fn python_shell_inventory_matches_checked_in_surface() {
     let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json");
     let files = gate::tracked_python_shell_files(Path::new(&repo_root()))
         .expect("Python/shell surface scan should run");
-    assert_eq!(files.len(), 45, "{files:?}");
+    assert_eq!(files.len(), 44, "{files:?}");
     let (_count, failures) =
         gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(failures.is_empty(), "{failures:?}");
@@ -259,13 +259,16 @@ fn python_shell_inventory_matches_checked_in_surface() {
 #[test]
 fn python_shell_inventory_rejects_missing_current_file() {
     let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json")
-        .replace("tools/oci/pull-oci-base.py", "tools/oci/pull-oci-base.rs");
+        .replace(
+            "tools/hooks/session-start-context-inject.sh",
+            "tools/hooks/session-start-context-inject.rs",
+        );
     let (_count, failures) =
         gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(
         failures
             .iter()
-            .any(|failure| failure.contains("tools/oci/pull-oci-base.py")),
+            .any(|failure| failure.contains("tools/hooks/session-start-context-inject.sh")),
         "{failures:?}"
     );
 }
