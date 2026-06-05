@@ -5,11 +5,14 @@ set -uo pipefail
 
 payload="$(cat)"
 
-cmd="$(printf '%s' "$payload" | python3 -c 'import sys,json
-try:
-    print(json.load(sys.stdin).get("tool_input",{}).get("command",""))
-except Exception:
-    print("")' 2>/dev/null || true)"
+# Runtime hooks stay dependency-light: extract the Codex/Gemini command payload
+# locally without an external interpreter. The runtime hook is advisory only;
+# the Buck2/Prow checker owns manifest/config drift enforcement.
+cmd="$(printf '%s' "$payload" \
+  | tr '\n' ' ' \
+  | sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p' \
+  | head -n 1 \
+  | sed -E 's/\\n/ /g; s/\\t/ /g; s/\\r/ /g; s/\\"/"/g; s/\\\\/\\/g')"
 
 # Search/audit commands often mention retired Cargo examples as data. Strip
 # quoted strings before the advisory regex so `rg "cargo test"` does not warn
