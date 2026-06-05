@@ -15,7 +15,9 @@ certificate, track nexus, and generate a filing artefact.
 
 Clone:
 ```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-tax-week1 .worktrees/$USER-tax-week1
+git fetch github-mirror dev
+git worktree add /tmp/oyatie-lane-$USER-tax-week1 -b onboarding/$USER-tax-week1 github-mirror/dev
+cd /tmp/oyatie-lane-$USER-tax-week1
 cd .worktrees/$USER-tax-week1
 ```
 
