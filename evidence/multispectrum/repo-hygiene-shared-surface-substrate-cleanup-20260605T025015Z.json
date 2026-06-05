@@ -1,0 +1,69 @@
+{
+  "schema_version": "multispectrum-review-v2.4.0",
+  "change_id": "repo-hygiene-shared-surface-substrate-cleanup-20260605T025015Z",
+  "created_at": "2026-06-05T02:50:15Z",
+  "change_class_id": "CC-6",
+  "claim_boundary": {
+    "local_static_only": true,
+    "live_kubernetes_mutation_performed": false,
+    "github_branch_protection_mutation_performed": false,
+    "ci_merge_authority_claimed": false,
+    "production_ready_claimed": false
+  },
+  "intent": "Reduce stale shared surfaces before parallel fanout by deleting retired TypeScript/pnpm/MJS/Python surfaces, moving sovereign overlays under cloud-iac ownership, recording Rust/Buck2/Prow policy, and normalizing active Cedar doctrine fields to capability names.",
+  "key_changes": [
+    "Deleted repo-root bin/oya and retired app-shell/workflow-studio TypeScript-pnpm surfaces from active source.",
+    "Removed stale MJS wrappers and two unreferenced Python helper files from durable authority surfaces.",
+    "Moved sovereign cloud overlays from top-level regional-packs into cloud/cloud-iac/sovereign-cloud-overlays with registry pointers.",
+    "Recorded active naming rule: ADR/PRD/PHASE/IP tokens stay in actual docs only; active tools/checks/manifests/policies/context fields use self-explanatory capability names.",
+    "Normalized active Cedar policy doctrine fields such as ADR-numbered active doctrine fields to context.doctrine.buck2_prow_ci_authority and removed retired Jenkins/ArgoCD/Forgejo strings from Cedar policy bodies.",
+    "Added a Rust repo-hygiene gate and regression tests for active Cedar policy context-field provenance-token rejection."
+  ],
+  "verification": [
+    {
+      "command": "jq empty specs/repo-hygiene-automation.json specs/language-discipline-registry.json registry/repo-hygiene/python-shell-surface-inventory.json registry/repo-hygiene/typescript-pnpm-surface-inventory.json specs/masterplan.json specs/root-hub-pointers.json specs/service-inventory.json specs/phase0-structural-packets.json specs/sovereign-cloud-overlays.json oya/feature-flags/manifest.json oya/application/crates/oya-application-shell-frontend-prototype/client-manifest.json docs/machine-readable/risks.json docs/machine-readable/batches.json docs/machine-readable/contradictions.json",
+      "exit_code": 0,
+      "evidence": "JSON syntax accepted for touched machine-readable specs and registries."
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o /tmp/oyatie-repo-hygiene-test && OYA_REPO_ROOT=$PWD /tmp/oyatie-repo-hygiene-test --nocapture",
+      "exit_code": 0,
+      "evidence": "43 tests passed; includes active_policy_context_name_scanner rejects ADR-numbered active doctrine fields and checked_in_repo_hygiene_contract_passes."
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/language_discipline_check.rs --test -o /tmp/oyatie-language-discipline-test && OYA_REPO_ROOT=$PWD /tmp/oyatie-language-discipline-test --nocapture",
+      "exit_code": 0,
+      "evidence": "10 tests passed; language discipline registry and self-explanatory script-name policy remain valid."
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/service_root_classifier_check.rs --test -o /tmp/oyatie-service-root-test && OYA_REPO_ROOT=$PWD /tmp/oyatie-service-root-test --nocapture",
+      "exit_code": 0,
+      "evidence": "7 tests passed after removing deleted app-shell frontend and nested overlay entries from service inventory."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "evidence": "No whitespace errors reported."
+    },
+    {
+      "command": "rg -n 'context\\.doctrine\\.adr_|oyatie\\.jenkins|oyatie\\.argocd|RunCiMirror|RunSelfHostedCi|SyncApplication|GitOpsApplication|oya_verify_ci_required|oya_gate_run_all|github_actions_parity_ok|jcasc_declared|Forgejo|Jenkins|ArgoCD|Argo CD|jenkins\\.|argocd\\.' cloud oya --glob '**/cedar/policies.cedar' || true",
+      "exit_code": 0,
+      "evidence": "No active Cedar policy matches returned."
+    },
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check //:language-discipline-check //:buck2-authority-policy-check //:service-root-classifier-check //:kubernetes-native-anti-pattern-check --show-output",
+      "exit_code": 0,
+      "evidence": "BUILD SUCCEEDED; outputs produced for repo hygiene, language discipline, Buck2 authority, service-root classifier, and Kubernetes-native anti-pattern checks."
+    },
+    {
+      "command": "buck2 build //:oya-ci-prowjob-registry-check //:oya-ci-controller-config-check //:github-lane-unlocker-bridge-check //:rust-llvm-coverage-runner-contract-check --show-output",
+      "exit_code": 0,
+      "evidence": "BUILD SUCCEEDED; outputs produced for Prow job registry, oya-ci controller config, GitHub lane-unlocker bridge, and Rust LLVM coverage contract."
+    }
+  ],
+  "remaining_risks": [
+    "Live GitHub PR/CI state and live Kubernetes workload state were not mutated by this local static cleanup.",
+    "Retired external CI/CD directories under cloud/cloud-iac/iac/*/{jenkins,argocd} remain as path-level retirement candidates; active Cedar bodies were scrubbed and backlog records keep full removal sequenced separately.",
+    "OpenSLO and non-Cedar manifest labels with ADR-keyed provenance remain broader follow-up candidates unless already covered by this PR's changed files."
+  ]
+}

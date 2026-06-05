@@ -181,7 +181,7 @@ Verified by:
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics live at `regional-packs/<pack>/workflow-studio-multi-region-overlay.md`. Example: pack-eu satisfies DORA testing when oyatie has EU financial-services tenants in scope.
+Per-pack BCDR specifics live at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/workflow-studio-multi-region-overlay.md`. Example: pack-eu satisfies DORA testing when oyatie has EU financial-services tenants in scope.
 
 ## Verification
 
@@ -198,7 +198,7 @@ Per-pack BCDR specifics live at `regional-packs/<pack>/workflow-studio-multi-reg
 - `microservices/workflow-studio/cost-budget.md`.
 - `microservices/workflow-studio/failure-modes.md`.
 - `microservices/workflow-studio/incident-response.md`.
-- `regional-packs/<pack>/workflow-studio-multi-region-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/workflow-studio-multi-region-overlay.md`.
 - OCI region documentation.
 - Postgres + Citus replication — `docs.citusdata.com/`.
 - Valkey Sentinel — `valkey.io/topics/sentinel`.

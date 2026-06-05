@@ -162,7 +162,7 @@ Tenants are notified at failover initiation per the comms template in `incident-
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics (region capabilities, specific OCI service mappings, local-regulator BCDR requirements) live at `regional-packs/<pack>/multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements when oyatie has EU financial-services tenants in scope.
+Per-pack BCDR specifics (region capabilities, specific OCI service mappings, local-regulator BCDR requirements) live at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements when oyatie has EU financial-services tenants in scope.
 
 ## Verification
 
@@ -177,7 +177,7 @@ Per-pack BCDR specifics (region capabilities, specific OCI service mappings, loc
 - `microservices/observability/cost-budget.md`.
 - `microservices/observability/failure-modes.md`.
 - `microservices/observability/incident-response.md`.
-- `regional-packs/<pack>/multi-region-overlay.md` (per-pack).
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/multi-region-overlay.md` (per-pack).
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
 - Grafana Mimir HA + DR — `grafana.com/docs/mimir/latest/manage/run-production-environment/`.
 - ISO/IEC 22301:2019 (Business continuity).

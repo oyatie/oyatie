@@ -38,8 +38,8 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert!(evaluation.failures.is_empty());
     assert_eq!(evaluation.domains_checked, 6);
     assert_eq!(evaluation.security_backlog_count, 40);
-    assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 28);
-    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 53);
+    assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 0);
+    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 51);
 }
 
 #[test]
@@ -112,13 +112,54 @@ fn spec_rejects_pnpm_or_typescript_as_repo_authority() {
         failures
     );
     assert!(
-        failures
-            .iter()
-            .any(|failure| failure
-                .contains("TypeScript runtime surfaces must not be merge authority")),
+        failures.iter().any(|failure| failure
+            .contains("TypeScript runtime surfaces must not exist or be merge authority")),
         "{:?}",
         failures
     );
+}
+
+#[test]
+fn active_policy_context_name_scanner_rejects_provenance_token_context_fields() {
+    let root = temp_dir("active-policy-context-name-bad");
+    let policy_dir = root.join("oya/example/cedar");
+    fs::create_dir_all(&policy_dir).unwrap_or_else(|error| {
+        panic!("create policy dir {}: {}", policy_dir.display(), error);
+    });
+    fs::write(
+        policy_dir.join("policies.cedar"),
+        r#"permit(principal, action, resource) when {
+  context.doctrine.adr_0513 == true
+};"#,
+    )
+    .unwrap_or_else(|error| panic!("write policy fixture: {error}"));
+
+    let failures = gate::active_policy_context_name_failures(&root);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("active policy context field must be capability-named")),
+        "{failures:?}"
+    );
+}
+
+#[test]
+fn active_policy_context_name_scanner_accepts_capability_named_context_fields() {
+    let root = temp_dir("active-policy-context-name-good");
+    let policy_dir = root.join("cloud/example/cedar");
+    fs::create_dir_all(&policy_dir).unwrap_or_else(|error| {
+        panic!("create policy dir {}: {}", policy_dir.display(), error);
+    });
+    fs::write(
+        policy_dir.join("policies.cedar"),
+        r#"permit(principal, action, resource) when {
+  context.doctrine.buck2_prow_ci_authority == true
+};"#,
+    )
+    .unwrap_or_else(|error| panic!("write policy fixture: {error}"));
+
+    let failures = gate::active_policy_context_name_failures(&root);
+    assert!(failures.is_empty(), "{failures:?}");
 }
 
 #[test]
@@ -155,7 +196,7 @@ fn typescript_pnpm_inventory_matches_checked_in_surface() {
     let inventory = read_repo_file("registry/repo-hygiene/typescript-pnpm-surface-inventory.json");
     let files = gate::tracked_typescript_pnpm_mjs_files(Path::new(&repo_root()))
         .expect("TypeScript/pnpm surface scan should run");
-    assert_eq!(files.len(), 28, "{files:?}");
+    assert_eq!(files.len(), 0, "{files:?}");
     let (_count, failures) =
         gate::typescript_pnpm_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(failures.is_empty(), "{failures:?}");
@@ -164,13 +205,13 @@ fn typescript_pnpm_inventory_matches_checked_in_surface() {
 #[test]
 fn typescript_pnpm_inventory_rejects_missing_current_file() {
     let inventory = read_repo_file("registry/repo-hygiene/typescript-pnpm-surface-inventory.json")
-        .replace("scripts/proto-lint.mjs", "scripts/proto-lint.rs");
+        .replace("\"tracked_file_count\": 0", "\"tracked_file_count\": 1");
     let (_count, failures) =
         gate::typescript_pnpm_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(
         failures
             .iter()
-            .any(|failure| failure.contains("scripts/proto-lint.mjs")),
+            .any(|failure| failure.contains("must record tracked_file_count 0")),
         "{failures:?}"
     );
 }
@@ -190,7 +231,7 @@ fn typescript_pnpm_surface_scan_excludes_vendored_agent_skills() {
     )
     .unwrap_or_else(|error| panic!("write vendored fixture: {error}"));
     fs::write(
-        root.join("scripts/proto-lint.mjs"),
+        root.join("scripts/generate-contract-docs.mjs"),
         "console.log('owned');\n",
     )
     .unwrap_or_else(|error| panic!("write owned fixture: {error}"));
@@ -198,7 +239,10 @@ fn typescript_pnpm_surface_scan_excludes_vendored_agent_skills() {
     let files = gate::tracked_typescript_pnpm_mjs_files(&root)
         .expect("fixture TypeScript/pnpm scan should run");
     let _ = fs::remove_dir_all(&root);
-    assert_eq!(files, vec!["scripts/proto-lint.mjs".to_string()]);
+    assert_eq!(
+        files,
+        vec!["scripts/generate-contract-docs.mjs".to_string()]
+    );
 }
 
 #[test]
@@ -206,7 +250,7 @@ fn python_shell_inventory_matches_checked_in_surface() {
     let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json");
     let files = gate::tracked_python_shell_files(Path::new(&repo_root()))
         .expect("Python/shell surface scan should run");
-    assert_eq!(files.len(), 53, "{files:?}");
+    assert_eq!(files.len(), 51, "{files:?}");
     let (_count, failures) =
         gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
     assert!(failures.is_empty(), "{failures:?}");

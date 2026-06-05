@@ -679,7 +679,7 @@ Sign-off (this document is RW until council sign-off captured):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/cloud-k8s-overlay.md` follow the same structure.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-k8s-overlay.md` follow the same structure.
 
 ## Compliance Cross-Mapping
 

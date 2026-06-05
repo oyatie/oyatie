@@ -199,7 +199,7 @@ Note: DEK destruction = data erasure for ciphertext-at-rest. For decrypted data 
 
 ### pack-jp / pack-sg / pack-ae / pack-ksa
 
-Each pack's overlay at `regional-packs/<pack>/cloud-secrets-residency-overlay.md` carries the local data-residency law's citations.
+Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-secrets-residency-overlay.md` carries the local data-residency law's citations.
 
 ## Verification
 

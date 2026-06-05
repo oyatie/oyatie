@@ -184,7 +184,7 @@ Template at `microservices/cloud-k8s/legal/notification-templates/gdpr-art-33.md
 
 ### PDPA (SG/AU/etc.)
 
-Per-pack timelines at `regional-packs/<pack>/cloud-k8s-incident-overlay.md`. Universally 72h target.
+Per-pack timelines at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-k8s-incident-overlay.md`. Universally 72h target.
 
 ### NIS2 (EU; cluster crosses Annex I when oyatie crosses tenant-count thresholds)
 

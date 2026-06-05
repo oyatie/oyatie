@@ -1,5 +1,5 @@
 
-// cell-rebalancer Cedar policy fragments per ADR-0276 D-2.5.
+// Cell-rebalancer Cedar policy fragments for tenant-safe rebalancing.
 // Principal/action/entity names are specification-stage placeholders for downstream schema binding.
 
 permit(

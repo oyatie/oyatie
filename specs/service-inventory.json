@@ -40,7 +40,7 @@
       "target/",
       "node_modules/"
     ],
-    "direct_child_inventory_entry_count": 296,
+    "direct_child_inventory_entry_count": 290,
     "full_crate_inventory_coverage_proven": false,
     "builds_green_measured_per_entry": false,
     "tests_pass_measured_per_entry": false,
@@ -99,13 +99,13 @@
     },
     {
       "root": "regional-packs",
-      "exists": true,
-      "observed_direct_child_dir_count": 5,
-      "root_class": "authorized_regional_pack_root_only",
+      "exists": false,
+      "observed_direct_child_dir_count": 0,
+      "root_class": "retired_overlay_root_migrated_to_cloud_iac",
       "allows_new_service_dirs": false,
-      "target_tree": "libs",
-      "migration_class": "authorized_shared_pack_root_not_service",
-      "post_migration_required_state": "present"
+      "target_tree": "cloud",
+      "migration_class": "cloud_iac_owned_sovereign_overlay_not_service",
+      "post_migration_required_state": "absent_or_empty"
     },
     {
       "root": "libs",
@@ -188,22 +188,6 @@
     {
       "source_path": "oya/api-gateway",
       "target_path": "oya/api-gateway",
-      "target_tree": "oya",
-      "migration_class": "canonical_service_root",
-      "non_test_loc": 0,
-      "has_main_rs": false,
-      "has_real_storage_adapter": false,
-      "authoritative_toolchain": "buck2_local_static_inventory_only",
-      "builds_green": false,
-      "tests_pass": false,
-      "orphan_test_count": 0,
-      "cargo_red_set": [
-        "not_measured_by_this_seed_gate"
-      ]
-    },
-    {
-      "source_path": "oya/app-shell-frontend",
-      "target_path": "oya/app-shell-frontend",
       "target_tree": "oya",
       "migration_class": "canonical_service_root",
       "non_test_loc": 0,
@@ -2076,86 +2060,6 @@
     {
       "source_path": "packs/us-localization",
       "target_path": "packs/us-localization",
-      "target_tree": "libs",
-      "migration_class": "authorized_shared_pack_root_not_service",
-      "non_test_loc": 0,
-      "has_main_rs": false,
-      "has_real_storage_adapter": false,
-      "authoritative_toolchain": "buck2_local_static_inventory_only",
-      "builds_green": false,
-      "tests_pass": false,
-      "orphan_test_count": 0,
-      "cargo_red_set": [
-        "not_measured_by_this_seed_gate"
-      ]
-    },
-    {
-      "source_path": "regional-packs/eu",
-      "target_path": "regional-packs/eu",
-      "target_tree": "libs",
-      "migration_class": "authorized_shared_pack_root_not_service",
-      "non_test_loc": 0,
-      "has_main_rs": false,
-      "has_real_storage_adapter": false,
-      "authoritative_toolchain": "buck2_local_static_inventory_only",
-      "builds_green": false,
-      "tests_pass": false,
-      "orphan_test_count": 0,
-      "cargo_red_set": [
-        "not_measured_by_this_seed_gate"
-      ]
-    },
-    {
-      "source_path": "regional-packs/jp",
-      "target_path": "regional-packs/jp",
-      "target_tree": "libs",
-      "migration_class": "authorized_shared_pack_root_not_service",
-      "non_test_loc": 0,
-      "has_main_rs": false,
-      "has_real_storage_adapter": false,
-      "authoritative_toolchain": "buck2_local_static_inventory_only",
-      "builds_green": false,
-      "tests_pass": false,
-      "orphan_test_count": 0,
-      "cargo_red_set": [
-        "not_measured_by_this_seed_gate"
-      ]
-    },
-    {
-      "source_path": "regional-packs/kr",
-      "target_path": "regional-packs/kr",
-      "target_tree": "libs",
-      "migration_class": "authorized_shared_pack_root_not_service",
-      "non_test_loc": 0,
-      "has_main_rs": false,
-      "has_real_storage_adapter": false,
-      "authoritative_toolchain": "buck2_local_static_inventory_only",
-      "builds_green": false,
-      "tests_pass": false,
-      "orphan_test_count": 0,
-      "cargo_red_set": [
-        "not_measured_by_this_seed_gate"
-      ]
-    },
-    {
-      "source_path": "regional-packs/ksa",
-      "target_path": "regional-packs/ksa",
-      "target_tree": "libs",
-      "migration_class": "authorized_shared_pack_root_not_service",
-      "non_test_loc": 0,
-      "has_main_rs": false,
-      "has_real_storage_adapter": false,
-      "authoritative_toolchain": "buck2_local_static_inventory_only",
-      "builds_green": false,
-      "tests_pass": false,
-      "orphan_test_count": 0,
-      "cargo_red_set": [
-        "not_measured_by_this_seed_gate"
-      ]
-    },
-    {
-      "source_path": "regional-packs/us-government",
-      "target_path": "regional-packs/us-government",
       "target_tree": "libs",
       "migration_class": "authorized_shared_pack_root_not_service",
       "non_test_loc": 0,

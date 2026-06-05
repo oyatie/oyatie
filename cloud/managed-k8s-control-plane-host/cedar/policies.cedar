@@ -1,4 +1,4 @@
-// Cedar policy fragments for oya-managed-k8s-control-plane-host (ADR-0376).
+// Cedar policy fragments for managed Kubernetes control-plane host isolation.
 //
 // Authorization doctrine: ONLY platform / control-plane-operator principals may
 // provision or tear down a tenant control plane. Tenants are DEFAULT-DENY on the
@@ -50,7 +50,7 @@ forbid(
 );
 
 // FORBID: any provision/teardown that is not scoped to the management cluster, or
-// that does not emit an audit-chain seal, is denied (fail-closed; ADR-0376
+// that does not emit an audit-chain seal, is denied (fail-closed control-plane
 // operational boundary + audit-chain seal_events contract).
 forbid(
   principal,

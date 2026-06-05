@@ -450,8 +450,8 @@
     },
     {
       "id": "IP-015",
-      "title": "TypeScript SDK",
-      "acceptance_status": "design-ready",
+      "title": "Generated TypeScript compatibility SDK",
+      "acceptance_status": "deferred-policy-review",
       "file": "microservices/feature-flags/IP-015-typescript-sdk.md"
     },
     {

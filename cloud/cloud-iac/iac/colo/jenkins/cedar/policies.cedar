@@ -1,10 +1,10 @@
-// ADR-0349 Jenkins web UI and API authorization boundary.
+// Retired external CI web UI and API authorization boundary retained for retirement inventory only.
 permit(
   principal,
   action in [
-    Oyatie::Action::"jenkins.ui.read",
-    Oyatie::Action::"jenkins.job.read",
-    Oyatie::Action::"jenkins.job.build"
+    Oyatie::Action::"retired-ci.ui.read",
+    Oyatie::Action::"retired-ci.job.read",
+    Oyatie::Action::"retired-ci.job.build"
   ],
   resource
 ) when {
@@ -16,9 +16,9 @@ permit(
 permit(
   principal,
   action in [
-    Oyatie::Action::"jenkins.admin.read",
-    Oyatie::Action::"jenkins.admin.write",
-    Oyatie::Action::"jenkins.api.configure"
+    Oyatie::Action::"retired-ci.admin.read",
+    Oyatie::Action::"retired-ci.admin.write",
+    Oyatie::Action::"retired-ci.api.configure"
   ],
   resource
 ) when {

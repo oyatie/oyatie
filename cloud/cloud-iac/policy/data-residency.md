@@ -171,7 +171,7 @@ Cloud-iac does not generally accept DSR for its own audit chain — audit-chain 
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/cloud-iac-residency-overlay.md`. Pack-pinning + cross-pack-replication-forbidden invariants apply universally.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-iac-residency-overlay.md`. Pack-pinning + cross-pack-replication-forbidden invariants apply universally.
 
 ## Verification
 

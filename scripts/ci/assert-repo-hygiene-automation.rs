@@ -64,8 +64,8 @@ const TOOLCHAIN_PIN_UPDATER_PATH: &str = "scripts/ci/sync-latest-toolchain-pins.
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
 const REQUIRED_BUCK2_RELEASE: &str = "2026-06-01";
-const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 28;
-const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 53;
+const EXPECTED_TYPESCRIPT_PNPM_MJS_COUNT: usize = 0;
+const EXPECTED_NONVENDORED_PYTHON_SHELL_COUNT: usize = 51;
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
     "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json";
@@ -199,16 +199,16 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
         "repo hygiene spec must classify existing non-Rust surfaces",
     ),
     (
-        "\"status\": \"classified_no_durable_authority\"",
-        "non-Rust surface inventory must be classified as no durable authority",
+        "\"status\": \"zero_product_frontend_typescript_pnpm_surface_enforced\"",
+        "TypeScript/pnpm product/frontend surface inventory must be zero and policy-enforced",
     ),
     (
         "\"typescript_pnpm_mjs_surface_inventory\": \"registry/repo-hygiene/typescript-pnpm-surface-inventory.json\"",
         "non-Rust surface inventory must point to the disjoint TS/pnpm surface inventory",
     ),
     (
-        "\"tracked_typescript_pnpm_mjs_count\": 28",
-        "non-Rust surface inventory must record the audited TS/pnpm/MJS count",
+        "\"tracked_typescript_pnpm_mjs_count\": 0",
+        "non-Rust surface inventory must record zero tracked TS/pnpm/MJS surfaces",
     ),
     (
         "\"typescript_pnpm_mjs_count_source\": \"filesystem_scan_excluding_vendored_agent_skills\"",
@@ -219,7 +219,7 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
         "non-Rust surface inventory must point to the disjoint Python/shell surface inventory",
     ),
     (
-        "\"tracked_nonvendored_python_shell_count\": 53",
+        "\"tracked_nonvendored_python_shell_count\": 51",
         "non-Rust surface inventory must record the audited non-vendored Python/shell count",
     ),
     (
@@ -232,7 +232,19 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
     ),
     (
         "\"typescript_runtime_merge_authority\": false",
-        "TypeScript runtime surfaces must not be merge authority",
+        "TypeScript runtime surfaces must not exist or be merge authority",
+    ),
+    (
+        "\"strict_typescript_tooling_exception_allowed\": true",
+        "strict TypeScript tooling exception rule must be explicit",
+    ),
+    (
+        "\"typescript_exception_requires_buck2_target\": true",
+        "strict TypeScript tooling exceptions must require Buck2 authority",
+    ),
+    (
+        "\"typescript_exception_requires_registry_row\": true",
+        "strict TypeScript tooling exceptions must require a registry row",
     ),
     (
         "\"python_shell_durable_gate_authority\": false",
@@ -243,20 +255,8 @@ const REQUIRED_NON_RUST_SURFACE_NEEDLES: &[(&str, &str)] = &[
         "active gate surfaces must retain the Rust/Buck2 rewrite requirement",
     ),
     (
-        "\"app_shell_frontend_prototype\"",
-        "app-shell TypeScript/pnpm prototype surface must be classified",
-    ),
-    (
-        "\"workflow_studio_sveltekit_templates\"",
-        "workflow-studio TypeScript template surface must be classified",
-    ),
-    (
-        "\"feature_flags_reference_clients\"",
-        "feature-flag reference clients must be classified",
-    ),
-    (
-        "\"advisory_mjs_doc_contract_tools\"",
-        "MJS doc/API helpers must be classified as advisory",
+        "\"current_typescript_pnpm_mjs_surface_groups\": []",
+        "TypeScript/pnpm surface groups must remain empty",
     ),
     (
         "\"bootstrap_host_prelude\"",
@@ -345,11 +345,18 @@ const CLEANUP_BACKLOG_IDS: &[&str] = &[
     "legacy_python_shell_gate_surfaces",
     "shared_ci_workflow_surface",
     "root_hub_masterplan_shared_docs",
+    "shared_surface_substrate_migration_audit",
     "stale_doc_inventory_followups",
     "retired_external_substrate_residue",
     "temporary_github_bridge_artifacts",
     "retire_oya_cli_governance_authority",
+    "retired_vcs_cli_admission_surface_retirement",
     "typescript_pnpm_retirement_review",
+    "product_sdk_language_policy_review",
+    "quoted_path_filename_normalization",
+    "active_policy_context_name_normalization",
+    "active_dotdir_state_surface_review",
+    "single_file_top_level_root_review",
     "prow_job_registry_generation",
     "python_shell_to_rust_buck2_migration",
     "cd_fleet_bootstrap_surface_retirement",
@@ -732,7 +739,7 @@ fn is_typescript_pnpm_surface_file(path: &Path) -> bool {
     }
     matches!(
         path.extension().and_then(|extension| extension.to_str()),
-        Some("ts" | "tsx" | "mjs" | "cjs" | "js")
+        Some("ts" | "tsx" | "mjs" | "cjs" | "js" | "jsx" | "svelte")
     )
 }
 
@@ -812,11 +819,14 @@ pub fn typescript_pnpm_surface_failures(root: &Path, inventory: &str) -> (usize,
     }
 
     for needle in [
-        "\"status\": \"classified_no_durable_authority\"",
+        "\"status\": \"zero_product_frontend_surface_registered_tooling_exception\"",
         "\"count_source\": \"filesystem_scan_excluding_vendored_agent_skills\"",
         "\"pnpm_or_package_json_repo_authority\": false",
         "\"typescript_runtime_merge_authority\": false",
         "\"durable_gate_authority\": false",
+        "\"strict_typescript_tooling_exception_allowed\": true",
+        "\"typescript_exception_requires_buck2_target\": true",
+        "\"typescript_exception_requires_registry_row\": true",
         "\"buck2_remains_build_test_check_authority\": true",
         "\"tools/agent-skills/\"",
     ] {
@@ -951,6 +961,74 @@ pub fn python_shell_surface_failures(root: &Path, inventory: &str) -> (usize, Ve
     (files.len(), failures)
 }
 
+fn collect_cedar_policy_files(
+    root: &Path,
+    rel: &Path,
+    output: &mut Vec<String>,
+) -> Result<(), String> {
+    let dir = root.join(rel);
+    if !dir.exists() {
+        return Ok(());
+    }
+    for entry in
+        fs::read_dir(&dir).map_err(|error| format!("read dir {}: {}", dir.display(), error))?
+    {
+        let entry =
+            entry.map_err(|error| format!("read dir entry {}: {}", dir.display(), error))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|error| format!("file type {}: {}", entry.path().display(), error))?;
+        let entry_rel = rel.join(entry.file_name());
+        if file_type.is_dir() {
+            collect_cedar_policy_files(root, &entry_rel, output)?;
+        } else if file_type.is_file()
+            && entry_rel.file_name().and_then(|name| name.to_str()) == Some("policies.cedar")
+            && entry_rel
+                .components()
+                .any(|component| component.as_os_str() == "cedar")
+        {
+            output.push(path_to_repo_string(&entry_rel));
+        }
+    }
+    Ok(())
+}
+
+pub fn active_policy_context_name_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let mut policy_files = Vec::new();
+    for rel in [Path::new("cloud"), Path::new("oya")] {
+        if let Err(error) = collect_cedar_policy_files(root, rel, &mut policy_files) {
+            failures.push(format!("active Cedar policy scan failed: {error}"));
+        }
+    }
+    policy_files.sort();
+    policy_files.dedup();
+
+    for rel in policy_files {
+        let path = root.join(&rel);
+        let Ok(text) = fs::read_to_string(&path) else {
+            failures.push(format!(
+                "{rel}: read failed during active policy context scan"
+            ));
+            continue;
+        };
+        for forbidden in [
+            "context.doctrine.adr_",
+            "context.doctrine.prd_",
+            "context.doctrine.phase_",
+            "context.doctrine.ip_",
+        ] {
+            if text.contains(forbidden) {
+                failures.push(format!(
+                    "{rel}: active policy context field must be capability-named, not provenance-token-named ({forbidden})"
+                ));
+            }
+        }
+    }
+
+    failures
+}
+
 pub fn active_doc_phrase_failures(label: &str, text: &str) -> Vec<String> {
     let lowered_text = text.to_ascii_lowercase();
     FORBIDDEN_ACTIVE_DOC_PHRASES
@@ -1026,6 +1104,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
         (
             "\"pattern\": \"registry_owned_desired_ci_graph_to_generated_consolidation\"",
             "shared-surface mitigation must require generated consolidation",
+        ),
+        (
+            "\"self_explanatory_active_name_rule\"",
+            "documentation sprawl hygiene must record the active self-explanatory naming rule",
+        ),
+        (
+            "context.doctrine.buck2_prow_ci_authority",
+            "repo hygiene spec must include the capability-named context example",
         ),
         (
             "\"seed_check\": \"buck2 build //:oya-ci-prowjob-registry-check\"",
@@ -1568,6 +1654,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let (tracked_nonvendored_python_shell_count, python_shell_surface_failures) =
         python_shell_surface_failures(root, &python_shell_inventory);
     failures.extend(python_shell_surface_failures);
+    failures.extend(active_policy_context_name_failures(root));
 
     for item_id in [
         "legacy_ci_server",

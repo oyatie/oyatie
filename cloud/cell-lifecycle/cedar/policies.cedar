@@ -1,5 +1,6 @@
-// Cedar policy fragments for cell-lifecycle per ADR-0276 D-3.5.
-// Principal namespace retained by ADR-0203 even after foundry service retirement.
+// Cedar policy fragments for cell-lifecycle state governance.
+// Active doctrine fields are capability-named; decision-record IDs stay in docs/decisions.
+// Native oya-ci/Prow and release-conveyor seams own durable CI/CD.
 
 permit(
   principal == Principal::"oyatie.foundry.cell-lifecycle",

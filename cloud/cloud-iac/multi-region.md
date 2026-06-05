@@ -171,7 +171,7 @@ Per `incident-response.md` §"Tenant communications":
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics at `regional-packs/<pack>/cloud-iac-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements when oyatie has EU financial-services tenants in scope.
+Per-pack BCDR specifics at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-iac-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements when oyatie has EU financial-services tenants in scope.
 
 ## Verification
 

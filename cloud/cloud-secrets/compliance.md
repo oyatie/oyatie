@@ -167,7 +167,7 @@ Key management lifecycle aligned with NIST SP 800-57:
 
 ## §9-15: Other pack-specific frameworks
 
-Detailed mappings live in `regional-packs/<pack>/cloud-secrets-compliance-overlay.md` per pack activation. Summary:
+Detailed mappings live in `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-secrets-compliance-overlay.md` per pack activation. Summary:
 
 | Pack | Lead framework | Key citations |
 |---|---|---|

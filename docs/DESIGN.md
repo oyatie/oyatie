@@ -443,7 +443,7 @@ The audit-chain is the backbone of cross-axis trust. The PRD's hard zero on "ten
 
 ## 8. Architectural flattening (per ADR-0015)
 
-> **State of the migration as of 2026-05-11:** ADR-0015 Accepted; the live workspace contains 64 `crates/oya-*` members and 64 `registry/catalog/<crate>.yaml` records; top-level `modules/`, `services/`, `platform/`, and `tools/` are retired. The historical REV7 split inventory remains planning context for additive split/extraction work, not the live tree.
+> **State of the migration as of 2026-05-11:** ADR-0015 Accepted; the live workspace contains 64 `crates/oya-*` members and 64 `registry/catalog/<crate>.yaml` records; top-level `modules/`, `services/`, `platform/`, repo-root `bin/`, and top-level `regional-packs/` are retired. `tools/` is retained only for registered Rust/Buck2 tool apps, vendored agent skills, and temporary hook/bootstrap shims under migration. The historical REV7 split inventory remains planning context for additive split/extraction work, not the live tree.
 
 Every consolidated doc and the v2 backlog assume the **flat target**, not the legacy `modules/` `services/` `platform/` tree.
 

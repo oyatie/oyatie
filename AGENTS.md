@@ -43,3 +43,5 @@ buck2 build //:github-lane-unlocker-bridge-check
 ```
 
 Use `specs/repo-hygiene-automation.json` for git/branch/repo/disk/Kubernetes/documentation-sprawl hygiene. Use `/specs/retired-external-substrate-registry.json` for tombstoned external substrate names; active guidance should say "retired external SCM/CI/CD substrates" rather than reintroducing old authorities.
+
+Use capability names for active tools, checks, manifests, policies, and context fields. ADR/PRD/PHASE/IP tokens belong only in actual decision/spec/phase/implementation-plan docs; use `context.doctrine.buck2_prow_ci_authority`, not `context.doctrine.adr_0513`.

@@ -148,7 +148,7 @@ Per Bominal ADR-0028 §"Right-to-erasure with chain preservation".
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/audit-chain-residency-overlay.md`. Each follows the same residency model:
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/audit-chain-residency-overlay.md`. Each follows the same residency model:
 - Pack-pinning enforced at emission level.
 - Cross-pack replication forbidden.
 - Retention per local minimum.
@@ -170,7 +170,7 @@ Per-pack overlays at `regional-packs/<pack>/audit-chain-residency-overlay.md`. E
 - `microservices/audit-chain/dpia.md` R-06.
 - `microservices/audit-chain/policy/seal-integrity.md`.
 - `microservices/audit-chain/multi-region.md`.
-- `regional-packs/<pack>/audit-chain-residency-overlay.md` (per-pack).
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/audit-chain-residency-overlay.md` (per-pack).
 - OCI Cloud-HSM region docs.
 - GDPR Arts. 44–50; EDPB Recommendations 01/2020.
 - KR PIPA Art. 23-2 + Art. 28 + Art. 36.

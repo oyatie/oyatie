@@ -228,7 +228,7 @@ State-level:
 
 ## Pack-overlay detail: pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/docs-compliance-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/docs-compliance-overlay.md`.
 
 Highlights:
 - **PDPA 2012**: Part III Protection + Part IV Retention + Part VI Transfer.

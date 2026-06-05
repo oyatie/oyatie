@@ -215,7 +215,7 @@ PIPA Art. 33 + Enforcement Decree Art. 35 require 개인정보영향평가 for s
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/audit-chain-dpia-overlay.md`. Each pack's local-law citations map to the same 7-step structure with substituted articles.
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/audit-chain-dpia-overlay.md`. Each pack's local-law citations map to the same 7-step structure with substituted articles.
 
 ## Re-review Triggers
 

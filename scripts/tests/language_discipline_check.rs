@@ -95,7 +95,7 @@ fn checked_in_registry_and_fixtures_pass() {
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert_eq!(evaluation.fixture_count, 4);
     assert_eq!(evaluation.backlog_offender_count, 7);
-    assert_eq!(evaluation.active_retired_cli_script_count, 8);
+    assert_eq!(evaluation.active_retired_cli_script_count, 4);
     assert!(evaluation.failures.is_empty());
 }
 

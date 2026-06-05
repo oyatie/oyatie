@@ -251,7 +251,7 @@ The audit log is itself stored in Mimir under `tenant:oya-self` and replicated t
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Each pack's overlay at `regional-packs/<pack>/tenant-isolation-overlay.md` maps the local PII law's confidentiality + integrity requirements to TI-01..TI-07.
+Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenant-isolation-overlay.md` maps the local PII law's confidentiality + integrity requirements to TI-01..TI-07.
 
 ## Verification
 

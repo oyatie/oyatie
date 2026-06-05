@@ -261,7 +261,7 @@ Audit log retention per `policy/data-residency.md` per-pack overlays (HIPAA 6y; 
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Each pack's overlay at `regional-packs/<pack>/mail-dual-context-overlay.md` maps the local PII law's confidentiality + minimum-necessary requirements to DCI-01..DCI-08.
+Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/mail-dual-context-overlay.md` maps the local PII law's confidentiality + minimum-necessary requirements to DCI-01..DCI-08.
 
 ## Verification
 

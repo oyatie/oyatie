@@ -234,7 +234,7 @@ This DPIA reviews annually + on:
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Pack-overlay sections at `regional-packs/<pack>/foundry-eval-dpia-overlay.md`.
+Pack-overlay sections at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-eval-dpia-overlay.md`.
 
 ## References
 

@@ -242,7 +242,7 @@ This document is the GDPR Art. 35 DPIA for EU-resident tenant processing.
 
 ### pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack DPIA overlays at `regional-packs/<pack>/cloud-k8s-dpia-overlay.md`. Each follows this document's 7-step structure with local law citations.
+Per-pack DPIA overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-k8s-dpia-overlay.md`. Each follows this document's 7-step structure with local law citations.
 
 ## Re-review Triggers
 

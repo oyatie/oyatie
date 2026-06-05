@@ -922,8 +922,10 @@
     "spec_sovereign_cloud_overlays": {
       "kind": "spec",
       "current_path": "/specs/sovereign-cloud-overlays.json",
+      "artifact_layout": "cloud/cloud-iac/sovereign-cloud-overlays/<pack-id>/",
+      "registry": "registry/sovereign-cloud/per-pack-overlay-status.tsv",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Sovereign cloud overlays canonical schema"
+      "purpose": "Cloud-IaC-owned sovereign cloud overlay schema and registry; keeps per-pack overlay files under the owning cloud substrate while root discovery stays pointer/registry-driven."
     },
     "spec_tenant_environment_tiers_canonical": {
       "kind": "spec",

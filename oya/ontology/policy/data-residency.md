@@ -185,7 +185,7 @@ Limitations (documented in DPIA R-08):
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/data-residency-overlay.md`. Pack-pinning + cross-pack-replication-forbidden invariants apply universally.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/data-residency-overlay.md`. Pack-pinning + cross-pack-replication-forbidden invariants apply universally.
 
 ## Verification
 
@@ -205,7 +205,7 @@ Per-pack overlays at `regional-packs/<pack>/data-residency-overlay.md`. Pack-pin
 - `microservices/ontology/policy/type-isolation.md`.
 - `microservices/ontology/multi-region.md`.
 - `microservices/ontology/legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa}.md` (Slice D).
-- `regional-packs/<pack>/data-residency-overlay.md` (per-pack).
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/data-residency-overlay.md` (per-pack).
 - Oracle Cloud Infrastructure region docs.
 - GDPR Arts. 44–50; EDPB Recommendations 01/2020.
 - KR PIPA Art. 23-2 + Art. 28 + PIPC Notice 2020-7.

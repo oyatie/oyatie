@@ -65,7 +65,7 @@ docs/SECURITY-PROGRAM.md @teams/ops-security
 docs/COMPLIANCE-MATRIX.md @teams/ops-compliance
 docs/products/<id>/PRD.md @teams/<owning-team>
 docs/teams/<id>/CHARTER.md @teams/<id>
-regional-packs/<pack>/                @teams/regional-packs
+docs/regional-packs/<pack>/           @teams/regional-packs
 ```
 
 ### 3.1 Team charter coverage

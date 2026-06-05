@@ -75,7 +75,7 @@ related:
 
 ### pack-update
 - [ ] Regulator-watch impact summarized. *Lane:* `oya-governance-compliance-matrix`.
-- [ ] Regional pack file path enumerated under `regional-packs/<pack>/`. *Lane:* `oya-governance-pack-coverage`.
+- [ ] Regional pack file path enumerated under `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/`. *Lane:* `oya-governance-pack-coverage`.
 
 ## Stop conditions
 

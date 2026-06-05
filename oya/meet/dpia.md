@@ -197,7 +197,7 @@ DPIA is mandatory pre-deployment. This document is the canonical DPIA reviewed b
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per pack overlays at `regional-packs/<pack>/meet-dpia-overlay.md`.
+Per pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/meet-dpia-overlay.md`.
 
 ## DPIA refresh triggers
 

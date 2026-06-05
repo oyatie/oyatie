@@ -11,7 +11,7 @@ Own the per-locale regional packs that plug into Oyatie's canonical architecture
 ## Owned axes / surfaces / contracts
 
 - **Axis(es):** cross-cutting; pack architecture per ADR-0010
-- **Per-product PRDs:** none directly (packs are infrastructure); per-pack content at [`regional-packs/<pack-id>/PACK.md`](../../regional-packs/)
+- **Per-product PRDs:** none directly (packs are infrastructure); per-pack content at [`docs/regional-packs/<pack-id>/PACK.md`](../../regional-packs/)
 - **Cross-axis contracts owned/co-owned:** per-pack regulatory binding, per-pack tax / payment / identity adapters, per-pack content + ad-policy gates
 - **Catalog records:** `registry/catalog/regional-packs/oya-pack-<region>.yaml`
 - **Runbooks owned:** `cross-axis/regional-pack-regulator-update.md`

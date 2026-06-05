@@ -1,10 +1,10 @@
-// ADR-0349 ArgoCD UI, API, and sync authorization boundary.
+// Retired external CD UI, API, and sync authorization boundary retained for retirement inventory only.
 permit(
   principal,
   action in [
-    Oyatie::Action::"argocd.ui.read",
-    Oyatie::Action::"argocd.application.read",
-    Oyatie::Action::"argocd.application.sync"
+    Oyatie::Action::"retired-cd.ui.read",
+    Oyatie::Action::"retired-cd.application.read",
+    Oyatie::Action::"retired-cd.application.sync"
   ],
   resource
 ) when {
@@ -16,9 +16,9 @@ permit(
 permit(
   principal,
   action in [
-    Oyatie::Action::"argocd.project.admin",
-    Oyatie::Action::"argocd.cluster.register",
-    Oyatie::Action::"argocd.policy.configure"
+    Oyatie::Action::"retired-cd.project.admin",
+    Oyatie::Action::"retired-cd.cluster.register",
+    Oyatie::Action::"retired-cd.policy.configure"
   ],
   resource
 ) when {

@@ -4,8 +4,9 @@
 #
 # Each row asserts that the listed `term` MUST NOT appear in any live
 # document (excluding evidence/audits/, which is a historical record).
-# CI lane `oya-governance-retired-vocabulary` reads this file and
-# fails fast on any drift.
+# The Rust retired-vocabulary kernel reads this file through Buck2/Prow-owned
+# lanes and fails fast on any drift. Retired Oya CLI runners are historical
+# provenance only and MUST NOT be restored as merge or CI authority.
 #
 # Adding a row: every retirement commit that removes a CLI surface,
 # crate, or script SHOULD add the corresponding row here in the SAME
@@ -24,31 +25,31 @@
 #
 # Lane: oya-governance-retired-vocabulary
 # Kernel: crates/oya-check-retired-vocabulary
-# Runner: crates/oya-dev-cli/src/retired_vocabulary_gate.rs
-# Lane invocation: `oya gate validate retired-vocabulary`
+# Runner: Buck2/Prow-owned Rust lane wrapper around libs/oya-check-retired-vocabulary
+# Lane invocation: `buck2 build //libs/oya-check-retired-vocabulary:oya-check-retired-vocabulary`
 
 retired:
   - term: "repoctl pre-push"
     retired_at: "2026-05-15"
-    canonical_replacement: "oya verify"
+    canonical_replacement: "Buck2-backed local verification plus trusted Rust/Prow oya-ci-required status"
     adr: ""
   - term: "oya dev check"
     retired_at: "2026-05-15"
-    canonical_replacement: "oya verify"
+    canonical_replacement: "Buck2 build/test/check targets and trusted Rust/Prow oya-ci-required status"
     adr: ""
   - term: "scripts/check.sh"
     retired_at: "2026-05-15"
-    canonical_replacement: "oya gate run-all"
+    canonical_replacement: "Buck2 lane targets declared in registry/quality/lanes.yaml"
     adr: ""
   - term: "scripts/check-architecture-boundaries.sh"
     retired_at: "2026-05-15"
-    canonical_replacement: "oya gate validate architecture-boundaries"
+    canonical_replacement: "Rust/Buck2 architecture-boundary check target"
     adr: ""
   - term: "scripts/hooks/pre-push-repoctl.sh"
     retired_at: "2026-05-15"
-    canonical_replacement: "oya verify"
+    canonical_replacement: "optional local Buck2 pre-push evidence; merge authority remains Rust/Prow oya-ci-required"
     adr: ""
   - term: ".omc/hooks/grit-claim-intent-gate.sh"
     retired_at: "2026-05-16"
-    canonical_replacement: "oya vcs claim"
+    canonical_replacement: "native SCM worktree lease plus GitHub PR adapter; do not revive oya vcs"
     adr: ""

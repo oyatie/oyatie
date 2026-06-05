@@ -204,7 +204,7 @@ XLSX export jobs are idempotent + retryable:
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics live at `regional-packs/<pack>/sheets-multi-region-overlay.md`. Example: pack-eu satisfies DORA testing when oyatie has EU financial-services tenants in scope.
+Per-pack BCDR specifics live at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/sheets-multi-region-overlay.md`. Example: pack-eu satisfies DORA testing when oyatie has EU financial-services tenants in scope.
 
 ## Verification
 
@@ -222,7 +222,7 @@ Per-pack BCDR specifics live at `regional-packs/<pack>/sheets-multi-region-overl
 - `microservices/sheets/cost-budget.md`.
 - `microservices/sheets/failure-modes.md`.
 - `microservices/sheets/incident-response.md`.
-- `regional-packs/<pack>/sheets-multi-region-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/sheets-multi-region-overlay.md`.
 - OCI region documentation.
 - Postgres + Citus replication — `docs.citusdata.com/`.
 - Valkey Sentinel — `valkey.io/topics/sentinel`.

@@ -159,7 +159,7 @@ Notified at failover initiation per `incident-response.md` §"Tenant communicati
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics at `regional-packs/<pack>/cloud-k8s-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Regulation 2022/2554) testing requirements when EU financial-services tenants are in scope; pack-au must satisfy APRA-CPS 232 (business-continuity) for financial-services tenants.
+Per-pack BCDR specifics at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-k8s-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Regulation 2022/2554) testing requirements when EU financial-services tenants are in scope; pack-au must satisfy APRA-CPS 232 (business-continuity) for financial-services tenants.
 
 ## Verification
 
@@ -174,7 +174,7 @@ Per-pack BCDR specifics at `regional-packs/<pack>/cloud-k8s-multi-region-overlay
 - `microservices/cloud-k8s/cost-budget.md`.
 - `microservices/cloud-k8s/failure-modes.md`.
 - `microservices/cloud-k8s/incident-response.md`.
-- `regional-packs/<pack>/cloud-k8s-multi-region-overlay.md` (per-pack).
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-k8s-multi-region-overlay.md` (per-pack).
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
 - Kubernetes DR — `kubernetes.io/docs/tasks/administer-cluster/`.
 - Istio multi-cluster — `istio.io/latest/docs/setup/install/multicluster/`.

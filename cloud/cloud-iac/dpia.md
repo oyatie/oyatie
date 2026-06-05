@@ -207,7 +207,7 @@ This document is the GDPR Art. 35 DPIA for EU-resident tenant processing in clou
 
 ### pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa
 
-Per-pack overlays at `regional-packs/<pack>/cloud-iac-dpia-overlay.md`.
+Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/cloud-iac-dpia-overlay.md`.
 
 ## Re-review Triggers
 

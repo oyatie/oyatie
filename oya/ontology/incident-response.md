@@ -182,7 +182,7 @@ Template — DPA notification: see observability incident-response.md (shared te
 
 ### PDPA (Singapore, Australia, etc.)
 
-Per-pack timelines at `regional-packs/<pack>/incident-notification-overlay.md`.
+Per-pack timelines at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/incident-notification-overlay.md`.
 
 ### NIS2 (EU 2022/2555)
 

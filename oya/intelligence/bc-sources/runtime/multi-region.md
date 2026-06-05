@@ -155,7 +155,7 @@ Per `incident-response.md` §"Tenant communications":
 
 ## Per-Pack BCDR Overlay
 
-Per-pack BCDR specifics at `regional-packs/<pack>/foundry-runtime-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements when oyatie has EU financial-services tenants in scope.
+Per-pack BCDR specifics at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-runtime-multi-region-overlay.md`. Example: pack-eu must satisfy DORA (Digital Operational Resilience Act 2022/2554) testing requirements when oyatie has EU financial-services tenants in scope.
 
 ## Verification
 
@@ -167,7 +167,7 @@ Per-pack BCDR specifics at `regional-packs/<pack>/foundry-runtime-multi-region-o
 
 - `microservices/intelligence-runtime/policy/data-residency.md`.
 - `microservices/intelligence-runtime/capacity-model.md`; `cost-budget.md`; `failure-modes.md`; `incident-response.md`.
-- `regional-packs/<pack>/foundry-runtime-multi-region-overlay.md`.
+- `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/foundry-runtime-multi-region-overlay.md`.
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
 - Valkey 8.1 (Redis wire-compat) HA — `redis.io/docs/management/replication/`.
 - Postgres 16 LTS replication — `postgresql.org/docs/16/high-availability.html`.

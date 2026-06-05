@@ -7,7 +7,7 @@ doc_status: published
 > **When:** New regional pack onboarding (e.g. JP / US / EU / IN / BR / KSA / UAE / AU / SG / etc.) OR existing pack version bump.
 > **Owner:** `regional-packs` team + per-pack maintainer.
 > **Validator:** `regional-pack-validator` lane + ADR-0010 seam-impl coverage.
-> **Template:** [`regional-packs/_TEMPLATE.md`](../regional-packs/_TEMPLATE.md)
+> **Template:** [`docs/regional-packs/_TEMPLATE.md`](../regional-packs/_TEMPLATE.md)
 
 ---
 
@@ -127,4 +127,4 @@ doc_status: published
 
 ## 17. Sources
 
-[ADR-0010 regional-pack architecture](../decisions/ADR-0010-regional-pack-architecture.md), [INTERNATIONALIZATION.md](../INTERNATIONALIZATION.md), [COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md), [`regional-packs/_TEMPLATE.md`](../regional-packs/_TEMPLATE.md), [`regional-packs/oya-pack-kr/PACK.md`](../regional-packs/oya-pack-kr/PACK.md) (reference example).
+[ADR-0010 regional-pack architecture](../decisions/ADR-0010-regional-pack-architecture.md), [INTERNATIONALIZATION.md](../INTERNATIONALIZATION.md), [COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md), [`docs/regional-packs/_TEMPLATE.md`](../regional-packs/_TEMPLATE.md), [`docs/regional-packs/oya-pack-kr/PACK.md`](../regional-packs/oya-pack-kr/PACK.md) (reference example).

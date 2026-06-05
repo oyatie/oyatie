@@ -85,11 +85,6 @@ mod dev_server {
                 &crate_path("style/app.css"),
                 "text/css; charset=utf-8",
             ),
-            "/client/prototype-interactions.js" => write_file(
-                &mut stream,
-                &crate_path("static/prototype-interactions.js"),
-                "text/javascript; charset=utf-8",
-            ),
             path if path.starts_with("/api/render-envelope/") => {
                 let context_id = path.trim_start_matches("/api/render-envelope/");
                 if let Some(json) = render_envelope_json(context_id) {
@@ -149,24 +144,20 @@ mod dev_server {
     <noscript>This mock Leptos prototype needs WebAssembly enabled for hydration; the accessible shell scaffold remains visible.</noscript>
     {body}
     <script type="module">
-      const interactions = import('/client/prototype-interactions.js');
       const wasmPackageAvailable = {wasm_package_available};
-      interactions.then((module) => module.mountShellChrome());
       async function mountDashboardIsland() {{
-        const fallback = await interactions;
         const pkgUrl = '/pkg/oya_application_shell_frontend_prototype.js';
-        try {{
-          if (wasmPackageAvailable) {{
-            const wasm = await import(pkgUrl);
-            await wasm.default();
-            wasm.mount_dashboard_islands();
-            return;
-          }}
-        }} catch (_error) {{
-          // Fall through to the visual fallback; this prototype remains useful without cargo-leptos pkg assets.
+        if (!wasmPackageAvailable) {{
+          console.info('Oyatie prototype static Rust shell rendered without a hand-authored JavaScript fallback; build the Leptos/WASM package for interactive islands.');
+          return;
         }}
-        fallback.mountDashboardFallback();
-        console.info('Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg.');
+        try {{
+          const wasm = await import(pkgUrl);
+          await wasm.default();
+          wasm.mount_dashboard_islands();
+        }} catch (_error) {{
+          console.info('Oyatie prototype static Rust shell remained visible because the generated WASM package could not mount.');
+        }}
       }}
       mountDashboardIsland();
     </script>
