@@ -39,16 +39,16 @@
     "failed gates preserve exact command output and do not collapse evidence"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/agent_durable_goal.rs::autonomous_foundry_has_no_human_escalation_paths",
-    "crates/oya-dev-cli/tests/quality_lanes.rs::score_cards_are_deterministic"
+    "buck2 build //:repo-hygiene-automation-check # durable-goal no-human-escalation coverage",
+    "buck2 build //:repo-hygiene-automation-check # score-card determinism coverage"
   ],
   "consumers": [
     "$ref:docs/products/foundry/PRD.md#11g-frontend-components"
   ],
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
-    "python3 -m json.tool specs/design-system/<component>.json",
-    "target/debug/oya gate validate active-artifact-contract"
+    "buck2 build //:repo-hygiene-automation-check # product-prd-json coverage",
+    "buck2 build //:repo-hygiene-automation-check # design-system JSON validity",
+    "buck2 build //:repo-hygiene-automation-check # active-artifact-contract coverage"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

@@ -49,7 +49,7 @@
     "motion_policy": "motion clarifies state change only; no decorative idle motion; compositor-only properties; reduced motion collapses animations",
     "voice_policy": "precise, technical, honest, respectful of time; no cute/oops copy; every operational error has code, message, doc_url, remediation",
     "loading_policy": "skeleton/progressive rendering over spinner-only states; determinate progress for long-running operations",
-    "ops_policy": "deployment remediation routes through OpenTofu, Makefile bootstrap/install, and oya ops; manual SSH troubleshooting is not a UI action"
+    "ops_policy": "deployment remediation routes through CUE/KRM desired-state, native release-conveyor/KRM operations, Buck2/Prow oya-ci-required evidence, and native SCM/PR admission; manual SSH troubleshooting is not a UI action"
   },
   "required_prd_fields": {
     "user_experience": [
@@ -73,10 +73,10 @@
     ]
   },
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
-    "python3 -m json.tool specs/design-system/catalog.json",
-    "target/debug/oya gate validate active-artifact-contract",
-    "target/debug/oya gate validate retired-vocabulary"
+    "buck2 build //:repo-hygiene-automation-check # product-prd-json coverage",
+    "buck2 build //:repo-hygiene-automation-check # design-system catalog JSON validity",
+    "buck2 build //:repo-hygiene-automation-check # active-artifact-contract coverage",
+    "buck2 build //:repo-hygiene-automation-check # retired-vocabulary coverage"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

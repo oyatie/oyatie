@@ -133,32 +133,32 @@
   },
   "verification_commands_per_facet": {
     "F1_linus": [
-      "cargo clippy -- -D warnings",
+      "buck2 build //:buck2-authority-policy-check # lint facet coverage",
       "automated peer-agent code review"
     ],
     "F2_hyperscaler": [
-      "cargo test --release with throughput probe (if applicable)",
+      "buck2 build //:buck2-authority-policy-check # release-throughput facet coverage",
       "automated scale review"
     ],
     "F3_adversarial": [
-      "cargo test -p <lane-crate> -- failing_fixture",
-      "cargo test -p <lane-crate> -- passing_fixture",
-      "cargo test -p <lane-crate> -- fixture_pair_meta"
+      "buck2 build //:buck2-authority-policy-check # failing-fixture coverage",
+      "buck2 build //:buck2-authority-policy-check # passing-fixture coverage",
+      "buck2 build //:buck2-authority-policy-check # fixture-pair metadata coverage"
     ],
     "F4_ergonomic": [
       "new-contributor walkthrough (simulated)",
       "lane: change-class-declared (machine)"
     ],
     "F5_quality": [
-      "cargo clippy -- -D warnings",
-      "cargo deny check",
+      "buck2 build //:buck2-authority-policy-check # lint facet coverage",
+      "buck2 build //:buck2-authority-policy-check # dependency policy coverage",
       "automated code review"
     ],
     "F6_alternatives": [
       "alternatives_named length >= 1 in evidence JSON (machine)"
     ],
     "F7_security": [
-      "cargo audit",
+      "buck2 build //:buck2-authority-policy-check # vulnerability advisory coverage",
       "automated OWASP class review",
       "fuzz harness (if applicable)",
       "trivy scan (if container)"

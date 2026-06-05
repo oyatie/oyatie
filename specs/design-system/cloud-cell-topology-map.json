@@ -35,20 +35,20 @@
   },
   "security_invariants": [
     "tenant route details obey operator role and never expose another tenant by search leak",
-    "manual SSH instructions are forbidden; remediation links point to ops/OpenTofu workflows",
+    "manual SSH instructions are forbidden; remediation links point to native release-conveyor/KRM workflows",
     "stale telemetry blocks topology-derived rollout decisions"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/deployment_ops_contract.rs::deployment_ops_contract_forbids_manual_ssh",
+    "buck2 build //:repo-hygiene-automation-check # deployment-ops manual-SSH guard coverage",
     "crates/oya-cloud-cell-domain/tests/topology.rs::test_tenant_route_visibility"
   ],
   "consumers": [
     "$ref:docs/products/cloud/PRD.md#11g-frontend-components"
   ],
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
-    "python3 -m json.tool specs/design-system/<component>.json",
-    "target/debug/oya gate validate active-artifact-contract"
+    "buck2 build //:repo-hygiene-automation-check # product-prd-json coverage",
+    "buck2 build //:repo-hygiene-automation-check # design-system JSON validity",
+    "buck2 build //:repo-hygiene-automation-check # active-artifact-contract coverage"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

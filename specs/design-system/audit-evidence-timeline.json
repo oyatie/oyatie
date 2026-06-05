@@ -39,17 +39,17 @@
     "export preserves redactions and chain-of-custody metadata"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::changeset_pr_audit_row_provenance_chain_is_graph_traversable",
-    "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::agent_decision_provenance_chain_is_graph_traversable"
+    "buck2 build //:repo-hygiene-automation-check # audit-row provenance graph coverage",
+    "buck2 build //:repo-hygiene-automation-check # agent-decision provenance graph coverage"
   ],
   "consumers": [
     "$ref:specs/microservices/ontology.json#frontend_components",
     "$ref:docs/products/foundry/PRD.md#11g-frontend-components"
   ],
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
-    "python3 -m json.tool specs/design-system/<component>.json",
-    "target/debug/oya gate validate active-artifact-contract"
+    "buck2 build //:repo-hygiene-automation-check # product-prd-json coverage",
+    "buck2 build //:repo-hygiene-automation-check # design-system JSON validity",
+    "buck2 build //:repo-hygiene-automation-check # active-artifact-contract coverage"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

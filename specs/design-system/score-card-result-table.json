@@ -39,16 +39,16 @@
     "failure rows link to reproducible command before any prose explanation"
   ],
   "test_refs": [
-    "crates/oya-dev-cli/tests/quality_lanes.rs::score_cards_are_deterministic",
-    "crates/oya-dev-cli/tests/product_prd_json.rs::product_prd_json_gate_accepts_repo_specs"
+    "buck2 build //:repo-hygiene-automation-check # score-card determinism coverage",
+    "buck2 build //:repo-hygiene-automation-check # product-prd-json coverage"
   ],
   "consumers": [
     "$ref:docs/products/foundry/PRD.md#11g-frontend-components"
   ],
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
-    "python3 -m json.tool specs/design-system/<component>.json",
-    "target/debug/oya gate validate active-artifact-contract"
+    "buck2 build //:repo-hygiene-automation-check # product-prd-json coverage",
+    "buck2 build //:repo-hygiene-automation-check # design-system JSON validity",
+    "buck2 build //:repo-hygiene-automation-check # active-artifact-contract coverage"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
