@@ -103,13 +103,4 @@ Reading: For 1M submissions/month, most SaaS platforms become punitive. oyatie's
 
 ## Reproducibility
 
-Benchmark harness at `benchmarks/formsbench/`. Run with:
-
-```sh
-cargo run -p oya-dev-cli -- benchmarks forms \
-    --workload submission-write \
-    --tier oyatie-paid \
-    --form-fields 30 \
-    --duration 30m \
-    --output ./benchmark-results.json
-```
+Current benchmark tables are model inputs until a Buck2-owned Forms benchmark harness target exists. New benchmark evidence must be produced by a Buck2 target under the Forms-owned benchmark surface, captured in multispectrum evidence, and consumed by Prow oya-ci-required. Do not publish new numbers from retired local CLI commands.

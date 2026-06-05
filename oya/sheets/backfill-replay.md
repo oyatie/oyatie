@@ -67,11 +67,11 @@ Replay re-emits / re-renders a workbook version with the current formula-engine 
 
 ### Procedure
 
-1. Operator invokes: `cargo run -p oya-dev-cli -- sheets replay --workbook <id> --reason "<rfc>"`.
-2. CLI requires 2-person rule + ops-security approval (replay touches tenant data).
-3. Engine re-runs formula-engine + recalc against current code; compares against stored version_sha.
+1. Operator opens a Sheets replay control-plane operation with workbook id, reason, and approver ids.
+2. The operation requires 2-person rule + ops-security approval before any tenant-data read.
+3. Engine re-runs formula-engine + recalc against current Buck2-verified code; compares against stored version_sha.
 4. Emits `WorkbookReplayed` event with `prior_version_sha`, `replay_version_sha`, `formula_results_changed`, `differences_summary`, `reason`.
-5. Audit-chain seal: replay itself is sealed.
+5. Operation-ledger and audit-chain seal: replay itself is sealed and linked to the evidence bundle.
 
 ### Constraints
 

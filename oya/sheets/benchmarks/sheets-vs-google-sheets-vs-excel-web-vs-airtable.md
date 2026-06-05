@@ -71,7 +71,7 @@ PRD target: cursor sync p99 ≤ 150 ms; oyatie hits 142 ms.
 
 | Platform | Round-trip fidelity % | Notes |
 |---|---:|---|
-| oyatie sheets | 96 | Per `oya sheets xlsx-fidelity-check`; 4 % gap (VBA, ActiveX, some sparkline configs, LET in old Excel versions) |
+| oyatie sheets | 96 | Per Sheets XLSX fidelity benchmark evidence; 4 % gap (VBA, ActiveX, some sparkline configs, LET in old Excel versions) |
 | Google Sheets export to XLSX → re-open in Excel | ~ 88 | Google's XLSX export drops dynamic-array formulas in some configurations |
 | Microsoft Excel Web → Excel-Desktop (round-trip) | ~ 99 | Best-in-class for XLSX (same format family) |
 | Airtable → CSV / Excel | ~ 70 | Airtable's data model doesn't map cleanly to XLSX |
@@ -94,11 +94,4 @@ Reading: at 2 000 seats, oyatie's flat-cell cost is competitive with Google Work
 
 ## Reproducibility
 
-Benchmark harness at `benchmarks/sheetsbench/`. Run with:
-
-```sh
-cargo run -p oya-dev-cli -- benchmarks sheets \
-    --workload recalc-100k-cell \
-    --tenant-class oyatie-paid \
-    --output ./benchmark-results.json
-```
+Current benchmark tables are model inputs until a Buck2-owned Sheets benchmark harness target exists. New benchmark evidence must be produced by a Buck2 target under the Sheets-owned benchmark surface, captured in multispectrum evidence, and consumed by Prow oya-ci-required. Do not publish new numbers from retired local CLI commands.
