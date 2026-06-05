@@ -1,0 +1,67 @@
+{
+  "schema": "oyatie.evidence.multispectrum.v1",
+  "id": "quality-lane-registry-authority-hygiene-20260605T081600Z",
+  "captured_at": "2026-06-05T08:16:00Z",
+  "worktree": "/tmp/oyatie-quality-lane-registry-hygiene-20260605T080003Z",
+  "branch": "chore/quality-lane-registry-hygiene-20260605T080003Z",
+  "base_commit": "d471cacfa",
+  "claim": "Quality-lane registry active check_command rows use Buck2/Prow authority only; retired local CLI, raw Cargo, pnpm/npm, and script rows are planned until native targets exist. The CI-lanes mirror and quality-lane unit fixtures no longer model stale direct Cargo/pnpm/CLI lanes as normal active examples.",
+  "scope": [
+    "registry/quality/lanes.yaml",
+    "docs/standards/ci-lanes.md",
+    "libs/oya-check-quality-lane/src/lib.rs",
+    "scripts/ci/assert-quality-lane-registry-authority.rs",
+    "scripts/tests/quality_lane_registry_authority_check.rs",
+    "scripts/ci/assert-repo-hygiene-automation.rs",
+    "specs/repo-hygiene-automation.json",
+    "BUCK"
+  ],
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check libs/oya-check-quality-lane/src/lib.rs scripts/ci/assert-quality-lane-registry-authority.rs scripts/tests/quality_lane_registry_authority_check.rs scripts/ci/assert-repo-hygiene-automation.rs",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/quality_lane_registry_authority_check.rs --test && test binary",
+      "exit_code": 0,
+      "observed": "6 passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/ci/assert-quality-lane-registry-authority.rs && OYA_REPO_ROOT=$PWD checker",
+      "exit_code": 0,
+      "observed": {
+        "status": "PASS",
+        "registry_lanes": 94,
+        "doc_rows": 94,
+        "active_lanes": 66,
+        "planned_lanes": 28,
+        "active_buck2_commands": 66,
+        "failures": []
+      }
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings libs/oya-check-quality-lane/src/lib.rs --test && test binary",
+      "exit_code": 0,
+      "observed": "8 passed; 0 failed"
+    },
+    {
+      "command": "buck2 build //:quality-lane-registry-authority-check //:repo-hygiene-automation-check //:buck2-authority-policy-check //libs/oya-check-quality-lane:oya-check-quality-lane --show-output",
+      "exit_code": 0,
+      "observed": "BUILD SUCCEEDED; quality-lane-registry-authority PASS; repo-hygiene PASS; buck2-authority PASS"
+    },
+    {
+      "command": "git diff --check && git diff --cached --check",
+      "exit_code": 0
+    },
+    {
+      "command": "focused stale-string scan over registry/quality/lanes.yaml docs/standards/ci-lanes.md libs/oya-check-quality-lane/src/lib.rs",
+      "exit_code": 0,
+      "observed": "no matches for retired CLI/Cargo/pnpm/bacon/Node20/Jenkins/Forgejo/ArgoCD/Helm-manifest lane strings"
+    }
+  ],
+  "notes": [
+    "The new guard intentionally keeps retired fragments in denylist/test fixtures so future active registry rows fail closed.",
+    "Rows without honest native Buck2/Prow targets were changed to planned instead of being mapped to misleading build-only commands.",
+    "Tenant label coverage now names rendered CUE/Kubernetes manifests as canonical and Helm import/export as adapter compatibility only."
+  ]
+}

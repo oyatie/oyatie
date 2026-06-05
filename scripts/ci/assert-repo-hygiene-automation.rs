@@ -78,6 +78,8 @@ const KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND: &str =
     "buck2 build //:kubernetes-native-anti-pattern-check";
 const CLOUD_CELL_ELASTICITY_POLICY_COMMAND: &str =
     "buck2 build //:cloud-cell-elasticity-policy-check";
+const QUALITY_LANE_REGISTRY_AUTHORITY_COMMAND: &str =
+    "buck2 build //:quality-lane-registry-authority-check";
 const TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND: &str =
     "buck2 build //:latest-toolchain-pin-updater-check";
 const APPEND_MISSING_RUST_UNIT_TEST_TARGETS_COMMAND: &str =
@@ -112,6 +114,7 @@ const REQUIRED_AUTOMATION_COMMANDS: &[&str] = &[
     OYA_CI_CONTROLLER_CONFIG_COMMAND,
     KUBERNETES_NATIVE_ANTI_PATTERN_COMMAND,
     CLOUD_CELL_ELASTICITY_POLICY_COMMAND,
+    QUALITY_LANE_REGISTRY_AUTHORITY_COMMAND,
     TOOLCHAIN_PIN_UPDATER_COMPILE_COMMAND,
     APPEND_MISSING_RUST_UNIT_TEST_TARGETS_COMMAND,
     GENERATE_FIRST_PARTY_BUCK_COMMAND,
@@ -2004,15 +2007,18 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "oya-ci-prowjob-registry-check",
         "oya-ci-controller-config-check",
         "kubernetes-native-anti-pattern-check",
+        "quality-lane-registry-authority-check",
         "assert-repo-hygiene-automation.rs",
         "sync-latest-toolchain-pins.rs",
         "generate-oya-ci-prowjob-registry.rs",
         "assert-oya-ci-controller-config.rs",
         "assert-kubernetes-native-antipatterns.rs",
+        "assert-quality-lane-registry-authority.rs",
         "repo_hygiene_automation_check.rs",
         "oya_ci_prowjob_registry_check.rs",
         "oya_ci_controller_config_check.rs",
         "kubernetes_native_antipatterns_check.rs",
+        "quality_lane_registry_authority_check.rs",
         "repo-hygiene-automation.json",
         "dependency-rationales.json",
         "dependency-blessed-allowlist.json",

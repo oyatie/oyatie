@@ -50,8 +50,10 @@ genrule(
         "scripts/tests/third_party_durable_handedits_check.rs": "scripts/tests/third_party_durable_handedits_check.rs",
         "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
         "scripts/ci/assert-kubernetes-native-antipatterns.rs": "scripts/ci/assert-kubernetes-native-antipatterns.rs",
+        "scripts/ci/assert-quality-lane-registry-authority.rs": "scripts/ci/assert-quality-lane-registry-authority.rs",
         "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
         "scripts/tests/kubernetes_native_antipatterns_check.rs": "scripts/tests/kubernetes_native_antipatterns_check.rs",
+        "scripts/tests/quality_lane_registry_authority_check.rs": "scripts/tests/quality_lane_registry_authority_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
         "specs/kubernetes-native-anti-patterns.json": "specs/kubernetes-native-anti-patterns.json",
         "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
@@ -193,6 +195,7 @@ genrule(
         "docs/standards/rust-release-optimization.md": "docs/standards/rust-release-optimization.md",
         "docs/standards/testing.md": "docs/standards/testing.md",
         "docs/standards/ci-lanes.md": "docs/standards/ci-lanes.md",
+        "registry/quality/lanes.yaml": "registry/quality/lanes.yaml",
         "docs/standards/release-management.md": "docs/standards/release-management.md",
         "docs/standards/multi-agent-tool-map.md": "docs/standards/multi-agent-tool-map.md",
         "docs/security.md": "docs/security.md",
@@ -291,10 +294,12 @@ genrule(
     srcs = {
         "scripts/ci/assert-repo-hygiene-automation.rs": "scripts/ci/assert-repo-hygiene-automation.rs",
         "scripts/ci/assert-retired-grouping-wording.rs": "scripts/ci/assert-retired-grouping-wording.rs",
+        "scripts/ci/assert-quality-lane-registry-authority.rs": "scripts/ci/assert-quality-lane-registry-authority.rs",
         "scripts/ci/github-actions-lane-unlocker-bootstrap.sh": "scripts/ci/github-actions-lane-unlocker-bootstrap.sh",
         "scripts/ci/sync-latest-toolchain-pins.rs": "scripts/ci/sync-latest-toolchain-pins.rs",
         "scripts/tests/repo_hygiene_automation_check.rs": "scripts/tests/repo_hygiene_automation_check.rs",
         "scripts/tests/retired_grouping_wording_check.rs": "scripts/tests/retired_grouping_wording_check.rs",
+        "scripts/tests/quality_lane_registry_authority_check.rs": "scripts/tests/quality_lane_registry_authority_check.rs",
         "specs/repo-hygiene-automation.json": "specs/repo-hygiene-automation.json",
         "specs/tenant-rbac-packaging.json": "specs/tenant-rbac-packaging.json",
         "specs/retired-external-substrate-registry.json": "specs/retired-external-substrate-registry.json",
@@ -334,6 +339,7 @@ genrule(
         "docs/standards/brief-template.md": "docs/standards/brief-template.md",
         "docs/standards/agentic-dev-team-optimization.md": "docs/standards/agentic-dev-team-optimization.md",
         "docs/standards/ci-lanes.md": "docs/standards/ci-lanes.md",
+        "registry/quality/lanes.yaml": "registry/quality/lanes.yaml",
         "docs/standards/code-style-rust.md": "docs/standards/code-style-rust.md",
         "docs/standards/dependency-policy.md": "docs/standards/dependency-policy.md",
         "docs/standards/hyperscaler-best-practices.md": "docs/standards/hyperscaler-best-practices.md",
@@ -381,6 +387,25 @@ genrule(
     },
     out = "repo-hygiene-automation-check.json",
     cmd = "mkdir -p $TMP/repo-hygiene-automation && rustc --edition=2024 -D warnings scripts/ci/sync-latest-toolchain-pins.rs -o $TMP/repo-hygiene-automation/sync-latest-toolchain-pins && $TMP/repo-hygiene-automation/sync-latest-toolchain-pins --version > /dev/null && rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o $TMP/repo-hygiene-automation/repo_hygiene_automation_check && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/repo_hygiene_automation_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o $TMP/repo-hygiene-automation/assert-repo-hygiene-automation && OYA_REPO_ROOT=$PWD $TMP/repo-hygiene-automation/assert-repo-hygiene-automation --json > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
+# Shared quality-lane registry guard. This target keeps the registry and its
+# human mirror on Buck2/Prow authority, with retired direct local commands left
+# as planned backlog instead of active merge authority.
+genrule(
+    name = "quality-lane-registry-authority-check",
+    srcs = {
+        "scripts/ci/assert-quality-lane-registry-authority.rs": "scripts/ci/assert-quality-lane-registry-authority.rs",
+        "scripts/tests/quality_lane_registry_authority_check.rs": "scripts/tests/quality_lane_registry_authority_check.rs",
+        "registry/quality/lanes.yaml": "registry/quality/lanes.yaml",
+        "docs/standards/ci-lanes.md": "docs/standards/ci-lanes.md",
+    },
+    out = "quality-lane-registry-authority-check.json",
+    cmd = "mkdir -p $TMP/quality-lane-registry-authority && rustc --edition=2024 -D warnings scripts/tests/quality_lane_registry_authority_check.rs --test -o $TMP/quality-lane-registry-authority/quality_lane_registry_authority_check && OYA_REPO_ROOT=$PWD $TMP/quality-lane-registry-authority/quality_lane_registry_authority_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/assert-quality-lane-registry-authority.rs -o $TMP/quality-lane-registry-authority/assert-quality-lane-registry-authority && OYA_REPO_ROOT=$PWD $TMP/quality-lane-registry-authority/assert-quality-lane-registry-authority > $OUT",
     cacheable = False,
     remote = False,
     repo_relative_root = True,
