@@ -181,6 +181,25 @@ fn rejects_forbidden_network_and_mutation_tokens_in_hook_text() {
 }
 
 #[test]
+fn rejects_unpinned_host_interpreters_in_runtime_hooks() {
+    let failures = checker::forbidden_runtime_behavior_failures(
+        "tools/hooks/bad.sh",
+        "#!/usr/bin/env bash\npython3 - <<'PY'\nPY\nnode tools/bad.js\npnpm install\n",
+    );
+    for interpreter in ["python3", "node", "pnpm"] {
+        assert!(
+            failures.iter().any(|failure| failure
+                == &format!(
+                    "tools/hooks/bad.sh:forbidden_runtime_interpreter:{}",
+                    interpreter
+                )),
+            "{:?}",
+            failures
+        );
+    }
+}
+
+#[test]
 fn shell_word_match_avoids_substring_false_positives() {
     assert!(!checker::contains_shell_word("function advisory()", "nc"));
     assert!(!checker::contains_shell_word("github-lane-unlocker", "gh"));
