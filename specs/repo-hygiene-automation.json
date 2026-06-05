@@ -155,7 +155,8 @@
       "microservice spec retired CI/CD and local gate authority scan",
       "design-system spec retired local validator authority scan",
       "schema/registry spec retired local validator authority scan",
-      "deployment-ops contract retired external substrate authority scan"
+      "deployment-ops contract retired external substrate authority scan",
+      "agent-durable-goal retired deployment authority scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -386,6 +387,15 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental deployment-ops contract authority cleanup only; historical ADRs and generated machine-readable mirrors remain separate archive/regeneration slices"
+    },
+    "agent_durable_goal_deployment_authority_scan": {
+      "clean_files": [
+        "specs/agent-durable-goal.json"
+      ],
+      "policy": "The active agent durable goal must route deployment, rollback, incident response, drift, and capacity recovery through native release-conveyor rollback, KRM/CUE desired-state PRs, Buck2/Prow evidence, and controller reconciliation. Retired external deployment substrates, root command-wrapper entrypoints, and manual host-troubleshooting language must not appear as active agent instructions.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental agent-durable-goal deployment-authority cleanup only; historical ADRs, old changelog provenance outside active instructions, and generated mirrors remain separate archive/regeneration slices"
     },
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
