@@ -683,6 +683,29 @@ const CLOUD_NETWORK_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "app.kubernetes.io/managed-by: Helm",
     "oyatie.com/adr-0349: argocd-managed",
 ];
+const CELL_REBALANCER_STALE_AUTHORITY_PHRASES: &[&str] = &[
+    "canonical local pre-push verifier",
+    "Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates",
+    "Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates",
+    "ArgoCD is the canonical GitOps CD orchestrator",
+    "ArgoCD is the GitOps CD orchestrator",
+    "Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates",
+    "cargo run -p oya-dev-cli",
+    "cargo run -q -p oya-dev-cli",
+    "cargo fmt",
+    "cargo check",
+    "cargo clippy",
+    "cargo nextest",
+    "`./bin/oya git worktree-add",
+    "`./bin/oya vcs verify",
+    "Jenkins/GitHub Actions parity under ADR-0349",
+    "Jenkins + `oya gate run-all --ci-required`",
+    "argocd app get",
+    "Jenkins build id",
+    "ArgoCD sync id",
+    "app.kubernetes.io/managed-by: Helm",
+    "oyatie.com/adr-0349: argocd-managed",
+];
 const WORKPLACE_INTEGRATION_STALE_AUTHORITY_PHRASES: &[&str] = &[
     "canonical local pre-push verifier",
     "Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates",
@@ -1399,6 +1422,46 @@ pub fn cloud_network_authority_failures(root: &Path) -> Vec<String> {
     if helm_dir.exists() {
         failures.push(
             "cloud/cloud-network/iac/k8s/helm: first-party Helm chart directory must not exist; cloud-network desired state is CUE/KRM plus Buck2/Prow evidence"
+                .to_string(),
+        );
+    }
+
+    failures
+}
+
+pub fn cell_rebalancer_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    let mut files = Vec::new();
+
+    if let Err(error) =
+        collect_markdown_yaml_json_files(root, Path::new("cloud/cell-rebalancer"), &mut files)
+    {
+        failures.push(format!("cell-rebalancer authority scan failed: {error}"));
+    }
+    files.sort();
+    files.dedup();
+
+    for rel in files {
+        let path = root.join(&rel);
+        let Ok(text) = fs::read_to_string(&path) else {
+            failures.push(format!(
+                "{rel}: read failed during cell-rebalancer authority scan"
+            ));
+            continue;
+        };
+        for phrase in CELL_REBALANCER_STALE_AUTHORITY_PHRASES {
+            if text.contains(phrase) {
+                failures.push(format!(
+                    "{rel}: stale cell-rebalancer active authority phrase present: {phrase:?}; use ADR-0513 Buck2/Prow `oya-ci-required`, CUE/KRM desired state, and native release-conveyor wording"
+                ));
+            }
+        }
+    }
+
+    let helm_dir = root.join("cloud/cell-rebalancer/iac/k8s/helm");
+    if helm_dir.exists() {
+        failures.push(
+            "cloud/cell-rebalancer/iac/k8s/helm: first-party Helm chart directory must not exist; cell-rebalancer desired state is CUE/KRM plus Buck2/Prow evidence"
                 .to_string(),
         );
     }
@@ -2482,6 +2545,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     failures.extend(runbook_promotion_gate_failures(root));
     failures.extend(cloud_network_dns_authority_failures(root));
     failures.extend(cloud_network_authority_failures(root));
+    failures.extend(cell_rebalancer_authority_failures(root));
     failures.extend(workplace_integration_authority_failures(root));
     failures.extend(cell_lifecycle_authority_failures(root));
     failures.extend(cloud_billing_tax_authority_failures(root));
