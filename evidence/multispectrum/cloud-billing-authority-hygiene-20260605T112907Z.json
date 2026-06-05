@@ -1,0 +1,33 @@
+{
+  "evidence_id": "cloud-billing-authority-hygiene-20260605T112907Z",
+  "created_at_utc": "20260605T112907Z",
+  "lane": "chore/cloud-billing-authority-hygiene-20260605T111748Z",
+  "base": "github-mirror/dev@f6df07a66",
+  "scope": [
+    "cloud/cloud-billing active docs",
+    "cloud/cloud-billing first-party k8s desired-state packaging",
+    "scripts/ci/assert-repo-hygiene-automation.rs",
+    "scripts/tests/repo_hygiene_automation_check.rs"
+  ],
+  "decision": "cloud-billing active authority is Buck2/Prow oya-ci-required plus CUE/KRM/native release-conveyor seams; Cargo commands, retired local oya gate/dev CLI authority, Jenkins/ArgoCD authority, and first-party Helm charts are retired for active cloud-billing docs.",
+  "commands": [
+    {"cmd": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs", "result": "pass"},
+    {"cmd": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test -o /tmp/oyatie-verify-cloud-billing/repo_hygiene_automation_check", "result": "pass"},
+    {"cmd": "OYA_REPO_ROOT=/private/tmp/oyatie-hygiene-cloud-billing-20260605T111748Z /tmp/oyatie-verify-cloud-billing/repo_hygiene_automation_check --nocapture", "result": "pass", "tests": "61 passed; 0 failed"},
+    {"cmd": "rustc --edition=2024 -D warnings scripts/ci/assert-repo-hygiene-automation.rs -o /tmp/oyatie-verify-cloud-billing/assert-repo-hygiene-automation", "result": "pass"},
+    {"cmd": "/tmp/oyatie-verify-cloud-billing/assert-repo-hygiene-automation --json", "result": "pass", "verdict": "PASS", "failures": []},
+    {"cmd": "buck2 build //:repo-hygiene-automation-check --show-output", "result": "pass", "build_id": "7ed569bc-c2e2-4a7f-bd87-3f8838b2fd57"}
+  ],
+  "retired_surfaces_removed_or_guarded": [
+    "cloud/cloud-billing/iac/k8s/helm",
+    "Cargo command wording as cloud-billing verifier/CI authority",
+    "retired local oya gate/dev CLI authority wording",
+    "Jenkins/ArgoCD active authority wording",
+    "Helm managed-by and ADR-0349 ArgoCD annotations"
+  ],
+  "known_not_tested": [
+    "live Kubernetes apply/reconcile",
+    "native release-conveyor runtime promotion",
+    "future CUE/KRM package materialization and reference targets"
+  ]
+}

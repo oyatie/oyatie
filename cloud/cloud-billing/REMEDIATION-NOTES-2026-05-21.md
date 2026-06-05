@@ -658,7 +658,7 @@ Existing Cedar policies on tree:
 
 artifacts confirmed existing: 3 Rust crates + 3 contract files + 6 Cedar policy files + 10 SLO files + 4 IaC files for `oyatie-public-cloud`.
 
-Compile evidence: `cargo check -p oya-cloud-billing-domain -p oya-cloud-billing-kernel -p oya-cloud-billing-tax-app` finished cleanly under workspace dev profile. No new crates were required; all declared (in non-IP docs) crates resolve.
+Historical compile evidence is superseded by Buck2 target evidence. No new crates were required; all declared non-IP crate references remain metadata only.
 
 ### D. Artifacts scaffolded
 
@@ -674,17 +674,13 @@ IP claims trimmed: 0.
 
 Rationale: trimming requires a present claim. There are no IP claims on tree, so nothing can be trimmed.
 
-### F. Workspace Cargo.toml changes
+### F. Workspace metadata changes
 
 No changes. No new crates were created, so the workspace member list is unchanged.
 
 ### G. Compile status
 
-cargo check status: PASS.
-
-Command: `cargo check -p oya-cloud-billing-domain -p oya-cloud-billing-kernel -p oya-cloud-billing-tax-app`.
-
-Result: `Finished dev profile [unoptimized + debuginfo] target(s) in 1.20s` with zero errors and zero warnings reported for the three cloud-billing crates.
+Historical local compile status is superseded. Active evidence must be Buck2 target output plus oya-ci/Prow `oya-ci-required` before merge.
 
 ### H. Follow-ups (precise, not silent)
 

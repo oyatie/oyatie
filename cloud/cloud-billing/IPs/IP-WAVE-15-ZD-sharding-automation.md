@@ -20,7 +20,7 @@ SCOPE-002: This is doctrine propagation, not Rust implementation, manifest editi
 SCOPE-003: cloud-billing must interpret ADR-0348 through its own bounded context: cloud-billing.
 SCOPE-004: cloud-billing uses ADR-0346 as the local verifier contract for any downstream implementation PR that turns this plan into code.
 SCOPE-005: cloud-billing uses ADR-0347 lane vocabulary, so governance-owned checks cite `oya-governance-*` and not the pre-rename fitness prefix.
-SCOPE-006: cloud-billing uses ADR-0349 for self-hostable CI/CD rollout expectations once Wave 15-ZE authors Jenkinsfile, Helm, and ArgoCD surfaces.
+SCOPE-006: cloud-billing uses ADR-0349 for self-hostable CI/CD rollout expectations once Wave 15-ZE authors Buck2/Prow, CUE/KRM, and native promotion surfaces.
 SCOPE-007: This file records the rollback_path required by ADR-0348's IP-level reversibility lane.
 SCOPE-008: The plan is accepted only when the file remains at least 150 lines and cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
 
@@ -42,20 +42,18 @@ STANCE-014: Reversibility stance is audit-chain-first; every transition records 
 STANCE-015: Observability stance is metric-triggered; p99, utilization, skew, refusal, and rollback labels must be visible where cloud-billing participates.
 STANCE-016: Routing stance is transaction-boundary switch only; consumers must not observe half-migrated tenant placement.
 STANCE-017: Compliance stance is pack-aware candidate filtering before execution, not after-the-fact audit repair.
-STANCE-018: CI stance is ADR-0346 full-mirror verification before push for downstream code, schema, or workflow changes.
-STANCE-019: CI/CD substrate stance is ADR-0349 Jenkins plus ArgoCD parity once the rollout wave authors deployment surfaces.
+STANCE-018: CI stance is Buck2 target evidence plus ADR-0513 oya-ci/Prow required context before push for downstream code, schema, or workflow changes.
+STANCE-019: CI/CD substrate stance is ADR-0513 Buck2/Prow plus native promotion; ADR-0349 Jenkins/ArgoCD wording is historical provenance only.
 STANCE-020: Governance naming stance is ADR-0347; this IP uses governance lane identifiers consistently.
 
-## 3. Canonical ADR-0346 Wording
-ADR346-PURPOSE-001: `./bin/oya verify --ci-required` is the canonical local pre-push verifier.
-ADR346-PURPOSE-002: It MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
-ADR346-PURPOSE-003: Default invocation runs every step; skip flags are limited to `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}`.
-ADR346-PURPOSE-004: Exit-code contract is closed: 0 = ALL passed; 1 = at least one failed; 2 = invalid arguments.
-ADR346-ENFORCED-BY-001: oya-governance-oya-verify-ci-mirror-coverage (new lane; refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis; promoted to BLOCKER 14 days post Wave 15-ZA implementation lands)
-ADR346-ENFORCED-BY-002: oya-governance-oya-verify-ci-step-exit-semantics (new lane; refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps; refuses changes that conflate fmt-fail with check-fail in the exit code emitted to the caller)
-ADR346-ENFORCED-BY-003: oya-governance-oya-verify-skip-flag-allowlist (new lane; refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8; new skip flags require an ADR amendment per `feedback_no_silent_regression`)
-ADR346-ENFORCED-BY-004: oya-governance-oya-submit-calls-verify (new lane; refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10 -- preserves the existing call chain, refuses regressions)
-ADR346-ENFORCED-BY-005: oya-governance-oya-verify-exit-code-contract (new lane; refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11)
+## 3. ADR-0346 Historical Local-Verifier Provenance
+ADR346-PURPOSE-001: ADR-0346 local verifier wording is historical provenance only.
+ADR346-PURPOSE-002: Active verification evidence is Buck2 target output plus ADR-0513 oya-ci/Prow `oya-ci-required` required context.
+ADR346-PURPOSE-003: Retired local CLI skip flags, exit-code contracts, and verifier source hooks must not be reintroduced as merge authority.
+ADR346-PURPOSE-004: Buck2/Prow evidence is the active closed merge contract.
+ADR346-ENFORCED-BY-001: buck2-target-evidence (active lane; refuses changes without the relevant Buck2 build/test/check evidence).
+ADR346-ENFORCED-BY-002: oya-ci-required-controller-context (active lane; refuses merge readiness when the trusted Prow context is missing).
+ADR346-ENFORCED-BY-003: retired-local-verifier-provenance (documentation lane; keeps historical ADR text out of active runbooks, PRDs, and substrate docs).
 
 ## 4. Canonical ADR-0347 Wording
 ADR347-PURPOSE-001: Every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
@@ -79,17 +77,17 @@ ADR348-ENFORCED-BY-004: oya-governance-dynamic-sharding-threshold-coverage (new 
 ADR348-ENFORCED-BY-005: oya-governance-audit-chain-emit-on-automation-events (new lane; greps every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true and refuses if the same manifest omits audit_chain_emit true on the corresponding sub-block; every automation event MUST emit per ADR-0263 observability-emission-contract)
 ADR348-ENFORCED-BY-006: oya-governance-tenant-migration-reversibility (new lane; refuses any microservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)
 
-## 6. Canonical ADR-0349 Wording
-ADR349-PURPOSE-001: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-ADR349-PURPOSE-002: Jenkins augments rather than replaces GitHub Actions; GitHub Actions remains the hosted PR review CI surface.
-ADR349-PURPOSE-003: ArgoCD is the canonical GitOps CD orchestrator and replaces manual kubectl apply and manual Helm CLI deploys across all contexts.
-ADR349-PURPOSE-004: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/`.
-ADR349-PURPOSE-005: Cosign verification, tenant namespace isolation, JCasC-only Jenkins state, and audit-chain deploy emission are enforced by governance lanes.
-ADR349-ENFORCED-BY-001: oya-governance-jenkins-github-actions-parity (new lane; refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract enumerated in D-3 below; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
-ADR349-ENFORCED-BY-002: oya-governance-argocd-application-cosign-verified (new lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
-ADR349-ENFORCED-BY-003: oya-governance-argocd-tenant-namespace-isolation (new lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
-ADR349-ENFORCED-BY-004: oya-governance-jenkins-jcasc-only (new lane; refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under microservices/cloud-iac/modules/<context>/jenkins/jcasc/ with declarative JCasC YAML per D-1; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
-ADR349-ENFORCED-BY-005: oya-governance-deploy-audit-chain-emit (new lane; refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
+## 6. ADR-0349 Historical CI/CD Provenance
+ADR349-PURPOSE-001: ADR-0349 Jenkins/ArgoCD wording is historical provenance only and is not active or interim authority.
+ADR349-PURPOSE-002: GitHub/GitHub Actions are temporary PR/publication and shadow-evidence adapters.
+ADR349-PURPOSE-003: ADR-0513 oya-ci/Prow owns required CI context; native release-conveyor-like promotion owns durable CD.
+ADR349-PURPOSE-004: First-party Kubernetes desired state is CUE/KRM. Helm is external chart compatibility only after CUE/KRM normalization.
+ADR349-PURPOSE-005: Cosign verification, tenant namespace isolation, declarative Prow state, and audit-chain deploy emission are enforced by native governance lanes.
+ADR349-ENFORCED-BY-001: oya-governance-buck2-prow-required-context (new lane; refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract enumerated in D-3 below; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
+ADR349-ENFORCED-BY-002: oya-governance-native-promotion-cosign-verified (new lane; refuses native promotion desired-state CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
+ADR349-ENFORCED-BY-003: oya-governance-native-promotion-tenant-namespace-isolation (new lane; refuses native promotion desired-state authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
+ADR349-ENFORCED-BY-004: oya-governance-prow-controller-declarative-config-only (new lane; refuses Prow controller state declared via the UI; every Prow controller state file is authored under microservices/cloud-iac/modules/<context>/jenkins/jcasc/ with declarative JCasC YAML per D-1; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
+ADR349-ENFORCED-BY-005: oya-governance-native-promotion-audit-chain-emit (new lane; refuses native promotion transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
 
 ## 7. Downstream Implementation Plan
 PLAN-001: Read the manifest sharding_automation block before creating code or workflow changes.
@@ -167,8 +165,8 @@ VERIFY-020: Downstream implementation must prove threshold completeness for dyna
 VERIFY-021: Downstream implementation must prove audit_chain_emit for auto_rebalance.
 VERIFY-022: Downstream implementation must prove audit_chain_emit for dynamic_sharding.
 VERIFY-023: Downstream implementation must prove rollback emits a second audit row.
-VERIFY-024: Downstream implementation must prove ArgoCD sync emits deploy audit rows when deployment surfaces land.
-VERIFY-025: Downstream implementation must prove Jenkinsfile parity when self-hosted CI lands.
+VERIFY-024: Downstream implementation must prove native promotion emits deploy audit rows when deployment surfaces land.
+VERIFY-025: Downstream implementation must prove Buck2/Prow required-context evidence when self-hosted CI lands.
 VERIFY-026: Documentation gate must accept ADR citations.
 VERIFY-027: File line count must be >= 150.
 VERIFY-028: File path must stay under microservices/#{ms}/IPs/.
