@@ -30,8 +30,7 @@ k8s Deployment contract.
   The binary inside is Mach-O (host arch) — NOT runnable on Linux.
   Push is intentionally blocked on darwin (linux CI only).
 - **Linux CI (aarch64, Talos node):** the binary is `aarch64-linux` ELF — correct
-  for deployment.  Run push-and-sign after assembly (see the controller's
-  `push-and-sign.sh` for the canonical pattern).
+  for deployment.  Publish with `//tools/oci:oya-oci-push` after assembly.
 
 ## Base image
 
@@ -70,12 +69,9 @@ The `sha256:` in `BUCK` is the **immutable arm64 manifest digest** passed to
 `sha256(manifest_bytes) == DIGEST`, so a stale or wrong digest fails the build
 deterministically.
 
-To bump to a new CVE-patched weekly rebuild (requires `crane` on PATH):
-
-```sh
-crane digest --platform linux/arm64 gcr.io/distroless/static-debian12:nonroot
-# update the DIGEST argument in the :distroless-base genrule
-```
+To bump to a new CVE-patched weekly rebuild, resolve the linux/arm64 child
+manifest digest from trusted upstream release evidence, then update the
+`DIGEST` argument in the `:distroless-base` genrule.
 
 Keep this digest in lock-step with `oya/ci-controller/iac/oci/BUCK`.
 
@@ -103,7 +99,18 @@ header MTIME to wall-clock time and must not be used here.)
 
 ## Push and sign
 
-Linux CI only.  Follow the controller's `push-and-sign.sh` pattern:
-- Registry: `registry.oya-registry.svc.cluster.local:5000`
-- Cosign: `--key k8s://oya-ci/cosign-key` (ADR-0181 + `verify-image-signed.yaml`)
-- Tag form: `${GIT_SHA}-dev` (ADR-0181)
+Linux CI only.  Publish with the Rust Buck2 tool:
+
+```sh
+buck2 run //tools/oci:oya-oci-push -- \
+  <oci-layout-dir> \
+  registry.oya-registry.svc.cluster.local:5000 \
+  oya-ci-webhook-gateway \
+  ${GIT_SHA}-dev \
+  --insecure
+```
+
+The command prints the pushed manifest digest to stdout.  Signing, SBOM,
+vulnerability scan evidence, and deployment admission stay in the native Prow
+promotion lane.  Helm artifacts, if emitted, are compatibility adapters only;
+CUE-owned desired state is the canonical deployment input.

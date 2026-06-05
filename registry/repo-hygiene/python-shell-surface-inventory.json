@@ -3,9 +3,9 @@
   "$id": "https://docs.oyatie.com/registry/repo-hygiene/python-shell-surface-inventory.json",
   "registry_id": "python-shell-surface-inventory",
   "status": "classified_no_durable_authority",
-  "updated_at": "2026-06-05T05:00:55Z",
+  "updated_at": "2026-06-05T05:17:44Z",
   "count_source": "filesystem_scan_excluding_vendored_surfaces",
-  "tracked_file_count": 44,
+  "tracked_file_count": 43,
   "authority": {
     "python_shell_durable_gate_authority": false,
     "new_python_or_shell_gate_surface": "deny_unless_explicit_bootstrap_exception",
@@ -81,7 +81,6 @@
       "id": "pending_rust_buck2_rewrite",
       "disposition": "not merge authority until rewritten or rehosted as Rust libraries, Buck2 targets, or Kubernetes-native controller actions",
       "paths": [
-        "oya/ci-controller/iac/oci/push-and-sign.sh",
         "tools/hooks/adr-orphan-detect.sh",
         "tools/hooks/session-start-context-inject.sh",
         "tools/hooks/spec-version-pin-suggester.sh"
