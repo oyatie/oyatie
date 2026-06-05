@@ -844,7 +844,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/standards/finops-cost-attribution-canonical.md` | C310 | 1 | 0 | 0 | weak component C310 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/standards/finops-cost-attribution.md` | C311 | 1 | 0 | 0 | weak component C311 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/standards/fips-hsm-substrate-root-signing.md` | C312 | 1 | 0 | 0 | weak component C312 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/standards/gitops-iac-cluster-tier-boundaries.md` | C313 | 1 | 0 | 0 | weak component C313 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/standards/krm-iac-cluster-tier-boundaries.md` | C313 | 1 | 0 | 0 | weak component C313 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/standards/graceful-shutdown-canonical.md` | C314 | 1 | 0 | 0 | weak component C314 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/standards/helm-chart-convention.md` | C315 | 1 | 0 | 0 | weak component C315 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/standards/hyperscaler-best-practices.md` | C316 | 1 | 0 | 0 | weak component C316 has no directed path from docs/README.md; file has zero resolved inbound corpus links |

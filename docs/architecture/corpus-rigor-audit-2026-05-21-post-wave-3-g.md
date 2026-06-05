@@ -4111,7 +4111,7 @@ The invariant requires <=6-hop reachability by BFS over links/frontmatter: `docs
 | docs/standards/fintech-compliance.md | 448 | 0 | True | False | 60 | REVISE |
 | docs/standards/fips-hsm-substrate-root-signing.md | 703 | 29 | True | True | 85 | PASS |
 | docs/standards/git-workflow.md | 223 | 3 | True | True | 83 | APPROVE-WITH-FINDINGS |
-| docs/standards/gitops-iac-cluster-tier-boundaries.md | 98 | 0 | True | False | 28 | CRITICAL |
+| docs/standards/krm-iac-cluster-tier-boundaries.md | 98 | 0 | True | False | 28 | CRITICAL |
 | docs/standards/graceful-shutdown-canonical.md | 89 | 6 | True | False | 67 | REVISE |
 | docs/standards/helm-chart-convention.md | 94 | 3 | True | False | 43 | CRITICAL |
 | docs/standards/hyperscaler-best-practices.md | 333 | 0 | True | True | 75 | APPROVE-WITH-FINDINGS |

@@ -150,7 +150,8 @@
       "governance markdown retired local dev CLI and external substrate scan",
       "cloud-tenancy retired CLI/Cargo/external CI authority scan",
       "M02 exit-gate validator retired CLI/Cargo/pnpm authority scan",
-      "standards retired local gate/doc/vcs command scan"
+      "standards retired local gate/doc/vcs command scan",
+      "standards retired external substrate name scan"
     ],
     "product_operation_runbook_retired_cli_scan": {
       "clean_paths": [
@@ -304,6 +305,19 @@
       "check": "buck2 build //:repo-hygiene-automation-check",
       "live_mutation": false,
       "claim_boundary": "incremental standards command cleanup only; remaining Cargo-deny/LTS policy wording and retired external substrate references are separate backlog slices"
+    },
+    "standards_retired_external_substrate_scan": {
+      "clean_files": [
+        "docs/standards/hyperscaler-best-practices.md",
+        "docs/standards/krm-iac-cluster-tier-boundaries.md",
+        "docs/standards/regulatory-pack-authzpolicy-overlays.md",
+        "docs/standards/release-management.md",
+        "docs/standards/twelve-factor-adoption.md"
+      ],
+      "policy": "Cleaned standards docs must not present retired external CI/CD or app-delivery substrates as first-class active authority. Active wording uses native release-conveyor/KRM, Buck2/Prow oya-ci-required evidence, and compatibility-adapter boundaries.",
+      "check": "buck2 build //:repo-hygiene-automation-check",
+      "live_mutation": false,
+      "claim_boundary": "incremental standards external-substrate cleanup only; historical ADR and generated machine-readable mirrors remain separate regeneration/archive backlog slices"
     },
     "stale_doc_inventory": {
       "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",

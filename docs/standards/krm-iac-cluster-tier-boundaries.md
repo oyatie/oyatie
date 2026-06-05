@@ -1,4 +1,4 @@
-# Standard — GitOps + IaC + cluster lifecycle: tier boundaries
+# Standard — KRM + IaC + cluster lifecycle: tier boundaries
 
 > ADR anchor: `docs/decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md`.
 > Gate anchor: `crates/oya-check-iac-tier-discipline/`.
@@ -6,9 +6,9 @@
 
 ## TL;DR
 
-Three tools, three tiers, zero overlap.
+Three ownership tiers, zero controller overlap.
 
-- **Tier A — ArgoCD** owns app deploy.
+- **Tier A — KRM/release-conveyor desired state** owns app deploy.
 - **Tier B — OpenTofu** owns cloud-side resources.
 - **Tier C — Cluster API** owns K8s cluster lifecycle.
 
@@ -17,16 +17,16 @@ likely about to cross a boundary. Stop and re-read this standard.
 
 ## Boundary table
 
-| Resource kind                | Owner Tier | Tool      |
+| Resource kind                | Owner Tier | Authority |
 | ---------------------------- | ---------- | --------- |
-| ArgoCD Application CR        | A          | ArgoCD    |
-| Helm release manifest        | A          | ArgoCD    |
-| K8s Deployment / StatefulSet | A          | ArgoCD    |
-| K8s DaemonSet / Job          | A          | ArgoCD    |
-| K8s ConfigMap / Secret use   | A          | ArgoCD    |
+| Release-conveyor package     | A          | KRM/CUE   |
+| First-party desired state    | A          | KRM/CUE   |
+| K8s Deployment / StatefulSet | A          | KRM/CUE   |
+| K8s DaemonSet / Job          | A          | KRM/CUE   |
+| K8s ConfigMap / Secret use   | A          | KRM/CUE   |
 | K8s namespace creation       | B          | OpenTofu  |
 | K8s RBAC bootstrap           | B          | OpenTofu  |
-| ArgoCD project bootstrap     | B          | OpenTofu  |
+| Release project bootstrap    | B          | OpenTofu  |
 | VPC / subnet / route         | B          | OpenTofu  |
 | IAM role + policy            | B          | OpenTofu  |
 | KMS key                      | B          | OpenTofu  |
@@ -40,19 +40,20 @@ likely about to cross a boundary. Stop and re-read this standard.
 
 ## Why this matters
 
-A single tool spanning all three tiers always drifts. ADR-0202
-lists the failure modes in detail. The pragmatic version:
+A single controller spanning all three tiers always drifts. ADR-0202 lists the
+failure modes in detail. The pragmatic version:
 
-- ArgoCD reconciling cloud-IAM is fragile (`cloud-provider`
-  drift, partial-apply semantics).
+- App desired-state controllers reconciling cloud IAM are fragile
+  (`cloud-provider` drift, partial-apply semantics).
 - OpenTofu emitting per-pod manifests is fragile (no
   reconciliation loop, no health checks, no progressive
   rollout).
-- Cluster API trying to ship apps re-implements ArgoCD worse.
+- Cluster API trying to ship apps re-implements a release conveyor worse.
 
 ## Where each tier's source lives
 
-- Tier A: `microservices/<ms>/iac/argocd/`
+- Tier A: `microservices/<ms>/iac/krm/` or the owning first-party CUE/KRM
+  release-conveyor package.
 - Tier B: `microservices/cloud-iac/tofu/modules/` + per-µservice
   `microservices/<ms>/iac/tofu/` (consumer of canonical modules)
 - Tier C: `microservices/cloud-k8s/iac/cluster-api/`
@@ -68,12 +69,12 @@ Under `microservices/cloud-iac/tofu/modules/`:
 - `kms/` — KMS keys (per tenant, per region)
 - `secrets-bootstrap/` — OpenBao initial seed
 - `k8s-namespace-bootstrap/` — namespace + RBAC + network policy
-  seed (so Tier-A ArgoCD can land app manifests safely)
+  seed (so Tier-A KRM/release-conveyor packages can land app manifests safely)
 
 ## Discipline
 
-- `oya-check-iac-tier-discipline` is the advisory gate. It
-  flips to BLOCKER at T+90d (post-Terraform-migration window).
+- `oya-check-iac-tier-discipline` is the Buck2/Prow evidence lane. It reports
+  through `oya-ci-required` when this boundary becomes merge-blocking.
 
 ## Migration timeline (Terraform → OpenTofu)
 
@@ -84,15 +85,16 @@ Under `microservices/cloud-iac/tofu/modules/`:
 
 ## In-house posture
 
-oyatie does NOT build replacements for ArgoCD / OpenTofu /
-Cluster API. The in-house contribution is the boundary table
-itself + the discipline gate. See ADR-0202 §"In-house roadmap".
+oyatie keeps OpenTofu and Cluster API as provider-side substrate seams, while
+first-party app desired state converges on KRM/CUE packages and the native
+release conveyor. External app-deploy controllers remain adapter compatibility
+only, not first-class active authority. See ADR-0202 §"In-house roadmap".
 
 ## References
 
-- ADR-0202 — GitOps + IaC + cluster lifecycle three-tier.
+- ADR-0202 — historical GitOps + IaC + cluster lifecycle three-tier.
 - ADR-0171 — multi-cluster federation.
 - ADR-0173 — vendor lock-in avoidance.
-- ArgoCD (Intuit / CNCF graduated).
+- Kubernetes Resource Model (KRM) desired-state packaging.
 - OpenTofu (Linux Foundation).
 - Cluster API (Kubernetes SIG Cluster Lifecycle).

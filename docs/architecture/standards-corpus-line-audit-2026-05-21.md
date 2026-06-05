@@ -51,7 +51,7 @@ finops-cost-attribution.md
 fintech-compliance.md
 fips-hsm-substrate-root-signing.md
 git-workflow.md
-gitops-iac-cluster-tier-boundaries.md
+krm-iac-cluster-tier-boundaries.md
 graceful-shutdown-canonical.md
 helm-chart-convention.md
 hyperscaler-best-practices.md
@@ -316,7 +316,7 @@ Files with no enforcement declaration whatsoever (neither field present):
 | `event-schema-versioning-canonical.md` | P1 |
 | `finops-cost-attribution-canonical.md` | P1 |
 | `finops-cost-attribution.md` | P1 |
-| `gitops-iac-cluster-tier-boundaries.md` | P0 (also no frontmatter) |
+| `krm-iac-cluster-tier-boundaries.md` | P0 (also no frontmatter) |
 | `graceful-shutdown-canonical.md` | P1 |
 | `helm-chart-convention.md` | P0 (also no frontmatter) |
 | `hyperscaler-best-practices.md` | P2 (research doc; enforcement N/A) |
@@ -606,7 +606,7 @@ Eight files in the corpus have no frontmatter whatsoever:
 |---|---|---|
 | `cedar-policy-discipline.md` | Starts with `# Cedar Policy Discipline` — no frontmatter | P0 |
 | `container-image-convention.md` | Starts with `# Container image convention` — no frontmatter | P0 |
-| `gitops-iac-cluster-tier-boundaries.md` | Starts with `# Standard —` — no frontmatter | P0 |
+| `krm-iac-cluster-tier-boundaries.md` | Starts with `# Standard —` — no frontmatter | P0 |
 | `helm-chart-convention.md` | Starts with `# Helm chart convention` — no frontmatter | P0 |
 | `stream-processing-rubric.md` | Starts with `# Stream-Processing Rubric` — no frontmatter, no status, no date | P0 |
 | `timescaledb-adoption.md` | Uses markdown bold `**Authority:**`, `**Status:**`, `**Owner:**` as pseudo-frontmatter | P0 |
@@ -702,7 +702,7 @@ Files below the 250-line threshold:
 | `wcag-2-2-aa-checklist.md` | ~111 | 139 | No | P1 (gateway candidate) |
 | `step-up-auth-classes.md` | ~96 | 154 | No | P1 |
 | `authz-tier-boundaries.md` | ~99 | 151 | No | P1 |
-| `gitops-iac-cluster-tier-boundaries.md` | ~99 | 151 | No | P0 (no frontmatter) |
+| `krm-iac-cluster-tier-boundaries.md` | ~99 | 151 | No | P0 (no frontmatter) |
 | `workflow-vs-direct-grpc-rubric.md` | ~86 | 164 | No | P0 (no frontmatter) |
 | `per-tenant-resource-quotas-canonical.md` | ~98 | 152 | No | P1 |
 | `helm-chart-convention.md` | ~95 | 155 | No | P0 (no frontmatter) |
@@ -952,7 +952,7 @@ Owner recommendation: axis-frontend
 
 **R-P0-09 | Add YAML frontmatter to all 8 files with no frontmatter**
 
-Each file needs a valid frontmatter block with at minimum: `doc_class: Standard`, `status: Accepted` (or `Draft` if still in progress), `date:`, `canonical_authority:`, `planned_enforcement_ref:`, `related_adrs:`. Files: `cedar-policy-discipline.md`, `container-image-convention.md`, `gitops-iac-cluster-tier-boundaries.md`, `helm-chart-convention.md`, `stream-processing-rubric.md`, `timescaledb-adoption.md`, `wasm-runtime-canonical.md`, `workflow-vs-direct-grpc-rubric.md`.
+Each file needs a valid frontmatter block with at minimum: `doc_class: Standard`, `status: Accepted` (or `Draft` if still in progress), `date:`, `canonical_authority:`, `planned_enforcement_ref:`, `related_adrs:`. Files: `cedar-policy-discipline.md`, `container-image-convention.md`, `krm-iac-cluster-tier-boundaries.md`, `helm-chart-convention.md`, `stream-processing-rubric.md`, `timescaledb-adoption.md`, `wasm-runtime-canonical.md`, `workflow-vs-direct-grpc-rubric.md`.
 
 Affected: 8 files
 Owner recommendation: doc-coverage lane sweep
@@ -1314,7 +1314,7 @@ The following table gives a one-row summary for every file audited, enabling tri
 | `fintech-compliance.md` | ~448 | Standard | Draft | 0 | 2 | 1 | 0 | Draft; placeholder marker items; no enforcement |
 | `fips-hsm-substrate-root-signing.md` | ~704 | Standard | Accepted | 0 | 1 | 1 | 0 | Over-600 by 1.2×; placeholder ADR number |
 | `git-workflow.md` | ~224 | Standard | Accepted | 2 | 3 | 1 | 0 | Grit/icm; oya vcs drift; double-frontmatter |
-| `gitops-iac-cluster-tier-boundaries.md` | ~99 | — | — | 1 | 0 | 0 | 0 | No frontmatter; under-250 |
+| `krm-iac-cluster-tier-boundaries.md` | ~99 | — | — | 1 | 0 | 0 | 0 | No frontmatter; under-250 |
 | `graceful-shutdown-canonical.md` | ~90 | Standard | Accepted | 0 | 2 | 0 | 0 | Under-250; no enforcement |
 | `helm-chart-convention.md` | ~95 | — | — | 1 | 0 | 0 | 0 | No frontmatter; under-250 |
 | `hyperscaler-best-practices.md` | ~334 | research-context | — | 1 | 0 | 1 | 0 | Grit tooling table (research doc); normative scratch citation |

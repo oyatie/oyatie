@@ -98,7 +98,7 @@ Blameless postmortem culture is universal — every hyperscaler runs the same lo
 
 ### Feature flags + progressive delivery
 
-**State of the art (2025).** LaunchDarkly / Flagsmith / Unleash are standard; combined with canary deploys (small % traffic to new version) and automated SLO-burn-rate analysis for rollback. Argo Rollouts and Flagger are the Kubernetes-native rails. Blue-green is reserved for stateful cutovers; canary + flags is the everyday default. Flag debt is a real anti-pattern — flags must have expiry. ([Flagsmith — Progressive Delivery](https://www.flagsmith.com/blog/progressive-delivery); [Unleash — Canary vs Progressive Delivery](https://www.getunleash.io/blog/canary-release-vs-progressive-delivery); [Wissen — Blue-Green, Canary, Feature Flags](https://www.wissen.com/blog/the-role-of-blue-green-canary-and-feature-flags); [Visualpath — Progressive Delivery SRE 2025](https://visualpathblogs.com/site-reliability-engineering/what-is-the-best-way-to-implement-progressive-delivery-sre-in-2025/))
+**State of the art (2025).** LaunchDarkly / Flagsmith / Unleash are standard; combined with canary deploys (small % traffic to new version) and automated SLO-burn-rate analysis for rollback. Kubernetes-native progressive-delivery controllers and native release-conveyor adapters are the rails; Oyatie treats external controller integrations as compatibility adapters unless the native conveyor owns the policy/evidence seam. Blue-green is reserved for stateful cutovers; canary + flags is the everyday default. Flag debt is a real anti-pattern — flags must have expiry. ([Flagsmith — Progressive Delivery](https://www.flagsmith.com/blog/progressive-delivery); [Unleash — Canary vs Progressive Delivery](https://www.getunleash.io/blog/canary-release-vs-progressive-delivery); [Wissen — Blue-Green, Canary, Feature Flags](https://www.wissen.com/blog/the-role-of-blue-green-canary-and-feature-flags); [Visualpath — Progressive Delivery SRE 2025](https://visualpathblogs.com/site-reliability-engineering/what-is-the-best-way-to-implement-progressive-delivery-sre-in-2025/))
 
 ### On-call / runbooks
 
@@ -174,7 +174,7 @@ AWS-pioneered pattern: every `unsafe` block carries a `// SAFETY:` comment docum
 - **Buildkite** — hybrid (cloud control plane + self-hosted agents); dynamic pipelines; scales past CircleCI/GHA.
 - **Azure Pipelines + 1ES hosted pools** — Microsoft's templated-pipeline standard; very heavy enterprise lean.
 
-([Buildkite — GH Actions vs CircleCI](https://buildkite.com/resources/comparison/github-actions-vs-circleci/); [Northflank — CircleCI vs GH Actions](https://northflank.com/blog/circleci-vs-github-actions); [Buildkite — Alternatives to Jenkins 2025](https://buildkite.com/resources/ci-cd-perspectives/alternatives-to-jenkins-the-top-options-in-2025/))
+([Buildkite — GH Actions vs CircleCI](https://buildkite.com/resources/comparison/github-actions-vs-circleci/); [Northflank — CircleCI vs GH Actions](https://northflank.com/blog/circleci-vs-github-actions))
 
 ### Build systems
 

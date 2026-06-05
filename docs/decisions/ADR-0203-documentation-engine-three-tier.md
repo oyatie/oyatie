@@ -42,7 +42,7 @@ Three engines, three audiences, single Markdown source-of-truth.
 - **Engine**: `mdbook` (Rust-native, MPL-2.0).
 - **Sources**:
   - `docs/standards/` — engineering standards (e.g.
-    `wasm-runtime-canonical.md`, `gitops-iac-cluster-tier-boundaries.md`)
+    `wasm-runtime-canonical.md`, `krm-iac-cluster-tier-boundaries.md`)
   - `docs/operators/` — operator runbooks
   - `docs/decisions/` — ADR index rendered as a navigable book
 - **Audience**: internal engineers, raw repo readers.
@@ -128,7 +128,7 @@ MkDocs inside the Backstage UI.
   same `docs/` and `microservices/<ms>/` source.
 - New contributors point at
   `docs/standards/wasm-runtime-canonical.md` and
-  `docs/standards/gitops-iac-cluster-tier-boundaries.md` as
+  `docs/standards/krm-iac-cluster-tier-boundaries.md` as
   example engineering-standards reads rendered by mdbook.
 - The discipline gate `oya-check-client-stack-discipline`
   (ADR-0185) already enforces SvelteKit / Leptos. No additional

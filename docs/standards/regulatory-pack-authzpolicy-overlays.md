@@ -116,7 +116,7 @@ All version pins in this standard (Istio Ambient 1.29.2, Envoy waypoint binaries
 - ADR-0146 — distroless non-root container base image
 - ADR-0147 — container sandboxing runtime ladder
 - ADR-0150 — policy engine separation (Cedar app authz vs Kyverno admission)
-- ADR-0171 — multi-cluster federation via ArgoCD ApplicationSets
+- ADR-0171 — multi-cluster federation provenance; active app delivery uses the native release-conveyor/KRM seam
 - EU AI Act Regulation (EU) 2024/1689 — Annex III §4 employment
 - GDPR Regulation (EU) 2016/679 — Art. 22 automated decision-making
 - EU DSA Regulation (EU) 2065/2022 — Arts. 14, 17, 27
