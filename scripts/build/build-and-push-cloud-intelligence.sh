@@ -31,7 +31,13 @@ if [[ -z "$OCI_LAYOUT" || ! -d "$OCI_LAYOUT" ]]; then
 fi
 
 echo "==> Push OCI layout: ${REGISTRY}/${IMAGE_REPO}:${TAG}"
-python3 tools/oci/push-oci-image.py "$OCI_LAYOUT" "$REGISTRY" "$IMAGE_REPO" "$TAG" ${OYA_CLOUD_INTELLIGENCE_PUSH_FLAGS:-}
+PUSH_FLAGS=()
+if [[ -n "${OYA_CLOUD_INTELLIGENCE_PUSH_FLAGS:-}" ]]; then
+  # Transitional operator escape hatch for flags such as --insecure. Keep the
+  # build/push authority in Buck2; do not route through Python, Docker, or crane.
+  read -r -a PUSH_FLAGS <<<"${OYA_CLOUD_INTELLIGENCE_PUSH_FLAGS}"
+fi
+"$BUCK2" run //tools/oci:oya-oci-push -- "$OCI_LAYOUT" "$REGISTRY" "$IMAGE_REPO" "$TAG" "${PUSH_FLAGS[@]}"
 
 echo "==> Built and pushed via Buck2-native OCI"
 echo "    target: ${OCI_TARGET}"

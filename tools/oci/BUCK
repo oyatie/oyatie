@@ -1,12 +1,16 @@
 # tools/oci/BUCK
 #
-# Build-host OCI tooling for buck2-native OCI image assembly.
+# Build-host OCI tooling for buck2-native OCI image assembly and registry push.
 #
 # oya-oci-assemble: Rust binary that reads a base OCI-layout tarball + one or
 # more application layer tar.gz files and emits a complete OCI Image Layout
 # directory (OCI spec 1.0) with a recomputed manifest, config, and index.
 # Runs on the build host (darwin aarch64 or linux aarch64); exec_dep in the
 # oci_image rule (tools/oci/defs.bzl).
+#
+# oya-oci-push: Rust binary that reads an assembled OCI Image Layout directory,
+# uploads referenced blobs through the OCI Distribution API, and publishes the
+# manifest tag without docker/crane/skopeo. Runs in Buck2/Prow lanes.
 #
 # ADDITIVE: the gateway Dockerfile/BuildKit path is untouched.
 #
@@ -34,5 +38,31 @@ rust_binary(
         "third-party//:sha2",
         "third-party//:tempfile",
         "third-party//:walkdir",
+    ],
+)
+
+rust_binary(
+    name = "oya-oci-push",
+    srcs = glob(["crates/oya-oci-push-app/src/**/*.rs"]),
+    crate_root = "crates/oya-oci-push-app/src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow",
+        "third-party//:clap",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-oci-push-tests",
+    srcs = glob(["crates/oya-oci-push-app/src/**/*.rs"]),
+    crate_root = "crates/oya-oci-push-app/src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:anyhow",
+        "third-party//:clap",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
     ],
 )

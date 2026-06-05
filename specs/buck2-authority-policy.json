@@ -543,7 +543,7 @@
     "scripts/build/build-and-push-cloud-intelligence.sh": [
       "buck2",
       "cloud/cloud-intelligence/iac/oci:cloud-intelligence-oci",
-      "tools/oci/push-oci-image.py"
+      "//tools/oci:oya-oci-push"
     ],
     "scripts/ci/oya-ci-post.sh": [
       "oya-ci-required",

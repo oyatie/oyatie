@@ -117,7 +117,7 @@
       "title": "Containers / OCI images",
       "lines": [
         "Runtime: containerd. Docker (Docker Inc. tooling) is FORBIDDEN.",
-        "Images: bespoke buck2-native OCI (crane-free; tools/oci/push-oci-image.py + oya-oci-assemble), distroless/static base, fully-static aarch64-musl binaries.",
+        "Images: bespoke buck2-native OCI (crane-free; oya-oci-push + oya-oci-assemble), distroless/static base, fully-static aarch64-musl binaries.",
         "Layer compression (per-use): upstream base layers gzip; frequently-pulled app layers tar+zstd."
       ],
       "authority": [
