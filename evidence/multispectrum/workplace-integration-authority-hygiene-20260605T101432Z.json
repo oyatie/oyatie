@@ -1,0 +1,23 @@
+{
+  "id": "workplace-integration-authority-hygiene-20260605T101432Z",
+  "created_utc": "20260605T101432Z",
+  "branch": "chore/authority-hygiene-20260605T100512Z",
+  "base": "46969cfdf151dfd6b79715c9edfcd3b1dea5a0cc",
+  "scope": "oya/workplace-integration plus repo-hygiene Rust guard",
+  "changes": [
+    "Replaced retired workplace local oya/git/gate/verify onboarding and runbook authority with plain git worktree, Buck2 evidence, and trusted Rust/Prow oya-ci-required wording.",
+    "Reframed ADR-0346/ADR-0349 doctrine in workplace README, OpenAPI metadata, capability catalog, IPs, SLO, and migration playbook as historical/superseded where active authority moved to ADR-0513.",
+    "Removed first-party workplace Helm chart directory and added a thin CUE/KRM/Buck2/Prow desired-state pointer.",
+    "Added workplace_integration_authority_failures Rust guard and unit test to reject retired oya-dev-cli/Jenkins/ArgoCD authority and first-party Helm chart regression."
+  ],
+  "verification": {
+    "rustfmt": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+    "repo_hygiene_tests": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test; 55 passed, 0 failed",
+    "repo_hygiene_json": "verdict PASS; failures []",
+    "buck2": "buck2 build //:repo-hygiene-automation-check --show-output; BUILD SUCCEEDED",
+    "targeted_scan": "workplace retired authority targeted scan clean",
+    "helm_absence": "oya/workplace-integration/iac/k8s/helm absent",
+    "syntax": "Ruby YAML load for OpenAPI and OpenSLO ok; jq manifest ok",
+    "diff_check": "git diff --check passed"
+  }
+}

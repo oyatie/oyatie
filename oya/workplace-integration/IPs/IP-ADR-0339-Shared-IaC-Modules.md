@@ -309,10 +309,10 @@ VERIFY-009: Static read confirms `workplace-integration` ARCH has an `ADR-0339 i
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
-ACCEPT-016: `workplace-integration` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
+VERIFY-013: Buck2/Prow ADR-citation evidence must pass before merge; retired local dev-cli gate commands are provenance only.
+VERIFY-014: Buck2/Prow cohesion evidence must pass before merge; retired local dev-cli gate commands are provenance only.
+VERIFY-015: Machine-readable inventory refresh is owned by the Rust/Buck2 documentation pipeline before merge; retired local doc CLI commands are provenance only.
+ACCEPT-016: `workplace-integration` accepts doc-stage ADR-0339 propagation only after Buck2/Prow evidence passes or blockers are explicitly reported.
 ACCEPT-017: `workplace-integration` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `workplace-integration` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.
 ACCEPT-019: `workplace-integration` reviewers can validate lifecycle, doctrine, scale path, 24-month maintainability, five-year economics, and supply-chain stance from this single IP.
