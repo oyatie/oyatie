@@ -38,9 +38,9 @@ Build the zero-I/O `oya-calendar-event-store-kernel` crate named in `manifest.js
 
 ## E. Acceptance
 - `cargo nextest run -p oya-calendar-event-store-kernel` passes.
-- `cargo run -p oya-dev-cli -- gate validate port-location --microservice calendar` passes.
-- `cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice calendar` passes.
-- `cargo run -p oya-dev-cli -- gate validate data-class --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=data-class --microservice calendar` passes.
 - Policy references remain compatible with `policy/event-isolation.md` and `policy/tenant-scope.cedar`.
 
 ## F. Evidence

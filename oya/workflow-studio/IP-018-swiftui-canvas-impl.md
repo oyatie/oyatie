@@ -105,9 +105,9 @@ Minimum 5 required; 8 specified.
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate a11y-uikit-traits --shell swiftui --pkg clients/apple/WorkflowStudio
-cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps --shell swiftui --window 30s
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=a11y-uikit-traits --shell swiftui --pkg clients/apple/WorkflowStudio
+buck2 build //:quality-lane-registry-authority-check # lane=perf-canvas-60fps --shell swiftui --window 30s
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 xcodebuild test -scheme WorkflowStudioTests
 ```
 

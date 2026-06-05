@@ -75,7 +75,7 @@ impl FpBudget {
 ```bash
 cargo check -p oya-foundry-guardrails-content-safety-rule-engine-usecase --all-features
 cargo nextest run -p oya-foundry-guardrails-content-safety-rule-engine-usecase --all-features
-cargo run -p oya-dev-cli -- gate validate shadow-enforce-promotion-readiness --rule <rule-id>
+buck2 build //:quality-lane-registry-authority-check # lane=shadow-enforce-promotion-readiness --rule <rule-id>
 ```
 
 ## Test Plan

@@ -56,8 +56,8 @@ impl ProviderAdapterPort for AnthropicAdapter {
 
 ```bash
 cargo nextest run -p oya-intelligence-providers-adapter-anthropic
-cargo run -p oya-dev-cli -- gate validate provider-adapter-byok --provider anthropic
-cargo run -p oya-dev-cli -- gate validate provider-adapter-streaming --provider anthropic
+buck2 build //:quality-lane-registry-authority-check # lane=provider-adapter-byok --provider anthropic
+buck2 build //:quality-lane-registry-authority-check # lane=provider-adapter-streaming --provider anthropic
 ```
 
 ## Test plan

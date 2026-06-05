@@ -92,12 +92,12 @@ Minimum 3 required; 5 specified.
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate perf-canvas-60fps \
+buck2 build //:quality-lane-registry-authority-check # lane=perf-canvas-60fps \
   --evidence evidence/microservices/workflow-studio/canvas-perf-1000-node-*.json
-cargo run -p oya-dev-cli -- gate validate perf-budget-no-regression \
+buck2 build //:quality-lane-registry-authority-check # lane=perf-budget-no-regression \
   --history evidence/microservices/workflow-studio/canvas-perf-1000-node-*.json \
   --tolerance 5%
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 pnpm --filter web-sveltekit test:bench
 ```
 

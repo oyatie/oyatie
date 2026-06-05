@@ -997,8 +997,8 @@
       ],
       "current_gate_evidence": {
         "status": "local-green-online-audit-strict-evidence-pass",
-        "gate": "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
-        "result": "6 pass, 0 skipped, 0 diagnostics, 0 blocking",
+        "gate": "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check",
+        "result": "Buck2 authority gates pass; historical dependency-seam evidence retained as provenance only",
         "evidence_refs": [
           "/evidence/fd001/cs-p13-dependency-seam-report.json",
           "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",

@@ -38,7 +38,7 @@ Combine edge WAF signals, Cedar decisions, sock-puppet detection, moderation que
 - `policy/abuse-defence.cedar` tests pass.
 - `iac/edge-waf.yaml` parses and references documented signal names.
 - `dashboards/abuse-defence-outcomes.json` validates as JSON.
-- `cargo run -p oya-dev-cli -- gate validate abuse-defence --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=abuse-defence --microservice social` passes.
 - Runbooks include triggers, rollback, and evidence export.
 
 ## F. Evidence

@@ -293,7 +293,7 @@ Per the deprecation-and-migration skill, every deprecation closeout must satisfy
 
 - [ ] **Replacement is production-proven and covers all critical use cases.**
   ```bash
-  cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice docs
+  buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice docs
   # expect: HG-DOCS accepts at p99 SLOs sustained 30d
   ```
 - [ ] **Migration guide exists with concrete steps and examples.**

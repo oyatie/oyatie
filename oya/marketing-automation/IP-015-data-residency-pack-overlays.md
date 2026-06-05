@@ -42,8 +42,8 @@ Promote `policy/data-residency.md`, `compliance.md`, `dpia.md`, `manifest.json` 
 
 ## E. Acceptance
 
-- `cargo run -p oya-dev-cli -- gate validate data-residency --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate dpia --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=data-residency --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=dpia --microservice marketing-automation`
 - `cargo test -p oya-marketing-automation-campaign-journey-app residency`
 - Manual evidence: every marketing data class has a pack rule and audit event dimension.
 

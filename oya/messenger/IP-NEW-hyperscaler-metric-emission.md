@@ -152,7 +152,7 @@ the kernel pure.
 ```bash
 cargo check  -p oya-messenger-app
 cargo nextest run -p oya-messenger-app
-cargo run -p oya-dev-cli -- gate validate hyperscaler-arch-invariants
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-arch-invariants
 # Mock-scrape messenger's /metrics endpoint and assert all 7 canonical
 # families appear under steady-state traffic.
 ```

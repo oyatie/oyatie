@@ -55,7 +55,7 @@ acceptance_status: ga
 3. `cargo new --lib oya-drive-folder-hierarchy-usecase` — `CreateFolder`, `MoveFolder`, `RenameFolder`, `DeleteFolder`.
 4. `cargo new --lib oya-drive-folder-hierarchy-{api,adapter,adapter-postgres,rest,app}`.
 5. `cargo nextest run -p oya-drive-folder-hierarchy-*`.
-6. `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice drive`.
+6. `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice drive`.
 
 ## Traceability
 

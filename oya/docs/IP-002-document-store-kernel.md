@@ -69,8 +69,8 @@ pub trait DocumentRepository: Send + Sync {
 cargo check -p oya-docs-document-store-kernel
 cargo clippy -p oya-docs-document-store-kernel -- -D warnings
 cargo nextest run -p oya-docs-document-store-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --microservice docs
-cargo run -p oya-dev-cli -- gate validate data-class-coverage --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=data-class-coverage --microservice docs
 ```
 
 ## Test Plan

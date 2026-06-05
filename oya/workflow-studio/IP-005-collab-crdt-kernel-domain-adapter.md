@@ -115,7 +115,7 @@ cargo check -p oya-workflow-studio-collab-crdt-kernel -p oya-workflow-studio-col
   -p oya-workflow-studio-collab-crdt-adapter -p oya-workflow-studio-collab-crdt-adapter-valkey
 cargo nextest run -p oya-workflow-studio-collab-crdt-domain --test no_silent_overwrite
 cargo nextest run -p oya-workflow-studio-collab-crdt-adapter-valkey --test valkey_integration -- --include-ignored
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice workflow-studio
 ```
 
 ## Test Plan

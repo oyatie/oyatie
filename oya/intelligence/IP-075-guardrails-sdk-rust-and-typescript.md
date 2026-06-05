@@ -75,7 +75,7 @@ impl Client {
 cargo check -p oya-foundry-guardrails-<bc>-sdk (× 6) --all-features
 cargo nextest run -p oya-foundry-guardrails-<bc>-sdk (× 6) --all-features --test integration
 make -C microservices/intelligence/sdk-generation typescript-validate
-cargo run -p oya-dev-cli -- gate validate sdk-compatibility-matrix --microservice foundry-guardrails
+buck2 build //:quality-lane-registry-authority-check # lane=sdk-compatibility-matrix --microservice foundry-guardrails
 ```
 
 ## Test Plan

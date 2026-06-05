@@ -106,7 +106,7 @@ pub fn run() -> Result<(), GateError> {
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate autonomy-gate-presence --microservice foundry-runtime
+buck2 build //:quality-lane-registry-authority-check # lane=autonomy-gate-presence --microservice foundry-runtime
 cargo nextest run -p oya-foundry-runtime-capability-executor-usecase --test autonomy_gate
 cargo nextest run -p oya-foundry-runtime-capability-executor-adapter --test autonomy_gate_adapter --features testcontainers
 ```

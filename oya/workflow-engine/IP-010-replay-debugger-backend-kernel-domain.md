@@ -54,8 +54,8 @@ Those stay in IP-011 so replay correctness remains independent of analytics stor
 - `cargo check -p oya-workflow-engine-replay-debugger-backend-kernel --all-features`
 - `cargo check -p oya-workflow-engine-replay-debugger-backend-domain --all-features`
 - `cargo nextest run -p oya-workflow-engine-replay-debugger-backend-domain --all-features`
-- `cargo run -p oya-dev-cli -- gate validate port-location --crate oya-workflow-engine-replay-debugger-backend-kernel`
-- `cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-workflow-engine-replay-debugger-backend-domain`
+- `buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-workflow-engine-replay-debugger-backend-kernel`
+- `buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-workflow-engine-replay-debugger-backend-domain`
 - Required tests: `replay_same_event_log_same_snapshots`, `replay_refuses_cursor_gap`, `partial_replay_respects_bounds`, `diff_reports_first_mismatch`, `secret_payload_hash_only`, and `replay_does_not_import_adapter_crates`.
 
 ## §F Evidence

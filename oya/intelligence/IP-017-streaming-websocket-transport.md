@@ -56,7 +56,7 @@ async fn ws_session(socket: WebSocket, deps: Arc<IntelligenceDeps>) {
 
 ```bash
 cargo nextest run -p oya-intelligence-model-routing-rest -- ws
-cargo run -p oya-dev-cli -- gate validate streaming-websocket-session-audit --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=streaming-websocket-session-audit --microservice intelligence
 ```
 
 ## References

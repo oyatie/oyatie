@@ -58,7 +58,7 @@ n/a — modifies existing task-store crates.
 ```bash
 cargo test -p oya-tasks-task-store-usecase bulk
 cargo bench -p oya-tasks-task-store-usecase bulk
-cargo run -p oya-dev-cli -- gate validate bulk-edit-atomicity --microservice tasks
+buck2 build //:quality-lane-registry-authority-check # lane=bulk-edit-atomicity --microservice tasks
 ```
 
 ## Test Plan

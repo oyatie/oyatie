@@ -134,8 +134,8 @@ Every cross-pack transfer event emits to audit-chain with:
 ## Verification
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate pack-pinning --microservice drive
-cargo run -p oya-dev-cli -- gate validate cross-pack-cedar-coverage --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=pack-pinning --microservice drive
+buck2 build //:quality-lane-registry-authority-check # lane=cross-pack-cedar-coverage --microservice drive
 cargo nextest run -p oya-drive-file-store-domain -- pack_pinning_invariant
 ```
 

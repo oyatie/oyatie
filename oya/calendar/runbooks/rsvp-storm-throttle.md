@@ -152,7 +152,7 @@ kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
   grep 'oya_calendar_invitation_flow_worker_queue_depth'
 
 # rsvp-fanout-latency SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo rsvp-fanout-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice calendar --slo rsvp-fanout-latency
 
 # Storm event has drained (rsvp_count_5min back to baseline)
 kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \

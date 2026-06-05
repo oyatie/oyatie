@@ -42,8 +42,8 @@ Bind `iac/edge-waf.yaml`, `iac/ech-config.yaml`, `policy/abuse-defence.cedar`, `
 
 ## E. Acceptance
 
-- `cargo run -p oya-dev-cli -- gate validate edge-waf --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate policy-authorization --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=edge-waf --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=policy-authorization --microservice marketing-automation`
 - `kubectl apply --dry-run=server -f microservices/marketing-automation/iac/edge-waf.yaml`
 - Manual evidence: every public marketing surface has a WAF rule and audit outcome dimension.
 

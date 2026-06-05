@@ -86,12 +86,12 @@ cargo clippy -p microservices/plugin-app-store/slos/*.openslo.yaml --all-feature
 cargo nextest run -p microservices/plugin-app-store/slos/*.openslo.yaml --all-features
 cargo deny check --hide-inclusion-graph
 cargo doc -p microservices/plugin-app-store/slos/*.openslo.yaml --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate port-location --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice plugin-app-store
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice plugin-app-store
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion
 ```
 
 Domain-specific gates introduced or exercised by this IP:

@@ -25,7 +25,7 @@ Execute one or more fitness lanes against a target ref (PR, SHA, microservice).
 |---|---|---|
 | REST | `POST /lanes/{lane_id}/dispatch` (per `openapi/governance.yaml`) | OIDC + ci-scope.cedar |
 | gRPC | `GovernanceLaneRuntime.DispatchLane` (per `proto/governance.proto`) | mTLS + SPIFFE |
-| CLI | `cargo run -p oya-dev-cli -- gate validate <lane> --microservice <ms> [--sha <sha>]` | local-runner identity |
+| CLI | `buck2 build //:quality-lane-registry-authority-check # lane=<lane> --microservice <ms> [--sha <sha>]` | local-runner identity |
 
 ## Capability boundary
 

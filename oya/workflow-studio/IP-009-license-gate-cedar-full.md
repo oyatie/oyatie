@@ -123,7 +123,7 @@ cargo check -p oya-workflow-studio-license-gate-cedar-kernel \
 cargo nextest run -p oya-workflow-studio-license-gate-cedar-domain --test per_seat_cedar
 cargo nextest run -p oya-workflow-studio-license-gate-cedar-domain --test default_deny
 cargo nextest run -p oya-workflow-studio-license-gate-cedar-adapter-postgres --test integration -- --include-ignored
-cargo run -p oya-dev-cli -- gate validate cedar-preview-required --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-preview-required --microservice workflow-studio
 ```
 
 ## Test Plan

@@ -101,7 +101,7 @@ pub fn detect_injection(prose: &str) -> bool {
 ```bash
 cargo check -p oya-workflow-studio-llm-assist-bridge-domain
 cargo nextest run -p oya-workflow-studio-llm-assist-bridge-domain
-cargo run -p oya-dev-cli -- gate validate llm-assist-validation-required --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=llm-assist-validation-required --microservice workflow-studio
 ```
 
 ## Test Plan

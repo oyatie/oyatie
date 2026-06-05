@@ -28,7 +28,7 @@ Author the `url-routing` BC. Implements `Route`, `Redirect`, `RouteMatch` with R
 cargo nextest run -p oya-sites-url-routing-domain -- redirect_signature_stability
 cargo nextest run -p oya-sites-url-routing-domain -- redirect_loop_refused
 cargo nextest run -p oya-sites-url-routing-domain -- percent_encoding_preserved
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice sites
 ```
 
 ## ChangeSet metadata
@@ -58,7 +58,7 @@ acceptance_status: ga
 3. Usecase: `ResolveRoute`, `MintRedirect`, `RetireRoute`.
 4. Postgres adapter; REST handler.
 5. `cargo nextest run -p oya-sites-url-routing-*`.
-6. `cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice sites`.
+6. `buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice sites`.
 
 ## Traceability
 

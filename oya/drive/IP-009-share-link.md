@@ -61,7 +61,7 @@ acceptance_status: ga
 3. Usecase: `MintShareLink`, `VerifyShareLink`, `RevokeShareLink`, `CascadeRevoke`.
 4. Postgres adapter; REST handler with constant-time responses.
 5. `cargo nextest run -p oya-drive-share-link-*`.
-6. `cargo run -p oya-dev-cli -- gate validate share-link-signing-conformance --microservice drive`.
+6. `buck2 build //:quality-lane-registry-authority-check # lane=share-link-signing-conformance --microservice drive`.
 
 ## Traceability
 

@@ -251,8 +251,8 @@ External auditors receive frozen evidence pack per `docs/templates/evidence-pack
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance-evidence-recency` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate authority-cohesion` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=compliance-evidence-recency` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` — exit 0.
 - Annual SOC 2 Type 2 + ISO 27001:2022 audits recorded in `evidence/audits/`.
 - Per-pack audit cadences per local law.
 

@@ -54,8 +54,8 @@ Persistence is append-only: `spec_versions` receives immutable rows; lifecycle c
 - `cargo nextest run -p oya-workflow-engine-spec-store-adapter-postgres --all-features`
 - `cargo nextest run -p oya-workflow-engine-spec-store-rest --all-features`
 - `cargo nextest run -p oya-workflow-engine-spec-store-sdk --all-features`
-- `cargo run -p oya-dev-cli -- gate validate workflow-spec-signature-verification --crate oya-workflow-engine-spec-store-usecase`
-- `cargo run -p oya-dev-cli -- gate validate spec-construct-conformance --crate oya-workflow-engine-spec-store-usecase`
+- `buck2 build //:quality-lane-registry-authority-check # lane=workflow-spec-signature-verification --crate oya-workflow-engine-spec-store-usecase`
+- `buck2 build //:quality-lane-registry-authority-check # lane=spec-construct-conformance --crate oya-workflow-engine-spec-store-usecase`
 - Required tests: `submit_signature_verified_on_write`, `load_signature_verified_on_read`, `resubmit_same_spec_is_idempotent`, `tampered_row_refused`, `retire_requires_two_person_signature`, and `deprecated_spec_replay_allowed_new_run_refused`.
 
 ## §F Evidence

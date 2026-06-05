@@ -248,8 +248,8 @@ Identify, classify, and mitigate threats to the foundry-providers µservice's co
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate credential-isolation --microservice foundry-providers` exits 0.
-- `cargo run -p oya-dev-cli -- gate validate residency-conformance --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=credential-isolation --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=residency-conformance --microservice foundry-providers` exits 0.
 - Per-quarter red-team exercise on T-01 + T-03 + T-05; postmortem in `evidence/red-team/`.
 - Per-release adapter parity tests including baseline-set verdict-correctness against incumbent providers.
 

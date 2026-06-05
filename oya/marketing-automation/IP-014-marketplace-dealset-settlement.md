@@ -43,7 +43,7 @@ Use the `marketplace-audience-license` capability, `MarketingAutomationCommand::
 ## E. Acceptance
 
 - `cargo test -p oya-marketing-automation-campaign-journey-app marketplace`
-- `cargo run -p oya-dev-cli -- gate validate capability-publish --microservice marketing-automation --capability marketplace-audience-license`
+- `buck2 build //:quality-lane-registry-authority-check # lane=capability-publish --microservice marketing-automation --capability marketplace-audience-license`
 - Manual evidence: no audience export or journey launch path can reference licensed audience membership without DealSet proof.
 
 ## F. Evidence

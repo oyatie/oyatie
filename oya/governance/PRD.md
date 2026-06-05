@@ -447,9 +447,9 @@ Sharding:
 | AC-06 | New crate without owning µservice folder refused at PR-time | per-microservice-layout lane test |
 | AC-07 | Industry-baseline quarterly refresh PR opens automatically | `cron` test against the refresh workflow |
 | AC-08 | Finding replay returns canonical evidence for a date range in ≤2s | `microservices/governance/tests/perf/replay.rs` |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice governance` exit 0 | ADR-0131 lane |
-| AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0; HG-GOV registered | ADR-0123 lane |
-| AC-11 | `cargo run -p oya-dev-cli -- gate validate industry-best-practice-conformance` exit 0 on governance itself | ADR-0133 self-application |
+| AC-09 | `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice governance` exit 0 | ADR-0131 lane |
+| AC-10 | `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` exit 0; HG-GOV registered | ADR-0123 lane |
+| AC-11 | `buck2 build //:quality-lane-registry-authority-check # lane=industry-best-practice-conformance` exit 0 on governance itself | ADR-0133 self-application |
 | AC-12 | Lane bypass via admin-merge requires break-glass record at `runbooks/lane-bypass-emergency.md` | branch-protection audit-log assertion |
 
 ## Open Questions

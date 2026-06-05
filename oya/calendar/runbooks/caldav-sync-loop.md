@@ -150,7 +150,7 @@ kubectl -n calendar exec deploy/oya-calendar-ics-import-export-rest -- \
   grep 'oya_calendar_caldav_if_match_etag_mismatch_total'
 
 # caldav-availability SLO is recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo caldav-availability
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice calendar --slo caldav-availability
 ```
 
 ## Post-incident

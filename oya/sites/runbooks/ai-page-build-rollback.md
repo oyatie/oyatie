@@ -178,7 +178,7 @@ cargo run -p oya-dev-cli -- audit-chain verify \
   --build-id <build_id>
 
 # ai-page-build-latency SLO (if applicable; not safety-bound)
-cargo run -p oya-dev-cli -- gate validate slo --microservice sites --slo ai-page-build-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice sites --slo ai-page-build-latency
 ```
 
 ## Post-incident

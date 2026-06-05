@@ -115,7 +115,7 @@ Anthropic / OpenAI / Google operate their own multi-region vendor edges. The rou
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=multi-region --microservice foundry-providers` exits 0.
 - Quarterly DR drill: evidence recorded.
 - Per-pack DR-pair latency: replication lag dashboard panel.
 

@@ -32,7 +32,7 @@ doc_status: published
 - Open a sev0 if `oya_payments_kyc_aml_screening_pipeline_stall_correctness_ratio < 0.9999` and the affected label set includes `tenant_id`, `cell_id`, or `principal_id`.
 - Open a sev1 if `oya_payments_kyc_aml_screening_pipeline_stall_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `payments.kyc-aml-screening-pipeline-stall.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate payments-kyc-aml-screening-pipeline-stall --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=payments-kyc-aml-screening-pipeline-stall --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/payments-substrate/kyc-aml-screening-pipeline-stall?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/payments-substrate/kyc-aml-screening-pipeline-stall?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="payments",runbook="kyc-aml-screening-pipeline-stall"}`.
@@ -72,8 +72,8 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/payments-substrate/kyc-aml-screening-pipeline-stall?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=213&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_PAYMENTS_KYC_AML_SCREENING_PIPELINE_STALL_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops payments kyc-aml-screening-pipeline-stall status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate payments-kyc-aml-screening-pipeline-stall --production-snapshot --cell $CELL`.
-16. Run payments contract smoke: `cargo run -p oya-dev-cli -- gate validate payments-contract --microservice payments --scenario kyc-aml-screening-pipeline-stall`.
+15. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=payments-kyc-aml-screening-pipeline-stall --production-snapshot --cell $CELL`.
+16. Run payments contract smoke: `buck2 build //:quality-lane-registry-authority-check # lane=payments-contract --microservice payments --scenario kyc-aml-screening-pipeline-stall`.
 17. Check API contract smoke: `curl -s https://payments.internal.oyatie.dev/v1/payments/kyc-aml-screening-pipeline-stall/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/payments/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/payments/iac/kustomize/base/kustomization.yaml`.
 19. Inspect feature flags: `oya flags get oya.payments.kyc_aml_screening_pipeline_stall.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
@@ -153,13 +153,13 @@ KYC AML Screening Pipeline Stall incident decision tree
 3. Patch API guard: `edit microservices/payments/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit microservices/payments/policy/charge-authorization.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/payments/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
-6. Add regression gate: `cargo run -p oya-dev-cli -- gate validate payments-contract --fixture incident-kyc-aml-screening-pipeline-stall.json`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate payments-kyc-aml-screening-pipeline-stall --fixture incident-kyc-aml-screening-pipeline-stall.json`.
+6. Add regression gate: `buck2 build //:quality-lane-registry-authority-check # lane=payments-contract --fixture incident-kyc-aml-screening-pipeline-stall.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=payments-kyc-aml-screening-pipeline-stall --fixture incident-kyc-aml-screening-pipeline-stall.json`.
 8. Add SLO assertion: `update microservices/payments/slos/charge-api-availability.openslo.yaml with alert PaymentsKYCAMLScreeningPipelineStallCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/payments/dashboards/psp-routing.json with oya_payments_kyc_aml_screening_pipeline_stall_error_ratio, oya_payments_kyc_aml_screening_pipeline_stall_lag_seconds, and oya_payments_kyc_aml_screening_pipeline_stall_queue_depth`.
 10. Rebuild validation CLI: `cargo check -p oya-dev-cli --all-targets`.
-11. Run targeted validation: `cargo run -p oya-dev-cli -- gate validate payments-policy --microservice payments`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate payments-policy --microservice payments`.
+11. Run targeted validation: `buck2 build //:quality-lane-registry-authority-check # lane=payments-policy --microservice payments`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=payments-policy --microservice payments`.
 13. Deploy canary: `oya deploy canary --microservice payments --component payments-kyc-aml-screening-pipeline-stall-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_payments_kyc_aml_screening_pipeline_stall_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close payments-kyc-aml-screening-pipeline-stall-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

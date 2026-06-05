@@ -61,7 +61,7 @@ pub trait OutboxRelay: Send + Sync + Sealed {
 ```bash
 cargo nextest run -p oya-workflow-engine-event-bus-domain --all-features
 cargo nextest run -p oya-workflow-engine-event-bus-adapter-postgres --all-features
-cargo run -p oya-dev-cli -- gate validate outbox-append-only --crate oya-workflow-engine-event-bus-adapter-postgres
+buck2 build //:quality-lane-registry-authority-check # lane=outbox-append-only --crate oya-workflow-engine-event-bus-adapter-postgres
 ```
 
 ## Test Plan

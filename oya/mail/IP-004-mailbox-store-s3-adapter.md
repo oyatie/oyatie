@@ -90,7 +90,7 @@ impl MimeBlobStore for S3MimeBlobStore {
 cargo check -p oya-mail-mailbox-store-adapter-s3
 cargo clippy -p oya-mail-mailbox-store-adapter-s3 -- -D warnings
 cargo nextest run -p oya-mail-mailbox-store-adapter-s3 --features integration-test
-cargo run -p oya-dev-cli -- gate validate encryption-tenant-dek --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=encryption-tenant-dek --microservice mail
 ```
 
 ## Test Plan

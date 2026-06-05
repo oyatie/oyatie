@@ -74,8 +74,8 @@ pub async fn engage_hold(req: EngageRequest, p: &Ports) -> Result<LegalHold, Leg
 ```bash
 cargo nextest run -p oya-mail-legal-hold-domain
 cargo nextest run -p oya-mail-legal-hold-usecase
-cargo run -p oya-dev-cli -- gate validate personal-pillar-hold-forbidden
-cargo run -p oya-dev-cli -- gate validate ediscovery-chain-of-custody --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=personal-pillar-hold-forbidden
+buck2 build //:quality-lane-registry-authority-check # lane=ediscovery-chain-of-custody --microservice mail
 ```
 
 ## Test Plan

@@ -42,8 +42,8 @@ Use `threat-model.md` as the source of threat scenarios and map them to implemen
 
 ## E. Acceptance
 
-- `cargo run -p oya-dev-cli -- gate validate threat-model --microservice marketing-automation`
-- `cargo run -p oya-dev-cli -- gate validate security-and-hardening --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=threat-model --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=security-and-hardening --microservice marketing-automation`
 - Manual evidence: every high-severity threat has a local control artifact and runbook.
 
 ## F. Evidence

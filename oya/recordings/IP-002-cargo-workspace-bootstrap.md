@@ -55,10 +55,10 @@ conformant + cargo metadata). Subsequent IPs flesh out each BC.
 
 ```bash
 cargo build --workspace
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice recordings
-cargo run -p oya-dev-cli -- gate validate port-location --microservice recordings
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice recordings
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice recordings
 ```
 
 ## Next IP

@@ -49,7 +49,7 @@ attribution accuracy. Wired into CI as `oya-intelligence-eval-regression` lane.
 
 ```bash
 cargo nextest run -p oya-intelligence-eval-kernel -- canonicalen_set
-cargo run -p oya-dev-cli -- gate validate eval-canonicalen-set-pass-rate --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=eval-canonicalen-set-pass-rate --microservice intelligence
 ```
 
 ## References

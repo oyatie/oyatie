@@ -166,7 +166,7 @@ Per ADR-#### (future): SLSA Build L3 → L4 upgrade.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate backfill-replay-determinism` — exit 0; re-run of completed backfill produces same Findings (Invariant 1 + Invariant 11).
+- `buck2 build //:quality-lane-registry-authority-check # lane=backfill-replay-determinism` — exit 0; re-run of completed backfill produces same Findings (Invariant 1 + Invariant 11).
 - Per-backfill audit record at `microservices/governance/audit/backfill-<id>.md`.
 
 ## References

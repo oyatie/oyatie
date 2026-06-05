@@ -25,7 +25,7 @@ Register the HG-SITES hyperscaler-maturity claim entry per ADR-0123 + ADR-0133. 
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice sites
 ```
 
 ## Phase-exit gate
@@ -51,7 +51,7 @@ phase_exit: true
 
 | AC-ID | Criterion | Verification |
 |---|---|---|
-| AC-01 | HG-SITES registered in `registry/hyperscaler-maturity-claims.json` with all 9 SLO refs + 11 BC refs + 11 pack overlay refs | `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice sites` |
+| AC-01 | HG-SITES registered in `registry/hyperscaler-maturity-claims.json` with all 9 SLO refs + 11 BC refs + 11 pack overlay refs | `buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice sites` |
 | AC-02 | All 15 PRD-sites AC-IDs green | per-AC gate audit |
 | AC-03 | SLO eligibility verdict `eligible` over `dev → staging` 30d window | ADR-0139 ledger query |
 | AC-04 | Reviewer-agent APPROVE on every ChangeSet in sites phase | per ADR-0111 + ADR-0112 |
@@ -62,7 +62,7 @@ phase_exit: true
 1. Append HG-SITES entry to `registry/hyperscaler-maturity-claims.json`.
 2. Register HG-SITES in `crates/oya-governance-gate-catalog-domain`.
 3. Add branch-protection required status check for HG-SITES on sites releases to `dev`.
-4. Run `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice sites`.
+4. Run `buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice sites`.
 5. Confirm SLO ledger eligibility for 30 days.
 
 ## Traceability

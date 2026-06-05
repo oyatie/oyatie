@@ -31,7 +31,7 @@ doc_status: published
 - Open a sev0 if `oya_compliance_cross_tenant_dsar_leak_suspected_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
 - Open a sev1 if `oya_compliance_cross_tenant_dsar_leak_suspected_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `compliance.cross-tenant-dsar-leak-suspected.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate compliance-cross-tenant-dsar-leak-suspected --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=compliance-cross-tenant-dsar-leak-suspected --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/compliance-substrate/cross-tenant-dsar-leak-suspected?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/compliance-substrate/cross-tenant-dsar-leak-suspected?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=216`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="compliance",runbook="cross-tenant-dsar-leak-suspected"}`.
@@ -67,7 +67,7 @@ doc_status: published
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/compliance-substrate/cross-tenant-dsar-leak-suspected?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=216&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-COMPLIANCE-CROSS_TENANT_DSAR_LEAK_SUSPECTED-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops compliance cross-tenant-dsar-leak-suspected status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate compliance-cross-tenant-dsar-leak-suspected --production-snapshot --cell $CELL`.
+14. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=compliance-cross-tenant-dsar-leak-suspected --production-snapshot --cell $CELL`.
 15. Check Cargo owner crate: `cargo test -p oya-compliance-domain cross_tenant_dsar_leak_suspected -- --nocapture`.
 16. Check API contract smoke: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/cross-tenant-dsar-leak-suspected/incident-handoff -H "x-oya-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n compliance get configmap compliance-cross-tenant-dsar-leak-suspected-config -o yaml`.
@@ -148,12 +148,12 @@ Cross Tenant DSAR Leak Suspected incident decision tree
 4. Patch policy: `edit microservices/compliance/policy/pack-overlay-authorization.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/compliance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-compliance-domain cross_tenant_dsar_leak_suspected_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate compliance-cross-tenant-dsar-leak-suspected --fixture incident-cross-tenant-dsar-leak-suspected.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=compliance-cross-tenant-dsar-leak-suspected --fixture incident-cross-tenant-dsar-leak-suspected.json`.
 8. Add SLO assertion: `update microservices/compliance/slos/* with alert ComplianceCrossTenantDsarLeakSuspectedCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/compliance/dashboards/dsar-pipeline.json with oya_compliance_cross_tenant_dsar_leak_suspected_error_ratio, oya_compliance_cross_tenant_dsar_leak_suspected_lag_seconds, and oya_compliance_cross_tenant_dsar_leak_suspected_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-compliance-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-compliance-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate compliance-policy --microservice compliance`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=compliance-policy --microservice compliance`.
 13. Deploy canary: `oya deploy canary --microservice compliance --component cross-tenant-dsar-leak-suspected-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_compliance_cross_tenant_dsar_leak_suspected_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close compliance-cross-tenant-dsar-leak-suspected-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

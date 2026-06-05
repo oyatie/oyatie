@@ -40,7 +40,7 @@ Finalize the existing OpenAPI, AsyncAPI, and proto files as the foundation contr
 - OpenAPI validator passes for `contracts/openapi/calendar.yaml`.
 - AsyncAPI validator passes for `contracts/asyncapi/calendar-events.yaml`.
 - `buf lint microservices/calendar/contracts/proto` passes or the repo-equivalent proto lint passes.
-- `cargo run -p oya-dev-cli -- gate validate contract-sync --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=contract-sync --microservice calendar` passes.
 - Contract fields align with `policy/tenant-scope.cedar` and `policy/event-isolation.md`.
 
 ## F. Evidence

@@ -92,10 +92,10 @@ spec:
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate openslo-validate --microservice application
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice application
-cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice application
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice application
+buck2 build //:quality-lane-registry-authority-check # lane=openslo-validate --microservice application
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice application
+buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion --microservice application
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice application
 helm lint microservices/application/iac/helm/shell-app
 kubectl apply --dry-run=client -k microservices/application/iac/kustomize/overlays/pack-kr
 ```

@@ -50,8 +50,8 @@ Per ADR-0056 v4.1: `oya-meet-<bc>-<layer>` with optional `-adapter-<backend>` pe
 ```bash
 cargo build -p meet --workspace
 cargo clippy -p meet --workspace --all-targets -- -D warnings
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice meet
-cargo run -p oya-dev-cli -- gate validate bnf-v4-1 --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice meet
+buck2 build //:quality-lane-registry-authority-check # lane=bnf-v4-1 --microservice meet
 ```
 
 ## Test Plan

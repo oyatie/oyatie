@@ -259,8 +259,8 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance-evidence-recency` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate authority-cohesion` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=compliance-evidence-recency` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` — exit 0.
 - Annual SOC 2 Type 2 audit: external auditor sign-off recorded in `evidence/audits/soc2/<year>-type2-report.pdf`.
 - Annual ISO 27001:2022 audit: recorded analogously.
 - Per-pack audit cadences per local law (KR PIPC review on demand; HIPAA covered-entity audits on demand; GDPR DPA inquiries on demand).

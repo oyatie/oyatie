@@ -55,7 +55,7 @@ It also does not mutate workflow runs; every route is inspect, stream, or aggreg
 - `cargo nextest run -p oya-workflow-engine-replay-debugger-backend-rest --all-features`
 - `cargo nextest run -p oya-workflow-engine-replay-debugger-backend-sdk --all-features`
 - `cargo nextest run -p oya-workflow-engine-replay-debugger-backend-app --all-features`
-- `cargo run -p oya-dev-cli -- gate validate openapi-conformance --crate oya-workflow-engine-replay-debugger-backend-rest`
+- `buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --crate oya-workflow-engine-replay-debugger-backend-rest`
 - Required tests: `rest_start_replay_returns_session`, `stream_reconnect_resumes_after_cursor`, `auditor_scope_is_read_only`, `tenant_operator_without_debugger_entitlement_denied`, `secret_snapshot_payload_redacted`, and `sdk_stream_preserves_snapshot_order`.
 
 ## §F Evidence

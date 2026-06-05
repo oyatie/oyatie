@@ -37,7 +37,7 @@ All authored in `microservices/sheets/slos/` per IP-014.
 
 ```bash
 oya gate validate openslo-validate --manifests 'microservices/sheets/slos/*.openslo.yaml'
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice sheets
 ```
 
 ## Test Plan

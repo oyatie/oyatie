@@ -60,7 +60,7 @@ pub enum AnnexIiiCategory {
 
 ```bash
 cargo nextest run -p oya-intelligence-guardrails-kernel -- annex_iii
-cargo run -p oya-dev-cli -- gate validate eu-ai-act-annex-iii-refusal --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=eu-ai-act-annex-iii-refusal --microservice intelligence
 ```
 
 ## Test plan

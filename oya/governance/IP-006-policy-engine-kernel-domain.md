@@ -87,9 +87,9 @@ pub fn per_axis_aggregate(verdicts: &[(Axis, Verdict)]) -> AxisPosture {
 cargo check -p oya-governance-policy-engine-{kernel,domain} --all-features
 cargo nextest run -p oya-governance-policy-engine-kernel
 cargo nextest run -p oya-governance-policy-engine-domain
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-governance-policy-engine-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-governance-policy-engine-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-governance-policy-engine-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-governance-policy-engine-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --crate oya-governance-policy-engine-kernel
+buck2 build //:quality-lane-registry-authority-check # lane=data-class --crate oya-governance-policy-engine-kernel
 ```
 
 ## Test Plan

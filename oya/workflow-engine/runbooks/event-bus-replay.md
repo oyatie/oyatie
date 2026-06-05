@@ -33,7 +33,7 @@ doc_status: published
 - Open sev1 if `oya_workflow_engine_event_bus_replay_gap_total` exceeds the threshold documented in `microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml`.
 - Open sev1 if `oya_workflow_engine_event_bus_replay_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `workflow-engine.event-bus-replay.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workflow-engine-event-bus-replay --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=workflow-engine-event-bus-replay --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/event-bus-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/workflow-engine/dashboards/durable-state-size.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workflow-engine-ops/event-bus-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/workflow-engine/dashboards/step-latency.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workflow-engine",runbook="event-bus-replay"}`.
@@ -85,7 +85,7 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workflow-engine-ops/event-bus-replay?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKFLOW_ENGINE_EVENT_BUS_REPLAY_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops workflow-engine event-bus-replay status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate workflow-engine-event-bus-replay --production-snapshot --cell $CELL`.
+15. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=workflow-engine-event-bus-replay --production-snapshot --cell $CELL`.
 16. Run crate smoke test: `cargo test -p oya-workflow-engine-execution-engine-domain event_bus_replay -- --nocapture`.
 17. Check API contract smoke: `curl -s https://workflow-engine.internal.oyatie.dev/v1/workflow-engine/event-bus-replay/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f microservices/workflow-engine/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/workflow-engine/iac/kustomize/base/kustomization.yaml`.
@@ -167,12 +167,12 @@ Event Bus Replay incident decision tree
 4. Patch policy: `edit microservices/workflow-engine/policy/saga-compensation-policy.md with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/workflow-engine/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-workflow-engine-execution-engine-domain event_bus_replay_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate workflow-engine-event-bus-replay --fixture incident-event-bus-replay.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=workflow-engine-event-bus-replay --fixture incident-event-bus-replay.json`.
 8. Add SLO assertion: `update microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml with alert EventBusReplayCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/workflow-engine/dashboards/durable-state-size.json with oya_workflow_engine_event_bus_replay_error_ratio, oya_workflow_engine_event_bus_replay_lag_seconds, and oya_workflow_engine_event_bus_replay_gap_total`.
 10. Rebuild affected crate: `cargo check -p oya-workflow-engine-execution-engine-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-workflow-engine-execution-engine-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate workflow-engine-policy --microservice workflow-engine`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=workflow-engine-policy --microservice workflow-engine`.
 13. Deploy canary: `oya deploy canary --microservice workflow-engine --component workflow-engine-event-bus-replay-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_workflow_engine_event_bus_replay_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close workflow-engine-event-bus-replay-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

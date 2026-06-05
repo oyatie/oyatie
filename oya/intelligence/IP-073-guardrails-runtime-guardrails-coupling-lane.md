@@ -67,7 +67,7 @@ pub fn validate_runtime_guardrails_coupling(repo: &Path) -> Result<(), GateError
 ```bash
 cargo check -p oya-dev-cli --all-features
 cargo nextest run -p oya-dev-cli --test runtime_guardrails_coupling
-cargo run -p oya-dev-cli -- gate validate runtime-guardrails-coupling --sha HEAD
+buck2 build //:quality-lane-registry-authority-check # lane=runtime-guardrails-coupling --sha HEAD
 ```
 
 ## Test Plan

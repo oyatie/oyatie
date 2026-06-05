@@ -92,7 +92,7 @@ pub async fn receive_session(session: IncomingSession, ports: &Ports) -> Result<
 ```bash
 cargo nextest run -p oya-mail-inbound-smtp-domain
 cargo nextest run -p oya-mail-inbound-smtp-usecase
-cargo run -p oya-dev-cli -- gate validate statelessness --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=statelessness --microservice mail
 bash microservices/mail/tests/e2e/inbound-smtp.sh   # DKIM-verified inbound drill
 ```
 

@@ -31,8 +31,8 @@ Author the `site` bounded-context's Layer-B crates (kernel + domain + usecase + 
 ```bash
 cargo build -p oya-sites-site-kernel -p oya-sites-site-domain -p oya-sites-site-usecase -p oya-sites-site-api
 cargo nextest run -p oya-sites-site-kernel -p oya-sites-site-domain -p oya-sites-site-usecase
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice sites
-cargo run -p oya-dev-cli -- gate validate port-location --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice sites
+buck2 build //:quality-lane-registry-authority-check # lane=port-location --microservice sites
 ```
 
 ## Test Plan

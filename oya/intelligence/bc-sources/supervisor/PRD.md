@@ -305,8 +305,8 @@ Sharding:
 | AC-06 | Fleet drain completes with zero in-flight loss for ≤ 100 agents | e2e drill `tests/e2e/drain-no-loss.rs` |
 | AC-07 | Postgres failover (master loss) recovers control-plane availability within ≤ 30 s | chaos drill |
 | AC-08 | Valkey failover (one replica loss) does not breach kill-switch p99 ≤ 1 s | chaos drill |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-supervisor` exit 0 | ADR-0131 lane |
-| AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 with HG-FND-SUP registered | ADR-0123 lane |
+| AC-09 | `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-supervisor` exit 0 | ADR-0131 lane |
+| AC-10 | `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` exit 0 with HG-FND-SUP registered | ADR-0123 lane |
 
 ## Open Questions
 

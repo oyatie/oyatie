@@ -41,7 +41,7 @@ Promote the existing Helm and Kustomize assets into the deployable baseline for 
 - `helm lint microservices/calendar/iac/helm` passes.
 - `kubectl --dry-run=client apply -k microservices/calendar/iac/kustomize/overlays/pack-kr` passes.
 - `kubectl --dry-run=client apply -k microservices/calendar/iac/kustomize/overlays/pack-us-healthcare` passes.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice calendar` passes.
 - SLO bindings resolve for `slos/caldav-availability.openslo.yaml`, `slos/freebusy-query-latency.openslo.yaml`, and `slos/tzdb-staleness-bound.openslo.yaml`.
 
 ## F. Evidence

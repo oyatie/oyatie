@@ -40,7 +40,7 @@ Implement `oya-calendar-invitation-flow-kernel` and the planned domain/usecase/a
 ## E. Acceptance
 - `cargo nextest run -p oya-calendar-invitation-flow-kernel` passes.
 - RFC 5546/iTIP fixtures pass for accept, decline, counter, and cancel.
-- `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice calendar` passes.
 - `slos/rsvp-fanout-latency.openslo.yaml` resolves.
 - `runbooks/rsvp-storm-throttle.md` covers throttle and recovery.
 

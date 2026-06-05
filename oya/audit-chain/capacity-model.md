@@ -187,7 +187,7 @@ HSM: 1 partition at ~4% utilization
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice audit-chain` — exit 0; deployed replicas ≥ formula minimums.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-conformance --microservice audit-chain` — exit 0; deployed replicas ≥ formula minimums.
 - Quarterly capacity review.
 - Annual upstream-doc refresh.
 

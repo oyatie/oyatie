@@ -78,8 +78,8 @@ cargo build --release -p oya-application-auth-gateway-app
 cargo build --release -p oya-application-tenant-context-app
 cargo build --release -p oya-application-module-loader-app
 cargo build --release -p oya-application-frontend-bundle-serve-app
-cargo run -p oya-dev-cli -- gate validate composition-root-only --microservice application
-cargo run -p oya-dev-cli -- gate validate wasm-bundle-size --crate oya-application-shell-frontend
+buck2 build //:quality-lane-registry-authority-check # lane=composition-root-only --microservice application
+buck2 build //:quality-lane-registry-authority-check # lane=wasm-bundle-size --crate oya-application-shell-frontend
 ```
 
 ## Test Plan

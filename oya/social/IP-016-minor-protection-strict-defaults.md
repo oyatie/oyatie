@@ -38,7 +38,7 @@ Bind ADR-0292 behavior to `policy/minor-protection.cedar`, age verification, not
 - `policy/minor-protection.cedar` tests pass for under-13, 14-17, adult, guardian, and unknown-age cases.
 - `slos/minor-protection-engagement-correctness.openslo.yaml` resolves.
 - `dashboards/minor-protection-health.json` validates as JSON.
-- `cargo run -p oya-dev-cli -- gate validate minor-protection --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=minor-protection --microservice social` passes.
 - Age and DM controls interlock with `policy/dm-scope.cedar`.
 
 ## F. Evidence

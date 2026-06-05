@@ -151,7 +151,7 @@ Per ADR-0028 audit-chain posture: any sub-processor change (add, remove, region 
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate compliance --microservice foundry-providers` exits 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=compliance --microservice foundry-providers` exits 0.
 - Annual SOC 2 audit; quarterly continuous-compliance evidence emission.
 - Per-pack DPIA on file before first-tenant activation.
 

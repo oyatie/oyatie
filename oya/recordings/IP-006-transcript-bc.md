@@ -25,7 +25,7 @@ ADR-RECORDINGS-0001 via foundry-runtime gVisor sandbox.
 
 ```bash
 cargo nextest run -p oya-recordings-transcript-kernel
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice recordings
 # Quality benchmark
 cargo bench -p oya-recordings-transcript-adapter-whisper -- librispeech_wer
 cargo bench -p oya-recordings-transcript-adapter-pyannote -- callhome_der

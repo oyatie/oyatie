@@ -155,9 +155,9 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/audit-chai
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cross-pack-replication-forbidden --microservice audit-chain` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate retention-conformance --microservice audit-chain` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate pack-pinning-conformance --microservice audit-chain` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cross-pack-replication-forbidden --microservice audit-chain` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=retention-conformance --microservice audit-chain` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=pack-pinning-conformance --microservice audit-chain` — exit 0.
 - Annual residency audit: confirm each tenant's chain location matches assigned pack.
 - Quarterly chaos drill: induce a cross-pack write attempt; verify rejection + alerting.
 

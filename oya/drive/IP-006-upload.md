@@ -58,7 +58,7 @@ acceptance_status: ga
 3. Implement S3 multipart adapter (`-adapter-s3`) + tus 1.0 adapter (`-adapter-tus`).
 4. Wire scan handoff to `dlp-virus-scan` BC via internal Workflow event.
 5. `cargo nextest run -p oya-drive-upload-*`.
-6. `cargo run -p oya-dev-cli -- gate validate s3-sigv4-conformance --microservice drive`.
+6. `buck2 build //:quality-lane-registry-authority-check # lane=s3-sigv4-conformance --microservice drive`.
 
 ## Traceability
 

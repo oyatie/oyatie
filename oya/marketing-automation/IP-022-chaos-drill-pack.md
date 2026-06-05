@@ -42,7 +42,7 @@ Turn existing `failure-modes.md`, `incident-response.md`, `multi-region.md`, and
 
 ## E. Acceptance
 
-- `cargo run -p oya-dev-cli -- gate validate chaos-drill-pack --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=chaos-drill-pack --microservice marketing-automation`
 - Manual evidence: each P0 runbook has at least one drill id and expected audit event.
 - Dry-run evidence can be accepted before runtime implementation, but production promotion requires observed drill runs.
 

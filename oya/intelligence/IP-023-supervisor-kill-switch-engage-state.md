@@ -75,7 +75,7 @@ pub fn engage_scope_local<S: ScopeKind>(
 
 ```bash
 cargo nextest run -p oya-foundry-supervisor-kill-switch-circuit-breaker-usecase --test two_person_rule_enforced
-cargo run -p oya-dev-cli -- gate validate kill-switch-2-person-rule --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=kill-switch-2-person-rule --microservice foundry-supervisor
 ```
 
 ## Halt Conditions

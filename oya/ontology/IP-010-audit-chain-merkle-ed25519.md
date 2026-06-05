@@ -124,9 +124,9 @@ Minimum 6 required; 11 specified.
 
 ```bash
 cargo nextest run -p oya-ontology-audit-chain-worker --test merkle_verify
-cargo run -p oya-dev-cli -- gate validate audit-chain-emission --microservice ontology
-cargo run -p oya-dev-cli -- gate validate audit-chain-tamper-detect --microservice ontology
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice ontology
+buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-emission --microservice ontology
+buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-tamper-detect --microservice ontology
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice ontology
 ```
 
 ## Halt conditions

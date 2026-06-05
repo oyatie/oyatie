@@ -40,7 +40,7 @@ Implement the `oya-calendar-room-booking-kernel` bounded context and its planned
 ## E. Acceptance
 - `cargo nextest run -p oya-calendar-room-booking-kernel` passes.
 - Room double-booking tests prove one winner and deterministic losers under concurrency.
-- `cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice calendar` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --microservice calendar` passes.
 - `slos/room-conflict-detection-correctness.openslo.yaml` resolves.
 - `runbooks/room-booking-conflict.md` includes rollback and operator evidence steps.
 

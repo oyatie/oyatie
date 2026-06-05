@@ -189,9 +189,9 @@ Per-pack overlays at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/data-resid
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate retention-conformance --microservice ontology` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate pack-routing-conformance --microservice ontology` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cross-pack-transfer-allowed-only-with-scc --microservice ontology` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=retention-conformance --microservice ontology` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=pack-routing-conformance --microservice ontology` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cross-pack-transfer-allowed-only-with-scc --microservice ontology` — exit 0.
 - Annual residency audit: confirm each tenant's data location matches assigned pack.
 - Quarterly chaos drill: induce a cross-pack write attempt; verify rejection + alerting.
 

@@ -40,8 +40,8 @@ helm lint microservices/notes/iac/helm/notes
 kubectl --dry-run=client apply -k microservices/notes/iac/kustomize/overlays/pack-kr
 kubectl --dry-run=client apply -k microservices/notes/iac/kustomize/overlays/pack-us-healthcare
 terraform -chdir=microservices/notes/iac/tofu validate
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice notes
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance
 ```
 
 ## Test Plan

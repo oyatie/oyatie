@@ -268,7 +268,7 @@ Per ADR-0363 and the current repo AGENTS contract, this phase uses one isolated 
 git worktree add ../oyatie-observability-<ip-id> -b feature/observability-<ip-id> dev
 
 # Verify after each IP's acceptance gates pass.
-cargo run -p oya-dev-cli -- gate run-all --ci-required
+buck2 build //:repo-hygiene-automation-check --ci-required
 cargo run -p oya-dev-cli -- verify --ci-required
 
 # Open a PR against dev; Jenkins CI and reviewer APPROVE provide merge readiness.

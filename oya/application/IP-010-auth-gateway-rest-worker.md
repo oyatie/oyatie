@@ -65,7 +65,7 @@ pub async fn run_rotator(deps: WorkerDeps) {
 cargo nextest run -p oya-application-auth-gateway-usecase --all-features
 cargo nextest run -p oya-application-auth-gateway-rest --all-features
 cargo nextest run -p oya-application-auth-gateway-worker --all-features
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --crate oya-application-auth-gateway-rest
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance --crate oya-application-auth-gateway-rest
 ```
 
 ## Test Plan

@@ -175,7 +175,7 @@ kubectl -n calendar exec deploy/oya-calendar-invitation-flow-worker -- \
   grep 'oya_calendar_scheduling_poll_orphan_count'
 
 # Scheduling-convergence SLO recovering
-cargo run -p oya-dev-cli -- gate validate slo --microservice calendar --slo scheduling-convergence-latency
+buck2 build //:quality-lane-registry-authority-check # lane=slo --microservice calendar --slo scheduling-convergence-latency
 ```
 
 ## Post-incident

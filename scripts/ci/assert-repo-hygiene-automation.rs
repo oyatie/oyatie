@@ -639,6 +639,7 @@ const RETIRED_ACTIVE_PATHS: &[&str] = &[
     "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",
     "infra/forge",
     "infra/forge/jenkins-forgejo-token.secret.template.yaml",
+    "oya/developer-sdk/crates/oya-dev-cli",
     "scripts/ci/arm-auto-merge.sh",
     "scripts/tests/forgejo_auto_merge_after_ci.test.sh",
     "docs/ci/forge-of-record.md",

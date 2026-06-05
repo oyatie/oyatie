@@ -42,9 +42,9 @@ Make cell placement explicit across `multi-region.md`, `iac/dr-failover.yaml`, `
 
 ## E. Acceptance
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=multi-region --microservice marketing-automation`
 - `kubectl apply --dry-run=server -k microservices/marketing-automation/iac`
-- `cargo run -p oya-dev-cli -- gate validate data-residency --microservice marketing-automation`
+- `buck2 build //:quality-lane-registry-authority-check # lane=data-residency --microservice marketing-automation`
 - Manual evidence: every write path has a named home-cell authority and failover condition.
 
 ## F. Evidence

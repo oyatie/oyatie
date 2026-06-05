@@ -255,10 +255,10 @@ Each pack's overlay at `cloud/cloud-iac/sovereign-cloud-overlays/<pack>/tenant-i
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate mimir-tenancy-enforced` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate mimir-no-wildcard-query` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate grafana-rbac-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice observability` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=mimir-tenancy-enforced` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=mimir-no-wildcard-query` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=grafana-rbac-conformance` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice observability` — exit 0.
 - Annual pen-test against tenant boundary: scheduled Q4 of each calendar year (October 1 cycle) coinciding with ISO 27001 surveillance audit; documented in `runbooks/tenant-boundary-pentest.md` (Slice B).
 - Quarterly chaos drill: induce reserved-tenant spoofing attempt + cross-tenant query attempt; verify rejection + alerting.
 

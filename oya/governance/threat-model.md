@@ -443,7 +443,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate threat-model-coverage --microservice governance` exit 0 (asserts every kernel struct has at least one threat reference; lane will be implemented in IP-006).
+- `buck2 build //:quality-lane-registry-authority-check # lane=threat-model-coverage --microservice governance` exit 0 (asserts every kernel struct has at least one threat reference; lane will be implemented in IP-006).
 - Quarterly STRIDE + LINDDUN review by ops-security; record at `evidence/audits/threat-model/<quarter>.json`.
 - Annual external-auditor review (SOC 2 Type 2 + ISO 27001).
 

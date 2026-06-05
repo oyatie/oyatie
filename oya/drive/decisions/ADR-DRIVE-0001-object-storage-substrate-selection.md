@@ -190,7 +190,7 @@ Per the agent-skills documentation-and-adrs SKILL.md §"Verification":
 - [ ] All three backends pass the `s3-tests` public conformance corpus —
   `cargo nextest run -p oya-drive-file-store-adapter-garage -- s3_tests_corpus`
   and equivalents for `-seaweedfs` and (in pack-us-healthcare) `-s3` (against SeaweedFS).
-- [ ] Helm chart versions pinned — `cargo run -p oya-dev-cli -- gate validate version-pinning-conformance --microservice drive`.
+- [ ] Helm chart versions pinned — `buck2 build //:quality-lane-registry-authority-check # lane=version-pinning-conformance --microservice drive`.
 - [ ] Object-lock compliance-mode functional — `cargo nextest run -p oya-drive-immutability-tier-domain -- worm_object_lock_per_backend`.
 
 ## References

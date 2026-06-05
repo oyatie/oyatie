@@ -90,7 +90,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 ## Verification
 
-`cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-providers` and `… authority-cohesion` and `… credential-isolation --microservice foundry-providers` exit 0.
+`buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry-providers` and `… authority-cohesion` and `… credential-isolation --microservice foundry-providers` exit 0.
 
 Load test (`tests/load/router_decision.rs`) demonstrates router decision p99 ≤ 5 ms over 100 K decisions on a single core; OpenBao resolution p99 ≤ 10 ms with cache warm.
 

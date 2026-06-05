@@ -60,7 +60,7 @@ CREATE TABLE messenger_channels (
 ```bash
 cargo nextest run -p oya-messenger-channel-store-adapter-postgres
 sqlx migrate run --source migrations
-cargo run -p oya-dev-cli -- gate validate shardability --microservice messenger
+buck2 build //:quality-lane-registry-authority-check # lane=shardability --microservice messenger
 ```
 
 ## Test Plan

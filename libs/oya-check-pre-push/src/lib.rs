@@ -1,12 +1,10 @@
 //! Foundry local-verify (pre-push) command contract fitness kernel.
 //!
-//! Asserts the CLI-surface invariant for the canonical `oya verify`
-//! command: the dev-CLI dispatch source, the Done-Definition, and the
-//! local git hook all agree that `oya verify --ci-required` is the
-//! canonical pre-push / pre-PR verification entry point AND that it
-//! dispatches natively into the Rust `gate run-all --ci-required`
-//! aggregator — not into plain lightweight `oya verify` or a
-//! transitional `.sh` subprocess.
+//! Asserts the local preflight invariant after developer-CLI retirement:
+//! the Done-Definition, native workflow evidence, and local git hook all
+//! agree that Buck2 authority checks are the canonical pre-push / pre-PR
+//! verification entry point. GitHub/Prow status publication remains external
+//! to this pure kernel.
 //!
 //! Naming justification: the crate name `oya-check-pre-push` remains
 //! stable across the `repoctl` retirement so the fitness-lane id
@@ -14,11 +12,8 @@
 //! `registry/quality/lanes.yaml`, the branch-protection required
 //! status check, and the IP-C extracted catalog) stays unchanged
 //! per `feedback_no_silent_regression`. The lane semantics (local-side
-//! pre-push gate) are preserved; only the canonical *command name*
-//! swaps from `repoctl pre-push` to `oya verify --ci-required` because
-//! `repoctl` is retired and plain `oya verify` is only the lightweight
-//! local gate; the pre-push / pre-PR contract must include hosted
-//! required-check mirrors.
+//! pre-push gate) are preserved; the canonical command is now a Buck2
+//! authority pair rather than the retired local wrapper.
 //! Type `PrePushContractEvidence` retains its name to keep the
 //! lane-internal API stable. Layer enum: this kernel sits on the
 //! `domain` layer (port-in-kernel, ADR-0056); it performs pure
@@ -29,28 +24,15 @@
 
 use std::fmt;
 
-/// Canonical local-developer pre-push / pre-PR CLI surface name. The
-/// Done-Definition and local git hook spell this command verbatim,
-/// and the dev-CLI top-level dispatch source must route the matching
-/// subcommand string to the native `commands::verify::run` handler.
-///
-/// Plain `oya verify` is intentionally insufficient here: it proves
-/// the local gate catalog only. The `--ci-required` flag proves the
-/// hosted required-check mirrors before a branch can appear green
-/// locally while failing required CI.
-pub const CANONICAL_PRE_PUSH_COMMAND: &str = "oya verify --ci-required";
+/// Canonical local-developer pre-push / pre-PR command.
+pub const CANONICAL_PRE_PUSH_COMMAND: &str =
+    "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check";
 
-/// Subcommand-match-arm literal that the dev-CLI dispatch source must
-/// contain in its top-level command router, confirming that the
-/// `verify` subcommand is wired into the CLI surface.
-pub const VERIFY_SUBCOMMAND_MATCH_ARM: &str = "Some(\"verify\")";
+/// Token proving the native workflow keeps the repo hygiene authority target.
+pub const VERIFY_SUBCOMMAND_MATCH_ARM: &str = "repo-hygiene-automation-check";
 
-/// Token that must appear in the dev-CLI dispatch source as proof
-/// that the `verify` subcommand routes to the native
-/// `commands::verify::run` handler (which forwards to
-/// `gate::run` with the `run-all` arg — the canonical Rust aggregator
-/// that replaces the transitional `scripts/check.sh`).
-pub const NATIVE_VERIFY_DISPATCH_TOKEN: &str = "commands::verify::run";
+/// Token proving the native workflow keeps the Buck2 authority policy target.
+pub const NATIVE_VERIFY_DISPATCH_TOKEN: &str = "buck2-authority-policy-check";
 
 /// Evidence bundle handed to the kernel by a runner (the dev-CLI
 /// invocation reads files and forwards their text here). The kernel
@@ -60,19 +42,13 @@ pub struct PrePushContractEvidence<'a> {
     /// Markdown contents of the Done-Definition checklist; must
     /// mention `CANONICAL_PRE_PUSH_COMMAND` as a required check.
     pub done_definition_doc: &'a str, // data_class: INTERNAL_ONLY
-    /// Top-level dev-CLI dispatch source
-    /// (`oya/developer-sdk/crates/oya-dev-cli/src/lib.rs`); must contain
-    /// `VERIFY_SUBCOMMAND_MATCH_ARM` AND `NATIVE_VERIFY_DISPATCH_TOKEN`
-    /// so the canonical command is provably wired through to native
-    /// Rust dispatch with no `.sh` subprocess interposed.
+    /// Native workflow or source text; must contain both authority tokens so
+    /// the local preflight cannot drift back to a retired wrapper.
     pub cli_dispatch_source: &'a str, // data_class: INTERNAL_ONLY
     /// Local git hook script contents (the pre-push hook installed
     /// under `.git/hooks/pre-push`, or its source-of-truth file
-    /// during the transitional period). Must invoke the canonical
-    /// pre-push / pre-PR command, either by spelling
-    /// `CANONICAL_PRE_PUSH_COMMAND` directly or by invoking
-    /// `cargo run … -p oya-dev-cli -- verify --ci-required` (the
-    /// build-from-source equivalent).
+    /// during the transitional period). Must invoke the canonical Buck2
+    /// pre-push / pre-PR command directly.
     pub hook_script: &'a str, // data_class: INTERNAL_ONLY
 }
 
@@ -146,12 +122,7 @@ pub fn validate_pre_push_contract(
 }
 
 /// True iff the hook script has a non-comment, non-empty line that
-/// invokes the canonical local-verify command. Accepts both the
-/// installed-binary form (`oya verify --ci-required …`) and the
-/// build-from-source form
-/// (`cargo run … -p oya-dev-cli -- verify --ci-required …`) so the
-/// same hook works in a workspace clone and in a system with `oya` on
-/// PATH.
+/// invokes the canonical Buck2 local-verify command.
 ///
 /// Naming justification: function name is snake_case; the predicate
 /// is stated positively (no "missing" / "exception" phrasing).
@@ -162,8 +133,6 @@ fn hook_invokes_full_pre_push(hook_script: &str) -> bool {
             return false;
         }
         trimmed.contains(CANONICAL_PRE_PUSH_COMMAND)
-            || trimmed.contains("oya-dev-cli -- verify --ci-required")
-            || trimmed.contains("oya-dev-cli --bin oya -- verify --ci-required")
     })
 }
 
@@ -176,12 +145,12 @@ impl fmt::Display for PrePushContractError {
             ),
             Self::MissingVerifySubcommandWiringInCli => write!(
                 formatter,
-                "dev-CLI dispatch source does not contain the verify subcommand match arm \
+                "native workflow source does not contain the repo-hygiene authority token \
                  (missing token `{VERIFY_SUBCOMMAND_MATCH_ARM}`)"
             ),
             Self::MissingNativeVerifyDispatchInCli => write!(
                 formatter,
-                "dev-CLI dispatch source does not route to the native verify handler \
+                "native workflow source does not contain the Buck2 authority-policy token \
                  (missing token `{NATIVE_VERIFY_DISPATCH_TOKEN}`)"
             ),
             Self::MissingHookCommand => write!(
@@ -202,8 +171,14 @@ mod tests {
     fn accepts_grounded_pre_push_contract() {
         let report = validate_pre_push_contract(valid_evidence()).expect("contract validates");
 
-        assert_eq!(report.canonical_command, "oya verify --ci-required");
-        assert_eq!(report.native_verify_dispatch_token, "commands::verify::run");
+        assert_eq!(
+            report.canonical_command,
+            "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check"
+        );
+        assert_eq!(
+            report.native_verify_dispatch_token,
+            "buck2-authority-policy-check"
+        );
         assert!(report.done_definition_mentions_command);
         assert!(report.verify_subcommand_wired_in_cli);
         assert!(report.cli_dispatches_native_verify);
@@ -222,12 +197,9 @@ mod tests {
     }
 
     #[test]
-    fn rejects_missing_verify_subcommand_wiring() {
+    fn rejects_missing_repo_hygiene_authority_token() {
         let mut evidence = valid_evidence();
-        // The dispatch source routes a different subcommand but does
-        // not contain the `Some("verify")` match arm.
-        evidence.cli_dispatch_source =
-            "Some(\"check\") => commands::check::run(args.collect(), &usage()),\n";
+        evidence.cli_dispatch_source = "buck2 build //:buck2-authority-policy-check\n";
 
         assert_eq!(
             validate_pre_push_contract(evidence),
@@ -236,13 +208,9 @@ mod tests {
     }
 
     #[test]
-    fn rejects_cli_without_native_verify_dispatch() {
+    fn rejects_missing_buck2_authority_policy_token() {
         let mut evidence = valid_evidence();
-        // The dispatch source wires the `Some("verify")` match arm
-        // but routes to a non-native handler (proves the predicate
-        // is independent of the subcommand wiring check).
-        evidence.cli_dispatch_source =
-            "Some(\"verify\") => some_subprocess_call(args, &usage()),\n";
+        evidence.cli_dispatch_source = "buck2 build //:repo-hygiene-automation-check\n";
 
         assert_eq!(
             validate_pre_push_contract(evidence),
@@ -273,27 +241,22 @@ mod tests {
     }
 
     #[test]
-    fn accepts_hook_that_uses_cargo_run_form() {
-        // Build-from-source form: the hook in a fresh clone calls
-        // `cargo run -p oya-dev-cli -- verify --ci-required` because
-        // `oya` is not yet on PATH. Both forms must satisfy the
-        // contract.
+    fn rejects_hook_that_uses_retired_dev_cli_form() {
         let mut evidence = valid_evidence();
         evidence.hook_script =
             "cargo run -q -p oya-dev-cli -- verify --ci-required \"$@\" || exit 1\n";
 
-        let report =
-            validate_pre_push_contract(evidence).expect("cargo-run hook satisfies the contract");
-        assert!(report.hook_wires_full_command);
+        assert_eq!(
+            validate_pre_push_contract(evidence),
+            Err(PrePushContractError::MissingHookCommand)
+        );
     }
 
     fn valid_evidence() -> PrePushContractEvidence<'static> {
         PrePushContractEvidence {
-            done_definition_doc: "- [ ] D12 `oya verify --ci-required` passes.",
-            cli_dispatch_source: "match args.next().as_deref() {\n    \
-                 Some(\"verify\") => commands::verify::run(args.collect(), &usage()),\n}\n",
-            hook_script: "oya verify --ci-required \"$@\" || exit 1\n\
-                          # canonical: oya verify --ci-required\n",
+            done_definition_doc: "- [ ] D12 `buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check` passes.",
+            cli_dispatch_source: "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check\n",
+            hook_script: "buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check\n",
         }
     }
 }

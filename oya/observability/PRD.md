@@ -341,8 +341,8 @@ Sharding:
 | AC-06 | Grafana OnCall raises incident on `held → page` transition | webhook integration test |
 | AC-07 | Canary cohort ramp follows 1 % → 10 % → 50 % → 100 % schedule with abort-on-burn | service-mesh integration test |
 | AC-08 | All Layer-A Helm charts deploy clean against a kind cluster | CI lane `oya-observability-iac-smoke` |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice observability` exit 0 | ADR-0131 lane |
-| AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 | ADR-0123 lane; HG-OBS registered |
+| AC-09 | `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice observability` exit 0 | ADR-0131 lane |
+| AC-10 | `buck2 build //:quality-lane-registry-authority-check # lane=authority-cohesion` exit 0 | ADR-0123 lane; HG-OBS registered |
 
 ## Open Questions
 

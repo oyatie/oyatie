@@ -53,9 +53,9 @@ Per-pack configuration + per-pack overlays under `microservices/mail/iac/kustomi
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate pack-kr-overlay --microservice mail
-cargo run -p oya-dev-cli -- gate validate retention-floor-conformance --microservice mail
-cargo run -p oya-dev-cli -- gate validate residency-conformance --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=pack-kr-overlay --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=retention-floor-conformance --microservice mail
+buck2 build //:quality-lane-registry-authority-check # lane=residency-conformance --microservice mail
 ```
 
 ## Test Plan

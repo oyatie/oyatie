@@ -89,7 +89,7 @@ Implement the slice as a Foundry-owned ChangeSet, not as generic platform plumbi
 - Contract parity for `microservices/intelligence/contracts/openapi/evidence-foundry-evidence.yaml` and `microservices/intelligence/contracts/proto/evidence-foundry-evidence.proto` when DTOs or handlers change.
 - Policy resolution against `microservices/intelligence/policy/evidence-tenant-scope.cedar`, `microservices/intelligence/policy/evidence-regulator-export-scope.cedar`, `microservices/intelligence/policy/evidence-evidence-pack-integrity.md`, including a tenant mismatch denial and a CI/synthetic principal allowance where applicable.
 - SLO or dashboard linkage against `microservices/intelligence/slos/evidence-emit-latency.openslo.yaml`, `microservices/intelligence/slos/evidence-chain-integrity-correctness.openslo.yaml`; no acceptance by line count alone.
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
+- `buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice foundry` plus `git diff --check` before promotion.
 
 ### F. Evidence anchors
 - `microservices/intelligence/PRD.md` FR-X1..FR-X7 for the supervisor-runtime-guardrails-providers-evidence chain.

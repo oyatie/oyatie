@@ -34,7 +34,7 @@ Standardize cross-service adoption on `oya-shared-audit-chain-client-kernel` and
 
 ## §E Acceptance
 - `cargo test -p oya-shared-audit-chain-client-kernel` passes.
-- `cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice tenancy` and `--microservice observability` pass after adoption.
+- `buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice tenancy` and `--microservice observability` pass after adoption.
 - `rg 'oya-audit-chain-(domain|usecase|file-adapter)' crates/oya-tenancy crates/oya-observability` returns no matches.
 
 ## §F Evidence

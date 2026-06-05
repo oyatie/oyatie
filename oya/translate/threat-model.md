@@ -119,7 +119,7 @@ Trust boundaries (TB):
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate threat-model --microservice translate` exits 0 (cross-checks T-### → mitigation → test coverage).
+- `buck2 build //:quality-lane-registry-authority-check # lane=threat-model --microservice translate` exits 0 (cross-checks T-### → mitigation → test coverage).
 - `tests/security/` directory contains a fuzz corpus per T-06, T-07, T-08, F-01..F-05.
 - Quarterly threat-model refresh; vendor adapter additions trigger a per-vendor section.
 

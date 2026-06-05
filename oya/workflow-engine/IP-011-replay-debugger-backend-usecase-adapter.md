@@ -55,7 +55,7 @@ It also does not make ClickHouse a recovery source for workflow history.
 - `cargo nextest run -p oya-workflow-engine-replay-debugger-backend-usecase --all-features`
 - `cargo nextest run -p oya-workflow-engine-replay-debugger-backend-adapter-postgres --all-features`
 - `cargo nextest run -p oya-workflow-engine-replay-debugger-backend-adapter-clickhouse --all-features`
-- `cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-workflow-engine-replay-debugger-backend-usecase`
+- `buck2 build //:quality-lane-registry-authority-check # lane=layer-correctness --crate oya-workflow-engine-replay-debugger-backend-usecase`
 - Required tests: `replay_session_denies_missing_debugger_entitlement`, `postgres_event_log_read_requires_tenant_predicate`, `checkpoint_pages_replay_in_order`, `clickhouse_query_injects_tenant_predicate`, `clickhouse_never_returns_raw_payload`, and `replay_mismatch_emits_audit_event`.
 
 ## §F Evidence

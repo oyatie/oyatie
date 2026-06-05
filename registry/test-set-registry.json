@@ -59,11 +59,11 @@
         "unit",
         "integration"
       ],
-      "command": "cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane test",
+      "command": "buck2 build //:repo-hygiene-automation-check",
       "required_when": [
         "TS/JS package changed"
       ],
-      "runner": "repo lane",
+      "runner": "Buck2/Prow repo lane",
       "evidence_outputs": [
         "configured by package"
       ],
@@ -173,11 +173,11 @@
         "contract",
         "integration"
       ],
-      "command": "cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity && cargo run -p oya-dev-cli -- gate validate api-semver",
+      "command": "buck2 build //:repo-hygiene-automation-check //:quality-lane-registry-authority-check",
       "required_when": [
         "OpenAPI/AsyncAPI/Proto/schema changed"
       ],
-      "runner": "oya-dev-cli",
+      "runner": "Buck2/Prow repo lane",
       "evidence_outputs": [
         "/evidence/*contract*",
         "/evidence/*openapi*"

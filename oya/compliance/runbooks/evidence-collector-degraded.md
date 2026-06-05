@@ -31,7 +31,7 @@ doc_status: published
 - Open a sev0 if `oya_compliance_evidence_collector_degraded_correctness_ratio < 0.9999` and the affected label set includes `tenant_id` or `principal_id`.
 - Open a sev1 if `oya_compliance_evidence_collector_degraded_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `compliance.evidence-collector-degraded.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate compliance-evidence-collector-degraded --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from CI when `buck2 build //:quality-lane-registry-authority-check # lane=compliance-evidence-collector-degraded --production-snapshot` exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/compliance-substrate/evidence-collector-degraded?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=111`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/compliance-substrate/evidence-collector-degraded?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=210`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="compliance",runbook="evidence-collector-degraded"}`.
@@ -67,7 +67,7 @@ doc_status: published
 11. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/compliance-substrate/evidence-collector-degraded?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=210&var-tenant=$TENANT"`.
 12. Verify audit-chain emission: `oya audit-chain query --event-class EVT-COMPLIANCE-EVIDENCE_COLLECTOR_DEGRADED-INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 13. Verify service state: `oya ops compliance evidence-collector-degraded status --cell $CELL --tenant $TENANT --output json`.
-14. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate compliance-evidence-collector-degraded --production-snapshot --cell $CELL`.
+14. Run production snapshot gate: `buck2 build //:quality-lane-registry-authority-check # lane=compliance-evidence-collector-degraded --production-snapshot --cell $CELL`.
 15. Check Cargo owner crate: `cargo test -p oya-compliance-domain evidence_collector_degraded -- --nocapture`.
 16. Check API contract smoke: `curl -s https://compliance.internal.oyatie.dev/v1/compliance/evidence-collector-degraded/incident-handoff -H "x-oya-tenant: $TENANT"`.
 17. Inspect config: `kubectl -n compliance get configmap compliance-evidence-collector-degraded-config -o yaml`.
@@ -148,12 +148,12 @@ Evidence Collector Degraded incident decision tree
 4. Patch policy: `edit microservices/compliance/policy/pack-overlay-authorization.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/compliance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-compliance-domain evidence_collector_degraded_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate compliance-evidence-collector-degraded --fixture incident-evidence-collector-degraded.json`.
+7. Add gate evidence: `buck2 build //:quality-lane-registry-authority-check # lane=compliance-evidence-collector-degraded --fixture incident-evidence-collector-degraded.json`.
 8. Add SLO assertion: `update microservices/compliance/slos/* with alert ComplianceEvidenceCollectorDegradedCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/compliance/dashboards/evidence-coverage.json with oya_compliance_evidence_collector_degraded_error_ratio, oya_compliance_evidence_collector_degraded_lag_seconds, and oya_compliance_evidence_collector_degraded_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-compliance-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-compliance-domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate compliance-policy --microservice compliance`.
+12. Run policy validation: `buck2 build //:quality-lane-registry-authority-check # lane=compliance-policy --microservice compliance`.
 13. Deploy canary: `oya deploy canary --microservice compliance --component evidence-collector-degraded-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_compliance_evidence_collector_degraded_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close compliance-evidence-collector-degraded-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

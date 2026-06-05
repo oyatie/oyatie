@@ -107,7 +107,7 @@ impl CredentialResolver for OpenBaoResolver {
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate credential-isolation --crate oya-foundry-providers-adapter-openbao
+buck2 build //:quality-lane-registry-authority-check # lane=credential-isolation --crate oya-foundry-providers-adapter-openbao
 ```
 
 This crate's PR REQUIRES 2-person review per CI-INV-09 (CODEOWNERS rule).

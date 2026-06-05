@@ -134,12 +134,12 @@ cargo deny check
 cargo doc   --workspace --no-deps
 
 # Repo-wide gates
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice intelligence
-cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage  --microservice intelligence
-cargo run -p oya-dev-cli -- gate validate openapi-conformance      --microservice intelligence
-cargo run -p oya-dev-cli -- gate validate asyncapi-conformance     --microservice intelligence
-cargo run -p oya-dev-cli -- gate validate audit-tap-emit           --microservice intelligence
-cargo run -p oya-dev-cli -- gate validate library-first-dispatch   --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage  --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=openapi-conformance      --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=asyncapi-conformance     --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=audit-tap-emit           --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=library-first-dispatch   --microservice intelligence
 ```
 
 ### Fitness lane gates

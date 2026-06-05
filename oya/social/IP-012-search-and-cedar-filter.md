@@ -40,7 +40,7 @@ Implement the cataloged Meilisearch adapter plus planned search kernel/domain/us
 - `cargo nextest run -p oya-community-social-search-adapter-meilisearch` passes.
 - Search tests prove hidden content is neither indexed nor returned.
 - `slos/search-people-latency.openslo.yaml` resolves.
-- `cargo run -p oya-dev-cli -- gate validate data-residency --microservice social` passes.
+- `buck2 build //:quality-lane-registry-authority-check # lane=data-residency --microservice social` passes.
 - Query examples in `contracts/openapi/social.yaml` match implementation behavior.
 
 ## F. Evidence

@@ -87,7 +87,7 @@ spec:
 ```bash
 oya gate validate openslo-validate \
   --manifests 'microservices/workflow-studio/slos/*.openslo.yaml'
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness \
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness \
   --microservice workflow-studio
 ```
 

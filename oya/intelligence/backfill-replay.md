@@ -89,7 +89,7 @@ Right-to-erasure / right-to-access flows leverage replay:
 
 ## Replay verification
 
-- `cargo run -p oya-dev-cli -- gate validate audit-replay-integrity --microservice intelligence` — exit 0.
+- `buck2 build //:quality-lane-registry-authority-check # lane=audit-replay-integrity --microservice intelligence` — exit 0.
 - Quarterly drill: forensic replay of last quarter's dispatch volume for spot-check tenants.
 
 ## References

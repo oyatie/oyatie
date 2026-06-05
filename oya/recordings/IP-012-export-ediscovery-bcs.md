@@ -26,7 +26,7 @@ transcript-to-PDF/DOCX.
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate ediscovery-merkle-seal
+buck2 build //:quality-lane-registry-authority-check # lane=ediscovery-merkle-seal
 # Bundle Merkle root verified independently
 cargo nextest run -p oya-recordings-ediscovery-worker -- bundle_merkle_round_trip
 ```
@@ -58,7 +58,7 @@ load_bearing: true
 2. eDiscovery kernel + postgres adapter + worker.
 3. Bundle Merkle seal via blake3 tree (RFC 9162-style).
 4. SPIFFE Ed25519 signer integration.
-5. `cargo run -p oya-dev-cli -- gate validate ediscovery-merkle-seal`.
+5. `buck2 build //:quality-lane-registry-authority-check # lane=ediscovery-merkle-seal`.
 
 ## Traceability
 

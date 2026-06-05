@@ -103,7 +103,7 @@ spec:
 # OpenSLO schema validation
 cargo run -p oya-observability-slo-engine-rest -- validate microservices/governance/slos/
 # SLO coverage lane (every µservice must have ≥ 1 SLO)
-cargo run -p oya-dev-cli -- gate validate slo-coverage --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=slo-coverage --microservice governance
 # Bootstrap: governance's own SLO engine eligibility check (using synthetic probes pre-deploy)
 cargo run -p oya-observability-slo-engine-worker -- evaluate --microservice governance --env staging
 ```

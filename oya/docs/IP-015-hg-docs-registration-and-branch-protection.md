@@ -50,9 +50,9 @@ Register HG-DOCS as a BLOCKER lane in `.github/branch-protection.yaml`. Docs pro
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate branch-protection-validate
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice docs
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=branch-protection-validate
+buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice docs
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice docs
 ```
 
 ## Test Plan

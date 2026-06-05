@@ -324,7 +324,7 @@ dependency:
 
 - [ ] **Replacement is production-proven and covers all critical use cases.**
   ```bash
-  cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice recordings
+  buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims --microservice recordings
   ```
 - [ ] **Migration guide exists with concrete steps and examples.**
   ```bash

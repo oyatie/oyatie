@@ -52,7 +52,7 @@ pub async fn run(args: Args) -> anyhow::Result<()> {
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha <test-sha> --env staging
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --sha <test-sha> --env staging
 cargo nextest run -p oya-dev-cli --test gate_cli governance_promotion_readiness
 ```
 

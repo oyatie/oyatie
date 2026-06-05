@@ -1,0 +1,91 @@
+{
+  "schema": "oyatie.multispectrum.evidence.v1",
+  "slice": "oya-dev-cli-retirement-hygiene",
+  "recorded_at_utc": "2026-06-05T12:06:19Z",
+  "branch": "chore/retire-oya-dev-cli-authority-20260605T115157Z",
+  "base": "github-mirror/dev@846de91cd1927f4968f94630c372cf3971871121",
+  "authority_decision": {
+    "build_test_check_authority": "Buck2",
+    "removed_active_surface": "oya/developer-sdk/crates/oya-dev-cli",
+    "cargo_role": "metadata and dual-build compatibility only; the retired developer CLI is no longer a workspace member or lock package",
+    "gate_authority_replacement": "Buck2/Prow-native authority checks and quality-lane registry targets",
+    "historical_provenance_policy": "ADR/evidence/test rejection fixtures may mention retired surfaces; active code/docs must not offer them as runnable authority"
+  },
+  "changed_surface": {
+    "deleted_path": "oya/developer-sdk/crates/oya-dev-cli",
+    "metadata_removed": ["Cargo.toml workspace member", "Cargo.lock package block"],
+    "rewritten_active_files": 768,
+    "changed_files_total": 934,
+    "permanent_guard_added": [
+      "scripts/ci/assert-repo-hygiene-automation.rs::RETIRED_ACTIVE_PATHS includes oya/developer-sdk/crates/oya-dev-cli",
+      "scripts/tests/repo_hygiene_automation_check.rs::retired_active_ci_substrate_paths_are_rejected covers the retired dev CLI crate path"
+    ],
+    "preserved_native_logic": [
+      "libs/oya-governance-gate-catalog-domain renders Buck2 lane authority commands with lane tags",
+      "libs/oya-check-pre-push validates Buck2 repo-hygiene plus Buck2 authority-policy preflight semantics"
+    ]
+  },
+  "verification": [
+    {
+      "command": "rustfmt --edition 2024 --check changed Rust files",
+      "exit_code": 0
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test ... && OYA_REPO_ROOT=$PWD repo_hygiene_automation_check --nocapture",
+      "exit_code": 0,
+      "result": "62 passed; 0 failed"
+    },
+    {
+      "command": "assert-repo-hygiene-automation --json",
+      "exit_code": 0,
+      "result": "verdict PASS; failures=[]"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings --test libs/oya-governance-gate-catalog-domain/src/lib.rs",
+      "exit_code": 0,
+      "result": "46 passed; 0 failed"
+    },
+    {
+      "command": "rustc --edition=2024 -D warnings --test libs/oya-check-pre-push/src/lib.rs",
+      "exit_code": 0,
+      "result": "7 passed; 0 failed"
+    },
+    {
+      "command": "changed JSON parse with Ruby JSON.parse",
+      "exit_code": 0,
+      "result": "changed json ok: 7"
+    },
+    {
+      "command": "changed YAML parse with Ruby YAML.load_file",
+      "exit_code": 0,
+      "result": "changed yaml ok: 1"
+    },
+    {
+      "command": "buck2 build //libs/oya-governance-gate-catalog-domain:oya-governance-gate-catalog-domain //libs/oya-check-pre-push:oya-check-pre-push //:repo-hygiene-automation-check --show-output",
+      "exit_code": 0,
+      "build_id": "e949dad2-c8f7-4217-8bd1-1908f919c578",
+      "result": "BUILD SUCCEEDED"
+    },
+    {
+      "command": "deleted path / metadata scans",
+      "exit_code": 0,
+      "result": "deleted path absent; workspace metadata hits none; governance catalog retired executable hits none"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "known_gaps": [
+    "No Cargo command was executed; Cargo is not authority for this repo.",
+    "Live Kubernetes/Prow reconciliation was not run from this local PR lane.",
+    "Two retired developer-CLI strings remain in oya-check-pre-push unit tests as explicit rejection fixtures.",
+    "A scan still reports 450 residual active non-gate product-operation docs using the retired developer CLI prefix; they require product-by-product API/runbook rewrites in follow-up PRs rather than fake replacement commands.",
+    "Historical ADRs and evidence retain retired strings as provenance."
+  ],
+  "next_backlog": [
+    "Replace residual product-operation runbook/onboarding/benchmark commands with substrate-owned REST/gRPC/control-plane API procedures per product lane.",
+    "Move useful deleted CLI-only gate kernels that still matter into dedicated Rust libraries or Buck2 genrules instead of restoring the CLI wrapper.",
+    "Extend repo-hygiene active-doc scanning once product-operation command replacements have concrete native API targets."
+  ]
+}

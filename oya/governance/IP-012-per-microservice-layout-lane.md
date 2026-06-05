@@ -65,9 +65,9 @@ pub fn check_prd_locations(repo_root: &Path) -> Vec<Finding> {
 ```bash
 cargo check -p oya-check-per-microservice-layout
 cargo nextest run -p oya-check-per-microservice-layout
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice governance
 # Self-application: governance µservice's own files all live within microservices/governance/
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice observability
+buck2 build //:quality-lane-registry-authority-check # lane=per-microservice-layout --microservice observability
 ```
 
 ## Test Plan

@@ -221,7 +221,7 @@ Cost projections per scale tier in `cost-budget.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice mail` — exit 0; replica counts ≥ formula minimums.
+- `buck2 build //:quality-lane-registry-authority-check # lane=capacity-conformance --microservice mail` — exit 0; replica counts ≥ formula minimums.
 - Quarterly capacity review: actual vs forecast; recalibrate `avg_messages_per_user`.
 - Annual reference-architecture refresh: re-verify Postfix + Tantivy benchmarks.
 

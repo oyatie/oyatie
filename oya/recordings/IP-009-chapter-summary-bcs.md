@@ -27,7 +27,7 @@ chapter.
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate ai-feature-bounds-attestation --microservice recordings
+buck2 build //:quality-lane-registry-authority-check # lane=ai-feature-bounds-attestation --microservice recordings
 ```
 
 ## ChangeSet metadata
@@ -47,7 +47,7 @@ acceptance_status: ga
 | AC-01 | Chapter markers auto-derived from diarization segment boundaries | `cargo nextest run -p oya-recordings-chapter-marker-domain -- from_diarization` |
 | AC-02 | Summary (semantic + chronological) emitted via foundry-runtime; AI feature bounds declared | `cargo nextest run -p oya-recordings-summary-usecase -- ai_bounds_declared` |
 | AC-03 | Thumbnail-pack emits 1 thumb per chapter via ffmpeg in gVisor | `cargo nextest run -p oya-recordings-thumbnail-pack-adapter-ffmpeg -- one_per_chapter` |
-| AC-04 | EU AI Act risk class declared on each capability (summary = low-risk) | `cargo run -p oya-dev-cli -- gate validate ai-feature-bounds-attestation --microservice recordings` |
+| AC-04 | EU AI Act risk class declared on each capability (summary = low-risk) | `buck2 build //:quality-lane-registry-authority-check # lane=ai-feature-bounds-attestation --microservice recordings` |
 
 ## Build Sequence
 
@@ -55,7 +55,7 @@ acceptance_status: ga
 2. Domain: `ChapterMarker`, `Summary` (semantic/chronological flavour), `Thumbnail`.
 3. Usecase: `EmitChapterMarkers`, `EmitSummary`, `EmitThumbnailPack`.
 4. Adapters: postgres + s3 + whisper + ffmpeg.
-5. `cargo run -p oya-dev-cli -- gate validate ai-feature-bounds-attestation --microservice recordings`.
+5. `buck2 build //:quality-lane-registry-authority-check # lane=ai-feature-bounds-attestation --microservice recordings`.
 
 ## Traceability
 

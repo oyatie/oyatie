@@ -68,7 +68,7 @@ impl<R: RouteRegistry, S: RouteScopeStore> ResolveRouteUseCase<R, S> {
 
 ```bash
 cargo nextest run -p oya-application-shell-routing-usecase --all-features
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-application-shell-routing-usecase
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a1 --crate oya-application-shell-routing-usecase
 ```
 
 ## Test Plan

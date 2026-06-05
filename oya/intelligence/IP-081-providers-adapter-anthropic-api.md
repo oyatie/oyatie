@@ -102,7 +102,7 @@ where C: CredentialResolver<Credential = ResolvedCredential> + Send + Sync {
 ## Acceptance Gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate credential-isolation --crate oya-foundry-providers-adapter-anthropic-api
+buck2 build //:quality-lane-registry-authority-check # lane=credential-isolation --crate oya-foundry-providers-adapter-anthropic-api
 ```
 
 ## Next IP

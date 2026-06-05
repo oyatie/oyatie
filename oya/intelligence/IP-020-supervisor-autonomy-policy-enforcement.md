@@ -63,8 +63,8 @@ cargo check -p oya-foundry-supervisor-autonomy-policy-enforcement-{kernel,domain
 cargo build (each)
 cargo clippy (each) -- -D warnings
 cargo nextest run (each)
-cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice foundry-supervisor
-cargo run -p oya-dev-cli -- gate validate lean-a2 --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=cedar-fragment-coverage --microservice foundry-supervisor
+buck2 build //:quality-lane-registry-authority-check # lane=lean-a2 --microservice foundry-supervisor
 ```
 
 ## Test Plan

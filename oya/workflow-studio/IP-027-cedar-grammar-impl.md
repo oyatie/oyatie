@@ -104,8 +104,8 @@ Minimum 5 required; 10 specified.
 ## Acceptance gates
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate grammar-correctness --pkg cedar-cm6-grammar
-cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --microservice workflow-studio
+buck2 build //:quality-lane-registry-authority-check # lane=grammar-correctness --pkg cedar-cm6-grammar
+buck2 build //:quality-lane-registry-authority-check # lane=oya-governance-promotion-readiness --microservice workflow-studio
 pnpm --filter @oya/cedar-cm6-grammar test
 ```
 

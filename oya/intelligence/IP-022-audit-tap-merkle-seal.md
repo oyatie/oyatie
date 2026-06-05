@@ -57,8 +57,8 @@ impl MerkleSealer {
 
 ```bash
 cargo nextest run -p oya-intelligence-audit-tap-usecase -- signer merkle_sealer
-cargo run -p oya-dev-cli -- gate validate audit-tap-atomicity --microservice intelligence
-cargo run -p oya-dev-cli -- gate validate audit-chain-seal-integrity --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=audit-tap-atomicity --microservice intelligence
+buck2 build //:quality-lane-registry-authority-check # lane=audit-chain-seal-integrity --microservice intelligence
 ```
 
 ## References

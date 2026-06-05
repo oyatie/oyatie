@@ -50,8 +50,8 @@ when { resource has context_kind && resource.context_kind == "Personal" };
 ```bash
 cargo check -p oya-notes-ai-assist-kernel
 cargo test --test e2e-ai-refusal
-cargo run -p oya-dev-cli -- gate validate e2e-ai-refusal --microservice notes
-cargo run -p oya-dev-cli -- gate validate dual-context-isolation --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=e2e-ai-refusal --microservice notes
+buck2 build //:quality-lane-registry-authority-check # lane=dual-context-isolation --microservice notes
 ```
 
 ## Halt Conditions

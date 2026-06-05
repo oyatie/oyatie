@@ -92,10 +92,10 @@ pub fn evaluate_pipeline_axis(input: &RuleInput) -> Vec<Finding> {
 ```bash
 cargo check -p oya-check-industry-best-practice-conformance
 cargo nextest run -p oya-check-industry-best-practice-conformance
-cargo run -p oya-dev-cli -- gate validate industry-best-practice-conformance --microservice governance
+buck2 build //:quality-lane-registry-authority-check # lane=industry-best-practice-conformance --microservice governance
 # Self-application: lane refuses governance µservice itself if governance lacks
 # any of the 6-axis baselines. Should PASS at M01.
-cargo run -p oya-dev-cli -- gate validate industry-best-practice-conformance --microservice observability
+buck2 build //:quality-lane-registry-authority-check # lane=industry-best-practice-conformance --microservice observability
 ```
 
 ## Test Plan

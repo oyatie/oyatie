@@ -26,7 +26,7 @@ cargo run -p oya-dev-cli -- settings-template render \
 To check for drift across all accounts:
 
 ```bash
-cargo run -p oya-dev-cli -- gate validate settings-drift \
+buck2 build //:quality-lane-registry-authority-check # lane=settings-drift \
   --templates-root templates/foundry-supervisor \
   --accounts-root registry/accounts \
   --report-out .omc/state/settings-drift-report.json

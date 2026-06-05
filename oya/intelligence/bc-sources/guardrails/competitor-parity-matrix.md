@@ -168,7 +168,7 @@ Per ADR-0123 `/specs/hyperscaler-gates.json` registers HG-FGUARD with these conf
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims` — exit 0; HG-FGUARD green.
+- `buck2 build //:quality-lane-registry-authority-check # lane=hyperscaler-maturity-claims` — exit 0; HG-FGUARD green.
 - Bi-annual competitor-feature refresh: update this matrix.
 - Quarterly red-team: validate recall targets remain met.
 - Annual external benchmark: third-party comparison published in `evidence/benchmarks/`.

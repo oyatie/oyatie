@@ -57,7 +57,7 @@ impl DepGraph {
 ```bash
 cargo check -p oya-sheets-recalc-engine-kernel ... -p oya-sheets-recalc-engine-worker
 cargo nextest run -p oya-sheets-recalc-engine-domain
-cargo run -p oya-dev-cli -- gate validate sheets-recalc-determinism --microservice sheets
+buck2 build //:quality-lane-registry-authority-check # lane=sheets-recalc-determinism --microservice sheets
 ```
 
 ## Test Plan
