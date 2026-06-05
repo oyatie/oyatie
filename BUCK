@@ -360,6 +360,23 @@ genrule(
     visibility = ["PUBLIC"],
 )
 
+# Rust/Buck2 replacement for the retired Python rust-test emitter. This target
+# compiles the append-only utility and its unit tests; callers run the binary
+# explicitly when they need to materialize missing first-party rust_test rules.
+genrule(
+    name = "append-missing-rust-unit-test-targets-check",
+    srcs = {
+        "scripts/ci/append-missing-rust-unit-test-targets.rs": "scripts/ci/append-missing-rust-unit-test-targets.rs",
+        "scripts/tests/append_missing_rust_unit_test_targets_check.rs": "scripts/tests/append_missing_rust_unit_test_targets_check.rs",
+    },
+    out = "append-missing-rust-unit-test-targets-check.json",
+    cmd = "mkdir -p $TMP/append-missing-rust-unit-test-targets && rustc --edition=2024 -D warnings scripts/tests/append_missing_rust_unit_test_targets_check.rs --test -o $TMP/append-missing-rust-unit-test-targets/append_missing_rust_unit_test_targets_check && OYA_REPO_ROOT=$PWD $TMP/append-missing-rust-unit-test-targets/append_missing_rust_unit_test_targets_check > /dev/null && rustc --edition=2024 -D warnings scripts/ci/append-missing-rust-unit-test-targets.rs -o $TMP/append-missing-rust-unit-test-targets/append-missing-rust-unit-test-targets && $TMP/append-missing-rust-unit-test-targets/append-missing-rust-unit-test-targets --version > /dev/null && echo '{\"verdict\":\"PASS\",\"checker\":\"scripts/ci/append-missing-rust-unit-test-targets.rs\",\"retired_python_surface_deleted\":true}' > $OUT",
+    cacheable = False,
+    remote = False,
+    repo_relative_root = True,
+    visibility = ["PUBLIC"],
+)
+
 # Retired grouping-wording check. This Rust/Buck2 target replaces the retired
 # shell+Python scanner and keeps tenant/RBAC packaging as a view over flat
 # services, not a product/suite/platform/module wrapper boundary.
