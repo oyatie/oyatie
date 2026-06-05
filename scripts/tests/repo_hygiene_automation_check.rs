@@ -37,8 +37,9 @@ fn checked_in_repo_hygiene_contract_passes() {
     assert_eq!(evaluation.verdict, "PASS", "{:?}", evaluation.failures);
     assert!(evaluation.failures.is_empty());
     assert_eq!(evaluation.domains_checked, 6);
-    assert_eq!(evaluation.security_backlog_count, 31);
+    assert_eq!(evaluation.security_backlog_count, 40);
     assert_eq!(evaluation.tracked_typescript_pnpm_mjs_count, 28);
+    assert_eq!(evaluation.tracked_nonvendored_python_shell_count, 55);
 }
 
 #[test]
@@ -169,6 +170,68 @@ fn typescript_pnpm_surface_scan_excludes_vendored_agent_skills() {
         .expect("fixture TypeScript/pnpm scan should run");
     let _ = fs::remove_dir_all(&root);
     assert_eq!(files, vec!["scripts/proto-lint.mjs".to_string()]);
+}
+
+#[test]
+fn python_shell_inventory_matches_checked_in_surface() {
+    let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json");
+    let files = gate::tracked_python_shell_files(Path::new(&repo_root()))
+        .expect("Python/shell surface scan should run");
+    assert_eq!(files.len(), 55, "{files:?}");
+    let (_count, failures) =
+        gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn python_shell_inventory_rejects_missing_current_file() {
+    let inventory = read_repo_file("registry/repo-hygiene/python-shell-surface-inventory.json")
+        .replace(
+            "scripts/gen_first_party_buck.py",
+            "scripts/gen-first-party-buck.rs",
+        );
+    let (_count, failures) =
+        gate::python_shell_surface_failures(Path::new(&repo_root()), &inventory);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.contains("scripts/gen_first_party_buck.py")),
+        "{failures:?}"
+    );
+}
+
+#[test]
+fn python_shell_surface_scan_excludes_vendored_surfaces() {
+    let root = temp_dir("python-shell-vendor-exclusion");
+    fs::create_dir_all(root.join("tools/agent-skills/scripts")).unwrap_or_else(|error| {
+        panic!("create vendored fixture dir: {error}");
+    });
+    fs::create_dir_all(root.join("third-party/tooling")).unwrap_or_else(|error| {
+        panic!("create third-party fixture dir: {error}");
+    });
+    fs::create_dir_all(root.join("scripts")).unwrap_or_else(|error| {
+        panic!("create scripts fixture dir: {error}");
+    });
+    fs::write(
+        root.join("tools/agent-skills/scripts/validate-skills.sh"),
+        "echo vendored\n",
+    )
+    .unwrap_or_else(|error| panic!("write vendored fixture: {error}"));
+    fs::write(
+        root.join("third-party/tooling/upstream-helper.sh"),
+        "echo third-party\n",
+    )
+    .unwrap_or_else(|error| panic!("write third-party fixture: {error}"));
+    fs::write(
+        root.join("scripts/gen_first_party_buck.py"),
+        "print('owned')\n",
+    )
+    .unwrap_or_else(|error| panic!("write owned fixture: {error}"));
+
+    let files =
+        gate::tracked_python_shell_files(&root).expect("fixture Python/shell scan should run");
+    let _ = fs::remove_dir_all(&root);
+    assert_eq!(files, vec!["scripts/gen_first_party_buck.py".to_string()]);
 }
 
 #[test]

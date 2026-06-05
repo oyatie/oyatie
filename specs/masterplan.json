@@ -7,7 +7,7 @@
     "version": "1.1.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-06-04T22:55:00Z",
+    "updated_at": "2026-06-04T23:59:00Z",
     "owner_team": "council-architecture",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
@@ -450,6 +450,12 @@
         "oya verify"
       ],
       "build_test_check_authority": "Buck2"
+    },
+    "session_directives_2026_06_04_policy_compliance_productization": {
+      "source": "user-directive-in-codex-session-2026-06-04",
+      "purpose": "Record Policy/Compliance-as-a-Service productization, PaaS, Containers-as-a-Service, PBAC, PaC, CaC, mature policy-engine, zero-trust, and Oyatie-as-tenant dogfood as P00/P01 work.",
+      "pattern_rule": "Adopt proven hyperscaler/cloud-native/Kubernetes-native patterns first; reimplement in Rust/Oyatie-native seams only when evidence shows strategic control, performance, portability, tenant isolation, or compliance-policy proof advantage.",
+      "claim_boundary": "planning_backlog_only_no_live_policy_tenant_or_kubernetes_mutation"
     }
   },
   "imminent_work_p00": {
@@ -541,7 +547,10 @@
         "Run oya-ci as disposable ProwJob pods over remote state: trigger, fetch remote state, compute/validate with Buck2, export immutable artifacts, then destroy the ephemeral workspace.",
         "Keep cache as performance infrastructure, not correctness state: content-addressed remote cache/CAS, regional cell-local topology, quarantined untrusted writes, trusted postsubmit promotion, cold-cache probes, and bounded ephemeral-storage metrics.",
         "Reject stateful runner workspace pools, pod-local cache authority, cross-trust cache poisoning, cross-region hot-path CI I/O, mutable artifact overwrites, unbounded ephemeral storage, and privileged Docker/host-socket runners.",
-        "Do not revive an oya vcs CLI; current lane work uses plain git/gh adapters and future native control goes through service APIs, Rust libraries, Buck2 targets, and Prow jobs."
+        "Do not revive an oya vcs CLI; current lane work uses plain git/gh adapters and future native control goes through service APIs, Rust libraries, Buck2 targets, and Prow jobs.",
+        "Productize Policy-as-Code, Compliance-as-Code, Policy-as-a-Service, Platform-as-a-Service, Containers-as-a-Service, and Compliance-as-a-Service as cloud-native/Kubernetes-native tenant capabilities backed by PBAC/ABAC, mature policy-engine evaluation, signed bundles, dry-run/shadow policy evaluation, audit evidence, and per-tenant SLOs.",
+        "Dogfood Oyatie as a tenant: internal product, CI/CD, policy, compliance, observability, and cloud substrate workloads must consume the same PaaS/Containers-as-a-Service/Compliance-as-a-Service/PBAC/PaC/CaC APIs as external tenants, with break-glass as the only hidden privileged path.",
+        "Adopt proven hyperscaler patterns first; reimplement in Rust/Oyatie-native seams only when benchmark/evidence shows better control, performance, portability, tenant isolation, or policy/compliance proof. Reject novelty rewrites, opaque policy engines, candidate-owned truth, cacheless CI, and shared mutable bottlenecks."
       ],
       "non_goals": [
         "No live Kubernetes pod scale-down without explicit workload scope.",
@@ -558,13 +567,34 @@
       "repo_hygiene_automation_green": "buck2 build //:repo-hygiene-automation-check",
       "documentation_sprawl_reduced": "root docs stay pointer-thin; doc sprawl is registered, archived, or lane-owned via repo hygiene automation",
       "stale_doc_inventory_green": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests && buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
-      "security_backlog_recorded": "/specs/repo-hygiene-automation.json#security_backlog_validation maps 31 requested controls to /specs/repo-hygiene-automation.json#security_hardening_backlog as valid backlog-only zero-trust, CI/CD, data, Kubernetes runtime, and multi-account guardrail items",
+      "security_backlog_recorded": "/specs/repo-hygiene-automation.json#security_backlog_validation maps 40 requested controls/productization anchors to /specs/repo-hygiene-automation.json#security_hardening_backlog as valid backlog-only zero-trust, PBAC/ABAC, PaC, CaC, PaaS, Containers-as-a-Service, Compliance-as-a-Service, dogfood tenant, CI/CD, data, Kubernetes runtime, and multi-account guardrail items",
+      "policy_compliance_productization_recorded": "/specs/repo-hygiene-automation.json#security_hardening_backlog includes Policy/Compliance-as-a-Service productization, PaC, CaC, PBAC, mature policy-engine, PaaS, Containers-as-a-Service, Compliance-as-a-Service, and Oyatie-as-tenant dogfood anchors",
       "native_scm_ci_cd_fit_recorded": "masterplan P00 records native SCM owns change graph, oya-ci owns Buck2/Prow required context, and release-conveyor-like CD owns progressive delivery without oya vcs CLI revival",
       "legacy_shadow_bridge_green": "buck2 build //:github-lane-unlocker-bridge-check",
       "prowjob_registry_green": "buck2 build //:oya-ci-prowjob-registry-check",
       "prow_controller_config_green": "buck2 build //:oya-ci-prowjob-registry-check validates specs/generated/oya-ci-controller-config.generated.yaml as local/static controller config evidence",
       "prow_controller_schema_green": "buck2 build //:oya-ci-controller-config-check validates generated OyaCIControllerConfig schema/admission/security invariants without live cluster mutation",
       "kubernetes_native_antipatterns_green": "buck2 build //:kubernetes-native-anti-pattern-check validates hyperscaler/cloud/Kubernetes-native anti-pattern guardrails, including stateless Prow pods, cache boundaries, supply-chain provenance, policy-as-code admission, quota/fair scheduling, generated lane fan-in, lease_based_controller_coordination, topology_spread_and_dedicated_node_pools, cluster_admin_or_wildcard_rbac_for_runners rejection, and progressive delivery, without live Kubernetes or GitHub mutation"
+    },
+    "policy_compliance_productization": {
+      "status": "p00_p01_backlog_only",
+      "spec_ref": "/specs/repo-hygiene-automation.json#security_backlog_validation",
+      "backlog_ids": [
+        "zero_trust_architecture",
+        "abac_beyond_rbac",
+        "pbac_policy_based_access_control",
+        "mature_policy_engine",
+        "policy_as_code_service_productization",
+        "compliance_as_code_service_productization",
+        "policy_as_a_service_productization",
+        "platform_as_a_service_productization",
+        "containers_as_a_service_productization",
+        "compliance_as_a_service_productization",
+        "oyatie_dogfood_tenant"
+      ],
+      "dogfood_rule": "Oyatie internal workloads are a tenant and must use the same tenant-visible APIs and evidence flows as external tenants.",
+      "hyperscaler_pattern_rule": "Adopt proven hyperscaler patterns first; reimplement in Rust/Oyatie-native seams only with evidence-backed advantage.",
+      "claim_boundary": "planning_backlog_only_no_live_mutation"
     },
     "repo_hygiene_automation": {
       "spec": "/specs/repo-hygiene-automation.json",

@@ -81,6 +81,16 @@ topology spread/dedicated node-pool blast walls, PodDisruptionBudget-backed
 maintenance, API Priority & Fairness, watch/informer-backed control loops,
 minimal RBAC, and KMS/encrypted secret boundaries.
 
+P00 also starts Policy/Compliance-as-a-Service productization. PaC, CaC, PBAC,
+PaaS, Containers-as-a-Service, Compliance-as-a-Service, a mature policy-engine
+path, and Oyatie-as-tenant dogfood evidence are tracked in
+`specs/repo-hygiene-automation.json`. The rule is to adopt proven
+hyperscaler patterns first, then reimplement in Rust/Oyatie-native seams only
+when that gives measurable control, performance, portability, tenant isolation,
+or policy/compliance evidence. Novelty rewrites, cacheless CI, opaque policy
+engines, candidate-owned truth, and shared mutable control bottlenecks remain
+anti-patterns.
+
 For oya-ci, “stateless” means disposable Kubernetes/ProwJob compute, not
 cacheless or artifactless operation. The accepted lifecycle is: trigger, fetch
 remote state, compute/validate through Buck2, export immutable artifacts, then

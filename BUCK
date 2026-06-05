@@ -315,6 +315,7 @@ genrule(
         "registry/dependency-rationales.json": "registry/dependency-rationales.json",
         "registry/dependency-blessed-allowlist.json": "registry/dependency-blessed-allowlist.json",
         "registry/repo-hygiene/typescript-pnpm-surface-inventory.json": "registry/repo-hygiene/typescript-pnpm-surface-inventory.json",
+        "registry/repo-hygiene/python-shell-surface-inventory.json": "registry/repo-hygiene/python-shell-surface-inventory.json",
         "tools/oya-doc-staleness-inventory-app/BUCK": "//tools/oya-doc-staleness-inventory-app:BUCK",
         "tools/oya-doc-staleness-inventory-app/Cargo.toml": "//tools/oya-doc-staleness-inventory-app:cargo-manifest",
         "tools/oya-doc-staleness-inventory-app/src/lib.rs": "//tools/oya-doc-staleness-inventory-app:lib-src",

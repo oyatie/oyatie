@@ -240,6 +240,10 @@
       "establishes": "NIST SP 800-162 attribute-based access control model beyond role-only authorization."
     },
     {
+      "url": "https://csrc.nist.gov/glossary/term/policy_based_access_control",
+      "establishes": "NIST glossary definition for policy-based access control as a policy-governed authorization pattern."
+    },
+    {
       "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
       "establishes": "Kubernetes NetworkPolicy default-deny and pod traffic segmentation mechanics."
     },
@@ -258,6 +262,10 @@
     {
       "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
       "establishes": "Kubernetes service-account token mounting and workload identity boundary controls."
+    },
+    {
+      "url": "https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/",
+      "establishes": "Kubernetes admission-controller surface for policy-as-code admission and workload guardrails."
     },
     {
       "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/workload-identity",
@@ -290,6 +298,30 @@
     {
       "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
       "establishes": "Service Control Policies as a hyperscaler-style multi-account guardrail pattern for Oyatie Cloud accounts."
+    },
+    {
+      "url": "https://www.nist.gov/publications/nist-definition-cloud-computing",
+      "establishes": "NIST cloud computing definition, including Platform as a Service as a consumer-facing cloud service model."
+    },
+    {
+      "url": "https://www.openpolicyagent.org/docs/latest/",
+      "establishes": "Open Policy Agent as a mature policy-as-code engine reference for service, admission, and CI policy decisions."
+    },
+    {
+      "url": "https://github.com/ComplianceAsCode/content",
+      "establishes": "ComplianceAsCode content as a mature compliance-as-code reference for machine-readable security policy baselines."
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/security/multi-tenancy/",
+      "establishes": "Kubernetes multi-tenancy model for tenant isolation and namespace/control-plane boundaries."
+    },
+    {
+      "url": "https://docs.cedarpolicy.com/",
+      "establishes": "Cedar as a mature policy language reference for application/resource authorization policies."
+    },
+    {
+      "url": "https://openfga.dev/docs/modeling",
+      "establishes": "OpenFGA relationship-model authorization reference for mature policy-engine design tradeoffs."
     },
     {
       "url": "https://docs.prow.k8s.io/docs/",
@@ -418,7 +450,9 @@
     "typescript_pnpm_mjs_surface_inventory": "registry/repo-hygiene/typescript-pnpm-surface-inventory.json",
     "tracked_typescript_pnpm_mjs_count": 28,
     "typescript_pnpm_mjs_count_source": "filesystem_scan_excluding_vendored_agent_skills",
+    "python_shell_surface_inventory": "registry/repo-hygiene/python-shell-surface-inventory.json",
     "tracked_nonvendored_python_shell_count": 55,
+    "python_shell_count_source": "filesystem_scan_excluding_vendored_surfaces",
     "typescript_pnpm_mjs_disposition": "retirement_review_product_prototype_or_advisory_only_not_merge_authority",
     "python_shell_disposition": "bootstrap_host_prelude_reference_or_pending_rust_buck2_rewrite_only_not_merge_authority",
     "pnpm_or_package_json_repo_authority": false,
@@ -618,14 +652,24 @@
   ],
   "security_backlog_validation": {
     "captured_at": "2026-06-04T14:08:00Z",
-    "source": "user-requested zero-trust, CI/CD, data, IAM, and Kubernetes runtime hardening backlog review",
-    "decision": "All requested controls are valid as P00/P01 backlog items because they map to cloud-native or hyperscaler-grade least-privilege, blast-radius, runtime-isolation, data-protection, and supply-chain patterns. They remain planning/backlog entries only and authorize no live Kubernetes, cloud, CI secret, branch-protection, or data-retention mutation.",
-    "validity_rule": "Keep a requested control when it reduces tenant/workload blast radius, removes implicit trust, strengthens provenance, or hardens runtime/data planes and has an official/upstream reference or hyperscaler-compatible pattern.",
-    "requested_item_count": 31,
+    "source": "user-requested zero-trust, CI/CD, data, IAM, Kubernetes runtime hardening, PBAC/ABAC, Policy/Compliance-as-a-Service, PaC, CaC, PaaS, Containers-as-a-Service, mature policy-engine, and dogfood-tenant backlog review",
+    "decision": "All requested controls are valid as P00/P01 backlog items because they map to cloud-native, Kubernetes-native, or hyperscaler-grade productization, least-privilege, blast-radius, runtime-isolation, data-protection, policy/compliance automation, and supply-chain patterns. They remain planning/backlog entries only and authorize no live Kubernetes, cloud, CI secret, branch-protection, policy-decision, tenant, or data-retention mutation.",
+    "validity_rule": "Keep a requested control when it reduces tenant/workload blast radius, removes implicit trust, strengthens provenance, hardens runtime/data planes, or productizes policy/compliance as reusable cloud-native service capability with an official/upstream reference or hyperscaler-compatible pattern.",
+    "hyperscaler_pattern_rule": "Adopt proven hyperscaler patterns first, reimplement in Rust/Oyatie-native seams only when that produces strategic control, performance, portability, product leverage, or policy/compliance evidence that an off-the-shelf dependency cannot provide. Reject novelty rewrites, shared mutable bottlenecks, unbounded fanout, opaque policy engines, cacheless CI, candidate-owned truth, and bespoke systems without benchmark/evidence-backed advantage.",
+    "requested_item_count": 40,
     "mapped_backlog_ids": [
       "zero_trust_architecture",
       "privileged_identity_management",
       "abac_beyond_rbac",
+      "pbac_policy_based_access_control",
+      "mature_policy_engine",
+      "policy_as_code_service_productization",
+      "compliance_as_code_service_productization",
+      "policy_as_a_service_productization",
+      "platform_as_a_service_productization",
+      "containers_as_a_service_productization",
+      "compliance_as_a_service_productization",
+      "oyatie_dogfood_tenant",
       "network_microsegmentation",
       "silo_apis_integrations",
       "silo_ai_automation",
@@ -693,6 +737,127 @@
       "backlog_action": "Design Cedar/OPA-style attribute policy for tenant/account/project/resource context beyond static RBAC roles.",
       "source_refs": [
         "NIST SP 800-162"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "pbac_policy_based_access_control",
+      "valid": true,
+      "lane": "platform-iam",
+      "phase": "P00/P01",
+      "backlog_action": "Model authorization as policy-based access control where policy decisions are externalized, versioned, tested, and evaluated with tenant, actor, resource, action, data-class, region, risk, and workload attributes.",
+      "source_refs": [
+        "NIST PBAC glossary",
+        "NIST SP 800-162",
+        "OPA",
+        "Cedar"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "mature_policy_engine",
+      "valid": true,
+      "lane": "platform-policy",
+      "phase": "P00/P01",
+      "backlog_action": "Evaluate OPA, Cedar, and OpenFGA/Zanzibar-style relationship models before reimplementing; Oyatie-native Rust policy execution must prove latency, determinism, auditability, versioning, and tenant isolation advantages over direct adoption.",
+      "source_refs": [
+        "OPA",
+        "Cedar",
+        "OpenFGA",
+        "hyperscaler_pattern_rule"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "policy_as_code_service_productization",
+      "valid": true,
+      "lane": "platform-policy",
+      "phase": "P00/P01",
+      "backlog_action": "Productize Policy-as-Code as a cloud-native/Kubernetes-native service: policy bundles, signed promotion, dry-run/shadow evaluation, admission/controller integration, CI checks, explainability, SLOs, and per-tenant override boundaries.",
+      "source_refs": [
+        "OPA",
+        "Kubernetes admission",
+        "SLSA",
+        "hyperscaler_pattern_rule"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "compliance_as_code_service_productization",
+      "valid": true,
+      "lane": "platform-compliance",
+      "phase": "P00/P01",
+      "backlog_action": "Productize Compliance-as-Code as machine-evaluable evidence packs: controls, mappings, scans, attestations, exceptions, retention, auditor exports, and drift remediation tied to tenant/cell/compliance-pack context.",
+      "source_refs": [
+        "ComplianceAsCode",
+        "SLSA",
+        "NIST SP 800-207"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "policy_as_a_service_productization",
+      "valid": true,
+      "lane": "platform-policy",
+      "phase": "P00/P01",
+      "backlog_action": "Expose policy decisions as an internal service with low-latency local sidecar/cache evaluation, fail-closed semantics, policy-decision audit logs, and explicit tenant/service SLOs; remote calls must not become a hot-path bottleneck.",
+      "source_refs": [
+        "OPA",
+        "NIST PBAC glossary",
+        "hyperscaler_pattern_rule"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "platform_as_a_service_productization",
+      "valid": true,
+      "lane": "platform-cloud",
+      "phase": "P00/P01",
+      "backlog_action": "Productize Oyatie Cloud as PaaS for internal and external tenants: self-service provisioning, golden paths, service catalog, deployment substrate, quota, cost, SLO, policy, audit, and lifecycle APIs; Kubernetes remains the orchestration substrate rather than the tenant-facing product contract.",
+      "source_refs": [
+        "NIST SP 800-145",
+        "Kubernetes multi-tenancy",
+        "hyperscaler_pattern_rule"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "containers_as_a_service_productization",
+      "valid": true,
+      "lane": "platform-cloud",
+      "phase": "P00/P01",
+      "backlog_action": "Productize Containers-as-a-Service as a Kubernetes-native tenant capability: namespace/cell provisioning, workload classes, quotas, default-deny network posture, runtime isolation tiers, image policy, service identity, logs/metrics/traces, and safe workload lifecycle APIs.",
+      "source_refs": [
+        "Kubernetes multi-tenancy",
+        "Kubernetes RuntimeClass",
+        "Kubernetes Pod Security Standards",
+        "hyperscaler_pattern_rule"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "compliance_as_a_service_productization",
+      "valid": true,
+      "lane": "platform-compliance",
+      "phase": "P00/P01",
+      "backlog_action": "Productize Compliance-as-a-Service for tenants as control-pack subscription, continuous posture, exception workflow, evidence export, residency/retention proof, and audit-ready reporting backed by Compliance-as-Code.",
+      "source_refs": [
+        "ComplianceAsCode",
+        "NIST SP 800-207",
+        "Kubernetes multi-tenancy"
+      ],
+      "claim_boundary": "backlog_only_no_live_mutation"
+    },
+    {
+      "id": "oyatie_dogfood_tenant",
+      "valid": true,
+      "lane": "platform-productization",
+      "phase": "P00",
+      "backlog_action": "Create Oyatie-as-tenant dogfood path where internal product, CI/CD, policy, compliance, observability, and cloud substrate workloads consume the same PaaS/CaaS/PBAC/PaC/CaC APIs as external tenants, with no privileged hidden control path except break-glass.",
+      "source_refs": [
+        "Kubernetes multi-tenancy",
+        "NIST SP 800-207",
+        "hyperscaler_pattern_rule"
       ],
       "claim_boundary": "backlog_only_no_live_mutation"
     },
