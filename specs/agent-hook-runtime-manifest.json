@@ -75,23 +75,6 @@
       "network": false
     },
     {
-      "path": "tools/hooks/adr-orphan-detect.sh",
-      "purpose": "Warn when edited markdown/json references ADR ids without corresponding ADR files.",
-      "events": {
-        "codex": [
-          "PostToolUse:Edit|MultiEdit|Write"
-        ],
-        "gemini": [
-          "AfterTool:write_file|replace|edit|write|Edit|Write"
-        ]
-      },
-      "reads": [
-        "docs/decisions"
-      ],
-      "writes": [],
-      "network": false
-    },
-    {
       "path": "tools/hooks/vacuous-green-gate-detect.sh",
       "purpose": "Warn on potentially vacuous governance gate edits.",
       "events": {
@@ -188,6 +171,11 @@
     {
       "path": "tools/hooks/spec-version-pin-suggester.sh",
       "replacement": "Rust/Buck2 check target //tools/hooks:spec-version-pin-suggester; runtime hook omitted until local host Rust targets are Buck2-portable",
+      "status": "deleted"
+    },
+    {
+      "path": "tools/hooks/adr-orphan-detect.sh",
+      "replacement": "Buck2 governance target //:governance-hook-efficacy-check gate oya-governance-adr-orphan-citation; runtime hook omitted to avoid shell advisory drift",
       "status": "deleted"
     }
   ],

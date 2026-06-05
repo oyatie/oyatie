@@ -30,10 +30,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tools/hooks/adr-orphan-detect.sh"
-          },
-          {
-            "type": "command",
             "command": "tools/hooks/vacuous-green-gate-detect.sh"
           }
         ]

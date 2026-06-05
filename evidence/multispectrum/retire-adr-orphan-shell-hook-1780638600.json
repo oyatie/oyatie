@@ -1,0 +1,66 @@
+{
+  "change_class_id": "CC-2",
+  "git_sha": "91be7009b",
+  "freshness_unix": 1780638600,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Deleted the ADR orphan advisory shell hook instead of adding another runtime wrapper.",
+        "Reused the existing Buck2 governance target rather than duplicating ADR orphan logic in a second Rust binary."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Moved local advisory behavior toward the shared Buck2/Prow governance lane so the check has one durable authority.",
+        "Reduced local runtime hook surface and avoided workstation-specific shell/jq dependencies."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "diagnostic_asserted": "repo-hygiene-automation-check now asserts the non-vendored Python/shell inventory count is 41 and rejects stale registry drift.",
+      "findings": [
+        "Stale ADR-0221 command text was amended from the deleted shell harness to `buck2 build //:governance-hook-efficacy-check`."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 4,
+      "findings": [
+        "Hook bootstrap now installs one fewer edit-time shell hook; ADR orphan evidence is obtained with the same Buck2 target shown in CI lane docs."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Fresh verification plan covers JSON syntax/count checks, the existing Buck2 governance efficacy target, hook manifest/config tests, repo hygiene, language discipline, Buck2 authority, and remote GitHub checks before merge."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Keep adr-orphan-detect.sh as an active local advisory",
+        "Create a new per-file Rust/Buck2 ADR orphan hook binary",
+        "Retire the local shell hook and rely on the existing Buck2 governance efficacy target"
+      ],
+      "selected_rationale": "The existing Buck2 target already proves the ADR orphan gate fixture, so deletion plus documentation cleanup reduces duplicated authority.",
+      "rejected_reasons": [
+        "Keeping the shell hook preserves jq/bash as an active edit-time surface.",
+        "A new Rust binary would duplicate logic already covered by `scripts/ci/assert-governance-hook-efficacy.rs`."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "configuration",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": false,
+      "findings": [
+        "The retired hook only read local edited files and docs/decisions; no network, secret, or tenant-data surface is touched."
+      ]
+    }
+  }
+}

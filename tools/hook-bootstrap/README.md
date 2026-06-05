@@ -30,8 +30,10 @@ tools/hooks/
 ├── session-start-context-inject.sh        # SessionStart — primary orientation
 ├── no-cargo-enforcer.sh                   # PreToolUse(Bash) — Buck2/no-cargo guidance
 ├── injection-content-scanner.sh           # PostToolUse(Bash|Web*) — prompt-injection scan
-├── adr-orphan-detect.sh                   # PostToolUse(Edit|Write .md|.json) — ADR refs
 └── vacuous-green-gate-detect.sh           # PostToolUse(Edit|Write lanes|check) — gate honesty
+
+//:governance-hook-efficacy-check
+└── Rust/Buck2 ADR orphan, version-pin, vacuous-green, and buildability fixture checks
 
 tools/hooks/spec-version-pin-suggester/src/main.rs
 └── Rust/Buck2 version-pin check; not installed as a runtime hook on Darwin
