@@ -1,0 +1,28 @@
+{
+  "artifact": "cell-rebalancer-authority-hygiene-20260605T111250Z",
+  "scope": "cloud/cell-rebalancer authority cleanup",
+  "summary": [
+    "Removed service-owned Helm chart authority from cell-rebalancer and replaced it with a CUE/KRM + Buck2/Prow pointer.",
+    "Reframed active cell-rebalancer docs away from retired local oya CLI, Cargo command evidence, Jenkins, and ArgoCD authority.",
+    "Added a Rust repo-hygiene guard and unit test to reject future cell-rebalancer reintroduction of retired Cargo/local-CLI/Jenkins/ArgoCD/Helm authority."
+  ],
+  "policy": {
+    "build_test_check_authority": "Buck2",
+    "required_context_authority": "ADR-0513 oya-ci/Prow oya-ci-required",
+    "temporary_adapter": "GitHub/GitHub Actions for PR publication and shadow evidence only",
+    "kubernetes_desired_state": "CUE/KRM first-party; Helm adapter compatibility only"
+  },
+  "local_verification": {
+    "rustfmt": "rustfmt --edition 2024 --check scripts/ci/assert-repo-hygiene-automation.rs scripts/tests/repo_hygiene_automation_check.rs",
+    "rust_unit_tests": "rustc --edition=2024 -D warnings scripts/tests/repo_hygiene_automation_check.rs --test; 60 passed, 0 failed",
+    "repo_hygiene_json": "assert-repo-hygiene-automation --json returned PASS with failures=[]",
+    "buck2": "buck2 build //:repo-hygiene-automation-check --show-output succeeded (build id 16fcad23-345a-4e25-bc02-47699bc5a294)",
+    "targeted_scan": "retired authority scan under cloud/cell-rebalancer returned no matches; lowercase cargo content scan returned no matches; Helm dir absent",
+    "yaml_json": "OpenAPI YAML parsed and manifest JSON parsed",
+    "diff_check": "git diff --check passed"
+  },
+  "risks": [
+    "Live Kubernetes apply/reconcile and native promotion runtime were not exercised in this documentation hygiene lane.",
+    "Future CUE/KRM package materialization remains outside this lane."
+  ]
+}
