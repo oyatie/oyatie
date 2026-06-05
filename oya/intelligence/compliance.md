@@ -998,7 +998,7 @@ ADR-0273 answer: `intelligence` does not emit email. n/a.
 
 ADR-0276 answer: per-tenant audit-tap export for GDPR Art. 20 + KR-PIPA Art. 35.
 
-Per-tenant `CallRecord` export: `cargo run -p oya-dev-cli -- audit export --tenant-id <ID> --format jsonl --window <START>/<END>`. Export includes all `CallRecord`, `RefusalDecision`, `EvalRecord` rows for the tenant. Per `backfill-replay.md §portability`.
+Per-tenant `CallRecord` export: `Intelligence control-plane operation: audit export --tenant-id <ID> --format jsonl --window <START>/<END>`. Export includes all `CallRecord`, `RefusalDecision`, `EvalRecord` rows for the tenant. Per `backfill-replay.md §portability`.
 
 ## Critical-path edge-case coverage
 

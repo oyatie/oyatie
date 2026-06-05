@@ -24,20 +24,7 @@ Acceptance: you can sketch the request path: tenant API → Cedar gate → high-
 
 ## Day 2 — demo_trial tenant_class cell bootstrap + multi-provider routing
 
-```sh
-cargo run -p oya-dev-cli -- intelligence bootstrap \
-    --tenant-class demo_trial \
-    --cell drill-syd-1 \
-    --openai-secret-name openai-enterprise-key \
-    --anthropic-secret-name anthropic-console-key \
-    --vertex-service-account-secret vertex-sa-json \
-    --mistral-secret-name mistral-large-key \
-    --postgres-endpoint postgres://drill-pg-syd-1:5432/intelligence \
-    --valkey-endpoint valkey://drill-valkey-syd-1:6379 \
-    --pulsar-endpoint pulsar://drill-pulsar-syd-1:6650 \
-    --audit-chain-endpoint http://drill-audit-syd-1:8080 \
-    --kubeconfig ./drill-syd-1.kubeconfig
-```
+Open an Intelligence bootstrap control-plane operation for `tenant_class=demo_trial` in `cell=drill-syd-1`, binding provider secret references, Postgres, Valkey, Pulsar, audit-chain, and kubeconfig references through the operation ledger. The operation must be Buck2/Prow-evidence-backed and two-person approved when real tenant credentials are present.
 
 Expected runtime: ≤ 10 min. Verify after bootstrap:
 

@@ -41,7 +41,7 @@ ONE of:
 | Step | Action | Time budget |
 |---|---|---|
 | 1 | Confirm cause: in-process bucket vs upstream-vendor throttle | ≤ 2 min |
-| 2 | If in-process: increase per-tenant rate limit IF (a) cost ceiling allows, (b) vendor capacity allows. Use `cargo run -p oya-dev-cli -- providers set-rate-limit --tenant <t> --vendor <v> --limit <new> --duration 1h` (signed; audit-emitted) | ≤ 5 min |
+| 2 | If in-process: increase per-tenant rate limit IF (a) cost ceiling allows, (b) vendor capacity allows. Use `Intelligence control-plane operation: providers set-rate-limit --tenant <t> --vendor <v> --limit <new> --duration 1h` (signed; audit-emitted) | ≤ 5 min |
 | 3 | If upstream-vendor throttle: router will auto-route to next-best vendor for the tenant; verify failover working via `runbooks/provider-outage-failover.md` | ≤ 5 min |
 | 4 | If cost ceiling breached: engage tenant operator to either raise ceiling or reduce workload | per tenant SLA |
 | 5 | Monitor for return to baseline | ≤ 10 min |
@@ -52,7 +52,7 @@ ONE of:
 |---|---|---|
 | 1 | Declare Sev-1; open `#inc-<id>`; IC + OpsLead + axis-foundry SME | ≤ 5 min |
 | 2 | Determine root cause: shared upstream vendor rate limit OR runaway tenant exhausting per-pack-pool | ≤ 10 min |
-| 3 | If runaway tenant identified: enforce emergency rate cap on that tenant via CLI; engage tenant operator | ≤ 5 min |
+| 3 | If runaway tenant identified: enforce emergency rate cap on that tenant via control-plane operation; engage tenant operator | ≤ 5 min |
 | 4 | If shared upstream limit: contact vendor to request emergency quota increase (typically not real-time) | ≤ 30 min |
 | 5 | In meanwhile: shift affected tenants to alternate vendors per `policy/data-residency.md` matrix | per matrix |
 | 6 | Tenant comms via CommsLead | ≤ 30 min |

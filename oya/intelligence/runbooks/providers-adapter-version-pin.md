@@ -42,7 +42,7 @@ ONE of:
 |---|---|---|
 | 1 | If Sev-2 (observed vendor change): open `#inc-<id>`; IC + axis-foundry SME | ≤ 5 min |
 | 2 | Confirm pre-checks above | ≤ 5 min |
-| 3 | Apply the pin: `cargo run -p oya-dev-cli -- providers pin-adapter --tenant <t> --vendor <v> --version <known-good> --reason "<id>" --approver <person-1> --approver <person-2>` (2-person signed; audit-emitted) | ≤ 3 min |
+| 3 | Apply the pin: `Intelligence control-plane operation: providers pin-adapter --tenant <t> --vendor <v> --version <known-good> --reason "<id>" --approver <person-1> --approver <person-2>` (2-person signed; audit-emitted) | ≤ 3 min |
 | 4 | Verify pin: `oya_foundry_providers_tenant_adapter_pin{tenant="<t>",vendor="<v>"}` returns `<known-good>` | ≤ 1 min |
 | 5 | Verify tenant workload continues normally on pinned version | ≤ 10 min |
 | 6 | Notify tenant operator: pin applied; new-version features unavailable until unpin; recommended renew/unpin cadence (default: review after 30 d) | ≤ 30 min |
@@ -56,7 +56,7 @@ When the vendor change has been absorbed by a new adapter version (response-shap
 |---|---|
 | 1 | Confirm new adapter version is `known-good` (tagged after parity tests pass) |
 | 2 | Confirm tenant capability requirements unchanged or improved |
-| 3 | Update pin: `cargo run -p oya-dev-cli -- providers unpin-adapter --tenant <t> --vendor <v> --reason "<id>" --approver <p1> --approver <p2>` |
+| 3 | Update pin: `Intelligence control-plane operation: providers unpin-adapter --tenant <t> --vendor <v> --reason "<id>" --approver <p1> --approver <p2>` |
 | 4 | Confirm tenant workload on new version (canary-style ramp if cautious) |
 
 ## Rollback (of the pin)

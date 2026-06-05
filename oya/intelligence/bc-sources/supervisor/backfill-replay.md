@@ -65,8 +65,8 @@ Replay re-emits existing events for downstream consumer catch-up. Triggers:
 
 ### Procedure
 
-1. Operator invokes: `cargo run -p oya-dev-cli -- supervisor replay-events --window <start_ts,end_ts> --consumer <foundry-evidence|observability|...> --reason "<rfc>"`.
-2. CLI requires 2-person rule + ops-security approval for cross-tenant replays.
+1. Operator invokes: `Intelligence control-plane operation: supervisor replay-events --window <start_ts,end_ts> --consumer <foundry-evidence|observability|...> --reason "<rfc>"`.
+2. The control-plane operation requires 2-person rule + ops-security approval for cross-tenant replays.
 3. Supervisor reads events from supervision-event-bus (Valkey Streams (Redis wire-compat)) over the window.
 4. Re-emits with `replayed=true` label; signatures unchanged (originals preserved).
 5. Audit-chain seal: the replay-window itself is sealed, distinguishing replay from originals.

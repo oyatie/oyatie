@@ -33,10 +33,10 @@ ONE of:
 |---|---|---|
 | 1 | Open `#inc-<id>`; assign IC | ≤ 5 min |
 | 2 | Inspect Valkey Streams (Redis wire-compat) consumer lag: `redis-cli XLEN supervision-events` vs `XPENDING supervision-events evidence-group` | ≤ 5 min |
-| 3 | Apply backpressure: pause non-critical event publishing (e.g., FleetState rebroadcasts; keep critical KillSwitch + AutonomyViolated + DeploymentRolledBack flowing): `cargo run -p oya-dev-cli -- supervisor bus-backpressure --classes "non-critical"` | ≤ 1 min |
+| 3 | Apply backpressure: pause non-critical event publishing (e.g., FleetState rebroadcasts; keep critical KillSwitch + AutonomyViolated + DeploymentRolledBack flowing): `Intelligence control-plane operation: supervisor bus-backpressure --classes "non-critical"` | ≤ 1 min |
 | 4 | Scale foundry-evidence ingest: `kubectl scale deployment foundry-evidence-ingest --replicas=+2 -n foundry-evidence` | ≤ 5 min |
 | 5 | Verify bus lag clearing | ≤ 30 min |
-| 6 | Resume normal event publishing: `cargo run -p oya-dev-cli -- supervisor bus-backpressure --release` | ≤ 1 min |
+| 6 | Resume normal event publishing: `Intelligence control-plane operation: supervisor bus-backpressure --release` | ≤ 1 min |
 | 7 | Post-incident: capacity-model review of supervision-bus | – |
 
 ## Steps — Replay needed
@@ -44,10 +44,10 @@ ONE of:
 | Step | Action |
 |---|---|
 | 1 | Identify replay window: `(start_ts, end_ts)` |
-| 2 | Pause new publishing for affected scope: `cargo run -p oya-dev-cli -- supervisor pause-bus --scope <scope>` |
-| 3 | Replay events: `cargo run -p oya-dev-cli -- supervisor replay-bus --start <ts> --end <ts> --reason "<rfc>"`. Events are re-emitted with `replayed=true` label; audit-chain verifies signatures (originals unchanged) + appends replay record. |
+| 2 | Pause new publishing for affected scope: `Intelligence control-plane operation: supervisor pause-bus --scope <scope>` |
+| 3 | Replay events: `Intelligence control-plane operation: supervisor replay-bus --start <ts> --end <ts> --reason "<rfc>"`. Events are re-emitted with `replayed=true` label; audit-chain verifies signatures (originals unchanged) + appends replay record. |
 | 4 | Verify foundry-evidence sealed the replay events; check audit-chain Merkle integrity |
-| 5 | Resume new publishing: `cargo run -p oya-dev-cli -- supervisor resume-bus --scope <scope>` |
+| 5 | Resume new publishing: `Intelligence control-plane operation: supervisor resume-bus --scope <scope>` |
 | 6 | Audit-chain seal records the replay-window |
 
 ## Audit-chain break (Sev-1)

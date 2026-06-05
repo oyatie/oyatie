@@ -13,7 +13,7 @@ You will: create a tenant knowledge base, ingest 200+ markdown product docs, con
 ## Pre-requisites
 
 - A tenant cell with `paid` tenant_class eligibility per ADR-0329, ADR-0330, and ADR-0331.
-- `oya-dev-cli` ≥ 1.42.0.
+- Buck2/Prow-backed Intelligence control-plane access.
 - A tenant principal in the `ai_admin` Cedar role.
 - A corpus of markdown product docs (~ 200 docs, ~ 50-200 KiB each).
 
