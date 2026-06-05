@@ -99,6 +99,11 @@ const STANDARDS_EXTERNAL_SUBSTRATE_CLEAN_FILES: &[&str] = &[
     "docs/standards/release-management.md",
     "docs/standards/twelve-factor-adoption.md",
 ];
+const MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES: &[&str] = &[
+    "specs/microservices/accounting.json",
+    "specs/microservices/hr.json",
+    "specs/microservices/payroll.json",
+];
 
 const REQUIRED_RUST_STABLE_VERSION: &str = "1.96.0";
 const REQUIRED_RUST_EDITION: &str = "2024";
@@ -195,6 +200,30 @@ const PRODUCT_OPERATION_RUNBOOK_RETIRED_PHRASES: &[&str] = &[
     "ArgoCD",
     "argocd",
     "JCasC",
+];
+const MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES: &[&str] = &[
+    "Jenkins LTS",
+    "static Jenkins lane scan",
+    "Oya VCS admission",
+    "cargo fmt/test/clippy",
+    "cargo nextest",
+    "cargo bench",
+    "cargo-nextest",
+    "oya gate validate",
+    "Rust oya gates",
+    "microservices/accounting/ci/Jenkinsfile",
+    "microservices/hr/ci/Jenkinsfile",
+    "microservices/payroll/ci/Jenkinsfile",
+    "ArgoCD",
+    "Helm",
+];
+const MICROSERVICE_SPEC_REQUIRED_AUTHORITY_PHRASES: &[&str] = &[
+    "Buck2/Prow oya-ci-required",
+    "native SCM/PR admission",
+    "Buck2/Prow api-semver lane",
+    "Buck2/Prow lane",
+    "CUE/KRM desired-state",
+    "native release-conveyor/KRM",
 ];
 
 const STALE_DOC_INVENTORY_COMMAND: &str =
@@ -1099,6 +1128,7 @@ pub struct Evaluation {
     pub governance_doc_retired_dev_cli_clean_files: usize,
     pub standards_retired_command_clean_files: usize,
     pub standards_external_substrate_clean_files: usize,
+    pub microservice_spec_authority_clean_files: usize,
 }
 
 fn json_escape(input: &str) -> String {
@@ -2463,6 +2493,14 @@ pub fn spec_failures(spec: &str) -> Vec<String> {
             "documentation sprawl policy must record the standards retired external substrate guard",
         ),
         (
+            "\"microservice spec retired CI/CD and local gate authority scan\"",
+            "documentation sprawl automation targets must include the microservice spec retired authority scan",
+        ),
+        (
+            "\"microservice_spec_authority_scan\"",
+            "documentation sprawl policy must record the microservice spec Buck2/Prow authority guard",
+        ),
+        (
             "\"claim_boundary\": \"incremental clean-path guard only; remaining product docs are separate backlog slices\"",
             "product-operation runbook guard must state its incremental clean-path boundary",
         ),
@@ -3213,6 +3251,44 @@ pub fn standards_retired_external_substrate_failures(root: &Path) -> Vec<String>
     failures
 }
 
+pub fn microservice_spec_authority_text_failures(clean_file: &str, text: &str) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for phrase in MICROSERVICE_SPEC_RETIRED_AUTHORITY_PHRASES {
+        if text.contains(phrase) {
+            failures.push(format!(
+                "{clean_file}: microservice spec contains retired CI/CD or local gate authority phrase {phrase:?}; use Buck2/Prow oya-ci-required and native release-conveyor/KRM wording"
+            ));
+        }
+    }
+    for phrase in MICROSERVICE_SPEC_REQUIRED_AUTHORITY_PHRASES {
+        if !text.contains(phrase) {
+            failures.push(format!(
+                "{clean_file}: microservice spec missing required Buck2/Prow authority phrase {phrase:?}"
+            ));
+        }
+    }
+
+    failures
+}
+
+pub fn microservice_spec_authority_failures(root: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for clean_file in MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES {
+        let text = match fs::read_to_string(root.join(clean_file)) {
+            Ok(text) => text,
+            Err(error) => {
+                failures.push(format!("{clean_file}: read failed: {error}"));
+                continue;
+            }
+        };
+        failures.extend(microservice_spec_authority_text_failures(clean_file, &text));
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
 
@@ -3312,6 +3388,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
     ));
     failures.extend(standards_retired_local_command_failures(root));
     failures.extend(standards_retired_external_substrate_failures(root));
+    failures.extend(microservice_spec_authority_failures(root));
     failures.extend(buck2_release_policy_failures(
         &spec,
         &workflow,
@@ -3690,6 +3767,7 @@ pub fn evaluate(root: &Path) -> Evaluation {
             .len(),
         standards_retired_command_clean_files: STANDARDS_RETIRED_COMMAND_CLEAN_FILES.len(),
         standards_external_substrate_clean_files: STANDARDS_EXTERNAL_SUBSTRATE_CLEAN_FILES.len(),
+        microservice_spec_authority_clean_files: MICROSERVICE_SPEC_AUTHORITY_CLEAN_FILES.len(),
     }
 }
 
@@ -3701,7 +3779,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"spec\":\"{}\",\"local_static_only\":true,\"live_mutation_performed\":false,\"domains_checked\":{},\"security_hardening_backlog_count\":{},\"tracked_typescript_pnpm_mjs_count\":{},\"tracked_nonvendored_python_shell_count\":{},\"active_context_scan_files\":{},\"active_template_scan_files\":{},\"retired_exact_name_scan_files\":{},\"product_operation_runbook_clean_paths\":{},\"product_operation_doc_clean_files\":{},\"intelligence_doc_retired_dev_cli_clean_files\":{},\"governance_doc_retired_dev_cli_clean_files\":{},\"standards_retired_command_clean_files\":{},\"standards_external_substrate_clean_files\":{},\"microservice_spec_authority_clean_files\":{},\"stale_doc_inventory_command\":\"{}\",\"stale_doc_inventory_test_command\":\"{}\",\"checker_language\":\"rust\",\"failures\":[{}]}}",
         evaluation.verdict,
         SPEC_PATH,
         evaluation.domains_checked,
@@ -3717,6 +3795,7 @@ fn render_json(evaluation: &Evaluation) -> String {
         evaluation.governance_doc_retired_dev_cli_clean_files,
         evaluation.standards_retired_command_clean_files,
         evaluation.standards_external_substrate_clean_files,
+        evaluation.microservice_spec_authority_clean_files,
         json_escape(STALE_DOC_INVENTORY_COMMAND),
         json_escape(STALE_DOC_INVENTORY_TEST_COMMAND),
         failures

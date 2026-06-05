@@ -140,21 +140,21 @@
       "given": "a future HTTP adapter needs payroll wire contracts",
       "when": "contract validation runs",
       "then": "OpenAPI v1 describes trial-close and accounting-journal-draft request/response shapes with semver metadata and explicit non-deployed status",
-      "test_ref": "microservices/payroll/contracts/openapi-v1.yaml + microservices/payroll/contracts/openapi-v1.meta.yaml; validated by oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
+      "test_ref": "microservices/payroll/contracts/openapi-v1.yaml + microservices/payroll/contracts/openapi-v1.meta.yaml; Buck2/Prow api-semver lane validates microservices/payroll/contracts as part of oya-ci-required"
     },
     {
       "id": "AC-09",
       "given": "payroll run changes are proposed for review",
-      "when": "the self-hostable CI quality gate runs",
-      "then": "Jenkins LTS runs fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence emission across payroll domain/app/API packages before promotion",
-      "test_ref": "microservices/payroll/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for oya-payroll-run-domain, oya-payroll-run-app, oya-payroll-run-api; oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
+      "when": "the Buck2/Prow quality gate runs",
+      "then": "Buck2/Prow oya-ci-required runs format, check, lint, tests, OpenAPI semver, native SCM/PR admission, and evidence emission across payroll domain/app/API packages before promotion",
+      "test_ref": "Buck2/Prow affected target set plus payroll quality lane registry; Rust api-semver validation over microservices/payroll/contracts; Buck2-owned checks for oya-payroll-run-domain, oya-payroll-run-app, and oya-payroll-run-api"
     },
     {
       "id": "AC-10",
       "given": "HR emits an approved leave or attendance payroll-impact metadata envelope",
       "when": "payroll accepts the intake for a payroll run and payee",
       "then": "source topic, HR idempotency key, payroll period, payee/employee/leave ids, rulepack basis, and decision/routing/payroll/intake evidence refs are validated without calculating payroll",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/hr_leave.rs::test_hr_leave_impact_intake_requires_source_evidence and microservices/payroll/crates/oya-payroll-run-app/tests/hr_leave.rs::hr_leave_impact_intake_envelope_is_metadata_only and microservices/payroll/crates/oya-payroll-run-api/tests/contracts.rs::hr_leave_impact_request_converts_to_domain_input; microservices/payroll/contracts/openapi-v1.yaml#/paths/~1payroll~1v1~1hr-leave-impact-intakes; validated by oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
+      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/hr_leave.rs::test_hr_leave_impact_intake_requires_source_evidence and microservices/payroll/crates/oya-payroll-run-app/tests/hr_leave.rs::hr_leave_impact_intake_envelope_is_metadata_only and microservices/payroll/crates/oya-payroll-run-api/tests/contracts.rs::hr_leave_impact_request_converts_to_domain_input; microservices/payroll/contracts/openapi-v1.yaml#/paths/~1payroll~1v1~1hr-leave-impact-intakes; covered by the Buck2/Prow api-semver lane over microservices/payroll/contracts"
     },
     {
       "id": "AC-11",
@@ -380,7 +380,7 @@
       },
       {
         "name": "manual shell/SSH operational glue",
-        "reason": "deployment and day-2 authority belongs to OpenTofu, Makefile targets, Rust oya gates, and ops-managed controllers"
+        "reason": "deployment and day-2 authority belongs to CUE/KRM desired-state, Buck2 targets, Rust validation kernels, and ops-managed controllers"
       },
       {
         "name": "AI-only compliance or close decisions",
@@ -396,8 +396,8 @@
         "stable": 25,
         "GA": 10
       },
-      "verification_ref": "cargo nextest -p oya-payroll-run-domain -- kr_close_variance",
-      "lane_ref": "cargo-nextest"
+      "verification_ref": "Buck2/Prow lane: payroll-kr-close-variance",
+      "lane_ref": "domain-invariants"
     },
     {
       "name": "statutory_export_hash_coverage_pct",
@@ -406,7 +406,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate payroll-statutory-export",
+      "verification_ref": "Buck2/Prow lane: payroll-statutory-export",
       "lane_ref": "audit-chain"
     },
     {
@@ -416,8 +416,8 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-payroll-run-domain -- gl_bridge_balance",
-      "lane_ref": "cargo-nextest"
+      "verification_ref": "Buck2/Prow lane: payroll-gl-bridge-balance",
+      "lane_ref": "domain-invariants"
     },
     {
       "name": "group_close_entity_boundary_violations",
@@ -426,7 +426,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "oya gate validate payroll-group-close",
+      "verification_ref": "Buck2/Prow lane: payroll-group-close",
       "lane_ref": "compliance"
     }
   ],
@@ -512,23 +512,23 @@
   "goals": {
     "scalability": {
       "target": "EnterprisePayroll supports SME self-serve through conglomerate legal-entity groups without forked code paths",
-      "verification": "oya gate validate enterprisepayroll-scale-model"
+      "verification": "Buck2/Prow lane: enterprisepayroll-scale-model"
     },
     "security": {
       "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
-      "verification": "cargo nextest -p oya-security-domain -- cross_tenant"
+      "verification": "Buck2/Prow lane: cross-tenant-security"
     },
     "performance": {
       "target": "operator hot paths p95 <= 200ms for preview and <= 150ms for GA under representative tenant shape",
-      "verification": "cargo bench -p oya-bench -- enterprise_hot_paths"
+      "verification": "Buck2/Prow lane: enterprise-hot-paths"
     },
     "efficiency": {
       "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
-      "verification": "oya gate validate finops-unit-economics"
+      "verification": "Buck2/Prow lane: finops-unit-economics"
     },
     "reliability": {
       "target": "GA availability 99.95%; RPO <= 5m for professional data; rollback evidence emitted before root-cause analysis",
-      "verification": "oya gate validate slo-coverage"
+      "verification": "Buck2/Prow lane: slo-coverage"
     }
   },
   "user_experience": {
@@ -617,7 +617,7 @@
     },
     {
       "id": "D-08",
-      "decision": "Payroll Jenkins LTS quality gate covers the payroll run domain/app/API package group plus the payroll OpenAPI contract; ArgoCD, Helm, runtime deploy, statutory filing transport, disbursement rails, and cloud adapters remain out of scope until deployable adapters land.",
+      "decision": "Payroll Buck2/Prow oya-ci-required quality lane covers the payroll run domain/app/API package group plus the payroll OpenAPI contract; native release-conveyor/KRM runtime deploy, statutory filing transport, disbursement rails, and cloud adapters remain out of scope until deployable adapters land.",
       "date": "2026-05-23"
     },
     {

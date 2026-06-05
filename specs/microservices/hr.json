@@ -140,28 +140,28 @@
       "given": "a future HTTP adapter needs HR employment wire contracts",
       "when": "contract validation runs",
       "then": "OpenAPI v1 describes onboarding and labor-compliance request/response shapes with semver metadata and explicit non-deployed status",
-      "test_ref": "microservices/hr/contracts/openapi-v1.yaml + microservices/hr/contracts/openapi-v1.meta.yaml; validated by oya gate validate api-semver --contracts-dir microservices/hr/contracts"
+      "test_ref": "microservices/hr/contracts/openapi-v1.yaml + microservices/hr/contracts/openapi-v1.meta.yaml; Buck2/Prow api-semver lane validates microservices/hr/contracts as part of oya-ci-required"
     },
     {
       "id": "AC-09",
       "given": "HR employment changes are proposed for review",
-      "when": "the self-hostable CI quality gate runs",
-      "then": "Jenkins LTS runs fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence emission across HR domain/app/API packages before promotion",
-      "test_ref": "microservices/hr/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for oya-hr-employment-domain, oya-hr-employment-app, oya-hr-employment-api; oya gate validate api-semver --contracts-dir microservices/hr/contracts"
+      "when": "the Buck2/Prow quality gate runs",
+      "then": "Buck2/Prow oya-ci-required runs format, check, lint, tests, OpenAPI semver, native SCM/PR admission, and evidence emission across HR domain/app/API packages before promotion",
+      "test_ref": "Buck2/Prow affected target set plus HR quality lane registry; Rust api-semver validation over microservices/hr/contracts; Buck2-owned checks for oya-hr-employment-domain, oya-hr-employment-app, and oya-hr-employment-api"
     },
     {
       "id": "AC-10",
       "given": "an external caller submits a sensitive HR read policy decision request",
       "when": "the API DTO and preview contract parse the request",
       "then": "camelCase fields, stable sensitive-read enum labels, purpose/legal-basis evidence fields, and metadata-only decision response shape are preserved without runtime authorization or data retrieval",
-      "test_ref": "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::sensitive_read_policy_request_uses_camel_case_and_converts_to_domain_input; microservices/hr/contracts/openapi-v1.yaml#/paths/~1hr~1v1~1sensitive-read-policy-decisions; validated by oya gate validate api-semver --contracts-dir microservices/hr/contracts"
+      "test_ref": "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::sensitive_read_policy_request_uses_camel_case_and_converts_to_domain_input; microservices/hr/contracts/openapi-v1.yaml#/paths/~1hr~1v1~1sensitive-read-policy-decisions; covered by the Buck2/Prow api-semver lane over microservices/hr/contracts"
     },
     {
       "id": "AC-11",
       "given": "an external caller submits a leave or attendance payroll-impact planning request",
       "when": "the API DTO and preview contract parse the request",
       "then": "camelCase fields, stable leave/payroll enum labels, rulepack/routing/payroll evidence fields, and metadata-only HR-to-payroll response shape are preserved without payroll calculation or runtime dispatch",
-      "test_ref": "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::leave_payroll_impact_request_uses_camel_case_and_converts_to_domain_input; microservices/hr/contracts/openapi-v1.yaml#/paths/~1hr~1v1~1leave-payroll-impact-plans; validated by oya gate validate api-semver --contracts-dir microservices/hr/contracts"
+      "test_ref": "microservices/hr/crates/oya-hr-employment-api/tests/contracts.rs::leave_payroll_impact_request_uses_camel_case_and_converts_to_domain_input; microservices/hr/contracts/openapi-v1.yaml#/paths/~1hr~1v1~1leave-payroll-impact-plans; covered by the Buck2/Prow api-semver lane over microservices/hr/contracts"
     },
     {
       "id": "AC-12",
@@ -385,7 +385,7 @@
       },
       {
         "name": "manual shell/SSH operational glue",
-        "reason": "deployment and day-2 authority belongs to OpenTofu, Makefile targets, Rust oya gates, and ops-managed controllers"
+        "reason": "deployment and day-2 authority belongs to CUE/KRM desired-state, Buck2 targets, Rust validation kernels, and ops-managed controllers"
       },
       {
         "name": "AI-only compliance or close decisions",
@@ -401,8 +401,8 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-hr-employment-domain -- lifecycle_policy",
-      "lane_ref": "cargo-nextest"
+      "verification_ref": "Buck2/Prow lane: hr-lifecycle-policy",
+      "lane_ref": "domain-invariants"
     },
     {
       "name": "kr_obligation_trigger_coverage_pct",
@@ -411,7 +411,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate hr-kr-obligations",
+      "verification_ref": "Buck2/Prow lane: hr-kr-obligations",
       "lane_ref": "compliance"
     },
     {
@@ -421,8 +421,8 @@
         "stable": 99.9,
         "GA": 99.99
       },
-      "verification_ref": "cargo nextest -p oya-hr-employment-domain -- attendance_payroll_bridge",
-      "lane_ref": "cargo-nextest"
+      "verification_ref": "Buck2/Prow lane: hr-attendance-payroll-bridge",
+      "lane_ref": "domain-invariants"
     },
     {
       "name": "sensitive_hr_read_audit_coverage_pct",
@@ -431,7 +431,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate hr-sensitive-read-audit",
+      "verification_ref": "Buck2/Prow lane: hr-sensitive-read-audit",
       "lane_ref": "audit-chain"
     }
   ],
@@ -518,23 +518,23 @@
   "goals": {
     "scalability": {
       "target": "EnterpriseHr supports SME self-serve through conglomerate legal-entity groups without forked code paths",
-      "verification": "oya gate validate enterprisehr-scale-model"
+      "verification": "Buck2/Prow lane: enterprisehr-scale-model"
     },
     "security": {
       "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
-      "verification": "cargo nextest -p oya-security-domain -- cross_tenant"
+      "verification": "Buck2/Prow lane: cross-tenant-security"
     },
     "performance": {
       "target": "operator hot paths p95 <= 200ms for preview and <= 150ms for GA under representative tenant shape",
-      "verification": "cargo bench -p oya-bench -- enterprise_hot_paths"
+      "verification": "Buck2/Prow lane: enterprise-hot-paths"
     },
     "efficiency": {
       "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
-      "verification": "oya gate validate finops-unit-economics"
+      "verification": "Buck2/Prow lane: finops-unit-economics"
     },
     "reliability": {
       "target": "GA availability 99.95%; RPO <= 5m for professional data; rollback evidence emitted before root-cause analysis",
-      "verification": "oya gate validate slo-coverage"
+      "verification": "Buck2/Prow lane: slo-coverage"
     }
   },
   "user_experience": {
@@ -628,7 +628,7 @@
     },
     {
       "id": "D-09",
-      "decision": "HR Jenkins LTS quality gate covers the employment domain/app/API package group plus the HR OpenAPI contract; ArgoCD, Helm, runtime deploy, storage, Workflow execution, and cloud adapters remain out of scope until deployable adapters land.",
+      "decision": "HR Buck2/Prow oya-ci-required quality lane covers the employment domain/app/API package group plus the HR OpenAPI contract; native release-conveyor/KRM runtime deploy, storage, Workflow execution, and cloud adapters remain out of scope until deployable adapters land.",
       "date": "2026-05-23"
     },
     {
