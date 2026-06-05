@@ -41,9 +41,14 @@ use oya_shared_oidc_client_kernel::{OidcClient, OidcClaims};
 use oya_shared_scim_server_kernel::{ScimServer, User};
 ```
 
-## Forbidden Helm references
+## Forbidden vendor desired-state references
 
-Only `microservices/identity/iac/helm/zitadel/` references Zitadel chart artefacts. Other µservices' Helm charts MUST NOT have `dependencies` on Zitadel.
+Only identity-owned native desired-state packages may reference Zitadel
+deployment artifacts. Every other service-owned KRM/CUE package MUST NOT add a
+Zitadel dependency, vendor chart, or provider-specific deployment shape. The
+active authority is the identity lane's Buck2/Prow IaC reference scan plus the
+native controller operation ledger; legacy shared-path chart checks are
+historical provenance, not active guidance.
 
 ## Forbidden DB schema references
 
@@ -56,8 +61,8 @@ CI lane `lean-a18-identity-vendor-isolation` (advisory-mode initially; blocker a
 - Buck2/Prow dependency-graph target for every workspace crate; refuses
   Zitadel transitive deps outside the allowlist while treating Cargo metadata as
   graph input only.
-- Buck2/Prow IaC reference scan target over identity-owned KRM/CUE surfaces;
-  retired `microservices/*/iac` Helm path checks are not the active authority.
+- Buck2/Prow IaC reference scan target over identity-owned native KRM/CUE
+  surfaces and service-owned desired-state packages.
 
 ## Phase-2 swap protocol
 
