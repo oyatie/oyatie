@@ -1,32 +1,31 @@
 # registry/vcs/event-router.yaml
 #
-# FROZEN (historical evidence) — ADR-0363 §2. The agentic-VCS pipeline is
-# retired (git + Jenkins + self-hosted Forgejo replace it); the agents this
-# table routed to were deleted in the ADR-0363 PR-2 cutover. Preserved as-is,
-# not active, not edited. ADR-0110/0112 are Superseded by ADR-0363.
+# Retired historical evidence only. These rows document the former
+# agentic-VCS event-router shape so old evidence and decisions can replay
+# provenance. They are not active routing, merge, CI, or agent-dispatch
+# authority.
 #
-# Canonical (event, action) -> Foundry-agent router table per
-# ADR-0112 §"Event-router table". Owned by council-foundry-vcs.
+# Current native SCM/CI direction is Rust services/libraries, Buck2 targets,
+# Prow-shaped Kubernetes jobs, and Git/GitHub adapters as compatibility seams.
+# See /specs/gitops-vcs-replacement.json, /specs/masterplan.json, and
+# /specs/oya-ci-prow-capability-parity.json.
 #
-# Invariants:
-# - Closed mapping: every GitHub event we react to MUST appear here.
-#   The oya-governance-event-router-completeness CI lane (wave-C)
-#   asserts this so we never silently miss an event.
-# - New rows go through an ADR amendment — no silent additions.
-# - Empty `action: ""` is the row-side wildcard; ADR-0112 uses it for
-#   `push`-to-branch entries (which carry no GitHub `action` field).
+# Operational rules:
+# - Do not add rows.
+# - Do not wire new readers to this file.
+# - Do not treat the historical agent names below as executable surfaces.
 #
-# Schema (consumed by oya-vcs-webhook-receiver-app):
+# Historical row shape:
 #   rows:
 #     - event:      <X-GitHub-Event header value>
 #       action:     <payload "action" field, or "" for wildcard>
 #       conclusion: <optional payload "workflow_run.conclusion" or
 #                    "check_suite.conclusion" discriminator; omit or
 #                    set to "" to match any conclusion>
-#       agent:      <Foundry-agent or workflow that handles this event>
+#       agent:      <historical foundry-agent or workflow name>
 #       purpose:    <one-line description, audit-friendly>
 #
-# Lookup precedence inside the kernel (see route_event):
+# Historical lookup precedence inside the deleted kernel:
 #   1. exact (event, action, conclusion)
 #   2. exact (event, action) with no conclusion declared (wildcard)
 #   3. exact (event) with empty action (event-level wildcard)

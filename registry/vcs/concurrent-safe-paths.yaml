@@ -1,12 +1,12 @@
 # registry/vcs/concurrent-safe-paths.yaml
 #
-# Per-product whitelist of paths considered "concurrent-safe" for the
-# merge-queue's path-overlap invariant (ADR-0111 invariant 2).
+# Retired historical evidence only. This file records the former
+# path-overlap seed for provenance and must not be used as active admission,
+# lease, or merge authority.
 #
-# Default is empty per ADR-0111 §"Open questions" decision-2: v0 ships
-# strict (any overlap = refuse admission). Wave-D adds entries for
-# files where concurrent edits are routinely safe to land (the
-# canonical example is `docs/CHANGELOG.md`).
+# Current parallel-lane direction is native SCM service/control-plane lease
+# records, Git/GitHub adapter publication, and Rust/Buck2/Prow checks. Shared
+# surfaces should be pointer-thin or generated from lane-owned shards.
 #
 # Schema:
 #   products:
@@ -14,11 +14,7 @@
 #       safe_paths:
 #         - <repo-relative path string>
 #
-# Loader: tools/oya-vcs-merge-queue-fix-loop-app/src/
-#         projected_merge_state.rs (concurrent_safe_paths_for_product).
-#
-# Schema version pinned for lane parity with
-# `oya-governance-merge-queue-ref-hygiene`.
+# No active loader is allowed for this retired seed.
 schema_version: 1
 
 products: {}

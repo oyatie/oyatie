@@ -18,6 +18,9 @@ const AGENTIC_SLO_PROMOTION_PATH: &str = "specs/agentic-slo-gated-promotion.json
 const AGENTS_PATH: &str = "AGENTS.md";
 const CLAUDE_PATH: &str = "CLAUDE.md";
 const BUCK_PATH: &str = "BUCK";
+const VCS_REGISTRY_README_PATH: &str = "registry/vcs/README.md";
+const VCS_EVENT_ROUTER_PATH: &str = "registry/vcs/event-router.yaml";
+const VCS_CONCURRENT_SAFE_PATHS_PATH: &str = "registry/vcs/concurrent-safe-paths.yaml";
 const CHECK_COMMAND: &str = "buck2 build //:kubernetes-native-anti-pattern-check";
 
 const OFFICIAL_SOURCES: &[&str] = &[
@@ -204,6 +207,14 @@ fn require_contains(text: &str, needle: &str, failures: &mut Vec<String>, label:
     );
 }
 
+fn require_not_contains(text: &str, needle: &str, failures: &mut Vec<String>, label: &str) {
+    require(
+        !text.contains(needle),
+        failures,
+        format!("{label}: forbidden stale active-authority wording present: {needle:?}"),
+    );
+}
+
 pub fn contract_failures(contract: &str) -> Vec<String> {
     let mut failures = Vec::new();
 
@@ -383,6 +394,85 @@ pub fn active_promotion_spec_failures(spec: &str) -> Vec<String> {
     failures
 }
 
+pub fn vcs_registry_tombstone_failures(
+    readme: &str,
+    event_router: &str,
+    concurrent_safe_paths: &str,
+) -> Vec<String> {
+    let mut failures = Vec::new();
+
+    for needle in [
+        "Status: **retired historical evidence only**.",
+        "This directory is not an active SCM",
+        "promotion substrate",
+        "/specs/gitops-vcs-replacement.json",
+        "/specs/masterplan.json",
+        "/specs/oya-ci-prow-capability-parity.json",
+        "/specs/retired-external-substrate-registry.json",
+        "buck2 build //:repo-hygiene-automation-check",
+        "buck2 build //:kubernetes-native-anti-pattern-check",
+        "Do not add rows or consumers under this directory.",
+        "Do not revive the retired CLI wrapper",
+        "Rust libraries/services, Buck2 targets, Prow",
+        "jobs, and Git/GitHub adapters",
+    ] {
+        require_contains(readme, needle, &mut failures, VCS_REGISTRY_README_PATH);
+    }
+
+    for needle in [
+        "Retired historical evidence only.",
+        "not active routing, merge, CI",
+        "agent-dispatch",
+        "/specs/gitops-vcs-replacement.json",
+        "/specs/masterplan.json",
+        "/specs/oya-ci-prow-capability-parity.json",
+        "Do not add rows.",
+        "Do not wire new readers to this file.",
+        "Do not treat the historical agent names below as executable surfaces.",
+    ] {
+        require_contains(event_router, needle, &mut failures, VCS_EVENT_ROUTER_PATH);
+    }
+
+    for needle in [
+        "Retired historical evidence only.",
+        "must not be used as active admission",
+        "lease, or merge authority",
+        "native SCM service/control-plane lease",
+        "Git/GitHub adapter publication",
+        "Rust/Buck2/Prow checks",
+        "No active loader is allowed for this retired seed.",
+    ] {
+        require_contains(
+            concurrent_safe_paths,
+            needle,
+            &mut failures,
+            VCS_CONCURRENT_SAFE_PATHS_PATH,
+        );
+    }
+
+    for (label, text) in [
+        (VCS_REGISTRY_README_PATH, readme),
+        (VCS_EVENT_ROUTER_PATH, event_router),
+        (VCS_CONCURRENT_SAFE_PATHS_PATH, concurrent_safe_paths),
+    ] {
+        for forbidden in [
+            "git + Jenkins + self-hosted Forgejo",
+            "Jenkins CI",
+            "canonical self-hostable CI/CD",
+            "oya gate validate",
+            "cargo run -q -p",
+            "current file, runs the monotonic-event-log validator",
+            "No silent additions",
+            "Loader:",
+            "Schema (consumed by",
+        ] {
+            require_not_contains(text, forbidden, &mut failures, label);
+        }
+    }
+
+    failures
+}
+
 pub fn evaluate(root: &Path) -> Evaluation {
     let mut failures = Vec::new();
     let contract = read(root, CONTRACT_PATH, &mut failures);
@@ -395,10 +485,18 @@ pub fn evaluate(root: &Path) -> Evaluation {
     let agents = read(root, AGENTS_PATH, &mut failures);
     let claude = read(root, CLAUDE_PATH, &mut failures);
     let buck = read(root, BUCK_PATH, &mut failures);
+    let vcs_readme = read(root, VCS_REGISTRY_README_PATH, &mut failures);
+    let vcs_event_router = read(root, VCS_EVENT_ROUTER_PATH, &mut failures);
+    let vcs_concurrent_safe_paths = read(root, VCS_CONCURRENT_SAFE_PATHS_PATH, &mut failures);
 
     failures.extend(contract_failures(&contract));
     failures.extend(controller_config_failures(&controller_config));
     failures.extend(active_promotion_spec_failures(&agentic_slo_promotion));
+    failures.extend(vcs_registry_tombstone_failures(
+        &vcs_readme,
+        &vcs_event_router,
+        &vcs_concurrent_safe_paths,
+    ));
 
     for needle in [
         "\"kubernetes_native_anti_patterns\"",
@@ -479,6 +577,9 @@ pub fn evaluate(root: &Path) -> Evaluation {
         "scripts/tests/kubernetes_native_antipatterns_check.rs",
         "specs/kubernetes-native-anti-patterns.json",
         "specs/agentic-slo-gated-promotion.json",
+        "registry/vcs/README.md",
+        "registry/vcs/event-router.yaml",
+        "registry/vcs/concurrent-safe-paths.yaml",
     ] {
         require_contains(&buck, needle, &mut failures, BUCK_PATH);
     }
