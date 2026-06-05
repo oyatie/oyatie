@@ -858,6 +858,39 @@ fn checked_in_masterplan_surfaces_do_not_recommend_retired_cargo_gate() {
 }
 
 #[test]
+fn checked_in_masterplan_surfaces_use_native_scm_and_buck2_authority_names() {
+    let failures = gate::masterplan_native_scm_hygiene_failures(
+        &read_repo_file("specs/masterplan.json"),
+        &read_repo_file("specs/master-plan-sequencing.json"),
+        &read_repo_file("docs/MASTERPLAN.md"),
+        &read_repo_file("specs/repo-hygiene-automation.json"),
+    );
+    assert!(failures.is_empty(), "{failures:?}");
+}
+
+#[test]
+fn masterplan_native_scm_hygiene_rejects_stale_cli_alias_and_cargo_authority() {
+    let failures = gate::masterplan_native_scm_hygiene_failures(
+        r#"{"title":"Polyglot GitOps-capable VCS replacement","deliverable":"Grit-compatible CLI aliases","cargo":"Cargo is CI authority"}"#,
+        r#"[{"id":"M01-P07-gitops-vcs-replacement"}]"#,
+        "Cargo is the CI authority",
+        r#"{"documentation_sprawl":{"automation_targets":[]}}"#,
+    );
+    for expected in [
+        "Native SCM control-plane and Prow lane-unlocker",
+        "Grit-compatible CLI aliases",
+        "M01-P07-gitops-vcs-replacement",
+        "Cargo manifests remain compatibility metadata",
+        "masterplan_native_scm_name_scan",
+    ] {
+        assert!(
+            failures.iter().any(|failure| failure.contains(expected)),
+            "missing {expected:?} in {failures:?}"
+        );
+    }
+}
+
+#[test]
 fn root_jenkinsfile_is_rejected_as_retired_ci_entrypoint() {
     let root = temp_dir("root-jenkinsfile");
     fs::write(root.join("Jenkinsfile"), "pipeline {}\n").unwrap_or_else(|error| {

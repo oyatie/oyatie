@@ -38,6 +38,10 @@ The canonical master plan is `/specs/masterplan.json`.
 Planning-closure truth is machine-readable and Buck2-guarded through the current
 authority/hygiene checks; former local development CLI planning-closure gate
 commands are retired as merge/CI authority and must not be revived.
+Cargo manifests remain compatibility metadata for the Rust ecosystem,
+reindeer/vendor inputs, IDEs, and explicitly local advisory workflows. Buck2 is
+the build/test/check/coverage authority, and coverage evidence is LLVM
+source-based through Buck2/Prow rather than Tarpaulin or Cargo-only gates.
 
 ```bash
 buck2 build //:repo-hygiene-automation-check //:buck2-authority-policy-check
@@ -50,7 +54,7 @@ Historical planning prompts and old `.omc/plans/` root drafts are archived under
 
 ## P00 GitHub transition and hygiene unlock
 
-The imminent top priority is P00: use GitHub/GitHub Actions as a temporary lane-unlocker while native SCM/CI/CD/cloud workspace seams mature. Buck2 remains build/test/check authority, and the native destination remains cloud native, Kubernetes-native, and hyperscaler native.
+The imminent top priority is P00: use GitHub/GitHub Actions as a temporary lane-unlocker while native SCM/CI/CD/cloud workspace seams mature. Buck2 remains build/test/check/coverage authority, and the native destination remains cloud native, Kubernetes-native, and hyperscaler native.
 
 P00 also includes repo hygiene automation: `specs/repo-hygiene-automation.json` governs git/worktree, branch/merge, repository publication, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene. Run:
 
