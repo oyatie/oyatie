@@ -26,7 +26,7 @@
       "oya-calendar-app",
       "oya-calendar-rest"
     ],
-    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+    "ops_surface": "managed through CUE/KRM desired-state, native release-conveyor/KRM operations, Buck2/Prow oya-ci-required evidence, and native SCM/PR admission; no manual SSH troubleshooting path"
   },
   "inherits": {
     "bominal_adrs": [
@@ -316,7 +316,7 @@
       },
       {
         "name": "shell-script operational glue",
-        "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust oya gates"
+        "reason": "deployment and validation authority belongs to CUE/KRM desired-state, Buck2/Prow oya-ci-required lanes, Rust validation kernels, native SCM/PR admission, and native release-conveyor/KRM operations"
       }
     ]
   },
@@ -328,7 +328,7 @@
         "stable": 180,
         "GA": 100
       },
-      "verification_ref": "cargo bench -p oya-calendar-domain -- event_write",
+      "verification_ref": "Buck2/Prow lane: calendar-event-write-performance",
       "lane_ref": "perf-budget"
     },
     {
@@ -338,7 +338,7 @@
         "stable": 200,
         "GA": 120
       },
-      "verification_ref": "cargo bench -p oya-calendar-app -- availability",
+      "verification_ref": "Buck2/Prow lane: calendar-availability-performance",
       "lane_ref": "perf-budget"
     },
     {
@@ -348,7 +348,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "oya gate validate calendar-workflow-handoff",
+      "verification_ref": "Buck2/Prow lane: calendar-workflow-handoff",
       "lane_ref": "audit-chain"
     },
     {
@@ -358,8 +358,8 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-calendar-domain -- personal_details_not_visible",
-      "lane_ref": "cargo-nextest"
+      "verification_ref": "Buck2/Prow lane: calendar-personal-detail-isolation",
+      "lane_ref": "domain-invariants"
     }
   ],
   "risks": [
@@ -477,23 +477,23 @@
   "goals": {
     "scalability": {
       "target": "10M active identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
-      "verification": "oya gate validate calendar-scale-model --repo-root ."
+      "verification": "Buck2/Prow lane: calendar-scale-model"
     },
     "security": {
       "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
-      "verification": "cargo nextest -p oya-tenant-rbac-domain -- cross_pillar"
+      "verification": "Buck2/Prow lane: cross-pillar-security"
     },
     "performance": {
       "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
-      "verification": "cargo bench -p oya-calendar-bench -- calendar_hot_paths"
+      "verification": "Buck2/Prow lane: calendar-hot-paths"
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
-      "verification": "oya gate validate calendar-finops-unit-economics"
+      "verification": "Buck2/Prow lane: calendar-finops-unit-economics"
     },
     "reliability": {
       "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
-      "verification": "oya gate validate calendar-slo-coverage"
+      "verification": "Buck2/Prow lane: calendar-slo-coverage"
     }
   },
   "user_experience": {
