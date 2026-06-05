@@ -148,7 +148,7 @@ ecosystem.
 - Cluster API ClusterClass templates standardize cluster shape
   across regions per ADR-0171.
 - Standards doc
-  `docs/standards/gitops-iac-cluster-tier-boundaries.md` is the
+  `docs/standards/krm-iac-cluster-tier-boundaries.md` is the
   reading-list anchor for new contributors.
 - Existing `microservices/cloud-iac/` µservice gains the
   `tofu/modules/` canonical module set; existing IPs (IP-002
@@ -156,7 +156,7 @@ ecosystem.
 
 ## Standards anchor
 
-- `docs/standards/gitops-iac-cluster-tier-boundaries.md`
+- `docs/standards/krm-iac-cluster-tier-boundaries.md`
 - `crates/oya-check-iac-tier-discipline/src/lib.rs`
 - `microservices/cloud-iac/tofu/modules/` (canonical modules)
 - `microservices/cloud-iac/iac/helm/argocd/` (ArgoCD bootstrap

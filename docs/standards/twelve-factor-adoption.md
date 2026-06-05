@@ -16,7 +16,7 @@ enforced_by:
   - oya-governance-provider-agnostic
 canonical_paths:
   - specs/deployment-ops-contract.json
-  - docs/standards/gitops-iac-cluster-tier-boundaries.md
+  - docs/standards/krm-iac-cluster-tier-boundaries.md
   - docs/standards/container-image-convention.md
   - microservices/*/manifest.json
 external_reference:
@@ -335,7 +335,7 @@ External precedent: `https://www.12factor.net/`.
 
 `docs/decisions/ADR-0254-deployment-model-spectrum.md` binds hosted, BYOC, on-prem, and air-gap deployments.
 
-`docs/standards/gitops-iac-cluster-tier-boundaries.md` binds cluster lifecycle.
+`docs/standards/krm-iac-cluster-tier-boundaries.md` binds cluster lifecycle.
 
 `docs/standards/container-image-convention.md` binds image shape.
 
