@@ -1,8 +1,0 @@
-id: byp_adr_0349_jenkins_argocd_substrate
-pr_ref: gh:jason931225/oyatie#177
-crate_ref: oya-cloud-iac
-gate_bypassed: migration
-bypassing_actor: svc_wave15_zf21
-rationale: ADR-0349 doctrine-only propagation opens a time-boxed migration bypass until Jenkins (LTS) and ArgoCD land as canonical self-hostable CI/CD substrates with parity, cosign, tenant isolation, JCasC, and deploy audit-chain lanes.
-regression_window_days: 30
-created_at_epoch_days: 20594

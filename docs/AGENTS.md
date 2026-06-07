@@ -184,8 +184,8 @@ substrate; do not reintroduce an agentic VCS wrapper. An agent works on an
 isolated worktree branch and opens a pull request against `dev`, which enters
 the governance pipeline:
 Prow/cloud-ci required context + reviewer APPROVE gate merge readiness. The
-GitHub (interim) protected-branch substrate remains the forge target (ADR-0247
-post-bootstrap); Jenkins/`oya gate` are bridge evidence only until cloud-ci cutover, and `oya` CLI is on the CI-retirement path.
+GitHub (interim) protected-branch substrate remains the cloud-scm target (ADR-0247
+post-bootstrap); `oya gate` is bridge evidence only until cloud-ci cutover, and `oya` CLI is on the CI-retirement path.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 

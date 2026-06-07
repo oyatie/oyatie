@@ -13,8 +13,8 @@ related: [ADR-0053, ADR-0111, ADR-0116, ADR-0131, ADR-0173, ADR-0247, ADR-0248, 
 related_specs: [/specs/gitops-vcs-replacement.json, /registry/vcs/changeset-event-log.json]
 session_context:
   authored: 2026-05-26
-  basis: "Founder deep-interview 2026-05-26 — 'absorb Foundry into Intelligence in a way that makes sense'; 'do we even need vcs? retire vcs, we have jenkins + git'; 'don't reinvent the wheel'; 'we'll use git as is — don't even oya git wrap'; 'we don't use github merge queue, we use selfhosted github'."
-purpose: Retire the bespoke agentic-VCS layer (oya vcs CLI + oya git wrapper + changeset-state machine + merge-queue + webhook-receiver) in favour of plain git + GitHub (interim) PRs + Prow-shaped cloud-ci/oya-ci required contexts. Jenkins is bridge evidence only. Narrow the oya toolchain away from CLI authority; governance semantics move to Rust gate crates/cloud-ci contexts. Absorb Foundry's AI-agent platform into Intelligence; keep Governance as its own service.
+  basis: "Founder deep-interview 2026-05-26 — 'absorb Foundry into Intelligence in a way that makes sense'; 'do we even need vcs? retire vcs, we have cloud-ci + git'; 'don't reinvent the wheel'; 'we'll use git as is — don't even oya git wrap'; 'we don't use github merge queue, we use selfhosted github'."
+purpose: Retire the bespoke agentic-VCS layer (oya vcs CLI + oya git wrapper + changeset-state machine + merge-queue + webhook-receiver) in favour of plain git + GitHub (interim) PRs + Prow-shaped cloud-ci/oya-ci required contexts. The legacy cloud-ci bridge is bridge evidence only. Narrow the oya toolchain away from CLI authority; governance semantics move to Rust gate crates/cloud-ci contexts. Absorb Foundry's AI-agent platform into Intelligence; keep Governance as its own service.
 ---
 
 # ADR-0363: Retire bespoke agentic-VCS; Foundry→Intelligence; `oya` is a governance-gate engine
@@ -24,7 +24,7 @@ purpose: Retire the bespoke agentic-VCS layer (oya vcs CLI + oya git wrapper + c
 Accepted — 2026-05-26. Supersedes ADR-0110 (changeset state machine), ADR-0112 (webhook-driven invocation), ADR-0113 (vcs orchestrator end-to-end). Amends ADR-0116 (which parked external coordination tooling behind a manual-bootstrap seam — that seam is now removed, not deployed).
 
 **Amended by ADR-0513 / platform-readiness 2026-06-02:** this ADR still retires the bespoke agentic-VCS CLI/wrapper
-and dormant changeset ratchet. Its former no-Tide-queue and Jenkins-as-destination readings are no
+and dormant changeset ratchet. Its former no-Tide-queue and cloud-ci-as-destination readings are no
 longer current. Merge automation belongs in the Prow-shaped cloud-ci/oya-ci Tide component, and `oya` CLI entrypoints
 are retirement/migration wrappers rather than CI authority.
 
@@ -40,17 +40,17 @@ The founder's principle: **don't reinvent the wheel; use git as-is.** And the su
 
 Best-practice research (2026-05-26, GitHub v15.0.2 / v11.x LTS) confirms GitHub natively provides — and is GPLv3+ (OSI-clean, not BSL/SSPL):
 - Protected branches with **required status checks**, required reviews, dismiss-stale, restrict-push.
-- **External-CI gating**: required-status-check contexts gate merges. Original bridge evidence used Jenkins-posted GitHub commit statuses; ADR-0513/platform-readiness moves authority to Prow-shaped cloud-ci/oya-ci required contexts.
+- **External-CI gating**: required-status-check contexts gate merges. Original bridge evidence used cloud-ci-posted GitHub commit statuses; ADR-0513/platform-readiness moves authority to Prow-shaped cloud-ci/oya-ci required contexts.
 - **Webhooks** (PR opened/updated/merged, push) to drive automation.
 - **Auto-merge** ("merge when checks succeed").
 - **NOT** a GitHub-style speculative **merge queue** (open request github#5102, no milestone).
 
-So `git + GitHub (interim) + branch-protection/required-checks/auto-merge` remains the self-hosted trunk-based-development substrate, with Prow-shaped cloud-ci/oya-ci as the current merge/CI authority target and Jenkins only as bridge transport. The bespoke changeset-state-machine / webhook-receiver / `oya vcs` / `oya git` re-implement substrate concerns that must be retired; merge-queue semantics move to Tide per ADR-0513 instead of this retired VCS layer.
+So `git + GitHub (interim) + branch-protection/required-checks/auto-merge` remains the self-hosted trunk-based-development substrate, with Prow-shaped cloud-ci/oya-ci as the current merge/CI authority target and the legacy CI bridge only as transitory transport. The bespoke changeset-state-machine / webhook-receiver / `oya vcs` / `oya git` re-implement substrate concerns that must be retired; merge-queue semantics move to Tide per ADR-0513 instead of this retired VCS layer.
 
 ## Decision
 
 ### 1. Change-coordination substrate = plain git + GitHub (interim) PRs + Prow/cloud-ci required contexts
-Adopt the standard self-hosted substrate for coordination: plain `git`, GitHub PRs, branch protection, required status checks, webhooks, and auto-merge. Current merge/exit authority is Prow-shaped cloud-ci/oya-ci required context plus reviewer approval; Jenkins may post bridge statuses only until P0.0 cutover. GitHub remains the **bootstrap** host until the GitHub (interim) service is stood up (ADR-0247 post-bootstrap; tracked separately, NOT in this ADR's scope).
+Adopt the standard self-hosted substrate for coordination: plain `git`, GitHub PRs, branch protection, required status checks, webhooks, and auto-merge. Current merge/exit authority is Prow-shaped cloud-ci/oya-ci required context plus reviewer approval; the legacy CI bridge may post bridge statuses only until P0.0 cutover. GitHub remains the **bootstrap** host until the GitHub (interim) service is stood up (ADR-0247 post-bootstrap; tracked separately, NOT in this ADR's scope).
 
 ### 2. Retire the bespoke agentic-VCS layer
 Retire — because plain git + GitHub + cloud-ci/Prow required contexts provide or own the necessary substrate:
@@ -59,7 +59,7 @@ Retire — because plain git + GitHub + cloud-ci/Prow required contexts provide 
 - The dormant orchestration crates: changeset-state machine, merge-queue, merge-queue-conflict, promotion-controller, webhook-receiver, ci-fix-loop-dispatcher, ast-index, polyglot-indexer, lockstore, changebundle (~13 crates, 0–1 dependents).
 - ADR-0110/0112/0113 are superseded; `registry/vcs/changeset-event-log.json` + the event-router are frozen as historical evidence (not deleted, not active).
 
-**Kept as semantics, not `oya` CLI authority:** the 2 wired CI checks (`oya-vcs-admission`, `oya-vcs-provider-execution`) are recast as Governance/cloud-ci Rust gate contexts. Legacy Jenkins-posted GitHub statuses may mirror them during migration only; the permanent required producer is cloud-ci/oya-ci.
+**Kept as semantics, not `oya` CLI authority:** the 2 wired CI checks (`oya-vcs-admission`, `oya-vcs-provider-execution`) are recast as Governance/cloud-ci Rust gate contexts. Legacy cloud-ci-posted GitHub statuses may mirror them during migration only; the permanent required producer is cloud-ci/oya-ci.
 
 ### 3. Merge queue: owned by cloud-ci/Tide, not the retired VCS ratchet
 GitHub has no native merge queue, so the queue does **not** live in GitHub or the retired agentic-VCS substrate. ADR-0513 places merge automation in the Prow-shaped cloud-ci/oya-ci Tide component (`oya-ci-tide`), folding ADR-0111 projected-state merge semantics into CI/admission. The ADR-0363 decision is therefore narrowed: retire the bespoke VCS ratchet; do not defer merge-queue ownership.
@@ -89,7 +89,7 @@ Narrow the toolchain to its **differentiated core while removing CLI authority**
 ## Consequences
 
 ### Positive
-- One less bespoke subsystem to maintain; coordination rides standard, OSI-clean, self-hostable tooling (plain git + GitHub GPLv3+ + cloud-ci required contexts, with Jenkins only as bridge evidence until cutover).
+- One less bespoke subsystem to maintain; coordination rides standard, OSI-clean, self-hostable tooling (plain git + GitHub GPLv3+ + cloud-ci required contexts, with the legacy CI bridge only as transitory transport until cutover).
 - Governance value is sharpened to what only Oyatie needs (governance-as-code / AI-slop-defense) while retiring the `oya` CLI as VCS/CI authority.
 - Intelligence becomes the single coherent home for the AI-agent platform; Governance's independence is principled (layering).
 
@@ -117,6 +117,6 @@ Narrow the toolchain to its **differentiated core while removing CLI authority**
 - ADR-0110 / 0112 / 0113 — agentic-VCS (superseded here).
 - ADR-0116 — retire external agent-coordination tooling (amended: manual-bootstrap seam removed).
 - ADR-0173 / 0247 / 0248 — vendor-lock-in avoidance + self-hosting doctrine; GitHub (interim) as the forge target.
-- ADR-0361 — historical Jenkins-native CI bridge; ADR-0362 — flat-only catalog; ADR-0349 — CI farm bridge/reference evidence superseded by ADR-0513 destination authority.
+- ADR-0361 — historical cloud-ci-native CI bridge; ADR-0362 — flat-only catalog; ADR-0349 — CI farm bridge/reference evidence superseded by ADR-0513 destination authority.
 - GitHub capabilities (v15.0.2 / v11.x LTS, GPLv3+): github.org/docs (protection, webhooks, auto-merge), github#5102 (no native merge queue), LWN GPLv3+ relicense.
 - Founder deep-interview 2026-05-26 (session_context above).

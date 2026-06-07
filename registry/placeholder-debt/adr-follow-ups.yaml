@@ -107,15 +107,15 @@ follow_ups:
     status: pending
     adr_when_landed: ADR-0375 (impl tracks an already-accepted ADR)
 
-  - id: adr-0375-jenkins-fleet-bootstrap-pipeline
+  - id: adr-0375-fleet-bootstrap-pipeline
     intent: |
       `make fleet` is informational-only (prints the gen-media.sh/init.sh/render.sh
       sequence). The deployment-ops-contract describes fleet bring-up as a
       multi-step hardware-gated flow, not a single executable command. This
-      follow-up wires the end-to-end fleet bootstrap into a Jenkins pipeline
+      follow-up wires the end-to-end fleet bootstrap into a cloud-ci pipeline
       (control-plane media build is hardware-gated and stays manual; the
       clusterctl init + CRS render + spoke apply legs become a pipeline once a
-      hub kubeconfig is available to the Jenkins agent).
+      hub kubeconfig is available to the cloud-ci agent).
     driver_docs:
       - Makefile
       - specs/deployment-ops-contract.json
@@ -153,20 +153,20 @@ follow_ups:
 
   - id: adr-0361-promote-pipelines
     intent: |
-      Implement the Jenkins-native promote-dev-to-staging and
+      Implement the cloud-ci promote-dev-to-staging and
       promote-staging-to-production pipelines that fast-forward the staging
       and production refs after dev's gates land green (per ADR-0361
-      Jenkins-native CI/CD revamp). The prior GHA workflows
+      cloud-native CI/CD revamp). The prior GHA workflows
       (`.github/workflows/promote-dev-to-staging.yml` +
       `promote-staging-to-production.yml`) were retired in R5 and
-      `.github/branch-protection.yaml` now references the Jenkins pipelines
-      generically; the Jenkinsfile/pipeline implementations are pending. The
+      `.github/branch-protection.yaml` now references the cloud-ci pipelines
+      generically; the pipeline implementations are pending. The
       canary-observability gate that conditions staging→production (per
       feedback_branch_pipeline_final_final) lands with the same effort.
     driver_docs:
       - .github/branch-protection.yaml
-      - docs/decisions/ADR-0361-jenkins-native-ci-cd-revamp.md
-      - infra/ci/jenkins/
+      - docs/decisions/ADR-0361-cloud-native-ci-cd-revamp.md
+      - infra/ci/
     owner: council-architecture + ops-platform
     trigger: |
       Staging or production drift from dev observed in the wild, or the
@@ -587,7 +587,7 @@ follow_ups:
       - docs/standards/outbox-pattern-canonical.md
       - crates/oya-shared-outbox-pattern-kernel/src/lib.rs
     owner: council-architecture + axis-messenger + axis-mail + axis-social + axis-tasks + axis-calendar
-    trigger: the five carrier µservices declare `outbox_required: true` and ship the outbox publisher worker.
+    trigger: "the five carrier µservices declare `outbox_required: true` and ship the outbox publisher worker."
     status: pending
 
   - id: adr-0146-image-signing-impl
@@ -760,7 +760,7 @@ follow_ups:
       Wire the adversarial reviewer gate (a CI stage powered by the
       Intelligence service per ADR-0367 D2, distinct identity from the
       author) as a dispatch target of the ci-webhook-gateway. The gateway
-      currently kicks the Jenkins oyaCiLane pipeline (admission +
+      currently kicks the cloud-ci oyaCiLane pipeline (admission +
       oya gate run-all) and reports the reviewer gate as a typed
       Unimplemented (HTTP 501) boundary; this follow-up makes the
       reviewer verdict (oya-pr-review) a real dispatched + trusted-runner-
@@ -768,7 +768,7 @@ follow_ups:
     driver_docs:
       - microservices/ci-webhook-gateway/src/dispatch.rs
       - microservices/ci-webhook-gateway/src/error.rs
-      - docs/decisions/ADR-0374-ci-webhook-gateway-github-jenkins.md
+      - docs/decisions/ADR-0374-ci-webhook-gateway-github-cloud-ci.md
     owner: council-architecture + axis-intelligence
     trigger: |
       The Intelligence-service reviewer CI stage (ADR-0367 D2) is stood up
@@ -800,7 +800,7 @@ follow_ups:
       Append-only webhook delivery-id dedup log for the ci-webhook-gateway
       (the ADR-0112 idempotency contract carried forward to the GitHub
       substrate). v1 relies on GitHub at-least-once redelivery + the
-      idempotent (pr, head_sha) Jenkins kick; this follow-up adds the
+      idempotent (pr, head_sha) cloud-ci kick; this follow-up adds the
       explicit dedup log + crash-safe replay if duplicate-kick cost or
       audit completeness demands it.
     driver_docs:
@@ -808,7 +808,7 @@ follow_ups:
       - microservices/ci-webhook-gateway/IPs/IP-CWG-001-webhook-receiver-and-pipeline-dispatch.md
     owner: council-architecture + ops-platform
     trigger: |
-      Duplicate Jenkins kicks from redelivery measurably waste CI budget,
+      Duplicate cloud-ci kicks from redelivery measurably waste CI budget,
       OR an audit requirement needs a persistent per-delivery ledger.
     status: pending
 

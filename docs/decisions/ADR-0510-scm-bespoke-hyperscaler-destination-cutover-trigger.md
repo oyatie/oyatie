@@ -30,7 +30,7 @@ Amends ADR-0363 (which adopted GitHub (interim) + plain git as the change-coordi
 
 ## Context
 
-ADR-0363 retired the bespoke agentic-VCS layer (oya vcs / oya git / changeset-state machine / merge-queue / webhook-receiver) and adopted the standard self-hosted substrate: **git + Jenkins + GitHub (interim)**. That decision was correct for the change-coordination *plane* and remains in force.
+ADR-0363 retired the bespoke agentic-VCS layer (oya vcs / oya git / changeset-state machine / merge-queue / webhook-receiver) and adopted the standard self-hosted substrate: **git + cloud-ci + GitHub (interim)**. That decision was correct for the change-coordination *plane* and remains in force.
 
 A separate question was left implicit: **what is the long-horizon SCM destination at hyperscaler scale?** The hyperscalers do not run vanilla git forges at monorepo scale — they run bespoke monorepo-VCS systems (Google Piper + CitC, Meta Mononoke + Sapling/EdenFS) because, past a threshold, a full git clone and server-side fan-out stop being tractable. The founder has now **decided** that the Oyatie SCM destination is this class of system — a bespoke, Rust, hyperscaler-grade monorepo-VCS (Piper/Sapling/Mononoke-class). This is consistent with the bespoke-over-OSS doctrine and the kernel+OS ambition: the forge is substrate, and substrate is on the bespoke roadmap.
 
@@ -114,13 +114,13 @@ The destination is bespoke, but the *interim* must survive the bespoke-over-OSS 
 - `oya doc adr-index` regenerates the machine-readable mirror; `numbering_note` records the stale `next_adr`.
 
 ## References
-- ADR-0363 — retire bespoke agentic-VCS; git + Jenkins + GitHub (interim) (amended here: GitHub = transitory host).
+- ADR-0363 — retire bespoke agentic-VCS; git + cloud-ci + GitHub (interim) (amended here: GitHub = transitory host).
 - ADR-0367 — trustless pre-merge verification gateway (layers on GitHub now, transfers at cutover).
 - ADR-0369 — gated stacked-trunk change-flow; `oya-stack` (ghstack is GitHub-only → bespoke wedge).
 - ADR-0111 — speculative merge-queue (deferred behind concurrency trigger per ADR-0363 §3).
 - ADR-0173 / 0247 / 0248 — vendor-lock-in avoidance + self-hosting doctrine.
 - ADR-0362 — flat/no-grouping catalog (disjoint per-lane paths → per-lane sparse-checkout profiles).
-- ADR-0511 — Jenkins→Argo Workflows CI orchestration (sibling SCM/CI-CD governance ADR).
+- ADR-0511 — cloud-ci→Argo Workflows CI orchestration (sibling SCM/CI-CD governance ADR).
 - Ground truth (2026-05-29): 657 workspace members, ~23,164 git-tracked files, ~482M `.git`.
 - Native git scale tooling: Git 2.37+ sparse-index + partial-clone (no FUSE, no server). Rejected: EdenFS/Mononoke (externally unsupported).
 - Founder decision 2026-05-29 + scm-cicd-overhaul-campaign reconciliation_note (session_context above).

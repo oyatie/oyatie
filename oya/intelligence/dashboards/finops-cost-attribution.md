@@ -58,7 +58,7 @@ sum(rate(oya_intelligence_dispatch_cost_usd_total{cost_owner="platform_default"}
 3. Per-tenant invoice generated from the aggregation (platform-default cost float absorbed by
    oyatie; provider-credential BYOK (ADR-0255 §D-4) + production-pass-through priced at zero markup; markup applied only to
    negotiated tiers).
-4. Tenant operator views per-call cost in the Forge developer console.
+4. Tenant operator views per-call cost in the cloud-scm developer console.
 
 ## Forecast
 

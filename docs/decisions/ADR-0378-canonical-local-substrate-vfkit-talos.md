@@ -26,21 +26,21 @@ deliverables:
     exit_criteria: "kubectl config current-context resolves to admin@oya-local and `kubectl get pods -n oya-ci-jenkins` shows the running Jenkins pod; ~/.oya/talos-local/ holds the canonical configs."
     verified_by: "operator check: kubectl config current-context == admin@oya-local"
   - id: ADR-0378-D3
-    description: "Retire colima (stop then delete the default + omni profiles) and Sidero Omni (fleet-management overkill for a single local node), recovering reserved host resources. Container image builds run in-cluster (Jenkins on Talos) or via a buildkit pod, not a host docker daemon."
+    description: "Retire colima (stop then delete the default + omni profiles) and Sidero Omni (fleet-management overkill for a single local node), recovering reserved host resources. Container image builds run in-cluster (cloud-ci on Talos) or via a buildkit pod, not a host docker daemon."
     exit_criteria: "colima list shows no running profile; no host workflow depends on a colima docker context."
     verified_by: "operator check: colima list shows no Running profile"
   - id: ADR-0378-D4
-    description: "Future-work leg (named, not built here): close the CI loop on this substrate — GitHub push -> Jenkins pipeline -> commit-status back -> gated merge — which retires the temporary GitHub admin-merge seam (ADR-0363). Tracked as the CI-webhook + ed25519 lane."
-    exit_criteria: "the ADR names CI-loop closure (GitHub->Jenkins commit-status) as the deliverable that retires the admin-merge seam, with a follow-on lane reference."
+    description: "Future-work leg (named, not built here): close the CI loop on this substrate — GitHub push -> cloud-ci pipeline -> commit-status back -> gated merge — which retires the temporary GitHub admin-merge seam (ADR-0363). Tracked as the CI-webhook + ed25519 lane."
+    exit_criteria: "the ADR names CI-loop closure (GitHub->cloud-ci commit-status) as the deliverable that retires the admin-merge seam, with a follow-on lane reference."
     verified_by: "cargo run -p oya-dev-cli -- gate validate adr-index"
 purpose: >
   Standardize the LOCAL developer/CI substrate on vfkit + Talos Linux — the same
   immutable, API-driven, upstream-Kubernetes OS Oyatie operates and ships per
   ADR-0375 — and RETIRE colima (Lima/k3s/docker dev-convenience). One substrate,
-  production-fidelity, dogfood-correct. The real local stack (Jenkins, GitHub,
+  production-fidelity, dogfood-correct. The real local stack (cloud-ci, GitHub,
   Cilium, local-path storage) already runs on the Talos node; this ADR makes it
   canonical, fixes kube-context access so the cluster cannot be mistaken for "down",
-  and removes the colima divergence. This GitHub+Jenkins-on-Talos substrate is the
+  and removes the colima divergence. This GitHub+cloud-ci-on-Talos substrate is the
   end-state that retires the GitHub admin-merge seam (ADR-0363) once CI gates merges.
 ---
 
@@ -49,7 +49,7 @@ purpose: >
 ## Status
 Accepted (2026-05-27). Founder decision ("colima or vfkit? pick one and commit").
 Builds on ADR-0375 (Talos + Cluster API + Argo CD fleet substrate) and ADR-0363
-(git + Jenkins + GitHub (interim) CI substrate); extends them to the local box.
+(git + cloud-ci + GitHub (interim) CI substrate); extends them to the local box.
 
 ## Context
 Two local substrates had accreted on the development MacBook, both on Apple
@@ -63,7 +63,7 @@ Virtualization.framework:
    profile (14 vCPU / 96 GiB / 256 GiB reserved) and one running `omni` docker profile
    hosting Sidero Omni.
 
-`kubectl` defaulted to the near-empty colima context, so the live Jenkins/GitHub
+`kubectl` defaulted to the near-empty colima context, so the live cloud-ci/GitHub
 cluster could appear "down" when it was up — a fidelity and operability hazard. Oyatie
 builds cloud infrastructure and a managed-Kubernetes product (ADR-0375/0376); its own
 local substrate must be the production article, not a divergent convenience box.
@@ -76,7 +76,7 @@ production Kubernetes OS; colima is a laptop k3s/docker box.
 1. Talos node (vfkit VM, 192.168.64.3) managed directly via `talosctl`; canonical
    config home `~/.oya/talos-local/`. Kube context `admin@oya-local` is the default.
 2. Bring-up is `infra/talos/local/bring-up.sh` (idempotent: Cilium -> local-path ->
-   GitHub -> Jenkins) over `talos-local.sh` — the only supported path.
+   GitHub -> cloud-ci) over `talos-local.sh` — the only supported path.
 3. colima and Sidero Omni are retired; a single local node needs only `talosctl`.
 4. Upstream Kubernetes parity (not k3s) so local Cilium/Kyverno/ArgoCD/manifest
    behavior matches what Oyatie operates and ships.
@@ -87,7 +87,7 @@ production Kubernetes OS; colima is a laptop k3s/docker box.
   not the production substrate; a dogfood mismatch for a company shipping managed-k8s.
 - **Run both** (colima for host docker builds, Talos for runtime) — rejected: the
   directive is one substrate, and dual substrates caused exactly the wrong-context
-  hazard observed; container builds run in-cluster (Jenkins on Talos) or in a buildkit pod.
+  hazard observed; container builds run in-cluster (cloud-ci on Talos) or in a buildkit pod.
 
 ## Consequences
 - Positive: production fidelity, dogfood correctness, a single source of truth for the
@@ -95,16 +95,16 @@ production Kubernetes OS; colima is a laptop k3s/docker box.
 - Negative/cost: Talos has a steeper on-ramp than `colima start`, and there is no
   host `docker` daemon (use in-cluster builds or a buildkit pod).
 - Neutral: this substrate is the end-state that retires the GitHub admin-merge seam
-  (ADR-0363) once GitHub->Jenkins commit-status gates merges (ADR-0378-D4).
+  (ADR-0363) once GitHub->cloud-ci commit-status gates merges (ADR-0378-D4).
 
 ## Verification
 Per-deliverable `verified_by`: `kubectl config current-context` == `admin@oya-local`
-with Jenkins/GitHub/Cilium Running on the Talos node; `colima list` shows no running
+with cloud-ci/GitHub/Cilium Running on the Talos node; `colima list` shows no running
 profile after retirement; the ADR index lists ADR-0378 as Accepted.
 
 ## References
 ADR-0375 (Talos + Cluster API + Argo CD fleet substrate), ADR-0376 (managed-Kubernetes
-product surface), ADR-0363 (git + Jenkins + GitHub (interim) substrate), ADR-0349
+product surface), ADR-0363 (git + cloud-ci + GitHub (interim) substrate), ADR-0349
 (CI farm), ADR-0130 (observability substrate), ADR-0131/0132 (flat single-concern
 microservice layout). External: Talos Linux (https://www.talos.dev/), Cilium
 (https://cilium.io/), colima (https://github.com/abiosoft/colima), Sidero Omni

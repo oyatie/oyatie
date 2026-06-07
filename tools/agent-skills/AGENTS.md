@@ -16,7 +16,7 @@ ADR-0347: every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` 
 
 ADR-0348: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING through a per-µservice `sharding_automation` manifest block; enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
 
-ADR-0349: Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions and ArgoCD replaces manual `kubectl apply` and Helm CLI deploy paths; enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+ADR-0349 (superseded by ADR-0515): GitHub Actions is the sole CI surface; ArgoCD is the canonical GitOps CD orchestrator and replaces manual `kubectl apply` and Helm CLI deploy paths; enforced by `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, and `oya-governance-deploy-audit-chain-emit`.
 
 ## OpenCode Integration
 
