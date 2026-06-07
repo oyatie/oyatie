@@ -486,7 +486,7 @@
       "migration_phase": "fd001-planning-closure",
       "overview": "docs/localization-packs/kr.md",
       "purpose": "Canonical KR localization pack manifest for FD-001 planning closure. Direct authority for lifecycle status, activation acceptance criteria, microservices in scope, regulatory bindings, connectors, acceptance milestones, and signed regulatory corpus references.",
-      "regional_pack": "docs/regional-packs/oya-pack-kr/PACK.md",
+      "regional_pack": "packs/kr/sovereignty/manifest.json",
       "target_path_after_md_retirement": "same or JSON successor after localization-pack manifest migration"
     },
     "korea_localization_pack_overview": {
@@ -495,11 +495,11 @@
       "manifest": "docs/localization-packs/kr/pack.yaml",
       "migration_phase": "fd001-planning-closure",
       "purpose": "Human-compatible overview for the mandatory Korea localization pack. Direct authority pointer for FD-001 KR pack scope, activation acceptance, canonical-base separation, overlay crates, Cedar policy fragments, workflow templates, document templates, acceptance evidence, and operations ownership.",
-      "regional_pack": "docs/regional-packs/oya-pack-kr/PACK.md",
+      "regional_pack": "packs/kr/sovereignty/manifest.json",
       "target_path_after_md_retirement": "machine-readable successor after localization-pack projection retirement"
     },
     "korea_regional_pack": {
-      "current_path": "docs/regional-packs/oya-pack-kr/PACK.md",
+      "current_path": "packs/kr/sovereignty/manifest.json",
       "kind": "regional-pack",
       "localization_pack_manifest": "docs/localization-packs/kr/pack.yaml",
       "localization_pack_overview": "docs/localization-packs/kr.md",

@@ -15,7 +15,7 @@
       "ICO Age Appropriate Design Code",
       "FedRAMP Rev5 continuous monitoring playbook",
       "APRA Prudential Standard CPS 234",
-      "packs/cn-pipl/manifest.json regulator roster"
+      "packs/cn/compliance/manifest.json regulator roster"
     ],
     "related_adrs": [
       "ADR-0105",

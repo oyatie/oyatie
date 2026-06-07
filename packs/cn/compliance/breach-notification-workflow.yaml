@@ -85,7 +85,7 @@ stages:
       - emergency_response_measures_taken
       - contact_person_name_and_role
       - contact_person_phone
-    template_ref: "packs/cn-pipl/templates/cac-notification.md.tmpl"
+    template_ref: "packs/cn/compliance/templates/cac-notification.md.tmpl"
     steps:
       - step: "Populate CAC notification template with all required_fields"
       - step: "Obtain sign-off from DPO and CN operations lead"
@@ -106,7 +106,7 @@ stages:
       - step: "Notification content: what happened, what data was affected, what the controller is doing, how subjects can protect themselves, contact channel for follow-up questions"
       - step: "For subjects whose contact information is unavailable: public notice via platform homepage"
       - step: "Log all subject notification delivery receipts to audit chain"
-    notification_template_ref: "packs/cn-pipl/templates/subject-notification.md.tmpl"
+    notification_template_ref: "packs/cn/compliance/templates/subject-notification.md.tmpl"
     audit_event_class: CnPiplBreachSubjectNotification
     on_failure: "Log delivery failures; attempt alternative channels; document for CAC follow-up"
 

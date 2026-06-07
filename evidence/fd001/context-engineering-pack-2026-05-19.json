@@ -142,7 +142,7 @@
         "paths": [
           "docs/localization-packs/kr/pack.yaml",
           "docs/localization-packs/kr.md",
-          "docs/regional-packs/oya-pack-kr/PACK.md",
+          "packs/kr/sovereignty/manifest.json",
           "docs/decisions/ADR-0064-canonical-base-and-localization-packs.md"
         ]
       },

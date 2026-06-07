@@ -132,7 +132,7 @@
       "velocity": 3,
       "score": 36,
       "tier": "operational",
-      "owner": "regional-packs/oya-pack-kr+ops-compliance",
+      "owner": "packs/kr+ops-compliance",
       "mitigation": "Quarterly regulatory-change watch lane per ADR-0050; KR-pack maintainer engages with regulator-relations"
     },
     {
@@ -165,7 +165,7 @@
       "velocity": 2,
       "score": 24,
       "tier": "operational",
-      "owner": "axis-cloud+regional-packs/oya-pack-kr",
+      "owner": "axis-cloud+packs/kr",
       "mitigation": "Order at month 0 of W-Cloud-Preview; secondary supplier identified"
     },
     {
