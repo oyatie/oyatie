@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # Forgejo commit-status poster adapter for the oya-ci controller.
-# Implements kernel::ForgejoStatusPoster via reqwest blocking HTTP.
+# Implements kernel::CommitStatusPoster via reqwest blocking HTTP.
 # Posts to the Forgejo Statuses API: POST /api/v1/repos/<owner>/<repo>/statuses/<sha>.
 # Lifted from Jenkinsfile-oya-ci-gate:131-144 postForgejoStatus.
 

@@ -24,6 +24,7 @@ doctest = false
 oya-ci-controller-kernel = { path = "../oya-ci-controller-kernel" }
 oya-ci-controller-k8s-adapter = { path = "../oya-ci-controller-k8s-adapter" }
 oya-ci-controller-forgejo-adapter = { path = "../oya-ci-controller-forgejo-adapter" }
+oya-ci-controller-github-adapter = { path = "../oya-ci-controller-github-adapter" }
 kube = { workspace = true }
 kube-runtime = { workspace = true }
 k8s-openapi = { workspace = true }

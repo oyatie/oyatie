@@ -3936,6 +3936,7 @@ dependencies = [
  "kube",
  "kube-runtime",
  "oya-ci-controller-forgejo-adapter",
+ "oya-ci-controller-github-adapter",
  "oya-ci-controller-k8s-adapter",
  "oya-ci-controller-kernel",
  "serde",
@@ -3948,6 +3949,17 @@ dependencies = [
 
 [[package]]
 name = "oya-ci-controller-forgejo-adapter"
+version = "0.1.0"
+dependencies = [
+ "httpmock",
+ "oya-ci-controller-kernel",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-ci-controller-github-adapter"
 version = "0.1.0"
 dependencies = [
  "httpmock",

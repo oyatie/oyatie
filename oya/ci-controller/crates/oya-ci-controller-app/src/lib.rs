@@ -13,7 +13,7 @@
 //!
 //! 1. Project live Job + owned Pods -> kernel `JobObservation`
 //! 2. Call `kernel::map_job_to_status(observation)` -> `ReconcileDecision`
-//! 3. Act: post pending/terminal status via `ForgejoStatusPoster`,
+//! 3. Act: post pending/terminal status via `CommitStatusPoster`,
 //!    patch write-once annotation, requeue or stop.
 //!
 //! ## POST /gate-run (plank role — Job spawn)
@@ -55,7 +55,7 @@ use oya_ci_controller_k8s_adapter::{
     ANNOT_CI_STATUS_POSTED, LABEL_CI_HEAD_SHA, LABEL_CI_PR_NUMBER, observe_job,
 };
 use oya_ci_controller_kernel::{
-    ForgejoState, ForgejoStatusPoster, GATE_CONTEXT, GateRun, GateRunSpec, JobSpawner,
+    CommitState, CommitStatusPoster, GATE_CONTEXT, GateRun, GateRunSpec, JobSpawner,
     ReconcileDecision, map_job_to_status,
 };
 use serde::{Deserialize, Serialize};
@@ -86,7 +86,7 @@ const ACTIVE_REQUEUE_SECS: u64 = 10;
 #[derive(Clone)]
 pub struct ControllerState {
     pub client: Client,
-    pub forgejo_poster: Arc<dyn ForgejoStatusPoster>,
+    pub forgejo_poster: Arc<dyn CommitStatusPoster>,
     pub namespace: String,
     /// Waiting-pod-reason grace threshold.
     pub grace_cycles: u32,
@@ -192,7 +192,7 @@ pub async fn reconcile(
             let sha = head_sha.clone();
             let desc = description.clone();
             let post_result = tokio::task::spawn_blocking(move || {
-                poster.post(&sha, ForgejoState::Pending, GATE_CONTEXT, &desc, None)
+                poster.post(&sha, CommitState::Pending, GATE_CONTEXT, &desc, None)
             })
             .await
             .unwrap_or_else(|e| {
@@ -208,7 +208,7 @@ pub async fn reconcile(
                         &ctx.client,
                         namespace,
                         job_name,
-                        ForgejoState::Pending,
+                        CommitState::Pending,
                     )
                     .await;
                     info!(job = job_name, "pending status posted");
@@ -277,7 +277,7 @@ async fn patch_status_annotation(
     client: &Client,
     namespace: &str,
     job_name: &str,
-    state: ForgejoState,
+    state: CommitState,
 ) {
     let api: Api<Job> = Api::namespaced(client.clone(), namespace);
     let patch = json!({

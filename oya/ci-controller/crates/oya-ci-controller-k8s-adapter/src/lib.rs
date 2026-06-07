@@ -46,7 +46,7 @@ use kube::{
     api::{ListParams, PostParams},
 };
 use oya_ci_controller_kernel::{
-    ForgejoState, GATE_CONTEXT, GateRunSpec, JobCondition, JobConditionType, JobHandle,
+    CommitState, GATE_CONTEXT, GateRunSpec, JobCondition, JobConditionType, JobHandle,
     JobObservation, JobSpawner, KernelError, PodReason, Result as KernelResult,
 };
 use std::collections::BTreeMap;
@@ -333,9 +333,9 @@ pub fn observe_job(
         .map(|v| v.as_str());
 
     let terminal_status_already_posted = match posted_annotation {
-        Some("success") => Some(ForgejoState::Success),
-        Some("failure") => Some(ForgejoState::Failure),
-        Some("error") => Some(ForgejoState::Error),
+        Some("success") => Some(CommitState::Success),
+        Some("failure") => Some(CommitState::Failure),
+        Some("error") => Some(CommitState::Error),
         _ => None,
     };
 
