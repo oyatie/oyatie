@@ -61,12 +61,12 @@ verification gateway (ADR-0367) layered on top. The pieces that exist today:
 - `infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy` already **POSTs 14**
   of those contexts to the **GitHub Commit Status API**, and the reviewer
   agent posts the 15th (`oya-pr-review`).
-- `infra/forge/` stands up GitHub (interim) (GPLv3+, OSI-clean) with native
+- `infra/gitops/vcs-substrate.yaml` stands up GitHub (interim) (GPLv3+, OSI-clean) with native
   branch protection, required status checks, webhooks, and auto-merge.
 
 **The missing piece is the trigger.** Nothing converts a GitHub `pull_request`
-event into a Jenkins run. So, per the root `CLAUDE.md` Wave-B bootstrap note and
-`infra/forge/README.md`, every merge to `dev` historically disabled
+event into a Jenkins run. So, per the root `CLAUDE.md` Wave-B bootstrap note and the VCS substrate
+(`infra/gitops/vcs-substrate.yaml`), every merge to `dev` historically disabled
 `enforce_admins` and used an admin-merge — because the 15 required checks were
 never actually produced for a given PR head. That manual relax-merge seam is the
 thing this ADR retires by building the trigger.
@@ -210,5 +210,5 @@ future evolution, not a commitment here.
   ADR-0349/0361 (Jenkins-native CI farm), ADR-0124 (webhook-driven, no-cron),
   ADR-0039 (signed commits), ADR-0043 (OpenBao secrets), ADR-0131 (flat
   microservice layout).
-- `infra/branch-protection/dev.json`, `infra/ci/jenkins/reported-status-contexts.json`,
-  `infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy`, `infra/forge/`.
+- `infra/branch-protection/dev.json`, `infra/gitops/vcs-substrate.yaml`
+  (VCS substrate; infra/forge consolidated into infra/gitops per ADR-0515 D3).

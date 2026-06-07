@@ -75,8 +75,9 @@ production Kubernetes OS; colima is a laptop k3s/docker box.
 
 1. Talos node (vfkit VM, 192.168.64.3) managed directly via `talosctl`; canonical
    config home `~/.oya/talos-local/`. Kube context `admin@oya-local` is the default.
-2. Bring-up is `infra/talos/local/bring-up.sh` (idempotent: Cilium -> local-path ->
-   GitHub -> cloud-ci) over `talos-local.sh` — the only supported path.
+2. Bring-up is declarative ArgoCD app-of-apps (`infra/gitops/bootstrap-sync.yaml`,
+   ADR-0515 D3; `bring-up.sh` eliminated). Apply the manifest after ArgoCD
+   bootstrap; ArgoCD syncs Cilium -> local-path -> VCS substrate in wave order.
 3. colima and Sidero Omni are retired; a single local node needs only `talosctl`.
 4. Upstream Kubernetes parity (not k3s) so local Cilium/Kyverno/ArgoCD/manifest
    behavior matches what Oyatie operates and ships.

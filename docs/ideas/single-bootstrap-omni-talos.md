@@ -26,7 +26,7 @@ via SideroLink.
 |---|---|---|
 | Infra | OpenTofu + Helm | Omni stack (docker provider), libvirt NAT net + SideroLink-booting VMs, Cloudflare tunnel/access |
 | Cluster | omnictl cluster template (git YAML) | Omni-managed cluster: 3 dedicated CPs, `cni:none`, certSANs, `kubernetes.manifests` → Cilium 1.19.4 + Argo CD |
-| Apps | Argo CD + Kustomize | app-of-apps GitOps (all in-cluster): **GitHub** `infra/forge/` (SCM + merge gate), **oya-ci** + signed agents + SeaweedFS + cargo mirror `infra/ci/` (CI), **OpenBao** `infra/kms/` (KMS), **observability** `microservices/observability/`, **Kyverno** (admission + cosign verify), **Istio Ambient** (L7, with worker pools), workloads |
+| Apps | Argo CD + declarative app-of-apps | app-of-apps GitOps (all in-cluster): **GitHub** `infra/gitops/vcs-substrate.yaml` (SCM + merge gate; infra/forge consolidated into infra/gitops per ADR-0515 D3), **oya-ci** + signed agents + SeaweedFS + cargo mirror `infra/ci/` (CI), **OpenBao** `infra/kms/` (KMS), **observability** `microservices/observability/`, **Kyverno** (admission + cosign verify), **Istio Ambient** (L7, with worker pools), workloads |
 
 **Substrate trio (ADR-0363: git + oya-ci + GitHub)** lives entirely inside the Omni-managed cluster
 as Argo CD apps. oya-ci = CI (build/test → posts required-status contexts to GitHub's merge gate);
@@ -34,7 +34,7 @@ GitHub = SCM + merge gate; distinct from the Argo CD CD loop. The single
 bootstrap only stands up **Omni → cluster → Cilium → Argo CD**; Argo CD pulls everything else.
 
 **GitOps source of truth:** GitHub (`github.com/jason931225/oyatie`) **at bootstrap**; GitHub
-(in-cluster, Argo CD-managed workload per `infra/forge/github-argocd-app.yaml`) becomes primary only
+(in-cluster, Argo CD-managed workload per `infra/gitops/vcs-argocd-app.yaml`) becomes primary only
 after a deliberate post-bootstrap cutover (ADR-0247). This avoids the "Argo CD needs GitHub which
 needs Argo CD" deadlock — GitHub is just another managed app; GitHub bootstraps the loop. GitHub's
 primary role is the CI merge-gate substrate (oya-ci required-status → merge gate, ADR-0363), not the

@@ -1,9 +1,10 @@
-# GitHub (interim) — the change-coordination substrate per ADR-0363.
+# VCS substrate (GitHub interim) — the change-coordination substrate per ADR-0363.
 # GitHub is GPLv3+ (OSI-clean; not BSL/SSPL). Single-replica + SQLite is
 # sufficient for the dogfood farm; the PVC holds repos + db. This is the
 # T1 substrate-realization standup: native PRs, branch protection with
-# required status checks (Jenkins -> GitHub Commit Status API), webhooks,
+# required status checks (GitHub Actions -> GitHub Commit Status API), webhooks,
 # and auto-merge — which together retire the enforce_admins-toggle seam.
+# Relocated from infra/forge per ADR-0515 D3 (declarative gitops; no shell).
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -65,7 +66,7 @@ spec:
             - name: GITHUB__service__DISABLE_REGISTRATION
               value: "true"
             - name: GITHUB__webhook__ALLOWED_HOST_LIST
-              value: "*.cluster.local,oya-ci-jenkins"
+              value: "*.cluster.local,oya-ci"
           ports:
             - { name: http, containerPort: 3000 }
           securityContext:
