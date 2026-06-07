@@ -6,8 +6,8 @@
 //!
 //! 1. Initialise `tracing-subscriber` (JSON, env-filter).
 //! 2. Load [`TideConfig`] from the process environment.
-//! 3. Resolve `OYA_FORGEJO_TOKEN` from env — fail-fast if absent.
-//! 4. Build [`ForgejoHttpClient`] from config + token.
+//! 3. Resolve `OYA_GITHUB_TOKEN` from env — fail-fast if absent.
+//! 4. Build [`GitHubHttpClient`] from config + token.
 //! 5. Hand off to [`TideRunner::run_loop`] (blocking).
 //!
 //! ## Safety
@@ -16,8 +16,8 @@
 //! `OYA_TIDE_DRY_RUN=false` is explicitly set.
 
 use oya_ci_tide_app::TideRunner;
-use oya_ci_tide_forgejo_adapter::ForgejoHttpClient;
-use oya_ci_tide_kernel::{TideConfig, ENV_FORGEJO_TOKEN};
+use oya_ci_tide_github_adapter::GitHubHttpClient;
+use oya_ci_tide_kernel::{TideConfig, ENV_GITHUB_TOKEN};
 use std::sync::Arc;
 use tracing::info;
 
@@ -44,11 +44,11 @@ fn main() {
         "oya-ci-tide: starting"
     );
 
-    // Resolve the Forgejo token. Fail-fast: a missing token means we cannot
-    // call any Forgejo API, so there is no point running the loop.
-    let token = std::env::var(ENV_FORGEJO_TOKEN).unwrap_or_else(|_| {
+    // Resolve the GitHub token. Fail-fast: a missing token means we cannot
+    // call any GitHub API, so there is no point running the loop.
+    let token = std::env::var(ENV_GITHUB_TOKEN).unwrap_or_else(|_| {
         eprintln!(
-            "FATAL: {ENV_FORGEJO_TOKEN} is not set. \
+            "FATAL: {ENV_GITHUB_TOKEN} is not set. \
              Provision the token via the deploy substrate (OpenBao + ESO) and retry."
         );
         std::process::exit(1);
@@ -56,14 +56,14 @@ fn main() {
 
     if token.trim().is_empty() {
         eprintln!(
-            "FATAL: {ENV_FORGEJO_TOKEN} is set but empty. \
+            "FATAL: {ENV_GITHUB_TOKEN} is set but empty. \
              Provision a valid token and retry."
         );
         std::process::exit(1);
     }
 
     // Build the HTTP client.
-    let client = Arc::new(ForgejoHttpClient::from_config(&config, &token));
+    let client = Arc::new(GitHubHttpClient::from_config(&config, &token));
 
     // Run the tide loop (blocks forever).
     let runner = TideRunner::new(config, client);

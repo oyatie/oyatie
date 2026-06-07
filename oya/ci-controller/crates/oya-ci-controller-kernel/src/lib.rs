@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 /// All kernel-level errors. HTTP / kube mapping lives in adapter layers.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum KernelError {
-    /// A downstream component (Forgejo, kube API) returned a transport failure.
+    /// A downstream component (GitHub, kube API) returned a transport failure.
     DownstreamTransport(String),
     /// A required field was missing or malformed.
     InvalidInput(String),
@@ -58,7 +58,7 @@ pub type Result<T> = std::result::Result<T, KernelError>;
 // ---------------------------------------------------------------------------
 
 /// Forge-neutral commit-status state values (subset used by the oya-ci gate).
-/// Maps 1:1 onto both GitHub and Forgejo status APIs.
+/// Maps onto the GitHub status API.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum CommitState {
@@ -96,7 +96,7 @@ pub struct GateRun {
     pub pr_number: u64, // data_class: INTERNAL_ONLY
     /// Full HEAD commit SHA (40 hex chars).
     pub head_sha: String, // data_class: INTERNAL_ONLY
-    /// Forgejo delivery ID — idempotency dedup key (mirrors gateway DeliveryKey).
+    /// Delivery ID — idempotency dedup key (mirrors gateway DeliveryKey).
     pub delivery_id: String, // data_class: INTERNAL_ONLY
     /// Base branch (usually `"dev"`).
     pub base_ref: String, // data_class: INTERNAL_ONLY
@@ -123,7 +123,7 @@ pub struct GateRunSpec {
     pub run: GateRun, // data_class: INTERNAL_ONLY
     /// Rust-CI image (e.g. `"registry.oya-registry.svc.cluster.local:5000/rust-ci:dev"`).
     pub image: String, // data_class: INTERNAL_ONLY
-    /// Forgejo clone URL (e.g. `"http://forgejo.oya-forge.svc.cluster.local:3000/oya-admin/oyatie.git"`).
+    /// Git clone URL (e.g. `"https://github.com/jason931225/oyatie.git"`).
     pub forge_clone_url: String, // data_class: INTERNAL_ONLY
     /// Gate deadline in seconds (mirrors Jenkinsfile 60 min timeout).
     pub active_deadline_seconds: i64, // data_class: INTERNAL_ONLY
@@ -437,11 +437,11 @@ pub struct JobObservation {
     pub waiting_cycles: u32,
     /// Whether the Job object itself was NotFound (deleted/GC'd).
     pub job_not_found: bool,
-    /// Whether a terminal Forgejo status was already posted
-    /// (from annotation `oya.io/ci-forgejo-status-posted`).
+    /// Whether a terminal commit status was already posted
+    /// (from annotation `oya.io/ci-status-posted`).
     pub terminal_status_already_posted: Option<CommitState>,
     /// Whether the pending status was already posted
-    /// (from annotation `oya.io/ci-forgejo-status-posted` == "pending").
+    /// (from annotation `oya.io/ci-status-posted` == "pending").
     pub pending_status_already_posted: bool,
 }
 
@@ -456,7 +456,7 @@ pub enum ReconcileDecision {
     PostPending { description: String },
     /// Already posted pending; just requeue to watch for progress.
     AwaitChange,
-    /// Job reached a terminal state — post this Forgejo status.
+    /// Job reached a terminal state — post this commit status.
     PostTerminal {
         state: CommitState,
         context: &'static str,

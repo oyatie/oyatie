@@ -3969,17 +3969,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ci-controller-forgejo-adapter"
-version = "0.1.0"
-dependencies = [
- "httpmock",
- "oya-ci-controller-kernel",
- "reqwest",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "oya-ci-controller-github-adapter"
 version = "0.1.0"
 dependencies = [
@@ -4023,16 +4012,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-ci-tide-forgejo-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-ci-tide-kernel",
- "reqwest",
- "serde",
- "serde_json",
 ]
 
 [[package]]

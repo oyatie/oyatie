@@ -6,22 +6,26 @@
 //! Owns:
 //! - [`TideConfig`] — resolved runtime configuration
 //! - [`PullRequest`] / [`CommitStatusState`] / [`Review`] / [`MergeMethod`] —
-//!   Forgejo API projection types
+//!   forge API projection types
 //! - [`is_mergeable`] — the eligibility predicate (THE core logic)
-//! - [`ForgejoClient`] trait seam — I/O boundary for the adapter layer
+//! - [`ForgeClient`] trait seam — I/O boundary for the adapter layer
 //!
 //! ## Eligibility invariant (ADR-0513 tide / ADR-0111)
 //!
 //! A PR is merge-eligible iff ALL of:
 //! 1. The configured `required_status_context` has state `success` on the HEAD SHA.
 //! 2. The number of approving reviews >= `approval_policy.min_approvals`.
-//! 3. Forgejo reports the PR as mergeable (no conflicts).
+//! 3. The forge reports the PR as mergeable (no conflicts).
 //! 4. No blocking label (`hold` / `do-not-merge`) is present.
+//!
+//! ## Forge of record (D-FORGE)
+//!
+//! GitHub interim until the Sapling-inspired bespoke SCM.
 //!
 //! ## Security
 //!
 //! - `dry_run` defaults to `true` — tide merges NOTHING until explicitly configured live.
-//! - Token never hardcoded; always read from `OYA_FORGEJO_TOKEN`.
+//! - Token never hardcoded; always read from `OYA_GITHUB_TOKEN`.
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
@@ -33,7 +37,7 @@
 /// All tide kernel errors. HTTP / reqwest details live in the adapter layer.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TideError {
-    /// A downstream Forgejo API call failed (transport or non-2xx).
+    /// A downstream forge API call failed (transport or non-2xx).
     Downstream(String),
     /// A required field was missing or malformed.
     InvalidInput(String),
@@ -42,7 +46,7 @@ pub enum TideError {
 impl std::fmt::Display for TideError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TideError::Downstream(why) => write!(f, "forgejo downstream error: {why}"),
+            TideError::Downstream(why) => write!(f, "forge downstream error: {why}"),
             TideError::InvalidInput(why) => write!(f, "invalid input: {why}"),
         }
     }
@@ -56,15 +60,15 @@ pub type Result<T> = std::result::Result<T, TideError>;
 // Configuration
 // ---------------------------------------------------------------------------
 
-/// Env var carrying the Forgejo API token (injected from the deploy substrate).
+/// Env var carrying the forge API token (injected from the deploy substrate).
 /// Never hardcoded.
-pub const ENV_FORGEJO_TOKEN: &str = "OYA_FORGEJO_TOKEN";
+pub const ENV_GITHUB_TOKEN: &str = "OYA_GITHUB_TOKEN";
 
-/// Default Forgejo base URL (in-cluster).
-pub const DEFAULT_FORGEJO_BASE_URL: &str = "http://forgejo.oya-forge.svc.cluster.local:3000";
+/// Default forge API base URL (GitHub, forge of record).
+pub const DEFAULT_FORGE_BASE_URL: &str = "https://api.github.com";
 
 /// Default repository owner.
-pub const DEFAULT_REPO_OWNER: &str = "oya-admin";
+pub const DEFAULT_REPO_OWNER: &str = "jason931225";
 
 /// Default repository name.
 pub const DEFAULT_REPO_NAME: &str = "oyatie";
@@ -84,7 +88,7 @@ pub const DEFAULT_POLL_INTERVAL_SECS: u64 = 60;
 /// Labels that block merge, case-insensitive prefix match.
 pub const BLOCKING_LABEL_PREFIXES: &[&str] = &["hold", "do-not-merge"];
 
-/// Merge methods supported by the Forgejo merge API.
+/// Merge methods supported by the forge merge API.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MergeMethod {
     /// `merge` — create a merge commit.
@@ -96,7 +100,7 @@ pub enum MergeMethod {
 }
 
 impl MergeMethod {
-    /// The string value Forgejo's API expects in `Do` field.
+    /// The string value the forge merge API expects (GitHub `merge_method`).
     pub const fn as_str(self) -> &'static str {
         match self {
             MergeMethod::Merge => "merge",
@@ -133,8 +137,8 @@ impl Default for ApprovalPolicy {
 /// Resolved, validated runtime configuration for tide.
 #[derive(Clone, Debug)]
 pub struct TideConfig {
-    /// Forgejo API base URL (e.g. `http://forgejo.oya-forge.svc.cluster.local:3000`).
-    pub forgejo_base_url: String,
+    /// Forge API base URL (e.g. `https://api.github.com`).
+    pub forge_base_url: String,
     /// Repository owner (e.g. `oya-admin`).
     pub repo_owner: String,
     /// Repository name (e.g. `oyatie`).
@@ -158,9 +162,9 @@ pub struct TideConfig {
 impl TideConfig {
     /// Build config from a key→value lookup (injectable for tests).
     pub fn from_lookup(get: impl Fn(&str) -> Option<String>) -> Self {
-        let forgejo_base_url = get("OYA_TIDE_FORGEJO_BASE_URL")
+        let forge_base_url = get("OYA_TIDE_FORGE_BASE_URL")
             .filter(|v| !v.trim().is_empty())
-            .unwrap_or_else(|| DEFAULT_FORGEJO_BASE_URL.to_owned());
+            .unwrap_or_else(|| DEFAULT_FORGE_BASE_URL.to_owned());
         let repo_owner = get("OYA_TIDE_REPO_OWNER")
             .filter(|v| !v.trim().is_empty())
             .unwrap_or_else(|| DEFAULT_REPO_OWNER.to_owned());
@@ -189,7 +193,7 @@ impl TideConfig {
             .unwrap_or(true);
 
         TideConfig {
-            forgejo_base_url,
+            forge_base_url,
             repo_owner,
             repo_name,
             base_branch,
@@ -208,10 +212,10 @@ impl TideConfig {
 }
 
 // ---------------------------------------------------------------------------
-// Forgejo API projection types
+// Forge API projection types
 // ---------------------------------------------------------------------------
 
-/// Projected pull-request data from Forgejo API.
+/// Projected pull-request data from the forge API.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PullRequest {
     /// PR number.
@@ -222,14 +226,14 @@ pub struct PullRequest {
     pub head_sha: String,
     /// Base branch (target of the PR).
     pub base_ref: String,
-    /// Whether Forgejo considers the PR mergeable (no conflicts).
-    /// `None` means Forgejo hasn't computed it yet (still processing).
+    /// Whether the forge considers the PR mergeable (no conflicts).
+    /// `None` means the forge has not computed it yet (still processing).
     pub mergeable: Option<bool>,
     /// Labels on the PR.
     pub labels: Vec<String>,
 }
 
-/// Combined commit-status state from Forgejo
+/// Combined commit-status state from the forge
 /// (`GET /api/v1/repos/<owner>/<repo>/commits/<sha>/statuses`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CommitStatusState {
@@ -246,7 +250,7 @@ pub enum CommitStatusState {
 }
 
 impl CommitStatusState {
-    /// Parse from Forgejo's state string.
+    /// Parse from the forge's state string.
     pub fn from_str(s: &str) -> Self {
         match s.trim().to_ascii_lowercase().as_str() {
             "success" => CommitStatusState::Success,
@@ -258,17 +262,17 @@ impl CommitStatusState {
     }
 }
 
-/// A single review from Forgejo's pull-request reviews API.
+/// A single review from the forge's pull-request reviews API.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Review {
     /// Reviewer login.
     pub reviewer: String,
     /// Review state (`APPROVED`, `REQUEST_CHANGES`, `COMMENT`, etc.).
     pub state: ReviewState,
-    /// Forgejo review submission timestamp, when present. RFC3339 strings sort
-    /// lexicographically for the normalized UTC values returned by Forgejo.
+    /// Forge review submission timestamp, when present. RFC3339 strings sort
+    /// lexicographically for the normalized UTC values returned by the forge.
     pub submitted_at: Option<String>,
-    /// Forgejo review id, used to break timestamp ties when present.
+    /// Forge review id, used to break timestamp ties when present.
     pub id: Option<u64>,
     /// Cross-page API order assigned by the adapter as reviews are returned.
     /// Larger values are later in the API result stream and are authoritative
@@ -276,7 +280,7 @@ pub struct Review {
     pub api_order: u64,
 }
 
-/// Review state vocabulary (Forgejo mirrors GitHub's).
+/// Review state vocabulary (GitHub).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ReviewState {
     Approved,
@@ -321,7 +325,7 @@ pub enum IneligibleReason {
     StatusNotSuccess { actual: CommitStatusState },
     /// Insufficient approving reviews.
     InsufficientApprovals { actual: u32, required: u32 },
-    /// Forgejo reports the PR is not mergeable (conflicts).
+    /// The forge reports the PR is not mergeable (conflicts).
     NotMergeable,
     /// A blocking label is present.
     BlockingLabel { label: String },
@@ -436,13 +440,13 @@ fn review_is_later(candidate: &Review, current: &Review) -> bool {
 }
 
 // ---------------------------------------------------------------------------
-// ForgejoClient trait seam — I/O boundary
+// ForgeClient trait seam — I/O boundary
 // ---------------------------------------------------------------------------
 
-/// Forgejo API client seam. Implemented by `oya-ci-tide-forgejo-adapter`.
+/// Forge API client seam. Implemented by `oya-ci-tide-github-adapter`.
 /// All methods are synchronous (adapter wraps reqwest blocking or spawns
 /// via `tokio::task::spawn_blocking`).
-pub trait ForgejoClient: Send + Sync {
+pub trait ForgeClient: Send + Sync {
     /// List open pull requests against `base_branch`.
     fn list_open_pulls(&self, base_branch: &str) -> Result<Vec<PullRequest>>;
 
@@ -475,7 +479,7 @@ mod tests {
 
     fn default_config() -> TideConfig {
         TideConfig {
-            forgejo_base_url: DEFAULT_FORGEJO_BASE_URL.to_owned(),
+            forge_base_url: DEFAULT_FORGE_BASE_URL.to_owned(),
             repo_owner: DEFAULT_REPO_OWNER.to_owned(),
             repo_name: DEFAULT_REPO_NAME.to_owned(),
             base_branch: DEFAULT_BASE_BRANCH.to_owned(),

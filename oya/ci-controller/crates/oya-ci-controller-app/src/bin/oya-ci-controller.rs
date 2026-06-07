@@ -6,15 +6,12 @@
 //! |----------------------------------------|--------------------------------------------------------------------------|------------------------------------------------|
 //! | `OYA_CI_CONTROLLER_LISTEN_ADDR`        | `0.0.0.0:8081`                                                           | Bind address for healthz/metrics/gate-run      |
 //! | `OYA_CI_CONTROLLER_NAMESPACE`          | `oya-ci`                                                                 | Namespace to watch Jobs in + spawn Jobs into   |
-//! | `OYA_CI_FORGE`                         | `github`                                                                | Forge selector: `github` (default) or `forgejo` |
-//! | `GITHUB_CI_TOKEN`                      | (required when `OYA_CI_FORGE=github`)                                     | GitHub token for status posting (controller-only) |
-//! | `OYA_CI_CONTROLLER_FORGEJO_BASE`       | `http://forgejo.oya-forge.svc.cluster.local:3000`                        | Forgejo API base URL (bridge, deletion-tagged) |
-//! | `OYA_CI_CONTROLLER_FORGEJO_REPO_OWNER` | `oya-admin`                                                              | Forgejo repo owner (bridge, deletion-tagged)   |
-//! | `OYA_CI_CONTROLLER_FORGEJO_REPO_NAME`  | `oyatie`                                                                 | Forgejo repo name (bridge, deletion-tagged)    |
-//! | `FORGEJO_CI_TOKEN`                     | (required when `OYA_CI_FORGE=forgejo`)                                    | Forgejo token for status posting (bridge)      |
+//! | `OYA_CI_CONTROLLER_REPO_OWNER`         | `jason931225`                                                            | GitHub repo owner (forge of record)            |
+//! | `OYA_CI_CONTROLLER_REPO_NAME`          | `oyatie`                                                                 | GitHub repo name (forge of record)             |
+//! | `GITHUB_CI_TOKEN`                      | (required)                                                               | GitHub token for status posting (controller-only) |
 //! | `OYA_CI_CONTROLLER_GRACE_CYCLES`       | `12`                                                                     | Waiting-pod-reason grace threshold             |
 //! | `OYA_CI_GATE_IMAGE`                    | `registry.oya-registry.svc.cluster.local:5000/rust-ci:dev`               | Rust-CI image for gate runner Pods             |
-//! | `OYA_CI_GATE_FORGE_CLONE_URL`          | `http://forgejo.oya-forge.svc.cluster.local:3000/oya-admin/oyatie.git`   | Forgejo clone URL for gate Job init container  |
+//! | `OYA_CI_GATE_FORGE_CLONE_URL`          | `https://github.com/jason931225/oyatie.git`                              | Git clone URL for gate Job init container      |
 //! | `OYA_CI_GATE_ACTIVE_DEADLINE_SECS`     | `3600`                                                                   | Gate Job active deadline (seconds)             |
 //! | `OYA_CI_GATE_TTL_AFTER_FINISHED_SECS`  | `86400`                                                                  | Gate Job TTL after finished for GC (seconds)   |
 //! | `OYA_CI_GATE_RUNNER_SA`                | `oya-ci-gate-runner`                                                     | Low-privilege SA for gate runner Pods          |
@@ -22,7 +19,6 @@
 use oya_ci_controller_app::{
     ControllerState, GateSpecConfig, ServerState, StreamExt, build_router, run_controller,
 };
-use oya_ci_controller_forgejo_adapter::ForgejoCommitStatusPoster;
 use oya_ci_controller_github_adapter::GitHubCommitStatusPoster;
 use oya_ci_controller_k8s_adapter::K8sJobSpawner;
 use oya_ci_controller_kernel::CommitStatusPoster;
@@ -38,12 +34,10 @@ async fn main() {
 
     let listen_addr = env_or("OYA_CI_CONTROLLER_LISTEN_ADDR", "0.0.0.0:8081");
     let namespace = env_or("OYA_CI_CONTROLLER_NAMESPACE", "oya-ci");
-    // Forge selector (D-FORGE): GitHub is the forge of record (default). The
-    // Forgejo bridge is the non-default, deletion-tagged path.
-    let forge = env_or("OYA_CI_FORGE", "github");
-    let forgejo_repo_owner =
-        env_or("OYA_CI_CONTROLLER_FORGEJO_REPO_OWNER", "oya-admin");
-    let forgejo_repo_name = env_or("OYA_CI_CONTROLLER_FORGEJO_REPO_NAME", "oyatie");
+    // Forge of record (D-FORGE): GitHub interim until the Sapling-inspired
+    // bespoke SCM. The controller posts commit statuses to GitHub only.
+    let repo_owner = env_or("OYA_CI_CONTROLLER_REPO_OWNER", "jason931225");
+    let repo_name = env_or("OYA_CI_CONTROLLER_REPO_NAME", "oyatie");
     let grace_cycles: u32 = env_or("OYA_CI_CONTROLLER_GRACE_CYCLES", "12")
         .parse()
         .unwrap_or(12);
@@ -55,7 +49,7 @@ async fn main() {
     );
     let gate_forge_clone_url = env_or(
         "OYA_CI_GATE_FORGE_CLONE_URL",
-        "http://forgejo.oya-forge.svc.cluster.local:3000/oya-admin/oyatie.git",
+        "https://github.com/jason931225/oyatie.git",
     );
     let gate_active_deadline_secs: i64 = env_or("OYA_CI_GATE_ACTIVE_DEADLINE_SECS", "3600")
         .parse()
@@ -74,33 +68,18 @@ async fn main() {
     });
 
     // Select the commit-status producer. GitHub is the forge of record
-    // (D-FORGE); the GITHUB_CI_TOKEN is read here and stays controller-only —
-    // it is never threaded into the gate Job / runner environment.
-    let status_poster: Arc<dyn CommitStatusPoster> = match forge.as_str() {
-        "forgejo" => {
-            let forgejo_base = env_or(
-                "OYA_CI_CONTROLLER_FORGEJO_BASE",
-                "http://forgejo.oya-forge.svc.cluster.local:3000",
-            );
-            let forgejo_token = env_required("FORGEJO_CI_TOKEN");
-            info!(forge = "forgejo", "using Forgejo commit-status bridge (deletion-tagged)");
-            Arc::new(ForgejoCommitStatusPoster::new(
-                &forgejo_base,
-                &forgejo_repo_owner,
-                &forgejo_repo_name,
-                &forgejo_token,
-            ))
-        }
-        _ => {
-            let github_token = env_required("GITHUB_CI_TOKEN");
-            info!(forge = "github", "using GitHub commit-status producer (oya-ci-required)");
-            Arc::new(GitHubCommitStatusPoster::with_defaults(&github_token))
-        }
-    };
+    // (D-FORGE; GitHub interim until the Sapling-inspired bespoke SCM); the
+    // GITHUB_CI_TOKEN is read here and stays controller-only — it is never
+    // threaded into the gate Job / runner environment.
+    let github_token = env_required("GITHUB_CI_TOKEN");
+    info!(forge = "github", "using GitHub commit-status producer (oya-ci-required)");
+    let status_poster: Arc<dyn CommitStatusPoster> = Arc::new(
+        GitHubCommitStatusPoster::new(&repo_owner, &repo_name, &github_token),
+    );
 
     let controller_state = ControllerState {
         client: kube_client.clone(),
-        forgejo_poster: status_poster,
+        status_poster,
         namespace: namespace.clone(),
         grace_cycles,
     };
@@ -115,7 +94,7 @@ async fn main() {
         ttl_seconds_after_finished: gate_ttl_after_finished_secs,
         namespace: namespace.clone(),
         runner_service_account: gate_runner_sa,
-        repo: format!("{forgejo_repo_owner}/{forgejo_repo_name}"),
+        repo: format!("{repo_owner}/{repo_name}"),
     };
 
     let server_state = ServerState {

@@ -4,7 +4,7 @@
 //!
 //! ## Responsibilities
 //!
-//! - Poll Forgejo every `config.poll_interval_secs` for open PRs against the
+//! - Poll GitHub every `config.poll_interval_secs` for open PRs against the
 //!   configured `base_branch`.
 //! - For each open PR: fetch commit status + reviews + fresh mergeable state.
 //! - Evaluate eligibility via `kernel::is_mergeable`.
@@ -30,7 +30,7 @@
 #![forbid(unsafe_code)]
 
 use oya_ci_tide_kernel::{
-    EligibilityInput, ForgejoClient, TideConfig, TideError, is_mergeable,
+    EligibilityInput, ForgeClient, TideConfig, TideError, is_mergeable,
 };
 use std::sync::Arc;
 use tracing::{error, info, warn};
@@ -41,16 +41,16 @@ use tracing::{error, info, warn};
 
 /// The tide merge-queue runner.
 ///
-/// Holds an [`Arc`]-wrapped [`ForgejoClient`] so it can be shared across the
+/// Holds an [`Arc`]-wrapped [`ForgeClient`] so it can be shared across the
 /// blocking tasks spawned inside the async poll loop.
 pub struct TideRunner {
     config: TideConfig,
-    client: Arc<dyn ForgejoClient>,
+    client: Arc<dyn ForgeClient>,
 }
 
 impl TideRunner {
     /// Create a new runner with the given config and client.
-    pub fn new(config: TideConfig, client: Arc<dyn ForgejoClient>) -> Self {
+    pub fn new(config: TideConfig, client: Arc<dyn ForgeClient>) -> Self {
         TideRunner { config, client }
     }
 
@@ -83,7 +83,7 @@ impl TideRunner {
 
         for pr in &pulls {
             // Fetch the fresh PR (mergeable can be null initially; re-fetch to
-            // get a resolved value after Forgejo finishes computing it).
+            // get a resolved value after GitHub finishes computing it).
             let fresh_pr = match self.client.get_pull(pr.number) {
                 Ok(p) => p,
                 Err(e) => {

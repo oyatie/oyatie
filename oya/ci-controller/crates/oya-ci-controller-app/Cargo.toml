@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 # kube-rs Controller application library + binary for the oya-ci controller.
 # Phase 1 of oya-ci bespoke-Prow: spawns K8s gate Jobs, watches them, posts
-# terminal Forgejo commit-statuses via crier pattern.
+# terminal GitHub commit-statuses via crier pattern.
 # ADR-0387 (ci-gate substrate); see docs/ideas/oya-ci-bespoke-prow.md Phase 1.
 
 [[bin]]
@@ -23,7 +23,6 @@ doctest = false
 [dependencies]
 oya-ci-controller-kernel = { path = "../oya-ci-controller-kernel" }
 oya-ci-controller-k8s-adapter = { path = "../oya-ci-controller-k8s-adapter" }
-oya-ci-controller-forgejo-adapter = { path = "../oya-ci-controller-forgejo-adapter" }
 oya-ci-controller-github-adapter = { path = "../oya-ci-controller-github-adapter" }
 kube = { workspace = true }
 kube-runtime = { workspace = true }

@@ -4,6 +4,14 @@
 //! ban canonical brand usage. It prevents the MFL-0011 failure class: semantic
 //! residue from mechanical brand sweeps, especially tautological transitions
 //! such as a rebrand statement whose old and new terms are identical.
+//!
+//! It also enforces a forbidden-token deny-list for retired/dropped brands so
+//! that an eradicated brand cannot silently reappear in the docs corpus
+//! (founder rule: "remove any mention so it doesn't come back up"). The
+//! deny-list currently covers `forgejo` (D-FORGE: Forgejo dropped, GitHub
+//! interim → Sapling-inspired bespoke SCM) and `foundry` (D-FOUNDRY-CLARIFY).
+//! Superseded ADR bodies retain historical lineage and are excluded by the
+//! caller's path filter, not by this kernel.
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BrandResidueDocument {
@@ -17,6 +25,20 @@ pub struct BrandResidueReport {
     pub patterns_checked: usize,  // data_class: INTERNAL_ONLY
 }
 
+/// Retired / dropped brand tokens that must never reappear in the docs corpus.
+/// Matched case-insensitively as a substring on each line. Adding a token here
+/// makes the gate fail on any new occurrence (founder "doesn't come back up"
+/// rule). Naming a token in this list is the deny-list itself — it is not
+/// residue, so this kernel's own source is not scanned by the gate.
+///
+/// NOTE on `foundry` (D-FOUNDRY-CLARIFY): `foundry` is tracked in the catalog
+/// deny-list spec (registry/catalog/oya-check-brand-residue.yaml) but is NOT
+/// executable here yet — the docs corpus still carries ~800 live `foundry`
+/// references (active context/product name), so a substring gate would false-
+/// fail. Promote it to this executable list once the separate foundry-rename
+/// campaign has cleared the corpus.
+pub const FORBIDDEN_BRAND_TOKENS: &[&str] = &["forgejo"];
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BrandResidueError {
     NoDocuments,
@@ -25,6 +47,12 @@ pub enum BrandResidueError {
         line: usize,
         term: String,
         pattern: BrandResiduePattern,
+    },
+    /// A forbidden / retired brand token reappeared in the docs corpus.
+    ForbiddenBrandToken {
+        path: String,
+        line: usize,
+        token: String,
     },
 }
 
@@ -46,6 +74,13 @@ where
         documents_checked += 1;
         for (line_index, line) in document.contents.lines().enumerate() {
             let line_number = line_index + 1;
+            if let Some(token) = forbidden_brand_token(line) {
+                return Err(BrandResidueError::ForbiddenBrandToken {
+                    path: document.path,
+                    line: line_number,
+                    token,
+                });
+            }
             if let Some(term) = tautological_rebrand_arrow(line) {
                 return Err(BrandResidueError::TautologicalBrandTransition {
                     path: document.path,
@@ -93,6 +128,16 @@ struct BacktickedValue {
     value: String,
     start: usize,
     end: usize,
+}
+
+/// Return the first forbidden brand token present on `line` (case-insensitive
+/// substring match), if any.
+fn forbidden_brand_token(line: &str) -> Option<String> {
+    let lower = line.to_ascii_lowercase();
+    FORBIDDEN_BRAND_TOKENS
+        .iter()
+        .find(|token| lower.contains(&token.to_ascii_lowercase()))
+        .map(|token| (*token).to_string())
 }
 
 fn tautological_rebrand_arrow(line: &str) -> Option<String> {
@@ -340,6 +385,35 @@ mod tests {
         assert_eq!(
             validate_brand_residue([]),
             Err(BrandResidueError::NoDocuments)
+        );
+    }
+
+    #[test]
+    fn rejects_forbidden_forgejo_token() {
+        assert_eq!(
+            validate_brand_residue([doc(
+                "docs/ci/forge.md",
+                "Self-hosted Forgejo PRs gate merges."
+            )]),
+            Err(BrandResidueError::ForbiddenBrandToken {
+                path: "docs/ci/forge.md".into(),
+                line: 1,
+                token: "forgejo".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn accepts_docs_free_of_forbidden_tokens() {
+        assert_eq!(
+            validate_brand_residue([doc(
+                "docs/ci/forge.md",
+                "GitHub (interim) PRs gate merges until the Sapling-inspired bespoke SCM."
+            )]),
+            Ok(BrandResidueReport {
+                documents_checked: 1,
+                patterns_checked: 0,
+            })
         );
     }
 
