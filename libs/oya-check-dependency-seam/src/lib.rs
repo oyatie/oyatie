@@ -16,14 +16,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use toml::Value as TomlValue;
 
-pub const D13_SUBCHECKS: [&str; 6] = [
-    "seam-imports",
-    "registry-coverage",
-    "cargo-audit-shell",
-    "multispectrum-evidence-attached",
-    "fixture-pair-coverage",
-    "change-class-declared",
-];
+pub const D13_SUBCHECKS: [&str; 3] = ["seam-imports", "registry-coverage", "cargo-audit-shell"];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DependencySeamSeverity {
@@ -151,14 +144,6 @@ struct AuditOutcome {
     notes: Vec<String>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
-struct FixtureManifest {
-    subcheck_id: String,
-    fixture_kind: String,
-    case_id: String,
-    expected_diagnostics: Vec<String>,
-}
-
 pub fn validate_dependency_seam(
     config: &DependencySeamConfig,
 ) -> Result<DependencySeamReport, String> {
@@ -174,9 +159,6 @@ pub fn validate_dependency_seam(
         &rationales,
     ));
     subchecks.push(check_cargo_audit_shell(config));
-    subchecks.push(check_multispectrum_evidence_attached(config));
-    subchecks.push(check_fixture_pair_coverage(config));
-    subchecks.push(check_change_class_declared(config));
 
     Ok(DependencySeamReport {
         subchecks,
@@ -342,261 +324,6 @@ fn cargo_audit_args(offline: bool) -> Vec<&'static str> {
     }
 }
 
-fn check_multispectrum_evidence_attached(
-    config: &DependencySeamConfig,
-) -> DependencySeamSubcheckReport {
-    if config.evidence_paths.is_empty() {
-        return subcheck(
-            "multispectrum-evidence-attached",
-            vec![diagnostic(
-                "multispectrum-evidence-attached",
-                "MULTISPECTRUM_EVIDENCE_NOT_SPECIFIED",
-                DependencySeamSeverity::ReportOnly,
-                "no --evidence path supplied for current changeset".to_string(),
-                Some("evidence/multispectrum".to_string()),
-            )],
-            Vec::new(),
-        );
-    }
-    let mut diagnostics = Vec::new();
-    for path in &config.evidence_paths {
-        match read_json_file(path) {
-            Ok(value) => diagnostics.extend(validate_multispectrum_value(path, &value)),
-            Err(message) => diagnostics.push(diagnostic(
-                "multispectrum-evidence-attached",
-                "MULTISPECTRUM_EVIDENCE_MISSING",
-                config.severity,
-                message,
-                Some(path.display().to_string()),
-            )),
-        }
-    }
-    let diagnostics = diagnostics
-        .into_iter()
-        .map(|mut diagnostic| {
-            diagnostic.severity = severity_for(config.severity);
-            diagnostic
-        })
-        .collect();
-    subcheck("multispectrum-evidence-attached", diagnostics, Vec::new())
-}
-
-fn check_fixture_pair_coverage(config: &DependencySeamConfig) -> DependencySeamSubcheckReport {
-    let mut diagnostics = Vec::new();
-    for subcheck_id in D13_SUBCHECKS {
-        diagnostics.extend(check_fixture_manifest(
-            config,
-            subcheck_id,
-            "passing",
-            "FIXTURE_PAIR_PASSING_DIR_MISSING",
-        ));
-        diagnostics.extend(check_fixture_manifest(
-            config,
-            subcheck_id,
-            "failing",
-            "FIXTURE_PAIR_FAILING_DIR_MISSING",
-        ));
-    }
-    subcheck("fixture-pair-coverage", diagnostics, Vec::new())
-}
-
-fn check_change_class_declared(config: &DependencySeamConfig) -> DependencySeamSubcheckReport {
-    if config.evidence_paths.is_empty() {
-        return subcheck(
-            "change-class-declared",
-            vec![diagnostic(
-                "change-class-declared",
-                "CHANGE_CLASS_EVIDENCE_NOT_SPECIFIED",
-                DependencySeamSeverity::ReportOnly,
-                "no --evidence path supplied for change_class_id validation".to_string(),
-                Some("evidence/multispectrum".to_string()),
-            )],
-            Vec::new(),
-        );
-    }
-    let mut diagnostics = Vec::new();
-    for path in &config.evidence_paths {
-        match read_json_file(path) {
-            Ok(value) => match change_class_id(&value) {
-                Some(change_class) if canonical_change_class(&change_class) => {}
-                Some(change_class) => diagnostics.push(diagnostic(
-                    "change-class-declared",
-                    "CHANGE_CLASS_NONCANONICAL",
-                    config.severity,
-                    format!("change_class_id {change_class} is not CC-1..CC-7 canonical"),
-                    Some(path.display().to_string()),
-                )),
-                None => diagnostics.push(diagnostic(
-                    "change-class-declared",
-                    "CHANGE_CLASS_MISSING",
-                    config.severity,
-                    "evidence file lacks change_class_id".to_string(),
-                    Some(path.display().to_string()),
-                )),
-            },
-            Err(message) => diagnostics.push(diagnostic(
-                "change-class-declared",
-                "CHANGE_CLASS_EVIDENCE_MISSING",
-                config.severity,
-                message,
-                Some(path.display().to_string()),
-            )),
-        }
-    }
-    subcheck("change-class-declared", diagnostics, Vec::new())
-}
-
-fn validate_multispectrum_value(path: &Path, value: &JsonValue) -> Vec<DependencySeamDiagnostic> {
-    let mut diagnostics = Vec::new();
-    if string_field(value, "change_id").is_none() {
-        diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "MULTISPECTRUM_CHANGE_ID_MISSING",
-            "evidence file lacks change_id".to_string(),
-            Some(path.display().to_string()),
-        ));
-    }
-    let change_class = string_field(value, "change_class_id");
-    match change_class.as_deref() {
-        Some(change_class) if canonical_change_class(change_class) => {}
-        Some(change_class) => diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "CHANGE_CLASS_NONCANONICAL",
-            format!("change_class_id {change_class} is not CC-1..CC-7 canonical"),
-            Some(path.display().to_string()),
-        )),
-        None => diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "CHANGE_CLASS_MISSING",
-            "evidence file lacks change_class_id".to_string(),
-            Some(path.display().to_string()),
-        )),
-    }
-    match string_field(value, "git_sha") {
-        Some(git_sha) if valid_git_sha(&git_sha) => {}
-        Some(git_sha) => diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "MULTISPECTRUM_GIT_SHA_INVALID",
-            format!("git_sha {git_sha} must match ^[0-9a-f]{{7,40}}$"),
-            Some(path.display().to_string()),
-        )),
-        None => diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "MULTISPECTRUM_GIT_SHA_MISSING",
-            "evidence file lacks git_sha".to_string(),
-            Some(path.display().to_string()),
-        )),
-    }
-    if !freshness_valid(value) {
-        diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "MULTISPECTRUM_FRESHNESS_MISSING",
-            "evidence file lacks integer freshness_unix >= 1700000000".to_string(),
-            Some(path.display().to_string()),
-        ));
-    }
-    let Some(facets) = value.get("facets").and_then(JsonValue::as_object) else {
-        diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "MULTISPECTRUM_FACETS_MISSING",
-            "evidence file lacks facets object".to_string(),
-            Some(path.display().to_string()),
-        ));
-        return diagnostics;
-    };
-    for required in REQUIRED_EVIDENCE_FACETS {
-        match facets.get(required) {
-            Some(facet) => validate_facet_value(
-                path,
-                required,
-                facet,
-                change_class.as_deref(),
-                &mut diagnostics,
-            ),
-            None => diagnostics.push(report_only_diagnostic(
-                "multispectrum-evidence-attached",
-                "MULTISPECTRUM_REQUIRED_FACET_MISSING",
-                format!("evidence facets omit {required}"),
-                Some(path.display().to_string()),
-            )),
-        }
-    }
-    diagnostics
-}
-
-const REQUIRED_EVIDENCE_FACETS: [&str; 9] = [
-    "F1_linus",
-    "F2_hyperscaler",
-    "F3_adversarial",
-    "F4_ergonomic",
-    "F5_quality",
-    "F6_alternatives",
-    "F7_security",
-    "F8_performance",
-    "F9_compliance",
-];
-
-fn validate_facet_value(
-    path: &Path,
-    facet_id: &str,
-    facet: &JsonValue,
-    change_class: Option<&str>,
-    diagnostics: &mut Vec<DependencySeamDiagnostic>,
-) {
-    let Some(object) = facet.as_object() else {
-        diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "MULTISPECTRUM_FACET_NOT_OBJECT",
-            format!("evidence facet {facet_id} is not an object"),
-            Some(path.display().to_string()),
-        ));
-        return;
-    };
-    match object.get("considered").and_then(JsonValue::as_bool) {
-        Some(true) => {}
-        Some(false) => {
-            let reason = object
-                .get("not_applicable_reason")
-                .and_then(JsonValue::as_str)
-                .unwrap_or_default()
-                .trim();
-            if reason.is_empty() {
-                diagnostics.push(report_only_diagnostic(
-                    "multispectrum-evidence-attached",
-                    "MULTISPECTRUM_NOT_APPLICABLE_REASON_MISSING",
-                    format!("evidence facet {facet_id} has considered=false without not_applicable_reason"),
-                    Some(path.display().to_string()),
-                ));
-            }
-        }
-        None => diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "MULTISPECTRUM_FACET_CONSIDERED_MISSING",
-            format!("evidence facet {facet_id} lacks boolean considered"),
-            Some(path.display().to_string()),
-        )),
-    }
-    let Some(expected_rigor) = change_class.and_then(|class| expected_rigor(class, facet_id))
-    else {
-        return;
-    };
-    let actual_rigor = object
-        .get("rigor")
-        .or_else(|| object.get("rigor_required"))
-        .and_then(JsonValue::as_str);
-    if actual_rigor != Some(expected_rigor) {
-        diagnostics.push(report_only_diagnostic(
-            "multispectrum-evidence-attached",
-            "MULTISPECTRUM_FACET_RIGOR_MISMATCH",
-            format!(
-                "evidence facet {facet_id} rigor {:?} does not match {expected_rigor} for {change_class:?}",
-                actual_rigor
-            ),
-            Some(path.display().to_string()),
-        ));
-    }
-}
-
 fn subcheck(
     id: &str,
     diagnostics: Vec<DependencySeamDiagnostic>,
@@ -634,21 +361,6 @@ fn diagnostic(
         message,
         path,
     }
-}
-
-fn report_only_diagnostic(
-    subcheck_id: &str,
-    code: &str,
-    message: String,
-    path: Option<String>,
-) -> DependencySeamDiagnostic {
-    diagnostic(
-        subcheck_id,
-        code,
-        DependencySeamSeverity::ReportOnly,
-        message,
-        path,
-    )
 }
 
 fn severity_for(severity: DependencySeamSeverity) -> DiagnosticSeverity {
@@ -821,137 +533,6 @@ fn collect_rust_imports(dir: &Path, import_token: &str, out: &mut Vec<PathBuf>) 
     }
 }
 
-fn check_fixture_manifest(
-    config: &DependencySeamConfig,
-    subcheck_id: &str,
-    fixture_kind: &str,
-    missing_dir_code: &str,
-) -> Vec<DependencySeamDiagnostic> {
-    let dir = config.fixture_root.join(subcheck_id).join(fixture_kind);
-    if !dir.is_dir() {
-        return vec![diagnostic(
-            "fixture-pair-coverage",
-            missing_dir_code,
-            config.severity,
-            format!("{subcheck_id} missing {fixture_kind} fixture directory"),
-            Some(dir.display().to_string()),
-        )];
-    }
-    let manifest_path = dir.join("manifest.json");
-    let mut diagnostics = Vec::new();
-    let manifest = match read_fixture_manifest(&manifest_path) {
-        Ok(manifest) => manifest,
-        Err(message) => {
-            diagnostics.push(diagnostic(
-                "fixture-pair-coverage",
-                "FIXTURE_PAIR_MANIFEST_INVALID",
-                config.severity,
-                message,
-                Some(manifest_path.display().to_string()),
-            ));
-            return diagnostics;
-        }
-    };
-    if manifest.subcheck_id != subcheck_id {
-        diagnostics.push(diagnostic(
-            "fixture-pair-coverage",
-            "FIXTURE_PAIR_SUBCHECK_MISMATCH",
-            config.severity,
-            format!(
-                "fixture {} declares subcheck_id {} instead of {subcheck_id}",
-                manifest.case_id, manifest.subcheck_id
-            ),
-            Some(manifest_path.display().to_string()),
-        ));
-    }
-    if manifest.fixture_kind != fixture_kind {
-        diagnostics.push(diagnostic(
-            "fixture-pair-coverage",
-            "FIXTURE_PAIR_KIND_MISMATCH",
-            config.severity,
-            format!(
-                "fixture {} declares fixture_kind {} instead of {fixture_kind}",
-                manifest.case_id, manifest.fixture_kind
-            ),
-            Some(manifest_path.display().to_string()),
-        ));
-    }
-    match fixture_kind {
-        "passing" if !manifest.expected_diagnostics.is_empty() => diagnostics.push(diagnostic(
-            "fixture-pair-coverage",
-            "FIXTURE_PAIR_PASSING_EXPECTS_DIAGNOSTICS",
-            config.severity,
-            format!(
-                "passing fixture {} declares expected diagnostics",
-                manifest.case_id
-            ),
-            Some(manifest_path.display().to_string()),
-        )),
-        "failing" if manifest.expected_diagnostics.is_empty() => diagnostics.push(diagnostic(
-            "fixture-pair-coverage",
-            "FIXTURE_PAIR_FAILING_EXPECTS_NO_DIAGNOSTIC",
-            config.severity,
-            format!(
-                "failing fixture {} does not declare expected diagnostics",
-                manifest.case_id
-            ),
-            Some(manifest_path.display().to_string()),
-        )),
-        _ => {}
-    }
-    for expected in &manifest.expected_diagnostics {
-        if !known_diagnostic_for_subcheck(subcheck_id, expected) {
-            diagnostics.push(diagnostic(
-                "fixture-pair-coverage",
-                "FIXTURE_PAIR_UNKNOWN_DIAGNOSTIC",
-                config.severity,
-                format!(
-                    "fixture {} expects unknown diagnostic {} for {}",
-                    manifest.case_id, expected, subcheck_id
-                ),
-                Some(manifest_path.display().to_string()),
-            ));
-        }
-    }
-    diagnostics
-}
-
-fn read_fixture_manifest(path: &Path) -> Result<FixtureManifest, String> {
-    let contents = fs::read_to_string(path)
-        .map_err(|error| format!("fixture manifest unreadable {}: {error}", path.display()))?;
-    serde_json::from_str::<FixtureManifest>(&contents)
-        .map_err(|error| format!("fixture manifest invalid {}: {error}", path.display()))
-}
-
-fn known_diagnostic_for_subcheck(subcheck_id: &str, code: &str) -> bool {
-    match subcheck_id {
-        "seam-imports" => matches!(
-            code,
-            "SEAM_SCOPE_UNPARSEABLE"
-                | "SEAM_DEP_DECL_OUTSIDE_ISOLATED_CRATE"
-                | "SEAM_IMPORT_OUTSIDE_ISOLATED_CRATE"
-        ),
-        "registry-coverage" => matches!(code, "REGISTRY_ROW_MISSING" | "REGISTRY_ROW_ORPHAN"),
-        "cargo-audit-shell" => matches!(
-            code,
-            "CARGO_AUDIT_NONZERO" | "CARGO_AUDIT_UNAVAILABLE" | "CARGO_AUDIT_OFFLINE_SKIPPED"
-        ),
-        "multispectrum-evidence-attached" => {
-            code.starts_with("MULTISPECTRUM_")
-                || matches!(code, "CHANGE_CLASS_MISSING" | "CHANGE_CLASS_NONCANONICAL")
-        }
-        "fixture-pair-coverage" => code.starts_with("FIXTURE_PAIR_"),
-        "change-class-declared" => matches!(
-            code,
-            "CHANGE_CLASS_MISSING"
-                | "CHANGE_CLASS_NONCANONICAL"
-                | "CHANGE_CLASS_EVIDENCE_MISSING"
-                | "CHANGE_CLASS_EVIDENCE_NOT_SPECIFIED"
-        ),
-        _ => false,
-    }
-}
-
 fn contains_rust_import(contents: &str, import_token: &str) -> bool {
     let prefix = format!("use {import_token}::");
     let path = format!("{import_token}::");
@@ -990,107 +571,16 @@ fn read_json_file(path: &Path) -> Result<JsonValue, String> {
         .map_err(|error| format!("JSON file invalid {}: {error}", path.display()))
 }
 
-fn string_field(value: &JsonValue, key: &str) -> Option<String> {
-    value
-        .get(key)
-        .and_then(JsonValue::as_str)
-        .map(str::to_string)
-}
-
-fn change_class_id(value: &JsonValue) -> Option<String> {
-    string_field(value, "change_class_id")
-}
-
-fn canonical_change_class(value: &str) -> bool {
-    matches!(
-        value,
-        "CC-1" | "CC-2" | "CC-3" | "CC-4" | "CC-5" | "CC-6" | "CC-7"
-    )
-}
-
-fn valid_git_sha(value: &str) -> bool {
-    (7..=40).contains(&value.len())
-        && value
-            .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-}
-
-fn freshness_valid(value: &JsonValue) -> bool {
-    let Some(freshness) = value
-        .get("freshness_unix")
-        .and_then(JsonValue::as_i64)
-        .or_else(|| {
-            value
-                .get("freshness_unix")
-                .and_then(JsonValue::as_u64)
-                .map(|v| v as i64)
-        })
-    else {
-        return false;
-    };
-    freshness >= 1_700_000_000
-}
-
-fn expected_rigor(change_class: &str, facet_id: &str) -> Option<&'static str> {
-    match change_class {
-        "CC-1" => match facet_id {
-            "F1_linus" | "F2_hyperscaler" | "F3_adversarial" | "F4_ergonomic" | "F5_quality"
-            | "F6_alternatives" | "F7_security" | "F8_performance" | "F9_compliance" => {
-                Some("deep")
-            }
-            _ => None,
-        },
-        "CC-2" => match facet_id {
-            "F1_linus" | "F2_hyperscaler" | "F3_adversarial" | "F5_quality" | "F6_alternatives"
-            | "F7_security" => Some("deep"),
-            "F4_ergonomic" => Some("scan"),
-            _ => None,
-        },
-        "CC-3" => match facet_id {
-            "F1_linus" | "F4_ergonomic" | "F5_quality" | "F6_alternatives" | "F7_security" => {
-                Some("deep")
-            }
-            "F2_hyperscaler" | "F3_adversarial" => Some("scan"),
-            _ => None,
-        },
-        "CC-4" => match facet_id {
-            "F1_linus" | "F4_ergonomic" | "F5_quality" | "F6_alternatives" => Some("deep"),
-            "F2_hyperscaler" | "F3_adversarial" | "F7_security" => Some("scan"),
-            _ => None,
-        },
-        "CC-5" => match facet_id {
-            "F1_linus" | "F4_ergonomic" | "F6_alternatives" => Some("deep"),
-            "F2_hyperscaler" | "F3_adversarial" | "F5_quality" | "F7_security" => Some("scan"),
-            _ => None,
-        },
-        "CC-6" => match facet_id {
-            "F7_security" => Some("deep"),
-            "F1_linus" | "F2_hyperscaler" | "F3_adversarial" | "F4_ergonomic" | "F5_quality"
-            | "F6_alternatives" => Some("scan"),
-            _ => None,
-        },
-        "CC-7" => match facet_id {
-            "F3_adversarial" => Some("deep"),
-            "F1_linus" | "F2_hyperscaler" | "F4_ergonomic" | "F5_quality" | "F6_alternatives"
-            | "F7_security" => Some("scan"),
-            _ => None,
-        },
-        _ => None,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[test]
-    fn run_composite_returns_six_d13_sub_checks_in_canonical_order() {
+    fn run_composite_returns_three_d13_sub_checks_in_canonical_order() {
         let root = fixture_repo("canonical-order");
         write_valid_repo(&root);
-        let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![write_valid_evidence(&root, "CC-7")];
-        config.fixture_root = manifest_fixture_root();
+        let config = DependencySeamConfig::for_repo(&root);
 
         let report = validate_dependency_seam(&config).expect("report");
         let ids = report
@@ -1115,8 +605,6 @@ mod tests {
         );
         append_workspace_member(&root, "crates/offender-kernel");
         let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![write_valid_evidence(&root, "CC-7")];
-        config.fixture_root = manifest_fixture_root();
         config.severity = DependencySeamSeverity::Error;
 
         let report = validate_dependency_seam(&config).expect("report");
@@ -1134,9 +622,7 @@ mod tests {
             &root,
             r#"{"entries":{"hyper":{"isolated_in_crate":"adapter-layer crates"},"serde":{"allowed_crates":[]}}}"#,
         );
-        let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![write_valid_evidence(&root, "CC-7")];
-        config.fixture_root = manifest_fixture_root();
+        let config = DependencySeamConfig::for_repo(&root);
 
         let report = validate_dependency_seam(&config).expect("report");
         assert_has_code(&report, "SEAM_SCOPE_UNPARSEABLE");
@@ -1163,9 +649,7 @@ mod tests {
               }
             }"#,
         );
-        let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![write_valid_evidence(&root, "CC-7")];
-        config.fixture_root = manifest_fixture_root();
+        let config = DependencySeamConfig::for_repo(&root);
 
         let report = validate_dependency_seam(&config).expect("report");
         assert_has_code(&report, "REGISTRY_ROW_MISSING");
@@ -1201,8 +685,6 @@ mod tests {
         let root = fixture_repo("offline-audit");
         write_valid_repo(&root);
         let mut config = DependencySeamConfig::for_repo(&root);
-        config.fixture_root = manifest_fixture_root();
-        config.evidence_paths = vec![write_valid_evidence(&root, "CC-7")];
         config.offline = true;
 
         let report = validate_dependency_seam(&config).expect("report");
@@ -1223,128 +705,6 @@ mod tests {
             vec!["audit", "--no-fetch", "--stale"]
         );
         assert_eq!(cargo_audit_args(false), vec!["audit", "--stale"]);
-    }
-
-    #[test]
-    fn multispectrum_evidence_reports_missing_required_facet() {
-        let root = fixture_repo("missing-facet");
-        write_valid_repo(&root);
-        let evidence = root.join("evidence/multispectrum/missing.json");
-        fs::create_dir_all(evidence.parent().expect("parent")).expect("evidence dir");
-        fs::write(
-            &evidence,
-            r#"{"change_id":"c","change_class_id":"CC-7","freshness_unix":1,"facets":{"F1_linus":{}}}"#,
-        )
-        .expect("evidence");
-        let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![evidence];
-        config.fixture_root = manifest_fixture_root();
-
-        let report = validate_dependency_seam(&config).expect("report");
-        assert_has_code(&report, "MULTISPECTRUM_REQUIRED_FACET_MISSING");
-        cleanup(&root);
-    }
-
-    #[test]
-    fn multispectrum_evidence_rejects_missing_git_sha_and_unreasoned_false_facet() {
-        let root = fixture_repo("bad-evidence-schema");
-        write_valid_repo(&root);
-        let evidence = root.join("evidence/multispectrum/bad-schema.json");
-        fs::create_dir_all(evidence.parent().expect("parent")).expect("evidence dir");
-        fs::write(
-            &evidence,
-            r#"{
-              "change_id":"c",
-              "change_class_id":"CC-2",
-              "freshness_unix":1700000000,
-              "facets":{
-                "F1_linus":{"considered":false,"rigor":"deep"},
-                "F2_hyperscaler":{"considered":true,"rigor":"deep"},
-                "F3_adversarial":{"considered":true,"rigor":"deep"},
-                "F4_ergonomic":{"considered":true,"rigor":"scan"},
-                "F5_quality":{"considered":true,"rigor":"deep"},
-                "F6_alternatives":{"considered":true,"rigor":"deep"},
-                "F7_security":{"considered":true,"rigor":"deep"},
-                "F8_performance":{"considered":true},
-                "F9_compliance":{"considered":true}
-              }
-            }"#,
-        )
-        .expect("evidence");
-        let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![evidence];
-        config.fixture_root = manifest_fixture_root();
-
-        let report = validate_dependency_seam(&config).expect("report");
-        assert_has_code(&report, "MULTISPECTRUM_GIT_SHA_MISSING");
-        assert_has_code(&report, "MULTISPECTRUM_NOT_APPLICABLE_REASON_MISSING");
-        cleanup(&root);
-    }
-
-    #[test]
-    fn change_class_declared_reports_absent_and_noncanonical_ids() {
-        let root = fixture_repo("bad-change-class");
-        write_valid_repo(&root);
-        let evidence_dir = root.join("evidence/multispectrum");
-        fs::create_dir_all(&evidence_dir).expect("evidence dir");
-        let missing = evidence_dir.join("missing.json");
-        let noncanonical = evidence_dir.join("noncanonical.json");
-        fs::write(
-            &missing,
-            r#"{"change_id":"c","freshness_unix":1,"facets":{"F1_linus":{}}}"#,
-        )
-        .expect("missing change class evidence");
-        fs::write(
-            &noncanonical,
-            r#"{"change_id":"c","change_class_id":"CC-99","freshness_unix":1,"facets":{"F1_linus":{}}}"#,
-        )
-        .expect("noncanonical change class evidence");
-        let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![missing, noncanonical];
-        config.fixture_root = manifest_fixture_root();
-
-        let report = validate_dependency_seam(&config).expect("report");
-        assert_has_code(&report, "CHANGE_CLASS_MISSING");
-        assert_has_code(&report, "CHANGE_CLASS_NONCANONICAL");
-        cleanup(&root);
-    }
-
-    #[test]
-    fn fixture_pair_coverage_passes_for_shipped_d13_fixtures() {
-        let root = fixture_repo("fixture-pair");
-        write_valid_repo(&root);
-        let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![write_valid_evidence(&root, "CC-7")];
-        config.fixture_root = manifest_fixture_root();
-
-        let report = validate_dependency_seam(&config).expect("report");
-        let fixture = report
-            .subchecks
-            .iter()
-            .find(|subcheck| subcheck.id == "fixture-pair-coverage")
-            .expect("fixture subcheck");
-        assert_eq!(fixture.status, SubcheckStatus::Pass);
-        cleanup(&root);
-    }
-
-    #[test]
-    fn fixture_pair_coverage_rejects_placeholder_dirs_without_manifest() {
-        let root = fixture_repo("placeholder-fixtures");
-        write_valid_repo(&root);
-        let fixture_root = root.join("fixtures");
-        for subcheck_id in D13_SUBCHECKS {
-            fs::create_dir_all(fixture_root.join(subcheck_id).join("passing"))
-                .expect("passing dir");
-            fs::create_dir_all(fixture_root.join(subcheck_id).join("failing"))
-                .expect("failing dir");
-        }
-        let mut config = DependencySeamConfig::for_repo(&root);
-        config.evidence_paths = vec![write_valid_evidence(&root, "CC-7")];
-        config.fixture_root = fixture_root;
-
-        let report = validate_dependency_seam(&config).expect("report");
-        assert_has_code(&report, "FIXTURE_PAIR_MANIFEST_INVALID");
-        cleanup(&root);
     }
 
     fn assert_has_code(report: &DependencySeamReport, code: &str) {
@@ -1370,10 +730,6 @@ mod tests {
 
     fn cleanup(root: &Path) {
         let _ = fs::remove_dir_all(root);
-    }
-
-    fn manifest_fixture_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures")
     }
 
     fn write_valid_repo(root: &Path) {
@@ -1431,34 +787,5 @@ mod tests {
         let registry = root.join("registry");
         fs::create_dir_all(&registry).expect("registry dir");
         fs::write(registry.join("dependency-rationales.json"), body).expect("registry");
-    }
-
-    fn write_valid_evidence(root: &Path, change_class: &str) -> PathBuf {
-        let path = root.join("evidence/multispectrum/valid.json");
-        fs::create_dir_all(path.parent().expect("parent")).expect("evidence dir");
-        fs::write(&path, valid_evidence_json(change_class)).expect("valid evidence");
-        path
-    }
-
-    fn valid_evidence_json(change_class: &str) -> String {
-        format!(
-            r#"{{
-  "change_id": "dependency-seam-test",
-  "change_class_id": "{change_class}",
-  "git_sha": "abcdef1",
-  "freshness_unix": 1700000000,
-  "facets": {{
-    "F1_linus": {{"considered": true, "rigor": "scan"}},
-    "F2_hyperscaler": {{"considered": true, "rigor": "scan"}},
-    "F3_adversarial": {{"considered": true, "rigor": "deep"}},
-    "F4_ergonomic": {{"considered": true, "rigor": "scan"}},
-    "F5_quality": {{"considered": true, "rigor": "scan"}},
-    "F6_alternatives": {{"considered": true, "rigor": "scan"}},
-    "F7_security": {{"considered": true, "rigor": "scan"}},
-    "F8_performance": {{"considered": true}},
-    "F9_compliance": {{"considered": true}}
-  }}
-}}"#
-        )
     }
 }

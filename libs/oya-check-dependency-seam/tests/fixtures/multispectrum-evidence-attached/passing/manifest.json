@@ -1,7 +1,0 @@
-{
-  "subcheck_id": "multispectrum-evidence-attached",
-  "fixture_kind": "passing",
-  "case_id": "multispectrum-evidence-attached-passing-semantic-fixture",
-  "expected_diagnostics": [],
-  "description": "Semantic passing fixture manifest for multispectrum-evidence-attached"
-}

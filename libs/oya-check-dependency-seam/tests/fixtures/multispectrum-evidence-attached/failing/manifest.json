@@ -1,9 +1,0 @@
-{
-  "subcheck_id": "multispectrum-evidence-attached",
-  "fixture_kind": "failing",
-  "case_id": "multispectrum-evidence-attached-failing-semantic-fixture",
-  "expected_diagnostics": [
-    "MULTISPECTRUM_GIT_SHA_MISSING"
-  ],
-  "description": "Semantic failing fixture manifest for multispectrum-evidence-attached"
-}

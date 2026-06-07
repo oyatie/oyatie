@@ -19,8 +19,7 @@ doc_status: published
 
 Accepted (2026-05-14). Codifies the dependency-seam discipline AND amends
 M01-P13-IP-002's original layer enum + ledger shape to align with the
-canonical 12-layer enum (ADR-0056 v4.1) and the multispectrum review bar
-(`docs/standards/multispectrum-review.md`).
+canonical 12-layer enum (ADR-0056 v4.1).
 
 ## Context
 
@@ -166,13 +165,15 @@ breaks. See ADR-0094 for the full rationale.
 
 The original IP's tech-debt ledger with state machine + trigger DSL +
 monotonic transition graph + cross-row predicate is REJECTED as
-speculative-complexity (multispectrum F1 + F2 + F6): no deps have been
+speculative-complexity: no deps have been
 removed; we'd build a control plane for transitions that haven't happened.
 
 When the 3rd dep phase-out is in flight, revisit; introduce trigger
 predicates as Rust functions inline at the lane crate, not as a DSL.
 
-### D13 — Seam-discipline lane (slimmed to 3 + 3)
+### D13 — Seam-discipline lane (3 mechanical sub-checks)
+
+(Amended per D-MULTISPECTRUM-RETIRED 2026-06-07: the 3 multispectrum-bar sub-checks were removed with the retired doctrine; the 3 mechanical seam sub-checks remain.)
 
 `oya-check-dependency-seam` (forthcoming) carries 3 mechanical sub-checks:
 
@@ -182,13 +183,6 @@ predicates as Rust functions inline at the lane crate, not as a DSL.
    `dependency-rationales.json` row; no orphan rows.
 3. `cargo-audit-shell`: `cargo audit` exits 0; CVE findings annotated.
 
-Plus 3 multispectrum-bar sub-checks per `docs/standards/multispectrum-review.md`:
-
-4. `multispectrum-evidence-attached`: per-changeset evidence bundle exists
-   and validates against `/specs/multispectrum-review.json#evidence_schema`.
-5. `fixture-pair-coverage`: every new lane sub-check ships with passing + failing fixtures.
-6. `change-class-declared`: changeset declares a canonical `change_class_id`.
-
 Severity: report-only on day 1; flips to error after one-week soak via cron.
 
 ### D14 — Soak + flip via cron, not session
@@ -197,19 +191,17 @@ The original IP's "30-day soak then flip to error" is a calendar event, not
 session work. A cron entry watches lane evidence; flips severity when the
 soak window elapses and the last N PRs are green.
 
-## Drivers (multispectrum review)
+## Drivers
 
-This ADR itself was authored under the multispectrum bar. Per-facet
-findings live in
-`/evidence/multispectrum/m-cc-p06-ip-002-final-1778801869.json`.
+The decisions above were driven by the following dependency-seam concerns:
 
-- **F1 Linus**: rejected the IP's 5-layer enum (special case contradicting ADR-0056); deleted the tech-debt ledger state machine (control plane before scale); identified + fixed the kernel-bytes leak as the root cause vs the symptomatic middleware-bytes cleanup.
-- **F2 Hyperscaler**: the seam reduces hyper-family cargo build graph for 5+ crates; the rationales overlay generates from `cargo metadata` instead of being hand-authored.
-- **F3 Adversarial**: every code change ships a failing-fixture variant — 189 tests across 12 suites including byte-equality boundary checks, dot-segment rejection, SSE injection sanitization, header CRLF strip, sensitive-capture-value exclusion.
-- **F4 Ergonomic**: new contributor adds a workspace dep in ~5 minutes (one row in rationales overlay vs the original IP's 8-field + DSL state).
-- **F5 Quality**: documented 5 quality issues NOT in scope as bounded FixupTasks (telemetry hot-lock, async chain for real cancellation, tenant-id internal/external split formalization, handler async variant, fixture-pair lane crate).
-- **F6 Alternatives**: 3 refactor options enumerated for the kernel rename; Option β (concrete Vec<u8>) selected over generic-body and enum-body for current-scale fit. Rejection reasons recorded.
-- **F7 Security**: 6 OWASP-DoS / data-integrity / correctness findings closed with adversarial fixtures (S3, S4 partial, S5, S6, S7, S8, S1, S2, S10).
+- **Architectural fit**: rejected the IP's 5-layer enum (special case contradicting ADR-0056); deleted the tech-debt ledger state machine (control plane before scale); identified + fixed the kernel-bytes leak as the root cause vs the symptomatic middleware-bytes cleanup.
+- **Build-graph cost**: the seam reduces hyper-family cargo build graph for 5+ crates; the rationales overlay generates from `cargo metadata` instead of being hand-authored.
+- **Adversarial coverage**: every code change ships a failing-fixture variant — 189 tests across 12 suites including byte-equality boundary checks, dot-segment rejection, SSE injection sanitization, header CRLF strip, sensitive-capture-value exclusion.
+- **Ergonomics**: new contributor adds a workspace dep in ~5 minutes (one row in rationales overlay vs the original IP's 8-field + DSL state).
+- **Quality scoping**: documented 5 quality issues NOT in scope as bounded FixupTasks (telemetry hot-lock, async chain for real cancellation, tenant-id internal/external split formalization, handler async variant, fixture-pair lane crate).
+- **Alternatives**: 3 refactor options enumerated for the kernel rename; Option β (concrete Vec<u8>) selected over generic-body and enum-body for current-scale fit. Rejection reasons recorded.
+- **Security**: 6 OWASP-DoS / data-integrity / correctness findings closed with adversarial fixtures (S3, S4 partial, S5, S6, S7, S8, S1, S2, S10).
 
 ## Consequences
 
@@ -218,7 +210,6 @@ findings live in
 - Single canonical HTTP backbone in one isolatable crate.
 - Adding/removing a workspace dep is a 1-row JSON change instead of a state-machine workflow.
 - Security gaps that pre-existed in the http-* foundation are closed with adversarial fixtures (DoS, injection, traversal, header-smuggling, label-injection).
-- The multispectrum review bar (`docs/standards/multispectrum-review.md`) gets its first end-to-end exercise.
 
 ### Negative
 
@@ -232,7 +223,7 @@ findings live in
 |---|---|---|
 | A — IP-002 as written (5-layer enum, ledger state machine, mass Cargo.toml metadata insert) | Honors the IP literally | Conflicts with ADR-0056 v4.1 canonical enum; over-engineers a control plane for a non-existent scale; treats kernel-bytes symptom not root cause |
 | B — Slimmed slice (this ADR's predecessor proposal) | Type rename + body Vec<u8> + crate renames; defer quality + security | Leaves S3 / S4 / S5 / S6 / S7 / S8 security gaps; leaves Q1-Q5 quality issues |
-| C (selected) — Full quality bar | All of B + Q1-Q5 fixes + S1-S10 fixes + multispectrum enforcement | Multi-day; user authorized 2026-05-14 |
+| C (selected) — Full quality bar | All of B + Q1-Q5 fixes + S1-S10 fixes | Multi-day; user authorized 2026-05-14 |
 
 ## Why the original IP-002 may have been right (acknowledged-but-scheduled-for-distinct-tracked-work)
 
@@ -330,7 +321,7 @@ Even at all-triggers-fired conditions, three findings from the amendment survive
 - **F-TENANTID-FORMAL**: formalize the distinction between `TenantId` (internal canonical, `ten_xxx`) and `TenantSlug` (customer-facing) in PRD-tenancy.
 - **F-SEC-S4-INTEGRATION**: real slowloris integration test requires a hyper client harness; defer to integration-test phase.
 - **F-DRI-CODEOWNERS**: generate CODEOWNERS from `[package.metadata.oya.owner_team]` instead of maintaining a parallel `dri.json` (rejected in this IP).
-- **F-LOOP-EXHAUSTED-N**: track any multispectrum iterative-fix-loop that hits the iteration budget.
+- **F-LOOP-EXHAUSTED-N**: track any iterative-fix-loop that hits the iteration budget.
 - **F-STEP8-READYZ**: no /readyz endpoint exists in the workspace today; the original IP-002 Step 8 ReadinessGate test becomes a FixupTask when the endpoint lands.
 
 ## References
@@ -343,8 +334,5 @@ Even at all-triggers-fired conditions, three findings from the amendment survive
 - ADR-0093 (LatencyBudgetReporter rename + async-chain deferral)
 - ADR-0094 (Handler trait + associated Error type)
 - ADR-0095 (TenantSlug centralization in oya-tenancy-kernel)
-- `docs/standards/multispectrum-review.md` (the review bar applied to this ADR)
-- `/specs/multispectrum-review.json` (machine-readable mirror)
 - `/specs/iterative-fix-loop.json` (loop protocol)
 - `/registry/dependency-rationales.json` (data plane for D12 + D13)
-- `/templates/checklists/pre-pr-multispectrum.md` (pre-PR gate)

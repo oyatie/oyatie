@@ -1,7 +1,0 @@
-{
-  "subcheck_id": "change-class-declared",
-  "fixture_kind": "passing",
-  "case_id": "change-class-declared-passing-semantic-fixture",
-  "expected_diagnostics": [],
-  "description": "Semantic passing fixture manifest for change-class-declared"
-}

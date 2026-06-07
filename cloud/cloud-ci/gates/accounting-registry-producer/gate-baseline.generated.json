@@ -4,7 +4,7 @@
     "baseline_schema_version": 1,
     "firewall_target": "//cloud/cloud-ci/gates:cloud-ci-firewall",
     "producer_target": "//cloud/cloud-ci/gates:accounting-registry-producer",
-    "source_inputs_digest": "fnv1a64:2fa4e4b658228bb8"
+    "source_inputs_digest": "fnv1a64:5f4dc02c85ceffbc"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -6334,12 +6334,6 @@
           "libs/oya-check-dependency-seam/src/lib.rs",
           "libs/oya-check-dependency-seam/tests/fixtures/cargo-audit-shell/failing/manifest.json",
           "libs/oya-check-dependency-seam/tests/fixtures/cargo-audit-shell/passing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/change-class-declared/failing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/change-class-declared/passing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/fixture-pair-coverage/failing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/fixture-pair-coverage/passing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/multispectrum-evidence-attached/failing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/multispectrum-evidence-attached/passing/manifest.json",
           "libs/oya-check-dependency-seam/tests/fixtures/registry-coverage/failing/manifest.json",
           "libs/oya-check-dependency-seam/tests/fixtures/registry-coverage/passing/manifest.json",
           "libs/oya-check-dependency-seam/tests/fixtures/seam-imports/failing/manifest.json",
@@ -29606,12 +29600,6 @@
           "libs/oya-check-dependency-seam/src/lib.rs",
           "libs/oya-check-dependency-seam/tests/fixtures/cargo-audit-shell/failing/manifest.json",
           "libs/oya-check-dependency-seam/tests/fixtures/cargo-audit-shell/passing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/change-class-declared/failing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/change-class-declared/passing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/fixture-pair-coverage/failing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/fixture-pair-coverage/passing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/multispectrum-evidence-attached/failing/manifest.json",
-          "libs/oya-check-dependency-seam/tests/fixtures/multispectrum-evidence-attached/passing/manifest.json",
           "libs/oya-check-dependency-seam/tests/fixtures/registry-coverage/failing/manifest.json",
           "libs/oya-check-dependency-seam/tests/fixtures/registry-coverage/passing/manifest.json",
           "libs/oya-check-dependency-seam/tests/fixtures/seam-imports/failing/manifest.json",
