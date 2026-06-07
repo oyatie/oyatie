@@ -1,12 +1,12 @@
 ---
 adr_id: ADR-0124
 title: Own merge-queue policy — webhook-driven, GitHub-merge-queue-free
-status: accepted
+status: Superseded
 date: 2026-05-17
 owner: jason931225
 deciders: jason931225
 supersedes: none
-superseded_by: none
+superseded_by: [ADR-0515]
 related:
   - ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
   - ADR-0112-webhook-driven-foundry-agent-invocation.md
@@ -15,6 +15,10 @@ related:
 ---
 
 # ADR-0124: Own merge-queue policy — webhook-driven, GitHub-merge-queue-free
+
+## Status
+
+Superseded by ADR-0515 (unified Rust-native CI/CD) — 2026-06-06: merge-queue intent + the 20-row blocker taxonomy fold into oya-ci Tide; file-overlap clustering → graph-exact conflicts(a,b).
 
 ## Context
 

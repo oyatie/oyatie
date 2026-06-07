@@ -1,6 +1,7 @@
 ---
 id: ADR-0513
-status: Accepted
+status: Superseded
+superseded_by: [ADR-0515]
 planning_impact: true
 date: 2026-05-30
 owners:
@@ -27,6 +28,8 @@ gateway as the `hook`; on the ADR-0363 Forgejo substrate; builds on ADR-0392 (Bu
 **Amendment — 2026-06-02:** Tide/merge-queue is not an optional deferred adoption. It is owned here, in cloud-ci/oya-ci,
 with Phase 0 placing the admission contract and Phase 1 scaling projected-state/batch automation. `oya` CLI invocations
 are not CI authority; their semantics must be ported into Rust cloud-ci gate crates/adapters.
+
+**Superseded — 2026-06-06:** Reshaped + ratified by ADR-0515 — 2026-06-06: the bespoke-Rust instinct is the seed; the 'clone Prow's 8 components' framing is superseded by the two-nouns/four-faces model. Authority moves to ADR-0515.
 
 ## Date
 

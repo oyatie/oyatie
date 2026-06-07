@@ -6,7 +6,7 @@ date: 2026-05-25
 owners:
   - council-architecture
 supersedes: []
-superseded_by: [ADR-0511]
+superseded_by: [ADR-0515]
 amends:
   - ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 ---
@@ -14,7 +14,7 @@ amends:
 
 ## Status
 
-Proposed — 2026-05-25.
+Superseded by ADR-0515 — 2026-06-06 (the anti-GHA-SPOF verdict is retained in ADR-0515).
 
 ## Date
 

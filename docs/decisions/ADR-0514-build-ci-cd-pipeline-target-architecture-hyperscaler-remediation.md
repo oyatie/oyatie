@@ -1,11 +1,11 @@
 ---
 id: ADR-0514
-status: Proposed
+status: Superseded
 deciders: council-architecture, founder
 date: 2026-05-31
 owner: council-architecture
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0515]
 related:
   - ADR-0513
   - ADR-0381
@@ -64,7 +64,7 @@ deliverables:
 
 ## Status
 
-Proposed — 2026-05-31.
+Superseded by ADR-0515 — 2026-06-06: D1–D6 deliverables re-homed onto ADR-0515's Phase-1 deliverable list (nothing lost).
 
 ## Context
 
