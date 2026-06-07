@@ -31,7 +31,7 @@ const EXPECTED_CLOSED_STATUS_FIELD_COUNT: u64 = 177;
 const EXPECTED_VERTICAL_ADR_PATH: &str = "docs/decisions/ADR-0217-vertical-slice-rollout-order.md";
 const EXPECTED_KR_PACK_OVERVIEW_PATH: &str = "docs/localization-packs/kr.md";
 const EXPECTED_KR_PACK_MANIFEST_PATH: &str = "docs/localization-packs/kr/pack.yaml";
-const EXPECTED_KR_REGIONAL_PACK_PATH: &str = "docs/regional-packs/oya-pack-kr/PACK.md";
+const EXPECTED_KR_REGIONAL_PACK_PATH: &str = "packs/kr/sovereignty/manifest.json";
 
 const REQUIRED_ROOT_HUB_DIRECT_AUTHORITY_POINTERS: &[(&str, &str, &str)] = &[
     (

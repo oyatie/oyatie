@@ -238,8 +238,8 @@
       "scope": "aggregation indices and append-only ledgers (promotion-eligibility.jsonl, changeset state, etc.). Per-crate catalog rows live at microservices/<ms>/catalog/; registry/catalog/ becomes a generated aggregation."
     },
     {
-      "path": "regional-packs/",
-      "scope": "regional packs span multiple microservices; retained as cross-cutting per ADR-0131 open question 3"
+      "path": "packs/",
+      "scope": "per-jurisdiction packs span multiple microservices; unified under packs/<jurisdiction>/{localization,compliance,sovereignty}/ per F-0016 consolidation; retained as cross-cutting"
     },
     {
       "path": "evidence/",
@@ -462,9 +462,9 @@
     },
     {
       "id": "Q-003",
-      "question": "regional-packs/ interaction with this layout?",
-      "default": "regional packs span multiple microservices; retain as cross-cutting at regional-packs/",
-      "resolution": "ADR-#### if rule changes"
+      "question": "packs/ interaction with this layout?",
+      "default": "per-jurisdiction packs span multiple microservices; unified under packs/<jurisdiction>/{localization,compliance,sovereignty}/ per F-0016 consolidation",
+      "resolution": "Resolved by F-0016 consolidation — regional-packs/ and packs/<j>-localization/ collapsed into packs/<jurisdiction>/"
     }
   ]
 }

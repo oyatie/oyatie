@@ -228,7 +228,7 @@
       "id": "oya-pack-kr",
       "region": "South Korea",
       "status": "draft (full content)",
-      "pack_path": "docs/regional-packs/oya-pack-kr/PACK.md",
+      "pack_path": "packs/kr/sovereignty/manifest.json",
       "wave_first_onboarding": "W-Cloud-Preview"
     },
     {

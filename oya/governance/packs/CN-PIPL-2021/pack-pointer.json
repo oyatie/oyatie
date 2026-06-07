@@ -5,10 +5,10 @@
     "wave": "Wave-3-A",
     "created_at": "2026-05-20T00:00:00Z",
     "created_by": "wave-3-a-cross-reference-wiring-agent",
-    "note": "Registry mirror pointer for the CN-PIPL-2021 compliance pack. The canonical pack manifest lives at packs/cn-pipl/manifest.json (Wave-1+2 output). This pointer registers the pack in the governance microservice's pack-registry directory so the governance µservice can enumerate active packs via its registry scan without reading the global packs/ tree directly. Pattern: every compliance pack that activates governance-µservice Cedar fragments (consent-gating, DSAR-response, cross-border-transfer-gating) MUST have a registry mirror entry here."
+    "note": "Registry mirror pointer for the CN-PIPL-2021 compliance pack. The canonical pack manifest lives at packs/cn/compliance/manifest.json (Wave-1+2 output). This pointer registers the pack in the governance microservice's pack-registry directory so the governance µservice can enumerate active packs via its registry scan without reading the global packs/ tree directly. Pattern: every compliance pack that activates governance-µservice Cedar fragments (consent-gating, DSAR-response, cross-border-transfer-gating) MUST have a registry mirror entry here."
   },
   "pack_id": "CN-PIPL-2021",
-  "canonical_manifest_path": "packs/cn-pipl/manifest.json",
+  "canonical_manifest_path": "packs/cn/compliance/manifest.json",
   "version": "1.0.0",
   "jurisdiction_overlay": ["CN"],
   "governance_fragments": [

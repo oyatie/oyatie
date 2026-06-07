@@ -692,7 +692,7 @@ fn mobile_native_gate_accepts_native_product_with_quality_evidence() {
         .expect("native marker written");
     let manifest = write_mobile_native_manifest(
         &temp,
-        "workspace-mail-mobile\tworkspace\tnative-in-scope\tdocs/products/workspace/PRD.md#mail\tdocs/products/workspace/mobile.md#target-matrix\tdocs/products/workspace/mobile.md#tech-stack\tdocs/regional-packs/kr.md#store-policy\ttrue\tartifact://mobile/workspace-mail/accessibility.json\ttrue\tartifact://mobile/workspace-mail/parity.json\ttrue\tartifact://mobile/workspace-mail/sbom.spdx.json\t0\t9950\t20\t2000\n",
+        "workspace-mail-mobile\tworkspace\tnative-in-scope\tdocs/products/workspace/PRD.md#mail\tdocs/products/workspace/mobile.md#target-matrix\tdocs/products/workspace/mobile.md#tech-stack\tpacks/kr/localization/README.md#store-policy\ttrue\tartifact://mobile/workspace-mail/accessibility.json\ttrue\tartifact://mobile/workspace-mail/parity.json\ttrue\tartifact://mobile/workspace-mail/sbom.spdx.json\t0\t9950\t20\t2000\n",
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))

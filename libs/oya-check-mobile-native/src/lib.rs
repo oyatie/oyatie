@@ -461,7 +461,7 @@ mod tests {
             canonical_web_reference: "docs/products/workspace/PRD.md#mail".into(),
             target_matrix_ref: "docs/products/workspace/mobile.md#target-matrix".into(),
             tech_stack_rationale_ref: "docs/products/workspace/mobile.md#tech-stack".into(),
-            store_policy_ref: "docs/regional-packs/kr.md#mobile-store-policy".into(),
+            store_policy_ref: "packs/kr/localization/README.md#mobile-store-policy".into(),
             store_policy_validator_passed: true,
             accessibility_audit_ref: "artifact://mobile/workspace-mail/accessibility.json".into(),
             accessibility_audit_passed: true,

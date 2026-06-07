@@ -636,7 +636,7 @@
     "regional-pack-kr": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-kr/"
+        "packs/kr/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -646,7 +646,7 @@
     "regional-pack-jp": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-jp/"
+        "packs/jp/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -656,7 +656,7 @@
     "regional-pack-us": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-us/"
+        "packs/us/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -666,7 +666,7 @@
     "regional-pack-eu": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-eu/"
+        "packs/eu/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -676,7 +676,7 @@
     "regional-pack-in": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-in/"
+        "packs/in/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -686,7 +686,7 @@
     "regional-pack-br": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-br/"
+        "packs/br/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -696,7 +696,7 @@
     "regional-pack-ksa": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-ksa/"
+        "packs/ksa/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -706,7 +706,7 @@
     "regional-pack-ae": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-ae/"
+        "packs/ae/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -716,7 +716,7 @@
     "regional-pack-au": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-au/"
+        "packs/au/"
       ],
       "depends_on": [
         "regional-pack-architecture"
@@ -726,7 +726,7 @@
     "regional-pack-sg": {
       "fanout": 5,
       "shared_writes": [
-        "regional-packs/oya-pack-sg/"
+        "packs/sg/"
       ],
       "depends_on": [
         "regional-pack-architecture"
