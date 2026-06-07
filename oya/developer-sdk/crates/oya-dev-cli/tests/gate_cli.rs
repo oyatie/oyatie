@@ -8451,7 +8451,7 @@ fn aac_capabilities(
 fn active_artifact_contract_repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
-        .nth(2)
+        .nth(4)
         .expect("repo root")
         .to_path_buf()
 }
