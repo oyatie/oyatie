@@ -1,0 +1,362 @@
+{
+  "bespoke_destination": {
+    "accepted_adr": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+    "cutover_status": "pending_parallel_green_and_delete_jenkins_gate_path",
+    "must_not_claim": [
+      "controller is live default",
+      "Jenkins has been retired",
+      "Argo Workflows is live",
+      "branch protection has been cut over to controller-produced contexts",
+      "production gate is green"
+    ],
+    "not_live_default_reason": "Gateway configuration defaults to DispatcherKind::Jenkins and the checked-in Helm deployment only sets OYA_JENKINS_DISPATCH_URL; no checked-in Helm default selects OYA_CI_DISPATCHER=controller or sets OYA_CI_CONTROLLER_URL.",
+    "phase_1_controller": "oya-ci-controller",
+    "platform": "oya-ci bespoke Rust Prow-shaped platform"
+  },
+  "contradictions_and_resolution": [
+    {
+      "classification": "active_bridge_plus_accepted_destination",
+      "conflict": "ADR-0363 and current gateway/Helm source show Jenkins as the active bridge; ADR-0513 accepts bespoke oya-ci as the destination.",
+      "id": "jenkins_bridge_vs_bespoke_destination",
+      "resolution": "Keep Jenkins bridge until ADR-0513 Phase 1 parallel-run/cutover gates pass; encode no-delete-now guard.",
+      "status": "open_migration_debt"
+    },
+    {
+      "classification": "proposed_superseded_by_accepted_founder_locked_direction",
+      "conflict": "ADR-0511 proposed Argo Workflows as the CI destination; ADR-0513 later accepted the bespoke Rust Prow-shaped oya-ci platform.",
+      "id": "argo_workflows_proposed_vs_bespoke_accepted",
+      "resolution": "Treat ADR-0513 Accepted as controlling for this lane; preserve ADR-0511 only as historical/proposed evidence.",
+      "status": "resolved_for_g007_planning"
+    },
+    {
+      "classification": "source_exists_but_not_selected",
+      "conflict": "Controller source and chart exist, but gateway defaults and Helm values still dispatch to Jenkins.",
+      "id": "controller_opt_in_not_default",
+      "resolution": "Do not claim custom CI live default until Helm and runtime cutover select controller and produce required statuses.",
+      "status": "open_cutover_blocker"
+    },
+    {
+      "classification": "known_security_gap_in_bridge",
+      "conflict": "ADR-0514 flags the bridge script execution path as PR-controllable even though the Jenkinsfile is trunk-sourced.",
+      "id": "pr_sourced_gate_security_open",
+      "resolution": "Controller Job must clone dev as trusted source and treat PR ref as data before bridge deletion.",
+      "status": "open_p0_blocker"
+    },
+    {
+      "classification": "active_bridge_context_not_branch_protection_context",
+      "conflict": "The gateway-dispatched Jenkins bridge posts Forgejo status context oya-ci-gate, but dev branch protection requires cargo-fmt/cargo-check/cargo-clippy/cargo-nextest/cargo-deny/oya-verify and reported-status metadata does not list oya-ci-gate.",
+      "id": "bridge_status_context_not_required_or_reported",
+      "resolution": "Treat oya-ci-gate as bridge dispatch evidence, not merge-readiness proof; controller cutover must reconcile the actual posted contexts with branch protection and producer metadata in one reviewed slice.",
+      "status": "open_status_context_blocker"
+    },
+    {
+      "classification": "producer_and_bridge_context_contract_drift",
+      "conflict": "dev branch protection requires six contexts; Jenkins reported-status metadata lists those six plus additional governance/review contexts; the gateway-dispatched bridge Jenkinsfile itself posts oya-ci-gate, a seventh bridge context that is not required or declared in reported metadata.",
+      "id": "required_context_surface_drift",
+      "resolution": "Cutover must reconcile required contexts, actual bridge/controller posted contexts, and status producer metadata in one reviewed slice.",
+      "status": "open_hygiene_blocker"
+    },
+    {
+      "classification": "legacy_metadata_names_missing_and_wrong_sink_producer",
+      "conflict": "infra/ci/jenkins/reported-status-contexts.json describes GitHub status-check contexts via a Jenkins GitHub App and names producer infra/ci/Jenkinsfile + shared-library, but infra/ci/Jenkinsfile is absent while the checked active bridge path posts Forgejo status from infra/ci/jenkins/Jenkinsfile-oya-ci-gate.",
+      "id": "reported_status_metadata_legacy_github_producer_drift",
+      "resolution": "Treat reported-status metadata as drifted producer-contract evidence only; cutover must rename sink semantics to Forgejo, point producers at existing files, and reconcile oya-ci-gate versus required contexts.",
+      "status": "open_metadata_hygiene_blocker"
+    },
+    {
+      "classification": "bootstrap_host_split_between_branch_protection_and_target_status_sink",
+      "conflict": "G007 current-live path discusses Forgejo PR webhook and Forgejo Commit Status API, but infra/branch-protection/dev.json mirrors GitHub branch-protection REST API, .github/branch-protection.yaml says github.com/jason931225/oyatie is deployed, and scripts/branch-protection-apply.sh uses gh api for required_status_checks.",
+      "id": "branch_protection_github_bootstrap_vs_forgejo_status_sink",
+      "resolution": "Preserve ADR-0363 nuance: GitHub is still the bootstrap branch-protection host while self-hosted Forgejo is the target; do not claim fully Forgejo-hosted branch protection until host cutover evidence exists.",
+      "status": "open_bootstrap_host_split"
+    },
+    {
+      "classification": "documentation_hygiene_debt",
+      "conflict": "root Jenkinsfile comments mention microservices/<ms>/ci/Jenkinsfile while the active gateway-dispatched bridge evidence is the JCasC-wired infra/ci/jenkins/Jenkinsfile-oya-ci-gate path.",
+      "id": "root_jenkinsfile_path_comment_drift",
+      "resolution": "Treat the root Jenkinsfile as a stale Jenkins-surface hygiene item only; active-bridge claims must cite infra/ci/jenkins/Jenkinsfile-oya-ci-gate and JCasC.",
+      "status": "open_hygiene_debt"
+    }
+  ],
+  "current_live_path": {
+    "active_orchestrator": "jenkins_bridge",
+    "branch_protection_host_drift": {
+      "branch_protection_apply_surface": "scripts/branch-protection-apply.sh uses gh api repos/.../branches/.../protection/required_status_checks",
+      "branch_protection_spec_host": "github_bootstrap_host",
+      "forgejo_target_host_source": "ADR-0363 says self-hosted Forgejo is target while GitHub remains bootstrap host until cutover",
+      "reconciliation_status": "open_bootstrap_host_split",
+      "status_sink_claim_for_bridge": "Forgejo Commit Status API"
+    },
+    "branch_protection_required_contexts": [
+      "cargo-fmt",
+      "cargo-check",
+      "cargo-clippy",
+      "cargo-nextest",
+      "cargo-deny",
+      "oya-verify"
+    ],
+    "bridge_context_declared_in_reported_status_metadata": false,
+    "bridge_context_required_by_dev_branch_protection": false,
+    "bridge_posted_status_contexts": [
+      "oya-ci-gate"
+    ],
+    "classification": "jenkins_bridge_active_bespoke_controller_opt_in",
+    "default_dispatcher_evidence": {
+      "controller_dispatcher": "available_opt_in_only",
+      "dispatcher_default": "jenkins",
+      "helm_sets_controller_dispatcher": false,
+      "helm_sets_controller_url": false,
+      "helm_sets_jenkins_url": true
+    },
+    "reported_status_metadata_drift": {
+      "actual_bridge_producer": "infra/ci/jenkins/Jenkinsfile-oya-ci-gate",
+      "declared_missing_producer": "infra/ci/Jenkinsfile",
+      "declared_missing_producer_exists": false,
+      "legacy_sink_wording_present": true,
+      "metadata_file": "infra/ci/jenkins/reported-status-contexts.json",
+      "reconciliation_status": "open_metadata_hygiene_blocker"
+    },
+    "safe_answer_to_jenkinsfile_question": "The infra/ci/jenkins/Jenkinsfile-oya-ci-gate bridge is source-wired through JCasC and gateway defaults. The root Jenkinsfile is a separate stale Jenkins-surface hygiene item; do not use it as proof of the gateway-dispatched active bridge.",
+    "status_context_reconciliation_note": "The gateway-dispatched Jenkins bridge posts only the oya-ci-gate context; dev branch protection currently requires cargo-fmt, cargo-check, cargo-clippy, cargo-nextest, cargo-deny, and oya-verify; reported-status metadata covers those six plus additional governance/review contexts but does not declare oya-ci-gate. This is active migration debt, not proof that Jenkins is unused.",
+    "status_sink": "Forgejo Commit Status API",
+    "trigger_chain": [
+      "Forgejo PR webhook",
+      "oya-ci-webhook-gateway",
+      "Jenkins generic-webhook-trigger token=oya-ci-gate",
+      "infra/ci/jenkins/Jenkinsfile-oya-ci-gate",
+      "infra/ci/buck2-affected-gate.sh origin/dev",
+      "Forgejo commit status context oya-ci-gate"
+    ]
+  },
+  "jenkins_retirement_gate": {
+    "current_verdict": "retain_as_bridge",
+    "delete_allowed_now": false,
+    "required_before_deletion": [
+      "Gateway Helm values select OYA_CI_DISPATCHER=controller and set OYA_CI_CONTROLLER_URL for the deployed self-hosted path.",
+      "Controller creates per-PR K8s gate Jobs from trusted dev source while treating the PR ref as data.",
+      "Controller posts every required Forgejo status context, or branch-protection required-context specs are updated with producers in the same reviewed cutover.",
+      "Bridge-only oya-ci-gate context is either promoted into the required-context contract with a producer declaration or replaced by controller-produced required contexts.",
+      "Parallel-run evidence shows Jenkins bridge and controller gate green on the same PR set without admin bypass.",
+      "A mutation test proves PR-sourced changes cannot weaken or bypass the controller gate command.",
+      "Structured failure summary is posted without kubectl exec or Jenkins console dependency.",
+      "reported-status metadata no longer names GitHub/Jenkins-App sink semantics or missing infra/ci/Jenkinsfile producers.",
+      "GitHub-bootstrap branch-protection apply surface is either retired after Forgejo host cutover or explicitly reconciled with Forgejo status sink semantics.",
+      "Status-context drift between infra/branch-protection/dev.json, .github/branch-protection.yaml, and producer metadata is reconciled.",
+      "Jenkins bridge deletion happens in the same reviewed cutover slice that proves the replacement and preserves rollback notes."
+    ]
+  },
+  "purpose": "Capture volatile current repository topology evidence backing the G007 stable reconciliation contract. Exact paths, snippets, host wording, and drift rows live here intentionally; update this snapshot when CI/branch-protection topology changes.",
+  "snapshot_boundary": "volatile_current_repository_topology_not_stable_contract",
+  "snapshot_id": "EXE-CLOUD-DOGFOOD-CI-TOOLCHAIN-LANE-EVIDENCE-SNAPSHOT",
+  "source_evidence": [
+    {
+      "id": "adr-0363-current-substrate",
+      "path": "docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+      "required_snippets": [
+        "status: Accepted",
+        "git + Jenkins + self-hosted Forgejo",
+        "**External-CI gating**: Jenkins posts commit statuses via Forgejo's Commit Status API"
+      ],
+      "role": "historical/current substrate decision",
+      "status": "Accepted"
+    },
+    {
+      "id": "adr-0511-argo-proposed",
+      "path": "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+      "required_snippets": [
+        "status: Proposed",
+        "Jenkins is the transitory bootstrap",
+        "Argo Workflows is the destination"
+      ],
+      "role": "superseded/proposed Argo destination context",
+      "status": "Proposed"
+    },
+    {
+      "id": "adr-0513-accepted-bespoke-oya-ci",
+      "path": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+      "required_snippets": [
+        "status: Accepted",
+        "Jenkins remains a hardened BRIDGE meanwhile",
+        "Build **`oya-ci`**: a bespoke-Rust, Forgejo-native, K8s-native",
+        "cut over and **delete the Jenkins gate path**"
+      ],
+      "role": "accepted bespoke oya-ci destination",
+      "status": "Accepted"
+    },
+    {
+      "id": "adr-0514-target-architecture-open-p0s",
+      "path": "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
+      "required_snippets": [
+        "status: Proposed",
+        "PR-sourced gate security hole",
+        "ControllerDispatcher wiring + cutover from Jenkins to deployed oya-ci-controller",
+        "parallel-run both gates green; Jenkins gate path deleted"
+      ],
+      "role": "open target-architecture blockers",
+      "status": "Proposed"
+    },
+    {
+      "id": "jenkins-jcasc-bridge-job",
+      "path": "infra/ci/jenkins/values-local.yaml",
+      "required_snippets": [
+        "pipelineJob('oya-ci-gate')",
+        "genericTrigger",
+        "scriptPath('infra/ci/jenkins/Jenkinsfile-oya-ci-gate')"
+      ],
+      "role": "Jenkins job definition still references the bridge Jenkinsfile",
+      "status": "wired-source"
+    },
+    {
+      "id": "jenkins-bridge-pipeline-body",
+      "path": "infra/ci/jenkins/Jenkinsfile-oya-ci-gate",
+      "required_snippets": [
+        "oya-ci-gate pipeline body",
+        "postForgejoStatus('pending'",
+        "infra/ci/buck2-affected-gate.sh origin/dev",
+        "postForgejoStatus('success'",
+        "\"context\":\"oya-ci-gate\""
+      ],
+      "role": "active bridge pipeline posts Forgejo status and invokes Buck2 gate",
+      "status": "wired-source"
+    },
+    {
+      "id": "buck2-affected-gate",
+      "path": "infra/ci/buck2-affected-gate.sh",
+      "required_snippets": [
+        "Usage:  buck2-affected-gate.sh <base-ref> [head-ref]",
+        "Jenkins bridge path",
+        "\"$BUCK2\" build",
+        "\"$BUCK2\" test"
+      ],
+      "role": "bridge/controller shared affected build/test gate",
+      "status": "wired-source"
+    },
+    {
+      "id": "gateway-default-dispatcher",
+      "path": "oya/ci-webhook-gateway/src/config.rs",
+      "required_snippets": [
+        "Default is `Jenkins`",
+        "OYA_CI_DISPATCHER=controller",
+        "DispatcherKind::Jenkins",
+        "unwrap_or(DispatcherKind::Jenkins)"
+      ],
+      "role": "gateway defaults to Jenkins unless controller is explicitly selected",
+      "status": "wired-source"
+    },
+    {
+      "id": "gateway-helm-deployment-defaults",
+      "path": "oya/ci-webhook-gateway/iac/k8s/helm/templates/deployment.yaml",
+      "required_snippets": [
+        "OYA_JENKINS_DISPATCH_URL",
+        ".Values.jenkins.dispatchUrl",
+        "OYA_FORGEJO_WEBHOOK_SECRET"
+      ],
+      "role": "gateway Helm template wires Jenkins URL, not controller dispatcher env",
+      "status": "wired-source"
+    },
+    {
+      "id": "gateway-helm-values-jenkins-url",
+      "path": "oya/ci-webhook-gateway/iac/k8s/helm/values.yaml",
+      "required_snippets": [
+        "jenkins:",
+        "dispatchUrl:",
+        "oya-jenkins.oya-ci-jenkins.svc.cluster.local"
+      ],
+      "role": "gateway values point at in-cluster Jenkins service",
+      "status": "wired-source"
+    },
+    {
+      "id": "bespoke-controller-chart",
+      "path": "oya/ci-controller/iac/k8s/helm/Chart.yaml",
+      "required_snippets": [
+        "name: oya-ci-controller",
+        "bespoke-Prow plank+crier",
+        "spawns K8s gate Jobs and posts Forgejo commit-statuses"
+      ],
+      "role": "bespoke controller exists as source artifact",
+      "status": "wired-source"
+    },
+    {
+      "id": "bespoke-controller-app",
+      "path": "oya/ci-controller/crates/oya-ci-controller-app/src/lib.rs",
+      "required_snippets": [
+        "POST /gate-run",
+        "Job name is deterministic",
+        "409 create-conflict no-op",
+        "posts Forgejo statuses"
+      ],
+      "role": "controller /gate-run implementation exists",
+      "status": "wired-source"
+    },
+    {
+      "id": "bespoke-controller-kernel",
+      "path": "oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs",
+      "required_snippets": [
+        "No I/O, no async, no kube, no tokio",
+        "#![forbid(unsafe_code)]",
+        "pub enum ForgejoState",
+        "pub struct GateRun"
+      ],
+      "role": "pure controller domain kernel exists",
+      "status": "wired-source"
+    },
+    {
+      "id": "dev-branch-protection-contexts",
+      "path": "infra/branch-protection/dev.json",
+      "required_snippets": [
+        "cargo-fmt",
+        "cargo-check",
+        "oya-verify"
+      ],
+      "role": "current required status contexts for dev",
+      "status": "wired-source"
+    },
+    {
+      "id": "github-branch-protection-commentary",
+      "path": ".github/branch-protection.yaml",
+      "required_snippets": [
+        "Jenkins/Forgejo bridge",
+        "oya-pr-review is intentionally ABSENT",
+        "required_status_checks:"
+      ],
+      "role": "human-readable branch-protection source says Jenkins/Forgejo bridge",
+      "status": "wired-source"
+    },
+    {
+      "id": "jenkins-reported-context-drift-source",
+      "path": "infra/ci/jenkins/reported-status-contexts.json",
+      "required_snippets": [
+        "reported_status_contexts",
+        "oya-pr-review",
+        "oya-governance-protection-context-match"
+      ],
+      "role": "producer-side context list is broader than dev branch protection",
+      "status": "wired-source"
+    },
+    {
+      "id": "root-jenkinsfile-hygiene-surface",
+      "path": "Jenkinsfile",
+      "required_snippets": [
+        "@Library('oya-jenkins-shared') _",
+        "oyaCiLane(service: 'repo')",
+        "microservices/<ms>/ci/Jenkinsfile"
+      ],
+      "role": "root Jenkinsfile hygiene/stale-comment surface; not source evidence for the gateway-dispatched active bridge",
+      "status": "hygiene-debt-source"
+    },
+    {
+      "id": "branch-protection-apply-github-bootstrap",
+      "path": "scripts/branch-protection-apply.sh",
+      "required_snippets": [
+        "Synchronize GitHub required status-check protection with infra/branch-protection/dev.json.",
+        "uses gh CLI auth or GH_TOKEN",
+        "protection/required_status_checks"
+      ],
+      "role": "branch-protection apply/check script still targets GitHub REST API during bootstrap host phase",
+      "status": "wired-source"
+    }
+  ],
+  "status": "Current-repo-snapshot",
+  "story_id": "G007-dogfood-ci-toolchain-lane-reconcilia",
+  "title": "Current repository evidence snapshot for Oyatie Cloud dogfood CI/toolchain lane"
+}

@@ -7,6 +7,11 @@ doc_status: published
 # ADR-0010: Regional pack architecture — canonical seams + per-locale plug-ins for regulatory, compliance, i18n, currency, calendar, tax, identity, payment, address, ecosystem partners, content safety, ad policy, industry data models, and vendor partners
 
 > **Status:** Proposed
+>
+> **Amendment note — 2026-06-02 platform-readiness:** the `{oya,cloud}` pure split does not automatically delete
+> canonical pack authoring roots. `regional-packs/<pack-id>/` remains valid for shared/versioned pack authoring until
+> ADR-0010/ADR-0064 are explicitly superseded; service-shaped code accidentally placed under pack roots is sprawl and
+> migrates to `{oya,cloud}/<service>` or `libs/` after inventory proves ownership.
 > **Supersedes:** -
 > **Superseded-by:** -
 > **Owner:** `regional-packs` + `council-architecture`

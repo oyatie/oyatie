@@ -1,7 +1,7 @@
 ---
 id: ADR-0393
 title: "Leptos canonical app-shell frontend (Rust/WASM SSR+hydration; supersedes ADR-0372 SolidJS)"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder, council-architecture
 date: 2026-05-29
@@ -27,7 +27,7 @@ affected_surfaces:
 
 ## Status
 
-Proposed — 2026-05-29. DRAFT for founder review; this overturns an Accepted decision (ADR-0372) and reconciles a live codebase drift, and must NOT auto-merge.
+Accepted — 2026-06-01 (founder-confirmed: all frontend work is Leptos/Rust-WASM; SolidJS is retired). Supersedes ADR-0372 (SolidJS). Originally drafted Proposed 2026-05-29 to overturn an Accepted decision and reconcile live codebase drift; founder confirmation on 2026-06-01 promotes it to Accepted. Downstream (tracked in the readiness backlog): regenerate the ADR index / machine-readable decisions from source; migrate the live `oya/app-shell-frontend` SolidJS app to Leptos; flip the `oya-ci-deck` reference (ADR-0513) to Leptos; add a superseded-reference lint so SolidJS cannot reappear as canonical.
 
 ## Date
 

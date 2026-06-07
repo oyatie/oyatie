@@ -1,0 +1,3820 @@
+{
+  "spec_id": "EXE-CLOUD-RESOURCE-CONTRACT-PARITY-CATALOG",
+  "title": "Oyatie Cloud resource-contract parity catalog companion for hyperscaler backend categories",
+  "status": "Proposed-target",
+  "source_taxonomy": "specs/cloud-hyperscaler-parity-taxonomy.json",
+  "base_catalog": "specs/cloud-resource-catalog-target.json",
+  "purpose": "Expands the G001 taxonomy into machine-readable resource contracts that every cloud-* resource category must satisfy before future parity or operational claims can be evaluated.",
+  "claim_controls": {
+    "metadata_only": true,
+    "strict_separation": true,
+    "pure_dogfood": true,
+    "no_live_provider_apply": true,
+    "can_claim_now": [
+      "Oyatie Cloud has a proposed machine-readable resource-contract coverage map for the G001 backend categories.",
+      "Every listed resource contract carries ORN, lifecycle, quota, billing, audit, tenant/account/project, region/cell, owner, deletion-retention, and SLO facets."
+    ],
+    "cannot_claim_yet": [
+      "provider feature parity",
+      "production readiness",
+      "tenant workload readiness",
+      "public SLA/SLO availability",
+      "live provider provisioning"
+    ]
+  },
+  "required_facets": [
+    "orn",
+    "lifecycle_state",
+    "quota_cost",
+    "billing_meters",
+    "audit_events",
+    "tenant_account_project",
+    "region_cell",
+    "owner",
+    "deletion_retention",
+    "slo_tier"
+  ],
+  "resource_contracts": [
+    {
+      "id": "iam.identity_provider",
+      "category_id": "identity_access_policy",
+      "service": "cloud-iam",
+      "resource_type": "IdentityProvider",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-iam/IdentityProvider/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "identityprovider.count",
+          "identityprovider.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "identityprovider.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "identityprovider.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "IdentityProvider.create.requested",
+        "IdentityProvider.update.requested",
+        "IdentityProvider.delete.requested",
+        "IdentityProvider.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "iam.policy_binding",
+      "category_id": "identity_access_policy",
+      "service": "cloud-iam",
+      "resource_type": "PolicyBinding",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-iam/PolicyBinding/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "policybinding.count",
+          "policybinding.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "policybinding.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "policybinding.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "PolicyBinding.create.requested",
+        "PolicyBinding.update.requested",
+        "PolicyBinding.delete.requested",
+        "PolicyBinding.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "compute.vm_instance",
+      "category_id": "compute_instances",
+      "service": "cloud-compute",
+      "resource_type": "VmInstance",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-compute/VmInstance/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "stopped",
+        "starting",
+        "running",
+        "stopping",
+        "rebooting"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "vminstance.count",
+          "vminstance.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "vminstance.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "vminstance.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "VmInstance.create.requested",
+        "VmInstance.update.requested",
+        "VmInstance.delete.requested",
+        "VmInstance.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "compute.machine_image",
+      "category_id": "compute_instances",
+      "service": "cloud-compute",
+      "resource_type": "MachineImage",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-compute/MachineImage/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "published",
+        "deprecated"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "machineimage.count",
+          "machineimage.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "machineimage.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "machineimage.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "MachineImage.create.requested",
+        "MachineImage.update.requested",
+        "MachineImage.delete.requested",
+        "MachineImage.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "compute.k8s_cluster",
+      "category_id": "containers_kubernetes",
+      "service": "cloud-compute",
+      "resource_type": "K8sCluster",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-compute/K8sCluster/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "creating_control_plane",
+        "upgrading",
+        "draining"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "k8scluster.count",
+          "k8scluster.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "k8scluster.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "k8scluster.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "K8sCluster.create.requested",
+        "K8sCluster.update.requested",
+        "K8sCluster.delete.requested",
+        "K8sCluster.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "compute.node_pool",
+      "category_id": "containers_kubernetes",
+      "service": "cloud-compute",
+      "resource_type": "NodePool",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-compute/NodePool/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "scaling",
+        "draining",
+        "upgrading"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "nodepool.count",
+          "nodepool.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "nodepool.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "nodepool.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "NodePool.create.requested",
+        "NodePool.update.requested",
+        "NodePool.delete.requested",
+        "NodePool.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "compute.function",
+      "category_id": "serverless_functions",
+      "service": "cloud-compute",
+      "resource_type": "Function",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-compute/Function/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "deploying",
+        "warming",
+        "throttled"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "function.count",
+          "function.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "function.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "function.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Function.create.requested",
+        "Function.update.requested",
+        "Function.delete.requested",
+        "Function.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "compute.container",
+      "category_id": "serverless_functions",
+      "service": "cloud-compute",
+      "resource_type": "Container",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-compute/Container/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "deploying",
+        "scaling",
+        "throttled"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "container.count",
+          "container.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "container.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "container.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Container.create.requested",
+        "Container.update.requested",
+        "Container.delete.requested",
+        "Container.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "storage.object_bucket",
+      "category_id": "storage_object_block_file",
+      "service": "cloud-storage",
+      "resource_type": "ObjectBucket",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-storage/ObjectBucket/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "versioning_enabled",
+        "retention_locked"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "objectbucket.count",
+          "objectbucket.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "objectbucket.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "objectbucket.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "ObjectBucket.create.requested",
+        "ObjectBucket.update.requested",
+        "ObjectBucket.delete.requested",
+        "ObjectBucket.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "storage.block_volume",
+      "category_id": "storage_object_block_file",
+      "service": "cloud-storage",
+      "resource_type": "BlockVolume",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-storage/BlockVolume/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "attached",
+        "detached",
+        "snapshotting"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "blockvolume.count",
+          "blockvolume.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "blockvolume.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "blockvolume.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "BlockVolume.create.requested",
+        "BlockVolume.update.requested",
+        "BlockVolume.delete.requested",
+        "BlockVolume.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "storage.file_share",
+      "category_id": "storage_object_block_file",
+      "service": "cloud-storage",
+      "resource_type": "FileShare",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-storage/FileShare/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "mounted",
+        "unmounted"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "fileshare.count",
+          "fileshare.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "fileshare.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "fileshare.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "FileShare.create.requested",
+        "FileShare.update.requested",
+        "FileShare.delete.requested",
+        "FileShare.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "network.vpc",
+      "category_id": "networking_dns_edge",
+      "service": "cloud-network",
+      "resource_type": "Vpc",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-network/Vpc/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "vpc.count",
+          "vpc.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "vpc.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "vpc.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Vpc.create.requested",
+        "Vpc.update.requested",
+        "Vpc.delete.requested",
+        "Vpc.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "network.subnet",
+      "category_id": "networking_dns_edge",
+      "service": "cloud-network",
+      "resource_type": "Subnet",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-network/Subnet/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "subnet.count",
+          "subnet.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "subnet.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "subnet.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Subnet.create.requested",
+        "Subnet.update.requested",
+        "Subnet.delete.requested",
+        "Subnet.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "network.load_balancer",
+      "category_id": "networking_dns_edge",
+      "service": "cloud-network",
+      "resource_type": "LoadBalancer",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-network/LoadBalancer/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "provisioning_listeners",
+        "draining"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "loadbalancer.count",
+          "loadbalancer.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "loadbalancer.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "loadbalancer.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "LoadBalancer.create.requested",
+        "LoadBalancer.update.requested",
+        "LoadBalancer.delete.requested",
+        "LoadBalancer.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "network.dns_zone",
+      "category_id": "networking_dns_edge",
+      "service": "cloud-network",
+      "resource_type": "DnsZone",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-network/DnsZone/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "dnszone.count",
+          "dnszone.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "dnszone.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "dnszone.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "DnsZone.create.requested",
+        "DnsZone.update.requested",
+        "DnsZone.delete.requested",
+        "DnsZone.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "data.postgres_database",
+      "category_id": "databases_data_analytics",
+      "service": "cloud-data",
+      "resource_type": "PostgresDatabase",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-data/PostgresDatabase/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "backing_up",
+        "restoring",
+        "replicating"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "postgresdatabase.count",
+          "postgresdatabase.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "postgresdatabase.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "postgresdatabase.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "PostgresDatabase.create.requested",
+        "PostgresDatabase.update.requested",
+        "PostgresDatabase.delete.requested",
+        "PostgresDatabase.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "data.warehouse",
+      "category_id": "databases_data_analytics",
+      "service": "cloud-data",
+      "resource_type": "Warehouse",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-data/Warehouse/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "loading",
+        "optimizing"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "warehouse.count",
+          "warehouse.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "warehouse.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "warehouse.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Warehouse.create.requested",
+        "Warehouse.update.requested",
+        "Warehouse.delete.requested",
+        "Warehouse.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "data.stream",
+      "category_id": "databases_data_analytics",
+      "service": "cloud-data",
+      "resource_type": "Stream",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-data/Stream/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "sharding",
+        "catching_up"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "stream.count",
+          "stream.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "stream.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "stream.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Stream.create.requested",
+        "Stream.update.requested",
+        "Stream.delete.requested",
+        "Stream.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "kms.key_ring",
+      "category_id": "kms_secrets_confidentiality",
+      "service": "cloud-kms",
+      "resource_type": "KeyRing",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-kms/KeyRing/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "keyring.count",
+          "keyring.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "keyring.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "keyring.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "KeyRing.create.requested",
+        "KeyRing.update.requested",
+        "KeyRing.delete.requested",
+        "KeyRing.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "kms.key",
+      "category_id": "kms_secrets_confidentiality",
+      "service": "cloud-kms",
+      "resource_type": "Key",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-kms/Key/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "rotating",
+        "disabled",
+        "scheduled_destroy"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "key.count",
+          "key.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "key.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "key.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Key.create.requested",
+        "Key.update.requested",
+        "Key.delete.requested",
+        "Key.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "secrets.secret",
+      "category_id": "kms_secrets_confidentiality",
+      "service": "cloud-secrets",
+      "resource_type": "Secret",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-secrets/Secret/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "rotating",
+        "sealed",
+        "revoked"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "secret.count",
+          "secret.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "secret.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "secret.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Secret.create.requested",
+        "Secret.update.requested",
+        "Secret.delete.requested",
+        "Secret.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "observability.slo_tier",
+      "category_id": "observability_operations",
+      "service": "cloud-capacity",
+      "resource_type": "SloTier",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-capacity/SloTier/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "evaluating",
+        "breaching"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "slotier.count",
+          "slotier.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "slotier.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "slotier.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "SloTier.create.requested",
+        "SloTier.update.requested",
+        "SloTier.delete.requested",
+        "SloTier.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "observability.event_stream",
+      "category_id": "observability_operations",
+      "service": "cloud-capacity",
+      "resource_type": "ControlPlaneEventStream",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-capacity/ControlPlaneEventStream/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "backfilling",
+        "lagging"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "controlplaneeventstream.count",
+          "controlplaneeventstream.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "controlplaneeventstream.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "controlplaneeventstream.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "ControlPlaneEventStream.create.requested",
+        "ControlPlaneEventStream.update.requested",
+        "ControlPlaneEventStream.delete.requested",
+        "ControlPlaneEventStream.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "billing.billing_account",
+      "category_id": "billing_finops_quotas",
+      "service": "cloud-billing",
+      "resource_type": "BillingAccount",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-billing/BillingAccount/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "billingaccount.count",
+          "billingaccount.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "billingaccount.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "billingaccount.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "BillingAccount.create.requested",
+        "BillingAccount.update.requested",
+        "BillingAccount.delete.requested",
+        "BillingAccount.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "billing.meter",
+      "category_id": "billing_finops_quotas",
+      "service": "cloud-billing",
+      "resource_type": "Meter",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-billing/Meter/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "meter.count",
+          "meter.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "meter.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "meter.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Meter.create.requested",
+        "Meter.update.requested",
+        "Meter.delete.requested",
+        "Meter.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "billing.quota",
+      "category_id": "billing_finops_quotas",
+      "service": "cloud-billing",
+      "resource_type": "Quota",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-billing/Quota/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "quota.count",
+          "quota.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "quota.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "quota.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "Quota.create.requested",
+        "Quota.update.requested",
+        "Quota.delete.requested",
+        "Quota.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "marketplace.catalog_item",
+      "category_id": "marketplace_isv_ecosystem",
+      "service": "cloud-marketplace",
+      "resource_type": "CatalogItem",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-marketplace/CatalogItem/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "reviewing",
+        "published"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "catalogitem.count",
+          "catalogitem.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "catalogitem.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "catalogitem.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "CatalogItem.create.requested",
+        "CatalogItem.update.requested",
+        "CatalogItem.delete.requested",
+        "CatalogItem.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Scoped target service entry; G002 only defines metadata and claim gates, not marketplace runtime."
+    },
+    {
+      "id": "marketplace.installation",
+      "category_id": "marketplace_isv_ecosystem",
+      "service": "cloud-marketplace",
+      "resource_type": "MarketplaceInstallation",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-marketplace/MarketplaceInstallation/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "installing",
+        "installed",
+        "rollback_pending"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "marketplaceinstallation.count",
+          "marketplaceinstallation.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "marketplaceinstallation.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "marketplaceinstallation.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "MarketplaceInstallation.create.requested",
+        "MarketplaceInstallation.update.requested",
+        "MarketplaceInstallation.delete.requested",
+        "MarketplaceInstallation.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Scoped target service entry; installer runtime remains evidence-required."
+    },
+    {
+      "id": "security.policy_pack",
+      "category_id": "security_posture_guardrails",
+      "service": "cloud-iam",
+      "resource_type": "SecurityPolicyPack",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-iam/SecurityPolicyPack/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "evaluating",
+        "enforced",
+        "quarantined"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "securitypolicypack.count",
+          "securitypolicypack.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "securitypolicypack.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "securitypolicypack.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "SecurityPolicyPack.create.requested",
+        "SecurityPolicyPack.update.requested",
+        "SecurityPolicyPack.delete.requested",
+        "SecurityPolicyPack.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "security.finding",
+      "category_id": "security_posture_guardrails",
+      "service": "cloud-iam",
+      "resource_type": "SecurityFinding",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-iam/SecurityFinding/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "open",
+        "triaged",
+        "suppressed",
+        "resolved"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "securityfinding.count",
+          "securityfinding.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "securityfinding.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "securityfinding.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "SecurityFinding.create.requested",
+        "SecurityFinding.update.requested",
+        "SecurityFinding.delete.requested",
+        "SecurityFinding.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "standard-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Resource contract metadata exists for planning and validation; runtime provisioning and operational evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Catalog entry only; live provider apply/provisioning is out of scope for this goal."
+    },
+    {
+      "id": "platform.declarative_api",
+      "category_id": "cloud_native_platform_contract",
+      "service": "cloud-capacity",
+      "resource_type": "DeclarativeApiSurface",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-capacity/DeclarativeApiSurface/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "schema_published",
+        "deprecated"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "declarativeapisurface.count",
+          "declarativeapisurface.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "declarativeapisurface.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "declarativeapisurface.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "DeclarativeApiSurface.create.requested",
+        "DeclarativeApiSurface.update.requested",
+        "DeclarativeApiSurface.delete.requested",
+        "DeclarativeApiSurface.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "platform-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Cloud-native platform contract metadata exists for planning and validation; runtime platform operations and conformance evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Captures declarative platform contract metadata only; Kubernetes/operator/OpenTofu/Argo execution evidence remains later-goal work."
+    },
+    {
+      "id": "platform.reconciler_workflow",
+      "category_id": "cloud_native_platform_contract",
+      "service": "cloud-capacity",
+      "resource_type": "ReconcilerWorkflow",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-capacity/ReconcilerWorkflow/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "queued",
+        "running",
+        "backoff",
+        "paused"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "reconcilerworkflow.count",
+          "reconcilerworkflow.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "reconcilerworkflow.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "reconcilerworkflow.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "ReconcilerWorkflow.create.requested",
+        "ReconcilerWorkflow.update.requested",
+        "ReconcilerWorkflow.delete.requested",
+        "ReconcilerWorkflow.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "platform-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Cloud-native platform contract metadata exists for planning and validation; runtime platform operations and conformance evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Captures declarative platform contract metadata only; Kubernetes/operator/OpenTofu/Argo execution evidence remains later-goal work."
+    },
+    {
+      "id": "platform.cluster_cell",
+      "category_id": "cloud_native_platform_contract",
+      "service": "cloud-capacity",
+      "resource_type": "ClusterCell",
+      "orn_pattern": "orn:oyatie:cloud:{region}:{tenant_account_project}:cloud-capacity/ClusterCell/{resource_id}",
+      "facets": [
+        "orn",
+        "lifecycle_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "tenant_account_project",
+        "region_cell",
+        "owner",
+        "deletion_retention",
+        "slo_tier"
+      ],
+      "lifecycle_states": [
+        "requested",
+        "validating",
+        "accepted",
+        "reconciling",
+        "active",
+        "updating",
+        "suspended",
+        "deleting",
+        "deleted",
+        "failed",
+        "admitting",
+        "cordoned",
+        "evacuating"
+      ],
+      "quota_cost": {
+        "quota_keys": [
+          "clustercell.count",
+          "clustercell.rate_per_minute"
+        ],
+        "cost_dimensions": [
+          "tenant_account_project",
+          "region_cell",
+          "slo_tier",
+          "resource_shape"
+        ],
+        "limit_behavior": "fail-closed admission denial before operation acceptance"
+      },
+      "billing_meters": [
+        {
+          "meter": "clustercell.resource_hours",
+          "unit": "resource-hour",
+          "aggregation": "sum"
+        },
+        {
+          "meter": "clustercell.operation_count",
+          "unit": "operation",
+          "aggregation": "count"
+        }
+      ],
+      "audit_events": [
+        "ClusterCell.create.requested",
+        "ClusterCell.update.requested",
+        "ClusterCell.delete.requested",
+        "ClusterCell.state.changed"
+      ],
+      "tenant_account_project": {
+        "required": true,
+        "scope": "tenant/account/project",
+        "policy": "Cedar decision must include tenant, account, project, principal, action, resource ORN, and reason code."
+      },
+      "region_cell": {
+        "required": true,
+        "placement": "region plus failure cell; global resources still declare home region and replication policy."
+      },
+      "owner": {
+        "required": true,
+        "fields": [
+          "owner_principal",
+          "owning_team",
+          "support_rotation",
+          "cost_center"
+        ]
+      },
+      "deletion_retention": {
+        "required": true,
+        "policy": "two-phase delete with configurable retention window, purge audit event, and restore eligibility metadata where applicable"
+      },
+      "slo_tier": {
+        "required": true,
+        "default": "platform-control-plane",
+        "evidence_required_before_sla_language": [
+          "burn_rate_evidence",
+          "incident_drill_evidence",
+          "support_status_process_evidence"
+        ]
+      },
+      "actuation_status": "metadata_only",
+      "honest_claim": "Cloud-native platform contract metadata exists for planning and validation; runtime platform operations and conformance evidence are not claimed here.",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "notes": "Captures declarative platform contract metadata only; Kubernetes/operator/OpenTofu/Argo execution evidence remains later-goal work."
+    }
+  ],
+  "category_coverage": {
+    "billing_finops_quotas": {
+      "resource_contract_ids": [
+        "billing.billing_account",
+        "billing.meter",
+        "billing.quota"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "compute_instances": {
+      "resource_contract_ids": [
+        "compute.vm_instance",
+        "compute.machine_image"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "containers_kubernetes": {
+      "resource_contract_ids": [
+        "compute.k8s_cluster",
+        "compute.node_pool"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "databases_data_analytics": {
+      "resource_contract_ids": [
+        "data.postgres_database",
+        "data.warehouse",
+        "data.stream"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "identity_access_policy": {
+      "resource_contract_ids": [
+        "iam.identity_provider",
+        "iam.policy_binding"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "kms_secrets_confidentiality": {
+      "resource_contract_ids": [
+        "kms.key_ring",
+        "kms.key",
+        "secrets.secret"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "marketplace_isv_ecosystem": {
+      "resource_contract_ids": [
+        "marketplace.catalog_item",
+        "marketplace.installation"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "networking_dns_edge": {
+      "resource_contract_ids": [
+        "network.vpc",
+        "network.subnet",
+        "network.load_balancer",
+        "network.dns_zone"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "observability_operations": {
+      "resource_contract_ids": [
+        "observability.slo_tier",
+        "observability.event_stream"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "security_posture_guardrails": {
+      "resource_contract_ids": [
+        "security.policy_pack",
+        "security.finding"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "serverless_functions": {
+      "resource_contract_ids": [
+        "compute.function",
+        "compute.container"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "storage_object_block_file": {
+      "resource_contract_ids": [
+        "storage.object_bucket",
+        "storage.block_volume",
+        "storage.file_share"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    },
+    "cloud_native_platform_contract": {
+      "resource_contract_ids": [
+        "platform.declarative_api",
+        "platform.reconciler_workflow",
+        "platform.cluster_cell"
+      ],
+      "claim_status": "metadata_only",
+      "blocked_claim_families": [
+        "no_live_provider_provisioning",
+        "no_provider_feature_parity_claim",
+        "no_production_readiness_claim",
+        "no_tenant_workload_claim",
+        "no_public_sla_slo_claim"
+      ],
+      "next_gate": {
+        "control_plane_operations": "G003",
+        "authz_billing_audit": "G004",
+        "observability_slo": "G005",
+        "production_quality_kits": "G006",
+        "dogfood_ci": "G007"
+      }
+    }
+  },
+  "nonclaims": [
+    {
+      "id": "no_live_provider_provisioning",
+      "statement": "No resource contract in this catalog provisions external or internal live resources."
+    },
+    {
+      "id": "no_provider_feature_parity_claim",
+      "statement": "The catalog maps target resource contracts; behavior equivalence to AWS, Google Cloud, Azure, or OCI is blocked until later evidence exists."
+    },
+    {
+      "id": "no_production_readiness_claim",
+      "statement": "Measured production-quality evidence is deferred to later ultragoal stories before any launch language is allowed."
+    },
+    {
+      "id": "no_tenant_workload_claim",
+      "statement": "Tenant or product workload migration remains blocked until later gates are green."
+    },
+    {
+      "id": "no_public_sla_slo_claim",
+      "statement": "SLO tier fields are metadata only until burn-rate and incident evidence exist."
+    }
+  ],
+  "next_goal_links": {
+    "operation_contracts": "G003",
+    "authz_tenancy_audit_metering_billing": "G004",
+    "observability_slo_evidence": "G005",
+    "production_quality_kits": "G006",
+    "dogfood_ci_lane": "G007"
+  },
+  "doubt_driven_review": {
+    "challenge": "A resource catalog can look like implemented cloud inventory.",
+    "resolution": "Every contract is marked metadata_only/adapter_boundary/evidence_required, carries blocked claim families, and validator rejects live apply markers or readiness/parity wording in can-claim fields.",
+    "residual_risk": "G003-G007 must still implement and measure operations, policy, SLO, quality-kit, and dogfood CI evidence before any runtime claim is safe."
+  }
+}

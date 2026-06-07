@@ -25,7 +25,10 @@
       "/templates/checklists/per-implementation-plan-checklist.md",
       "/templates/checklists/per-phase-completion-checklist.md",
       "/templates/evidence-bundle-template.json",
-      "/specs/gitops-vcs-replacement.json"
+      "/specs/gitops-vcs-replacement.json",
+      "/specs/bespoke-cloud-toolchain-services.json",
+      ".omx/plans/prd-platform-readiness.md",
+      ".omx/plans/test-spec-phase0.md"
     ],
     "deduplicates_existing": [
       "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
@@ -43,12 +46,15 @@
       ],
       "live_replacement": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
     },
-    "updated_at": "2026-05-19T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
     "op11_audit_reference": "registry/stub-audit/2026-05-17/CONSOLIDATED.md"
   },
   "master_plan_discovery_order": [
     "/specs/root-hub-pointers.json",
     "/specs/masterplan.json",
+    "/specs/bespoke-cloud-toolchain-services.json",
+    ".omx/plans/prd-platform-readiness.md",
+    ".omx/plans/test-spec-phase0.md",
     "/specs/planning-closure-contract.json",
     "/specs/master-plan-sequencing.json",
     "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
@@ -175,7 +181,12 @@
         "one_command_or_one_click_reproducible_setup",
         "remote_config_driven_secure_cluster_join",
         "one_time_bootstrap_to_secured_hardened_cluster_member",
-        "distroless_or_scratch_production_images_by_default"
+        "distroless_or_scratch_production_images_by_default",
+        "toolchain_services_are_tenant_facing_cloud_offerings",
+        "internal_pipeline_and_each_tenant_pipeline_isolated_secure_separate",
+        "bespoke_rust_scm_ci_cd_control_planes_with_bridge_adapters_only_until_cutover",
+        "full_bespoke_ci_required_context_before_any_mechanical_enforcement_claim",
+        "affected_only_ci_feedback_cannot_satisfy_merge_or_phase_exit_authority"
       ]
     },
     "deployment_portability_policy": {
@@ -242,7 +253,10 @@
       "multi-arch OCI image build changes",
       "secure cluster join flow changes",
       "production hardening baseline changes",
-      "distroless or scratch image policy changes"
+      "distroless or scratch image policy changes",
+      "SCM/CI/CD tenant-isolation policy changes",
+      "toolchain required-context and branch-protection changes",
+      "bespoke SCM/CI/CD control-plane authority cutover changes"
     ],
     "next_vertical_gate": "No later sector vertical may claim production-GA until FD-001 has exit evidence for production workflows, hyperscaler architecture/system design, one-time secured/hardened bootstrap, one-command or one-click reproducible cloud-native Kubernetes deployment across Talos, Ubuntu LTS, Debian, Fedora Server, Oracle Linux, RHEL-compatible, CentOS Stream, Rocky Linux, AlmaLinux, SUSE Linux Enterprise, and macOS Apple Silicon targets, remote config-driven secure cluster join, distroless-or-scratch image posture, operational readiness, import/export, rollback, SLOs, runbooks, threat model, tenant controls, audit chain, canonical base, Korea localization pack, and zero placeholders/stubs/thin scaffolds/deferred scope inside accepted scope.",
     "name": "Tenant/RBAC-packaged core microservices full-depth production delivery",
@@ -298,6 +312,16 @@
       "primitive": "cross-batch parallelism",
       "enforcement_lane_id": "realignment-wave-governance",
       "lane_status": "forbidden for audit waves; agents may parallelize inside an approved batch only after upstream wave gates are satisfied"
+    },
+    {
+      "primitive": "shared-scm-ci-cd-pipeline-across-internal-and-tenants",
+      "enforcement_lane_id": "oya-governance-toolchain-tenant-isolation",
+      "lane_status": "forbidden; internal tenant=oyatie-internal and every customer tenant pipeline must have isolated identities, secrets, runner/workspace/cache/artifact/log/evidence/release-ledger/deploy/status-callback/audit boundaries."
+    },
+    {
+      "primitive": "affected-only-ci-as-merge-authority",
+      "enforcement_lane_id": "oya-governance-required-context-match",
+      "lane_status": "forbidden; affected-only checks are developer feedback and cannot satisfy branch protection, merge, or Phase-0 exit authority."
     }
   ],
   "chained_enforcement_contract": {
@@ -338,6 +362,7 @@
     "locate_canonical_master_plan",
     "load_sidecars_and_existing_checklists",
     "build_completion_ledger",
+    "verify_bespoke_ci_cd_scm_enforcement_and_tenant_isolation_baseline",
     "topologically_sort_by_gates_on_and_dependencies",
     "select_next_ready_item",
     "claim_plain_git_worktree_branch",
@@ -679,13 +704,11 @@
         "ADR-0346": {
           "path": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
           "queued_sub_wave": "15-ZA-oya-verify-full-ci-mirror",
-          "purpose_excerpt": "Establish that `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix \u2014 invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast` (or `cargo test --workspace` if nextest is absent), `oya gate run-all --ci-required`, `oya doc adr-index --write` (advisory; warn-only), and `oya lint adr-shape` against new ADRs in the current commit range \u2014 and MUST block on exit-0 of EACH step before returning success to the caller.",
+          "purpose_excerpt": "ADR-0346 is amended by ADR-0513/platform-readiness: legacy `./bin/oya verify --ci-required` may remain local mirror evidence only, never protected-branch merge/exit authority. Destination enforcement is Prow-shaped cloud-ci/oya-ci Rust required contexts with full-matrix gate packets, RED/GREEN fixtures, and branch protection.",
           "enforced_by": [
-            "oya-governance-oya-verify-ci-mirror-coverage (new lane; refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis; promoted to BLOCKER 14 days post Wave 15-ZA implementation lands)",
-            "oya-governance-oya-verify-ci-step-exit-semantics (new lane; refuses verify.rs source changes that swallow non-zero exit codes from any of the five mandatory mirror steps; refuses changes that conflate fmt-fail with check-fail in the exit code emitted to the caller)",
-            "oya-governance-oya-verify-skip-flag-allowlist (new lane; refuses verify.rs changes that add a skip flag outside the closed allowlist `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}` per D-8; new skip flags require an ADR amendment per `feedback_no_silent_regression`)",
-            "oya-governance-oya-submit-calls-verify (new lane; refuses changes to `oya submit` that bypass `oya verify --ci-required` per D-10 \u2014 preserves the existing call chain, refuses regressions)",
-            "oya-governance-oya-verify-exit-code-contract (new lane; refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11)"
+            "cloud-ci-required-context-producer (blocks required contexts produced by legacy oya CLI/local-only/advisory status)",
+            "cloud-ci-full-matrix-gate-packet (fmt/check/clippy/nextest/deny/security/governance semantics as Rust/cloud-ci gates, not oya-dev-cli extension)",
+            "cloud-ci-legacy-oya-retirement-scanner (blocks new oya verify/oya gate protected-branch authority and requires retirement packet for residual invocations)"
           ]
         },
         "ADR-0347": {
@@ -714,13 +737,13 @@
         "ADR-0349": {
           "path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
           "queued_sub_wave": "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
-          "purpose_excerpt": "Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus. Jenkins is the canonical CI orchestrator for air-gap + on-prem + colo + oyatie-as-cloud-provider deployment contexts where GitHub Actions runners are not available; it runs on Oyatie K8s per ADR-0254 and is configured-as-code via JCasC + Jenkinsfile. ArgoCD is the canonical GitOps CD orchestrator. AMENDED by ADR-0359/ADR-0361: the original 'GitHub Actions RETAINED as primary CI; Jenkins augments rather than replaces it' stance is superseded \u2014 Jenkins is the SOLE CI orchestrator and GitHub Actions is retired (no parity surface remains).",
+          "purpose_excerpt": "Historical bridge ADR for Jenkins (LTS) and ArgoCD self-hostable CI/CD surfaces. CURRENT destination is the bespoke Rust cloud-ci/cloud-cd services in /specs/bespoke-cloud-toolchain-services.json; Jenkins/Argo may act only as bridge/reference adapters with deletion criteria, tenant isolation, trusted status production, and no sole/canonical authority claim.",
           "enforced_by": [
-            "oya-governance-jenkins-canonical-no-gha-residue (replaces the retired oya-governance-jenkins-github-actions-parity lane per ADR-0359; refuses any NEW .github/workflows CI definition \u2014 Jenkins is the sole CI orchestrator and GitHub Actions is retired, so there is no parity surface to maintain)",
-            "oya-governance-argocd-application-cosign-verified (new lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181; promoted to BLOCKER 30 days post Wave 15-ZE-completion)",
-            "oya-governance-argocd-tenant-namespace-isolation (new lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243; promoted to BLOCKER 30 days post Wave 15-ZE-completion)",
-            "oya-governance-jenkins-jcasc-only (new lane; refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under microservices/cloud-iac/modules/<context>/jenkins/jcasc/ with declarative JCasC YAML per D-1; promoted to BLOCKER 30 days post Wave 15-ZE-completion)",
-            "oya-governance-deploy-audit-chain-emit (new lane; refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 \u00a7D.4 deploy-event class; promoted to BLOCKER 30 days post Wave 15-ZE-completion)"
+            "oya-governance-provider-ci-residue (successor to Jenkins/GitHub-Actions parity wording; refuses new provider workflow authority unless explicitly marked bridge/provenance under cloud-ci)",
+            "oya-governance-argocd-application-cosign-verified (bridge/reference lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181 while Argo remains an adapter)",
+            "oya-governance-argocd-tenant-namespace-isolation (bridge/reference lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243)",
+            "oya-governance-jenkins-jcasc-only (bridge-only lane; refuses Jenkins controller state declared via UI while Jenkins remains a transition adapter)",
+            "oya-governance-deploy-audit-chain-emit (bridge/reference lane; refuses deploy/sync transitions that do not emit an audit-chain row per ADR-0263 \u00a7D.4 deploy-event class)"
           ]
         }
       },
@@ -1577,11 +1600,11 @@
           ]
         },
         "15-ZA-oya-verify-full-ci-mirror": {
-          "status": "queued",
+          "status": "superseded-by-platform-readiness-cloud-ci",
           "queued_at": "2026-05-21",
           "adr": "ADR-0346",
-          "scope": "extend crates/oya-dev-cli/src/commands/verify.rs to run the full CI mirror locally on every invocation: cargo fmt --all --check + cargo check --workspace --all-targets --keep-going + cargo clippy --workspace --all-targets --keep-going -- -D warnings + cargo nextest run --workspace --no-fail-fast + oya gate run-all --ci-required + oya doc adr-index --write (advisory) + oya lint adr-shape (per new ADR). Block on exit-0 of each step. Skip-flag allowlist closed set {--skip-fmt,--skip-clippy,--skip-nextest,--skip-gates}. oya submit MUST call oya verify --ci-required before push (existing behavior reinforced + verified by E.4 lane). Authored as ADR-0346 doctrine; implementation deferred.",
-          "dispatch_mode": "1 Claude orchestrator for crates/oya-dev-cli/src/commands/verify.rs extension + 5 new governance lanes (oya-governance-oya-verify-ci-mirror-coverage + oya-governance-oya-verify-ci-step-exit-semantics + oya-governance-oya-verify-skip-flag-allowlist + oya-governance-oya-submit-calls-verify + oya-governance-oya-verify-exit-code-contract) + JCasC parity smoke-test",
+          "scope": "Do not extend crates/oya-dev-cli. Preserve only legacy local-mirror evidence while porting required semantics into Prow-shaped cloud-ci/oya-ci Rust gate packets and required contexts. Block protected-branch authority from `oya verify`/`oya gate`; affected/local runs remain feedback only.",
+          "dispatch_mode": "cloud-ci/oya-ci Rust gate packet workstream + legacy-oya-authority retirement scanner; no new oya CLI surface",
           "depends_on": [
             "ADR-0346 Acceptance",
             "ADR-0221 hooks-vs-gates",
@@ -1601,13 +1624,13 @@
           ]
         },
         "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate": {
-          "status": "queued",
+          "status": "queued-bridge-reconciled-by-bespoke-toolchain-spec",
           "queued_at": "2026-05-21",
           "adr": "ADR-0349",
-          "scope": "Jenkins (LTS) self-hostable CI orchestrator for air-gap + on-prem + colo + Oyatie-cloud-provider contexts. AMENDED by ADR-0359/ADR-0361: Jenkins is the SOLE CI orchestrator (no longer augmenting GitHub Actions); GitHub Actions is retired in R5. ArgoCD GitOps CD orchestrator (declarative app sync git \u2192 K8s; replaces manual kubectl + Helm CLI). Both run on Oyatie K8s per ADR-0254. Per-\u00b5service Jenkinsfile carries the canonical CI matrix; the oya-governance-jenkins-canonical-no-gha-residue lane refuses any new .github/workflows CI definition (the former github-actions-parity lane is retired). Per-cluster apps.yaml is the canonical GitOps manifest. cosign signature verification on every ArgoCD Application source image per ADR-0181. Deploy events emit audit-chain rows per ADR-0263. Both Contributor stewardship class per ADR-0345. Per-context OpenTofu modules under microservices/cloud-iac/modules/<context>/{jenkins,argocd}/ per ADR-0339. Trivy scan green required at every Jenkins build step per ADR-0039 + ADR-0181.",
-          "dispatch_mode": "Claude orchestrator for OpenTofu modules + 8 Claude per-\u00b5service cluster for Jenkinsfile + Helm chart + ArgoCD Application authoring + 5 new governance lanes",
+          "scope": "Bridge/backfill work for Jenkins (LTS) CI and ArgoCD GitOps CD only while cloud-ci/cloud-cd Rust service authority is being built. Jenkins/Argo are no longer sole/canonical destinations; they are self-hostable provider adapters/reference substrates with deletion criteria, tenant isolation fixtures, trusted status production, cosign/audit-chain evidence, and no customer-facing product-authority claim.",
+          "dispatch_mode": "Bridge orchestrator for OpenTofu/JCasC/Argo adapter surfaces plus governance lanes, executed after the P0.0/full bespoke CI baseline and reconciled into cloud-ci/cloud-cd parity/deletion evidence.",
           "five_new_lanes": [
-            "oya-governance-jenkins-canonical-no-gha-residue",
+            "oya-governance-provider-ci-residue",
             "oya-governance-argocd-application-cosign-verified",
             "oya-governance-argocd-tenant-namespace-isolation",
             "oya-governance-jenkins-jcasc-only",
@@ -1716,6 +1739,17 @@
     "blocked_reason"
   ],
   "early_prerequisites": [
+    {
+      "id": "M-TOOLCHAIN-bespoke-cloud-toolchain-services",
+      "source_path": "/specs/bespoke-cloud-toolchain-services.json",
+      "must_complete_before": [
+        "P-TOOLCHAIN implementation fanout",
+        "any P0.6 structural admission/execution, regardless of whether the migration claims mechanical enforcement",
+        "any Phase-0 exit or AC-0.9/AC-0.12 wording that claims mechanical CI enforcement",
+        "tenant-facing SCM/CI/CD exposure"
+      ],
+      "compatibility_window": "Bridge adapters (Forgejo/Jenkins/Argo) may operate only with deletion criteria, tenant-isolation fixtures, trusted trunk/controller-sourced gate definitions, and a full bespoke CI required-context baseline."
+    },
     {
       "id": "M01-P07-gitops-vcs-replacement",
       "source_path": "/specs/gitops-vcs-replacement.json",
@@ -1918,5 +1952,18 @@
     "cross_cloud_forbidden": true,
     "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-19"
   },
-  "purpose": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them."
+  "purpose": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
+  "bespoke_cloud_toolchain_sequence": {
+    "source_spec": "/specs/bespoke-cloud-toolchain-services.json",
+    "placement": "P-TOOLCHAIN plus Phase-0 P0.0 enforcement baseline",
+    "ordering": [
+      "spec/root pointer/masterplan placement",
+      "Phase-0 P0.0 required-context + tenant isolation fixtures",
+      "cloud-ci full required context before mechanical enforcement claims",
+      "cloud-scm bridge/native cutover after queue/status semantics are fixture-backed",
+      "cloud-cd bridge/native cutover after release-ledger/canary/rollback fixtures are fixture-backed"
+    ],
+    "parallelism": "SCM API/graph, CI runner/evidence, and CD ledger/reconciler can be designed in parallel after the shared tenant-isolation contract locks. Branch-protection contexts, tenant-isolation policy, and authority cutovers are serialized lanes.",
+    "hard_stop": "No internal or tenant pipeline can share credentials, runners/workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, or branch-protection bypasses."
+  }
 }

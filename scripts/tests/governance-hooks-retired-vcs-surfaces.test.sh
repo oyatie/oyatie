@@ -8,16 +8,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-primer_output="$tmpdir/primer.out"
-bash "$repo_root/tools/hooks/userprompt-canonical-primer.sh" >"$primer_output"
-grep -q 'plain git for VCS work' "$primer_output"
-grep -q './bin/oya verify --ci-required' "$primer_output"
-grep -q 'oya gate run-all' "$primer_output"
-if grep -Eq 'oya git for|policy ratchet compatibility|current policy ratchet' "$primer_output"; then
-  echo "primer still advertises retired governance hook surfaces" >&2
-  exit 1
-fi
-
 plain_git_output="$tmpdir/plain-git.out"
 TOOL_INPUT='{"command":"git status --short"}' \
   bash "$repo_root/tools/hooks/stale-tool-suggester.sh" >"$plain_git_output" 2>&1
@@ -39,9 +29,25 @@ TOOL_INPUT='{"command":"oya vcs status"}' \
 grep -q 'Retired VCS surface detected' "$retired_vcs_output"
 grep -q 'Use plain git for VCS work' "$retired_vcs_output"
 
-inventory_output="$tmpdir/inventory.out"
-bash "$repo_root/tools/hooks/retired-vcs-surface-inventory.sh" >"$inventory_output"
-grep -q 'retired VCS surface inventory: no oya git/oya vcs invocations found' "$inventory_output"
+context_registration_pattern='SessionStart|UserPromptSubmit|BeforeAgent|oya-session-context|oya-canonical-primer'
+if rg -n "$context_registration_pattern" \
+  "$repo_root/.codex/hooks.json" \
+  "$repo_root/.claude/settings.json" \
+  "$repo_root/.gemini/settings.json" \
+  "$repo_root/tools/hook-bootstrap/install.sh"; then
+  echo "context-injection hooks should not be registered by managed hook configs" >&2
+  exit 1
+fi
+
+for retired_context_hook in session-start-context-inject.sh userprompt-canonical-primer.sh; do
+  retired_output="$tmpdir/$retired_context_hook.out"
+  bash "$repo_root/tools/hooks/$retired_context_hook" >"$retired_output"
+  if [ -s "$retired_output" ]; then
+    echo "$retired_context_hook compatibility stub should not inject prompt context" >&2
+    cat "$retired_output" >&2
+    exit 1
+  fi
+done
 
 if rg -n \
   'Preferred drop-in surface: oya git|policy ratchet compatibility|policy-ratchet|route through `oya git`|Top-level subcommands: git|oya-git cutover|migrate plain git/drop-in docs toward oya git' \

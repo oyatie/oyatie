@@ -3941,6 +3941,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "tower 0.5.3",
  "tracing",
  "tracing-subscriber",
 ]
@@ -3976,6 +3977,36 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "oya-ci-tide-app"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-tide-forgejo-adapter",
+ "oya-ci-tide-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-ci-tide-forgejo-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-tide-kernel",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-ci-tide-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
