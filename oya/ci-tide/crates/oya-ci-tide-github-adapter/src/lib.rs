@@ -1,31 +1,27 @@
-//! # oya-ci-tide-forgejo-adapter
+//! # oya-ci-tide-github-adapter
 //!
-//! Forgejo API client adapter for the oya-ci tide component.
+//! GitHub API client adapter for the oya-ci tide component.
 //!
-//! Implements [`ForgejoClient`] via reqwest blocking HTTP.
+//! Implements [`ForgeClient`] via reqwest blocking HTTP. Forge of record =
+//! GitHub (D-FORGE; GitHub interim until the Sapling-inspired bespoke SCM).
 //!
 //! ## Endpoints consumed
 //!
-//! - `GET /api/v1/repos/<owner>/<repo>/pulls?state=open&base=<branch>&limit=50&page=N`
-//! - `GET /api/v1/repos/<owner>/<repo>/commits/<sha>/statuses?limit=50&page=N`
-//! - `GET /api/v1/repos/<owner>/<repo>/pulls/<number>/reviews?limit=50&page=N`
-//! - `GET /api/v1/repos/<owner>/<repo>/pulls/<number>`
-//! - `POST /api/v1/repos/<owner>/<repo>/pulls/<number>/merge`
+//! - `GET /repos/<owner>/<repo>/pulls?state=open&base=<branch>&per_page=50&page=N`
+//! - `GET /repos/<owner>/<repo>/commits/<sha>/status?per_page=50&page=N`
+//! - `GET /repos/<owner>/<repo>/pulls/<number>/reviews?per_page=50&page=N`
+//! - `GET /repos/<owner>/<repo>/pulls/<number>`
+//! - `PUT /repos/<owner>/<repo>/pulls/<number>/merge`
 //!
-//! Pagination follows Forgejo `Link: rel="next"` first and falls back to
-//! total-count metadata when available, so short intermediate pages do not hide
-//! eligible PRs, statuses, or stale-review blockers.
+//! Pagination follows the GitHub `Link: rel="next"` header first and falls back
+//! to total-count metadata when available, so short intermediate pages do not
+//! hide eligible PRs, statuses, or stale-review blockers.
 //!
 //! ## Authentication
 //!
-//! `Authorization: token <OYA_FORGEJO_TOKEN>` — token read from env at
-//! construction time via [`ForgejoHttpClient::from_config`]. Never hardcoded.
-//!
-//! ## Pattern
-//!
-//! Lifted from `oya-ci-controller-forgejo-adapter`: same reqwest blocking
-//! client, same `Authorization: token` header, same 200/201/204 acceptance,
-//! same `KernelError::DownstreamTransport`-equivalent error mapping.
+//! `Authorization: Bearer <OYA_GITHUB_TOKEN>` — token read from env at
+//! construction time via [`GitHubHttpClient::from_config`]. Never hardcoded.
+//! GitHub also requires `X-GitHub-Api-Version`, `Accept`, and a `User-Agent`.
 //!
 //! ## ADR-0083 Tier-3
 //!
@@ -35,7 +31,7 @@
 #![forbid(unsafe_code)]
 
 use oya_ci_tide_kernel::{
-    CommitStatusState, ForgejoClient, MergeMethod, PullRequest, Result, Review, ReviewState,
+    CommitStatusState, ForgeClient, MergeMethod, PullRequest, Result, Review, ReviewState,
     TideError,
 };
 use serde::Deserialize;
@@ -43,13 +39,15 @@ use serde::de::DeserializeOwned;
 
 const PAGE_LIMIT: u32 = 50;
 const MAX_PAGES: u32 = 200;
+/// GitHub Statuses/REST API version header value.
+const GITHUB_API_VERSION: &str = "2022-11-28";
 
 // ---------------------------------------------------------------------------
-// ForgejoHttpClient
+// GitHubHttpClient
 // ---------------------------------------------------------------------------
 
-/// Forgejo API client backed by reqwest blocking HTTP.
-pub struct ForgejoHttpClient {
+/// GitHub API client backed by reqwest blocking HTTP.
+pub struct GitHubHttpClient {
     api_base: String,   // data_class: INTERNAL_ONLY
     repo_owner: String, // data_class: INTERNAL_ONLY
     repo_name: String,  // data_class: INTERNAL_ONLY
@@ -57,7 +55,7 @@ pub struct ForgejoHttpClient {
     client: reqwest::blocking::Client,
 }
 
-impl ForgejoHttpClient {
+impl GitHubHttpClient {
     /// Construct with explicit values (used in tests and from config).
     pub fn new(api_base: &str, repo_owner: &str, repo_name: &str, token: &str) -> Self {
         Self {
@@ -72,7 +70,7 @@ impl ForgejoHttpClient {
     /// Construct from a [`TideConfig`] + resolved token.
     pub fn from_config(config: &oya_ci_tide_kernel::TideConfig, token: &str) -> Self {
         Self::new(
-            &config.forgejo_base_url,
+            &config.forge_base_url,
             &config.repo_owner,
             &config.repo_name,
             token,
@@ -81,13 +79,21 @@ impl ForgejoHttpClient {
 
     fn repo_url(&self) -> String {
         format!(
-            "{}/api/v1/repos/{}/{}",
+            "{}/repos/{}/{}",
             self.api_base, self.repo_owner, self.repo_name
         )
     }
 
-    fn auth_header(&self) -> String {
-        format!("token {}", self.token)
+    /// Apply the standard GitHub request headers (auth + version + accept + UA).
+    fn with_github_headers(
+        &self,
+        builder: reqwest::blocking::RequestBuilder,
+    ) -> reqwest::blocking::RequestBuilder {
+        builder
+            .bearer_auth(&self.token)
+            .header("X-GitHub-Api-Version", GITHUB_API_VERSION)
+            .header("Accept", "application/vnd.github+json")
+            .header("User-Agent", "oya-ci-tide")
     }
 
     fn resolve_page_url(&self, page_url: &str) -> String {
@@ -141,9 +147,7 @@ impl ForgejoHttpClient {
         T: DeserializeOwned,
     {
         let resp = self
-            .client
-            .get(url)
-            .header("Authorization", self.auth_header())
+            .with_github_headers(self.client.get(url))
             .send()
             .map_err(|e| TideError::Downstream(format!("{operation} GET: {e}")))?;
 
@@ -179,37 +183,44 @@ struct Page<T> {
 }
 
 // ---------------------------------------------------------------------------
-// Wire-format types (Forgejo JSON shapes)
+// Wire-format types (GitHub JSON shapes)
 // ---------------------------------------------------------------------------
 
-/// Forgejo pull-request list item (projected fields only).
+/// GitHub pull-request list item (projected fields only).
 #[derive(Debug, Deserialize)]
-struct ForgejoPr {
+struct GitHubPr {
     number: u64,
     title: String,
-    head: ForgejoPrRef,
-    base: ForgejoPrRef,
-    /// `null` while Forgejo is still computing, `true`/`false` otherwise.
+    head: GitHubPrRef,
+    base: GitHubPrRef,
+    /// `null` while GitHub is still computing, `true`/`false` otherwise.
     mergeable: Option<bool>,
     #[serde(default)]
-    labels: Vec<ForgejoLabel>,
+    labels: Vec<GitHubLabel>,
 }
 
 #[derive(Debug, Deserialize)]
-struct ForgejoPrRef {
+struct GitHubPrRef {
     sha: String,
     #[serde(rename = "ref")]
     ref_name: String,
 }
 
 #[derive(Debug, Deserialize)]
-struct ForgejoLabel {
+struct GitHubLabel {
     name: String,
 }
 
-/// Forgejo commit-status item.
+/// GitHub combined-status response (`GET /commits/<sha>/status`).
 #[derive(Debug, Deserialize)]
-struct ForgejoStatus {
+struct GitHubCombinedStatus {
+    #[serde(default)]
+    statuses: Vec<GitHubStatus>,
+}
+
+/// GitHub commit-status item.
+#[derive(Debug, Deserialize)]
+struct GitHubStatus {
     context: String,
     state: String,
     #[serde(default)]
@@ -220,10 +231,10 @@ struct ForgejoStatus {
     created_at: Option<String>,
 }
 
-/// Forgejo review item.
+/// GitHub review item.
 #[derive(Debug, Deserialize)]
-struct ForgejoReview {
-    user: ForgejoUser,
+struct GitHubReview {
+    user: GitHubUser,
     state: String,
     #[serde(default)]
     id: Option<u64>,
@@ -232,42 +243,44 @@ struct ForgejoReview {
 }
 
 #[derive(Debug, Deserialize)]
-struct ForgejoUser {
+struct GitHubUser {
     login: String,
 }
 
-/// Forgejo merge request body (`POST /pulls/<n>/merge`).
+/// GitHub merge request body (`PUT /pulls/<n>/merge`).
 #[derive(serde::Serialize)]
-struct ForgejoMergeBody {
-    #[serde(rename = "Do")]
-    do_method: String,
-    merge_message_field: String,
+struct GitHubMergeBody {
+    merge_method: String,
 }
 
 // ---------------------------------------------------------------------------
-// ForgejoClient impl
+// ForgeClient impl
 // ---------------------------------------------------------------------------
 
-impl ForgejoClient for ForgejoHttpClient {
+impl ForgeClient for GitHubHttpClient {
     fn list_open_pulls(&self, base_branch: &str) -> Result<Vec<PullRequest>> {
         // Branch names in this codebase (e.g. "dev") contain only characters
         // that are safe in a query-string value; no percent-encoding needed.
         let url = format!(
-            "{}/pulls?state=open&base={}&limit={PAGE_LIMIT}&page=1",
+            "{}/pulls?state=open&base={}&per_page={PAGE_LIMIT}&page=1",
             self.repo_url(),
             base_branch
         );
-        let items: Vec<ForgejoPr> = self.fetch_all_pages(url, "list_open_pulls")?;
+        let items: Vec<GitHubPr> = self.fetch_all_pages(url, "list_open_pulls")?;
         Ok(items.into_iter().map(pr_from_wire).collect())
     }
 
     fn get_commit_status(&self, sha: &str, required_context: &str) -> Result<CommitStatusState> {
         let url = format!(
-            "{}/commits/{}/statuses?limit={PAGE_LIMIT}&page=1",
+            "{}/commits/{}/status?per_page={PAGE_LIMIT}&page=1",
             self.repo_url(),
             sha
         );
-        let statuses: Vec<ForgejoStatus> = self.fetch_all_pages(url, "get_commit_status")?;
+        let combined: Vec<GitHubCombinedStatus> = self.fetch_all_pages(url, "get_commit_status")?;
+        let statuses: Vec<GitHubStatus> = combined
+            .into_iter()
+            .flat_map(|page| page.statuses)
+            .collect();
 
         let found = statuses
             .iter()
@@ -282,11 +295,11 @@ impl ForgejoClient for ForgejoHttpClient {
 
     fn list_reviews(&self, pr_number: u64) -> Result<Vec<Review>> {
         let url = format!(
-            "{}/pulls/{}/reviews?limit={PAGE_LIMIT}&page=1",
+            "{}/pulls/{}/reviews?per_page={PAGE_LIMIT}&page=1",
             self.repo_url(),
             pr_number
         );
-        let items: Vec<ForgejoReview> = self.fetch_all_pages(url, "list_reviews")?;
+        let items: Vec<GitHubReview> = self.fetch_all_pages(url, "list_reviews")?;
 
         Ok(items
             .into_iter()
@@ -304,9 +317,7 @@ impl ForgejoClient for ForgejoHttpClient {
     fn get_pull(&self, pr_number: u64) -> Result<PullRequest> {
         let url = format!("{}/pulls/{}", self.repo_url(), pr_number);
         let resp = self
-            .client
-            .get(&url)
-            .header("Authorization", self.auth_header())
+            .with_github_headers(self.client.get(&url))
             .send()
             .map_err(|e| TideError::Downstream(format!("get_pull GET: {e}")))?;
 
@@ -317,7 +328,7 @@ impl ForgejoClient for ForgejoHttpClient {
             )));
         }
 
-        let pr: ForgejoPr = resp
+        let pr: GitHubPr = resp
             .json()
             .map_err(|e| TideError::Downstream(format!("get_pull decode: {e}")))?;
 
@@ -326,22 +337,19 @@ impl ForgejoClient for ForgejoHttpClient {
 
     fn merge_pull(&self, pr_number: u64, method: MergeMethod) -> Result<()> {
         let url = format!("{}/pulls/{}/merge", self.repo_url(), pr_number);
-        let body = ForgejoMergeBody {
-            do_method: method.as_str().to_owned(),
-            merge_message_field: String::new(),
+        let body = GitHubMergeBody {
+            merge_method: method.as_str().to_owned(),
         };
         let resp = self
-            .client
-            .post(&url)
-            .header("Authorization", self.auth_header())
+            .with_github_headers(self.client.put(&url))
             .header("Content-Type", "application/json")
             .json(&body)
             .send()
-            .map_err(|e| TideError::Downstream(format!("merge_pull POST: {e}")))?;
+            .map_err(|e| TideError::Downstream(format!("merge_pull PUT: {e}")))?;
 
         let status = resp.status();
-        // Forgejo returns 200 OK or 204 No Content on success.
-        if status.as_u16() == 200 || status.as_u16() == 204 {
+        // GitHub returns 200 OK on a successful merge.
+        if status.is_success() {
             return Ok(());
         }
 
@@ -355,7 +363,7 @@ impl ForgejoClient for ForgejoHttpClient {
 // Wire → domain projection
 // ---------------------------------------------------------------------------
 
-fn pr_from_wire(pr: ForgejoPr) -> PullRequest {
+fn pr_from_wire(pr: GitHubPr) -> PullRequest {
     PullRequest {
         number: pr.number,
         title: pr.title,
@@ -388,7 +396,10 @@ fn parse_total_count(headers: &reqwest::header::HeaderMap) -> Option<usize> {
 }
 
 fn with_page(initial_url: &str, page: u32) -> String {
-    if let Some(index) = initial_url.find("page=") {
+    // Match the `page=` query parameter as a whole token, not a substring —
+    // GitHub uses `per_page=` which also ends in `page=` and must not be hit.
+    let token_start = find_page_param(initial_url);
+    if let Some(index) = token_start {
         let value_start = index + "page=".len();
         let value_end = initial_url[value_start..]
             .find('&')
@@ -405,9 +416,21 @@ fn with_page(initial_url: &str, page: u32) -> String {
     format!("{initial_url}{separator}page={page}")
 }
 
+/// Byte offset of the `page=` query parameter token (`?page=` or `&page=`),
+/// returning the index of `page=` itself. Avoids matching inside `per_page=`.
+fn find_page_param(url: &str) -> Option<usize> {
+    for delimiter in ['?', '&'] {
+        let needle = format!("{delimiter}page=");
+        if let Some(index) = url.find(&needle) {
+            return Some(index + 1);
+        }
+    }
+    None
+}
+
 fn compare_status_recency(
-    left: &(usize, &ForgejoStatus),
-    right: &(usize, &ForgejoStatus),
+    left: &(usize, &GitHubStatus),
+    right: &(usize, &GitHubStatus),
 ) -> std::cmp::Ordering {
     let left_timestamp = left.1.updated_at.as_ref().or(left.1.created_at.as_ref());
     let right_timestamp = right.1.updated_at.as_ref().or(right.1.created_at.as_ref());
@@ -432,20 +455,20 @@ mod tests {
     #[test]
     fn parses_next_link_from_multi_link_header() {
         let header = concat!(
-            "<https://forge/api/v1/repos/o/r/pulls?page=1>; rel=\"prev\", ",
-            "<https://forge/api/v1/repos/o/r/pulls?page=3>; rel=\"next\""
+            "<https://api.github.com/repos/o/r/pulls?page=1>; rel=\"prev\", ",
+            "<https://api.github.com/repos/o/r/pulls?page=3>; rel=\"next\""
         );
         assert_eq!(
             parse_next_link_header(header),
-            Some("https://forge/api/v1/repos/o/r/pulls?page=3".to_owned())
+            Some("https://api.github.com/repos/o/r/pulls?page=3".to_owned())
         );
     }
 
     #[test]
     fn replaces_existing_page_query_parameter() {
         assert_eq!(
-            with_page("https://forge/pulls?state=open&page=1&limit=50", 2),
-            "https://forge/pulls?state=open&page=2&limit=50"
+            with_page("https://api.github.com/pulls?state=open&page=1&per_page=50", 2),
+            "https://api.github.com/pulls?state=open&page=2&per_page=50"
         );
     }
 
@@ -464,7 +487,7 @@ mod tests {
             },
         ];
         let mut urls = Vec::new();
-        let mut next_url = "https://forge/pulls?limit=50&page=1".to_owned();
+        let mut next_url = "https://api.github.com/pulls?per_page=50&page=1".to_owned();
         let mut fallback_page = 2u32;
         let mut all_items = Vec::new();
 
@@ -478,7 +501,8 @@ mod tests {
                 .is_some_and(|total_count| all_items.len() < total_count)
                 && fetched > 0
             {
-                next_url = with_page("https://forge/pulls?limit=50&page=1", fallback_page);
+                next_url =
+                    with_page("https://api.github.com/pulls?per_page=50&page=1", fallback_page);
                 fallback_page += 1;
                 continue;
             }
@@ -489,22 +513,22 @@ mod tests {
         assert_eq!(
             urls,
             vec![
-                "https://forge/pulls?limit=50&page=1".to_owned(),
-                "https://forge/pulls?limit=50&page=2".to_owned(),
+                "https://api.github.com/pulls?per_page=50&page=1".to_owned(),
+                "https://api.github.com/pulls?per_page=50&page=2".to_owned(),
             ]
         );
     }
 
     #[test]
     fn status_recency_prefers_timestamp_then_id_then_api_order() {
-        let older = ForgejoStatus {
+        let older = GitHubStatus {
             context: "gate".to_owned(),
             state: "success".to_owned(),
             id: Some(10),
             updated_at: Some("2026-06-01T00:00:00Z".to_owned()),
             created_at: None,
         };
-        let newer = ForgejoStatus {
+        let newer = GitHubStatus {
             context: "gate".to_owned(),
             state: "failure".to_owned(),
             id: Some(9),

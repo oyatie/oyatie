@@ -20,7 +20,7 @@
 //! ## Trunk-sourcing (security invariant)
 //!
 //! The Job's init/main container:
-//! 1. Clones `dev` from Forgejo (trusted control state / gate command source)
+//! 1. Clones `dev` from GitHub (trusted control state / gate command source)
 //! 2. Fetches PR ref as DATA (untrusted)
 //! 3. Captures trusted build/test target inventories before checking out the
 //!    candidate bytes, then runs the candidate against those immutable label
@@ -62,7 +62,7 @@ pub const LABEL_CI_DELIVERY_ID: &str = "oya.io/ci-delivery-id";
 pub const LABEL_PART_OF: &str = "app.kubernetes.io/part-of";
 
 pub const ANNOT_CI_BASE_REF: &str = "oya.io/ci-base-ref";
-pub const ANNOT_CI_STATUS_POSTED: &str = "oya.io/ci-forgejo-status-posted";
+pub const ANNOT_CI_STATUS_POSTED: &str = "oya.io/ci-status-posted";
 pub const ANNOT_CI_REQUIRED_CONTEXT: &str = "oya.io/ci-required-context";
 pub const ANNOT_CI_PRODUCER_KIND: &str = "oya.io/ci-producer-kind";
 pub const ANNOT_CI_PRODUCER_CONTROLLER: &str = "oya.io/ci-producer-controller";
@@ -83,7 +83,7 @@ pub const WATCHER_LABEL_SELECTOR: &str = "oya.io/ci-controller=oya-ci-gate";
 ///
 /// The Job:
 /// - Has `backoffLimit: 0` (fail-closed)
-/// - Runs a single container that clones dev from Forgejo, fetches the PR
+/// - Runs a single container that clones dev from GitHub, fetches the PR
 ///   ref as untrusted candidate data, snapshots trusted build/test target
 ///   inventories, then runs the candidate tree against those immutable
 ///   inventories.
@@ -164,7 +164,7 @@ xargs -a /workspace/trusted-test-targets.txt buck2 test"#,
         name: "gate".to_owned(),
         image: Some(spec.image.clone()),
         command: Some(vec!["/bin/sh".to_owned(), "-c".to_owned(), gate_cmd]),
-        // SECURITY: FORGEJO_CI_TOKEN MUST NOT be injected here.
+        // SECURITY: GITHUB_CI_TOKEN MUST NOT be injected here.
         // The gate Job runs untrusted PR code; a token in the container env
         // would allow a malicious PR to exfiltrate it and post arbitrary
         // commit statuses. Only the controller (crier) holds the token.
@@ -412,7 +412,7 @@ mod tests {
                 repo: "oya-admin/oyatie".to_owned(),
             },
             image: "registry.local/rust-ci:dev".to_owned(),
-            forge_clone_url: "http://forgejo.local/oya-admin/oyatie.git".to_owned(),
+            forge_clone_url: "https://github.com/jason931225/oyatie.git".to_owned(),
             active_deadline_seconds: 3600,
             ttl_seconds_after_finished: 600,
             namespace: "oya-ci".to_owned(),
@@ -514,7 +514,7 @@ mod tests {
 
         let env = pod_spec.containers[0].env.as_ref().expect("env exists");
         assert!(
-            env.iter().all(|var| var.name != "FORGEJO_CI_TOKEN"),
+            env.iter().all(|var| var.name != "GITHUB_CI_TOKEN"),
             "runner job must not receive status-posting credentials"
         );
     }

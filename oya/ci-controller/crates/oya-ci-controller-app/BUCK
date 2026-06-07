@@ -7,7 +7,6 @@ rust_library(
     deps = [
         "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
         "//oya/ci-controller/crates/oya-ci-controller-k8s-adapter:oya-ci-controller-k8s-adapter",
-        "//oya/ci-controller/crates/oya-ci-controller-forgejo-adapter:oya-ci-controller-forgejo-adapter",
         "//oya/ci-controller/crates/oya-ci-controller-github-adapter:oya-ci-controller-github-adapter",
         "third-party//:axum",
         "third-party//:futures",
@@ -30,7 +29,6 @@ rust_binary(
     deps = [
         "//oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller-app",
         "//oya/ci-controller/crates/oya-ci-controller-k8s-adapter:oya-ci-controller-k8s-adapter",
-        "//oya/ci-controller/crates/oya-ci-controller-forgejo-adapter:oya-ci-controller-forgejo-adapter",
         "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
         "third-party//:axum",
         "third-party//:futures",
@@ -55,7 +53,6 @@ rust_test(
     deps = [
         "//oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel",
         "//oya/ci-controller/crates/oya-ci-controller-k8s-adapter:oya-ci-controller-k8s-adapter",
-        "//oya/ci-controller/crates/oya-ci-controller-forgejo-adapter:oya-ci-controller-forgejo-adapter",
         "//oya/ci-controller/crates/oya-ci-controller-github-adapter:oya-ci-controller-github-adapter",
         "third-party//:axum",
         "third-party//:futures",

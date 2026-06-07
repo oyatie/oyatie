@@ -1,17 +1,17 @@
 [package]
-name = "oya-ci-tide-forgejo-adapter"
+name = "oya-ci-tide-github-adapter"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Forgejo API client adapter for the oya-ci tide component.
-# Implements kernel::ForgejoClient via reqwest blocking HTTP.
-# Mirrors oya-ci-controller-forgejo-adapter pattern (ADR-0513 Phase 2).
+# GitHub API client adapter for the oya-ci tide component.
+# Implements kernel::ForgeClient via reqwest blocking HTTP.
+# Forge of record = GitHub (D-FORGE; ADR-0513 Phase 2).
 
 [lib]
-name = "oya_ci_tide_forgejo_adapter"
+name = "oya_ci_tide_github_adapter"
 path = "src/lib.rs"
 doctest = false
 

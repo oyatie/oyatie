@@ -212,12 +212,11 @@ members = [
   "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-jenkins-adapter",
   "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel",
   "oya/ci-controller/crates/oya-ci-controller-kernel",
-  "oya/ci-controller/crates/oya-ci-controller-forgejo-adapter",
   "oya/ci-controller/crates/oya-ci-controller-github-adapter",
   "oya/ci-controller/crates/oya-ci-controller-k8s-adapter",
   "oya/ci-controller/crates/oya-ci-controller-app",
   "oya/ci-tide/crates/oya-ci-tide-kernel",
-  "oya/ci-tide/crates/oya-ci-tide-forgejo-adapter",
+  "oya/ci-tide/crates/oya-ci-tide-github-adapter",
   "oya/ci-tide/crates/oya-ci-tide-app",
   "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app",
   "cloud/cloud-billing/crates/oya-billing",
@@ -1117,8 +1116,8 @@ hyper-rustls = { version = "0.27", default-features = false, features = ["http1"
 # Used by ci-webhook-gateway and similar microservices that expose HTTP surfaces.
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 # reqwest HTTP client — workspace pin so all crates share one resolved version.
-# Used by ci-controller-forgejo-adapter (status poster), ci-tide-forgejo-adapter
-# (Forgejo status/merge API), and gateway adapters. Destination is hyper-direct per line 1094.
+# Used by ci-controller-github-adapter (status poster), ci-tide-github-adapter
+# (GitHub status/merge API), and gateway adapters. Destination is hyper-direct per line 1094.
 # blocking feature: adapter layers implementing synchronous kernel traits.
 # rustls: TLS via aws-lc-rs/rustls (no native-tls / OpenSSL dep).
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls", "blocking"] }

@@ -381,7 +381,7 @@ pub(crate) fn usage() -> String {
     "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--ci-required] [--include-deferred] [--skip-fmt] [--skip-check] [--skip-clippy] [--skip-nextest] [--skip-gate-run-all]   # canonical local pre-push/pre-PR entry; --ci-required runs the full CI mirror\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify --ci-required → git push → open/extend PR\n       oya cleanup retired-and-renumber --plan <path> --renumber-map <path> [--apply]\n       oya supply-chain adr0039 [--manifest <registry/release/images.yaml>] [--artifacts-dir <artifacts/supply-chain>] [--dry-run] [--format <text|json>]\n       oya supply-chain install-trivy [--version <0.70.0>] [--install-dir </usr/local/bin>] [--dry-run] [--format <text|json>]\n       oya codex-thread-sweep list [--p1-only] [--pr N] | show <thread-id>\n       oya lint <proto|asyncapi|adr-shape|foundry-phase00-evidence> [lint-specific args]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <registry/capability-templates>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
         + "\n       oya plan <next|claim|claim/next> [--master-plan <docs/machine-readable/masterplan.generated.json>] [--repo-root <.>] [--remote <origin>] [--deliverable <id>] [--claimant <agent-id>] [--lease-seconds <seconds>] [--recover-stale] [--recovery-reason <text>] [--dry-run] [--format <text|json>]   # ADR-0377 D2: remote git-ref CAS claims under refs/heads/claims/<deliverable-id>"
-        + "\n       oya gen board-sync [--master-plan <docs/machine-readable/masterplan.generated.json>] [--snapshot <docs/machine-readable/board-sync.generated.json>] [--claim-ref-snapshot <claims.json>] [--write|--check]   # ADR-0377 D3: masterplan deliverables + claim refs to Forgejo issue/label projection"
+        + "\n       oya gen board-sync [--master-plan <docs/machine-readable/masterplan.generated.json>] [--snapshot <docs/machine-readable/board-sync.generated.json>] [--claim-ref-snapshot <claims.json>] [--write|--check]   # ADR-0377 D3: masterplan deliverables + claim refs to GitHub issue/label projection"
         + "\n       oya gen masterplan [--decisions-dir <docs/decisions>] [--output <docs/machine-readable/masterplan.generated.json>] [--write|--check]   # ADR-0364 D3: generate the masterplan projection from planning_impact ADRs"
         // `oya onprem` / `oya ops oci-*` were RETIRED by ADR-0375; the dispatch
         // emits a RETIRED notice + exit 2. The subcommands are intentionally
@@ -1202,6 +1202,14 @@ fn collect_brand_residue_documents(
         let normalized_path = format!("docs/{}", slash_path(relative));
         let contents = fs::read_to_string(&path)
             .map_err(|error| format!("brand residue file unreadable: {error}"))?;
+        // Superseded ADR bodies retain historical lineage (including retired
+        // brand tokens such as `forgejo`); the deny-list prevents *new*
+        // occurrences in live docs, not the rewriting of immutable history.
+        // Exclude them here, in the caller's path/status filter, not in the
+        // kernel (see libs/oya-check-brand-residue/src/lib.rs module docs).
+        if is_superseded_adr_document(&contents) {
+            continue;
+        }
         documents.push(BrandResidueDocument {
             path: normalized_path,
             contents,
@@ -1214,6 +1222,34 @@ fn brand_residue_excluded_path(path: &Path) -> bool {
     ["raw", "machine-readable"]
         .into_iter()
         .any(|component| path_has_component(path, component))
+}
+
+/// True when a doc is a Superseded ADR, detected from its YAML frontmatter
+/// `status:` field. Superseded ADRs are immutable history and are excluded from
+/// the brand-residue forbidden-token scan so the gate prevents new occurrences
+/// without forcing a rewrite of retired lineage.
+fn is_superseded_adr_document(contents: &str) -> bool {
+    let mut in_frontmatter = false;
+    for (index, line) in contents.lines().enumerate() {
+        let trimmed = line.trim_end();
+        if index == 0 {
+            if trimmed == "---" {
+                in_frontmatter = true;
+                continue;
+            }
+            return false;
+        }
+        if !in_frontmatter {
+            return false;
+        }
+        if trimmed == "---" {
+            return false;
+        }
+        if let Some(value) = trimmed.strip_prefix("status:") {
+            return value.trim().eq_ignore_ascii_case("superseded");
+        }
+    }
+    false
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

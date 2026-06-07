@@ -20,7 +20,7 @@
 //!
 //! Accepts `{"pr_number": N, "head_sha": "...", "base_ref": "dev"}` and
 //! calls `K8sJobSpawner::spawn(build_gate_job(spec))` to create the labeled
-//! gate Job. The reconcile loop then picks it up and posts Forgejo statuses.
+//! gate Job. The reconcile loop then picks it up and posts GitHub statuses.
 //!
 //! Idempotent: the Job name is deterministic (`oya-ci-gate-pr<N>-<sha8>`),
 //! so a duplicate POST results in a 409 create-conflict no-op (returns 200).
@@ -28,7 +28,7 @@
 //! ## Idempotency / restart-safety
 //!
 //! ALL state lives on the Job object (labels + annotations). A controller
-//! crash + relist resumes cleanly. The `oya.io/ci-forgejo-status-posted`
+//! crash + relist resumes cleanly. The `oya.io/ci-status-posted`
 //! annotation is the write-once terminal guard (exactly-once posting).
 //!
 //! ## ADR-0083 Tier-3
@@ -81,12 +81,12 @@ const ACTIVE_REQUEUE_SECS: u64 = 10;
 /// Shared controller state — all adapters behind `Arc<dyn Trait>` for
 /// testability. Mirrors gateway `AppState` seam injection pattern.
 ///
-/// The controller ONLY WATCHES Jobs and posts Forgejo commit statuses (crier
+/// The controller ONLY WATCHES Jobs and posts GitHub commit statuses (crier
 /// pattern). Job creation is the gateway's responsibility (hook/plank side).
 #[derive(Clone)]
 pub struct ControllerState {
     pub client: Client,
-    pub forgejo_poster: Arc<dyn CommitStatusPoster>,
+    pub status_poster: Arc<dyn CommitStatusPoster>,
     pub namespace: String,
     /// Waiting-pod-reason grace threshold.
     pub grace_cycles: u32,
@@ -186,9 +186,9 @@ pub async fn reconcile(
         }
 
         ReconcileDecision::PostPending { description } => {
-            // Post pending to Forgejo via spawn_blocking (reqwest::blocking must
+            // Post pending to GitHub via spawn_blocking (reqwest::blocking must
             // not be called on the async executor thread — ADR-0083 major fix).
-            let poster = Arc::clone(&ctx.forgejo_poster);
+            let poster = Arc::clone(&ctx.status_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
             let post_result = tokio::task::spawn_blocking(move || {
@@ -227,10 +227,10 @@ pub async fn reconcile(
         } => {
             // Post terminal status via spawn_blocking (reqwest::blocking must not
             // be called on the async executor thread — ADR-0083 major fix).
-            // Do NOT mark the annotation until Forgejo returns 200/201 — if we
+            // Do NOT mark the annotation until GitHub returns 2xx — if we
             // crash between post and annotation patch, the next reconcile
-            // re-posts (benign: Forgejo statuses are last-write-wins on (sha, context)).
-            let poster = Arc::clone(&ctx.forgejo_poster);
+            // re-posts (benign: GitHub statuses are last-write-wins on (sha, context)).
+            let poster = Arc::clone(&ctx.status_poster);
             let sha = head_sha.clone();
             let desc = description.clone();
             let post_result =
@@ -254,7 +254,7 @@ pub async fn reconcile(
                     Ok(Action::await_change())
                 }
                 Err(e) => {
-                    // Forgejo unreachable — requeue with backoff. Verdict is
+                    // GitHub unreachable — requeue with backoff. Verdict is
                     // durable on the Job object, so nothing is lost.
                     error!(
                         job = job_name,
@@ -263,7 +263,7 @@ pub async fn reconcile(
                         "failed to post terminal status — requeueing"
                     );
                     Err(ReconcileError(format!(
-                        "forgejo post failed for {job_name}: {e}"
+                        "github post failed for {job_name}: {e}"
                     )))
                 }
             }
@@ -271,7 +271,7 @@ pub async fn reconcile(
     }
 }
 
-/// Patch the `oya.io/ci-forgejo-status-posted` annotation on the Job.
+/// Patch the `oya.io/ci-status-posted` annotation on the Job.
 /// Best-effort: log on failure but never block the reconcile verdict.
 async fn patch_status_annotation(
     client: &Client,
@@ -397,7 +397,7 @@ pub struct ServerState {
 pub struct GateSpecConfig {
     /// Rust-CI image for the gate runner Pod.
     pub image: String,
-    /// Forgejo in-cluster clone URL.
+    /// Git clone URL for the gate Job init container (GitHub forge of record).
     pub forge_clone_url: String,
     /// Gate Job active deadline in seconds (mirrors Jenkins 60 min timeout).
     pub active_deadline_seconds: i64,
@@ -407,7 +407,7 @@ pub struct GateSpecConfig {
     pub namespace: String,
     /// Low-privilege ServiceAccount for gate runner Pods.
     pub runner_service_account: String,
-    /// Forgejo repo full name (e.g. "oya-admin/oyatie").
+    /// GitHub repo full name (e.g. "jason931225/oyatie").
     pub repo: String,
 }
 
@@ -482,9 +482,9 @@ async fn handle_gate_run(
             .into_response();
     }
 
-    // The current Forgejo-native weekly gate only accepts PRs targeting dev.
-    // This keeps /gate-run aligned with the plain-git + Forgejo-PR-against-dev
-    // contract and avoids accidentally spawning a gate Job for another branch.
+    // The current weekly gate only accepts PRs targeting dev. This keeps
+    // /gate-run aligned with the plain-git + GitHub-PR-against-dev contract and
+    // avoids accidentally spawning a gate Job for another branch.
     if req.base_ref != "dev" {
         warn!(pr = req.pr_number, base_ref = %req.base_ref, "gate-run: unsupported base_ref");
         return (
@@ -614,7 +614,7 @@ mod tests {
             job_spawner: spawner,
             gate_spec_config: GateSpecConfig {
                 image: "registry.local/rust-ci:dev".to_owned(),
-                forge_clone_url: "http://forgejo.local/oya-admin/oyatie.git".to_owned(),
+                forge_clone_url: "https://github.com/jason931225/oyatie.git".to_owned(),
                 active_deadline_seconds: 3600,
                 ttl_seconds_after_finished: 600,
                 namespace: "oya-ci".to_owned(),
@@ -710,7 +710,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn gate_run_rejects_non_dev_base_ref_for_weekly_forgejo_gate() {
+    async fn gate_run_rejects_non_dev_base_ref_for_weekly_gate() {
         let spawner = Arc::new(RecordingSpawner::default());
         let mut router = build_router(test_state(Arc::clone(&spawner)));
 

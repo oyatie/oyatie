@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-ci-tide-forgejo-adapter",
+    name = "oya-ci-tide-github-adapter",
     srcs = glob(["src/**/*.rs", "**/*.cedar", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml"]),
-    crate = "oya_ci_tide_forgejo_adapter",
+    crate = "oya_ci_tide_github_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [

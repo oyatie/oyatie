@@ -5,7 +5,7 @@
 //!
 //! Implements [`CommitStatusPoster`] via reqwest blocking HTTP. The HTTP shape
 //! is lifted from the proven oya-ci-webhook-gateway-github-adapter (ADR-0387 D5).
-//! Forge-of-record = GitHub (D2/D-FORGE; Forgejo dropped).
+//! Forge-of-record = GitHub (D2/D-FORGE; GitHub dropped).
 //!
 //! ## Endpoint
 //!
@@ -88,7 +88,7 @@ impl CommitStatusPoster for GitHubCommitStatusPoster {
         description: &str,
         target_url: Option<&str>,
     ) -> Result<()> {
-        // Truncate description to 240 Unicode scalar values (GitHub / Forgejo
+        // Truncate description to 240 Unicode scalar values (GitHub / GitHub
         // limit). Byte-slicing is unsafe on multibyte boundaries; use char
         // indices to find the correct byte offset.
         let description: &str = if description.chars().count() > 240 {
