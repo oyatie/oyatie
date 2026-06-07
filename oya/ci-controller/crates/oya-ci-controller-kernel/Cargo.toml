@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 # oya-ci controller kernel — pure-domain state machine for Phase-1 bespoke-Prow
 # (oya-ci-bespoke-prow design). No I/O, no async, no kube, no tokio.
-# Owns: GateRun, GateOutcome, ForgejoState, JobObservation, map_job_to_status.
+# Owns: GateRun, GateOutcome, CommitState, JobObservation, map_job_to_status.
 # ADR-0387 (ci-gate substrate); see docs/ideas/oya-ci-bespoke-prow.md Phase 1.
 
 [lib]

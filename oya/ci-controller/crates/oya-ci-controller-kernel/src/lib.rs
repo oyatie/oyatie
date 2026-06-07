@@ -6,10 +6,10 @@
 //! Owns:
 //! - [`GateRun`] value object (identity + labels for the K8s Job)
 //! - [`GateOutcome`] enum
-//! - [`ForgejoState`] enum (Forgejo commit-status vocabulary)
+//! - [`CommitState`] enum (forge-neutral commit-status vocabulary)
 //! - [`JobObservation`] — the K8s-Job-observation input type
 //! - [`map_job_to_status`] — the TOTAL pure function: observation → [`ReconcileDecision`]
-//! - [`ForgejoStatusPoster`] + [`JobSpawner`] trait seams (I/O boundary)
+//! - [`CommitStatusPoster`] + [`JobSpawner`] trait seams (I/O boundary)
 //!
 //! ## Security
 //!
@@ -54,31 +54,32 @@ impl std::error::Error for KernelError {}
 pub type Result<T> = std::result::Result<T, KernelError>;
 
 // ---------------------------------------------------------------------------
-// Forgejo commit-status vocabulary
+// Commit-status vocabulary (forge-neutral)
 // ---------------------------------------------------------------------------
 
-/// Forgejo commit-status state values (subset used by oya-ci-gate).
+/// Forge-neutral commit-status state values (subset used by the oya-ci gate).
+/// Maps 1:1 onto both GitHub and Forgejo status APIs.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum ForgejoState {
+pub enum CommitState {
     Pending,
     Success,
     Failure,
     Error,
 }
 
-impl ForgejoState {
+impl CommitState {
     pub const fn as_str(self) -> &'static str {
         match self {
-            ForgejoState::Pending => "pending",
-            ForgejoState::Success => "success",
-            ForgejoState::Failure => "failure",
-            ForgejoState::Error => "error",
+            CommitState::Pending => "pending",
+            CommitState::Success => "success",
+            CommitState::Failure => "failure",
+            CommitState::Error => "error",
         }
     }
 }
 
-impl std::fmt::Display for ForgejoState {
+impl std::fmt::Display for CommitState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.as_str())
     }
@@ -438,7 +439,7 @@ pub struct JobObservation {
     pub job_not_found: bool,
     /// Whether a terminal Forgejo status was already posted
     /// (from annotation `oya.io/ci-forgejo-status-posted`).
-    pub terminal_status_already_posted: Option<ForgejoState>,
+    pub terminal_status_already_posted: Option<CommitState>,
     /// Whether the pending status was already posted
     /// (from annotation `oya.io/ci-forgejo-status-posted` == "pending").
     pub pending_status_already_posted: bool,
@@ -457,7 +458,7 @@ pub enum ReconcileDecision {
     AwaitChange,
     /// Job reached a terminal state — post this Forgejo status.
     PostTerminal {
-        state: ForgejoState,
+        state: CommitState,
         context: &'static str,
         description: String,
     },
@@ -488,7 +489,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
             return ReconcileDecision::AlreadyTerminal;
         }
         return ReconcileDecision::PostTerminal {
-            state: ForgejoState::Failure,
+            state: CommitState::Failure,
             context: GATE_CONTEXT,
             description: "oya-ci-required: run disappeared (job deleted before verdict posted)"
                 .to_owned(),
@@ -497,7 +498,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
 
     // If a terminal status is already posted, nothing to do.
     if let Some(posted) = obs.terminal_status_already_posted {
-        if posted != ForgejoState::Pending {
+        if posted != CommitState::Pending {
             return ReconcileDecision::AlreadyTerminal;
         }
     }
@@ -513,7 +514,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
 
     if is_complete {
         return ReconcileDecision::PostTerminal {
-            state: ForgejoState::Success,
+            state: CommitState::Success,
             context: GATE_CONTEXT,
             description: "oya-ci-required full gate target passed".to_owned(),
         };
@@ -535,7 +536,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
             }
         };
         return ReconcileDecision::PostTerminal {
-            state: ForgejoState::Failure,
+            state: CommitState::Failure,
             context: GATE_CONTEXT,
             description,
         };
@@ -547,7 +548,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
         match reason {
             PodReason::OOMKilled => {
                 return ReconcileDecision::PostTerminal {
-                    state: ForgejoState::Failure,
+                    state: CommitState::Failure,
                     context: GATE_CONTEXT,
                     description: "oya-ci-required failed: OOMKilled — raise Job memory limit"
                         .to_owned(),
@@ -555,7 +556,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
             }
             PodReason::Evicted => {
                 return ReconcileDecision::PostTerminal {
-                    state: ForgejoState::Failure,
+                    state: CommitState::Failure,
                     context: GATE_CONTEXT,
                     description:
                         "oya-ci-required failed: pod evicted (node-pressure or preemption)"
@@ -565,7 +566,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
             // InvalidImageName is a misconfiguration — not transient, terminal immediately.
             PodReason::InvalidImageName => {
                 return ReconcileDecision::PostTerminal {
-                    state: ForgejoState::Error,
+                    state: CommitState::Error,
                     context: GATE_CONTEXT,
                     description:
                         "oya-ci-required error: InvalidImageName — operator must fix gate image config"
@@ -582,7 +583,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
                         _ => "container setup failed (CreateContainerError or CrashLoopBackOff)",
                     };
                     return ReconcileDecision::PostTerminal {
-                        state: ForgejoState::Failure,
+                        state: CommitState::Failure,
                         context: GATE_CONTEXT,
                         description: format!("oya-ci-required failed: {label}"),
                     };
@@ -606,7 +607,7 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
 
     // Fallback: failed count > 0 but no condition yet — treat as gate failure.
     ReconcileDecision::PostTerminal {
-        state: ForgejoState::Failure,
+        state: CommitState::Failure,
         context: GATE_CONTEXT,
         description: "oya-ci-required failed: required gate exited non-zero".to_owned(),
     }
@@ -616,14 +617,14 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
 // Trait seams (I/O boundary — implemented by adapter crates)
 // ---------------------------------------------------------------------------
 
-/// Seam for posting Forgejo commit-status updates.
-pub trait ForgejoStatusPoster: Send + Sync {
-    /// POST a status to `POST /api/v1/repos/<owner>/<repo>/statuses/<sha>`.
+/// Forge-neutral seam for posting commit-status updates.
+pub trait CommitStatusPoster: Send + Sync {
+    /// POST a commit status to the forge's statuses endpoint for `sha`.
     /// Returns `Err(KernelError::DownstreamTransport)` on non-2xx or transport error.
     fn post(
         &self,
         sha: &str,
-        state: ForgejoState,
+        state: CommitState,
         context: &str,
         description: &str,
         target_url: Option<&str>,
@@ -693,7 +694,7 @@ mod tests {
         };
         match map_job_to_status(&obs, 12) {
             ReconcileDecision::PostTerminal { state, context, .. } => {
-                assert_eq!(state, ForgejoState::Success);
+                assert_eq!(state, CommitState::Success);
                 assert_eq!(context, GATE_CONTEXT);
             }
             other => panic!("expected PostTerminal(Success), got {other:?}"),
@@ -712,7 +713,7 @@ mod tests {
         };
         match map_job_to_status(&obs, 12) {
             ReconcileDecision::PostTerminal { state, .. } => {
-                assert_eq!(state, ForgejoState::Success);
+                assert_eq!(state, CommitState::Success);
             }
             other => panic!("expected success, got {other:?}"),
         }
@@ -735,7 +736,7 @@ mod tests {
             ReconcileDecision::PostTerminal {
                 state, description, ..
             } => {
-                assert_eq!(state, ForgejoState::Failure);
+                assert_eq!(state, CommitState::Failure);
                 assert!(description.contains("non-zero"), "desc: {description}");
             }
             other => panic!("expected failure, got {other:?}"),
@@ -759,7 +760,7 @@ mod tests {
             ReconcileDecision::PostTerminal {
                 state, description, ..
             } => {
-                assert_eq!(state, ForgejoState::Failure);
+                assert_eq!(state, CommitState::Failure);
                 assert!(
                     description.contains("deadline exceeded"),
                     "desc: {description}"
@@ -782,7 +783,7 @@ mod tests {
             ReconcileDecision::PostTerminal {
                 state, description, ..
             } => {
-                assert_eq!(state, ForgejoState::Failure);
+                assert_eq!(state, CommitState::Failure);
                 assert!(description.contains("OOMKilled"), "desc: {description}");
             }
             other => panic!("expected failure, got {other:?}"),
@@ -801,7 +802,7 @@ mod tests {
             ReconcileDecision::PostTerminal {
                 state, description, ..
             } => {
-                assert_eq!(state, ForgejoState::Failure);
+                assert_eq!(state, CommitState::Failure);
                 assert!(description.contains("evicted"), "desc: {description}");
             }
             other => panic!("expected failure, got {other:?}"),
@@ -823,7 +824,7 @@ mod tests {
             ReconcileDecision::PostTerminal {
                 state, description, ..
             } => {
-                assert_eq!(state, ForgejoState::Error);
+                assert_eq!(state, CommitState::Error);
                 assert!(
                     description.contains("InvalidImageName"),
                     "desc: {description}"
@@ -864,7 +865,7 @@ mod tests {
             ReconcileDecision::PostTerminal {
                 state, description, ..
             } => {
-                assert_eq!(state, ForgejoState::Failure);
+                assert_eq!(state, CommitState::Failure);
                 assert!(description.contains("image pull"), "desc: {description}");
             }
             other => panic!("expected failure past grace, got {other:?}"),
@@ -883,7 +884,7 @@ mod tests {
         };
         match map_job_to_status(&obs, 12) {
             ReconcileDecision::PostTerminal { state, .. } => {
-                assert_eq!(state, ForgejoState::Failure);
+                assert_eq!(state, CommitState::Failure);
             }
             other => panic!("expected failure, got {other:?}"),
         }
@@ -901,7 +902,7 @@ mod tests {
             ReconcileDecision::PostTerminal {
                 state, description, ..
             } => {
-                assert_eq!(state, ForgejoState::Failure);
+                assert_eq!(state, CommitState::Failure);
                 assert!(description.contains("disappeared"), "desc: {description}");
             }
             other => panic!("expected failure, got {other:?}"),
@@ -912,7 +913,7 @@ mod tests {
     fn job_not_found_with_prior_terminal_returns_already_terminal() {
         let obs = JobObservation {
             job_not_found: true,
-            terminal_status_already_posted: Some(ForgejoState::Success),
+            terminal_status_already_posted: Some(CommitState::Success),
             ..base_obs()
         };
         assert_eq!(
@@ -926,7 +927,7 @@ mod tests {
     #[test]
     fn terminal_already_posted_returns_already_terminal() {
         let obs = JobObservation {
-            terminal_status_already_posted: Some(ForgejoState::Success),
+            terminal_status_already_posted: Some(CommitState::Success),
             ..base_obs()
         };
         assert_eq!(
@@ -939,7 +940,7 @@ mod tests {
     fn terminal_failure_already_posted_returns_already_terminal() {
         let obs = JobObservation {
             failed: 1,
-            terminal_status_already_posted: Some(ForgejoState::Failure),
+            terminal_status_already_posted: Some(CommitState::Failure),
             conditions: vec![JobCondition {
                 condition_type: JobConditionType::Failed,
                 reason: Some("BackoffLimitExceeded".to_owned()),
@@ -953,14 +954,14 @@ mod tests {
         );
     }
 
-    // ---- Forgejo state vocabulary -----------------------------------------
+    // ---- Commit-status state vocabulary -----------------------------------
 
     #[test]
-    fn forgejo_state_as_str_matches_api() {
-        assert_eq!(ForgejoState::Pending.as_str(), "pending");
-        assert_eq!(ForgejoState::Success.as_str(), "success");
-        assert_eq!(ForgejoState::Failure.as_str(), "failure");
-        assert_eq!(ForgejoState::Error.as_str(), "error");
+    fn commit_state_as_str_matches_api() {
+        assert_eq!(CommitState::Pending.as_str(), "pending");
+        assert_eq!(CommitState::Success.as_str(), "success");
+        assert_eq!(CommitState::Failure.as_str(), "failure");
+        assert_eq!(CommitState::Error.as_str(), "error");
     }
 
     // ---- GateRun job_name --------------------------------------------------

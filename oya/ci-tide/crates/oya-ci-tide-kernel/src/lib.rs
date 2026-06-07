@@ -73,7 +73,7 @@ pub const DEFAULT_REPO_NAME: &str = "oyatie";
 pub const DEFAULT_BASE_BRANCH: &str = "dev";
 
 /// Default required commit-status context (must match branch-protection rule).
-pub const DEFAULT_REQUIRED_STATUS_CONTEXT: &str = "oya-ci-gate";
+pub const DEFAULT_REQUIRED_STATUS_CONTEXT: &str = "oya-ci-required";
 
 /// Default minimum approving reviews required.
 pub const DEFAULT_MIN_APPROVALS: u32 = 1;
@@ -141,7 +141,7 @@ pub struct TideConfig {
     pub repo_name: String,
     /// Base branch to poll PRs against (default: `dev`).
     pub base_branch: String,
-    /// Required commit-status context that must be `success` (default: `oya-ci-gate`).
+    /// Required commit-status context that must be `success` (default: `oya-ci-required`).
     pub required_status_context: String,
     /// Approval policy (default: 1 approving review).
     pub approval_policy: ApprovalPolicy,

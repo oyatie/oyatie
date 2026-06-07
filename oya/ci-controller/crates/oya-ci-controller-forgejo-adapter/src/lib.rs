@@ -1,8 +1,9 @@
+// DELETION-TAGGED: Forgejo is dropped (D-FORGE); bridge impl retained until the Forgejo-eradication lane removes it.
 //! # oya-ci-controller-forgejo-adapter
 //!
 //! Forgejo commit-status poster adapter for the oya-ci controller.
 //!
-//! Implements [`ForgejoStatusPoster`] via reqwest blocking HTTP.
+//! Implements [`CommitStatusPoster`] via reqwest blocking HTTP.
 //!
 //! ## Endpoint
 //!
@@ -24,7 +25,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_ci_controller_kernel::{ForgejoStatusPoster, ForgejoState, KernelError, Result};
+use oya_ci_controller_kernel::{CommitState, CommitStatusPoster, KernelError, Result};
 use serde::Serialize;
 
 /// Default Forgejo API base URL (in-cluster).
@@ -69,11 +70,11 @@ impl ForgejoCommitStatusPoster {
     }
 }
 
-impl ForgejoStatusPoster for ForgejoCommitStatusPoster {
+impl CommitStatusPoster for ForgejoCommitStatusPoster {
     fn post(
         &self,
         sha: &str,
-        state: ForgejoState,
+        state: CommitState,
         context: &str,
         description: &str,
         target_url: Option<&str>,
