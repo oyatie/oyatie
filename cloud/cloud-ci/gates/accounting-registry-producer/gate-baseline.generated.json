@@ -4,7 +4,7 @@
     "baseline_schema_version": 1,
     "firewall_target": "//cloud/cloud-ci/gates:cloud-ci-firewall",
     "producer_target": "//cloud/cloud-ci/gates:accounting-registry-producer",
-    "source_inputs_digest": "fnv1a64:9f28923d87cb9bce"
+    "source_inputs_digest": "fnv1a64:99dc8cf24b99af8a"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -26231,7 +26231,7 @@
           "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
           "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
           "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
-          "docs/decisions/ADR-0515-oya-ci-cd-unified-rust-native-cicd.md",
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
           "docs/decisions/INDEX.md",
           "docs/decisions/README.md",
           "docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md",
@@ -48803,7 +48803,7 @@
           "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
           "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
           "docs/decisions/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
-          "docs/decisions/ADR-0515-oya-ci-cd-unified-rust-native-cicd.md",
+          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
           "docs/decisions/INDEX.md",
           "docs/decisions/README.md",
           "docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md",
