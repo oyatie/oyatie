@@ -1,7 +1,0 @@
-{
-  "subcheck_id": "fixture-pair-coverage",
-  "fixture_kind": "passing",
-  "case_id": "fixture-pair-coverage-passing-semantic-fixture",
-  "expected_diagnostics": [],
-  "description": "Semantic passing fixture manifest for fixture-pair-coverage"
-}
