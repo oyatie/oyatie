@@ -1,0 +1,25 @@
+rust_library(
+    name = "registry-drift",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "registry_drift",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+# :registry-drift-gate — re-runs the producer in a sandbox and byte-diffs against the
+# committed accounting-registry.generated.json (PHASE-0-FIREWALL-PLAN §5.3). A hand-edit
+# to any generated face fails this target: committed == regenerated, structurally.
+# (Named -gate to avoid a buck2 in-package collision with the rust_library above; the
+# package //cloud/cloud-ci/gates/registry-drift carries the §5.3 :registry-drift identity.)
+rust_test(
+    name = "registry-drift-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "registry_drift_corpus",
+    crate_root = "tests/registry_drift.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":registry-drift",
+        "//cloud/cloud-ci/gates/accounting-registry-producer:accounting-registry-producer",
+    ],
+)
