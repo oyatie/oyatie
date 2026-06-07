@@ -7,6 +7,10 @@ doc_status: published
 # ADR-0064: Canonical base + localization packs — pack-pluggable µservice architecture, Korea is pack #1
 
 > **Status:** Accepted
+>
+> **Amendment note — 2026-06-02 platform-readiness:** pack/catalog/evidence roots authorized by this ADR remain
+> canonical during the `{oya,cloud}` pure-split migration. The anti-sprawl rule removes service-shaped code in pack
+> roots, not valid shared/versioned pack authoring artifacts, unless a future ADR supersedes this pack model.
 > **Owner:** `council-architecture`
 > **Date:** 2026-05-13
 > **Related:** ADR-0056, ADR-0058, ADR-0059, ADR-0060, ADR-0062, ADR-0063, Bominal ADR-0140 (retired per ADR-0145) (inherited)

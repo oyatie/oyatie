@@ -24,6 +24,10 @@ the Jenkins gate path is deleted); Jenkins remains a hardened BRIDGE meanwhile. 
 (reviewer-APPROVE) into the platform's `tide`/`plugins` components; retains ADR-0374's webhook
 gateway as the `hook`; on the ADR-0363 Forgejo substrate; builds on ADR-0392 (Buck2).
 
+**Amendment — 2026-06-02:** Tide/merge-queue is not an optional deferred adoption. It is owned here, in cloud-ci/oya-ci,
+with Phase 0 placing the admission contract and Phase 1 scaling projected-state/batch automation. `oya` CLI invocations
+are not CI authority; their semantics must be ported into Rust cloud-ci gate crates/adapters.
+
 ## Date
 
 2026-05-30
@@ -73,8 +77,8 @@ full component shape, on the Talos substrate. We adopt Prow's decomposition; the
 | plank (job controller: K8s Job per job) | `oya-ci-controller` (kube-rs) | The reliable gate executor; Job-per-PR |
 | crier (report status/comments) | reporter (reuse gateway's Forgejo client) | Terminal-status-ALWAYS + failure summary |
 | ProwJob + config (presubmit/postsubmit/periodic/batch) | labeled K8s Job + config | the buck2 gate = one presubmit job type |
-| tide (merge automation) | `oya-ci-merge` | **= the merge-queue (ADR-0111)** + auto-merge + required-context/approval (ADR-0116) |
-| deck (web UI) | `oya-ci-deck` (SolidJS) | CI visibility for founder + agents |
+| tide (merge automation) | `oya-ci-tide` | **= the merge-queue (ADR-0111)** + auto-merge + required-context/approval (ADR-0116); placement is immediate, scale features phase in |
+| deck (web UI) | `oya-ci-deck` (Leptos/Rust-WASM) | CI visibility for founder + agents; follows ADR-0393 frontend decision |
 | sinker (GC) | K8s `ttlSecondsAfterFinished` + GC loop | K8s-native |
 | plugins (ChatOps + governance) | `oya-ci-plugins` on the gateway | governance pipeline; reviewer-agent (ADR-0116) |
 | pod-utils → GCS artifacts | `kubectl logs` + SeaweedFS-S3 | no GCS coupling (self-host lens) |
@@ -85,13 +89,15 @@ weaken its own gate by editing the script or Job spec. Because the controller is
 (not config on the branch it gates), a bad PR cannot break it — eliminating the self-deadlock (mode 2).
 
 **Phasing.**
-- **Phase 0 — Bridge (in progress):** harden Jenkins (`post{aborted}` terminal status — landed; +
-  presubmit Jenkinsfile-parse validation, warm image) to stop the bleeding while Phase 1 is built.
-- **Phase 1 — Core (plank+crier):** `oya-ci-controller` spawns a Job per PR, watches it, posts a
-  terminal status; cut over and **delete the Jenkins gate path**. (kube-rs is already a blessed
+- **Phase 0 — Bridge + Tide placement:** harden the current bridge only as a safety stopgap, define the
+  Prow/cloud-ci required context, prove trunk/controller-sourced producer security, and land the `oya-ci-tide`
+  admission contract/fixtures. Jenkins may transport status during the bridge, but `oya` CLI is not CI authority.
+- **Phase 1 — Core (plank+crier+tide-minimum):** `oya-ci-controller` spawns a Job per PR, watches it, posts a
+  terminal status, and enforces the minimal Tide admission gate (required contexts + reviewer/multispectrum +
+  merge-tree/projected-state guard); cut over and **delete the Jenkins gate path**. (kube-rs is already a blessed
   workspace dependency — no new dependency-seam.)
-- **Phase 2 — tide / merge-queue:** pool + batch + speculative-retest + auto-merge on green; subsumes
-  ADR-0111 and the Sweep migration engine's auto-merge.
+- **Phase 2 — Tide scale:** pool + batch + speculative-retest + auto-rebase/auto-merge on green; scales ADR-0111 and
+  the Sweep migration engine's auto-merge after ownership/contract are already live.
 - **Phase 3 — job-types + deck.** **Phase 4 — plugins / ChatOps / reviewer-agent (ADR-0116).**
 
 ## Consequences
@@ -105,4 +111,4 @@ adversarial review); a multi-phase build. **Neutral:** the gate *logic* and bran
 unchanged; the gateway is retained.
 
 **Process rule:** the Phase-1 cutover (replacing the live gate) is a deliberate, founder-gated step,
-verified by a parallel-run (both gates green on the same PRs) before deleting the Jenkins path.
+verified by a parallel-run (both gates green on the same PRs) before deleting the Jenkins path. The same cutover proves no required context is produced by an `oya` CLI invocation.

@@ -9,7 +9,7 @@ supersedes:
   - "ADR-0015 (partial — supersedes the docs-vs-crates top-level split for per-service ownership; ADR-0015's BC and layer rules remain in force)"
   - "ADR-0119 (partial — supersedes the per-product slice of specs-flat-root; /specs/ retains only cross-cutting specs)"
 superseded_by: []
-related: [ADR-0015, ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0116, ADR-0119, ADR-0122, ADR-0139]
+related: [ADR-0015, ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0116, ADR-0119, ADR-0122, ADR-0139, ADR-0512]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/masterplan.json, /specs/master-plan-sequencing.json]
 bominal_source: no Bominal equivalent
 purpose: Mandate one universal artifact layout — per-microservice flat folder containing PRD, phase specs, IPs, service-scoped ADRs, contracts, catalog, specs, runbooks, threat model, IaC, OpenSLO, crates, tests — for every µservice and every product oyatie ships, matching the convention used by AWS, Google, Microsoft, Oracle, and Stripe.
@@ -20,6 +20,12 @@ purpose: Mandate one universal artifact layout — per-microservice flat folder 
 ## Status
 
 Accepted — 2026-05-17.
+
+**Amended — 2026-06-02 (pure split):** ADR-0512/platform-readiness updates the top-level service root from
+`microservices/<ms>/` to `{oya,cloud}/<service>/`. The ADR-0131 colocation principle survives: service-owned docs,
+contracts, specs, runbooks, SLOs, IaC, catalog records, and code travel with the service. The old `microservices/`
+root is legacy only and must be removed after migration evidence proves every service has landed under `oya/` or
+`cloud/` (or shared code under `libs/`).
 
 ## Context
 
@@ -53,14 +59,14 @@ This ADR has no Bominal equivalent; Bominal's layout decisions inherit forward t
 
 ## Decision
 
-oyatie adopts one universal artifact layout: **per-microservice flat folder under a new top-level `microservices/` directory, mandatory for every µservice and every product in the repo.** The product-vs-substrate distinction collapses at the directory level; both shapes use the same folder structure. Sales segmentation remains a PRD-frontmatter field, not a directory split.
+oyatie adopts one universal artifact layout: **flat colocated service folders under `{oya,cloud}/<service>/`**, mandatory for every service/product in the repo. `oya/` holds product/domain services; `cloud/` holds platform/tenant-substrate services; shared cross-cutting code remains under `libs/`. Sales segmentation remains a PRD-frontmatter field, not a directory split. Historical references to `microservices/<ms>/` in this ADR are legacy-path examples and must be read through this amendment.
 
 ### Canonical folder shape
 
-For a µservice named `<ms>` (kebab-case, per BNF v4.1 ADR-0056). The shape is **language-agnostic at the source root**: `src/` is mandatory and is the only place code lives, but its interior is chosen per language. Rust µservices use `src/crates/<crate>/` (matching BNF v4.1 layer split); TypeScript µservices use `src/packages/<pkg>/`; Python µservices use `src/<pkg>/` with `pyproject.toml`; mixed-language µservices have multiple top-level interior buckets. Tooling treats `src/` as the canonical code root for path-based ownership.
+For a service named `<service>` (kebab-case, per BNF v4.1 ADR-0056), choose `{tree}` as `oya` for product/domain services or `cloud` for platform services. The shape is **language-agnostic at the source root**: `src/` is mandatory where language source lives, and Rust bounded-context crates follow ADR-0512 under `crates/<crate>/` during the platform-readiness migration. Tooling treats the colocated service root as the canonical path-based ownership unit.
 
 ```text
-microservices/<ms>/
+{oya,cloud}/<service>/
   PRD.md                                              # the µservice's product requirements doc
   PRFAQ.md                                            # OPTIONAL — Amazon-style press-release / FAQ when authored
   PHASE-NN-<slug>.md                                  # phase specs; one per implementation phase
@@ -107,7 +113,7 @@ microservices/<ms>/
     multispectrum/                                    # per-changeset multispectrum evidence (per docs/AGENTS.md §changeset)
 ```
 
-The `src/` requirement is what lets the per-microservice-layout CI lane perform path-based change-ownership: a commit modifying `microservices/<a>/src/**` is owned by `<a>` and may not be bundled with a commit modifying `microservices/<b>/src/**`. Co-located docs (PRD, PHASE, IP, runbooks) sit *outside* `src/` so doc-only PRs don't trigger build pipelines.
+The colocated service root is what lets the layout CI lane perform path-based change-ownership: a commit modifying `{oya,cloud}/<a>/**` is owned by `<a>` and may not be bundled with unrelated structural/service-root edits without an explicit packet. Co-located docs (PRD, PHASE, IP, runbooks) sit beside source so doc-only PRs can be classified without triggering unnecessary build pipelines.
 
 ### What stays central (cross-cutting only)
 
@@ -115,10 +121,10 @@ Five categories of artifact remain at repo-root locations, exclusively for items
 
 | Central location | Scope | What lives here |
 |---|---|---|
-| `docs/decisions/ADR-####-*.md` | Cross-cutting ADRs | Decisions that govern multiple µservices or the repo (ADR-0056 BNF v4.1; ADR-0105 layer enum; ADR-0110 ChangeSet state machine; ADR-0139 SLO gate; this ADR). Service-scoped ADRs move to `microservices/<ms>/decisions/`. |
+| `docs/decisions/ADR-####-*.md` | Cross-cutting ADRs | Decisions that govern multiple µservices or the repo (ADR-0056 BNF v4.1; ADR-0105 layer enum; ADR-0110 ChangeSet state machine; ADR-0139 SLO gate; this ADR). Service-scoped ADRs move to `{oya,cloud}/<service>/decisions/`. |
 | `docs/standards/<topic>.md` | Cross-cutting standards | Code style, commit message, API design, schema migration, error handling, observability/SLO authoring rules, etc. |
 | `docs/templates/<artifact>.md` | Authoring templates | PRD template, ADR template, IP template, phase-spec template, runbook template, etc. |
-| `/specs/<topic>.json` | Cross-cutting machine-readable specs | masterplan.json, master-plan-sequencing.json, hyperscaler-gates.json, per-microservice-flat-layout.json, agentic-slo-gated-promotion.json. Per-product specs (workflow.json, ontology.json, workflow-studio.json) move to `microservices/<ms>/specs/`. |
+| `/specs/<topic>.json` | Cross-cutting machine-readable specs | masterplan.json, master-plan-sequencing.json, hyperscaler-gates.json, per-microservice-flat-layout.json, agentic-slo-gated-promotion.json. Per-product specs (workflow.json, ontology.json, workflow-studio.json) move to `{oya,cloud}/<service>/specs/`. |
 | `Cargo.toml` (workspace) + `.github/`, `.gitignore`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/MASTERPLAN.md`, `docs/README.md` | Repo-wide infrastructure | Workspace manifest, CI workflows, contributor docs, root memory. Per-µservice CI workflow steps reference the µservice's IaC and tests via canonical relative paths. |
 
 ### What moves (every µservice and every product)
@@ -127,42 +133,36 @@ Every artifact currently scattered across the type-based folders **moves** into 
 
 | Current location | Moves to |
 |---|---|
-| `crates/oya-<ms>-<bc>-<layer>/` | `microservices/<ms>/crates/oya-<ms>-<bc>-<layer>/` |
-| `docs/prds/<ms>.md` | `microservices/<ms>/PRD.md` |
-| `docs/products/<product>/PRD.md` | `microservices/<product>/PRD.md` |
-| `docs/products/<product>/PHASE-NN-*.md` | `microservices/<product>/PHASE-NN-*.md` |
-| `.omc/plans/milestones/M0X-*/phases/P0Y-*/IP-NNN-*.md` | `microservices/<ms>/IP-NNN-*.md` (denested; milestone+phase carried in IP frontmatter, not directory path) |
-| `.omc/plans/milestones/M0X-*/phases/P0Y-*/README.md` | `microservices/<ms>/PHASE-NN-*.md` |
-| `registry/catalog/<crate>.yaml` | `microservices/<ms>/catalog/<crate>.yaml` |
-| `/specs/microservices/<product>.json` and per-product JSON specs | `microservices/<ms>/specs/<topic>.json` |
-| `contracts/openapi/<surface>/*.yaml` (per-service) | `microservices/<ms>/contracts/openapi/<surface>.yaml` |
-| `contracts/asyncapi/<surface>/*.yaml` (per-service) | `microservices/<ms>/contracts/asyncapi/<surface>.yaml` |
-| `contracts/<surface>.proto` (per-service) | `microservices/<ms>/contracts/proto/<surface>.proto` |
-| `docs/runbooks/<service>-*.md` | `microservices/<ms>/runbooks/<scenario>.md` |
-| Threat models, DPIAs, OpenSLO manifests, IaC charts (where currently exist outside `microservices/`) | `microservices/<ms>/threat-model.md`, `microservices/<ms>/dpia.md`, `microservices/<ms>/slos/`, `microservices/<ms>/iac/` |
-| Service-scoped ADRs currently at `docs/decisions/` (rare) | `microservices/<ms>/decisions/ADR-####-*.md`, with a redirect stub at the old path (RETIRED.md row) |
-| Per-µservice multispectrum evidence currently at `/evidence/multispectrum/<change_id>-*.json` | `microservices/<ms>/evidence/multispectrum/<change_id>-*.json` |
+| `crates/oya-<ms>-<bc>-<layer>/` | `{oya,cloud}/<service>/crates/oya-<ms>-<bc>-<layer>/` |
+| `docs/prds/<ms>.md` | `{oya,cloud}/<service>/PRD.md` |
+| `docs/products/<product>/PRD.md` | `{oya,cloud}/<service>/PRD.md` |
+| `docs/products/<product>/PHASE-NN-*.md` | `{oya,cloud}/<service>/PHASE-NN-*.md` |
+| `.omc/plans/milestones/M0X-*/phases/P0Y-*/IP-NNN-*.md` | `{oya,cloud}/<service>/IP-NNN-*.md` (denested; milestone+phase carried in IP frontmatter, not directory path) |
+| `.omc/plans/milestones/M0X-*/phases/P0Y-*/README.md` | `{oya,cloud}/<service>/PHASE-NN-*.md` |
+| `registry/catalog/<crate>.yaml` | `{oya,cloud}/<service>/catalog/<crate>.yaml` |
+| `/specs/microservices/<product>.json` and per-product JSON specs | `{oya,cloud}/<service>/specs/<topic>.json` |
+| `contracts/openapi/<surface>/*.yaml` (per-service) | `{oya,cloud}/<service>/contracts/openapi/<surface>.yaml` |
+| `contracts/asyncapi/<surface>/*.yaml` (per-service) | `{oya,cloud}/<service>/contracts/asyncapi/<surface>.yaml` |
+| `contracts/<surface>.proto` (per-service) | `{oya,cloud}/<service>/contracts/proto/<surface>.proto` |
+| `docs/runbooks/<service>-*.md` | `{oya,cloud}/<service>/runbooks/<scenario>.md` |
+| Threat models, DPIAs, OpenSLO manifests, IaC charts (where currently exist outside service roots) | `{oya,cloud}/<service>/threat-model.md`, `{oya,cloud}/<service>/dpia.md`, `{oya,cloud}/<service>/slos/`, `{oya,cloud}/<service>/iac/` |
+| Service-scoped ADRs currently at `docs/decisions/` (rare) | `{oya,cloud}/<service>/decisions/ADR-####-*.md`, with a redirect stub at the old path (RETIRED.md row) |
+| Per-service multispectrum evidence currently at `/evidence/multispectrum/<change_id>-*.json` | `{oya,cloud}/<service>/evidence/multispectrum/<change_id>-*.json` |
 
 The aggregation indices that previously lived as primary sources (`registry/catalog/`, `docs/prds/INDEX.md`, `/specs/microservices/`) become **generated views** sourced from the per-µservice folders. The generation lane is `oya-governance-aggregation-index-generation` (added by this ADR).
 
-### Naming justification — the new top-level folder
+### Naming and roots — active 2026-06-02 amendment
+
+The historical `microservices/` top-level name is no longer the destination. Active roots are:
 
 ```
-NAME: microservices/
-JUSTIFICATION:
-- not a Rust crate; not subject to BNF v4.1 crate-name rule. Directory-naming convention only.
-- "microservices" is the universal industry term across AWS/Google/Microsoft/Oracle/Stripe;
-  see Context §"industry citation" above. Alternatives "services" (AWS internal) and "modules"
-  (Google google3) were considered and rejected: "services" collides with `.github/services/`
-  if introduced later; "modules" is overloaded with Rust's `mod` keyword.
-- plural form matches the existing `crates/` (plural), `docs/` (plural), and `specs/` plural
-  conventions in the repo.
-- per `feedback_glossary_shared_not_platform.md` we deliberately avoid "platform" (retired);
-  "microservices" carries no architectural baggage from the retired terminology.
-- exemptions claimed: none.
+SERVICE ROOTS: {oya,cloud}/<service>/
+SHARED ROOT: libs/<lib>/
+PACK ROOTS: packs/, regional-packs/ only for ADR-0010/ADR-0064-authorized pack artifacts
+LEGACY: microservices/ is provenance/removal-candidate after verified migration
 ```
 
-Crate naming inside each `microservices/<ms>/crates/` subtree is unchanged: every crate continues to follow `oya-<microservice>[-<bc-tokens>]-<layer>` per ADR-0056 BNF v4.1, and the layer enum is the 13-value set per ADR-0105.
+Rationale: `oya/` carries product/domain services, `cloud/` carries platform/tenant-substrate services, and `libs/` carries shared code. This preserves ADR-0131's colocation principle without creating a third service tree.
 
 ## Rejected alternatives
 
@@ -182,7 +182,7 @@ Migration IPs added to M01. **All migration IPs are independent and parallel-saf
 
 ### Migration cost quantification
 
-Per `/specs/microservice-migration-tooling.json` `cost_estimate` block, executed via `oya dev migrate-microservice`:
+Per the historical `/specs/microservice-migration-tooling.json` `cost_estimate` block (provenance only), now re-targeted to cloud-ci/Rust migration packets instead of new legacy-migration CLI authority:
 
 | Migration class | Per-IP files moved | Per-IP refs updated | Per-IP wall time |
 |---|---|---|---|
@@ -249,16 +249,16 @@ Total: 36 flat µservices, 30 migration IPs (six µservices ship natively, no mi
 
 | Migration IP | µservice | Scope of move |
 |---|---|---|
-| IP-M01-MIGR-001 | `tenancy` | `docs/prds/tenancy.md` → `microservices/tenancy/PRD.md`; `crates/oya-tenancy-*` → `microservices/tenancy/src/crates/oya-tenancy-*`; contracts, catalog rows, runbooks, threat model. |
+| IP-M01-MIGR-001 | `tenancy` | `docs/prds/tenancy.md` → `{oya,cloud}/tenancy/PRD.md`; `crates/oya-tenancy-*` → `{oya,cloud}/tenancy/crates/oya-tenancy-*`; contracts, catalog rows, runbooks, threat model. |
 | IP-M01-MIGR-002 | `ontology` | `docs/prds/ontology.md`, `/specs/ontology.json`, related crates, contracts, catalog. |
-| IP-M01-MIGR-012 | `audit-chain` | `crates/oya-audit-chain-*` family + any PRD/catalog/runbooks into `microservices/audit-chain/`. |
+| IP-M01-MIGR-012 | `audit-chain` | `crates/oya-audit-chain-*` family + any PRD/catalog/runbooks into `{oya,cloud}/audit-chain/`. |
 | IP-M01-MIGR-013 | `cell` | `crates/oya-cell-*` family. |
-| IP-M01-MIGR-014 | `governance` (NEW name; replaces `foundry-fitness` working name) | **Bundles all ~50 `oya-check-*` crates into one µservice.** Moves `crates/oya-check-<topic>/` → `microservices/governance/src/crates/oya-check-<topic>/`. Crate renames to BNF v4.1 conformant `oya-governance-<topic>-<layer>` are staged inside this IP (atomic move+rename). The `governance` µservice owns the CI fitness lanes (architecture cohesion, supply-chain, license, ADR citation, doc coverage, naming conformance, SLO coverage, statelessness, shardability, etc.). Author single PRD describing the governance substrate; per-check evidence stays as lane output. |
+| IP-M01-MIGR-014 | `governance` (NEW name; replaces `foundry-fitness` working name) | **Bundles all ~50 `oya-check-*` crates into one µservice.** Moves `crates/oya-check-<topic>/` → `{oya,cloud}/governance/crates/oya-check-<topic>/`. Crate renames to BNF v4.1 conformant `oya-governance-<topic>-<layer>` are staged inside this IP (atomic move+rename). The `governance` µservice owns the CI fitness lanes (architecture cohesion, supply-chain, license, ADR citation, doc coverage, naming conformance, SLO coverage, statelessness, shardability, etc.). Author single PRD describing the governance substrate; per-check evidence stays as lane output. |
 | IP-M01-MIGR-003 | `workflow` | `docs/prds/workflow.md`, `/specs/workflow.json`, `/specs/microservices/workflow-studio.json`, related crates, contracts, catalog. |
 | IP-M01-MIGR-NEW-1 | `observability` | NEW µservice; ships natively under this convention; no migration scope, only authoring. Cross-referenced from ADR-0139. |
 | IP-M01-MIGR-008 | `application` | `docs/prds/application.md`, related crates, catalog. |
-| IP-M01-MIGR-009 | `foundry` | Consolidate `docs/prds/foundry.md` + `docs/products/foundry/` into `microservices/foundry/`; related crates, catalog, contracts. |
-| IP-M01-MIGR-010 | `cloud` | `docs/products/cloud/` → `microservices/cloud/`; related crates, catalog. |
+| IP-M01-MIGR-009 | `foundry` | Consolidate legacy foundry docs into intelligence/governance target service roots per ADR-0335/ADR-0363; related crates, catalog, contracts. |
+| IP-M01-MIGR-010 | `cloud` | `docs/products/cloud/` → `cloud/<service>/`; related crates, catalog. |
 | IP-M01-MIGR-CONN-1 | `mail` | Mail service; corporate + personal mail remain strictly separated by context; SMTP/IMAP; legal-hold/eDiscovery. Inherits dual-context (Personal / Professional) as a cross-cutting field, not a binding. ADR-0132 carries the dissolution rationale. |
 | IP-M01-MIGR-CONN-2 | `messenger` | Messenger service; personal and professional conversations remain strictly separated by context. |
 | IP-M01-MIGR-CONN-3 | `calendar` | Calendar service deduplicated from legacy workspace surfaces. |
@@ -282,16 +282,20 @@ Total: 25 migration IPs (was ~63 under the per-check-* one-folder-each interim).
 
 ### Migration completion gate
 
+> 2026-06-02 amendment: the active completion path below is read through the `{oya,cloud}/<service>/`
+> root amendment. Historical `microservices/<ms>/...` examples in the original ADR are migration provenance, not the
+> current destination.
+
 A µservice's migration is "done" only when ALL of these are true:
 
-1. `microservices/<ms>/PRD.md` exists with frontmatter conforming to the PRD template.
-2. `microservices/<ms>/README.md` exists.
+1. `{oya,cloud}/<service>/PRD.md` exists with frontmatter conforming to the PRD template.
+2. `{oya,cloud}/<service>/README.md` exists.
 3. Every old-path artifact has been removed (no zombie in `docs/prds/<ms>.md`, `docs/products/<ms>/`, `crates/oya-<ms>-*`, `/specs/microservices/<ms>*`, `.omc/plans/milestones/M0X/phases/P0Y/*` for this µservice).
-4. `Cargo.toml` `[workspace.members]` references the new `microservices/<ms>/src/crates/<crate>` paths.
+4. `Cargo.toml` `[workspace.members]` references the new `{oya,cloud}/<service>/crates/<crate>` paths.
 5. `cargo build --workspace` exits 0.
 6. `cargo nextest run --workspace` exits 0 (no test references the old paths).
-7. `oya gate validate cross-ref-validity` exits 0 (no broken links to old paths).
-8. `oya gate validate per-microservice-layout --microservice <ms>` exits 0.
+7. The cloud-ci/Rust gate packet `cross-ref-validity` exits 0 (no broken links to old paths).
+8. The cloud-ci/Rust gate packet `per-service-layout --service <service>` exits 0.
 9. Aggregation indices regenerated; working tree matches.
 
 Repo-wide migration is complete only when every µservice in the table above has passed its completion gate AND `find docs/prds/ docs/products/ -type f -name '*.md' | grep -v INDEX | grep -v README` is empty AND `find .omc/plans/milestones/ -type d -empty -delete` empties the milestone-plans tree.
@@ -302,7 +306,7 @@ Per ADR-0139's per-microservice release pointers (`release/<ms>/<env>`): the exi
 
 Per ADR-0119 (specs flat root topology), per-product spec files at `/specs/microservices/<product>.json` and `/specs/microservices/<product>/` directories move under their owning µservice; the `/specs/` root retains only cross-cutting specs.
 
-Per ADR-0115 (registry consolidation), `registry/catalog/<crate>.yaml` becomes a *generated aggregation*; per-µservice `microservices/<ms>/catalog/<crate>.yaml` is the source of truth.
+Per ADR-0115 (registry consolidation), `registry/catalog/<crate>.yaml` becomes a *generated aggregation*; per-service `{oya,cloud}/<service>/catalog/<crate>.yaml` is the source path for generated aggregation.
 
 Per ADR-0116 (retire external agent-coordination tooling), the `.omc/plans/milestones/...` directory tree empties as IPs migrate. After all migration IPs complete, the `.omc/plans/` subtree retires; `.omc/state/sessions/` retains its current function as an OMC plugin state location and is unaffected by this ADR.
 
@@ -312,31 +316,31 @@ Not applicable. This ADR governs repo structure; it does not produce or consume 
 
 ### Positive
 
-- One µservice = one folder = one bounded context, end-to-end. An agent or engineer opens `microservices/<ms>/` and sees the entire narrative: intent (PRD), execution (phase + IPs), interface (contracts), behaviour (crates, tests), operation (runbooks, SLOs, IaC).
+- One µservice = one folder = one bounded context, end-to-end. An agent or engineer opens `{oya,cloud}/<service>/` and sees the entire narrative: intent (PRD), execution (phase + IPs), interface (contracts), behaviour (crates, tests), operation (runbooks, SLOs, IaC).
 - Industry-conventional. New engineers and agents familiar with AWS/Google/Microsoft/Oracle/Stripe layouts find oyatie immediately legible.
-- Aggregation indices (`docs/prds/INDEX.md`, etc.) become generated, with the per-service folder as the single source of truth; no more "is `docs/prds/foundry.md` or `docs/products/foundry/PRD.md` canonical?" ambiguity (an ambiguity the present repo state contains).
+- Aggregation indices (`docs/prds/INDEX.md`, etc.) become generated, with the per-service folder as the authoritative source path after promotion; no more "is `docs/prds/foundry.md` or `docs/products/foundry/PRD.md` canonical?" ambiguity (an ambiguity the present repo state contains).
 - Service-scoped ADRs live next to the µservice they govern, removing the inflation of the central ADR ledger.
-- ChangeSet boundary becomes physical: an IP affecting only `microservices/<ms>/**` is provably scoped, and the seam-discipline lane can refuse cross-µservice changesets at the path level.
+- ChangeSet boundary becomes physical: an IP affecting only `{oya,cloud}/<service>/**` is provably scoped, and the seam-discipline lane can refuse cross-µservice changesets at the path level.
 
 ### Negative
 
 - One-time migration cost is substantial: every existing µservice/product requires a migration IP. Estimated ~15 migration IPs (one per current µservice + ~50 for the `oya-check-*` family if not bundled). Each IP is small mechanically (move files, update workspace `members`, update cross-references) but the sweep touches the whole repo.
-- Every cross-reference inside the repo (Markdown links, Rust `path =` deps, CI workflow paths, doc-catalog entries) updates exactly once. The `oya-governance-cross-ref-validity` lane catches broken links during the sweep; until it does, agents must run `oya gate validate cross-ref-validity` locally before pushing migration IPs.
+- Every cross-reference inside the repo (Markdown links, Rust `path =` deps, CI workflow paths, doc-catalog entries) updates exactly once. The cloud-ci/Rust `cross-ref-validity` gate catches broken links during the sweep; legacy local `oya` mirrors are migration evidence only until that gate is live.
 - Git history for moved files requires `git mv` (or per-file `git log --follow`) to remain navigable. Per-µservice migration IPs use `git mv` exclusively for files, never `rm`+`add`.
 - Some external tooling (IDE workspace plugins, doc-publishing pipelines, dashboards) may have hardcoded paths to `docs/prds/`, `crates/`, etc. These break and must be updated. The migration plan owns this fan-out.
 - Three open questions remain (see §Open Questions) — none blocking; all resolved during the migration sweep.
 
 ### Operational
 
-- New CI lane: **`oya-governance-per-microservice-layout`**. Refuses:
-  - New µservice without a `microservices/<ms>/` folder.
+- New cloud-ci/Rust gate packet: **`per-service-layout`**. Refuses:
+  - New service without a `{oya,cloud}/<service>/` folder.
   - Authoring of PRD / phase-spec / IP / catalog row / runbook / threat-model / OpenSLO manifest / service-scoped spec at any location *other* than the owning µservice's folder.
-  - Crate creation outside `microservices/<ms>/crates/`.
+  - Crate creation outside `{oya,cloud}/<service>/crates/` or shared `libs/<lib>/`.
   - Adding a row to a central aggregation index by hand (must be generated).
-- New CI lane: **`oya-governance-aggregation-index-generation`**. Regenerates `docs/prds/INDEX.md`, `registry/catalog/<crate>.yaml` aggregation, and equivalents from per-µservice sources, then asserts the working tree matches.
-- Lane: **`oya-governance-cross-ref-validity`** (already exists per ADR-0117 / repo-hygiene) extends to validate the new path shape.
-- Workspace `Cargo.toml` `[workspace.members]` list rewrites to use `microservices/<ms>/crates/<crate>` paths. The rewrite is atomic per migration IP.
-- Templates under `docs/templates/` update to reference per-µservice paths (`microservices/<ms>/IP-NNN-*.md` etc.), retiring the stale `.omc/plans/milestones/...` pointers in `impl-plan-template.md` and `phase-spec-template.md`. The retirement is captured in this ADR's `related:` field and executed by a single template-rewrite IP in M01.
+- New cloud-ci/Rust gate packet: **`aggregation-index-generation`**. Regenerates `docs/prds/INDEX.md`, `registry/catalog/<crate>.yaml` aggregation, and equivalents from per-µservice sources, then asserts the working tree matches.
+- Cloud-ci/Rust gate packet: **`cross-ref-validity`** (successor to the existing ADR-0117 / repo-hygiene lane) extends to validate the new path shape.
+- Workspace `Cargo.toml` `[workspace.members]` list rewrites to use `{oya,cloud}/<service>/crates/<crate>` and `libs/<lib>` paths. The rewrite is atomic per migration IP.
+- Templates under `docs/templates/` update to reference per-service paths (`{oya,cloud}/<service>/IP-NNN-*.md` etc.), retiring the stale `.omc/plans/milestones/...` pointers in `impl-plan-template.md` and `phase-spec-template.md`. The retirement is captured in this ADR's `related:` field and executed by a single template-rewrite IP in M01.
 
 ## Clean Architecture Impact
 
@@ -345,13 +349,13 @@ This ADR is structural; it does not move code between clean-arch layers and does
 | Lane | Impact | Action required |
 |---|---|---|
 | `dependency-direction` (LEAN-A1) | Not affected | none — crate-level direction unchanged |
-| `cross-product-refusal` (LEAN-A2) | Not affected | none — path-level cross-product refusal is *strengthened* (now also enforced at directory level: `microservices/<a>/crates/**` never imports `microservices/<b>/crates/**` except via Workflow / Ontology adapters), as a side benefit |
+| `cross-product-refusal` (LEAN-A2) | Not affected | none — path-level cross-product refusal is *strengthened* (now also enforced at directory level: `{oya,cloud}/<a>/crates/**` never imports `{oya,cloud}/<b>/crates/**` except via Workflow / Ontology adapters), as a side benefit |
 | `port-location` | Not affected | none — ports still live in `<ms>-kernel` crates |
 | `layer-correctness` | Not affected | none |
 | `composition-root-only` | Not affected | none |
 | `sdk-kernel-only` | Not affected | none |
-| `per-microservice-layout` (NEW, this ADR) | New BLOCKER lane on dev | enforces folder shape; refuses out-of-layout artifacts |
-| `aggregation-index-generation` (NEW, this ADR) | New BLOCKER lane on dev | enforces generated indices match per-µservice sources |
+| `per-service-layout` (NEW, this ADR) | New BLOCKER gate on dev | enforces folder shape; refuses out-of-layout artifacts |
+| `aggregation-index-generation` (NEW, this ADR) | New BLOCKER gate on dev | enforces generated indices match per-service sources |
 | `cross-ref-validity` (existing per ADR-0117) | Extended | adds the new path shape to its validator |
 
 Port traits, kernel/domain/application/adapter layering, and Workflow + Ontology adapter discipline are unchanged. This ADR moves files; it does not move responsibilities.
@@ -360,15 +364,15 @@ Port traits, kernel/domain/application/adapter layering, and Workflow + Ontology
 
 | # | Question | Owner | Target ADR / date |
 |---|---|---|---|
-| 1 | Are `oya-check-<topic>` crates each their own µservice (one folder each, ~50 folders) or bundled under `microservices/foundry/checks/`? | council-architecture | resolved in IP-M01-MIGR-014 plan; default to one-folder-each pending objection. |
-| 2 | Does `.github/workflows/*.yml` migrate per-µservice (one workflow file per µservice under `microservices/<ms>/.github/`) or stay repo-root? | ops-sre-reliability | repo-root for now; GitHub Actions requires workflows at `.github/workflows/` and ignores nested locations. ADR-#### successor-IP if per-service triggering becomes needed. |
+| 1 | Are `oya-check-<topic>` crates each their own µservice (one folder each, ~50 folders) or bundled under `{oya,cloud}/governance/checks/`? | council-architecture | resolved in IP-M01-MIGR-014 plan; default to one-folder-each pending objection. |
+| 2 | Does `.github/workflows/*.yml` migrate per-µservice (one workflow file per µservice under `{oya,cloud}/<service>/.github/`) or stay repo-root? | ops-sre-reliability | repo-root for now; GitHub Actions requires workflows at `.github/workflows/` and ignores nested locations. ADR-#### successor-IP if per-service triggering becomes needed. |
 | 3 | How do regional packs (`regional-packs/<pack>/PACK.md` per `STANDARDS-AND-TEMPLATES.md`) interact with this layout? | regional-packs team | regional packs span multiple µservices; treat as cross-cutting and retain top-level `regional-packs/` directory. ADR-#### if rule changes. |
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate per-microservice-layout` — exit 0; no out-of-layout artifacts.
-- `cargo run -p oya-dev-cli -- gate validate aggregation-index-generation` — exit 0; generated indices match working tree.
-- `cargo run -p oya-dev-cli -- gate validate cross-ref-validity` — exit 0; no broken cross-references after each migration IP.
+- cloud-ci/Rust gate packet `per-service-layout` — exit 0; no out-of-layout artifacts.
+- cloud-ci/Rust gate packet `aggregation-index-generation` — exit 0; generated indices match working tree.
+- cloud-ci/Rust gate packet `cross-ref-validity` — exit 0; no broken cross-references after each migration IP.
 - `cargo build --workspace` — exit 0; workspace `Cargo.toml` `[workspace.members]` resolves correctly under new paths.
 - `cargo nextest run --workspace` — exit 0; no test references the old paths.
 - After all migration IPs complete: `find docs/prds/ docs/products/ -type f -name '*.md'` returns only `INDEX.md` (generated) and `README.md`; `find .omc/plans/milestones/ -type d` returns empty.
@@ -376,14 +380,14 @@ Port traits, kernel/domain/application/adapter layering, and Workflow + Ontology
 ## References
 
 - ADR-0015: Repo structure (precedes; this ADR supersedes its docs/crates split for per-service ownership).
-- ADR-0056: BNF v4.1 crate naming (unchanged; remains the authority for `oya-<ms>-<bc>-<layer>` inside `microservices/<ms>/crates/`).
+- ADR-0056: BNF v4.1 crate naming (unchanged; remains the authority for `oya-<ms>-<bc>-<layer>` inside `{oya,cloud}/<service>/crates/`).
 - ADR-0105: 13-layer enum (unchanged).
 - ADR-0110: ChangeSet state machine (each migration IP is one ChangeSet).
 - ADR-0115: Registry consolidation flat singular (this ADR extends — registry becomes generated aggregation).
 - ADR-0116: Retire external agent-coordination tooling (`.omc/plans/` content migrates per this ADR; `.omc/state/sessions/` unaffected).
 - ADR-0119: Specs flat root topology (this ADR refines — `/specs/` retains only cross-cutting specs).
 - ADR-0122: Ontology crate rename (precedent for cross-cutting rename ADR).
-- ADR-0139: Agentic SLO-gated promotion (consumes this ADR for the `microservices/observability/` layout).
+- ADR-0139: Agentic SLO-gated promotion (consumes this ADR for the `{oya,cloud}/observability/` active layout; old `microservices/observability/` references are historical only).
 - `feedback_clean_architecture_requirements.md` — bounded-context cohesion principle.
 - `feedback_quality_performance_scalability_bar.md` — hyperscaler-grade bar.
 - `feedback_autonomous_decision_principles.md` — "nothing scheduled-for-distinct-tracked-work" principle.
