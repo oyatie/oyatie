@@ -1,19 +1,19 @@
 ---
-purpose: Oyatie Runbook — Forgejo Claim-Ref CAS Contract
+purpose: Oyatie Runbook — GitHub Claim-Ref CAS Contract
 doc_status: published
 ---
 
-# Oyatie Runbook — Forgejo Claim-Ref CAS Contract
+# Oyatie Runbook — GitHub Claim-Ref CAS Contract
 
 > **Status:** Contract/runbook for the Wave 3 board fallback.
 > **Owner:** Governance tooling maintainers.
-> **Last verified:** 2026-05-27 from leader-supplied live Forgejo evidence.
-> **Scope:** Plain Git + Forgejo issues/labels/webhooks only. This runbook does not authorize `oya git`, `oya vcs`, GitHub Projects, native Forgejo Projects, or a long-running board service.
+> **Last verified:** 2026-05-27 from leader-supplied live GitHub evidence.
+> **Scope:** Plain Git + GitHub issues/labels/webhooks only. This runbook does not authorize `oya git`, `oya vcs`, GitHub Projects, native GitHub Projects, or a long-running board service.
 
 ## Proven live evidence
 
-- Forgejo target: `oya-forge`, Forgejo `11.0.14`.
-- Native Forgejo Projects REST endpoints returned `404`, so board state must not depend on native Projects availability.
+- GitHub target: `oya-forge`, GitHub `11.0.14`.
+- Native GitHub Projects REST endpoints returned `404`, so board state must not depend on native Projects availability.
 - Exclusive label projection works for board columns: `state/declared` can be replaced by `state/claimed` as a visible issue-state projection.
 - Native issue-assignee mutation is not an atomic claim primitive: two concurrent `PATCH` requests both succeeded, and the issue ended with two assignees.
 - Git ref creation under `refs/heads/claims/<deliverable-id>` is atomic enough for claim ownership: one concurrent push succeeded; the other failed with remote ref-lock / reference-exists behavior.
@@ -26,7 +26,7 @@ doc_status: published
 3. Issue labels are projection-only. `state/declared`, `state/claimed`, and related exclusive labels mirror claim state for humans; they are not locks.
 4. Issue assignees are projection-only. They may be updated after a claim, but they do not prove exclusive ownership.
 5. A losing claimant must not retry by overwriting, deleting, force-pushing, or moving another worker's claim ref.
-6. Project availability is optional. Forgejo Projects REST `404` must degrade to the issue-label projection path.
+6. Project availability is optional. GitHub Projects REST `404` must degrade to the issue-label projection path.
 7. Webhook reconciliation must treat push sender identity plus ref name as the authoritative audit signal for claim ownership.
 8. All board sync and claim logic must be idempotent: rerunning sync after the same winning ref exists must produce no additional owner changes.
 
@@ -45,7 +45,7 @@ doc_status: published
    - fetch/read the existing claim ref;
    - report the current owner from the ref/webhook/issue projection;
    - do not mutate labels or assignees except to refresh local display state.
-6. If Forgejo Projects endpoints return `404`, continue with issues, labels, Git refs, and push webhooks. Do not create a replacement daemon.
+6. If GitHub Projects endpoints return `404`, continue with issues, labels, Git refs, and push webhooks. Do not create a replacement daemon.
 
 ## Loser behavior
 
@@ -69,11 +69,11 @@ Future code that implements this contract should provide targeted checks equival
 
 ```bash
 # Unit/integration: concurrent ref creation has one winner and one loser.
-oya plan claim --deliverable <deliverable-id> --repo-root . --remote <forgejo-remote> --claimant worker-a &
-oya plan claim --deliverable <deliverable-id> --repo-root . --remote <forgejo-remote> --claimant worker-b &
+oya plan claim --deliverable <deliverable-id> --repo-root . --remote <github-remote> --claimant worker-a &
+oya plan claim --deliverable <deliverable-id> --repo-root . --remote <github-remote> --claimant worker-b &
 wait
 
-git ls-remote <forgejo-remote> refs/heads/claims/<deliverable-id>
+git ls-remote <github-remote> refs/heads/claims/<deliverable-id>
 
 # Sync: issue labels project the winning ref and rerun idempotently.
 oya gen board-sync --master-plan <path> --snapshot <snapshot> --claim-ref-snapshot <claims> --write
@@ -88,14 +88,14 @@ Required assertions:
 - exactly one concurrent claim creates `refs/heads/claims/<deliverable-id>`;
 - the loser receives a typed conflict and performs no ownership projection;
 - assignee races cannot be used as passing evidence for exclusive claim ownership;
-- Forgejo Projects REST `404` keeps the label/ref fallback path healthy;
+- GitHub Projects REST `404` keeps the label/ref fallback path healthy;
 - push webhook fixtures include sender identity and the claim ref name;
 - board-sync diff is empty on the second run after projection converges;
 - orphan checks fail when a masterplan deliverable has no board issue or a board issue has no masterplan deliverable.
 
 ## Operator checklist
 
-1. Confirm the deliverable id and target Forgejo remote.
+1. Confirm the deliverable id and target GitHub remote.
 2. Check for an existing claim ref before attempting a claim.
 3. Create the claim ref without force or delete semantics.
 4. Update only projection labels after a winning ref exists.
@@ -105,4 +105,4 @@ Required assertions:
 
 ## Sources
 
-Leader-supplied live evidence from the 2026-05-27 Wave 3 board implementation run: Forgejo `11.0.14` on `oya-forge`, Projects `404`, successful exclusive-label projection, non-atomic assignee race, atomic claim-ref race, and sender-bearing push webhook payloads.
+Leader-supplied live evidence from the 2026-05-27 Wave 3 board implementation run: GitHub `11.0.14` on `oya-forge`, Projects `404`, successful exclusive-label projection, non-atomic assignee race, atomic claim-ref race, and sender-bearing push webhook payloads.

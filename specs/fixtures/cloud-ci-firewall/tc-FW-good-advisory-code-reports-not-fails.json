@@ -1,0 +1,31 @@
+{
+  "fixture_id": "TC-FW-GOOD-advisory-code-reports-not-fails",
+  "expected_firewall": "GREEN",
+  "expected_failing_codes": [],
+  "expected_ratchet_growth": 0,
+  "description": "A NEW unowned + unreachable file appears (current\\baseline regression) but both codes are advisory-until-infra (OWNERS / reachability infra not yet landed). The firewall REPORTS the regression count but does NOT fail the verdict — the pervasive-structural classes burn down on the dashboard until their infra_prereq lands and the disposition flips to baseline-block-on-new (a DATA edit).",
+  "committed_baseline": {
+    "gates": {
+      "cloud-ci-total-accounting": {
+        "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["a.rs"]},
+        "unreachable": {"mode": "advisory-until-infra", "infra_prereq": "masterplan-reachability-wiring", "keys": ["a.rs"]}
+      }
+    }
+  },
+  "current": {
+    "cloud-ci-total-accounting": {
+      "unowned": ["a.rs", "z-brand-new.rs"],
+      "unreachable": ["a.rs", "z-brand-new.rs"]
+    }
+  },
+  "proposed_baseline": {
+    "gates": {
+      "cloud-ci-total-accounting": {
+        "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["a.rs"]},
+        "unreachable": {"mode": "advisory-until-infra", "infra_prereq": "masterplan-reachability-wiring", "keys": ["a.rs"]}
+      }
+    }
+  },
+  "signoff": {"_sign_off_additions": {}},
+  "source_test": "cloud/cloud-ci/gates/cloud-ci-firewall/tests/firewall.rs"
+}

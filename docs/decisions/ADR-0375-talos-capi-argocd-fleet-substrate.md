@@ -30,7 +30,7 @@ deliverables:
     exit_criteria: "helm lint + helm template (values-example.yaml) render valid CR sets for all three substrates; a rendered cell validates with kubectl --dry-run=server post-init and provisions a 3-CP HA Talos cluster; worker pool carries katacontainers.io/kata-runtime."
     verified_by: "helm lint infra/capi/clusters && helm template oya-spokes infra/capi/clusters -f infra/capi/clusters/values-example.yaml"
   - id: ADR-0375-D4
-    description: "Per-cell Argo CD app-of-apps Helm chart (infra/gitops), pull model: delivers Forgejo, Jenkins, OpenBao, observability, Kyverno, Istio Ambient. Cilium L3/L4 + Istio Ambient L7 zero-overlap (ADR-0148). Source = GitHub at bootstrap, flips to Forgejo post-cutover (ADR-0247)."
+    description: "Per-cell Argo CD app-of-apps Helm chart (infra/gitops), pull model: delivers GitHub, Jenkins, OpenBao, observability, Kyverno, Istio Ambient. Cilium L3/L4 + Istio Ambient L7 zero-overlap (ADR-0148). Source = GitHub at bootstrap, flips to GitHub post-cutover (ADR-0247)."
     exit_criteria: "helm lint + helm template render valid Argo CD Applications; per-cell `cell` value override works."
     verified_by: "helm lint infra/gitops && helm template oya-platform infra/gitops"
 purpose: >

@@ -27,12 +27,16 @@ fn faces_dir(root: &Path) -> PathBuf {
 
 /// The committed generated faces and the `--face` name that regenerates each. registry-drift
 /// extends across ALL of them: the registry + ttl-policy + the GATE-1 decision-crosswalk +
-/// the GATE-4 enforcement-inventory faces. A hand-edit to any one fails this gate.
-const FACES: [(&str, &str); 4] = [
+/// the GATE-4 enforcement-inventory faces + the GO-LIVE gate-baseline (the accepted-debt
+/// ratchet). A hand-edit to any one fails this gate. The baseline being byte-diff-protected
+/// here is what makes laundering debt into the baseline tamper-evident: a hand-edit to widen
+/// the accepted-violation set is itself registry_drift RED.
+const FACES: [(&str, &str); 5] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
     ("decision-crosswalk.generated.json", "decision-crosswalk"),
     ("enforcement-inventory.generated.json", "enforcement-inventory"),
+    ("gate-baseline.generated.json", "baseline"),
 ];
 
 /// Regenerate each face in-memory (sandbox) and assert it byte-matches the committed face.

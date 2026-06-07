@@ -1,4 +1,4 @@
-# CI Webhook Gateway deployment (ADR-0374): Forgejo PR webhook -> HMAC verify ->
+# CI Webhook Gateway deployment (ADR-0374): GitHub PR webhook -> HMAC verify ->
 # dispatch Jenkins oyaCiLane (-> oya gate run-all -> commit-status). Namespace oya-ci.
 # The HMAC secret is an MVP k8s Secret (ci-webhook-gateway-secret); hardening to
 # OpenBao + ESO ExternalSecret is the follow-up now that ESO is deployed.
@@ -37,7 +37,7 @@ spec:
               value: "0.0.0.0:8099"
             - name: OYA_GATEWAY_TARGET_BRANCH
               value: "dev"
-            - name: OYA_FORGEJO_WEBHOOK_SECRET
+            - name: OYA_GITHUB_WEBHOOK_SECRET
               valueFrom:
                 secretKeyRef:
                   name: ci-webhook-gateway-secret

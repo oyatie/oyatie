@@ -21,7 +21,7 @@ bypassed by prompt injection or by modifying hook scripts.
 ```
 
 `denyWrite` (anti-clobber) — the repo-root `.env` is readable (legitimate awk reads
-for the Forgejo token work), but write is blocked:
+for the GitHub token work), but write is blocked:
 
 ```
 .env    **/.env    **/.env.*
@@ -40,7 +40,7 @@ api.anthropic.com / *.anthropic.com
 ```
 
 All other egress is blocked. This covers buck2/cargo/reindeer/git fetches and the
-local Forgejo push (localhost:3000). `curl https://example.com` will fail — that is
+local GitHub push (localhost:3000). `curl https://example.com` will fail — that is
 the intended behaviour.
 
 Note: `sandbox.network` is a proxy/hostname allowlist, not TLS-inspected. Domain-fronting
@@ -50,9 +50,9 @@ is a residual risk; the allowlist is the primary control.
 
 There is **no** Claude Code subprocess env-scrub mechanism (`settings.json` `env` only
 *adds* vars; it cannot strip inherited ones). So this control is operational, not config:
-**keep secrets out of the agent's shell environment** — never `export` `FORGEJO_ADMIN_TOKEN`,
+**keep secrets out of the agent's shell environment** — never `export` `GITHUB_ADMIN_TOKEN`,
 `OPENBAO_ROOT_TOKEN`, the OpenBao unseal keys, etc. session-wide. Source them just-in-time
-inside the one command that needs them (e.g. the masked Forgejo push reads the token via
+inside the one command that needs them (e.g. the masked GitHub push reads the token via
 `awk` from the gitignored `.env` and uses it only in that single push URL).
 
 ## Permissions
@@ -104,7 +104,7 @@ After running `./tools/hook-bootstrap/install.sh` and restarting Claude Code, ve
 the sandbox is active with these manual checks (sandbox only takes effect after restart):
 
 ```sh
-# 1. .env read works (Forgejo token fetch must not be blocked)
+# 1. .env read works (GitHub token fetch must not be blocked)
 cat .env
 
 # 2. git fetch works (github.com is in the allowlist)

@@ -4,7 +4,7 @@
 # any future CI specialty workload):
 #   - same-namespace pod-to-pod (BuildKit Job consumes buildkitd daemon).
 #   - oya-ci-jenkins (Jenkins agents that drive builds + status posts).
-#   - oya-forge (Forgejo webhook delivery to ci-webhook-gateway).
+#   - oya-forge (GitHub webhook delivery to ci-webhook-gateway).
 #   - argocd (sync + drift detection).
 #
 # Anything else is denied. Egress unconstrained (the CI cell needs outbound

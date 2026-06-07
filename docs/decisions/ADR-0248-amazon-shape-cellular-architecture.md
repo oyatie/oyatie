@@ -473,7 +473,7 @@ their failure modes, but they are necessary for bootstrap:
   layer migrates to a self-hosted PowerDNS-based authoritative DNS
   deployment running inside a dedicated dev-tools-cell.
 - **Git host.** Source code lives in GitHub Enterprise initially;
-  Year 3+ migrates to a self-hosted Forgejo deployment inside the
+  Year 3+ migrates to a GitHub (interim) deployment inside the
   `oyatie.foundry.*` sub-scope's dev-tools-cell.
 - **Container registry.** Container images live initially in
   Cloudflare Registry / AWS ECR / GHCR; Year 3+ migrates to a self-
@@ -729,7 +729,7 @@ subtypes are:
   catalog size.
 - `dev-tools-cell-<N>` (hosts `microservices/developer-sdk/`
   backend pipelines + `microservices/plugin-app-store/` backend
-  pipelines + self-hosted git Forgejo + self-hosted container
+  pipelines + self-hosted git GitHub + self-hosted container
   Harbor per Year 3+ migration). 1-2 cells per major region.
 - `audit-aggregator-cell-<N>` (hosts per-jurisdiction audit
   aggregator — rolls up audit-chain streams from all Tier 3 cells

@@ -87,7 +87,7 @@ Once Phase A is green:
 
 ## Follow-ups (tracked separately)
 - Record the substrate decision as an ADR (supersedes the colima+k3s toolchain note).
-- Migrate the canonical substrate (Jenkins/Forgejo/OpenBao/ArgoCD/Rollouts/observability/Valkey) onto
+- Migrate the canonical substrate (Jenkins/GitHub/OpenBao/ArgoCD/Rollouts/observability/Valkey) onto
   Talos via an ArgoCD **app-of-apps** (Cilium = sync-wave 0, then platform). GitOps, no hand-rolling.
 - Move Talos secrets (`~/talos-mac/talosconfig`, machine secrets) into **OpenBao** / sops — not git.
 - Optional 3rd worker for strict 3-replica anti-affinity (vs `maxSkew:1`/`ScheduleAnyway` on 2).

@@ -360,7 +360,7 @@
     },
     {
       "path": "specs/cloud-toolchain-target.json",
-      "role": "historical toolchain target; G007 must reconcile Jenkins wording with the user-mandated bespoke self-hosted Forgejo/Kubernetes dogfood CI lane"
+      "role": "historical toolchain target; G007 must reconcile Jenkins wording with the user-mandated bespoke GitHub (interim)/Kubernetes dogfood CI lane"
     }
   ],
   "category_taxonomy": [
@@ -1487,7 +1487,7 @@
       {
         "claim_family": "strict_dogfood_ci",
         "requires": [
-          "G007 Forgejo/Kubernetes/Buck2/oya-gate lane reconciliation",
+          "G007 GitHub/Kubernetes/Buck2/oya-gate lane reconciliation",
           "no external SaaS fallback",
           "self-hosted evidence requirements",
           "safe local/self-hosted verification evidence"
@@ -1556,7 +1556,7 @@
     "no_tenant_or_product_workload_claim_without_later_green_gates": true,
     "allowed_evidence_lanes": [
       "local static validation",
-      "self-hosted Forgejo",
+      "GitHub (interim)",
       "self-hosted Kubernetes",
       "Buck2",
       "oya-gate",
@@ -1564,7 +1564,7 @@
     ]
   },
   "pure_dogfood_constraints": {
-    "self_hosted_forgejo_kubernetes_ci_lane": true,
+    "self_hosted_github_kubernetes_ci_lane": true,
     "dogfood_resource_substrate_required_before_external_provider_apply": true,
     "vfkit_linux_or_kubernetes_cluster_tests_must_be_recorded_before_kubernetes_readiness_claim": true,
     "g007_must_reconcile_historical_jenkins_wording": true

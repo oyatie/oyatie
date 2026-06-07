@@ -47,7 +47,7 @@ gate). **Out:** fixing quarantined crates; semantic transforms; a bespoke specul
   can't catch semantic/deadlock risk (cf. the 3-lens Jenkinsfile review that prevented a gate
   deadlock).
 - **Per-crate PRs** — 716 PRs is noise; batch by subsystem, isolate failures at crate granularity.
-- **A bespoke speculative merge-queue** — Forgejo merge API + serialized merge suffices now;
+- **A bespoke speculative merge-queue** — GitHub merge API + serialized merge suffices now;
   ADR-0111 projected-state is later.
 - **Touching the gate's quality logic** — the engine FEEDS the gate, never weakens it.
 

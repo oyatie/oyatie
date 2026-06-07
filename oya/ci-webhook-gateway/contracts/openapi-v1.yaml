@@ -4,7 +4,7 @@ info:
   version: "1.0.0"
   description: >
     HTTP webhook receiver for the gated change-coordination pipeline
-    (ADR-0363/0366/0367/0374). Verifies the Forgejo webhook HMAC, parses
+    (ADR-0363/0366/0367/0374). Verifies the GitHub webhook HMAC, parses
     pull_request events against the gated branch plus issue/claim-ref push
     board-snapshot refresh events. Pull requests dispatch the Jenkins
     oyaCiLane pipeline; board snapshots emit the narrow board-projection
@@ -16,10 +16,10 @@ servers:
   - url: http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099
     description: In-cluster mesh address (TLS terminates at ingress).
 paths:
-  /webhook/forgejo:
+  /webhook/github:
     post:
-      operationId: receiveForgejoWebhook
-      summary: Receive a Forgejo (or GitHub-bootstrap) webhook delivery.
+      operationId: receiveGitHubWebhook
+      summary: Receive a GitHub (or GitHub-bootstrap) webhook delivery.
       description: >
         The body is the raw webhook payload. The HMAC signature header is
         verified on the raw bytes BEFORE parsing (fail-closed). Only
@@ -37,13 +37,13 @@ paths:
           in: header
           required: false
           schema: { type: string }
-          description: Legacy raw-hex HMAC header (Forgejo/Gitea).
-        - name: X-Forgejo-Event
+          description: Legacy raw-hex HMAC header (GitHub/Gitea).
+        - name: X-GitHub-Event
           in: header
           required: true
           schema: { type: string, example: "pull_request" }
           description: One of the closed routed events (`pull_request`, `issues`/`issue`, `push`) or `ping`.
-        - name: X-Forgejo-Delivery
+        - name: X-GitHub-Delivery
           in: header
           required: false
           schema: { type: string, format: uuid }
@@ -54,7 +54,7 @@ paths:
           application/json:
             schema:
               type: object
-              description: Forgejo webhook payload (pull_request, issues, push, ping, ...).
+              description: GitHub webhook payload (pull_request, issues, push, ping, ...).
       responses:
         "202":
           description: Routable event accepted and dispatched to its configured boundary; PR events kick Jenkins, board events return board-projection receipts.

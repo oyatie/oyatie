@@ -71,12 +71,12 @@ spec:
               value: "0.0.0.0:{{ .Values.service.targetPort }}"
             - name: OYA_CI_CONTROLLER_NAMESPACE
               value: {{ .Values.config.namespace | quote }}
-            - name: OYA_CI_CONTROLLER_FORGEJO_BASE
-              value: {{ .Values.config.forgejoBase | quote }}
-            - name: OYA_CI_CONTROLLER_FORGEJO_REPO_OWNER
-              value: {{ .Values.config.forgejoRepoOwner | quote }}
-            - name: OYA_CI_CONTROLLER_FORGEJO_REPO_NAME
-              value: {{ .Values.config.forgejoRepoName | quote }}
+            - name: OYA_CI_CONTROLLER_GITHUB_BASE
+              value: {{ .Values.config.githubBase | quote }}
+            - name: OYA_CI_CONTROLLER_REPO_OWNER
+              value: {{ .Values.config.githubRepoOwner | quote }}
+            - name: OYA_CI_CONTROLLER_REPO_NAME
+              value: {{ .Values.config.githubRepoName | quote }}
             - name: OYA_CI_GATE_IMAGE
               value: "{{ .Values.gateJobImage.registry }}/{{ .Values.gateJobImage.repository }}:{{ .Values.gateJobImage.tag }}"
             - name: OYA_CI_GATE_FORGE_CLONE_URL
@@ -89,8 +89,8 @@ spec:
               value: {{ .Values.config.graceCycles | quote }}
             - name: OYA_CI_GATE_RUNNER_SA
               value: {{ .Values.gateRunnerServiceAccount.name | quote }}
-            # FORGEJO_CI_TOKEN from OpenBao via ESO (forgejo-ci-token Secret).
-            - name: FORGEJO_CI_TOKEN
+            # GITHUB_CI_TOKEN from OpenBao via ESO (github-ci-token Secret).
+            - name: GITHUB_CI_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.externalSecret.secretName | quote }}

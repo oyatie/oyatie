@@ -7,11 +7,11 @@ status: Active
 entry_gate: |
   ADR-0139 + ADR-0131 accepted; /specs/agentic-slo-gated-promotion.json + /specs/per-microservice-flat-layout.json published; cargo workspace ready to accept the 14 new crates under microservices/observability/crates/.
 exit_gate: |
-  All 15 IPs merged; oya-governance-promotion-readiness CI lane present in Jenkins/Forgejo required checks on dev and staging; release/<ms>/{staging,production} required-check rules live; rollback primitive verified via end-to-end drill; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice observability exits 0; oya gate validate authority-cohesion exits 0; HG-OBS gate in /specs/hyperscaler-gates.json registers green.
+  All 15 IPs merged; oya-governance-promotion-readiness CI lane present in Jenkins/GitHub required checks on dev and staging; release/<ms>/{staging,production} required-check rules live; rollback primitive verified via end-to-end drill; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice observability exits 0; oya gate validate authority-cohesion exits 0; HG-OBS gate in /specs/hyperscaler-gates.json registers green.
 depends_on:
   - milestone: M01-foundation
     phase: prior phases per master-plan-sequencing
-    reason: workspace + Jenkins/Forgejo required-check + Cargo metadata authority must precede gate authoring
+    reason: workspace + Jenkins/GitHub required-check + Cargo metadata authority must precede gate authoring
 owner_team: axis-observability
 related_adrs: [ADR-0139, ADR-0131]
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/per-microservice-flat-layout.json]
@@ -40,7 +40,7 @@ This phase advances master-plan principles:
 | `observability` | `slo-engine`, `otel-ingest` | All under `microservices/observability/` per ADR-0131 | `oya-observability-slo-engine-{kernel,domain,application,adapter,rest,worker,app}` and `oya-observability-otel-ingest-{kernel,domain,application,adapter,worker,app}` |
 
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
-- Jenkins/Forgejo required-check configuration — add `oya-governance-promotion-readiness` to required checks on `dev` and `staging`; add required-check rules for `release/*/staging` and `release/*/production`.
+- Jenkins/GitHub required-check configuration — add `oya-governance-promotion-readiness` to required checks on `dev` and `staging`; add required-check rules for `release/*/staging` and `release/*/production`.
 - Promotion pipeline jobs — switch primary trigger to signed `eligibility-changed` events; retain cron as heartbeat; remove FUTURE-marked stub references.
 - Production promotion pipeline jobs — analogous.
 - `docs/standards/observability-slo.md` (NEW) — cross-cutting OpenSLO authoring rules; SLI catalog; burn-rate threshold convention.
@@ -202,7 +202,7 @@ Enforced by:
 
 ## Required-checks diff preview
 
-IP-013 (event-driven promote workflows) updates the Jenkins/Forgejo required-check configuration with the diff below. Surfaced here so reviewers can preview the change at phase-start, not at IP-merge time.
+IP-013 (event-driven promote workflows) updates the Jenkins/GitHub required-check configuration with the diff below. Surfaced here so reviewers can preview the change at phase-start, not at IP-merge time.
 
 ```yaml
 branches:

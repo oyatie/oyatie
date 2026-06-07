@@ -21,7 +21,7 @@
 //! pipeline kickoff. Stages 3 and 4 are not yet stood up in the substrate, so
 //! they are expressed as the typed `Unimplemented` boundary (HTTP 501) and
 //! tracked in `registry/placeholder-debt/`. Stages 1 and 2 dispatch by kicking
-//! the Jenkins `oyaCiLane` pipeline (which posts the Forgejo commit statuses).
+//! the Jenkins `oyaCiLane` pipeline (which posts the GitHub commit statuses).
 
 use std::future::Future;
 use std::pin::Pin;
@@ -145,7 +145,7 @@ impl DispatchSubject {
 pub trait PipelineDispatcher: Send + Sync {
     /// Kick admission + the trusted-runner gate pipeline for this event.
     /// Returns the receipt; downstream stages past the kicked pipeline are the
-    /// trusted runner's responsibility (it posts the Forgejo commit statuses).
+    /// trusted runner's responsibility (it posts the GitHub commit statuses).
     fn dispatch<'a>(
         &'a self,
         event: &'a CiEvent,

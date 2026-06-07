@@ -37,7 +37,7 @@ required_workflow:
 current_substrate_adrs:
   - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # folded into ADR-0513 cloud-ci/oya-ci Tide
   - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-  - docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md
+  - docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-github-substrate.md
   - docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md
 historical_vcs_ratchet_adrs:
   - docs/decisions/ADR-0110-changeset-state-machine.md

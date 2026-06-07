@@ -89,6 +89,27 @@ pub enum Verdict {
     Red,
 }
 
+/// A keyed violation: the bare `code` (the existing contract) PLUS the stable `key`.
+/// The going-live ratchet baselines per `(code, key)`; `evaluate()` is the bare-code
+/// projection of `evaluate_keyed()`. Keys for this gate are the matrix-row `id` (most
+/// codes) and `{row_id}#{field}` for `missing_or_empty_required_field`. The
+/// `advisory_claiming_enforced` and `blocking_invariant_mapped_to_oya_cli` codes are
+/// keyed by the same row `id` (the producer's `EnforcementRow.id`).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Finding {
+    pub code: String,
+    pub key: String,
+}
+
+impl Finding {
+    fn new(code: &str, key: &str) -> Self {
+        Self {
+            code: code.to_owned(),
+            key: key.to_owned(),
+        }
+    }
+}
+
 impl Report {
     fn from_violations(violations: BTreeSet<String>) -> Self {
         let verdict = if violations.is_empty() {
@@ -103,9 +124,20 @@ impl Report {
     }
 }
 
-/// Evaluate an automation-ratchet fixture/matrix `Value` (carrying `rows`) into a report.
+/// Bare-code projection of [`evaluate_keyed`]: identical detection logic, keys dropped.
+/// Every `tc-*.json` fixture keeps asserting bare codes against it byte-for-byte.
 pub fn evaluate(fixture: &Value) -> Report {
-    let mut violations: BTreeSet<String> = BTreeSet::new();
+    let violations = evaluate_keyed(fixture)
+        .into_iter()
+        .map(|finding| finding.code)
+        .collect();
+    Report::from_violations(violations)
+}
+
+/// Evaluate an automation-ratchet matrix into the keyed finding set — the single source
+/// of truth for the gate's detection logic.
+pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
+    let mut findings: BTreeSet<Finding> = BTreeSet::new();
 
     let rows = fixture
         .get("rows")
@@ -115,24 +147,28 @@ pub fn evaluate(fixture: &Value) -> Report {
 
     let mut seen_ids: HashSet<String> = HashSet::new();
     for row in &rows {
-        // duplicate_row_id
-        if let Some(id) = row.get("id").and_then(Value::as_str)
-            && !id.trim().is_empty()
-            && !seen_ids.insert(id.to_owned())
-        {
-            violations.insert("duplicate_row_id".to_owned());
+        let id = row.get("id").and_then(Value::as_str).unwrap_or("");
+        // duplicate_row_id: keyed by the duplicated row id.
+        if !id.trim().is_empty() && !seen_ids.insert(id.to_owned()) {
+            findings.insert(Finding::new("duplicate_row_id", id));
         }
-        evaluate_row(row, &mut violations);
+        evaluate_row(row, &mut findings);
     }
 
-    Report::from_violations(violations)
+    findings
 }
 
-fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
+fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
+    let id = row.get("id").and_then(Value::as_str).unwrap_or("");
+
     // missing_or_empty_required_field: any required field absent / empty-string / empty-array.
+    // Keyed by "{row_id}#{field}" so each missing field is an independent baseline key.
     for field in REQUIRED_FIELDS {
         if !field_present_non_empty(row, field) {
-            violations.insert("missing_or_empty_required_field".to_owned());
+            findings.insert(Finding::new(
+                "missing_or_empty_required_field",
+                &format!("{id}#{field}"),
+            ));
         }
     }
 
@@ -145,7 +181,7 @@ fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
     // unknown_classification: not in the 4-enum (only when a classification is present;
     // an empty classification is a missing_or_empty_required_field, handled above).
     if !classification.is_empty() && !CLASSIFICATIONS.contains(&classification) {
-        violations.insert("unknown_classification".to_owned());
+        findings.insert(Finding::new("unknown_classification", id));
     }
 
     let enforceable_or_automatable =
@@ -153,7 +189,10 @@ fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
 
     // enforceable_or_automatable_marked_human_judgment
     if enforceable_or_automatable && classification == "not_automatable_human_judgment" {
-        violations.insert("enforceable_or_automatable_marked_human_judgment".to_owned());
+        findings.insert(Finding::new(
+            "enforceable_or_automatable_marked_human_judgment",
+            id,
+        ));
     }
 
     // blocking_invariant_mapped_to_oya_cli: a blocking row routed through an oya CLI call.
@@ -167,7 +206,7 @@ fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
         .unwrap_or(true);
     let is_blocking = BLOCKING_CLASSIFICATIONS.contains(&classification);
     if is_blocking && (mentions_oya_cli(target) || !no_new_oya_cli_surface) {
-        violations.insert("blocking_invariant_mapped_to_oya_cli".to_owned());
+        findings.insert(Finding::new("blocking_invariant_mapped_to_oya_cli", id));
     }
 
     // advisory_claiming_enforced (NET-NEW): claims enforcement but no wired buck2 target.
@@ -186,14 +225,14 @@ fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
     if row.get("claims_enforced").and_then(Value::as_bool) == Some(true)
         && !has_wired_buck2_target
     {
-        violations.insert("advisory_claiming_enforced".to_owned());
+        findings.insert(Finding::new("advisory_claiming_enforced", id));
     }
     let _ = claims_enforced;
 
     // ratchet_regression (NET-NEW): a previously-blocking requirement downgraded.
     let was_blocking = row.get("was_blocking").and_then(Value::as_bool) == Some(true);
     if was_blocking && !is_blocking {
-        violations.insert("ratchet_regression".to_owned());
+        findings.insert(Finding::new("ratchet_regression", id));
     }
 }
 
@@ -286,6 +325,27 @@ mod tests {
         row["classification"] = json!("automated_advisory_until_p0_0");
         let report = evaluate(&json!({"rows": [row]}));
         assert!(report.violations.contains("ratchet_regression"));
+    }
+
+    #[test]
+    fn evaluate_keyed_carries_row_id_and_field_keys() {
+        let report = evaluate_keyed(&json!({"rows": [
+            {"id":"DUP","source_artifact":"x","requirement":"y","classification":"automated_blocking_now","owner":"o","target_gate_or_controller":"t","blocking_fixture":"b","retirement_phase":"p","evidence_path":"e","no_new_oya_cli_surface":true},
+            {"id":"DUP","classification":"automated_some_day"}
+        ]}));
+        assert!(report.contains(&Finding::new("duplicate_row_id", "DUP")));
+        assert!(report.contains(&Finding::new("unknown_classification", "DUP")));
+        // missing required field is keyed by "{id}#{field}".
+        assert!(report.contains(&Finding::new(
+            "missing_or_empty_required_field",
+            "DUP#source_artifact"
+        )));
+        // evaluate() is the bare-code projection.
+        let projected: BTreeSet<String> = report.iter().map(|f| f.code.clone()).collect();
+        assert_eq!(evaluate(&json!({"rows": [
+            {"id":"DUP","source_artifact":"x","requirement":"y","classification":"automated_blocking_now","owner":"o","target_gate_or_controller":"t","blocking_fixture":"b","retirement_phase":"p","evidence_path":"e","no_new_oya_cli_surface":true},
+            {"id":"DUP","classification":"automated_some_day"}
+        ]})).violations, projected);
     }
 
     #[test]

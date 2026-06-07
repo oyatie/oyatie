@@ -620,7 +620,7 @@ deployment. Tier 0 is small and explicit:
 |---|---|---|
 | Hardware (cells, cloud accounts) | The platform cannot run on hardware that does not yet exist | Cloud-provider account (AWS / GCP / Azure / on-premises bare metal); bare-metal procurement; cell-class provisioning |
 | DNS | The platform's own services need DNS resolution before they can serve their own DNS | External DNS provider (Route 53 / Cloudflare DNS / GCP Cloud DNS initially); migrate to self-hosted authoritative DNS µservice post-bootstrap |
-| Git host (initial bootstrap source-of-truth) | The platform's source code must live somewhere before the platform exists | GitHub Enterprise / Gitea / self-hosted Forgejo initially; migrate to self-hosted git-host µservice post-bootstrap |
+| Git host (initial bootstrap source-of-truth) | The platform's source code must live somewhere before the platform exists | GitHub Enterprise / Gitea / GitHub (interim) initially; migrate to self-hosted git-host µservice post-bootstrap |
 | Container registry (initial artifact destination) | Container images must be pushed somewhere before the platform exists | Harbor / ECR / GCR initially; migrate to self-hosted registry µservice (likely Harbor) post-bootstrap |
 
 **Tier 0 explicitly excludes:**
@@ -660,7 +660,7 @@ steady state, has five stages:
 |---|---|---|
 | 0.0 | Cloud-provider account(s) provisioned; root credentials in tier-0 HSM (Shamir-shared M-of-N) | founding team |
 | 0.1 | DNS zones registered with external DNS provider; org root domain confirmed | founding team |
-| 0.2 | Git host org created (GitHub Enterprise / Gitea / Forgejo); initial admin access | founding team |
+| 0.2 | Git host org created (GitHub Enterprise / Gitea / GitHub); initial admin access | founding team |
 | 0.3 | Container registry namespace created (Harbor / ECR / GCR); initial push credentials sealed in tier-0 HSM | founding team |
 | 0.4 | Org root signing key generated in tier-0 HSM (Ed25519 + cosign); Shamir-shared M-of-N — **M=5, N=9 across ≥3 jurisdictions** for the meta-trust-root key and any other trust-chain anchor (org root, Cedar bootstrap root, compliance-pack publisher root); M=3, N=5 retained only for tenant-scoped operational keys — per ADR-0293 §5.5 Shamir threshold expansion | council-security |
 | 0.5 | Bootstrap-replay log file initialised; ingest endpoint deferred until Stage 2 step 2.6 (per ADR-0242 §D-5) | council-security |

@@ -5,7 +5,7 @@
 //!
 //! ## Deliverable coverage
 //!
-//! - D1: [`CiTriggerEvent`] + Forgejo payload parsing types
+//! - D1: [`CiTriggerEvent`] + GitHub payload parsing types
 //! - D2: [`WebhookSignature`] + [`SignatureVerifier`] trait seam
 //! - D3: payload normalisation → [`CiTriggerEvent`]
 //! - D4: [`JenkinsJob`] + [`JenkinsClient`] trait seam
@@ -99,7 +99,7 @@ pub type Result<T> = std::result::Result<T, KernelError>;
 
 /// Raw bytes of an ed25519 signature extracted from the webhook headers.
 /// The secret key material is never stored here — this is the SIGNATURE
-/// (computed by Forgejo using its copy of the shared secret), not the key.
+/// (computed by GitHub using its copy of the shared secret), not the key.
 ///
 /// `Debug` is redacted so the bytes never appear in log output.
 #[derive(Clone, PartialEq, Eq)]
@@ -152,7 +152,7 @@ impl std::fmt::Debug for WebhookSignature {
 /// D2 — ed25519 signature verification seam.
 ///
 /// The Stage-5 adapter fetches the key from
-/// `sref://openbao/oya/ci/forgejo-ed25519-secret` and implements this trait.
+/// `sref://openbao/oya/ci/github-ed25519-secret` and implements this trait.
 /// Tests use [`MockSignatureVerifier`].
 ///
 /// Implementations MUST:
@@ -188,10 +188,10 @@ impl SignatureVerifier for MockSignatureVerifier {
 }
 
 // ---------------------------------------------------------------------------
-// D1 / D3 — Forgejo webhook payload types + CiTriggerEvent
+// D1 / D3 — GitHub webhook payload types + CiTriggerEvent
 // ---------------------------------------------------------------------------
 
-/// The closed set of Forgejo `pull_request` actions the gateway acts on.
+/// The closed set of GitHub `pull_request` actions the gateway acts on.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PrAction {
     /// PR opened or reopened against the target branch.
@@ -202,11 +202,11 @@ pub enum PrAction {
     Closed,
 }
 
-/// Canonical normalised trigger event produced from any supported Forgejo
+/// Canonical normalised trigger event produced from any supported GitHub
 /// webhook payload.  This is what the [`JenkinsClient`] consumes.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CiTriggerEvent {
-    /// GitHub/Forgejo repo full name, e.g. `"oyatie/oyatie"`.
+    /// GitHub/GitHub repo full name, e.g. `"oyatie/oyatie"`.
     pub repo: String, // data_class: INTERNAL_ONLY
     /// Target base branch, e.g. `"dev"`.
     pub branch: String, // data_class: INTERNAL_ONLY
@@ -216,7 +216,7 @@ pub struct CiTriggerEvent {
     pub base_sha: String, // data_class: INTERNAL_ONLY
     /// PR number (0 for non-PR events such as a direct push).
     pub pr_number: u64, // data_class: INTERNAL_ONLY
-    /// Unique delivery ID from Forgejo (used for idempotency dedup).
+    /// Unique delivery ID from GitHub (used for idempotency dedup).
     pub delivery_id: String, // data_class: INTERNAL_ONLY
     /// The normalised action that produced this event.
     pub action: CiAction, // data_class: INTERNAL_ONLY
@@ -228,11 +228,11 @@ pub enum CiAction {
     PrOpened,
     PrSynchronized,
     PrClosed,
-    /// A `ping` handshake from Forgejo on webhook registration.
+    /// A `ping` handshake from GitHub on webhook registration.
     Ping,
 }
 
-// ---- raw serde shapes for Forgejo payloads --------------------------------
+// ---- raw serde shapes for GitHub payloads --------------------------------
 
 #[derive(Deserialize)]
 struct RawPrPayload {
@@ -269,13 +269,13 @@ pub enum RouteOutcome {
     Ignored { reason: String },
 }
 
-/// Route a raw Forgejo delivery to a [`RouteOutcome`].
+/// Route a raw GitHub delivery to a [`RouteOutcome`].
 ///
-/// `event_type` is the `X-Forgejo-Event` header value;
+/// `event_type` is the `X-GitHub-Event` header value;
 /// `body` is the already-signature-verified JSON bytes;
-/// `delivery_id` is the `X-Forgejo-Delivery` header value;
+/// `delivery_id` is the `X-GitHub-Delivery` header value;
 /// `target_branch` is the gated base branch (usually `"dev"`).
-pub fn route_forgejo_event(
+pub fn route_github_event(
     event_type: &str,
     body: &[u8],
     delivery_id: &str,
@@ -601,7 +601,7 @@ pub struct WebhookAuthzRequest {
     /// Tenant identifier (e.g. `"oyatie-dogfood"`).  All tenants including
     /// the dogfood tenant go through the same Cedar policy path.
     pub tenant_id: String, // data_class: INTERNAL_ONLY
-    /// Source IP of the webhook sender (Forgejo instance address).
+    /// Source IP of the webhook sender (GitHub instance address).
     pub source_ip: String, // data_class: INTERNAL_ONLY
     /// The event type being triggered.
     pub event_type: String, // data_class: INTERNAL_ONLY
@@ -725,13 +725,13 @@ mod tests {
 
     #[test]
     fn ping_event_produces_ignored_outcome() {
-        let outcome = route_forgejo_event("ping", b"{}", "delivery-1", "dev").unwrap();
+        let outcome = route_github_event("ping", b"{}", "delivery-1", "dev").unwrap();
         assert!(matches!(outcome, RouteOutcome::Ignored { .. }));
     }
 
     #[test]
     fn unknown_event_produces_unroutable_error() {
-        let err = route_forgejo_event("wiki", b"{}", "delivery-1", "dev").unwrap_err();
+        let err = route_github_event("wiki", b"{}", "delivery-1", "dev").unwrap_err();
         assert!(matches!(err, KernelError::UnroutableEvent { .. }));
     }
 

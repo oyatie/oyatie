@@ -81,7 +81,7 @@ The local production-fidelity substrate is **multi-node Talos Linux on Parallels
 4. **Cilium CNI** (kube-proxy replacement via Talos KubePrism) — Talos ships no default CNI/kube-proxy.
 5. **Everything-as-IaC** under `infra/talos/`: `create-cluster.sh` (prlctl VM creation),
    `bootstrap.sh` (gen-config → apply → bootstrap → Cilium → Kata), `smoke-kata.sh` (fidelity proof);
-   the substrate fleet (Jenkins/Forgejo/OpenBao/ArgoCD/Rollouts/observability/Valkey) syncs via an
+   the substrate fleet (Jenkins/GitHub/OpenBao/ArgoCD/Rollouts/observability/Valkey) syncs via an
    ArgoCD app-of-apps. `colima` is retired for the substrate (kept optional for the inner dev loop).
 
 ## Rejected alternatives
@@ -105,7 +105,7 @@ The local production-fidelity substrate is **multi-node Talos Linux on Parallels
 - Negative/cost: 5 VMs (~72 GB) require **stopping colima** (96 GB) to fit 128 GB; Parallels is a paid
   dependency (UTM is the free fallback); a one-time `prlctl` VM-creation layer + the bootstrap scripts
   are maintenance surface. Talos's immutability means no SSH debugging (API-only) — intended.
-- Neutral: the VCS/CI substrate (ADR-0363 git+Jenkins+Forgejo) is unchanged; this is the compute
+- Neutral: the VCS/CI substrate (ADR-0363 git+Jenkins+GitHub) is unchanged; this is the compute
   substrate beneath it.
 
 ## Verification
@@ -124,6 +124,6 @@ was proven empirically rather than assumed.
 ## References
 ADR-0147 (Kata cloud-hypervisor runtime ladder), ADR-0165 (chaos engineering substrate), ADR-0341
 (cellular promotion / anti-affinity), ADR-0130/0131 (observability substrate + layout), ADR-0363
-(git+Jenkins+Forgejo substrate), ADR-0368 (north-star: even architecture is challenged). Research:
+(git+Jenkins+GitHub substrate), ADR-0368 (north-star: even architecture is challenged). Research:
 `.omx/plans/local-cluster-substrate-decision.md`, `.omx/plans/talos-on-apple-silicon-procedure.md`.
 IaC: `infra/talos/`.

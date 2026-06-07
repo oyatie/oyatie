@@ -3,12 +3,6 @@
   "_marker": "oya-bootstrap-v1",
   "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh.",
   "hooks": {
-    "SessionStart": [
-      { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "oya-session-context" }
-    ],
-    "BeforeAgent": [
-      { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh", "name": "oya-canonical-primer" }
-    ],
     "AfterAgent": [
       { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "oya-did-you-forget" },
       { "type": "command", "command": "tools/hooks/microservice-quality-bar.sh",      "name": "oya-quality-bar-stop" }

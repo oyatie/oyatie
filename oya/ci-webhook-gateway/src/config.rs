@@ -3,14 +3,14 @@
 //! Secrets are NEVER read from files committed to the repo. The webhook HMAC
 //! secret is injected by the deploy substrate (OpenBao + External Secrets
 //! Operator per ADR-0043) at:
-//!   `sref://openbao/oya/ci/forgejo-webhook-secret`
-//! and surfaced to the process as the env var `OYA_FORGEJO_WEBHOOK_SECRET`.
+//!   `sref://openbao/oya/ci/github-webhook-secret`
+//! and surfaced to the process as the env var `OYA_GITHUB_WEBHOOK_SECRET`.
 //! The SETUP-RUNBOOK.md documents the exact human provisioning steps.
 
 use crate::signature::{WebhookEd25519Key, WebhookSecret};
 
 /// Env var carrying the HMAC secret (injected from the `sref` above).
-pub const ENV_WEBHOOK_SECRET: &str = "OYA_FORGEJO_WEBHOOK_SECRET";
+pub const ENV_WEBHOOK_SECRET: &str = "OYA_GITHUB_WEBHOOK_SECRET";
 /// Env var carrying the Jenkins dispatch base URL (the generic-webhook-trigger
 /// or build-token endpoint that kicks the `oyaCiLane` pipeline).
 pub const ENV_JENKINS_DISPATCH_URL: &str = "OYA_JENKINS_DISPATCH_URL";
@@ -26,11 +26,11 @@ pub const ENV_CONTROLLER_URL: &str = "OYA_CI_CONTROLLER_URL";
 pub const ENV_TARGET_BRANCH: &str = "OYA_GATEWAY_TARGET_BRANCH";
 /// Env var carrying the bind address (default `0.0.0.0:8099`).
 pub const ENV_BIND_ADDR: &str = "OYA_GATEWAY_BIND_ADDR";
-/// Env var carrying the ed25519 public key for `X-Forgejo-Signature` webhook
+/// Env var carrying the ed25519 public key for `X-GitHub-Signature` webhook
 /// verification (base64-encoded 32-byte ed25519 compressed point, standard
 /// RFC 4648 base64, with or without padding). When unset the HMAC path is the
 /// only accepted signature scheme.
-pub const ENV_WEBHOOK_ED25519_PUBKEY: &str = "OYA_FORGEJO_WEBHOOK_ED25519_PUBKEY";
+pub const ENV_WEBHOOK_ED25519_PUBKEY: &str = "OYA_GITHUB_WEBHOOK_ED25519_PUBKEY";
 
 /// Which dispatcher the gateway should use to kick the downstream pipeline.
 /// Default is `Jenkins` — the existing, stable path. `Controller` is the new
@@ -117,7 +117,7 @@ pub fn resolve_secret(get: impl Fn(&str) -> Option<String>) -> WebhookSecret {
 
 /// Resolve the optional ed25519 public key from the environment.
 ///
-/// Returns `Some(WebhookEd25519Key)` when `OYA_FORGEJO_WEBHOOK_ED25519_PUBKEY`
+/// Returns `Some(WebhookEd25519Key)` when `OYA_GITHUB_WEBHOOK_ED25519_PUBKEY`
 /// is set to a non-empty, valid base64-encoded 32-byte ed25519 verifying key.
 /// Returns `None` when the variable is absent, empty, or malformed (malformed
 /// keys are silently ignored here — the gateway falls back to HMAC-only).

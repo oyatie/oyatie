@@ -2,7 +2,7 @@
 doc_status: published
 ---
 
-# Runbook: Forgejo Board Webhook Projection
+# Runbook: GitHub Board Webhook Projection
 
 > **Owner:** `tenant-rbac-governance` / `agentic-pipeline`
 > **Status:** Active
@@ -14,9 +14,9 @@ doc_status: published
 
 ## Trigger
 
-Open this runbook when the Forgejo issue board projection is stale or disputed after either of these inputs:
+Open this runbook when the GitHub issue board projection is stale or disputed after either of these inputs:
 
-- Forgejo issue webhook for label changes on a deliverable issue.
+- GitHub issue webhook for label changes on a deliverable issue.
 - Git push webhook for `refs/heads/claims/<deliverable-id>` claim refs.
 - Operator or agent report that a board column, exclusive label, or active claim no longer matches the masterplan deliverable state.
 
@@ -26,9 +26,9 @@ This runbook documents projection handling only. It does not authorize a new alw
 
 ## Pre-checks (5 minutes max)
 
-- [ ] Confirm the event source is Forgejo for the expected repository and organization.
-- [ ] Confirm the webhook signature is present and valid for the configured Forgejo webhook secret before trusting payload fields.
-- [ ] Confirm the sender is allowed to mutate the projected board state: Forgejo system sender, approved bot identity, or a human maintainer with repository write permission.
+- [ ] Confirm the event source is GitHub for the expected repository and organization.
+- [ ] Confirm the webhook signature is present and valid for the configured GitHub webhook secret before trusting payload fields.
+- [ ] Confirm the sender is allowed to mutate the projected board state: GitHub system sender, approved bot identity, or a human maintainer with repository write permission.
 - [ ] Confirm the event references a known deliverable id from the masterplan or an existing deliverable issue.
 - [ ] Confirm this is a projection repair, not a request to introduce a new service. If a new service is requested, stop and require explicit later approval.
 
@@ -44,7 +44,7 @@ Required fields:
 
 - Repository full name and stable repository id.
 - Issue id / number and issue URL.
-- Label action (`added`, `removed`, or equivalent Forgejo issue-label mutation).
+- Label action (`added`, `removed`, or equivalent GitHub issue-label mutation).
 - Full label set after the mutation when available; otherwise fetch the issue labels before projecting.
 - Sender id, sender login, event delivery id, event timestamp, and signature verification evidence.
 
@@ -69,7 +69,7 @@ Ignore push events outside `refs/heads/claims/`. Do not infer a claim from unrel
 ## Projection rules
 
 1. Derive the deliverable id from the issue mapping or `refs/heads/claims/<deliverable-id>`.
-2. Load the current masterplan deliverable record and current Forgejo issue label set.
+2. Load the current masterplan deliverable record and current GitHub issue label set.
 3. Normalize column labels into the exclusive `state/*` family. At most one active state label may remain after projection.
 4. Apply the deterministic target column from the current deliverable state and claim state:
    - no active claim: `state/declared`;
@@ -89,7 +89,7 @@ Projection MUST be idempotent.
 
 - Re-processing the same delivery id or projection key must produce the same final label set and must not create duplicate evidence.
 - If webhooks arrive out of order, reconcile from current Git refs and current issue labels before applying changes.
-- Treat the Git ref namespace as the source of truth for active claims. Treat Forgejo labels as a projection, not the authority.
+- Treat the Git ref namespace as the source of truth for active claims. Treat GitHub labels as a projection, not the authority.
 - Use compare-and-swap semantics when updating a claim ref or label snapshot. If the observed base changed, reload and retry the projection from current state.
 - Never process an event by appending another column label without first recomputing the exclusive label family.
 
@@ -113,7 +113,7 @@ Use reconciliation when labels are stale, webhook delivery is uncertain, or an o
 
 1. Enumerate `refs/heads/claims/*` for the repository.
 2. For each deliverable id, resolve the current object id and claiming identity.
-3. Load the matching masterplan deliverable and Forgejo issue.
+3. Load the matching masterplan deliverable and GitHub issue.
 4. Compute the desired exclusive board label from the current ref plus deliverable evidence state.
 5. Diff desired labels against actual issue labels.
 6. Apply only the minimal label changes needed to make the projection match the refs.
@@ -129,7 +129,7 @@ If a deliverable has no current claim ref, remove claimed / in-progress labels u
 - Do not depend on GitHub Projects or GitHub-specific project automation.
 - Do not run `oya gate run-all` as part of webhook projection.
 - Do not add a bespoke long-running board service, daemon, or controller unless a later approved ADR/task explicitly authorizes it.
-- Do not treat Forgejo labels as the system of record for claims; labels are a board projection over masterplan deliverables and Git refs.
+- Do not treat GitHub labels as the system of record for claims; labels are a board projection over masterplan deliverables and Git refs.
 
 ---
 
@@ -158,9 +158,9 @@ After this runbook is invoked for a real incident or material board mismatch, up
 
 ## Audit-chain emission
 
-Record each invocation as `forgejo.board_projection.runbook_invoked` with:
+Record each invocation as `github.board_projection.runbook_invoked` with:
 
-- runbook id: `forgejo-board-webhook-projection`;
+- runbook id: `github-board-webhook-projection`;
 - invoker id and sender id;
 - event delivery id or reconciliation run id;
 - deliverable id and issue id;

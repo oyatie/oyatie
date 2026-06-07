@@ -24,6 +24,14 @@ path = "src/main.rs"
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
+# The producer's fifth face (gate-baseline.generated.json) runs each gate's pure
+# evaluate_keyed over the live faces to capture TODAY's accepted-violation KEYS. The
+# gate libs depend only on serde_json, so there is no cycle (the gate↔producer coupling
+# is via cargo-run/buck2 build-graph for the OTHER faces, not a lib dependency).
+total-accounting = { path = "../total-accounting" }
+cross-artifact-agreement = { path = "../cross-artifact-agreement" }
+staleness-reaper = { path = "../staleness-reaper" }
+automation-ratchet = { path = "../automation-ratchet" }
 
 [lints]
 workspace = true

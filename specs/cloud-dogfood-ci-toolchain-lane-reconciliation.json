@@ -13,7 +13,7 @@
       "tenant_workload_ready"
     ],
     "can_claim_now": [
-      "The Forgejo-to-Jenkins oya-ci-gate bridge is source-wired and remains the default dispatch path in checked-in gateway configuration.",
+      "The GitHub-to-Jenkins oya-ci-gate bridge is source-wired and remains the default dispatch path in checked-in gateway configuration.",
       "The Rust oya-ci controller exists in source as the destination/core replacement lane, but checked-in gateway and Helm settings do not select it.",
       "The root Jenkinsfile is stale Jenkins-surface hygiene debt; the active bridge evidence is the JCasC-wired infra/ci/jenkins/Jenkinsfile-oya-ci-gate path, and deletion is blocked until controller cutover gates are satisfied.",
       "Current validation for this story is repository-local only; it does not prove a live cluster, production gate, or tenant workload readiness."
@@ -101,14 +101,14 @@
       "bridge_status_context_not_required_or_reported",
       "required_context_surface_drift",
       "reported_status_metadata_legacy_github_producer_drift",
-      "branch_protection_github_bootstrap_vs_forgejo_status_sink",
+      "branch_protection_github_bootstrap_vs_github_status_sink",
       "root_jenkinsfile_path_comment_drift"
     ],
     "retirement_gate_derivation_rule": "delete_allowed_now may become true only in a refreshed snapshot that proves controller cutover, required-context producer reconciliation, host/sink reconciliation, and parallel-run evidence.",
     "semantic_requirements": [
       "Classify Jenkins/custom-CI status from current evidence snapshot, not from historical ADR text alone.",
       "Keep root Jenkinsfile hygiene evidence separate from the JCasC-wired active bridge Jenkinsfile evidence.",
-      "Keep bridge-only status context drift, reported-status metadata drift, and GitHub-bootstrap branch-protection versus Forgejo status-sink split explicit while they remain true.",
+      "Keep bridge-only status context drift, reported-status metadata drift, and GitHub-bootstrap branch-protection versus GitHub status-sink split explicit while they remain true.",
       "Forbid claims that Jenkins is retired/safe to delete, bespoke/controller CI is the live default, Argo is live, external/GitHub Actions/public-cloud CI fallback is allowed, or production/tenant readiness is green.",
       "Treat path/snippet assertions as snapshot freshness checks, not a stable public contract."
     ],

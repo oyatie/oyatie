@@ -85,7 +85,7 @@ All SDKs expose:
 | Validate OpenSLO YAML | `validateOpenSloSchema(yaml_bytes)` | `{valid: bool, errors: SchemaError[]}` |
 | Read burn-rate | `getBurnRate(ms, env, sli)` | `BurnRateSnapshot` |
 
-OpenSLO manifest authoring is via git PR (CODEOWNERS + Jenkins/Forgejo required checks enforced). The SDKs do NOT expose a "create/update manifest" method directly — that path is via the tenant operator's git workflow, validated at PR time. If future tenant feedback surfaces a need for programmatic manifest authoring, that's a per-tenant DPA-recorded entitlement granted via Cedar.
+OpenSLO manifest authoring is via git PR (CODEOWNERS + Jenkins/GitHub required checks enforced). The SDKs do NOT expose a "create/update manifest" method directly — that path is via the tenant operator's git workflow, validated at PR time. If future tenant feedback surfaces a need for programmatic manifest authoring, that's a per-tenant DPA-recorded entitlement granted via Cedar.
 
 ## Tenant SDK Onboarding
 

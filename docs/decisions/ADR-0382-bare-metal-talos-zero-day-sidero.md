@@ -193,4 +193,4 @@ InfraProvider that maps `Cluster` / `Machine` to provisioned bare-metal nodes.
   is for physical hardware).
 - `talos-local-stack-state` — the resumable single-node baseline; the
   bare-metal flow uses the same Cilium / Kubewarden / OpenBao / ESO /
-  registry / Istio / Forgejo / Jenkins layering on top.
+  registry / Istio / GitHub / Jenkins layering on top.

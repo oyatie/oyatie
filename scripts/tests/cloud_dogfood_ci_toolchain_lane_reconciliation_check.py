@@ -99,7 +99,7 @@ REQUIRED_CONTRADICTION_IDS = {
     "bridge_status_context_not_required_or_reported",
     "required_context_surface_drift",
     "reported_status_metadata_legacy_github_producer_drift",
-    "branch_protection_github_bootstrap_vs_forgejo_status_sink",
+    "branch_protection_github_bootstrap_vs_github_status_sink",
     "root_jenkinsfile_path_comment_drift",
 }
 VOLATILE_FIELDS_FORBIDDEN_IN_CONTRACT = {
@@ -284,9 +284,9 @@ def validate_current_live_path(snapshot: dict[str, Any]) -> None:
         return
     require(live_path.get("classification") == "jenkins_bridge_active_bespoke_controller_opt_in", "current_live_path.classification mismatch")
     require(live_path.get("active_orchestrator") == "jenkins_bridge", "active_orchestrator must remain jenkins_bridge")
-    require(live_path.get("status_sink") == "Forgejo Commit Status API", "status sink must remain Forgejo Commit Status API")
+    require(live_path.get("status_sink") == "GitHub Commit Status API", "status sink must remain GitHub Commit Status API")
     trigger_chain = as_list(live_path.get("trigger_chain"), "current_live_path.trigger_chain")
-    for required in ["Forgejo PR webhook", "oya-ci-webhook-gateway", "infra/ci/jenkins/Jenkinsfile-oya-ci-gate", "infra/ci/buck2-affected-gate.sh origin/dev"]:
+    for required in ["GitHub PR webhook", "oya-ci-webhook-gateway", "infra/ci/jenkins/Jenkinsfile-oya-ci-gate", "infra/ci/buck2-affected-gate.sh origin/dev"]:
         require(required in trigger_chain, f"trigger_chain missing {required}")
     dispatcher = live_path.get("default_dispatcher_evidence")
     require(isinstance(dispatcher, dict), "default_dispatcher_evidence must be an object")
@@ -306,8 +306,8 @@ def validate_current_live_path_drift_blocks(live_path: dict[str, Any]) -> None:
     if isinstance(host_drift, dict):
         require(host_drift.get("branch_protection_spec_host") == "github_bootstrap_host", "branch-protection host drift must record GitHub bootstrap host")
         require("gh api" in str(host_drift.get("branch_protection_apply_surface", "")), "branch-protection host drift must record gh api apply surface")
-        require(host_drift.get("status_sink_claim_for_bridge") == "Forgejo Commit Status API", "branch-protection host drift must preserve Forgejo status sink claim")
-        require("GitHub remains bootstrap host" in str(host_drift.get("forgejo_target_host_source", "")), "branch-protection host drift must preserve ADR-0363 bootstrap nuance")
+        require(host_drift.get("status_sink_claim_for_bridge") == "GitHub Commit Status API", "branch-protection host drift must preserve GitHub status sink claim")
+        require("GitHub remains bootstrap host" in str(host_drift.get("github_target_host_source", "")), "branch-protection host drift must preserve ADR-0363 bootstrap nuance")
         require(host_drift.get("reconciliation_status") == "open_bootstrap_host_split", "branch-protection host drift status mismatch")
     metadata_drift = live_path.get("reported_status_metadata_drift")
     require(isinstance(metadata_drift, dict), "current_live_path.reported_status_metadata_drift must be an object")
@@ -357,7 +357,7 @@ def validate_contradictions(snapshot: dict[str, Any]) -> None:
         row_id = str(row.get("id", "<missing>"))
         for field in ["classification", "conflict", "resolution", "status"]:
             require(isinstance(row.get(field), str) and row.get(field), f"{row_id}: {field} required")
-        if row_id in {"controller_opt_in_not_default", "pr_sourced_gate_security_open", "bridge_status_context_not_required_or_reported", "required_context_surface_drift", "reported_status_metadata_legacy_github_producer_drift", "branch_protection_github_bootstrap_vs_forgejo_status_sink"}:
+        if row_id in {"controller_opt_in_not_default", "pr_sourced_gate_security_open", "bridge_status_context_not_required_or_reported", "required_context_surface_drift", "reported_status_metadata_legacy_github_producer_drift", "branch_protection_github_bootstrap_vs_github_status_sink"}:
             require(str(row.get("status", "")).startswith("open"), f"{row_id}: must remain open until cutover proof exists")
         validate_contradiction_row_text(row_id, row)
 
@@ -368,10 +368,10 @@ def validate_contradiction_row_text(row_id: str, row: dict[str, Any]) -> None:
         for phrase in ["oya ci gate", "cargo fmt", "cargo check", "cargo clippy", "cargo nextest", "cargo deny", "oya verify", "reported status metadata"]:
             require(phrase in row_text, f"{row_id}: missing {phrase!r}")
     if row_id == "reported_status_metadata_legacy_github_producer_drift":
-        for phrase in ["github status check contexts", "jenkins github app", "infra ci jenkinsfile", "absent", "forgejo", "infra ci jenkins jenkinsfile oya ci gate"]:
+        for phrase in ["github status check contexts", "jenkins github app", "infra ci jenkinsfile", "absent", "github", "infra ci jenkins jenkinsfile oya ci gate"]:
             require(phrase in row_text, f"{row_id}: missing {phrase!r}")
-    if row_id == "branch_protection_github_bootstrap_vs_forgejo_status_sink":
-        for phrase in ["forgejo", "github branch protection rest api", "github com jason931225 oyatie", "gh api", "bootstrap"]:
+    if row_id == "branch_protection_github_bootstrap_vs_github_status_sink":
+        for phrase in ["github", "github branch protection rest api", "github com jason931225 oyatie", "gh api", "bootstrap"]:
             require(phrase in row_text, f"{row_id}: missing {phrase!r}")
     if row_id == "root_jenkinsfile_path_comment_drift":
         for phrase in ["root jenkinsfile", "hygiene", "infra ci jenkins jenkinsfile oya ci gate", "active bridge"]:
@@ -393,7 +393,7 @@ def validate_retirement_gate(snapshot: dict[str, Any]) -> None:
         "oya ci controller url",
         "trusted dev source",
         "pr ref as data",
-        "required forgejo status context",
+        "required github status context",
         "bridge only oya ci gate context",
         "producer declaration",
         "parallel run evidence",
@@ -402,7 +402,7 @@ def validate_retirement_gate(snapshot: dict[str, Any]) -> None:
         "reported status metadata",
         "infra ci jenkinsfile",
         "github bootstrap branch protection",
-        "forgejo status sink",
+        "github status sink",
         "status context drift",
     ]:
         require(phrase in combined, f"jenkins_retirement_gate.required_before_deletion missing {phrase!r}")
@@ -453,7 +453,7 @@ def validate_live_repo_cross_checks() -> None:
     require("scriptPath('infra/ci/jenkins/Jenkinsfile-oya-ci-gate')" in jenkins_values, "JCasC no longer points at bridge Jenkinsfile")
 
     jenkins_gate = read_text(JENKINS_GATE_PATH)
-    for snippet in ["infra/ci/buck2-affected-gate.sh origin/dev", "postForgejoStatus('success'", "postForgejoStatus('failure'", '"context":"oya-ci-gate"']:
+    for snippet in ["infra/ci/buck2-affected-gate.sh origin/dev", "postGitHubStatus('success'", "postGitHubStatus('failure'", '"context":"oya-ci-gate"']:
         require(snippet in jenkins_gate, f"bridge Jenkinsfile missing {snippet!r}")
     bridge_contexts = set(re.findall(r'"context":"([^"]+)"', jenkins_gate))
     require(bridge_contexts == {"oya-ci-gate"}, f"bridge Jenkinsfile contexts changed: {sorted(bridge_contexts)}")
@@ -465,11 +465,11 @@ def validate_live_repo_cross_checks() -> None:
     require("bespoke-Prow plank+crier" in chart and "spawns K8s gate Jobs" in chart, "controller chart evidence changed")
 
     app = read_text(CONTROLLER_APP_PATH)
-    for snippet in ["POST /gate-run", "Job name is deterministic", "409 create-conflict no-op", "posts Forgejo statuses"]:
+    for snippet in ["POST /gate-run", "Job name is deterministic", "409 create-conflict no-op", "posts GitHub statuses"]:
         require(snippet in app, f"controller app evidence missing {snippet!r}")
 
     kernel = read_text(CONTROLLER_KERNEL_PATH)
-    for snippet in ["No I/O, no async, no kube, no tokio", "#![forbid(unsafe_code)]", "pub enum ForgejoState", "pub struct GateRun"]:
+    for snippet in ["No I/O, no async, no kube, no tokio", "#![forbid(unsafe_code)]", "pub enum GitHubState", "pub struct GateRun"]:
         require(snippet in kernel, f"controller kernel evidence missing {snippet!r}")
 
     adr_0513 = read_text(ADR_0513_PATH)
@@ -581,7 +581,7 @@ def run_self_tests() -> None:
     expect_rejected("reported metadata drift missing", remove_reported_metadata_drift)
     expect_rejected("reported metadata producer marked present", lambda _contract, snapshot: snapshot["current_live_path"]["reported_status_metadata_drift"].update({"declared_missing_producer_exists": True}))
     expect_rejected("branch-protection host drift missing", remove_branch_host_drift)
-    expect_rejected("branch-protection host marked Forgejo", lambda _contract, snapshot: snapshot["current_live_path"]["branch_protection_host_drift"].update({"branch_protection_spec_host": "forgejo"}))
+    expect_rejected("branch-protection host marked GitHub", lambda _contract, snapshot: snapshot["current_live_path"]["branch_protection_host_drift"].update({"branch_protection_spec_host": "github"}))
     expect_rejected("root Jenkinsfile overclaimed as active bridge", overclaim_root_jenkinsfile)
     expect_rejected("safe answer omits root hygiene split", lambda _contract, snapshot: snapshot["current_live_path"].update({"safe_answer_to_jenkinsfile_question": "The root Jenkinsfile and Jenkins gate files are migration debt with active bridge value."}))
     expect_rejected("requires network", lambda contract, _snapshot: contract["validation_policy"].update({"network_required": True}))

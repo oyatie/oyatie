@@ -44,7 +44,7 @@
 6. **ONLY-OUR-CODE-MOVES (per-tree parameterized):** only first-party crates + docs migrate; vendored `_upstream*`/`third-party`/reindeer caches, `legacy-port`, `legacy-kernel`, `stack/talos-reference`, `__pycache__`, `prelude`, `toolchains`, `target`, `buck-out`, `.omc/.omx/.claude/.c2work` stripped at boundary via **per-lane allowlist + per-tree deny-glob diff gate** (deny-globs differ per source tree, enumerated in 0.5).
 7. **CANONICAL-HOMES-WITH-STANDING-tools/-EXCEPTION:** homes are ONLY `{oya,cloud}/<service>/crates/<crate>` + `libs/`. `tools/`, `services/`, `platform/`, `modules/` are RETIRED **EXCEPT** the gate-load-bearing `//tools/oya-doc-staleness-inventory-app` + `//tools/oya-adr-index-regenerator-app`, which remain a STANDING invariant exception (USER-ratified G2). Any tools/ crate removed from disk is removed from the 723 root members in the SAME atomic step.
 8. **LIVE-COMPUTED-IDENTIFIERS:** ADR free block, codex-adapter merge surface, managed-k8s merge surface, and codename→`oya-*` names computed against LIVE dev HEAD + in-flight adr-*/chore branches at execution time (regenerate via `tools/oya-adr-index-regenerator-app`); docs lane recomputes + re-verifies-then-rebases immediately before merge. "~0519+" is a placeholder, never an assignment.
-9. **FORGE-EXPLICIT:** every push/PR pins `git push github-mirror` / `gh pr create --repo jason931225/oyatie --base dev`; NEVER `origin` (Forgejo); NEVER assume the working branch is the base.
+9. **FORGE-EXPLICIT:** every push/PR pins `git push github-mirror` / `gh pr create --repo jason931225/oyatie --base dev`; NEVER `origin` (GitHub); NEVER assume the working branch is the base.
 10. **GATE-BEFORE-START:** no lane executes until the kernel workflow is DONE, the independent kernel gate re-verify is green (check-tcb PASS, diff-oracle PASS, both build PASS, assert-talos re-confirming), pre-lanes 0.4/0.5/0.6/0.7 complete, and USER sign-off obtained.
 
 ## 2. Decision Drivers (top 3)
@@ -190,7 +190,7 @@ TERMINATION: queue empty && every lane squash-merged && Done-Definition D1..D18 
 ## 11. User Gates / Credentials
 
 - **G0 (NEW, HALT):** authority flip detected (`oya-ci-required` live) — STOP, USER decides pivot.
-- **G1:** GitHub push credentials for `github-mirror` (`origin` is Forgejo, never push there).
+- **G1:** GitHub push credentials for `github-mirror` (`origin` is GitHub, never push there).
 - **G2:** ratify the tools/ standing canonical-homes exception (deviation from locked retirement).
 - **G3 (PROMOTED to HARD precondition):** provision the signing key (`commit.gpgsign`/`user.signingkey`/`gpg.format`/`tag.gpgsign` are EMPTY today).
 - **G4:** confirm db-engine source location (drop L8 if absent); confirm `cloud/cloud-k8s` relationship; ratify codename→`oya-*` canonical names; sign off no_std inertness (0.6); confirm `agent-skills` out of scope.

@@ -531,7 +531,7 @@
               "verified_by": "oya gate validate reviewer-independence"
             },
             {
-              "description": "Verified-changeset gateway: merge is automatic on signed-green + independent-APPROVE via the merge-queue / Forgejo auto-merge — no human-PR-review ceremony.",
+              "description": "Verified-changeset gateway: merge is automatic on signed-green + independent-APPROVE via the merge-queue / GitHub auto-merge — no human-PR-review ceremony.",
               "exit_criteria": "a changeset auto-merges only when both signals are present; neither alone suffices.",
               "id": "ADR-0367-D3",
               "status": "declared",
@@ -561,14 +561,14 @@
               "verified_by": "oya gate validate concurrent-safe-paths"
             },
             {
-              "description": "Stacked-diff authoring on plain git: agents author small (<~200 LOC) dependent units as a ghstack-style chain of Forgejo PRs (base = parent's branch). NOT jj.",
+              "description": "Stacked-diff authoring on plain git: agents author small (<~200 LOC) dependent units as a ghstack-style chain of GitHub PRs (base = parent's branch). NOT jj.",
               "exit_criteria": "a stack of dependent PRs lands incrementally; each entry is independently gate-verified.",
               "id": "ADR-0369-D2",
               "status": "declared",
               "verified_by": "oya gate validate stacked-diff-size"
             },
             {
-              "description": "The trustless-gateway as a single required status check (the binding gate, NOT Forgejo's merge button — it has merge-despite-failed-checks races): green only when trusted-runner-signed evidence (ADR-0367) AND independent reviewer attestation both verify against the PR head SHA.",
+              "description": "The trustless-gateway as a single required status check (the binding gate, NOT GitHub's merge button — it has merge-despite-failed-checks races): green only when trusted-runner-signed evidence (ADR-0367) AND independent reviewer attestation both verify against the PR head SHA.",
               "exit_criteria": "auto-merge fires only when the signed check is green; a forced merge with the check red is structurally impossible (the check is the gate).",
               "id": "ADR-0369-D3",
               "status": "declared",
@@ -591,14 +591,14 @@
         {
           "deliverables": [
             {
-              "description": "Forgejo webhook receiver as a flat single-concern Rust microservice (ci-webhook-gateway) with src/ root, blessed deps only (Tokio/Axum/Tower/Hyper/serde/tracing + RustCrypto hmac/sha2/subtle), exposing POST /webhook/forgejo + GET /healthz.",
+              "description": "GitHub webhook receiver as a flat single-concern Rust microservice (ci-webhook-gateway) with src/ root, blessed deps only (Tokio/Axum/Tower/Hyper/serde/tracing + RustCrypto hmac/sha2/subtle), exposing POST /webhook/github + GET /healthz.",
               "exit_criteria": "cargo build + cargo fmt --check + cargo clippy --all-targets -D warnings + cargo test are green for the crate; the service tree satisfies the design/spec maturity surfaces (proto3 deferred as N/A).",
               "id": "ADR-0374-D1",
               "status": "declared",
               "verified_by": "oya gate validate design-spec-maturity-claims"
             },
             {
-              "description": "HMAC-SHA256 webhook-signature verification that fails closed on the RAW body BEFORE any parse/route, constant-time, with the secret redacted in Debug and read only from sref://openbao/oya/ci/forgejo-webhook-secret.",
+              "description": "HMAC-SHA256 webhook-signature verification that fails closed on the RAW body BEFORE any parse/route, constant-time, with the secret redacted in Debug and read only from sref://openbao/oya/ci/github-webhook-secret.",
               "exit_criteria": "a delivery with a missing/invalid signature is rejected (HTTP 401) and never dispatches; a known-answer HMAC vector verifies; the secret never appears in logs.",
               "id": "ADR-0374-D2",
               "status": "declared",
@@ -949,7 +949,7 @@
               "verified_by": "helm lint infra/capi/clusters && helm template oya-spokes infra/capi/clusters -f infra/capi/clusters/values-example.yaml"
             },
             {
-              "description": "Per-cell Argo CD app-of-apps Helm chart (infra/gitops), pull model: delivers Forgejo, Jenkins, OpenBao, observability, Kyverno, Istio Ambient. Cilium L3/L4 + Istio Ambient L7 zero-overlap (ADR-0148). Source = GitHub at bootstrap, flips to Forgejo post-cutover (ADR-0247).",
+              "description": "Per-cell Argo CD app-of-apps Helm chart (infra/gitops), pull model: delivers GitHub, Jenkins, OpenBao, observability, Kyverno, Istio Ambient. Cilium L3/L4 + Istio Ambient L7 zero-overlap (ADR-0148). Source = GitHub at bootstrap, flips to GitHub post-cutover (ADR-0247).",
               "exit_criteria": "helm lint + helm template render valid Argo CD Applications; per-cell `cell` value override works.",
               "id": "ADR-0375-D4",
               "status": "declared",
@@ -1040,8 +1040,8 @@
               "verified_by": "operator check: colima list shows no Running profile"
             },
             {
-              "description": "Future-work leg (named, not built here): close the CI loop on this substrate — Forgejo push -> Jenkins pipeline -> commit-status back -> gated merge — which retires the temporary GitHub admin-merge seam (ADR-0363). Tracked as the CI-webhook + ed25519 lane.",
-              "exit_criteria": "the ADR names CI-loop closure (Forgejo->Jenkins commit-status) as the deliverable that retires the admin-merge seam, with a follow-on lane reference.",
+              "description": "Future-work leg (named, not built here): close the CI loop on this substrate — GitHub push -> Jenkins pipeline -> commit-status back -> gated merge — which retires the temporary GitHub admin-merge seam (ADR-0363). Tracked as the CI-webhook + ed25519 lane.",
+              "exit_criteria": "the ADR names CI-loop closure (GitHub->Jenkins commit-status) as the deliverable that retires the admin-merge seam, with a follow-on lane reference.",
               "id": "ADR-0378-D4",
               "status": "declared",
               "verified_by": "cargo run -p oya-dev-cli -- gate validate adr-index"
@@ -1056,7 +1056,7 @@
         {
           "deliverables": [
             {
-              "description": "Re-establish the Jenkins CI farm on the Talos substrate (ADR-0378) by installing the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) into the Jenkins managed by infra/talos/local/bring-up.sh (helm upgrade with infra/ci/jenkins/values-local.yaml installPlugins list). The base Talos Jenkins is currently configuration-as-code + workflow-job only; the ADR-0359 plugin set lived on the now-retired colima farm and must be re-installed. Amendment (2026-05-28): the gitea plugin is intentionally NOT installed — Forgejo-canonical brand correctness + the gateway already does webhook discovery.",
+              "description": "Re-establish the Jenkins CI farm on the Talos substrate (ADR-0378) by installing the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) into the Jenkins managed by infra/talos/local/bring-up.sh (helm upgrade with infra/ci/jenkins/values-local.yaml installPlugins list). The base Talos Jenkins is currently configuration-as-code + workflow-job only; the ADR-0359 plugin set lived on the now-retired colima farm and must be re-installed. Amendment (2026-05-28): the gitea plugin is intentionally NOT installed — GitHub-canonical brand correctness + the gateway already does webhook discovery.",
               "exit_criteria": "Jenkins on Talos has generic-webhook-trigger + build-token-root + http_request + git installed and visible in /pluginManager/api; helm upgrade completes; Jenkins restart leaves the existing CasC oya-ci-farm cloud config valid (no boot failure).",
               "id": "ADR-0380-D1",
               "status": "declared",
@@ -1070,25 +1070,25 @@
               "verified_by": "a manually-launched rust-ci agent pod clones the repo + runs `oya gate validate fmt` (smoke) end-to-end without sccache or hostPath."
             },
             {
-              "description": "Create the gated Jenkins pipeline job (Generic Webhook Trigger token-authed; dispatched by the ci-webhook-gateway, ADR-0374) that runs `oya gate run-all` against the cloned PR ref and posts Forgejo commit-status (success/failure) via the forgejo-ci-token credential. Job authored via Jenkins JCasC (configScripts.oya-ci-gate) so the configuration is declarative and reproducible; oyaCiLane shared library is OPTIONAL (deferred — inline pipeline acceptable for MVP).",
-              "exit_criteria": "a Jenkins job named oya-ci-gate exists, accepts a webhook trigger with a token, runs `oya gate run-all`, and posts commit-status to Forgejo. The 14 reported_status_contexts (infra/ci/jenkins/reported-status-contexts.json) appear on a real PR after webhook fire.",
+              "description": "Create the gated Jenkins pipeline job (Generic Webhook Trigger token-authed; dispatched by the ci-webhook-gateway, ADR-0374) that runs `oya gate run-all` against the cloned PR ref and posts GitHub commit-status (success/failure) via the github-ci-token credential. Job authored via Jenkins JCasC (configScripts.oya-ci-gate) so the configuration is declarative and reproducible; oyaCiLane shared library is OPTIONAL (deferred — inline pipeline acceptable for MVP).",
+              "exit_criteria": "a Jenkins job named oya-ci-gate exists, accepts a webhook trigger with a token, runs `oya gate run-all`, and posts commit-status to GitHub. The 14 reported_status_contexts (infra/ci/jenkins/reported-status-contexts.json) appear on a real PR after webhook fire.",
               "id": "ADR-0380-D3",
               "status": "declared",
-              "verified_by": "a real PR against dev produces 14 Forgejo commit-status entries (success or failure) within N minutes of the push."
+              "verified_by": "a real PR against dev produces 14 GitHub commit-status entries (success or failure) within N minutes of the push."
             },
             {
-              "description": "Mint a Forgejo CI access token (in-pod `forgejo admin user generate-access-token --username oya-admin --scopes write:repository`) + project it as the `forgejo-ci-token` k8s Secret in oya-ci-jenkins (Jenkins reads it via JCasC credentials block). Register the Forgejo webhook (repo oya-admin/oyatie) targeting `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/forgejo`, with the HMAC secret in oya-ci/ci-webhook-gateway-secret (already provisioned) matching Forgejo's configured webhook secret.",
-              "exit_criteria": "Forgejo webhook delivery test (UI Test Delivery button) returns 200; the gateway pod logs a verified pull_request event; Jenkins receives the dispatch + runs the gated job.",
+              "description": "Mint a GitHub CI access token (in-pod `github admin user generate-access-token --username oya-admin --scopes write:repository`) + project it as the `github-ci-token` k8s Secret in oya-ci-jenkins (Jenkins reads it via JCasC credentials block). Register the GitHub webhook (repo oya-admin/oyatie) targeting `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/github`, with the HMAC secret in oya-ci/ci-webhook-gateway-secret (already provisioned) matching GitHub's configured webhook secret.",
+              "exit_criteria": "GitHub webhook delivery test (UI Test Delivery button) returns 200; the gateway pod logs a verified pull_request event; Jenkins receives the dispatch + runs the gated job.",
               "id": "ADR-0380-D4",
               "status": "declared",
-              "verified_by": "Forgejo webhook UI shows Last delivery: 200; gateway pod logs `signature: verified`; Jenkins build queue receives the trigger."
+              "verified_by": "GitHub webhook UI shows Last delivery: 200; gateway pod logs `signature: verified`; Jenkins build queue receives the trigger."
             },
             {
-              "description": "End-state cutover: once D1–D4 are green and a real PR cycle produces commit-status, enable Forgejo auto-merge on dev (or document explicit reviewer-merge), and retire the temporary admin-merge seam (oya-dev-branch-protection-merge memory). The 'gate every merge on verified LOCAL green' rule is replaced by 'gate every merge on the gated CI run + commit-status'.",
+              "description": "End-state cutover: once D1–D4 are green and a real PR cycle produces commit-status, enable GitHub auto-merge on dev (or document explicit reviewer-merge), and retire the temporary admin-merge seam (oya-dev-branch-protection-merge memory). The 'gate every merge on verified LOCAL green' rule is replaced by 'gate every merge on the gated CI run + commit-status'.",
               "exit_criteria": "dev merges happen on green CI without `--admin` override on at least one full PR cycle; the memory oya-dev-branch-protection-merge is updated to reflect the retired seam.",
               "id": "ADR-0380-D5",
               "status": "declared",
-              "verified_by": "a PR is merged into dev on green Forgejo commit-status without admin override; the lax-merge memory is updated."
+              "verified_by": "a PR is merged into dev on green GitHub commit-status without admin override; the lax-merge memory is updated."
             },
             {
               "description": "Maximum-parallelism enablement (follow-on, gated on D5 cutover landing first): (a) restore SeaweedFS-on-Talos — Oyatie's own object store per ADR-0349 — for sccache + buildkit cache + artifact storage; (b) switch the gated pipeline from `oya gate run-all` to `oya verify --affected` per ADR-0360 O1 so per-PR scope shrinks to the affected reverse-dependency closure; (c) enable Jenkinsfile.sharded nextest --partition (ADR-0360 O4) for in-build sharding; (d) grow agent capacity (Talos VM resize or multi-node cluster) so many PR builds co-schedule; (e) enable ADR-0111 merge-queue projected/speculative admission so PRs admit in parallel without serial bottleneck. Brings CI throughput to the hyperscaler-grade bar the ADR-0349 farm claimed on colima, now Talos-native.",
@@ -1187,22 +1187,22 @@
         {
           "deliverables": [
             {
-              "description": "HTTP receiver endpoint POST /webhook/forgejo accepting Forgejo's webhook payload. Verifies the X-Hub-Signature-256 HMAC header on the RAW body, fail-closed, BEFORE any parsing. Returns 401 on missing/mismatched signature, 200 on accepted events, 422 on unroutable authentic events (no Forgejo redelivery storm).",
-              "exit_criteria": "axum handler at POST /webhook/forgejo compiles; cargo nextest -p oya-ci-webhook-gateway-kernel passes d1_payload_parsing tests (push, PR-open, PR-update, PR-close, ping shapes all parsed without panic).",
+              "description": "HTTP receiver endpoint POST /webhook/github accepting GitHub's webhook payload. Verifies the X-Hub-Signature-256 HMAC header on the RAW body, fail-closed, BEFORE any parsing. Returns 401 on missing/mismatched signature, 200 on accepted events, 422 on unroutable authentic events (no GitHub redelivery storm).",
+              "exit_criteria": "axum handler at POST /webhook/github compiles; cargo nextest -p oya-ci-webhook-gateway-kernel passes d1_payload_parsing tests (push, PR-open, PR-update, PR-close, ping shapes all parsed without panic).",
               "id": "D1",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-ci-webhook-gateway-kernel::d1_payload_parsing"
             },
             {
-              "description": "ed25519 signature verification using the shared secret fetched from OpenBao (sref://openbao/oya/ci/forgejo-ed25519-secret). The WebhookSignature value object wraps the raw bytes; SignatureVerifier trait seam allows a MockSignatureVerifier in tests. Fail-closed: missing header → MissingSignature, tampered payload → SignatureMismatch, expired timestamp window → ExpiredTimestamp.",
+              "description": "ed25519 signature verification using the shared secret fetched from OpenBao (sref://openbao/oya/ci/github-ed25519-secret). The WebhookSignature value object wraps the raw bytes; SignatureVerifier trait seam allows a MockSignatureVerifier in tests. Fail-closed: missing header → MissingSignature, tampered payload → SignatureMismatch, expired timestamp window → ExpiredTimestamp.",
               "exit_criteria": "SignatureVerifier trait compiles; d2_ed25519_verification tests cover valid signature, tampered payload, expired timestamp, and missing header — all 4 tests FAIL at Stage-4 RED (no real ed25519 implementation yet) and PASS at Stage-5 GREEN.",
               "id": "D2",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-ci-webhook-gateway-kernel::d2_ed25519_verification (RED: 4 fail)"
             },
             {
-              "description": "Payload normalization to a canonical CiTriggerEvent (repo, branch, head_sha, base_sha, pr_number). Every Forgejo webhook shape (push, pull_request open/update/close, ping) maps to either a CiTriggerEvent or an explicit Ignored outcome. The closed router table: unknown (event, action) pairs produce UnroutableEvent, not a silent drop.",
-              "exit_criteria": "CiTriggerEvent struct compiles with all required fields; d3_event_normalization tests assert every supported Forgejo payload type normalizes to a CiTriggerEvent with correct field values.",
+              "description": "Payload normalization to a canonical CiTriggerEvent (repo, branch, head_sha, base_sha, pr_number). Every GitHub webhook shape (push, pull_request open/update/close, ping) maps to either a CiTriggerEvent or an explicit Ignored outcome. The closed router table: unknown (event, action) pairs produce UnroutableEvent, not a silent drop.",
+              "exit_criteria": "CiTriggerEvent struct compiles with all required fields; d3_event_normalization tests assert every supported GitHub payload type normalizes to a CiTriggerEvent with correct field values.",
               "id": "D3",
               "status": "declared",
               "verified_by": "cargo nextest -p oya-ci-webhook-gateway-kernel::d3_event_normalization"

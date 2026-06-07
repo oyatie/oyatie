@@ -1,7 +1,7 @@
 # registry/vcs/
 
 > **FROZEN (historical evidence) — ADR-0363 §2.** The bespoke agentic-VCS
-> pipeline is retired in favour of git + Jenkins + self-hosted Forgejo.
+> pipeline is retired in favour of git + Jenkins + GitHub (interim).
 > The orchestration crates this registry referenced (changeset-state machine,
 > merge-queue, promotion-controller, webhook-receiver, ast-index,
 > polyglot-indexer, lockstore, changebundle, ci-fix-loop-dispatcher) were

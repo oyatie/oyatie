@@ -1,4 +1,4 @@
-//! Integration test: full Forgejo webhook → 200/202 + GitHub statuses posted.
+//! Integration test: full GitHub webhook → 200/202 + GitHub statuses posted.
 //!
 //! Uses in-memory test doubles (no blocking HTTP inside async context).
 //! The ed25519 verify step uses MockSignatureVerifier from the kernel.
@@ -124,10 +124,10 @@ impl oya_ci_webhook_gateway_kernel::JenkinsClient for CountingJenkinsClient {
 }
 
 // ---------------------------------------------------------------------------
-// Sample Forgejo PR payload
+// Sample GitHub PR payload
 // ---------------------------------------------------------------------------
 
-fn forgejo_pr_payload(sha: &str) -> serde_json::Value {
+fn github_pr_payload(sha: &str) -> serde_json::Value {
     serde_json::json!({
         "action": "opened",
         "number": 42,
@@ -147,7 +147,7 @@ fn forgejo_pr_payload(sha: &str) -> serde_json::Value {
 #[tokio::test]
 async fn full_webhook_flow_returns_202_and_posts_statuses() {
     let sha = "cafebabe1234567890";
-    let payload = serde_json::to_vec(&forgejo_pr_payload(sha)).unwrap();
+    let payload = serde_json::to_vec(&github_pr_payload(sha)).unwrap();
 
     let jenkins_job = JenkinsJob {
         job_name: "oyaCiLane".to_owned(),
@@ -186,9 +186,9 @@ async fn full_webhook_flow_returns_202_and_posts_statuses() {
 
     let request = Request::builder()
         .method("POST")
-        .uri("/webhook/forgejo")
-        .header("x-forgejo-event", "pull_request")
-        .header("x-forgejo-delivery", "del-test")
+        .uri("/webhook/github")
+        .header("x-github-event", "pull_request")
+        .header("x-github-delivery", "del-test")
         .header("x-hub-signature-256", "sha256=aabbccdd")
         .header("content-type", "application/json")
         .body(Body::from(Bytes::from(payload)))
@@ -235,9 +235,9 @@ async fn ping_event_returns_200_ignored() {
 
     let request = Request::builder()
         .method("POST")
-        .uri("/webhook/forgejo")
-        .header("x-forgejo-event", "ping")
-        .header("x-forgejo-delivery", "ping-001")
+        .uri("/webhook/github")
+        .header("x-github-event", "ping")
+        .header("x-github-delivery", "ping-001")
         .header("x-hub-signature-256", "sha256=aabbccdd")
         .header("content-type", "application/json")
         .body(Body::from("{}"))
@@ -255,7 +255,7 @@ async fn ping_event_returns_200_ignored() {
 #[tokio::test]
 async fn replay_delivery_returns_200_and_jenkins_not_triggered_twice() {
     let sha = "deadbeef99887766";
-    let payload = serde_json::to_vec(&forgejo_pr_payload(sha)).unwrap();
+    let payload = serde_json::to_vec(&github_pr_payload(sha)).unwrap();
 
     let job_template = JenkinsJob {
         job_name: "oyaCiLane".to_owned(),
@@ -292,9 +292,9 @@ async fn replay_delivery_returns_200_and_jenkins_not_triggered_twice() {
     // First delivery — must return 202 Accepted and call Jenkins once.
     let first_request = Request::builder()
         .method("POST")
-        .uri("/webhook/forgejo")
-        .header("x-forgejo-event", "pull_request")
-        .header("x-forgejo-delivery", "del-replay-test")
+        .uri("/webhook/github")
+        .header("x-github-event", "pull_request")
+        .header("x-github-delivery", "del-replay-test")
         .header("x-hub-signature-256", "sha256=aabbccdd")
         .header("content-type", "application/json")
         .body(Body::from(Bytes::from(payload.clone())))
@@ -316,9 +316,9 @@ async fn replay_delivery_returns_200_and_jenkins_not_triggered_twice() {
     // ack and NOT call Jenkins a second time.
     let replay_request = Request::builder()
         .method("POST")
-        .uri("/webhook/forgejo")
-        .header("x-forgejo-event", "pull_request")
-        .header("x-forgejo-delivery", "del-replay-test")
+        .uri("/webhook/github")
+        .header("x-github-event", "pull_request")
+        .header("x-github-delivery", "del-replay-test")
         .header("x-hub-signature-256", "sha256=aabbccdd")
         .header("content-type", "application/json")
         .body(Body::from(Bytes::from(payload)))

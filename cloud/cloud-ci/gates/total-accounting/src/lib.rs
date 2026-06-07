@@ -49,6 +49,32 @@ pub enum Verdict {
     Red,
 }
 
+/// A keyed violation: the bare `code` (the existing contract) PLUS the stable `key`
+/// that identifies the offending unit (a path / decision id / surface id). The
+/// going-live ratchet baselines per `(code, key)`; `evaluate()` is the bare-code
+/// projection of `evaluate_keyed()` so there is one source of truth and zero
+/// duplicated logic. The key for total-accounting is the registry row `path`
+/// (producer is git-ls-files-sorted, deterministic).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Finding {
+    pub code: String,
+    pub key: String,
+}
+
+impl Finding {
+    fn new(code: &str, key: &str) -> Self {
+        Self {
+            code: code.to_owned(),
+            key: key.to_owned(),
+        }
+    }
+}
+
+/// The synthetic key for codes that are corpus-level predicates rather than
+/// per-unit findings (`registry_drift`): they carry a single stable sentinel key
+/// so the ratchet treats them uniformly (their baseline is permanently empty).
+const GATE_KEY: &str = "<gate>";
+
 impl Report {
     fn from_violations(violations: BTreeSet<String>) -> Self {
         let verdict = if violations.is_empty() {
@@ -69,19 +95,38 @@ impl Report {
 /// `rows: [..]` accounting records, with optional fixture-level signals
 /// (`unaccounted_paths`, `registry_hand_edited`) that model the corpus-level RED
 /// conditions a single in-memory fixture cannot otherwise express.
+///
+/// This is the bare-code projection of [`evaluate_keyed`]: identical detection logic,
+/// keys dropped. Every `tc-*.json` fixture + the born-blocking self-tests keep
+/// asserting bare codes against it byte-for-byte.
 pub fn evaluate(fixture: &Value) -> Report {
-    let mut violations: BTreeSet<String> = BTreeSet::new();
+    let violations = evaluate_keyed(fixture)
+        .into_iter()
+        .map(|finding| finding.code)
+        .collect();
+    Report::from_violations(violations)
+}
+
+/// Evaluate a total-accounting fixture/registry `Value` into the keyed finding set.
+///
+/// The single source of truth for the gate's detection logic. Each finding pairs a
+/// bare violation `code` with the stable `key` (the row `path`) the going-live
+/// baseline ratchet freezes per code.
+pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
+    let mut findings: BTreeSet<Finding> = BTreeSet::new();
 
     // Corpus-level signals (modeled as DATA in the fixture, not scanner branches).
-    if !optional_str_array(fixture, "unaccounted_paths").is_empty() {
-        violations.insert("unaccounted".to_owned());
+    for path in optional_str_array(fixture, "unaccounted_paths") {
+        findings.insert(Finding::new("unaccounted", &path));
     }
     if fixture
         .get("registry_hand_edited")
         .and_then(Value::as_bool)
         == Some(true)
     {
-        violations.insert("registry_drift".to_owned());
+        // registry_drift is a binary committed!=regenerated predicate (frozen_empty):
+        // not a per-path debt class, so it carries the single gate-level sentinel key.
+        findings.insert(Finding::new("registry_drift", GATE_KEY));
     }
 
     let rows = fixture
@@ -92,7 +137,7 @@ pub fn evaluate(fixture: &Value) -> Report {
 
     let mut accounted_paths: HashSet<String> = HashSet::new();
     for row in &rows {
-        evaluate_row(row, &mut violations);
+        evaluate_row(row, &mut findings);
         if let Some(path) = row.get("path").and_then(Value::as_str) {
             accounted_paths.insert(path.to_owned());
         }
@@ -101,21 +146,24 @@ pub fn evaluate(fixture: &Value) -> Report {
     // A tracked path declared (via `tracked_paths`) without a corresponding row is unaccounted.
     for tracked in optional_str_array(fixture, "tracked_paths") {
         if !accounted_paths.contains(&tracked) {
-            violations.insert("unaccounted".to_owned());
+            findings.insert(Finding::new("unaccounted", &tracked));
         }
     }
 
-    Report::from_violations(violations)
+    findings
 }
 
 /// Per-row accounting checks. The justification check is the subtle one: an empty
 /// `justification_ref` is unjustified, AND a non-empty ref that does not resolve
 /// (`justification_resolves:false` — e.g. ADR-0363 claiming the file was "eradicated")
-/// is ALSO unjustified. That is the foundry-residue exhibit.
-fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
+/// is ALSO unjustified. That is the foundry-residue exhibit. Every per-row code is
+/// keyed by the row `path` (empty when absent — still a stable key for that row).
+fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
+    let key = row.get("path").and_then(Value::as_str).unwrap_or("");
+
     // owner: null/empty ⇒ unowned
     if !field_non_empty_string(row, "owner") {
-        violations.insert("unowned".to_owned());
+        findings.insert(Finding::new("unowned", key));
     }
 
     // justification: empty ref OR an explicitly non-resolving ref ⇒ unjustified
@@ -129,12 +177,12 @@ fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
         .and_then(Value::as_bool)
         == Some(true);
     if !has_justification_ref || !justification_resolves || claims_absent {
-        violations.insert("unjustified".to_owned());
+        findings.insert(Finding::new("unjustified", key));
     }
 
     // reachability: empty array ⇒ unreachable
     if reachable_from(row).is_empty() {
-        violations.insert("unreachable".to_owned());
+        findings.insert(Finding::new("unreachable", key));
     }
 
     // ttl_class: missing/empty ⇒ no_ttl_class
@@ -144,7 +192,7 @@ fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
         .and_then(Value::as_str)
         .is_some_and(|value| !value.trim().is_empty());
     if !ttl_class_present {
-        violations.insert("no_ttl_class".to_owned());
+        findings.insert(Finding::new("no_ttl_class", key));
     }
 }
 
@@ -218,6 +266,35 @@ mod tests {
         });
         let report = evaluate(&fixture);
         assert!(report.violations.contains("unjustified"));
+    }
+
+    #[test]
+    fn evaluate_keyed_carries_the_row_path_as_key() {
+        let fixture = json!({
+            "rows": [{
+                "path": "oya/intelligence/catalog/oya-foundry-eval/src/lib.rs",
+                "owner": "platform-intelligence",
+                "justification_ref": "ADR-0363",
+                "justification_resolves": false,
+                "reachable_from": ["cargo-members"],
+                "ttl": {"ttl_class": "code"}
+            }]
+        });
+        let findings = evaluate_keyed(&fixture);
+        assert!(findings.contains(&Finding::new(
+            "unjustified",
+            "oya/intelligence/catalog/oya-foundry-eval/src/lib.rs"
+        )));
+        // evaluate() is exactly the bare-code projection of evaluate_keyed().
+        let projected: BTreeSet<String> =
+            findings.iter().map(|f| f.code.clone()).collect();
+        assert_eq!(evaluate(&fixture).violations, projected);
+    }
+
+    #[test]
+    fn registry_drift_keyed_to_gate_sentinel() {
+        let findings = evaluate_keyed(&json!({"registry_hand_edited": true, "rows": []}));
+        assert!(findings.contains(&Finding::new("registry_drift", GATE_KEY)));
     }
 
     #[test]

@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 # CI webhook gateway axum app binary (ADR-0387).
-# POST /webhook/forgejo — full pipeline: parse → ed25519 verify → Cedar authz →
-#   route_forgejo_event → Jenkins dispatch → GitHub status post.
+# POST /webhook/github — full pipeline: parse → ed25519 verify → Cedar authz →
+#   route_github_event → Jenkins dispatch → GitHub status post.
 # GET /healthz + GET /metrics.
 # Stage-5 GREEN: real adapters wired; no OpenBao client yet (Stage-7 deferred).
 

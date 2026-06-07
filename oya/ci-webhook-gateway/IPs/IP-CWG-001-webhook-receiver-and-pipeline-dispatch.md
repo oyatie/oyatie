@@ -7,7 +7,7 @@
 ## Scope
 
 The first hop of the gated change-coordination pipeline (ADR-0363/0366/0367):
-verify the Forgejo webhook HMAC, parse the PR event, dispatch the Jenkins lane.
+verify the GitHub webhook HMAC, parse the PR event, dispatch the Jenkins lane.
 
 ## Modules
 
@@ -54,5 +54,5 @@ warnings` / `cargo test` all green (43 tests).
 - `adr-0374-merge-queue-admit` — wire the merge-queue admit step (ADR-0111),
   if/when concurrent-PR volume justifies it (ADR-0363 §3).
 - `adr-0374-delivery-dedup-log` — append-only delivery-id dedup log (ADR-0112
-  idempotency carried forward); v1 relies on Forgejo's at-least-once + the
+  idempotency carried forward); v1 relies on GitHub's at-least-once + the
   idempotent kick.

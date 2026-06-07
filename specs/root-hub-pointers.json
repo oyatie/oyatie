@@ -156,7 +156,7 @@
       "current_path": "/specs/bespoke-cloud-toolchain-services.json",
       "kind": "spec",
       "migration_phase": "current-machine-readable-authority",
-      "purpose": "Product and sequencing spec for tenant-facing bespoke Rust Oyatie Cloud SCM, CI, and CD services. Defines bridge-adapter boundaries for Forgejo/Jenkins/Argo, full bespoke CI enforcement baseline, masterplan P-TOOLCHAIN placement, and mandatory secure separation between tenant=oyatie-internal and every customer tenant pipeline.",
+      "purpose": "Product and sequencing spec for tenant-facing bespoke Rust Oyatie Cloud SCM, CI, and CD services. Defines bridge-adapter boundaries for GitHub/Jenkins/Argo, full bespoke CI enforcement baseline, masterplan P-TOOLCHAIN placement, and mandatory secure separation between tenant=oyatie-internal and every customer tenant pipeline.",
       "target_path_after_md_retirement": "same"
     },
     "check_empirical_evidence": {
@@ -226,7 +226,7 @@
       "current_path": "/specs/cloud-toolchain-target.json",
       "kind": "spec",
       "migration_phase": "p-toolchain",
-      "purpose": "Superseded bridge target for P-TOOLCHAIN. Current authority is /specs/bespoke-cloud-toolchain-services.json: Rust cloud-scm/cloud-ci/cloud-cd services with Forgejo/Jenkins/Argo as adapters, full bespoke CI enforcement, tenant-isolated pipelines, affected-target feedback plus full required backstop, merge-queue speculative validation, and progressive delivery.",
+      "purpose": "Superseded bridge target for P-TOOLCHAIN. Current authority is /specs/bespoke-cloud-toolchain-services.json: Rust cloud-scm/cloud-ci/cloud-cd services with GitHub/Jenkins/Argo as adapters, full bespoke CI enforcement, tenant-isolated pipelines, affected-target feedback plus full required backstop, merge-queue speculative validation, and progressive delivery.",
       "target_path_after_md_retirement": "same"
     },
     "codeview_read_surface": {

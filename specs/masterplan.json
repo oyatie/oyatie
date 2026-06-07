@@ -1224,7 +1224,7 @@
     },
     "cloud_toolchain_services_ref": "/specs/bespoke-cloud-toolchain-services.json",
     "evolves_to_cloud_toolchain_services": {
-      "cloud_scm": "Oya VCS becomes the SCM service surface of Oyatie Cloud, with Forgejo/git as bridge adapters until native repository/change-graph/status authority cuts over.",
+      "cloud_scm": "Oya VCS becomes the SCM service surface of Oyatie Cloud, with GitHub/git as bridge adapters until native repository/change-graph/status authority cuts over.",
       "cloud_ci": "Existing CI admission semantics become oya-ci, a Rust CI service target; branch protection must require cloud-ci-required or oya-ci-required from trusted cloud-ci/oya-ci control state (or a minimal Rust bridge adapter) before Phase-0 can claim live enforcement.",
       "cloud_cd": "GitOps promotion/release-train semantics become oya-cd, a Rust CD service with Argo CD/Rollouts as bridge adapters until bespoke reconciler/ledger authority cuts over.",
       "tenant_isolation": "All three services use the same tenant isolation contract as /specs/bespoke-cloud-toolchain-services.json."
@@ -5957,7 +5957,7 @@
         "title": "Bespoke cloud SCM/CI/CD toolchain services \u2014 Rust control planes with bridge adapters, enforced CI, isolated tenant pipelines",
         "status": "revised-specified",
         "parallel": "yes",
-        "deliverable": "P-TOOLCHAIN delivers target Oyatie Cloud SCM, CI, and CD service authority: cloud-scm (Oya VCS/change graph/status fanout), cloud-ci (full required CI/admission/evidence service), and cloud-cd (release ledger, desired-state reconciler, progressive rollout/rollback). Forgejo, Jenkins, Argo CD, and Argo Rollouts are bridge adapters/reference substrates until the Rust service authority cuts over. Tenant pipeline isolation remains a fixture/evidence-gated target until required cloud-ci evidence proves it.",
+        "deliverable": "P-TOOLCHAIN delivers target Oyatie Cloud SCM, CI, and CD service authority: cloud-scm (Oya VCS/change graph/status fanout), cloud-ci (full required CI/admission/evidence service), and cloud-cd (release ledger, desired-state reconciler, progressive rollout/rollback). GitHub, Jenkins, Argo CD, and Argo Rollouts are bridge adapters/reference substrates until the Rust service authority cuts over. Tenant pipeline isolation remains a fixture/evidence-gated target until required cloud-ci evidence proves it.",
         "authoring_adrs": [
           "ADR-0349",
           "ADR-0358",
@@ -5977,7 +5977,7 @@
           },
           {
             "id": "P-TOOLCHAIN.SCM",
-            "step": "cloud-scm: productize Oya VCS as the Rust SCM control plane (repository/change graph, semantic path claims, status fanout, review/queue APIs) with Forgejo/git as bridge adapters until native cutover."
+            "step": "cloud-scm: productize Oya VCS as the Rust SCM control plane (repository/change graph, semantic path claims, status fanout, review/queue APIs) with GitHub/git as bridge adapters until native cutover."
           },
           {
             "id": "P-TOOLCHAIN.CI",
@@ -6103,10 +6103,10 @@
     },
     "standards_hygiene_cadence": "Re-check pinned standard versions (OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenTelemetry, SLSA, NIST CSF/Privacy, FOCUS, Kubernetes PSS, Cedar, Pulsar, Kubewarden, Argo) against official/upstream before each production commitment; quarterly otherwise.",
     "toolchain_target_current_reconciliation_2026_06_02": {
-      "supersedes_stale_fields": "Existing toolchain_target text mentions Bazel/Jenkins-sole/GitHub-only retirement as historical; current direction is Buck2 + oya-ci + Forgejo/Jenkins bridge + bespoke Rust cloud SCM/CI/CD services.",
+      "supersedes_stale_fields": "Existing toolchain_target text mentions Bazel/Jenkins-sole/GitHub-only retirement as historical; current direction is Buck2 + oya-ci + GitHub/Jenkins bridge + bespoke Rust cloud SCM/CI/CD services.",
       "build_graph": "Buck2-first-party with generated-not-hand-maintained target coverage and cargo authoritative bridge until parity is proven.",
       "ci": "cloud-ci/oya-ci Rust service is destination; current branch protection must require a full bespoke cloud-ci/oya-ci required context produced from trusted trunk/controller state before enforcement claims. Legacy `oya verify`/`oya gate` output is local/bridge evidence only, never merge authority.",
-      "scm": "cloud-scm is placed in P-TOOLCHAIN as Oya VCS productization; Forgejo/git are bridge adapters.",
+      "scm": "cloud-scm is placed in P-TOOLCHAIN as Oya VCS productization; GitHub/git are bridge adapters.",
       "cd": "cloud-cd is placed in P-TOOLCHAIN as Rust release-ledger/reconciler/product surface; Argo CD/Rollouts are bridge adapters/reference substrate.",
       "tenant_isolation": "internal tenant=oyatie-internal; every external tenant gets separate pipeline identity, runners/workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, and secrets."
     }
@@ -6118,7 +6118,7 @@
       "roadmap_phase": "ideal_production_roadmap.phases[P-TOOLCHAIN]",
       "evolves_from": "gitops_vcs_replacement",
       "phase0_bridge": "/specs/bespoke-cloud-toolchain-services.json#sequence.T0 and .omx/plans/prd-platform-readiness.md#P0.0",
-      "phase1_to_phase3_cutover": "cloud-scm, cloud-ci, and cloud-cd Rust control planes progressively replace Forgejo/Jenkins/Argo bridge authority."
+      "phase1_to_phase3_cutover": "cloud-scm, cloud-ci, and cloud-cd Rust control planes progressively replace GitHub/Jenkins/Argo bridge authority."
     },
     "services": {
       "cloud-scm": {
@@ -6129,7 +6129,7 @@
           "oya-scm-status-fanout"
         ],
         "bridge_adapters": [
-          "Forgejo/git until native repository/change-graph authority cuts over"
+          "GitHub/git until native repository/change-graph authority cuts over"
         ],
         "hyperscaler_pattern": "Piper/Sapling-style monorepo change graph, review/status fanout, lazy materialization, semantic path ownership, and queue-aware locks."
       },

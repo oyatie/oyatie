@@ -53,6 +53,24 @@ pub enum Verdict {
     Red,
 }
 
+/// A keyed violation: the bare `code` (the existing contract) PLUS the stable `key`
+/// (the registry row `path`). The going-live ratchet baselines per `(code, key)`;
+/// `evaluate()` is the bare-code projection of `evaluate_keyed()`.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Finding {
+    pub code: String,
+    pub key: String,
+}
+
+impl Finding {
+    fn new(code: &str, key: &str) -> Self {
+        Self {
+            code: code.to_owned(),
+            key: key.to_owned(),
+        }
+    }
+}
+
 impl Report {
     fn from_violations(violations: BTreeSet<String>) -> Self {
         let verdict = if violations.is_empty() {
@@ -84,8 +102,20 @@ impl Report {
 ///   ]
 /// }
 /// ```
+/// Bare-code projection of [`evaluate_keyed`]: identical detection logic, keys dropped.
+/// Every `tc-*.json` fixture keeps asserting bare codes against it byte-for-byte.
 pub fn evaluate(fixture: &Value) -> Report {
-    let mut violations: BTreeSet<String> = BTreeSet::new();
+    let violations = evaluate_keyed(fixture)
+        .into_iter()
+        .map(|finding| finding.code)
+        .collect();
+    Report::from_violations(violations)
+}
+
+/// Evaluate a staleness-reaper registry into the keyed finding set — the single source
+/// of truth for the gate's detection logic. Each finding is keyed by the row `path`.
+pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
+    let mut findings: BTreeSet<Finding> = BTreeSet::new();
 
     let rows = fixture
         .get("rows")
@@ -94,19 +124,21 @@ pub fn evaluate(fixture: &Value) -> Report {
         .unwrap_or_default();
 
     for row in &rows {
-        evaluate_row(row, &mut violations);
+        evaluate_row(row, &mut findings);
     }
 
-    Report::from_violations(violations)
+    findings
 }
 
-fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
+fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
+    let key = row.get("path").and_then(Value::as_str).unwrap_or("");
+
     // reap_without_report: a reap that skipped report -> git mv -> _archive/.
     let reaped = row.get("reaped").and_then(Value::as_bool) == Some(true);
     let reported_then_archived =
         row.get("reported_then_archived").and_then(Value::as_bool) == Some(true);
     if reaped && !reported_then_archived {
-        violations.insert("reap_without_report".to_owned());
+        findings.insert(Finding::new("reap_without_report", key));
     }
 
     let ttl = row.get("ttl");
@@ -117,7 +149,7 @@ fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
 
     // untyped_staleness: an untyped row cannot be aged at all.
     if !ttl_class_present {
-        violations.insert("untyped_staleness".to_owned());
+        findings.insert(Finding::new("untyped_staleness", key));
         return;
     }
 
@@ -143,7 +175,7 @@ fn evaluate_row(row: &Value, violations: &mut BTreeSet<String>) {
         && age > budget
         && unreachable
     {
-        violations.insert("stale_over_budget_unreachable".to_owned());
+        findings.insert(Finding::new("stale_over_budget_unreachable", key));
     }
 }
 
@@ -192,6 +224,21 @@ mod tests {
         assert!(evaluate(&fixture)
             .violations
             .contains("stale_over_budget_unreachable"));
+    }
+
+    #[test]
+    fn evaluate_keyed_carries_the_row_path_as_key() {
+        let fixture = json!({"rows":[{
+            "path":"docs/scratch/_partial-foo.md","age_days":120,"reachable_from":[],
+            "ttl":{"ttl_class":"husk","budget_days":14,"protected":false,"action":"archive"}
+        }]});
+        let findings = evaluate_keyed(&fixture);
+        assert!(findings.contains(&Finding::new(
+            "stale_over_budget_unreachable",
+            "docs/scratch/_partial-foo.md"
+        )));
+        let projected: BTreeSet<String> = findings.iter().map(|f| f.code.clone()).collect();
+        assert_eq!(evaluate(&fixture).violations, projected);
     }
 
     #[test]

@@ -496,7 +496,7 @@
   "ci_lane_contract": {
     "name": "oya-governance-promotion-readiness",
     "severity": "BLOCKER",
-    "added_to": "planned for Jenkins/Forgejo required checks on dev and staging; not live until IP-012 implementation and required-check configuration merge",
+    "added_to": "planned for Jenkins/GitHub required checks on dev and staging; not live until IP-012 implementation and required-check configuration merge",
     "behaviour": [
       "enumerate every microservice touched by the source SHA (via path-based ownership: a change to microservices/<ms>/** is owned by <ms>)",
       "for each microservice, read the latest record in registry/promotion-eligibility.jsonl for (microservice, source_sha, target_env)",

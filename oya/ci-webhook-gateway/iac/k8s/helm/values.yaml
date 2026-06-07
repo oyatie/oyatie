@@ -27,7 +27,7 @@ networkPolicy:
   enabled: true
   nonClaim: static-networkpolicy-template-only-no-live-cni-admission-traffic-flow-or-network-isolation-proof
   ingress:
-    forgejoNamespaceName: oya-forge
+    githubNamespaceName: oya-forge
     gatewayNamespaceName: oya-gateway
   egress:
     dnsNamespaceName: kube-system
@@ -67,7 +67,7 @@ gateway:
     sectionName: https
   hostnames:
     - ci-webhook-gateway.oyatie.com
-  pathPrefix: /webhook/forgejo
+  pathPrefix: /webhook/github
   tlsTermination: parent-gateway-tls13-ech-pqc
   openapiContract: microservices/ci-webhook-gateway/contracts/ci-webhook-gateway.openapi.yaml
   echConfigRef: microservices/ci-webhook-gateway/iac/ech-config.yaml
@@ -81,13 +81,13 @@ config:
   imagePromotionPolicy: cosign-required
 
 externalSecret:
-  # ExternalSecret pulls OYA_FORGEJO_WEBHOOK_SECRET from OpenBao via ESO.
-  # Canonical sref: sref://openbao/oya/ci/forgejo-webhook-secret (ADR-0043).
+  # ExternalSecret pulls OYA_GITHUB_WEBHOOK_SECRET from OpenBao via ESO.
+  # Canonical sref: sref://openbao/oya/ci/github-webhook-secret (ADR-0043).
   # FOUNDER-GATED: OpenBao must be initialized and the secret written at
-  # secret/oya/ci/forgejo-webhook-secret before this ExternalSecret resolves.
+  # secret/oya/ci/github-webhook-secret before this ExternalSecret resolves.
   enabled: true
   refreshInterval: 1h
-  openbaoPath: secret/oya/ci/forgejo-webhook-secret
+  openbaoPath: secret/oya/ci/github-webhook-secret
   secretName: ci-webhook-gateway-secrets
   nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
 

@@ -5,17 +5,17 @@ This runbook lists **exactly what a human must provision** to make PRs against
 seam. Every step that needs human credentials/authority is flagged
 **[HUMAN-AUTH]**. Nothing here is auto-applied by the gateway; you run it.
 
-Substrate: git + Jenkins + self-hosted Forgejo (ADR-0363). Design: ADR-0374.
+Substrate: git + Jenkins + GitHub (interim) (ADR-0363). Design: ADR-0374.
 
 ---
 
 ## 0. Prerequisites (already standing per `infra/forge/README.md`)
 
-- Self-hosted Forgejo running in namespace `oya-forge` (repo `oya-admin/oyatie`).
+- GitHub (interim) running in namespace `oya-forge` (repo `oya-admin/oyatie`).
 - Jenkins running in namespace `oya-ci-jenkins` with the `oyaCiLane` shared
   library (`infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy`).
-- The `forgejo-ci-token` Jenkins credential (so Jenkins can POST commit
-  statuses) — created per `infra/forge/jenkins-forgejo-token.secret.template.yaml`.
+- The `github-ci-token` Jenkins credential (so Jenkins can POST commit
+  statuses) — created per `infra/forge/jenkins-github-token.secret.template.yaml`.
 
 If those are not up, stand them up first; this gateway is the *trigger* that
 sits in front of them.
@@ -25,7 +25,7 @@ sits in front of them.
 ## 1. Generate + store the webhook HMAC secret  **[HUMAN-AUTH]**
 
 The gateway verifies `HMAC-SHA256(secret, raw_body)` fail-closed. The SAME secret
-must live in two places: Forgejo (which signs) and OpenBao (which the gateway
+must live in two places: GitHub (which signs) and OpenBao (which the gateway
 reads from). They MUST match exactly.
 
 1. Generate a high-entropy secret (32 bytes hex):
@@ -35,13 +35,13 @@ reads from). They MUST match exactly.
    ```
 
 2. **[HUMAN-AUTH]** Store it in OpenBao at the canonical path (the gateway reads
-   it from here via External Secrets Operator → env `OYA_FORGEJO_WEBHOOK_SECRET`):
+   it from here via External Secrets Operator → env `OYA_GITHUB_WEBHOOK_SECRET`):
 
    ```
-   bao kv put secret/oya/ci/forgejo-webhook-secret value='<SECRET_FROM_STEP_1>'
+   bao kv put secret/oya/ci/github-webhook-secret value='<SECRET_FROM_STEP_1>'
    ```
 
-   The canonical reference is `sref://openbao/oya/ci/forgejo-webhook-secret`
+   The canonical reference is `sref://openbao/oya/ci/github-webhook-secret`
    (ADR-0043 SecretReference contract). Do NOT commit the secret; gitleaks (run
    in the Jenkins lane) blocks it.
 
@@ -50,16 +50,16 @@ reads from). They MUST match exactly.
 
 ---
 
-## 2. Register the Forgejo webhook  **[HUMAN-AUTH]**
+## 2. Register the GitHub webhook  **[HUMAN-AUTH]**
 
-**[HUMAN-AUTH]** In Forgejo, as a repo admin of `oya-admin/oyatie`:
+**[HUMAN-AUTH]** In GitHub, as a repo admin of `oya-admin/oyatie`:
 
-- Repo → **Settings → Webhooks → Add Webhook → Forgejo (Gitea-compatible)**.
+- Repo → **Settings → Webhooks → Add Webhook → GitHub (Gitea-compatible)**.
 - **Target URL**: the gateway's reachable address, e.g.
-  `https://ci-webhook-gateway.<your-domain>/webhook/forgejo`
-  (in-cluster: `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/forgejo`).
-  Note: Forgejo's `webhook.ALLOWED_HOST_LIST` must permit the gateway host —
-  `infra/forge/forgejo.yaml` currently allows `*.cluster.local,oya-ci-jenkins`;
+  `https://ci-webhook-gateway.<your-domain>/webhook/github`
+  (in-cluster: `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/github`).
+  Note: GitHub's `webhook.ALLOWED_HOST_LIST` must permit the gateway host —
+  `infra/forge/github.yaml` currently allows `*.cluster.local,oya-ci-jenkins`;
   add the gateway host if you front it with an external URL.
 - **HTTP Method**: POST. **Content type**: `application/json`.
 - **Secret**: paste the SAME secret from §1.
@@ -94,15 +94,15 @@ git config --global commit.gpgsign true
 git config --global tag.gpgsign true
 ```
 
-### 3b. **[HUMAN-AUTH]** Register the PUBLIC key in Forgejo
+### 3b. **[HUMAN-AUTH]** Register the PUBLIC key in GitHub
 
-Forgejo → **Settings → SSH / GPG Keys → Add Key → Signing Keys** — paste
-`~/.ssh/oya_signing_ed25519.pub`. Forgejo then marks commits signed by that key
+GitHub → **Settings → SSH / GPG Keys → Add Key → Signing Keys** — paste
+`~/.ssh/oya_signing_ed25519.pub`. GitHub then marks commits signed by that key
 as **Verified**, which is what `required_signatures` consults.
 
 ### 3c. Confirm
 
-Push a signed commit to a branch and open a test PR; Forgejo should show the
+Push a signed commit to a branch and open a test PR; GitHub should show the
 commit as **Verified**. With every commit verified, branch protection's
 signed-commit requirement is met **without** disabling `enforce_admins`.
 
@@ -116,8 +116,8 @@ signed-commit requirement is met **without** disabling `enforce_admins`.
 
 The gateway is one small stateless pod in namespace `oya-ci`. Provide:
 
-- `OYA_FORGEJO_WEBHOOK_SECRET` — from the ExternalSecret projecting
-  `sref://openbao/oya/ci/forgejo-webhook-secret` (§1).
+- `OYA_GITHUB_WEBHOOK_SECRET` — from the ExternalSecret projecting
+  `sref://openbao/oya/ci/github-webhook-secret` (§1).
 - `OYA_JENKINS_DISPATCH_URL` — the Jenkins endpoint that kicks `oyaCiLane`,
   e.g. the Generic Webhook Trigger or build-token URL:
   `http://jenkins.oya-ci-jenkins.svc.cluster.local:8080/generic-webhook-trigger/invoke?token=<JOB_TOKEN>`.
@@ -132,7 +132,7 @@ Build + run locally to smoke-test:
 ```
 cd microservices/ci-webhook-gateway
 cargo build
-OYA_FORGEJO_WEBHOOK_SECRET='<secret>' \
+OYA_GITHUB_WEBHOOK_SECRET='<secret>' \
 OYA_JENKINS_DISPATCH_URL='http://localhost:8080/generic-webhook-trigger/invoke?token=t' \
 cargo run
 # then: curl localhost:8099/healthz  -> {"status":"ok"}
@@ -140,11 +140,11 @@ cargo run
 
 Container/Helm packaging follows the per-microservice `iac/k8s/helm/` convention
 (ADR-0349); the deployment must mount the ExternalSecret as the env var above
-and expose port 8099 behind a Service (and an ingress if Forgejo posts from
+and expose port 8099 behind a Service (and an ingress if GitHub posts from
 outside the cluster).
 
 > **Liveness/readiness**: probe `GET /healthz`.
-> **Fail-closed proof**: if `OYA_FORGEJO_WEBHOOK_SECRET` is unset the gateway
+> **Fail-closed proof**: if `OYA_GITHUB_WEBHOOK_SECRET` is unset the gateway
 > logs a WARN and rejects every delivery with 503 — it will not accept unsigned
 > traffic. Provision the secret before going live.
 
@@ -155,7 +155,7 @@ outside the cluster).
 Per the ADR-0112 90-day rotation guidance (carried forward):
 
 1. Generate a new secret (`openssl rand -hex 32`).
-2. **[HUMAN-AUTH]** Update OpenBao (`bao kv put …`) AND the Forgejo webhook
+2. **[HUMAN-AUTH]** Update OpenBao (`bao kv put …`) AND the GitHub webhook
    Secret field — **in the same change window** (they must match; a mismatch
    causes 401s until re-synced).
 3. Restart/roll the gateway pod so it re-reads the env (or rely on the
@@ -165,19 +165,19 @@ Per the ADR-0112 90-day rotation guidance (carried forward):
 
 ## 6. Cutover checklist (retire the relax-merge seam)  **[HUMAN-AUTH]**
 
-- [ ] Webhook secret in OpenBao + Forgejo (match).
-- [ ] Forgejo `pull_request` webhook registered + Test Delivery green.
+- [ ] Webhook secret in OpenBao + GitHub (match).
+- [ ] GitHub `pull_request` webhook registered + Test Delivery green.
 - [ ] Gateway deployed; `/healthz` green; `OYA_JENKINS_DISPATCH_URL` set.
 - [ ] A real test PR against `dev` → gateway 202 → Jenkins runs the
       `oya-ci-gate` job (ADR-0380 D3; declared in JCasC per PR #242) → a single
-      `oya-ci-gate` status context posted to Forgejo (`pending` → `success` /
+      `oya-ci-gate` status context posted to GitHub (`pending` → `success` /
       `failure`) + `oya-pr-review` from the reviewer. (The older
       14-status-context design from ADR-0359 colima-era is superseded by the
       single-overarching-context Talos design — see ADR-0380 amendment (5) and
       `infra/ci/jenkins/Jenkinsfile-oya-ci-gate`.)
-- [ ] Every committer's Ed25519 signing key registered in Forgejo (commits show
+- [ ] Every committer's Ed25519 signing key registered in GitHub (commits show
       Verified).
-- [ ] Forgejo **auto-merge** ("merge when checks succeed") enabled on the repo.
+- [ ] GitHub **auto-merge** ("merge when checks succeed") enabled on the repo.
 - [ ] Confirm a green PR auto-merges **without** toggling `enforce_admins`.
 - [ ] Stop using the admin-merge path (the seam is now retired).
 
@@ -190,42 +190,42 @@ Per the ADR-0112 90-day rotation guidance (carried forward):
 
 ---
 
-## 7. ADR-0380 D4 — mint and project the `forgejo-ci-token`  **[HUMAN-AUTH]**
+## 7. ADR-0380 D4 — mint and project the `github-ci-token`  **[HUMAN-AUTH]**
 
 The `oya-ci-gate` Jenkinsfile (ADR-0380 D3; `infra/ci/jenkins/Jenkinsfile-oya-ci-gate`)
-posts commit-status via `httpRequest` against the Forgejo statuses API, authed
-by a Jenkins credential `forgejo-ci-token` (declared in JCasC `oya-ci-credentials`
+posts commit-status via `httpRequest` against the GitHub statuses API, authed
+by a Jenkins credential `github-ci-token` (declared in JCasC `oya-ci-credentials`
 configScript, PR #242). The credential's value is materialized from the
-controller pod's `FORGEJO_CI_TOKEN` env, which is projected from a Kubernetes
-Secret `forgejo-ci-token` in `oya-ci-jenkins`. **That Secret does not exist
+controller pod's `GITHUB_CI_TOKEN` env, which is projected from a Kubernetes
+Secret `github-ci-token` in `oya-ci-jenkins`. **That Secret does not exist
 yet** — D4 mints it.
 
 ### 7a. Mint the token in-pod  **[HUMAN-AUTH]**
 
 ```sh
-# Exec into the Forgejo pod and mint a per-CI access token. `oya-admin` is the
+# Exec into the GitHub pod and mint a per-CI access token. `oya-admin` is the
 # repo-admin identity already used by the existing `gateway-build-git` credential.
-kubectl -n oya-forge exec -it deploy/forgejo -- \
-  forgejo admin user generate-access-token \
+kubectl -n oya-forge exec -it deploy/github -- \
+  github admin user generate-access-token \
     --username oya-admin \
     --scopes write:repository \
     --token-name oya-ci-gate-status-poster
 ```
 
-Forgejo prints the token to stdout — **once**. Capture it; it is not retrievable
-later (Forgejo only stores a hash). If lost, regenerate.
+GitHub prints the token to stdout — **once**. Capture it; it is not retrievable
+later (GitHub only stores a hash). If lost, regenerate.
 
 ### 7b. Project it as a Kubernetes Secret  **[HUMAN-AUTH]**
 
 ```sh
-kubectl -n oya-ci-jenkins create secret generic forgejo-ci-token \
+kubectl -n oya-ci-jenkins create secret generic github-ci-token \
   --from-literal=token='<TOKEN_FROM_STEP_7a>'
 ```
 
 Once the Secret exists, the Jenkins controller pod must restart so the
 `containerEnv` projection (PR #242, `infra/ci/jenkins/values-local.yaml`) re-
-binds `FORGEJO_CI_TOKEN` to the new Secret value. JCasC then re-materializes the
-`forgejo-ci-token` Jenkins credential at boot:
+binds `GITHUB_CI_TOKEN` to the new Secret value. JCasC then re-materializes the
+`github-ci-token` Jenkins credential at boot:
 
 ```sh
 kubectl -n oya-ci-jenkins rollout restart statefulset/oya-jenkins
@@ -236,19 +236,19 @@ kubectl -n oya-ci-jenkins rollout status  statefulset/oya-jenkins --timeout=300s
 
 ```sh
 # In the Jenkins UI: Manage Jenkins → Credentials → System → Global. Confirm
-# `forgejo-ci-token` shows as a String credential (not the literal placeholder).
+# `github-ci-token` shows as a String credential (not the literal placeholder).
 # Then: trigger a build manually:
 JENKINS_URL=http://oya-jenkins.oya-ci-jenkins.svc.cluster.local:8080
 curl -fsS "$JENKINS_URL/generic-webhook-trigger/invoke?token=oya-ci-gate" \
   -H 'Content-Type: application/json' \
   -d '{"pull_request":{"number":1,"head":{"sha":"<TEST_SHA>","ref":"refs/heads/test"}},"repository":{"name":"oyatie","owner":{"login":"oya-admin"}}}'
 # The Jenkinsfile's `Post pending status` stage should succeed (not fail at
-# withCredentials). Confirm the test status appears on the SHA in Forgejo.
+# withCredentials). Confirm the test status appears on the SHA in GitHub.
 ```
 
 If the `Post pending status` stage fails with `CredentialNotFoundException`,
 the Secret projection or JCasC binding didn't take effect — verify the Secret
-exists, that the controller pod's `env` shows `FORGEJO_CI_TOKEN`, and that
+exists, that the controller pod's `env` shows `GITHUB_CI_TOKEN`, and that
 the credential is materialized in Jenkins UI.
 
 ---
@@ -257,21 +257,21 @@ the credential is materialized in Jenkins UI.
 
 After §1–§7 are green AND a real test PR completes one full cycle:
 gateway → Jenkins → `oya-ci-gate` posts `success` → reviewer-agent posts
-`oya-pr-review` → Forgejo auto-merges on green.
+`oya-pr-review` → GitHub auto-merges on green.
 
 ### 8a. Verify the loop end-to-end (before cutting over)
 
 - [ ] Open a trivial test PR against `dev` (e.g., comment-only change in a
       docs file).
-- [ ] Forgejo webhook delivery shows 202 in the Forgejo UI.
+- [ ] GitHub webhook delivery shows 202 in the GitHub UI.
 - [ ] The CI webhook gateway pod logs `signature: verified` (HMAC §1 match).
 - [ ] Jenkins shows `oya-ci-gate` build #N triggered with the PR_NUMBER /
       PR_SHA / REPO_OWNER / REPO_NAME variables.
 - [ ] The build runs `cargo build -p oya-dev-cli --release` then
       `./target/release/oya gate run-all`.
-- [ ] On a green gate, Forgejo shows the `oya-ci-gate` status as **success**
+- [ ] On a green gate, GitHub shows the `oya-ci-gate` status as **success**
       on the PR's SHA.
-- [ ] Forgejo auto-merge (enabled in §6) merges the PR on green without
+- [ ] GitHub auto-merge (enabled in §6) merges the PR on green without
       `--admin` override.
 
 ### 8b. Flip the dev-branch protection back to strict  **[HUMAN-AUTH]**
@@ -307,7 +307,7 @@ need a description tweak.
 ## 9. Production deploy on Talos  **[HUMAN-AUTH]**
 
 The ci-webhook-gateway ships as a Helm chart managed by ArgoCD on the Talos
-local substrate (ADR-0387). Once the gateway is running and Forgejo webhooks
+local substrate (ADR-0387). Once the gateway is running and GitHub webhooks
 flow through it, the admin-merge bridge described in §8 can be permanently
 retired.
 
@@ -342,7 +342,7 @@ Run **`microservices/ci-webhook-gateway/runbooks/provision-secrets.md`** in
 full before allowing ArgoCD to sync. The ExternalSecret will fail to sync
 (and the pod will fail to start) if `secret/oya/ci-webhook-gateway` does not
 exist in OpenBao with the three required keys:
-`forgejo_ed25519_pub`, `jenkins_api_token`, `github_token`.
+`github_ed25519_pub`, `jenkins_api_token`, `github_token`.
 
 ### 9d. Verify ArgoCD sync
 

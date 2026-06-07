@@ -1,10 +1,10 @@
-//! Forgejo webhook event parsing + the closed router table.
+//! GitHub webhook event parsing + the closed router table.
 //!
 //! The gateway acts on `pull_request` events whose base branch is the gated
 //! target (default `dev`) and on issue/push events that need to snapshot board
 //! metadata without standing up a second long-running service. Board push
 //! snapshots are restricted to `refs/heads/claims/*`; ordinary branch pushes do
-//! not drive board projection. Forgejo's
+//! not drive board projection. GitHub's
 //! `pull_request` payload mirrors Gitea's:
 //!   { "action": "opened|synchronized|...",
 //!     "number": 42,
@@ -14,9 +14,9 @@
 //!       "head": { "ref": "feature/x", "sha": "..." },
 //!       "draft": false } }
 //!
-//! NOTE the Forgejo/Gitea spelling: the synchronize action is `synchronized`
+//! NOTE the GitHub/Gitea spelling: the synchronize action is `synchronized`
 //! (GitHub uses `synchronize`). We accept BOTH so the gateway is robust to the
-//! GitHub-bootstrap host (ADR-0247) as well as the Forgejo target.
+//! GitHub-bootstrap host (ADR-0247) as well as the GitHub target.
 //!
 //! The router is a CLOSED mapping: any `(event, action)` not enumerated here
 //! is a typed `UnroutableEvent` (logged + rejected), never a silent drop.
@@ -27,13 +27,13 @@ use sha2::{Digest, Sha256};
 
 use crate::error::{GatewayError, Result};
 
-/// The webhook event class, taken from Forgejo's `X-Forgejo-Event` /
+/// The webhook event class, taken from GitHub's `X-GitHub-Event` /
 /// `X-Gitea-Event` / GitHub's `X-GitHub-Event` header.
-pub const EVENT_HEADER_FORGEJO: &str = "x-forgejo-event";
+pub const EVENT_HEADER_GITHUB: &str = "x-github-event";
 pub const EVENT_HEADER_GITEA: &str = "x-gitea-event";
 pub const EVENT_HEADER_GITHUB: &str = "x-github-event";
 /// Delivery-id header used for idempotent dedup (UUID, stable across redelivery).
-pub const DELIVERY_HEADER_FORGEJO: &str = "x-forgejo-delivery";
+pub const DELIVERY_HEADER_GITHUB: &str = "x-github-delivery";
 pub const DELIVERY_HEADER_GITEA: &str = "x-gitea-delivery";
 pub const DELIVERY_HEADER_GITHUB: &str = "x-github-delivery";
 
@@ -51,7 +51,7 @@ impl PrAction {
     fn parse(action: &str) -> Option<Self> {
         match action {
             "opened" | "reopened" => Some(PrAction::Opened),
-            // Forgejo/Gitea: "synchronized"; GitHub: "synchronize".
+            // GitHub/Gitea: "synchronized"; GitHub: "synchronize".
             "synchronized" | "synchronize" => Some(PrAction::Synchronized),
             _ => None,
         }
@@ -252,7 +252,7 @@ pub enum RouteOutcome {
     Dispatch(CiEvent),
     /// Authentic + parseable, but deliberately ignored (wrong base branch, a
     /// draft PR, or a PR action we don't gate). Distinguished from an error so
-    /// the receiver returns 200 (no Forgejo redelivery storm) without dispatch.
+    /// the receiver returns 200 (no GitHub redelivery storm) without dispatch.
     Ignored { reason: String },
 }
 
@@ -265,7 +265,7 @@ pub fn route(event: &str, body: &[u8], target_branch: &str) -> Result<RouteOutco
         "pull_request" => route_pull_request(body, target_branch),
         "issues" | "issue" => route_issue(body),
         "push" => route_push(body, target_branch),
-        // `ping` is Forgejo's webhook-registration handshake — accept + ignore.
+        // `ping` is GitHub's webhook-registration handshake — accept + ignore.
         "ping" => Ok(RouteOutcome::Ignored {
             reason: "ping handshake".to_owned(),
         }),
@@ -490,7 +490,7 @@ mod tests {
     }
 
     #[test]
-    fn synchronized_forgejo_spelling_dispatches() {
+    fn synchronized_github_spelling_dispatches() {
         let outcome = route(
             "pull_request",
             &pr_body("synchronized", "dev", false),

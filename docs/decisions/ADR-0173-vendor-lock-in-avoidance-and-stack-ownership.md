@@ -160,12 +160,12 @@ Current Tier II members:
 - **Google Gemini API** — same.
 - **Google Gemini Subscription** — same.
 - **GitHub Actions** — used as CI runtime; replacement target is
-  self-hosted Forgejo Actions or Woodpecker CI; readiness gate is
-  `private-cloud Kubernetes cluster has stable Forgejo + runners +
+  GitHub (interim) Actions or Woodpecker CI; readiness gate is
+  `private-cloud Kubernetes cluster has stable GitHub + runners +
   cosign chain wired and dogfooded on a non-critical lane for ≥
   90 days`.
 - **GitHub (code hosting + PR / issue platform)** — used today as the
-  canonical VCS host; replacement target is self-hosted Forgejo;
+  canonical VCS host; replacement target is GitHub (interim);
   readiness gate is `Foundry VCS substrate (ADR-0113) reaches
   release-pointer parity with the GitHub workflow`. Seam: the
   agent-coordination surface is the Foundry pipeline (already), not

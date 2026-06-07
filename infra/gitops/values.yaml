@@ -1,6 +1,6 @@
 # Per-cell app-of-apps values. Argo CD on each cell renders this chart; override `cell`/`repoURL`
 # per cluster (ApplicationSet/CRS injects them, or a per-cell values file).
-repoURL: https://github.com/jason931225/oyatie   # bootstrap source; flips to Forgejo post-cutover (ADR-0247)
+repoURL: https://github.com/jason931225/oyatie   # bootstrap source; flips to GitHub post-cutover (ADR-0247)
 targetRevision: dev
 cell: control-plane                                         # overridden per spoke (eu/jp/kr/...)
 
@@ -80,10 +80,10 @@ apps:
     namespace: istio-system
     syncWave: "2"
 
-  - name: forgejo
+  - name: github
     type: path
     path: infra/forge
-    include: forgejo.yaml
+    include: github.yaml
     namespace: oya-forge
     syncWave: "1"
 
@@ -153,7 +153,7 @@ apps:
 
   # jenkins: bootstrap-managed by infra/talos/local/bring-up.sh in namespace
   # oya-ci-jenkins (NOT ArgoCD-managed here — avoids a duplicate heavy install +
-  # helm-release-ownership conflict). The CI substrate (cilium/forgejo/jenkins) is
+  # helm-release-ownership conflict). The CI substrate (cilium/github/jenkins) is
   # bring-up-managed; ArgoCD owns the platform overlay above it.
 
   - name: observability

@@ -51,7 +51,7 @@ granularity. No hard-deadline cutover — quality gates only.
 
 | Bespoke | Supersedes OSS | Bridge during Phase-1 | Cutover criteria |
 |---|---|---|---|
-| oya-vcs (ADR-0409) | Forgejo (ADR-0363) | Parallel-run; tenant opt-in per repo | Feature parity per-feature gates |
+| oya-vcs (ADR-0409) | GitHub (ADR-0363) | Parallel-run; tenant opt-in per repo | Feature parity per-feature gates |
 | Rust-native portal (ADR-0434) | Backstage (ADR-0410) | Backstage Catalog YAML spec retained | Same |
 | oya-notify (ADR-0451) | Postal/Haraka alternatives | None — bespoke from day 1 | N/A |
 | oya-errors (ADR-0474) | GlitchTip (ADR-0466) | Phase-1 GlitchTip ingest endpoint | Sentry SDK protocol parity |

@@ -57,7 +57,7 @@ All components introduced by ADR-0139 (agentic SLO-gated promotion) and ADR-0131
 - Threats to the underlying Kubernetes cluster, container runtime, or hyperscaler IaaS layer — owned by the `cloud-k8s` µservice's threat model.
 - Threats to the workload µservices themselves (tenancy, ontology, workflow, mail, etc.) — each owns its own threat-model.md.
 - Threats to OpenBao secret-manager itself — owned by the `cloud-secrets` µservice's threat model. This document inherits OpenBao threats as upstream and references them.
-- Threats to Jenkins CI agents and Forgejo required-check plumbing — owned by the `governance` µservice (CI substrate) threat model.
+- Threats to Jenkins CI agents and GitHub required-check plumbing — owned by the `governance` µservice (CI substrate) threat model.
 - Threats to Bominal-side observability counterparts — separate Bominal threat-model; oyatie inherits decisions where applicable per `feedback_bominal_inheritance_precedence.md`.
 
 ## Trust Boundaries

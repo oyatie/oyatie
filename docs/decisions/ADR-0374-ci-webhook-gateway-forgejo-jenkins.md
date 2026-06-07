@@ -18,11 +18,11 @@ affected_surfaces:
   specs: []
 deliverables:
   - id: ADR-0374-D1
-    description: "Forgejo webhook receiver as a flat single-concern Rust microservice (ci-webhook-gateway) with src/ root, blessed deps only (Tokio/Axum/Tower/Hyper/serde/tracing + RustCrypto hmac/sha2/subtle), exposing POST /webhook/forgejo + GET /healthz."
+    description: "GitHub webhook receiver as a flat single-concern Rust microservice (ci-webhook-gateway) with src/ root, blessed deps only (Tokio/Axum/Tower/Hyper/serde/tracing + RustCrypto hmac/sha2/subtle), exposing POST /webhook/github + GET /healthz."
     exit_criteria: "cargo build + cargo fmt --check + cargo clippy --all-targets -D warnings + cargo test are green for the crate; the service tree satisfies the design/spec maturity surfaces (proto3 deferred as N/A)."
     verified_by: "oya gate validate design-spec-maturity-claims"
   - id: ADR-0374-D2
-    description: "HMAC-SHA256 webhook-signature verification that fails closed on the RAW body BEFORE any parse/route, constant-time, with the secret redacted in Debug and read only from sref://openbao/oya/ci/forgejo-webhook-secret."
+    description: "HMAC-SHA256 webhook-signature verification that fails closed on the RAW body BEFORE any parse/route, constant-time, with the secret redacted in Debug and read only from sref://openbao/oya/ci/github-webhook-secret."
     exit_criteria: "a delivery with a missing/invalid signature is rejected (HTTP 401) and never dispatches; a known-answer HMAC vector verifies; the secret never appears in logs."
     verified_by: "cargo test -p oya-ci-webhook-gateway-app"
   - id: ADR-0374-D3
@@ -34,17 +34,17 @@ deliverables:
     exit_criteria: "the placeholder-debt + honest-claims gates pass; each Unimplemented boundary names its stage and its placeholder-debt token."
     verified_by: "oya gate validate honest-claims"
 purpose: >
-  Define the CI webhook gateway — the missing trigger that turns a Forgejo
+  Define the CI webhook gateway — the missing trigger that turns a GitHub
   pull_request event into a real, gated CI run on the ADR-0363 substrate
-  (git + Jenkins + self-hosted Forgejo) — so PRs against dev are gated by REAL
-  automated checks (Jenkins posts the required Forgejo commit statuses) and the
+  (git + Jenkins + GitHub (interim)) — so PRs against dev are gated by REAL
+  automated checks (Jenkins posts the required GitHub commit statuses) and the
   manual enforce_admins-toggle admin-relax-merge seam is retired. Scaffolds a
   flat single-concern Rust microservice with fail-closed HMAC verification, PR-
   event parsing, and the event->pipeline dispatch trait, with honest typed
   boundaries for downstream stages not yet built.
 ---
 
-# ADR-0374: CI webhook gateway (Forgejo → Jenkins gated pipeline trigger)
+# ADR-0374: CI webhook gateway (GitHub → Jenkins gated pipeline trigger)
 
 ## Status
 
@@ -52,26 +52,26 @@ Accepted — 2026-05-26.
 
 ## Context
 
-The change-coordination substrate is **git + Jenkins + self-hosted Forgejo**
+The change-coordination substrate is **git + Jenkins + GitHub (interim)**
 (ADR-0363), with the agentic pipeline (ADR-0366) and the trustless pre-merge
 verification gateway (ADR-0367) layered on top. The pieces that exist today:
 
 - `infra/branch-protection/dev.json` requires **15 status contexts** on `dev`
   (plus `required_signatures: true`, `required_linear_history`, no force-push).
 - `infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy` already **POSTs 14**
-  of those contexts to the **Forgejo Commit Status API**, and the reviewer
+  of those contexts to the **GitHub Commit Status API**, and the reviewer
   agent posts the 15th (`oya-pr-review`).
-- `infra/forge/` stands up self-hosted Forgejo (GPLv3+, OSI-clean) with native
+- `infra/forge/` stands up GitHub (interim) (GPLv3+, OSI-clean) with native
   branch protection, required status checks, webhooks, and auto-merge.
 
-**The missing piece is the trigger.** Nothing converts a Forgejo `pull_request`
+**The missing piece is the trigger.** Nothing converts a GitHub `pull_request`
 event into a Jenkins run. So, per the root `CLAUDE.md` Wave-B bootstrap note and
 `infra/forge/README.md`, every merge to `dev` historically disabled
 `enforce_admins` and used an admin-merge — because the 15 required checks were
 never actually produced for a given PR head. That manual relax-merge seam is the
 thing this ADR retires by building the trigger.
 
-This is the **Forgejo-substrate successor** to the retired ADR-0112
+This is the **GitHub-substrate successor** to the retired ADR-0112
 GitHub/foundry webhook-receiver (superseded by ADR-0363). The "foundry" name is
 eradicated repo-wide (ADR-0362); this service is named for its single concern.
 
@@ -81,22 +81,22 @@ Build a **flat single-concern Rust microservice**, `ci-webhook-gateway`
 (`microservices/ci-webhook-gateway/`, `src/` root per ADR-0131; package
 `oya-ci-webhook-gateway-app`), that is the FIRST hop of the gated pipeline:
 
-1. **Receive** Forgejo webhook deliveries at `POST /webhook/forgejo` (axum/Tokio/
+1. **Receive** GitHub webhook deliveries at `POST /webhook/github` (axum/Tokio/
    Tower/Hyper — blessed runtime deps).
 2. **Verify** the `X-Hub-Signature-256` (or legacy `X-Gitea-Signature`)
    HMAC-SHA256 on the RAW body, **fail-closed, constant-time** (RustCrypto
    `hmac`/`sha2`/`subtle`), BEFORE any parse/route/dispatch. The secret is read
-   only from `OYA_FORGEJO_WEBHOOK_SECRET`, injected from
-   `sref://openbao/oya/ci/forgejo-webhook-secret` (ADR-0043), and is redacted in
+   only from `OYA_GITHUB_WEBHOOK_SECRET`, injected from
+   `sref://openbao/oya/ci/github-webhook-secret` (ADR-0043), and is redacted in
    `Debug`.
 3. **Parse + route** `pull_request` events (opened/reopened/synchronized) whose
    base is the gated branch (`dev`). The router is a **closed** mapping; an
    unknown `(event, action)` is a typed `UnroutableEvent` (logged + 422, never
    silently dropped). Wrong-base / draft / non-gated actions are `Ignored`
-   (HTTP 200, no Forgejo redelivery storm).
+   (HTTP 200, no GitHub redelivery storm).
 4. **Dispatch** the gated pipeline by kicking the Jenkins `oyaCiLane` lane
    (admission → `oya gate run-all` — the **trusted-runner** re-execution per
-   ADR-0367 that posts the Forgejo commit statuses). The gateway never trusts
+   ADR-0367 that posts the GitHub commit statuses). The gateway never trusts
    author-reported evidence; it only KICKS the trusted runner.
 
 ### Honest boundaries (no lying stub)
@@ -110,7 +110,7 @@ a `registry/placeholder-debt/adr-follow-ups.yaml` token:
 - the speculative **merge-queue** (ADR-0111, parked per ADR-0363 §3) —
   `adr-0374-merge-queue-admit`.
 - an explicit **delivery-dedup log** (ADR-0112 idempotency carried forward) —
-  `adr-0374-delivery-dedup-log`. v1 relies on Forgejo at-least-once redelivery +
+  `adr-0374-delivery-dedup-log`. v1 relies on GitHub at-least-once redelivery +
   the idempotent `(pr, head_sha)` kick.
 
 ### Commit signing (separate, human-provisioned)
@@ -124,7 +124,7 @@ of the relax-merge hack (the gateway removes the required-checks half).
 ## Rejected alternatives
 
 - **Revive the ADR-0112 GitHub/foundry webhook-receiver** — rejected: superseded
-  by ADR-0363; substrate is self-hosted Forgejo, and "foundry" is eradicated.
+  by ADR-0363; substrate is GitHub (interim), and "foundry" is eradicated.
 - **Trigger Jenkins via polling / cron** — rejected: ADR-0124's webhook-driven,
   no-cron principle; polling wastes cycles and adds latency.
 - **Let the gateway run the gates + post statuses itself** — rejected: violates
@@ -142,7 +142,7 @@ of the relax-merge hack (the gateway removes the required-checks half).
 - PRs against `dev` are gated by REAL Jenkins-produced checks; the manual
   `enforce_admins`-toggle admin-relax-merge seam can be retired.
 - Webhook-spoofing is structurally blocked (fail-closed constant-time HMAC).
-- The gateway holds zero durable state — crash-restart-replay safe (Forgejo
+- The gateway holds zero durable state — crash-restart-replay safe (GitHub
   at-least-once + idempotent kick).
 - Honest boundaries keep the honest-claims gate green while the reviewer gate +
   merge-queue are still being built.
@@ -204,7 +204,7 @@ future evolution, not a commitment here.
 
 ## References
 
-- ADR-0363 (substrate: git + Jenkins + self-hosted Forgejo; supersedes the
+- ADR-0363 (substrate: git + Jenkins + GitHub (interim); supersedes the
   ADR-0112 webhook-receiver), ADR-0366 (self-enforcing pipeline), ADR-0367
   (trustless pre-merge gateway — trusted runner + adversarial reviewer),
   ADR-0349/0361 (Jenkins-native CI farm), ADR-0124 (webhook-driven, no-cron),

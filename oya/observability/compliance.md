@@ -30,7 +30,7 @@ The canonical control-to-framework mapping for the observability µservice. Tell
 
 | TSC | Control objective | Implementation | Evidence artifact |
 |---|---|---|---|
-| CC1.1 | COSO Principle 1: Integrity and ethical values | Code-of-conduct + signed-commit policy; CODEOWNERS reviewed quarterly | `docs/standards/code-review.md` + Jenkins/Forgejo required-check policy |
+| CC1.1 | COSO Principle 1: Integrity and ethical values | Code-of-conduct + signed-commit policy; CODEOWNERS reviewed quarterly | `docs/standards/code-review.md` + Jenkins/GitHub required-check policy |
 | CC1.2 | COSO Principle 2: Board oversight | Council-architecture quarterly review of this µservice | `docs/teams/council-architecture.md` |
 | CC1.3 | Organizational structure | RACI matrix per µservice | `microservices/observability/CODEOWNERS` (Slice C) |
 | CC1.4 | Commitment to competence | Onboarding + training programs | `docs/standards/onboarding.md` |

@@ -1,21 +1,21 @@
 ---
-purpose: Oyatie Runbook — Forgejo Board Verification Checklist
+purpose: Oyatie Runbook — GitHub Board Verification Checklist
 doc_status: published
 ---
 
-# Oyatie Runbook — Forgejo Board Verification Checklist
+# Oyatie Runbook — GitHub Board Verification Checklist
 
-> **Status:** Active checklist for the Forgejo board spike and future
+> **Status:** Active checklist for the GitHub board spike and future
 > implementation acceptance.
 > **Owner:** Governance / Intelligence delivery leads per RACI.
 > **Last verified:** 2026-05-27 (docs-only checklist authored from the
-> Forgejo board spike scope).
+> GitHub board spike scope).
 
 ## Scope
 
-Use this checklist to decide whether the Forgejo-backed agent board is ready to
+Use this checklist to decide whether the GitHub-backed agent board is ready to
 move from spike evidence to implementation acceptance. Record each check as
-PASS, FAIL, or BLOCKED with the command, timestamp, actor, Forgejo URL, and raw
+PASS, FAIL, or BLOCKED with the command, timestamp, actor, GitHub URL, and raw
 response artifact.
 
 This checklist is documentation-only. It does not authorize edits to ADR-0377,
@@ -25,7 +25,7 @@ code, tests, Cargo files, `.omx`, or `.omc`.
 
 Create one evidence packet per verification run containing:
 
-1. Forgejo base URL, version, commit SHA if exposed, and authentication mode.
+1. GitHub base URL, version, commit SHA if exposed, and authentication mode.
 2. Redacted HTTP transcripts for every REST probe.
 3. Git command transcripts for claim-ref compare-and-swap (CAS) tests.
 4. Webhook delivery payload samples with headers and receiver logs.
@@ -34,10 +34,10 @@ Create one evidence packet per verification run containing:
 
 ## Checklist
 
-### 1. Live Forgejo health/version
+### 1. Live GitHub health/version
 
 - **PASS:** Authenticated and unauthenticated probes reach the intended
-  self-hosted Forgejo instance and return a stable version/build identity.
+  GitHub (interim) instance and return a stable version/build identity.
 - **FAIL:** A probe reaches the wrong host, requires undocumented credentials,
   omits version/build identity, or only works on a local developer machine.
 - **Evidence:** `GET /api/healthz` or equivalent health endpoint,
@@ -45,7 +45,7 @@ Create one evidence packet per verification run containing:
 
 ### 2. Projects REST endpoint absence
 
-- **PASS:** Probes confirm the target Forgejo version does not expose a stable
+- **PASS:** Probes confirm the target GitHub version does not expose a stable
   Projects REST endpoint suitable for board automation, or document the exact
   supported endpoint if it appears.
 - **FAIL:** Automation assumes a Projects REST endpoint without live proof, or
@@ -112,12 +112,12 @@ Create one evidence packet per verification run containing:
 
 ### 9. Claim-ref branch protection for production lift
 
-- **PASS:** Production Forgejo protects `refs/heads/claims/*` from arbitrary
+- **PASS:** Production GitHub protects `refs/heads/claims/*` from arbitrary
   human force-push/delete and allows claim creation/recovery only through the
   approved service or agent principal.
 - **FAIL:** Any maintainer or unscoped token can overwrite, delete, or bypass
   claim refs without the lease-aware recovery path.
-- **Evidence:** Forgejo protected-branch/rule configuration, negative push
+- **Evidence:** GitHub protected-branch/rule configuration, negative push
   transcript with a non-authorized token, and positive transcript from the
   approved agent/service principal.
 - **Spike note:** This is a production-lift gate. It does not block ADR-0377's
@@ -129,17 +129,17 @@ Adjust host, owner, repo, token, and ref names for the target environment. Store
 full output in the evidence packet; do not paste secrets into the runbook.
 
 ```bash
-forgejo_url="https://forgejo.example.invalid"
+github_url="https://github.example.invalid"
 owner="oyatie"
 repo="oyatie"
-token="${FORGEJO_TOKEN:?set FORGEJO_TOKEN}"
+token="${GITHUB_TOKEN:?set GITHUB_TOKEN}"
 
-curl -fsS "$forgejo_url/api/healthz"
-curl -fsS "$forgejo_url/api/v1/version"
+curl -fsS "$github_url/api/healthz"
+curl -fsS "$github_url/api/v1/version"
 curl -isS -H "Authorization: token $token" \
-  "$forgejo_url/api/v1/repos/$owner/$repo/projects"
+  "$github_url/api/v1/repos/$owner/$repo/projects"
 curl -isS -H "Authorization: token $token" \
-  "$forgejo_url/api/v1/projects"
+  "$github_url/api/v1/projects"
 ```
 
 For claim-ref CAS, run two writers against the same expected old SHA and prove
@@ -162,7 +162,7 @@ git rev-parse "$claim_ref"
 
 ADR-0377 may be proposed for lift from conditional only when:
 
-1. All required checklist rows are PASS against a live self-hosted Forgejo
+1. All required checklist rows are PASS against a live GitHub (interim)
    instance, not mocks alone.
 2. Projects REST endpoint behavior is proven and the board design does not
    depend on an absent endpoint.
@@ -183,6 +183,6 @@ ADR-0377 may be proposed for lift from conditional only when:
 
 ## Sources
 
-- ADR-0377 (conditional authority for the Forgejo board spike).
-- Forgejo live instance API responses captured during each verification run.
+- ADR-0377 (conditional authority for the GitHub board spike).
+- GitHub live instance API responses captured during each verification run.
 - Git ref CAS transcripts captured from the implementation worktree.

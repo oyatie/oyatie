@@ -57,7 +57,7 @@ Promotion produces signed evidence, and rollback reverts release pointers plus q
 
 ### C. Deliverables
 
-- Define community gate inputs for `release/community/<region>/{dev,staging,production}` or the current Jenkins/Forgejo release-pointer equivalent.
+- Define community gate inputs for `release/community/<region>/{dev,staging,production}` or the current Jenkins/GitHub release-pointer equivalent.
 - Bind observability API `GET /microservices/{microservice}/eligibility/{environment}/{sha}` from `microservices/observability/contracts/openapi/slo-engine.yaml`.
 - Add checks for SLO green, Cedar compile/coverage, OpenAPI/proto compatibility, search freshness, moderation backlog, KB restore drill, and contract tests.
 - Add evidence schema fields for tenant-class, region, cell, source SHA, target env, and Wave 15K network-successor scope.

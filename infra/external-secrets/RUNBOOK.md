@@ -18,7 +18,7 @@ directory, then run the OpenBao steps below.
 |------|------|---------|
 | `clustersecretstore-openbao-oya.yaml` | `ClusterSecretStore openbao-oya` | ESO `vault` provider pointed at OpenBao, kubernetes auth |
 | `clusterrolebinding-external-secrets-auth-delegator.yaml` | `ClusterRoleBinding` | grants the ESO SA `system:auth-delegator` for TokenReview |
-| `externalsecret-forgejo-ci-token.yaml` | `ExternalSecret forgejo-ci-token` | projects the Forgejo CI token into `oya-ci` |
+| `externalsecret-github-ci-token.yaml` | `ExternalSecret github-ci-token` | projects the GitHub CI token into `oya-ci` |
 
 ## The auth-delegator / `disable_local_ca_jwt` invariant (read this first)
 
@@ -103,14 +103,14 @@ bao write auth/kubernetes/role/eso-oya-ci \
     ttl=1h
 ```
 
-### 5. Seed the Forgejo CI token
+### 5. Seed the GitHub CI token
 
-Store the actual Forgejo CI commit-status token (mint via
-`forgejo admin user generate-access-token --username oya-admin --token-name jenkins-ci --scopes write:repository --raw`).
-This is the source of truth the `forgejo-ci-token` ExternalSecret pulls from.
+Store the actual GitHub CI commit-status token (mint via
+`github admin user generate-access-token --username oya-admin --token-name jenkins-ci --scopes write:repository --raw`).
+This is the source of truth the `github-ci-token` ExternalSecret pulls from.
 
 ```sh
-bao kv put secret/oya/ci/forgejo-ci-token token="<FORGEJO_CI_TOKEN>"
+bao kv put secret/oya/ci/github-ci-token token="<GITHUB_CI_TOKEN>"
 ```
 
 > Never commit the real token. It lives only in OpenBao (barrier-encrypted at
@@ -123,8 +123,8 @@ bao kv put secret/oya/ci/forgejo-ci-token token="<FORGEJO_CI_TOKEN>"
 kubectl get clustersecretstore openbao-oya -o jsonpath='{.status.conditions}'
 
 # ExternalSecret should report SecretSynced, and the target Secret should exist
-kubectl -n oya-ci get externalsecret forgejo-ci-token
-kubectl -n oya-ci get secret forgejo-ci-token
+kubectl -n oya-ci get externalsecret github-ci-token
+kubectl -n oya-ci get secret github-ci-token
 ```
 
 If the ClusterSecretStore is not Ready with a `permission denied` / `403` on

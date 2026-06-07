@@ -143,7 +143,7 @@ def main() -> None:
     require(spec["strict_separation_constraints"].get("no_public_cloud_runtime_dependency") is True, "strict separation must forbid public cloud runtime dependency")
     allowed_lanes_text = flattened_text(spec["strict_separation_constraints"].get("allowed_evidence_lanes", []))
     require(not any(marker in allowed_lanes_text for marker in FORBIDDEN_EVIDENCE_LANES), "allowed evidence lanes must not permit external SaaS/GitHub Actions/public-cloud runtime")
-    require(spec["pure_dogfood_constraints"].get("self_hosted_forgejo_kubernetes_ci_lane") is True, "pure dogfood must require self-hosted Forgejo/Kubernetes CI lane")
+    require(spec["pure_dogfood_constraints"].get("self_hosted_github_kubernetes_ci_lane") is True, "pure dogfood must require GitHub (interim)/Kubernetes CI lane")
     require(spec["pure_dogfood_constraints"].get("dogfood_resource_substrate_required_before_external_provider_apply") is True, "pure dogfood must require dogfood resource substrate before external provider apply")
     require(spec["pure_dogfood_constraints"].get("vfkit_linux_or_kubernetes_cluster_tests_must_be_recorded_before_kubernetes_readiness_claim") is True, "pure dogfood must require vfkit/Linux or Kubernetes cluster test evidence before Kubernetes readiness claims")
     require(spec["pure_dogfood_constraints"].get("g007_must_reconcile_historical_jenkins_wording") is True, "pure dogfood must require G007 Jenkins/bespoke-CI reconciliation")

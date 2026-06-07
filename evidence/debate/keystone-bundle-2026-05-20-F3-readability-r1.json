@@ -50,7 +50,7 @@
       "weaknesses": [
         "Hamilton's eighteen principles cited by number — intern needs to either trust the quoting or read a 2007 paper.",
         "`Borg`, `Omega`, `Pingora`, `Brad Calder ARC408`, `Becky Weiss + Mike Furr` — author/talk citations intern cannot fact-check without external access.",
-        "Tier 0 list (D-1) uses `Forgejo`, `Harbor`, `cert-manager`, `SPIFFE/SPIRE`, `Cilium-ambient`, `Kata Containers`, `Cloud Hypervisor` without inline gloss.",
+        "Tier 0 list (D-1) uses `GitHub`, `Harbor`, `cert-manager`, `SPIFFE/SPIRE`, `Cilium-ambient`, `Kata Containers`, `Cloud Hypervisor` without inline gloss.",
         "Per-tier table is referenced (D-7, D-11, D-12) but requires non-trivial chasing across sub-sections.",
         "Cellular blast-radius mathematical claim is presented without graceful-degradation framing — an intern might wonder 'why 8% degradation across all tenants is preferable to 1% full outage' without the AWS Builder's Library context."
       ]

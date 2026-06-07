@@ -1,0 +1,175 @@
+{
+  "schema_version": "multispectrum-review/v2.4.0",
+  "change_id": "hook-context-removal-1780274908",
+  "change_class_id": "CC-2",
+  "freshness_unix": 1780274908,
+  "timestamp_iso": "2026-06-01T00:48:28Z",
+  "git_sha": "ee434dd62",
+  "agent_id": "codex-hook-doctor",
+  "scope": [
+    ".codex/hooks.json",
+    ".claude/settings.json",
+    ".gemini/settings.json",
+    "tools/hook-bootstrap/install.sh",
+    "tools/hook-bootstrap/README.md",
+    "tools/hooks/session-start-context-inject.sh (compatibility no-op; not registered)",
+    "tools/hooks/userprompt-canonical-primer.sh (compatibility no-op; not registered)",
+    "scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh",
+    "CLAUDE.md"
+  ],
+  "summary": "Removes the project-managed SessionStart/UserPromptSubmit hook registrations from Codex/Claude/Gemini bootstrap while retaining zero-output compatibility stubs at the old script paths so already-running sessions with cached hook tables do not fail.",
+  "nonclaims": [
+    "No user-level ~/.codex native oh-my-codex hook wrapper was rewritten.",
+    "Other project hooks such as Stop, PreToolUse, and PostToolUse remain registered.",
+    "The two legacy script paths remain as silent compatibility stubs only; bootstrap no longer registers them."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Removed active context hook registrations instead of adding runtime flags; kept tiny compatibility stubs to avoid code-127 failures in already-running sessions."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Bootstrap-generated Codex, Claude, and Gemini hook surfaces now omit session/prompt context injection while retaining operational hooks."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "A focused rg assertion fails if SessionStart/UserPromptSubmit/BeforeAgent registrations reappear in managed configs/bootstrap, and the test asserts both legacy stubs emit zero bytes."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "New sessions and prompt submissions no longer get repeated project-hook context blobs from managed hook registrations; existing sessions do not error if they cached the old script paths."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "JSON configs parse; bash syntax checks pass; hook regression test passes; install dry-run verifies the 8 registered-hook script set and excludes context hooks."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "alternatives": [
+        "Keep silent no-op scripts",
+        "Remove only Codex entries",
+        "Remove all project-managed context hook entries and scripts"
+      ],
+      "selected": "Remove all project-managed context hook registrations and keep silent compatibility stubs for cached sessions.",
+      "rejected": [
+        "Deleting scripts outright caused current cached UserPromptSubmit hooks to fail with code 127.",
+        "Removing only Codex would leave Claude/Gemini bootstrap surfaces able to reintroduce the same context blobs."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "rigor": "deep",
+      "verdict": "PASS",
+      "findings": [
+        "Removing context-injection hooks reduces prompt-injection and accidental data-in-context surface."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Managed session/prompt startup no longer registers the two context hook scripts; cached sessions execute only zero-output stubs."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Canonical plain-git and contract-version doctrine remains in AGENTS/developer context; this change only removes noisy hook injection."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Reversal is a normal git revert; no live credential or cluster mutation was performed."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Config grep and JSON parsing provide direct evidence that the context hooks are no longer registered."
+      ]
+    },
+    "F12_reserved": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "Reserved facet not applicable."
+      ]
+    },
+    "F13_maintainability": {
+      "considered": true,
+      "rigor": "scan",
+      "verdict": "PASS",
+      "findings": [
+        "README and regression checks now distinguish active registered hooks from legacy no-op compatibility paths."
+      ]
+    }
+  },
+  "verification": [
+    {
+      "command": "python3 -m json.tool .codex/hooks.json .claude/settings.json .gemini/settings.json",
+      "status": "passed",
+      "evidence": "all managed hook JSON files parse"
+    },
+    {
+      "command": "rg registration names in .codex/.claude/.gemini/install.sh",
+      "status": "passed",
+      "evidence": "no SessionStart/UserPromptSubmit/BeforeAgent registrations"
+    },
+    {
+      "command": "bash tools/hooks/session-start-context-inject.sh/userprompt-canonical-primer.sh > out",
+      "status": "passed",
+      "evidence": "compatibility stubs exit 0 and emit zero stdout/stderr"
+    },
+    {
+      "command": "bash -n tools/hook-bootstrap/install.sh scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh tools/hooks/session-start-context-inject.sh tools/hooks/userprompt-canonical-primer.sh",
+      "status": "passed",
+      "evidence": "bash syntax ok"
+    },
+    {
+      "command": "scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh",
+      "status": "passed",
+      "evidence": "governance hook retired VCS surface tests passed"
+    },
+    {
+      "command": "tools/hook-bootstrap/install.sh --dry-run",
+      "status": "passed",
+      "evidence": "dry-run completed; hook scripts verified (8 scripts). Upstream agent-skills fetch warning was non-fatal and unrelated to hook registration removal."
+    }
+  ],
+  "known_gaps": [
+    "shellcheck may be unavailable in this local environment; targeted bash syntax and behavior checks are the fallback."
+  ],
+  "verdict": "GREEN"
+}

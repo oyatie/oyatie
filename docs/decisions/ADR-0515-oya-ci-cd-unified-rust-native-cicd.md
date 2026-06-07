@@ -73,7 +73,7 @@ Build **`oya-ci` + `oya-cd`**: a bespoke, Rust-native, cloud-native (kube-rs on 
 
 | Face | Adopts the pattern of | Rust reimplementation (what oya OWNS) | Substrate REUSED behind a port | Ownership |
 |---|---|---|---|---|
-| **A — Ingress + trustless gate + merge queue** | **Prow** `hook` + Tide (+ Uber SubmitQueue) | Forgejo-native webhook → CloudEvent → one `Run` (HMAC fail-closed); **the signature IS the check** (producer ≠ verifier ≠ approver, ADR-0367); serial Tide-invariant merge-queue (batches > singletons, retest-base, abort-on-HEAD-move); graph-exact `conflicts(a,b)` for disjoint concurrent landing | `ForgeAdapter` (no single-token/external-search SPOF) | **OWN-now** (the gate is the keystone); speculation-tree OWN-when-proven (Phase-3, queue-p50 gate) |
+| **A — Ingress + trustless gate + merge queue** | **Prow** `hook` + Tide (+ Uber SubmitQueue) | GitHub-native webhook → CloudEvent → one `Run` (HMAC fail-closed); **the signature IS the check** (producer ≠ verifier ≠ approver, ADR-0367); serial Tide-invariant merge-queue (batches > singletons, retest-base, abort-on-HEAD-move); graph-exact `conflicts(a,b)` for disjoint concurrent landing | `ForgeAdapter` (no single-token/external-search SPOF) | **OWN-now** (the gate is the keystone); speculation-tree OWN-when-proven (Phase-3, queue-p50 gate) |
 | **B — Typed-Task executor** | **Tekton** typed `Task`/`Pipeline`/Step | Rust-typed Task IR; a Step = a REAPI action (typed in Rust, not YAML); `finally`/`when`/`matrix` + dynamic fan-out | `TaskRuntime` | **OWN-now** (single-Task) → combinators OWN-when-proven |
 | **C — DAG engine / event correlation** | **Argo Workflows + Argo Events** | DAG engine, brain-driven (graph-affected) selection, CloudEvents correlation (AND/OR), **CAS-backed memoization**; **Argo's etcd-CRD substrate is DROPPED** (keep the ideas, discard the substrate — the ADR-0511 resolution) | `EventBus` (NATS JetStream / Kafka), `Scheduler` (K8s as one impl) | OWN-when-proven (behind ports) |
 | **D — Out-of-band provenance signer** | **Tekton Chains** / SLSA | Out-of-band signer attests each `Run` → `slsa/v1`, cosign-signs, writes an immutable ledger; **hermeticity-via-cache → SLSA L3** | `Attestor`/`SigningBackend` (cosign / Fulcio / Rekor) | gate-signature OWN-now → full signer/ledger OWN-when-proven |
@@ -93,7 +93,7 @@ The single required merge context is **`oya-ci-required`** (alias `cloud-ci-requ
 - **Tenant isolation:** even at tenant-zero, no leak across `tenant_id` on the 11 surfaces (identity, secrets, runners, workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, audit events).
 
 ### D5. Homes — tenant-facing dogfood products under `cloud/` (D-PURESPLIT / D-LAYER / backlog #19)
-- **`cloud/cloud-scm`** — the bespoke VCS destination (Forgejo transitory → bespoke; the `ForgeAdapter` seam).
+- **`cloud/cloud-scm`** — the bespoke VCS destination (GitHub transitory → bespoke; the `ForgeAdapter` seam).
 - **`cloud/cloud-ci`** — Faces A/B/C + the brain; owns the `oya-ci-required` producer.
 - **`cloud/cloud-cd`** — Face D + the CD face (`DeliveryPlane`).
 Each lives under `cloud/` only (never a 3rd `microservices/` tree), exactly once, flat-colocated; **no `oya/`→`cloud/` internal dependency** (dogfood purity — oya products consume cloud as a tenant, not via code-coupling). The `cloud/` homing amends ADR-0131/0512 (executed in the A-STRUCT lane).

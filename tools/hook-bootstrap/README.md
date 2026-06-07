@@ -27,9 +27,9 @@ tools/hook-bootstrap/
 └── README.md           # This file
 
 tools/hooks/
-├── _canonical-primitives.md               # Single source of truth for hook payloads
-├── session-start-context-inject.sh        # SessionStart — primary orientation
-├── userprompt-canonical-primer.sh         # UserPromptSubmit — canonical one-liner
+├── _canonical-primitives.md               # Historical canonical reference; not injected by hooks
+├── session-start-context-inject.sh        # Compatibility no-op; not registered
+├── userprompt-canonical-primer.sh         # Compatibility no-op; not registered
 ├── stop-did-you-forget-suggester.sh       # Stop — incomplete-work check
 ├── stale-tool-suggester.sh                # PreToolUse(Bash) — retired tool suggestion
 ├── pre-dispatch-guide.sh                  # PreToolUse(Task) — dispatch quality guide
@@ -39,7 +39,6 @@ tools/hooks/
 ├── buildability-line-count.sh             # PostToolUse(Write µservice docs) — line count
 ├── adr-orphan-detect.sh                   # PostToolUse(Edit|Write .md|.json) — ADR refs
 ├── microservice-quality-bar.sh            # PostToolUse(Write µservice) + Stop — artifact count
-├── retired-vcs-surface-inventory.sh       # CI notice-only — retired VCS surface inventory
 └── vacuous-green-gate-detect.sh           # PostToolUse(Edit|Write lanes|check) — gate honesty
 
 bin/oya                                    # CLI wrapper (PATH_add bin via .envrc)
@@ -85,14 +84,8 @@ tools/agent-skills/                       # Vendored lifecycle skills (addyosman
 ## How to test hooks locally
 
 ```bash
-# Test session-start hook
-bash tools/hooks/session-start-context-inject.sh
-
 # Test stale-tool suggester with mock input
 TOOL_INPUT='{"command":"oya git status --short"}' bash tools/hooks/stale-tool-suggester.sh
-
-# Test retired VCS surface inventory
-bash tools/hooks/retired-vcs-surface-inventory.sh
 
 # Test spec version suggester on a real file
 TOOL_INPUT='{"path":"contracts/example.yaml"}' bash tools/hooks/spec-version-pin-suggester.sh

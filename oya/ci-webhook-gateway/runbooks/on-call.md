@@ -2,7 +2,7 @@
 
 ## What this service does
 
-Receives Forgejo webhooks, verifies the HMAC, and kicks the Jenkins `oyaCiLane`
+Receives GitHub webhooks, verifies the HMAC, and kicks the Jenkins `oyaCiLane`
 pipeline for PRs against `dev`. If it is down, PRs against `dev` stop being
 gated automatically (no CI kicks) — do NOT fall back to admin-relax-merge; fix
 the gateway.
@@ -13,25 +13,25 @@ the gateway.
 
 1. Check the gateway is up: `kubectl -n oya-ci get pods -l app=ci-webhook-gateway`
    and `curl http://<pod>:8099/healthz`.
-2. Check Forgejo webhook deliveries: Forgejo repo → Settings → Webhooks →
+2. Check GitHub webhook deliveries: GitHub repo → Settings → Webhooks →
    Recent Deliveries. A red delivery shows the response code:
-   - **401** — signature mismatch. The webhook secret in Forgejo and the
-     `OYA_FORGEJO_WEBHOOK_SECRET` (from `sref://openbao/oya/ci/forgejo-webhook-secret`)
+   - **401** — signature mismatch. The webhook secret in GitHub and the
+     `OYA_GITHUB_WEBHOOK_SECRET` (from `sref://openbao/oya/ci/github-webhook-secret`)
      have diverged. Re-sync per SETUP-RUNBOOK.md §"Rotate the webhook secret".
-   - **422** — unroutable event. Forgejo is sending an event we don't gate;
+   - **422** — unroutable event. GitHub is sending an event we don't gate;
      usually harmless. If a NEW event class must be gated, amend `event.rs`'s
      router table (closed set; ADR amendment required).
    - **502** — Jenkins dispatch failed. Check `OYA_JENKINS_DISPATCH_URL` and
      that Jenkins is reachable from the gateway pod.
    - **503** — webhook secret unavailable. The OpenBao/ESO injection failed;
-     check the `forgejo-webhook-secret` Secret exists in the namespace.
+     check the `github-webhook-secret` Secret exists in the namespace.
 3. Check gateway logs (JSON): `kubectl -n oya-ci logs -l app=ci-webhook-gateway`.
    Each delivery logs `delivery`, `outcome`, and (on dispatch) `pr`/`sha`.
 
 ### A delivery is stuck redelivering
 
-Forgejo retries failed deliveries. A persistent 401/503 will redeliver. Fix the
-secret (401) or the injection (503); Forgejo will succeed on the next retry. A
+GitHub retries failed deliveries. A persistent 401/503 will redeliver. Fix the
+secret (401) or the injection (503); GitHub will succeed on the next retry. A
 200/202/422 stops redelivery.
 
 ### Suspected webhook spoofing

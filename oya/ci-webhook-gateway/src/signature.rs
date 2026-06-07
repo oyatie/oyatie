@@ -2,16 +2,16 @@
 //!
 //! ## HMAC-SHA256 (primary)
 //!
-//! Forgejo (like GitHub) signs each webhook delivery with
+//! GitHub (like GitHub) signs each webhook delivery with
 //! `HMAC-SHA256(secret, raw_body)` and sends it as the
-//! `X-Hub-Signature-256: sha256=<hex>` header (Forgejo also sends the
+//! `X-Hub-Signature-256: sha256=<hex>` header (GitHub also sends the
 //! legacy `X-Gitea-Signature` raw-hex header; both are supported).
 //!
 //! ## Ed25519 (best-practice alternative, ADR-0374 §"ed25519 path")
 //!
-//! Forgejo also supports signing webhook deliveries with an ed25519 keypair.
-//! When configured, Forgejo sends the detached signature in the
-//! `X-Forgejo-Signature` header as standard base64 (RFC 4648, no padding
+//! GitHub also supports signing webhook deliveries with an ed25519 keypair.
+//! When configured, GitHub sends the detached signature in the
+//! `X-GitHub-Signature` header as standard base64 (RFC 4648, no padding
 //! required). The gateway verifies the raw body against the configured
 //! ed25519 public key using `ed25519-dalek` (RustCrypto, MIT/Apache-2.0).
 //!
@@ -83,18 +83,18 @@ pub(crate) fn hmac_sha256(key: &[u8], msg: &[u8]) -> [u8; 32] {
     outer.finalize().into()
 }
 
-/// The canonical Forgejo/GitHub HMAC-SHA256 signature header.
+/// The canonical GitHub/GitHub HMAC-SHA256 signature header.
 pub const SIGNATURE_HEADER: &str = "x-hub-signature-256";
-/// The legacy Gitea/Forgejo raw-hex HMAC header (no `sha256=` prefix).
+/// The legacy Gitea/GitHub raw-hex HMAC header (no `sha256=` prefix).
 pub const LEGACY_SIGNATURE_HEADER: &str = "x-gitea-signature";
-/// Forgejo ed25519 signature header: base64-encoded detached signature over
+/// GitHub ed25519 signature header: base64-encoded detached signature over
 /// the raw body. Present when the webhook is configured with an ed25519 keypair
 /// instead of (or in addition to) an HMAC secret.
-pub const ED25519_SIGNATURE_HEADER: &str = "x-forgejo-signature";
+pub const ED25519_SIGNATURE_HEADER: &str = "x-github-signature";
 
 // ── Ed25519 public-key wrapper ─────────────────────────────────────────────
 
-/// A Forgejo webhook ed25519 public key. Wraps `ed25519-dalek::VerifyingKey`
+/// A GitHub webhook ed25519 public key. Wraps `ed25519-dalek::VerifyingKey`
 /// and redacts it from `Debug` output to avoid leaking key material.
 #[derive(Clone)]
 pub struct WebhookEd25519Key(VerifyingKey);
@@ -182,7 +182,7 @@ pub fn verify_raw_hex(secret: &WebhookSecret, body: &[u8], header_hex: &str) -> 
 /// Select the strongest available header and verify it. Preference order:
 /// 1. `X-Hub-Signature-256` (HMAC-SHA256, prefixed `sha256=<hex>`)
 /// 2. `X-Gitea-Signature` (legacy raw-hex HMAC)
-/// 3. `X-Forgejo-Signature` (ed25519, requires `ed25519_key` to be `Some`)
+/// 3. `X-GitHub-Signature` (ed25519, requires `ed25519_key` to be `Some`)
 ///
 /// At least one verifiable header MUST be present, or we fail closed with
 /// `MissingSignature`. If only the ed25519 header is present but no public key
@@ -206,9 +206,9 @@ pub fn verify_any(
 
 // ── Ed25519 signature verification ────────────────────────────────────────
 
-/// Verify a Forgejo ed25519 webhook signature.
+/// Verify a GitHub ed25519 webhook signature.
 ///
-/// `header_value` is the raw `X-Forgejo-Signature` header value: standard
+/// `header_value` is the raw `X-GitHub-Signature` header value: standard
 /// base64-encoded (RFC 4648; with or without padding) 64-byte ed25519
 /// detached signature over the raw body bytes.
 ///

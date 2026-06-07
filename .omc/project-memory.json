@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1779762974960,
+  "lastScanned": 1780708177310,
   "projectRoot": "/Users/jasonlee/Developer/source",
   "techStack": {
     "languages": [
@@ -21,13 +21,19 @@
         ]
       }
     ],
-    "frameworks": [],
+    "frameworks": [
+      {
+        "name": "axum",
+        "version": null,
+        "category": "backend"
+      }
+    ],
     "packageManager": "cargo",
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd /Users/jasonlee/Developer/source\ncargo build --workspace 2>&1 | tail -8 &\necho \"=== active-guidance oya git/vcs lines to flip ===\"\nfor f in CLAUDE.md AGENTS.md docs/AGENTS.md tools/hooks/_canonical-primitives.md tools/hooks/userprompt-canonical-primer.sh tools/hooks/session-start-context-inject.sh; do\n  echo \"--- $f\"; grep -nE 'oya (git|vcs)\\b' \"$f\" 2>/dev/null | head -12\ndone\nwait",
-    "testCommand": "cd /Users/jasonlee/Developer/source\necho \"=== confirm the 2 rewritten path literals point to real files ===\"\nls -la microservices/intelligence/scorecards/overrides.json microservices/intelligence/iac/helm/foundry/deployment.yaml 2>&1\necho\necho \"=== test the 2 affected gate-check crates ===\"\ncargo test -q -p oya-check-slsa-l3-evidence-grounded -p oya-check-tenant-cost-labels-coverage 2>&1 | tail -20",
+    "buildCommand": "cargo build",
+    "testCommand": "cargo test",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
@@ -47,10 +53,7 @@
       "scripts",
       "tests"
     ],
-    "gitBranches": {
-      "defaultBranch": "dev",
-      "branchingStrategy": null
-    }
+    "gitBranches": null
   },
   "customNotes": [],
   "directoryMap": {
@@ -58,7 +61,7 @@
       "path": "benchmarks",
       "purpose": null,
       "fileCount": 8,
-      "lastAccessed": 1779762974948,
+      "lastAccessed": 1780708177215,
       "keyFiles": [
         "audit-chain-emission-throughput.md",
         "cedar-policy-eval-cost.md",
@@ -71,16 +74,30 @@
       "path": "bin",
       "purpose": "Executable scripts",
       "fileCount": 1,
-      "lastAccessed": 1779762974948,
+      "lastAccessed": 1780708177215,
       "keyFiles": [
         "oya"
       ]
+    },
+    "buck-out": {
+      "path": "buck-out",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1780708177215,
+      "keyFiles": []
+    },
+    "cloud": {
+      "path": "cloud",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1780708177215,
+      "keyFiles": []
     },
     "contracts": {
       "path": "contracts",
       "purpose": null,
       "fileCount": 9,
-      "lastAccessed": 1779762974948,
+      "lastAccessed": 1780708177216,
       "keyFiles": [
         "knowledge_graph_query-v1.meta.yaml",
         "knowledge_graph_query-v1.proto",
@@ -93,14 +110,14 @@
       "path": "crates",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1779762974950,
+      "lastAccessed": 1780708177216,
       "keyFiles": []
     },
     "docs": {
       "path": "docs",
       "purpose": "Documentation",
-      "fileCount": 42,
-      "lastAccessed": 1779762974951,
+      "fileCount": 44,
+      "lastAccessed": 1780708177216,
       "keyFiles": [
         "ADR-CONSOLIDATION-PLAN.md",
         "ADR-INDEX.md",
@@ -113,7 +130,7 @@
       "path": "evidence",
       "purpose": null,
       "fileCount": 94,
-      "lastAccessed": 1779762974952,
+      "lastAccessed": 1780708177216,
       "keyFiles": [
         "NEXT-SESSION-HANDOFF.md",
         "aborted-persona-1-employee-manager-report.json",
@@ -125,44 +142,48 @@
     "infra": {
       "path": "infra",
       "purpose": null,
-      "fileCount": 1,
-      "lastAccessed": 1779762974952,
+      "fileCount": 2,
+      "lastAccessed": 1780708177217,
       "keyFiles": [
         "TOPOLOGY-2026-05-16.md"
       ]
+    },
+    "libs": {
+      "path": "libs",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1780708177217,
+      "keyFiles": []
     },
     "memory": {
       "path": "memory",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1779762974952,
+      "lastAccessed": 1780708177217,
       "keyFiles": [
         "feedback_oya_git_canonical_2026_05_18.md",
         "feedback_oya_vcs_canonical_2026_05_16.md"
       ]
     },
-    "microservices": {
-      "path": "microservices",
+    "oya": {
+      "path": "oya",
       "purpose": null,
-      "fileCount": 3,
-      "lastAccessed": 1779762974953,
-      "keyFiles": [
-        "README.md",
-        "erp-second-pass-generation-summary.json"
-      ]
+      "fileCount": 1,
+      "lastAccessed": 1780708177218,
+      "keyFiles": []
     },
     "packs": {
       "path": "packs",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1779762974953,
+      "fileCount": 1,
+      "lastAccessed": 1780708177218,
       "keyFiles": []
     },
     "plan": {
       "path": "plan",
       "purpose": null,
       "fileCount": 4,
-      "lastAccessed": 1779762974953,
+      "lastAccessed": 1780708177218,
       "keyFiles": [
         "hyperscaler-grade-cloud-platform-changeset-slices.md",
         "hyperscaler-grade-cloud-platform-greenfield-plan.md",
@@ -170,18 +191,27 @@
         "hyperscaler-grade-cloud-platform-quality-review.md"
       ]
     },
+    "platforms": {
+      "path": "platforms",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1780708177218,
+      "keyFiles": [
+        "BUCK"
+      ]
+    },
     "regional-packs": {
       "path": "regional-packs",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1779762974953,
+      "fileCount": 1,
+      "lastAccessed": 1780708177218,
       "keyFiles": []
     },
     "registry": {
       "path": "registry",
       "purpose": null,
-      "fileCount": 17,
-      "lastAccessed": 1779762974954,
+      "fileCount": 18,
+      "lastAccessed": 1780708177218,
       "keyFiles": [
         "adr-contradictions.json",
         "artifact-capabilities-registry.json",
@@ -193,21 +223,28 @@
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
-      "fileCount": 20,
-      "lastAccessed": 1779762974954,
+      "fileCount": 25,
+      "lastAccessed": 1780708177219,
       "keyFiles": [
         "agent-pre-push-validate.sh",
         "asyncapi-lint.mjs",
         "branch-protection-apply.sh",
         "check-sequential-pr-merge-conflicts.sh",
-        "evidence-secret-scan.sh"
+        "emit_rust_tests.py"
       ]
+    },
+    "services": {
+      "path": "services",
+      "purpose": "Business logic services",
+      "fileCount": 1,
+      "lastAccessed": 1780708177219,
+      "keyFiles": []
     },
     "specs": {
       "path": "specs",
       "purpose": null,
-      "fileCount": 78,
-      "lastAccessed": 1779762974954,
+      "fileCount": 95,
+      "lastAccessed": 1780708177219,
       "keyFiles": [
         "active-machine-readable-artifact-contract.json",
         "agent-durable-goal.json",
@@ -220,7 +257,7 @@
       "path": "target",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1779762974955,
+      "lastAccessed": 1780708177219,
       "keyFiles": [
         "CACHEDIR.TAG"
       ]
@@ -228,20 +265,21 @@
     "tasks": {
       "path": "tasks",
       "purpose": null,
-      "fileCount": 4,
-      "lastAccessed": 1779762974955,
+      "fileCount": 120,
+      "lastAccessed": 1780708177220,
       "keyFiles": [
-        "enterprise-microservices-plan.md",
-        "enterprise-microservices-todo.md",
-        "plan.md",
-        "todo.md"
+        "adr-0357-crate-classification.json",
+        "adr-0357-vertical-slice-nesting-plan.md",
+        "b2b-hr-onboarding-readiness-gate-plan.md",
+        "b2b-payroll-group-gl-posting-dispatch-plan.md",
+        "billing-kernel-invoice-total-tax-aggregator-plan.md"
       ]
     },
     "templates": {
       "path": "templates",
       "purpose": null,
       "fileCount": 13,
-      "lastAccessed": 1779762974955,
+      "lastAccessed": 1780708177220,
       "keyFiles": [
         "INDEX.md",
         "adr-template.md",
@@ -254,323 +292,80 @@
       "path": "test-results",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1779762974955,
+      "lastAccessed": 1780708177220,
       "keyFiles": []
     },
     "tests": {
       "path": "tests",
       "purpose": "Test files",
       "fileCount": 0,
-      "lastAccessed": 1779762974955,
+      "lastAccessed": 1780708177220,
       "keyFiles": []
+    },
+    "third-party": {
+      "path": "third-party",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1780708177220,
+      "keyFiles": [
+        "BUCK"
+      ]
+    },
+    "toolchains": {
+      "path": "toolchains",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1780708177220,
+      "keyFiles": [
+        "BUCK"
+      ]
     },
     "tools": {
       "path": "tools",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1779762974956,
+      "lastAccessed": 1780708177220,
       "keyFiles": []
+    },
+    "scripts/build": {
+      "path": "scripts/build",
+      "purpose": "Build output",
+      "fileCount": 1,
+      "lastAccessed": 1780708177222,
+      "keyFiles": [
+        "build-and-push-cloud-intelligence.sh"
+      ]
     }
   },
   "hotPaths": [
     {
-      "path": "docs/ideas/planning-ssot-consolidation.md",
-      "accessCount": 10,
-      "lastAccessed": 1779772078143,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-check-aspirational-enforcement/src/lib.rs",
-      "accessCount": 6,
-      "lastAccessed": 1779763103634,
-      "type": "file"
-    },
-    {
-      "path": "specs/hyperscaler-architecture-invariants.json",
-      "accessCount": 6,
-      "lastAccessed": 1779770027587,
-      "type": "file"
-    },
-    {
-      "path": "docs/AGENTS.md",
-      "accessCount": 5,
-      "lastAccessed": 1779771985807,
-      "type": "file"
-    },
-    {
-      "path": "docs/ideas/post-cutover-program.md",
-      "accessCount": 4,
-      "lastAccessed": 1779772002076,
-      "type": "file"
-    },
-    {
-      "path": "microservices/README.md",
+      "path": ".omx/backlog/platform-readiness-backlog.md",
       "accessCount": 3,
-      "lastAccessed": 1779765898643,
+      "lastAccessed": 1780709383556,
       "type": "file"
     },
     {
-      "path": "docs/decisions/ADR-0110-changeset-state-machine.md",
-      "accessCount": 3,
-      "lastAccessed": 1779769662892,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md",
-      "accessCount": 3,
-      "lastAccessed": 1779769669991,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
-      "accessCount": 3,
-      "lastAccessed": 1779769670467,
-      "type": "file"
-    },
-    {
-      "path": "tasks/plan.md",
-      "accessCount": 3,
-      "lastAccessed": 1779769681462,
-      "type": "file"
-    },
-    {
-      "path": "tasks/todo.md",
-      "accessCount": 3,
-      "lastAccessed": 1779769681871,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-dev-cli/src/aspirational_enforcement_gate.rs",
-      "accessCount": 2,
-      "lastAccessed": 1779762992877,
-      "type": "file"
-    },
-    {
-      "path": "registry/dependency-rationales.json",
-      "accessCount": 2,
-      "lastAccessed": 1779768045736,
-      "type": "file"
-    },
-    {
-      "path": "specs/masterplan.json",
-      "accessCount": 2,
-      "lastAccessed": 1779768560884,
-      "type": "file"
-    },
-    {
-      "path": "specs/compliance-pack-schema.json",
-      "accessCount": 2,
-      "lastAccessed": 1779768565676,
-      "type": "file"
-    },
-    {
-      "path": "specs/sovereign-cloud-overlays.json",
-      "accessCount": 2,
-      "lastAccessed": 1779768568119,
-      "type": "file"
-    },
-    {
-      "path": "specs/planning-closure-contract.json",
-      "accessCount": 2,
-      "lastAccessed": 1779768569770,
-      "type": "file"
-    },
-    {
-      "path": "specs/master-plan-sequencing.json",
-      "accessCount": 2,
-      "lastAccessed": 1779768571859,
-      "type": "file"
-    },
-    {
-      "path": "specs/root-hub-pointers.json",
-      "accessCount": 2,
-      "lastAccessed": 1779768573893,
-      "type": "file"
-    },
-    {
-      "path": "docs/MASTERPLAN.md",
-      "accessCount": 2,
-      "lastAccessed": 1779768577662,
-      "type": "file"
-    },
-    {
-      "path": "registry/vcs/README.md",
-      "accessCount": 2,
-      "lastAccessed": 1779768647956,
-      "type": "file"
-    },
-    {
-      "path": "registry/vcs/event-router.yaml",
-      "accessCount": 2,
-      "lastAccessed": 1779768655463,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
-      "accessCount": 2,
-      "lastAccessed": 1779769906519,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0122-ontology-crate-rename-from-object-graph.md",
-      "accessCount": 2,
-      "lastAccessed": 1779769907468,
-      "type": "file"
-    },
-    {
-      "path": "specs/microservices/intelligence.json",
+      "path": "cloud/cloud-intelligence/README.md",
       "accessCount": 1,
-      "lastAccessed": 1779765931452,
+      "lastAccessed": 1780708640547,
       "type": "file"
     },
     {
-      "path": "docs/ROADMAP.md",
+      "path": "cloud/cloud-intelligence/IP-001-cloud-intelligence-design.md",
       "accessCount": 1,
-      "lastAccessed": 1779768517781,
+      "lastAccessed": 1780708641016,
       "type": "file"
     },
     {
-      "path": "specs/compliance-pack-floors.json",
+      "path": "cloud/cloud-intelligence/PRD.md",
       "accessCount": 1,
-      "lastAccessed": 1779768585213,
+      "lastAccessed": 1780708641415,
       "type": "file"
     },
     {
-      "path": "specs/pack-overlay-schema.json",
+      "path": "docs/ideas/agent-execution-controller.md",
       "accessCount": 1,
-      "lastAccessed": 1779768587498,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0061-application-b2b-unified-shell.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769633658,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0062-quality-performance-scalability-bar.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769634604,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0064-canonical-base-and-localization-packs.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769636030,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769636491,
-      "type": "file"
-    },
-    {
-      "path": "specs/platform-architecture.json",
-      "accessCount": 1,
-      "lastAccessed": 1779769637418,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0066-live-code-introspection-docs-portal.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769637431,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769638572,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769638612,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0083-rust-error-handling-tier-decision.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769645417,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769646432,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0181-container-image-promotion-pipeline.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769646575,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0091-foundry-write-gate-foundations.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769646884,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769647518,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769647826,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0093-latency-budget-reporter-rename.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769648295,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769648455,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0184-storage-tier-layering.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769648959,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0094-handler-trait-with-associated-error.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769649253,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0095-tenant-slug-in-tenancy-kernel.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769649749,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0185-workflow-studio-client-stack.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769649878,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0186-observability-backplane-layering.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769650377,
-      "type": "file"
-    },
-    {
-      "path": "docs/decisions/ADR-0096-supervisor-language-rust-not-node.md",
-      "accessCount": 1,
-      "lastAccessed": 1779769650755,
+      "lastAccessed": 1780709318998,
       "type": "file"
     }
   ],

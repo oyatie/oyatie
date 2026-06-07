@@ -2,7 +2,7 @@
 
 | Capability | Description | Surface |
 |---|---|---|
-| `webhook.receive` | Receive Forgejo/Gitea/GitHub webhook deliveries over HTTP. | `POST /webhook/forgejo` |
+| `webhook.receive` | Receive GitHub/Gitea/GitHub webhook deliveries over HTTP. | `POST /webhook/github` |
 | `webhook.verify-hmac` | Verify the HMAC-SHA256 signature on the raw body, fail-closed, constant-time. | `signature.rs` |
 | `pr-event.parse` | Parse `pull_request` events (opened/reopened/synchronized) against the gated branch. | `event.rs` |
 | `pipeline.dispatch` | Kick the Jenkins `oyaCiLane` pipeline (admission → `oya gate run-all`). | `dispatch.rs` |

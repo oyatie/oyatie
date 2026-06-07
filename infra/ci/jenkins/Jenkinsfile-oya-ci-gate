@@ -9,12 +9,12 @@
 // Webhook Trigger endpoint with token=oya-ci-gate. The genericTrigger extracts
 // PR_NUMBER ($.pr_number) / GIT_SHA ($.head_sha) / GIT_BRANCH ($.head_ref) and
 // exposes them as env vars. The body carries no repo field, so the repo
-// (oya-admin/oyatie) is hardcoded in postForgejoStatus below.
+// (oya-admin/oyatie) is hardcoded in postGitHubStatus below.
 //
-// Status posting uses the Forgejo statuses API
-// (POST /repos/{owner}/{repo}/statuses/{sha}) authed by the forgejo-ci-token
+// Status posting uses the GitHub statuses API
+// (POST /repos/{owner}/{repo}/statuses/{sha}) authed by the github-ci-token
 // credential (declared in JCasC oya-ci-credentials; minted in ADR-0380 D4).
-// The forgejo-ci-token Secret may not exist before D4 ships; until then the
+// The github-ci-token Secret may not exist before D4 ships; until then the
 // withCredentials block will fail at the credential-not-found step and Jenkins
 // will mark the build FAILED — that's the honest failure mode (we shouldn't
 // silently skip status posting once the gate exists).
@@ -34,9 +34,9 @@ pipeline {
   stages {
     stage('Checkout PR ref') {
       steps {
-        // Private Forgejo needs auth for the PR-ref fetch; the cpsScm clone's
+        // Private GitHub needs auth for the PR-ref fetch; the cpsScm clone's
         // transient askpass is gone by now. GIT_ASKPASS keeps creds out of argv/console.
-        withCredentials([usernamePassword(credentialsId: 'forgejo-clone', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+        withCredentials([usernamePassword(credentialsId: 'github-clone', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
           sh '''
             set -eu  # dash-compatible (rust-ci /bin/sh = dash; no `pipefail`)
             cd "${WORKSPACE}"
@@ -58,8 +58,8 @@ pipeline {
     }
     stage('Post pending status') {
       steps {
-        withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
-          script { postForgejoStatus('pending', 'buck2 affected gate running') }
+        withCredentials([string(credentialsId: 'github-ci-token', variable: 'GITHUB_TOKEN')]) {
+          script { postGitHubStatus('pending', 'buck2 affected gate running') }
         }
       }
     }
@@ -100,12 +100,12 @@ pipeline {
   }
   post {
     success {
-      withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
-        script { postForgejoStatus('success', 'buck2 affected gate passed') }
+      withCredentials([string(credentialsId: 'github-ci-token', variable: 'GITHUB_TOKEN')]) {
+        script { postGitHubStatus('success', 'buck2 affected gate passed') }
       }
     }
     failure {
-      withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
+      withCredentials([string(credentialsId: 'github-ci-token', variable: 'GITHUB_TOKEN')]) {
         script {
           // Enrich the commit-status description with the failing target(s) — the RELIABLE
           // channel (status posting is proven; the PR comment may fail on token-scope/sandbox).
@@ -114,31 +114,31 @@ pipeline {
             def sp = "${env.WORKSPACE}/.gate-summary.txt"
             if (fileExists(sp)) { def s = readFile(sp).trim(); if (s) { desc = ('gate: ' + s).take(240) } }
           } catch (err) { echo "summary read skipped: ${err}" }
-          postForgejoStatus('failure', desc)
+          postGitHubStatus('failure', desc)
           // Best-effort: also post the full output tail as a PR comment (richer, but may fail).
           // Wrapped in try/catch so a diagnostics failure can NEVER change the verdict (above).
-          try { postForgejoGateLog() } catch (err) { echo "gate-log comment skipped: ${err}" }
+          try { postGitHubGateLog() } catch (err) { echo "gate-log comment skipped: ${err}" }
         }
       }
     }
     aborted {
       // A timeout/abort MUST still post a TERMINAL status, else the gate is stuck 'pending'
       // forever and the PR can never resolve. Bridge hardening (oya-ci #87).
-      withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGEJO_TOKEN')]) {
-        script { postForgejoStatus('failure', 'buck2 affected gate aborted: timeout or abort') }
+      withCredentials([string(credentialsId: 'github-ci-token', variable: 'GITHUB_TOKEN')]) {
+        script { postGitHubStatus('failure', 'buck2 affected gate aborted: timeout or abort') }
       }
     }
   }
 }
 
-// Post a commit-status to Forgejo. Uses cluster-internal Forgejo service URL
-// (ADR-0363 Forgejo canonical; ADR-0378 Talos substrate).
-def postForgejoStatus(String state, String description) {
+// Post a commit-status to GitHub. Uses cluster-internal GitHub service URL
+// (ADR-0363 GitHub canonical; ADR-0378 Talos substrate).
+def postGitHubStatus(String state, String description) {
   httpRequest(
-    url: "http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/repos/oya-admin/oyatie/statuses/${env.GIT_SHA}",
+    url: "https://api.github.com/api/v1/repos/oya-admin/oyatie/statuses/${env.GIT_SHA}",
     httpMode: 'POST',
     customHeaders: [
-      [name: 'Authorization', value: "token ${env.FORGEJO_TOKEN}", maskValue: true],
+      [name: 'Authorization', value: "token ${env.GITHUB_TOKEN}", maskValue: true],
       [name: 'Content-Type',  value: 'application/json']
     ],
     requestBody: """{"state":"${state}","context":"oya-ci-gate","description":"${description}"}""",
@@ -149,20 +149,20 @@ def postForgejoStatus(String state, String description) {
 }
 
 // Post the tail of the gate output (.gate-output.log, captured by the gate stage) as a
-// Forgejo PR comment, so a gate FAILURE is diagnosable without Jenkins console access.
+// GitHub PR comment, so a gate FAILURE is diagnosable without Jenkins console access.
 // Best-effort: callers wrap this in try/catch — it must never affect the gate verdict.
-def postForgejoGateLog() {
-  if (!env.PR_NUMBER?.trim()) { echo 'postForgejoGateLog: no PR_NUMBER; skipping'; return }
+def postGitHubGateLog() {
+  if (!env.PR_NUMBER?.trim()) { echo 'postGitHubGateLog: no PR_NUMBER; skipping'; return }
   def path = "${env.WORKSPACE}/.gate-output.log"
-  if (!fileExists(path)) { echo 'postForgejoGateLog: no .gate-output.log; skipping'; return }
+  if (!fileExists(path)) { echo 'postGitHubGateLog: no .gate-output.log; skipping'; return }
   def lines = readFile(path).readLines()
   def keep = lines.size() > 150 ? lines[-150..-1] : lines
   def body = "**oya-ci-gate FAILED** — buck2 affected gate output (last ${keep.size()} of ${lines.size()} lines):\n\n```\n${keep.join('\n')}\n```"
   httpRequest(
-    url: "http://forgejo.oya-forge.svc.cluster.local:3000/api/v1/repos/oya-admin/oyatie/issues/${env.PR_NUMBER}/comments",
+    url: "https://api.github.com/api/v1/repos/oya-admin/oyatie/issues/${env.PR_NUMBER}/comments",
     httpMode: 'POST',
     customHeaders: [
-      [name: 'Authorization', value: "token ${env.FORGEJO_TOKEN}", maskValue: true],
+      [name: 'Authorization', value: "token ${env.GITHUB_TOKEN}", maskValue: true],
       [name: 'Content-Type',  value: 'application/json']
     ],
     requestBody: groovy.json.JsonOutput.toJson([body: body]),

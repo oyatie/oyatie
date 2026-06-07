@@ -1,20 +1,20 @@
-# Forgejo ops notes for Lane D — 2026-06-01
+# GitHub ops notes for Lane D — 2026-06-01
 
 ## Scope
 
 Lane C note for the oya-ci weekly parallel-lane run. This records current
-Forgejo substrate discovery and verification handoff inputs without secrets.
+GitHub substrate discovery and verification handoff inputs without secrets.
 
 ## Observed local state
 
 - Current `origin` in this worker worktree points at
   `https://www.github.com/jason931225/oyatie`; workers must add or select the
-  self-hosted Forgejo remote before pushing or opening Forgejo pull requests.
+  GitHub (interim) remote before pushing or opening GitHub pull requests.
 - Target branch remains `dev`.
-- Forgejo token/credential references must be named only; do not paste token
+- GitHub token/credential references must be named only; do not paste token
   values, bearer strings, webhook secrets, or raw authorization headers.
-- `infra/forge/jenkins-forgejo-token.secret.template.yaml` names the Jenkins
-  `forgejo-ci-token` credential template; the live secret is not committed.
+- `infra/forge/jenkins-github-token.secret.template.yaml` names the Jenkins
+  `github-ci-token` credential template; the live secret is not committed.
 
 ## Status-context sources for Lane D
 
@@ -24,7 +24,7 @@ Forgejo substrate discovery and verification handoff inputs without secrets.
   `infra/ci/jenkins/reported-status-contexts.json` and posted by the Jenkins
   shared library. Lane C does not own `infra/ci/**`, so mismatches should be
   treated as an integration/review input rather than fixed in this lane.
-- `infra/forge/README.md` still describes the Forgejo/Jenkins wiring and the
+- `infra/forge/README.md` still describes the GitHub/Jenkins wiring and the
   no-secret credential template.
 
 ## Verification contract
@@ -39,8 +39,8 @@ Forgejo substrate discovery and verification handoff inputs without secrets.
 
 ## Blockers / risks to surface
 
-- No Forgejo remote or live API endpoint was configured in this worker worktree.
-- No live token probe was run, so there is no live Forgejo reachability proof
+- No GitHub remote or live API endpoint was configured in this worker worktree.
+- No live token probe was run, so there is no live GitHub reachability proof
   from this worker.
 - Current local evidence is sufficient for a no-secret Lane C handoff, not for
   a production mutation or Jenkins cutover.

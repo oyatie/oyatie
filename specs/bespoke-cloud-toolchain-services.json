@@ -103,7 +103,7 @@
     "sequencing_sidecar_section": "/specs/master-plan-sequencing.json#early_prerequisites[M-TOOLCHAIN-bespoke-cloud-toolchain-services]",
     "roadmap_phase": "ideal_production_roadmap.phases[P-TOOLCHAIN]",
     "phase0_bridge": ".omx/plans/prd-platform-readiness.md#P0.0-bespoke-ci-enforcement-baseline",
-    "relationship_to_existing_gitops_vcs": "ADR-0363 remains binding for retiring the bespoke agentic-VCS CLI/wrapper and using plain git/Forgejo as bridge substrate. CI authority now lives in the cloud-ci/oya-ci Prow-shaped service per ADR-0513: Tide owns merge admission, and `oya` CLI entrypoints are retirement/migration inputs only, not branch-protection producers.",
+    "relationship_to_existing_gitops_vcs": "ADR-0363 remains binding for retiring the bespoke agentic-VCS CLI/wrapper and using plain git/GitHub as bridge substrate. CI authority now lives in the cloud-ci/oya-ci Prow-shaped service per ADR-0513: Tide owns merge admission, and `oya` CLI entrypoints are retirement/migration inputs only, not branch-protection producers.",
     "related_specs": [
       "/specs/hyperscaler-production-readiness-claim-contract.json",
       "/specs/phase0-automation-matrix.json",
@@ -128,12 +128,12 @@
         "oya-scm-change-graph",
         "oya-scm-status-fanout",
         "oya-scm-git-adapter",
-        "oya-scm-forgejo-adapter",
+        "oya-scm-github-adapter",
         "oya-scm-tenant-isolation-gate"
       ],
       "bridge_today": [
         "plain git wire protocol",
-        "Forgejo PRs, branch protection, commit statuses, webhooks",
+        "GitHub PRs, branch protection, commit statuses, webhooks",
         "native git sparse-index and partial-clone"
       ],
       "destination_capabilities": [
@@ -144,7 +144,7 @@
         "lazy materialization / virtual workspace only after measured scale trigger",
         "directory-branch/subtree metadata support for branch-like flows without repo-wide merge graph explosion"
       ],
-      "cutover_rule": "Forgejo remains transitory until ADR-0510 numeric triggers or tenant-product demand justify the bespoke server. The Rust SCM API/admission/status layers are built now so the eventual storage/forge swap is an adapter cutover, not a contract rewrite."
+      "cutover_rule": "GitHub remains transitory until ADR-0510 numeric triggers or tenant-product demand justify the bespoke server. The Rust SCM API/admission/status layers are built now so the eventual storage/forge swap is an adapter cutover, not a contract rewrite."
     },
     {
       "id": "cloud-ci",
@@ -245,7 +245,7 @@
       "depends_on": [
         "T0"
       ],
-      "deliverable": "Publish cloud-scm/cloud-ci/cloud-cd APIs, tenant isolation matrix, SLOs, quotas, audit schemas, and adapter boundaries while continuing to use Forgejo/Jenkins/Argo as bridge adapters."
+      "deliverable": "Publish cloud-scm/cloud-ci/cloud-cd APIs, tenant isolation matrix, SLOs, quotas, audit schemas, and adapter boundaries while continuing to use GitHub/Jenkins/Argo as bridge adapters."
     },
     {
       "id": "T2",
@@ -269,7 +269,7 @@
       "depends_on": [
         "T3"
       ],
-      "deliverable": "Replace Jenkins/Argo/Forgejo bridge surfaces only when parity, isolation, reliability, and scale triggers are green; otherwise keep bridge adapters and continue building Rust service contracts."
+      "deliverable": "Replace Jenkins/Argo/GitHub bridge surfaces only when parity, isolation, reliability, and scale triggers are green; otherwise keep bridge adapters and continue building Rust service contracts."
     }
   ],
   "acceptance_criteria": [
@@ -288,7 +288,7 @@
   ],
   "non_goals": [
     "Do not build a Piper/Mononoke-class storage server before ADR-0510 scale or tenant-product triggers justify it.",
-    "Do not expose Jenkins, Argo, or Forgejo as the permanent branded tenant product; expose Oyatie SCM/CI/CD APIs and UX.",
+    "Do not expose Jenkins, Argo, or GitHub as the permanent branded tenant product; expose Oyatie SCM/CI/CD APIs and UX.",
     "Do not share execution workspaces, secrets, artifact namespaces, or mutable caches between tenants.",
     "Do not weaken the current enforced bridge while building the bespoke destination.",
     "Do not use `oya verify` or `oya gate` as required branch-protection producers; port semantics into Rust cloud-ci gate crates/adapters."

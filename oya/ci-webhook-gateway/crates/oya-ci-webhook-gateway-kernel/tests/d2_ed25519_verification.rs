@@ -14,7 +14,7 @@ use oya_ci_webhook_gateway_kernel::{
     KernelError, MockSignatureVerifier, SignatureVerifier, WebhookSignature,
 };
 
-const SAMPLE_BODY: &[u8] = b"Hello, Forgejo webhook!";
+const SAMPLE_BODY: &[u8] = b"Hello, GitHub webhook!";
 
 fn sig_64_zeros() -> WebhookSignature {
     WebhookSignature::from_bytes(vec![0u8; 64])

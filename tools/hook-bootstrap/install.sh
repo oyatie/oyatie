@@ -66,8 +66,6 @@ echo ""
 
 HOOKS_DIR="$REPO_ROOT/tools/hooks"
 HOOK_SCRIPTS=(
-    session-start-context-inject.sh
-    userprompt-canonical-primer.sh
     stop-did-you-forget-suggester.sh
     no-cargo-enforcer.sh
     injection-content-scanner.sh
@@ -149,20 +147,6 @@ if $CODEX_DETECTED; then
   "_marker": "'"$MARKER"'",
   "_note": "Project-scoped Codex hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security redesign: removed exfil-guard + no-secret-leak (bypassable regex — security theater); OS sandbox is the real gate. Removed 4 dead hooks. PascalCase event keys per current Codex schema. Recommended ~/.codex/config.toml: sandbox_mode=workspace-write, approval_policy=on-request.",
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/session-start-context-inject.sh" }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh" }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [
@@ -232,8 +216,6 @@ if $GEMINI_DETECTED; then
     GEMINI_SETTINGS="$GEMINI_DIR/settings.json"
 
     # Event-name mapping (Gemini → equivalent Claude event):
-    #   SessionStart   = SessionStart
-    #   BeforeAgent    = UserPromptSubmit
     #   AfterAgent     = Stop
     #   BeforeTool     = PreToolUse
     #   AfterTool      = PostToolUse
@@ -242,12 +224,6 @@ if $GEMINI_DETECTED; then
   "_marker": "'"$MARKER"'",
   "_note": "Project-scoped Gemini hooks. Never edit manually — managed by install.sh/uninstall.sh. 2026-05-29 security redesign: removed exfil-guard + no-secret-leak (bypassable regex — security theater); OS sandbox + permissions deny rules are the real gate; injection-content-scanner retained (advisory only).",
   "hooks": {
-    "SessionStart": [
-      { "type": "command", "command": "tools/hooks/session-start-context-inject.sh", "name": "oya-session-context" }
-    ],
-    "BeforeAgent": [
-      { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh", "name": "oya-canonical-primer" }
-    ],
     "AfterAgent": [
       { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh", "name": "oya-did-you-forget" }
     ],

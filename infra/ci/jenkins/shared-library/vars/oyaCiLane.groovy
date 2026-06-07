@@ -18,7 +18,7 @@ def call(Map cfg = [:]) {
 
   // Branch-protection required status contexts (.github/branch-protection.yaml,
   // kept in sync by the oya-governance-protection-context-match gate). Posted to
-  // the Forgejo Commit Status API (ADR-0363 substrate) so a PR merges on real
+  // the GitHub Commit Status API (ADR-0363 substrate) so a PR merges on real
   // green checks — retiring the enforce_admins-toggle admin-merge seam.
   // (oya-pr-review is posted separately by the reviewer agent, not this lane.)
   List requiredContexts = [
@@ -60,6 +60,24 @@ def call(Map cfg = [:]) {
         }
         stage('secret scan: gitleaks') {
           sh 'gitleaks detect --no-banner --redact'
+        }
+        // --- architecture-dashboard drift (NON-BLOCKING oya-ci shadow) ------
+        // Mirrors the live GitHub Actions `docs-graph-drift` job. The
+        // `docs-graph-drift` status context is intentionally NOT in
+        // requiredContexts / .github/branch-protection.yaml — it is advisory
+        // feedback only (oya-ci shadow convention; never fails the build).
+        // Authority is GitHub Actions; this lane is the non-blocking mirror.
+        stage('docs-graph-drift (shadow, non-blocking)') {
+          postForgeStatus('docs-graph-drift', 'pending', 'docs-graph-drift running')
+          try {
+            sh '''set -euo pipefail
+              cargo run -q -p oya-architecture-graph-generator-app \
+                --bin oya-architecture-graph-generator -- --check'''
+            postForgeStatus('docs-graph-drift', 'success', 'dashboard matches generator')
+          } catch (err) {
+            // Non-blocking: post failure for visibility but DO NOT rethrow.
+            postForgeStatus('docs-graph-drift', 'failure', "dashboard drifted: ${err}")
+          }
         }
         stage('test: nextest') {
           postForgeStatus('oya-verify', 'pending', 'oya-verify running')
@@ -121,15 +139,15 @@ def podTemplateForOya(String label, Closure body) { body() }
 // Minimal `when` for scripted stages.
 def when(boolean cond, Closure body) { if (cond) body() }
 
-// --- Forgejo Commit Status API wiring (ADR-0363 substrate) -----------------
-// Posts a branch-protection required status context to the self-hosted Forgejo
-// instance. The token is a Jenkins string credential `forgejo-ci-token` (scope
+// --- GitHub Commit Status API wiring (ADR-0363 substrate) -----------------
+// Posts a branch-protection required status context to the GitHub (interim)
+// instance. The token is a Jenkins string credential `github-ci-token` (scope
 // write:repository); FORGE_API/FORGE_REPO are JCasC env with farm defaults.
 // This is the mechanism that gates PR merges on real green checks, retiring the
 // enforce_admins-toggle admin-merge seam.
 def postForgeStatus(String context, String state, String description) {
-  withCredentials([string(credentialsId: 'forgejo-ci-token', variable: 'FORGE_TOKEN')]) {
-    String api  = env.FORGE_API  ?: 'http://forgejo.oya-forge.svc.cluster.local:3000/api/v1'
+  withCredentials([string(credentialsId: 'github-ci-token', variable: 'FORGE_TOKEN')]) {
+    String api  = env.FORGE_API  ?: 'https://api.github.com/api/v1'
     String repo = env.FORGE_REPO ?: 'oya-admin/oyatie'
     String sha  = env.GIT_COMMIT
     sh """curl -sf -X POST -H 'Authorization: token \$FORGE_TOKEN' -H 'Content-Type: application/json' \

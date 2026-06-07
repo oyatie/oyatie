@@ -1,10 +1,10 @@
-//! D1 — Forgejo webhook payload parsing tests.
+//! D1 — GitHub webhook payload parsing tests.
 //!
-//! Covers the 5 Forgejo webhook shapes: push, PR-open, PR-update (synchronized),
+//! Covers the 5 GitHub webhook shapes: push, PR-open, PR-update (synchronized),
 //! PR-close, and ping.  All tests should PASS at Stage-4 RED (these exercise
 //! the parser, not the ed25519 verifier).
 
-use oya_ci_webhook_gateway_kernel::{CiAction, KernelError, RouteOutcome, route_forgejo_event};
+use oya_ci_webhook_gateway_kernel::{CiAction, KernelError, RouteOutcome, route_github_event};
 
 // ---------------------------------------------------------------------------
 // Helper
@@ -31,12 +31,12 @@ fn pr_body(action: &str, base: &str, head_sha: &str, pr_num: u64, draft: bool) -
 }
 
 // ---------------------------------------------------------------------------
-// D1-1: ping payload — Forgejo webhook-registration handshake
+// D1-1: ping payload — GitHub webhook-registration handshake
 // ---------------------------------------------------------------------------
 
 #[test]
 fn d1_ping_payload_is_ignored_not_errored() {
-    let outcome = route_forgejo_event("ping", b"{}", &delivery(1), "dev").unwrap();
+    let outcome = route_github_event("ping", b"{}", &delivery(1), "dev").unwrap();
     assert!(
         matches!(outcome, RouteOutcome::Ignored { ref reason } if reason.contains("ping")),
         "ping should produce Ignored outcome, got: {outcome:?}"
@@ -50,7 +50,7 @@ fn d1_ping_payload_is_ignored_not_errored() {
 #[test]
 fn d1_pr_open_payload_produces_trigger_event() {
     let body = pr_body("opened", "dev", "abc123sha456", 77, false);
-    let outcome = route_forgejo_event("pull_request", &body, &delivery(2), "dev").unwrap();
+    let outcome = route_github_event("pull_request", &body, &delivery(2), "dev").unwrap();
     match outcome {
         RouteOutcome::Trigger(ev) => {
             assert_eq!(ev.action, CiAction::PrOpened);
@@ -66,13 +66,13 @@ fn d1_pr_open_payload_produces_trigger_event() {
 }
 
 // ---------------------------------------------------------------------------
-// D1-3: pull_request synchronized — PR-update shape (Forgejo spelling)
+// D1-3: pull_request synchronized — PR-update shape (GitHub spelling)
 // ---------------------------------------------------------------------------
 
 #[test]
-fn d1_pr_update_forgejo_spelling_produces_trigger_event() {
+fn d1_pr_update_github_spelling_produces_trigger_event() {
     let body = pr_body("synchronized", "dev", "def456sha789", 88, false);
-    let outcome = route_forgejo_event("pull_request", &body, &delivery(3), "dev").unwrap();
+    let outcome = route_github_event("pull_request", &body, &delivery(3), "dev").unwrap();
     match outcome {
         RouteOutcome::Trigger(ev) => {
             assert_eq!(ev.action, CiAction::PrSynchronized);
@@ -92,7 +92,7 @@ fn d1_pr_update_forgejo_spelling_produces_trigger_event() {
 #[test]
 fn d1_pr_close_payload_produces_trigger_event_with_closed_action() {
     let body = pr_body("closed", "dev", "ghi789sha012", 99, false);
-    let outcome = route_forgejo_event("pull_request", &body, &delivery(4), "dev").unwrap();
+    let outcome = route_github_event("pull_request", &body, &delivery(4), "dev").unwrap();
     match outcome {
         RouteOutcome::Trigger(ev) => {
             assert_eq!(ev.action, CiAction::PrClosed);
@@ -110,7 +110,7 @@ fn d1_pr_close_payload_produces_trigger_event_with_closed_action() {
 
 #[test]
 fn d1_unknown_event_type_is_unroutable_not_silent_drop() {
-    let err = route_forgejo_event("wiki", b"{}", &delivery(5), "dev").unwrap_err();
+    let err = route_github_event("wiki", b"{}", &delivery(5), "dev").unwrap_err();
     assert!(
         matches!(err, KernelError::UnroutableEvent { ref event, .. } if event == "wiki"),
         "unknown event should be UnroutableEvent, got: {err:?}"

@@ -5,6 +5,12 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        # The fifth face (gate-baseline.generated.json) runs each gate's pure evaluate_keyed
+        # over the live faces. The gate libs depend only on serde_json, so there is no cycle.
+        "//cloud/cloud-ci/gates/total-accounting:total-accounting",
+        "//cloud/cloud-ci/gates/cross-artifact-agreement:cross-artifact-agreement",
+        "//cloud/cloud-ci/gates/staleness-reaper:staleness-reaper",
+        "//cloud/cloud-ci/gates/automation-ratchet:automation-ratchet",
         "third-party//:serde",
         "third-party//:serde_json",
     ],
@@ -17,6 +23,10 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//cloud/cloud-ci/gates/total-accounting:total-accounting",
+        "//cloud/cloud-ci/gates/cross-artifact-agreement:cross-artifact-agreement",
+        "//cloud/cloud-ci/gates/staleness-reaper:staleness-reaper",
+        "//cloud/cloud-ci/gates/automation-ratchet:automation-ratchet",
         "third-party//:serde",
         "third-party//:serde_json",
     ],
@@ -29,6 +39,10 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         "//cloud/cloud-ci/gates/accounting-registry-producer:accounting-registry-producer",
+        "//cloud/cloud-ci/gates/total-accounting:total-accounting",
+        "//cloud/cloud-ci/gates/cross-artifact-agreement:cross-artifact-agreement",
+        "//cloud/cloud-ci/gates/staleness-reaper:staleness-reaper",
+        "//cloud/cloud-ci/gates/automation-ratchet:automation-ratchet",
         "third-party//:serde",
         "third-party//:serde_json",
     ],

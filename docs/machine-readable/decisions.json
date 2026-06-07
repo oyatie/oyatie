@@ -3620,7 +3620,7 @@
       "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-26",
-      "path": "decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+      "path": "decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-github-substrate.md",
       "supersedes": ["ADR-0110, ADR-0112, ADR-0113"],
       "superseded_by": [],
       "related": ["ADR-0053", "ADR-0111", "ADR-0116", "ADR-0131", "ADR-0173", "ADR-0247", "ADR-0248", "ADR-0349", "ADR-0357", "ADR-0361", "ADR-0362"]
@@ -3748,11 +3748,11 @@
     {
       "adr": "ADR-0374",
       "number": 374,
-      "title": "CI webhook gateway (Forgejo → Jenkins gated pipeline trigger)",
+      "title": "CI webhook gateway (GitHub → Jenkins gated pipeline trigger)",
       "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-26",
-      "path": "decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md",
+      "path": "decisions/ADR-0374-ci-webhook-gateway-github-jenkins.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0363", "ADR-0366", "ADR-0367", "ADR-0349", "ADR-0361", "ADR-0124", "ADR-0039", "ADR-0043", "ADR-0131"]
@@ -3784,11 +3784,11 @@
     {
       "adr": "ADR-0377",
       "number": 377,
-      "title": "Forgejo board projection with git-ref CAS fallback",
+      "title": "GitHub board projection with git-ref CAS fallback",
       "status": "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)",
       "owner": "council-architecture",
       "date": "2026-05-27",
-      "path": "decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md",
+      "path": "decisions/ADR-0377-github-board-git-ref-cas-fallback.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0363", "ADR-0366", "ADR-0367", "ADR-0369", "ADR-0374"]
@@ -3820,7 +3820,7 @@
     {
       "adr": "ADR-0380",
       "number": 380,
-      "title": "CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo gating",
+      "title": "CI-loop closure on Talos: Jenkins farm re-establishment + GitHub gating",
       "status": "Accepted (amendment)",
       "owner": "ops-platform",
       "date": "2026-05-28",
@@ -3880,11 +3880,11 @@
     {
       "adr": "ADR-0387",
       "number": 387,
-      "title": "CI Webhook Gateway: Forgejo → Jenkins → GitHub Commit-Status Bridge",
+      "title": "CI Webhook Gateway: GitHub → Jenkins → GitHub Commit-Status Bridge",
       "status": "Proposed",
       "owner": "council-architecture + ops-platform",
       "date": "2026-05-28",
-      "path": "decisions/ADR-0387-ci-webhook-gateway-forgejo-to-jenkins-commit-status.md",
+      "path": "decisions/ADR-0387-ci-webhook-gateway-github-to-jenkins-commit-status.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0112", "ADR-0359", "ADR-0361", "ADR-0363", "ADR-0374"]

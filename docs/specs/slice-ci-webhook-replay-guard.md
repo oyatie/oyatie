@@ -10,7 +10,7 @@ the TTL returns a benign idempotent acknowledgement (200 OK, no second Jenkins
 kickoff).
 
 ADR provenance: ADR-0367 (trustless pre-merge verification gateway),
-ADR-0387 (ci-webhook-gateway Forgejo-to-Jenkins commit-status).
+ADR-0387 (ci-webhook-gateway GitHub-to-Jenkins commit-status).
 
 ## Vertical
 
@@ -41,11 +41,11 @@ here is wired only into the root-workspace member's request path.
 ## Handler pipeline (actual, Steps 1-8)
 
 ```
-1. Extract X-Forgejo-Signature-256 / X-Forgejo-Event / X-Forgejo-Delivery /
-   X-Forgejo-Timestamp headers.
+1. Extract X-GitHub-Signature-256 / X-GitHub-Event / X-GitHub-Delivery /
+   X-GitHub-Timestamp headers.
 2. ed25519 verify (raw bytes, before JSON parse).
 3. Cedar authz gate.
-4. route_forgejo_event → RouteOutcome::Trigger(CiTriggerEvent).
+4. route_github_event → RouteOutcome::Trigger(CiTriggerEvent).
 4.5. [NEW] Replay guard: DeliveryKey::from_parts → record_and_check.
      - Verdict::FirstSeen  → continue to Step 5.
      - Verdict::Replay     → return 200 OK "duplicate delivery, already accepted".
@@ -61,7 +61,7 @@ before verification succeeds (no state pollution from unauthenticated requests).
 ## Key-derivation precedence
 
 ```
-delivery_id (from X-Forgejo-Delivery header) is non-empty AND != "unknown"
+delivery_id (from X-GitHub-Delivery header) is non-empty AND != "unknown"
   → DeliveryKey::DeliveryId(delivery_id)
 else
   → DeliveryKey::ContentHash { head_sha, pr_number, action_disc: u8 }
@@ -72,7 +72,7 @@ The fallback uses `action_disc: u8` (stable discriminant) because
 touching the kernel crate.
 
 The sentinel `"unknown"` is the value the handler injects via
-`header_str(&headers, "x-forgejo-delivery").unwrap_or("unknown")` when the
+`header_str(&headers, "x-github-delivery").unwrap_or("unknown")` when the
 header is absent. Treating it as "not present" ensures the fallback branch is
 genuinely reachable and that distinct header-less events do not collide on the
 single sentinel key.
@@ -81,7 +81,7 @@ single sentinel key.
 
 Default TTL: **300 000 ms (5 minutes)**.
 
-Rationale: Forgejo's re-delivery window is up to 24 h, but duplicate
+Rationale: GitHub's re-delivery window is up to 24 h, but duplicate
 re-deliveries in normal operation arrive within seconds. 5 min catches all
 realistic duplicates while keeping the in-memory map small.
 
@@ -173,7 +173,7 @@ added to `AppState`.
 
 ## Open questions / follow-ups
 
-1. **Task #62** — CI-webhook + ed25519: best-practice Forgejo→Jenkins
+1. **Task #62** — CI-webhook + ed25519: best-practice GitHub→Jenkins
    commit-status signing. The guard's idempotency guarantee is strongest when
    delivery IDs are present and authentic; signed delivery IDs (task #62)
    would close this loop.

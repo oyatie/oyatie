@@ -1,0 +1,23 @@
+rust_library(
+    name = "oya-payroll-run-usecase",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_payroll_run_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+        "//oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory:oya-payroll-run-storage-adapter-inmemory",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-usecase-tests",
+    srcs = glob(["tests/**/*.rs"]),
+    crate_root = "tests/usecase_integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+        "//oya/payroll/crates/oya-payroll-run-usecase:oya-payroll-run-usecase",
+    ],
+)
