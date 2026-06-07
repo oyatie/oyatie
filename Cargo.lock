@@ -3,6 +3,14 @@
 version = 4
 
 [[package]]
+name = "accounting-registry-producer"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -480,6 +488,13 @@ name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
+
+[[package]]
+name = "automation-ratchet"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "aws-lc-rs"
@@ -1124,6 +1139,13 @@ name = "crc-catalog"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "217698eaf96b4a3f0bc4f3662aaa55bdf913cd54d7204591faa790070c6d0853"
+
+[[package]]
+name = "cross-artifact-agreement"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "crossbeam-queue"
@@ -3935,7 +3957,6 @@ dependencies = [
  "k8s-openapi",
  "kube",
  "kube-runtime",
- "oya-ci-controller-forgejo-adapter",
  "oya-ci-controller-github-adapter",
  "oya-ci-controller-k8s-adapter",
  "oya-ci-controller-kernel",
@@ -3995,7 +4016,7 @@ dependencies = [
 name = "oya-ci-tide-app"
 version = "0.1.0"
 dependencies = [
- "oya-ci-tide-forgejo-adapter",
+ "oya-ci-tide-github-adapter",
  "oya-ci-tide-kernel",
  "serde",
  "serde_json",
@@ -4006,6 +4027,16 @@ dependencies = [
 
 [[package]]
 name = "oya-ci-tide-forgejo-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-tide-kernel",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-ci-tide-github-adapter"
 version = "0.1.0"
 dependencies = [
  "oya-ci-tide-kernel",
@@ -9787,6 +9818,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
+name = "registry-drift"
+version = "0.1.0"
+
+[[package]]
 name = "replace_with"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10641,6 +10676,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "staleness-reaper"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11123,6 +11165,13 @@ dependencies = [
  "syn 2.0.117",
  "tempfile",
  "tonic-build",
+]
+
+[[package]]
+name = "total-accounting"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]

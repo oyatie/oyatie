@@ -724,6 +724,12 @@ members = [
   "tools/oya-vcs-admission-gate-app",
   "tools/oya-vcs-provider-execution-gate-app",
   "tools/oya-xtask-metadata-augment-app",
+  "cloud/cloud-ci/gates/accounting-registry-producer",
+  "cloud/cloud-ci/gates/automation-ratchet",
+  "cloud/cloud-ci/gates/cross-artifact-agreement",
+  "cloud/cloud-ci/gates/registry-drift",
+  "cloud/cloud-ci/gates/staleness-reaper",
+  "cloud/cloud-ci/gates/total-accounting",
 ]
 resolver = "2"
 
