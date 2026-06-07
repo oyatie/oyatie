@@ -2312,4 +2312,4 @@ If a pack creator decommissions a pack:
 
 **END OF DOCUMENT**
 
-Document checksum + version: v1.0 — 2026-05-20 — first canonical draft (lane: standards; surface: cross-microservice). Maintained by the messenger working group with cross-microservice review per the multispectrum review v2.4.0 policy.
+Document checksum + version: v1.0 — 2026-05-20 — first canonical draft (lane: standards; surface: cross-microservice). Maintained by the messenger working group with cross-microservice review.

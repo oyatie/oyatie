@@ -15,7 +15,6 @@ planned_enforcement_ref: oya-governance-anti-pattern-catalogue
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/standards/doc-style.md
-  - docs/standards/multispectrum-review-v2.4.0-cadence.md
   - docs/standards/agent-instructions-discipline.md
   - docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 related_adrs:
@@ -74,10 +73,6 @@ It does not replace documentation-rigor.md.
 It binds failures back to that standard, especially the intern-buildability
 bar, the hyperscaler-grade sub-test, the doc-class rigor matrix, and the
 six-hops graph-traversability invariant.
-
-It also does not replace multispectrum review.
-
-Multispectrum review finds defects across lenses.
 
 This catalogue names the recurrent defects so the next review can start
 closer to the known risk.
@@ -1618,8 +1613,6 @@ Review cue: ask what evidence closed each thread.
 
 Safer replacement: report unresolved threads; fix or rebut one by one.
 
-Anchor: docs/standards/multispectrum-review-v2.4.0-cadence.md.
-
 Anchor: evidence/multispectrum/claude-codex-thread-sweep-tool-1779004400.json.
 
 ### AP-C05 Self-Merge Without Contract Path
@@ -1633,13 +1626,13 @@ Failure: an agent merges its own work on CI green alone.
 Why it harms Oyatie: self-merge requires independent evidence, reviewer
 verdict, Code Review section, and admission gate green.
 
-Detection: merge event lacks multispectrum evidence or reviewer-agent verdict.
+Detection: merge event lacks review evidence or reviewer-agent verdict.
 
 CI candidate: merge admission checks for evidence bundle.
 
 Review cue: ask whether the self-merge contract path is complete.
 
-Safer replacement: multispectrum evidence, reviewer-agent verdict, Code Review
+Safer replacement: review evidence, reviewer-agent verdict, Code Review
 section, admission gate green, then merge.
 
 Anchor: feedback_self_merge_via_contract_path references in evidence/pr-143.
@@ -1743,7 +1736,7 @@ Anchor: Oya VCS required sequence in docs/AGENTS.md.
 
 Pattern ID: AP-C10.
 
-Severity: P1; P0 for multispectrum-gated changes.
+Severity: P1.
 
 Failure: the same agent writes, reviews, rebuts, and accepts the same concern
 without independent lens separation.
@@ -1752,14 +1745,10 @@ Why it harms Oyatie: bias-collapse suppresses uncomfortable findings.
 
 Detection: review evidence lacks independent facet identities.
 
-CI candidate: multispectrum manifest enforces distinct facet agents.
-
-Review cue: ask whether F1/F2/F3/etc. were actually separated.
+Review cue: ask whether independent review facets were actually separated.
 
 Safer replacement: dispatch required facets or record why the change class
 does not require them.
-
-Anchor: docs/standards/multispectrum-review-v2.4.0-cadence.md §1.1.
 
 ### AP-C11 Broad Claim Scope
 
@@ -2407,7 +2396,7 @@ It refuses bulk-resolution and requires per-thread disposition.
 
 `oya-governance-self-merge-contract` detects AP-C05.
 
-It requires multispectrum evidence, reviewer-agent verdict, Code Review
+It requires review evidence, reviewer-agent verdict, Code Review
 section, and admission gate green before self-merge.
 
 `oya-governance-frontmatter-authority` detects AP-A20, AP-A21, and AP-L08.
@@ -2831,8 +2820,6 @@ what evidence prevents the incident from recurring.
 Documentation rigor: docs/standards/documentation-rigor.md.
 
 Doc style: docs/standards/doc-style.md.
-
-Multispectrum cadence: docs/standards/multispectrum-review-v2.4.0-cadence.md.
 
 Agent instructions discipline: docs/standards/agent-instructions-discipline.md.
 

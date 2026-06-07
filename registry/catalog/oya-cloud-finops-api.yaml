@@ -10,7 +10,6 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CLOUD-OPS-FOUNDATION-001
-  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
 non_claims:
   - no live FinOps REST server or public portal
   - no FOCUS export or OpenCost ingestion endpoint

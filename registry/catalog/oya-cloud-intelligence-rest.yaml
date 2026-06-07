@@ -21,6 +21,6 @@ non_claims:
   - no async reqwest migration (current hot-path uses hyper 1.x directly per blessed-dep doctrine; reqwest migration deferred to Stage-6)
   - no retry/backoff tower ConcurrencyLimit wiring (tower::ConcurrencyLimit deferred; per-key kernel blacklist acts as circuit breaker)
   - no token TTL cache (access-token refresh coalescing via singleflight HashMap is Stage-6 work when OAuth refresh tokens are introduced)
-  - no wiremock/httpmock integration coverage beyond the d3 adapter integration test added in Stage-5 multispectrum fix
+  - no wiremock/httpmock integration coverage beyond the d3 adapter integration test added in Stage-5
   - no production wiring for bin/main + Cedar/Valkey/ClickHouse adapters (composition root deferred to Stage-6 app crate per ADR-0384)
   - supersedes the retired static-API-key kernel/REST/app crates (deleted in chore/retire-legacy-cloud-intelligence-crates-2026-05-28); promoted to canonical OAuth subscription-pool kernel per ADR-0384

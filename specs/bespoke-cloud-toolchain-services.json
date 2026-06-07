@@ -170,8 +170,7 @@
         "affected fast feedback plus full mirror for merge authority",
         "trunk-sourced gate definitions with PR code as untrusted data",
         "hermetic toolchain, CAS/RBE, deterministic test selection, structured failure summaries",
-        "merge queue / tide / batch / speculative projected-state validation",
-        "reviewer-agent and multispectrum evidence as first-class status requirements"
+        "merge queue / tide / batch / speculative projected-state validation"
       ],
       "enforcement_rule": "The bespoke-CI required context is produced by the Prow-shaped cloud-ci control plane (oya-ci-controller) or its minimal Rust bridge adapter from trusted trunk/controller-sourced gate definitions, treating candidate PR bytes as untrusted data. Cloud-ci/oya-ci is the merge authority; buck2/cargo are execution substrates during migration. The `oya` CLI is retired from CI authority: `oya verify` and `oya gate` invocations may be inventoried as legacy local mirrors or migration inputs, but they cannot satisfy branch-protection merge or Phase-0 exit authority. Branch protection must require an explicit cloud-ci/oya-ci context; RED if a plan-required context is missing, affected-only, buck2-affected-only, local-mirror-only, maps to any `oya` CLI invocation, or can be weakened by candidate PR bytes. Tide/merge queue belongs inside cloud-ci (`oya-ci-tide`) now: Phase 0 places and tests the admission contract; Phase 1 scales projected-state, batching, auto-rebase, and auto-regeneration."
     },

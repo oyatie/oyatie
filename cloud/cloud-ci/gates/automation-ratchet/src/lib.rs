@@ -275,7 +275,7 @@ mod tests {
             "target_gate_or_controller": "reviewer-agent verdict + cloud-ci evidence packet",
             "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-0.16-good.json",
             "retirement_phase": "Phase 1",
-            "evidence_path": "evidence/multispectrum/x.json",
+            "evidence_path": "evidence/example/x.json",
             "no_new_oya_cli_surface": true
         })
     }

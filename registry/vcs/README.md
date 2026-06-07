@@ -84,7 +84,7 @@ Lookup precedence (most-specific row wins): exact
 `(event, action, conclusion)` -> exact `(event, action)` with no
 conclusion declared -> row-side action wildcard. ADR-0112 §"Event-router
 table" splits `workflow_run.completed` by `conclusion=success` (IP-004
-multispectrum review) vs `conclusion=failure` (IP-005 fix-loop); any
+PR review) vs `conclusion=failure` (IP-005 fix-loop); any
 other conclusion (`cancelled`, `timed_out`, `skipped`) falls through to
 `RoutingFailed` so the completeness lane alerts.
 

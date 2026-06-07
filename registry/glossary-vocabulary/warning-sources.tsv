@@ -210,7 +210,6 @@ casing-variant	oyatie	docs/standards/idempotency-keys-canonical.md
 casing-variant	oyatie	docs/standards/image-signing-canonical.md
 casing-variant	oyatie	docs/standards/lts-versions-verified.md
 casing-variant	oyatie	docs/standards/messenger-e2e-encryption-mls.md
-casing-variant	oyatie	docs/standards/multispectrum-review-v2.4.0-cadence.md
 casing-variant	oyatie	docs/standards/observability-slo.md
 casing-variant	oyatie	docs/standards/request-id-canonical.md
 casing-variant	oyatie	docs/standards/ux-best-practices.md
@@ -741,7 +740,6 @@ uncited-acronym	AMBER	docs/audits/convention-audit-2026-05-12.md
 uncited-acronym	AMBER	docs/plans/rename-plan-2026-05-12.md
 uncited-acronym	AMBER	docs/standards/clean-architecture.md
 uncited-acronym	AMBER	docs/standards/crate-naming-convention.md
-uncited-acronym	AMBER	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	AMD	docs/PRD.md
 uncited-acronym	AMD	docs/VENDOR-PARTNER-LEDGER.md
 uncited-acronym	AMD	docs/architecture/keystone-bundle-audit-report.md
@@ -885,7 +883,6 @@ uncited-acronym	APPROVE	docs/architecture/keystone-bundle-2026-05-20-synthesis.m
 uncited-acronym	APPROVE	docs/architecture/unified-ecosystem-thesis-2026-05-21.md
 uncited-acronym	APPROVE	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 uncited-acronym	APPROVE	docs/onboarding/intern-day-one.md
-uncited-acronym	APPROVE	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	APPROVE	docs/standards/security-review.md
 uncited-acronym	APPROVE	docs/templates/ip-boilerplate-fragments.md
 uncited-acronym	APPROVE	docs/user-journeys/j137-corporate-internal-audit-sox-controls-test/story.md
@@ -1232,7 +1229,6 @@ uncited-acronym	BL	docs/standards/documentation-rigor.md
 uncited-acronym	BLEU	docs/checklists/foundry-capability-publishing.md
 uncited-acronym	BLEU	docs/standards/capability-authoring.md
 uncited-acronym	BLOCKED	docs/checklists/escalation-checklist.md
-uncited-acronym	BLOCKED	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	BLOCKED	docs/standards/realtime-transport-tier.md
 uncited-acronym	BLOCKED	docs/user-journeys/j132-hr-mass-hiring-event-100-roles/integration-test-plan.md
 uncited-acronym	BLOCKED	docs/user-journeys/j140-internal-audit-data-loss-prevention-egress-trip/README.md
@@ -1270,8 +1266,6 @@ uncited-acronym	BNF	docs/runbooks/sanctioned-primitives/preflight.md
 uncited-acronym	BNF	docs/standards/clean-architecture.md
 uncited-acronym	BNF	docs/standards/code-style-rust.md
 uncited-acronym	BNF	docs/standards/crate-naming-convention.md
-uncited-acronym	BNF	docs/standards/multispectrum-review-v2.4.0-cadence.md
-uncited-acronym	BNF	docs/standards/multispectrum-review.md
 uncited-acronym	BNF	docs/templates/INDEX.md
 uncited-acronym	BNF	docs/templates/adr-template.md
 uncited-acronym	BNF	docs/templates/bounded-context-registration-template.md
@@ -1665,7 +1659,6 @@ uncited-acronym	BYOK	docs/runbooks/provider-credential-leak-response.md
 uncited-acronym	BYOK	docs/standards/documentation-rigor.md
 uncited-acronym	BYOK	docs/standards/fips-hsm-substrate-root-signing.md
 uncited-acronym	BYOK	docs/standards/messenger-e2e-encryption-mls.md
-uncited-acronym	BYOK	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	BYOK	docs/user-journeys/j126-government-auditor-3pao-conducts-fedramp-audit/story.md
 uncited-acronym	BYOK	docs/user-journeys/j144-laid-off-builds-job-search-pipeline-in-workflow-studio/README.md
 uncited-acronym	BYOK	docs/user-journeys/j144-laid-off-builds-job-search-pipeline-in-workflow-studio/integration-test-plan.md
@@ -2243,10 +2236,8 @@ uncited-acronym	COMPLETE	docs/performance-budgets/edge-first-byte-50ms-p99.md
 uncited-acronym	COMPLETE	docs/performance-budgets/truetime-hlc-uncertainty-budget.md
 uncited-acronym	CONCERN	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 uncited-acronym	CONDITIONAL	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
-uncited-acronym	CONDITIONAL	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	CONDITIONS	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 uncited-acronym	CONDITIONS	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
-uncited-acronym	CONDITIONS	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	CONFIDENTIAL	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	CONSUMER	docs/architecture/keystone-bundle-audit-report.md
 uncited-acronym	CONSUMER	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
@@ -2453,7 +2444,6 @@ uncited-acronym	CRITICAL	docs/architecture/wave-3-g-synthesis-adjudication-2026-
 uncited-acronym	CRITICAL	docs/runbooks/shamir-share-loss-or-coercion.md
 uncited-acronym	CRITICAL	docs/standards/image-discipline.md
 uncited-acronym	CRITICAL	docs/standards/image-signing-canonical.md
-uncited-acronym	CRITICAL	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	CRITICAL	docs/standards/release-management.md
 uncited-acronym	CRITICAL	docs/user-journeys/j01-emergency-911-dispatch/story.md
 uncited-acronym	CRITICAL	docs/user-journeys/j02-healthcare-code-blue-ehr-break-glass/story.md
@@ -4030,7 +4020,6 @@ uncited-acronym	EUR	docs/user-journeys/j132-hr-mass-hiring-event-100-roles/ux-fl
 uncited-acronym	EUR	docs/user-journeys/j146-laid-off-uses-marketplace-as-temporary-income/story.md
 uncited-acronym	EV	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	EVERY	docs/user-journeys/j126-government-auditor-3pao-conducts-fedramp-audit/story.md
-uncited-acronym	EVIDENCE	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	EVIDENCE	docs/user-journeys/j138-corporate-audit-fraud-investigation-via-pattern-detection/integration-test-plan.md
 uncited-acronym	EVIDENCE	docs/user-journeys/j138-corporate-audit-fraud-investigation-via-pattern-detection/story.md
 uncited-acronym	EVT	docs/automation/INDEX.md
@@ -4206,7 +4195,6 @@ uncited-acronym	FINANCIAL	docs/architecture/keystone-bundle-idea-refine-deep-div
 uncited-acronym	FINANCIAL	docs/standards/fintech-compliance.md
 uncited-acronym	FINANCIAL	docs/user-journeys/j98-au-privacy-apra-cps-234-tenant/story.md
 uncited-acronym	FINDINGS	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
-uncited-acronym	FINDINGS	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	FINEOS	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	FINOPS	docs/DOC-CATALOG.md
 uncited-acronym	FINOPS	docs/DOCUMENTATION.md
@@ -4246,7 +4234,6 @@ uncited-acronym	FIPS	docs/runbooks/shamir-share-loss-or-coercion.md
 uncited-acronym	FIPS	docs/standards/fintech-compliance.md
 uncited-acronym	FIPS	docs/standards/fips-hsm-substrate-root-signing.md
 uncited-acronym	FIPS	docs/standards/messenger-e2e-encryption-mls.md
-uncited-acronym	FIPS	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	FIPS	docs/user-journeys/j127-dual-tenant-identity-employee-resigns-and-keeps-personal/ux-flow.md
 uncited-acronym	FIR	docs/standards/voice-video-call-architecture.md
 uncited-acronym	FIRE	docs/user-journeys/j01-emergency-911-dispatch/integration-test-plan.md
@@ -4304,7 +4291,6 @@ uncited-acronym	FORBIDDEN	docs/checklists/build-vs-buy.md
 uncited-acronym	FORBIDDEN	docs/performance-budgets/truetime-hlc-uncertainty-budget.md
 uncited-acronym	FORBIDDEN	docs/standards/ci-lanes.md
 uncited-acronym	FORBIDDEN	docs/standards/cursor-pagination-canonical.md
-uncited-acronym	FORBIDDEN	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	FORBIDDEN	docs/standards/outbox-pattern-canonical.md
 uncited-acronym	FORBIDS	docs/standards/cedar-policy-discipline.md
 uncited-acronym	FOSSA	docs/standards/documentation-rigor.md
@@ -4480,7 +4466,6 @@ uncited-acronym	GCP	docs/products/cloud/PRD.md
 uncited-acronym	GCP	docs/runbooks/byok-rotation-provider-tenant-duress.md
 uncited-acronym	GCP	docs/standards/documentation-rigor.md
 uncited-acronym	GCP	docs/standards/fips-hsm-substrate-root-signing.md
-uncited-acronym	GCP	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	GCP	docs/standards/request-id-canonical.md
 uncited-acronym	GCP	docs/standards/voice-video-call-architecture.md
 uncited-acronym	GCP	docs/teams/gtm-partnerships/CHARTER.md
@@ -4543,7 +4528,6 @@ uncited-acronym	GMT	docs/INTERNATIONALIZATION.md
 uncited-acronym	GO	docs/architecture/keystone-bundle-2026-05-20-lessons-learned.md
 uncited-acronym	GO	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 uncited-acronym	GO	docs/architecture/keystone-bundle-audit-report.md
-uncited-acronym	GO	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	GOOD	docs/architecture/corpus-rigor-audit-2026-05-20.md
 uncited-acronym	GOSI	docs/localization-packs/INDEX.md
 uncited-acronym	GOV	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
@@ -5188,7 +5172,6 @@ uncited-acronym	INDEX	docs/templates/implementation-plan-template.md
 uncited-acronym	INDEX	docs/templates/milestone-index-template.md
 uncited-acronym	INFO	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 uncited-acronym	INP	docs/standards/ux-best-practices.md
-uncited-acronym	INPUT	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	INR	docs/INTERNATIONALIZATION.md
 uncited-acronym	INR	docs/regional-packs/_TEMPLATE.md
 uncited-acronym	INR	docs/user-journeys/j02-healthcare-code-blue-ehr-break-glass/story.md
@@ -5911,7 +5894,6 @@ uncited-acronym	MAU	docs/PRD.md
 uncited-acronym	MAU	docs/standards/emoji-sticker-reaction-system.md
 uncited-acronym	MAUI	docs/standards/ci-lanes.md
 uncited-acronym	MAX	docs/architecture/hyperscaler-pattern-attribution.md
-uncited-acronym	MAXIMUM	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	MB	docs/architecture/keystone-bundle-intern-walkthrough.md
 uncited-acronym	MB	docs/architecture/unified-ecosystem-thesis-2026-05-21.md
 uncited-acronym	MB	docs/standards/container-image-convention.md
@@ -6131,7 +6113,6 @@ uncited-acronym	MX	docs/regional-packs/README.md
 uncited-acronym	MXN	docs/INTERNATIONALIZATION.md
 uncited-acronym	NA	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	NACH	docs/standards/fintech-compliance.md
-uncited-acronym	NACK	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	NACK	docs/standards/voice-video-call-architecture.md
 uncited-acronym	NACK	docs/user-journeys/j151-captain-olufemi-typhoon-evacuation-and-co-op-cash-flow/README.md
 uncited-acronym	NACL	docs/SPEC.md
@@ -6765,7 +6746,6 @@ uncited-acronym	PASS	docs/release/progressive-delivery/canary-rail-spec.md
 uncited-acronym	PASS	docs/release/progressive-delivery/playbook-foundry.md
 uncited-acronym	PASS	docs/standards/agent-instructions-discipline.md
 uncited-acronym	PASS	docs/standards/git-workflow.md
-uncited-acronym	PASS	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	PASS	docs/templates/implementation-plan-template.md
 uncited-acronym	PASS	docs/user-journeys/j132-hr-mass-hiring-event-100-roles/story.md
 uncited-acronym	PASS	docs/user-journeys/j132-hr-mass-hiring-event-100-roles/ux-flow.md
@@ -7634,7 +7614,6 @@ uncited-acronym	REGULATOR	docs/personas/MASTER-ROSTER-2026-05-21.md
 uncited-acronym	REJECTED	docs/products/cloud/PRD.md
 uncited-acronym	REJECTED	docs/templates/mistakes-ledger-row-template.md
 uncited-acronym	REJECTED	docs/user-journeys/j01-emergency-911-dispatch/integration-test-plan.md
-uncited-acronym	RELAXED	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	RELEASE	docs/templates/prfaq-template.md
 uncited-acronym	RELIGIOUS	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	RELIGIOUS	docs/personas/MASTER-ROSTER-2026-05-21.md
@@ -7645,12 +7624,10 @@ uncited-acronym	REMEDIATION	docs/user-journeys/j138-corporate-audit-fraud-invest
 uncited-acronym	REPEATABLE	docs/architecture/hyperscaler-pattern-attribution.md
 uncited-acronym	REPORT	docs/user-journeys/j130-auditor-receives-bribery-attempt-via-personal-messenger/story.md
 uncited-acronym	REQUEST	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
-uncited-acronym	REQUEST	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	REQUEST	docs/standards/release-management.md
 uncited-acronym	REQUEST	docs/standards/security-review.md
 uncited-acronym	REQUIRE	docs/standards/crate-naming-convention.md
 uncited-acronym	REQUIRE	docs/standards/fips-hsm-substrate-root-signing.md
-uncited-acronym	REQUIRE	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	REQUIRE	docs/user-journeys/j126-government-auditor-3pao-conducts-fedramp-audit/ux-flow.md
 uncited-acronym	REQUIRES	docs/PRIVACY-PROGRAM.md
 uncited-acronym	REQUIRES	docs/standards/crate-naming-convention.md
@@ -7663,12 +7640,10 @@ uncited-acronym	RESELLER	docs/architecture/keystone-bundle-audit-report.md
 uncited-acronym	RESELLER	docs/architecture/keystone-bundle-reading-order.md
 uncited-acronym	RESELLER	docs/onboarding/intern-day-one.md
 uncited-acronym	RESERVATIONS	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
-uncited-acronym	RESERVATIONS	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	RESIDENT	docs/architecture/persona-journey-microservice-cross-coverage-matrix-2026-05-21.md
 uncited-acronym	RESIDENT	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	RESIDENT	docs/personas/MASTER-ROSTER-2026-05-21.md
 uncited-acronym	RESOLUTION	docs/CONTRADICTION-LEDGER.md
-uncited-acronym	RESOLVE	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	RESOLVED	docs/CONTRADICTION-LEDGER.md
 uncited-acronym	RESPONDER	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 uncited-acronym	RESTART	docs/runbooks/bootstrap-ci-compromise.md
@@ -7679,9 +7654,7 @@ uncited-acronym	REVISE	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 uncited-acronym	REVISE	docs/architecture/microservices-corpus-line-audit-2026-05-21.md
 uncited-acronym	REVISE	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 uncited-acronym	REVISE	docs/standards/documentation-rigor.md
-uncited-acronym	REVISE	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	REVISIONS	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
-uncited-acronym	REVISIONS	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	REVOKED	docs/runbooks/cedar-fragment-emergency-rollback.md
 uncited-acronym	REVOKED	docs/runbooks/compliance-pack-revocation.md
 uncited-acronym	REVOKED	docs/user-journeys/j127-dual-tenant-identity-employee-resigns-and-keeps-personal/handshake.md
@@ -7717,7 +7690,6 @@ uncited-acronym	RFC	docs/standards/documentation-rigor.md
 uncited-acronym	RFC	docs/standards/hyperscaler-best-practices.md
 uncited-acronym	RFC	docs/standards/locale-routing.md
 uncited-acronym	RFC	docs/standards/messenger-e2e-encryption-mls.md
-uncited-acronym	RFC	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	RFC	docs/standards/realtime-transport-tier.md
 uncited-acronym	RFC	docs/standards/throttling-tiers.md
 uncited-acronym	RFC	docs/standards/voice-video-call-architecture.md
@@ -9065,7 +9037,6 @@ uncited-acronym	STRIDE	docs/templates/threat-model-template.md
 uncited-acronym	STRONG	docs/user-journeys/j138-corporate-audit-fraud-investigation-via-pattern-detection/README.md
 uncited-acronym	STRONG	docs/user-journeys/j141-internal-audit-respects-employee-personal-tenant-boundary/README.md
 uncited-acronym	STRUCTURAL	docs/architecture/microservices-corpus-line-audit-2026-05-21.md
-uncited-acronym	STRUCTURE	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	STT	docs/COMPETITIVE-GAP-ANALYSIS.md
 uncited-acronym	STT	docs/DESIGN.md
 uncited-acronym	STT	docs/PRD.md
@@ -9214,7 +9185,6 @@ uncited-acronym	TGA	docs/DESIGN.md
 uncited-acronym	TGA	docs/checklists/regional-pack-onboarding.md
 uncited-acronym	TGA	docs/regional-packs/_TEMPLATE.md
 uncited-acronym	TH	docs/regional-packs/README.md
-uncited-acronym	THAT	docs/standards/multispectrum-review.md
 uncited-acronym	THAT	docs/user-journeys/j137-corporate-internal-audit-sox-controls-test/story.md
 uncited-acronym	THE	docs/COMPETITIVE-GAP-ANALYSIS.md
 uncited-acronym	THE	docs/architecture/keystone-bundle-audit-report.md
@@ -9348,7 +9318,6 @@ uncited-acronym	TWO	docs/user-journeys/j132-hr-mass-hiring-event-100-roles/story
 uncited-acronym	TWO	docs/user-journeys/j145-laid-off-applies-via-community-handshake-linkedin-mode/story.md
 uncited-acronym	TX	docs/COMPLIANCE-MATRIX.md
 uncited-acronym	TX	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
-uncited-acronym	TYPE	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	TZ	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	TZ	docs/standards/ux-best-practices.md
 uncited-acronym	TZ	docs/user-stories/b2b-work-surfaces.md
@@ -9622,7 +9591,6 @@ uncited-acronym	WARN	docs/PRD.md
 uncited-acronym	WARN	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 uncited-acronym	WARN	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 uncited-acronym	WARN	docs/performance-budgets/truetime-hlc-uncertainty-budget.md
-uncited-acronym	WARN	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	WARN	docs/teams/axis-foundry/CHARTER.md
 uncited-acronym	WARN	docs/user-journeys/j133-hr-conducts-layoff-with-dignity-and-compliance/README.md
 uncited-acronym	WARN	docs/user-journeys/j133-hr-conducts-layoff-with-dignity-and-compliance/integration-test-plan.md
@@ -9735,14 +9703,12 @@ uncited-acronym	WHERE	docs/personas/MASTER-ROSTER-2026-05-21.md
 uncited-acronym	WHERE	docs/user-journeys/j152-ahmad-hassan-construction-site-incident-bilingual/ux-flow.md
 uncited-acronym	WHIP	docs/architecture/ip-corpus-line-audit-2026-05-21.md
 uncited-acronym	WHIP	docs/standards/voice-video-call-architecture.md
-uncited-acronym	WHY	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	WINS	docs/AGENTS.md
 uncited-acronym	WIP	docs/standards/commit-message.md
 uncited-acronym	WISH	docs/standards/voice-video-call-architecture.md
 uncited-acronym	WITH	docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 uncited-acronym	WITH	docs/architecture/keystone-bundle-idea-refine-deep-dive.md
 uncited-acronym	WITH	docs/architecture/memory-spec-runbook-audit-2026-05-21.md
-uncited-acronym	WITH	docs/standards/multispectrum-review-v2.4.0-cadence.md
 uncited-acronym	WITH	docs/standards/voice-video-call-architecture.md
 uncited-acronym	WITHOUT	docs/advanced-cicd/release-versioning/breaking-change-process.md
 uncited-acronym	WITHOUT	docs/standards/authz-tier-boundaries.md

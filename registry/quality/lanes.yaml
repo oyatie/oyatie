@@ -149,7 +149,7 @@ lanes:
     stage: foundation
     status: active
     owner_team: council-architecture
-    purpose: fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, multispectrum evidence, change_class declarations, and online cargo-audit vulnerability checks
+    purpose: fail-closed ADR-0092 dependency rationale coverage, adapter-only imports, fixture-pair coverage, change_class declarations, and online cargo-audit vulnerability checks
     source: ADR-0092 / registry/dependency-rationales.json
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error

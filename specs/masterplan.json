@@ -775,11 +775,10 @@
       ],
       "current_gate_evidence": {
         "status": "local-green-online-audit-strict-evidence-pass",
-        "gate": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --evidence evidence/multispectrum/cs-p13-dependency-seam-1779166052.json --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
+        "gate": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
         "result": "6 pass, 0 skipped, 0 diagnostics, 0 blocking",
         "evidence_refs": [
           "/evidence/fd001/cs-p13-dependency-seam-report.json",
-          "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",
           "/evidence/fd001/cs-p13-dependency-seam-cargo-audit.json"
         ]
       }
@@ -888,7 +887,6 @@
               "implementation_state": "local-gate-green-hosted-promotion-pending",
               "evidence_refs": [
                 "/evidence/fd001/cs-p13-dependency-seam-report.json",
-                "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",
                 "/evidence/fd001/cs-p13-dependency-seam-cargo-audit.json"
               ],
               "gate_evidence": "legacy local dependency-seam strict run passed with 6 pass, 0 skipped, 0 diagnostics, 0 blocking; this is provenance/local evidence, not protected-branch authority."
@@ -924,9 +922,7 @@
               "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
               "evidence_refs": [
                 "/evidence/fd001/cs-fitness-001-banned-primitives.json",
-                "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
-                "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
-                "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
+                "/evidence/fd001/cs-fitness-001-command-log-corpus.json"
               ],
               "gate_evidence": "banned-primitives source-corpus, sanitized tracked command-log corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; hosted GitHub Actions/branch-protection deployment remains a GitOps verification gap."
             },
@@ -1310,10 +1306,9 @@
           "implementation_state": "local-gate-green-hosted-promotion-pending",
           "evidence_refs": [
             "/evidence/fd001/cs-p13-dependency-seam-report.json",
-            "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",
             "/evidence/fd001/cs-p13-dependency-seam-cargo-audit.json"
           ],
-          "gate_evidence": "Restored dependency-seam semantics, refreshed dependency-rationales coverage, and captured strict local validation with current multispectrum evidence; porting to cloud-ci/Rust gate authority remains the destination."
+          "gate_evidence": "Restored dependency-seam semantics, refreshed dependency-rationales coverage, and captured strict local validation; porting to cloud-ci/Rust gate authority remains the destination."
         },
         {
           "id": "M01-P17-IP-008.1",
@@ -1323,9 +1318,7 @@
           "implementation_state": "source-and-sanitized-command-log-corpus-local-green-hosted-branch-protection-pending",
           "evidence_refs": [
             "/evidence/fd001/cs-fitness-001-banned-primitives.json",
-            "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
-            "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
-            "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
+            "/evidence/fd001/cs-fitness-001-command-log-corpus.json"
           ],
           "gate_evidence": "banned-primitives source-corpus, sanitized tracked command-log corpus, quality-lanes, protection-context-match, aspirational-enforcement, and planning-closure pass locally; hosted GitHub Actions/branch-protection deployment remains a GitOps verification gap."
         }
@@ -2087,7 +2080,6 @@
                 "implementation_state": "local-gate-green-hosted-promotion-pending",
                 "evidence_refs": [
                   "/evidence/fd001/cs-p13-dependency-seam-report.json",
-                  "/evidence/multispectrum/cs-p13-dependency-seam-1779166052.json",
                   "/evidence/fd001/cs-p13-dependency-seam-cargo-audit.json"
                 ]
               },
@@ -2884,9 +2876,7 @@
                 "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
                 "evidence_refs": [
                   "/evidence/fd001/cs-fitness-001-banned-primitives.json",
-                  "/evidence/multispectrum/cs-fitness-001-banned-primitives-1779160471.json",
-                  "/evidence/fd001/cs-fitness-001-command-log-corpus.json",
-                  "/evidence/multispectrum/cs-fitness-001-command-log-corpus-1779163756.json"
+                  "/evidence/fd001/cs-fitness-001-command-log-corpus.json"
                 ],
                 "successor_plan": ".omc/plans/milestones/M01-foundation/phases/P-fitness-chained-enforcement/IP-001-banned-primitives-lane.md"
               },

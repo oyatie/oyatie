@@ -199,7 +199,7 @@ ADR decisions: `docs/decisions/`
   - GREEN: catalog validation now passes with 608 records; architecture-boundaries now passes with 440 packages, 440 package catalog records, and 590 dependency edges checked.
   - NON-CLAIMS: no new runtime capability, product implementation, security audit, SLO, DR, sharding, deployment, provider-live operation, or production readiness is created by catalog metadata repair.
 - ✅ CS-MASTERPLAN-COMPLETION-GATE-AUDIT-001 — canonical master-plan-completion gate audit and false-blocker correction.
-  - RED/DIAGNOSTIC: `./bin/oya gate validate master-plan-completion --master-plan specs/masterplan.json --evidence-dir evidence/multispectrum` fails on 28 older completed M01 implementation-plan IDs because the override excludes default evidence roots.
+  - RED/DIAGNOSTIC: `./bin/oya gate validate master-plan-completion --master-plan specs/masterplan.json --evidence-dir evidence/per-change` fails on 28 older completed M01 implementation-plan IDs because the override excludes default evidence roots.
   - GREEN: `./bin/oya gate validate master-plan-completion --master-plan specs/masterplan.json` passes with 80 phases and 172 implementation plans checked.
   - NON-CLAIMS: no new runtime capability, production readiness, hyperscaler readiness, full `./bin/oya verify --ci-required` success, or evidence fabrication is created by this gate-truth audit.
 - ✅ CS-FULL-VERIFY-BLOCKER-INVENTORY-001 — full `./bin/oya verify --ci-required` blocker inventory and next repair ordering.
@@ -316,7 +316,7 @@ ADR decisions: `docs/decisions/`
   - NON-CLAIMS: no full verify/run-all success, production backend/API readiness, real auth/authz, PHI/PII, production tenant data, measured SLO/DR/sharding, compliance certification, provider-live proof, or hyperscaler readiness.
 
 - ✅ CS-APPLICATION-SHELL-WORKFLOW-COHESION-EVIDENCE-METADATA-001 — normalize current workflow-cohesion evidence metadata for provider admission.
-  - RED: run-all provider admission failed with `MULTISPECTRUM_EVIDENCE_MISSING_CHANGE_ID` for `evidence/multispectrum/cs-application-shell-workflow-cohesion-20260523.json`.
+  - RED: run-all provider admission failed with `EVIDENCE_MISSING_CHANGE_ID` for the workflow-cohesion evidence file.
   - GREEN: evidence now carries canonical `change_id`, `change_class_id`, `git_sha`, `freshness_unix`, F1-F9 facets, non-claims, and audit-chain coverage rows.
   - NON-CLAIMS: metadata-only; no product source change, backend/auth/runtime, PHI/PII, production tenant data, SLO/DR/sharding, provider-live proof, compliance certification, or hyperscaler readiness.
   - FINAL WRAPPER: `./bin/oya verify --ci-required` passed after the dependency-seam policy repair and workflow-cohesion evidence metadata normalization (D-5 run-all 88/88).

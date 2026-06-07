@@ -10,7 +10,6 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CLOUD-OPS-FOUNDATION-001
-  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
 non_claims:
   - no FinOps worker database or provider adapter runtime
   - no FOCUS file generation or OpenCost federation

@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:accounting-registry-producer",
     "row_count": 23368,
-    "source_inputs_digest": "fnv1a64:c77fb6edaa9fe981"
+    "source_inputs_digest": "fnv1a64:383eb74fbf77048e"
   },
   "rows": [
     {
@@ -19888,7 +19888,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "b50b1996646b26a7484098a2d002bae70ba49f80",
+      "last_touch_commit": "31def86e09b6acaa61fbeac8f2d2f68f9dbd217b",
       "owner": null,
       "path": "cloud/cloud-ci/gates/accounting-registry-producer/accounting-registry.generated.json",
       "reachable_from": [
@@ -19957,7 +19957,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "b50b1996646b26a7484098a2d002bae70ba49f80",
+      "last_touch_commit": "31def86e09b6acaa61fbeac8f2d2f68f9dbd217b",
       "owner": null,
       "path": "cloud/cloud-ci/gates/accounting-registry-producer/gate-baseline.generated.json",
       "reachable_from": [
@@ -60399,7 +60399,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0092",
-      "last_touch_commit": "bcc24787f3a8a8053ef2f48d16a5f50215ef082e",
+      "last_touch_commit": "31def86e09b6acaa61fbeac8f2d2f68f9dbd217b",
       "owner": null,
       "path": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "reachable_from": [],
@@ -134416,7 +134416,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "7ff67e67c4884ffaf7d15c2fb12cb28463a5f86f",
+      "last_touch_commit": "31def86e09b6acaa61fbeac8f2d2f68f9dbd217b",
       "owner": null,
       "path": "libs/oya-check-dependency-seam/src/lib.rs",
       "reachable_from": [
@@ -486394,8 +486394,7 @@
       "owner": null,
       "path": "specs/multispectrum-review.json",
       "reachable_from": [
-        "root-hub",
-        "doc-catalog"
+        "root-hub"
       ],
       "tracked": true,
       "ttl": {

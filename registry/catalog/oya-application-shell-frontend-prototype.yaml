@@ -10,7 +10,6 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-ARCH-BOUNDARY-APPLICATION-SHELL-PROTOTYPE-001
-  evidence: evidence/multispectrum/cs-arch-boundary-application-shell-prototype-20260523.json
   upstream_microservice: microservices/application/manifest.json
 non_claims:
   - no backend integration

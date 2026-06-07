@@ -1,6 +1,5 @@
-//! `oya-intelligence-pr-review-dispatcher-app` — multispectrum reviewer-agent
-//! fan-out dispatcher for the post-CI-green review gate
-//! (M01-P17-IP-004).
+//! `oya-intelligence-pr-review-dispatcher-app` — reviewer-agent fan-out
+//! dispatcher for the post-CI-green review gate (M01-P17-IP-004).
 //!
 //! ## What this crate does
 //!
@@ -26,9 +25,7 @@
 //!
 //! ## Subagent runtime (the deliberate scaffold gap)
 //!
-//! Per [[feedback_consensus_debate_spectrum_lens_subagents]] +
-//! [[feedback_multispectrum_review_v22]] +
-//! [[feedback_multispectrum_adherence_facets]] the panel comprises 11–13
+//! Per [[feedback_consensus_debate_spectrum_lens_subagents]] the panel comprises 11–13
 //! F-facets (F1..F11 + F13), 2 M-facets (M1, M2), and 7 A-facets
 //! (A1..A7). Each facet MUST run in a **separate subagent or teammate
 //! session**; no `reviewer_id` may appear across facets. The actual

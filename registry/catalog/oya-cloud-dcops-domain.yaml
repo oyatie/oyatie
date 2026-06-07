@@ -10,7 +10,6 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CLOUD-OPS-FOUNDATION-001
-  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
 non_claims:
   - no live BMS telemetry ingestion
   - no data-center certification or facility runtime integration

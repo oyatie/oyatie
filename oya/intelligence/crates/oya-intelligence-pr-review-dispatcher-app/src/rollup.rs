@@ -1,4 +1,4 @@
-//! Rollup-verdict aggregation for the multispectrum reviewer panel.
+//! Rollup-verdict aggregation for the reviewer panel.
 //!
 //! Inputs: zero-or-more per-facet finding JSON blobs from the subagent
 //! panel. Output: a single APPROVE / CHANGES_REQUESTED / REJECT verdict
@@ -9,9 +9,7 @@ use std::collections::BTreeMap;
 
 use crate::fanout::FacetId;
 
-/// Per-facet recommendation from one subagent. Mirrors
-/// `consensus_debate_protocol.rounds.round_1_independent.required_keys`
-/// from `specs/multispectrum-review.json` but only the
+/// Per-facet recommendation from one subagent. Contains only the
 /// fields the rollup needs to make a verdict.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FacetFinding {
@@ -21,7 +19,7 @@ pub struct FacetFinding {
 }
 
 /// What one facet's subagent recommends. Matches the
-/// `final_recommendation` enum in the multispectrum spec.
+/// `final_recommendation` enum in the reviewer-panel spec.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FacetRecommendation {
     Approve,
