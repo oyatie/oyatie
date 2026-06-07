@@ -51,7 +51,6 @@ on:
       - "microservices/community/manifest.json"
       - "tasks/plan.md"
       - "tasks/todo.md"
-      - "evidence/multispectrum/backbone-microservices-*.json"
   push:
     branches: [dev]
     paths:
@@ -103,7 +102,6 @@ on:
       - "microservices/community/manifest.json"
       - "tasks/plan.md"
       - "tasks/todo.md"
-      - "evidence/multispectrum/backbone-microservices-*.json"
 
 permissions:
   contents: read
@@ -556,15 +554,6 @@ jobs:
           end
           puts "parsed #{ARGV.length} files"
           ' \
-            evidence/multispectrum/backbone-microservices-protocol-parity-20260523.json \
-            evidence/multispectrum/backbone-microservices-proto-contracts-20260523.json \
-            evidence/multispectrum/backbone-microservices-rest-hyper-runtime-20260525.json \
-            evidence/multispectrum/backbone-microservices-cloud-tenant-workload-labels-20260525.json \
-            evidence/multispectrum/backbone-microservices-rendered-tenant-cost-label-coverage-20260525.json \
-            evidence/multispectrum/backbone-microservices-argocd-tenant-metadata-20260525.json \
-            evidence/multispectrum/backbone-microservices-cloud-topology-spread-20260525.json \
-            evidence/multispectrum/backbone-microservices-cloud-serviceaccount-hardening-20260525.json \
-            evidence/multispectrum/backbone-microservices-cloud-networkpolicy-hardening-20260525.json \
             specs/proto/backbone/messenger/message_stream.proto \
             specs/proto/backbone/mail/mail.proto \
             specs/proto/backbone/social/social_post_composition.proto \
