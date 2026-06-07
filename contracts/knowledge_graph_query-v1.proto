@@ -1,6 +1,0 @@
-syntax = "proto3";
-package oyatie.knowledge_graph.query.v1;
-message KnowledgeGraphQueryRequest { string tenant_id = 1; string query_id = 2; string root_entity_id = 3; repeated string edge_type_ids = 4; uint32 max_depth = 5; uint64 freshness_floor_epoch_seconds = 6; }
-message KnowledgeGraphQueryResponse { string query_id = 1; string tenant_id = 2; repeated KnowledgeGraphNode nodes = 3; repeated KnowledgeGraphEdge edges = 4; uint64 observed_at_epoch_seconds = 5; }
-message KnowledgeGraphNode { string entity_id = 1; string entity_type_id = 2; }
-message KnowledgeGraphEdge { string from_entity_id = 1; string to_entity_id = 2; string edge_type_id = 3; }
