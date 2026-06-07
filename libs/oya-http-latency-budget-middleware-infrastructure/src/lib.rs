@@ -5,7 +5,7 @@
 //! the original response is replaced with HTTP 504 (Gateway Timeout) and a
 //! structured JSON error.
 //!
-//! ⚠️ HONEST NAMING (per ADR-0093 + multispectrum F5 quality review):
+//! ⚠️ HONEST NAMING (per ADR-0093):
 //! This middleware is a POST-HOC LATENCY REPORTER, not a cancellation
 //! mechanism. The middleware-kernel chain is sync, so we cannot abort an
 //! in-flight handler — that requires async cooperation. What this middleware

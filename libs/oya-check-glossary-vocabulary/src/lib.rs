@@ -645,7 +645,7 @@ mod tests {
         assert_eq!(
             validate_glossary_vocabulary_hygiene(
                 [doc(
-                    "docs/standards/multispectrum-review.md",
+                    "docs/standards/doc-style.md",
                     "---\nrelated_specs:\n  - /specs/oyatie-doctrine.json\n---\n\nVisible prose.",
                     false,
                 )],

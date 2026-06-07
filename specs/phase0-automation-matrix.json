@@ -55,7 +55,7 @@
     "phase0_exit_status": "must_be_required_context_before_AC_0_12_green",
     "producer": "cloud-ci/oya-ci Rust gate packet",
     "reds_when": [
-      "any Phase-0 acceptance criterion, test, ADR amendment, operating-contract requirement, structural-lock/revert rule, pack-root classifier, generated registry, branch-protection constraint, multispectrum/reviewer requirement, or claim gate lacks a row",
+      "any Phase-0 acceptance criterion, test, ADR amendment, operating-contract requirement, structural-lock/revert rule, pack-root classifier, generated registry, branch-protection constraint, or claim gate lacks a row",
       "an automatable item is classified as not_automatable_human_judgment",
       "a row lacks owner/target/fixture/retirement/evidence fields",
       "a row maps a blocking invariant to an oya CLI invocation",
@@ -65,7 +65,7 @@
   "known_gaps_before_green": [
     "Seed rows are not exhaustive; AC-0.12 remains RED until generated coverage proves every Phase-0 rule has a row.",
     "Checked-in branch-protection target now names oya-ci-required, but live GitHub branch protection still lacks cloud-ci-required/oya-ci-required and live producer evidence; P0.0 must replace live authority with cloud-ci/oya-ci required context before any green/enforcement claim.",
-    "Manual reviewer approval remains operator/procedure evidence until a non-501 reviewer status producer is live and required."
+    "Manual reviewer approval as a phase-exit criterion is RETIRED per D-MULTISPECTRUM-RETIRED (critique and multispectrum review doctrine dropped); the automation ratchet no longer tracks a multispectrum/reviewer-status row requirement."
   ],
   "non_negotiables": [
     "No new oya CLI commands or protected-branch authority are introduced by this matrix.",
@@ -177,7 +177,7 @@
       "id": "AC-0.12-aggregate-exit-gate",
       "no_new_oya_cli_surface": true,
       "owner": "platform-governance + platform-toolchain",
-      "requirement": "Phase 0 exit is a single aggregate gate over AC-0.0..0.17, fixture coverage, inventory, structural packets, generated registry, automation matrix, claim ceiling, reviewer/multispectrum evidence, and P0.0 required-context/tenant-isolation proof.",
+      "requirement": "Phase 0 exit is a single aggregate gate over AC-0.0..0.17, fixture coverage, inventory, structural packets, generated registry, automation matrix, claim ceiling, and P0.0 required-context/tenant-isolation proof.",
       "retirement_phase": "AC-0.12/P0 exit",
       "source_artifact": ".omx/plans/prd-platform-readiness.md#AC-0.12",
       "target_gate_or_controller": "cloud-ci-phase0-aggregate-exit Rust gate packet"

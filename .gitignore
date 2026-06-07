@@ -27,8 +27,6 @@ __pycache__/
 evidence/oci-readiness/a1-capacity-retry.log
 
 # OMC atomic-write temp residue (write-then-rename crash debris)
-# See PRs 12-18 multispectrum review wave: PR12 introduced 6 + PR15 carried
-# 6 + state/ holds 2; one leaked a local absolute path in its payload.
 # Pattern catches *.json.tmp.<uuid> and *.tmp.<uuid> shapes.
 **/*.json.tmp.*
 .omc/**/*.tmp.*

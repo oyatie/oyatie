@@ -360,8 +360,7 @@ fn parse_facet_slug(slug: &str) -> Option<FacetId> {
         .find(|facet| facet.slug() == slug)
 }
 
-/// Minimal JSON-string-value reader. The subagent r1.json shape per
-/// `specs/multispectrum-review.json` includes:
+/// Minimal JSON-string-value reader. The subagent r1.json shape includes:
 ///   { "reviewer_id": "...", "final_recommendation": "APPROVE|CHANGES_REQUESTED|REJECT", ... }
 /// We intentionally avoid a serde dependency at this scaffold stage —
 /// the input contract has only two string fields the dispatcher needs.

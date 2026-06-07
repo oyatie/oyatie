@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/dependency-rationales.schema.json",
   "title": "DependencyRationales",
-  "description": "Flat overlay: per external workspace dependency, the rationale + owner + layer seam + replacement strategy. Joined with `cargo metadata --no-deps` output at lane time. Replaces the over-engineered tech-debt-ledger.json planned in original IP-002 (state machine + trigger DSL + monotonic graph DROPPED per multispectrum F1 + F2 + F6 critique).",
+  "description": "Flat overlay: per external workspace dependency, the rationale + owner + layer seam + replacement strategy. Joined with `cargo metadata --no-deps` output at lane time. Replaces the over-engineered tech-debt-ledger.json planned in original IP-002 (state machine + trigger DSL + monotonic graph DROPPED).",
   "_meta": {
     "doc_class": "Registry",
     "registry_id": "REG-DEPENDENCY-RATIONALES",

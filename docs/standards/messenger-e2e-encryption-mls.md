@@ -37,8 +37,7 @@ threat_model_owner: council-security
 > Rule §164.312, PCI DSS Requirement 4, FedRAMP-Moderate SC-13/SC-28, and
 > KR-PIPA Article 24.
 
-> **Status.** Draft, 2026-05-20. Pending multispectrum review per
-> council-privacy + council-security. Implementation gated on this
+> **Status.** Draft, 2026-05-20. Pending council-privacy + council-security review. Implementation gated on this
 > standard's acceptance + the companion implementation plans referenced
 > in §16.
 

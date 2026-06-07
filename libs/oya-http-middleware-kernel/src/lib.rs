@@ -129,7 +129,7 @@ pub trait Middleware<Req, Resp>: Send + Sync {
 }
 
 /// Typed handler trait — preferred over raw `Fn(HttpRequest) -> HttpResponse`
-/// closures (per ADR-0094 + F-MULTI-Q4 multispectrum F5 quality finding).
+/// closures (per ADR-0094).
 ///
 /// `type Error: Into<HttpResponse>` lets handler authors return structured
 /// errors that render to a response at the framework boundary, instead of

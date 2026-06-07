@@ -15,7 +15,6 @@ security_review: unreviewed
 supply_chain: source-only
 traceability:
   changeset: CS-CLOUD-OPS-FOUNDATION-001
-  evidence: evidence/multispectrum/cs-cloud-ops-foundation-20260523.json
 non_claims:
   - no matching crate exists in this checkout
   - retained only for catalog compatibility during markdown retirement and foundation truth-down

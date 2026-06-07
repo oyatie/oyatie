@@ -1,7 +1,5 @@
-//! Multispectrum reviewer-panel topology.
+//! Reviewer-panel topology.
 //!
-//! Per `docs/standards/multispectrum-review.md` (v2.3.0) + memory
-//! `feedback_multispectrum_review_v22` + `feedback_multispectrum_adherence_facets`.
 //! Each facet MUST be dispatched to its own subagent / teammate session;
 //! `F-LANE-DEBATE-SUBCHECK` refuses panels where a single `reviewer_id`
 //! covers multiple facets within a single `change_id`.
@@ -14,10 +12,8 @@
 /// 13-element F-family (critique lenses) + 2-element M-family (meta lenses)
 /// + 7-element A-family (own-policy adherence lenses).
 ///
-/// Closed enum. Adding a facet REQUIRES an ADR + a memory note + a row
-/// in `specs/multispectrum-review.json` (the A-family
-/// closed-enum cap is RELAXED per `feedback_multispectrum_adherence_facets`,
-/// but every addition still gets an ADR cite).
+/// Closed enum. Adding a facet REQUIRES an ADR + a memory note (the A-family
+/// closed-enum cap is RELAXED, but every addition still gets an ADR cite).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FacetId {
     // F-family — critique lenses.
@@ -134,8 +130,7 @@ impl FacetId {
 pub struct FacetDispatch {
     pub change_id: String,
     pub facet: FacetId,
-    /// `<tool>-<facet_id>-<change_id>` per memory
-    /// `feedback_multispectrum_review_v22`.
+    /// `<tool>-<facet_id>-<change_id>` — canonical reviewer-id format.
     pub reviewer_id: String,
     /// Path the subagent must write its r1.json finding to.
     pub evidence_path: String,

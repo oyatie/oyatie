@@ -315,7 +315,7 @@ Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
 
 ### Legacy OMC (oh-my-claudecode subagents)
 
-OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new agentic closeout routes through plain `git`, GitHub (interim) branch protection, cloud-ci/oya-ci required checks, and reviewer/multispectrum governance evidence. Jenkins/`oya gate` evidence is transitional until P0.0/P1 cutover.
+OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new agentic closeout routes through plain `git`, GitHub (interim) branch protection, cloud-ci/oya-ci required checks, and reviewer governance evidence. Jenkins/`oya gate` evidence is transitional until P0.0/P1 cutover.
 
 Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`. Route per change class.
 

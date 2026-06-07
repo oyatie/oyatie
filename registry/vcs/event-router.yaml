@@ -59,7 +59,7 @@ rows:
     action: completed
     conclusion: success
     agent: oya-intelligence-pr-review-dispatcher-app
-    purpose: Run multispectrum review (IP-004)
+    purpose: Run PR review (IP-004)
 
   - event: workflow_run
     action: completed

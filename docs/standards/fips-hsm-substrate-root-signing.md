@@ -1,5 +1,5 @@
 ---
-purpose: "Canonical FIPS 140-3 / HSM tier binding for substrate root-signing operations. Defines the four-tier HSM model, approved vendor roster, ceremony procedure, Cedar gate, sovereign-cell variants, and CI lane. Closes F7-004 (P0) from keystone-bundle-2026-05-20 multispectrum review."
+purpose: "Canonical FIPS 140-3 / HSM tier binding for substrate root-signing operations. Defines the four-tier HSM model, approved vendor roster, ceremony procedure, Cedar gate, sovereign-cell variants, and CI lane. Closes F7-004 (P0) from keystone-bundle-2026-05-20 supply-chain review."
 doc_class: Standard
 shape: Reference
 length_cap: 800
@@ -31,7 +31,7 @@ related_memories:
   - feedback_amazon_shape_cellular_architecture
   - feedback_self_modification_doctrine
 change_log:
-  - "2026-05-20: Initial publication. Closes F7-004 P0 from keystone-bundle-2026-05-20 multispectrum review F7 Supply Chain. Authored as part of Slice 4 (F7/F6 fix subagent)."
+  - "2026-05-20: Initial publication. Closes F7-004 P0 from keystone-bundle-2026-05-20 supply-chain review (F7 Supply Chain). Authored as part of Slice 4 (F7/F6 fix subagent)."
 ---
 
 # FIPS / HSM Substrate Root-Signing Standard
@@ -43,7 +43,7 @@ supersedes any generic key-management guidance in `docs/standards/`. On conflict
 cited in the frontmatter, the ADR wins for its specific scope; this standard wins for the
 cross-cutting tiering and vendor-selection decisions.
 
-The standard closes F7-004 (P0) from the keystone-bundle-2026-05-20 multispectrum review:
+The standard closes F7-004 (P0) from the keystone-bundle-2026-05-20 supply-chain review:
 > "ADR-0243 says 'tier-0 HSM' generically, ADR-0247 §D-4 Stage 0.4 says 'Ed25519 + cosign'
 > but does not name the HSM. The keystone does not reconcile FIPS 140-2 L2 (FedRAMP Moderate)
 > vs L3 (FedRAMP High) vs NSA Type 1 (IL6) HSM ceremony differences."
@@ -398,7 +398,7 @@ when {
   context.spiffe_trust_domain == "spiffe://oyatie.internal" &&
   // HSM attestation certificate valid (CloudHSM cluster cert / Entrust PKCS#11 cert)
   context.hsm_attestation_valid == true &&
-  // Signing request approved by at least 2 human reviewers (multispectrum review)
+  // Signing request approved by at least 2 human reviewers
   // for new fragment publications; existing approved fragments do not require re-review
   (context.fragment_action == "re-sign" ||
    context.human_approver_count >= 2) &&

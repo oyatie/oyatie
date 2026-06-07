@@ -864,7 +864,6 @@ Standards are the cross-cutting rules for how docs, APIs, code, policy, tests, o
 12. [observability](standards/observability.md) - OpenTelemetry, metrics, logs, traces, and audit event standards.
 13. [testing](standards/testing.md) - test evidence and coverage bar.
 14. [security review](standards/security-review.md) - security review standard.
-15. [multispectrum review](standards/multispectrum-review.md) - multispectrum review evidence standard.
 
 ### Related Sections
 
@@ -875,7 +874,6 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§2 Decisions]
 - Read this before changing any doc class, naming rule, API surface, event schema, Cedar policy, localization pack, or test standard.
 - Read documentation-rigor before judging whether a hub, ADR, PRD, standard, runbook, or onboarding guide is substantive enough.
 - Read naming and layer enum standards before adding crates, catalog records, or microservice docs.
-- Read multispectrum review before claiming completion on any meaningful change.
 
 ### Standards Complete Shelf
 
@@ -941,10 +939,8 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§2 Decisions]
 60. [migration-playbook.md](standards/migration-playbook.md) - Migration Playbook: normative rule shelf for implementation, docs, operations, or governance discipline.
 61. [mls-rfc-9420-conformance.md](standards/mls-rfc-9420-conformance.md) - Mls Rfc 9420 Conformance: normative rule shelf for implementation, docs, operations, or governance discipline.
 62. [multi-agent-tool-map.md](standards/multi-agent-tool-map.md) - Multi Agent Tool Map: normative rule shelf for implementation, docs, operations, or governance discipline.
-63. [multispectrum-review-v2.4.0-cadence.md](standards/multispectrum-review-v2.4.0-cadence.md) - Multispectrum Review V2.4.0 Cadence: normative rule shelf for implementation, docs, operations, or governance discipline.
-64. [multispectrum-review.md](standards/multispectrum-review.md) - Multispectrum Review: normative rule shelf for implementation, docs, operations, or governance discipline.
-65. [naming-convention-bnf-v4.md](standards/naming-convention-bnf-v4.md) - Naming Convention Bnf V4: normative rule shelf for implementation, docs, operations, or governance discipline.
-66. [observability-slo.md](standards/observability-slo.md) - Observability SLO: normative rule shelf for implementation, docs, operations, or governance discipline.
+63. [naming-convention-bnf-v4.md](standards/naming-convention-bnf-v4.md) - Naming Convention Bnf V4: normative rule shelf for implementation, docs, operations, or governance discipline.
+64. [observability-slo.md](standards/observability-slo.md) - Observability SLO: normative rule shelf for implementation, docs, operations, or governance discipline.
 67. [observability.md](standards/observability.md) - Observability: normative rule shelf for implementation, docs, operations, or governance discipline.
 68. [on-call.md](standards/on-call.md) - On Call: normative rule shelf for implementation, docs, operations, or governance discipline.
 69. [ontology-projection-substrate.md](standards/ontology-projection-substrate.md) - Ontology Projection Substrate: normative rule shelf for implementation, docs, operations, or governance discipline.
@@ -1359,8 +1355,7 @@ Governance crates are executable policy lanes. They turn standards and ADRs into
 7. [pack overlay completeness crate](../crates/oya-governance-pack-overlay-completeness) - pack overlay completeness governance lane crate.
 8. [substance bar crate](../crates/oya-governance-substance-bar) - substance bar governance lane crate.
 9. [ADR-0221](decisions/ADR-0221-agentic-development-pipeline-hardening.md) - ADR for agentic development pipeline hardening.
-10. [multispectrum review](standards/multispectrum-review.md) - review evidence standard consumed by governance workflow.
-11. [documentation rigor](standards/documentation-rigor.md) - substance bar standard paired with governance lanes.
+10. [documentation rigor](standards/documentation-rigor.md) - substance bar standard paired with governance lanes.
 
 ### Related Sections
 
