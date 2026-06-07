@@ -23,7 +23,7 @@ Two gaps block production confidence for cloud-intelligence v1 and the broader N
 
 1. **Safety proof gap**: N lanes of parallel agent work (cloud-intelligence lanes K/R/Z/A/C/N per ADR-0390) run concurrently on disjoint crate paths. There is no gate that verifies the disjoint-path invariant holds — that no two lanes touch the same file. Without this, merging a batch of parallel PRs risks silent cross-lane collisions.
 
-2. **Visibility gap**: there is no unified operator console. Founders and operators currently monitor lane progress, subscription-pool health, token-window utilization, and proof harness results across disconnected tools (Forgejo PRs, Jenkins build history, Grafana dashboards, CLI commands). This creates alert fatigue, slow incident response, and no single pane of glass for the cloud-intelligence service state.
+2. **Visibility gap**: there is no unified operator console. Founders and operators currently monitor lane progress, subscription-pool health, token-window utilization, and proof harness results across disconnected tools (GitHub PRs, Jenkins build history, Grafana dashboards, CLI commands). This creates alert fatigue, slow incident response, and no single pane of glass for the cloud-intelligence service state.
 
 The parallel-swarm model (per project memory) already requires disjoint file paths per lane and claims-aware one-service-per-lane isolation. ADR-0388 establishes the doc-axis convention. This ADR formalises: (a) the N-lane parallel safety proof layer as a first-class gate, and (b) the DevOps console v0 (operator-only) microservice.
 
@@ -88,7 +88,7 @@ The Loom proof for `SubscriptionPool::lease/complete` (ADR-0390 P2) is the N→�
   browser ───────>│  SolidJS SPA (axum static-file serve)    │
                   │  ┌────────────────────────────────────┐  │
                   │  │  /api/subscriptions  (admin API)    │  │
-                  │  │  /api/lanes          (Forgejo API)  │  │
+                  │  │  /api/lanes          (GitHub API)  │  │
                   │  │  /api/proof          (Jenkins API)  │  │
                   │  │  /api/metrics        (Prometheus)   │  │
                   │  └────────────────────────────────────┘  │
@@ -97,13 +97,13 @@ The Loom proof for `SubscriptionPool::lease/complete` (ADR-0390 P2) is the N→�
                   └──────────────────────────────────────────┘
 ```
 
-The backend is a thin aggregator: it calls the cloud-intelligence admin API (ADR-0390 Lane A), Forgejo API, Jenkins API, and Prometheus query API. No new data storage — all state lives in existing systems.
+The backend is a thin aggregator: it calls the cloud-intelligence admin API (ADR-0390 Lane A), GitHub API, Jenkins API, and Prometheus query API. No new data storage — all state lives in existing systems.
 
 #### v0 panel specifications
 
 1. **Subscription admin panel**: list tenants; per-tenant seat pool state (Active/Reserved/Cooldown/Blacklisted count); 5h/weekly token window utilization bars; last-refresh timestamp per seat. Source: cloud-intelligence admin API (ADR-0390 Lane A).
 
-2. **Lane progress board**: open PRs per lane (Forgejo API); their CI status (Jenkins API); claimed deliverables (masterplan claim refs, `oya plan status`); merge-queue position (ADR-0111 projected state). Source: Forgejo + Jenkins APIs + masterplan refs.
+2. **Lane progress board**: open PRs per lane (GitHub API); their CI status (Jenkins API); claimed deliverables (masterplan claim refs, `oya plan status`); merge-queue position (ADR-0111 projected state). Source: GitHub + Jenkins APIs + masterplan refs.
 
 3. **Proof harness results**: last Loom run pass/fail + interleaving count; last proptest run shrink log; last chaos run fault-injection summary. Source: Valkey key `proof-results:<suite>` updated by CI (lean Valkey for v0; ClickHouse history in v1).
 
@@ -117,14 +117,14 @@ The backend is a thin aggregator: it calls the cloud-intelligence admin API (ADR
 |---|---|
 | `microservices/devops-console/` scaffold | ADR-0131 flat layout; `cargo check` passes; axum serves `/healthz`. |
 | Subscription admin panel (read-only) | Calls cloud-intelligence admin API; renders seat pool state + token windows. |
-| Lane progress board | Calls Forgejo + Jenkins APIs; renders PR list + CI status + claim refs. |
+| Lane progress board | Calls GitHub + Jenkins APIs; renders PR list + CI status + claim refs. |
 | Health overview | Renders P0/P3/P6/P7 Prometheus metrics as sparklines on a single page. |
 
 ## Alternatives Considered
 
 | Alternative | Reason rejected |
 |---|---|
-| Extend Grafana instead of a new console | Grafana covers metrics; does not aggregate Forgejo PRs, masterplan claim refs, or proof harness results. The console is a different information class. |
+| Extend Grafana instead of a new console | Grafana covers metrics; does not aggregate GitHub PRs, masterplan claim refs, or proof harness results. The console is a different information class. |
 | Per-lane overlap check at commit time (git hook) | Commit-time hooks run in an agent's worktree context; they can't see other lanes' in-flight diffs. A PR-level gate has the full picture. |
 | WebSocket real-time push in v0 | Polling at 10s intervals is sufficient for operator use; WebSocket adds server-side state management complexity for marginal latency gain. |
 | Write operations in console v0 | Read-only is sufficient for visibility; writes (seat provisioning, policy reload) require additional Cedar policy + audit trail work that is out of v0 scope. |
@@ -149,5 +149,5 @@ The backend is a thin aggregator: it calls the cloud-intelligence admin API (ADR
 - [ ] **Lane-overlap gate performance**: validate `git diff --name-only` × 10 PRs in < 5s in a repo of this size.
 - [ ] **SolidJS SPA + Axum single flat-layout µservice**: scaffold the crate, confirm it compiles and serves a hello-world SPA.
 - [ ] **Prometheus RBAC on Talos**: confirm Prometheus query API is accessible from the `cloud-intelligence` namespace pod without additional RBAC.
-- [ ] **Forgejo batch commit-status endpoint**: review Forgejo API docs for batch endpoint to avoid N+1 on lane count.
+- [ ] **GitHub batch commit-status endpoint**: review GitHub API docs for batch endpoint to avoid N+1 on lane count.
 - [ ] **Console auth v1 path**: document the JWT-based auth design for external console access (separate follow-up ADR or ADR-0391 amendment).

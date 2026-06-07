@@ -18,7 +18,7 @@ affected_surfaces:
   specs: []
 deliverables:
   - id: ADR-0380-D1
-    description: "Re-establish the Jenkins CI farm on the Talos substrate (ADR-0378) by installing the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) into the Jenkins managed by infra/talos/local/bring-up.sh (helm upgrade with infra/ci/jenkins/values-local.yaml installPlugins list). The base Talos Jenkins is currently configuration-as-code + workflow-job only; the ADR-0359 plugin set lived on the now-retired colima farm and must be re-installed. Amendment (2026-05-28): the gitea plugin is intentionally NOT installed — Forgejo-canonical brand correctness + the gateway already does webhook discovery."
+    description: "Re-establish the Jenkins CI farm on the Talos substrate (ADR-0378) by installing the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) into the Jenkins managed by infra/talos/local/bring-up.sh (helm upgrade with infra/ci/jenkins/values-local.yaml installPlugins list). The base Talos Jenkins is currently configuration-as-code + workflow-job only; the ADR-0359 plugin set lived on the now-retired colima farm and must be re-installed. Amendment (2026-05-28): the gitea plugin is intentionally NOT installed — GitHub-canonical brand correctness + the gateway already does webhook discovery."
     exit_criteria: "Jenkins on Talos has generic-webhook-trigger + build-token-root + http_request + git installed and visible in /pluginManager/api; helm upgrade completes; Jenkins restart leaves the existing CasC oya-ci-farm cloud config valid (no boot failure)."
     verified_by: "kubectl -n oya-ci-jenkins exec oya-jenkins-0 -c jenkins -- sh -c 'curl -sf -u admin:$PASS http://localhost:8080/pluginManager/api/json?depth=1 | grep -c generic-webhook-trigger'"
   - id: ADR-0380-D2
@@ -26,17 +26,17 @@ deliverables:
     exit_criteria: "infra/ci/jenkins/values-local.yaml's agent pod templates do NOT reference seaweedfs-s3.oya-ci-jenkins.svc nor hostPath /Users/jasonlee; the rust-ci template clones from git via a Secret-bound token; cargo runs in /workspace (cloned, not bind-mounted) and succeeds."
     verified_by: "a manually-launched rust-ci agent pod clones the repo + runs `oya gate validate fmt` (smoke) end-to-end without sccache or hostPath."
   - id: ADR-0380-D3
-    description: "Create the gated Jenkins pipeline job (Generic Webhook Trigger token-authed; dispatched by the ci-webhook-gateway, ADR-0374) that runs `oya gate run-all` against the cloned PR ref and posts Forgejo commit-status (success/failure) via the forgejo-ci-token credential. Job authored via Jenkins JCasC (configScripts.oya-ci-gate) so the configuration is declarative and reproducible; oyaCiLane shared library is OPTIONAL (deferred — inline pipeline acceptable for MVP)."
-    exit_criteria: "a Jenkins job named oya-ci-gate exists, accepts a webhook trigger with a token, runs `oya gate run-all`, and posts commit-status to Forgejo. The 14 reported_status_contexts (infra/ci/jenkins/reported-status-contexts.json) appear on a real PR after webhook fire."
-    verified_by: "a real PR against dev produces 14 Forgejo commit-status entries (success or failure) within N minutes of the push."
+    description: "Create the gated Jenkins pipeline job (Generic Webhook Trigger token-authed; dispatched by the ci-webhook-gateway, ADR-0374) that runs `oya gate run-all` against the cloned PR ref and posts GitHub commit-status (success/failure) via the github-ci-token credential. Job authored via Jenkins JCasC (configScripts.oya-ci-gate) so the configuration is declarative and reproducible; oyaCiLane shared library is OPTIONAL (deferred — inline pipeline acceptable for MVP)."
+    exit_criteria: "a Jenkins job named oya-ci-gate exists, accepts a webhook trigger with a token, runs `oya gate run-all`, and posts commit-status to GitHub. The 14 reported_status_contexts (infra/ci/jenkins/reported-status-contexts.json) appear on a real PR after webhook fire."
+    verified_by: "a real PR against dev produces 14 GitHub commit-status entries (success or failure) within N minutes of the push."
   - id: ADR-0380-D4
-    description: "Mint a Forgejo CI access token (in-pod `forgejo admin user generate-access-token --username oya-admin --scopes write:repository`) + project it as the `forgejo-ci-token` k8s Secret in oya-ci-jenkins (Jenkins reads it via JCasC credentials block). Register the Forgejo webhook (repo oya-admin/oyatie) targeting `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/forgejo`, with the HMAC secret in oya-ci/ci-webhook-gateway-secret (already provisioned) matching Forgejo's configured webhook secret."
-    exit_criteria: "Forgejo webhook delivery test (UI Test Delivery button) returns 200; the gateway pod logs a verified pull_request event; Jenkins receives the dispatch + runs the gated job."
-    verified_by: "Forgejo webhook UI shows Last delivery: 200; gateway pod logs `signature: verified`; Jenkins build queue receives the trigger."
+    description: "Mint a GitHub CI access token (in-pod `github admin user generate-access-token --username oya-admin --scopes write:repository`) + project it as the `github-ci-token` k8s Secret in oya-ci-jenkins (Jenkins reads it via JCasC credentials block). Register the GitHub webhook (repo oya-admin/oyatie) targeting `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/github`, with the HMAC secret in oya-ci/ci-webhook-gateway-secret (already provisioned) matching GitHub's configured webhook secret."
+    exit_criteria: "GitHub webhook delivery test (UI Test Delivery button) returns 200; the gateway pod logs a verified pull_request event; Jenkins receives the dispatch + runs the gated job."
+    verified_by: "GitHub webhook UI shows Last delivery: 200; gateway pod logs `signature: verified`; Jenkins build queue receives the trigger."
   - id: ADR-0380-D5
-    description: "End-state cutover: once D1–D4 are green and a real PR cycle produces commit-status, enable Forgejo auto-merge on dev (or document explicit reviewer-merge), and retire the temporary admin-merge seam (oya-dev-branch-protection-merge memory). The 'gate every merge on verified LOCAL green' rule is replaced by 'gate every merge on the gated CI run + commit-status'."
+    description: "End-state cutover: once D1–D4 are green and a real PR cycle produces commit-status, enable GitHub auto-merge on dev (or document explicit reviewer-merge), and retire the temporary admin-merge seam (oya-dev-branch-protection-merge memory). The 'gate every merge on verified LOCAL green' rule is replaced by 'gate every merge on the gated CI run + commit-status'."
     exit_criteria: "dev merges happen on green CI without `--admin` override on at least one full PR cycle; the memory oya-dev-branch-protection-merge is updated to reflect the retired seam."
-    verified_by: "a PR is merged into dev on green Forgejo commit-status without admin override; the lax-merge memory is updated."
+    verified_by: "a PR is merged into dev on green GitHub commit-status without admin override; the lax-merge memory is updated."
   - id: ADR-0380-D6
     description: "Maximum-parallelism enablement (follow-on, gated on D5 cutover landing first): (a) restore SeaweedFS-on-Talos — Oyatie's own object store per ADR-0349 — for sccache + buildkit cache + artifact storage; (b) switch the gated pipeline from `oya gate run-all` to `oya verify --affected` per ADR-0360 O1 so per-PR scope shrinks to the affected reverse-dependency closure; (c) enable Jenkinsfile.sharded nextest --partition (ADR-0360 O4) for in-build sharding; (d) grow agent capacity (Talos VM resize or multi-node cluster) so many PR builds co-schedule; (e) enable ADR-0111 merge-queue projected/speculative admission so PRs admit in parallel without serial bottleneck. Brings CI throughput to the hyperscaler-grade bar the ADR-0349 farm claimed on colima, now Talos-native."
     exit_criteria: "On a sustained 20-PR concurrent-build test, the Talos cluster runs >=8 parallel agent pods with cache reuse; per-PR gate completion under N minutes (vs the cold-build pre-D6 baseline); ADR-0111 merge-queue admits PRs in parallel without serial bottleneck. Throughput meets or beats the ADR-0349 farm-throughput claims."
@@ -45,19 +45,19 @@ purpose: >
   Close the CI loop on the Talos substrate (ADR-0378) by re-establishing the
   Jenkins CI farm: install the gating plugins, redesign agent pods for Talos
   (drop SeaweedFS + hostPath, which were colima-farm-specific), create the
-  gated Jenkins job, register the Forgejo webhook through the ci-webhook-gateway
+  gated Jenkins job, register the GitHub webhook through the ci-webhook-gateway
   (ADR-0374), and retire the temporary admin-merge seam. The CI gateway pod is
   already live (PR #233); this ADR sequences the remaining wiring so that PRs
   against dev are gated by real Jenkins-produced commit-status rather than
   manual local-green + admin-merge.
 ---
 
-# ADR-0380 — CI-loop closure on Talos: Jenkins farm re-establishment + Forgejo gating
+# ADR-0380 — CI-loop closure on Talos: Jenkins farm re-establishment + GitHub gating
 
 ## Status
 Accepted (2026-05-28), Amended (2026-05-28). Builds on ADR-0374 (CI webhook gateway,
 deployed PR #233), ADR-0378 (vfkit + Talos canonical substrate), ADR-0379 (Kubewarden
-default), and ADR-0363 (git + Jenkins + Forgejo substrate doctrine). Sequences the
+default), and ADR-0363 (git + Jenkins + GitHub substrate doctrine). Sequences the
 remaining work to retire the admin-merge seam.
 
 ## Amendment (2026-05-28)
@@ -65,17 +65,17 @@ Two corrections to the plugin set + agent-redesign detail; the 5-deliverable str
 and end goal stand.
 
 **(1) Drop the `gitea` Jenkins plugin from D1.** It was a carryover from the ADR-0359
-plugin manifest (authored when the original upstream was Gitea, before Forgejo became
-canonical per ADR-0363). The plugin works against Forgejo via API compatibility, but
-(a) reintroduces the `gitea` brand into a Forgejo-canonical stack, and (b) is
+plugin manifest (authored when the original upstream was Gitea, before GitHub became
+canonical per ADR-0363). The plugin works against GitHub via API compatibility, but
+(a) reintroduces the `gitea` brand into a GitHub-canonical stack, and (b) is
 unnecessary: the CI webhook gateway (ADR-0374) is the front door (so multibranch /
-webhook-discovery features add nothing), and commit-status posting to Forgejo is done
+webhook-discovery features add nothing), and commit-status posting to GitHub is done
 via the `http_request` plugin (or an explicit `curl` pipeline step) against
-`POST /repos/{owner}/{repo}/statuses/{sha}` authenticated by the `forgejo-ci-token`
+`POST /repos/{owner}/{repo}/statuses/{sha}` authenticated by the `github-ci-token`
 credential.
 **Revised D1 plugin set:** `generic-webhook-trigger + build-token-root + http_request + git`.
-**Revised D3 status posting:** `http_request` plugin OR `curl` step + Forgejo statuses
-API + `forgejo-ci-token`. No gitea plugin involvement.
+**Revised D3 status posting:** `http_request` plugin OR `curl` step + GitHub statuses
+API + `github-ci-token`. No gitea plugin involvement.
 
 **(2) Sharpen D2 agent redesign.** The concrete changes to `infra/ci/jenkins/values-local.yaml`:
 - Collapse the three colima-era templates (`rust-ci` + `rust-build` + `rust-parallel`)
@@ -93,7 +93,7 @@ API + `forgejo-ci-token`. No gitea plugin involvement.
   (`git clone --depth 1 --branch $PR_REF https://oya-admin:$GH_TOKEN@github.com/...`),
   then runs `./bin/oya gate run-all`, then posts the status. No bind-mounted source.
 - Stage-2 hardening (deferred): flip the clone source from GitHub to the in-cluster
-  Forgejo (dogfood-correct, no external creds needed) when Forgejo dev becomes the
+  GitHub (dogfood-correct, no external creds needed) when GitHub dev becomes the
   upstream mirror.
 
 **(4) Maximum-parallelism is a named follow-on, not this MVP.** D1-D5 deliver
@@ -160,10 +160,10 @@ The rest of the ADR (status posting flow, webhook registration, cutover) is unch
 
 ## Context
 The CI webhook gateway is **live** on Talos (oya-ci namespace; `/healthz` ok;
-listening on `/webhook/forgejo`; HMAC fail-closed). Forgejo + Jenkins are also up
+listening on `/webhook/github`; HMAC fail-closed). GitHub + Jenkins are also up
 on Talos. But the Jenkins on Talos is a **base install** — `configuration-as-code`
 + `workflow-job` only, no generic-webhook-trigger plugin, no `oyaCiLane` shared
-library, no gated job, no `forgejo-ci-token` credential. The ADR-0359/R1–R5
+library, no gated job, no `github-ci-token` credential. The ADR-0359/R1–R5
 Jenkins CI configuration was provisioned on the **colima farm**, which was
 retired (ADR-0378); none of that configuration carried over.
 
@@ -188,7 +188,7 @@ Sequence the re-establishment into five deliverables (D1–D5):
    error-on-conflict means the existing oya-ci-farm cloud config must not be
    re-declared in any new configScript block. (Amendment 2026-05-28: gitea plugin
    intentionally NOT installed — brand-correct + unnecessary given the gateway-
-   front-door design; status posting uses http_request + Forgejo API directly.)
+   front-door design; status posting uses http_request + GitHub API directly.)
 2. **D2**: Redesign agent pods for Talos — **drop SeaweedFS sccache** (no
    cache substrate until SeaweedFS-on-Talos is restored per ADR-0349 — Oyatie's
    own S3-API-compatible object store, never AWS S3), **drop the hostPath mount**
@@ -198,14 +198,14 @@ Sequence the re-establishment into five deliverables (D1–D5):
    gate, not a fast one.
 3. **D3**: Author the gated pipeline job (JCasC `configScripts.oya-ci-gate`)
    that the gateway dispatches via Generic Webhook Trigger, runs
-   `oya gate run-all`, and posts Forgejo commit-status (the 14 contexts in
+   `oya gate run-all`, and posts GitHub commit-status (the 14 contexts in
    `infra/ci/jenkins/reported-status-contexts.json`). Inline pipeline is
    acceptable; the oyaCiLane shared library is optional/deferred.
-4. **D4**: Mint a Forgejo CI access token (via the in-pod `forgejo admin
-   user generate-access-token` CLI), store as the `forgejo-ci-token` k8s Secret,
-   register the Forgejo webhook → the gateway URL with the matching HMAC secret
+4. **D4**: Mint a GitHub CI access token (via the in-pod `github admin
+   user generate-access-token` CLI), store as the `github-ci-token` k8s Secret,
+   register the GitHub webhook → the gateway URL with the matching HMAC secret
    already in `oya-ci/ci-webhook-gateway-secret`.
-5. **D5**: Cutover — a real PR cycle posts commit-status, Forgejo auto-merges
+5. **D5**: Cutover — a real PR cycle posts commit-status, GitHub auto-merges
    on green, the admin-merge seam is retired.
 
 The **CI gateway** (ADR-0374, PR #233) is the front door and stays. The
@@ -213,7 +213,7 @@ gateway's HMAC fail-closed verification is the security boundary; Jenkins
 inside the cluster trusts the gateway's verified dispatch.
 
 ## Rejected alternatives
-- **Skip the gateway, register Forgejo webhook directly at Jenkins Generic
+- **Skip the gateway, register GitHub webhook directly at Jenkins Generic
   Webhook Trigger URL** — rejected: forgoes HMAC fail-closed verification +
   PR-against-dev filtering. The gateway exists, is live, and is the proper
   front door (ADR-0374).
@@ -240,12 +240,12 @@ inside the cluster trusts the gateway's verified dispatch.
 
 ## Verification
 Per-deliverable `verified_by`. The terminal acceptance is a real PR cycle that
-produces Forgejo commit-status entries within minutes and merges on green
+produces GitHub commit-status entries within minutes and merges on green
 without `--admin`.
 
 ## References
 ADR-0374 (CI webhook gateway), ADR-0378 (Talos canonical substrate), ADR-0379
-(Kubewarden default), ADR-0363 (git + Jenkins + Forgejo substrate), ADR-0349
+(Kubewarden default), ADR-0363 (git + Jenkins + GitHub substrate), ADR-0349
 (CI farm, on retired colima — superseded for Talos by this ADR), ADR-0359/
 0361 (Jenkins CI revamp, plugin set), ADR-0148 (Cilium + Istio Ambient,
 the network plane for Jenkins agents). Repo: `infra/ci/jenkins/values-local.yaml`

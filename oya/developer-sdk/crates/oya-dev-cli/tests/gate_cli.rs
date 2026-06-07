@@ -1057,6 +1057,61 @@ fn brand_residue_gate_rejects_tautological_retired_term_rows() {
 }
 
 #[test]
+fn brand_residue_gate_rejects_forbidden_forgejo_token_in_live_doc() {
+    let temp = temp_dir("brand-residue-forgejo");
+    write_brand_residue_file(
+        &temp,
+        "docs/ci/forge.md",
+        "# CI\n\nSelf-hosted Forgejo PRs gate merges.\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(brand_residue_args(&temp))
+        .output()
+        .expect("brand residue gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("ForbiddenBrandToken"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn brand_residue_gate_excludes_superseded_adr_history() {
+    let temp = temp_dir("brand-residue-superseded-adr");
+    // Live doc keeps the gate non-empty; the Superseded ADR retains a retired
+    // brand token in its immutable history and must be excluded, not rewritten.
+    write_brand_residue_file(
+        &temp,
+        "docs/GLOSSARY.md",
+        "# Glossary\n\nOyatie is the product brand.\n",
+    );
+    write_brand_residue_file(
+        &temp,
+        "docs/decisions/ADR-0511-ci-orchestration.md",
+        "---\nid: ADR-0511\nstatus: Superseded\nsuperseded_by: [ADR-0515]\n---\n\n# ADR-0511\n\nForgejo Commit Status remained the gate-result sink before the cutover.\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(brand_residue_args(&temp))
+        .output()
+        .expect("brand residue gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn api_semver_gate_accepts_bootstrap_without_contracts() {
     let temp = temp_dir("api-semver-empty");
 

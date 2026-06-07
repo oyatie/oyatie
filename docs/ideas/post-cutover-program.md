@@ -15,8 +15,8 @@ checks. Both facts point the same way: **make the substrate real, then write cod
 
 ## Recommended Direction (execute in order, after PR-1/2/3)
 
-**T1 — Substrate-realization (kill the admin-merge seam).** Stand up self-hosted Forgejo on the k3s
-farm; wire Jenkins → Forgejo Commit Status API; prove the required checks post green against a
+**T1 — Substrate-realization (kill the admin-merge seam).** Stand up GitHub (interim) on the k3s
+farm; wire Jenkins → GitHub Commit Status API; prove the required checks post green against a
 **mirror** first; *then* flip primary off GitHub (ADR-0247 post-bootstrap). The cutover is the last,
 deliberate, reversible step — never flip the host before checks demonstrably post green. Exit: a
 reviewed PR merges on green checks alone, no admin override.
@@ -45,19 +45,19 @@ not the first deliverable.
 ## Key Assumptions to Validate
 - [ ] The 272 identity design files are *consistent enough* to implement from without a re-spec pass
       — validate by extracting the principal/authz-gate contract from the IP-journeys before coding.
-- [ ] Jenkins can post Forgejo commit-statuses with the existing shared-library lane — validate
-      against a Forgejo mirror before any host flip.
+- [ ] Jenkins can post GitHub commit-statuses with the existing shared-library lane — validate
+      against a GitHub mirror before any host flip.
 - [ ] Colocating crates won't break the 999-edge architecture-boundaries graph — validate by moving
       one crate + its catalog record first, gate, then bulk-move.
 - [ ] `specs/tenant-model.json` already defines the `oyatie:` self-tenant principal shape — validate
       it covers workload (service) principals, not just human/customer tenants.
 
 ## Minimum scope (the first proof)
-**In:** Forgejo + Jenkins commit-status (T1); intelligence crate colocation (T2); `oya-identity-*`
+**In:** GitHub + Jenkins commit-status (T1); intelligence crate colocation (T2); `oya-identity-*`
 OIDC issuer/verifier + principal + Cedar authz-gate; one deployed service-to-service authenticated
 token exchange with audit evidence.
 **Out:** SCIM, SAML, passkeys, step-up auth, account recovery, human-facing login UI, multi-region,
-the full GitHub→Forgejo data migration (deferred to its own deliberate cutover after commit-status
+the full GitHub→GitHub data migration (deferred to its own deliberate cutover after commit-status
 is proven).
 
 ## Not Doing (and Why)

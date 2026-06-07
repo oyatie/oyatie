@@ -50,7 +50,7 @@ when {
 // PERMIT 2 — tenant operator writes own OpenSLO manifests via PR (read-only here)
 // =============================================================================
 //
-// OpenSLO authoring happens via git PR (covered by Jenkins/Forgejo required checks);
+// OpenSLO authoring happens via git PR (covered by Jenkins/GitHub required checks);
 // at the policy layer, tenant operators only have read access to their manifests.
 // Slice D's docs/standards/observability-slo.md governs the write path.
 

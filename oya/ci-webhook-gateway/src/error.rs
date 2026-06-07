@@ -35,7 +35,7 @@ pub enum PipelineStage {
 
 impl PipelineStage {
     /// Stable kebab-case identifier (matches the placeholder-debt token and
-    /// the Forgejo commit-status context where one is posted).
+    /// the GitHub commit-status context where one is posted).
     pub const fn id(self) -> &'static str {
         match self {
             PipelineStage::Admission => "oya-vcs-admission",
@@ -55,7 +55,7 @@ impl fmt::Display for PipelineStage {
 
 #[derive(Debug)]
 pub enum GatewayError {
-    /// The `X-Hub-Signature-256` (Forgejo HMAC) header was absent. Fail closed.
+    /// The `X-Hub-Signature-256` (GitHub HMAC) header was absent. Fail closed.
     MissingSignature,
     /// The HMAC signature header was malformed (not `sha256=<hex>`). Fail closed.
     MalformedSignature,
@@ -93,7 +93,7 @@ impl GatewayError {
             GatewayError::SecretUnavailable => 503,
             GatewayError::MalformedPayload(_) => 400,
             // Unroutable but authentic: accept-and-ignore semantics use 422 so
-            // Forgejo does not infinitely redeliver an event we will never act on.
+            // GitHub does not infinitely redeliver an event we will never act on.
             GatewayError::UnroutableEvent { .. } => 422,
             // Explicit not-built boundary.
             GatewayError::Unimplemented { .. } => 501,

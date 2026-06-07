@@ -21,7 +21,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -433,6 +433,207 @@ pub fn build_enforcement_inventory(inputs: &EnforcementInputs) -> Result<Value, 
     Ok(Value::Object(root))
 }
 
+// ---------------------------------------------------------------------------
+// Fifth face: gate-baseline.generated.json (the GO-LIVE readiness ratchet)
+// ---------------------------------------------------------------------------
+
+/// The go-live disposition table (DATA, not code): per (gate, code) it carries the mode,
+/// the infra_prereq, and the frozen_empty flag. Flipping advisory-until-infra to
+/// baseline-block-on-new is a DATA edit here, never a code change.
+pub const GATE_DISPOSITION_JSON: &str = include_str!("gate-disposition.json");
+
+/// The buck2 target that runs the firewall ratchet — recorded in the baseline `_provenance`.
+pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:cloud-ci-firewall";
+
+/// The four firewall gate ids, in canonical (baseline) order.
+pub const GATE_IDS: [&str; 4] = [
+    "cloud-ci-total-accounting",
+    "cloud-ci-cross-artifact-agreement",
+    "cloud-ci-automation-ratchet",
+    "cloud-ci-staleness-reaper",
+];
+
+/// The four live gate-input faces the baseline is captured over. Each is the exact
+/// `Value` shape that the matching gate's `evaluate_keyed` consumes:
+/// - `total_accounting`: the accounting registry (`rows` with path/owner/justification/…)
+/// - `cross_artifact`: the decision crosswalk (`decisions`/`duplicate_ids`/`generated_face_axes`)
+/// - `automation_ratchet`: the automation matrix (`rows`) joined with the enforcement face
+/// - `staleness`: the registry rows aged with `age_days` (the binary supplies the aging)
+pub struct GateInputs<'a> {
+    pub total_accounting: &'a Value,
+    pub cross_artifact: &'a Value,
+    pub automation_ratchet: &'a Value,
+    pub staleness: &'a Value,
+}
+
+/// Run the matching gate's pure `evaluate_keyed` over each live face and group the keys
+/// per (gate, code). Returns `gate_id -> code -> sorted+deduped keys` (BTreeMaps/BTreeSets
+/// keep it deterministic so committed==regenerated holds byte-for-byte).
+fn current_keys_per_gate(
+    inputs: &GateInputs<'_>,
+) -> BTreeMap<&'static str, BTreeMap<String, BTreeSet<String>>> {
+    let mut out: BTreeMap<&'static str, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
+
+    out.insert(
+        "cloud-ci-total-accounting",
+        group_findings(
+            total_accounting::evaluate_keyed(inputs.total_accounting)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+    );
+    out.insert(
+        "cloud-ci-cross-artifact-agreement",
+        group_findings(
+            cross_artifact_agreement::evaluate_keyed(inputs.cross_artifact)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+    );
+    out.insert(
+        "cloud-ci-automation-ratchet",
+        group_findings(
+            automation_ratchet::evaluate_keyed(inputs.automation_ratchet)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+    );
+    out.insert(
+        "cloud-ci-staleness-reaper",
+        group_findings(
+            staleness_reaper::evaluate_keyed(inputs.staleness)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+    );
+    out
+}
+
+/// Group `(code, key)` pairs into `code -> sorted+deduped keys`.
+fn group_findings<I>(findings: I) -> BTreeMap<String, BTreeSet<String>>
+where
+    I: IntoIterator<Item = (String, String)>,
+{
+    let mut map: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for (code, key) in findings {
+        map.entry(code).or_default().insert(key);
+    }
+    map
+}
+
+/// Build the GATE go-live baseline face (`gate-baseline.generated.json`). For every
+/// (gate, code) in the disposition table it stamps `mode`/`infra_prereq`/`frozen_empty`
+/// (DATA) and freezes the CURRENT keys captured by `evaluate_keyed` over the live faces.
+/// Pure + deterministic: keys go through BTreeSet, faces are id/path-sorted upstream, so
+/// committed==regenerated holds byte-for-byte and the registry-drift gate can byte-diff it.
+///
+/// The ratchet contract: a key only enters a baseline by being a CURRENT violation today
+/// (auto-shrink drops fixed keys on regen); GROWTH beyond the committed baseline is a
+/// `ratchet_regression` caught by the cloud-ci-firewall runner, not by this builder.
+pub fn build_gate_baseline(inputs: &GateInputs<'_>) -> Result<Value, ProducerError> {
+    let disposition: Value = serde_json::from_str(GATE_DISPOSITION_JSON)
+        .map_err(|e| ProducerError::Policy(format!("gate-disposition.json: {e}")))?;
+    let disp_gates = disposition
+        .get("gates")
+        .and_then(Value::as_object)
+        .ok_or_else(|| ProducerError::Policy("gate-disposition.json missing 'gates'".into()))?;
+
+    let current = current_keys_per_gate(inputs);
+
+    // Canonical-key digest input: collect every "<gate>\x1f<code>\x1f<key>" line, sorted.
+    let mut digest_lines: BTreeSet<String> = BTreeSet::new();
+
+    let mut gates_obj = Map::new();
+    for gate in GATE_IDS {
+        let disp_codes = disp_gates
+            .get(gate)
+            .and_then(Value::as_object)
+            .ok_or_else(|| ProducerError::Policy(format!("disposition missing gate {gate}")))?;
+        let empty = BTreeMap::new();
+        let gate_current = current.get(gate).unwrap_or(&empty);
+
+        let mut code_obj = Map::new();
+        for (code, disp) in disp_codes {
+            let mode = disp
+                .get("mode")
+                .and_then(Value::as_str)
+                .unwrap_or("baseline-block-on-new");
+            let frozen_empty = disp.get("frozen_empty").and_then(Value::as_bool) == Some(true);
+            let infra_prereq = disp.get("infra_prereq").and_then(Value::as_str);
+
+            // frozen_empty codes never accumulate a baseline — their keys are forced empty
+            // (the emptiness is DATA; any occurrence is NEW debt for the runner to block).
+            let keys: Vec<Value> = if frozen_empty {
+                Vec::new()
+            } else {
+                gate_current
+                    .get(code)
+                    .map(|set| set.iter().cloned().map(Value::String).collect())
+                    .unwrap_or_default()
+            };
+
+            for key in &keys {
+                if let Value::String(k) = key {
+                    digest_lines.insert(format!("{gate}\u{1f}{code}\u{1f}{k}"));
+                }
+            }
+
+            let mut entry = Map::new();
+            entry.insert("mode".into(), Value::String(mode.to_owned()));
+            if let Some(prereq) = infra_prereq {
+                entry.insert("infra_prereq".into(), Value::String(prereq.to_owned()));
+            }
+            entry.insert("keys".into(), Value::Array(keys));
+            if frozen_empty {
+                entry.insert("frozen_empty".into(), Value::Bool(true));
+            }
+            code_obj.insert(code.clone(), Value::Object(entry));
+        }
+        gates_obj.insert(gate.to_owned(), Value::Object(code_obj));
+    }
+
+    let digest_input: Vec<&str> = digest_lines.iter().map(String::as_str).collect();
+    let source_inputs_digest = digest_strings(&digest_input);
+
+    let mut root = Map::new();
+    root.insert(
+        "_comment".into(),
+        Value::String(
+            "GENERATED by accounting-registry-producer (--face baseline). DO NOT HAND-EDIT \
+             except via the sign-off door (gate-baseline.signoff.json). committed==regenerated \
+             (registry-drift byte-diffs it); a hand-edit to launder debt is itself registry_drift RED."
+                .into(),
+        ),
+    );
+    root.insert(
+        "_provenance".into(),
+        serde_json::json!({
+            "producer_target": PRODUCER_TARGET,
+            "firewall_target": FIREWALL_TARGET,
+            "baseline_schema_version": 1,
+            "source_inputs_digest": source_inputs_digest,
+        }),
+    );
+    root.insert("gates".into(), Value::Object(gates_obj));
+    Ok(Value::Object(root))
+}
+
+/// FNV-1a 64-bit digest over the canonical baseline keys (one "<gate>\x1f<code>\x1f<key>"
+/// line per accepted key, sorted). Reuses the same hash family as `digest_rows` so the
+/// baseline carries a content digest without a wall-clock (committed==regenerated).
+fn digest_strings(lines: &[&str]) -> String {
+    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+    for line in lines {
+        for byte in line.as_bytes() {
+            hash ^= u64::from(*byte);
+            hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+        hash ^= u64::from(b'\n');
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("fnv1a64:{hash:016x}")
+}
+
 /// Serialize a face to the canonical on-disk form: 2-space pretty + trailing newline.
 /// Identical formatting on every run keeps committed==regenerated byte-exact.
 pub fn to_canonical_json(value: &Value) -> Result<String, ProducerError> {
@@ -514,6 +715,60 @@ mod tests {
             .expect("orphan row");
         // no owner + no justification + no reachability ⇒ RED
         assert_eq!(orphan["verdict"], "RED");
+    }
+
+    #[test]
+    fn gate_baseline_freezes_current_keys_and_stamps_disposition() {
+        // total-accounting: one row with an unowned + unjustified + unreachable + no_ttl_class
+        // exhibit; cross-artifact: a dual id; the others empty.
+        let registry = serde_json::json!({"rows": [
+            {"path": "oya/x/lib.rs", "owner": null, "justification_ref": null,
+             "reachable_from": [], "ttl": {}}
+        ]});
+        let crosswalk = serde_json::json!({"decisions": [], "duplicate_ids": ["ADR-0377"]});
+        let automation = serde_json::json!({"rows": []});
+        let staleness = serde_json::json!({"rows": []});
+        let inputs = GateInputs {
+            total_accounting: &registry,
+            cross_artifact: &crosswalk,
+            automation_ratchet: &automation,
+            staleness: &staleness,
+        };
+        let baseline = build_gate_baseline(&inputs).expect("baseline");
+        let ta = &baseline["gates"]["cloud-ci-total-accounting"];
+
+        // unjustified is baseline-block-on-new and freezes the live key (the row path).
+        assert_eq!(ta["unjustified"]["mode"], "baseline-block-on-new");
+        assert_eq!(ta["unjustified"]["keys"][0], "oya/x/lib.rs");
+        // unowned is advisory-until-infra and STILL freezes the key (advisory reports, the
+        // runner just never fails on it until the disposition flips).
+        assert_eq!(ta["unowned"]["mode"], "advisory-until-infra");
+        assert_eq!(ta["unowned"]["infra_prereq"], "owners-files-tree-wide");
+        // registry_drift is frozen_empty: never accumulates a key even if one were present.
+        assert_eq!(ta["registry_drift"]["frozen_empty"], true);
+        assert_eq!(ta["registry_drift"]["keys"].as_array().unwrap().len(), 0);
+
+        let xa = &baseline["gates"]["cloud-ci-cross-artifact-agreement"];
+        assert_eq!(xa["dual_decision_collision"]["keys"][0], "ADR-0377");
+    }
+
+    #[test]
+    fn gate_baseline_is_idempotent_byte_for_byte() {
+        let registry = serde_json::json!({"rows": []});
+        let crosswalk = serde_json::json!({"decisions": []});
+        let automation = serde_json::json!({"rows": []});
+        let staleness = serde_json::json!({"rows": []});
+        let inputs = GateInputs {
+            total_accounting: &registry,
+            cross_artifact: &crosswalk,
+            automation_ratchet: &automation,
+            staleness: &staleness,
+        };
+        let a = to_canonical_json(&build_gate_baseline(&inputs).expect("a")).expect("ja");
+        let b = to_canonical_json(&build_gate_baseline(&inputs).expect("b")).expect("jb");
+        assert_eq!(a, b, "baseline must be byte-deterministic");
+        assert!(a.contains("source_inputs_digest"));
+        assert!(!a.contains("generated_at"), "no wall-clock in the baseline face");
     }
 
     #[test]

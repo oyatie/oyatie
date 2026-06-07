@@ -3,17 +3,17 @@
 //! axum application library for the CI webhook gateway (ADR-0387).
 //!
 //! Exposes:
-//! - `POST /webhook/forgejo` — full pipeline handler
+//! - `POST /webhook/github` — full pipeline handler
 //! - `GET  /healthz`         — liveness probe
 //! - `GET  /metrics`         — metrics stub (Prometheus format, Stage-8 wires OTel)
 //!
 //! ## Handler pipeline
 //!
-//! 1. Extract `X-Forgejo-Signature-256`, `X-Forgejo-Event`, `X-Forgejo-Delivery`,
-//!    `X-Forgejo-Timestamp` headers.
+//! 1. Extract `X-GitHub-Signature-256`, `X-GitHub-Event`, `X-GitHub-Delivery`,
+//!    `X-GitHub-Timestamp` headers.
 //! 2. ed25519 verify raw body bytes.
 //! 3. Cedar authz gate.
-//! 4. `route_forgejo_event` → `CiTriggerEvent`.
+//! 4. `route_github_event` → `CiTriggerEvent`.
 //! 4.5. Replay guard: check + record the delivery key (after verify+authz+route, before Step 5). A replay within the TTL short-circuits with a benign 200 idempotent ack; no second Jenkins kickoff.
 //! 5. Jenkins `trigger` → `JenkinsJob`.
 //! 6. GitHub `post_all` pending statuses.
@@ -39,7 +39,7 @@ use axum::{
 };
 use oya_ci_webhook_gateway_kernel::{
     CommitStatusPoster, JenkinsClient, RouteOutcome, SignatureVerifier, WebhookAuthzGate,
-    WebhookAuthzRequest, WebhookSignature, route_forgejo_event,
+    WebhookAuthzRequest, WebhookSignature, route_github_event,
 };
 use replay::{DeliveryGuard, DeliveryKey, Verdict};
 use std::sync::{Arc, Mutex};
@@ -66,7 +66,7 @@ pub struct AppState {
 /// Build the axum [`Router`] with all routes and shared state.
 pub fn build_router(state: AppState) -> Router {
     Router::new()
-        .route("/webhook/forgejo", post(handle_forgejo_webhook))
+        .route("/webhook/github", post(handle_github_webhook))
         .route("/healthz", get(handle_healthz))
         .route("/metrics", get(handle_metrics))
         .with_state(state)
@@ -86,7 +86,7 @@ async fn handle_metrics() -> impl IntoResponse {
     )
 }
 
-/// `POST /webhook/forgejo` — main webhook handler.
+/// `POST /webhook/github` — main webhook handler.
 ///
 /// Returns:
 /// - `202 Accepted` on a routable event that was dispatched to Jenkins.
@@ -94,20 +94,20 @@ async fn handle_metrics() -> impl IntoResponse {
 /// - `400 Bad Request` on signature / payload errors.
 /// - `403 Forbidden` on Cedar authz denial.
 /// - `502 Bad Gateway` on Jenkins / GitHub downstream failures.
-async fn handle_forgejo_webhook(
+async fn handle_github_webhook(
     State(state): State<AppState>,
     headers: HeaderMap,
     body: Bytes,
 ) -> impl IntoResponse {
-    let delivery_id = header_str(&headers, "x-forgejo-delivery").unwrap_or("unknown");
-    let event_type = header_str(&headers, "x-forgejo-event").unwrap_or("");
+    let delivery_id = header_str(&headers, "x-github-delivery").unwrap_or("unknown");
+    let event_type = header_str(&headers, "x-github-event").unwrap_or("");
     let source_ip = header_str(&headers, "x-real-ip")
         .or_else(|| header_str(&headers, "x-forwarded-for"))
         .unwrap_or("0.0.0.0");
 
     // Step 1 — extract signature.
     let sig_header = match header_str(&headers, "x-hub-signature-256")
-        .or_else(|| header_str(&headers, "x-forgejo-signature"))
+        .or_else(|| header_str(&headers, "x-github-signature"))
     {
         Some(h) => h.to_owned(),
         None => {
@@ -129,7 +129,7 @@ async fn handle_forgejo_webhook(
     };
 
     let timestamp_s =
-        header_str(&headers, "x-forgejo-timestamp").and_then(|v| v.parse::<u64>().ok());
+        header_str(&headers, "x-github-timestamp").and_then(|v| v.parse::<u64>().ok());
 
     // Step 2 — ed25519 verify (raw bytes, before JSON parse).
     if let Err(e) = state.verifier.verify(&body, &signature, timestamp_s) {
@@ -153,7 +153,7 @@ async fn handle_forgejo_webhook(
     }
 
     // Step 4 — route event.
-    let outcome = match route_forgejo_event(event_type, &body, delivery_id, &state.target_branch) {
+    let outcome = match route_github_event(event_type, &body, delivery_id, &state.target_branch) {
         Ok(o) => o,
         Err(e) => {
             warn!(delivery_id, error = %e, "event routing failed");

@@ -32,7 +32,7 @@ fn now_unix_s() -> u64 {
 fn valid_signature_passes() {
     let key = make_key();
     let verifier = Ed25519Verifier::new(key.verifying_key());
-    let body = b"hello forgejo";
+    let body = b"hello github";
     let sig = sign(&key, body);
 
     assert!(
@@ -48,7 +48,7 @@ fn wrong_signature_rejected() {
     let key2 = make_key();
     // verifier holds key1's public key but body is signed by key2
     let verifier = Ed25519Verifier::new(key1.verifying_key());
-    let body = b"hello forgejo";
+    let body = b"hello github";
     let sig = sign(&key2, body);
 
     assert_eq!(

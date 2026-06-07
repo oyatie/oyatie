@@ -1,0 +1,8 @@
+{
+  "_comment": "THE ONE-WAY DOOR. This is the ONLY human-edited, founder-signed file in the firewall ratchet — it is NOT producer-generated and is NOT byte-diffed by registry-drift. It is the sole exemption to the ratchet GROWTH check: a key listed under _sign_off_additions[gate][code] is exempted, for ONE regen, from the rule that the baseline may only shrink. Growing tolerated debt requires an explicit signed decision here, never a silent producer re-run (founder one-way-door / verify-each-step rule). Keep this tiny and audited. EMPTY = the ratchet is fully closed: the baseline can only shrink.",
+  "_provenance": {
+    "authority": "founder sign-off (door:one-way)",
+    "signoff_schema_version": 1
+  },
+  "_sign_off_additions": {}
+}

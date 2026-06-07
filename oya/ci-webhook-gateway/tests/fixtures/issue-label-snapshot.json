@@ -9,7 +9,7 @@
       { "name": "masterplan:IP-108" },
       { "name": "sync-state:ready" }
     ],
-    "html_url": "https://forgejo.example/owner/repo/issues/108"
+    "html_url": "https://github.example/owner/repo/issues/108"
   },
   "repository": { "full_name": "owner/repo" }
 }

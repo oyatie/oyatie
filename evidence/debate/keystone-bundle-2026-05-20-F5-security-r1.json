@@ -345,7 +345,7 @@
       "title": "Tier-0 external dependencies (DNS, Git host, container registry) under nation-state legal process",
       "primary_adr": "ADR-0247",
       "details": "GitHub/Cloudflare DNS/ECR are US-jurisdiction. A US legal process can compel them. The platform's bootstrap depends on these.",
-      "mitigations_required": ["redundant Tier-0 in non-aligned jurisdiction (e.g., Forgejo on EU-sovereign infrastructure + secondary registry)", "platform-mode 'sovereign-mode' that bootstraps without US-jurisdiction dependencies"]
+      "mitigations_required": ["redundant Tier-0 in non-aligned jurisdiction (e.g., GitHub on EU-sovereign infrastructure + secondary registry)", "platform-mode 'sovereign-mode' that bootstraps without US-jurisdiction dependencies"]
     },
     {
       "id": "ASC-05",

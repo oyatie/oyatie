@@ -24,7 +24,7 @@ New Jenkins/`oya gate` CI lane that reads Mimir recording-rule `oya:all_eligible
 | Path | Action |
 |---|---|
 | `crates/oya-dev-cli/src/commands/gate/governance_promotion_readiness.rs` | create — new subcommand |
-| Jenkins/Forgejo required-check configuration | create — required check that invokes the subcommand |
+| Jenkins/GitHub required-check configuration | create — required check that invokes the subcommand |
 | `microservices/observability/tests/integration/promotion_readiness_lane.rs` | create |
 
 ## Code Shape

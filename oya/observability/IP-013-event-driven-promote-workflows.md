@@ -25,7 +25,7 @@ Rewrite promotion pipeline jobs to consume signed `eligibility-changed` events. 
 |---|---|
 | Jenkins promotion job: dev → staging | update — consume signed `eligibility-changed` events; retain `schedule` as fallback; remove FUTURE notes |
 | Jenkins promotion job: staging → production | update — analogous |
-| Jenkins/Forgejo required check `oya-governance-promotion-readiness` | already created by IP-012 |
+| Jenkins/GitHub required check `oya-governance-promotion-readiness` | already created by IP-012 |
 
 ## Code Shape
 

@@ -2,18 +2,18 @@
   "$schema": "https://docs.oyatie.com/specs/multispectrum-review.json#evidence_schema",
   "change_class_id": "CC-7_test_or_fixture",
   "change_id": "oyaci-week-2026-06-01-task-4-1780278929",
-  "change_summary": "Lane D captured the Monday 2026-06-01 oya-ci parallel-lane verification baseline and emitted single-writer governance evidence for Forgejo-native CI/tide/controller work without mutating implementation lanes.",
+  "change_summary": "Lane D captured the Monday 2026-06-01 oya-ci parallel-lane verification baseline and emitted single-writer governance evidence for GitHub-native CI/tide/controller work without mutating implementation lanes.",
   "coordination": {
     "handoffs_boundaries_checked": [
       "Lane A owns oya/ci-tide/**; Lane D read-only verified targets only.",
       "Lane B owns oya/ci-controller/** including iac; Lane D did not format or patch their source drift.",
-      "Lane C owns infra/forge/** and Forgejo runbooks; Lane D did not inspect tokens or mutate infra.",
+      "Lane C owns infra/forge/** and GitHub runbooks; Lane D did not inspect tokens or mutate infra.",
       "Lane D owns evidence/multispectrum/** and .omx/verification/** as single writer."
     ],
     "leader_ack": "ACK-readback sent after claim with Lane D scope and no .omx/ultragoal mutation commitment.",
     "protocol": "coordinated"
   },
-  "decision_log_row": "Lane D refreshed final evidence from the integrated leader verification log, superseding old rustfmt drift while preserving ring/Forgejo blockers.",
+  "decision_log_row": "Lane D refreshed final evidence from the integrated leader verification log, superseding old rustfmt drift while preserving ring/GitHub blockers.",
   "facets": {
     "A1_naming": {
       "considered": true,
@@ -143,7 +143,7 @@
     "F9_compliance": {
       "considered": true,
       "findings": [
-        "Plan constraints explicitly recorded: Forgejo-only, Rust 1.96, Buck2 verification, no oya git/vcs, no Jenkins cutover, no worker .omx/ultragoal mutation."
+        "Plan constraints explicitly recorded: GitHub-only, Rust 1.96, Buck2 verification, no oya git/vcs, no Jenkins cutover, no worker .omx/ultragoal mutation."
       ]
     },
     "M1_challenge_assumption": {
@@ -180,18 +180,18 @@
     ]
   },
   "known_gaps": [
-    "No Forgejo PR opened by Lane D; evidence-only commit prepared locally for leader integration.",
+    "No GitHub PR opened by Lane D; evidence-only commit prepared locally for leader integration.",
     "Audit-chain append not performed because evidence/audit-chain.jsonl is outside stated Lane D write scope.",
     "Full adapter/app Buck2 check/clippy blocked by local ring buildscript failure.",
     "Full adapter/app Buck2 test/check/clippy remains blocked by third-party ring buildscript on local aarch64 macOS per leader integrated verification log.",
-    "Forgejo PR/push not opened because only GitHub origin is configured in clean leader worktree and Forgejo remote/API/token path is unavailable; GitHub PR/merge remains forbidden.",
+    "GitHub PR/push not opened because only GitHub origin is configured in clean leader worktree and GitHub remote/API/token path is unavailable; GitHub PR/merge remains forbidden.",
     "Worker-2 task JSON result is stale relative to integrated tree: dev-only /gate-run behavior and tests are present; empty audit commit 28c5bd20c was not required for tree integration."
   ],
   "leader_addenda": [
     {
       "active_blockers": [
         "third-party ring buildscript blocks app/adapter Buck2 gates",
-        "Forgejo remote/API/token path not configured; no Forgejo PR/push opened"
+        "GitHub remote/API/token path not configured; no GitHub PR/push opened"
       ],
       "checks": [
         {
@@ -225,8 +225,8 @@
           "status": "blocked"
         },
         {
-          "command": "Forgejo PR/push via plain git + Forgejo",
-          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; Forgejo remote/API/token path not configured; GitHub PR/merge intentionally not used.",
+          "command": "GitHub PR/push via plain git + GitHub",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; GitHub remote/API/token path not configured; GitHub PR/merge intentionally not used.",
           "status": "blocked"
         }
       ],
@@ -262,7 +262,7 @@
       "scripts/evidence-secret-scan.sh evidence/multispectrum/oyaci-week-2026-06-01-task-4-1780278929.json .omx/verification/2026-06-01-lane-d/verification-notes.json",
       "RUSTUP_TOOLCHAIN=1.96.0 buck2 test //oya/ci-tide/crates/oya-ci-tide-kernel:oya-ci-tide-kernel-tests //oya/ci-controller/crates/oya-ci-controller-kernel:oya-ci-controller-kernel-tests",
       "RUSTUP_TOOLCHAIN=1.96.0 buck2 test/build check/clippy affected app/adapter envelope",
-      "Forgejo PR/push via plain git + Forgejo"
+      "GitHub PR/push via plain git + GitHub"
     ],
     "logs": [
       "/tmp/worker4-preflight.log",
@@ -366,8 +366,8 @@
       "status": "blocked"
     },
     {
-      "command": "Forgejo PR/push via plain git + Forgejo",
-      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; Forgejo remote/API/token path not configured; GitHub PR/merge intentionally not used.",
+      "command": "GitHub PR/push via plain git + GitHub",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; GitHub remote/API/token path not configured; GitHub PR/merge intentionally not used.",
       "status": "blocked"
     }
   ]

@@ -486,14 +486,14 @@
       "license": "proprietary (vendor SaaS)",
       "steward": "GitHub / Microsoft",
       "adoption_rationale": "CI runtime; ADR-0050 automation-first pipeline; ADR-0123 onprem-tooling-paired.",
-      "replacement_path": "self-hosted Forgejo Actions OR Woodpecker CI on private Kubernetes",
-      "replacement_readiness_gate": "private-cloud Kubernetes cluster runs Forgejo + runners + cosign chain dogfooded on a non-critical lane for >=90d with parity to GitHub Actions cache + matrix + reusable workflows",
-      "seam_adapter_trait": ".github/workflows/*.yml (portable to Forgejo Actions syntax; workflows author against vanilla actions where possible)",
+      "replacement_path": "GitHub (interim) Actions OR Woodpecker CI on private Kubernetes",
+      "replacement_readiness_gate": "private-cloud Kubernetes cluster runs GitHub + runners + cosign chain dogfooded on a non-critical lane for >=90d with parity to GitHub Actions cache + matrix + reusable workflows",
+      "seam_adapter_trait": ".github/workflows/*.yml (portable to GitHub Actions syntax; workflows author against vanilla actions where possible)",
       "seam_adapter_impls": [
         ".github/workflows/* (GitHub Actions impl)",
-        "infra/ci/forgejo-runners/* (planned)"
+        "infra/ci/github-runners/* (planned)"
       ],
-      "phase_out_target_date_or_signal": "signal: Foundry VCS substrate (ADR-0113) + Forgejo runners reach parity"
+      "phase_out_target_date_or_signal": "signal: Foundry VCS substrate (ADR-0113) + GitHub runners reach parity"
     },
     {
       "name": "github-vcs-and-pr-platform",
@@ -501,14 +501,14 @@
       "license": "proprietary (vendor SaaS)",
       "steward": "GitHub / Microsoft",
       "adoption_rationale": "Code hosting + PR + issues + reviews substrate today. ADR-0116 retired external agent-coordination tooling; ADR-0113 Foundry VCS substrate is the long-term replacement.",
-      "replacement_path": "self-hosted Forgejo + Foundry VCS substrate (ADR-0113)",
-      "replacement_readiness_gate": "Foundry VCS substrate reaches release-pointer parity (merge queue + admission gates + reviewer-agent integration) on a private Forgejo cell",
+      "replacement_path": "GitHub (interim) + Foundry VCS substrate (ADR-0113)",
+      "replacement_readiness_gate": "Foundry VCS substrate reaches release-pointer parity (merge queue + admission gates + reviewer-agent integration) on a private GitHub cell",
       "seam_adapter_trait": "agent-coordination surface = Foundry pipeline (already abstracted per CLAUDE.md), not raw GitHub APIs",
       "seam_adapter_impls": [
         "GitHub (current impl)",
-        "Forgejo (planned per ADR-0113)"
+        "GitHub (planned per ADR-0113)"
       ],
-      "phase_out_target_date_or_signal": "signal: Foundry VCS substrate stable on Forgejo"
+      "phase_out_target_date_or_signal": "signal: Foundry VCS substrate stable on GitHub"
     },
     {
       "name": "cloudflare-cdn",

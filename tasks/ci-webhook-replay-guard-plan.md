@@ -56,7 +56,7 @@ if Step 5 fails. Documented trade-off; not a correctness guarantee.
 The pipeline is Steps 1-8 (not 1-5). The guard sits at **Step 4.5**:
 - AFTER Step 2 (ed25519 verify)
 - AFTER Step 3 (Cedar authz gate) — guard state is never mutated before authz
-- AFTER Step 4 (`route_forgejo_event` → `RouteOutcome::Trigger(event)`)
+- AFTER Step 4 (`route_github_event` → `RouteOutcome::Trigger(event)`)
 - BEFORE Step 5 (`state.jenkins.trigger`)
 
 ### Idempotent ack status code
@@ -79,12 +79,12 @@ Cost is O(n) over the seen map; in practice the map stays very small (TTL=5 min,
 typical delivery rate is low for a pre-merge gate).
 
 ### TTL choice
-300 000 ms (5 minutes). Long enough to catch all realistic Forgejo re-delivery
+300 000 ms (5 minutes). Long enough to catch all realistic GitHub re-delivery
 duplicates (which arrive within seconds); short enough to keep memory bounded.
 
 ## Follow-ups (out of scope for this slice)
 
-- **Task #62**: ed25519-signed delivery IDs (Forgejo→Jenkins commit-status
+- **Task #62**: ed25519-signed delivery IDs (GitHub→Jenkins commit-status
   best-practice). The guard's dedup is most reliable with authentic delivery IDs.
 - **Distributed dedup**: multi-pod deployments need sticky routing or
   Redis/Valkey shared store.

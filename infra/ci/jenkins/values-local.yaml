@@ -8,8 +8,8 @@
 # structurally broken on Talos VMs). Concretely:
 #   - D1 plugins: added generic-webhook-trigger + build-token-root + http_request
 #     so the gated job (D3) can accept token-authed webhook dispatches from the
-#     ci-webhook-gateway (ADR-0374) and post Forgejo commit-status via the
-#     statuses API. The gitea plugin is intentionally NOT installed — Forgejo
+#     ci-webhook-gateway (ADR-0374) and post GitHub commit-status via the
+#     statuses API. The gitea plugin is intentionally NOT installed — GitHub
 #     is canonical (ADR-0363) and the gateway already does webhook discovery.
 #   - D2 agent template: collapsed three colima-era templates (rust-ci /
 #     rust-build / rust-parallel) into a single self-contained `rust-ci`; stripped
@@ -52,7 +52,7 @@ controller:
     # ADR-0380 D1: gating-pipeline plugins.
     - generic-webhook-trigger    # token-authed inbound dispatch from ci-webhook-gateway (ADR-0374)
     - build-token-root           # per-job build tokens; the gateway uses these to authorize triggers
-    - http_request               # POST to Forgejo statuses API for commit-status (no `gitea` plugin — ADR-0363 Forgejo canonical)
+    - http_request               # POST to GitHub statuses API for commit-status (no `gitea` plugin — ADR-0363 GitHub canonical)
     - job-dsl                    # ADR-0380 D3: declarative oya-ci-gate pipelineJob authoring in JCasC
   resources:
     requests:
@@ -63,17 +63,17 @@ controller:
       memory: "4Gi"
   # ADR-0380 D3: project credentials into the controller env so JCasC can
   # materialize them into the Jenkins Credentials store.
-  #   - forgejo-ci-token: posts commit-status via the Forgejo statuses API.
-  #     Minted by ADR-0380 D4 in-pod (forgejo admin user generate-access-token).
+  #   - github-ci-token: posts commit-status via the GitHub statuses API.
+  #     Minted by ADR-0380 D4 in-pod (github admin user generate-access-token).
   #     Optional until D4 lands; until then the job's status-post step will
   #     fail at withCredentials (honest failure — not a silent skip).
   #   - gateway-build-git: cpsScm clone of dev (read-only) + GH_TOKEN for the
   #     PR ref fetch inside the pipeline.
   containerEnv:
-    - name: FORGEJO_CI_TOKEN
+    - name: GITHUB_CI_TOKEN
       valueFrom:
         secretKeyRef:
-          name: forgejo-ci-token
+          name: github-ci-token
           key: token
           optional: true
     - name: GH_USERNAME
@@ -229,9 +229,9 @@ controller:
               - credentials:
                   - string:
                       scope: GLOBAL
-                      id: "forgejo-ci-token"
-                      description: "ADR-0380 D4 Forgejo CI token — for POST /repos/{owner}/{repo}/statuses/{sha}"
-                      secret: "${FORGEJO_CI_TOKEN}"
+                      id: "github-ci-token"
+                      description: "ADR-0380 D4 GitHub CI token — for POST /repos/{owner}/{repo}/statuses/{sha}"
+                      secret: "${GITHUB_CI_TOKEN}"
                   - usernamePassword:
                       scope: GLOBAL
                       id: "gateway-build-git"
@@ -240,10 +240,10 @@ controller:
                       password: "${GH_TOKEN}"
                   - usernamePassword:
                       scope: GLOBAL
-                      id: "forgejo-clone"
-                      description: "Forgejo git-over-HTTP clone creds (oya-admin + forgejo-ci-token). Used by the oya-ci-gate cpsScm to clone the GATING forge (ADR-0363 Forgejo-of-record): PRs + PR refs (refs/pull/N/head) live on Forgejo, not GitHub."
+                      id: "github-clone"
+                      description: "GitHub git-over-HTTP clone creds (oya-admin + github-ci-token). Used by the oya-ci-gate cpsScm to clone the GATING forge (ADR-0363 GitHub-of-record): PRs + PR refs (refs/pull/N/head) live on GitHub, not GitHub."
                       username: "oya-admin"
-                      password: "${FORGEJO_CI_TOKEN}"
+                      password: "${GITHUB_CI_TOKEN}"
       # ADR-0380 D3: declare the oya-ci-gate pipelineJob via job-dsl. Pipeline
       # body lives in infra/ci/jenkins/Jenkinsfile-oya-ci-gate (cpsScm; cloned
       # from this repo at trigger time, NOT at boot — Jenkins boots cleanly
@@ -270,7 +270,7 @@ controller:
                       }
                     }
                     token('oya-ci-gate')
-                    causeString('Forgejo PR #$PR_NUMBER sha=$GIT_SHA')
+                    causeString('GitHub PR #$PR_NUMBER sha=$GIT_SHA')
                     printContributedVariables(true)
                     printPostContent(false)
                     silentResponse(false)
@@ -281,8 +281,8 @@ controller:
                     scm {
                       git {
                         remote {
-                          url('http://forgejo.oya-forge.svc.cluster.local:3000/oya-admin/oyatie.git')
-                          credentials('forgejo-clone')
+                          url('https://github.com/jason931225/oyatie.git')
+                          credentials('github-clone')
                         }
                         branch('dev')
                         extensions {

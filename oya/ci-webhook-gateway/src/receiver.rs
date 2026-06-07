@@ -1,4 +1,4 @@
-//! The axum HTTP receiver: the `/webhook/forgejo` endpoint that verifies the
+//! The axum HTTP receiver: the `/webhook/github` endpoint that verifies the
 //! HMAC, routes the event, and dispatches the gated pipeline.
 //!
 //! Order is load-bearing for security (ADR-0367): signature verification runs
@@ -25,15 +25,15 @@ use crate::signature::{self, WebhookSecret};
 pub struct ReceiverState {
     pub config: Arc<GatewayConfig>,
     pub secret: Arc<WebhookSecret>,
-    /// Optional ed25519 public key for `X-Forgejo-Signature` verification.
+    /// Optional ed25519 public key for `X-GitHub-Signature` verification.
     /// `None` means the HMAC path is the only accepted signature scheme.
     pub ed25519_key: Option<Arc<signature::WebhookEd25519Key>>,
     pub dispatcher: Arc<dyn PipelineDispatcher>,
 }
 
-/// Canonical receiver path (per ADR-0374). Forgejo's webhook is registered to
+/// Canonical receiver path (per ADR-0374). GitHub's webhook is registered to
 /// post here.
-pub const WEBHOOK_PATH: &str = "/webhook/forgejo";
+pub const WEBHOOK_PATH: &str = "/webhook/github";
 /// Liveness path (for the k8s readiness/liveness probe).
 pub const HEALTHZ_PATH: &str = "/healthz";
 
@@ -54,16 +54,16 @@ fn header<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
     headers.get(name).and_then(|v| v.to_str().ok())
 }
 
-/// First present event header across Forgejo / Gitea / GitHub spellings.
+/// First present event header across GitHub / Gitea / GitHub spellings.
 fn event_name(headers: &HeaderMap) -> Option<&str> {
-    header(headers, event::EVENT_HEADER_FORGEJO)
+    header(headers, event::EVENT_HEADER_GITHUB)
         .or_else(|| header(headers, event::EVENT_HEADER_GITEA))
         .or_else(|| header(headers, event::EVENT_HEADER_GITHUB))
 }
 
 /// First present delivery-id header (for dedup / log correlation).
 fn delivery_id(headers: &HeaderMap) -> Option<&str> {
-    header(headers, event::DELIVERY_HEADER_FORGEJO)
+    header(headers, event::DELIVERY_HEADER_GITHUB)
         .or_else(|| header(headers, event::DELIVERY_HEADER_GITEA))
         .or_else(|| header(headers, event::DELIVERY_HEADER_GITHUB))
 }
@@ -92,7 +92,7 @@ async fn handle_webhook(
 
     // 2. Determine the event class.
     let Some(event) = event_name(&headers) else {
-        let err = GatewayError::MalformedPayload("missing X-Forgejo-Event header".to_owned());
+        let err = GatewayError::MalformedPayload("missing X-GitHub-Event header".to_owned());
         tracing::warn!(delivery = %delivery, error = %err, "webhook missing event header");
         return error_response(&err);
     };
@@ -289,8 +289,8 @@ mod tests {
     async fn valid_signed_pr_dispatches_202() {
         let body = pr_body();
         let req = Request::post(WEBHOOK_PATH)
-            .header("x-forgejo-event", "pull_request")
-            .header("x-forgejo-delivery", "uuid-1")
+            .header("x-github-event", "pull_request")
+            .header("x-github-delivery", "uuid-1")
             .header("x-hub-signature-256", sign(&body))
             .body(axum::body::Body::from(body.clone()))
             .unwrap();
@@ -306,8 +306,8 @@ mod tests {
     async fn valid_signed_issue_dispatches_snapshot_202() {
         let body = issue_body();
         let req = Request::post(WEBHOOK_PATH)
-            .header("x-forgejo-event", "issues")
-            .header("x-forgejo-delivery", "uuid-issue")
+            .header("x-github-event", "issues")
+            .header("x-github-delivery", "uuid-issue")
             .header("x-hub-signature-256", sign(&body))
             .body(axum::body::Body::from(body.clone()))
             .unwrap();
@@ -322,8 +322,8 @@ mod tests {
     async fn valid_signed_push_dispatches_snapshot_202() {
         let body = push_body();
         let req = Request::post(WEBHOOK_PATH)
-            .header("x-forgejo-event", "push")
-            .header("x-forgejo-delivery", "uuid-push")
+            .header("x-github-event", "push")
+            .header("x-github-delivery", "uuid-push")
             .header("x-hub-signature-256", sign(&body))
             .body(axum::body::Body::from(body.clone()))
             .unwrap();
@@ -339,7 +339,7 @@ mod tests {
     async fn bad_signature_is_401_and_never_dispatches() {
         let body = pr_body();
         let req = Request::post(WEBHOOK_PATH)
-            .header("x-forgejo-event", "pull_request")
+            .header("x-github-event", "pull_request")
             .header("x-hub-signature-256", "sha256=deadbeef")
             .body(axum::body::Body::from(body))
             .unwrap();
@@ -352,7 +352,7 @@ mod tests {
     async fn missing_signature_is_401() {
         let body = pr_body();
         let req = Request::post(WEBHOOK_PATH)
-            .header("x-forgejo-event", "pull_request")
+            .header("x-github-event", "pull_request")
             .body(axum::body::Body::from(body))
             .unwrap();
         let (status, _text) = send(test_state(), req).await;
@@ -367,7 +367,7 @@ mod tests {
               "head":{"ref":"f","sha":"abc"},"draft":false}}"#
             .to_vec();
         let req = Request::post(WEBHOOK_PATH)
-            .header("x-forgejo-event", "pull_request")
+            .header("x-github-event", "pull_request")
             .header("x-hub-signature-256", sign(&body))
             .body(axum::body::Body::from(body))
             .unwrap();
@@ -380,7 +380,7 @@ mod tests {
     async fn unknown_event_is_422() {
         let body = b"{}".to_vec();
         let req = Request::post(WEBHOOK_PATH)
-            .header("x-forgejo-event", "wiki")
+            .header("x-github-event", "wiki")
             .header("x-hub-signature-256", sign(&body))
             .body(axum::body::Body::from(body))
             .unwrap();
@@ -392,7 +392,7 @@ mod tests {
     async fn ping_is_200() {
         let body = b"{}".to_vec();
         let req = Request::post(WEBHOOK_PATH)
-            .header("x-forgejo-event", "ping")
+            .header("x-github-event", "ping")
             .header("x-hub-signature-256", sign(&body))
             .body(axum::body::Body::from(body))
             .unwrap();

@@ -2,16 +2,16 @@
 
 ## Operational boundaries
 
-- **In scope**: receive Forgejo webhooks, verify HMAC, parse PR events, kick the
+- **In scope**: receive GitHub webhooks, verify HMAC, parse PR events, kick the
   Jenkins `oyaCiLane` pipeline, emit audit-chain rows.
 - **Out of scope (owned elsewhere)**:
-  - Running governance gates + posting Forgejo commit statuses → Jenkins
+  - Running governance gates + posting GitHub commit statuses → Jenkins
     (`oyaCiLane.groovy`), the trusted runner (ADR-0367).
   - Adversarial code review → Intelligence service reviewer gate (ADR-0367 D2)
     — NOT wired yet (placeholder-debt `adr-0374-reviewer-gate-dispatch`).
   - Merge-queue ordering / speculative rebase → ADR-0111 — parked (ADR-0363 §3),
     tracked `adr-0374-merge-queue-admit`.
-  - Branch-protection config + the actual merge → Forgejo (auto-merge on green).
+  - Branch-protection config + the actual merge → GitHub (auto-merge on green).
 
 ## Incident response
 

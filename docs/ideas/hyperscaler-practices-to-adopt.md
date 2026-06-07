@@ -27,9 +27,9 @@ merge unsupervised.** Each adopt-item should land as a gate/spec/ADR/tool (per A
 | 14 | **single-threaded owner = owner-agent per service (full-cycle)** | AWS+NFLX | owner persona in catalog YAML, spans PR-FAQ→deploy→SLO→COE | S/M | now |
 | 15 | **project-of-record + drift gate** | Google | one canonical tracker; extend planning-drift gate (resolves task #50) | S/M | now |
 | 16 | **presubmit/postsubmit two-tier + regression attribution** | Google | `oya verify --presubmit` vs scheduled postsubmit that bisects culprit | S | now |
-| 17 | **"Oyatie 1ES" — name+lock the one blessed system** | MS | doc Forgejo+Jenkins+ArgoCD+oya as SSOT; gate: no alternate CI path | S | now |
+| 17 | **"Oyatie 1ES" — name+lock the one blessed system** | MS | doc GitHub+Jenkins+ArgoCD+oya as SSOT; gate: no alternate CI path | S | now |
 | 18 | **chaos engineering / GameDay on k3s farm** | NFLX+AWS | Chaos Mesh pod-kill/latency, SLO-gated | M | now |
-| 19 | **stacked diffs on Forgejo** | Meta | ghstack-style small-PR stacks per lane; merge-queue throughput | M | later |
+| 19 | **stacked diffs on GitHub** | Meta | ghstack-style small-PR stacks per lane; merge-queue throughput | M | later |
 | 20 | **go/ links resolver (own µservice — dogfood)** | Google | `golinks.yaml` → resolver; stable indirection for agents/ADRs | S | now |
 | 21 | **deprecation lifecycle spec + sunset gate** | Google | `specs/deprecation-lifecycle.json`; flag `#[deprecated]` past sunset | S | now |
 | 22 | **changelog discipline (git-cliff + conventional commits)** | Google | per-crate CHANGELOG generated; gate public-API change → entry | S | now |

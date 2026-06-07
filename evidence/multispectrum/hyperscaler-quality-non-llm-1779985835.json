@@ -45,7 +45,7 @@
       "verdict": "PASS_WITH_RESIDUAL",
       "findings": [
         "Release-style observability Helm render requires a real non-zero sha256 digest and default render fails closed when cosign is required.",
-        "Repo governance docs now align the live lane name to `oya-governance-promotion-readiness` and Jenkins/Forgejo required checks instead of retired Oya VCS/GitHub Actions surfaces.",
+        "Repo governance docs now align the live lane name to `oya-governance-promotion-readiness` and Jenkins/GitHub required checks instead of retired Oya VCS/GitHub Actions surfaces.",
         "Residual: many microservice CI and Helm release surfaces still contain all-zero digest placeholders; this change refuses fake success rather than inventing image provenance."
       ]
     },
@@ -141,7 +141,7 @@
       "rigor": "scan",
       "verdict": "PASS",
       "findings": [
-        "Observability promotion-readiness docs now consistently name the Jenkins/Forgejo governance lane and signed eligibility events."
+        "Observability promotion-readiness docs now consistently name the Jenkins/GitHub governance lane and signed eligibility events."
       ]
     },
     "F12_reserved": {

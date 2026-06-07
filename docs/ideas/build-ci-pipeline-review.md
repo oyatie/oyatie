@@ -44,11 +44,11 @@ gate is not isolated** — everything else is downstream of those three.
 
 ## 2. Analysis Summary (current architecture + ranked issues)
 
-**Pipeline today:** Forgejo PR webhook → `ci-webhook-gateway` (bespoke Rust, ADR-0374,
+**Pipeline today:** GitHub PR webhook → `ci-webhook-gateway` (bespoke Rust, ADR-0374,
 HMAC-verified, fail-closed router) → Jenkins genericTrigger (token `oya-ci-gate`) → cpsScm
 loads `Jenkinsfile-oya-ci-gate` from `dev` → ephemeral K8s agent checks out PR sha →
 `buck2-affected-gate.sh` (`owner()` + `rdeps(//…, %Ss)` @argfile, fail-closed) →
-`buck2 build`+`test` affected closure → Forgejo commit-status `oya-ci-gate`. The two bespoke
+`buck2 build`+`test` affected closure → GitHub commit-status `oya-ci-gate`. The two bespoke
 pieces (gateway + gate.sh) are clean and well-tested; **all fragility is in the
 Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans to retire.
 
@@ -92,9 +92,9 @@ Jenkins+Groovy+cpsScm+JCasC orchestration layer**, which ADR-0513 already plans 
   live problem is **gate reliability**. Ship P1 (controller) alone; defer merge-queue, UI,
   ChatOps behind explicit demand. Saying no to four subsystems is the biggest simplification.
 
-**Minimal robust shape:** `Forgejo PR → ci-webhook-gateway → oya-ci-controller (deployed) →
+**Minimal robust shape:** `GitHub PR → ci-webhook-gateway → oya-ci-controller (deployed) →
 K8s Job [clone dev (trusted) + PR-ref as data → trunk gate.sh → buck2 (NativeLink CAS)] →
-controller harvests buck2 event-log → Forgejo status + structured summary`. One language,
+controller harvests buck2 event-log → GitHub status + structured summary`. One language,
 three hops, hermetic toolchain, durable third-party, isolated gate.
 
 ---
@@ -149,7 +149,7 @@ This kills two recurring breakage classes (`DEP_OPENSSL_*`, `DEP_AWS_LC_*`) dete
 *dev* copy of `gate.sh origin/dev origin/pr-N`. The gate logic is never read from the PR
 workspace — closes the half-open hole (`Jenkinsfile:76`). Add **namespace + NetworkPolicy
 isolation** (Prow trusted/untrusted split): the untrusted Job pod cannot reach the
-controller endpoint, OpenBao, or the Forgejo token (token held only by controller/crier).
+controller endpoint, OpenBao, or the GitHub token (token held only by controller/crier).
 
 **Affected-detection that does NOT build the whole tree:** adopt Meta `btd`'s `depth` cap.
 When the owner set originates from `third-party/BUCK` or `toolchains/BUCK`, run a

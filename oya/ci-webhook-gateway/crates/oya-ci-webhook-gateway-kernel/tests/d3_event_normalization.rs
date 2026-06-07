@@ -1,9 +1,9 @@
-//! D3 — Forgejo payload normalisation to [`CiTriggerEvent`] tests.
+//! D3 — GitHub payload normalisation to [`CiTriggerEvent`] tests.
 //!
-//! Every supported Forgejo webhook shape normalises to a `CiTriggerEvent` with
+//! Every supported GitHub webhook shape normalises to a `CiTriggerEvent` with
 //! the correct field values.  All 4 tests PASS at Stage-4 RED.
 
-use oya_ci_webhook_gateway_kernel::{CiAction, CiTriggerEvent, RouteOutcome, route_forgejo_event};
+use oya_ci_webhook_gateway_kernel::{CiAction, CiTriggerEvent, RouteOutcome, route_github_event};
 
 // ---------------------------------------------------------------------------
 // Helper builders
@@ -51,7 +51,7 @@ fn assert_trigger(outcome: RouteOutcome) -> CiTriggerEvent {
 #[test]
 fn d3_pr_open_normalises_all_fields() {
     let body = pr_payload("opened", "dev", "base111sha", "head222sha", 42);
-    let outcome = route_forgejo_event("pull_request", &body, &delivery(1), "dev").unwrap();
+    let outcome = route_github_event("pull_request", &body, &delivery(1), "dev").unwrap();
     let ev = assert_trigger(outcome);
 
     assert_eq!(ev.action, CiAction::PrOpened);
@@ -63,13 +63,13 @@ fn d3_pr_open_normalises_all_fields() {
 }
 
 // ---------------------------------------------------------------------------
-// D3-2: PR-synchronized (Forgejo spelling) normalises with PrSynchronized action
+// D3-2: PR-synchronized (GitHub spelling) normalises with PrSynchronized action
 // ---------------------------------------------------------------------------
 
 #[test]
 fn d3_pr_synchronized_normalises_with_correct_action() {
     let body = pr_payload("synchronized", "dev", "base333sha", "head444sha", 55);
-    let outcome = route_forgejo_event("pull_request", &body, &delivery(2), "dev").unwrap();
+    let outcome = route_github_event("pull_request", &body, &delivery(2), "dev").unwrap();
     let ev = assert_trigger(outcome);
 
     assert_eq!(ev.action, CiAction::PrSynchronized);
@@ -86,7 +86,7 @@ fn d3_pr_synchronized_normalises_with_correct_action() {
 #[test]
 fn d3_pr_closed_normalises_with_closed_action() {
     let body = pr_payload("closed", "dev", "base555sha", "head666sha", 66);
-    let outcome = route_forgejo_event("pull_request", &body, &delivery(3), "dev").unwrap();
+    let outcome = route_github_event("pull_request", &body, &delivery(3), "dev").unwrap();
     let ev = assert_trigger(outcome);
 
     assert_eq!(ev.action, CiAction::PrClosed);
@@ -101,7 +101,7 @@ fn d3_pr_closed_normalises_with_closed_action() {
 
 #[test]
 fn d3_ping_normalises_to_ignored_not_trigger() {
-    let outcome = route_forgejo_event("ping", b"{}", &delivery(4), "dev").unwrap();
+    let outcome = route_github_event("ping", b"{}", &delivery(4), "dev").unwrap();
     assert!(
         matches!(outcome, RouteOutcome::Ignored { .. }),
         "ping should produce Ignored (no Jenkins trigger), got: {outcome:?}"

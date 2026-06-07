@@ -66,20 +66,6 @@
     "disableBypassPermissionsMode": "disable"
   },
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/session-start-context-inject.sh" }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/userprompt-canonical-primer.sh" }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [

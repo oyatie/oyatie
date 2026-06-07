@@ -1,18 +1,18 @@
 ---
-purpose: Oyatie Runbook — Forgejo Agent-Board Operating Workflow
+purpose: Oyatie Runbook — GitHub Agent-Board Operating Workflow
 doc_status: published
 ---
 
-# Oyatie Runbook — Forgejo Agent-Board Operating Workflow
+# Oyatie Runbook — GitHub Agent-Board Operating Workflow
 
 > **Status:** Operator/agent workflow for Wave 3 disjoint lanes on the
-> Forgejo-backed board.
+> GitHub-backed board.
 > **Owner:** Governance tooling maintainers.
-> **Last verified:** 2026-05-27 from leader-supplied live Forgejo board
+> **Last verified:** 2026-05-27 from leader-supplied live GitHub board
 > evidence.
-> **Scope:** Plain Git worktrees, Forgejo issues, exclusive `state/*` labels,
+> **Scope:** Plain Git worktrees, GitHub issues, exclusive `state/*` labels,
 > Git claim refs, and webhooks. This runbook does not authorize `oya git`,
-> `oya vcs`, GitHub Projects, native Forgejo Projects automation, concurrent
+> `oya vcs`, GitHub Projects, native GitHub Projects automation, concurrent
 > `oya gate run-all`, or a bespoke long-running board service.
 
 ## Operating model
@@ -23,7 +23,7 @@ unavailable Projects APIs. Each lane has one local worktree, one deliverable
 id, one claim ref, and one scoped verification bundle.
 
 Authoritative ownership comes from the Git ref
-`refs/heads/claims/<deliverable-id>`. Forgejo issue labels and assignees are
+`refs/heads/claims/<deliverable-id>`. GitHub issue labels and assignees are
 human-facing projections only. They help operators see backlog, claimed,
 review, or done states, but they do not grant ownership and must be reconciled
 back to the claim ref when they drift.
@@ -92,7 +92,7 @@ Rules:
 
 ## Webhook projection expectations
 
-Forgejo webhooks are projection inputs, not an extra locking service. The board
+GitHub webhooks are projection inputs, not an extra locking service. The board
 projection consumes:
 
 - issue label events for visible column changes;
@@ -109,7 +109,7 @@ long-running board daemon to be correct.
 
 Every lane must preserve two identities:
 
-1. **Token user / Forgejo sender:** the authenticated user that created the
+1. **Token user / GitHub sender:** the authenticated user that created the
    claim ref or updated labels.
 2. **Commit author:** the Git author recorded in the lane commit.
 
@@ -122,7 +122,7 @@ ownership source of truth.
 
 For the 2026-06-01 oya-ci execution week, use this runbook with the
 additional lane boundaries from the accepted RALPLAN. The overlay exists to
-keep Forgejo-native CI and merge-automation work reviewable while several
+keep GitHub-native CI and merge-automation work reviewable while several
 agents operate in parallel.
 
 - Lane A owns `oya/ci-tide/**` and must prove pagination, review ordering,
@@ -130,8 +130,8 @@ agents operate in parallel.
 - Lane B owns `oya/ci-controller/**`, including controller IAC, and must prove
   status posting, terminal-failure summaries, restart safety, and idempotent
   gate-run behavior.
-- Lane C owns `infra/forge/**`, `docs/runbooks/forgejo-*.md`, and
-  `.omx/context/forgejo-ops-*.md`; it documents Forgejo remote/API/token and
+- Lane C owns `infra/forge/**`, `docs/runbooks/github-*.md`, and
+  `.omx/context/github-ops-*.md`; it documents GitHub remote/API/token and
   branch-protection context handling without printing secrets.
 - Lane D is the single writer for `evidence/multispectrum/**` and
   `.omx/verification/**`; implementation lanes provide command transcripts and
@@ -141,21 +141,21 @@ agents operate in parallel.
   explicit fix scope.
 
 The weekly overlay preserves the standing prohibitions: use plain `git` plus
-Forgejo pull requests against `dev`; do not use `oya git`, `oya vcs`, GitHub
+GitHub pull requests against `dev`; do not use `oya git`, `oya vcs`, GitHub
 PR/merge flows, or concurrent `oya gate run-all`; keep Jenkins as the bridge
 until Phase-1 parallel-run evidence and founder/operator approval authorize a
 cutover. Rust verification for affected Rust lanes uses Rust 1.96, edition
 2024 formatting, and Buck2 build/test/check/clippy targets.
 
 Before a lane is marked ready for review, the handoff to the leader should name
-the scoped files, Forgejo PR or access blocker, exact verification commands,
+the scoped files, GitHub PR or access blocker, exact verification commands,
 not-tested gaps, and whether any cross-lane contract changed. Lane D consumes
 that handoff when producing the shared multispectrum and verification records.
 
-Lane C discovery notes should record the Forgejo base URL, repository owner,
+Lane C discovery notes should record the GitHub base URL, repository owner,
 repository name, target branch, protected status contexts, and credential
 variable names only. If a worktree still has a GitHub `origin`, the lane must
-add or select the self-hosted Forgejo remote before pushing or opening a pull
+add or select the GitHub (interim) remote before pushing or opening a pull
 request, and the handoff must name the remote used without using GitHub PR or
 merge commands. Never paste token values, bearer strings, webhook secrets, or
 raw authorization headers into runbooks, evidence, PR descriptions, or team
@@ -220,7 +220,7 @@ Do not use or reintroduce:
 - `oya git`;
 - `oya vcs`;
 - GitHub Projects;
-- native Forgejo Projects REST automation as a required board path;
+- native GitHub Projects REST automation as a required board path;
 - issue assignee mutation as an atomic lock;
 - concurrent `oya gate run-all` across worker lanes;
 - a bespoke long-running board service without a later approved design.
@@ -244,7 +244,7 @@ Do not use or reintroduce:
 ### Webhook gap
 
 1. Poll claim refs and issue labels.
-2. Rebuild the board snapshot from current Forgejo state.
+2. Rebuild the board snapshot from current GitHub state.
 3. Compare to the last projection snapshot.
 4. Emit an idempotent reconciliation diff.
 
@@ -269,7 +269,7 @@ Do not use or reintroduce:
 ## Sources
 
 Leader-supplied live evidence from the 2026-05-27 Wave 3 board implementation
-run: Forgejo `11.0.14` on `oya-forge`, Projects REST `404`, exclusive-label
+run: GitHub `11.0.14` on `oya-forge`, Projects REST `404`, exclusive-label
 projection, non-atomic assignee race, atomic claim-ref race, sender-bearing push
 webhook payloads, and the team constraint to coordinate disjoint lanes through
-plain Git plus Forgejo issue projections.
+plain Git plus GitHub issue projections.

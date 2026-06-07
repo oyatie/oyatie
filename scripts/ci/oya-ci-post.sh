@@ -2,7 +2,7 @@
 # oya-ci-post.sh — local-CI bridge that posts the 5 required commit-status
 # contexts to GitHub after `oya verify --ci-required` passes locally.
 #
-# Purpose: until the canonical Forgejo->Jenkins webhook receiver is live
+# Purpose: until the canonical GitHub->Jenkins webhook receiver is live
 # (ADR-0387 / task #62), this script bridges the substrate gap that forces
 # admin-merge today (per memory `oya-dev-branch-protection-merge`).
 #

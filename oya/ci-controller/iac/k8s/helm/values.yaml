@@ -40,9 +40,9 @@ networkPolicy:
     dnsNamespaceName: kube-system
     # kube-apiserver egress (Job/Pod watch + create)
     apiserverPort: 6443
-    # Forgejo in-cluster (status post + clone)
-    forgejoNamespaceName: oya-forge
-    forgejoPort: 3000
+    # GitHub in-cluster (status post + clone)
+    githubNamespaceName: oya-forge
+    githubPort: 3000
     # OpenBao (ESO token sync)
     openbaoNamespaceName: oya-secrets
     openbaoPort: 8200
@@ -84,18 +84,18 @@ otel:
 
 externalSecret:
   enabled: true
-  secretName: forgejo-ci-token
-  # OpenBao KV path: secret/oya/ci/forgejo-ci-token, field "token"
-  openbaoPath: "secret/oya/ci/forgejo-ci-token"
+  secretName: github-ci-token
+  # OpenBao KV path: secret/oya/ci/github-ci-token, field "token"
+  openbaoPath: "secret/oya/ci/github-ci-token"
   refreshInterval: "1h"
   nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
 
 config:
   namespace: oya-ci
-  forgejoBase: "http://forgejo.oya-forge.svc.cluster.local:3000"
-  forgejoRepoOwner: oya-admin
-  forgejoRepoName: oyatie
-  forgeCloneUrl: "http://forgejo.oya-forge.svc.cluster.local:3000/oya-admin/oyatie.git"
+  githubBase: "https://api.github.com"
+  githubRepoOwner: oya-admin
+  githubRepoName: oyatie
+  forgeCloneUrl: "https://github.com/jason931225/oyatie.git"
   gateActiveDeadlineSecs: 3600
   gateTtlAfterFinishedSecs: 86400
   graceCycles: 12

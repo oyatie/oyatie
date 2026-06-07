@@ -67,7 +67,7 @@ oya-identity JWTs (human principals) in a single policy namespace.
 
 oya-identity becomes the OIDC issuer for every µservice consumer:
 
-- **oya-vcs** (ADR-0409): Forgejo human browser auth
+- **oya-vcs** (ADR-0409): GitHub human browser auth
 - **Rust-native portal** (ADR-0434): sign-in for web and desktop shell
 - **oya-billing**: tenant-admin human auth
 - **oya-status**: admin sign-in

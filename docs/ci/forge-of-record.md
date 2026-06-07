@@ -1,19 +1,20 @@
 # Forge of Record — CI Gating (ADR-0363)
 
-Forgejo (self-hosted at `forgejo.oya-forge.svc.cluster.local`) is the **gating forge
-of record** for all PR merges to `dev`. GitHub (`github.com/jason931225/oyatie`) is the
-**bootstrap mirror** only — it holds a read-only copy of the repository and is not the
-merge authority.
+GitHub (interim) at `github.com/jason931225/oyatie` is the **gating forge of
+record** for all PR merges to `dev`, per D-FORGE (GitHub interim → Sapling-inspired
+bespoke SCM). It is the merge authority: required status contexts must be green
+before a PR can merge.
 
 ## How gating works
 
-1. Jenkins pipelines (`oyaCiLane.groovy`) post Forgejo Commit Status API entries for
-   each required context via `postForgeStatus()` (see
-   `infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy`).
-2. The Forgejo branch-protection rule for `dev` requires all contexts in
+1. The oya-ci controller posts GitHub Commit Status API entries for the
+   `oya-ci-required` context (crier pattern; see
+   `oya/ci-controller/crates/oya-ci-controller-app`). The transitory Jenkins
+   bridge (`oyaCiLane.groovy`) may post bridge statuses via `postForgeStatus()`
+   until the cutover (ADR-0511/ADR-0515).
+2. The GitHub branch-protection rule for `dev` requires all contexts in
    `infra/branch-protection/dev.json` to be green before a PR can merge.
-3. GitHub branch-protection (`.github/branch-protection.yaml`) mirrors the same
-   required-context list for consistency but is not the enforcement point.
+3. `.github/branch-protection.yaml` is the canonical branch-protection record.
 
 ## Phase-1 required status contexts
 
@@ -35,7 +36,7 @@ tracking note.
 
 ## References
 
-- ADR-0363: Forgejo as gating forge of record
+- ADR-0363: GitHub (interim) as gating forge of record
 - `infra/branch-protection/dev.json`: machine-readable required contexts
 - `.github/branch-protection.yaml`: canonical branch-protection record
-- `infra/ci/jenkins/reported-status-contexts.json`: all contexts posted by Jenkins
+- `infra/ci/jenkins/reported-status-contexts.json`: all contexts posted by the transitory Jenkins bridge

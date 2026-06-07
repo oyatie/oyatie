@@ -83,7 +83,7 @@ named in the ADR's `affected_surfaces`** (specs, catalogs, contract registry, do
   self-improvement flywheel.
 
 ### 4. Self-hosting / dogfood
-The pipeline runs on the substrate (git + Jenkins + Forgejo, ADR-0363); `oya` owns the gates +
+The pipeline runs on the substrate (git + Jenkins + GitHub, ADR-0363); `oya` owns the gates +
 generators. This ADR was authored manually as the bootstrap; subsequent planning_impact ADRs flow
 through the pipeline it defines.
 

@@ -1,6 +1,6 @@
 context: ci-webhook-gateway
 role: app
-capability: forgejo-webhook-to-jenkins-github-status-bridge
+capability: github-webhook-to-jenkins-github-status-bridge
 plane: control
 slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY]
@@ -13,7 +13,7 @@ traceability:
   changeset: CS-CI-WEBHOOK-GATEWAY-STAGE5-001
   source_crate: microservices/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/Cargo.toml
 non_claims:
-  - POST /webhook/forgejo wires the full pipeline: ed25519 verify → Cedar authz → Jenkins dispatch → GitHub status post
+  - POST /webhook/github wires the full pipeline: ed25519 verify → Cedar authz → Jenkins dispatch → GitHub status post
   - GET /healthz and GET /metrics stubs provided; OTel metrics exporter deferred to Stage-8
   - OpenBao client for secrets deferred to Stage-7
   - Helm chart and ArgoCD deployment on Talos deferred to Stage-6

@@ -1,5 +1,5 @@
-# ArgoCD Application — GitOps management of the self-hosted Forgejo substrate
-# (ADR-0363 / ADR-0247). ArgoCD reconciles infra/forge/forgejo.yaml from git so
+# ArgoCD Application — GitOps management of the GitHub (interim) substrate
+# (ADR-0363 / ADR-0247). ArgoCD reconciles infra/forge/github.yaml from git so
 # the forge itself is declaratively managed like every other workload.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -11,11 +11,11 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/jason931225/oyatie.git   # bootstrap host (ADR-0247); migrates to self-hosted Forgejo
+    repoURL: https://github.com/jason931225/oyatie.git   # bootstrap host (ADR-0247); migrates to GitHub (interim)
     targetRevision: dev
     path: infra/forge
     directory:
-      include: 'forgejo.yaml'
+      include: 'github.yaml'
   destination:
     server: https://kubernetes.default.svc
     namespace: oya-forge

@@ -19,11 +19,11 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use accounting_registry_producer::{
-    build_decision_crosswalk, build_enforcement_inventory, build_registry, to_canonical_json,
-    CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow, Policy,
-    ProducerError, RepoInputs,
+    build_decision_crosswalk, build_enforcement_inventory, build_gate_baseline, build_registry,
+    to_canonical_json, CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow,
+    GateInputs, Policy, ProducerError, RepoInputs,
 };
-use serde_json::Value;
+use serde_json::{json, Value};
 
 fn main() {
     if let Err(error) = run() {
@@ -100,12 +100,28 @@ fn run() -> Result<(), CliError> {
     let crosswalk = build_decision_crosswalk(&collect_crosswalk_inputs(&repo_root))?;
     let enforcement = build_enforcement_inventory(&collect_enforcement_inputs(&repo_root))?;
 
+    // The fifth face freezes TODAY's accepted-violation KEYS per (gate, code). It runs each
+    // gate's pure evaluate_keyed over the four live faces. Two faces need a light per-gate
+    // adaptation to the shape the gate evaluator consumes (identical to each gate's
+    // born-blocking self-test): the staleness rows are aged from git commit timestamps, and
+    // the automation matrix is derived from the enforcement-inventory face.
+    let staleness_input = build_staleness_input(&repo_root, &registry)?;
+    let automation_matrix = build_automation_matrix(&enforcement);
+    let gate_inputs = GateInputs {
+        total_accounting: &registry,
+        cross_artifact: &crosswalk,
+        automation_ratchet: &automation_matrix,
+        staleness: &staleness_input,
+    };
+    let baseline = build_gate_baseline(&gate_inputs)?;
+
     if to_stdout {
         let value = match face.as_str() {
             "registry" => &registry,
             "decision-crosswalk" => &crosswalk,
             "enforcement-inventory" => &enforcement,
             "ttl-policy" => &policy.ttl_policy_face(),
+            "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
         print!("{}", to_canonical_json(value)?);
@@ -128,6 +144,7 @@ fn run() -> Result<(), CliError> {
         &out_dir.join("enforcement-inventory.generated.json"),
         &enforcement,
     )?;
+    write_face(&out_dir.join("gate-baseline.generated.json"), &baseline)?;
 
     let rows = registry["rows"].as_array().map(Vec::len).unwrap_or(0);
     eprintln!("accounting-registry-producer: {rows} rows -> {}", out_dir.display());
@@ -154,6 +171,106 @@ fn discover_repo_root() -> Result<PathBuf, CliError> {
 fn write_face(path: &Path, value: &Value) -> Result<(), CliError> {
     let text = to_canonical_json(value)?;
     std::fs::write(path, text).map_err(|e| CliError::Io(format!("{}: {e}", path.display())))
+}
+
+/// Build the GATE-3 staleness-reaper input from the registry by aging each row from its
+/// `last_touch_commit` against the HEAD commit time (deterministic per-checkout, no
+/// wall-clock). Mirrors the gate's born-blocking self-test exactly so the baseline freezes
+/// the same keys the gate would flag today.
+fn build_staleness_input(repo_root: &Path, registry: &Value) -> Result<Value, CliError> {
+    let now_secs = git_head_secs(repo_root)?;
+    let commit_ts = git_commit_timestamps(repo_root)?;
+    let rows = registry["rows"].as_array().cloned().unwrap_or_default();
+    let mut aged_rows: Vec<Value> = Vec::with_capacity(rows.len());
+    for row in rows {
+        let sha = row["last_touch_commit"].as_str().unwrap_or("");
+        let age_days = commit_ts
+            .get(sha)
+            .map(|ts| (now_secs.saturating_sub(*ts)) / 86_400)
+            .unwrap_or(0);
+        let mut aged = row.clone();
+        if let Value::Object(map) = &mut aged {
+            map.insert("age_days".into(), json!(age_days));
+        }
+        aged_rows.push(aged);
+    }
+    Ok(json!({ "rows": aged_rows }))
+}
+
+/// Build the GATE-4 automation-ratchet matrix input by adapting the enforcement-inventory
+/// face rows into matrix rows. Mirrors the gate's born-blocking self-test exactly: a surface
+/// that maps a blocking invariant to oya CLI is classified blocking with that target; an
+/// unwired claim carries claims_enforced.
+fn build_automation_matrix(enforcement: &Value) -> Value {
+    let surfaces = enforcement["rows"].as_array().cloned().unwrap_or_default();
+    let mut matrix_rows: Vec<Value> = Vec::with_capacity(surfaces.len());
+    for surface in &surfaces {
+        let id = surface["id"].as_str().unwrap_or("");
+        let src = surface["source_artifact"].as_str().unwrap_or("");
+        let claims = surface["claims_enforced"].as_bool() == Some(true);
+        let wired = surface["has_wired_buck2_target"].as_bool() == Some(true);
+        let maps_oya = surface["maps_to_oya_cli"].as_bool() == Some(true);
+        matrix_rows.push(json!({
+            "id": id,
+            "source_artifact": src,
+            "requirement": "Live enforcement surface inventoried by the producer.",
+            "classification": if maps_oya { "automated_blocking_now" } else { "automated_advisory_until_p0_0" },
+            "owner": "platform-governance",
+            "target_gate_or_controller": if maps_oya { "oya gate / oya gen verified_by authority" } else { src },
+            "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/",
+            "retirement_phase": "P0.0",
+            "evidence_path": src,
+            "no_new_oya_cli_surface": !maps_oya,
+            "claims_enforced": claims,
+            "has_wired_buck2_target": wired
+        }));
+    }
+    json!({ "rows": matrix_rows })
+}
+
+/// HEAD commit time in epoch seconds (the deterministic "now" for aging the corpus).
+fn git_head_secs(repo_root: &Path) -> Result<u64, CliError> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["log", "-1", "--format=%ct"])
+        .output()
+        .map_err(|e| CliError::Git(format!("log HEAD time: {e}")))?;
+    if !output.status.success() {
+        return Err(CliError::Git(format!(
+            "log HEAD time exit {:?}",
+            output.status.code()
+        )));
+    }
+    String::from_utf8_lossy(&output.stdout)
+        .trim()
+        .parse()
+        .map_err(|e| CliError::Git(format!("parse HEAD time: {e}")))
+}
+
+/// One `git log --format` pass builds the commit-sha -> author-timestamp map (epoch secs).
+fn git_commit_timestamps(repo_root: &Path) -> Result<BTreeMap<String, u64>, CliError> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["log", "--format=%H %ct"])
+        .output()
+        .map_err(|e| CliError::Git(format!("log timestamps: {e}")))?;
+    if !output.status.success() {
+        return Err(CliError::Git(format!(
+            "log timestamps exit {:?}",
+            output.status.code()
+        )));
+    }
+    let mut map = BTreeMap::new();
+    for line in String::from_utf8_lossy(&output.stdout).lines() {
+        if let Some((sha, ts)) = line.split_once(' ')
+            && let Ok(ts) = ts.trim().parse::<u64>()
+        {
+            map.insert(sha.to_owned(), ts);
+        }
+    }
+    Ok(map)
 }
 
 /// Collect the GATE-1 cross-artifact facts from the live corpus: ADR front-matter

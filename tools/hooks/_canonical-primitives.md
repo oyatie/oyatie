@@ -8,7 +8,7 @@ than duplicating strings. Keep sections machine-parseable (no nested bullets).
 ## VCS / Git
 
 Canonical: plain `git`. The `oya git` wrapper and the `oya vcs` ratchet are
-RETIRED per ADR-0363 (substrate = git + Jenkins + self-hosted Forgejo). They no
+RETIRED per ADR-0363 (substrate = git + Jenkins + GitHub (interim)). They no
 longer exist as commands — do NOT use them.
 
 Coordination (per agent lane):
@@ -19,7 +19,7 @@ Coordination (per agent lane):
 
 `oya` is a governance-gate engine only: `oya gate ...`, `oya verify [--ci-required]`.
 
-Authority: ADR-0363 (retire bespoke agentic-VCS; Forgejo substrate; oya = gate engine)
+Authority: ADR-0363 (retire bespoke agentic-VCS; GitHub substrate; oya = gate engine)
 
 ---
 

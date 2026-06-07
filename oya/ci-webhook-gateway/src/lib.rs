@@ -1,25 +1,25 @@
 //! # oya-ci-webhook-gateway-app
 //!
 //! The CI webhook gateway: the FIRST hop of the gated change-coordination
-//! pipeline per ADR-0363 (git + Jenkins + self-hosted Forgejo), ADR-0366
+//! pipeline per ADR-0363 (git + Jenkins + GitHub (interim)), ADR-0366
 //! (self-enforcing pipeline), and ADR-0367 (trustless pre-merge verification).
 //!
 //! ## What it does
 //!
-//! 1. Receives Forgejo webhook deliveries at `/webhook/forgejo`.
+//! 1. Receives GitHub webhook deliveries at `/webhook/github`.
 //! 2. Verifies the `X-Hub-Signature-256` HMAC on the RAW body, fail-closed,
 //!    BEFORE any parsing/routing (so unsigned traffic cannot poison state).
 //! 3. Parses `pull_request` events (opened / reopened / synchronized) whose
 //!    base branch is the gated target (default `dev`).
 //! 4. Dispatches the gated pipeline by kicking the Jenkins `oyaCiLane`
 //!    pipeline (admission → `oya gate run-all`, the trusted-runner
-//!    re-execution that posts the Forgejo commit statuses).
+//!    re-execution that posts the GitHub commit statuses).
 //!
 //! ## Why it exists
 //!
 //! `dev` branch protection requires 15 status contexts. Jenkins already POSTs
-//! 14 of them to the Forgejo Commit Status API (`oyaCiLane.groovy`), but
-//! nothing TRIGGERS Jenkins from a Forgejo PR event — so historically every
+//! 14 of them to the GitHub Commit Status API (`oyaCiLane.groovy`), but
+//! nothing TRIGGERS Jenkins from a GitHub PR event — so historically every
 //! merge briefly disabled `enforce_admins` and used an admin-merge. This
 //! gateway is the missing trigger: it turns a PR event into a real, gated CI
 //! run, retiring the manual admin-relax-merge seam.

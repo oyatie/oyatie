@@ -1,6 +1,6 @@
 context: ci-webhook-gateway
 role: adapter
-capability: forgejo-webhook-ed25519-signature-verification
+capability: github-webhook-ed25519-signature-verification
 plane: control
 slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY]

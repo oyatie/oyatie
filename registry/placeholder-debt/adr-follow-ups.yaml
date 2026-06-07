@@ -52,21 +52,21 @@ follow_ups:
     intent: |
       The fleet GitOps bootstrap source (`repoURL`) is currently hardcoded as
       the founder's personal GitHub `https://github.com/jason931225/oyatie` in
-      four production-path files: `infra/forge/forgejo-argocd-app.yaml`,
+      four production-path files: `infra/forge/github-argocd-app.yaml`,
       `infra/gitops/root-app.yaml`, `infra/gitops/values.yaml`, and
       `infra/kyverno/oya-vcs-admission/application.json`. ADR-0247 documents the
-      cutover to the self-hosted Forgejo URL once the in-cell Forgejo deploy
+      cutover to the GitHub (interim) URL once the in-cell GitHub deploy
       stabilises. Until then every cell pulls from a single personal-account
       SPOF. Cutover: (a) parameterise `repoURL` via an ApplicationSet so the
-      value lands once, (b) flip the bootstrap source to Forgejo, (c) document
+      value lands once, (b) flip the bootstrap source to GitHub, (c) document
       the per-cell override for air-gapped/sovereign packs (ADR-0164/0240).
     driver_docs:
       - infra/gitops/values.yaml
       - infra/gitops/root-app.yaml
-      - infra/forge/forgejo-argocd-app.yaml
+      - infra/forge/github-argocd-app.yaml
       - infra/kyverno/oya-vcs-admission/application.json
     owner: council-architecture + ops-platform
-    trigger: First in-cluster Forgejo cell reaches GA, or the personal-account SPOF is hit.
+    trigger: First in-cluster GitHub cell reaches GA, or the personal-account SPOF is hit.
     status: pending
     adr_when_landed: ADR-0247 (impl tracks an already-accepted ADR)
 
@@ -768,7 +768,7 @@ follow_ups:
     driver_docs:
       - microservices/ci-webhook-gateway/src/dispatch.rs
       - microservices/ci-webhook-gateway/src/error.rs
-      - docs/decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md
+      - docs/decisions/ADR-0374-ci-webhook-gateway-github-jenkins.md
     owner: council-architecture + axis-intelligence
     trigger: |
       The Intelligence-service reviewer CI stage (ADR-0367 D2) is stood up
@@ -781,25 +781,25 @@ follow_ups:
       Wire the merge-queue admit step (ADR-0111 speculative rebase) as a
       dispatch target of the ci-webhook-gateway, if/when concurrent-PR
       volume + semantic-conflict risk justify a queue (ADR-0363 §3 parks
-      it at current scale; Forgejo auto-merge + required checks suffice).
+      it at current scale; GitHub auto-merge + required checks suffice).
       Until then the gateway expresses merge-queue as a typed
       Unimplemented boundary.
     driver_docs:
       - microservices/ci-webhook-gateway/src/dispatch.rs
-      - docs/decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md
+      - docs/decisions/ADR-0374-ci-webhook-gateway-github-jenkins.md
     owner: council-architecture + ops-platform
     trigger: |
       Concurrent open-PR volume on dev exceeds the point where
-      Forgejo auto-merge + required-status-checks alone cause stale-base
+      GitHub auto-merge + required-status-checks alone cause stale-base
       breakage (ADR-0363 §3 revisit condition). Adopt (not build) bors /
-      gitea-mq / Forgejo native MQ if/when forgejo#5102 lands.
+      gitea-mq / GitHub native MQ if/when github#5102 lands.
     status: pending
 
   - id: adr-0374-delivery-dedup-log
     intent: |
       Append-only webhook delivery-id dedup log for the ci-webhook-gateway
-      (the ADR-0112 idempotency contract carried forward to the Forgejo
-      substrate). v1 relies on Forgejo at-least-once redelivery + the
+      (the ADR-0112 idempotency contract carried forward to the GitHub
+      substrate). v1 relies on GitHub at-least-once redelivery + the
       idempotent (pr, head_sha) Jenkins kick; this follow-up adds the
       explicit dedup log + crash-safe replay if duplicate-kick cost or
       audit completeness demands it.

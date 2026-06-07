@@ -36,7 +36,7 @@
 //!
 //! ## TTL
 //!
-//! Default TTL is 300 000 ms (5 minutes).  Forgejo's default re-delivery
+//! Default TTL is 300 000 ms (5 minutes).  GitHub's default re-delivery
 //! window is 24 h, but duplicate re-deliveries in normal operation arrive
 //! within seconds; 5 min is long enough to catch all realistic duplicates
 //! while keeping memory bounded in practice.
@@ -69,7 +69,7 @@ pub const DEFAULT_TTL_MS: u64 = 300_000;
 /// Constructed via [`DeliveryKey::from_parts`]; not built directly by callers.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum DeliveryKey {
-    /// Primary key: unique Forgejo delivery ID.
+    /// Primary key: unique GitHub delivery ID.
     DeliveryId(String),
     /// Fallback key: `(head_sha, pr_number, action_discriminant)` when
     /// delivery-id is absent.  The action is stored as a `u8` discriminant

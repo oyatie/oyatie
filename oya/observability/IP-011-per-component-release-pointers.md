@@ -23,7 +23,7 @@ Introduce `release/<microservice>/<environment>` ref naming + required-check pol
 
 | Path | Action |
 |---|---|
-| Jenkins/Forgejo required-check configuration | update — required-check rules for `release/*/staging` and `release/*/production`; CI identity scope |
+| Jenkins/GitHub required-check configuration | update — required-check rules for `release/*/staging` and `release/*/production`; CI identity scope |
 | `microservices/observability/src/crates/oya-observability-slo-engine-adapter/src/git_refs_store.rs` | update — implements `ReleasePointerStore` via GitHub API (Octocrab) |
 | `microservices/observability/tests/integration/release_pointer.rs` | create |
 

@@ -15,16 +15,16 @@ door: two-way
 milestone: M-CI-WEBHOOK-GATEWAY
 deliverables:
   - id: D1
-    description: "HTTP receiver endpoint POST /webhook/forgejo accepting Forgejo's webhook payload. Verifies the X-Hub-Signature-256 HMAC header on the RAW body, fail-closed, BEFORE any parsing. Returns 401 on missing/mismatched signature, 200 on accepted events, 422 on unroutable authentic events (no Forgejo redelivery storm)."
-    exit_criteria: "axum handler at POST /webhook/forgejo compiles; cargo nextest -p oya-ci-webhook-gateway-kernel passes d1_payload_parsing tests (push, PR-open, PR-update, PR-close, ping shapes all parsed without panic)."
+    description: "HTTP receiver endpoint POST /webhook/github accepting GitHub's webhook payload. Verifies the X-Hub-Signature-256 HMAC header on the RAW body, fail-closed, BEFORE any parsing. Returns 401 on missing/mismatched signature, 200 on accepted events, 422 on unroutable authentic events (no GitHub redelivery storm)."
+    exit_criteria: "axum handler at POST /webhook/github compiles; cargo nextest -p oya-ci-webhook-gateway-kernel passes d1_payload_parsing tests (push, PR-open, PR-update, PR-close, ping shapes all parsed without panic)."
     verified_by: "cargo nextest -p oya-ci-webhook-gateway-kernel::d1_payload_parsing"
   - id: D2
-    description: "ed25519 signature verification using the shared secret fetched from OpenBao (sref://openbao/oya/ci/forgejo-ed25519-secret). The WebhookSignature value object wraps the raw bytes; SignatureVerifier trait seam allows a MockSignatureVerifier in tests. Fail-closed: missing header → MissingSignature, tampered payload → SignatureMismatch, expired timestamp window → ExpiredTimestamp."
+    description: "ed25519 signature verification using the shared secret fetched from OpenBao (sref://openbao/oya/ci/github-ed25519-secret). The WebhookSignature value object wraps the raw bytes; SignatureVerifier trait seam allows a MockSignatureVerifier in tests. Fail-closed: missing header → MissingSignature, tampered payload → SignatureMismatch, expired timestamp window → ExpiredTimestamp."
     exit_criteria: "SignatureVerifier trait compiles; d2_ed25519_verification tests cover valid signature, tampered payload, expired timestamp, and missing header — all 4 tests FAIL at Stage-4 RED (no real ed25519 implementation yet) and PASS at Stage-5 GREEN."
     verified_by: "cargo nextest -p oya-ci-webhook-gateway-kernel::d2_ed25519_verification (RED: 4 fail)"
   - id: D3
-    description: "Payload normalization to a canonical CiTriggerEvent (repo, branch, head_sha, base_sha, pr_number). Every Forgejo webhook shape (push, pull_request open/update/close, ping) maps to either a CiTriggerEvent or an explicit Ignored outcome. The closed router table: unknown (event, action) pairs produce UnroutableEvent, not a silent drop."
-    exit_criteria: "CiTriggerEvent struct compiles with all required fields; d3_event_normalization tests assert every supported Forgejo payload type normalizes to a CiTriggerEvent with correct field values."
+    description: "Payload normalization to a canonical CiTriggerEvent (repo, branch, head_sha, base_sha, pr_number). Every GitHub webhook shape (push, pull_request open/update/close, ping) maps to either a CiTriggerEvent or an explicit Ignored outcome. The closed router table: unknown (event, action) pairs produce UnroutableEvent, not a silent drop."
+    exit_criteria: "CiTriggerEvent struct compiles with all required fields; d3_event_normalization tests assert every supported GitHub payload type normalizes to a CiTriggerEvent with correct field values."
     verified_by: "cargo nextest -p oya-ci-webhook-gateway-kernel::d3_event_normalization"
   - id: D4
     description: "Jenkins client (REST API) that triggers a parameterized build of the oyaCiLane job with the CiTriggerEvent as parameters. JenkinsClient trait seam; Stage-5 implements the reqwest-backed adapter. Parameters: repo_full_name, branch, head_sha, base_sha, pr_number, delivery_id."
@@ -40,7 +40,7 @@ deliverables:
     verified_by: "cargo check -p oya-ci-webhook-gateway-kernel --tests + ./bin/oya gate validate honest-claims"
 ---
 
-# ADR-0387 — CI Webhook Gateway: Forgejo → Jenkins → GitHub Commit-Status Bridge
+# ADR-0387 — CI Webhook Gateway: GitHub → Jenkins → GitHub Commit-Status Bridge
 
 ## Status
 
@@ -49,13 +49,13 @@ Proposed
 ## Context
 
 `dev` branch protection requires 15 status contexts. Jenkins already posts 14
-of them to the Forgejo Commit Status API via `oyaCiLane.groovy`, but nothing
-TRIGGERS Jenkins from a Forgejo PR event. The result: every merge historically
+of them to the GitHub Commit Status API via `oyaCiLane.groovy`, but nothing
+TRIGGERS Jenkins from a GitHub PR event. The result: every merge historically
 required a founder-OK admin-relax-merge that briefly disabled `enforce_admins`.
 
 This is the missing trigger. It eliminates the admin-merge bridge by:
 
-1. Receiving Forgejo webhook deliveries at `POST /webhook/forgejo`.
+1. Receiving GitHub webhook deliveries at `POST /webhook/github`.
 2. Verifying the ed25519 signature (shared secret in OpenBao) — fail-closed
    before any JSON parsing, per ADR-0112 §"Signature handling".
 3. Normalizing the payload to a canonical `CiTriggerEvent`.
@@ -66,15 +66,15 @@ This is the missing trigger. It eliminates the admin-merge bridge by:
 **Binding ADRs**:
 
 - **ADR-0112**: webhook-driven Foundry/Intelligence agent invocation — the
-  original design that establishes the Forgejo-webhook-to-pipeline pattern,
+  original design that establishes the GitHub-webhook-to-pipeline pattern,
   ed25519 signature mandate, and fail-closed security invariants.
 - **ADR-0359**: Jenkins-native CI execution model — `oyaCiLane.groovy` is the
   trusted runner that executes `./bin/oya verify --ci-required` and
   `cargo nextest` on Talos.
 - **ADR-0361**: Jenkins substrate configuration — the parameterized job schema,
   build parameter names, and the callback mechanism this gateway relies on.
-- **ADR-0363**: Forgejo as the self-hosted git substrate — webhook delivery
-  format, signature headers (`X-Hub-Signature-256` / `X-Forgejo-Delivery`),
+- **ADR-0363**: GitHub as the self-hosted git substrate — webhook delivery
+  format, signature headers (`X-Hub-Signature-256` / `X-GitHub-Delivery`),
   and the mirroring arrangement from GitHub.
 
 ## Decision
@@ -113,7 +113,7 @@ See YAML frontmatter for D1–D6 with exit criteria and verification commands.
 
 ### Negative / Risks
 
-- Stage-5 requires a live OpenBao `sref://openbao/oya/ci/forgejo-ed25519-secret`
+- Stage-5 requires a live OpenBao `sref://openbao/oya/ci/github-ed25519-secret`
   pre-provisioned before the gateway can accept real webhook traffic.
 - Jenkins `oyaCiLane` callback URL must be configured as a build parameter or
   a webhook-notification plugin trigger (follow-up ADR-0361 amendment).

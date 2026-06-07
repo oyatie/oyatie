@@ -131,7 +131,7 @@
     },
     {
       "allowed_language_now": "retirement path / retired from authority in plan, not fully deleted",
-      "artifact": "docs/AGENTS.md + docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+      "artifact": "docs/AGENTS.md + docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-github-substrate.md",
       "claim_text": "oya CLI retired from CI authority",
       "claim_tier": "spec_ready",
       "current_evidence": [
@@ -174,7 +174,7 @@
     },
     {
       "allowed_language_now": "ownership/placement specified; full automation remains Phase-1 target",
-      "artifact": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md + docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md",
+      "artifact": "docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md + docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-github-substrate.md",
       "claim_text": "Tide/merge queue is owned by cloud-ci now and not deferred",
       "claim_tier": "spec_ready",
       "current_evidence": [

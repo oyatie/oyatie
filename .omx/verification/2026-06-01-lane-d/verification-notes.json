@@ -16,8 +16,8 @@
       "status": "blocked"
     },
     {
-      "details": "Leader integrated verification found only GitHub origin in the clean worktree; Forgejo remote/API/token path is not configured, so no Forgejo PR/push was opened and GitHub PR/merge remains forbidden.",
-      "id": "forgejo-remote-api-token-unconfigured",
+      "details": "Leader integrated verification found only GitHub origin in the clean worktree; GitHub remote/API/token path is not configured, so no GitHub PR/push was opened and GitHub PR/merge remains forbidden.",
+      "id": "github-remote-api-token-unconfigured",
       "status": "blocked"
     },
     {
@@ -103,13 +103,13 @@
       "status": "blocked"
     },
     {
-      "command": "Forgejo PR/push via plain git + Forgejo",
-      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; Forgejo remote/API/token path not configured; GitHub PR/merge intentionally not used.",
+      "command": "GitHub PR/push via plain git + GitHub",
+      "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; GitHub remote/API/token path not configured; GitHub PR/merge intentionally not used.",
       "status": "blocked"
     }
   ],
   "constraints_observed": [
-    "Forgejo-only plain git/Forgejo PRs against dev; no GitHub PR/merge action performed.",
+    "GitHub-only plain git/GitHub PRs against dev; no GitHub PR/merge action performed.",
     "Rust commands used RUSTUP_TOOLCHAIN=1.96.0 and rustfmt --edition 2024.",
     "No oya git/vcs commands used; no Jenkins cutover or deletion attempted.",
     "No .omx/ultragoal files mutated by worker-4."
@@ -151,8 +151,8 @@
           "status": "blocked"
         },
         {
-          "command": "Forgejo PR/push via plain git + Forgejo",
-          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; Forgejo remote/API/token path not configured; GitHub PR/merge intentionally not used.",
+          "command": "GitHub PR/push via plain git + GitHub",
+          "evidence": "/tmp/oyatie-leader-verify-20260601T020106Z.log: clean leader worktree has only origin=https://www.github.com/jason931225/oyatie; GitHub remote/API/token path not configured; GitHub PR/merge intentionally not used.",
           "status": "blocked"
         }
       ],

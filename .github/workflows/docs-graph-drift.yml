@@ -1,0 +1,77 @@
+name: docs-graph-drift
+
+# Drift gate for the architecture dashboard (docs/architecture/product-graph.html).
+#
+# The dashboard is GENERATED from SSOT by an owned-Rust CI pipeline tool
+# (tools/oya-architecture-graph-generator-app) — NOT a developer-facing `oya`
+# subcommand. This job rebuilds the generator, regenerates the dashboard, and
+# byte-compares the result against the committed HTML. If the committed file is
+# stale, the job fails (red) and the author must run the generator and commit.
+#
+# Authority model (per docs/ci/forge-of-record.md, ADR-0363):
+#   * GitHub Actions (this workflow) is the LIVE gating check.
+#   * The oya-ci shadow mirror (infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy,
+#     stage `docs-graph-drift`) posts a NON-BLOCKING `docs-graph-drift` status
+#     context. It is intentionally ABSENT from the branch-protection required set
+#     (.github/branch-protection.yaml) — feedback only, following the repo's
+#     existing oya-ci shadow convention. Branch protection is NOT changed here.
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/docs-graph-drift.yml"
+      - "tools/oya-architecture-graph-generator-app/**"
+      - "docs/architecture/product-graph.template.html"
+      - "docs/architecture/product-graph.html"
+      - "docs/machine-readable/architecture-graph.json"
+      - "docs/machine-readable/masterplan.generated.json"
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/docs-graph-drift.yml"
+      - "tools/oya-architecture-graph-generator-app/**"
+      - "docs/architecture/product-graph.template.html"
+      - "docs/architecture/product-graph.html"
+      - "docs/machine-readable/architecture-graph.json"
+      - "docs/machine-readable/masterplan.generated.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-graph-drift-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  docs-graph-drift:
+    name: docs-graph-drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: docs-graph-drift
+      - name: Build + test the architecture-graph generator
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: |
+          set -euo pipefail
+          cargo build -p oya-architecture-graph-generator-app
+          cargo test -p oya-architecture-graph-generator-app
+      - name: Regenerate the dashboard
+        run: |
+          set -euo pipefail
+          cargo run -q -p oya-architecture-graph-generator-app \
+            --bin oya-architecture-graph-generator -- --write
+      - name: Fail on dashboard drift
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- docs/architecture/product-graph.html \
+            || { echo "::error::docs/architecture/product-graph.html is stale; run the generator (--write) and commit."; exit 1; }

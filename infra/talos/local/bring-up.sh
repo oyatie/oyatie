@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # bring-up.sh — one command from a bare vfkit Talos cluster to the local Oyatie
-# substrate: Cilium (CNI) -> local-path (storage) -> Forgejo (SCM) -> Jenkins (CI).
+# substrate: Cilium (CNI) -> local-path (storage) -> GitHub (SCM) -> Jenkins (CI).
 #
 # Prereq: `infra/talos/local/talos-local.sh up --role single` has produced a
 # kubeconfig at ${OYA_TALOS_WORKDIR:-$HOME/.oya/talos-local}/kubeconfig.
@@ -72,12 +72,12 @@ storage() {
   ok "local-path is the default StorageClass"
 }
 
-# ── 3. Forgejo (source-of-truth SCM) ──────────────────────────────────────────
-forgejo() {
-  log "Forgejo (SCM)"
-  kubectl apply -f "$REPO/infra/forge/forgejo.yaml" >/dev/null
-  kubectl rollout status deployment/forgejo -n oya-forge --timeout=180s
-  ok "Forgejo: svc forgejo.oya-forge:3000"
+# ── 3. GitHub (source-of-truth SCM) ──────────────────────────────────────────
+github() {
+  log "GitHub (SCM)"
+  kubectl apply -f "$REPO/infra/forge/github.yaml" >/dev/null
+  kubectl rollout status deployment/github -n oya-forge --timeout=180s
+  ok "GitHub: svc github.oya-forge:3000"
 }
 
 # ── 4. Jenkins (CI) ───────────────────────────────────────────────────────────
@@ -95,17 +95,17 @@ jenkins() {
 # ── access summary + remaining (human-auth) wiring ────────────────────────────
 summary() {
   log "Local Oyatie substrate is up. Reach the UIs from the host:"
-  printf '  kubectl --kubeconfig %s -n oya-forge port-forward svc/forgejo 3000:3000\n' "$KUBECONFIG"
+  printf '  kubectl --kubeconfig %s -n oya-forge port-forward svc/github 3000:3000\n' "$KUBECONFIG"
   printf '  kubectl --kubeconfig %s -n oya-ci-jenkins port-forward svc/oya-jenkins 8080:8080\n' "$KUBECONFIG"
   printf '  Jenkins admin password: kubectl -n oya-ci-jenkins exec -it svc/oya-jenkins -c jenkins -- cat /run/secrets/additional/chart-admin-password\n'
-  warn "Forgejo<->Jenkins wiring (token + webhook) is operator-authored — see microservices/ci-webhook-gateway/SETUP-RUNBOOK.md"
+  warn "GitHub<->Jenkins wiring (token + webhook) is operator-authored — see microservices/ci-webhook-gateway/SETUP-RUNBOOK.md"
 }
 
 main() {
   case "${1:-all}" in
-    cni) cni;; storage) storage;; forgejo) forgejo;; jenkins) jenkins;; summary) summary;;
-    all) cni; storage; forgejo; jenkins; summary;;
-    *) die "usage: $0 [all|cni|storage|forgejo|jenkins|summary]";;
+    cni) cni;; storage) storage;; github) github;; jenkins) jenkins;; summary) summary;;
+    all) cni; storage; github; jenkins; summary;;
+    *) die "usage: $0 [all|cni|storage|github|jenkins|summary]";;
   esac
 }
 main "$@"

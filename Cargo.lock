@@ -6,8 +6,12 @@ version = 4
 name = "accounting-registry-producer"
 version = "0.1.0"
 dependencies = [
+ "automation-ratchet",
+ "cross-artifact-agreement",
  "serde",
  "serde_json",
+ "staleness-reaper",
+ "total-accounting",
 ]
 
 [[package]]
@@ -939,6 +943,13 @@ dependencies = [
  "quote",
  "serde_derive_internals",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "cloud-ci-firewall"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
@@ -3485,6 +3496,13 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "oya-architecture-graph-generator-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]

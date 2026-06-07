@@ -1,7 +1,7 @@
 {{- if .Values.networkPolicy.enabled }}
 # NetworkPolicy for the oya-ci controller.
 # Ingress: monitoring namespace only (/healthz + /metrics).
-# Egress: kube-apiserver (Job/Pod watch+create), Forgejo (status post + clone),
+# Egress: kube-apiserver (Job/Pod watch+create), GitHub (status post + clone),
 #         OpenBao (ESO token sync), OTel collector, DNS.
 # ADR-0387: ci-gate substrate.
 apiVersion: networking.k8s.io/v1
@@ -54,14 +54,14 @@ spec:
     - ports:
         - protocol: TCP
           port: {{ .Values.networkPolicy.egress.apiserverPort }}
-    # Forgejo in-cluster — status post + git clone
+    # GitHub in-cluster — status post + git clone
     - to:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: {{ .Values.networkPolicy.egress.forgejoNamespaceName | quote }}
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.egress.githubNamespaceName | quote }}
       ports:
         - protocol: TCP
-          port: {{ .Values.networkPolicy.egress.forgejoPort }}
+          port: {{ .Values.networkPolicy.egress.githubPort }}
     # OpenBao secret store (ESO pulls)
     - to:
         - namespaceSelector:

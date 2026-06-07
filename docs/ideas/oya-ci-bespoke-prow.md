@@ -1,14 +1,14 @@
-# oya-ci — Bespoke-Rust Prow (Forgejo-native CI/CD platform)
+# oya-ci — Bespoke-Rust Prow (GitHub-native CI/CD platform)
 
 ## Problem Statement
 How might we replace the flaky Jenkins+Groovy CI gate with a robust, introspectable,
-deadlock-proof, **pure-Rust, Forgejo-native** CI/CD platform that mirrors Prow's proven
+deadlock-proof, **pure-Rust, GitHub-native** CI/CD platform that mirrors Prow's proven
 component model — and unifies the gate, the merge-queue, reviewer-approval, and
 governance-ChatOps into one substrate?
 
 ## Recommended Direction
 Build **`oya-ci`**: a bespoke-Rust reimplementation of Prow's component shape, K8s-native
-(kube-rs), Forgejo-native, on Talos. We ADOPT THE SHAPE (Prow's battle-tested decomposition),
+(kube-rs), GitHub-native, on Talos. We ADOPT THE SHAPE (Prow's battle-tested decomposition),
 not the code (Prow is Go + GitHub/GCS-coupled). It is the canonical replacement for both
 Jenkins (gate execution) AND the externally-specced merge-queue — one platform.
 
@@ -19,9 +19,9 @@ controller-spawns-Job-per-change + reports-status model + trunk-sourced presubmi
 ## Component map (Prow → oya-ci, and what each SUBSUMES)
 | Prow | oya-ci (Rust) | Subsumes / notes |
 |---|---|---|
-| **hook** (webhook ingest, event + command routing) | `ci-webhook-gateway` ✅ (extend for plugin/command dispatch) | Already bespoke Rust, Forgejo-native, rock-solid |
+| **hook** (webhook ingest, event + command routing) | `ci-webhook-gateway` ✅ (extend for plugin/command dispatch) | Already bespoke Rust, GitHub-native, rock-solid |
 | **plank** (job controller: K8s Job per ProwJob) | `oya-ci-controller` (kube-rs) | The reliable gate executor |
-| **crier** (report status/comments to forge) | reporter (reuse gateway's Forgejo client) | Terminal-status-always; failure summary |
+| **crier** (report status/comments to forge) | reporter (reuse gateway's GitHub client) | Terminal-status-always; failure summary |
 | **ProwJob + config** (presubmit/postsubmit/periodic/batch) | `OyaCIJob` CRD + config | buck2-affected-gate = one presubmit job type |
 | **tide** (merge automation: pool, batch, retest, auto-merge) | `oya-ci-merge` controller | **= the merge-queue (ADR-0111 projected state)** + the Sweep engine's auto-merge + required-context/approval enforcement (ADR-0116 reviewer-APPROVE) |
 | **deck** (web UI: jobs, logs, history) | `oya-ci-deck` (SolidJS shell, reuse the existing oya UI stack) | CI visibility for founder + agents |
@@ -49,11 +49,11 @@ platform instead of Jenkins + a separate merge-queue + bespoke auto-merge glue.
 
 ## Key Assumptions to Validate
 - [ ] kube-rs Job spawn+watch + terminal-status state machine is tractable — Phase-1 spike (lift plank's phase→state logic).
-- [ ] tide's pool/batch/retest model maps cleanly onto Forgejo PRs + the buck2 affected gate — Phase-2 design.
+- [ ] tide's pool/batch/retest model maps cleanly onto GitHub PRs + the buck2 affected gate — Phase-2 design.
 - [ ] One Rust platform is less total surface than Jenkins + Prow-adapter + bespoke merge glue — track LOC/ops over phases.
 
 ## Not Doing (and Why)
-- Adopt Prow's Go code — GitHub/GCS-coupled, would replace our working Forgejo-native Rust gateway; we adopt the SHAPE.
+- Adopt Prow's Go code — GitHub/GCS-coupled, would replace our working GitHub-native Rust gateway; we adopt the SHAPE.
 - Build all phases at once — phase it; Phase 1 (reliable gate) is the urgent reliability win, the rest follows.
 - GCS / pod-utils — SeaweedFS-S3 + kubectl-logs (self-host lens).
 

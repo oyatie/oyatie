@@ -2,21 +2,21 @@
 
 > Design surface for ADR-0374. How the webhook receiver keeps one tenant's
 > source-forge events from triggering another tenant's pipeline. The gateway is
-> a **stateless event router** (Forgejo PR event → admission → `oya gate run-all`
+> a **stateless event router** (GitHub PR event → admission → `oya gate run-all`
 > → reviewer → merge dispatch); it holds no tenant data at rest, so isolation is
 > enforced at the trust boundary and on the dispatch target, not via stored state.
 
 ## Tenant identity
 
-A tenant is a distinct source-forge trust domain — a Forgejo org/instance whose
+A tenant is a distinct source-forge trust domain — a GitHub org/instance whose
 repositories enter the governance pipeline. Per `oyatie-dogfood-tenancy`, Oyatie's
 own repository is the **first tenant** of its own gateway; it receives no internal
 bypass and is isolated by the same mechanism as any external tenant.
 
 ## Trust boundary: per-tenant HMAC
 
-Each tenant registers its Forgejo webhook with a **per-tenant HMAC secret**, stored
-in OpenBao (`sref://openbao/oya/ci/<tenant>/forgejo-webhook-secret`, never in the
+Each tenant registers its GitHub webhook with a **per-tenant HMAC secret**, stored
+in OpenBao (`sref://openbao/oya/ci/<tenant>/github-webhook-secret`, never in the
 process image — see `SETUP-RUNBOOK.md`). On every request `signature.rs` performs a
 **constant-time HMAC-SHA256 verification of the raw body against that tenant's
 secret, before any parse or routing**. Consequences:

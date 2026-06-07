@@ -2,23 +2,23 @@
 
 The CI webhook gateway: the **first hop** of the gated change-coordination
 pipeline (ADR-0363/0366/0367/0374). It is the missing trigger that turns a
-Forgejo `pull_request` event into a real, gated CI run — so PRs against `dev`
+GitHub `pull_request` event into a real, gated CI run — so PRs against `dev`
 are gated by REAL Jenkins-produced status checks and the manual
 admin-relax-merge seam is retired.
 
 ## What it does
 
-1. Receives Forgejo webhooks at `POST /webhook/forgejo`.
+1. Receives GitHub webhooks at `POST /webhook/github`.
 2. Verifies the `X-Hub-Signature-256` HMAC on the raw body, **fail-closed**,
    constant-time, before any parsing.
 3. Parses `pull_request` events (opened/reopened/synchronized) against the
    gated branch (`dev`).
 4. Dispatches the gated pipeline by kicking the Jenkins `oyaCiLane` lane
    (admission → `oya gate run-all`, the ADR-0367 trusted runner that posts the
-   Forgejo commit statuses).
+   GitHub commit statuses).
 
 It does NOT run gates, post statuses, review code, or merge — those are the
-trusted runner (Jenkins), the reviewer (Intelligence service), and Forgejo
+trusted runner (Jenkins), the reviewer (Intelligence service), and GitHub
 auto-merge respectively. Stages not yet built are typed `Unimplemented` (501)
 boundaries tracked in `registry/placeholder-debt/adr-follow-ups.yaml`.
 

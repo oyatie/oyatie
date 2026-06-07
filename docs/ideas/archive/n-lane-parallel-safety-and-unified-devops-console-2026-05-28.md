@@ -21,7 +21,7 @@ Two gaps block production confidence for cloud-intelligence v1 and the broader N
 
 1. **Safety proof gap**: N lanes of parallel agent work (cloud-intelligence lanes K/R/Z/A/C/N) run concurrently on disjoint crate paths. There is no gate that verifies the disjoint-path invariant holds — that no two lanes touch the same file. Without this, merging a batch of parallel PRs risks silent cross-lane collisions.
 
-2. **Visibility gap**: there is no unified operator console. Founders and operators currently monitor lane progress, subscription-pool health, token-window utilization, and proof harness results across disconnected tools (Forgejo PRs, Jenkins build history, Grafana dashboards, CLI commands). This creates alert fatigue, slow incident response, and no single pane of glass for the cloud-intelligence service state.
+2. **Visibility gap**: there is no unified operator console. Founders and operators currently monitor lane progress, subscription-pool health, token-window utilization, and proof harness results across disconnected tools (GitHub PRs, Jenkins build history, Grafana dashboards, CLI commands). This creates alert fatigue, slow incident response, and no single pane of glass for the cloud-intelligence service state.
 
 This idea-pager proposes: (a) a formal N-lane parallel safety proof layer, and (b) a DevOps console v0 (operator-only, not tenant-facing) that aggregates the key signal surfaces.
 
@@ -66,7 +66,7 @@ This runs as part of `oya verify --ci-required` in the Jenkins pipeline.
 The console is a microservice (`microservices/devops-console/`) — a SolidJS frontend served by an Axum backend — that aggregates:
 
 1. **Subscription admin panel**: list tenants, per-tenant seat pool state (Active/Reserved/Cooldown/Blacklisted count), 5h/weekly token window utilization bars, last-refresh timestamp per seat.
-2. **Lane progress board**: open PRs per lane (Forgejo API), their CI status (Jenkins API), claimed deliverables (masterplan claim refs), merge-queue position.
+2. **Lane progress board**: open PRs per lane (GitHub API), their CI status (Jenkins API), claimed deliverables (masterplan claim refs), merge-queue position.
 3. **Proof harness results**: last Loom run pass/fail + interleaving count, last proptest run shrink log, last chaos run fault-injection summary.
 4. **Audit chain health**: `oya_cloud_intelligence_p7_audit_lag_seconds` gauge, chain depth, last Sigstore attestation timestamp.
 5. **Gateway health**: P0 in-flight requests, P3 upstream error rate by provider, P6 response status distribution (last 5 min).
@@ -80,7 +80,7 @@ The console is a microservice (`microservices/devops-console/`) — a SolidJS fr
   browser ───────>│  SolidJS SPA (axum static-file serve)    │
                   │  ┌────────────────────────────────────┐  │
                   │  │  /api/subscriptions  (admin API)    │  │
-                  │  │  /api/lanes          (Forgejo API)  │  │
+                  │  │  /api/lanes          (GitHub API)  │  │
                   │  │  /api/proof          (CI API)       │  │
                   │  │  /api/metrics        (Prometheus)   │  │
                   │  └────────────────────────────────────┘  │
@@ -90,7 +90,7 @@ The console is a microservice (`microservices/devops-console/`) — a SolidJS fr
                   └──────────────────────────────────────────┘
 ```
 
-The console backend is a thin aggregator: it calls the cloud-intelligence admin API, Forgejo API, Jenkins API, and Prometheus query API. No new data storage — all state lives in existing systems.
+The console backend is a thin aggregator: it calls the cloud-intelligence admin API, GitHub API, Jenkins API, and Prometheus query API. No new data storage — all state lives in existing systems.
 
 **v0 deliverables**:
 - `microservices/devops-console/` crate scaffold (ADR-0131 flat layout).
@@ -109,7 +109,7 @@ The console backend is a thin aggregator: it calls the cloud-intelligence admin 
 - [ ] **Lane-overlap gate can compute git diff set-intersection in < 5s for 10 open PRs.** Validate: benchmark `git diff --name-only` × 10 in a repo of this size.
 - [ ] **SolidJS SPA + Axum static-file serve fits in a single flat-layout µservice.** Validate: scaffold the crate, confirm it compiles and serves a hello-world SPA.
 - [ ] **Prometheus query API on Talos is accessible from the devops-console backend without additional RBAC.** Validate: curl the Prometheus HTTP API from a pod in the `cloud-intelligence` namespace.
-- [ ] **Forgejo API returns PR CI status in a single call (no N+1 on lane count).** Validate: review Forgejo API docs for batch commit-status endpoint.
+- [ ] **GitHub API returns PR CI status in a single call (no N+1 on lane count).** Validate: review GitHub API docs for batch commit-status endpoint.
 
 ## Not Doing (and Why)
 

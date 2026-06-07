@@ -1,0 +1,978 @@
+{
+ "removable": [
+  {
+   "branch": "chore/canonical-catalog-backfill",
+   "wt": "/private/tmp/oya-slice1",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/canonical-archb-green",
+   "wt": "/private/tmp/archb-green",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/hooks-hygiene",
+   "wt": "/private/tmp/hooks-hygiene-wt",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/buck2-native-ffi",
+   "wt": "/private/tmp/buck2-ffi",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/buck2-thirdparty",
+   "wt": "/private/tmp/buck2-tp",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/buck2-firstparty",
+   "wt": "/private/tmp/buck2-fp",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/ci-go-live-phase1",
+   "wt": "/private/tmp/ci-p1",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "ci/seaweedfs-volmax",
+   "wt": "/private/tmp/sw-fix",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/adr-citation-mold-linker-20260530",
+   "wt": "/private/tmp/oyatie-adr-citation-mold-linker-20260530",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/remove-context-injection-hooks",
+   "wt": "/private/tmp/oyatie-hook-context-removal-pr",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-route-policy-ranked-candidate-slate",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-messenger-mention-fanout-usecase",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-managed-k8s-cluster-lifecycle-provisioning-state-machine",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-obs-cloud-domain-audit-topic-rollup",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-intel-attribution-claim-fanout-cap",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-marketplace-entitlement-suspend-reinstate-transitions",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-capacity-reservation-commitment-expiry-cancel-transitions",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-obs-hyperscaler-metrics-multiwindow-burn-rate",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-intel-api-semver-sunset-date-validation",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of feat/cd-intel-archmap-reachability-cycles",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "dup of chore/canonical-archb-green",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "(detached)",
+   "wt": "/private/tmp/buck2-gates",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "feature/wave-3-board-team-leader-2026-05-27",
+   "wt": "/Users/jasonlee/Developer/source-wave3-board-team-leader-20260527",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "feature/managed-k8s-cluster-lifecycle-2026-05-27",
+   "wt": "/Users/jasonlee/Developer/source-wave3-managed-cluster-lifecycle-20260527",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "feature/managed-k8s-sla-observability-2026-05-27",
+   "wt": "/Users/jasonlee/Developer/source-wave3-managed-sla-observability-20260527",
+   "reason": "already in dev",
+   "locked": false
+  },
+  {
+   "branch": "chore/jenkins-forgejo-ci-cutover-2026-05-28",
+   "wt": "/Users/jasonlee/Developer/source-ci-cutover-2026-05-28",
+   "reason": "already in dev",
+   "locked": false
+  }
+ ],
+ "harness": [
+  {
+   "branch": "fix/bespoke-adrs-adr0509-align-2026-05-28",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f3707342-738-4",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/adr-0508-opensk-2026-05-28",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f3707342-738-3",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/adr-0507-webauthn-rs-2026-05-28",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f3707342-738-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/adr-0506-aws-lc-rs-2026-05-28",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f3707342-738-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-cedar-domain-obligations-and-decision-annotations",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_c46cc819-071-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-workload-oidc-eddsa-ed25519-verification",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_c46cc819-071-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-cedar-policy-publish-rest-edge",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-4",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-intel-autonomy-ceiling-tenant-tier-policy",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-10",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-wire-quality-lanes-into-aggregator",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-intel-capability-registry-affected-target-index",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-7",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-control-plane-drain-failure-taxonomy",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-5",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-identity-token-issue-otel-and-error-taxonomy",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-8",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-tenant-quota-usage-headroom-projection",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-6",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-cloud-iac-opentofu-plan-changeset-model",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-9",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-gate-run-all-affected-scope",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_71c7e295-cad-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/pooling-bind-binary-2026-05-29",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a828618b119d8975e",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-pooling-hyper-client-transport",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e97b2eda-995-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-pooling-kernel-cooldown-window",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_c4c1fd32-d19-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-pooling-openbao-secret-fetch",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_c4c1fd32-d19-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-pooling-429-retry-after-rotation",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_25afe5ce-d31-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-pooling-anthropic-oauth-refresh-runtime",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_25afe5ce-d31-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-pooling-sse-passthrough-streaming",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_1f5046ac-7fe-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-pooling-seat-observability-otel",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_61a9f7a9-944-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-pooling-quota-fairness-reserve-reconcile",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_0e191f72-283-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-payroll-retro-adjustment-net-delta-kernel",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-16",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-cedar-policy-version-diff-impact-report",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-2",
+   "reason": "dup of feat/cd-payroll-retro-adjustment-net-delta-kernel",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-obs-domain-error-budget-window-kernel",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-7",
+   "reason": "dup of feat/cd-payroll-retro-adjustment-net-delta-kernel",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-metering-domain-window-rollup-kernel",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-9",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-iac-domain-changeset-apply-approval-gate",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-4",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-wf-engine-state-machine-domain-ordered-batch-fold",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-11",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-network-domain-routetable-longest-prefix-resolve",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-3",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-oidc-issuer-verification-key-grace-selection",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-wf-studio-dsl-emitter-domain-node-typology-semantics",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-12",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-billing-kernel-invoice-total-tax-aggregator",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-10",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-sla-obs-kernel-fleet-rollup-summary",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-8",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-ontology-query-engine-domain-reverse-direction-traversal",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-14",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-hr-leave-carryover-forfeiture-kernel",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-15",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-messenger-reaction-tally-kernel",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-17",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-email-comms-kernel-inbound-dmarc-alignment-disposition",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-20",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-mail-domain-thread-conversation-grouping-kernel",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-19",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-social-collab-consent-reconciliation-audit",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-22",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-community-vote-ledger-hot-controversy-ranking",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-21",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-usage-window-burn-rate-forecast",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e0eefd0e-3f5-6",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-workflow-studio-canvas-reachability-cycle-analysis",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_280be0c3-648-16",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-cloud-network-dns-zone-name-canonicalization",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_280be0c3-648-6",
+   "reason": "dup of feat/cd-workflow-studio-canvas-reachability-cycle-analysis",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-cloud-resource-domain-transition-graph-introspection",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_399e7bc9-27a-4",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-intelligence-autonomy-ceiling-batch-most-restrictive-resolve",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_399e7bc9-27a-6",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-workflow-exec-sla-escalation-bucket-projection",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_399e7bc9-27a-11",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-intel-attribution-claim-fanout-cap",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_280be0c3-648-7",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-capacity-reservation-commitment-expiry-cancel-transitions",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_280be0c3-648-14",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-ulid-crockford-timestamp-validation-hardening",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_280be0c3-648-3",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-tenant-quota-kernel-pressure-band-classifier",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_280be0c3-648-5",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-obs-tracing-client-w3c-traceparent-parser",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_280be0c3-648-10",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feat/cd-finops-anomaly-to-recommendation-derivation",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_280be0c3-648-15",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-436",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-3",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-437",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-435",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-4",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-431",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-8",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-430",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-9",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-434",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-5",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-428",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-11",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-429",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-10",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-432",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-7",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-433",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-6",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-426",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-13",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-427",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-12",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-424",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-15",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-421",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-18",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-422",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-17",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-425",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-14",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-417",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-21",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-423",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-16",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-420",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-19",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-416",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-22",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-419",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-20",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-415",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-23",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-412",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-26",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-413",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-25",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-414",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-24",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-408",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-28",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-411",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-27",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-388",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-33",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-399",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-30",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-404",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-29",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-374",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-34",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-366",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-35",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-389",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-32",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-364",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-37",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-362",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-39",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-390",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-31",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-365",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-36",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "drain-363",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f7bb0789-08d-38",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "chore/cloud-oya-split",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_66122331-818-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "chore/security-guardrails",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_1e3ae471-9c8-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a6a252bd8926f6df3",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a6a252bd8926f6df3",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a698018b3358afaee",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a698018b3358afaee",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_874f7838-ca6-1",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_874f7838-ca6-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a9542763ac7c6849b",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a9542763ac7c6849b",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_0e191f72-283-1",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_0e191f72-283-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_d77ac0c9-20d-2",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_d77ac0c9-20d-2",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_d77ac0c9-20d-3",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_d77ac0c9-20d-3",
+   "reason": "dup of worktree-wf_d77ac0c9-20d-2",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_d77ac0c9-20d-5",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_d77ac0c9-20d-5",
+   "reason": "dup of worktree-wf_d77ac0c9-20d-2",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_d77ac0c9-20d-9",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_d77ac0c9-20d-9",
+   "reason": "dup of worktree-wf_d77ac0c9-20d-2",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_d77ac0c9-20d-4",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_d77ac0c9-20d-4",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_d77ac0c9-20d-1",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_d77ac0c9-20d-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_d77ac0c9-20d-14",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_d77ac0c9-20d-14",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_d77ac0c9-20d-17",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_d77ac0c9-20d-17",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_f3811957-c47-2",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f3811957-c47-2",
+   "reason": "dup of drain-363",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_f3811957-c47-1",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_f3811957-c47-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_65d11eb4-8a2-1",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_65d11eb4-8a2-1",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_65d11eb4-8a2-2",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_65d11eb4-8a2-2",
+   "reason": "dup of worktree-wf_65d11eb4-8a2-1",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_65d11eb4-8a2-3",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_65d11eb4-8a2-3",
+   "reason": "dup of worktree-wf_65d11eb4-8a2-1",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_66122331-818-2",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_66122331-818-2",
+   "reason": "dup of (detached)",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a4fd51f383a9e5e73",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a4fd51f383a9e5e73",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_e99f6a3a-031-5",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e99f6a3a-031-5",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_e99f6a3a-031-6",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_e99f6a3a-031-6",
+   "reason": "dup of worktree-wf_e99f6a3a-031-5",
+   "locked": true
+  },
+  {
+   "branch": "worktree-wf_fec208e2-8c4-11",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/wf_fec208e2-8c4-11",
+   "reason": "dup of worktree-wf_e99f6a3a-031-5",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a143c6532f5b76084",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a143c6532f5b76084",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a3260c13e0cf2e450",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a3260c13e0cf2e450",
+   "reason": "dup of worktree-agent-a143c6532f5b76084",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-ae906facdb920654e",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-ae906facdb920654e",
+   "reason": "dup of worktree-agent-a143c6532f5b76084",
+   "locked": true
+  },
+  {
+   "branch": "feature/identity-workload-gapclose-2026-05-27",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a9ac42ad8f66fb348",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "feature/managed-k8s-unify-2026-05-27",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-ac1a37903f16ff329",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a5cac8f428b8acd48",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a5cac8f428b8acd48",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a5ceeb141926fdc09",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a5ceeb141926fdc09",
+   "reason": "dup of worktree-agent-a5cac8f428b8acd48",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a7cf1d25ad2adef0a",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a7cf1d25ad2adef0a",
+   "reason": "dup of worktree-agent-a5cac8f428b8acd48",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a908bfce2b1f97154",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a908bfce2b1f97154",
+   "reason": "dup of worktree-agent-a5cac8f428b8acd48",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-ae034b6be71d6b96c",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-ae034b6be71d6b96c",
+   "reason": "dup of worktree-agent-a5cac8f428b8acd48",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-ae51991c2d3a7e014",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-ae51991c2d3a7e014",
+   "reason": "dup of worktree-agent-a5cac8f428b8acd48",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-af4387e1372b9142e",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-af4387e1372b9142e",
+   "reason": "dup of worktree-agent-a5cac8f428b8acd48",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-afb9ad32f0b374a40",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-afb9ad32f0b374a40",
+   "reason": "dup of worktree-agent-a5cac8f428b8acd48",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a26b5cd60663753ee",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a26b5cd60663753ee",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a27709e9510c25a1f",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a27709e9510c25a1f",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "worktree-agent-a0ceeba502c5764a6",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a0ceeba502c5764a6",
+   "reason": "already in dev",
+   "locked": true
+  },
+  {
+   "branch": "dev",
+   "wt": "/Users/jasonlee/Developer/source/.claude/worktrees/agent-a99440cd71952b127",
+   "reason": "dup of worktree-agent-a0ceeba502c5764a6",
+   "locked": true
+  }
+ ]
+}

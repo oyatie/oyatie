@@ -19,7 +19,7 @@ live-cluster mutation is performed by this PR.
 | `OYA_GATEWAY_BIND_ADDR` | `values.yaml` → `"0.0.0.0:8099"` | Matches `DEFAULT_BIND_ADDR` in config.rs |
 | `OYA_GATEWAY_TARGET_BRANCH` | hardcoded `"dev"` in deployment.yaml | PRs targeting `dev` are gated |
 | `OYA_JENKINS_DISPATCH_URL` | `values.yaml` → `jenkins.dispatchUrl` | Full http:// URL for oyaCiLane kick |
-| `OYA_FORGEJO_WEBHOOK_SECRET` | ExternalSecret `forgejo_webhook_secret` key | HMAC-SHA256 secret; gateway fails closed if unset |
+| `OYA_GITHUB_WEBHOOK_SECRET` | ExternalSecret `github_webhook_secret` key | HMAC-SHA256 secret; gateway fails closed if unset |
 
 ## FOUNDER-GATED checklist — steps this PR does NOT perform
 
@@ -31,9 +31,9 @@ These steps require live-cluster authority and are blocked on OpenBao init:
 2. **Write the HMAC webhook secret to OpenBao**:
    ```
    openssl rand -hex 32   # generate secret
-   bao kv put secret/oya/ci/forgejo-webhook-secret value='<SECRET>'
+   bao kv put secret/oya/ci/github-webhook-secret value='<SECRET>'
    ```
-   This unblocks the ExternalSecret → `ci-webhook-gateway-secrets` → `OYA_FORGEJO_WEBHOOK_SECRET`.
+   This unblocks the ExternalSecret → `ci-webhook-gateway-secrets` → `OYA_GITHUB_WEBHOOK_SECRET`.
 
 3. **Update `jenkins.dispatchUrl`** in `values.yaml` with the live
    generic-webhook-trigger or build-token endpoint once Jenkins is confirmed up.
@@ -44,23 +44,23 @@ These steps require live-cluster authority and are blocked on OpenBao init:
    (`image.cosign.required=true`) will block deployment until a real
    `sha256:<64-hex>` digest is injected by release automation (ADR-0181).
 
-5. **Register the Forgejo webhook** (SETUP-RUNBOOK.md §2) — founder action on
-   the live Forgejo instance (`oya-admin/oyatie` repo → Settings → Webhooks).
-   Target URL: `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/forgejo`
+5. **Register the GitHub webhook** (SETUP-RUNBOOK.md §2) — founder action on
+   the live GitHub instance (`oya-admin/oyatie` repo → Settings → Webhooks).
+   Target URL: `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/github`
    (or the external ingress URL). Use the SAME secret written to OpenBao in step 2.
 
 6. **`argocd app sync ci-webhook-gateway-dev`** (or enable auto-sync) — founder
    action. The ApplicationSet has `automated.prune=true` + `selfHeal=true` but
    ArgoCD itself must be running and the Application must be admitted.
 
-7. **Jenkins `forgejo-ci-token` credential** (SETUP-RUNBOOK.md §5) — Jenkins must
-   have the Forgejo API token in `oya-ci-jenkins` before it can post commit
-   statuses back to Forgejo. See `runbooks/provision-secrets.md` for steps.
+7. **Jenkins `github-ci-token` credential** (SETUP-RUNBOOK.md §5) — Jenkins must
+   have the GitHub API token in `oya-ci-jenkins` before it can post commit
+   statuses back to GitHub. See `runbooks/provision-secrets.md` for steps.
 
 ## No live-cluster mutation in this PR
 
 This PR only authors static YAML manifests. It does not:
 - Apply any manifest (`kubectl apply`, `argocd sync`)
-- Register any Forgejo webhook
+- Register any GitHub webhook
 - Provision any secret in OpenBao or Kubernetes
 - Touch any live cluster resource

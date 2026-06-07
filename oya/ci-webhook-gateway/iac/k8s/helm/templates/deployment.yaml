@@ -79,14 +79,14 @@ spec:
             # the oyaCiLane pipeline (generic-webhook-trigger / build-token endpoint).
             - name: OYA_JENKINS_DISPATCH_URL
               value: {{ .Values.jenkins.dispatchUrl | quote }}
-            # OYA_FORGEJO_WEBHOOK_SECRET: HMAC-SHA256 secret injected from OpenBao
-            # via ESO (sref://openbao/oya/ci/forgejo-webhook-secret, ADR-0043).
+            # OYA_GITHUB_WEBHOOK_SECRET: HMAC-SHA256 secret injected from OpenBao
+            # via ESO (sref://openbao/oya/ci/github-webhook-secret, ADR-0043).
             # Gateway fails closed (rejects all deliveries) until this is set.
-            - name: OYA_FORGEJO_WEBHOOK_SECRET
+            - name: OYA_GITHUB_WEBHOOK_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.externalSecret.secretName | quote }}
-                  key: forgejo_webhook_secret
+                  key: github_webhook_secret
           readinessProbe:
             httpGet:
               path: /healthz

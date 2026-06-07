@@ -101,7 +101,7 @@ done; D2 (kubectl-through-tunnel with mTLS), D3 (Access service-token gate), and
 connector Healthy) complete once the cluster's apiserver VIP is live and the connector is deployed.
 
 ## References
-ADR-0370 (Talos substrate), ADR-0363 (git+Jenkins+Forgejo substrate), ADR-0043 (OpenBao KMS),
+ADR-0370 (Talos substrate), ADR-0363 (git+Jenkins+GitHub substrate), ADR-0043 (OpenBao KMS),
 ADR-0147 (Kata runtime — the workloads behind this control plane). Research + exact configs:
 `.omx/plans/cloudflare-controlplane-access.md`. IaC: `infra/cloudflare/cloudflared.yaml`,
 `infra/talos/controlplane.patch.yaml` (certSANs).

@@ -5,15 +5,15 @@ info:
   description: >
     The audit-chain events the gateway emits per ADR-0263. Each delivery
     decision and dispatch outcome is sealed as one audit-chain row keyed by
-    delivery_id. The gateway is an event SINK for Forgejo webhooks (modelled
+    delivery_id. The gateway is an event SINK for GitHub webhooks (modelled
     as a received operation) and an event SOURCE for the audit chain.
   license:
     name: Apache-2.0
 defaultContentType: application/json
 channels:
-  forgejoDelivery:
-    address: webhook/forgejo
-    description: Inbound Forgejo webhook deliveries (received over HTTP).
+  githubDelivery:
+    address: webhook/github
+    description: Inbound GitHub webhook deliveries (received over HTTP).
     messages:
       pullRequestDelivery:
         $ref: "#/components/messages/PullRequestDelivery"
@@ -32,8 +32,8 @@ channels:
 operations:
   receiveDelivery:
     action: receive
-    channel: { $ref: "#/channels/forgejoDelivery" }
-    summary: Receive a Forgejo webhook delivery.
+    channel: { $ref: "#/channels/githubDelivery" }
+    summary: Receive a GitHub webhook delivery.
   emitAudit:
     action: send
     channel: { $ref: "#/channels/auditChain" }
@@ -69,10 +69,10 @@ components:
           repository: { type: object }
           sender:
             type: object
-            description: Authenticated Forgejo/Gitea user that emitted the claim-ref push webhook.
+            description: Authenticated GitHub/Gitea user that emitted the claim-ref push webhook.
           pusher:
             type: object
-            description: Git pusher identity from the claim-ref push payload, when provided by Forgejo/Gitea.
+            description: Git pusher identity from the claim-ref push payload, when provided by GitHub/Gitea.
     DeliveryAccepted:
       name: webhook.delivery.accepted
       payload: { $ref: "#/components/schemas/AuditRow" }

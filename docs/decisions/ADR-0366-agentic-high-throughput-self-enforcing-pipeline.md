@@ -104,7 +104,7 @@ gate (tests + docs + ADR + SLO + evidence present) so a *green* build means subs
 - Negative/cost: the pipeline (D1–D6) is substantial build work and must precede feature delivery —
   deliberately, per this ADR. Risk of over-engineering; mitigated by adopting (not building) where
   possible (Argo AnalysisTemplates, Chaos Mesh, merge-queue patterns).
-- Neutral: rides the existing substrate (ADR-0363 git+Jenkins+Forgejo, ADR-0349 farm).
+- Neutral: rides the existing substrate (ADR-0363 git+Jenkins+GitHub, ADR-0349 farm).
 
 ## Verification
 Per-deliverable `verified_by`: `oya gate validate concurrent-safe-paths | merge-queue-health |

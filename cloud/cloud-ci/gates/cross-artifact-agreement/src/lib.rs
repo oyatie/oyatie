@@ -59,6 +59,28 @@ pub enum Verdict {
     Red,
 }
 
+/// A keyed violation: the bare `code` (the existing contract) PLUS the stable `key`
+/// that identifies the offending unit. The going-live ratchet baselines per
+/// `(code, key)`; `evaluate()` is the bare-code projection of `evaluate_keyed()`.
+/// Keys for this gate are: the decision `id` (orphan/unpropagated/dual),
+/// `{decision_id}@{face}` (status_disagreement), `{source_id}->{target_id}`
+/// (supersession_half_edge), and `{shared-value}@{sorted face names}`
+/// (generated_face_drift).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Finding {
+    pub code: String,
+    pub key: String,
+}
+
+impl Finding {
+    fn new(code: &str, key: &str) -> Self {
+        Self {
+            code: code.to_owned(),
+            key: key.to_owned(),
+        }
+    }
+}
+
 impl Report {
     fn from_violations(violations: BTreeSet<String>) -> Self {
         let verdict = if violations.is_empty() {
@@ -99,8 +121,21 @@ impl Report {
 ///   }
 /// }
 /// ```
+/// Bare-code projection of [`evaluate_keyed`]: identical detection logic, keys dropped.
+/// Every `tc-*.json` fixture + the born-blocking self-test keep asserting bare codes
+/// against it byte-for-byte.
 pub fn evaluate(fixture: &Value) -> Report {
-    let mut violations: BTreeSet<String> = BTreeSet::new();
+    let violations = evaluate_keyed(fixture)
+        .into_iter()
+        .map(|finding| finding.code)
+        .collect();
+    Report::from_violations(violations)
+}
+
+/// Evaluate a cross-artifact-agreement corpus into the keyed finding set — the single
+/// source of truth for the gate's detection logic.
+pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
+    let mut findings: BTreeSet<Finding> = BTreeSet::new();
 
     let decisions = fixture
         .get("decisions")
@@ -123,10 +158,10 @@ pub fn evaluate(fixture: &Value) -> Report {
     }
 
     for decision in &decisions {
-        evaluate_decision(decision, &mut violations);
+        evaluate_decision(decision, &mut findings);
     }
 
-    // supersession_half_edge: every edge must be reciprocal.
+    // supersession_half_edge: every edge must be reciprocal. Keyed by the directed pair.
     for (id, targets) in &supersedes {
         for target in targets {
             // Only assert reciprocity when the counterpart decision is in-corpus; an
@@ -134,7 +169,10 @@ pub fn evaluate(fixture: &Value) -> Report {
             if known_ids.contains(target)
                 && !superseded_by.get(target).is_some_and(|set| set.contains(id))
             {
-                violations.insert("supersession_half_edge".to_owned());
+                findings.insert(Finding::new(
+                    "supersession_half_edge",
+                    &format!("{id}->{target}"),
+                ));
             }
         }
     }
@@ -143,32 +181,41 @@ pub fn evaluate(fixture: &Value) -> Report {
             if known_ids.contains(source)
                 && !supersedes.get(source).is_some_and(|set| set.contains(id))
             {
-                violations.insert("supersession_half_edge".to_owned());
+                findings.insert(Finding::new(
+                    "supersession_half_edge",
+                    &format!("{source}->{id}"),
+                ));
             }
         }
     }
 
-    // dual_decision_collision: an id carried by more than one decision file.
-    if !str_array(fixture, "duplicate_ids").is_empty() {
-        violations.insert("dual_decision_collision".to_owned());
+    // dual_decision_collision: an id carried by more than one decision file. Keyed by id.
+    for id in str_array(fixture, "duplicate_ids") {
+        findings.insert(Finding::new("dual_decision_collision", &id));
     }
 
-    // generated_face_drift: two generated faces disagree on a shared value.
+    // generated_face_drift: two generated faces disagree on a shared value. Keyed by
+    // "<shared-value-name>@{sorted face names}".
     if let Some(axes) = fixture.get("generated_face_axes").and_then(Value::as_object) {
         let distinct: BTreeSet<String> = axes
             .values()
             .map(|value| value.to_string())
             .collect();
         if distinct.len() > 1 {
-            violations.insert("generated_face_drift".to_owned());
+            let faces: Vec<&str> = axes.keys().map(String::as_str).collect();
+            // BTreeMap keys are already sorted; join the disagreeing face names.
+            let key = format!("axes_count@{{{}}}", faces.join(","));
+            findings.insert(Finding::new("generated_face_drift", &key));
         }
     }
 
-    Report::from_violations(violations)
+    findings
 }
 
-/// Per-decision propagation + status-agreement checks.
-fn evaluate_decision(decision: &Value, violations: &mut BTreeSet<String>) {
+/// Per-decision propagation + status-agreement checks. Keyed by the decision `id`
+/// (plus `@face` for status_disagreement).
+fn evaluate_decision(decision: &Value, findings: &mut BTreeSet<Finding>) {
+    let id = decision.get("id").and_then(Value::as_str).unwrap_or("");
     let status = decision
         .get("status")
         .and_then(Value::as_str)
@@ -187,20 +234,23 @@ fn evaluate_decision(decision: &Value, violations: &mut BTreeSet<String>) {
         let reaches_any = in_spec || in_masterplan || in_roadmap;
         if !reaches_any {
             // Reaches no propagation face at all: a decision nothing points at.
-            violations.insert("orphan_decision".to_owned());
+            findings.insert(Finding::new("orphan_decision", id));
         } else if !(in_spec && in_masterplan && in_roadmap) {
             // Reaches some faces but not all required ones.
-            violations.insert("unpropagated_decision".to_owned());
+            findings.insert(Finding::new("unpropagated_decision", id));
         }
     }
 
     // status_disagreement: any face records a status that differs from the ADR's status.
     if let Some(face_statuses) = decision.get("face_statuses").and_then(Value::as_object) {
-        for face_status in face_statuses.values() {
+        for (face, face_status) in face_statuses {
             if let Some(other) = face_status.as_str()
                 && !other.trim().eq_ignore_ascii_case(status)
             {
-                violations.insert("status_disagreement".to_owned());
+                findings.insert(Finding::new(
+                    "status_disagreement",
+                    &format!("{id}@{face}"),
+                ));
             }
         }
     }
@@ -297,6 +347,46 @@ mod tests {
         assert!(evaluate(&fixture)
             .violations
             .contains("supersession_half_edge"));
+    }
+
+    #[test]
+    fn evaluate_keyed_carries_stable_keys() {
+        // half-edge keyed by directed pair, dual keyed by id, drift keyed by faces.
+        let fixture = json!({
+            "decisions": [{
+                "id": "ADR-0511",
+                "status": "Superseded",
+                "in_spec": true, "in_masterplan": false, "in_roadmap": false,
+                "supersedes": ["ADR-0359"], "superseded_by": []
+            }, {
+                "id": "ADR-0359",
+                "status": "Superseded",
+                "in_spec": true, "in_masterplan": false, "in_roadmap": false,
+                "supersedes": [], "superseded_by": []
+            }],
+            "duplicate_ids": ["ADR-0377"],
+            "generated_face_axes": {"catalog.json": 6, "contracts.json": 7}
+        });
+        let findings = evaluate_keyed(&fixture);
+        assert!(findings.contains(&Finding::new("supersession_half_edge", "ADR-0511->ADR-0359")));
+        assert!(findings.contains(&Finding::new("dual_decision_collision", "ADR-0377")));
+        assert!(findings.contains(&Finding::new(
+            "generated_face_drift",
+            "axes_count@{catalog.json,contracts.json}"
+        )));
+        // evaluate() is the bare-code projection.
+        let projected: BTreeSet<String> = findings.iter().map(|f| f.code.clone()).collect();
+        assert_eq!(evaluate(&fixture).violations, projected);
+    }
+
+    #[test]
+    fn status_disagreement_keyed_by_decision_and_face() {
+        let findings = evaluate_keyed(&json!({"decisions":[{
+            "id":"ADR-0500","status":"Accepted",
+            "in_spec":true,"in_masterplan":true,"in_roadmap":true,
+            "face_statuses":{"roadmap":"Superseded"}
+        }]}));
+        assert!(findings.contains(&Finding::new("status_disagreement", "ADR-0500@roadmap")));
     }
 
     #[test]

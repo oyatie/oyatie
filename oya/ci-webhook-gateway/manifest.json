@@ -5,7 +5,7 @@
   "status": "wave-3-scaffold-2026-05-26",
   "date": "2026-05-26",
   "audience_type": "internal-substrate",
-  "summary": "Receives Forgejo webhook deliveries, verifies the HMAC signature (fail-closed), parses pull_request events against the gated branch (dev), and dispatches the gated CI pipeline by kicking the Jenkins oyaCiLane lane. The missing trigger that turns a PR event into a real, gated CI run — retiring the manual admin-relax-merge seam.",
+  "summary": "Receives GitHub webhook deliveries, verifies the HMAC signature (fail-closed), parses pull_request events against the gated branch (dev), and dispatches the gated CI pipeline by kicking the Jenkins oyaCiLane lane. The missing trigger that turns a PR event into a real, gated CI run — retiring the manual admin-relax-merge seam.",
   "bounded_contexts": ["change-coordination-substrate"],
   "layer": "app",
   "package_name": "oya-ci-webhook-gateway-app",
@@ -38,7 +38,7 @@
   "regulatory_packs": [
     {
       "pack": "sovereign-self-hosting",
-      "note": "Substrate runs entirely on self-hosted Forgejo + Jenkins per ADR-0363/0247; no third-party CI control-plane dependency. Air-gap-capable per ADR-0164. No tenant data resident in this service — only repo-coordination metadata (PR numbers, commit SHAs, branch names)."
+      "note": "Substrate runs entirely on GitHub (interim) + Jenkins per ADR-0363/0247; no third-party CI control-plane dependency. Air-gap-capable per ADR-0164. No tenant data resident in this service — only repo-coordination metadata (PR numbers, commit SHAs, branch names)."
     }
   ],
   "data_residency": {
@@ -61,9 +61,9 @@
     "format": "sref",
     "secrets": [
       {
-        "name": "forgejo-webhook-secret",
-        "sref": "sref://openbao/oya/ci/forgejo-webhook-secret",
-        "env": "OYA_FORGEJO_WEBHOOK_SECRET",
+        "name": "github-webhook-secret",
+        "sref": "sref://openbao/oya/ci/github-webhook-secret",
+        "env": "OYA_GITHUB_WEBHOOK_SECRET",
         "purpose": "HMAC-SHA256 webhook signature verification (fail-closed)."
       }
     ]
@@ -81,7 +81,7 @@
   "tenant_isolation": "N/A — substrate service, not tenant-scoped. Runs in the oya-ci namespace; no cross-tenant data path.",
   "dispatch_targets": {
     "trusted_runner": "Jenkins oyaCiLane pipeline (infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy)",
-    "status_sink": "Forgejo Commit Status API (posted by Jenkins, not by this gateway)"
+    "status_sink": "GitHub Commit Status API (posted by Jenkins, not by this gateway)"
   },
   "unbuilt_downstreams": [
     {

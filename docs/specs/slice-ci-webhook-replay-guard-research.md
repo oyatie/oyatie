@@ -1,6 +1,6 @@
 # Research: ci-webhook-replay-guard — Canonical Rules, Sources, and Slice Constraints
 
-**Scope**: Standards governing webhook idempotency / delivery-dedup, Forgejo
+**Scope**: Standards governing webhook idempotency / delivery-dedup, GitHub
 delivery-header semantics, and the verify-then-guard-then-dispatch ordering
 invariant (ADR-0367). Written to constrain T1–T4 implementation choices with
 verifiable citations. Produced at the BEST-PRACTICE RESEARCH stage; superseded
@@ -11,7 +11,7 @@ decisions.
 
 ## 1. Webhook at-least-once delivery — foundational guarantee
 
-**MUST assume at-least-once.** Every mainstream webhook sender (GitHub, Forgejo,
+**MUST assume at-least-once.** Every mainstream webhook sender (GitHub, GitHub,
 Stripe, Shopify) retries on non-2xx or timeout. A receiver that does not
 implement deduplication WILL process events multiple times under normal
 operational conditions (network blips, pod restarts, brief Jenkins unavailability).
@@ -25,9 +25,9 @@ minimum correct behaviour for a Jenkins dispatch receiver.
 
 ---
 
-## 2. Forgejo delivery-header semantics (authoritative source: Gitea/Forgejo source)
+## 2. GitHub delivery-header semantics (authoritative source: Gitea/GitHub source)
 
-Forgejo is a hard fork of Gitea. The webhook delivery mechanism is shared.
+GitHub is a hard fork of Gitea. The webhook delivery mechanism is shared.
 
 ### 2a. Headers sent per delivery
 
@@ -39,18 +39,18 @@ function `addDefaultHeaders`:
 req.Header.Add("X-Gitea-Delivery", t.UUID)
 req.Header.Add("X-Gogs-Delivery",  t.UUID)
 req.Header["X-GitHub-Delivery"] = []string{t.UUID}
-// Forgejo adds:
-// X-Forgejo-Delivery: t.UUID  (compat alias)
+// GitHub adds:
+// X-GitHub-Delivery: t.UUID  (compat alias)
 ```
 
-The compatibility set sent by Forgejo is:
-`X-Forgejo-Delivery`, `X-Gitea-Delivery`, `X-GitHub-Delivery`, `X-Gogs-Delivery`
+The compatibility set sent by GitHub is:
+`X-GitHub-Delivery`, `X-Gitea-Delivery`, `X-GitHub-Delivery`, `X-Gogs-Delivery`
 — all carry the same UUID from `HookTask.UUID`.
 
-Forgejo documentation also lists:
-`X-Forgejo-Event`, `X-Forgejo-Signature` (HMAC-SHA256 of payload using the
+GitHub documentation also lists:
+`X-GitHub-Event`, `X-GitHub-Signature` (HMAC-SHA256 of payload using the
 configured secret).
-Source: [Forgejo Webhooks Documentation](https://forgejo.org/docs/latest/user/webhooks/)
+Source: [GitHub Webhooks Documentation](https://github.org/docs/latest/user/webhooks/)
 
 ### 2b. UUID stability across automatic retries (CRITICAL for key derivation)
 
@@ -76,7 +76,7 @@ return CreateHookTask(ctx, &HookTask{
 | Automatic retry (network failure, non-2xx) | **Same UUID** — same HookTask row retried |
 | Manual redelivery (UI "Redeliver" button or API) | **New UUID** — new HookTask row created |
 
-**Rule MUST-1**: `X-Forgejo-Delivery` is stable across automatic retries and is
+**Rule MUST-1**: `X-GitHub-Delivery` is stable across automatic retries and is
 therefore a reliable idempotency key for deduplicating network-retry duplicates.
 
 **Rule MUST-2**: Manual redeliveries receive a new UUID, so they bypass the
@@ -86,7 +86,7 @@ expects the job to fire again.
 
 ### 2c. Header absence
 
-The Forgejo webhook documentation does not guarantee the header is always
+The GitHub webhook documentation does not guarantee the header is always
 present. The `unwrap_or("unknown")` sentinel in `lib.rs` is the correct
 defensive handling. The sentinel MUST NOT be used as a literal dedup key
 (distinct events without the header would collide). The fallback
@@ -97,7 +97,7 @@ for this case.
 
 ## 3. Idempotency key-derivation rules
 
-**Rule MUST-3 (primary key)**: Use the provider's delivery ID (`X-Forgejo-Delivery`)
+**Rule MUST-3 (primary key)**: Use the provider's delivery ID (`X-GitHub-Delivery`)
 as the primary dedup key when present and non-sentinel. It is stable across
 automatic retries and is the cheapest, most precise dedup signal.
 
@@ -149,7 +149,7 @@ concurrent replay would bypass the guard and fire Jenkins a second time.
 the key is already recorded. A legitimate retry within the TTL returns a 200
 idempotent ack without re-triggering. This is best-effort single-instance dedup,
 not a correctness guarantee. Operators can wait for TTL expiry (5 min) before
-manually redelivering. A manual redelivery via the Forgejo UI receives a new
+manually redelivering. A manual redelivery via the GitHub UI receives a new
 UUID (see §2b) and therefore bypasses the guard as `FirstSeen` automatically.
 
 ---
@@ -165,16 +165,16 @@ Source: [Hookdeck — Implement Webhook Idempotency](https://hookdeck.com/webhoo
 Source: [Svix — Idempotency and Deduplication](https://www.svix.com/resources/webhook-university/reliability/idempotency-and-deduplication/):
 "A daily job that deletes records older than seven days is usually sufficient."
 
-**Forgejo automatic retry behaviour**: Forgejo (Gitea upstream) uses an
+**GitHub automatic retry behaviour**: GitHub (Gitea upstream) uses an
 exponential back-off retry schedule. Automatic retries are typically exhausted
-within minutes for transient network failures; the Forgejo UI shows a
+within minutes for transient network failures; the GitHub UI shows a
 "Recent Deliveries" list but does not document a maximum retry window. In
 practice, automatic retries for a single delivery arrive within seconds to a
 few minutes.
 
 **Chosen TTL: 300 000 ms (5 minutes)**. Rationale:
 - Covers all realistic automatic retry storms (seconds–minutes).
-- Does not cover the 24 h Forgejo manual-redelivery window (intentional:
+- Does not cover the 24 h GitHub manual-redelivery window (intentional:
   manual redeliveries get new UUIDs per §2b, so they dispatch as `FirstSeen`
   regardless of TTL).
 - Keeps the in-memory `HashMap` small at typical CI delivery rates
@@ -204,7 +204,7 @@ pre-auth state mutation.
 2. Cedar authz gate passes (Step 3).
 3. Event routing succeeds and produces a `Trigger` outcome (Step 4).
 
-The wiring point in `lib.rs` (Step 4.5, between `route_forgejo_event` and
+The wiring point in `lib.rs` (Step 4.5, between `route_github_event` and
 `state.jenkins.trigger`) satisfies all three conditions.
 
 **Rule SHOULD-3**: The explicit comment in `lib.rs` naming the ordering
@@ -261,7 +261,7 @@ acks SHOULD be counted under a distinct `outcome="replay"` label, not
 
 | # | Item | Named follow-up |
 |---|---|---|
-| 1 | ed25519 signed delivery IDs (signed by the Forgejo server itself, not just HMAC body-sign) | Task #62 |
+| 1 | ed25519 signed delivery IDs (signed by the GitHub server itself, not just HMAC body-sign) | Task #62 |
 | 2 | Distributed dedup: sticky routing or shared store (Redis/Valkey) for multi-pod deployments | Task #62 |
 | 3 | Record-on-success variant: record after successful Jenkins dispatch to restore retry-ability on 502 | Design choice, not resolved here |
 | 4 | TTL configurability: expose as env var for ops tuning without recompile | Post-slice enhancement |
@@ -272,7 +272,7 @@ acks SHOULD be counted under a distinct `outcome="replay"` label, not
 
 | Source | URL | Used for |
 |---|---|---|
-| Forgejo Webhooks Documentation | https://forgejo.org/docs/latest/user/webhooks/ | Header list, signature format |
+| GitHub Webhooks Documentation | https://github.org/docs/latest/user/webhooks/ | Header list, signature format |
 | Gitea `services/webhook/deliver.go` | https://raw.githubusercontent.com/go-gitea/gitea/main/services/webhook/deliver.go | Header-setting code, `t.UUID` usage |
 | Gitea `models/webhook/hooktask.go` | https://raw.githubusercontent.com/go-gitea/gitea/main/models/webhook/hooktask.go | UUID generation timing, ReplayHookTask semantics |
 | Hookdeck — Implement Webhook Idempotency | https://hookdeck.com/webhooks/guides/implement-webhook-idempotency | Key derivation, record-before-dispatch, TTL rules |

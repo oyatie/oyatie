@@ -1,6 +1,6 @@
 context: ci-webhook-gateway
 role: kernel
-capability: forgejo-webhook-to-jenkins-bridge
+capability: github-webhook-to-jenkins-bridge
 plane: control
 slo: cataloged-no-runtime-claim
 data_classes_owned: [INTERNAL_ONLY]

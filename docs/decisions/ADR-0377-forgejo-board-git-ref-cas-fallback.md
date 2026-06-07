@@ -18,15 +18,15 @@ affected_surfaces:
   specs: [/specs/masterplan.json]
 deliverables:
   - id: ADR-0377-D1
-    description: "Decision record for the Forgejo-issues board as the human/audit projection of masterplan deliverables, with git-ref compare-and-swap claims under refs/heads/claims/<deliverable-id> as the concurrency fallback."
+    description: "Decision record for the GitHub-issues board as the human/audit projection of masterplan deliverables, with git-ref compare-and-swap claims under refs/heads/claims/<deliverable-id> as the concurrency fallback."
     exit_criteria: "This ADR exists, is indexed by oya doc adr-index, and explicitly states the conditional acceptance rule: the ADR stays Proposed until D2 and D3 are implemented and tested."
     verified_by: "oya doc adr-index --write && oya doc adr-index"
   - id: ADR-0377-D2
-    description: "Thin oya plan claim/next client: discover the next unclaimed masterplan deliverable, acquire refs/heads/claims/<deliverable-id> with git compare-and-swap semantics, and project exactly one exclusive Forgejo board label for the claim state."
+    description: "Thin oya plan claim/next client: discover the next unclaimed masterplan deliverable, acquire refs/heads/claims/<deliverable-id> with git compare-and-swap semantics, and project exactly one exclusive GitHub board label for the claim state."
     exit_criteria: "Unit/integration tests prove two contenders cannot both acquire the same deliverable; stale claim recovery is explicit; no oya git / oya vcs wrapper exists on the path."
     verified_by: "cargo test -p oya-dev-cli plan_claim"
   - id: ADR-0377-D3
-    description: "oya gen board-sync projection: idempotently diff /specs/masterplan.json deliverables into Forgejo issues plus exclusive scoped labels, without a bespoke long-running board service."
+    description: "oya gen board-sync projection: idempotently diff /specs/masterplan.json deliverables into GitHub issues plus exclusive scoped labels, without a bespoke long-running board service."
     exit_criteria: "Snapshot tests prove create/update/no-op diffs are stable and idempotent; exclusive labels produce one visible lane per deliverable; no GitHub Projects dependency exists."
     verified_by: "cargo test -p oya-dev-cli board_sync"
   - id: ADR-0377-D4
@@ -34,7 +34,7 @@ deliverables:
     exit_criteria: "Affected checks cover ADR index/masterplan projection plus the changed oya-dev-cli tests; leader-owned audit records any shared-file reconciliation."
     verified_by: "cargo test -p oya-dev-cli <affected tests> && oya doc adr-index && oya gen masterplan --check"
 purpose: >
-  Select Forgejo Issues plus exclusive scoped labels as the board projection for
+  Select GitHub Issues plus exclusive scoped labels as the board projection for
   autonomous masterplan deliverables, while preserving a git-native CAS fallback
   at refs/heads/claims/<deliverable-id> for concurrency safety. This deliberately
   avoids GitHub Projects, avoids resurrecting oya git / oya vcs, and avoids a
@@ -43,7 +43,7 @@ purpose: >
   implemented and tested.
 ---
 
-# ADR-0377: Forgejo board projection with git-ref CAS fallback
+# ADR-0377: GitHub board projection with git-ref CAS fallback
 
 ## Status
 
@@ -55,7 +55,7 @@ lanes prove the mechanism with code and tests:
 - `ADR-0377-D2` proves `oya plan claim/next` performs git-ref CAS claims under
   `refs/heads/claims/<deliverable-id>` and projects one exclusive board label.
 - `ADR-0377-D3` proves `oya gen board-sync` idempotently projects masterplan
-  deliverables into Forgejo issues and exclusive scoped labels.
+  deliverables into GitHub issues and exclusive scoped labels.
 
 Until both pass, this ADR records the intended mechanism and sequencing only; it
 does not claim that the board substrate exists.
@@ -63,8 +63,8 @@ does not claim that the board substrate exists.
 ## Context
 
 ADR-0363 retired the bespoke agentic-VCS layer and made plain `git` + Jenkins +
-self-hosted Forgejo the coordination substrate. ADR-0369 then selected gated
-stacked-trunk on plain git and Forgejo PRs. ADR-0374 added the Forgejo webhook
+GitHub (interim) the coordination substrate. ADR-0369 then selected gated
+stacked-trunk on plain git and GitHub PRs. ADR-0374 added the GitHub webhook
 trigger into Jenkins. The remaining gap is task selection and board visibility
 for autonomous masterplan deliverables.
 
@@ -77,20 +77,20 @@ and generated ADR/masterplan projections. Agents need a way to:
 4. keep the mechanism aligned with ADR-0363's "plain git, no `oya git`, no
    `oya vcs`" rule.
 
-Forgejo's current documentation supports the board side of this shape: labels
+GitHub's current documentation supports the board side of this shape: labels
 classify issues/PRs, organization labels can be shared across repositories, and
 scoped exclusive labels allow at most one label per scope on an issue/PR. The
-2026-05-27 checked documentation set is Forgejo v15.0.2 latest / v11.0.14 LTS.
+2026-05-27 checked documentation set is GitHub v15.0.2 latest / v11.0.14 LTS.
 
 ## Decision
 
-Use **Forgejo Issues + exclusive scoped labels** as the human/audit board
+Use **GitHub Issues + exclusive scoped labels** as the human/audit board
 projection, and use **plain git refs as the concurrency lock**.
 
 ### 1. Board projection
 
 `oya gen board-sync` reads `/specs/masterplan.json` deliverables and emits an
-idempotent diff against Forgejo Issues:
+idempotent diff against GitHub Issues:
 
 - one issue per deliverable;
 - stable issue identity from the deliverable id, not from issue number;
@@ -99,7 +99,7 @@ idempotent diff against Forgejo Issues:
   `state/declared`, `state/claimed`, `state/review`, `state/blocked`,
   `state/done`, and `owner/<agent-id>`.
 
-The Forgejo board is a projection, not the source of truth. The source of truth
+The GitHub board is a projection, not the source of truth. The source of truth
 remains the masterplan plus git claim refs and verified commits.
 
 ### 2. Claim fallback
@@ -118,13 +118,13 @@ racing on the same deliverable cannot both win: only one push can create/advance
 the claim ref from the observed value.
 
 The board label update is secondary and must follow the winning ref update. If
-Forgejo label projection fails after the ref wins, the claim remains valid and
+GitHub label projection fails after the ref wins, the claim remains valid and
 `oya gen board-sync` repairs the board on the next run.
 
 ### 3. No new coordination service
 
 There is no daemon, no custom board database, and no hidden queue. Jenkins and
-Forgejo remain standard substrate components; `oya` only supplies two thin
+GitHub remain standard substrate components; `oya` only supplies two thin
 commands:
 
 - `oya plan claim/next` — discover + CAS claim + optional board projection;
@@ -138,7 +138,7 @@ passing tests for D2 and D3. Documentation alone cannot lift the condition.
 
 ## Rejected alternatives
 
-- **GitHub Projects** — rejected: contradicts ADR-0363's self-hosted Forgejo
+- **GitHub Projects** — rejected: contradicts ADR-0363's GitHub (interim)
   substrate and creates a bootstrap-provider dependency.
 - **Revive `oya vcs` / `oya git`** — rejected: directly violates ADR-0363. Plain
   git is the substrate; `oya` may orchestrate planning/gate commands but must not
@@ -146,7 +146,7 @@ passing tests for D2 and D3. Documentation alone cannot lift the condition.
 - **Bespoke board/claim service** — rejected: unnecessary durable service. The
   forge already stores issues/labels and git already stores refs with atomic push
   behavior.
-- **Forgejo labels as the lock** — rejected: labels are the visibility
+- **GitHub labels as the lock** — rejected: labels are the visibility
   projection, not the concurrency primitive. They can lag and be repaired; git
   refs are the CAS authority.
 - **Run all gates after every board sync** — rejected: board sync is a generated
@@ -161,7 +161,7 @@ passing tests for D2 and D3. Documentation alone cannot lift the condition.
 - Claims are robust to concurrent agents because the lock is a git ref, not an
   eventually-consistent label update.
 - Board drift is repairable by regenerating from the masterplan and claim refs.
-- The design stays inside ADR-0363's plain-git + Forgejo + Jenkins boundary.
+- The design stays inside ADR-0363's plain-git + GitHub + Jenkins boundary.
 
 ### Negative / risk
 
@@ -169,7 +169,7 @@ passing tests for D2 and D3. Documentation alone cannot lift the condition.
   treat the ref as authoritative and run board-sync to repair visibility.
 - Stale-claim recovery needs explicit lease policy in D2; without it, a crashed
   agent can strand a deliverable.
-- Forgejo API failures must be typed and retriable; a label-write failure must
+- GitHub API failures must be typed and retriable; a label-write failure must
   never be reported as a successful board sync.
 
 ### Operational
@@ -196,9 +196,9 @@ Before this ADR can become Accepted:
 
 ## References
 
-- ADR-0363 — git + Jenkins + Forgejo substrate; `oya` is not VCS.
-- ADR-0369 — gated stacked-trunk change flow on plain git + Forgejo.
-- ADR-0374 — Forgejo webhook gateway to Jenkins.
-- Forgejo documentation checked 2026-05-27: v15.0.2 latest / v11.0.14 LTS; label
+- ADR-0363 — git + Jenkins + GitHub substrate; `oya` is not VCS.
+- ADR-0369 — gated stacked-trunk change flow on plain git + GitHub.
+- ADR-0374 — GitHub webhook gateway to Jenkins.
+- GitHub documentation checked 2026-05-27: v15.0.2 latest / v11.0.14 LTS; label
   docs define scoped exclusive labels and organization-wide labels:
-  <https://forgejo.org/docs/latest/user/labels/>.
+  <https://github.org/docs/latest/user/labels/>.

@@ -25,7 +25,7 @@ deliverables:
     exit_criteria: "reviewer identity != author; the oya-pr-review APPROVE is a trusted-runner signature (not an agent self-report); a self-reviewed changeset is rejected."
     verified_by: "oya gate validate reviewer-independence"
   - id: ADR-0367-D3
-    description: "Verified-changeset gateway: merge is automatic on signed-green + independent-APPROVE via the merge-queue / Forgejo auto-merge — no human-PR-review ceremony."
+    description: "Verified-changeset gateway: merge is automatic on signed-green + independent-APPROVE via the merge-queue / GitHub auto-merge — no human-PR-review ceremony."
     exit_criteria: "a changeset auto-merges only when both signals are present; neither alone suffices."
     verified_by: "oya gate validate merge-queue-health"
   - id: ADR-0367-D4
@@ -72,8 +72,8 @@ Intelligence — not asserted by an agent. (This is also the Intelligence servic
 self-tenant-dogfood job: the AI platform reviews the platform's own code.)
 
 ### 4. Verified-changeset gateway replaces PR ceremony
-Merge is **automatic** on `signed-green + independent-APPROVE` via the merge-queue / Forgejo auto-merge
-(ADR-0111/0363). The Forgejo PR object is retained only as the cheap automated *mechanism* + immutable
+Merge is **automatic** on `signed-green + independent-APPROVE` via the merge-queue / GitHub auto-merge
+(ADR-0111/0363). The GitHub PR object is retained only as the cheap automated *mechanism* + immutable
 audit record — there is **no human-PR-review ritual**. A changeset that has the author's claimed green
 but no trusted-runner signature, or no independent approval, does not merge.
 
@@ -87,7 +87,7 @@ flaky evidence is quarantined (ADR-0366 self-repair), never silently accepted.
 - **Trust the author-agent's reported evidence (fast path)** — rejected outright: this is the
   "evidence could be false" hole; the entire ADR exists to close it.
 - **Fully PR-less / direct-to-branch on local green** — rejected: loses the independent re-execution +
-  audit record; we keep Forgejo's PR as the automated mechanism, just without the human ceremony.
+  audit record; we keep GitHub's PR as the automated mechanism, just without the human ceremony.
 - **Same agent reviews its own work** — rejected: violates separation of duties.
 
 ## Consequences
@@ -105,7 +105,7 @@ green; demonstrated: a changeset with fabricated/self-reported evidence is rejec
 changeset is rejected; a changeset with trusted-runner-signed green + independent APPROVE auto-merges.
 
 ## References
-ADR-0366 (the pipeline this gateway sits in), ADR-0363 (substrate / Forgejo auto-merge), ADR-0111
+ADR-0366 (the pipeline this gateway sits in), ADR-0363 (substrate / GitHub auto-merge), ADR-0111
 (speculative merge-queue), ADR-0349/0361 (the trusted runner — CI farm / Jenkins, SLSA + cosign).
 Research backlog: docs/ideas/hyperscaler-practices-to-adopt.md (separation of duties, SLSA provenance,
 doubt-driven/adversarial review).

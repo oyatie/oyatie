@@ -13,7 +13,7 @@ The end-state is a **stack**, sequenced over several landings:
 4. **Hermetic toolchains** (`download_toolchain` rust+clang as build inputs) → agent image collapses to *just buck2*; kills image-drift whack-a-mole permanently.
 5. **Remote Execution** (NativeLink RE) → distributed, the 10× finish.
 
-Reuse verbatim the proven, build-system-agnostic chain: Forgejo webhook → ci-webhook-gateway → Jenkins `oya-ci-gate` (genericTrigger flat paths) → authed checkout → commit-status. Only the ~3-line gate **body** changes.
+Reuse verbatim the proven, build-system-agnostic chain: GitHub webhook → ci-webhook-gateway → Jenkins `oya-ci-gate` (genericTrigger flat paths) → authed checkout → commit-status. Only the ~3-line gate **body** changes.
 
 ## Key Assumptions to Validate
 - [ ] **buck2 `//...` AND `buck2 test //...` green on LINUX** (only verified darwin). The native fixups (psm/blake3/ring/aws-lc/openssl) hardcode `/usr/bin/clang` + `*-apple-darwin` triples — Linux-correctness is the #1 risk. *Test: in-cluster buildkit/Job runs `buck2 build //... && buck2 test //...` on the rust-ci(linux) image.*
