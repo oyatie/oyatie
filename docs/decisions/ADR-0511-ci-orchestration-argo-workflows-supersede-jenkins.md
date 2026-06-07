@@ -1,7 +1,7 @@
 ---
 id: ADR-0511
 title: "CI orchestration = Argo Workflows (k8s-native); Jenkins transitory; supersede Proposed ADR-0359"
-status: Proposed
+status: Superseded
 authority: founder
 deciders: founder, council-architecture
 date: 2026-05-29
@@ -9,7 +9,7 @@ owner: council-architecture
 planning_impact: true
 door: two-way
 supersedes: [ADR-0359]
-superseded_by: []
+superseded_by: [ADR-0515]
 amends: []
 related: [ADR-0359, ADR-0358, ADR-0349, ADR-0361, ADR-0363, ADR-0366, ADR-0367, ADR-0369, ADR-0111, ADR-0181, ADR-0387, ADR-0510]
 related_specs: [/specs/ci-farm-substrate-canonical.json, /specs/hyperscaler-architecture-invariants.json]
@@ -24,7 +24,7 @@ purpose: Name Argo Workflows as the destination CI orchestrator (CNCF, k8s-nativ
 
 ## Status
 
-Proposed — 2026-05-29. **DRAFT for founder review — do NOT auto-merge.**
+Superseded by ADR-0515 — 2026-06-06: the Argo Workflows DAG/event IDEAS are adopted (Face C, reimplemented in Rust behind ports); the etcd-CRD substrate and 'adopt Argo wholesale' are rejected.
 
 **Supersedes ADR-0359** ("Jenkins completely replaces GitHub Actions as the CI orchestrator"), which was only `status: Proposed` (never Accepted). ADR-0359's correct half — *remove the GitHub-Actions-budget single point of failure; one self-hostable CI surface covering every deployment context* — is **retained**. Its incorrect half — *Jenkins as the **sole, destination** orchestrator* — is replaced: Jenkins is the **transitory bootstrap**; **Argo Workflows is the destination** k8s-native CI orchestrator.
 
@@ -102,7 +102,7 @@ Argo Workflows posts per-context and the single trustless-gateway signed status 
 - Docs-only today; no build change. Forgejo Commit-Status gating, ADR-0367 trust model, ADR-0111 merge-train deferral, and ADR-0181 promotion ladder are unchanged in *what* they do — only the orchestrator that drives them changes.
 
 ## Verification
-- Frontmatter `supersedes: [ADR-0359]` set; ADR-0359's index entry to be updated with `superseded_by: [ADR-0511]` and status flipped Proposed→Superseded on merge (bidirectional supersession convention).
+- Frontmatter `supersedes: [ADR-0359]` was set. **Superseded note (2026-06-06):** this ADR is itself superseded by ADR-0515; the live supersession edge is ADR-0359 `superseded_by: [ADR-0515]` (the chain skips the now-superseded 0511). Historical content retained for lineage.
 - `oya gate validate aspirational-enforcement` — no binding claim asserts Argo Workflows is the live orchestrator today; Jenkins remains the transitory surface until parity.
 - `oya doc adr-index` regenerates the machine-readable mirror; `numbering_note` records the stale `next_adr`.
 - No GitHub Actions CI definition is reintroduced (ADR-0359 standing verdict preserved).

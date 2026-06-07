@@ -1,6 +1,6 @@
 ---
 id: ADR-0361
-status: Proposed
+status: Superseded
 planning_impact: true
 date: 2026-05-25
 owners:
@@ -9,6 +9,7 @@ owners:
   - axis-dev-cli
   - ops-sre-reliability
 supersedes: []
+superseded_by: [ADR-0515]
 amends:
   - ADR-0359-jenkins-completely-replaces-github-actions.md
 ---
@@ -16,7 +17,7 @@ amends:
 
 ## Status
 
-Proposed — 2026-05-25. Executes ADR-0359 (Jenkins completely replaces GitHub Actions) and ADR-0349 (Jenkins+ArgoCD substrate). Tool selections are license-vetted against the repo's OSI-strict policy (the Redis→Valkey precedent). Cutover-in-code now; the live GitHub branch-protection API change + production Jenkins GitHub App apply at deploy.
+Superseded by ADR-0515 — 2026-06-06: the license-vetted supply-chain tool stack (cargo-deny/Opengrep/gitleaks/Syft/Trivy/osv/cosign/in-toto-SLSA/Kyverno) is retained as ADR-0515's layer-e gate steps. Executes ADR-0359 (Jenkins completely replaces GitHub Actions) and ADR-0349 (Jenkins+ArgoCD substrate). Tool selections are license-vetted against the repo's OSI-strict policy (the Redis→Valkey precedent). Cutover-in-code now; the live GitHub branch-protection API change + production Jenkins GitHub App apply at deploy.
 
 ## Context
 

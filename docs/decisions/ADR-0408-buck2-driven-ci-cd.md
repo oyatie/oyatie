@@ -8,7 +8,7 @@ owner: council-architecture
 supersedes: [ADR-0358]
 superseded_by: []
 amends: []
-related: [ADR-0392, ADR-0358, ADR-0359, ADR-0111, ADR-0181, ADR-0346, ADR-0349]
+related: [ADR-0392, ADR-0358, ADR-0359, ADR-0111, ADR-0181, ADR-0346, ADR-0349, ADR-0515]
 related_specs:
   - /specs/cloud-toolchain-target.json
   - /specs/ci-farm-substrate-canonical.json
@@ -27,6 +27,8 @@ affected_surfaces:
 ## Status
 
 Proposed — 2026-05-29. DRAFT for founder review; this overturns the CI build-engine half of a reasoned decision (ADR-0358 §2) and must NOT auto-merge.
+
+ADR-0515 (unified Rust-native CI/CD) `depends_on` this ADR — the Buck2 build substrate is a separate bounded context oya-ci drives, not absorbed (minimal-blast-radius). 0408 remains authoritative for the build graph (with ADR-0392).
 
 ## Date
 
