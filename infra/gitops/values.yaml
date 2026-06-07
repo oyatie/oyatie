@@ -82,8 +82,8 @@ apps:
 
   - name: github
     type: path
-    path: infra/forge
-    include: github.yaml
+    path: infra/gitops
+    include: vcs-substrate.yaml
     namespace: oya-forge
     syncWave: "1"
 
@@ -151,10 +151,10 @@ apps:
     namespace: oya-storage
     syncWave: "2"
 
-  # jenkins: bootstrap-managed by infra/talos/local/bring-up.sh in namespace
-  # oya-ci-jenkins (NOT ArgoCD-managed here — avoids a duplicate heavy install +
-  # helm-release-ownership conflict). The CI substrate (cilium/github/jenkins) is
-  # bring-up-managed; ArgoCD owns the platform overlay above it.
+  # jenkins: was bootstrap-managed by bring-up.sh (now deleted per ADR-0515 D3).
+  # The CI substrate (cilium/github) is managed declaratively via bootstrap-sync.yaml;
+  # ArgoCD owns the full platform stack above it. Jenkins is dropped (ADR-0515:
+  # jenkins=drop-now; GitHub Actions is the sole CI authority).
 
   - name: observability
     type: path

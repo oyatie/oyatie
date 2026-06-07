@@ -52,18 +52,19 @@ follow_ups:
     intent: |
       The fleet GitOps bootstrap source (`repoURL`) is currently hardcoded as
       the founder's personal GitHub `https://github.com/jason931225/oyatie` in
-      four production-path files: `infra/forge/github-argocd-app.yaml`,
-      `infra/gitops/root-app.yaml`, `infra/gitops/values.yaml`, and
-      `infra/kyverno/oya-vcs-admission/application.json`. ADR-0247 documents the
-      cutover to the GitHub (interim) URL once the in-cell GitHub deploy
-      stabilises. Until then every cell pulls from a single personal-account
-      SPOF. Cutover: (a) parameterise `repoURL` via an ApplicationSet so the
-      value lands once, (b) flip the bootstrap source to GitHub, (c) document
-      the per-cell override for air-gapped/sovereign packs (ADR-0164/0240).
+      three production-path files: `infra/gitops/vcs-argocd-app.yaml`,
+      `infra/gitops/root-app.yaml`, and `infra/gitops/values.yaml`
+      (`infra/forge/` consolidated into `infra/gitops/` per ADR-0515 D3).
+      ADR-0247 documents the cutover to the GitHub (interim) URL once the
+      in-cell GitHub deploy stabilises. Until then every cell pulls from a
+      single personal-account SPOF. Cutover: (a) parameterise `repoURL` via an
+      ApplicationSet so the value lands once, (b) flip the bootstrap source to
+      GitHub, (c) document the per-cell override for air-gapped/sovereign packs
+      (ADR-0164/0240).
     driver_docs:
       - infra/gitops/values.yaml
       - infra/gitops/root-app.yaml
-      - infra/forge/github-argocd-app.yaml
+      - infra/gitops/vcs-argocd-app.yaml
       - infra/kyverno/oya-vcs-admission/application.json
     owner: council-architecture + ops-platform
     trigger: First in-cluster GitHub cell reaches GA, or the personal-account SPOF is hit.

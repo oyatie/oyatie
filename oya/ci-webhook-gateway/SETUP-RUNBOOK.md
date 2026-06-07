@@ -9,13 +9,13 @@ Substrate: git + Jenkins + GitHub (interim) (ADR-0363). Design: ADR-0374.
 
 ---
 
-## 0. Prerequisites (already standing per `infra/forge/README.md`)
+## 0. Prerequisites (VCS substrate standing per `infra/gitops/vcs-substrate.yaml`)
 
 - GitHub (interim) running in namespace `oya-forge` (repo `oya-admin/oyatie`).
 - Jenkins running in namespace `oya-ci-jenkins` with the `oyaCiLane` shared
   library (`infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy`).
 - The `github-ci-token` Jenkins credential (so Jenkins can POST commit
-  statuses) — created per `infra/forge/jenkins-github-token.secret.template.yaml`.
+  statuses) — created per `infra/gitops/jenkins-vcs-token.secret.template.yaml`.
 
 If those are not up, stand them up first; this gateway is the *trigger* that
 sits in front of them.
@@ -59,7 +59,7 @@ reads from). They MUST match exactly.
   `https://ci-webhook-gateway.<your-domain>/webhook/github`
   (in-cluster: `http://ci-webhook-gateway.oya-ci.svc.cluster.local:8099/webhook/github`).
   Note: GitHub's `webhook.ALLOWED_HOST_LIST` must permit the gateway host —
-  `infra/forge/github.yaml` currently allows `*.cluster.local,oya-ci-jenkins`;
+  `infra/gitops/vcs-substrate.yaml` currently allows `*.cluster.local,oya-ci`;
   add the gateway host if you front it with an external URL.
 - **HTTP Method**: POST. **Content type**: `application/json`.
 - **Secret**: paste the SAME secret from §1.
