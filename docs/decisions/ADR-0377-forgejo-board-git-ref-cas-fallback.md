@@ -62,10 +62,10 @@ does not claim that the board substrate exists.
 
 ## Context
 
-ADR-0363 retired the bespoke agentic-VCS layer and made plain `git` + Jenkins +
+ADR-0363 retired the bespoke agentic-VCS layer and made plain `git` + cloud-ci +
 GitHub (interim) the coordination substrate. ADR-0369 then selected gated
 stacked-trunk on plain git and GitHub PRs. ADR-0374 added the GitHub webhook
-trigger into Jenkins. The remaining gap is task selection and board visibility
+trigger into the cloud-ci pipeline. The remaining gap is task selection and board visibility
 for autonomous masterplan deliverables.
 
 The repo already has the canonical planning source in `/specs/masterplan.json`
@@ -123,7 +123,7 @@ GitHub label projection fails after the ref wins, the claim remains valid and
 
 ### 3. No new coordination service
 
-There is no daemon, no custom board database, and no hidden queue. Jenkins and
+There is no daemon, no custom board database, and no hidden queue. cloud-ci and
 GitHub remain standard substrate components; `oya` only supplies two thin
 commands:
 
@@ -161,7 +161,7 @@ passing tests for D2 and D3. Documentation alone cannot lift the condition.
 - Claims are robust to concurrent agents because the lock is a git ref, not an
   eventually-consistent label update.
 - Board drift is repairable by regenerating from the masterplan and claim refs.
-- The design stays inside ADR-0363's plain-git + GitHub + Jenkins boundary.
+- The design stays inside ADR-0363's plain-git + GitHub + cloud-ci boundary.
 
 ### Negative / risk
 
@@ -196,9 +196,9 @@ Before this ADR can become Accepted:
 
 ## References
 
-- ADR-0363 — git + Jenkins + GitHub substrate; `oya` is not VCS.
+- ADR-0363 — git + cloud-ci + GitHub substrate; `oya` is not VCS.
 - ADR-0369 — gated stacked-trunk change flow on plain git + GitHub.
-- ADR-0374 — GitHub webhook gateway to Jenkins.
+- ADR-0374 — GitHub webhook gateway to cloud-ci.
 - GitHub documentation checked 2026-05-27: v15.0.2 latest / v11.0.14 LTS; label
   docs define scoped exclusive labels and organization-wide labels:
   <https://github.org/docs/latest/user/labels/>.

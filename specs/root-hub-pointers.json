@@ -21,10 +21,10 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is Prow/cloud-ci required context + reviewer APPROVE; Jenkins/legacy `oya gate` output is bridge evidence only until P0.0 cloud-ci cutover. The bespoke Oya VCS claim \u2192 work \u2192 verify \u2192 done \u2192 promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
+    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is Prow/cloud-ci required context + reviewer APPROVE; legacy CI/`oya gate` output is bridge evidence only until P0.0 cloud-ci cutover. The bespoke Oya VCS claim \u2192 work \u2192 verify \u2192 done \u2192 promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate. Destination enforcement is cloud-ci/oya-ci Rust gate context; legacy `oya gate run-all`/Jenkins output is transition evidence only until P0.0 and must not be extended as new authority.",
-    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0513. Live merge readiness is plain git + protected PR against dev + Prow/cloud-ci/oya-ci required context + reviewer APPROVE. Jenkins/legacy `oya gate` output is bridge evidence only until P0.0. Tide admission is cloud-ci-owned now: Phase 0 places the admission contract; Phase 1 scales projected-state, batching, auto-rebase, and auto-regeneration."
+    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate. Destination enforcement is cloud-ci/oya-ci Rust gate context; legacy `oya gate run-all`/CI output is transition evidence only until P0.0 and must not be extended as new authority.",
+    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0513. Live merge readiness is plain git + protected PR against dev + Prow/cloud-ci/oya-ci required context + reviewer APPROVE. Legacy CI/`oya gate` output is bridge evidence only until P0.0. Tide admission is cloud-ci-owned now: Phase 0 places the admission contract; Phase 1 scales projected-state, batching, auto-rebase, and auto-regeneration."
   },
   "by_kind": {
     "decision": "Accepted ADR or decision record that constrains implementation and promotion.",
@@ -91,7 +91,7 @@
       "current_path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Historical bridge ADR for Jenkins LTS plus ArgoCD self-hostable CI/CD surfaces. Current authority target is /specs/bespoke-cloud-toolchain-services.json: bespoke Rust cloud-ci/cloud-cd services. Jenkins/Argo may be used only as bridge/reference adapters with deletion criteria, tenant isolation, trusted status production, and no sole/canonical destination claim.",
+      "purpose": "Historical bridge ADR for self-hostable CI/CD substrate surfaces (superseded; current authority is /specs/bespoke-cloud-toolchain-services.json: bespoke Rust cloud-ci/cloud-cd services). Legacy CI/CD adapters may be used only as bridge/reference adapters with deletion criteria, tenant isolation, trusted status production, and no sole/canonical destination claim.",
       "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
@@ -100,7 +100,7 @@
       "current_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
       "kind": "goal_prompt",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: Prow/cloud-ci/oya-ci required contexts are destination authority; Jenkins is bridge evidence only.",
+      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: Prow/cloud-ci/oya-ci required contexts are destination authority; legacy CI bridge output is evidence only.",
       "superseded_path": "/specs/agent-durable-goal.json",
       "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema"
     },
@@ -156,7 +156,7 @@
       "current_path": "/specs/bespoke-cloud-toolchain-services.json",
       "kind": "spec",
       "migration_phase": "current-machine-readable-authority",
-      "purpose": "Product and sequencing spec for tenant-facing bespoke Rust Oyatie Cloud SCM, CI, and CD services. Defines bridge-adapter boundaries for GitHub/Jenkins/Argo, full bespoke CI enforcement baseline, masterplan P-TOOLCHAIN placement, and mandatory secure separation between tenant=oyatie-internal and every customer tenant pipeline.",
+      "purpose": "Product and sequencing spec for tenant-facing bespoke Rust Oyatie Cloud SCM, CI, and CD services. Defines bridge-adapter boundaries for GitHub/cloud-scm/Argo, full bespoke CI enforcement baseline, masterplan P-TOOLCHAIN placement, and mandatory secure separation between tenant=oyatie-internal and every customer tenant pipeline.",
       "target_path_after_md_retirement": "same"
     },
     "check_empirical_evidence": {
@@ -170,7 +170,7 @@
       "current_path": "/specs/ci-farm-substrate-canonical.json",
       "kind": "spec",
       "migration_phase": "wave-3-consolidation",
-      "purpose": "Bridge/reference distributed CI farm substrate (Jenkins adapter, ephemeral agents, sccache->SeaweedFS remote cache, lane fanout, merge-queue fan-in). Authored under ADR-0349; retained only as cloud-ci transition evidence, not permanent product authority.",
+      "purpose": "Bridge/reference distributed CI farm substrate (cloud-ci adapter, ephemeral agents, sccache->SeaweedFS remote cache, lane fanout, merge-queue fan-in). Authored under ADR-0349; retained only as cloud-ci transition evidence, not permanent product authority.",
       "target_path_after_md_retirement": "same"
     },
     "ci_fix_loop_context_bundle": {
@@ -226,7 +226,7 @@
       "current_path": "/specs/cloud-toolchain-target.json",
       "kind": "spec",
       "migration_phase": "p-toolchain",
-      "purpose": "Superseded bridge target for P-TOOLCHAIN. Current authority is /specs/bespoke-cloud-toolchain-services.json: Rust cloud-scm/cloud-ci/cloud-cd services with GitHub/Jenkins/Argo as adapters, full bespoke CI enforcement, tenant-isolated pipelines, affected-target feedback plus full required backstop, merge-queue speculative validation, and progressive delivery.",
+      "purpose": "Superseded bridge target for P-TOOLCHAIN. Current authority is /specs/bespoke-cloud-toolchain-services.json: Rust cloud-scm/cloud-ci/cloud-cd services with GitHub/cloud-scm/Argo as adapters, full bespoke CI enforcement, tenant-isolated pipelines, affected-target feedback plus full required backstop, merge-queue speculative validation, and progressive delivery.",
       "target_path_after_md_retirement": "same"
     },
     "codeview_read_surface": {
@@ -532,7 +532,7 @@
       "current_path": "/specs/master-plan-sequencing.json",
       "kind": "spec",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Forbidden-primitive list + plain-git protected-PR governance protocol + ledger-required-fields + execution sequence. Platform-readiness amends its older Jenkins bridge language: Prow/cloud-ci/oya-ci required contexts are destination authority; Jenkins/legacy oya output is bridge/local evidence only.",
+      "purpose": "Forbidden-primitive list + plain-git protected-PR governance protocol + ledger-required-fields + execution sequence. Platform-readiness amends its older CI-bridge language: Prow/cloud-ci/oya-ci required contexts are destination authority; legacy CI/oya output is bridge/local evidence only.",
       "target_path_after_md_retirement": "same"
     },
     "masterplan": {
@@ -597,7 +597,7 @@
       "current_path": "/specs/planning-closure-contract.json",
       "kind": "spec",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant RBAC view + Tenant RBAC view full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, and no false planning-green claims. Its older Jenkins-governance wording is amended by platform-readiness/cloud-ci authority.",
+      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant RBAC view + Tenant RBAC view full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, and no false planning-green claims. Its older CI-governance wording is amended by platform-readiness/cloud-ci authority.",
       "status_ledger": "/specs/planning-closure-status-closure-ledger.json",
       "target_path_after_md_retirement": "same"
     },
@@ -913,7 +913,7 @@
       "current_path": "/specs/agentic-slo-gated-promotion.json",
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family and cloud-ci/governance release-promotion contexts; any Jenkins promotion job reference is bridge/provenance only until replaced."
+      "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family and cloud-ci/governance release-promotion contexts; any legacy CI promotion job reference is bridge/provenance only until replaced."
     },
     "spec_api_surface_separation": {
       "current_path": "/specs/api-surface-separation.json",

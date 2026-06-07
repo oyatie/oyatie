@@ -17,7 +17,7 @@
       "ADR-0123",
       "ADR-0131"
     ],
-    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the Jenkins promotion jobs."
+    "purpose": "Machine-readable contract for the agentic SLO-gated promotion pipeline. Consumed by the oya-observability-slo-engine crate family, the oya-governance-promotion-readiness CI lane, and the cloud-ci promotion jobs."
   },
   "industry_baseline": {
     "burn_rate_model": "Google SRE Workbook ch. 5 multi-window multi-burn-rate",
@@ -402,8 +402,8 @@
       },
       "signed_event_type": "eligibility-changed",
       "consumed_by": [
-        "Jenkins dev-to-staging promotion job",
-        "Jenkins staging-to-production promotion job",
+        "cloud-ci dev-to-staging promotion job",
+        "cloud-ci staging-to-production promotion job",
         "grafana-oncall (for held|rejected|rollback verdicts)"
       ]
     },
@@ -413,7 +413,7 @@
         "target_env": "string",
         "sha": "string",
         "executed_at": "ISO8601",
-        "actor": "jenkins"
+        "actor": "cloud-ci"
       },
       "consumed_by": [
         "audit-chain",
@@ -438,7 +438,7 @@
     }
   },
   "promote_workflow_contract": {
-    "primary_trigger": "signed eligibility-changed event consumed by Jenkins promotion job",
+    "primary_trigger": "signed eligibility-changed event consumed by cloud-ci promotion job",
     "reconciliation_heartbeat_cron": {
       "staging": "*/30 * * * *",
       "production": "17 * * * *"
@@ -496,7 +496,7 @@
   "ci_lane_contract": {
     "name": "oya-governance-promotion-readiness",
     "severity": "BLOCKER",
-    "added_to": "planned for Jenkins/GitHub required checks on dev and staging; not live until IP-012 implementation and required-check configuration merge",
+    "added_to": "planned for cloud-ci/GitHub required checks on dev and staging; not live until IP-012 implementation and required-check configuration merge",
     "behaviour": [
       "enumerate every microservice touched by the source SHA (via path-based ownership: a change to microservices/<ms>/** is owned by <ms>)",
       "for each microservice, read the latest record in registry/promotion-eligibility.jsonl for (microservice, source_sha, target_env)",

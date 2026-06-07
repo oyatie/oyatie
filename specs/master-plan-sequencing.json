@@ -8,7 +8,7 @@
   },
   "_metadata": {
     "sidecar_id": "EXE-MASTER-SEQUENCING",
-    "status": "accepted-plain-git-jenkins-github-authority-cutover",
+    "status": "accepted-plain-git-cloud-ci-github-authority-cutover",
     "created_for": "4000-character launcher prompt sidecars",
     "canonical_sources": [
       "docs/AGENTS.md",
@@ -281,7 +281,7 @@
     {
       "primitive": "oya vcs",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + Jenkins + GitHub (interim) branch protection + oya gate evidence"
+      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + cloud-ci + GitHub (interim) branch protection + oya gate evidence"
     },
     {
       "primitive": "gh",
@@ -291,7 +291,7 @@
     {
       "primitive": "manual-merge-bypassing-required-checks",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "forbidden; branch protection, Jenkins required checks, reviewer approval, and oya gate evidence own merge readiness"
+      "lane_status": "forbidden; branch protection, cloud-ci required checks, reviewer approval, and oya gate evidence own merge readiness"
     },
     {
       "primitive": "manual-push-to-protected-branch",
@@ -326,7 +326,7 @@
   ],
   "chained_enforcement_contract": {
     "adr_citation": "ADR-0133",
-    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-governance-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted GitHub/Jenkins enforcement deployment remains a GitOps verification gap.",
+    "summary": "Fitness lanes chain detection to fixuptasks and promotion blocking only after a real detector, workflow, branch-protection row, quality-lane row, source-corpus contract, and sanitized tracked command-log corpus exist on branch. The lane oya-governance-banned-primitives is locally green for fenced agent-instruction contracts plus CI-safe command-log corpus records; hosted GitHub/cloud-ci enforcement deployment remains a GitOps verification gap.",
     "status": "source-corpus and sanitized command-log corpus detector active in CS-FITNESS-001; hosted enforcement verification pending before production reliance"
   },
   "repo_state_protocol": [
@@ -352,7 +352,7 @@
     },
     {
       "step": "promote",
-      "primitive": "GitHub (interim) branch protection, Jenkins required checks, reviewer approval, and governance gates own publication, review/fix, integration, environment reconciliation, and lock release",
+      "primitive": "GitHub (interim) branch protection, cloud-ci required checks, reviewer approval, and governance gates own publication, review/fix, integration, environment reconciliation, and lock release",
       "fallback": "keep/release locks according to terminal policy; never bypass protected-branch required checks"
     }
   ],
@@ -375,7 +375,7 @@
     "fix_and_reverify",
     "record_evidence_bundle",
     "close_changeset_with_signed_changebundle",
-    "github_jenkins_promote_or_record_blocker",
+    "github_cloud_ci_promote_or_record_blocker",
     "repeat_until_ledger_complete",
     "full_plan_adversarial_audit",
     "store_vcs_completion_summary",
@@ -737,12 +737,12 @@
         "ADR-0349": {
           "path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
           "queued_sub_wave": "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
-          "purpose_excerpt": "Historical bridge ADR for Jenkins (LTS) and ArgoCD self-hostable CI/CD surfaces. CURRENT destination is the bespoke Rust cloud-ci/cloud-cd services in /specs/bespoke-cloud-toolchain-services.json; Jenkins/Argo may act only as bridge/reference adapters with deletion criteria, tenant isolation, trusted status production, and no sole/canonical authority claim.",
+          "purpose_excerpt": "Historical bridge ADR for cloud-scm CI/CD substrates (superseded; current authority is /specs/bespoke-cloud-toolchain-services.json). Bespoke Rust cloud-ci/cloud-cd services are the destination; legacy bridge/reference adapters require deletion criteria, tenant isolation, trusted status production, and no sole/canonical authority claim.",
           "enforced_by": [
-            "oya-governance-provider-ci-residue (successor to Jenkins/GitHub-Actions parity wording; refuses new provider workflow authority unless explicitly marked bridge/provenance under cloud-ci)",
+            "oya-governance-provider-ci-residue (successor to provider-CI parity wording; refuses new provider workflow authority unless explicitly marked bridge/provenance under cloud-ci)",
             "oya-governance-argocd-application-cosign-verified (bridge/reference lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181 while Argo remains an adapter)",
             "oya-governance-argocd-tenant-namespace-isolation (bridge/reference lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243)",
-            "oya-governance-jenkins-jcasc-only (bridge-only lane; refuses Jenkins controller state declared via UI while Jenkins remains a transition adapter)",
+            "oya-governance-ci-jcasc-only (bridge-only lane; refuses CI controller state declared via UI while legacy CI remains a transition adapter)",
             "oya-governance-deploy-audit-chain-emit (bridge/reference lane; refuses deploy/sync transitions that do not emit an audit-chain row per ADR-0263 \u00a7D.4 deploy-event class)"
           ]
         }
@@ -1627,13 +1627,13 @@
           "status": "queued-bridge-reconciled-by-bespoke-toolchain-spec",
           "queued_at": "2026-05-21",
           "adr": "ADR-0349",
-          "scope": "Bridge/backfill work for Jenkins (LTS) CI and ArgoCD GitOps CD only while cloud-ci/cloud-cd Rust service authority is being built. Jenkins/Argo are no longer sole/canonical destinations; they are self-hostable provider adapters/reference substrates with deletion criteria, tenant isolation fixtures, trusted status production, cosign/audit-chain evidence, and no customer-facing product-authority claim.",
-          "dispatch_mode": "Bridge orchestrator for OpenTofu/JCasC/Argo adapter surfaces plus governance lanes, executed after the P0.0/full bespoke CI baseline and reconciled into cloud-ci/cloud-cd parity/deletion evidence.",
+          "scope": "Bridge/backfill work for legacy CI and ArgoCD GitOps CD only while cloud-ci/cloud-cd Rust service authority is being built. Legacy adapters are no longer sole/canonical destinations; they are self-hostable provider adapters/reference substrates with deletion criteria, tenant isolation fixtures, trusted status production, cosign/audit-chain evidence, and no customer-facing product-authority claim.",
+          "dispatch_mode": "Bridge orchestrator for OpenTofu/config-as-code/Argo adapter surfaces plus governance lanes, executed after the P0.0/full bespoke CI baseline and reconciled into cloud-ci/cloud-cd parity/deletion evidence.",
           "five_new_lanes": [
             "oya-governance-provider-ci-residue",
             "oya-governance-argocd-application-cosign-verified",
             "oya-governance-argocd-tenant-namespace-isolation",
-            "oya-governance-jenkins-jcasc-only",
+            "oya-governance-ci-jcasc-only",
             "oya-governance-deploy-audit-chain-emit"
           ],
           "forbidden_alternatives": [
@@ -1748,7 +1748,7 @@
         "any Phase-0 exit or AC-0.9/AC-0.12 wording that claims mechanical CI enforcement",
         "tenant-facing SCM/CI/CD exposure"
       ],
-      "compatibility_window": "Bridge adapters (GitHub/Jenkins/Argo) may operate only with deletion criteria, tenant-isolation fixtures, trusted trunk/controller-sourced gate definitions, and a full bespoke CI required-context baseline."
+      "compatibility_window": "Bridge adapters (GitHub/cloud-scm/Argo) may operate only with deletion criteria, tenant-isolation fixtures, trusted trunk/controller-sourced gate definitions, and a full bespoke CI required-context baseline."
     },
     {
       "id": "M01-P07-gitops-vcs-replacement",
@@ -1757,7 +1757,7 @@
         "M01-P08",
         "broad M01/M02/M03 parallel fan-out"
       ],
-      "compatibility_window": "P00 core is complete and forward agentic fan-out uses plain git worktree branches plus Jenkins/GitHub governance admission; legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
+      "compatibility_window": "P00 core is complete and forward agentic fan-out uses plain git worktree branches plus cloud-ci/GitHub governance admission; legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
     }
   ],
   "implementation_plan_changeset_contract": {

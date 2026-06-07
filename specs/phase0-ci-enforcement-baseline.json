@@ -84,7 +84,7 @@
     },
     "observed_at": "2026-06-02T16:19:36Z",
     "reported_status_metadata": {
-      "gap": "legacy metadata does not yet declare oya-ci-required as the only trusted cloud-ci/oya-ci producer; Jenkins bridge remains non-authority feedback",
+      "gap": "legacy metadata does not yet declare oya-ci-required as the only trusted cloud-ci/oya-ci producer; legacy CI bridge remains non-authority feedback",
       "path": "infra/ci/jenkins/reported-status-contexts.json",
       "reported_contexts": [
         "cargo-fmt",
@@ -261,7 +261,7 @@
       "status": "GAP"
     },
     "trusted_producer": {
-      "current_bridge": "Jenkins oya-ci-gate runs buck2 affected script from candidate checkout",
+      "current_bridge": "Legacy CI oya-ci-gate runs buck2 affected script from candidate checkout",
       "fix_path": "deploy/publish producer evidence showing oya-ci-controller posts oya-ci-required from trusted control state on candidate SHA and candidate bytes cannot alter gate catalog, producer, branch-protection mapping, or runner isolation",
       "local_target_status": "oya-ci-controller kernel/k8s target now uses oya-ci-required metadata; live producer deployment and required-status posting remain unproven.",
       "required_producer": "oya-ci-controller or minimal Rust bridge adapter loading gate definitions from trusted dev/controller state",

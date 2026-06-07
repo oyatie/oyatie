@@ -47,8 +47,8 @@ deliverables:
     exit_criteria: "make third-party twice → git diff third-party/BUCK clean; per-OS select() + $(location) DEP env present; CI enforces clean diff."
     verified_by: "cloud-ci/Rust gate packet third-party-buckify-idempotent"
   - id: ADR-0514-D4
-    description: "ControllerDispatcher wiring + cutover from Jenkins to deployed oya-ci-controller (P1 core only)."
-    exit_criteria: "gateway dispatches to controller /gate-run; controller Job spawns per-PR; parallel-run both gates green; Jenkins gate path deleted."
+    description: "ControllerDispatcher wiring + cutover from cloud-ci to deployed oya-ci-controller (P1 core only)."
+    exit_criteria: "gateway dispatches to controller /gate-run; controller Job spawns per-PR; parallel-run both gates green; cloud-ci gate path deleted."
     verified_by: "cloud-ci/Rust gate packet controller-dispatch-cutover"
   - id: ADR-0514-D5
     description: "Affected-gate rdeps depth-cap + presubmit/postsubmit two-tier + NativeLink CAS MVP."
@@ -56,7 +56,7 @@ deliverables:
     verified_by: "cloud-ci/Rust gate packet rdeps-scope-capped"
   - id: ADR-0514-D6
     description: "Structured failure summary from buck2 event-log JSON (replaces fragile grep)."
-    exit_criteria: "Controller harvests events; crier posts {target, error_type, first_stderr}[] to Forgejo; logs persisted to S3; no kubectl-exec required."
+    exit_criteria: "Controller harvests events; crier posts {target, error_type, first_stderr}[] to cloud-scm; logs persisted to S3; no kubectl-exec required."
     verified_by: "cloud-ci/Rust gate packet structured-failure-summary"
 ---
 
@@ -76,13 +76,13 @@ oyatie's build system exhibits five mechanically distinct, compounding faults th
 
 3. **Double-CRT at the prelude layer.** The bundled prelude's `__ld_shim` re-invokes clang as the linker driver, re-adding C-runtime startfiles. Any build-script that links an executable (aws-lc-sys memcmp probe) gets `ld.lld: duplicate symbol _start/_init` on Linux.
 
-4. **PR-sourced gate security hole.** The Jenkinsfile is trunk-sourced but runs `infra/ci/buck2-affected-gate.sh` from the PR workspace (`Jenkinsfile:53,76`), making the gate script PR-controllable — a half-open `pull_request_target`-class vulnerability.
+4. **PR-sourced gate security hole.** The cloud-ci pipeline is trunk-sourced but runs `infra/ci/buck2-affected-gate.sh` from the PR workspace (pipeline lines 53,76), making the gate script PR-controllable — a half-open `pull_request_target`-class vulnerability.
 
 5. **Full-closure scale crisis.** A one-line `third-party/BUCK` change owner-expands to ~1689 targets → rdeps closes to ~1919 near-whole-tree targets, built **and** tested serially under a hard 60-min timeout with no cache tier.
 
 **The throughline:** the build is not hermetic, the third-party layer is not durable, and the gate is not isolated. Every other symptom is downstream of those three.
 
-ADR-0513 already scopes the removal of the Jenkins+Groovy+cpsScm orchestration fragility as a multi-phase replacement with a bespoke-Rust `oya-ci` platform (hook/plank/crier/tide/deck/plugins). This ADR narrows the immediate scope to **ADR-0513 Phase 1 (core gate reliability)** and specifies the prerequisite fixes (hermetic toolchain, trunk-sourcing, durable buckify, rdeps scope-capping) that unblock the controller and close the critical failure modes.
+ADR-0513 already scopes the removal of the cloud-ci+Groovy+cpsScm orchestration fragility as a multi-phase replacement with a bespoke-Rust `oya-ci` platform (hook/plank/crier/tide/deck/plugins). This ADR narrows the immediate scope to **ADR-0513 Phase 1 (core gate reliability)** and specifies the prerequisite fixes (hermetic toolchain, trunk-sourcing, durable buckify, rdeps scope-capping) that unblock the controller and close the critical failure modes.
 
 ## Decision
 
@@ -99,14 +99,14 @@ The structural enabler of "zero conflicts" is **Tide-style merge-queue** (ADR-01
 **Three hops, one language, isolated gate:**
 
 ```
-Forgejo PR webhook
+cloud-scm PR webhook
   → oya-ci-webhook-gateway (bespoke Rust, ADR-0374; HMAC fail-closed)
     → deployed oya-ci-controller (bespoke Rust, kube-rs; K8s-native)
       → K8s Job [git clone dev (TRUSTED) + fetch PR-ref as DATA
                   → run dev's gate.sh
                   → buck2 build/test with NativeLink CAS]
         → controller harvests buck2 event-log JSON
-          → Forgejo commit-status + structured failure summary
+          → cloud-scm commit-status + structured failure summary
 ```
 
 **Properties:**
@@ -132,7 +132,7 @@ Forgejo PR webhook
 - **PR-sourced gate.** → deployed controller + trunk-sourced Job command.
 - **Per-crate host-hardcoded fixups.** → hermetic toolchain + durable buckify patch step.
 - **Ephemeral-pod opaque logs.** → structured failure summary from buck2 event-log JSON.
-- **Jenkins + Groovy + cpsScm fragility.** → bespoke-Rust deployed controller.
+- **cloud-ci + Groovy + cpsScm fragility.** → bespoke-Rust deployed controller.
 - **Dockerfile-based BuildKit image builds.** → buck2-native OCI images (transitory, post-gate-green).
 
 ### 5. Sequencing (MVP first, defer non-blocking)
@@ -145,7 +145,7 @@ Forgejo PR webhook
 | 2 | #83 | Hermetic clang+lld+sysroot toolchain cell as DEFAULT | open | host-toolchain divergence; double-CRT; per-crate fixups |
 | 3 | #95 | Trunk-source the gate (SECURITY: controller Job clones dev + PR-ref as DATA) | open | PR-sourced gate |
 | 4 | post-buckify patch + CI clean-diff | Idempotent `reindeer buckify` + DEP env durability | open | non-durable third-party |
-| 5 | #88 oya-ci controller P1 | Add `ControllerDispatcher` + cutover (carry scale-cap + log-harvest) | open | Jenkins fragility; self-deadlock; opaque logs |
+| 5 | #88 oya-ci controller P1 | Add `ControllerDispatcher` + cutover (carry scale-cap + log-harvest) | open | cloud-ci fragility; self-deadlock; opaque logs |
 | 6 | #94-secondary rdeps depth-cap | Depth-limited presubmit + postsubmit tier + CAS-only-first | open | full-tree build per third-party change |
 
 #### Historical backlog input — claimed resolved elsewhere, evidence pending
@@ -159,7 +159,7 @@ surface may call them complete.
 | #93 | aws-lc-sys `LDFLAGS=-nostartfiles` | historical backlog says bundled PR#23; authority claim pending evidence |
 | #91 | openssl `DEP_OPENSSL_*` platform `select()` | historical backlog says bundled PR#23; authority claim pending evidence |
 | #94 | gate rdeps `@argfile`/`%Ss` | historical backlog says landed on dev; authority claim pending evidence |
-| PR#25 | gate root-cause summary (Jenkins-side precursor) | historical backlog says landed on dev; authority claim pending evidence |
+| PR#25 | gate root-cause summary (cloud-ci-side precursor) | historical backlog says landed on dev; authority claim pending evidence |
 
 #### SEQUENCE-AFTER — post-gate-green (ADR-0513 cloud-ci workstreams; ownership already decided)
 
@@ -184,8 +184,8 @@ surface may call them complete.
 ## Consequences
 
 **Positive:**
-- Kills all six failure modes identified in the current Jenkins gate (parse fragility, self-deadlock, opaque logs, cold-pod no-completion, PR-sourced gate, full-tree scale).
-- One pure-Rust, Forgejo-native platform (gateway + controller) replaces Jenkins + Groovy + JCasC + separate merge-queue + bespoke auto-merge glue.
+- Kills all six failure modes identified in the current cloud-ci gate (parse fragility, self-deadlock, opaque logs, cold-pod no-completion, PR-sourced gate, full-tree scale).
+- One pure-Rust, cloud-scm-native platform (gateway + controller) replaces cloud-ci + Groovy + config-as-code + separate merge-queue + bespoke auto-merge glue.
 - Hermetic toolchain aligns with the `kubers`/`source` Rust-K8s ambition and single-bootstrap/zero-drift doctrine.
 - Durable buckify + scope-capped rdeps + CAS-first strategy unblocks parallel fan-out agents (the closed-loop enabler).
 - Trunk-sourced gate closes a half-open security hole.
@@ -205,7 +205,7 @@ Per-deliverable `verified_by` gates above. These are cloud-ci/Rust gate packets,
 - `cloud-ci/Rust gate packet hermetic-toolchain-default` (toolchain builds both hosts, per-crate workarounds deleted)
 - `cloud-ci/Rust gate packet controller-trunk-sourcing` (PR-sourced gate cannot execute)
 - `cloud-ci/Rust gate packet third-party-buckify-idempotent` (buckify + patch → clean diff)
-- `cloud-ci/Rust gate packet controller-dispatch-cutover` (both gates green in parallel, Jenkins path deleted)
+- `cloud-ci/Rust gate packet controller-dispatch-cutover` (both gates green in parallel, cloud-ci path deleted)
 - `cloud-ci/Rust gate packet rdeps-scope-capped` (presubmit <30min, postsubmit attributed, CAS >60% hit)
 - `cloud-ci/Rust gate packet structured-failure-summary` (events harvested, crier posts summary, S3 persisted)
 
@@ -216,7 +216,7 @@ Local testing per §6 assumptions validates the root causes before full cutover.
 - `/docs/ideas/build-ci-pipeline-review.md` — full analysis, 279 lines, every claim file:line-cited.
 - ADR-0513 (oya-ci bespoke-Rust Prow platform, Phases 0-4).
 - ADR-0111 (merge-queue projected-state).
-- ADR-0374 (CI webhook gateway, Forgejo → Jenkins).
+- ADR-0374 (CI webhook gateway, cloud-scm → cloud-ci).
 - ADR-0381 (Kaniko → BuildKit + Talos topology).
 - ADR-0392 (Buck2 canonical build graph).
 - ADR-0408 (Buck2-driven CI/CD).

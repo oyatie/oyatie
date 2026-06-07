@@ -1,6 +1,6 @@
 ---
 id: ADR-0349
-title: Jenkins (LTS) + ArgoCD canonical self-hostable CI/CD substrate (Jenkins augments GitHub Actions for self-hostable contexts; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164)
+title: Self-hostable CI/CD substrate — cloud-ci augments GitHub Actions for self-hostable contexts; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164 (superseded by ADR-0515)
 status: Superseded
 planning_impact: true
 date: 2026-05-21
@@ -21,13 +21,13 @@ owners:
 supersedes: []
 superseded_by: [ADR-0515]
 amends:
-  - ADR-0028-cloud-microservice-architecture.md (the cloud-microservice architecture declared K8s + IaaS + control-plane primitives; this ADR layers two named CI/CD substrate primitives — Jenkins for self-hostable CI and ArgoCD for declarative GitOps CD — onto that architecture so every microservice gains a canonical CI/CD chain rather than an ad-hoc per-context deployment script set. The architecture is preserved verbatim; Jenkins + ArgoCD become the canonical CI/CD layer per microservice without changing the underlying K8s + cell topology)
+  - ADR-0028-cloud-microservice-architecture.md (the cloud-microservice architecture declared K8s + IaaS + control-plane primitives; this ADR layers two named CI/CD substrate primitives — cloud-ci for self-hostable CI and ArgoCD for declarative GitOps CD — onto that architecture so every microservice gains a canonical CI/CD chain rather than an ad-hoc per-context deployment script set. The architecture is preserved verbatim; cloud-ci + ArgoCD become the canonical CI/CD layer per microservice without changing the underlying K8s + cell topology)
   - ADR-0181-cosign-signed-artifacts-and-modules.md (the cosign-signed artifact discipline is preserved verbatim; this ADR clarifies that ArgoCD's image-fetch path MUST verify cosign signatures before sync per the existing image-promotion-pipeline contract — ArgoCD becomes the post-pipeline runtime enforcer for the signed-image discipline, not a new gate)
-  - ADR-0211-in-house-tech-stack-preference.md (the in-house tech stack preference declares Class C OSS as the canonical category for substrate adoption; this ADR confirms Jenkins and ArgoCD as approved Class C entries with explicit Contributor-class stewardship per ADR-0345 + named CVE-response SLAs)
-  - ADR-0215-multi-context-deployment.md (multi-context deployment declares the five canonical contexts oyatie-public + guest-on-aws + guest-on-oci + on-prem + colo + oyatie-as-provider + air-gap; this ADR declares that Jenkins + ArgoCD run in every context including air-gap and that the per-context provisioning lives under microservices/cloud-iac/modules/<context>/jenkins/ and /<context>/argocd/ per ADR-0339 shared IaC module library)
-  - ADR-0221-agentic-development-pipeline-hardening.md (the hook-vs-gate doctrine is preserved verbatim; this ADR clarifies that Jenkins is a CI gate authority — its pipeline executions are CI-gate runs, not hook surfaces — and that ArgoCD's sync action is a CD gate authority bound by cosign verification + audit-chain emission per ADR-0263)
-  - ADR-0254-kubernetes-everywhere-pods-cloud-hypervisor.md (the K8s-everywhere doctrine declares K8s + Kata pods + Cloud Hypervisor as the canonical runtime substrate; this ADR layers Jenkins + ArgoCD on top of that substrate so every CI run and every CD sync executes on the same K8s primitive set)
-  - ADR-0339-shared-iac-module-library.md (the shared IaC module library declares microservices/cloud-iac/modules/<context>/ as the canonical OpenTofu module home; this ADR adds two module families — jenkins/ and argocd/ — under each per-context directory so per-tenant provisioning is `tofu apply` end-to-end per zero-handroll OpenTofu-only feedback memory)
+  - ADR-0211-in-house-tech-stack-preference.md (the in-house tech stack preference declares Class C OSS as the canonical category for substrate adoption; this ADR confirms cloud-ci and ArgoCD as approved Class C entries with explicit Contributor-class stewardship per ADR-0345 + named CVE-response SLAs)
+  - ADR-0215-multi-context-deployment.md (multi-context deployment declares the five canonical contexts oyatie-public + guest-on-aws + guest-on-oci + on-prem + colo + oyatie-as-provider + air-gap; this ADR declares that cloud-ci + ArgoCD run in every context including air-gap and that the per-context provisioning lives under microservices/cloud-iac/modules/<context>/cloud-ci/ and /<context>/argocd/ per ADR-0339 shared IaC module library)
+  - ADR-0221-agentic-development-pipeline-hardening.md (the hook-vs-gate doctrine is preserved verbatim; this ADR clarifies that cloud-ci is a CI gate authority — its pipeline executions are CI-gate runs, not hook surfaces — and that ArgoCD's sync action is a CD gate authority bound by cosign verification + audit-chain emission per ADR-0263)
+  - ADR-0254-kubernetes-everywhere-pods-cloud-hypervisor.md (the K8s-everywhere doctrine declares K8s + Kata pods + Cloud Hypervisor as the canonical runtime substrate; this ADR layers cloud-ci + ArgoCD on top of that substrate so every CI run and every CD sync executes on the same K8s primitive set)
+  - ADR-0339-shared-iac-module-library.md (the shared IaC module library declares microservices/cloud-iac/modules/<context>/ as the canonical OpenTofu module home; this ADR adds two module families — cloud-ci/ and argocd/ — under each per-context directory so per-tenant provisioning is `tofu apply` end-to-end per zero-handroll OpenTofu-only feedback memory)
 related_adrs:
   - ADR-0028-cloud-microservice-architecture.md
   - ADR-0105-thirteen-layer-enum.md
@@ -130,14 +130,14 @@ enforced_by:
   - oya-governance-jenkins-jcasc-only (new lane; refuses Jenkins controller state declared via the UI; every Jenkins controller state file is authored under microservices/cloud-iac/modules/<context>/jenkins/jcasc/ with declarative JCasC YAML per D-1; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
   - oya-governance-deploy-audit-chain-emit (new lane; refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 §D.4 deploy-event class; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
 purpose: >
-  Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD
-  substrates for the Oyatie corpus. Jenkins is the canonical CI orchestrator
-  for air-gap + on-prem + colo + oyatie-as-cloud-provider deployment contexts
-  where GitHub Actions runners are not available; it runs on Oyatie K8s per
-  ADR-0254 and is configured-as-code via JCasC + Jenkinsfile. GitHub Actions
-  is RETAINED as the primary CI for the hosted-on-GitHub PR review surface
-  (oya verify + PR checks); Jenkins augments rather than replaces it. ArgoCD
-  is the canonical GitOps CD orchestrator; per-cluster Application CRDs
+  (Superseded by ADR-0515.) Declare cloud-ci and ArgoCD as the two canonical
+  self-hostable CI/CD substrates for the Oyatie corpus. cloud-ci is the
+  canonical CI orchestrator for air-gap + on-prem + colo + oyatie-as-cloud-provider
+  deployment contexts where GitHub Actions runners are not available; it runs on
+  Oyatie K8s per ADR-0254 and is configured-as-code with declarative pipelines.
+  GitHub Actions is RETAINED as the primary CI for the hosted-on-GitHub PR review
+  surface (oya verify + PR checks); cloud-ci augments rather than replaces it.
+  ArgoCD is the canonical GitOps CD orchestrator; per-cluster Application CRDs
   declare which microservices deploy to which cluster, ArgoCD reconciles the
   declared state from git, cosign signature verification per ADR-0181 gates
   every image fetched on sync, and audit-chain rows emit per ADR-0263 on
@@ -146,43 +146,42 @@ purpose: >
   ADR-0211 and carry Contributor-class stewardship per ADR-0345 (7-day P0
   CVE SLA + 30-day P1 SLA + per-quarter dev-day budget for upstream patches).
   Both are provisioned via OpenTofu modules under
-  microservices/cloud-iac/modules/<context>/jenkins/ and /<context>/argocd/
+  microservices/cloud-iac/modules/<context>/cloud-ci/ and /<context>/argocd/
   per ADR-0339 shared IaC module library and the zero-handroll-OpenTofu-only
-  feedback memory of 2026-05-20. Five new CI lanes enforce the substrate
-  contract: jenkins-github-actions-parity refuses drift between
-  Jenkinsfile and .github/workflows for the per-microservice CI matrix;
+  feedback memory of 2026-05-20. Five CI lanes enforce the substrate
+  contract: cloud-ci-github-actions-parity refuses drift between
+  cloud-ci pipelines and .github/workflows for the per-microservice CI matrix;
   argocd-application-cosign-verified refuses sourcing of unsigned images;
   argocd-tenant-namespace-isolation refuses cross-tenant ArgoCD project
-  leakage; jenkins-jcasc-only refuses Jenkins UI-driven configuration drift;
-  deploy-audit-chain-emit refuses ArgoCD sync transitions without
-  audit-chain emission. The doctrine is binding because the multi-context
+  leakage; cloud-ci-config-as-code-only refuses UI-driven CI controller
+  configuration drift; deploy-audit-chain-emit refuses ArgoCD sync transitions
+  without audit-chain emission. The doctrine is binding because the multi-context
   deployment posture per feedback_multi_context_provider_agnostic_2026_05_20
   + air-gap sovereignty per ADR-0164 + zero-handroll OpenTofu-only posture
   per feedback_zero_handroll_opentofu_only_2026_05_20 + the GitOps + signed-
   image + audit-chain triple-binding per ADR-0181 + ADR-0263 + ADR-0254 are
-  mutually unsatisfiable without a self-hostable CI substrate (Jenkins) and
-  a declarative GitOps CD substrate (ArgoCD). The four forbidden-alternative
-  competitors (Jenkins X, Tekton, Flux CD, Spinnaker, CircleCI / Travis /
-  Buildkite SaaS, GitHub Actions self-hosted runners pointed at GitHub.com
-  control plane) are each rejected with named reasons in §F below. Out of
-  scope: actual authoring of the twelve OpenTofu modules (six contexts × two
-  substrates), per-microservice Jenkinsfile authoring across ~77 microservices,
-  per-microservice Helm chart authoring under microservices/<ms>/iac/k8s/helm/,
-  the per-cluster `clusters/<cluster-id>/apps.yaml` canonical GitOps manifest,
-  cosign-verify policy authoring at the ArgoCD layer, and audit-chain emitter
-  integration at the ArgoCD sync hook. All five authoring streams are sequenced
-  as Wave 15-ZE-jenkins-argocd-substrate-rollout in
+  mutually unsatisfiable without a self-hostable CI substrate and a declarative
+  GitOps CD substrate (ArgoCD). The forbidden-alternative competitors (Tekton,
+  Flux CD, Spinnaker, CircleCI / Travis / Buildkite SaaS, GitHub Actions
+  self-hosted runners pointed at GitHub.com control plane) are each rejected
+  with named reasons in §F below. Out of scope: actual authoring of the OpenTofu
+  modules (six contexts × two substrates), per-microservice pipeline authoring
+  across ~77 microservices, per-microservice Helm chart authoring under
+  microservices/<ms>/iac/k8s/helm/, the per-cluster
+  `clusters/<cluster-id>/apps.yaml` canonical GitOps manifest, cosign-verify
+  policy authoring at the ArgoCD layer, and audit-chain emitter integration at
+  the ArgoCD sync hook. All authoring streams are sequenced as Wave 15-ZE in
   /specs/master-plan-sequencing.json under ADR-0328 batch discipline. This ADR
   is doctrine-only; the executor PRs land separately after Acceptance.
 ---
 
-# ADR-0349: Jenkins (LTS) + ArgoCD canonical self-hostable CI/CD substrate (Jenkins augments GitHub Actions for self-hostable contexts; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164)
+# ADR-0349: Self-hostable CI/CD substrate — cloud-ci augments GitHub Actions; ArgoCD replaces manual kubectl/Helm CLI deploys; both OSS Class C approved per ADR-0211 + Contributor stewardship per ADR-0345; provisioned via OpenTofu modules per ADR-0339 in every multi-context deployment per ADR-0215 including air-gap per ADR-0164 (superseded by ADR-0515)
 
 ## Status
 
-Superseded by ADR-0515 — 2026-06-06: Jenkins+ArgoCD substrate replaced by oya-ci (orchestrator) + oya-cd DeliveryPlane (ArgoCD/Argo-Rollouts reuse-behind-port). Bridge stays operative-but-unratified until cutover. Resolve byp_adr_0349 bypass record (A-CI lane).
+Superseded by ADR-0515 — 2026-06-06: cloud-ci (self-hostable CI orchestrator) + ArgoCD substrate replaced by oya-ci (orchestrator) + oya-cd DeliveryPlane (ArgoCD/Argo-Rollouts reuse-behind-port). Bridge stays operative-but-unratified until cutover. Resolve byp_adr_0349 bypass record (A-CI lane).
 
-This ADR is the canonical CI/CD-substrate decision binding the Oyatie corpus to two named OSS primitives — Jenkins (LTS) for self-hostable CI and ArgoCD for declarative GitOps CD — across every deployment context including air-gap. The substrate selections complete a gap that has been latent across multiple prior decisions: ADR-0028 (cloud microservice architecture) and ADR-0254 (Kubernetes everywhere) named the runtime layer but not the CI/CD layer; ADR-0181 (cosign-signed artifacts and modules) named the image-promotion contract but not the runtime enforcer of the contract on deploy; ADR-0215 (multi-context deployment) named the contexts but not the per-context CI/CD provisioning shape; ADR-0218 (OpenTofu not Terraform) named the IaC tool but not the canonical modules for CI/CD primitives; ADR-0339 (shared IaC module library) named the module home but did not enumerate Jenkins or ArgoCD as canonical module families. This ADR closes those gaps by declaring the two substrate primitives, the per-context OpenTofu module homes, the per-microservice CI-parity and Helm-chart contract, the GitOps manifest path, and the five enforcement lanes.
+This ADR is the canonical CI/CD-substrate decision binding the Oyatie corpus to two named OSS primitives — cloud-ci for self-hostable CI and ArgoCD for declarative GitOps CD — across every deployment context including air-gap. The substrate selections complete a gap that has been latent across multiple prior decisions: ADR-0028 (cloud microservice architecture) and ADR-0254 (Kubernetes everywhere) named the runtime layer but not the CI/CD layer; ADR-0181 (cosign-signed artifacts and modules) named the image-promotion contract but not the runtime enforcer of the contract on deploy; ADR-0215 (multi-context deployment) named the contexts but not the per-context CI/CD provisioning shape; ADR-0218 (OpenTofu not Terraform) named the IaC tool but not the canonical modules for CI/CD primitives; ADR-0339 (shared IaC module library) named the module home but did not enumerate cloud-ci or ArgoCD as canonical module families. This ADR closes those gaps by declaring the two substrate primitives, the per-context OpenTofu module homes, the per-microservice CI-parity and Helm-chart contract, the GitOps manifest path, and the five enforcement lanes.
 
 The ADR is binding because the multi-context deployment requirement per `feedback_multi_context_provider_agnostic_2026_05_20` cannot be satisfied by GitHub Actions alone: customers on-prem, in colocation facilities, on sovereign air-gap deployments per ADR-0164, and tenants on the future Oyatie-as-cloud-provider context per `feedback_multi_context_provider_agnostic_2026_05_20` cannot depend on the GitHub.com control plane. The zero-handroll OpenTofu posture per `feedback_zero_handroll_opentofu_only_2026_05_20` requires that the CI/CD layer lands as a per-context OpenTofu module set, not as hand-authored Helm CLI invocations or kubectl manifests. The cosign-signature + audit-chain discipline per ADR-0181 + ADR-0263 requires a deploy-time enforcer; ArgoCD's Application CRD sync hook is the canonical place for that enforcement. The combination of pressures is mutually unsatisfiable without a CI substrate that runs on tenant K8s and a CD substrate that synchronizes from tenant git into tenant K8s under signed-image policy.
 

@@ -98,7 +98,7 @@
   },
   "install_contract": {
     "entrypoint": "make install",
-    "scope_note": "`make install` provisions ONLY the OpenTofu-owned Cloudflare edge (it is `install: apply`). It does NOT provision the cluster fleet — fleet bring-up is hardware-gated (boot Talos installation-media on real nodes) and multi-step, and `make fleet` is informational-only (prints the sequence). Treat fleet bring-up as a separate, manual/hardware-gated procedure until the Jenkins fleet-bootstrap pipeline lands (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-jenkins-fleet-bootstrap-pipeline).",
+    "scope_note": "`make install` provisions ONLY the OpenTofu-owned Cloudflare edge (it is `install: apply`). It does NOT provision the cluster fleet — fleet bring-up is hardware-gated (boot Talos installation-media on real nodes) and multi-step, and `make fleet` is informational-only (prints the sequence). Treat fleet bring-up as a separate, manual/hardware-gated procedure until the cloud-ci fleet-bootstrap pipeline lands (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-fleet-bootstrap-pipeline).",
     "normal_flow": [
       "run Rust deployment contract gate",
       "run tofu apply for infra/cloudflare (this is the entire `make install`)"

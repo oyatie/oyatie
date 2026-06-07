@@ -8,14 +8,14 @@ than duplicating strings. Keep sections machine-parseable (no nested bullets).
 ## VCS / Git
 
 Canonical: plain `git`. The `oya git` wrapper and the `oya vcs` ratchet are
-RETIRED per ADR-0363 (substrate = git + Jenkins + GitHub (interim)). They no
+RETIRED per ADR-0363 (substrate = git + GitHub Actions + cloud-scm (interim)). They no
 longer exist as commands — do NOT use them.
 
 Coordination (per agent lane):
   isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   commit and push on that lane
   open a PR against `dev`             # enters the governance pipeline
-  Jenkins CI + `oya gate run-all` + reviewer APPROVE gate merge readiness
+  GitHub Actions CI + `oya gate run-all` + reviewer APPROVE gate merge readiness
 
 `oya` is a governance-gate engine only: `oya gate ...`, `oya verify [--ci-required]`.
 
@@ -275,7 +275,7 @@ OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ## Common Pitfalls
 
-1. Using retired `oya git` / `oya vcs` surfaces instead of plain git + PR + Jenkins governance gates.
+1. Using retired `oya git` / `oya vcs` surfaces instead of plain git + PR + GitHub Actions cloud-ci governance gates.
 2. Writing `openapi: 3.3.0` (no such released version as of 2026-05-18)
 3. Writing `asyncapi: 3.0.0` (use 3.1.0)
 4. Treating microservices/intelligence/ as a live µservice (ADR-0335 absorbed it into microservices/intelligence/)
@@ -320,12 +320,11 @@ Enforced by: oya-governance-sharding-automation-coverage; oya-governance-autosha
   oya-governance-auto-rebalance-residency-honored; oya-governance-dynamic-sharding-threshold-coverage;
   oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility.
 
-ADR-0349: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates. Jenkins augments GitHub Actions for
-  air-gap, on-prem, colo, and provider deployment contexts; ArgoCD is the canonical GitOps CD orchestrator and replaces manual
-  kubectl apply / Helm CLI deploy paths across all contexts. Both are provisioned via OpenTofu modules under
-  microservices/cloud-iac/modules/<context>/jenkins/ and /<context>/argocd/.
-Enforced by: oya-governance-jenkins-github-actions-parity; oya-governance-argocd-application-cosign-verified;
-  oya-governance-argocd-tenant-namespace-isolation; oya-governance-jenkins-jcasc-only;
+ADR-0349 (superseded by ADR-0515): GitHub Actions is the sole CI surface. ArgoCD is the canonical GitOps CD orchestrator
+  and replaces manual kubectl apply / Helm CLI deploy paths across all contexts. ArgoCD is provisioned via OpenTofu modules
+  under cloud-iac/modules/<context>/argocd/. Self-hostable CI contexts use cloud-ci (oya-ci) per ADR-0515.
+Enforced by: oya-governance-argocd-application-cosign-verified;
+  oya-governance-argocd-tenant-namespace-isolation;
   oya-governance-deploy-audit-chain-emit.
 
 ---
