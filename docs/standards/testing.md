@@ -64,7 +64,7 @@ The hyperscaler consensus in 2025–2026 is an expanded pyramid:
 | Unit | `#[cfg(test)] mod tests` in same file | `cargo nextest` | every PR |
 | Integration | `tests/` directory of each crate | `cargo nextest` | every PR |
 | Contract | `tests/contract/` per consumer/provider; `contracts/` schemas | `cargo nextest` + pact-style verifier | every PR |
-| E2E | `oya-foundry-e2e-*` runtime | `cargo nextest` w/ env tag | merge-queue + nightly |
+| E2E | `oya-intelligence-e2e-*` runtime | `cargo nextest` w/ env tag | merge-queue + nightly |
 | Property | `proptest` or `quickcheck` inside `tests/properties/` | `cargo nextest` | every PR (short config); nightly (long config) |
 | Fuzz | `fuzz/` per crate; `cargo-fuzz` | `cargo fuzz run` | nightly + on diff to unsafe surfaces |
 | Mutation | n/a | `cargo-mutants` | nightly on kernel/domain |

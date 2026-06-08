@@ -353,7 +353,7 @@ The forbidden-edge graph: `kernel ← domain ← app ← {api, worker, adapter} 
 | 1. SaaS | 6-10 | Stable platform invariants (tenant, workspace, identity, RBAC, plane, metering) | `oya-platform-tenant-kernel`, `oya-platform-identity-kernel` |
 | 2. Vertical | 1-3 per vertical | Per-vertical entity model (Patient, WorkOrder, Shipment, Loan) | `oya-vertical-healthcare-kernel`, `oya-vertical-industrial-kernel` |
 | 3. Foundry | 4-6 | Capability, Step, Run, Evidence, Provider, AutonomyCeiling | `oya-intelligence-capability-kernel`, `oya-intelligence-evidence-kernel` |
-| 4. Foundry | 3-5 | Catalog, Lane, Gate, Bypass | `oya-intelligence-catalog-kernel`, `oya-foundry-gate-kernel` |
+| 4. Foundry | 3-5 | Catalog, Lane, Gate, Bypass | `oya-intelligence-catalog-kernel`, `oya-governance-gate-kernel` |
 | 5. Cloud | 5-8 | Resource, Region, AZ, Cell, IAM, Billing | `oya-cloud-resource-kernel`, `oya-cloud-iam-kernel` |
 | 6. Search | 3-5 | Document, Index, Query, Result, Ranker | `oya-search-document-kernel`, `oya-search-index-kernel` |
 | 7. Ads | 4-6 | Campaign, Auction, Impression, Click, Conversion, Audience | `oya-ads-campaign-kernel`, `oya-ads-auction-kernel` |

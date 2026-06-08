@@ -185,8 +185,8 @@ runtime   — composition root (binary; the daemon)
 | `oya-intelligence-catalog-kernel` | kernel | Catalog record primitive (per `registry/catalog/<crate>.yaml`) |
 | `oya-intelligence-catalog-app` | app | Catalog projection + validation |
 | `oya-intelligence-catalog-api` | api | Catalog read/write API |
-| `oya-foundry-gate-kernel` | kernel | Gate primitive (CI gate for cross-axis review, claim-ceiling, etc.) |
-| `oya-foundry-gate-domain` | domain | Gate rule evaluation |
+| `oya-governance-gate-kernel` | kernel | Gate primitive (CI gate for cross-axis review, claim-ceiling, etc.) |
+| `oya-governance-gate-domain` | domain | Gate rule evaluation |
 | `oya-intelligence-bypass-kernel` | kernel | Foundation-bypass record primitive |
 | `oya-intelligence-bypass-app` | app | Bypass-ledger maintenance + reporting |
 | `oya-governance-lane-kernel` | kernel | CI lane primitive (control / data / analytics; per ADR-0017) |
@@ -196,7 +196,7 @@ runtime   — composition root (binary; the daemon)
 | `oya-governance-{architecture,contracts,license,supply,migration,bench,product-prd,search-dub,ads-class,ads-source-singleton}` | app | Per-fitness-function check (one crate per check class) |
 | `oya-governance-scorecard-kernel` | kernel | Scorecard primitive (per ADR-0026 + ADR-0040 Proof Ladder) |
 | `oya-governance-scorecard-app` | app | Per-axis per-quarter scorecard publishing |
-| `oya-foundry-supply-app` | app | Supply-chain attestation (Cosign + Trivy + SBOM per ADR-0039) |
+| `oya-governance-supply-app` | app | Supply-chain attestation (Cosign + Trivy + SBOM per ADR-0039) |
 | `oya-intelligence-runtime` | runtime | Foundry engineering platform composition root |
 
 ### 4.3 External-facing surfaces
@@ -912,7 +912,7 @@ The following patterns are adopted from industry-leading agentic platforms and a
 | **Graduated autonomy tiers with human-in-the-loop gates** | GitHub Copilot (human review before merge); AWS Bedrock human-review integration | `AutonomyTier` T0..T5; `AutonomyCeiling::permit` enforced on every run; T3+ requires explicit tenant opt-in; EAC capped at T2 default |
 | **Cross-session memory with typed retention** | OpenAI Responses / Conversations state; AWS Bedrock managed memory | `CrossSessionMemory` (declarative / episodic / procedural); per-record `data_class`; DSR cascade ack mandatory; retention bound by tenant policy |
 | **Eval harness as first-class CI gate** | LangSmith evaluation suite; OpenAI Evals | `oya-intelligence-eval-*`; nightly eval + A/B routing gate; `foundry.eval.run` idempotent API; cohort evidence required for capability promotion |
-| **Supply-chain attestation for every artifact** | GitHub supply chain security (Sigstore); AWS Artifact | Cosign + Rekor + Trivy + SBOM (ADR-0039); `builder.supply_chain_attested.v1` on every release; `oya-foundry-supply-app` CI gate |
+| **Supply-chain attestation for every artifact** | GitHub supply chain security (Sigstore); AWS Artifact | Cosign + Rekor + Trivy + SBOM (ADR-0039); `builder.supply_chain_attested.v1` on every release; `oya-governance-supply-app` CI gate |
 | **Wasm sandbox for third-party plugin extension** | Cloudflare Workers (V8 isolate); Fastly Compute@Edge | Wasmtime + WASI Preview 2 (ADR-0023); per-plugin trust gate; `PluginSigner::cosign` required before marketplace listing |
 | **Declarative policy-as-code for authorization** | AWS Cedar (Amazon Verified Permissions); OPA | Cedar policy fragments (ADR-0007); `AutonomyCeiling` + `CapabilityId` as principal+resource; per-pack policy overlay |
 | **Outbox pattern for reliable event emission** | AWS event-driven storage streams / transactional outbox before Kafka | Outbox + Kafka (ADR-0046, ADR-0050); `Evidence` emit on hot path; circuit-break shifts to local persistent queue on audit-chain unavailability |
@@ -955,7 +955,7 @@ Stage split: Preview availability targets apply at the Foundry Preview Proof Lad
 | **Audit retention: 7 years** | `Run` / `Step` / `Evidence` / `PolicyDecision` retained for 7 years across Postgres + ClickHouse + S3-class cold store | ADR-0003 audit-chain retention; `schema_version` versioning on all entities; migration policy per §5.7; `BulkExportEvidence` regulator API |
 | **Autonomy ceiling: no bypass ever** | `AutonomyCeiling::permit` is the only execution path for any capability invocation; no internal-only exception | Cedar policy; `run_rejected.v1` emitted on every denial; chaos-test of bypass attempts run quarterly; hard constraint in §3.2 anti-scope |
 | **Residency enforcement: fail-fast** | A residency-strict tenant never has data routed to a non-compliant provider; preference is fail-fast over lossy degradation | `Provider.residency_compliant_for` × `Tenant.residency` routing check; per-pack adapter restriction; quarterly chaos test |
-| **Supply-chain: 100% attested** | Every release artifact carries Cosign signature + SBOM + Trivy scan; 0 unattested artifacts in production | `oya-foundry-supply-app` CI gate; `builder.supply_chain_attested.v1` per release; per-pack supply-chain overlay (KCMVP, GAIA-X, FedRAMP, NCA-NCS) |
+| **Supply-chain: 100% attested** | Every release artifact carries Cosign signature + SBOM + Trivy scan; 0 unattested artifacts in production | `oya-governance-supply-app` CI gate; `builder.supply_chain_attested.v1` per release; per-pack supply-chain overlay (KCMVP, GAIA-X, FedRAMP, NCA-NCS) |
 | **Horizontal scalability: stateless daemon** | Foundry daemon carries no per-request mutable state; `ProviderRoute` is transient per `Run`; all state in Postgres + Redis + Kafka | Per-tenant sharding on `(tenant_id, time)` for `Run` / `Step` / `Evidence`; Citus per-tenant; ClickHouse cold archive; no daemon-local state that would prevent horizontal scale-out |
 | **SLO 99.95% capability invocation (Preview)** | Control-plane SLO for capability invocation; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Planned advisory benchmark lane `oya-governance-bench`; Argo Rollouts per-capability canary; circuit-break + failover per provider |
 | **License gate: no AGPL/GPL in product code** | All third-party dependencies Apache-2 / MIT / BSD / MPL-2; AGPL / GPL denied at CI | License policy per ADR-0039 and planned advisory lane `oya-governance-license`; per-dep license tier in §8 |

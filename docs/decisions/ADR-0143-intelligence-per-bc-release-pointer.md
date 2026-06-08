@@ -116,7 +116,7 @@ Each pattern attaches the canonical required-status-checks list
 
 When a BC depends on another (e.g. runtime depends on a supervisor
 trait), the trait crate lives at a shared layer in the foundry
-workspace (`microservices/foundry/src/crates/oya-foundry-shared-*`).
+workspace (`microservices/foundry/src/crates/oya-intelligence-shared-*`).
 Both BCs depend on the trait crate at the same workspace version;
 neither BC's release pointer is logically coupled to the other.
 
