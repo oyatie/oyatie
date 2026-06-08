@@ -24,6 +24,6 @@ required_sequence:
   - Jenkins CI + oya gate run-all + reviewer APPROVE gate merge readiness
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
-  adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-github-substrate.md
+  adr: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
 retirement_note: the `oya git` wrapper and the `oya vcs` ratchet (claim/verify/done/promote) are RETIRED per ADR-0363. Coordination rides plain `git` + a PR against `dev` + Jenkins CI + governance gates; GitHub (interim) required-checks/auto-merge is the substrate target. `oya` is a governance-gate engine only (`oya gate`, `oya verify`).
 <!-- agent-instructions:end -->

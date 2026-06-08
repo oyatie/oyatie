@@ -107,7 +107,7 @@
       "owner": "platform-governance",
       "requirement": "Retire oya vcs/oya git and prevent oya verify/oya gate from becoming protected-branch CI authority.",
       "retirement_phase": "P0.0/P1 cutover",
-      "source_artifact": "docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-github-substrate.md",
+      "source_artifact": "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
       "target_gate_or_controller": "cloud-ci/governance retired-surface scanner + required-context producer check"
     },
     {
