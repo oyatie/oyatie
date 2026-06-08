@@ -35,6 +35,15 @@
       "untyped_staleness": {"mode": "advisory-until-infra", "infra_prereq": "ttl-policy-table-complete"},
       "reap_without_report": {"mode": "baseline-block-on-new", "frozen_empty": true}
     },
+    "cloud-ci-bnf-layer-suffix": {
+      "bnf_unknown_role": {"mode": "baseline-block-on-new"},
+      "bnf_role_mismatch": {"mode": "baseline-block-on-new"},
+      "bnf_missing_oya_prefix": {"mode": "baseline-block-on-new"},
+      "bnf_empty_after_prefix": {"mode": "baseline-block-on-new"},
+      "bnf_undeclared_role": {"mode": "baseline-block-on-new"},
+      "bnf_undeclared_context": {"mode": "baseline-block-on-new"},
+      "bnf_name_uppercase": {"mode": "baseline-block-on-new"}
+    },
     "cloud-ci-brand-residue": {
       "forbidden_foundry": {"mode": "baseline-block-on-new"},
       "forbidden_forgejo": {"mode": "baseline-block-on-new"},

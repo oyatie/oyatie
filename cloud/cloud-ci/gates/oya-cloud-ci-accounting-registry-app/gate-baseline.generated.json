@@ -4,7 +4,7 @@
     "baseline_schema_version": 1,
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:118036ec7b6566b2"
+    "source_inputs_digest": "fnv1a64:59fc012cbf3a8b37"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -191,6 +191,116 @@
       },
       "unknown_classification": {
         "keys": [],
+        "mode": "baseline-block-on-new"
+      }
+    },
+    "cloud-ci-bnf-layer-suffix": {
+      "bnf_empty_after_prefix": {
+        "keys": [],
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_missing_oya_prefix": {
+        "keys": [],
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_name_uppercase": {
+        "keys": [],
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_role_mismatch": {
+        "keys": [],
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_undeclared_context": {
+        "keys": [],
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_undeclared_role": {
+        "keys": [],
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_unknown_role": {
+        "keys": [
+          "oya-application-shell-frontend-prototype",
+          "oya-authn-device-firmware",
+          "oya-billing",
+          "oya-cloud-iam-adapter-selfhosted",
+          "oya-cloud-kms-adapter-openbao",
+          "oya-cloud-network-adapter-selfhosted",
+          "oya-cloud-storage-adapter-s3",
+          "oya-cost",
+          "oya-data-pipeline-lineage-replay-service",
+          "oya-data-warehouse-tenant-olap-service",
+          "oya-design-collaboration-creative-artifact-service",
+          "oya-flags",
+          "oya-governance-audit-event-emission",
+          "oya-governance-byok-disambiguation",
+          "oya-governance-capability-tier-coverage",
+          "oya-governance-cedar-coverage",
+          "oya-governance-naming-justifications",
+          "oya-governance-no-template-stamping",
+          "oya-governance-pack-overlay-completeness",
+          "oya-governance-substance-bar",
+          "oya-identity",
+          "oya-intelligence-providers-adapter-openai",
+          "oya-itsm-escalation-policy",
+          "oya-itsm-incident-room",
+          "oya-itsm-on-call-schedule",
+          "oya-itsm-postmortem",
+          "oya-itsm-service-management-service",
+          "oya-itsm-status-update",
+          "oya-learning-management-course-progress-service",
+          "oya-managed-k8s-control-plane-host-adapter-capi",
+          "oya-managed-k8s-tenant-quota-adapter-cedar",
+          "oya-marketplace-doc-set-scaffold",
+          "oya-meter",
+          "oya-payments-adapter-adyen",
+          "oya-payments-adapter-stripe",
+          "oya-performance-management-review-calibration-service",
+          "oya-shared-hyperscaler-metrics-adapter-otlp",
+          "oya-shared-hyperscaler-metrics-adapter-prometheus",
+          "oya-shared-postgres-command-adapter-sqlx",
+          "oya-shared-transactional-outbox-adapter-sqlx",
+          "oya-shuffle-sharding",
+          "oya-tenant-rbac-audit-chain-emission",
+          "oya-tenant-rbac-audit-chain-runtime-evidence",
+          "oya-tenant-rbac-cloud-deployment-evidence",
+          "oya-tenant-rbac-cloud-deployment-manifest",
+          "oya-tenant-rbac-cloud-readiness-gate",
+          "oya-tenant-rbac-disbursement-evidence",
+          "oya-tenant-rbac-erp-parity-map",
+          "oya-tenant-rbac-identity-provider-runtime-evidence",
+          "oya-tenant-rbac-identity-provider-verification",
+          "oya-tenant-rbac-listener-gateway",
+          "oya-tenant-rbac-listener-runtime-evidence",
+          "oya-tenant-rbac-local-inmemory-harness",
+          "oya-tenant-rbac-local-runtime-composition",
+          "oya-tenant-rbac-postgres-rls-runtime-evidence",
+          "oya-tenant-rbac-postgres-rls-storage",
+          "oya-tenant-rbac-postgres-rls-transaction-contract",
+          "oya-tenant-rbac-postgres-rls-write-contract",
+          "oya-tenant-rbac-slo-evidence",
+          "oya-tenant-rbac-statutory-filing-evidence",
+          "oya-tenant-rbac-tenant-admission-policy",
+          "oya-tenant-rbac-tenant-autoscaling-contract",
+          "oya-tenant-rbac-tenant-availability-contract",
+          "oya-tenant-rbac-tenant-cost-allocation-contract",
+          "oya-tenant-rbac-tenant-egress-policy-contract",
+          "oya-tenant-rbac-tenant-image-provenance-contract",
+          "oya-tenant-rbac-tenant-residency-contract",
+          "oya-tenant-rbac-tenant-resource-quota-contract",
+          "oya-tenant-rbac-tenant-secret-boundary-contract",
+          "oya-tenant-rbac-tenant-workload-identity-contract",
+          "oya-tenant-rbac-tenant-workload-manifest",
+          "oya-tenant-rbac-tenant-workload-runtime-evidence",
+          "oya-tenant-rbac-workflow-runtime-evidence",
+          "oya-workflow-engine-event-bus-adapter-kafka",
+          "oya-workflow-engine-event-bus-adapter-nats",
+          "oya-workflow-engine-event-bus-adapter-pulsar",
+          "oya-workflow-engine-event-bus-adapter-redpanda",
+          "oya-workflow-engine-event-bus-adapter-valkey",
+          "oya-workplace-integration-doc-set-scaffold"
+        ],
         "mode": "baseline-block-on-new"
       }
     },

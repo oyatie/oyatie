@@ -234,6 +234,7 @@ members = [
   "cloud/cloud-cell/crates/oya-regional-pack-domain",
   "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app",
   "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app",
+  "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app",
   "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app",
   "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app",
   "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app",

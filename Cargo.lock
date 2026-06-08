@@ -4117,6 +4117,7 @@ version = "0.1.0"
 dependencies = [
  "oya-check-brand-residue",
  "oya-cloud-ci-automation-ratchet-app",
+ "oya-cloud-ci-bnf-layer-suffix-app",
  "oya-cloud-ci-cross-artifact-agreement-app",
  "oya-cloud-ci-staleness-reaper-app",
  "oya-cloud-ci-total-accounting-app",
@@ -4128,6 +4129,14 @@ dependencies = [
 name = "oya-cloud-ci-automation-ratchet-app"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-bnf-layer-suffix-app"
+version = "0.1.0"
+dependencies = [
+ "oya-governance-predictable-naming-kernel",
  "serde_json",
 ]
 
