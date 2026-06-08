@@ -590,7 +590,10 @@ where
 /// The ratchet contract: a key only enters a baseline by being a CURRENT violation today
 /// (auto-shrink drops fixed keys on regen); GROWTH beyond the committed baseline is a
 /// `ratchet_regression` caught by the cloud-ci-firewall runner, not by this builder.
-pub fn build_gate_baseline(inputs: &GateInputs<'_>) -> Result<Value, ProducerError> {
+pub fn build_gate_baseline(
+    inputs: &GateInputs<'_>,
+    config_digest: &str,
+) -> Result<Value, ProducerError> {
     let disposition: Value = serde_json::from_str(GATE_DISPOSITION_JSON)
         .map_err(|e| ProducerError::Policy(format!("gate-disposition.json: {e}")))?;
     let disp_gates = disposition
@@ -671,6 +674,7 @@ pub fn build_gate_baseline(inputs: &GateInputs<'_>) -> Result<Value, ProducerErr
             "producer_target": PRODUCER_TARGET,
             "firewall_target": FIREWALL_TARGET,
             "baseline_schema_version": 1,
+            "config_digest": config_digest,
             "source_inputs_digest": source_inputs_digest,
         }),
     );
@@ -788,6 +792,7 @@ mod tests {
         let crosswalk = serde_json::json!({"decisions": [], "duplicate_ids": ["ADR-0377"]});
         let automation = serde_json::json!({"rows": []});
         let staleness = serde_json::json!({"rows": []});
+        let empty_face = serde_json::json!({"rows": []});
         let mut brand_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         brand_residue
             .entry("forbidden_foundry".to_owned())
@@ -798,9 +803,11 @@ mod tests {
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
             staleness: &staleness,
+            bnf_layer_suffix: &empty_face,
+            manifest_hygiene: &empty_face,
             brand_residue: &brand_residue,
         };
-        let baseline = build_gate_baseline(&inputs).expect("baseline");
+        let baseline = build_gate_baseline(&inputs, "fnv1a64:test").expect("baseline");
         let ta = &baseline["gates"]["cloud-ci-total-accounting"];
 
         // unjustified is baseline-block-on-new and freezes the live key (the row path).
@@ -831,16 +838,19 @@ mod tests {
         let crosswalk = serde_json::json!({"decisions": []});
         let automation = serde_json::json!({"rows": []});
         let staleness = serde_json::json!({"rows": []});
+        let empty_face = serde_json::json!({"rows": []});
         let brand_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let inputs = GateInputs {
             total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
             staleness: &staleness,
+            bnf_layer_suffix: &empty_face,
+            manifest_hygiene: &empty_face,
             brand_residue: &brand_residue,
         };
-        let a = to_canonical_json(&build_gate_baseline(&inputs).expect("a")).expect("ja");
-        let b = to_canonical_json(&build_gate_baseline(&inputs).expect("b")).expect("jb");
+        let a = to_canonical_json(&build_gate_baseline(&inputs, "fnv1a64:test").expect("a")).expect("ja");
+        let b = to_canonical_json(&build_gate_baseline(&inputs, "fnv1a64:test").expect("b")).expect("jb");
         assert_eq!(a, b, "baseline must be byte-deterministic");
         assert!(a.contains("source_inputs_digest"));
         assert!(!a.contains("generated_at"), "no wall-clock in the baseline face");

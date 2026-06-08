@@ -127,6 +127,21 @@ impl OyaCiConfig {
         toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))
     }
 
+    /// A stable, dependency-free FNV-1a 64-bit digest of the config's canonical TOML
+    /// serialization. Stamped into the gate-baseline `_provenance` so a config change is
+    /// visible to registry-drift (the byte-diff) and the firewall (provenance audit). The
+    /// digest is deterministic (the structs serialize in a fixed field order), so
+    /// committed==regenerated holds without a wall-clock.
+    pub fn digest(&self) -> String {
+        let canonical = toml::to_string(self).unwrap_or_default();
+        let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+        for byte in canonical.as_bytes() {
+            hash ^= u64::from(*byte);
+            hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+        format!("fnv1a64:{hash:016x}")
+    }
+
     /// The bundled `unit-class-policy.json` body (DATA the producer hands to its classifier).
     /// Carried over verbatim so the classification is bit-exact.
     pub fn unit_class_policy_json(&self) -> &str {
@@ -322,6 +337,11 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
             VocabCarveOutKind::PathPrefix,
             "libs/oya-ci-config/",
             "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)",
+        ),
+        (
+            VocabCarveOutKind::PathExact,
+            "oya-ci.toml",
+            "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
         ),
         (
             VocabCarveOutKind::PathExact,
@@ -703,9 +723,9 @@ mod tests {
                 "forbidden_oya-vcs",
             ]
         );
-        // 7 carve-out rules, including the line-level palantir exemption + the oya-ci-config
-        // deny-list SSOT path carve-out.
-        assert_eq!(cfg.vocab.carve_outs.len(), 7);
+        // 8 carve-out rules, including the line-level palantir exemption + the oya-ci-config
+        // deny-list SSOT path carve-out + the repo-root oya-ci.toml deny-list carve-out.
+        assert_eq!(cfg.vocab.carve_outs.len(), 8);
         assert!(cfg
             .vocab
             .carve_outs

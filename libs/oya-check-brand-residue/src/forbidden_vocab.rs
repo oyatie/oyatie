@@ -110,6 +110,11 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,
+        value: "oya-ci.toml",
+        reason: "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
         value: "registry/catalog/oya-check-brand-residue.yaml",
         reason: "the catalog deny-list spec is not residue",
     },
