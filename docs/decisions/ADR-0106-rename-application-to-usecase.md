@@ -18,6 +18,16 @@ relates_to:
 ## Status
 Accepted
 
+> **F-0029 RECONCILIATION (ratified 2026-06-07, door:one-way).** This ADR is the terminal link of the
+> layer-enum amendment chain (ADR-0056 base 12 → ADR-0105 +`api` ⇒ 13 → ADR-0106 `application` →
+> `usecase`). The enum it states below is the **canonical SSOT**: 13 product values (`kernel`,
+> `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `graphql`, `worker`,
+> `sdk`, `api`) + the governance-only `check` family; `application` retired, `runtime` non-canonical
+> (→ `app`). ADR-0056 and ADR-0105 carry the matching banner; this ratification closes this ADR's
+> Follow-ups #1–#2 (the in-place ADR text is now consistent). The implied BNF crate renames
+> (`*-application` remainder, `*-runtime` → `*-app`, the `oya-cloud-ci-*` gate-prefix family) are
+> executed as the follow-on BNF-rename work, not reopened here.
+
 ## Context
 
 ADR-0056 §"12-Value Layer Enum" defined two adjacent layers:

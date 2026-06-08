@@ -18,6 +18,13 @@ relates_to:
 ## Status
 Accepted (amends ADR-0056 §"12-Value Layer Enum")
 
+> **F-0029 RECONCILIATION (ratified 2026-06-07, door:one-way).** This ADR added `api` (12 ⇒ 13).
+> The third inner value shown below as `application` was subsequently renamed to **`usecase`** by
+> ADR-0106; the reconciled canonical enum is therefore: `kernel`, `domain`, `usecase`, `app`,
+> `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`, `api` (13 product
+> values) + the governance-only `check` family. `runtime` is **not** canonical (→ `app`). The
+> tables below are read through this banner; `application` ⇒ `usecase` wherever it appears as a layer.
+
 ## Context
 
 The 2026-05-15 crate-naming audit (`specs/crate-naming-audit.json`) classified 264 workspace.members against ADR-0056's 12-value enum and found three classes of non-compliance:
