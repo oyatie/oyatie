@@ -137,10 +137,10 @@ Per-vertical surface set; each vertical's PRD §4.3 enumerates. Examples:
 | `foundry.rag.retrieve` | data | REST | per-tenant boundary; per-class allowlist; consent-receipt cited; OpenAPI source `contracts/openapi/foundry/rag-v1.yaml` | stable | `oya-intelligence-rag-api` |
 | `foundry.eval.run` | analytics | REST | per-capability golden-set evaluation; pass-threshold per capability; OpenAPI source `contracts/openapi/foundry/eval-v1.yaml` | stable | `oya-intelligence-eval-application` |
 | `foundry.sandbox.spawn` | data | REST | Wasmtime / Firecracker; per-tool resource caps; per-agent worktree | stable | `oya-intelligence-sandbox-app` |
-| `foundry.cli` (`oya dev/admin/build/agent/ops/pack/catalog/gate`) | control | CLI + MCP | persona-split per [DESIGN §13.4.1](DESIGN.md) | stable | `oya-foundry-cli-{persona}-*` |
+| `foundry.cli` (`oya dev/admin/build/agent/ops/pack/catalog/gate`) | control | CLI + MCP | persona-split per [DESIGN §13.4.1](DESIGN.md) | stable | `oya-intelligence-cli-{persona}-*` |
 | `foundry.mcp-server` | control | MCP | exposes every CLI subcommand as MCP tool per [TOOLCHAIN §4.A](TOOLCHAIN.md) | stable | `oya-intelligence-mcp-server-app` |
 | `foundry.catalog.{record,validate,promote,supersede}` | control | REST + CLI | flat-crates target catalog per ADR-0015/0222 | stable | `oya-intelligence-catalog-app` |
-| `foundry.gate.{claim-ceiling,foundation-bypass,plane-class}` | control | CI gate | mechanical pre-merge enforcement | stable | `oya-foundry-gate-{claim,bypass,plane}-*` |
+| `foundry.gate.{claim-ceiling,foundation-bypass,plane-class}` | control | CI gate | mechanical pre-merge enforcement | stable | `oya-governance-gate-{claim,bypass,plane}-*` |
 | `foundry.scorecard.publish` | analytics | REST | per Maturity Move #7 | stable | `oya-governance-scorecard-app` |
 | `foundry.fitness.run` | control | CI lane | per Maturity Move #8 + cross-axis cohesion check per Foundry-improvements top-20 #13 | stable | `oya-governance-*` |
 | `foundry.model.train` (long-horizon W-AI-Model-Substrate) | data | distributed | per-capability training; per-purpose data binding per Data Use Boundary | preview | `oya-intelligence-model-train-app` |

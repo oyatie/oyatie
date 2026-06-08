@@ -28,7 +28,7 @@ Per [`../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`]
 2 agents; IP-001 + IP-002 disjoint after kernel scaffold; IP-003 piggybacks on IP-001.
 
 ## Symbols-touched
-`crates/oya-foundry-dashboard-{kernel,app,api}-*`, `tools/oya-dashboard/` (SvelteKit), `tools/oya-dashboard-e2e/`.
+`crates/oya-intelligence-dashboard-{kernel,app,api}-*`, `tools/oya-dashboard/` (SvelteKit), `tools/oya-dashboard-e2e/`.
 
 ## Agent-handoff
 ```

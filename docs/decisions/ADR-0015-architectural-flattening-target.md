@@ -106,7 +106,7 @@ Each axis ships kernels sized for its bounded contexts (per DESIGN §4):
 | Workspace | 4-8 | `oya-workspace-doc-kernel`, `oya-workspace-mail-kernel` |
 | Vertical | 1-3 per vertical | `oya-vertical-healthcare-kernel`, `oya-vertical-fintech-kernel` |
 | Foundry (runtime) | 4-6 | `oya-intelligence-capability-kernel`, `oya-intelligence-evidence-kernel` |
-| Foundry (engineering platform) | 3-5 | `oya-intelligence-catalog-kernel`, `oya-foundry-gate-kernel` |
+| Foundry (engineering platform) | 3-5 | `oya-intelligence-catalog-kernel`, `oya-governance-gate-kernel` |
 | Cloud | 5-8 | `oya-cloud-resource-kernel`, `oya-cloud-iam-kernel` |
 | Search | 3-5 | `oya-search-document-kernel`, `oya-search-index-kernel` |
 | Ads | 4-6 | `oya-ads-campaign-kernel`, `oya-ads-auction-kernel` |
