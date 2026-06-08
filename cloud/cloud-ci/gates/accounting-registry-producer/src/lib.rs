@@ -253,7 +253,17 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
         let owner = inputs.owners.get(path).cloned();
         let justification_ref = inputs.justifications.get(path).cloned();
         let reachable_from = inputs.reachability.get(path).cloned().unwrap_or_default();
-        let last_touch_commit = inputs.last_touch.get(path).cloned();
+        // A `generated` artifact has no meaningful last-touch: it is rewritten by THIS
+        // producer, so recording `git log -1` of a generated face is self-referential —
+        // committing the regenerated face changes its own last-touch, which no single
+        // regen+commit can converge (registry-drift fixed-point). Emit None for the
+        // generated class so the face is invariant to which commit holds it; the row is
+        // still present (total-accounting stays whole). Non-generated last-touch unchanged.
+        let last_touch_commit = if unit_class == "generated" {
+            None
+        } else {
+            inputs.last_touch.get(path).cloned()
+        };
         let dup_of = inputs.dup_of.get(path).cloned();
 
         let verdict = derive_verdict(&owner, &justification_ref, &reachable_from, &ttl, &dup_of);
