@@ -2,25 +2,20 @@
 //!
 //! Reads configuration from environment variables:
 //!
-//! | Variable                          | Default            | Description                       |
-//! |-----------------------------------|--------------------|-----------------------------------|
-//! | `OYA_CI_WEBHOOK_LISTEN_ADDR`      | `0.0.0.0:8080`     | Bind address                      |
-//! | `OYA_CI_WEBHOOK_JENKINS_BASE_URL` | (required)         | Jenkins root URL                  |
-//! | `OYA_CI_WEBHOOK_JENKINS_JOB`      | `oyaCiLane`        | Jenkins job name                  |
-//! | `OYA_CI_WEBHOOK_JENKINS_USER`     | (required)         | Jenkins user for Basic auth       |
-//! | `OYA_CI_WEBHOOK_JENKINS_TOKEN`    | (required)         | Jenkins API token                 |
-//! | `OYA_CI_WEBHOOK_GITHUB_OWNER`     | (required)         | GitHub repo owner                 |
-//! | `OYA_CI_WEBHOOK_GITHUB_REPO`      | (required)         | GitHub repo name                  |
-//! | `OYA_CI_WEBHOOK_GITHUB_TOKEN`     | (required)         | GitHub token for status posting   |
-//! | `OYA_CI_WEBHOOK_ED25519_PUBKEY`   | (required)         | Hex-encoded 32-byte ed25519 pubkey|
-//! | `OYA_CI_WEBHOOK_TARGET_BRANCH`    | `dev`              | Gated base branch                 |
+//! | Variable                        | Default        | Description                       |
+//! |---------------------------------|----------------|-----------------------------------|
+//! | `OYA_CI_WEBHOOK_LISTEN_ADDR`    | `0.0.0.0:8080` | Bind address                      |
+//! | `OYA_CI_WEBHOOK_GITHUB_OWNER`   | (required)     | GitHub repo owner                 |
+//! | `OYA_CI_WEBHOOK_GITHUB_REPO`    | (required)     | GitHub repo name                  |
+//! | `OYA_CI_WEBHOOK_GITHUB_TOKEN`   | (required)     | GitHub token for status posting   |
+//! | `OYA_CI_WEBHOOK_ED25519_PUBKEY` | (required)     | Hex-encoded 32-byte ed25519 pubkey|
+//! | `OYA_CI_WEBHOOK_TARGET_BRANCH`  | `dev`          | Gated base branch                 |
 
 use ed25519_dalek::VerifyingKey;
 use oya_ci_webhook_gateway_app::{AppState, build_router, replay::DeliveryGuard};
 use oya_ci_webhook_gateway_authz_cedar_adapter::CedarWebhookGate;
 use oya_ci_webhook_gateway_ed25519_adapter::Ed25519Verifier;
 use oya_ci_webhook_gateway_github_adapter::GitHubStatusPoster;
-use oya_ci_webhook_gateway_jenkins_adapter::JenkinsRestClient;
 use std::sync::{Arc, Mutex};
 use tracing::info;
 
@@ -32,10 +27,6 @@ async fn main() {
         .init();
 
     let listen_addr = env_or("OYA_CI_WEBHOOK_LISTEN_ADDR", "0.0.0.0:8080");
-    let jenkins_url = env_required("OYA_CI_WEBHOOK_JENKINS_BASE_URL");
-    let jenkins_job = env_or("OYA_CI_WEBHOOK_JENKINS_JOB", "oyaCiLane");
-    let jenkins_user = env_required("OYA_CI_WEBHOOK_JENKINS_USER");
-    let jenkins_token = env_required("OYA_CI_WEBHOOK_JENKINS_TOKEN");
     let github_owner = env_required("OYA_CI_WEBHOOK_GITHUB_OWNER");
     let github_repo = env_required("OYA_CI_WEBHOOK_GITHUB_REPO");
     let github_token = env_required("OYA_CI_WEBHOOK_GITHUB_TOKEN");
@@ -54,12 +45,6 @@ async fn main() {
         eprintln!("Cedar policy load failed: {e}");
         std::process::exit(1);
     }));
-    let jenkins = Arc::new(JenkinsRestClient::new(
-        &jenkins_url,
-        &jenkins_job,
-        &jenkins_token,
-        &jenkins_user,
-    ));
     let status_poster = Arc::new(GitHubStatusPoster::new(
         &github_owner,
         &github_repo,
@@ -69,12 +54,10 @@ async fn main() {
     let state = AppState {
         verifier,
         authz,
-        jenkins,
         status_poster,
         target_branch,
         github_owner,
         github_repo,
-        jenkins_job_name: jenkins_job,
         delivery_guard: Arc::new(Mutex::new(DeliveryGuard::with_default_ttl())),
     };
 

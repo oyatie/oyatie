@@ -257,10 +257,8 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "bash tools/governance/adr-0221-governance-gates.sh orphan-citation",
     "bash tools/governance/adr-0221-governance-gates.sh version-pin",
     "bash tools/governance/adr-0221-governance-gates.sh buildability-line-count",
-    // Local verification + dedicated foundry tool entry points.
+    // Local verification + dedicated tool entry points.
     "cargo run -p oya-dev-cli -- verify --ci-required",
-    "cargo run -q -p oya-vcs-admission-gate-app",
-    "cargo run -q -p oya-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json",
     "cargo run -q -p oya-governance-purpose-audit-app",
     "cargo run -p oya-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600",
     "scripts/check-sequential-pr-merge-conflicts.sh --base-branch dev --start-pr 111",
