@@ -1,5 +1,0 @@
-# Argo Rollouts canary (progressive delivery) — 2026-05-25T15:59:04Z
-Rollout demo (oya-rollouts-demo): image bump nginx:1.27 -> 1.28-alpine
-steps observed: setWeight25 -> pause -> ANALYSIS gate (AnalysisRun Successful) -> setWeight50 -> pause -> setWeight75 -> pause -> PROMOTED
-final: phase=Healthy, updated=4/4, image=nginx:1.28-alpine, analysisrun=Successful
-metric-gated promotion demonstrated; metric-provider=job placeholder (prod: Prometheus SLO burn-rate)

@@ -1,6 +1,0 @@
-# ArgoCD GitOps sync from in-cluster git — 2026-05-25T16:08:07Z
-git-server (git daemon) serves git://git-server.argocd.svc.cluster.local/oya-demo.git (seeded from ConfigMap manifests)
-Application oya-gitops-demo: sync=Synced health=Healthy revision=74c4bc5
-ArgoCD applied Deployment+Service into oya-gitops-demo (2/2 running)
-self-heal: deleted deployment -> ArgoCD restored it in 6s (reconciliation loop proven)
-delta: local git daemon analogue; production points ArgoCD at the real VCS (Jenkins GitHub App, ADR-0359)

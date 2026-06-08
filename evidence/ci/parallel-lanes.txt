@@ -1,6 +1,0 @@
-# N-way parallel lanes (concurrency) — 2026-05-25T16:13:12Z
-job oya-ci-parallel #2 SUCCESS; 3 per-microservice lanes via Jenkins parallel{} on oya-rust-parallel agents
-lanes: oya-cloud-iac-domain (d1vpg), oya-cloud-observability-domain (nkzd1), oya-http-runtime-hyper-adapter (b16tv) — 3 DISTINCT agent pods
-PEAK CONCURRENT agent pods observed = 3 (tight poll: 12:12:37 pods=3 peak=3)
-OVERALL_WALL = 10.9s ~= one lane's full wall (checkout+sccache-download+check); ~33s if serial => ~3x concurrency
-concurrency bounded by the single local node; production scales lanes via Karpenter (container_cap is a ceiling, not a pool).
