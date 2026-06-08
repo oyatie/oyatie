@@ -64,6 +64,26 @@ fn gate_crate_dirs(gates: &Path) -> Vec<String> {
     names
 }
 
+/// The trimmed value of a YAML list item (`- value   # comment`) → `value`, or None if the line
+/// is not a list item. Strips an end-of-line comment so matrix entries / `needs:` entries that
+/// carry trailing comments still compare cleanly.
+fn yaml_list_item(line: &str) -> Option<String> {
+    let no_comment = line.split('#').next().unwrap_or("").trim();
+    no_comment.strip_prefix("- ").map(|v| v.trim().to_owned())
+}
+
+/// True iff `crate_dir` is an entry in the `gate` job's `strategy.matrix` — i.e. it is a
+/// homogeneous matrix gate run via `cargo test -p ${{ matrix.crate }}`. Recognizes both the
+/// simple list form (`- <crate>`) and the `include`-object form (`{ crate: <crate>, label: … }`).
+/// Crate names are unique and distinct from the `needs:` job names, so scanning the whole
+/// workflow is safe; the per-line comment strip keeps trailing `# …` from defeating the match.
+fn is_matrix_gate(workflow: &str, crate_dir: &str) -> bool {
+    workflow.lines().any(|line| {
+        let t = line.split('#').next().unwrap_or("").trim();
+        t == format!("- {crate_dir}") || t.contains(&format!("crate: {crate_dir},"))
+    })
+}
+
 #[test]
 fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
     let root = repo_root();
@@ -94,20 +114,23 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
         if crate_dir == PRODUCER_CRATE {
             continue;
         }
-        // A gate is "registered" iff the workflow references it as a cargo package via
-        // `-p <crate>` (the package name equals the directory name for all gates). This binds
-        // the registration to an actual `cargo test -p <crate>` lane, not a stray mention.
-        let token = format!("-p {crate_dir}");
-        if !workflow.contains(&token) {
+        // A gate is "registered" iff the workflow runs it as a cargo lane — either a bespoke
+        // `-p <crate>` step (registry-drift, cloud-ci-firewall) OR a `- <crate>` entry in the
+        // `gate` job's `strategy.matrix.crate` list (the homogeneous gates run via
+        // `cargo test -p ${{ matrix.crate }}`). Either binds it to an actual cargo-test lane.
+        let registered =
+            workflow.contains(&format!("-p {crate_dir}")) || is_matrix_gate(&workflow, crate_dir);
+        if !registered {
             missing.push(crate_dir.clone());
         }
     }
 
     assert!(
         missing.is_empty(),
-        "gate crate(s) present under {} but NOT registered as a `-p <crate>` lane in {}: {:?}\n\
-         A new gate must be added as a job in the oya-ci-required fan-in (and to the fan-in \
-         job's `needs:`), or the required check is a silent false-green.",
+        "gate crate(s) present under {} but NOT registered in {} — add the crate to the `gate` \
+         job's `strategy.matrix.crate` list (homogeneous gates) or give it a bespoke `-p <crate>` \
+         job: {:?}\n\
+         An in-tree-but-unregistered gate is a silent false-green one level below the fan-in.",
         gates.display(),
         wf.display(),
         missing
@@ -147,16 +170,27 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
         if crate_dir == PRODUCER_CRATE {
             continue;
         }
-        // Strip the `oya-cloud-ci-` prefix and `-app` suffix to get the gate's short identity
-        // used in the job names; `registry-drift` is already short.
-        let short = crate_dir
-            .strip_prefix("oya-cloud-ci-")
-            .unwrap_or(crate_dir)
-            .strip_suffix("-app")
-            .map(str::to_owned)
-            .unwrap_or_else(|| crate_dir.clone());
-        if !fan_in_block.contains(&short) {
-            missing.push(format!("{crate_dir} (looked for `{short}` in fan-in needs)"));
+        // A matrix gate runs under the single `gate` job → the fan-in must depend on `gate`.
+        // A bespoke gate has its own `gate-<short>` job → the fan-in must reference that short
+        // identity. (`registry-drift` is already short; others strip `oya-cloud-ci-`/`-app`.)
+        let wired = if is_matrix_gate(&workflow, crate_dir) {
+            fan_in_block
+                .lines()
+                .filter_map(yaml_list_item)
+                .any(|v| v == "gate")
+        } else {
+            let short = crate_dir
+                .strip_prefix("oya-cloud-ci-")
+                .unwrap_or(crate_dir)
+                .strip_suffix("-app")
+                .map(str::to_owned)
+                .unwrap_or_else(|| crate_dir.clone());
+            fan_in_block.contains(&short)
+        };
+        if !wired {
+            missing.push(format!(
+                "{crate_dir} (matrix gate ⇒ needs `- gate`; bespoke ⇒ needs its `gate-<short>` job)"
+            ));
         }
     }
 

@@ -4119,6 +4119,7 @@ dependencies = [
  "oya-cloud-ci-automation-ratchet-app",
  "oya-cloud-ci-bnf-layer-suffix-app",
  "oya-cloud-ci-cross-artifact-agreement-app",
+ "oya-cloud-ci-manifest-hygiene-app",
  "oya-cloud-ci-staleness-reaper-app",
  "oya-cloud-ci-total-accounting-app",
  "serde",
@@ -4149,6 +4150,13 @@ dependencies = [
 
 [[package]]
 name = "oya-cloud-ci-firewall-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-manifest-hygiene-app"
 version = "0.1.0"
 dependencies = [
  "serde_json",

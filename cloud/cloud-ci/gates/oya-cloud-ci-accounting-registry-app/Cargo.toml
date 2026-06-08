@@ -36,6 +36,9 @@ oya-cloud-ci-automation-ratchet-app = { path = "../oya-cloud-ci-automation-ratch
 # (the I/O) and the gate's pure evaluate_keyed reuses oya-governance-predictable-naming-kernel
 # (still no cycle: the naming kernel does not depend on the producer).
 oya-cloud-ci-bnf-layer-suffix-app = { path = "../oya-cloud-ci-bnf-layer-suffix-app" }
+# cloud-ci-manifest-hygiene (§2.5#7 floor gate S2): the producer parses each oya-* Cargo.toml
+# into per-crate hygiene flags (the I/O); the gate's pure evaluate_keyed is a flag→Finding policy.
+oya-cloud-ci-manifest-hygiene-app = { path = "../oya-cloud-ci-manifest-hygiene-app" }
 # The fifth gate (cloud-ci-brand-residue) is the forbidden-vocab shrink-only ratchet. Its
 # census + carve-out DATA + stem catalog are the SSOT in oya-check-brand-residue; the binary
 # runs it over the live corpus and the lib freezes the per-(stem,file) keys into the baseline.

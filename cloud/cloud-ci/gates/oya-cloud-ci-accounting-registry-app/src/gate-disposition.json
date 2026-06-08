@@ -44,6 +44,14 @@
       "bnf_undeclared_context": {"mode": "baseline-block-on-new"},
       "bnf_name_uppercase": {"mode": "baseline-block-on-new"}
     },
+    "cloud-ci-manifest-hygiene": {
+      "manifest_missing_version_workspace": {"mode": "baseline-block-on-new"},
+      "manifest_missing_rust_version_workspace": {"mode": "baseline-block-on-new"},
+      "manifest_missing_publish_false": {"mode": "baseline-block-on-new"},
+      "manifest_missing_license": {"mode": "baseline-block-on-new"},
+      "manifest_missing_lints_workspace": {"mode": "baseline-block-on-new"},
+      "manifest_missing_lib_doctest_false": {"mode": "baseline-block-on-new"}
+    },
     "cloud-ci-brand-residue": {
       "forbidden_foundry": {"mode": "baseline-block-on-new"},
       "forbidden_forgejo": {"mode": "baseline-block-on-new"},

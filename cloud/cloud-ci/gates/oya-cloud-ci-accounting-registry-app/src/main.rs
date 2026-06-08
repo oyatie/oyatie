@@ -115,12 +115,15 @@ fn run() -> Result<(), CliError> {
     // the tracked Cargo.toml manifests. The gate's evaluate_keyed resolves the role carve-out-
     // aware and reuses oya_governance_predictable_naming_kernel::check.
     let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths);
+    // The §2.5#7 manifest-hygiene gate input: per-crate Cargo.toml hygiene flags.
+    let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths);
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
         automation_ratchet: &automation_matrix,
         staleness: &staleness_input,
         bnf_layer_suffix: &bnf_layer_suffix,
+        manifest_hygiene: &manifest_hygiene,
         brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&gate_inputs)?;
@@ -132,6 +135,7 @@ fn run() -> Result<(), CliError> {
             "enforcement-inventory" => &enforcement,
             "ttl-policy" => &policy.ttl_policy_face(),
             "bnf-layer-suffix" => &bnf_layer_suffix,
+            "manifest-hygiene" => &manifest_hygiene,
             "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
@@ -323,6 +327,129 @@ fn parse_package_name(contents: &str) -> Option<String> {
         }
     }
     None
+}
+
+/// Per-crate §2.5#7 manifest-hygiene flags parsed from a Cargo.toml.
+#[derive(Default)]
+struct ManifestFlags {
+    version_workspace: bool,
+    rust_version_workspace: bool,
+    publish_false: bool,
+    license: bool,
+    lints_workspace: bool,
+    has_lib: bool,
+    lib_doctest_false: bool,
+}
+
+/// Enumerate the first-party `oya-*` crates and emit their §2.5#7 manifest-hygiene flags (the
+/// gate's I/O). The gate's `evaluate_keyed` turns missing flags into Findings. Deterministic
+/// (BTreeMap, sorted) so committed==regenerated holds byte-for-byte. Scoped to `oya-*`.
+fn collect_manifest_hygiene(repo_root: &Path, tracked_paths: &[String]) -> Value {
+    let mut by_name: BTreeMap<String, ManifestFlags> = BTreeMap::new();
+    for path in tracked_paths {
+        if !path.ends_with("Cargo.toml") {
+            continue;
+        }
+        if path.starts_with("third-party/") || path.contains("/third-party/") {
+            continue;
+        }
+        let contents = read_text(&repo_root.join(path));
+        let Some(name) = parse_package_name(&contents) else {
+            continue;
+        };
+        if !name.starts_with("oya-") {
+            continue;
+        }
+        by_name.insert(name, parse_manifest_flags(&contents));
+    }
+    let rows: Vec<Value> = by_name
+        .into_iter()
+        .map(|(name, f)| {
+            json!({
+                "crate_name": name,
+                "has_version_workspace": f.version_workspace,
+                "has_rust_version_workspace": f.rust_version_workspace,
+                "has_publish_false": f.publish_false,
+                "has_license": f.license,
+                "has_lints_workspace": f.lints_workspace,
+                "has_lib": f.has_lib,
+                "has_lib_doctest_false": f.lib_doctest_false,
+            })
+        })
+        .collect();
+    json!({ "rows": rows })
+}
+
+/// Section-aware line-scan of a Cargo.toml for the §2.5#7 hygiene fields (no `toml` dependency —
+/// minimal-deps doctrine). Tracks the current table so `[package]` fields, `[lints] workspace`,
+/// and `[lib] doctest` are read in their own sections.
+fn parse_manifest_flags(contents: &str) -> ManifestFlags {
+    let mut f = ManifestFlags::default();
+    let mut section = "";
+    for raw in contents.lines() {
+        // Strip an end-of-line comment (Cargo.toml hygiene values carry no '#').
+        let line = raw.split('#').next().unwrap_or("").trim();
+        if line.is_empty() {
+            continue;
+        }
+        if let Some(rest) = line.strip_prefix('[') {
+            section = match rest.split(']').next().unwrap_or("").trim() {
+                "package" => "package",
+                "lints" => "lints",
+                "lib" => "lib",
+                _ => "other",
+            };
+            if section == "lib" {
+                f.has_lib = true;
+            }
+            continue;
+        }
+        match section {
+            "package" => {
+                if is_workspace_inherited(line, "version") {
+                    f.version_workspace = true;
+                }
+                if is_workspace_inherited(line, "rust-version") {
+                    f.rust_version_workspace = true;
+                }
+                if line.starts_with("publish") && line.contains('=') && line.contains("false") {
+                    f.publish_false = true;
+                }
+                if line.starts_with("license") && line.contains('=') {
+                    f.license = true;
+                }
+            }
+            "lints" => {
+                if line.starts_with("workspace") && line.contains('=') && line.contains("true") {
+                    f.lints_workspace = true;
+                }
+            }
+            "lib" => {
+                if line.starts_with("doctest") && line.contains('=') && line.contains("false") {
+                    f.lib_doctest_false = true;
+                }
+            }
+            _ => {}
+        }
+    }
+    f
+}
+
+/// True when `<key>` inherits the workspace: `<key>.workspace = true` or
+/// `<key> = { workspace = true }`. The exact-prefix check keeps `version` from matching
+/// `rust-version`.
+fn is_workspace_inherited(line: &str, key: &str) -> bool {
+    let dotted = format!("{key}.workspace");
+    if line.starts_with(&dotted) && line.contains("true") {
+        return true;
+    }
+    if let Some(rest) = line.strip_prefix(key) {
+        let rest = rest.trim_start();
+        if rest.starts_with('=') && rest.contains("workspace") && rest.contains("true") {
+            return true;
+        }
+    }
+    false
 }
 
 /// HEAD commit time in epoch seconds (the deterministic "now" for aging the corpus).
