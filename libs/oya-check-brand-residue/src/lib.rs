@@ -12,6 +12,20 @@
 //! interim → Sapling-inspired bespoke SCM) and `foundry` (D-FOUNDRY-CLARIFY).
 //! Superseded ADR bodies retain historical lineage and are excluded by the
 //! caller's path filter, not by this kernel.
+//!
+//! ## Forbidden-vocab SHRINK-ONLY RATCHET (boundary enforcement; [`forbidden_vocab`])
+//! The substring deny-list above is born-blocking — it can only carry tokens that are
+//! already at ZERO live occurrences (else it false-fails). The corpus still carries a large
+//! historical residue of `foundry`/`forgejo`/`jenkins`/`oya-vcs` (~19k+ line-occurrences in
+//! prose, ADR bodies, `.omc` state). Mass-scrubbing that residue would churn history for no
+//! gain. The [`forbidden_vocab`] module instead BASELINES the current residue (per-stem,
+//! per-file) and feeds the count into the ONE canonical firewall ratchet: the
+//! `oya-cloud-ci-accounting-registry-app` producer freezes it as the `cloud-ci-brand-residue`
+//! gate inside `gate-baseline.generated.json`, and the existing `cloud-ci-firewall` blocks
+//! any NEW occurrence while the frozen residue ages out. No parallel gate; carve-outs are
+//! DATA. This makes the vocabulary structurally un-grow-able without rewriting history.
+
+pub mod forbidden_vocab;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BrandResidueDocument {

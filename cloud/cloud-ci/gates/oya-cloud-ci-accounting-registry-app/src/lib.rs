@@ -455,12 +455,16 @@ pub const GATE_DISPOSITION_JSON: &str = include_str!("gate-disposition.json");
 /// The buck2 target that runs the firewall ratchet — recorded in the baseline `_provenance`.
 pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app";
 
-/// The four firewall gate ids, in canonical (baseline) order.
-pub const GATE_IDS: [&str; 4] = [
+/// The firewall gate ids, in canonical (baseline) order. The fifth gate
+/// `cloud-ci-brand-residue` is the forbidden-vocab shrink-only ratchet (register #25,
+/// boundary enforcement): its per-stem keys are the live residue files, frozen so any NEW
+/// occurrence is RED while the historical residue ages out without churning history.
+pub const GATE_IDS: [&str; 5] = [
     "cloud-ci-total-accounting",
     "cloud-ci-cross-artifact-agreement",
     "cloud-ci-automation-ratchet",
     "cloud-ci-staleness-reaper",
+    "cloud-ci-brand-residue",
 ];
 
 /// The four live gate-input faces the baseline is captured over. Each is the exact
@@ -474,6 +478,12 @@ pub struct GateInputs<'a> {
     pub cross_artifact: &'a Value,
     pub automation_ratchet: &'a Value,
     pub staleness: &'a Value,
+    /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
+    /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
+    /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
+    /// files (not a generated face), so it is supplied already grouped rather than re-derived
+    /// here. Empty in unit tests that do not exercise the brand gate.
+    pub brand_residue: &'a BTreeMap<String, BTreeSet<String>>,
 }
 
 /// Run the matching gate's pure `evaluate_keyed` over each live face and group the keys
@@ -516,6 +526,9 @@ fn current_keys_per_gate(
                 .map(|f| (f.code, f.key)),
         ),
     );
+    // The brand-residue gate's keys are computed by the binary from the raw corpus (not a
+    // generated face), so they arrive already grouped — fold them in verbatim.
+    out.insert("cloud-ci-brand-residue", inputs.brand_residue.clone());
     out
 }
 
@@ -738,11 +751,17 @@ mod tests {
         let crosswalk = serde_json::json!({"decisions": [], "duplicate_ids": ["ADR-0377"]});
         let automation = serde_json::json!({"rows": []});
         let staleness = serde_json::json!({"rows": []});
+        let mut brand_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        brand_residue
+            .entry("forbidden_foundry".to_owned())
+            .or_default()
+            .insert("docs/products/foundry/PRD.md".to_owned());
         let inputs = GateInputs {
             total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
             staleness: &staleness,
+            brand_residue: &brand_residue,
         };
         let baseline = build_gate_baseline(&inputs).expect("baseline");
         let ta = &baseline["gates"]["cloud-ci-total-accounting"];
@@ -760,6 +779,13 @@ mod tests {
 
         let xa = &baseline["gates"]["cloud-ci-cross-artifact-agreement"];
         assert_eq!(xa["dual_decision_collision"]["keys"][0], "ADR-0377");
+
+        // brand-residue freezes the live per-(stem,file) key under its per-stem code.
+        let br = &baseline["gates"]["cloud-ci-brand-residue"];
+        assert_eq!(br["forbidden_foundry"]["mode"], "baseline-block-on-new");
+        assert_eq!(br["forbidden_foundry"]["keys"][0], "docs/products/foundry/PRD.md");
+        // a stem with zero live residue freezes an empty (but present) key set.
+        assert_eq!(br["forbidden_forgejo"]["keys"].as_array().unwrap().len(), 0);
     }
 
     #[test]
@@ -768,11 +794,13 @@ mod tests {
         let crosswalk = serde_json::json!({"decisions": []});
         let automation = serde_json::json!({"rows": []});
         let staleness = serde_json::json!({"rows": []});
+        let brand_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let inputs = GateInputs {
             total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
             staleness: &staleness,
+            brand_residue: &brand_residue,
         };
         let a = to_canonical_json(&build_gate_baseline(&inputs).expect("a")).expect("ja");
         let b = to_canonical_json(&build_gate_baseline(&inputs).expect("b")).expect("jb");

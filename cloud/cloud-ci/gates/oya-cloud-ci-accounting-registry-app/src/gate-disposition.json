@@ -1,5 +1,5 @@
 {
-  "_comment": "GO-LIVE disposition table (DATA, not code) for the Phase-0 firewall ratchet. Per (gate, code): the compare-MODE (baseline-block-on-new | advisory-until-infra), the infra_prereq that must land before an advisory code may flip to blocking, and frozen_empty for codes whose baseline may NEVER be non-empty. The producer's build_gate_baseline reads this table to stamp each per-code object in gate-baseline.generated.json; the cloud-ci-firewall runner reads the stamped modes. Flipping advisory-until-infra -> baseline-block-on-new when the infra lands is a reviewed DATA edit here, NOT a code change (honors the carve-outs-are-DATA doctrine in all four gate lib docs).",
+  "_comment": "GO-LIVE disposition table (DATA, not code) for the Phase-0 firewall ratchet. Per (gate, code): the compare-MODE (baseline-block-on-new | advisory-until-infra), the infra_prereq that must land before an advisory code may flip to blocking, and frozen_empty for codes whose baseline may NEVER be non-empty. The producer's build_gate_baseline reads this table to stamp each per-code object in gate-baseline.generated.json; the cloud-ci-firewall runner reads the stamped modes. Flipping advisory-until-infra -> baseline-block-on-new when the infra lands is a reviewed DATA edit here, NOT a code change (honors the carve-outs-are-DATA doctrine in all four gate lib docs). The cloud-ci-brand-residue gate (register #25) is the forbidden-vocab shrink-only ratchet: each forbidden_<stem> code is baseline-block-on-new and freezes the CURRENT per-(stem,file) residue, so the firewall blocks any NEW occurrence (foundry/forgejo/jenkins/oya-vcs) while the frozen residue ages out without churning history. Carve-outs are DATA in libs/oya-check-brand-residue forbidden_vocab.",
   "_provenance": {
     "authority": "PHASE-0-FIREWALL-PLAN go-live readiness ratchet (ADR-0515 lineage); door:one-way",
     "disposition_schema_version": 1
@@ -34,6 +34,12 @@
       "stale_over_budget_unreachable": {"mode": "advisory-until-infra", "infra_prereq": "masterplan-reachability-wiring"},
       "untyped_staleness": {"mode": "advisory-until-infra", "infra_prereq": "ttl-policy-table-complete"},
       "reap_without_report": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
+    "cloud-ci-brand-residue": {
+      "forbidden_foundry": {"mode": "baseline-block-on-new"},
+      "forbidden_forgejo": {"mode": "baseline-block-on-new"},
+      "forbidden_jenkins": {"mode": "baseline-block-on-new"},
+      "forbidden_oya-vcs": {"mode": "baseline-block-on-new"}
     }
   }
 }

@@ -32,6 +32,10 @@ oya-cloud-ci-total-accounting-app = { path = "../oya-cloud-ci-total-accounting-a
 oya-cloud-ci-cross-artifact-agreement-app = { path = "../oya-cloud-ci-cross-artifact-agreement-app" }
 oya-cloud-ci-staleness-reaper-app = { path = "../oya-cloud-ci-staleness-reaper-app" }
 oya-cloud-ci-automation-ratchet-app = { path = "../oya-cloud-ci-automation-ratchet-app" }
+# The fifth gate (cloud-ci-brand-residue) is the forbidden-vocab shrink-only ratchet. Its
+# census + carve-out DATA + stem catalog are the SSOT in oya-check-brand-residue; the binary
+# runs it over the live corpus and the lib freezes the per-(stem,file) keys into the baseline.
+oya-check-brand-residue = { path = "../../../../libs/oya-check-brand-residue" }
 
 [lints]
 workspace = true
