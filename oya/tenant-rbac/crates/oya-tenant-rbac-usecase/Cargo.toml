@@ -1,5 +1,5 @@
 [package]
-name = "oya-tenant-rbac-application"
+name = "oya-tenant-rbac-usecase"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -11,7 +11,7 @@ oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" 
 oya-tenant-rbac-domain = { path = "../oya-tenant-rbac-domain" }
 
 [lib]
-name = "oya_tenant_rbac_application"
+name = "oya_tenant_rbac_usecase"
 path = "src/lib.rs"
 doctest = false
 

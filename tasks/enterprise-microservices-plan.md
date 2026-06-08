@@ -583,7 +583,7 @@ Verification:
 Disjoint path envelope:
 
 - `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/**`
-- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/**`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-usecase/**`
 - `microservices/tenant-rbac/catalog/oya-tenant-rbac-{domain,app}.yaml`
 - `registry/catalog/oya-tenant-rbac-{domain,app}.yaml`
 - `specs/microservices/tenant-rbac.json`
@@ -603,8 +603,8 @@ runtime, statutory filing, ArgoCD, Helm, or cloud adapter claim.
 
 Verification:
 
-- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application`
-- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
 - `./bin/oya gate validate cargo-prefix --workspace Cargo.toml --prefix oya-`
 - `./bin/oya gate validate slo-coverage --registry registry/catalog`
@@ -618,8 +618,8 @@ Disjoint path envelope:
 
 - `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/src/lib.rs`
 - `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/tests/workflow.rs`
-- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/src/lib.rs`
-- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/tests/workflow.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-usecase/src/lib.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-usecase/tests/workflow.rs`
 - `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
 - `evidence/multispectrum/cs-ent-tenant-rbac-workflow-gates-1779529800.json`
@@ -635,8 +635,8 @@ ArgoCD, Helm, or cloud adapter claim.
 
 Verification:
 
-- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application`
-- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-tenant-rbac-workflow-gates-1779529800.json --severity error`
 
@@ -647,8 +647,8 @@ Disjoint path envelope:
 
 - `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/src/lib.rs`
 - `microservices/tenant-rbac/crates/oya-tenant-rbac-domain/tests/incident.rs`
-- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/src/lib.rs`
-- `microservices/tenant-rbac/crates/oya-tenant-rbac-application/tests/incident.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-usecase/src/lib.rs`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-usecase/tests/incident.rs`
 - `specs/microservices/tenant-rbac.json`
 - `tasks/enterprise-microservices-*`
 - `evidence/multispectrum/cs-ent-platform-incident-rollback-1779530400.json`
@@ -664,8 +664,8 @@ ArgoCD, Helm, Workflow execution, or cloud adapter claim.
 
 Verification:
 
-- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application`
-- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
 - package-group regression tests/clippy across HR, Payroll, Accounting, and Tenant RBAC crates
 - data-class annotation scan for Tenant RBAC public fields
@@ -752,8 +752,8 @@ Verification:
 
 - Static Jenkins lane scan over `microservices/tenant-rbac/ci/Jenkinsfile`.
 - `cargo fmt --all -- --check`
-- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api`
-- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase -p oya-tenant-rbac-api`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase -p oya-tenant-rbac-api --all-targets -- -D warnings`
 - `./bin/oya gate validate api-semver --contracts-dir microservices/tenant-rbac/contracts`
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-platform-cicd-quality-gate-1779532200.json --severity error`
 
@@ -762,8 +762,8 @@ Verification:
 
 Disjoint path envelope:
 
-- `microservices/tenant-rbac/crates/oya-tenant-rbac-runtime/**`
-- `registry/catalog/oya-tenant-rbac-runtime.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-app/**`
+- `registry/catalog/oya-tenant-rbac-app.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
 - `registry/dependency-rationales.json`
@@ -784,10 +784,10 @@ integration, or runtime audit-chain emission claim.
 
 Verification:
 
-- `cargo test --locked -p oya-tenant-rbac-runtime`
-- `cargo clippy --locked -p oya-tenant-rbac-runtime --all-targets -- -D warnings`
-- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime`
-- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-app`
+- `cargo clippy --locked -p oya-tenant-rbac-app --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase -p oya-tenant-rbac-api -p oya-tenant-rbac-app`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase -p oya-tenant-rbac-api -p oya-tenant-rbac-app --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
 - data-class annotation scan for Tenant RBAC runtime public fields
 - `./bin/oya gate validate api-semver --contracts-dir microservices/tenant-rbac/contracts`
@@ -819,8 +819,8 @@ Verification:
 
 - `cargo test --locked -p oya-tenant-rbac-storage-adapter-inmemory`
 - `cargo clippy --locked -p oya-tenant-rbac-storage-adapter-inmemory --all-targets -- -D warnings`
-- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime -p oya-tenant-rbac-storage-adapter-inmemory`
-- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime -p oya-tenant-rbac-storage-adapter-inmemory --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase -p oya-tenant-rbac-api -p oya-tenant-rbac-app -p oya-tenant-rbac-storage-adapter-inmemory`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase -p oya-tenant-rbac-api -p oya-tenant-rbac-app -p oya-tenant-rbac-storage-adapter-inmemory --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
 - data-class annotation scan for Tenant RBAC storage public fields
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-tenant-rbac-storage-adapter-inmemory-1779538200.json --severity error`
@@ -851,8 +851,8 @@ Verification:
 
 - `cargo test --locked -p oya-tenant-rbac-workflow-adapter-inmemory`
 - `cargo clippy --locked -p oya-tenant-rbac-workflow-adapter-inmemory --all-targets -- -D warnings`
-- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime -p oya-tenant-rbac-storage-adapter-inmemory -p oya-tenant-rbac-workflow-adapter-inmemory`
-- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-application -p oya-tenant-rbac-api -p oya-tenant-rbac-runtime -p oya-tenant-rbac-storage-adapter-inmemory -p oya-tenant-rbac-workflow-adapter-inmemory --all-targets -- -D warnings`
+- `cargo test --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase -p oya-tenant-rbac-api -p oya-tenant-rbac-app -p oya-tenant-rbac-storage-adapter-inmemory -p oya-tenant-rbac-workflow-adapter-inmemory`
+- `cargo clippy --locked -p oya-tenant-rbac-domain -p oya-tenant-rbac-usecase -p oya-tenant-rbac-api -p oya-tenant-rbac-app -p oya-tenant-rbac-storage-adapter-inmemory -p oya-tenant-rbac-workflow-adapter-inmemory --all-targets -- -D warnings`
 - `cargo fmt --all -- --check`
 - data-class annotation scan for Tenant RBAC Workflow adapter public fields
 - `./bin/oya gate validate dependency-seam --evidence evidence/multispectrum/cs-ent-tenant-rbac-workflow-adapter-inmemory-1779538800.json --severity error`
@@ -1061,8 +1061,8 @@ Verification:
 
 Disjoint path envelope:
 
-- `microservices/tenant-rbac/crates/oya-tenant-rbac-auth-runtime/**`
-- `registry/catalog/oya-tenant-rbac-auth-runtime.yaml`
+- `microservices/tenant-rbac/crates/oya-tenant-rbac-auth-app/**`
+- `registry/catalog/oya-tenant-rbac-auth-app.yaml`
 - `Cargo.toml`
 - `Cargo.lock`
 - `specs/microservices/tenant-rbac.json`
@@ -1084,9 +1084,9 @@ as non-claims/blockers.
 
 Verification:
 
-- `cargo check -p oya-tenant-rbac-auth-runtime`
-- `cargo test --locked -p oya-tenant-rbac-auth-runtime`
-- `cargo clippy --locked -p oya-tenant-rbac-auth-runtime --all-targets -- -D warnings`
+- `cargo check -p oya-tenant-rbac-auth-app`
+- `cargo test --locked -p oya-tenant-rbac-auth-app`
+- `cargo clippy --locked -p oya-tenant-rbac-auth-app --all-targets -- -D warnings`
 - `cargo test --locked -p oya-tenant-rbac-cloud-readiness-gate`
 - `cargo clippy --locked -p oya-tenant-rbac-cloud-readiness-gate --all-targets -- -D warnings`
 - 37-package enterprise regression test/clippy package group

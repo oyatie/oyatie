@@ -204,19 +204,19 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - EVIDENCE: `evidence/multispectrum/cs-ent-cicd-quality-gates-1779528600.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-cicd-quality-gates-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
 
 - ✅ CS-ENT-SUITE-001 — Tenant RBAC governance foundation.
-  - LAYOUT: flat crates `oya-tenant-rbac-domain` and `oya-tenant-rbac-application` under `microservices/tenant-rbac/crates/`.
+  - LAYOUT: flat crates `oya-tenant-rbac-domain` and `oya-tenant-rbac-usecase` under `microservices/tenant-rbac/crates/`.
   - COVERAGE: shared tenant RBAC policy-gateway admission for HR/Payroll/Accounting child writes, data-class and audit-evidence refusal, legal-entity group close projection, cross-tenant rollup refusal, and metadata-only ops command envelope refusal of manual SSH.
   - BOUNDARY: no REST/runtime adapter, storage, Workflow execution, incident rollback runtime, statutory filing, ArgoCD, Helm, or cloud adapter is claimed.
   - EVIDENCE: `evidence/multispectrum/cs-ent-platform-foundation-1779529200.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-platform-foundation-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
 
 - ✅ CS-ENT-SUITE-002 — Tenant RBAC cross-product Workflow deterministic gates.
-  - LAYOUT: workflow gate types/functions in `oya-tenant-rbac-domain` and metadata-only Workflow envelope in `oya-tenant-rbac-application`.
+  - LAYOUT: workflow gate types/functions in `oya-tenant-rbac-domain` and metadata-only Workflow envelope in `oya-tenant-rbac-usecase`.
   - COVERAGE: Workflow-owned routing, Object Graph-owned relationship refs, HR/Payroll/Accounting child coverage, required deterministic gate evidence, AI suggestion close-authority refusal, and metadata-only Workflow dispatch envelope.
   - BOUNDARY: no Workflow execution, Object Graph persistence, child service calls, storage, REST adapter, incident runtime, ArgoCD, Helm, or cloud adapter is claimed.
   - EVIDENCE: `evidence/multispectrum/cs-ent-tenant-rbac-workflow-gates-1779529800.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-tenant-rbac-workflow-gates-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
 
 - ✅ CS-ENT-SUITE-003 — Tenant RBAC incident rollback/quarantine envelope.
-  - LAYOUT: incident rollback types/functions in `oya-tenant-rbac-domain` and metadata-only incident envelope in `oya-tenant-rbac-application`.
+  - LAYOUT: incident rollback types/functions in `oya-tenant-rbac-domain` and metadata-only incident envelope in `oya-tenant-rbac-usecase`.
   - COVERAGE: rollback/quarantine-first invariant, manual SSH refusal, mandatory canary/incident/rollback audit evidence, OpenTofu/ops convergence refs, and metadata-only app handoff.
   - BOUNDARY: no runtime rollback execution, incident emitter, storage, REST adapter, Workflow dispatch, ArgoCD, Helm, or cloud adapter is claimed.
   - EVIDENCE: `evidence/multispectrum/cs-ent-platform-incident-rollback-1779530400.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-platform-incident-rollback-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
@@ -240,7 +240,7 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - EVIDENCE: `evidence/multispectrum/cs-ent-platform-cicd-quality-gate-1779532200.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-platform-cicd-quality-gate-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
 
 - ✅ CS-ENT-SUITE-007 — Tenant RBAC HTTP runtime adapter foundation.
-  - LAYOUT: flat runtime crate `microservices/tenant-rbac/crates/oya-tenant-rbac-runtime` with package `oya-tenant-rbac-runtime`.
+  - LAYOUT: flat runtime crate `microservices/tenant-rbac/crates/oya-tenant-rbac-app` with package `oya-tenant-rbac-app`.
   - COVERAGE: repo-native Hyper router binding for policy admission, group close rollup, cross-product Workflow planning, incident rollback planning, ops commands, invalid JSON/domain/app error envelopes, route manifest, bounded server config, and health endpoint honest non-claims.
   - BOUNDARY: no live listener deployment, auth enforcement runtime, storage, Workflow execution, OpenTofu execution, incident rollback execution, child-service network calls, cloud integration, runtime audit-chain emission, or cloud runtime is claimed.
   - EVIDENCE: `evidence/multispectrum/cs-ent-platform-runtime-adapter-foundation-1779537600.json`; Oya VCS transcript captured at `evidence/vcs/cs-ent-platform-runtime-adapter-foundation-oya-vcs-lifecycle-20260523.json`; registry/vcs event-log persistence is not asserted by this branch.
@@ -276,7 +276,7 @@ Status legend: ⬜ pending · 🟦 in-progress · ✅ done
   - EVIDENCE: `evidence/multispectrum/cs-ent-platform-cloud-deployment-manifest-1779551400.json`; Oya VCS transcript will be captured at `evidence/vcs/cs-ent-platform-cloud-deployment-manifest-oya-vcs-lifecycle-20260524.json`; registry/vcs event-log persistence is not asserted by this branch.
 
 - ✅ CS-ENT-SUITE-AUTH-RUNTIME-001 — Tenant RBAC auth runtime foundation.
-  - LAYOUT: flat runtime-security crate `microservices/tenant-rbac/crates/oya-tenant-rbac-auth-runtime` with package `oya-tenant-rbac-auth-runtime`.
+  - LAYOUT: flat runtime-security crate `microservices/tenant-rbac/crates/oya-tenant-rbac-auth-app` with package `oya-tenant-rbac-auth-app`.
   - COVERAGE: deny-by-default route policy coverage for local HR/Payroll/Accounting/Tenant RBAC routes; issuer/audience/nonce/session checks; tenant isolation; route-scope checks; sensitive-data MFA/AAL2; break-glass audit requirement; and cloud-readiness-gate composition.
   - BOUNDARY: no OIDC signature verification, JWKS/provider integration, durable session storage, deployed gateway enforcement, runtime audit-chain emission, cloud deployment evidence, or production SLO evidence is claimed.
   - EVIDENCE: `evidence/multispectrum/cs-ent-platform-auth-runtime-1779552000.json`; Oya VCS transcript will be captured at `evidence/vcs/cs-ent-platform-auth-runtime-oya-vcs-lifecycle-20260524.json`; registry/vcs event-log persistence is not asserted by this branch.

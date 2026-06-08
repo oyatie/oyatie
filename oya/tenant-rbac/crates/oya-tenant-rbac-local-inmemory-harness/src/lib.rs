@@ -25,7 +25,7 @@ use oya_payroll_run_app::{PayrollAccountingDispatchEnvelope, PayrollHrLeaveImpac
 use oya_payroll_run_storage_adapter_inmemory::{
     InMemoryPayrollRunStore, PayrollRunStoragePort, PayrollStorageError, PayrollStoredRecord,
 };
-use oya_tenant_rbac_application::CrossServiceWorkflowEnvelope;
+use oya_tenant_rbac_usecase::CrossServiceWorkflowEnvelope;
 use oya_tenant_rbac_storage_adapter_inmemory::{
     InMemoryTenantRbacStore, TenantRbacStorageError, TenantRbacStoragePort, TenantRbacStoredRecord,
 };

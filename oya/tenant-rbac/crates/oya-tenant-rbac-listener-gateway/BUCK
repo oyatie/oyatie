@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/tenant-rbac/crates/oya-tenant-rbac-auth-runtime:oya-tenant-rbac-auth-runtime",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-auth-app:oya-tenant-rbac-auth-app",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest:oya-tenant-rbac-cloud-deployment-manifest",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition:oya-tenant-rbac-local-runtime-composition",
     ],

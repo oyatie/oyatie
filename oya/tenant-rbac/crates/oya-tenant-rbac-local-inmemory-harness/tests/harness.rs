@@ -11,7 +11,7 @@ use oya_payroll_run_app::{prepare_accounting_dispatch, prepare_hr_leave_impact_i
 use oya_payroll_run_domain::{
     HrLeaveImpactIntakeInput, HrLeaveImpactKind, PayrollJournalInput, PayrollJournalLineInput,
 };
-use oya_tenant_rbac_application::prepare_cross_service_workflow_envelope;
+use oya_tenant_rbac_usecase::prepare_cross_service_workflow_envelope;
 use oya_tenant_rbac_domain::{
     CrossServiceWorkflowInput, DeterministicGate, GateClosureAuthority,
     ObjectGraphRelationshipOwner, TenantRbacService, WorkflowRoutingOwner,

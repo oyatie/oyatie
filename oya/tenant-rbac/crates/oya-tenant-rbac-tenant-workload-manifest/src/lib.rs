@@ -137,8 +137,8 @@ pub fn fd001_tenant_workload_manifest() -> Fd001TenantWorkloadManifest {
                 Fd001TenantWorkloadKind::TenantRbac,
                 "tenant-rbac-runtime",
                 "tenant-rbac",
-                "oya-tenant-rbac-runtime",
-                "crates/oya-tenant-rbac-runtime",
+                "oya-tenant-rbac-app",
+                "crates/oya-tenant-rbac-app",
                 "evidence/multispectrum/cs-ent-platform-runtime-adapter-foundation-1779537600.json",
             ),
             workload(

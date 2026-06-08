@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 oya-accounting-journal-app = { path = "../../../accounting/crates/oya-accounting-journal-app" }
 oya-accounting-journal-storage-adapter-inmemory = { path = "../../../accounting/crates/oya-accounting-journal-storage-adapter-inmemory" }
-oya-tenant-rbac-application = { path = "../oya-tenant-rbac-application" }
+oya-tenant-rbac-usecase = { path = "../oya-tenant-rbac-usecase" }
 oya-tenant-rbac-storage-adapter-inmemory = { path = "../oya-tenant-rbac-storage-adapter-inmemory" }
 oya-tenant-rbac-workflow-adapter-inmemory = { path = "../oya-tenant-rbac-workflow-adapter-inmemory" }
 oya-hr-employment-app = { path = "../../../hr/crates/oya-hr-employment-app" }

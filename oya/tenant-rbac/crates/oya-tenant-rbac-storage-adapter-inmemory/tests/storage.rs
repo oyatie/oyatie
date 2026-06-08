@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_data_boundary_kernel::DataClass;
-use oya_tenant_rbac_application::{
+use oya_tenant_rbac_usecase::{
     OpsCommandKind, TenantRbacOpsCommandInput, TenantRbacOpsRoute,
     prepare_cross_service_workflow_envelope, prepare_incident_rollback_envelope,
     prepare_tenant_rbac_ops_envelope,

@@ -10,7 +10,7 @@
 #![forbid(unsafe_code)]
 
 use oya_data_boundary_kernel::DataClass;
-use oya_tenant_rbac_application::{OpsCommandKind, TenantRbacOpsCommandInput, TenantRbacOpsRoute};
+use oya_tenant_rbac_usecase::{OpsCommandKind, TenantRbacOpsCommandInput, TenantRbacOpsRoute};
 use oya_tenant_rbac_domain::{
     CloseBoundaryState, CrossServiceWorkflowInput, DeterministicGate, GateClosureAuthority,
     GroupRollupInput, IncidentFirstAction, IncidentRemediationRoute, IncidentRollbackInput,

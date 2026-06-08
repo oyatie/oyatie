@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 oya-tenant-rbac-audit-chain-emission = { path = "../oya-tenant-rbac-audit-chain-emission" }
 oya-tenant-rbac-audit-chain-runtime-evidence = { path = "../oya-tenant-rbac-audit-chain-runtime-evidence" }
-oya-tenant-rbac-auth-runtime = { path = "../oya-tenant-rbac-auth-runtime" }
+oya-tenant-rbac-auth-app = { path = "../oya-tenant-rbac-auth-app" }
 oya-tenant-rbac-cloud-deployment-manifest = { path = "../oya-tenant-rbac-cloud-deployment-manifest" }
 oya-tenant-rbac-cloud-deployment-evidence = { path = "../oya-tenant-rbac-cloud-deployment-evidence" }
 oya-tenant-rbac-disbursement-evidence = { path = "../oya-tenant-rbac-disbursement-evidence" }

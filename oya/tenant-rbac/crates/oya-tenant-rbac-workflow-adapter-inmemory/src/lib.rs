@@ -14,7 +14,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_tenant_rbac_application::CrossServiceWorkflowEnvelope;
+use oya_tenant_rbac_usecase::CrossServiceWorkflowEnvelope;
 
 const IN_MEMORY_WORKFLOW_QUEUE_LABEL: &str = "in-memory-workflow-reference";
 

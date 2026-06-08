@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_data_boundary_kernel::DataClass;
-use oya_tenant_rbac_application::prepare_incident_rollback_envelope;
+use oya_tenant_rbac_usecase::prepare_incident_rollback_envelope;
 use oya_tenant_rbac_domain::{
     IncidentFirstAction, IncidentPlanStatus, IncidentRemediationRoute, IncidentRollbackInput,
     IncidentTrigger, plan_incident_rollback,

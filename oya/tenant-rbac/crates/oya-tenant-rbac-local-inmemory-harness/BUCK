@@ -14,7 +14,7 @@ rust_library(
         "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
         "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
         "//oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory:oya-payroll-run-storage-adapter-inmemory",
-        "//oya/tenant-rbac/crates/oya-tenant-rbac-application:oya-tenant-rbac-application",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-usecase:oya-tenant-rbac-usecase",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory:oya-tenant-rbac-storage-adapter-inmemory",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory:oya-tenant-rbac-workflow-adapter-inmemory",

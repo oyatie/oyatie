@@ -14,7 +14,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_tenant_rbac_application::{
+use oya_tenant_rbac_usecase::{
     CrossServiceWorkflowEnvelope, IncidentRollbackEnvelope, TenantRbacOpsEnvelope,
 };
 use oya_tenant_rbac_domain::{GroupCloseRollup, TenantRbacPolicyDecision};

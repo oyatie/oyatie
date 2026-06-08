@@ -2315,9 +2315,9 @@
       "type": "service",
       "ms": "tenant-rbac"
     },
-    "oya-tenant-rbac-application": {
-      "source": "crates/oya-tenant-rbac-application",
-      "dest": "microservices/tenant-rbac/crates/oya-tenant-rbac-application",
+    "oya-tenant-rbac-usecase": {
+      "source": "crates/oya-tenant-rbac-usecase",
+      "dest": "microservices/tenant-rbac/crates/oya-tenant-rbac-usecase",
       "type": "service",
       "ms": "tenant-rbac"
     },
@@ -2333,9 +2333,9 @@
       "type": "service",
       "ms": "tenant-rbac"
     },
-    "oya-tenant-rbac-auth-runtime": {
-      "source": "crates/oya-tenant-rbac-auth-runtime",
-      "dest": "microservices/tenant-rbac/crates/oya-tenant-rbac-auth-runtime",
+    "oya-tenant-rbac-auth-app": {
+      "source": "crates/oya-tenant-rbac-auth-app",
+      "dest": "microservices/tenant-rbac/crates/oya-tenant-rbac-auth-app",
       "type": "service",
       "ms": "tenant-rbac"
     },
@@ -2435,9 +2435,9 @@
       "type": "service",
       "ms": "tenant-rbac"
     },
-    "oya-tenant-rbac-runtime": {
-      "source": "crates/oya-tenant-rbac-runtime",
-      "dest": "microservices/tenant-rbac/crates/oya-tenant-rbac-runtime",
+    "oya-tenant-rbac-app": {
+      "source": "crates/oya-tenant-rbac-app",
+      "dest": "microservices/tenant-rbac/crates/oya-tenant-rbac-app",
       "type": "service",
       "ms": "tenant-rbac"
     },

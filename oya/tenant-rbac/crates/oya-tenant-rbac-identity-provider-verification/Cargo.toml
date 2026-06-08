@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-tenant-rbac-auth-runtime = { path = "../oya-tenant-rbac-auth-runtime" }
+oya-tenant-rbac-auth-app = { path = "../oya-tenant-rbac-auth-app" }
 
 [lib]
 name = "oya_tenant_rbac_identity_provider_verification"

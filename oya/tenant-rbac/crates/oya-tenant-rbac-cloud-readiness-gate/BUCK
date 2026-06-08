@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission:oya-tenant-rbac-audit-chain-emission",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-runtime-evidence:oya-tenant-rbac-audit-chain-runtime-evidence",
-        "//oya/tenant-rbac/crates/oya-tenant-rbac-auth-runtime:oya-tenant-rbac-auth-runtime",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-auth-app:oya-tenant-rbac-auth-app",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-evidence:oya-tenant-rbac-cloud-deployment-evidence",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest:oya-tenant-rbac-cloud-deployment-manifest",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-disbursement-evidence:oya-tenant-rbac-disbursement-evidence",
