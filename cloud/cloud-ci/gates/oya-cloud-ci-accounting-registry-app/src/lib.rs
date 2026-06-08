@@ -455,27 +455,15 @@ pub fn build_enforcement_inventory(inputs: &EnforcementInputs) -> Result<Value, 
 // Fifth face: gate-baseline.generated.json (the GO-LIVE readiness ratchet)
 // ---------------------------------------------------------------------------
 
-/// The go-live disposition table (DATA, not code): per (gate, code) it carries the mode,
-/// the infra_prereq, and the frozen_empty flag. Flipping advisory-until-infra to
-/// baseline-block-on-new is a DATA edit here, never a code change.
-pub const GATE_DISPOSITION_JSON: &str = include_str!("gate-disposition.json");
-
 /// The buck2 target that runs the firewall ratchet — recorded in the baseline `_provenance`.
 pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app";
 
-/// The firewall gate ids, in canonical (baseline) order. The fifth gate
-/// `cloud-ci-brand-residue` is the forbidden-vocab shrink-only ratchet (register #25,
-/// boundary enforcement): its per-stem keys are the live residue files, frozen so any NEW
-/// occurrence is RED while the historical residue ages out without churning history.
-pub const GATE_IDS: [&str; 7] = [
-    "cloud-ci-total-accounting",
-    "cloud-ci-cross-artifact-agreement",
-    "cloud-ci-automation-ratchet",
-    "cloud-ci-staleness-reaper",
-    "cloud-ci-bnf-layer-suffix",
-    "cloud-ci-manifest-hygiene",
-    "cloud-ci-brand-residue",
-];
+// The hardcoded `GATE_IDS: [&str; 7]` array and the `include_str!`-embedded
+// `GATE_DISPOSITION_JSON` const were RETIRED in the config-driven floor (Stage 3): the enabled
+// gate set + each gate's input KIND + the per-(gate,code) disposition table now come from
+// `OyaCiConfig` (`cfg.gates.enabled` + `cfg.gates.disposition_json()`), so adding/removing a
+// gate is a `oya-ci.toml` DATA edit, not a producer code change. `build_gate_baseline` +
+// `current_keys_per_gate` dispatch on the config-declared `input_kind` (§3.5).
 
 /// The four live gate-input faces the baseline is captured over. Each is the exact
 /// `Value` shape that the matching gate's `evaluate_keyed` consumes:
@@ -507,65 +495,80 @@ pub struct GateInputs<'a> {
     pub brand_residue: &'a BTreeMap<String, BTreeSet<String>>,
 }
 
-/// Run the matching gate's pure `evaluate_keyed` over each live face and group the keys
-/// per (gate, code). Returns `gate_id -> code -> sorted+deduped keys` (BTreeMaps/BTreeSets
-/// keep it deterministic so committed==regenerated holds byte-for-byte).
-fn current_keys_per_gate(
+/// Resolve a `producer-face` gate's CURRENT keys: run the bound gate's pure `evaluate_keyed`
+/// over the matching `GateInputs` face and group `(code, key)` (§3.5 KIND 1). The
+/// face↔evaluator binding is the single per-gate coupling that cannot be data-driven in Rust
+/// (no reflection); everything else (which gates, their dispositions, their KIND) is config.
+fn producer_face_keys(
+    face: oya_ci_config_kernel::GateFace,
     inputs: &GateInputs<'_>,
-) -> BTreeMap<&'static str, BTreeMap<String, BTreeSet<String>>> {
-    let mut out: BTreeMap<&'static str, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
-
-    out.insert(
-        "cloud-ci-total-accounting",
-        group_findings(
+) -> BTreeMap<String, BTreeSet<String>> {
+    use oya_ci_config_kernel::GateFace;
+    match face {
+        GateFace::TotalAccounting => group_findings(
             oya_cloud_ci_total_accounting_app::evaluate_keyed(inputs.total_accounting)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
-    );
-    out.insert(
-        "cloud-ci-bnf-layer-suffix",
-        group_findings(
-            oya_cloud_ci_bnf_layer_suffix_app::evaluate_keyed(inputs.bnf_layer_suffix)
-                .into_iter()
-                .map(|f| (f.code, f.key)),
-        ),
-    );
-    out.insert(
-        "cloud-ci-manifest-hygiene",
-        group_findings(
-            oya_cloud_ci_manifest_hygiene_app::evaluate_keyed(inputs.manifest_hygiene)
-                .into_iter()
-                .map(|f| (f.code, f.key)),
-        ),
-    );
-    out.insert(
-        "cloud-ci-cross-artifact-agreement",
-        group_findings(
+        GateFace::CrossArtifact => group_findings(
             oya_cloud_ci_cross_artifact_agreement_app::evaluate_keyed(inputs.cross_artifact)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
-    );
-    out.insert(
-        "cloud-ci-automation-ratchet",
-        group_findings(
+        GateFace::AutomationRatchet => group_findings(
             oya_cloud_ci_automation_ratchet_app::evaluate_keyed(inputs.automation_ratchet)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
-    );
-    out.insert(
-        "cloud-ci-staleness-reaper",
-        group_findings(
+        GateFace::Staleness => group_findings(
             oya_cloud_ci_staleness_reaper_app::evaluate_keyed(inputs.staleness)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
-    );
-    // The brand-residue gate's keys are computed by the binary from the raw corpus (not a
-    // generated face), so they arrive already grouped — fold them in verbatim.
-    out.insert("cloud-ci-brand-residue", inputs.brand_residue.clone());
+        GateFace::BnfLayerSuffix => group_findings(
+            oya_cloud_ci_bnf_layer_suffix_app::evaluate_keyed(inputs.bnf_layer_suffix)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+        GateFace::ManifestHygiene => group_findings(
+            oya_cloud_ci_manifest_hygiene_app::evaluate_keyed(inputs.manifest_hygiene)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+    }
+}
+
+/// Capture each enabled gate's CURRENT `code -> keys` by DISPATCHING on its declared
+/// `input_kind` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.5 — the gate INPUT-BINDING abstraction; the
+/// one engine touch-point of this floor). Three KINDs:
+/// - `ProducerFace`  → run the bound gate's pure `evaluate_keyed` over its `GateInputs` face;
+/// - `RawCorpusCollector` → the keys arrive ALREADY GROUPED from the binary's raw-corpus
+///   census (brand-residue) — folded in verbatim (NOT a face, NOT `evaluate_keyed`);
+/// - `FrozenEmptyMeta` → contributes NO current keys (its codes are stamped-empty by the
+///   disposition join in `build_gate_baseline`).
+///
+/// Returns `gate_id -> code -> sorted+deduped keys`; BTreeMaps/BTreeSets keep it deterministic
+/// so committed==regenerated holds byte-for-byte. (Iteration order over `cfg.gates.enabled` is
+/// irrelevant to the on-disk bytes: the baseline `gates` object is BTreeMap-sorted on
+/// serialization — but the disposition join in `build_gate_baseline` still walks this map.)
+fn current_keys_per_gate(
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    inputs: &GateInputs<'_>,
+) -> BTreeMap<String, BTreeMap<String, BTreeSet<String>>> {
+    use oya_ci_config_kernel::GateInputKind;
+    let mut out: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
+    for gate in &cfg.gates.enabled {
+        let keys = match gate.input_kind {
+            GateInputKind::ProducerFace => match gate.face {
+                Some(face) => producer_face_keys(face, inputs),
+                // A producer-face gate with no bound face contributes nothing (mis-config-safe).
+                None => BTreeMap::new(),
+            },
+            GateInputKind::RawCorpusCollector => inputs.brand_residue.clone(),
+            GateInputKind::FrozenEmptyMeta => BTreeMap::new(),
+        };
+        out.insert(gate.id.clone(), keys);
+    }
     out
 }
 
@@ -591,23 +594,28 @@ where
 /// (auto-shrink drops fixed keys on regen); GROWTH beyond the committed baseline is a
 /// `ratchet_regression` caught by the cloud-ci-firewall runner, not by this builder.
 pub fn build_gate_baseline(
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
     inputs: &GateInputs<'_>,
     config_digest: &str,
 ) -> Result<Value, ProducerError> {
-    let disposition: Value = serde_json::from_str(GATE_DISPOSITION_JSON)
+    let disposition: Value = serde_json::from_str(cfg.gates.disposition_json())
         .map_err(|e| ProducerError::Policy(format!("gate-disposition.json: {e}")))?;
     let disp_gates = disposition
         .get("gates")
         .and_then(Value::as_object)
         .ok_or_else(|| ProducerError::Policy("gate-disposition.json missing 'gates'".into()))?;
 
-    let current = current_keys_per_gate(inputs);
+    let current = current_keys_per_gate(cfg, inputs);
 
     // Canonical-key digest input: collect every "<gate>\x1f<code>\x1f<key>" line, sorted.
     let mut digest_lines: BTreeSet<String> = BTreeSet::new();
 
+    // Iterate the CONFIG-DECLARED enabled gates (replacing the hardcoded GATE_IDS, §3.5):
+    // each gate's codes + dispositions come from the disposition table, its CURRENT keys from
+    // the KIND-dispatched `current` map. The on-disk gate order is BTreeMap-sorted regardless.
     let mut gates_obj = Map::new();
-    for gate in GATE_IDS {
+    for spec in &cfg.gates.enabled {
+        let gate = spec.id.as_str();
         let disp_codes = disp_gates
             .get(gate)
             .and_then(Value::as_object)
@@ -807,7 +815,8 @@ mod tests {
             manifest_hygiene: &empty_face,
             brand_residue: &brand_residue,
         };
-        let baseline = build_gate_baseline(&inputs, "fnv1a64:test").expect("baseline");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let baseline = build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("baseline");
         let ta = &baseline["gates"]["cloud-ci-total-accounting"];
 
         // unjustified is baseline-block-on-new and freezes the live key (the row path).
@@ -849,8 +858,9 @@ mod tests {
             manifest_hygiene: &empty_face,
             brand_residue: &brand_residue,
         };
-        let a = to_canonical_json(&build_gate_baseline(&inputs, "fnv1a64:test").expect("a")).expect("ja");
-        let b = to_canonical_json(&build_gate_baseline(&inputs, "fnv1a64:test").expect("b")).expect("jb");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let a = to_canonical_json(&build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("a")).expect("ja");
+        let b = to_canonical_json(&build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("b")).expect("jb");
         assert_eq!(a, b, "baseline must be byte-deterministic");
         assert!(a.contains("source_inputs_digest"));
         assert!(!a.contains("generated_at"), "no wall-clock in the baseline face");

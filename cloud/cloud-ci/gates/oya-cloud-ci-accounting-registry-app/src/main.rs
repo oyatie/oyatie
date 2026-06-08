@@ -23,7 +23,9 @@ use oya_cloud_ci_accounting_registry_app::{
     to_canonical_json, CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow,
     GateInputs, Policy, ProducerError, RepoInputs,
 };
-use oya_check_brand_residue::forbidden_vocab::{census_findings, is_path_carved_out, CensusDocument};
+use oya_check_brand_residue::forbidden_vocab::{
+    census_findings_with, is_path_carved_out_with, CensusDocument, VocabPolicy,
+};
 use serde_json::{json, Value};
 
 fn main() {
@@ -123,7 +125,7 @@ fn run() -> Result<(), CliError> {
     let automation_matrix = build_automation_matrix(&enforcement);
     // The fifth gate (cloud-ci-brand-residue) scans the raw tracked corpus for the forbidden
     // vocab stems and freezes the per-(stem,file) residue as the shrink-only-ratchet baseline.
-    let brand_residue = collect_brand_residue(&repo_root, &inputs.tracked_paths);
+    let brand_residue = collect_brand_residue(&repo_root, &inputs.tracked_paths, &cfg);
     // The §2.5#4 bnf-layer-suffix gate input: the first-party oya-* crate names enumerated from
     // the tracked Cargo.toml manifests. The gate's evaluate_keyed resolves the role carve-out-
     // aware and reuses oya_governance_predictable_naming_kernel::check.
@@ -139,7 +141,7 @@ fn run() -> Result<(), CliError> {
         manifest_hygiene: &manifest_hygiene,
         brand_residue: &brand_residue,
     };
-    let baseline = build_gate_baseline(&gate_inputs, &config_digest)?;
+    let baseline = build_gate_baseline(&cfg, &gate_inputs, &config_digest)?;
 
     if to_stdout {
         let value = match face.as_str() {
@@ -288,12 +290,17 @@ fn build_automation_matrix(enforcement: &Value) -> Value {
 fn collect_brand_residue(
     repo_root: &Path,
     tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
 ) -> BTreeMap<String, BTreeSet<String>> {
+    // The forbidden-stem table + carve-outs are sourced from the oya-ci config `[vocab]` section
+    // (§3.3 / Stage 3); the bundled default reproduces today's consts, so the census is
+    // byte-for-byte unchanged.
+    let policy = vocab_policy(&cfg.vocab);
     // Read each non-carved-out tracked file once; non-UTF-8 (binary) files read as empty and
     // contribute nothing (the stems are ASCII text tokens).
     let contents: Vec<(String, String)> = tracked_paths
         .iter()
-        .filter(|path| !is_path_carved_out(path))
+        .filter(|path| !is_path_carved_out_with(path, &policy))
         .map(|path| (path.clone(), read_text(&repo_root.join(path))))
         .collect();
     let documents = contents.iter().map(|(path, body)| CensusDocument {
@@ -302,10 +309,41 @@ fn collect_brand_residue(
     });
 
     let mut grouped: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for finding in census_findings(documents) {
+    for finding in census_findings_with(documents, &policy) {
         grouped.entry(finding.code).or_default().insert(finding.key);
     }
     grouped
+}
+
+/// Map the oya-ci config `[vocab]` section onto the brand crate's injected [`VocabPolicy`]
+/// (§3.3 / Stage 3). The kind enum is mirrored 1:1; the bundled default reproduces today's
+/// `FORBIDDEN_VOCAB_STEMS` + `CARVE_OUT_RULES`.
+fn vocab_policy(cfg: &oya_ci_config_kernel::VocabConfig) -> VocabPolicy {
+    use oya_check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
+    use oya_ci_config_kernel::VocabCarveOutKind;
+    VocabPolicy {
+        stems: cfg
+            .forbidden_stems
+            .iter()
+            .map(|s| OwnedStem {
+                stem: s.stem.clone(),
+                code: s.code.clone(),
+            })
+            .collect(),
+        carve_outs: cfg
+            .carve_outs
+            .iter()
+            .map(|c| OwnedCarveOut {
+                kind: match c.kind {
+                    VocabCarveOutKind::PathPrefix => CarveOutKind::PathPrefix,
+                    VocabCarveOutKind::PathExact => CarveOutKind::PathExact,
+                    VocabCarveOutKind::PathSuffix => CarveOutKind::PathSuffix,
+                    VocabCarveOutKind::LineContainsCi => CarveOutKind::LineContainsCi,
+                },
+                value: c.value.clone(),
+            })
+            .collect(),
+    }
 }
 
 /// Enumerate the first-party `oya-*` crate package names from the tracked Cargo.toml manifests
