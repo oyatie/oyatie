@@ -1,0 +1,18 @@
+[package]
+name = "oya-office-collab-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-office-kernel = { path = "../oya-office-kernel" }
+
+[lib]
+name = "oya_office_collab_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

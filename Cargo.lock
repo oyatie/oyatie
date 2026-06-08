@@ -7193,6 +7193,105 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-office-authz-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-collab-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-doc-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-office-drive-domain",
+ "oya-office-format-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-drive-api"
+version = "0.1.0"
+dependencies = [
+ "oya-office-authz-domain",
+ "oya-office-drive-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-drive-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-office-authz-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-format-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-office-drive-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-office-search-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-sheet-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-office-drive-domain",
+ "oya-office-format-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-sheets-api"
+version = "0.1.0"
+dependencies = [
+ "oya-office-kernel",
+ "oya-office-sheet-domain",
+]
+
+[[package]]
+name = "oya-office-slide-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-office-drive-domain",
+ "oya-office-format-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-storage-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-tenant-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-office-kernel",
+]
+
+[[package]]
 name = "oya-ontology-api"
 version = "0.1.0"
 dependencies = [
