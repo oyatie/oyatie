@@ -128,9 +128,10 @@
       "in_masterplan": false,
       "in_roadmap": true,
       "in_spec": true,
-      "status": "accepted",
+      "status": "Superseded",
       "superseded_by": [
-        "ADR-0131"
+        "ADR-0131",
+        "ADR-0512"
       ],
       "supersedes": []
     },
@@ -469,8 +470,12 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
-      "superseded_by": [],
+      "status": "Superseded",
+      "superseded_by": [
+        "ADR-0116",
+        "ADR-0363",
+        "ADR-0515"
+      ],
       "supersedes": []
     },
     {
@@ -505,7 +510,7 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
+      "status": "Superseded",
       "superseded_by": [],
       "supersedes": []
     },
@@ -685,7 +690,7 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "accepted",
+      "status": "Superseded",
       "superseded_by": [],
       "supersedes": []
     },
@@ -721,7 +726,7 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
+      "status": "Superseded",
       "superseded_by": [],
       "supersedes": []
     },
@@ -730,7 +735,7 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
+      "status": "Superseded",
       "superseded_by": [],
       "supersedes": []
     },
@@ -739,8 +744,11 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
-      "superseded_by": [],
+      "status": "Superseded",
+      "superseded_by": [
+        "ADR-0116",
+        "ADR-0363"
+      ],
       "supersedes": []
     },
     {
@@ -1025,8 +1033,10 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
-      "superseded_by": [],
+      "status": "Superseded",
+      "superseded_by": [
+        "ADR-0389"
+      ],
       "supersedes": []
     },
     {
@@ -1034,8 +1044,10 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
-      "superseded_by": [],
+      "status": "Superseded",
+      "superseded_by": [
+        "ADR-0389"
+      ],
       "supersedes": []
     },
     {
@@ -1043,7 +1055,7 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
+      "status": "Superseded",
       "superseded_by": [],
       "supersedes": []
     },
@@ -1092,8 +1104,10 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
-      "superseded_by": [],
+      "status": "Superseded",
+      "superseded_by": [
+        "ADR-0389"
+      ],
       "supersedes": []
     },
     {
@@ -1248,8 +1262,10 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
-      "superseded_by": [],
+      "status": "Superseded",
+      "superseded_by": [
+        "ADR-0515"
+      ],
       "supersedes": []
     },
     {
@@ -1495,8 +1511,10 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
-      "superseded_by": [],
+      "status": "Superseded",
+      "superseded_by": [
+        "ADR-0476"
+      ],
       "supersedes": []
     },
     {
@@ -3100,8 +3118,10 @@
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
-      "status": "Accepted",
-      "superseded_by": [],
+      "status": "Superseded",
+      "superseded_by": [
+        "ADR-0512"
+      ],
       "supersedes": []
     },
     {
