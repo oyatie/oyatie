@@ -47,11 +47,6 @@ New constraint from 2026-05-15 amendment §B. Today's merge-queue semantics are 
 
 ## Symbols to grit-claim
 
-- `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/src/lib.rs::Scheduler`
-- `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/src/parked_state.rs::ParkedPr`
-- `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/src/speculative_rebase.rs::rebase_against_head`
-- `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/src/fairness.rs::pick_next_pr`
-- `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/src/retry_budget.rs::PrBudget`
 - `tools/oya-cli/src/subcommands/merge_queue.rs::scheduler_tick`
 - `specs/merge-queue-parked-pr.json::*` (state-machine spec)
 - `registry/merge-queue-tick-log.json::*` (per-tick admission log)

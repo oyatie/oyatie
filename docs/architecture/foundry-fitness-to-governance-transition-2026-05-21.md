@@ -514,8 +514,6 @@ These are **actual Rust crates** named `oya-foundry-fitness-*`. They were NOT re
 | `crates/oya-foundry-fitness-mistakes-ledger-kernel` | `crates/oya-governance-mistakes-ledger-kernel` |
 | `crates/oya-foundry-fitness-orphan-detection-kernel` | `crates/oya-governance-orphan-detection-kernel` |
 | `crates/oya-foundry-fitness-portfolio-citation-kernel` | `crates/oya-governance-portfolio-citation-kernel` |
-| `crates/oya-foundry-fitness-pr-merge-gate-kernel` | `crates/oya-governance-pr-merge-gate-kernel` |
-| `crates/oya-foundry-fitness-pr-traceability-kernel` | `crates/oya-governance-pr-traceability-kernel` |
 | `crates/oya-foundry-fitness-pre-push-kernel` | `crates/oya-governance-pre-push-kernel` |
 | `crates/oya-foundry-fitness-predictable-naming-kernel` | `crates/oya-governance-predictable-naming-kernel` |
 | `crates/oya-foundry-fitness-provider-coupling-kernel` | `crates/oya-governance-provider-coupling-kernel` |
@@ -555,12 +553,10 @@ These are **actual Rust crates** named `oya-foundry-fitness-*`. They were NOT re
 - `oya-foundry-fitness-lifecycle-kernel`
 - `oya-foundry-fitness-sunset-lifecycle-kernel`
 - `oya-foundry-fitness-mistakes-ledger-kernel`
-- `oya-foundry-fitness-pr-traceability-kernel`
 - `oya-foundry-fitness-predictable-naming-kernel`
 
 **Phase 4 — pipeline kernels:**
 - `oya-foundry-fitness-pre-push-kernel`
-- `oya-foundry-fitness-pr-merge-gate-kernel`
 - `oya-foundry-fitness-quality-lane-kernel`
 - `oya-foundry-fitness-supply-chain-kernel`
 
@@ -610,8 +606,6 @@ These files use `oya-foundry-fitness-` as **operational logic**, not as document
 | `crates/oya-check-protection-context-match/src/lib.rs` | Uses `oya-foundry-fitness-` as a prefix token in branch-protection context matching logic (line 127, 183). Must update after crate rename. |
 | `crates/oya-dev-cli/Cargo.toml` | Workspace dependency declarations for fitness kernel crates. Must update after `git mv`. |
 | `crates/oya-dev-cli/src/aspirational_enforcement_gate.rs` | References `oya-foundry-fitness-predictable-naming-kernel` by name in ALLOWED_ROLES note. |
-| `crates/oya-dev-cli/src/changeset_state_enum_closed_gate.rs` | Lane id comment `oya-foundry-fitness-changeset-state-enum-closed`. Comment-only but operationally significant (lane registration). |
-| `crates/oya-dev-cli/src/changeset_state_monotonicity_gate.rs` | Lane id comment `oya-foundry-fitness-changeset-state-monotonicity`. |
 | `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs` | Hardcoded list of fitness kernel crate names for architecture-boundary gating. |
 | `crates/oya-dev-cli/src/commands/gate/mod.rs` | Lane id comments for retired-vocabulary, protection-context-match, pre-push, changeset lanes. |
 | `crates/oya-dev-cli/src/commands/lint.rs` | Lane reference in doc comment. |
@@ -619,7 +613,6 @@ These files use `oya-foundry-fitness-` as **operational logic**, not as document
 | `crates/oya-dev-cli/src/commands/verify.rs` | References `oya-foundry-fitness-purpose-audit-app` command string. |
 | `crates/oya-dev-cli/src/documentation_gates.rs` | Checks `documentation.contains("oya-foundry-fitness-docs")` — operational predicate. |
 | `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs` | `planned_enforced_by` validation — requires prefix `oya-foundry-fitness-`. |
-| `crates/oya-dev-cli/src/hyperscaler_maturity_claims_gate.rs` | Workflow name check `oya-foundry-fitness-pr-review`. |
 | `crates/oya-dev-cli/src/pre_push_contract_gate.rs` | Supply-chain workflow name `oya-foundry-fitness-supply-chain`. |
 | `crates/oya-dev-cli/src/protection_context_match_gate.rs` | Lane id comment `oya-foundry-fitness-protection-context-match`. |
 | `crates/oya-dev-cli/src/retired_vocabulary_gate.rs` | Lane id comment. Intentionally excluded from corpus scans per its own exclude list. |
@@ -627,10 +620,6 @@ These files use `oya-foundry-fitness-` as **operational logic**, not as document
 | `crates/oya-dev-cli/tests/lint_cli.rs` | Integration test using `oya-foundry-fitness-docs` lane string in fixture. |
 | `crates/oya-foundry-architecture-map-kernel/src/lib.rs` | Lane reference in doc comment. |
 | `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | **Critical**: `id.starts_with("oya-foundry-fitness-")` prefix detection on line 324, 157. Must update after all crate migration completes. |
-| `crates/oya-foundry-vcs-admission-gate-kernel/src/lib.rs` | Workflow name string `oya-foundry-fitness-supply-chain`. |
-| `crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs` | Lane name `oya-foundry-fitness-changeset-state-monotonicity`. |
-| `crates/oya-foundry-vcs-provider-execution-gate-kernel/src/lib.rs` | Workflow name `oya-foundry-fitness-supply-chain` — supply-chain workflow CI gate. |
-| `crates/oya-foundry-webhook-receiver-kernel/src/lib.rs` | Lane name `oya-foundry-fitness-webhook-delivery-log-monotonic`. |
 
 ### E category risk note
 
@@ -712,9 +701,8 @@ Category A specs with remaining oya-foundry-fitness-:        0
 3. **Update Category E operational code** after each Phase completes:
    - `crates/oya-foundry-gate-catalog-domain/src/lib.rs` lines 157, 324: update prefix check from `"oya-foundry-fitness-"` to `"oya-governance-"` once all fitness crates are renamed
    - `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs`: update `planned_enforced_by` validation prefix
-   - `crates/oya-dev-cli/src/pre_push_contract_gate.rs`, `crates/oya-foundry-vcs-provider-execution-gate-kernel/src/lib.rs`, `crates/oya-foundry-vcs-admission-gate-kernel/src/lib.rs`: update supply-chain workflow name from `oya-foundry-fitness-supply-chain` to `oya-governance-supply-chain` (requires renaming the `.github/workflows/oya-foundry-fitness-supply-chain.yml` file too)
+   - `crates/oya-dev-cli/src/pre_push_contract_gate.rs`: update supply-chain workflow name from `oya-foundry-fitness-supply-chain` to `oya-governance-supply-chain` (requires renaming the `.github/workflows/oya-foundry-fitness-supply-chain.yml` file too)
    - `crates/oya-dev-cli/src/documentation_gates.rs`: update `oya-foundry-fitness-docs` lane string
-   - `crates/oya-dev-cli/src/hyperscaler_maturity_claims_gate.rs`: update `oya-foundry-fitness-pr-review` workflow name
    - `crates/oya-check-pre-push/src/lib.rs`: update hardcoded crate name allowlist
    - `crates/oya-check-protection-context-match/src/lib.rs`: update prefix token
    - Test fixture strings in `crates/oya-dev-cli/tests/gate_cli.rs` and `tests/lint_cli.rs` — update to reflect new lane names in test scenarios

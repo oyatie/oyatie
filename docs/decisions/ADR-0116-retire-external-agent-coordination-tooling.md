@@ -13,7 +13,7 @@ doc_status: published
 > **Date:** 2026-05-16
 > **doc_class:** DecisionRecord
 > **purpose:** Formally retire grit, rtk, icm, and vox from the repo's prescribed agent-coordination surface. The in-repo Foundry pipeline (M01-P18 substrate landed in PR #5 + the wave-A webhook-receiver work) is now the sole canonical workflow for concurrent agent work.
-> **enforced_by:** `oya-foundry-vcs-admission-gate` + branch-pipeline review/CI lanes
+> **enforced_by:** branch-pipeline review/CI lanes
 > **Related:** ADR-0054 (deprecated by this ADR), ADR-0052/0053 (historical inventories of the retired primitives), ADR-0110/0111/0112/0113 (Foundry pipeline substrate), ADR-0115 (sibling registry consolidation landed via PR #9)
 
 ---
@@ -117,7 +117,7 @@ The Foundry pipeline substrate that replaces the retired tools is already in `de
 - ADR-0111 — merge-queue projected-state + fix-at-any-stage (PR #5)
 - ADR-0112 — webhook-driven foundry agent invocation (PR #5)
 - ADR-0113 — VCS orchestrator end-to-end (PR #5)
-- Wave-A webhook-receiver crate work (subsequent in-flight PR series; the `oya-foundry-vcs-merge-queue-*` and `oya-foundry-vcs-webhook-receiver-*` crates are merged)
+- Wave-A webhook-receiver crate work (subsequent in-flight PR series; the merge-queue and webhook-receiver crates are merged — all RETIRED per ADR-0363)
 
 **Follow-up — Foundry wave-B.** Wave B is pending: deployment of the webhook-receiver, registration of the GitHub webhook on the repo, gh-api post-back paths from dispatchers, and dispatcher fan-out (pr-review, ci-fix-loop, merge-queue). Until wave-B lands, the seam is:
 

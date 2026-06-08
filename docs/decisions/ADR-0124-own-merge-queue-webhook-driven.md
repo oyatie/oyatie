@@ -32,9 +32,9 @@ on this repository plan.
 
 We already own the substrate to do this ourselves:
 
-- `crates/oya-foundry-vcs-review-mergequeue-kernel` — scheduler, parked-state,
+- The review/merge-queue kernel — scheduler, parked-state,
   fairness, speculative rebase, per-PR retry budget (ADR-0111).
-- `crates/oya-foundry-vcs-merge-queue-conflict-kernel` — conflict detection
+- The merge-queue conflict kernel — conflict detection
   on projected merge state.
 - ADR-0112 — webhook-driven Foundry agent invocation (event-driven, not
   cron-driven).
@@ -69,7 +69,7 @@ We already own the substrate to do this ourselves:
    **No cron.** Each scheduler tick is triggered by exactly one webhook event.
 
 4. **Queue ordering is by `pull_request.createdAt`**, with the fairness
-   primitives from `oya-foundry-vcs-review-mergequeue-kernel::fairness`
+   primitives from the review/merge-queue kernel's `fairness` module
    applied to prevent starvation of any agent lane.
 
 5. **File-overlap clustering** — the scheduler computes the set of
@@ -162,5 +162,4 @@ so nothing silently drops out of the queue.
 - ADR-0111 — merge-queue projected state, fix-at-any-stage
 - ADR-0112 — webhook-driven Foundry agent invocation
 - ADR-0113 — VCS orchestrator end-to-end
-- `crates/oya-foundry-vcs-review-mergequeue-kernel/src/scheduler.rs`
 - GitHub branch protection REST API — `required_status_checks.strict`

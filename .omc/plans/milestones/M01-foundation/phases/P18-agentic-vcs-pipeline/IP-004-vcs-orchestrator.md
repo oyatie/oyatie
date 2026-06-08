@@ -21,10 +21,10 @@ purpose: Wire `oya vcs done` as the canonical async-by-default agentic kickoff t
 
 Implement ADR-0113 wave-A:
 
-- New kernel `oya-foundry-vcs-orchestrator-kernel` — pure-domain
+- New orchestrator kernel — pure-domain
   state-validator + idempotency-key generator + cost-budget
   enforcer.
-- New app `oya-foundry-vcs-orchestrator-app` — runner: invokes
+- New orchestrator app — runner: invokes
   `oya verify` → pushes to feature branch → opens PR against
   `dev` via `gh pr create --fill` → appends initial
   changeset-event-log row → returns immediately with JSON
@@ -65,9 +65,6 @@ Implement ADR-0113 wave-A:
 
 ## Symbols to grit-claim
 
-- `crates/oya-foundry-vcs-orchestrator-kernel/src/lib.rs::*`
-- `tools/oya-foundry-vcs-orchestrator-app/src/main.rs::main`
-- `tools/oya-foundry-vcs-orchestrator-app/src/{state_validator,idempotency,cost_budget}.rs::*`
 - `crates/oya-dev-cli/src/commands/vcs.rs::run` (extend `done`
   subcommand; add `override` subcommand)
 

@@ -12,7 +12,6 @@ purpose: |
 lift_target: oyatie/docs/automation/changelog-pipeline.md
 enforced_by: oya-governance-changelog-row
 extends_crates:
-  - oya-foundry-pr-traceability-kernel
   - oya-foundry-doc-catalog-kernel
 companion_docs:
   - INDEX.md
@@ -61,7 +60,7 @@ Rows are grouped by date descending; multiple rows per day are allowed.
 2. **Row schema.** Row parses against the shape above; missing fields → BLOCKER.
 3. **doc-id resolution.** The `doc.<id>` field exists in `catalog.json` (BLOCKER on typo).
 4. **Author attribution.** `Authors:` field non-empty and resolves to a real GitHub handle in CODEOWNERS (HIGH).
-5. **ADR-citation linkage.** When `doc.adr_index` is touched, the row's `ADRs cited:` field must list the touched ADRs (HIGH; cross-fed from `oya-foundry-pr-traceability-kernel`).
+5. **ADR-citation linkage.** When `doc.adr_index` is touched, the row's `ADRs cited:` field must list the touched ADRs (HIGH; cross-fed from the ADR-citation linkage check).
 6. **Ordering.** New rows append at top; out-of-order dates → HIGH.
 
 ## 6. PR template integration

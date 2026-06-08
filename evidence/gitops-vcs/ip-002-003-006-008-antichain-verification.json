@@ -15,8 +15,7 @@
     "Cargo.toml workspace members registered for four next-antichain crates",
     "crates/oya-vcs-lockstore-adapter",
     "crates/oya-vcs-changebundle-kernel",
-    "crates/oya-vcs-polyglot-indexer-adapters",
-    "crates/oya-foundry-vcs-test-standard-gate"
+    "crates/oya-vcs-polyglot-indexer-adapters"
   ],
   "validation": [
     {

@@ -10,9 +10,7 @@
   "execution_unit": "ordered ChangeSet pair after IP-002/IP-003/IP-006/IP-008 antichain",
   "created_at": "2026-05-14T10:34:49.127247Z",
   "workspace_changes": [
-    "Cargo.toml workspace members registered for IP-004/IP-007 crates",
-    "crates/oya-foundry-vcs-promotion-controller",
-    "crates/oya-foundry-vcs-review-mergequeue"
+    "Cargo.toml workspace members registered for IP-004/IP-007 crates"
   ],
   "validation": [
     {

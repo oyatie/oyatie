@@ -27,7 +27,7 @@ Today, the pieces that should react to events poll instead:
 - IP-005 (CI fix-loop) same model — only fires on workflow_run
   failure events.
 - IP-006 (merge-queue) reads admission-log files via filesystem
-  scans (per `oya-foundry-vcs-merge-queue-fix-loop-app`'s tick loop).
+  scans (per the merge-queue fix-loop tick loop).
 - Promotion workflows (dev→staging→production, ADR-0110 wave-B)
   trigger on `push:` + cron schedules.
 
@@ -44,7 +44,7 @@ become async + correlated + idempotent.
 
 ## Decision
 
-A new app `oya-foundry-webhook-receiver-app` receives GitHub
+A new webhook-receiver app receives GitHub
 webhook deliveries and routes them to Foundry agents.
 
 ### Receiver shape
@@ -72,7 +72,7 @@ agent that handles it:
 
 | GitHub event | action | Foundry agent | Purpose |
 |---|---|---|---|
-| `pull_request` | `opened` | `oya-foundry-vcs-orchestrator-app` | Begin changeset state transition to `pr_open` |
+| `pull_request` | `opened` | orchestrator | Begin changeset state transition to `pr_open` |
 | `pull_request` | `synchronize` | merge-queue + IP-005 | Fix-at-any-stage re-validate (ADR-0111) |
 | `pull_request` | `closed` | orchestrator | If `merged=true`, transition to `merged_dev` |
 | `workflow_run` | `completed` (conclusion=success) | IP-004 dispatcher | Run multispectrum review |
@@ -177,9 +177,9 @@ escalate to `oya-governance-webhook-stuck` lane.
 ## Implementation sequencing
 
 - **Wave A** (this ADR Accepted):
-  1. `oya-foundry-webhook-receiver-kernel` — pure-domain HMAC
+  1. The webhook-receiver kernel — pure-domain HMAC
      verification + dedup table parser. No HTTP.
-  2. `oya-foundry-webhook-receiver-app` — HTTP receiver, routes
+  2. The webhook-receiver app — HTTP receiver, routes
      to kernel, persists delivery log, dispatches to agents via
      in-process invocation OR queue (decide at impl).
   3. `registry/vcs/event-router.yaml` — canonical router table
@@ -202,9 +202,8 @@ escalate to `oya-governance-webhook-stuck` lane.
 
 ## Naming justification
 
-- `oya-foundry-webhook-receiver-app` — `oya-foundry-` product,
-  `webhook-receiver` concept, `-app` role per ADR-0056. The
-  kernel companion is `-kernel`.
+- The webhook-receiver app (RETIRED per ADR-0363) followed the
+  `-app` role per ADR-0056, with a `-kernel` companion.
 - Router table file at `registry/vcs/event-router.yaml` — under
   the `vcs` substrate (matching the merge-queue + changeset
   registries).

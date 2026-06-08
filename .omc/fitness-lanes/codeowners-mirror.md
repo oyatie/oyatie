@@ -1,8 +1,8 @@
 # Fitness Lane: codeowners-mirror
 
 - purpose: Verify `.github/CODEOWNERS` mirrors the catalog + RACI owner_axis values for every canonical path.
-- enforces: STANDARD/codeowners-mirror; existing crate `oya-foundry-codeowners-mirror-kernel` (EXISTING).
-- kernel_crate: `oya-foundry-codeowners-mirror-kernel` (EXISTING) — `OwnerRule { path, owner_axis }`, verdict `CodeownersMirrorFitnessReport { rules_checked }`.
+- enforces: STANDARD/codeowners-mirror.
+- kernel_contract: `OwnerRule { path, owner_axis }`, verdict `CodeownersMirrorFitnessReport { rules_checked }`.
 - runner_path: `tools/oya-governance-codeowners-mirror`
 - inputs: `.github/CODEOWNERS`, catalog rows, RACI rows.
 - failure_modes:

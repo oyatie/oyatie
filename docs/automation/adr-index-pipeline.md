@@ -54,7 +54,7 @@ tags:
 ## 3. Outputs
 
 - `docs/ADR-INDEX.md` — single rendered table grouped by status, then by id descending; supersession graph in Mermaid; per-axis ADR list.
-- `docs/machine-readable/decisions.json` — JSON sidecar for downstream consumption (`oya-foundry-pr-traceability-kernel`, `cross-reference-index-spec.md`).
+- `docs/machine-readable/decisions.json` — JSON sidecar for downstream consumption (`cross-reference-index-spec.md`).
 
 ## 4. Trigger matrix
 
@@ -92,5 +92,5 @@ Solid edges = `supersedes`; dashed edges = `superseded_by` (informational). The 
 ## 8. Out-of-scope
 
 - ADR body content validation (handled by `oya-foundry-adr-citation-kernel`).
-- ADR-to-code-citation enforcement (handled by `oya-foundry-pr-traceability-kernel`).
+- ADR-to-code-citation enforcement (handled by a separate governance lane).
 - Cross-ADR consistency review (human council; tracked in `docs/CONTRADICTION-LEDGER.md`).

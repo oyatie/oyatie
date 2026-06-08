@@ -406,7 +406,7 @@ D-1.1. The bulk-rename PR renames every `.github/workflows/oya-foundry-fitness-*
 
 D-1.2. The bulk-rename PR also updates each workflow's `name:` field (top-level YAML key) from "oya-foundry-fitness-*" to "oya-governance-*" via deterministic sed.
 
-D-1.3. Discovery enumeration of the workflow set at authoring time of this ADR: 10 files (oya-foundry-fitness-api-semver.yml, oya-foundry-fitness-aspirational-enforcement.yml, oya-foundry-fitness-banned-primitives.yml, oya-foundry-fitness-changeset-state.yml, oya-foundry-fitness-cohesion.yml, oya-foundry-fitness-evidence-secret-scan.yml, oya-foundry-fitness-honest-claims.yml, oya-foundry-fitness-master-plan-completion.yml, oya-foundry-fitness-sequential-pr-merge-conflicts.yml, oya-foundry-fitness-supply-chain.yml). The inventory file at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` enumerates each source→target mapping.
+D-1.3. Discovery enumeration of the workflow set at authoring time of this ADR: 8 files (oya-foundry-fitness-api-semver.yml, oya-foundry-fitness-aspirational-enforcement.yml, oya-foundry-fitness-banned-primitives.yml, oya-foundry-fitness-cohesion.yml, oya-foundry-fitness-evidence-secret-scan.yml, oya-foundry-fitness-honest-claims.yml, oya-foundry-fitness-master-plan-completion.yml, oya-foundry-fitness-supply-chain.yml). The two VCS-sense workflows (changeset-state, sequential-pr-merge-conflicts) are RETIRED per ADR-0363, not renamed. The inventory file at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` enumerates each source→target mapping.
 
 D-1.4. The bulk-rename PR re-runs each renamed workflow against the renamed corpus and verifies lane invariants preserve. CI failure on any renamed workflow blocks the PR.
 

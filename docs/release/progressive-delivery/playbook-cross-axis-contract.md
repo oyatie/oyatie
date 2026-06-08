@@ -32,7 +32,7 @@ Per [ADR-0037](../../decisions/ADR-0037-public-api-stability-tiers-and-deprecati
 
 1. Contract version bump declared (semver per tier).
 2. Backward-compatibility verified for all consumers OR a deprecation window opened (≥ 90 d for stable, ≥ 30 d for GA).
-3. Consumer-axis owners signed off via `oya-foundry-pr-traceability-kernel`.
+3. Consumer-axis owners signed off via PR review.
 4. Dark-launch on producer side (write-side, per [`dark-launch-spec.md`](dark-launch-spec.md) §2).
 
 ## 4. Lockstep canary sequence

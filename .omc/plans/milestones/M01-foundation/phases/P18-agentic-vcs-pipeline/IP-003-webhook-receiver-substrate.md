@@ -49,7 +49,7 @@ which requires repo admin access at deploy time.
   conflicting outcome on same delivery_id surfaced as anomaly.
 - HTTP app `/webhook/github` endpoint accepts a synthetic
   `pull_request.opened` delivery (via `--simulate-delivery
-  pr-opened.json`) and routes to `oya-foundry-vcs-orchestrator-app`
+  pr-opened.json`) and routes to the orchestrator app
   (stubbed if IP-004 not yet landed).
 - `registry/vcs/event-router.yaml` initialized with the 9 rows
   from ADR-0112.

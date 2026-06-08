@@ -13,7 +13,6 @@ purpose: |
 planned_enforcement_ref: oya-governance-dep-graph
 extends_crates:
   - oya-intelligence-architecture-map-kernel
-  - oya-foundry-pr-traceability-kernel
 companion_docs:
   - INDEX.md
   - roadmap-visualization-spec.md

@@ -216,34 +216,6 @@
         ]
       },
       {
-        "crate": "oya-foundry-vcs-application",
-        "layer": "application",
-        "owns": [
-          "claim/work/done/promote orchestration",
-          "state-machine invariants",
-          "idempotency"
-        ]
-      },
-      {
-        "crate": "oya-foundry-vcs-rust-indexer-adapter",
-        "layer": "adapter",
-        "owns": [
-          "tree-sitter Rust extraction",
-          "symbol dependency graph"
-        ]
-      },
-      {
-        "crate": "oya-foundry-vcs-artifact-indexer-adapter",
-        "layer": "adapter",
-        "owns": [
-          "JSON pointer",
-          "TOML table",
-          "OpenAPI operation",
-          "Cedar policy",
-          "migration symbol extraction"
-        ]
-      },
-      {
         "crate": "oya-vcs-lockstore-adapter",
         "layer": "adapter",
         "owns": [
@@ -251,25 +223,6 @@
           "S3/R2/MinIO",
           "Postgres",
           "Kubernetes Lease backends"
-        ]
-      },
-      {
-        "crate": "oya-foundry-vcs-gitops-controller-worker",
-        "layer": "worker",
-        "owns": [
-          "promotion queue",
-          "CI/CD admission",
-          "remote reconciliation",
-          "lock release on terminal state"
-        ]
-      },
-      {
-        "crate": "oya-foundry-vcs-cli",
-        "layer": "cli",
-        "owns": [
-          "Oya VCS claim/verify/done/promote command surface",
-          "agent UX",
-          "JSON status/watch"
         ]
       },
       {
@@ -282,33 +235,6 @@
           "clangd/CMake",
           "XAML",
           "TypeScript/package graph indexers"
-        ]
-      },
-      {
-        "crate": "oya-foundry-vcs-review-fix-application",
-        "layer": "application",
-        "owns": [
-          "FixupTask state machine",
-          "review comment to symbol mapping",
-          "CI failure to affected-symbol mapping"
-        ]
-      },
-      {
-        "crate": "oya-foundry-vcs-merge-queue-adapter",
-        "layer": "adapter",
-        "owns": [
-          "controller-owned rebase",
-          "merge queue enrollment",
-          "merge queue status watch"
-        ]
-      },
-      {
-        "crate": "oya-foundry-vcs-test-standard-gate",
-        "layer": "application",
-        "owns": [
-          "unit/integration/e2e tier resolver",
-          "test-set-registry enforcement",
-          "post-rebase evidence freshness"
         ]
       },
       {
