@@ -351,7 +351,8 @@ sitting** to bound the half-hardened window:
    `jenkins`/`oya-vcs`, Palantir-Foundry carve-out) tree-wide via the brand-residue gate; consolidate
    `infra/forge → infra/gitops`.
 
-**Hard constraints (restated):** push **github-mirror only** (`origin` = Forgejo, never push there); all
+**Hard constraints (restated):** push **github-mirror only** (`origin` = the retired Forgejo remote —
+superseded per ADR-0363, kept only as a do-not-push tripwire — never push there); all
 commits **signed**; **mutate nothing in source until sign-off** — this is a DRAFT; no blind
 `git add -A`; verify each step in a separate verifier lane (no self-approval).
 
