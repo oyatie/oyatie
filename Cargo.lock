@@ -3937,6 +3937,15 @@ name = "oya-check-wasm-runtime-discipline"
 version = "0.1.0"
 
 [[package]]
+name = "oya-ci-config-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "oya-ci-controller-app"
 version = "0.1.0"
 dependencies = [

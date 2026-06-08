@@ -104,6 +104,11 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         reason: "the deny-list patterns themselves are not residue",
     },
     CarveOutRule {
+        kind: CarveOutKind::PathPrefix,
+        value: "libs/oya-ci-config/",
+        reason: "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)",
+    },
+    CarveOutRule {
         kind: CarveOutKind::PathExact,
         value: "registry/catalog/oya-check-brand-residue.yaml",
         reason: "the catalog deny-list spec is not residue",

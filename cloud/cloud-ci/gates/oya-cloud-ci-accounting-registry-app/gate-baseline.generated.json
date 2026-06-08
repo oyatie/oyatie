@@ -4,7 +4,7 @@
     "baseline_schema_version": 1,
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:a0b2cd6d61e8e469"
+    "source_inputs_digest": "fnv1a64:107b95a4928d3245"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -10705,6 +10705,12 @@
           "libs/oya-check-wasm-runtime-discipline/BUCK",
           "libs/oya-check-wasm-runtime-discipline/Cargo.toml",
           "libs/oya-check-wasm-runtime-discipline/src/lib.rs",
+          "libs/oya-ci-config/BUCK",
+          "libs/oya-ci-config/Cargo.toml",
+          "libs/oya-ci-config/src/bundled/gate-disposition.json",
+          "libs/oya-ci-config/src/bundled/ttl-policy.json",
+          "libs/oya-ci-config/src/bundled/unit-class-policy.json",
+          "libs/oya-ci-config/src/lib.rs",
           "libs/oya-data-boundary-kernel/BUCK",
           "libs/oya-data-boundary-kernel/Cargo.toml",
           "libs/oya-data-boundary-kernel/src/lib.rs",
@@ -28191,6 +28197,12 @@
           "libs/oya-check-wasm-runtime-discipline/BUCK",
           "libs/oya-check-wasm-runtime-discipline/Cargo.toml",
           "libs/oya-check-wasm-runtime-discipline/src/lib.rs",
+          "libs/oya-ci-config/BUCK",
+          "libs/oya-ci-config/Cargo.toml",
+          "libs/oya-ci-config/src/bundled/gate-disposition.json",
+          "libs/oya-ci-config/src/bundled/ttl-policy.json",
+          "libs/oya-ci-config/src/bundled/unit-class-policy.json",
+          "libs/oya-ci-config/src/lib.rs",
           "libs/oya-data-boundary-kernel/BUCK",
           "libs/oya-data-boundary-kernel/Cargo.toml",
           "libs/oya-data-boundary-kernel/src/lib.rs",
