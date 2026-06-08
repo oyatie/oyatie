@@ -203,7 +203,7 @@ required_sequence:
   - Prow/cloud-ci required context + reviewer APPROVE gate merge readiness (Jenkins/oya bridge only until P0.0 cutover)
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
-  adr: docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-github-substrate.md
+  adr: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
 <!-- agent-instructions:end -->
 
 ## PR shape
