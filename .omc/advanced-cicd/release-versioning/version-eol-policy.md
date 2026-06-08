@@ -114,7 +114,7 @@ Three customer-facing channels signal EOL:
 
 1. `oya-api-deprecation` response header (per Kubernetes pattern).
 2. `docs/release/notices/EOL-<major>.md` (markdown release notes).
-3. `oya-foundry-eol-feed` (RSS/Atom feed at `/foundry/v1/eol-feed`).
+3. `oya-governance-eol-feed` (RSS/Atom feed at `/foundry/v1/eol-feed`).
 
 Customers and downstream operators subscribe to the feed for advance notice.
 

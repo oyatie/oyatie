@@ -12,7 +12,7 @@ purpose: |
   Lift to `docs/visualization/audit-chain.md` (D2 + Mermaid).
 planned_enforcement_ref: oya-governance-audit-chain-map
 extends_crates:
-  - oya-foundry-cohesion-fitness-kernel
+  - oya-governance-cohesion-fitness-kernel
   - oya-foundry-evidence-kernel
   - oya-intelligence-architecture-map-kernel
 companion_docs:

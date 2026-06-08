@@ -20,15 +20,15 @@ Runtime tier:
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | license | existing | STANDARD/repo-license-policy | oya-governance-license-kernel | tools/oya-governance-license | `cargo run -p oya-governance-license` | 200 | BLOCKER |
 | data-class | existing | STANDARD/data-class-tagging | oya-governance-data-class-kernel | tools/oya-governance-data-class | `cargo run -p oya-governance-data-class` | 600 | BLOCKER |
-| cohesion | existing | STANDARD/cross-axis-cohesion | oya-foundry-cohesion-fitness-kernel | tools/oya-governance-cohesion | `cargo run -p oya-governance-cohesion` | 300 | BLOCKER |
+| cohesion | existing | STANDARD/cross-axis-cohesion | oya-governance-cohesion-fitness-kernel | tools/oya-governance-cohesion | `cargo run -p oya-governance-cohesion` | 300 | BLOCKER |
 | glossary | existing | STANDARD/glossary-required-terms | oya-governance-glossary-kernel | tools/oya-governance-glossary | `cargo run -p oya-governance-glossary` | 700 | HIGH |
-| adr-citation | existing | STANDARD/adr-citation | oya-foundry-adr-citation-kernel | tools/oya-governance-adr-citation | `cargo run -p oya-governance-adr-citation` | 800 | BLOCKER |
-| brand-residue | existing | STANDARD/brand-hygiene | oya-foundry-brand-residue-kernel | tools/oya-governance-brand-residue | `cargo run -p oya-governance-brand-residue` | 900 | HIGH |
+| adr-citation | existing | STANDARD/adr-citation | oya-governance-adr-citation-kernel | tools/oya-governance-adr-citation | `cargo run -p oya-governance-adr-citation` | 800 | BLOCKER |
+| brand-residue | existing | STANDARD/brand-hygiene | oya-governance-brand-residue-kernel | tools/oya-governance-brand-residue | `cargo run -p oya-governance-brand-residue` | 900 | HIGH |
 | bypass | existing | STANDARD/no-silent-bypass | oya-foundry-bypass-kernel | tools/oya-governance-bypass | `cargo run -p oya-governance-bypass` | 700 | BLOCKER |
 | flat-crates | existing | STANDARD/flat-workspace | oya-governance-flat-crates-kernel | tools/oya-governance-flat-crates | `cargo run -p oya-governance-flat-crates` | 100 | BLOCKER |
 | runbook-index-resolves | existing | STANDARD/runbook-index | oya-governance-runbook-index-kernel | tools/oya-governance-runbook-index-resolves | `cargo run -p oya-governance-runbook-index-resolves` | 250 | HIGH |
 | doc-catalog | existing | STANDARD/doc-catalog | oya-foundry-catalog-kernel | tools/oya-governance-doc-catalog | `cargo run -p oya-governance-doc-catalog` | 400 | BLOCKER |
-| authority-cohesion | existing | STANDARD/single-source-authority | oya-foundry-authority-cohesion-kernel | tools/oya-governance-authority-cohesion | `cargo run -p oya-governance-authority-cohesion` | 350 | BLOCKER |
+| authority-cohesion | existing | STANDARD/single-source-authority | oya-governance-authority-cohesion-kernel | tools/oya-governance-authority-cohesion | `cargo run -p oya-governance-authority-cohesion` | 350 | BLOCKER |
 | mistakes-ledger-cite | existing | STANDARD/mistakes-ledger | oya-governance-mistakes-ledger-kernel | tools/oya-governance-mistakes-ledger-cite | `cargo run -p oya-governance-mistakes-ledger-cite` | 600 | HIGH |
 | adr-shape | existing | TEMPLATE/adr-template | oya-governance-adr-shape-kernel | tools/oya-governance-adr-shape | `cargo run -p oya-governance-adr-shape` | 250 | BLOCKER |
 | audit-emission | existing | STANDARD/audit-chain | oya-governance-audit-emission-kernel | tools/oya-governance-audit-emission | `cargo run -p oya-governance-audit-emission` | 700 | BLOCKER |
@@ -73,11 +73,11 @@ Runtime tier:
 | mdbook-publish | new-standard | STANDARD/doc-publish | oya-governance-mdbook-publish-kernel | tools/oya-governance-mdbook-publish | `cargo run -p oya-governance-mdbook-publish` | 1100 | HIGH |
 | openapi-contract-binding | new-standard | STANDARD/api-contract-binding | oya-governance-openapi-contract-binding-kernel | tools/oya-governance-openapi-contract-binding | `cargo run -p oya-governance-openapi-contract-binding` | 1200 | BLOCKER |
 | changelog-row | new-standard | STANDARD/changelog-discipline | oya-governance-changelog-row-kernel | tools/oya-governance-changelog-row | `cargo run -p oya-governance-changelog-row` | 300 | HIGH |
-| adr-index | existing-extension | STANDARD/adr-index | oya-foundry-adr-index-kernel | tools/oya-governance-adr-index | `cargo run -p oya-governance-adr-index` | 250 | HIGH |
-| cargo-prefix | existing-extension | STANDARD/cargo-prefix | oya-foundry-cargo-prefix-kernel | tools/oya-governance-cargo-prefix | `cargo run -p oya-governance-cargo-prefix` | 150 | BLOCKER |
+| adr-index | existing-extension | STANDARD/adr-index | oya-governance-adr-index-kernel | tools/oya-governance-adr-index | `cargo run -p oya-governance-adr-index` | 250 | HIGH |
+| cargo-prefix | existing-extension | STANDARD/cargo-prefix | oya-governance-cargo-prefix-kernel | tools/oya-governance-cargo-prefix | `cargo run -p oya-governance-cargo-prefix` | 150 | BLOCKER |
 | codeowners-mirror | existing-extension | STANDARD/codeowners-mirror | CodeownersMirrorFitnessReport (kernel contract) | tools/oya-governance-codeowners-mirror | `cargo run -p oya-governance-codeowners-mirror` | 300 | HIGH |
-| constitution-cite | existing-extension | STANDARD/constitution-derivation | oya-foundry-constitution-cite-kernel | tools/oya-governance-constitution-cite | `cargo run -p oya-governance-constitution-cite` | 350 | HIGH |
-| claim-ceiling | existing-extension | STANDARD/claim-ceiling | oya-foundry-claim-ceiling-kernel | tools/oya-governance-claim-ceiling | `cargo run -p oya-governance-claim-ceiling` | 300 | HIGH |
+| constitution-cite | existing-extension | STANDARD/constitution-derivation | oya-governance-constitution-cite-kernel | tools/oya-governance-constitution-cite | `cargo run -p oya-governance-constitution-cite` | 350 | HIGH |
+| claim-ceiling | existing-extension | STANDARD/claim-ceiling | oya-governance-claim-ceiling-kernel | tools/oya-governance-claim-ceiling | `cargo run -p oya-governance-claim-ceiling` | 300 | HIGH |
 | cost-budget | existing-extension | STANDARD/cost-budget | oya-foundry-cost-budget-kernel | tools/oya-governance-cost-budget | `cargo run -p oya-governance-cost-budget` | 600 | MED |
 | cloud-mutation | existing-extension | STANDARD/cloud-mutation | oya-foundry-cloud-mutation-kernel | tools/oya-governance-cloud-mutation | `cargo run -p oya-governance-cloud-mutation` | 800 | BLOCKER |
 | adapter-kernel | existing-extension | STANDARD/adapter-shape | oya-foundry-adapter-kernel | tools/oya-governance-adapter-kernel | `cargo run -p oya-governance-adapter-kernel` | 800 | BLOCKER |

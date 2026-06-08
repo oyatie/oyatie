@@ -50,7 +50,7 @@ The build-vs-adopt question: should `oya-*` reuse the upstream Node implementati
    - `UsageEnforcement::check_limit` (oya-foundry-usage-window-kernel)
    - `validate_usage` / `finalize_line` (oya-cloud-billing-kernel)
    - `check_silent_switch` / `ProviderAccount` state machine (oya-foundry-account-domain)
-   - `CeilingPolicy::enforce_for_tenant` (oya-foundry-autonomy-ceiling-app)
+   - `CeilingPolicy::enforce_for_tenant` (oya-governance-autonomy-ceiling-app)
 
    A Node sidecar cannot share these kernel types without an IPC bridge (JSON/CBOR
    serialization across process boundary). The IPC bridge would: (a) add latency on

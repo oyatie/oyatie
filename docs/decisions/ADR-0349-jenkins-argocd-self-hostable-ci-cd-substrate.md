@@ -828,7 +828,7 @@ Per ADR-0247 self-hosting + self-modification. The Oyatie corpus's own CI/CD sub
 
 ### G.10 Facet M1 — Meta: governance lane vocabulary (ADR-0345 §E.7 inheritance)
 
-Per ADR-0345's vocabulary hygiene clause (the `oya-governance-*` lane-name prefix). The five new lanes use `oya-governance-*` prefix exclusively; no `oya-foundry-fitness-*` lanes are introduced. ✓
+Per ADR-0345's vocabulary hygiene clause (the `oya-governance-*` lane-name prefix). The five new lanes use `oya-governance-*` prefix exclusively; no `oya-governance-fitness-*` lanes are introduced. ✓
 
 ### G.11 Facet M2 — Meta: ADR-shape compliance (line-floor + frontmatter)
 

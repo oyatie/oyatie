@@ -12,9 +12,9 @@ purpose: |
   agents + humans across the entire canonical doc tree.
 planned_enforcement_ref: oya-governance-cross-reference-index
 extends_crates:
-  - oya-foundry-doc-catalog-kernel
-  - oya-foundry-raci-team-coverage-kernel
-  - oya-foundry-readme-doc-coverage-kernel
+  - oya-governance-doc-catalog-kernel
+  - oya-governance-raci-team-coverage-kernel
+  - oya-governance-readme-doc-coverage-kernel
 companion_docs:
   - INDEX.md
   - orphan-detection-discipline.md
@@ -33,8 +33,8 @@ doc_status: published
 
 ## 2. Inputs
 
-- `docs/machine-readable/catalog.json` (from `oya-foundry-doc-catalog-kernel`).
-- `docs/machine-readable/raci.json` (from `oya-foundry-raci-team-coverage-kernel`).
+- `docs/machine-readable/catalog.json` (from `oya-governance-doc-catalog-kernel`).
+- `docs/machine-readable/raci.json` (from `oya-governance-raci-team-coverage-kernel`).
 - `docs/machine-readable/doc-freshness.json` (from `doc-freshness-discipline.md`).
 - `docs/machine-readable/orphans.json` `purpose:` lookup (from `orphan-detection-discipline.md`).
 - The fitness-lane registry (per `fitness-lane-reports-pipeline.md`).
@@ -91,4 +91,4 @@ The mdbook chapter `docs/site/src/reference/cross-reference-index.md` is the hum
 
 - Per-section anchor-level cross-references (granular; future enhancement).
 - Search-engine indexing (handled by mdbook's built-in search + downstream Search axis).
-- Per-region localized index (future per `oya-foundry-glossary-localization-kernel`).
+- Per-region localized index (future per `oya-governance-glossary-localization-kernel`).

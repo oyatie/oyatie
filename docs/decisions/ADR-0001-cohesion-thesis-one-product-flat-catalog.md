@@ -84,7 +84,7 @@ Each substrate has exactly one owning bounded context (per BNF v4.1, ADR-0056):
 ### Cohesion invariants
 
 ```rust
-// oya-foundry-cohesion-kernel
+// oya-governance-cohesion-kernel
 pub enum ForbiddenPattern {
     /// A microservice re-implements an entity that already lives in a substrate kernel.
     SubstrateForking { microservice: MicroserviceId, substrate: Substrate, evidence: PathBuf },

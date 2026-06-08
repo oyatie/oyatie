@@ -245,7 +245,7 @@ Rules:
    The recommended resolution is to fold the noun-phrase into a single
    token: `release-evidence-pack` → feature `release-pack`, capability
    `evidence`. See `docs/plans/rename-plan-2026-05-12.md`.
-3. Compounds MUST NOT cross the role boundary: `oya-foundry-data-class-fitness-kernel`
+3. Compounds MUST NOT cross the role boundary: `oya-governance-data-class-fitness-kernel`
    parses as feature=`data-class-fitness` (3 tokens) + role=`kernel`,
    exceeding the feature-token cap; rename per the plan.
 

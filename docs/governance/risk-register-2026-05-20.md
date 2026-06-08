@@ -1166,7 +1166,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through SBOM, signing, deny checks.
 - acceptance posture: Reduce; accept time-boxed low CVEs only with documented waiver.
 - transfer posture: cyber insurance plus vendor indemnity for select processors.
-- microservice mitigations: `oya-check-license-policy`, `oya-foundry-license-policy-kernel`, `oya-check-sbom-attestation`, `oya-plugin-sandbox`.
+- microservice mitigations: `oya-check-license-policy`, `oya-governance-license-policy-kernel`, `oya-check-sbom-attestation`, `oya-plugin-sandbox`.
 - Cedar policies: `policy.dependency_allowlist_required`, `policy.critical_cve_release_block`, `policy.plugin_signature_required`.
 - monitoring: cargo deny, cargo audit, Trivy, SBOM diff, SLSA provenance, signing coverage.
 - named indicators: critical CVE, unsigned image, forbidden license, dependency typosquat, GitHub Action pin drift.

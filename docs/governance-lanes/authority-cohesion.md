@@ -8,7 +8,7 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every doc that claims authority over a topic resolves cleanly (no overlapping authoritative-doc claims for the same topic).
 - enforces: STANDARD/single-source-authority; AGENTS.md fitness-lane `oya-governance-authority-cohesion`.
-- kernel_crate: `oya-foundry-authority-cohesion-kernel` (EXISTING) — `AuthorityClaim { topic, path }`, verdict `AuthorityCohesionFitnessReport { topics_checked }`.
+- kernel_crate: `oya-governance-authority-cohesion-kernel` (EXISTING) — `AuthorityClaim { topic, path }`, verdict `AuthorityCohesionFitnessReport { topics_checked }`.
 - runner_path: `tools/oya-governance-authority-cohesion`
 - inputs: `docs/**/*.md` front-matter `authoritative_for:`, registry of topic ids.
 - failure_modes:

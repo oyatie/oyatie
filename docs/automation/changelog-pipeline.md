@@ -12,7 +12,7 @@ purpose: |
   the row is missing or malformed. CHANGELOG drift dies at the door.
 planned_enforcement_ref: oya-governance-changelog-row
 extends_crates:
-  - oya-foundry-doc-catalog-kernel
+  - oya-governance-doc-catalog-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/CHANGELOG.md

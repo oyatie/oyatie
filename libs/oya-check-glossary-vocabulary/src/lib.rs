@@ -394,7 +394,7 @@ fn is_acronym_candidate(value: &str) -> bool {
         || value.contains('-')
         || RFC2119_NORMATIVE_KEYWORDS.contains(&value)
         // TODO/TBD are not glossary acronyms. They are open placeholder debt
-        // markers delegated to oya-foundry-placeholder-debt-kernel, whose
+        // markers delegated to oya-governance-placeholder-debt-kernel, whose
         // fail-closed registry gate blocks new, stale, and count-drifted
         // occurrences. Keeping them out of the acronym baseline prevents the
         // glossary lane from hiding placeholder cleanup as terminology work.

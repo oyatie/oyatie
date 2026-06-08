@@ -12,7 +12,7 @@ purpose: |
 lift_target: oyatie/docs/visualization/audit-chain.md
 enforced_by: oya-governance-audit-chain-map
 extends_crates:
-  - oya-foundry-cohesion-fitness-kernel
+  - oya-governance-cohesion-fitness-kernel
   - oya-foundry-evidence-kernel
   - oya-intelligence-architecture-map-kernel
 companion_docs:

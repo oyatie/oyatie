@@ -7,8 +7,8 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify `docs/decisions/INDEX.md` enumerates every ADR file and rejects gaps in the numbering sequence.
-- enforces: STANDARD/adr-index; existing crate `oya-foundry-adr-index-kernel` (EXISTING; extend with verdict).
-- kernel_crate: `oya-foundry-adr-index-kernel` (EXISTING) — `AdrIndexRow { adr_id, path, status }`, verdict `AdrIndexFitnessReport { adrs_checked }`.
+- enforces: STANDARD/adr-index; existing crate `oya-governance-adr-index-kernel` (EXISTING; extend with verdict).
+- kernel_crate: `oya-governance-adr-index-kernel` (EXISTING) — `AdrIndexRow { adr_id, path, status }`, verdict `AdrIndexFitnessReport { adrs_checked }`.
 - runner_path: `tools/oya-governance-adr-index`
 - inputs: `docs/decisions/INDEX.md`, `docs/decisions/ADR-*.md`.
 - failure_modes:

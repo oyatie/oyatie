@@ -189,13 +189,13 @@ runtime   — composition root (binary; the daemon)
 | `oya-foundry-gate-domain` | domain | Gate rule evaluation |
 | `oya-foundry-bypass-kernel` | kernel | Foundation-bypass record primitive |
 | `oya-foundry-bypass-app` | app | Bypass-ledger maintenance + reporting |
-| `oya-foundry-lane-kernel` | kernel | CI lane primitive (control / data / analytics; per ADR-0017) |
-| `oya-foundry-lane-app` | app | Per-lane PR routing |
+| `oya-governance-lane-kernel` | kernel | CI lane primitive (control / data / analytics; per ADR-0017) |
+| `oya-governance-lane-app` | app | Per-lane PR routing |
 | `oya-governance-kernel` | kernel | Fitness function primitive |
 | `oya-governance-app` | app | Per-axis fitness check execution |
 | `oya-governance-{architecture,contracts,license,supply,migration,bench,product-prd,search-dub,ads-class,ads-source-singleton}` | app | Per-fitness-function check (one crate per check class) |
-| `oya-foundry-scorecard-kernel` | kernel | Scorecard primitive (per ADR-0026 + ADR-0040 Proof Ladder) |
-| `oya-foundry-scorecard-app` | app | Per-axis per-quarter scorecard publishing |
+| `oya-governance-scorecard-kernel` | kernel | Scorecard primitive (per ADR-0026 + ADR-0040 Proof Ladder) |
+| `oya-governance-scorecard-app` | app | Per-axis per-quarter scorecard publishing |
 | `oya-foundry-supply-app` | app | Supply-chain attestation (Cosign + Trivy + SBOM per ADR-0039) |
 | `oya-foundry-runtime` | runtime | Foundry engineering platform composition root |
 
@@ -590,7 +590,7 @@ pub struct FitnessFunction {
 ```
 
 ```rust
-// oya-foundry-scorecard-kernel (per ADR-0040 Proof Ladder)
+// oya-governance-scorecard-kernel (per ADR-0040 Proof Ladder)
 pub struct Scorecard {
     pub axis: AxisId,
     pub period: ScorecardPeriod,                          // quarter

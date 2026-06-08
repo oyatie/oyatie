@@ -7,8 +7,8 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every crate id follows the canonical `oya-{layer}-{axis}[-{role}]-{shape}` prefix grammar.
-- enforces: STANDARD/cargo-prefix; existing crate `oya-foundry-cargo-prefix-kernel` (EXISTING; extend with verdict).
-- kernel_crate: `oya-foundry-cargo-prefix-kernel` (EXISTING) — `CrateId { crate_id }`, verdict `CargoPrefixFitnessReport { crates_checked }`.
+- enforces: STANDARD/cargo-prefix; existing crate `oya-governance-cargo-prefix-kernel` (EXISTING; extend with verdict).
+- kernel_crate: `oya-governance-cargo-prefix-kernel` (EXISTING) — `CrateId { crate_id }`, verdict `CargoPrefixFitnessReport { crates_checked }`.
 - runner_path: `tools/oya-governance-cargo-prefix`
 - inputs: workspace `Cargo.toml` member list, layer/axis/shape registries.
 - failure_modes:

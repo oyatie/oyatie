@@ -13,9 +13,9 @@ purpose: |
   orphans in `main`.
 planned_enforcement_ref: oya-governance-orphan-detection
 extends_crates:
-  - oya-foundry-readme-doc-coverage-kernel
+  - oya-governance-readme-doc-coverage-kernel
   - oya-foundry-catalog-kernel
-  - oya-foundry-placeholder-debt-kernel
+  - oya-governance-placeholder-debt-kernel
 companion_docs:
   - INDEX.md
   - cross-reference-index-spec.md
@@ -46,7 +46,7 @@ Every path matching:
 - `**/*.json` (excluding `target/`, `node_modules/`, generated `package-lock.json`)
 - `**/*.toml` (excluding `Cargo.lock`)
 
-Excluded by ADR-tracked exemption: vendored dirs (`vendor/`, `third_party/`), generated sidecars under `*/generated/`, and Cargo's own files (`Cargo.toml` are catalogued via `oya-foundry-cargo-prefix-kernel` and need no per-file `purpose:` field provided the catalog row exists).
+Excluded by ADR-tracked exemption: vendored dirs (`vendor/`, `third_party/`), generated sidecars under `*/generated/`, and Cargo's own files (`Cargo.toml` are catalogued via `oya-governance-cargo-prefix-kernel` and need no per-file `purpose:` field provided the catalog row exists).
 
 ## 4. Orphan-detection algorithm
 

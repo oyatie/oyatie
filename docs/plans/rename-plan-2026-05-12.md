@@ -99,11 +99,11 @@ the workspace `Cargo.toml` files (`grep -r 'path = "../<crate>"'`).
 |---:|---|---|---|---:|:---:|---|---:|
 | 1 | `oya-foundation-app` | `oya-foundation-composition-app` | TOOSHORT | 1 (`oya-tooling-cli-dev-runtime`) | M | low-MED — sole foundation singleton; dep is the dev-runtime CLI; doc cross-refs need update | 8 |
 | 2 | `oya-intelligence-api` | `oya-foundry-policy-binding-api` *(see §2.1)* | TOOSHORT | 0–1 | S | low — newly-stood-up crate, minimal consumers | 1 |
-| 3 | `oya-foundry-data-class-fitness-kernel` | `oya-foundry-data-class-kernel` *(drop `fitness`; the foundry context already implies fitness)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low — fitness is the foundry context's purpose | 2 |
-| 4 | `oya-foundry-raci-team-coverage-kernel` | `oya-foundry-raci-coverage-kernel` *(drop `team`; RACI implies team)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 3 |
-| 5 | `oya-foundry-readme-doc-coverage-kernel` | `oya-foundry-readme-coverage-kernel` *(README implies doc)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 4 |
+| 3 | `oya-governance-data-class-fitness-kernel` | `oya-governance-data-class-kernel` *(drop `fitness`; the foundry context already implies fitness)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low — fitness is the foundry context's purpose | 2 |
+| 4 | `oya-governance-raci-team-coverage-kernel` | `oya-governance-raci-coverage-kernel` *(drop `team`; RACI implies team)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 3 |
+| 5 | `oya-governance-readme-doc-coverage-kernel` | `oya-governance-readme-coverage-kernel` *(README implies doc)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 4 |
 | 6 | `oya-foundry-release-evidence-pack-kernel` | `oya-foundry-release-pack-kernel` *(evidence is implied by foundry context)* OR `oya-foundry-evidence-pack-kernel` *(drop `release`; the artifact is the pack)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | MED — pick one; doc cross-refs in `release-management.md` need update | 5 |
-| 7 | `oya-foundry-vendor-contract-recency-kernel` | `oya-foundry-vendor-recency-kernel` *(contract is implied)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 6 |
+| 7 | `oya-governance-vendor-contract-recency-kernel` | `oya-governance-vendor-recency-kernel` *(contract is implied)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 6 |
 | 8 | `oya-tooling-agent-read` | `oya-tooling-agent-cli-read` *(insert role `cli` before capability `read`)* OR `oya-tooling-agent-read-cli` *(role last)* | NO-ROLE | 0 | S | low — newly-added bin-only crate; not yet imported | 7 |
 | 9 | `oya-tooling-cli-dev-runtime` | `oya-tooling-dev-runtime` *(`cli` and `runtime` are redundant; pick role `runtime`)* OR keep as-is by admitting `cli-dev` as compound | LONG-CAPTAIL | many (workspace dev-binary host) | L | **HIGH** — this is the workspace's primary dev binary (`oya`, `repoctl`); CI scripts, AGENTS.md, docs reference it by name | 9 |
 
@@ -147,11 +147,11 @@ scripts will need a coordinated update.
 
 ```
 1. oya-intelligence-api                         (zero/one consumer; cheapest first)
-2. oya-foundry-data-class-fitness-kernel   (1 consumer)
-3. oya-foundry-raci-team-coverage-kernel   (1 consumer)
-4. oya-foundry-readme-doc-coverage-kernel  (1 consumer)
+2. oya-governance-data-class-fitness-kernel   (1 consumer)
+3. oya-governance-raci-team-coverage-kernel   (1 consumer)
+4. oya-governance-readme-doc-coverage-kernel  (1 consumer)
 5. oya-foundry-release-evidence-pack-kernel (1 consumer)
-6. oya-foundry-vendor-contract-recency-kernel (1 consumer)
+6. oya-governance-vendor-contract-recency-kernel (1 consumer)
 7. oya-tooling-agent-read                  (0 consumers)
 8. oya-foundation-app                      (1 consumer; coordinate with sub-plan B step 9)
 9. oya-tooling-cli-dev-runtime             (top of dep graph; coordinated final cutover)

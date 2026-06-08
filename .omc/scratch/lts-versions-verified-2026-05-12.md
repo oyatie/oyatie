@@ -98,7 +98,7 @@ Sources read: `/Users/jasonlee/oyatie/rust-toolchain.toml` (`channel = "1.95.0"`
 | Node.js | 20 (per docs/AGENTS.md Codex appendix) | 24 Active LTS (22 Maintenance) | One major behind LTS line | MED — Node 20 enters Maintenance Oct 2025; move to 22 or 24. |
 | Python | not pinned in repo | 3.14.5 / 3.13.13 maintained | n/a | LOW (no Python product code in workspace currently). |
 | Go | not pinned in repo | 1.26.3 | n/a | LOW (no Go service in workspace). |
-| TypeScript | not pinned at repo root | 6.0 stable | unknown | MED — Foundry-workspace kernel (`oya-foundry-typescript-workspace-kernel`) should declare a TS floor. |
+| TypeScript | not pinned at repo root | 6.0 stable | unknown | MED — Foundry-workspace kernel (`oya-governance-typescript-workspace-kernel`) should declare a TS floor. |
 | PostgreSQL | not pinned (no migrations yet) | 18.3 | n/a | LOW. |
 | ClickHouse | not pinned | 26.3 LTS | n/a | LOW. |
 | Redis | not pinned | 8.6.3 (tri-license) | n/a | **HIGH if adopted** — RSALv2/SSPLv1/AGPLv3 fails `deny.toml`. Use Valkey or Redis ≤7.2 if needed. |

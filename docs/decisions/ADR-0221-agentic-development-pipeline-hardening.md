@@ -86,8 +86,8 @@ Current enforcement surface: `tools/governance/adr-0221-governance-gates.sh`, wi
 
 Per session-start additional context 2026-05-12: Visualization-as-code directive — ADOPTED INTO FOUNDRY.
 
-- `crates/oya-foundry-architecture-map-kernel` — walks Cargo workspace + contracts + manifests; emits Mermaid + C4 diagrams.
-- `crates/oya-foundry-architecture-map-app` — composition root binary.
+- `crates/oya-governance-architecture-map-kernel` — walks Cargo workspace + contracts + manifests; emits Mermaid + C4 diagrams.
+- `crates/oya-governance-architecture-map-app` — composition root binary.
 - `crates/oya-governance-architecture-map-freshness` — CI fails if architecture map stale > 24h.
 
 Output: `evidence/architecture-map-*.svg` + `docs/diagrams/*.mmd`. Trigger PR: **PR-148 (Foundry agentic toolchain extension wave)** per close-out plan follow-up PR roadmap.

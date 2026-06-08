@@ -1629,7 +1629,7 @@ retiring per ADR-0136 + ADR-0137 + ADR-0138. The capability-tier
 retirement does not depend on the foundry retirement; both proceed
 independently.
 
-D-13.3 The `oya-foundry-fitness-*` lanes retain their existing names
+D-13.3 The `oya-governance-fitness-*` lanes retain their existing names
 until each is renamed in its own migration IP per the new
 governance-lane-prefix doctrine. Wave 15J does not rename them.
 

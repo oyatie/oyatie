@@ -7,12 +7,12 @@ status: pending approval
 purpose: |
   Render every workspace crate, every cross-crate dependency, and every public
   API surface as a layered DAG (kernel → runtime → adapter → app). Source: Cargo
-  workspace metadata + `oya-foundry-cohesion-fitness-kernel` contract records +
+  workspace metadata + `oya-governance-cohesion-fitness-kernel` contract records +
   rustdoc link graph. Lift to `docs/visualization/service-map.md` as D2 + SVG.
 lift_target: oyatie/docs/visualization/service-map.md
 enforced_by: oya-governance-service-map
 extends_crates:
-  - oya-foundry-cohesion-fitness-kernel
+  - oya-governance-cohesion-fitness-kernel
   - oya-intelligence-architecture-map-kernel
   - oya-foundry-catalog-kernel
 companion_docs:
@@ -33,13 +33,13 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 - Each crate's `Cargo.toml` `[package.metadata.oyatie]` block: `axis`, `layer ∈ {kernel, runtime, adapter, api, app}`, `role`.
 - Each crate's `Cargo.toml` `[dependencies]` and `[dev-dependencies]` keys (filtered to workspace-internal crates only — external deps live in `tech-stack-map-spec.md`).
 - The cross-crate link graph from `rustdoc-pipeline.md`.
-- The cross-axis contract records from `oya-foundry-cohesion-fitness-kernel`.
+- The cross-axis contract records from `oya-governance-cohesion-fitness-kernel`.
 
 ## 3. Layer convention
 
 | Layer | Role | Examples |
 |---|---|---|
-| `kernel` | Pure value-object; no I/O | `oya-foundry-cohesion-fitness-kernel`, `oya-foundry-runbook-freshness-kernel` |
+| `kernel` | Pure value-object; no I/O | `oya-governance-cohesion-fitness-kernel`, `oya-governance-runbook-freshness-kernel` |
 | `runtime` | Schedulers, lifecycles, side-effect orchestrators | `oya-foundry-run-kernel`, `oya-foundry-step-kernel` |
 | `adapter` | Provider-specific I/O (storage, network, KMS, AI) | `oya-foundry-evidence-adapter-file`, `oya-foundry-run-adapter-file` |
 | `api` | External-surface HTTP/gRPC handlers | `oya-intelligence-api`, `oya-cloud-iam-api` |

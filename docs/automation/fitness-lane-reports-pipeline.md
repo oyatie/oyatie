@@ -13,7 +13,7 @@ purpose: |
 planned_enforcement_ref: oya-governance-lane-rollup
 extends_crates:
   - oya-foundry-eval-kernel
-  - oya-foundry-quality-lane-kernel
+  - oya-governance-quality-lane-kernel
   - oya-intelligence-mdbook-kernel
 companion_docs:
   - INDEX.md
@@ -100,6 +100,6 @@ Every fitness-lane crate adds a `register_lane()` const function returning `Lane
 
 ## 9. Out-of-scope
 
-- Per-lane authoring guidance (covered by `oya-foundry-quality-lane-kernel`).
+- Per-lane authoring guidance (covered by `oya-governance-quality-lane-kernel`).
 - CI execution policy (lives in `docs/RELEASE-MANAGEMENT.md`).
 - Lane-failure notification routing (separate `notification-pipeline.md`, not in this batch).
