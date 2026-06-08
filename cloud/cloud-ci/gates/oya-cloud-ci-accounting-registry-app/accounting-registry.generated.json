@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17630,
-    "source_inputs_digest": "fnv1a64:50411a25c88a2fdb"
+    "source_inputs_digest": "fnv1a64:165c59dc33e8dbf1"
   },
   "rows": [
     {
@@ -13599,7 +13599,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "43f4132e3ffae0bab9e37cf019f1230d9b37dc31",
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "Cargo.toml",
       "reachable_from": [
@@ -269355,7 +269355,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-authz-domain/BUCK",
       "reachable_from": [
@@ -269378,7 +269378,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-authz-domain/Cargo.toml",
       "reachable_from": [
@@ -269401,7 +269401,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-authz-domain/src/lib.rs",
       "reachable_from": [
@@ -269424,7 +269424,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-collab-domain/BUCK",
       "reachable_from": [
@@ -269447,7 +269447,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-collab-domain/Cargo.toml",
       "reachable_from": [
@@ -269470,7 +269470,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-collab-domain/src/lib.rs",
       "reachable_from": [
@@ -269493,7 +269493,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-doc-domain/BUCK",
       "reachable_from": [
@@ -269516,7 +269516,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-doc-domain/Cargo.toml",
       "reachable_from": [
@@ -269539,7 +269539,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-doc-domain/src/lib.rs",
       "reachable_from": [
@@ -269562,7 +269562,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-drive-api/BUCK",
       "reachable_from": [
@@ -269585,7 +269585,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-drive-api/Cargo.toml",
       "reachable_from": [
@@ -269608,7 +269608,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-drive-api/src/lib.rs",
       "reachable_from": [
@@ -269631,7 +269631,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-drive-domain/BUCK",
       "reachable_from": [
@@ -269654,7 +269654,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-drive-domain/Cargo.toml",
       "reachable_from": [
@@ -269677,7 +269677,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-drive-domain/src/lib.rs",
       "reachable_from": [
@@ -269700,7 +269700,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-format-domain/BUCK",
       "reachable_from": [
@@ -269723,7 +269723,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-format-domain/Cargo.toml",
       "reachable_from": [
@@ -269746,7 +269746,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-format-domain/src/lib.rs",
       "reachable_from": [
@@ -269769,7 +269769,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-kernel/BUCK",
       "reachable_from": [
@@ -269792,7 +269792,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-kernel/Cargo.toml",
       "reachable_from": [
@@ -269815,7 +269815,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-kernel/src/lib.rs",
       "reachable_from": [
@@ -269838,7 +269838,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-search-kernel/BUCK",
       "reachable_from": [
@@ -269861,7 +269861,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-search-kernel/Cargo.toml",
       "reachable_from": [
@@ -269884,7 +269884,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-search-kernel/src/lib.rs",
       "reachable_from": [
@@ -269907,7 +269907,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-sheet-domain/BUCK",
       "reachable_from": [
@@ -269930,7 +269930,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-sheet-domain/Cargo.toml",
       "reachable_from": [
@@ -269953,7 +269953,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-sheet-domain/src/lib.rs",
       "reachable_from": [
@@ -269976,7 +269976,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-sheets-api/BUCK",
       "reachable_from": [
@@ -269999,7 +269999,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-sheets-api/Cargo.toml",
       "reachable_from": [
@@ -270022,7 +270022,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-sheets-api/src/lib.rs",
       "reachable_from": [
@@ -270045,7 +270045,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-slide-domain/BUCK",
       "reachable_from": [
@@ -270068,7 +270068,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-slide-domain/Cargo.toml",
       "reachable_from": [
@@ -270091,7 +270091,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-slide-domain/src/lib.rs",
       "reachable_from": [
@@ -270114,7 +270114,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-storage-kernel/BUCK",
       "reachable_from": [
@@ -270137,7 +270137,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-storage-kernel/Cargo.toml",
       "reachable_from": [
@@ -270160,7 +270160,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-storage-kernel/src/lib.rs",
       "reachable_from": [
@@ -270183,7 +270183,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-tenant-domain/BUCK",
       "reachable_from": [
@@ -270206,7 +270206,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-tenant-domain/Cargo.toml",
       "reachable_from": [
@@ -270229,7 +270229,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "03e2a25e8312f580eef4288a4a943117b19a377e",
       "owner": null,
       "path": "oya/office/oya-office-tenant-domain/src/lib.rs",
       "reachable_from": [
