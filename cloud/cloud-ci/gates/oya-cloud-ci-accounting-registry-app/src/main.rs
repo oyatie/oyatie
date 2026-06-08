@@ -23,6 +23,7 @@ use oya_cloud_ci_accounting_registry_app::{
     to_canonical_json, CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow,
     GateInputs, Policy, ProducerError, RepoInputs,
 };
+use oya_check_brand_residue::forbidden_vocab::{census_findings, is_path_carved_out, CensusDocument};
 use serde_json::{json, Value};
 
 fn main() {
@@ -107,11 +108,15 @@ fn run() -> Result<(), CliError> {
     // the automation matrix is derived from the enforcement-inventory face.
     let staleness_input = build_staleness_input(&repo_root, &registry)?;
     let automation_matrix = build_automation_matrix(&enforcement);
+    // The fifth gate (cloud-ci-brand-residue) scans the raw tracked corpus for the forbidden
+    // vocab stems and freezes the per-(stem,file) residue as the shrink-only-ratchet baseline.
+    let brand_residue = collect_brand_residue(&repo_root, &inputs.tracked_paths);
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
         automation_ratchet: &automation_matrix,
         staleness: &staleness_input,
+        brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&gate_inputs)?;
 
@@ -226,6 +231,40 @@ fn build_automation_matrix(enforcement: &Value) -> Value {
         }));
     }
     json!({ "rows": matrix_rows })
+}
+
+/// Build the cloud-ci-brand-residue gate's `code -> keys` (the forbidden-vocab shrink-only
+/// ratchet). Scans the raw tracked corpus (NOT a generated face) for the four forbidden stems
+/// and freezes ONE key per `(stem, file)` so the firewall blocks any NEW occurrence while the
+/// historical residue ages out. Carve-outs (the deny-list source, the catalog spec, the
+/// Palantir proper-noun prose, the append-only audit chain, the `_legacy-foundry/` archive,
+/// and the generated faces) are DATA in `oya_check_brand_residue::forbidden_vocab`, applied
+/// here so wholly-carved files are never even read.
+///
+/// Deterministic + churn-free: per-file keys are stable under in-file edits (line numbers
+/// never enter the key), so editing prose in an already-listed file stays GREEN; only fully
+/// cleaning a file shrinks the set.
+fn collect_brand_residue(
+    repo_root: &Path,
+    tracked_paths: &[String],
+) -> BTreeMap<String, BTreeSet<String>> {
+    // Read each non-carved-out tracked file once; non-UTF-8 (binary) files read as empty and
+    // contribute nothing (the stems are ASCII text tokens).
+    let contents: Vec<(String, String)> = tracked_paths
+        .iter()
+        .filter(|path| !is_path_carved_out(path))
+        .map(|path| (path.clone(), read_text(&repo_root.join(path))))
+        .collect();
+    let documents = contents.iter().map(|(path, body)| CensusDocument {
+        path: path.as_str(),
+        contents: body.as_str(),
+    });
+
+    let mut grouped: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for finding in census_findings(documents) {
+        grouped.entry(finding.code).or_default().insert(finding.key);
+    }
+    grouped
 }
 
 /// HEAD commit time in epoch seconds (the deterministic "now" for aging the corpus).
