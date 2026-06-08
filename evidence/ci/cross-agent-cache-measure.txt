@@ -1,5 +1,0 @@
-# Cross-agent shared-cache measurement — 2026-05-25T15:57:24Z
-# job oya-ci-cache-measure #1 — Finished: SUCCESS; crate oya-http-runtime-hyper-adapter (hyper/tokio/tower)
-COLD agent rust-build-8cfn8: 38 cache misses, 0 hits, wall_seconds=6 (populated SeaweedFS)
-WARM agent rust-build-rtk5g (distinct pod): 38 cache HITS, 100.00% hit rate, wall_seconds=3
-=> shared substrate compiled once, reused across lane agents (spec headline claim, MEASURED).
