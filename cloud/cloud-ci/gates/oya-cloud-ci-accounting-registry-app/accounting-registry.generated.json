@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17581,
-    "source_inputs_digest": "fnv1a64:e5a7724ed5929b7b"
+    "source_inputs_digest": "fnv1a64:276175ab0edceb7e"
   },
   "rows": [
     {
@@ -13599,7 +13599,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a3fd02057f8f17c475f90fdba89c035f11914320",
+      "last_touch_commit": "7fb2e01c91d79136a1d807343001b4ad6f5f1ce9",
       "owner": null,
       "path": "Cargo.toml",
       "reachable_from": [
@@ -119475,7 +119475,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "6be42bf923ef63a3b29dd052a59b95fb2b0ad44b",
+      "last_touch_commit": "7fb2e01c91d79136a1d807343001b4ad6f5f1ce9",
       "owner": null,
       "path": "libs/oya-check-brand-residue/src/forbidden_vocab.rs",
       "reachable_from": [
@@ -124098,7 +124098,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "7fb2e01c91d79136a1d807343001b4ad6f5f1ce9",
       "owner": null,
       "path": "libs/oya-ci-config/BUCK",
       "reachable_from": [
@@ -124121,7 +124121,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "7fb2e01c91d79136a1d807343001b4ad6f5f1ce9",
       "owner": null,
       "path": "libs/oya-ci-config/Cargo.toml",
       "reachable_from": [
@@ -124144,7 +124144,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "7fb2e01c91d79136a1d807343001b4ad6f5f1ce9",
       "owner": null,
       "path": "libs/oya-ci-config/src/bundled/gate-disposition.json",
       "reachable_from": [
@@ -124167,7 +124167,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "7fb2e01c91d79136a1d807343001b4ad6f5f1ce9",
       "owner": null,
       "path": "libs/oya-ci-config/src/bundled/ttl-policy.json",
       "reachable_from": [
@@ -124190,7 +124190,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "7fb2e01c91d79136a1d807343001b4ad6f5f1ce9",
       "owner": null,
       "path": "libs/oya-ci-config/src/bundled/unit-class-policy.json",
       "reachable_from": [
@@ -124213,7 +124213,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "7fb2e01c91d79136a1d807343001b4ad6f5f1ce9",
       "owner": null,
       "path": "libs/oya-ci-config/src/lib.rs",
       "reachable_from": [
