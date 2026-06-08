@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17565,
-    "source_inputs_digest": "fnv1a64:bff46897db4e63c8"
+    "source_inputs_digest": "fnv1a64:2466235b611d45b7"
   },
   "rows": [
     {
@@ -687,7 +687,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3ba9254f4b3866e8c7abf1ecb12a603b3085e7fd",
+      "last_touch_commit": "438a895b1605404289df827ade07a473a6c9c5ee",
       "owner": null,
       "path": ".github/workflows/backbone-microservices-ci.yml",
       "reachable_from": [],
@@ -708,7 +708,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3ba9254f4b3866e8c7abf1ecb12a603b3085e7fd",
+      "last_touch_commit": "438a895b1605404289df827ade07a473a6c9c5ee",
       "owner": null,
       "path": ".github/workflows/docs-graph-drift.yml",
       "reachable_from": [],
@@ -373843,7 +373843,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "d84c05950eec681971e2d3e475db7776ae21d296",
+      "last_touch_commit": "438a895b1605404289df827ade07a473a6c9c5ee",
       "owner": null,
       "path": "tools/hooks/injection-content-scanner.sh",
       "reachable_from": [],
@@ -373864,7 +373864,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "451987f243dc1b6ad8a330f3895586720fcf4775",
+      "last_touch_commit": "438a895b1605404289df827ade07a473a6c9c5ee",
       "owner": null,
       "path": "tools/hooks/no-cargo-enforcer.sh",
       "reachable_from": [],
