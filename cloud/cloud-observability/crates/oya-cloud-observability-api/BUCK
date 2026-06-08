@@ -8,6 +8,6 @@ rust_library(
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//oya/audit-chain/crates/oya-audit-chain-domain:oya-audit-chain-domain",
-        "//oya/observability/crates/oya-cloud-observability-domain:oya-cloud-observability-domain",
+        "//cloud/cloud-observability/crates/oya-cloud-observability-domain:oya-cloud-observability-domain",
     ],
 )
