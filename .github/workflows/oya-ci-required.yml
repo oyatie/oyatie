@@ -10,21 +10,20 @@
 # gate lane is green. Branch protection keys on that one context name. Do NOT register the
 # 6 gates individually (rejected by the oya-pr-review HTTP-501 multi-producer-deadlock lesson).
 #
-# ░░ INERT / PRE-WORK ░░
-# This workflow is DELIBERATELY inert: its ONLY trigger is `workflow_dispatch`. It does NOT
-# run on push or pull_request yet. Going live is a founder-paired step (FIREWALL-GO-LIVE-
-# RUNBOOK Part 2 "three founder-paired GitHub-admin doors"): at go-live the founder ADDS the
-# blocking triggers (pull_request + merge_group) AND makes `oya-ci-required` the required
-# context on `dev` branch protection. Until then this file is present + ready but gates nothing.
-# DO NOT add push/pull_request/merge_group triggers here without the paired branch-protection
-# change, or the gate goes RED-on-arrival or, worse, a false-green.
+# ░░ LIVE ░░
+# Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
+# triggers below are paired with making `oya-ci-required` the required status context on `dev`
+# branch protection (FIREWALL-GO-LIVE-RUNBOOK Part 2). This is the SINGLE canonical required CI
+# check — green IFF every constituent gate lane is green. workflow_dispatch retained for manual
+# re-runs / verification.
 
 name: oya-ci-required
 
-# INERT: manual dispatch ONLY. The blocking triggers (pull_request: [dev], merge_group) are
-# added by the founder at go-live, paired with the branch-protection required-context flip.
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [dev]
+  merge_group:
 
 permissions:
   contents: read
