@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:0ad7405174ca4a0c",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:ced3df27b7ed2ba5"
+    "source_inputs_digest": "fnv1a64:5c1cf98ab62bbdcf"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -6323,6 +6323,10 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/tests/bnf_layer_suffix.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/BUCK",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/Cargo.toml",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/src/lib.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/tests/cargo_prefix.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs",
@@ -23328,6 +23332,10 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/tests/bnf_layer_suffix.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/BUCK",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/Cargo.toml",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/src/lib.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/tests/cargo_prefix.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs",
