@@ -8,12 +8,12 @@ purpose: |
   Enforce a `last_verified:` date on every runbook under `docs/runbooks/**/*.md`
   with severity-aware staleness thresholds: >90 days = advisory, >180 days = HIGH,
   >365 days = BLOCKER. Auto-generate a refresh-PR template when a threshold is
-  crossed. Extends the existing `oya-foundry-runbook-freshness-kernel`.
+  crossed. Extends the existing `oya-governance-runbook-freshness-kernel`.
 lift_target: oyatie/docs/automation/runbook-freshness-pipeline.md
 enforced_by: oya-governance-runbook-freshness
 extends_crates:
-  - oya-foundry-runbook-freshness-kernel
-  - oya-foundry-runbook-index-kernel
+  - oya-governance-runbook-freshness-kernel
+  - oya-governance-runbook-index-kernel
 companion_docs:
   - INDEX.md
   - doc-freshness-discipline.md
@@ -24,7 +24,7 @@ companion_docs:
 
 ## 1. Purpose
 
-The extant `oya-foundry-runbook-freshness-kernel` already validates `last_verified:` per severity (Sev-1 ≤ 90d, Sev-2 ≤ 180d, Sev-3/4 ≤ 365d). This pipeline adds:
+The extant `oya-governance-runbook-freshness-kernel` already validates `last_verified:` per severity (Sev-1 ≤ 90d, Sev-2 ≤ 180d, Sev-3/4 ≤ 365d). This pipeline adds:
 
 1. A graduated severity ladder (advisory → HIGH → BLOCKER) so operations are not silently broken at the cliff.
 2. Auto-generation of a refresh-PR template the moment any threshold is crossed.
@@ -33,7 +33,7 @@ The extant `oya-foundry-runbook-freshness-kernel` already validates `last_verifi
 ## 2. Inputs
 
 - Every `docs/runbooks/**/*.md` frontmatter: `last_verified: YYYY-MM-DD`, `severity_scope:` (Sev-1..Sev-4 or unscoped), `owner:`, `status:`, `next_review:`.
-- `docs/RUNBOOKS-INDEX.md` (validated by `oya-foundry-runbook-index-kernel`).
+- `docs/RUNBOOKS-INDEX.md` (validated by `oya-governance-runbook-index-kernel`).
 - Current date (CI build clock).
 
 ## 3. Outputs
@@ -89,6 +89,6 @@ The existing kernel's errors remain authoritative. New gate additions:
 
 ## 8. Out-of-scope
 
-- Runbook content quality (covered by `oya-foundry-runbook-index-kernel` discoverability checks).
+- Runbook content quality (covered by `oya-governance-runbook-index-kernel` discoverability checks).
 - Per-Sev playbook completeness (covered by `oya-governance-slo-coverage-kernel`).
 - Incident postmortem freshness (covered by `oya-governance-incident-template-completeness`).

@@ -834,7 +834,7 @@ grep -l "naming_justification\|naming-justification" docs/decisions/*.md | wc -l
 grep -lE "AWS|Stripe|Palantir|Google Cloud|Cloudflare|Amazon|Azure" docs/decisions/*.md | wc -l
 
 # §5.6 CI-lane mention
-grep -L "oya-foundry-fitness\|oya-check\|lean-a" docs/decisions/*.md
+grep -L "oya-governance-fitness\|oya-check\|lean-a" docs/decisions/*.md
 
 # §6.1 ADR-number gaps
 ls docs/decisions/ADR-*.md | sed -E 's/ADR-([0-9]+).*/\1/' | sort -u > /tmp/existing.txt

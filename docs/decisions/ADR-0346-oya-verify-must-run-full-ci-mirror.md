@@ -97,8 +97,8 @@ purpose: >
   + enhanced by this ADR). The doctrine is binding because PR #177
   on 2026-05-21 surfaced 7 CI failures (cargo-fmt + cargo-clippy +
   cargo-nextest + oya-vcs-admission + oya-governance-dependency-seam
-  + oya-foundry-fitness-aspirational-enforcement +
-  oya-foundry-fitness-honest-claims) that the current verify
+  + oya-governance-fitness-aspirational-enforcement +
+  oya-governance-fitness-honest-claims) that the current verify
   implementation — which dispatches only to `oya gate run-all` and
   does NOT call cargo fmt/check/clippy/nextest directly — missed
   entirely. Out of scope: actual Rust code changes to
@@ -117,7 +117,7 @@ Proposed on 2026-05-21.
 
 This ADR is the canonical local-verifier-completeness decision binding `./bin/oya verify --ci-required` to be a full mirror of the CI gate matrix that runs against every PR opened against `dev`. The current implementation (`crates/oya-dev-cli/src/commands/verify.rs` as of 2026-05-21) delegates to `oya gate run-all` and forwards arguments verbatim — but `oya gate run-all` does NOT invoke `cargo fmt --check`, does NOT invoke `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, and does NOT invoke `cargo nextest run --workspace`. The CI workflow at `.github/workflows/pr-tests.yml` invokes all three independently as separate required jobs. The gap between the local verifier and the CI matrix is the named pressure resolved by this ADR.
 
-The ADR is binding because the gap produced a measurable failure on 2026-05-21: PR #177 was pushed after a local `cargo check --workspace` returned exit-0; CI subsequently surfaced **7 distinct failures** in a single cycle — cargo-fmt, cargo-clippy, cargo-nextest, oya-vcs-admission, oya-governance-dependency-seam, oya-foundry-fitness-aspirational-enforcement, oya-foundry-fitness-honest-claims — none of which the local pre-push check exercised. The named-pressure analysis in §A below traces each surfaced CI failure to a specific verifier step that this ADR mandates.
+The ADR is binding because the gap produced a measurable failure on 2026-05-21: PR #177 was pushed after a local `cargo check --workspace` returned exit-0; CI subsequently surfaced **7 distinct failures** in a single cycle — cargo-fmt, cargo-clippy, cargo-nextest, oya-vcs-admission, oya-governance-dependency-seam, oya-governance-fitness-aspirational-enforcement, oya-governance-fitness-honest-claims — none of which the local pre-push check exercised. The named-pressure analysis in §A below traces each surfaced CI failure to a specific verifier step that this ADR mandates.
 
 It runs in coordination with the in-flight 2026-05-21 realignment effort: ADR-0345 (OSS stewardship class) is the immediately-prior sibling decision; the six-candidate batch ADR-0340..0345 closes the realignment-substance arc; this ADR adds a verifier-completeness clause that protects every prior + subsequent ADR's `enforced_by` lane assertions from silent local-side bypass. Without the full-mirror clause, an agent could author a new lane in an ADR, declare `enforced_by`, and then land a PR locally green via `oya verify` while CI later surfaces a different result — exactly the failure mode `feedback_no_silent_regression` and `feedback_repeat_mistake_prevention` are designed to prevent.
 
@@ -144,8 +144,8 @@ On 2026-05-21, PR #177 was pushed to `dev` after the author ran `cargo check --w
 3. **cargo-nextest** — `cargo nextest run --workspace --no-fail-fast` exit non-zero. The author did not run tests. `cargo check` validates compilation but not runtime assertions; the test-side API drift introduced by the PR was invisible to `cargo check`.
 4. **oya-vcs-admission** — the VCS admission gate refused content; the local pre-push hook did not run the gate because the local verifier path stopped at `oya gate run-all` without invoking the per-lane admission gate.
 5. **oya-governance-dependency-seam** — the dependency-seam governance gate refused a Cargo.toml topology change; the local verifier did not exercise the governance lane.
-6. **oya-foundry-fitness-aspirational-enforcement** — the aspirational-enforcement fitness lane refused content claiming enforcement without lane evidence; the local verifier did not run the fitness lane locally.
-7. **oya-foundry-fitness-honest-claims** — the honest-claims fitness lane refused a doc claiming enforcement without an enforced_by reference; the local verifier did not exercise the lane.
+6. **oya-governance-fitness-aspirational-enforcement** — the aspirational-enforcement fitness lane refused content claiming enforcement without lane evidence; the local verifier did not run the fitness lane locally.
+7. **oya-governance-fitness-honest-claims** — the honest-claims fitness lane refused a doc claiming enforcement without an enforced_by reference; the local verifier did not exercise the lane.
 
 The seven failures arrived in **one** CI cycle (post the 2026-05-15 surface-all-failures posture per `pr-tests.yml` lines 7-19), giving the author a single feedback loop to fix everything. But the time cost was non-trivial: the author had to wait for CI to discover what the local verifier should have surfaced before the push. Per `feedback_pre_push_full_ci_mirror_2026_05_21.md`, the rule learned was "before ANY push that lands corpus-wide changes (≥10 files modified or any merge resolution), run the FULL CI mirror locally + block on exit-0 of each step before pushing."
 
@@ -793,7 +793,7 @@ Per ADR-0247 self-hosting + self-modification. The verifier is a developer-side 
 
 ### G.10 Facet M1 — Meta: governance lane vocabulary (ADR-0345 §E.7 inheritance)
 
-Per ADR-0345's vocabulary hygiene clause (the `oya-governance-*` lane-name prefix). The five new lanes use `oya-governance-*` prefix exclusively; no `oya-foundry-fitness-*` lanes are introduced. ✓
+Per ADR-0345's vocabulary hygiene clause (the `oya-governance-*` lane-name prefix). The five new lanes use `oya-governance-*` prefix exclusively; no `oya-governance-fitness-*` lanes are introduced. ✓
 
 ### G.11 Facet M2 — Meta: ADR-shape compliance (line-floor + frontmatter)
 
@@ -904,7 +904,7 @@ rejected_alternatives_count: 5
 multispectrum_facets_covered: 13
 multispectrum_evidence_path: evidence/debate/ADR-0346/
 named_incident: PR #177 surfaced 7 CI failures on 2026-05-21
-named_incident_failures: [cargo-fmt, cargo-clippy, cargo-nextest, oya-vcs-admission, oya-governance-dependency-seam, oya-foundry-fitness-aspirational-enforcement, oya-foundry-fitness-honest-claims]
+named_incident_failures: [cargo-fmt, cargo-clippy, cargo-nextest, oya-vcs-admission, oya-governance-dependency-seam, oya-governance-fitness-aspirational-enforcement, oya-governance-fitness-honest-claims]
 canonical_primitives_alignment: true
 hyperscaler_precedent_named: [google-presubmit, microsoft-azure-pipelines-task-lib, meta-arc-presubmit, amazon-brazil-build, apple-xcodebuild-test, netflix-nebula-test]
 out_of_scope:

@@ -13,8 +13,8 @@ purpose: |
 lift_target: oyatie/docs/automation/schema-doc-pipeline.md
 enforced_by: oya-governance-data-class
 extends_crates:
-  - oya-foundry-data-class-fitness-kernel
-  - oya-foundry-glossary-coverage-kernel
+  - oya-governance-data-class-fitness-kernel
+  - oya-governance-glossary-coverage-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/PRIVACY-PROGRAM.md
@@ -25,7 +25,7 @@ companion_docs:
 
 ## 1. Purpose
 
-ADR-0008 (Data Use Boundary) defines five data classes: `PUBLIC`, `INTERNAL_ONLY`, `CUSTOMER_CONFIDENTIAL`, `PII_CUSTOMER`, `PII_REGULATED`. Today fields are annotated in source (visible in `oya-foundry-runbook-freshness-kernel/src/lib.rs`: `pub path: String, // data_class: INTERNAL_ONLY`). The existing `oya-foundry-data-class-fitness-kernel` validates coverage. This pipeline emits the catalogue doc that humans + agents consult.
+ADR-0008 (Data Use Boundary) defines five data classes: `PUBLIC`, `INTERNAL_ONLY`, `CUSTOMER_CONFIDENTIAL`, `PII_CUSTOMER`, `PII_REGULATED`. Today fields are annotated in source (visible in `oya-governance-runbook-freshness-kernel/src/lib.rs`: `pub path: String, // data_class: INTERNAL_ONLY`). The existing `oya-governance-data-class-fitness-kernel` validates coverage. This pipeline emits the catalogue doc that humans + agents consult.
 
 ## 2. Inputs
 
@@ -74,7 +74,7 @@ Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER 
 
 ## 7. Glossary integration
 
-Every data-class label is a glossary term; `oya-foundry-glossary-coverage-kernel` cross-validates that `docs/GLOSSARY.md` defines each class with link back to ADR-0008. See also `glossary-pipeline.md`.
+Every data-class label is a glossary term; `oya-governance-glossary-coverage-kernel` cross-validates that `docs/GLOSSARY.md` defines each class with link back to ADR-0008. See also `glossary-pipeline.md`.
 
 ## 8. Out-of-scope
 

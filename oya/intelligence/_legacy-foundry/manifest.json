@@ -45,8 +45,8 @@
       "description": "Bounded context 'foundry-guardrails' within foundry-guardrails (control plane)",
       "crates": [
         "oya-foundry-guardrails-ai-slop-detector-kernel",
-        "oya-foundry-guardrails-autonomy-ceiling-gate-adapter-cedar",
-        "oya-foundry-guardrails-autonomy-ceiling-gate-kernel",
+        "oya-governance-guardrails-autonomy-ceiling-gate-adapter-cedar",
+        "oya-governance-guardrails-autonomy-ceiling-gate-kernel",
         "oya-foundry-guardrails-content-safety-rule-engine-adapter-postgres",
         "oya-foundry-guardrails-content-safety-rule-engine-kernel",
         "oya-foundry-guardrails-jailbreak-detector-adapter-classifier-model",
@@ -802,7 +802,7 @@
     },
     {
       "id": "IP-006-autonomy-ceiling-gate-kernel-and-cedar-adapter",
-      "title": "IP-006: oya-foundry-guardrails-autonomy-ceiling-gate-kernel + adapter-cedar",
+      "title": "IP-006: oya-governance-guardrails-autonomy-ceiling-gate-kernel + adapter-cedar",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-066-guardrails-autonomy-ceiling-gate-kernel-and-cedar-adapter.md"
     },

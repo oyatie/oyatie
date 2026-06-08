@@ -13,7 +13,7 @@ lift_target: oyatie/docs/automation/rustdoc-pipeline.md
 enforced_by: oya-governance-rustdoc-publish
 extends_crates:
   - oya-intelligence-mdbook-kernel
-  - oya-foundry-readme-doc-coverage-kernel
+  - oya-governance-readme-doc-coverage-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/DOC-CATALOG.md
@@ -69,4 +69,4 @@ The PR comment posts a table with `<crate>: +N symbols, -M symbols, coverage Δ 
 
 - Private-item docs (workspace policy: rustdoc is the public surface).
 - Cross-language API reference (covered by `openapi-pipeline.md` for HTTP/gRPC).
-- Per-symbol example code execution (deferred to `cargo-doctest` lane in `oya-foundry-quality-lane-kernel`).
+- Per-symbol example code execution (deferred to `cargo-doctest` lane in `oya-governance-quality-lane-kernel`).

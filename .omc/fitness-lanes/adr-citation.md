@@ -2,7 +2,7 @@
 
 - purpose: Verify every architectural assertion in canonical docs cites an ADR by id.
 - enforces: STANDARD/adr-citation; AGENTS.md fitness-lane `oya-governance-adr-citation`.
-- kernel_crate: `oya-foundry-adr-citation-kernel` (EXISTING crate; extend with verdict struct) — `AssertionCitation { document_path, line, adr_id }`, verdict `AdrCitationFitnessReport { assertions_checked, adrs_resolved }`.
+- kernel_crate: `oya-governance-adr-citation-kernel` (EXISTING crate; extend with verdict struct) — `AssertionCitation { document_path, line, adr_id }`, verdict `AdrCitationFitnessReport { assertions_checked, adrs_resolved }`.
 - runner_path: `tools/oya-governance-adr-citation`
 - inputs: `docs/**/*.md`, `docs/decisions/ADR-*.md` index.
 - failure_modes:

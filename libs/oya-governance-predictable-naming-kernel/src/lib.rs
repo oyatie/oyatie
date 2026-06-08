@@ -478,7 +478,7 @@ mod tests {
         assert!(is_check_family("oya-check-x"));
         assert!(!is_check_family("oya-check-"));
         assert!(!is_check_family("oya-checker"));
-        assert!(!is_check_family("oya-foundry-check-x"));
+        assert!(!is_check_family("oya-governance-check-x"));
     }
 
     #[test]

@@ -51,7 +51,7 @@ Per `ralplan-ops-portal-2026-05-13.md` §3 (Option α — RECOMMENDED) + compani
 | `oya-ops-workspace-shell-*` (kernel/adapter/application/rest/runtime) | 5 | **Not in any Wave** — workspace-shell ≠ docs BC; closest fit is M02-P19 Application shell substrate |
 | `oya-ops-docs-portal-*` (kernel/adapter/application/rest; no runtime) | 4 | Wave 1 substrate (partial; rest layer's routes don't match Wave 1 surface set) |
 | `oya-http-{router,middleware,sse,runtime,tenant-mw,deadline-mw,telemetry-mw}-*` | 7 | Not in masterplan at all — masterplan inherits Bominal ADR-0209 (Leptos SSR), not custom hyper stack |
-| `oya-foundry-architecture-map-{kernel,app}` | 2 | Visualization-as-code directive substrate; not Wave 1 |
+| `oya-governance-architecture-map-{kernel,app}` | 2 | Visualization-as-code directive substrate; not Wave 1 |
 | `oya-check-{active-artifact-contract,cedar-fragment-coverage,openapi-rest-route-parity}` | 3 | Cross-cutting; cedar-fragment-coverage tangentially supports lean-a9 |
 | `contracts/ops-{workspace-shell,docs}.openapi.yaml` | 2 | Wave 1 docs sub-plan uses 13 Leptos pages, not OpenAPI 3.2; these are misaligned |
 | ADR-0090 hyper backbone | 1 | **Conflicts** with dep-seam-phaseout R5 consensus plan |

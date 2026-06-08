@@ -13,8 +13,8 @@ purpose: |
 lift_target: oyatie/docs/visualization/tech-stack.md
 enforced_by: oya-governance-tech-stack-map
 extends_crates:
-  - oya-foundry-license-policy-kernel
-  - oya-foundry-vendor-contract-recency-kernel
+  - oya-governance-license-policy-kernel
+  - oya-governance-vendor-contract-recency-kernel
   - oya-intelligence-architecture-map-kernel
 companion_docs:
   - INDEX.md
@@ -86,8 +86,8 @@ For each axis, an axis-scoped Mermaid view showing only the deps that axis consu
 1. **LTS conformance.** Every dep's `version_pinned` resolves to the current LTS major.minor per `lts-versions-verified-*.md` (BLOCKER absent ADR-tracked exception).
 2. **Adapter-boundary discipline.** Provider-specific deps (AWS, GCP, Azure, OCI, OpenAI, Anthropic, etc.) appear ONLY in `oya-*-adapter-<provider>-*` crates (BLOCKER per Directive 4).
 3. **Distroless conformance.** Every binary crate's Dockerfile inherits `gcr.io/distroless/static-debian12` or `gcr.io/distroless/cc-debian12` (BLOCKER per Directive 5).
-4. **License-policy compliance.** Every dep's license passes `oya-foundry-license-policy-kernel` (BLOCKER on prohibited license).
-5. **Vendor-contract recency.** For commercial vendors, `last_audit` ≤ 365 days (HIGH; via `oya-foundry-vendor-contract-recency-kernel`).
+4. **License-policy compliance.** Every dep's license passes `oya-governance-license-policy-kernel` (BLOCKER on prohibited license).
+5. **Vendor-contract recency.** For commercial vendors, `last_audit` ≤ 365 days (HIGH; via `oya-governance-vendor-contract-recency-kernel`).
 6. **Generated drift.** Committed tech-stack map differs from re-rendered (BLOCKER).
 
 ## 6. Per-dep doc cross-link

@@ -220,7 +220,7 @@ Foundry agents can author or update specific doc kinds — see `agent_authoring_
 - **`oya-foundry-rustdoc-fixer`** — proposes rustdoc fixes when CI flags missing or stale doc comments.
 - **`oya-foundry-runbook-extractor`** — distills runbooks from postmortems and on-call notes.
 - **`oya-foundry-translation-drafter`** — drafts per-pack translations of docs.
-- **`oya-foundry-adr-promoter`** — drafts ADR promotion PRs for Proposed → Accepted moves on `crew-adr-promotion` queue.
+- **`oya-governance-adr-promoter`** — drafts ADR promotion PRs for Proposed → Accepted moves on `crew-adr-promotion` queue.
 - **`oya-foundry-glossary-extractor`** — finds new domain terms in PRs and proposes [`GLOSSARY.md`](GLOSSARY.md) rows.
 
 Every agent-authored doc PR carries a `kind:agent-authored` label and goes through the human review per CLAUDE.md `## Code Review` rules.

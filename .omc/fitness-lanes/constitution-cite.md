@@ -1,8 +1,8 @@
 # Fitness Lane: constitution-cite
 
 - purpose: Verify every standard cites the constitutional principle it derives from.
-- enforces: STANDARD/constitution-derivation; existing crate `oya-foundry-constitution-cite-kernel` (EXISTING).
-- kernel_crate: `oya-foundry-constitution-cite-kernel` (EXISTING) — `StandardCite { standard_id, principle_id }`, verdict `ConstitutionCiteFitnessReport { citations_checked }`.
+- enforces: STANDARD/constitution-derivation; existing crate `oya-governance-constitution-cite-kernel` (EXISTING).
+- kernel_crate: `oya-governance-constitution-cite-kernel` (EXISTING) — `StandardCite { standard_id, principle_id }`, verdict `ConstitutionCiteFitnessReport { citations_checked }`.
 - runner_path: `tools/oya-governance-constitution-cite`
 - inputs: `docs/standards/**/*.md` front-matter `derives_from:`, constitution principle registry.
 - failure_modes:

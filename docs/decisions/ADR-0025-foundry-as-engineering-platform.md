@@ -36,9 +36,9 @@ crates/oya-foundry-*                 — agent runtime (capability, step, run, e
 crates/oya-foundry-catalog-{kernel,app,api} — catalog record + projection
 crates/oya-foundry-gate-{kernel,domain,app} — gate primitive + rule evaluation
 crates/oya-foundry-bypass-{kernel,app}      — foundation-bypass ledger + autonomy break-glass ledger
-crates/oya-foundry-lane-{kernel,app}        — CI lane primitive + per-PR routing
+crates/oya-governance-lane-{kernel,app}        — CI lane primitive + per-PR routing
 crates/oya-governance-*                — one crate per fitness function
-crates/oya-foundry-scorecard-{kernel,app}   — quality scorecard rollup
+crates/oya-governance-scorecard-{kernel,app}   — quality scorecard rollup
 crates/oya-foundry-supply-app               — Cosign + Trivy + SBOM
 crates/oya-foundry-plugin-substrate-app     — plugin sandbox + signing
 crates/oya-foundry-marketplace-app          — plugin + capability marketplace authoring

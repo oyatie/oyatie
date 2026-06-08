@@ -1200,10 +1200,10 @@ The following CI lanes are renamed/moved as part of the promotion:
 
 | Lane (current name) | Lane (post-promotion name) | Scope |
 |---|---|---|
-| `oya-foundry-fitness-cedar-coverage` | `oya-governance-cedar-coverage` | Portfolio-wide |
-| `oya-foundry-fitness-cedar-fragment-signature` | `oya-governance-cedar-fragment-signature` | Portfolio-wide |
-| `oya-foundry-fitness-cedar-default-deny-coverage` | `oya-governance-cedar-default-deny-coverage` | Portfolio-wide |
-| `oya-foundry-fitness-cedar-tenant-fragment-restriction` | `oya-governance-cedar-tenant-fragment-restriction` | Portfolio-wide |
+| `oya-governance-fitness-cedar-coverage` | `oya-governance-cedar-coverage` | Portfolio-wide |
+| `oya-governance-fitness-cedar-fragment-signature` | `oya-governance-cedar-fragment-signature` | Portfolio-wide |
+| `oya-governance-fitness-cedar-default-deny-coverage` | `oya-governance-cedar-default-deny-coverage` | Portfolio-wide |
+| `oya-governance-fitness-cedar-tenant-fragment-restriction` | `oya-governance-cedar-tenant-fragment-restriction` | Portfolio-wide |
 | (new) | `oya-governance-policy-engine-substrate-coherence` | `microservices/policy-engine/` |
 | (new) | `oya-governance-no-policy-in-code` | Portfolio-wide static-analysis lane (per ADR-0243 §D-1) |
 | (new — per ADR-0293) | `oya-check-meta-trust-root-attestation` | Verifies every trust-chain Cedar fragment (scope `baseline/` + `pack/` touching self-modification gates) carries an `attested_by_meta_trust_root: true` annotation backed by a valid meta-trust-root witness signature; BLOCKER post-meta-trust-root-ceremony |
@@ -1673,7 +1673,7 @@ under the `policy-engine` µservice:
 - [ ] `oya gate validate no-policy-in-code` reports zero in-code policy decisions in pilot µservice `microservices/tenancy/`.
 - [ ] Ontology PRD amendment per §D-9 is merged and `cedar-fragment-coverage` BC tombstone marker is in place.
 - [ ] `oya-ontology-agent-gateway-*` → `oya-ontology-tool-call-ingress-*` rename ChangeSet landed.
-- [ ] CI lane rename ChangeSet (`oya-foundry-fitness-cedar-*` → `oya-governance-cedar-*`) landed.
+- [ ] CI lane rename ChangeSet (`oya-governance-fitness-cedar-*` → `oya-governance-cedar-*`) landed.
 - [ ] DR drill against the paired DR cell completes within 5min RTO + 0s RPO.
 - [ ] Annual org root key rotation runbook drilled at least once before BLOCKER promotion.
 - [ ] cedar-policy-analyzer integration in CI passes for baseline fragment set.

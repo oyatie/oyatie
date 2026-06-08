@@ -141,7 +141,7 @@ Per-vertical surface set; each vertical's PRD §4.3 enumerates. Examples:
 | `foundry.mcp-server` | control | MCP | exposes every CLI subcommand as MCP tool per [TOOLCHAIN §4.A](TOOLCHAIN.md) | stable | `oya-foundry-mcp-server-app` |
 | `foundry.catalog.{record,validate,promote,supersede}` | control | REST + CLI | flat-crates target catalog per ADR-0015/0222 | stable | `oya-foundry-catalog-app` |
 | `foundry.gate.{claim-ceiling,foundation-bypass,plane-class}` | control | CI gate | mechanical pre-merge enforcement | stable | `oya-foundry-gate-{claim,bypass,plane}-*` |
-| `foundry.scorecard.publish` | analytics | REST | per Maturity Move #7 | stable | `oya-foundry-scorecard-app` |
+| `foundry.scorecard.publish` | analytics | REST | per Maturity Move #7 | stable | `oya-governance-scorecard-app` |
 | `foundry.fitness.run` | control | CI lane | per Maturity Move #8 + cross-axis cohesion check per Foundry-improvements top-20 #13 | stable | `oya-governance-*` |
 | `foundry.model.train` (long-horizon W-AI-Model-Substrate) | data | distributed | per-capability training; per-purpose data binding per Data Use Boundary | preview | `oya-foundry-model-train-app` |
 | `foundry.model.serve` | data | gRPC | in-house model inference per [DESIGN §3.0.1](DESIGN.md) | preview | `oya-foundry-model-serve-app` |

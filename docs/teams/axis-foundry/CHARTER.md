@@ -31,7 +31,7 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 - `oya-foundry-catalog-kernel` — `CatalogRecord`, `CrateTarget`, `PlaneDecloration`, `LaneClass`
 - `oya-foundry-gate-kernel` — `Gate`, `ClaimCeiling`, `Bypass`, `BypassExpiry`
 - `oya-governance-*` — all fitness-function crates (one per domain: tenant-shape, audit-emission, data-use-boundary, eventing-topic, architecture-boundaries, doc-catalog, product-prd, horizontal-scale, contract-orphan)
-- `oya-foundry-scorecard-*` — quality scorecard rollup surfaces
+- `oya-governance-scorecard-*` — quality scorecard rollup surfaces
 - `oya-tooling-cli-dev-runtime` — current `repoctl` compatibility binary; persona split planned under `crates/oya-tooling-cli-*` per ADR-0015/ROADMAP
 - `registry/catalog/` — live catalog path; any future relocation requires a catalog protocol update
 - Plane-gated CI lanes (every PR class is routed to the correct lane)

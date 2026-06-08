@@ -13,9 +13,9 @@ purpose: |
   never-stale; Working-Draft has 30-day budget.
 planned_enforcement_ref: oya-governance-doc-freshness
 extends_crates:
-  - oya-foundry-runbook-freshness-kernel
-  - oya-foundry-doc-catalog-kernel
-  - oya-foundry-documentation-system-kernel
+  - oya-governance-runbook-freshness-kernel
+  - oya-governance-doc-catalog-kernel
+  - oya-governance-documentation-system-kernel
 companion_docs:
   - INDEX.md
   - runbook-freshness-pipeline.md
@@ -29,7 +29,7 @@ doc_status: published
 
 ## 1. Purpose
 
-The `oya-foundry-runbook-freshness-kernel` proves the freshness pattern; this discipline extends it to every doc class. No Tier-1 / Tier-2 doc may rot silently. Per-doc-class budgets enforce a cadence; threshold crossings auto-generate refresh PRs; the lane fails merges that introduce stale-doc references.
+The `oya-governance-runbook-freshness-kernel` proves the freshness pattern; this discipline extends it to every doc class. No Tier-1 / Tier-2 doc may rot silently. Per-doc-class budgets enforce a cadence; threshold crossings auto-generate refresh PRs; the lane fails merges that introduce stale-doc references.
 
 ## 2. Doc-class taxonomy (per `docs/DOC-CATALOG.md` + `docs/standards/doc-style.md`)
 

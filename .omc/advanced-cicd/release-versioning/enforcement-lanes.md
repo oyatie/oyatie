@@ -45,7 +45,7 @@ post-release / nightly:
   - cherry-pick-trail           (HIGH; emits divergence report)
 ```
 
-All lanes run inside `oya-foundry-quality-lane-kernel` (existing) and emit
+All lanes run inside `oya-governance-quality-lane-kernel` (existing) and emit
 signed evidence rows to D14 per ADR-0050.
 
 ## 3. `oya-governance-semver-discipline` (NEW · BLOCKER)

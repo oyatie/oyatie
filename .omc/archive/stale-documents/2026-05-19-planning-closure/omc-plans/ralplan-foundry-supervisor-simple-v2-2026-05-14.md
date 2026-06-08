@@ -632,7 +632,7 @@ The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on
 | C.12 | **Capability seed file** `registry/capabilities/foundry-supervisor.toml` exists with exactly 3 `[[driver]]` blocks, each carrying a measured `autonomy_tier` filled by the conformance build.rs | rows 12, 13 |
 | C.13 | Bench harness produces 4 measured metrics: idle-tick p95 ≤ 25 tok, restart p95 ≤ 1.5s, RSS ≤ 64 MiB, watchdog kill ≤ 5.0s | row 14 |
 | C.14 | **Live smoke matrix green** — 3×CLI × 2×accounts × 2×providers = 12 combinations each process at least 1 message and commit at least 1 outbox line | row 15 |
-| C.15 | **Lean-a10 public-API snapshot stays byte-identical** for `oya-intelligence-route-policy-kernel`, `oya-intelligence-usage-window-kernel`, `oya-cloud-billing-kernel`, `oya-intelligence-account-domain`, `oya-foundry-autonomy-ceiling-{kernel,domain,app}`, `oya-foundry-capability-registry-{kernel,domain,app}` (no kernel touched) | row 16 |
+| C.15 | **Lean-a10 public-API snapshot stays byte-identical** for `oya-intelligence-route-policy-kernel`, `oya-intelligence-usage-window-kernel`, `oya-cloud-billing-kernel`, `oya-intelligence-account-domain`, `oya-governance-autonomy-ceiling-{kernel,domain,app}`, `oya-foundry-capability-registry-{kernel,domain,app}` (no kernel touched) | row 16 |
 | C.16 | Lean-a5 doc-coverage green for all 4 new crates | row 17 |
 | C.17 | Predictable-naming + banned-primitives lanes green for the 4 new crates | rows 18, 19 |
 | C.18 | **Net-new external dep count = 0** (Branch Y) — `cargo metadata` package count unchanged | row 20 |

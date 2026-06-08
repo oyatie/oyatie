@@ -8,11 +8,11 @@ date: 2026-05-12
 purpose: |
   Render every workspace crate, every cross-crate dependency, and every public
   API surface as a layered DAG (kernel → runtime → adapter → app). Source: Cargo
-  workspace metadata + `oya-foundry-cohesion-fitness-kernel` contract records +
+  workspace metadata + `oya-governance-cohesion-fitness-kernel` contract records +
   rustdoc link graph. Lift to `docs/visualization/service-map.md` as D2 + SVG.
 planned_enforcement_ref: oya-governance-service-map
 extends_crates:
-  - oya-foundry-cohesion-fitness-kernel
+  - oya-governance-cohesion-fitness-kernel
   - oya-intelligence-architecture-map-kernel
   - oya-foundry-catalog-kernel
 companion_docs:
@@ -36,13 +36,13 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 - Each crate's `Cargo.toml` `[package.metadata.oyatie]` block: `axis`, `layer ∈ {kernel, domain, usecase, app, adapter, infrastructure, cli, rest, grpc, graphql, worker, sdk, api}`, `role`.
 - Each crate's `Cargo.toml` `[dependencies]` and `[dev-dependencies]` keys (filtered to workspace-internal crates only — external deps live in `tech-stack-map-spec.md`).
 - The cross-crate link graph from `rustdoc-pipeline.md`.
-- The cross-axis contract records from `oya-foundry-cohesion-fitness-kernel`.
+- The cross-axis contract records from `oya-governance-cohesion-fitness-kernel`.
 
 ## 3. Layer convention
 
 | Layer | Role | Examples |
 |---|---|---|
-| `kernel` | Pure value-object; no I/O | `oya-foundry-cohesion-fitness-kernel`, `oya-foundry-runbook-freshness-kernel` |
+| `kernel` | Pure value-object; no I/O | `oya-governance-cohesion-fitness-kernel`, `oya-governance-runbook-freshness-kernel` |
 | `domain` | Business invariants and port traits | `oya-identity-domain` |
 | `usecase` | Application/use-case orchestration over domain ports | `oya-identity-usecase`, `oya-audit-chain-usecase` |
 | `app` | Deployable/composition root; composes usecases + adapters/surfaces; never imports another app | `oya-foundation-app`, `oya-cloud-billing-app` |

@@ -9,11 +9,11 @@ purpose: |
   that walks the Cargo workspace + `contracts/` + `docs/products/` and emits
   three renderings of the system architecture: Mermaid (inline mdbook), D2
   (richer service maps via terrastruct/d2), Graphviz (DAG fallback / SVG fidelity).
-  Same shape as the existing `oya-foundry-cohesion-fitness-kernel`.
+  Same shape as the existing `oya-governance-cohesion-fitness-kernel`.
 lift_target: oyatie/docs/automation/architecture-map-kernel-spec.md
 enforced_by: oya-governance-architecture-map-freshness
 extends_crates:
-  - oya-foundry-cohesion-fitness-kernel
+  - oya-governance-cohesion-fitness-kernel
   - oya-intelligence-mdbook-kernel
   - oya-foundry-catalog-kernel
 companion_docs:
@@ -26,9 +26,9 @@ companion_docs:
 
 ## 1. Purpose
 
-Directive 11 (visualization-as-code, Foundry-owned, auto-updated) is the architectural principle; this kernel is the executor. Same shape as `oya-foundry-cohesion-fitness-kernel`: pure value-object kernel, no I/O, deterministic transformation from inputs to outputs.
+Directive 11 (visualization-as-code, Foundry-owned, auto-updated) is the architectural principle; this kernel is the executor. Same shape as `oya-governance-cohesion-fitness-kernel`: pure value-object kernel, no I/O, deterministic transformation from inputs to outputs.
 
-## 2. Crate shape (mirroring `oya-foundry-cohesion-fitness-kernel`)
+## 2. Crate shape (mirroring `oya-governance-cohesion-fitness-kernel`)
 
 ```rust
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -121,7 +121,7 @@ Same `ArchitectureSource` → same output bytes. Ordering is canonicalized (BTre
 1. **Source-up-to-date.** Every workspace crate is represented; orphan crate (in workspace but not in source) → BLOCKER.
 2. **Render-up-to-date.** Committed `docs/site/src/visualization/architecture/*.md` matches re-rendered output (BLOCKER).
 3. **SVG presence.** Every rendered diagram has its CI-produced SVG sibling (HIGH).
-4. **Contract referential integrity.** Every cross-axis contract edge resolves to a contract in `contracts/` and a record in the catalog (BLOCKER; reuses `oya-foundry-cohesion-fitness-kernel`'s ImplementedSourceMissingCatalog rule).
+4. **Contract referential integrity.** Every cross-axis contract edge resolves to a contract in `contracts/` and a record in the catalog (BLOCKER; reuses `oya-governance-cohesion-fitness-kernel`'s ImplementedSourceMissingCatalog rule).
 5. **Cycle ban.** Any cycle in cross-axis contract graph → BLOCKER absent ADR-tracked exception.
 
 ## 8. Trigger matrix

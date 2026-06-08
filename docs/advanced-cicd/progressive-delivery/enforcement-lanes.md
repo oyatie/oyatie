@@ -30,7 +30,7 @@ doc_status: published
 
 ## 2. Lane wiring
 
-Lanes run in the `pre-merge` and `pre-release` phases of `oya-foundry-quality-lane-kernel` (existing). Per [ADR-0050](../../../docs/decisions/ADR-0050-automation-first-pipeline.md), lane runs are evidence-emitting and signed.
+Lanes run in the `pre-merge` and `pre-release` phases of `oya-governance-quality-lane-kernel` (existing). Per [ADR-0050](../../../docs/decisions/ADR-0050-automation-first-pipeline.md), lane runs are evidence-emitting and signed.
 
 ```
 pre-merge:
@@ -116,7 +116,7 @@ HIGH severity for high-risk surfaces; advisory elsewhere.
 
 ## 9. Lane evolution
 
-New lanes are pre-registered in `oya-foundry-quality-lane-kernel` and turned on in two phases:
+New lanes are pre-registered in `oya-governance-quality-lane-kernel` and turned on in two phases:
 1. **Phase A (audit-only).** Lane runs and emits findings, but does not block PRs/releases. 30-d soak.
 2. **Phase B (enforcement).** Lane blocks per its declared severity.
 

@@ -30,7 +30,7 @@ Per MASTERPLAN §2 Directive 11. Hand-drawn diagrams age out of sync; the sustai
 4 agents.
 
 ## Symbols-touched
-`crates/oya-foundry-architecture-map-{kernel,app}-*`, `crates/oya-governance-architecture-map-freshness-kernel`, `docs/site/architecture/`.
+`crates/oya-governance-architecture-map-{kernel,app}-*`, `crates/oya-governance-architecture-map-freshness-kernel`, `docs/site/architecture/`.
 
 ## Agent-handoff
 ```

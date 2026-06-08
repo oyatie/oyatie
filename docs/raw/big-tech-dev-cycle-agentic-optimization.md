@@ -397,7 +397,7 @@ Cross-referenced against Claude Code backup analysis Appendix A + Delivery Fabri
 | Cohort-controller (per-provider concurrency reshape) | This report § 3, 4.3 | `crates/oya-foundry-cohort-app` |
 | Incident-grader / auto-postmortem agent | This report § 4.7 | `crates/oya-foundry-incident-grader` |
 | Release-captain pipeline | Delivery Fabric PRD § 8 | `crates/oya-foundry-release-app` |
-| Rust affected-graph CI lane planner | Delivery Fabric PRD § 5 | `crates/oya-foundry-lane-planner` |
+| Rust affected-graph CI lane planner | Delivery Fabric PRD § 5 | `crates/oya-governance-lane-planner` |
 
 ### 6.3 The triple alignment
 

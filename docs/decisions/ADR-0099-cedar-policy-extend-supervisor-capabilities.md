@@ -222,7 +222,7 @@ as the Cedar runtime expands to cover more surfaces.
   exists. If Wave 4b is delayed, the supervisor ships without Cedar enforcement for these
   capabilities — which is a BLOCKER per ADR-0022.
 - Cedar namespace syntax (`foundry::supervisor`) requires the Cedar SDK version in use to
-  support namespace declarations. Verify against `oya-foundry-autonomy-ceiling-app` Cedar
+  support namespace declarations. Verify against `oya-governance-autonomy-ceiling-app` Cedar
   SDK dep before Wave 4b authoring.
 
 ### Follow-up dependency
@@ -236,7 +236,7 @@ enforcement gate. Task #12 tracks this.
    content specified in §Decision above.
 2. **Cedar SDK version check** — Confirm namespace syntax compatibility with the Cedar SDK
    version pinned in `Cargo.toml` before Wave 4b authoring.
-3. **Integration test** — `oya-foundry-autonomy-ceiling-app` must include a test asserting
+3. **Integration test** — `oya-governance-autonomy-ceiling-app` must include a test asserting
    that `inject_message` at T2 is denied and at T3 is permitted, using the supervisor
    Cedar policy file loaded from `docs/policies/`.
 4. **audit-chain emission** — Each Cedar enforcement call for supervisor capabilities must

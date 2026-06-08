@@ -12,8 +12,8 @@ purpose: |
 lift_target: oyatie/docs/automation/adr-index-pipeline.md
 enforced_by: oya-governance-adr-index
 extends_crates:
-  - oya-foundry-adr-index-kernel
-  - oya-foundry-adr-citation-kernel
+  - oya-governance-adr-index-kernel
+  - oya-governance-adr-citation-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/ADR-INDEX.md
@@ -23,7 +23,7 @@ companion_docs:
 
 ## 1. Purpose
 
-The ADR pack at `docs/decisions/**/*.md` is the source of truth for every architectural decision. The single-file `docs/ADR-INDEX.md` is a derived view. Today the index is hand-maintained; the lane already runs `oya-foundry-adr-index-kernel` validation, but generation is the next step. This pipeline closes the loop: the ADR-INDEX is emitted from frontmatter; manual edits are rejected.
+The ADR pack at `docs/decisions/**/*.md` is the source of truth for every architectural decision. The single-file `docs/ADR-INDEX.md` is a derived view. Today the index is hand-maintained; the lane already runs `oya-governance-adr-index-kernel` validation, but generation is the next step. This pipeline closes the loop: the ADR-INDEX is emitted from frontmatter; manual edits are rejected.
 
 ## 2. Inputs
 
@@ -67,7 +67,7 @@ tags:
 2. **Frontmatter completeness.** Every ADR has all required fields; missing field → BLOCKER with file path.
 3. **Status-transition validity.** Allowed transitions: `Proposed → Accepted`, `Proposed → Rejected`, `Accepted → Superseded`, `Accepted → Deprecated`. Any other transition → HIGH (requires ADR-amendment).
 4. **Supersession graph closure.** Every `supersedes:` target exists; every `superseded_by:` target exists and references this id back; cycles forbidden.
-5. **Owner-team existence.** Every owner id resolves to a `docs/teams/<id>/CHARTER.md` (cross-validated via `oya-foundry-raci-team-coverage-kernel`).
+5. **Owner-team existence.** Every owner id resolves to a `docs/teams/<id>/CHARTER.md` (cross-validated via `oya-governance-raci-team-coverage-kernel`).
 6. **ID density.** No gaps > 5 in the id sequence (signals a lost ADR or shadow-numbering).
 
 ## 6. Manual-edit lockout
@@ -88,6 +88,6 @@ Solid edges = `supersedes`; dashed edges = `superseded_by` (informational). The 
 
 ## 8. Out-of-scope
 
-- ADR body content validation (handled by `oya-foundry-adr-citation-kernel`).
+- ADR body content validation (handled by `oya-governance-adr-citation-kernel`).
 - ADR-to-code-citation enforcement (handled by a separate governance lane).
 - Cross-ADR consistency review (human council; tracked in `docs/CONTRADICTION-LEDGER.md`).

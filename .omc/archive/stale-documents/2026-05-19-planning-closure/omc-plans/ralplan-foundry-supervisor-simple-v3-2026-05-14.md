@@ -611,7 +611,7 @@ The lean-a10 lane runs **only on the owner phase (P06)**. lean-a5-doc-coverage r
 | **C.13c — diff #9** | Bench harness writes JSONL row `{"metric":"rss_max_kib","value":<n>}` (sampled from `/proc/self/status` `VmRSS`) with `value ≤ 65536` (64 MiB) | row 14 |
 | **C.13d — diff #9** | Bench harness writes JSONL row `{"metric":"watchdog_kill_p95_ms","value":<n>,"p":95}` with `value ≤ 5000` | row 14 |
 | C.14 | **Live smoke matrix green** — 12 combinations each process ≥1 message, commit ≥1 outbox line | row 15 |
-| C.15 | **Lean-a10 public-API snapshot byte-identical** for `oya-intelligence-route-policy-kernel`, `oya-intelligence-usage-window-kernel`, `oya-cloud-billing-kernel`, `oya-intelligence-account-domain`, `oya-foundry-autonomy-ceiling-{kernel,domain,app}`, `oya-foundry-capability-registry-{kernel,domain,app}` | row 16 |
+| C.15 | **Lean-a10 public-API snapshot byte-identical** for `oya-intelligence-route-policy-kernel`, `oya-intelligence-usage-window-kernel`, `oya-cloud-billing-kernel`, `oya-intelligence-account-domain`, `oya-governance-autonomy-ceiling-{kernel,domain,app}`, `oya-foundry-capability-registry-{kernel,domain,app}` | row 16 |
 | C.16 | Lean-a5 doc-coverage green for all 4 new crates | row 17 |
 | C.17 | Predictable-naming + banned-primitives lanes green for the 4 new crates | rows 18, 19 |
 | C.18 | **Net-new external dep count = 0** (Branch Y) | row 20 |

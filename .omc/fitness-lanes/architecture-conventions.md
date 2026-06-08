@@ -39,12 +39,12 @@ crate), packaged with a thin `[[bin]]` runner under
 | Ergonomics on `Cargo.toml` parsing | brittle (TOML edge cases) | first-class (`toml` crate) |
 | Cross-platform CI parity | bash + `grep -P` differs Linux/macOS | identical |
 | Integration with existing foundry lanes | bolt-on | first-class (`oya-governance-*` corpus) |
-| Reuses existing workspace primitives | none | reuses `oya-foundry-cargo-prefix-kernel`, `oya-foundry-catalog-kernel` |
+| Reuses existing workspace primitives | none | reuses `oya-governance-cargo-prefix-kernel`, `oya-foundry-catalog-kernel` |
 
 The kernel is **<400 LOC** (parser + classifier + edge-walker) and lands
 faster than a `bash` reimplementation once cross-platform CI is in
 scope. It also reuses the existing foundry fitness-lane corpus, the
-TOML parsing wheels that `oya-foundry-cargo-prefix-kernel` already
+TOML parsing wheels that `oya-governance-cargo-prefix-kernel` already
 spins up, and the workspace evidence emission. The shell alternative
 would re-implement TOML parsing as regex against `name = "..."` which is
 exactly the brittle layer the standard's authority needs to retire.

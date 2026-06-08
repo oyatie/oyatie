@@ -12,7 +12,7 @@ purpose: |
 lift_target: oyatie/docs/automation/changelog-pipeline.md
 enforced_by: oya-governance-changelog-row
 extends_crates:
-  - oya-foundry-doc-catalog-kernel
+  - oya-governance-doc-catalog-kernel
 companion_docs:
   - INDEX.md
   - ../../docs/CHANGELOG.md

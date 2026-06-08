@@ -6,8 +6,8 @@ doc_status: published
 
 - status: Accepted
 - date: 2026-05-12
-- enforces: STANDARD/claim-ceiling; existing crate `oya-foundry-claim-ceiling-kernel` (EXISTING).
-- kernel_crate: `oya-foundry-claim-ceiling-kernel` (EXISTING) — `ClaimSnapshot { agent_id, active_claims }`, verdict `ClaimCeilingFitnessReport { agents_checked }`.
+- enforces: STANDARD/claim-ceiling; existing crate `oya-governance-claim-ceiling-kernel` (EXISTING).
+- kernel_crate: `oya-governance-claim-ceiling-kernel` (EXISTING) — `ClaimSnapshot { agent_id, active_claims }`, verdict `ClaimCeilingFitnessReport { agents_checked }`.
 - runner_path: `tools/oya-governance-claim-ceiling`
 - failure_modes:
   - agent holds claims above ceiling

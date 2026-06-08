@@ -1,16 +1,16 @@
 ---
-title: "oya-foundry-fitness-* → oya-governance-* Transition Report"
+title: "oya-governance-fitness-* → oya-governance-* Transition Report"
 date: 2026-05-21
 status: completed
 authority: CLAUDE.md new_governance_lane_prefix directive + ADR-0132
 classification_artifact: docs/architecture/transition-classification-2026-05-21.json
 ---
 
-# oya-foundry-fitness-* → oya-governance-* Transition Report
+# oya-governance-fitness-* → oya-governance-* Transition Report
 
 ## §1 Scope
 
-Total files with `oya-foundry-fitness-` text at scan time: **637**
+Total files with `oya-governance-fitness-` text at scan time: **637**
 
 Breakdown by directory:
 
@@ -27,7 +27,7 @@ Breakdown by directory:
 The directive to rename comes from `CLAUDE.md` field:
 
 ```
-new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP
+new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP
 ```
 
 ADR-0132 (`docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`) establishes `oya-governance-no-grouping` as the canonical CI lane name using the new prefix, confirming `oya-governance-*` as the forward prefix for all governance lanes.
@@ -50,7 +50,7 @@ ADR-0132 (`docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`) 
 
 ## §3 Files in Category A — Renamed (571 files)
 
-All 571 files had every occurrence of `oya-foundry-fitness-` replaced with `oya-governance-` using per-file `sed -i`.
+All 571 files had every occurrence of `oya-governance-fitness-` replaced with `oya-governance-` using per-file `sed -i`.
 
 ### §3.1 Docs (360 files)
 
@@ -414,7 +414,7 @@ docs/TOOLCHAIN.md
 
 ### §3.2 Microservices (181 files)
 
-All files under `microservices/` containing `oya-foundry-fitness-` references were renamed. These are ARCHITECTURE.md, compliance.md, manifest.json, policy/*.cedar, policy/*.md, runbooks/*.md, IP-*.md, slos/*.yaml, and similar per-microservice flat-layout files per ADR-0131.
+All files under `microservices/` containing `oya-governance-fitness-` references were renamed. These are ARCHITECTURE.md, compliance.md, manifest.json, policy/*.cedar, policy/*.md, runbooks/*.md, IP-*.md, slos/*.yaml, and similar per-microservice flat-layout files per ADR-0131.
 
 ### §3.3 Specs (28 files — Category A/D combined)
 
@@ -466,7 +466,7 @@ packs/cn-pipl/README.md
 
 These files describe past state. Renaming them would rewrite history. A §Note was appended to each:
 
-> "References to `oya-foundry-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive."
+> "References to `oya-governance-fitness-*` in this historical document are intentional — they describe past state. New work uses `oya-governance-*` per the 2026-05-21 transition directive."
 
 Files tombstoned:
 
@@ -483,11 +483,11 @@ Files tombstoned:
 
 ## §5 Files in Category C — Flagged for Code Migration (28 crates, 57 files)
 
-These are **actual Rust crates** named `oya-foundry-fitness-*`. They were NOT renamed. Renaming them requires:
+These are **actual Rust crates** named `oya-governance-fitness-*`. They were NOT renamed. Renaming them requires:
 
 1. A separate code-migration ADR (to be filed by the owning team)
-2. `git mv crates/oya-foundry-fitness-<X>-kernel crates/oya-governance-<X>-kernel` per crate
-3. Update `name = "oya-foundry-fitness-<X>-kernel"` → `name = "oya-governance-<X>-kernel"` in each `Cargo.toml`
+2. `git mv crates/oya-governance-fitness-<X>-kernel crates/oya-governance-<X>-kernel` per crate
+3. Update `name = "oya-governance-fitness-<X>-kernel"` → `name = "oya-governance-<X>-kernel"` in each `Cargo.toml`
 4. Update `[workspace]` `members` array in root `Cargo.toml`
 5. Update all `oya_foundry_fitness_<X>_kernel` extern crate references (use declarations) in dependent crates
 6. Run `cargo check --workspace` after each batch to confirm zero errors
@@ -497,84 +497,84 @@ These are **actual Rust crates** named `oya-foundry-fitness-*`. They were NOT re
 
 | Old name | New name |
 |----------|----------|
-| `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` | `crates/oya-governance-adapter-with-no-importer-kernel` |
-| `crates/oya-foundry-fitness-adr-shape-kernel` | `crates/oya-governance-adr-shape-kernel` |
-| `crates/oya-foundry-fitness-agentic-navigability-kernel` | `crates/oya-governance-agentic-navigability-kernel` |
-| `crates/oya-foundry-fitness-architecture-map-freshness-kernel` | `crates/oya-governance-architecture-map-freshness-kernel` |
-| `crates/oya-foundry-fitness-authoritative-tracked-kernel` | `crates/oya-governance-authoritative-tracked-kernel` |
-| `crates/oya-foundry-fitness-banned-primitives-kernel` | `crates/oya-governance-banned-primitives-kernel` |
-| `crates/oya-foundry-fitness-bypass-kernel` | `crates/oya-governance-bypass-kernel` |
-| `crates/oya-foundry-fitness-claim-ceiling-kernel` | `crates/oya-governance-claim-ceiling-kernel` |
-| `crates/oya-foundry-fitness-cohesion-fitness-kernel` | `crates/oya-governance-cohesion-fitness-kernel` |
-| `crates/oya-foundry-fitness-doc-freshness-kernel` | `crates/oya-governance-doc-freshness-kernel` |
-| `crates/oya-foundry-fitness-doc-style-kernel` | `crates/oya-governance-doc-style-kernel` |
-| `crates/oya-foundry-fitness-image-discipline-kernel` | `crates/oya-governance-image-discipline-kernel` |
-| `crates/oya-foundry-fitness-license-policy-kernel` | `crates/oya-governance-license-policy-kernel` |
-| `crates/oya-foundry-fitness-lifecycle-kernel` | `crates/oya-governance-lifecycle-kernel` |
-| `crates/oya-foundry-fitness-mistakes-ledger-kernel` | `crates/oya-governance-mistakes-ledger-kernel` |
-| `crates/oya-foundry-fitness-orphan-detection-kernel` | `crates/oya-governance-orphan-detection-kernel` |
-| `crates/oya-foundry-fitness-portfolio-citation-kernel` | `crates/oya-governance-portfolio-citation-kernel` |
-| `crates/oya-foundry-fitness-pre-push-kernel` | `crates/oya-governance-pre-push-kernel` |
-| `crates/oya-foundry-fitness-predictable-naming-kernel` | `crates/oya-governance-predictable-naming-kernel` |
-| `crates/oya-foundry-fitness-provider-coupling-kernel` | `crates/oya-governance-provider-coupling-kernel` |
-| `crates/oya-foundry-fitness-purpose-kernel` | `crates/oya-governance-purpose-kernel` |
-| `crates/oya-foundry-fitness-quality-lane-kernel` | `crates/oya-governance-quality-lane-kernel` |
-| `crates/oya-foundry-fitness-sunset-lifecycle-kernel` | `crates/oya-governance-sunset-lifecycle-kernel` |
-| `crates/oya-foundry-fitness-supply-chain-kernel` | `crates/oya-governance-supply-chain-kernel` |
-| `crates/oya-foundry-fitness-tos-policy-kernel` | `crates/oya-governance-tos-policy-kernel` |
-| `crates/oya-foundry-fitness-upstream-api-drift-kernel` | `crates/oya-governance-upstream-api-drift-kernel` |
+| `crates/oya-governance-fitness-adapter-with-no-importer-kernel` | `crates/oya-governance-adapter-with-no-importer-kernel` |
+| `crates/oya-governance-fitness-adr-shape-kernel` | `crates/oya-governance-adr-shape-kernel` |
+| `crates/oya-governance-fitness-agentic-navigability-kernel` | `crates/oya-governance-agentic-navigability-kernel` |
+| `crates/oya-governance-fitness-architecture-map-freshness-kernel` | `crates/oya-governance-architecture-map-freshness-kernel` |
+| `crates/oya-governance-fitness-authoritative-tracked-kernel` | `crates/oya-governance-authoritative-tracked-kernel` |
+| `crates/oya-governance-fitness-banned-primitives-kernel` | `crates/oya-governance-banned-primitives-kernel` |
+| `crates/oya-governance-fitness-bypass-kernel` | `crates/oya-governance-bypass-kernel` |
+| `crates/oya-governance-fitness-claim-ceiling-kernel` | `crates/oya-governance-claim-ceiling-kernel` |
+| `crates/oya-governance-fitness-cohesion-fitness-kernel` | `crates/oya-governance-cohesion-fitness-kernel` |
+| `crates/oya-governance-fitness-doc-freshness-kernel` | `crates/oya-governance-doc-freshness-kernel` |
+| `crates/oya-governance-fitness-doc-style-kernel` | `crates/oya-governance-doc-style-kernel` |
+| `crates/oya-governance-fitness-image-discipline-kernel` | `crates/oya-governance-image-discipline-kernel` |
+| `crates/oya-governance-fitness-license-policy-kernel` | `crates/oya-governance-license-policy-kernel` |
+| `crates/oya-governance-fitness-lifecycle-kernel` | `crates/oya-governance-lifecycle-kernel` |
+| `crates/oya-governance-fitness-mistakes-ledger-kernel` | `crates/oya-governance-mistakes-ledger-kernel` |
+| `crates/oya-governance-fitness-orphan-detection-kernel` | `crates/oya-governance-orphan-detection-kernel` |
+| `crates/oya-governance-fitness-portfolio-citation-kernel` | `crates/oya-governance-portfolio-citation-kernel` |
+| `crates/oya-governance-fitness-pre-push-kernel` | `crates/oya-governance-pre-push-kernel` |
+| `crates/oya-governance-fitness-predictable-naming-kernel` | `crates/oya-governance-predictable-naming-kernel` |
+| `crates/oya-governance-fitness-provider-coupling-kernel` | `crates/oya-governance-provider-coupling-kernel` |
+| `crates/oya-governance-fitness-purpose-kernel` | `crates/oya-governance-purpose-kernel` |
+| `crates/oya-governance-fitness-quality-lane-kernel` | `crates/oya-governance-quality-lane-kernel` |
+| `crates/oya-governance-fitness-sunset-lifecycle-kernel` | `crates/oya-governance-sunset-lifecycle-kernel` |
+| `crates/oya-governance-fitness-supply-chain-kernel` | `crates/oya-governance-supply-chain-kernel` |
+| `crates/oya-governance-fitness-tos-policy-kernel` | `crates/oya-governance-tos-policy-kernel` |
+| `crates/oya-governance-fitness-upstream-api-drift-kernel` | `crates/oya-governance-upstream-api-drift-kernel` |
 
 ### Per-crate migration plan (apply in dependency order):
 
 **Phase 1 — leaf kernels with no inbound dependencies from other fitness kernels:**
-- `oya-foundry-fitness-adr-shape-kernel`
-- `oya-foundry-fitness-doc-style-kernel`
-- `oya-foundry-fitness-image-discipline-kernel`
-- `oya-foundry-fitness-license-policy-kernel`
-- `oya-foundry-fitness-orphan-detection-kernel`
-- `oya-foundry-fitness-upstream-api-drift-kernel`
-- `oya-foundry-fitness-tos-policy-kernel`
-- `oya-foundry-fitness-agentic-navigability-kernel`
+- `oya-governance-fitness-adr-shape-kernel`
+- `oya-governance-fitness-doc-style-kernel`
+- `oya-governance-fitness-image-discipline-kernel`
+- `oya-governance-fitness-license-policy-kernel`
+- `oya-governance-fitness-orphan-detection-kernel`
+- `oya-governance-fitness-upstream-api-drift-kernel`
+- `oya-governance-fitness-tos-policy-kernel`
+- `oya-governance-fitness-agentic-navigability-kernel`
 
 **Phase 2 — kernels that depend on Phase 1 or are independently groundable:**
-- `oya-foundry-fitness-doc-freshness-kernel`
-- `oya-foundry-fitness-architecture-map-freshness-kernel`
-- `oya-foundry-fitness-banned-primitives-kernel`
-- `oya-foundry-fitness-adapter-with-no-importer-kernel`
-- `oya-foundry-fitness-provider-coupling-kernel`
-- `oya-foundry-fitness-portfolio-citation-kernel`
-- `oya-foundry-fitness-authoritative-tracked-kernel`
-- `oya-foundry-fitness-purpose-kernel`
+- `oya-governance-fitness-doc-freshness-kernel`
+- `oya-governance-fitness-architecture-map-freshness-kernel`
+- `oya-governance-fitness-banned-primitives-kernel`
+- `oya-governance-fitness-adapter-with-no-importer-kernel`
+- `oya-governance-fitness-provider-coupling-kernel`
+- `oya-governance-fitness-portfolio-citation-kernel`
+- `oya-governance-fitness-authoritative-tracked-kernel`
+- `oya-governance-fitness-purpose-kernel`
 
 **Phase 3 — kernels that consume gate infrastructure:**
-- `oya-foundry-fitness-bypass-kernel`
-- `oya-foundry-fitness-claim-ceiling-kernel`
-- `oya-foundry-fitness-cohesion-fitness-kernel`
-- `oya-foundry-fitness-lifecycle-kernel`
-- `oya-foundry-fitness-sunset-lifecycle-kernel`
-- `oya-foundry-fitness-mistakes-ledger-kernel`
-- `oya-foundry-fitness-predictable-naming-kernel`
+- `oya-governance-fitness-bypass-kernel`
+- `oya-governance-fitness-claim-ceiling-kernel`
+- `oya-governance-fitness-cohesion-fitness-kernel`
+- `oya-governance-fitness-lifecycle-kernel`
+- `oya-governance-fitness-sunset-lifecycle-kernel`
+- `oya-governance-fitness-mistakes-ledger-kernel`
+- `oya-governance-fitness-predictable-naming-kernel`
 
 **Phase 4 — pipeline kernels:**
-- `oya-foundry-fitness-pre-push-kernel`
-- `oya-foundry-fitness-quality-lane-kernel`
-- `oya-foundry-fitness-supply-chain-kernel`
+- `oya-governance-fitness-pre-push-kernel`
+- `oya-governance-fitness-quality-lane-kernel`
+- `oya-governance-fitness-supply-chain-kernel`
 
 After each phase: `cargo check --workspace` must exit 0 before proceeding.
 
 ### Additional dependent crates that reference fitness kernels and will need updates:
 
-The following Category E crates (operational code) reference `oya-foundry-fitness-*` crate names in their source and will need corresponding updates after the crate rename:
+The following Category E crates (operational code) reference `oya-governance-fitness-*` crate names in their source and will need corresponding updates after the crate rename:
 
 - `crates/oya-dev-cli/Cargo.toml` — depends on fitness kernels
 - `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs` — hardcoded crate name list
 - `crates/oya-check-pre-push/src/lib.rs` — hardcoded crate name list
-- `crates/oya-dev-cli/src/documentation_gates.rs` — references `oya-foundry-fitness-docs` lane string
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs` — prefix detection logic (requires updating the detection prefix from `oya-foundry-fitness-` to `oya-governance-` after all crates are renamed)
+- `crates/oya-dev-cli/src/documentation_gates.rs` — references `oya-governance-fitness-docs` lane string
+- `crates/oya-foundry-gate-catalog-domain/src/lib.rs` — prefix detection logic (requires updating the detection prefix from `oya-governance-fitness-` to `oya-governance-` after all crates are renamed)
 
 **Note:** `crates/oya-foundry-gate-catalog-domain/src/lib.rs` line 324 contains:
 ```rust
-if status == "active" && id.starts_with("oya-foundry-fitness-") {
+if status == "active" && id.starts_with("oya-governance-fitness-") {
 ```
 This prefix check must be updated to `"oya-governance-"` after crate migration completes. Until crate migration is complete, this check correctly gates against the old prefix.
 
@@ -582,12 +582,12 @@ This prefix check must be updated to `"oya-governance-"` after crate migration c
 
 ## §6 Specs in Category D — enforcement_lane_id Values Renamed
 
-Category D is a subset of Category A. The one spec file with `"enforcement_lane_id"` fields containing `oya-foundry-fitness-` values:
+Category D is a subset of Category A. The one spec file with `"enforcement_lane_id"` fields containing `oya-governance-fitness-` values:
 
 - `specs/master-plan-sequencing.json`
 
 Sample of renamed values (5 occurrences):
-- `"oya-foundry-fitness-banned-primitives"` → `"oya-governance-banned-primitives"` (×5)
+- `"oya-governance-fitness-banned-primitives"` → `"oya-governance-banned-primitives"` (×5)
 
 JSON validation result: **PASS** — `python3 -c "import json; json.load(open(...))"` exited 0.
 
@@ -597,35 +597,35 @@ All other specs with forward-looking lane references (`lane_ref`, `detection_lan
 
 ## §7 Files in Category E — Left Untouched (27 files)
 
-These files use `oya-foundry-fitness-` as **operational logic**, not as documentation. Renaming them now would break the build or CI gating logic before crate migration completes.
+These files use `oya-governance-fitness-` as **operational logic**, not as documentation. Renaming them now would break the build or CI gating logic before crate migration completes.
 
 | File | Reason |
 |------|--------|
 | `crates/oya-check-retired-vocabulary/src/lib.rs` | Tests embed retired terms as string fixtures to test the kernel. Self-validating — renaming breaks test semantics. |
 | `crates/oya-check-pre-push/src/lib.rs` | Hardcoded allowlist of fitness kernel crate names (lines 119–124). Must update after crate rename. |
-| `crates/oya-check-protection-context-match/src/lib.rs` | Uses `oya-foundry-fitness-` as a prefix token in branch-protection context matching logic (line 127, 183). Must update after crate rename. |
+| `crates/oya-check-protection-context-match/src/lib.rs` | Uses `oya-governance-fitness-` as a prefix token in branch-protection context matching logic (line 127, 183). Must update after crate rename. |
 | `crates/oya-dev-cli/Cargo.toml` | Workspace dependency declarations for fitness kernel crates. Must update after `git mv`. |
-| `crates/oya-dev-cli/src/aspirational_enforcement_gate.rs` | References `oya-foundry-fitness-predictable-naming-kernel` by name in ALLOWED_ROLES note. |
+| `crates/oya-dev-cli/src/aspirational_enforcement_gate.rs` | References `oya-governance-fitness-predictable-naming-kernel` by name in ALLOWED_ROLES note. |
 | `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs` | Hardcoded list of fitness kernel crate names for architecture-boundary gating. |
 | `crates/oya-dev-cli/src/commands/gate/mod.rs` | Lane id comments for retired-vocabulary, protection-context-match, pre-push, changeset lanes. |
 | `crates/oya-dev-cli/src/commands/lint.rs` | Lane reference in doc comment. |
 | `crates/oya-dev-cli/src/commands/submit.rs` | Lane reference in doc comment. |
-| `crates/oya-dev-cli/src/commands/verify.rs` | References `oya-foundry-fitness-purpose-audit-app` command string. |
-| `crates/oya-dev-cli/src/documentation_gates.rs` | Checks `documentation.contains("oya-foundry-fitness-docs")` — operational predicate. |
-| `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs` | `planned_enforced_by` validation — requires prefix `oya-foundry-fitness-`. |
-| `crates/oya-dev-cli/src/pre_push_contract_gate.rs` | Supply-chain workflow name `oya-foundry-fitness-supply-chain`. |
-| `crates/oya-dev-cli/src/protection_context_match_gate.rs` | Lane id comment `oya-foundry-fitness-protection-context-match`. |
+| `crates/oya-dev-cli/src/commands/verify.rs` | References `oya-governance-fitness-purpose-audit-app` command string. |
+| `crates/oya-dev-cli/src/documentation_gates.rs` | Checks `documentation.contains("oya-governance-fitness-docs")` — operational predicate. |
+| `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs` | `planned_enforced_by` validation — requires prefix `oya-governance-fitness-`. |
+| `crates/oya-dev-cli/src/pre_push_contract_gate.rs` | Supply-chain workflow name `oya-governance-fitness-supply-chain`. |
+| `crates/oya-dev-cli/src/protection_context_match_gate.rs` | Lane id comment `oya-governance-fitness-protection-context-match`. |
 | `crates/oya-dev-cli/src/retired_vocabulary_gate.rs` | Lane id comment. Intentionally excluded from corpus scans per its own exclude list. |
 | `crates/oya-dev-cli/tests/gate_cli.rs` | Integration test fixtures embedding fitness lane names for gate testing. |
-| `crates/oya-dev-cli/tests/lint_cli.rs` | Integration test using `oya-foundry-fitness-docs` lane string in fixture. |
-| `crates/oya-foundry-architecture-map-kernel/src/lib.rs` | Lane reference in doc comment. |
-| `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | **Critical**: `id.starts_with("oya-foundry-fitness-")` prefix detection on line 324, 157. Must update after all crate migration completes. |
+| `crates/oya-dev-cli/tests/lint_cli.rs` | Integration test using `oya-governance-fitness-docs` lane string in fixture. |
+| `crates/oya-governance-architecture-map-kernel/src/lib.rs` | Lane reference in doc comment. |
+| `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | **Critical**: `id.starts_with("oya-governance-fitness-")` prefix detection on line 324, 157. Must update after all crate migration completes. |
 
 ### E category risk note
 
-`crates/oya-foundry-gate-catalog-domain/src/lib.rs` contains a **runtime prefix check** (`id.starts_with("oya-foundry-fitness-")`). After crate migration is complete and all CI lane IDs have been renamed to `oya-governance-*`, this check MUST be updated to `oya-governance-*` in the same PR that renames the last fitness crate. Until then, it correctly gates against the old prefix and must not be changed.
+`crates/oya-foundry-gate-catalog-domain/src/lib.rs` contains a **runtime prefix check** (`id.starts_with("oya-governance-fitness-")`). After crate migration is complete and all CI lane IDs have been renamed to `oya-governance-*`, this check MUST be updated to `oya-governance-*` in the same PR that renames the last fitness crate. Until then, it correctly gates against the old prefix and must not be changed.
 
-Similarly, `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs` validates that `planned_enforced_by` names an `oya-foundry-fitness-*` lane. After crate migration, this validation must be updated to accept `oya-governance-*`.
+Similarly, `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs` validates that `planned_enforced_by` names an `oya-governance-fitness-*` lane. After crate migration, this validation must be updated to accept `oya-governance-*`.
 
 ---
 
@@ -649,7 +649,7 @@ Result: **0 failures** across 28 spec files.
 
 ### Spot-check of 10 random Category A docs
 
-All 10 showed `old_hits=0` (no remaining `oya-foundry-fitness-`) and `new_hits > 0` (confirming the rename applied), with line counts preserved:
+All 10 showed `old_hits=0` (no remaining `oya-governance-fitness-`) and `new_hits > 0` (confirming the rename applied), with line counts preserved:
 
 | File | old_hits | new_hits |
 |------|----------|----------|
@@ -668,12 +668,12 @@ All 10 showed `old_hits=0` (no remaining `oya-foundry-fitness-`) and `new_hits >
 
 All checked Category E files showed 0 `oya-governance-` hits introduced by this operation. Pre-existing `oya-governance-*` hits in `gate_cli.rs` (3 occurrences) are from previously-landed `oya-governance-protection-context-match` references — confirmed pre-existing, not introduced by this transition.
 
-### Zero remaining oya-foundry-fitness- in Category A files
+### Zero remaining oya-governance-fitness- in Category A files
 
 ```
-Category A docs with remaining oya-foundry-fitness-:        0
-Category A microservices with remaining oya-foundry-fitness-:        0
-Category A specs with remaining oya-foundry-fitness-:        0
+Category A docs with remaining oya-governance-fitness-:        0
+Category A microservices with remaining oya-governance-fitness-:        0
+Category A specs with remaining oya-governance-fitness-:        0
 ```
 
 ---
@@ -682,7 +682,7 @@ Category A specs with remaining oya-foundry-fitness-:        0
 
 ### Required before the transition is fully complete
 
-1. **File a Code-Migration ADR** for the 28 `oya-foundry-fitness-*` crates. The ADR must:
+1. **File a Code-Migration ADR** for the 28 `oya-governance-fitness-*` crates. The ADR must:
    - Cite this transition report as evidence
    - Specify the migration order (§5 Phase 1–4 plan)
    - Declare the `cargo check --workspace` gate as the completion criterion
@@ -690,7 +690,7 @@ Category A specs with remaining oya-foundry-fitness-:        0
 
 2. **Per-crate migration** (28 crates, in Phase 1–4 order):
    ```
-   git mv crates/oya-foundry-fitness-<X>-kernel crates/oya-governance-<X>-kernel
+   git mv crates/oya-governance-fitness-<X>-kernel crates/oya-governance-<X>-kernel
    # Edit Cargo.toml: name field
    # Edit root Cargo.toml: workspace members
    # Edit all dependent Cargo.toml: dependency name
@@ -699,24 +699,24 @@ Category A specs with remaining oya-foundry-fitness-:        0
    ```
 
 3. **Update Category E operational code** after each Phase completes:
-   - `crates/oya-foundry-gate-catalog-domain/src/lib.rs` lines 157, 324: update prefix check from `"oya-foundry-fitness-"` to `"oya-governance-"` once all fitness crates are renamed
+   - `crates/oya-foundry-gate-catalog-domain/src/lib.rs` lines 157, 324: update prefix check from `"oya-governance-fitness-"` to `"oya-governance-"` once all fitness crates are renamed
    - `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs`: update `planned_enforced_by` validation prefix
-   - `crates/oya-dev-cli/src/pre_push_contract_gate.rs`: update supply-chain workflow name from `oya-foundry-fitness-supply-chain` to `oya-governance-supply-chain` (requires renaming the `.github/workflows/oya-foundry-fitness-supply-chain.yml` file too)
-   - `crates/oya-dev-cli/src/documentation_gates.rs`: update `oya-foundry-fitness-docs` lane string
+   - `crates/oya-dev-cli/src/pre_push_contract_gate.rs`: update supply-chain workflow name from `oya-governance-fitness-supply-chain` to `oya-governance-supply-chain` (requires renaming the `.github/workflows/oya-governance-fitness-supply-chain.yml` file too)
+   - `crates/oya-dev-cli/src/documentation_gates.rs`: update `oya-governance-fitness-docs` lane string
    - `crates/oya-check-pre-push/src/lib.rs`: update hardcoded crate name allowlist
    - `crates/oya-check-protection-context-match/src/lib.rs`: update prefix token
    - Test fixture strings in `crates/oya-dev-cli/tests/gate_cli.rs` and `tests/lint_cli.rs` — update to reflect new lane names in test scenarios
 
-4. **`.github/workflows/` files** — check for workflow files named `oya-foundry-fitness-*.yml` and rename them with a corresponding `.github/workflows/` `git mv`. The supply-chain workflow (`oya-foundry-fitness-supply-chain.yml`) is referenced by kernel source code (§7 above) and must be renamed in the same PR as the source update.
+4. **`.github/workflows/` files** — check for workflow files named `oya-governance-fitness-*.yml` and rename them with a corresponding `.github/workflows/` `git mv`. The supply-chain workflow (`oya-governance-fitness-supply-chain.yml`) is referenced by kernel source code (§7 above) and must be renamed in the same PR as the source update.
 
-5. **`registry/vocabulary/retired.yaml`** — add `oya-foundry-fitness-` as a retired vocabulary term pointing to `oya-governance-` as the canonical replacement. This will cause the `oya-governance-retired-vocabulary` CI lane to enforce the rename going forward and reject any future drift back to the old prefix.
+5. **`registry/vocabulary/retired.yaml`** — add `oya-governance-fitness-` as a retired vocabulary term pointing to `oya-governance-` as the canonical replacement. This will cause the `oya-governance-retired-vocabulary` CI lane to enforce the rename going forward and reject any future drift back to the old prefix.
 
-6. **CLAUDE.md update** — once crate migration is complete, remove the parenthetical `(per ADR-0132); existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP` caveat from the `new_governance_lane_prefix` field, leaving only `oya-governance-*`.
+6. **CLAUDE.md update** — once crate migration is complete, remove the parenthetical `(per ADR-0132); existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP` caveat from the `new_governance_lane_prefix` field, leaving only `oya-governance-*`.
 
 ### What is safe to ignore
 
 - The `oya-governance-protection-context-match` pre-existing occurrences in `crates/oya-dev-cli/tests/gate_cli.rs` — these already use the new prefix correctly.
-- Historical ledger files (`docs/CHANGELOG.md`, `docs/MISTAKES-LEDGER.md`, etc.) — their `oya-foundry-fitness-*` references are intentionally preserved and tombstoned per §4.
+- Historical ledger files (`docs/CHANGELOG.md`, `docs/MISTAKES-LEDGER.md`, etc.) — their `oya-governance-fitness-*` references are intentionally preserved and tombstoned per §4.
 
 ---
 
@@ -726,7 +726,7 @@ Category A specs with remaining oya-foundry-fitness-:        0
 
 ## §10 Full Microservices File List (Category A — 181 files)
 
-All 181 microservices files had `oya-foundry-fitness-` → `oya-governance-` applied in place:
+All 181 microservices files had `oya-governance-fitness-` → `oya-governance-` applied in place:
 
 ```
 microservices/analytics/catalog/contracts.json
@@ -920,31 +920,31 @@ Commands executed in sequence (2026-05-21):
 
 ```
 # Step 1: Enumerate
-grep -rl "oya-foundry-fitness-" /Users/jasonlee/oyatie/docs        → 366 files
-grep -rl "oya-foundry-fitness-" /Users/jasonlee/oyatie/microservices → 181 files
-grep -rl "oya-foundry-fitness-" /Users/jasonlee/oyatie/crates       → 60 files
-grep -rl "oya-foundry-fitness-" /Users/jasonlee/oyatie/specs        → 28 files
-grep -rl "oya-foundry-fitness-" /Users/jasonlee/oyatie/packs        → 2 files
-grep -rl "oya-foundry-fitness-" /Users/jasonlee/oyatie/registries   → 0 files
+grep -rl "oya-governance-fitness-" /Users/jasonlee/oyatie/docs        → 366 files
+grep -rl "oya-governance-fitness-" /Users/jasonlee/oyatie/microservices → 181 files
+grep -rl "oya-governance-fitness-" /Users/jasonlee/oyatie/crates       → 60 files
+grep -rl "oya-governance-fitness-" /Users/jasonlee/oyatie/specs        → 28 files
+grep -rl "oya-governance-fitness-" /Users/jasonlee/oyatie/packs        → 2 files
+grep -rl "oya-governance-fitness-" /Users/jasonlee/oyatie/registries   → 0 files
 Total: 637 files
 
 # Step 2: Classify
 # B: grep for CHANGELOG|MISTAKES-LEDGER|CONTRADICTION-LEDGER|ADR-CONSOLIDATION-PLAN|
 #    ADR-LEGACY-REGRESSION-MAPPING|LEDGER|retired/|superseded/ → 6 files
 # A: all docs minus B → 360 files
-# C: find crates -type d -name "oya-foundry-fitness-*" → 28 crate dirs, 57 files
+# C: find crates -type d -name "oya-governance-fitness-*" → 28 crate dirs, 57 files
 # E: manual inspection of crate source files → 27 files
 # A/D: all 28 specs (rename lane refs + enforcement_lane_id values)
 # A: 2 packs files
 
 # Step 3: Apply Category A renames (docs, microservices, specs, packs)
-while IFS= read -r f; do sed -i '' 's/oya-foundry-fitness-/oya-governance-/g' "$f"; done < /tmp/cat_A_docs.txt
+while IFS= read -r f; do sed -i '' 's/oya-governance-fitness-/oya-governance-/g' "$f"; done < /tmp/cat_A_docs.txt
 # → 360 docs renamed
-while IFS= read -r f; do sed -i '' 's/oya-foundry-fitness-/oya-governance-/g' "$f"; done < /tmp/files_microservices.txt
+while IFS= read -r f; do sed -i '' 's/oya-governance-fitness-/oya-governance-/g' "$f"; done < /tmp/files_microservices.txt
 # → 181 microservices files renamed
-while IFS= read -r f; do sed -i '' 's/oya-foundry-fitness-/oya-governance-/g' "$f"; done < /tmp/files_specs.txt
+while IFS= read -r f; do sed -i '' 's/oya-governance-fitness-/oya-governance-/g' "$f"; done < /tmp/files_specs.txt
 # → 28 specs renamed
-while IFS= read -r f; do sed -i '' 's/oya-foundry-fitness-/oya-governance-/g' "$f"; done < /tmp/files_packs.txt
+while IFS= read -r f; do sed -i '' 's/oya-governance-fitness-/oya-governance-/g' "$f"; done < /tmp/files_packs.txt
 # → 2 packs renamed
 # Total renamed: 571 files
 
@@ -955,11 +955,11 @@ while IFS= read -r f; do sed -i '' 's/oya-foundry-fitness-/oya-governance-/g' "$
 # JSON validation: 0 failures across 28 specs
 # cargo metadata --no-deps --format-version 1: PASS
 # Spot-check 10 random docs: old_hits=0 on all 10
-# Zero remaining oya-foundry-fitness- in Category A: confirmed
+# Zero remaining oya-governance-fitness- in Category A: confirmed
 # Category E crate files: 0 accidental renames
-# Crate Cargo.toml names unchanged: confirmed (oya-foundry-fitness-lifecycle-kernel,
-#   oya-foundry-fitness-banned-primitives-kernel, oya-foundry-fitness-bypass-kernel
-#   all retain original name = "oya-foundry-fitness-*" values)
+# Crate Cargo.toml names unchanged: confirmed (oya-governance-fitness-lifecycle-kernel,
+#   oya-governance-fitness-banned-primitives-kernel, oya-governance-fitness-bypass-kernel
+#   all retain original name = "oya-governance-fitness-*" values)
 ```
 
 ---
@@ -970,19 +970,19 @@ while IFS= read -r f; do sed -i '' 's/oya-foundry-fitness-/oya-governance-/g' "$
 
 The operational code in Category E has two layers of dependency:
 
-1. **Crate name strings** — `oya-foundry-fitness-claim-ceiling-kernel` etc. appear in `oya-check-pre-push/src/lib.rs` as a hardcoded allowlist of kernel crate names. If renamed before the crates themselves are renamed, the allowlist would reference non-existent crates and CI would fail.
+1. **Crate name strings** — `oya-governance-fitness-claim-ceiling-kernel` etc. appear in `oya-check-pre-push/src/lib.rs` as a hardcoded allowlist of kernel crate names. If renamed before the crates themselves are renamed, the allowlist would reference non-existent crates and CI would fail.
 
-2. **Prefix detection logic** — `oya-foundry-gate-catalog-domain/src/lib.rs` line 324 uses `id.starts_with("oya-foundry-fitness-")` as an active runtime gate. This correctly gates current lane IDs. Changing it before crates are renamed would break the gate for all currently-active lanes.
+2. **Prefix detection logic** — `oya-foundry-gate-catalog-domain/src/lib.rs` line 324 uses `id.starts_with("oya-governance-fitness-")` as an active runtime gate. This correctly gates current lane IDs. Changing it before crates are renamed would break the gate for all currently-active lanes.
 
 The correct sequencing is: crate rename (Category C) → update operational code (Category E). This sequencing is enforced by §9 remaining-work items 2 and 3.
 
 ### Why VENDOR-PARTNER-LEDGER.md is Category B
 
-`docs/VENDOR-PARTNER-LEDGER.md` is a ledger recording vendor/partner decisions at a point in time. Even though its content is sparse (draft v0.1), its `purpose` field is `"Oyatie — Vendor + Partner Ledger"` — a historical registry. Renaming `oya-foundry-fitness-*` references in it would silently alter the recorded vendor context that existed when those references were made. It receives a tombstone note instead.
+`docs/VENDOR-PARTNER-LEDGER.md` is a ledger recording vendor/partner decisions at a point in time. Even though its content is sparse (draft v0.1), its `purpose` field is `"Oyatie — Vendor + Partner Ledger"` — a historical registry. Renaming `oya-governance-fitness-*` references in it would silently alter the recorded vendor context that existed when those references were made. It receives a tombstone note instead.
 
 ### Why specs are Category A, not a separate category
 
-The task description calls out `"enforcement_lane_id"` field values as Category D. However, specs contain many other forward-looking lane references (`lane_ref`, `detection_lane`, `enforcement_lane`, `validation_lane_ref`, `planned_enforced_by`, etc.) — all describing the target future state of CI enforcement. These are equally forward-looking and equally benefit from the rename. Treating all spec lane references as Category A (with D as a structural note about the field name) produces a clean, complete result with zero remaining `oya-foundry-fitness-` hits in any spec file.
+The task description calls out `"enforcement_lane_id"` field values as Category D. However, specs contain many other forward-looking lane references (`lane_ref`, `detection_lane`, `enforcement_lane`, `validation_lane_ref`, `planned_enforced_by`, etc.) — all describing the target future state of CI enforcement. These are equally forward-looking and equally benefit from the rename. Treating all spec lane references as Category A (with D as a structural note about the field name) produces a clean, complete result with zero remaining `oya-governance-fitness-` hits in any spec file.
 
 ### Why `docs/plans/` files are Category A, not B
 

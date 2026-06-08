@@ -1,6 +1,6 @@
 ---
 id: ADR-0347
-title: Foundry-fitness to governance bulk rename (doctrine-only; all oya-foundry-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)
+title: Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)
 status: Proposed
 planning_impact: true
 date: 2026-05-21
@@ -19,8 +19,8 @@ owners:
 supersedes: []
 superseded_by: []
 amends:
-  - ADR-0132-no-grouping-policy-and-flat-microservice-layout.md (the new_governance_lane_prefix declaration from ADR-0132 is materialized corpus-wide; the prior CLAUDE.md sentence "existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP" is replaced by the bulk-rename approach in this ADR, which collapses 34 per-lane migration IPs into a single Wave 15-ZB executor PR)
-  - ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md (the retirement of the foundry microservice declared in ADR-0335 is reflected in CI lane terminology: continuing to use the `oya-foundry-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about which µservice / team owns the lane; this ADR removes the anachronism)
+  - ADR-0132-no-grouping-policy-and-flat-microservice-layout.md (the new_governance_lane_prefix declaration from ADR-0132 is materialized corpus-wide; the prior CLAUDE.md sentence "existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP" is replaced by the bulk-rename approach in this ADR, which collapses 34 per-lane migration IPs into a single Wave 15-ZB executor PR)
+  - ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md (the retirement of the foundry microservice declared in ADR-0335 is reflected in CI lane terminology: continuing to use the `oya-governance-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about which µservice / team owns the lane; this ADR removes the anachronism)
   - ADR-0136-amendment-foundry-as-hermes-internal-pipeline.md (the foundry-as-Hermes-internal-pipeline shape from ADR-0136 amendment is consistent with ADR-0335 retirement; this ADR carries the consistent terminology forward by aligning CI lane prefixes with the actual owning surface (governance) rather than the retired pipeline owner (foundry))
   - ADR-0245-substrate-vs-product-layering.md (the substrate-vs-product split applies cleanly to CI lanes: governance is the substrate concern; foundry-fitness was the legacy operator label; the rename clarifies that lane authority sits on the substrate axis owned by axis-governance + council-architecture, not on the retired foundry product surface)
   - ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md (the oya-governance-stewardship-class-vocabulary lane authored in ADR-0345 already uses the canonical `oya-governance-*` prefix; this ADR generalizes that prefix discipline corpus-wide so the governance prefix is the sole canonical lane prefix for governance-owned checks)
@@ -74,7 +74,7 @@ related_memory:
 companion_docs:
   - tools/hooks/_canonical-primitives.md
   - docs/standards/dependency-policy.md
-  - .omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json
+  - .omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json
 inbound_citations:
   - /Users/jasonlee/oyatie/CLAUDE.md (new_governance_lane_prefix line)
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0132-no-grouping-policy-and-flat-microservice-layout.md
@@ -86,20 +86,20 @@ line_floor: 600
 bespoke_authoring_requirement: documentation-rigor-1.1-plus-ADR-0322
 enforcement_status: advisory-until-wave-15-zb-bulk-rename-pr-lands
 enforced_by:
-  - oya-governance-no-foundry-fitness-residue (new lane; greps the corpus and refuses any non-historical reference to `oya-foundry-fitness-*`; historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config)
+  - oya-governance-no-foundry-fitness-residue (new lane; greps the corpus and refuses any non-historical reference to `oya-governance-fitness-*`; historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config)
   - oya-governance-lane-prefix-vocabulary (new lane; refuses new authoring that introduces a fitness-family lane under any prefix other than `oya-governance-*` or `oya-check-*`; the two canonical prefixes for governance-owned and check-family lanes respectively are exhaustive per ADR-0132)
-  - oya-governance-rename-inventory-presence (new lane; advisory until crate lands; planned to refuse corpus changes to .github/workflows/oya-foundry-fitness-*.yml + crates/oya-foundry-fitness-*/ + registry/catalog/oya-foundry-fitness-*.yaml + registry/quality/lanes.yaml lane records that do not also update the inventory file at the rename-inventory path under .omc/state/ with the corresponding target governance-* name)
+  - oya-governance-rename-inventory-presence (new lane; advisory until crate lands; planned to refuse corpus changes to .github/workflows/oya-governance-fitness-*.yml + crates/oya-governance-fitness-*/ + registry/catalog/oya-governance-fitness-*.yaml + registry/quality/lanes.yaml lane records that do not also update the inventory file at the rename-inventory path under .omc/state/ with the corresponding target governance-* name)
 purpose: >
-  Declare that every `oya-foundry-fitness-*` CI lane prefix in the Oyatie
+  Declare that every `oya-governance-fitness-*` CI lane prefix in the Oyatie
   corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request
   (Wave 15-ZB) rather than via 34 per-lane migration IPs as originally
   sequenced in CLAUDE.md `new_governance_lane_prefix`. The rename surface
   includes 10 active GitHub Actions workflow files at
-  .github/workflows/oya-foundry-fitness-*.yml plus their `name:` fields,
+  .github/workflows/oya-governance-fitness-*.yml plus their `name:` fields,
   ~40 lane records in registry/quality/lanes.yaml using
-  `oya-foundry-fitness-*` IDs, 28 catalog records at
-  registry/catalog/oya-foundry-fitness-*.yaml, ~51 Rust check-family
-  crates at crates/oya-foundry-fitness-*-* (kernel + api + domain +
+  `oya-governance-fitness-*` IDs, 28 catalog records at
+  registry/catalog/oya-governance-fitness-*.yaml, ~51 Rust check-family
+  crates at crates/oya-governance-fitness-*-* (kernel + api + domain +
   adapter layers, renamed via Cargo workspace member updates + git mv),
   ~41 ADR cross-citations under docs/decisions/, references in
   docs/standards/, references in .omc/state/, 14 sub-wave entries in
@@ -109,7 +109,7 @@ purpose: >
   manifest.json `fitness_lanes` arrays where any reference the old prefix.
   Foundry is RETIRED per ADR-0335 (absorbed by intelligence per the
   two-layer substrate doctrine in ADR-0255 + feedback_intelligence_two_layer_substrate);
-  continuing to author lanes under the `oya-foundry-fitness-*` prefix after
+  continuing to author lanes under the `oya-governance-fitness-*` prefix after
   foundry is retired creates an anachronistic ownership label that misleads
   readers about which µservice / team owns the lane. Governance is the
   actual owning team per ADR-0132 + axis-governance. The bulk rename
@@ -119,7 +119,7 @@ purpose: >
   + cross-reference updates are sequenced as Wave 15-ZB and authored
   in a separate PR under ADR-0328 batch discipline. The pre-rename
   inventory is published as machine-readable JSON at
-  .omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json
+  .omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json
   enumerating each of the 34 lane identifiers and their target
   `oya-governance-*` names so the executor PR has a deterministic
   diff target rather than a discovery-time enumeration. Three new CI
@@ -136,17 +136,17 @@ purpose: >
   feedback_bominal_inheritance_precedence).
 ---
 
-# ADR-0347: Foundry-fitness to governance bulk rename (doctrine-only; all oya-foundry-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)
+# ADR-0347: Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)
 
 ## Status
 
 Proposed on 2026-05-21.
 
-This ADR is the canonical bulk-rename doctrine decision binding every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus to its `oya-governance-*` successor under a single Wave 15-ZB executor pull request rather than via the 34 per-lane migration IPs originally sequenced in CLAUDE.md `new_governance_lane_prefix` ("existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP").
+This ADR is the canonical bulk-rename doctrine decision binding every `oya-governance-fitness-*` CI lane prefix in the Oyatie corpus to its `oya-governance-*` successor under a single Wave 15-ZB executor pull request rather than via the 34 per-lane migration IPs originally sequenced in CLAUDE.md `new_governance_lane_prefix` ("existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP").
 
 It runs in coordination with the in-flight 2026-05-21 realignment effort: ADR-0335 (foundry retired, absorbed by intelligence), ADR-0340 (capacity model), ADR-0341 (cellular promotion gates explicit per-tier), ADR-0342 (API versioning hybrid date + semver), ADR-0343 (DR + RTO/RPO matrix per microservice per compliance pack), ADR-0344 (sustainability + finops dimensional model), ADR-0345 (OSS stewardship class policy + CVE-response SLA), and ADR-0346 (product readiness checklist) are sibling decisions from the same 2026-05-21 realignment-wave authoring session. This ADR closes the rename-terminology backlog created by the conjunction of ADR-0132 (no-grouping policy + new_governance_lane_prefix declaration) and ADR-0335 (foundry retirement).
 
-It directly amends ADR-0132 (no-grouping policy + governance prefix) by replacing the per-lane migration-IP cadence with a single bulk-rename PR cadence; the new_governance_lane_prefix declaration in ADR-0132 is preserved verbatim, only the migration-velocity contract changes. It directly amends ADR-0335 (foundry retired, absorbed by intelligence) by aligning CI lane terminology with the retirement; continuing to author lanes under the `oya-foundry-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about ownership. It directly amends ADR-0136-amendment (foundry as Hermes-internal pipeline) by carrying the consistent terminology forward — the foundry pipeline is retired; the lanes formerly named for it are renamed to reflect the actual owning surface (governance) under axis-governance + council-architecture.
+It directly amends ADR-0132 (no-grouping policy + governance prefix) by replacing the per-lane migration-IP cadence with a single bulk-rename PR cadence; the new_governance_lane_prefix declaration in ADR-0132 is preserved verbatim, only the migration-velocity contract changes. It directly amends ADR-0335 (foundry retired, absorbed by intelligence) by aligning CI lane terminology with the retirement; continuing to author lanes under the `oya-governance-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about ownership. It directly amends ADR-0136-amendment (foundry as Hermes-internal pipeline) by carrying the consistent terminology forward — the foundry pipeline is retired; the lanes formerly named for it are renamed to reflect the actual owning surface (governance) under axis-governance + council-architecture.
 
 Enforcement transitions from `advisory-until-wave-15-zb-bulk-rename-pr-lands` to `BLOCKER` per the lane sequence in §E below: at landing of the Wave 15-ZB bulk-rename PR (the executor PR sequenced under ADR-0328 batch discipline), the three new lanes (`oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`) promote from REPORT-ONLY to BLOCKER 30 days post-Wave-15-ZB-completion for new authoring; the residue lane retains a path-allowlist for the two historical-context paragraphs inside ADR-0335 + ADR-0347 retirement narrative.
 
@@ -160,15 +160,15 @@ The decision does not delete any existing lane logic; the rename is name-only. T
 
 ### A.1 Named pressure: anachronistic ownership label after ADR-0335 foundry retirement
 
-ADR-0335 (foundry retired, absorbed by intelligence) retired the foundry microservice as a first-class deliverable in the Oyatie corpus. The foundry pipeline (the M-CC-P11 Oya VCS substrate per `feedback_foundry_pipeline_canonical`) is preserved as a substrate workflow but its naming has migrated: the substrate-level workflows that previously belonged to the foundry microservice are now owned by intelligence per the two-layer substrate doctrine in ADR-0255 + `feedback_intelligence_two_layer_substrate`. Within that retirement, the CI lane prefix `oya-foundry-fitness-*` continues to appear in 10 active GitHub Actions workflow files, ~51 Rust check-family crate directories, ~28 catalog records, ~40 lane records, ~41 ADR cross-citations, ~14 master-plan sub-wave entries, the canonical-primitives cheat sheet, branch-protection required-status-checks, docs/standards documents, and .omc/state state files.
+ADR-0335 (foundry retired, absorbed by intelligence) retired the foundry microservice as a first-class deliverable in the Oyatie corpus. The foundry pipeline (the M-CC-P11 Oya VCS substrate per `feedback_foundry_pipeline_canonical`) is preserved as a substrate workflow but its naming has migrated: the substrate-level workflows that previously belonged to the foundry microservice are now owned by intelligence per the two-layer substrate doctrine in ADR-0255 + `feedback_intelligence_two_layer_substrate`. Within that retirement, the CI lane prefix `oya-governance-fitness-*` continues to appear in 10 active GitHub Actions workflow files, ~51 Rust check-family crate directories, ~28 catalog records, ~40 lane records, ~41 ADR cross-citations, ~14 master-plan sub-wave entries, the canonical-primitives cheat sheet, branch-protection required-status-checks, docs/standards documents, and .omc/state state files.
 
-Each appearance of the prefix is anachronistic. A new contributor reading `.github/workflows/oya-foundry-fitness-cohesion.yml` reasonably assumes the lane belongs to a `foundry` microservice; the µservice does not exist. The contributor then has to read ADR-0335 to discover the retirement, then has to discover that the lane semantics are now governance-owned per ADR-0132's `new_governance_lane_prefix` declaration. The cognitive load is high and the error rate of mis-attributing lane ownership is meaningful — the multispectrum-review v2.4.0 evidence packs at `evidence/debate/ADR-0335/F2-architecture.md` already record one such mis-attribution where a reviewer attempted to escalate a lane question to the wrong axis. The anachronism cannot be left in place indefinitely.
+Each appearance of the prefix is anachronistic. A new contributor reading `.github/workflows/oya-governance-fitness-cohesion.yml` reasonably assumes the lane belongs to a `foundry` microservice; the µservice does not exist. The contributor then has to read ADR-0335 to discover the retirement, then has to discover that the lane semantics are now governance-owned per ADR-0132's `new_governance_lane_prefix` declaration. The cognitive load is high and the error rate of mis-attributing lane ownership is meaningful — the multispectrum-review v2.4.0 evidence packs at `evidence/debate/ADR-0335/F2-architecture.md` already record one such mis-attribution where a reviewer attempted to escalate a lane question to the wrong axis. The anachronism cannot be left in place indefinitely.
 
 ### A.2 Named pressure: per-lane migration IPs scale poorly
 
-The CLAUDE.md `new_governance_lane_prefix` line ("existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP") sequences the rename via 34 per-lane migration IPs — one IP per affected lane. Each migration IP, authored at the substance-bar floor of ~400+ bespoke lines per ADR-0322, would represent ~12,000+ lines of authoring + ~34 separate review-track PRs + ~34 separate multispectrum-review evidence packs. At the realignment-wave throughput rate (~3-5 IPs/day under the 11-agent dispatch ceiling per `feedback_dispatch_ceiling_claude_only_2026_05_20`), the per-lane sequence consumes ~7-12 days of dispatch capacity that could otherwise advance Wave 15J / Wave 15O / Wave 14 polish workstreams.
+The CLAUDE.md `new_governance_lane_prefix` line ("existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP") sequences the rename via 34 per-lane migration IPs — one IP per affected lane. Each migration IP, authored at the substance-bar floor of ~400+ bespoke lines per ADR-0322, would represent ~12,000+ lines of authoring + ~34 separate review-track PRs + ~34 separate multispectrum-review evidence packs. At the realignment-wave throughput rate (~3-5 IPs/day under the 11-agent dispatch ceiling per `feedback_dispatch_ceiling_claude_only_2026_05_20`), the per-lane sequence consumes ~7-12 days of dispatch capacity that could otherwise advance Wave 15J / Wave 15O / Wave 14 polish workstreams.
 
-The per-lane sequence also creates a long-window drift surface. Between IP-3 landing and IP-34 landing, the corpus mixes both `oya-foundry-fitness-*` and `oya-governance-*` prefixes simultaneously across the same workflow set. Reviewers reading PRs during that window must mentally translate the prefix per file. Reviewers authoring cross-references during that window must guess which prefix to cite. The mixed state is itself a drift accelerator per `feedback_drift_too_big_2026_05_20`. The bulk-rename pattern collapses the mixed-state window to ~hours (the duration of one PR landing).
+The per-lane sequence also creates a long-window drift surface. Between IP-3 landing and IP-34 landing, the corpus mixes both `oya-governance-fitness-*` and `oya-governance-*` prefixes simultaneously across the same workflow set. Reviewers reading PRs during that window must mentally translate the prefix per file. Reviewers authoring cross-references during that window must guess which prefix to cite. The mixed state is itself a drift accelerator per `feedback_drift_too_big_2026_05_20`. The bulk-rename pattern collapses the mixed-state window to ~hours (the duration of one PR landing).
 
 ### A.3 Named pressure: precedent — Wave 15A/15B/15C bulk renames already used the bulk pattern
 
@@ -182,7 +182,7 @@ The precedent is consistent: rename-shape work that affects 30+ surfaces with de
 
 ### A.4 Named pressure: deterministic 1:1 mapping makes bulk-rename safe
 
-The `oya-foundry-fitness-*` to `oya-governance-*` rename is a deterministic 1:1 string substitution per surface. There is no ambiguity in the target name for any source name; the substitution is `s/^oya-foundry-fitness-/oya-governance-/g` applied to lane identifiers and file paths. The substitution is reversible; the substitution is auditable via git diff; the substitution is testable by re-running every renamed lane after the rename PR lands and verifying the lane semantics are preserved.
+The `oya-governance-fitness-*` to `oya-governance-*` rename is a deterministic 1:1 string substitution per surface. There is no ambiguity in the target name for any source name; the substitution is `s/^oya-governance-fitness-/oya-governance-/g` applied to lane identifiers and file paths. The substitution is reversible; the substitution is auditable via git diff; the substitution is testable by re-running every renamed lane after the rename PR lands and verifying the lane semantics are preserved.
 
 The deterministic 1:1 shape distinguishes this rename from substrate-redefinition renames (e.g., ADR-0145 inter-microservice communication reform, where the workflow + ontology adapter layer was replaced with a different shape rather than renamed). Substrate-redefinition renames properly require per-substrate IPs because the redefinition surface differs per substrate; bulk pattern would not capture the substance. The fitness→governance rename is name-only; bulk pattern is the right tool.
 
@@ -194,7 +194,7 @@ The bulk-rename PR must update branch-protection in the same atomic landing. Per
 
 ### A.6 Named pressure: foundry pipeline canonical workflow vocabulary is consistent with the rename
 
-Per `feedback_foundry_pipeline_canonical`, the foundry pipeline is the canonical agentic workflow substrate. Per the 2026-05-16 update to that memory + ADR-0335 retirement, the canonical pipeline shape continues to live but is now owned by intelligence per the two-layer substrate doctrine; the "foundry-fitness" label specifically referred to the µservice-internal fitness lane set, not to the pipeline shape. The pipeline shape rename to "governance pipeline" or "intelligence pipeline" is a separate question explicitly OUT OF SCOPE here; this ADR renames only the CI lane prefix `oya-foundry-fitness-*` to `oya-governance-*`, which is the lane-identifier-scoped rename. The pipeline-shape vocabulary is governed by ADR-0335 + `feedback_intelligence_two_layer_substrate`; if a separate pipeline-shape rename is required, that is authored as a separate ADR.
+Per `feedback_foundry_pipeline_canonical`, the foundry pipeline is the canonical agentic workflow substrate. Per the 2026-05-16 update to that memory + ADR-0335 retirement, the canonical pipeline shape continues to live but is now owned by intelligence per the two-layer substrate doctrine; the "foundry-fitness" label specifically referred to the µservice-internal fitness lane set, not to the pipeline shape. The pipeline shape rename to "governance pipeline" or "intelligence pipeline" is a separate question explicitly OUT OF SCOPE here; this ADR renames only the CI lane prefix `oya-governance-fitness-*` to `oya-governance-*`, which is the lane-identifier-scoped rename. The pipeline-shape vocabulary is governed by ADR-0335 + `feedback_intelligence_two_layer_substrate`; if a separate pipeline-shape rename is required, that is authored as a separate ADR.
 
 ### A.7 Named pressure: governance prefix already in active use
 
@@ -207,7 +207,7 @@ The prefix is established. The rename is not introducing new terminology; it is 
 
 ### A.8 Anchors this ADR binds
 
-- Anchor 1: CLAUDE.md `new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP` — this ADR amends the velocity contract from per-lane IPs to bulk rename while preserving the canonical-prefix declaration.
+- Anchor 1: CLAUDE.md `new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP` — this ADR amends the velocity contract from per-lane IPs to bulk rename while preserving the canonical-prefix declaration.
 - Anchor 2: ADR-0132 (no-grouping policy + governance prefix) — declaration of the canonical governance prefix.
 - Anchor 3: ADR-0335 (foundry retired, absorbed by intelligence) — the retirement that makes the foundry-fitness prefix anachronistic.
 - Anchor 4: ADR-0136-amendment (foundry as Hermes-internal pipeline) — consistent with ADR-0335 retirement.
@@ -232,25 +232,25 @@ The prefix is established. The rename is not introducing new terminology; it is 
 - **A.9.4** Does not introduce any new check. The rename surface is the existing fitness lane set.
 - **A.9.5** Does not change branch-protection contract semantics; only the gate-name strings rename.
 - **A.9.6** Does not change Cargo workspace structure beyond the directory + package + workspace.dependencies renames.
-- **A.9.7** Does not retire the foundry pipeline substrate. The pipeline shape continues under intelligence ownership per ADR-0335 + `feedback_intelligence_two_layer_substrate`. Only the lane prefix `oya-foundry-fitness-*` renames.
+- **A.9.7** Does not retire the foundry pipeline substrate. The pipeline shape continues under intelligence ownership per ADR-0335 + `feedback_intelligence_two_layer_substrate`. Only the lane prefix `oya-governance-fitness-*` renames.
 - **A.9.8** Does not retire the `oya-check-*` prefix. The check-family prefix is the canonical prefix for check-family lanes per ADR-0132; this ADR does not modify it. `oya-check-*` and `oya-governance-*` are the two canonical lane prefixes, exhaustive for the lane set.
 - **A.9.9** Does not change the Bominal sibling corpus. Bominal authors its sibling rename ADR independently.
-- **A.9.10** Does not introduce a `oya-foundry-*` legacy-allowlist exception. The bulk rename is total; no `oya-foundry-fitness-*` remnants are permitted outside the historical-context paragraphs of ADR-0335 + this ADR.
+- **A.9.10** Does not introduce a `oya-foundry-*` legacy-allowlist exception. The bulk rename is total; no `oya-governance-fitness-*` remnants are permitted outside the historical-context paragraphs of ADR-0335 + this ADR.
 - **A.9.11** Does not modify the `oya-shared-*` or `oya-cloud-*` prefix doctrine; only the foundry-fitness → governance rename is in scope.
 
 ## Decision
 
 ### B.1 Decision statement
 
-Every `oya-foundry-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB) rather than via 34 per-lane migration IPs. The substitution is a deterministic 1:1 string substitution `s/^oya-foundry-fitness-/oya-governance-/g` applied per surface enumerated in §D below. The rename is name-only: lane invariants, lane checks, and lane semantics are preserved verbatim. Three new CI lanes enforce the rename outcome: `oya-governance-no-foundry-fitness-residue` (greps the corpus for non-historical references), `oya-governance-lane-prefix-vocabulary` (refuses new authoring outside the two canonical prefixes), `oya-governance-rename-inventory-presence` (refuses surface changes that skip inventory-file updates). The pre-rename inventory is published as machine-readable JSON at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` enumerating each of the 34 lane identifiers and their target governance names.
+Every `oya-governance-fitness-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB) rather than via 34 per-lane migration IPs. The substitution is a deterministic 1:1 string substitution `s/^oya-governance-fitness-/oya-governance-/g` applied per surface enumerated in §D below. The rename is name-only: lane invariants, lane checks, and lane semantics are preserved verbatim. Three new CI lanes enforce the rename outcome: `oya-governance-no-foundry-fitness-residue` (greps the corpus for non-historical references), `oya-governance-lane-prefix-vocabulary` (refuses new authoring outside the two canonical prefixes), `oya-governance-rename-inventory-presence` (refuses surface changes that skip inventory-file updates). The pre-rename inventory is published as machine-readable JSON at `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` enumerating each of the 34 lane identifiers and their target governance names.
 
 ### B.2 Numbered decision clauses
 
-B2.001. The rename substitution is `s/^oya-foundry-fitness-/oya-governance-/g` applied per surface enumerated in §D. Examples: `oya-foundry-fitness-cohesion` → `oya-governance-cohesion`; `oya-foundry-fitness-honest-claims` → `oya-governance-honest-claims`; `oya-foundry-fitness-supply-chain` → `oya-governance-supply-chain`.
+B2.001. The rename substitution is `s/^oya-governance-fitness-/oya-governance-/g` applied per surface enumerated in §D. Examples: `oya-governance-fitness-cohesion` → `oya-governance-cohesion`; `oya-governance-fitness-honest-claims` → `oya-governance-honest-claims`; `oya-governance-fitness-supply-chain` → `oya-governance-supply-chain`.
 
-B2.002. The rename surface includes (per §D enumeration): 10 GitHub Actions workflow files at `.github/workflows/oya-foundry-fitness-*.yml` plus their `name:` fields; ~40 lane records in `registry/quality/lanes.yaml`; 28 catalog records at `registry/catalog/oya-foundry-fitness-*.yaml`; ~51 Rust check-family crate directories at `crates/oya-foundry-fitness-*-*` plus Cargo.toml + workspace.dependencies updates; ~41 ADR cross-citations under `docs/decisions/`; references in `docs/standards/`; references in `.omc/state/`; 14 sub-wave entries in `specs/master-plan-sequencing.json`; canonical-primitives cheat sheet at `tools/hooks/_canonical-primitives.md`; branch-protection at `.github/branch-protection.yaml`; per-µservice manifest.json `fitness_lanes` arrays.
+B2.002. The rename surface includes (per §D enumeration): 10 GitHub Actions workflow files at `.github/workflows/oya-governance-fitness-*.yml` plus their `name:` fields; ~40 lane records in `registry/quality/lanes.yaml`; 28 catalog records at `registry/catalog/oya-governance-fitness-*.yaml`; ~51 Rust check-family crate directories at `crates/oya-governance-fitness-*-*` plus Cargo.toml + workspace.dependencies updates; ~41 ADR cross-citations under `docs/decisions/`; references in `docs/standards/`; references in `.omc/state/`; 14 sub-wave entries in `specs/master-plan-sequencing.json`; canonical-primitives cheat sheet at `tools/hooks/_canonical-primitives.md`; branch-protection at `.github/branch-protection.yaml`; per-µservice manifest.json `fitness_lanes` arrays.
 
-B2.003. The pre-rename inventory is published as machine-readable JSON at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` (authored under this ADR's required-artifact contract). The inventory enumerates each source→target mapping plus the affected file path set per mapping.
+B2.003. The pre-rename inventory is published as machine-readable JSON at `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` (authored under this ADR's required-artifact contract). The inventory enumerates each source→target mapping plus the affected file path set per mapping.
 
 B2.004. Wave 15-ZB is the single bulk-rename executor PR. It is sequenced under ADR-0328 batch discipline as a follow-on to this ADR's Acceptance.
 
@@ -260,11 +260,11 @@ B2.006. The three new CI lanes (`oya-governance-no-foundry-fitness-residue`, `oy
 
 B2.007. The three new lanes promote from REPORT-ONLY to BLOCKER 30 days post-Wave-15-ZB completion for new authoring.
 
-B2.008. The `oya-governance-no-foundry-fitness-residue` lane (E.1) greps the corpus for any non-historical reference to `oya-foundry-fitness-*` and refuses. Historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config.
+B2.008. The `oya-governance-no-foundry-fitness-residue` lane (E.1) greps the corpus for any non-historical reference to `oya-governance-fitness-*` and refuses. Historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config.
 
 B2.009. The `oya-governance-lane-prefix-vocabulary` lane (E.2) refuses new authoring that introduces a fitness-family lane under any prefix other than `oya-governance-*` or `oya-check-*`. The two canonical prefixes for governance-owned and check-family lanes respectively are exhaustive per ADR-0132.
 
-B2.010. The `oya-governance-rename-inventory-presence` lane (E.3) refuses corpus changes to `.github/workflows/oya-foundry-fitness-*.yml` + `crates/oya-foundry-fitness-*/` + `registry/catalog/oya-foundry-fitness-*.yaml` + `registry/quality/lanes.yaml` lane records that do not also update `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` with the corresponding target governance-* name. This is a pre-rename safety lane that becomes a no-op after Wave 15-ZB lands and the inventory file is retired.
+B2.010. The `oya-governance-rename-inventory-presence` lane (E.3) refuses corpus changes to `.github/workflows/oya-governance-fitness-*.yml` + `crates/oya-governance-fitness-*/` + `registry/catalog/oya-governance-fitness-*.yaml` + `registry/quality/lanes.yaml` lane records that do not also update `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` with the corresponding target governance-* name. This is a pre-rename safety lane that becomes a no-op after Wave 15-ZB lands and the inventory file is retired.
 
 B2.011. The branch-protection required-status-check update is atomic per the bulk-rename PR. All 10 workflow-level required-status-checks rename in the same commit; no transient disabling of merge gates.
 
@@ -280,7 +280,7 @@ B2.016. The canonical-primitives cheat sheet at `tools/hooks/_canonical-primitiv
 
 B2.017. The master-plan-sequencing.json sub-wave entries update in the bulk-rename PR. The 14 references in the file update to the new prefix while preserving the wave identifiers.
 
-B2.018. ADR cross-citations under `docs/decisions/` update in the bulk-rename PR. The 41 referenced ADRs receive citation updates; historical-context paragraphs that explicitly cite "the legacy oya-foundry-fitness-* prefix" for explanatory purposes are exempted (per the allowlist in B2.008).
+B2.018. ADR cross-citations under `docs/decisions/` update in the bulk-rename PR. The 41 referenced ADRs receive citation updates; historical-context paragraphs that explicitly cite "the legacy oya-governance-fitness-* prefix" for explanatory purposes are exempted (per the allowlist in B2.008).
 
 B2.019. Per `feedback_no_silent_regression`, gate-name changes via bulk-rename PR are tracked via branch-protection atomic-update; no silent regression of merge gating. The bulk-rename PR's CI suite re-evaluates required-status-checks against the renamed gates.
 
@@ -304,7 +304,7 @@ B2.028. The bulk-rename PR's commit message follows the Oyatie commit-message st
 
 B2.029. Wave 15-ZB is a single-batch sub-wave under ADR-0328. The batch ceiling per `feedback_dispatch_ceiling_claude_only_2026_05_20` does not apply because Wave 15-ZB is a single-PR mechanical rename, not a multi-agent fan-out.
 
-B2.030. The ADR is final on Acceptance. No exception clause is provided for any `oya-foundry-fitness-*` reference outside the historical-context allowlist after the 30-day post-Wave-15-ZB sunset window.
+B2.030. The ADR is final on Acceptance. No exception clause is provided for any `oya-governance-fitness-*` reference outside the historical-context allowlist after the 30-day post-Wave-15-ZB sunset window.
 
 B2.031. Multispectrum review v2.4.0 applies to this ADR per ADR-0322 §D-2. Review evidence at `evidence/debate/ADR-0347/<facet>.md` after this ADR lands in a review-track PR.
 
@@ -312,7 +312,7 @@ B2.032. The ADR is announced in the realignment-wave findings aggregation and in
 
 B2.033. The ADR's enforcement and sunset run in coordination with Wave 15-ZB.
 
-B2.034. The rename inventory file at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` is retired (moved to `.omc/state/archive/`) after Wave 15-ZB lands and the residue lane confirms zero non-historical references. The retirement is announced in the realignment-wave findings aggregation.
+B2.034. The rename inventory file at `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` is retired (moved to `.omc/state/archive/`) after Wave 15-ZB lands and the residue lane confirms zero non-historical references. The retirement is announced in the realignment-wave findings aggregation.
 
 ### B.3 What this decision does not do
 
@@ -326,11 +326,11 @@ B2.034. The rename inventory file at `.omc/state/oya-foundry-fitness-rename-inve
 
 ### C.1 Positive consequences
 
-- **Anachronism eliminated.** Readers no longer encounter `oya-foundry-fitness-*` for a microservice that does not exist; ownership is unambiguous (governance per ADR-0132 + axis-governance).
+- **Anachronism eliminated.** Readers no longer encounter `oya-governance-fitness-*` for a microservice that does not exist; ownership is unambiguous (governance per ADR-0132 + axis-governance).
 - **Velocity preserved.** 34 per-lane IPs collapse into one bulk-rename PR; ~7-12 days of dispatch capacity returned to Wave 15J / Wave 15O / Wave 14 polish workstreams.
 - **Drift window collapsed.** The mixed-state window where the corpus simultaneously carries both prefixes shrinks from months (per-lane IP cadence) to hours (atomic bulk-rename PR).
 - **Branch-protection safety.** Atomic gate-name update eliminates the transient-disabled-gate state that per-lane IPs would create.
-- **Inventory machine-readable.** The pre-rename inventory at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` gives the executor PR a deterministic diff target rather than discovery-time enumeration.
+- **Inventory machine-readable.** The pre-rename inventory at `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` gives the executor PR a deterministic diff target rather than discovery-time enumeration.
 - **Governance-prefix discipline reinforced.** The two canonical lane prefixes (`oya-governance-*` for governance-owned lanes; `oya-check-*` for check-family lanes) become exhaustive corpus-wide; future drift is refused by the vocabulary lane.
 - **Hyperscaler precedent matched.** AWS, Google, and Microsoft each carry deprecation-driven rename cadences that bundle related renames into bulk PRs rather than per-surface separate IPs; the bulk-rename pattern is hyperscaler-typical for deterministic 1:1 renames.
 - **Bominal inheritance signaled.** The Bominal parallel corpus inherits the rename pattern under its own sibling ADR; the precedent is portable.
@@ -379,12 +379,12 @@ B2.034. The rename inventory file at `.omc/state/oya-foundry-fitness-rename-inve
 (5) Wave 15-ZB PR breaks branch-protection → required-status-check stale; merge blocked on the PR itself until fixed.
 (6) Wave 15-ZB PR diverges from inventory file → inventory-presence lane refuses.
 (7) Historical-context paragraph in a new ADR cites legacy prefix without allowlist entry → residue lane refuses; allowlist amendment required.
-(8) New lane authored under `oya-foundry-fitness-*` prefix post-Wave-15-ZB → vocabulary lane refuses.
+(8) New lane authored under `oya-governance-fitness-*` prefix post-Wave-15-ZB → vocabulary lane refuses.
 
 **Capacity math.** Wave 15-ZB PR: ~200+ files touched; ~10,000 lines changed (mostly mechanical rename); Cargo.lock regeneration ~5,000 lines. Reviewer time per file: ~30 seconds (mechanical inspection); aggregate reviewer time: ~100 minutes. CI runtime: ~30 minutes (full workspace cargo check + cargo test + all 10 renamed lanes). Total cycle time: ~3-4 hours from PR open to merge. Per-lane IP alternative: ~34 × 4-hour cycle ≈ ~140 hours total cycle time. Bulk rename is ~40x faster.
 
 **Observability hooks.** Rename-aware metrics:
-- `lane_rename_residue_count` — count of non-historical `oya-foundry-fitness-*` references in the corpus; should be 0 post-Wave-15-ZB.
+- `lane_rename_residue_count` — count of non-historical `oya-governance-fitness-*` references in the corpus; should be 0 post-Wave-15-ZB.
 - `lane_vocabulary_drift_attempts` — count of new authoring attempts that introduce a non-canonical lane prefix.
 - `lane_inventory_completeness_percent` — percent of rename surfaces with target-name declared in the inventory file.
 
@@ -400,13 +400,13 @@ B2.034. The rename inventory file at `.omc/state/oya-foundry-fitness-rename-inve
 
 The foundry-fitness → governance rename touches seven adoption surfaces in the corpus. Subsections D-1 through D-7 enumerate each surface. Numbering is normative.
 
-### D-1: GitHub Actions workflow files at `.github/workflows/oya-foundry-fitness-*.yml`
+### D-1: GitHub Actions workflow files at `.github/workflows/oya-governance-fitness-*.yml`
 
-D-1.1. The bulk-rename PR renames every `.github/workflows/oya-foundry-fitness-*.yml` filename to `.github/workflows/oya-governance-*.yml` via `git mv`.
+D-1.1. The bulk-rename PR renames every `.github/workflows/oya-governance-fitness-*.yml` filename to `.github/workflows/oya-governance-*.yml` via `git mv`.
 
-D-1.2. The bulk-rename PR also updates each workflow's `name:` field (top-level YAML key) from "oya-foundry-fitness-*" to "oya-governance-*" via deterministic sed.
+D-1.2. The bulk-rename PR also updates each workflow's `name:` field (top-level YAML key) from "oya-governance-fitness-*" to "oya-governance-*" via deterministic sed.
 
-D-1.3. Discovery enumeration of the workflow set at authoring time of this ADR: 8 files (oya-foundry-fitness-api-semver.yml, oya-foundry-fitness-aspirational-enforcement.yml, oya-foundry-fitness-banned-primitives.yml, oya-foundry-fitness-cohesion.yml, oya-foundry-fitness-evidence-secret-scan.yml, oya-foundry-fitness-honest-claims.yml, oya-foundry-fitness-master-plan-completion.yml, oya-foundry-fitness-supply-chain.yml). The two VCS-sense workflows (changeset-state, sequential-pr-merge-conflicts) are RETIRED per ADR-0363, not renamed. The inventory file at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` enumerates each source→target mapping.
+D-1.3. Discovery enumeration of the workflow set at authoring time of this ADR: 8 files (oya-governance-fitness-api-semver.yml, oya-governance-fitness-aspirational-enforcement.yml, oya-governance-fitness-banned-primitives.yml, oya-governance-fitness-cohesion.yml, oya-governance-fitness-evidence-secret-scan.yml, oya-governance-fitness-honest-claims.yml, oya-governance-fitness-master-plan-completion.yml, oya-governance-fitness-supply-chain.yml). The two VCS-sense workflows (changeset-state, sequential-pr-merge-conflicts) are RETIRED per ADR-0363, not renamed. The inventory file at `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` enumerates each source→target mapping.
 
 D-1.4. The bulk-rename PR re-runs each renamed workflow against the renamed corpus and verifies lane invariants preserve. CI failure on any renamed workflow blocks the PR.
 
@@ -416,7 +416,7 @@ D-1.6. The `oya-governance-no-foundry-fitness-residue` lane (E.1) post-landing g
 
 ### D-2: `registry/quality/lanes.yaml` lane records
 
-D-2.1. The bulk-rename PR updates every lane record in `registry/quality/lanes.yaml` whose ID matches `oya-foundry-fitness-*` to the corresponding `oya-governance-*` ID.
+D-2.1. The bulk-rename PR updates every lane record in `registry/quality/lanes.yaml` whose ID matches `oya-governance-fitness-*` to the corresponding `oya-governance-*` ID.
 
 D-2.2. Discovery enumeration of the lane records at authoring time: ~40 records (the file aggregates lane metadata; the exact count is verified by the executor PR pre-rename).
 
@@ -426,9 +426,9 @@ D-2.4. The lane record's `description`, `owner`, `severity`, `gating` fields are
 
 D-2.5. The residue lane (E.1) post-landing greps `registry/quality/lanes.yaml` for residue and refuses.
 
-### D-3: `registry/catalog/oya-foundry-fitness-*.yaml` catalog records
+### D-3: `registry/catalog/oya-governance-fitness-*.yaml` catalog records
 
-D-3.1. The bulk-rename PR renames every `registry/catalog/oya-foundry-fitness-*.yaml` catalog file to `registry/catalog/oya-governance-*.yaml` via `git mv`.
+D-3.1. The bulk-rename PR renames every `registry/catalog/oya-governance-fitness-*.yaml` catalog file to `registry/catalog/oya-governance-*.yaml` via `git mv`.
 
 D-3.2. The bulk-rename PR also updates each catalog record's `name`, `crate_name`, and any internal cross-references to the prefix.
 
@@ -438,15 +438,15 @@ D-3.4. Catalog records that cite other catalog records via `depends_on` or `rela
 
 D-3.5. The residue lane (E.1) post-landing greps `registry/catalog/` for residue and refuses.
 
-### D-4: Rust check-family crate directories at `crates/oya-foundry-fitness-*-*`
+### D-4: Rust check-family crate directories at `crates/oya-governance-fitness-*-*`
 
-D-4.1. The bulk-rename PR renames every `crates/oya-foundry-fitness-*-*` crate directory to `crates/oya-governance-*-*` via `git mv`.
+D-4.1. The bulk-rename PR renames every `crates/oya-governance-fitness-*-*` crate directory to `crates/oya-governance-*-*` via `git mv`.
 
-D-4.2. The bulk-rename PR updates each renamed crate's `Cargo.toml` `[package] name` field from "oya-foundry-fitness-*" to "oya-governance-*".
+D-4.2. The bulk-rename PR updates each renamed crate's `Cargo.toml` `[package] name` field from "oya-governance-fitness-*" to "oya-governance-*".
 
 D-4.3. The bulk-rename PR updates the workspace `Cargo.toml` `[workspace] members` list to reflect the new directory paths.
 
-D-4.4. The bulk-rename PR updates every `Cargo.toml` in the workspace that has a `[dependencies]` entry referencing a renamed crate (`oya-foundry-fitness-* = ...` → `oya-governance-* = ...`).
+D-4.4. The bulk-rename PR updates every `Cargo.toml` in the workspace that has a `[dependencies]` entry referencing a renamed crate (`oya-governance-fitness-* = ...` → `oya-governance-* = ...`).
 
 D-4.5. The bulk-rename PR updates `Cargo.lock` via `cargo update --workspace` (or equivalent) and verifies the resulting Cargo.lock diff is rename-only (no version drift).
 
@@ -460,11 +460,11 @@ D-4.9. The residue lane (E.1) post-landing greps `crates/` directory names + `Ca
 
 ### D-5: ADR cross-citations under `docs/decisions/`
 
-D-5.1. The bulk-rename PR updates every cross-citation of `oya-foundry-fitness-*` in `docs/decisions/*.md` to the corresponding `oya-governance-*` name.
+D-5.1. The bulk-rename PR updates every cross-citation of `oya-governance-fitness-*` in `docs/decisions/*.md` to the corresponding `oya-governance-*` name.
 
 D-5.2. Discovery enumeration of affected ADR files at authoring time: ~41 files.
 
-D-5.3. Historical-context paragraphs that cite the legacy prefix for explanatory purposes (e.g., "The legacy `oya-foundry-fitness-*` prefix is retained in ADR-0335 retirement narrative") are exempted via the allowlist in B2.008 + B2.026.
+D-5.3. Historical-context paragraphs that cite the legacy prefix for explanatory purposes (e.g., "The legacy `oya-governance-fitness-*` prefix is retained in ADR-0335 retirement narrative") are exempted via the allowlist in B2.008 + B2.026.
 
 D-5.4. The residue lane (E.1) post-landing greps `docs/decisions/` for residue and refuses, with the allowlist applied.
 
@@ -474,7 +474,7 @@ D-6.1. The bulk-rename PR updates references in `docs/standards/*.md` (~1 file a
 
 D-6.2. The bulk-rename PR updates references in `.omc/state/*.md` and `.omc/state/*.json` (~1 file at authoring time, excluding the inventory file itself) to the new prefix.
 
-D-6.3. The bulk-rename PR updates the 14 sub-wave entries in `specs/master-plan-sequencing.json` that reference `oya-foundry-fitness-*` to the new prefix while preserving wave identifiers.
+D-6.3. The bulk-rename PR updates the 14 sub-wave entries in `specs/master-plan-sequencing.json` that reference `oya-governance-fitness-*` to the new prefix while preserving wave identifiers.
 
 D-6.4. The bulk-rename PR updates `tools/hooks/_canonical-primitives.md` Lifecycle Skill Map references.
 
@@ -484,7 +484,7 @@ D-6.6. The residue lane (E.1) post-landing greps each of these surfaces for resi
 
 ### D-7: Per-µservice manifest `fitness_lanes` arrays
 
-D-7.1. Discovery enumeration of µservice manifests carrying `fitness_lanes` references at authoring time: 0 manifests carry `oya-foundry-fitness-*` strings directly in `microservices/<name>/manifest.json` (verified via grep). The discovery scan in the bulk-rename PR's CI suite re-verifies at PR open time; if the count is non-zero, the PR updates each manifest inline.
+D-7.1. Discovery enumeration of µservice manifests carrying `fitness_lanes` references at authoring time: 0 manifests carry `oya-governance-fitness-*` strings directly in `microservices/<name>/manifest.json` (verified via grep). The discovery scan in the bulk-rename PR's CI suite re-verifies at PR open time; if the count is non-zero, the PR updates each manifest inline.
 
 D-7.2. The bulk-rename PR updates every `consumes_lanes`, `fitness_lanes`, `governance_lanes`, or similar per-µservice manifest array that references the old prefix.
 
@@ -492,11 +492,11 @@ D-7.3. The residue lane (E.1) post-landing greps `microservices/*/manifest.json`
 
 ## E. Enforcement-by-lanes
 
-E.1 `oya-governance-no-foundry-fitness-residue` (new) — greps the corpus and refuses any non-historical reference to `oya-foundry-fitness-*`. The lane scans `.github/workflows/`, `registry/`, `crates/`, `docs/`, `.omc/state/`, `specs/`, `tools/`, `microservices/*/manifest.json`. Historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config. REPORT-ONLY until Wave 15-ZB lands; promotes to BLOCKER 30 days post-Wave-15-ZB-completion for new authoring.
+E.1 `oya-governance-no-foundry-fitness-residue` (new) — greps the corpus and refuses any non-historical reference to `oya-governance-fitness-*`. The lane scans `.github/workflows/`, `registry/`, `crates/`, `docs/`, `.omc/state/`, `specs/`, `tools/`, `microservices/*/manifest.json`. Historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config. REPORT-ONLY until Wave 15-ZB lands; promotes to BLOCKER 30 days post-Wave-15-ZB-completion for new authoring.
 
 E.2 `oya-governance-lane-prefix-vocabulary` (new) — refuses new authoring that introduces a fitness-family lane under any prefix other than `oya-governance-*` or `oya-check-*`. The two canonical prefixes for governance-owned and check-family lanes respectively are exhaustive per ADR-0132. REPORT-ONLY until Wave 15-ZB lands; promotes to BLOCKER 30 days post-Wave-15-ZB-completion for new authoring.
 
-E.3 `oya-governance-rename-inventory-presence` (new) — refuses corpus changes to `.github/workflows/oya-foundry-fitness-*.yml` + `crates/oya-foundry-fitness-*/` + `registry/catalog/oya-foundry-fitness-*.yaml` + `registry/quality/lanes.yaml` lane records that do not also update `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` with the corresponding target governance-* name. This is a pre-rename safety lane that becomes a no-op after Wave 15-ZB lands and the inventory file is retired. REPORT-ONLY until Wave 15-ZB lands; promotes to BLOCKER for new authoring at Wave-15-ZB landing-time (no grace window for inventory drift); retires to informational-only after the inventory file moves to `.omc/state/archive/`.
+E.3 `oya-governance-rename-inventory-presence` (new) — refuses corpus changes to `.github/workflows/oya-governance-fitness-*.yml` + `crates/oya-governance-fitness-*/` + `registry/catalog/oya-governance-fitness-*.yaml` + `registry/quality/lanes.yaml` lane records that do not also update `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` with the corresponding target governance-* name. This is a pre-rename safety lane that becomes a no-op after Wave 15-ZB lands and the inventory file is retired. REPORT-ONLY until Wave 15-ZB lands; promotes to BLOCKER for new authoring at Wave-15-ZB landing-time (no grace window for inventory drift); retires to informational-only after the inventory file moves to `.omc/state/archive/`.
 
 E.4 `oya-governance-rename-residue-allowlist-integrity` (informational; not enforced as a blocker) — verifies that every file-path entry in the residue lane's allowlist references an extant ADR file under `docs/decisions/` and that the cited paragraph contains the legacy prefix in retirement-narrative context. REPORT-ONLY indefinitely.
 
@@ -504,7 +504,7 @@ E.4 `oya-governance-rename-residue-allowlist-integrity` (informational; not enfo
 
 F.1 **Per-lane migration IPs (per CLAUDE.md original plan).** The CLAUDE.md `new_governance_lane_prefix` line originally sequenced the rename via 34 per-lane migration IPs — one IP per affected lane. Each IP, authored at the substance-bar floor of ~400+ bespoke lines per ADR-0322, would represent ~12,000+ lines of authoring + ~34 separate review-track PRs + ~34 separate multispectrum-review evidence packs. At the realignment-wave throughput rate (~3-5 IPs/day under the 11-agent dispatch ceiling per `feedback_dispatch_ceiling_claude_only_2026_05_20`), the per-lane sequence consumes ~7-12 days of dispatch capacity. Rejected because: (a) deterministic 1:1 renames do not benefit from per-IP rationale authoring (the rationale is the same per surface); (b) the mixed-state window where the corpus simultaneously carries both prefixes accelerates drift per `feedback_drift_too_big_2026_05_20`; (c) the precedent for Wave 15A / 15K / 15L bulk renames is established; (d) the dispatch-capacity cost is unjustified.
 
-F.2 **Keep both prefixes indefinitely (legacy compatibility mode).** Leave `oya-foundry-fitness-*` lanes in place permanently as a legacy compatibility surface; introduce `oya-governance-*` for new lanes only. Rejected because: (a) foundry is RETIRED per ADR-0335; the lane prefix becomes a permanent anachronism; (b) readers continue to mis-attribute lane ownership; (c) the vocabulary drift surface widens over time as new authoring chooses one prefix or the other inconsistently; (d) the `oya-governance-no-foundry-fitness-residue` lane cannot be promoted to BLOCKER if legacy references are permanent.
+F.2 **Keep both prefixes indefinitely (legacy compatibility mode).** Leave `oya-governance-fitness-*` lanes in place permanently as a legacy compatibility surface; introduce `oya-governance-*` for new lanes only. Rejected because: (a) foundry is RETIRED per ADR-0335; the lane prefix becomes a permanent anachronism; (b) readers continue to mis-attribute lane ownership; (c) the vocabulary drift surface widens over time as new authoring chooses one prefix or the other inconsistently; (d) the `oya-governance-no-foundry-fitness-residue` lane cannot be promoted to BLOCKER if legacy references are permanent.
 
 F.3 **Rename to `oya-fitness-*` (drop both prefixes).** Drop both `foundry-` and `governance-` qualifiers; rename to a neutral `oya-fitness-*` prefix. Rejected because: (a) loses the governance ownership signal; (b) `governance` is the actual owning team per ADR-0132 + axis-governance; (c) the rename target must convey ownership unambiguously; (d) hyperscaler precedent (AWS / Google / Microsoft) preserves ownership context in renamed prefixes rather than stripping it.
 
@@ -518,7 +518,7 @@ Per ADR-0322 §D-2 and ADR-0328 §D-4, this ADR is subject to multispectrum-revi
 
 The expected critique surface:
 
-- **F1 (correctness).** Is the deterministic 1:1 substitution `s/^oya-foundry-fitness-/oya-governance-/g` correct for every rename surface? Are any surfaces missing from §D-1..D-7 enumeration?
+- **F1 (correctness).** Is the deterministic 1:1 substitution `s/^oya-governance-fitness-/oya-governance-/g` correct for every rename surface? Are any surfaces missing from §D-1..D-7 enumeration?
 - **F2 (architecture).** Does the bulk-rename pattern correctly preserve lane invariants? Does the atomic-landing contract correctly avoid the mixed-state drift window?
 - **F3 (security).** Does the branch-protection atomic-update correctly avoid the transient-disabled-gate state? Are required-status-check name changes safely orchestrated?
 - **F4 (performance).** Is the bulk-rename PR's CI runtime bounded as claimed (~30 minutes)? Does the Cargo.lock regeneration scale with ~51 crate renames?
@@ -544,11 +544,11 @@ H.2 **Sunset window.** The 30-day post-Wave-15-ZB sunset window is the window fo
 
 H.3 **Wave 15-ZB sub-wave.** Wave 15-ZB (queued in `/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_waves`) is the single bulk-rename executor PR. It performs all §D-1..D-7 surface renames atomically. Sub-wave dispatch follows ADR-0328 batch discipline as a single-PR mechanical rename.
 
-H.4 **Inventory retirement.** The pre-rename inventory file at `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` is retired (moved to `.omc/state/archive/`) after Wave 15-ZB lands and the residue lane confirms zero non-historical references. The retirement is announced in the realignment-wave findings aggregation.
+H.4 **Inventory retirement.** The pre-rename inventory file at `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` is retired (moved to `.omc/state/archive/`) after Wave 15-ZB lands and the residue lane confirms zero non-historical references. The retirement is announced in the realignment-wave findings aggregation.
 
-H.5 **Exception clause.** None. No new lane authoring under the legacy `oya-foundry-fitness-*` prefix is permitted after the 30-day post-Wave-15-ZB sunset window. No historical-context allowlist additions are permitted outside ADR amendment to this ADR.
+H.5 **Exception clause.** None. No new lane authoring under the legacy `oya-governance-fitness-*` prefix is permitted after the 30-day post-Wave-15-ZB sunset window. No historical-context allowlist additions are permitted outside ADR amendment to this ADR.
 
-H.6 **Sunset of the prior CLAUDE.md cadence.** The CLAUDE.md sentence "existing oya-foundry-fitness-* lanes retained until each is renamed in its own migration IP" is updated in the bulk-rename PR to read "all oya-foundry-fitness-* lanes renamed via ADR-0347 Wave 15-ZB bulk-rename PR; per-lane migration IP cadence retired". The retirement of the per-lane IP cadence is recorded in `tools/hooks/_canonical-primitives.md` per the canonical-primitives cheat sheet pattern.
+H.6 **Sunset of the prior CLAUDE.md cadence.** The CLAUDE.md sentence "existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP" is updated in the bulk-rename PR to read "all oya-governance-fitness-* lanes renamed via ADR-0347 Wave 15-ZB bulk-rename PR; per-lane migration IP cadence retired". The retirement of the per-lane IP cadence is recorded in `tools/hooks/_canonical-primitives.md` per the canonical-primitives cheat sheet pattern.
 
 H.7 **Bominal inheritance window.** Bominal parallel corpus authors its sibling rename ADR independently per `feedback_bominal_inheritance_precedence`. No Oyatie-side enforcement applies to Bominal.
 
@@ -607,7 +607,7 @@ I.4 Companion-doc anchors:
 
 - `tools/hooks/_canonical-primitives.md` — Lifecycle Skill Map references update; CLAUDE.md cadence sentence updated.
 - `docs/standards/dependency-policy.md` — preserved verbatim (no foundry-fitness references at authoring time).
-- `.omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json` — pre-rename inventory; authored under this ADR's required-artifact contract; retired to `.omc/state/archive/` after Wave 15-ZB.
+- `.omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json` — pre-rename inventory; authored under this ADR's required-artifact contract; retired to `.omc/state/archive/` after Wave 15-ZB.
 
 ## J. Completion Report
 
@@ -618,14 +618,14 @@ date: 2026-05-21
 session: 2026-05-21 realignment-wave authoring (sibling to ADR-0340..ADR-0346; consolidation of CLAUDE.md new_governance_lane_prefix backlog)
 sibling_adrs: ADR-0340 (capacity model), ADR-0341 (cellular promotion gates), ADR-0342 (API versioning hybrid), ADR-0343 (DR matrix), ADR-0344 (sustainability + finops), ADR-0345 (OSS stewardship class), ADR-0346 (product readiness checklist)
 authority_source: CLAUDE.md new_governance_lane_prefix line + ADR-0132 + ADR-0335
-canonical_substitution: s/^oya-foundry-fitness-/oya-governance-/g
+canonical_substitution: s/^oya-governance-fitness-/oya-governance-/g
 canonical_prefixes_exhaustive: 2 (oya-governance-* for governance-owned lanes; oya-check-* for check-family lanes)
-rename_inventory_path: .omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json
+rename_inventory_path: .omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json
 rename_surfaces:
-  workflows: 10 files at .github/workflows/oya-foundry-fitness-*.yml (filenames + name: fields)
+  workflows: 10 files at .github/workflows/oya-governance-fitness-*.yml (filenames + name: fields)
   lanes_yaml: ~40 records in registry/quality/lanes.yaml
-  catalog: 28 files at registry/catalog/oya-foundry-fitness-*.yaml
-  crates: ~51 directories at crates/oya-foundry-fitness-*-* (Cargo.toml package names + workspace.dependencies + Cargo.lock regeneration)
+  catalog: 28 files at registry/catalog/oya-governance-fitness-*.yaml
+  crates: ~51 directories at crates/oya-governance-fitness-*-* (Cargo.toml package names + workspace.dependencies + Cargo.lock regeneration)
   adr_citations: ~41 files under docs/decisions/
   standards: 1 file under docs/standards/
   state: 1 file under .omc/state/ (excluding inventory file itself)
@@ -644,5 +644,5 @@ amendments:
   - ADR-0245 (substrate-vs-product alignment; governance is the substrate concern)
 out_of_scope: actual file renames + cross-reference updates (deferred to Wave 15-ZB executor PR); cross-Bominal corpus rename (Bominal authors sibling ADR independently); foundry pipeline substrate rename (preserved under intelligence ownership per ADR-0335)
 hyperscaler_precedents: AWS aws-amplify-cli rename 2022; AWS aws-iam-authenticator rename 2023; Google GKE Container Registry → Artifact Registry rename 2023; Microsoft Azure CLI az v1 → v2 rename; Microsoft .NET Core 3.1 → 5.0 rename
-commits: ADR + .omc/state/oya-foundry-fitness-rename-inventory-2026-05-21.json (machine-readable inventory) + /specs/master-plan-sequencing.json Wave 15-ZB sub-wave entry
+commits: ADR + .omc/state/oya-governance-fitness-rename-inventory-2026-05-21.json (machine-readable inventory) + /specs/master-plan-sequencing.json Wave 15-ZB sub-wave entry
 -->

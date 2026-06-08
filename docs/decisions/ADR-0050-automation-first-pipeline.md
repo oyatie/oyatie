@@ -127,7 +127,7 @@ outputs: ["labels", "reviewers", "changelog_draft"]
 ### Per-test flaky-quarantine
 
 ```rust
-// crates/oya-foundry-test-quarantine
+// crates/oya-governance-test-quarantine
 pub struct FlakyQuarantine {
     pub failures: BTreeMap<TestId, FailureWindow>,
     pub quarantine_threshold: f64,    // 5% failure rate over 7d
