@@ -92,7 +92,7 @@
       "post": {
         "operationId": "planTenantRbacCrossServiceWorkflow",
         "summary": "Plan Workflow-owned cross-service routing metadata.",
-        "x-oyatie-app-function": "oya_tenant_rbac_domain::plan_cross_service_workflow + oya_tenant_rbac_application::prepare_cross_service_workflow_envelope",
+        "x-oyatie-app-function": "oya_tenant_rbac_domain::plan_cross_service_workflow + oya_tenant_rbac_usecase::prepare_cross_service_workflow_envelope",
         "requestBody": {
           "required": true,
           "content": {
@@ -124,7 +124,7 @@
       "post": {
         "operationId": "planTenantRbacIncidentRollback",
         "summary": "Plan rollback/quarantine-first incident metadata.",
-        "x-oyatie-app-function": "oya_tenant_rbac_domain::plan_incident_rollback + oya_tenant_rbac_application::prepare_incident_rollback_envelope",
+        "x-oyatie-app-function": "oya_tenant_rbac_domain::plan_incident_rollback + oya_tenant_rbac_usecase::prepare_incident_rollback_envelope",
         "requestBody": {
           "required": true,
           "content": {
@@ -156,7 +156,7 @@
       "post": {
         "operationId": "prepareTenantRbacOpsCommand",
         "summary": "Prepare a metadata-only ops command envelope without manual SSH execution.",
-        "x-oyatie-app-function": "oya_tenant_rbac_application::prepare_tenant_rbac_ops_envelope",
+        "x-oyatie-app-function": "oya_tenant_rbac_usecase::prepare_tenant_rbac_ops_envelope",
         "requestBody": {
           "required": true,
           "content": {

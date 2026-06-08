@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//oya/tenant-rbac/crates/oya-tenant-rbac-application:oya-tenant-rbac-application",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-usecase:oya-tenant-rbac-usecase",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
     ],
 )

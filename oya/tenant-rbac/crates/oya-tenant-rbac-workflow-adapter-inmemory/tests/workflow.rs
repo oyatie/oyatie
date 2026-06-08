@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_tenant_rbac_application::prepare_cross_service_workflow_envelope;
+use oya_tenant_rbac_usecase::prepare_cross_service_workflow_envelope;
 use oya_tenant_rbac_domain::{
     CrossServiceWorkflowInput, DeterministicGate, GateClosureAuthority,
     ObjectGraphRelationshipOwner, TenantRbacService, WorkflowRoutingOwner,

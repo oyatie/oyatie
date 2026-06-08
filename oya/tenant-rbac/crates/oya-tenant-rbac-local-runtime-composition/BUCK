@@ -8,6 +8,6 @@ rust_library(
         "//oya/accounting/crates/oya-accounting-journal-runtime:oya-accounting-journal-runtime",
         "//oya/hr/crates/oya-hr-employment-runtime:oya-hr-employment-runtime",
         "//oya/payroll/crates/oya-payroll-run-runtime:oya-payroll-run-runtime",
-        "//oya/tenant-rbac/crates/oya-tenant-rbac-runtime:oya-tenant-rbac-runtime",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-app:oya-tenant-rbac-app",
     ],
 )

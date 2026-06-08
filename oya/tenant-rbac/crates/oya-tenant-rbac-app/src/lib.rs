@@ -24,7 +24,7 @@ use oya_tenant_rbac_api::{
     ApiErrorEnvelope, CrossServiceWorkflowPlanRequest, GroupCloseRollupRequest,
     IncidentRollbackPlanRequest, ServiceWriteAdmissionRequest, TenantRbacOpsCommandRequest,
 };
-use oya_tenant_rbac_application::{
+use oya_tenant_rbac_usecase::{
     TenantRbacApplicationError, prepare_cross_service_workflow_envelope,
     prepare_incident_rollback_envelope, prepare_tenant_rbac_ops_envelope,
 };

@@ -13,7 +13,7 @@ use oya_tenant_rbac_api::{
     TenantRbacOpsCommandRequest, TenantRbacOpsRouteDto, TenantRbacServiceDto,
     TenantRbacWriteKindDto, WorkflowRoutingOwnerDto,
 };
-use oya_tenant_rbac_runtime::{
+use oya_tenant_rbac_app::{
     TENANT_RBAC_CROSS_SERVICE_WORKFLOW_PLANS_PATH, TENANT_RBAC_GROUP_CLOSE_ROLLUPS_PATH,
     TENANT_RBAC_HEALTH_PATH, TENANT_RBAC_INCIDENT_ROLLBACK_PLANS_PATH,
     TENANT_RBAC_OPS_COMMANDS_PATH, TENANT_RBAC_POLICY_ADMISSIONS_PATH,

@@ -10,7 +10,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_tenant_rbac_auth_runtime::{
+use oya_tenant_rbac_auth_app::{
     tenant_rbac_auth_runtime_policy, validate_tenant_rbac_auth_runtime_policy,
 };
 

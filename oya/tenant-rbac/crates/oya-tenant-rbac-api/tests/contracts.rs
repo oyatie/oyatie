@@ -10,7 +10,7 @@ use oya_tenant_rbac_api::{
     ServiceWriteAdmissionRequest, TenantRbacOpsCommandRequest, TenantRbacOpsRouteDto,
     TenantRbacServiceDto, TenantRbacWriteKindDto, WorkflowRoutingOwnerDto,
 };
-use oya_tenant_rbac_application::{
+use oya_tenant_rbac_usecase::{
     prepare_cross_service_workflow_envelope, prepare_incident_rollback_envelope,
     prepare_tenant_rbac_ops_envelope,
 };

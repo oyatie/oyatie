@@ -18,7 +18,7 @@ use oya_tenant_rbac_audit_chain_runtime_evidence::{
     TenantRbacAuditChainRuntimeEvidenceError, tenant_rbac_audit_chain_runtime_evidence_plan,
     validate_tenant_rbac_audit_chain_runtime_evidence_plan,
 };
-use oya_tenant_rbac_auth_runtime::{
+use oya_tenant_rbac_auth_app::{
     TenantRbacAuthRuntimeError, tenant_rbac_auth_runtime_policy,
     validate_tenant_rbac_auth_runtime_policy,
 };

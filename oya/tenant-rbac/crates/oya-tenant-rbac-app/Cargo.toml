@@ -1,5 +1,5 @@
 [package]
-name = "oya-tenant-rbac-runtime"
+name = "oya-tenant-rbac-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-tenant-rbac-api = { path = "../oya-tenant-rbac-api" }
-oya-tenant-rbac-application = { path = "../oya-tenant-rbac-application" }
+oya-tenant-rbac-usecase = { path = "../oya-tenant-rbac-usecase" }
 oya-tenant-rbac-domain = { path = "../oya-tenant-rbac-domain" }
 oya-http-middleware-kernel = { path = "../../../../libs/oya-http-middleware-kernel" }
 oya-http-router-kernel = { path = "../../../../libs/oya-http-router-kernel" }
@@ -17,7 +17,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 [lib]
-name = "oya_tenant_rbac_runtime"
+name = "oya_tenant_rbac_app"
 path = "src/lib.rs"
 doctest = false
 

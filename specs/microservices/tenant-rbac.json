@@ -23,9 +23,9 @@
     ],
     "crate_refs_planned": [
       "oya-tenant-rbac-domain",
-      "oya-tenant-rbac-application",
+      "oya-tenant-rbac-usecase",
       "oya-tenant-rbac-api",
-      "oya-tenant-rbac-runtime"
+      "oya-tenant-rbac-app"
     ],
     "packaging_policy_ref": "$ref:specs/tenant-rbac-packaging.json",
     "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"
@@ -237,7 +237,7 @@
         "preview": "<=50ms",
         "stable": "<=25ms"
       },
-      "verification_ref": "future oya-tenant-rbac-runtime benchmark evidence"
+      "verification_ref": "future oya-tenant-rbac-app benchmark evidence"
     },
     {
       "name": "cross_context_denial_coverage",
