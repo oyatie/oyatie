@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17602,
-    "source_inputs_digest": "fnv1a64:fd95b63a621a2eee"
+    "source_inputs_digest": "fnv1a64:392f4f7793fabc45"
   },
   "rows": [
     {
@@ -13578,7 +13578,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "b28dcc6acab98377b3da036bdab60ea6bfad8012",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "Cargo.toml",
       "reachable_from": [
@@ -19588,7 +19588,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/BUCK",
       "reachable_from": [
@@ -19611,7 +19611,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/Cargo.toml",
       "reachable_from": [
@@ -19726,7 +19726,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/gate-disposition.json",
       "reachable_from": [
@@ -19749,7 +19749,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/lib.rs",
       "reachable_from": [
@@ -19772,7 +19772,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",
       "reachable_from": [
@@ -19795,7 +19795,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/ttl-policy.json",
       "reachable_from": [
@@ -19818,7 +19818,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/unit-class-policy.json",
       "reachable_from": [
@@ -19864,7 +19864,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/BUCK",
       "reachable_from": [
@@ -19887,7 +19887,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/Cargo.toml",
       "reachable_from": [
@@ -19910,7 +19910,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/src/lib.rs",
       "reachable_from": [
@@ -19933,7 +19933,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs",
       "reachable_from": [
@@ -19956,7 +19956,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/BUCK",
       "reachable_from": [
@@ -19979,7 +19979,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/Cargo.toml",
       "reachable_from": [
@@ -20002,7 +20002,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs",
       "reachable_from": [
@@ -20025,7 +20025,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
       "reachable_from": [
@@ -20048,7 +20048,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/BUCK",
       "reachable_from": [
@@ -20071,7 +20071,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/Cargo.toml",
       "reachable_from": [
@@ -20094,7 +20094,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
       "reachable_from": [
@@ -20117,7 +20117,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/lib.rs",
       "reachable_from": [
@@ -20140,7 +20140,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs",
       "reachable_from": [
@@ -20163,7 +20163,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/BUCK",
       "reachable_from": [
@@ -20186,7 +20186,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/Cargo.toml",
       "reachable_from": [
@@ -20209,7 +20209,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/src/lib.rs",
       "reachable_from": [
@@ -20232,7 +20232,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs",
       "reachable_from": [
@@ -20255,7 +20255,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/BUCK",
       "reachable_from": [
@@ -20278,7 +20278,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/Cargo.toml",
       "reachable_from": [
@@ -20301,7 +20301,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/src/lib.rs",
       "reachable_from": [
@@ -20324,7 +20324,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs",
       "reachable_from": [
@@ -20347,7 +20347,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/registry-drift/BUCK",
       "reachable_from": [
@@ -20416,7 +20416,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e38624dc483c425f238c34a4414793742c81f421",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs",
       "reachable_from": [
@@ -65784,7 +65784,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0515",
-      "last_touch_commit": "6119d486671ceb273e0b7229954d6b90edd7a463",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
       "reachable_from": [],
@@ -117505,7 +117505,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "fd06b0ad24458b29340462b3c16316bd8a61f2eb",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "goal.json",
       "reachable_from": [
@@ -314147,7 +314147,7 @@
       "justification_ref": null,
       "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
       "owner": null,
-      "path": "oya/tenant-rbac/catalog/oya-tenant-rbac-application.yaml",
+      "path": "oya/tenant-rbac/catalog/oya-tenant-rbac-domain.yaml",
       "reachable_from": [],
       "tracked": true,
       "ttl": {
@@ -314166,9 +314166,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/catalog/oya-tenant-rbac-domain.yaml",
+      "path": "oya/tenant-rbac/catalog/oya-tenant-rbac-usecase.yaml",
       "reachable_from": [],
       "tracked": true,
       "ttl": {
@@ -314208,7 +314208,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/contracts/openapi-v1.yaml",
       "reachable_from": [],
@@ -314229,7 +314229,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-api/BUCK",
       "reachable_from": [
@@ -314252,7 +314252,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-api/Cargo.toml",
       "reachable_from": [
@@ -314275,7 +314275,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-api/src/lib.rs",
       "reachable_from": [
@@ -314298,7 +314298,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-api/tests/contracts.rs",
       "reachable_from": [
@@ -314321,9 +314321,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-application/BUCK",
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-app/BUCK",
       "reachable_from": [
         "cargo-members"
       ],
@@ -314344,9 +314344,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-application/Cargo.toml",
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-app/Cargo.toml",
       "reachable_from": [
         "cargo-members"
       ],
@@ -314367,9 +314367,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-application/src/lib.rs",
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-app/src/lib.rs",
       "reachable_from": [
         "cargo-members"
       ],
@@ -314390,55 +314390,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-application/tests/incident.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
-      "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-application/tests/ops.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
-      "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-application/tests/workflow.rs",
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-app/tests/runtime.rs",
       "reachable_from": [
         "cargo-members"
       ],
@@ -314643,9 +314597,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-runtime/BUCK",
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app/BUCK",
       "reachable_from": [
         "cargo-members"
       ],
@@ -314666,9 +314620,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-runtime/Cargo.toml",
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app/Cargo.toml",
       "reachable_from": [
         "cargo-members"
       ],
@@ -314689,9 +314643,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-runtime/src/lib.rs",
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app/src/lib.rs",
       "reachable_from": [
         "cargo-members"
       ],
@@ -314712,9 +314666,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-runtime/tests/auth_runtime.rs",
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app/tests/auth_runtime.rs",
       "reachable_from": [
         "cargo-members"
       ],
@@ -314919,7 +314873,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/BUCK",
       "reachable_from": [
@@ -314942,7 +314896,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/Cargo.toml",
       "reachable_from": [
@@ -314965,7 +314919,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/src/lib.rs",
       "reachable_from": [
@@ -315448,7 +315402,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification/BUCK",
       "reachable_from": [
@@ -315471,7 +315425,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification/Cargo.toml",
       "reachable_from": [
@@ -315494,7 +315448,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification/src/lib.rs",
       "reachable_from": [
@@ -315540,7 +315494,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-gateway/BUCK",
       "reachable_from": [
@@ -315563,7 +315517,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-gateway/Cargo.toml",
       "reachable_from": [
@@ -315586,7 +315540,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-gateway/src/lib.rs",
       "reachable_from": [
@@ -315724,7 +315678,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness/BUCK",
       "reachable_from": [
@@ -315747,7 +315701,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness/Cargo.toml",
       "reachable_from": [
@@ -315770,7 +315724,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness/src/lib.rs",
       "reachable_from": [
@@ -315793,7 +315747,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness/tests/harness.rs",
       "reachable_from": [
@@ -315816,7 +315770,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition/BUCK",
       "reachable_from": [
@@ -315839,7 +315793,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition/Cargo.toml",
       "reachable_from": [
@@ -315862,7 +315816,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition/src/lib.rs",
       "reachable_from": [
@@ -316278,98 +316232,6 @@
       "justification_ref": null,
       "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
       "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-runtime/BUCK",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
-      "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-runtime/Cargo.toml",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
-      "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-runtime/src/lib.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
-      "owner": null,
-      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-runtime/tests/runtime.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
-      "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-slo-evidence/BUCK",
       "reachable_from": [
         "cargo-members"
@@ -316552,7 +316414,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/BUCK",
       "reachable_from": [
@@ -316575,7 +316437,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/Cargo.toml",
       "reachable_from": [
@@ -316598,7 +316460,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/src/lib.rs",
       "reachable_from": [
@@ -316621,7 +316483,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/tests/storage.rs",
       "reachable_from": [
@@ -317610,7 +317472,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest/src/lib.rs",
       "reachable_from": [
@@ -317748,7 +317610,145 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
+      "owner": null,
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/BUCK",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
+      "owner": null,
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/Cargo.toml",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
+      "owner": null,
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/src/lib.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
+      "owner": null,
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/tests/incident.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
+      "owner": null,
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/tests/ops.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
+      "owner": null,
+      "path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/tests/workflow.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/BUCK",
       "reachable_from": [
@@ -317771,7 +317771,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/Cargo.toml",
       "reachable_from": [
@@ -317794,7 +317794,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/src/lib.rs",
       "reachable_from": [
@@ -317817,7 +317817,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/tests/workflow.rs",
       "reachable_from": [
@@ -356495,9 +356495,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3a031988bd831b907a621bbf52cf013d1108a04a",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "registry/catalog/oya-tenant-rbac-application.yaml",
+      "path": "registry/catalog/oya-tenant-rbac-app.yaml",
       "reachable_from": [],
       "tracked": true,
       "ttl": {
@@ -356558,9 +356558,9 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3a031988bd831b907a621bbf52cf013d1108a04a",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
-      "path": "registry/catalog/oya-tenant-rbac-auth-runtime.yaml",
+      "path": "registry/catalog/oya-tenant-rbac-auth-app.yaml",
       "reachable_from": [],
       "tracked": true,
       "ttl": {
@@ -356917,27 +356917,6 @@
       "justification_ref": null,
       "last_touch_commit": "3a031988bd831b907a621bbf52cf013d1108a04a",
       "owner": null,
-      "path": "registry/catalog/oya-tenant-rbac-runtime.yaml",
-      "reachable_from": [],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "registry"
-      },
-      "unit_class": "registry",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "3a031988bd831b907a621bbf52cf013d1108a04a",
-      "owner": null,
       "path": "registry/catalog/oya-tenant-rbac-slo-evidence.yaml",
       "reachable_from": [],
       "tracked": true,
@@ -357233,6 +357212,27 @@
       "last_touch_commit": "3a031988bd831b907a621bbf52cf013d1108a04a",
       "owner": null,
       "path": "registry/catalog/oya-tenant-rbac-tenant-workload-runtime-evidence.yaml",
+      "reachable_from": [],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "registry"
+      },
+      "unit_class": "registry",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
+      "owner": null,
+      "path": "registry/catalog/oya-tenant-rbac-usecase.yaml",
       "reachable_from": [],
       "tracked": true,
       "ttl": {
@@ -359372,7 +359372,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a4ee18cb41ab56859f8bdf802f148a92eb6ea536",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "registry/dependency-rationales.json",
       "reachable_from": [
@@ -363023,7 +363023,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e38624dc483c425f238c34a4414793742c81f421",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cloud-ci-firewall/tc-FW-bad-baseline-grew.json",
       "reachable_from": [],
@@ -363044,7 +363044,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e38624dc483c425f238c34a4414793742c81f421",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cloud-ci-firewall/tc-FW-bad-frozen-empty-code-occurrence.json",
       "reachable_from": [],
@@ -363065,7 +363065,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e38624dc483c425f238c34a4414793742c81f421",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cloud-ci-firewall/tc-FW-bad-new-violation-not-in-baseline.json",
       "reachable_from": [],
@@ -363086,7 +363086,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e38624dc483c425f238c34a4414793742c81f421",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cloud-ci-firewall/tc-FW-good-advisory-code-reports-not-fails.json",
       "reachable_from": [],
@@ -363107,7 +363107,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e38624dc483c425f238c34a4414793742c81f421",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cloud-ci-firewall/tc-FW-good-baselined-debt-tolerated.json",
       "reachable_from": [],
@@ -363128,7 +363128,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e38624dc483c425f238c34a4414793742c81f421",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cloud-ci-firewall/tc-FW-good-signed-off-growth-exempt.json",
       "reachable_from": [],
@@ -363149,7 +363149,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cross-artifact-agreement/tc-XA-bad-axes-count-drift.json",
       "reachable_from": [],
@@ -363170,7 +363170,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cross-artifact-agreement/tc-XA-bad-dup-adr-number.json",
       "reachable_from": [],
@@ -363191,7 +363191,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cross-artifact-agreement/tc-XA-bad-half-supersession.json",
       "reachable_from": [],
@@ -363212,7 +363212,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/cross-artifact-agreement/tc-XA-good-decision-all-four-agree.json",
       "reachable_from": [],
@@ -363317,7 +363317,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/phase0-automation-ratchet/tc-AR-bad-advisory-claiming-enforced.json",
       "reachable_from": [],
@@ -363758,7 +363758,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/staleness-reaper/tc-SR-bad-reap-without-report.json",
       "reachable_from": [],
@@ -363779,7 +363779,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/staleness-reaper/tc-SR-bad-stale-unreachable-doc.json",
       "reachable_from": [],
@@ -363800,7 +363800,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/staleness-reaper/tc-SR-bad-untyped-resource.json",
       "reachable_from": [],
@@ -363821,7 +363821,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/staleness-reaper/tc-SR-good-old-but-reachable-adr.json",
       "reachable_from": [],
@@ -363842,7 +363842,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/staleness-reaper/tc-SR-good-protected-not-reaped.json",
       "reachable_from": [],
@@ -363863,7 +363863,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/staleness-reaper/tc-SR-good-stale-reported-then-archived.json",
       "reachable_from": [],
@@ -363884,7 +363884,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/total-accounting/tc-TA-bad-hand-edited-registry.json",
       "reachable_from": [],
@@ -363905,7 +363905,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/total-accounting/tc-TA-bad-new-file-no-row.json",
       "reachable_from": [],
@@ -363926,7 +363926,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/total-accounting/tc-TA-bad-no-owner.json",
       "reachable_from": [],
@@ -363947,7 +363947,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3c3cdec635034e184b815dfd61627087d965d011",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/total-accounting/tc-TA-bad-orphan-no-justification.json",
       "reachable_from": [],
@@ -363968,7 +363968,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/total-accounting/tc-TA-bad-unreachable-from-masterplan.json",
       "reachable_from": [],
@@ -363989,7 +363989,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/total-accounting/tc-TA-good-archive-candidate-reported.json",
       "reachable_from": [],
@@ -364010,7 +364010,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e32af212cd6780a3fa3047a62561b6c5108d504b",
+      "last_touch_commit": "ba8cc01eb68ce7ba5d7f506869dd7454f3515c38",
       "owner": null,
       "path": "specs/fixtures/total-accounting/tc-TA-good-fully-accounted.json",
       "reachable_from": [],
@@ -365272,7 +365272,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0317",
-      "last_touch_commit": "3a031988bd831b907a621bbf52cf013d1108a04a",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "specs/microservices/tenant-rbac.json",
       "reachable_from": [
@@ -366361,7 +366361,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2f7a2367f428437a088c0d4e3a16c5c3bbc96204",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "tasks/adr-0357-crate-classification.json",
       "reachable_from": [],
@@ -367054,7 +367054,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e3df4c5516a2d566f66d7ca6a8b3336198ae936f",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "tasks/enterprise-microservices-plan.md",
       "reachable_from": [],
@@ -367075,7 +367075,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "4da850d1689b5f8c047aae5b4134bedf17d2675a",
+      "last_touch_commit": "22e14d054d901c7a1f6c48faf6a9fe7435072f8d",
       "owner": null,
       "path": "tasks/enterprise-microservices-todo.md",
       "reachable_from": [],
