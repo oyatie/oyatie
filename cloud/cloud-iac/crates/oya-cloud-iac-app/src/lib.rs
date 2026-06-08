@@ -26,7 +26,7 @@ use oya_cloud_iac_api::{
     OPENTOFU_SERVICE_DISCOVERY_PATH,
 };
 use oya_cloud_iac_domain::{CloudIacError, ModuleRegistry, OpenTofuModuleRelease};
-use oya_cloud_iac_runtime::{
+use oya_cloud_iac_infrastructure::{
     CloudIacModuleRegistryHttpHandler, CloudIacModuleRegistryServiceAssemblyError,
     assemble_module_registry_http_service,
 };

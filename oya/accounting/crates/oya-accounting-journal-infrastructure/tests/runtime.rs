@@ -6,7 +6,7 @@ use oya_accounting_journal_api::{
     JournalLineRequest, JournalPostRequest, JurisdictionDto, PayrollPostingRequest, PeriodStateDto,
     VatDeadlineRequest,
 };
-use oya_accounting_journal_runtime::{
+use oya_accounting_journal_infrastructure::{
     ACCOUNTING_HEALTH_PATH, ACCOUNTING_JOURNALS_PATH, ACCOUNTING_PAYROLL_POSTINGS_PATH,
     ACCOUNTING_VAT_WORKFLOW_PLANS_PATH, accounting_runtime_routes, accounting_server_config,
     dispatch_accounting_request,

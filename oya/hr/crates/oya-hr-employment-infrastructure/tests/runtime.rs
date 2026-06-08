@@ -8,7 +8,7 @@ use oya_hr_employment_api::{
     PayrollImpactKindDto, SensitiveHrDataKindDto, SensitiveHrReadPolicyRequest,
     SensitiveReadLegalBasisDto, SensitiveReadPurposeDto, TenantTierSnapshotDto,
 };
-use oya_hr_employment_runtime::{
+use oya_hr_employment_infrastructure::{
     HR_EMPLOYEES_PATH, HR_HEALTH_PATH, HR_LABOR_COMPLIANCE_WORKFLOW_PLANS_PATH,
     HR_LEAVE_PAYROLL_IMPACT_PLANS_PATH, HR_SENSITIVE_READ_POLICY_DECISIONS_PATH,
     dispatch_hr_request, hr_runtime_routes, hr_server_config,

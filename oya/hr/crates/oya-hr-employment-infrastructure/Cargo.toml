@@ -1,5 +1,5 @@
 [package]
-name = "oya-hr-employment-runtime"
+name = "oya-hr-employment-infrastructure"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -17,7 +17,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 [lib]
-name = "oya_hr_employment_runtime"
+name = "oya_hr_employment_infrastructure"
 path = "src/lib.rs"
 doctest = false
 

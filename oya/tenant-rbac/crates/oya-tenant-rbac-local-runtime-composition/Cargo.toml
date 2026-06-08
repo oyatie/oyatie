@@ -7,10 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-accounting-journal-runtime = { path = "../../../accounting/crates/oya-accounting-journal-runtime" }
+oya-accounting-journal-infrastructure = { path = "../../../accounting/crates/oya-accounting-journal-infrastructure" }
 oya-tenant-rbac-app = { path = "../oya-tenant-rbac-app" }
-oya-hr-employment-runtime = { path = "../../../hr/crates/oya-hr-employment-runtime" }
-oya-payroll-run-runtime = { path = "../../../payroll/crates/oya-payroll-run-runtime" }
+oya-hr-employment-infrastructure = { path = "../../../hr/crates/oya-hr-employment-infrastructure" }
+oya-payroll-run-infrastructure = { path = "../../../payroll/crates/oya-payroll-run-infrastructure" }
 
 [lib]
 name = "oya_tenant_rbac_local_runtime_composition"

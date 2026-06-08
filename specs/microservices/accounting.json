@@ -154,7 +154,7 @@
       "given": "a future accounting HTTP adapter receives JSON for journal posting, payroll posting, VAT workflow planning, or health checks",
       "when": "the accounting runtime adapter router dispatches the request through the repo-native Hyper foundation",
       "then": "OpenAPI-aligned JSON responses and validation error envelopes are returned with bounded body limits and explicit non-claims for deployed listener, ledger storage, Workflow execution, statutory filing rails, payment execution, Payroll calls, and runtime audit emission",
-      "test_ref": "microservices/accounting/crates/oya-accounting-journal-runtime/tests/runtime.rs::{accounting_runtime_dispatches_journal_payroll_and_vat,accounting_runtime_rejects_invalid_json_and_domain_errors,accounting_runtime_manifest_and_health_preserve_honest_non_claims}"
+      "test_ref": "microservices/accounting/crates/oya-accounting-journal-infrastructure/tests/runtime.rs::{accounting_runtime_dispatches_journal_payroll_and_vat,accounting_runtime_rejects_invalid_json_and_domain_errors,accounting_runtime_manifest_and_health_preserve_honest_non_claims}"
     },
     {
       "id": "AC-11",

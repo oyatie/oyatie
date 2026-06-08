@@ -1,5 +1,5 @@
 context: accounting
-role: runtime
+role: infrastructure
 capability: journal
 plane: control
 slo: preview-control-plane
