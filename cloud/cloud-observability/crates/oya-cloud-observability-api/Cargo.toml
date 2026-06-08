@@ -8,9 +8,9 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-cloud-observability-domain = { path = "../oya-cloud-observability-domain" }
-oya-audit-chain-domain = { path = "../../../audit-chain/crates/oya-audit-chain-domain" }
+oya-audit-chain-domain = { path = "../../../../oya/audit-chain/crates/oya-audit-chain-domain" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-residency-domain = { path = "../../../../cloud/cloud-network/crates/oya-residency-domain" }
+oya-residency-domain = { path = "../../../cloud-network/crates/oya-residency-domain" }
 
 [lints]
 workspace = true
