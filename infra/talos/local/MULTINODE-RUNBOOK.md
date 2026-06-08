@@ -108,7 +108,6 @@ Update pod templates to declare cell affinity (these edits land in follow-up PRs
 
 - `infra/seaweedfs/seaweedfs.k8s.yaml` — add `nodeSelector: { oya.cell/storage: "true" }` + `tolerations: dedicated=storage:NoSchedule` to the Deployment spec.
 - `infra/ci-webhook-gateway/buildkit-build.yaml` — add `nodeSelector: { oya.cell/ci: "true" }` + `tolerations: dedicated=ci:NoSchedule` to both the buildkitd Deployment and the Job.
-- `infra/ci/jenkins/values-local.yaml` — extend the `rust-ci` pod template `spec` with the same selector + tolerations.
 
 Each PR re-runs the gate and verifies workloads continue to schedule on the intended cell.
 
