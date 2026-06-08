@@ -1,0 +1,136 @@
+# oya-ci.toml — oyatie's EXPLICIT oya-ci CONFORMANCE-FLOOR config (OYA-CI-CONFORMANCE-FLOOR-PLAN Stage 2).
+#
+# This file reproduces oyatie's CURRENT policy byte-for-byte: the producer
+# (oya-cloud-ci-accounting-registry-app) loads it via oya-ci-config-kernel's CLOSED-schema
+# loader (unknown keys are an error), falling back to the compiled-in bundled default when
+# the file is absent. Authoring it here makes the policy DATA (doc-as-data doctrine): a repo
+# adopts oya-ci by dropping its own oya-ci.toml. The schema reference + every default lives in
+# docs/oya-ci/ (Stage D).
+#
+# The ttl + unit_class + gate-disposition tables stay as the crate's bundled JSON DATA (the
+# `[ttl]` / `[unit_class]` sections below are intentionally empty = "use the bundled table");
+# author an inline_json override only to diverge from the bundled tables.
+
+[repo]
+root_markers = ["specs/root-hub-pointers.json"]
+path_excludes = ["third-party/"]
+
+[naming]
+required_prefix = "oya-"
+allowed_roles = ["kernel", "domain", "usecase", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "graphql", "worker", "sdk", "api"]
+check_family_prefix = "oya-check-"
+backend_suffixes = ["fake", "inmemory", "aws", "oci", "gcp", "azure", "postgres", "redis", "sqlite"]
+doctrinal_carve_outs = ["oya-tooling-agent-read"]
+
+[[vocab.forbidden_stems]]
+stem = "foundry"
+code = "forbidden_foundry"
+
+[[vocab.forbidden_stems]]
+stem = "forgejo"
+code = "forbidden_forgejo"
+
+[[vocab.forbidden_stems]]
+stem = "jenkins"
+code = "forbidden_jenkins"
+
+[[vocab.forbidden_stems]]
+stem = "oya-vcs"
+code = "forbidden_oya-vcs"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "libs/oya-check-brand-residue/"
+reason = "the deny-list patterns themselves are not residue"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "libs/oya-ci-config/"
+reason = "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "oya-ci.toml"
+reason = "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "registry/catalog/oya-check-brand-residue.yaml"
+reason = "the catalog deny-list spec is not residue"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "oya/intelligence/_legacy-foundry/"
+reason = "intentional historical archive of the dropped work"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "evidence/audit-chain.jsonl"
+reason = "append-only audit chain — NEVER rewritten"
+
+[[vocab.carve_outs]]
+kind = "path_suffix"
+value = ".generated.json"
+reason = "producer-generated faces record the tokens the gates track; a hand-edit is its own registry_drift RED"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "palantir"
+reason = "Palantir-Foundry is a competitor proper noun, not brand residue"
+
+[manifest]
+required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
+
+[reachability]
+masterplan = "specs/masterplan.json"
+root_hub = "specs/root-hub-pointers.json"
+doc_catalog = "docs/DOC-CATALOG.md"
+
+[justification]
+adr_dir = "docs/decisions"
+roadmap = "specs/master-plan-sequencing.json"
+
+[owners]
+file_name = "OWNERS"
+
+[enforcement]
+governance_crate_substr = "oya-governance"
+governance_lanes = ["docs/governance-lanes/diataxis-doc-class.md", "docs/governance-lanes/prd-axis-coverage.md"]
+
+[ttl]
+
+[unit_class]
+
+[[gates.enabled]]
+id = "cloud-ci-total-accounting"
+input_kind = "producer-face"
+face = "total_accounting"
+
+[[gates.enabled]]
+id = "cloud-ci-cross-artifact-agreement"
+input_kind = "producer-face"
+face = "cross_artifact"
+
+[[gates.enabled]]
+id = "cloud-ci-automation-ratchet"
+input_kind = "producer-face"
+face = "automation_ratchet"
+
+[[gates.enabled]]
+id = "cloud-ci-staleness-reaper"
+input_kind = "producer-face"
+face = "staleness"
+
+[[gates.enabled]]
+id = "cloud-ci-bnf-layer-suffix"
+input_kind = "producer-face"
+face = "bnf_layer_suffix"
+
+[[gates.enabled]]
+id = "cloud-ci-manifest-hygiene"
+input_kind = "producer-face"
+face = "manifest_hygiene"
+
+[[gates.enabled]]
+id = "cloud-ci-brand-residue"
+input_kind = "raw-corpus-collector"

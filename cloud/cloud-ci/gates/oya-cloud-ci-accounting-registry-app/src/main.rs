@@ -88,17 +88,25 @@ fn run() -> Result<(), CliError> {
         i += 1;
     }
 
-    // The oya-ci policy (naming/vocab/manifest/roots/sources/gates) is sourced from the config
-    // (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). In this floor stage it defaults to the bundled
-    // default (== today's hardcoded values), so every face is byte-for-byte unchanged.
-    let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+    // Root discovery uses the bundled default's markers (chicken/egg: we need a root before we
+    // can read a root-relative oya-ci.toml). Discovery markers are not repo-policy, so this is
+    // safe even when an adopter overrides them in the file.
+    let bootstrap_cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
 
     let repo_root = match repo_root {
         Some(root) => root,
-        None => discover_repo_root(&cfg)?,
+        None => discover_repo_root(&bootstrap_cfg)?,
     };
     let out_dir = out_dir
         .unwrap_or_else(|| repo_root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app"));
+
+    // The oya-ci policy (naming/vocab/manifest/roots/sources/gates) is sourced from the repo's
+    // `oya-ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3 / Stage 2), via the CLOSED-schema loader;
+    // when the file is absent the compiled-in bundled default applies (zero-config does
+    // something useful). oyatie's checked-in file reproduces today's values, so every existing
+    // face is byte-for-byte unchanged.
+    let cfg = load_config(&repo_root)?;
+    let config_digest = cfg.digest();
 
     let policy = Policy::from_config(&cfg)?;
     let inputs = collect_repo_inputs(&repo_root, &cfg)?;
@@ -131,7 +139,7 @@ fn run() -> Result<(), CliError> {
         manifest_hygiene: &manifest_hygiene,
         brand_residue: &brand_residue,
     };
-    let baseline = build_gate_baseline(&gate_inputs)?;
+    let baseline = build_gate_baseline(&gate_inputs, &config_digest)?;
 
     if to_stdout {
         let value = match face.as_str() {
@@ -173,6 +181,22 @@ fn run() -> Result<(), CliError> {
 
 /// Walk up from cwd to the repo root (the dir holding `specs/root-hub-pointers.json`),
 /// matching the existing kernel-test convention.
+/// Load the repo's `oya-ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). When the file is present
+/// it is parsed by the CLOSED-schema loader (a malformed file / unknown key is a hard error, so
+/// a broken config fails LOUDLY rather than silently reverting policy); when it is absent the
+/// compiled-in bundled default applies (zero-config = today's language-agnostic posture).
+fn load_config(repo_root: &Path) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+    let path = repo_root.join("oya-ci.toml");
+    match std::fs::read_to_string(&path) {
+        Ok(text) => oya_ci_config_kernel::OyaCiConfig::from_toml_str(&text)
+            .map_err(|e| CliError::Io(format!("{}: {e}", path.display()))),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            Ok(oya_ci_config_kernel::OyaCiConfig::bundled_default())
+        }
+        Err(e) => Err(CliError::Io(format!("{}: {e}", path.display()))),
+    }
+}
+
 fn discover_repo_root(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<PathBuf, CliError> {
     let markers = &cfg.repo.root_markers;
     let mut dir = std::env::current_dir().map_err(|e| CliError::Io(e.to_string()))?;
