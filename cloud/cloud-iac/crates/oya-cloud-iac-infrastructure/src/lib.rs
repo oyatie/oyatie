@@ -1,7 +1,7 @@
 //! In-process runtime composition for the Cloud IaC OpenTofu module registry.
 //!
 //! This crate composes the framework-free REST router boundary with the pure
-//! API DTO boundary at the clean-architecture `runtime` role. It does not bind
+//! API DTO boundary at the clean-architecture `infrastructure` role. It does not bind
 //! sockets, start a Hyper server, read request bodies, call an auth service,
 //! persist registry state, sign modules, invoke OpenTofu, call providers, or
 //! provision cloud resources.

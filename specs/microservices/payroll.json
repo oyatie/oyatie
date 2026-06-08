@@ -161,7 +161,7 @@
       "given": "a future payroll HTTP adapter receives JSON for trial close, accounting journal draft, HR leave-impact intake, or health checks",
       "when": "the payroll runtime adapter router dispatches the request through the repo-native Hyper foundation",
       "then": "OpenAPI-aligned JSON responses and validation error envelopes are returned with bounded body limits and explicit non-claims for deployed listener, storage, Workflow dispatch, statutory filing rails, and payroll calculation",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-runtime/tests/runtime.rs::{payroll_runtime_dispatches_hr_leave_intake,payroll_runtime_dispatches_trial_close_and_journal_metadata,payroll_runtime_rejects_invalid_json_and_domain_errors_without_panicking,payroll_runtime_manifest_and_health_preserve_honest_non_claims}"
+      "test_ref": "microservices/payroll/crates/oya-payroll-run-infrastructure/tests/runtime.rs::{payroll_runtime_dispatches_hr_leave_intake,payroll_runtime_dispatches_trial_close_and_journal_metadata,payroll_runtime_rejects_invalid_json_and_domain_errors_without_panicking,payroll_runtime_manifest_and_health_preserve_honest_non_claims}"
     },
     {
       "id": "AC-12",

@@ -1,5 +1,5 @@
 context: hr
-role: runtime
+role: infrastructure
 capability: employment
 plane: control
 slo: preview-control-plane

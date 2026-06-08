@@ -5,9 +5,9 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/accounting/crates/oya-accounting-journal-runtime:oya-accounting-journal-runtime",
-        "//oya/hr/crates/oya-hr-employment-runtime:oya-hr-employment-runtime",
-        "//oya/payroll/crates/oya-payroll-run-runtime:oya-payroll-run-runtime",
+        "//oya/accounting/crates/oya-accounting-journal-infrastructure:oya-accounting-journal-infrastructure",
+        "//oya/hr/crates/oya-hr-employment-infrastructure:oya-hr-employment-infrastructure",
+        "//oya/payroll/crates/oya-payroll-run-infrastructure:oya-payroll-run-infrastructure",
         "//oya/tenant-rbac/crates/oya-tenant-rbac-app:oya-tenant-rbac-app",
     ],
 )

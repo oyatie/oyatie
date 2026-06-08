@@ -9,7 +9,7 @@ use oya_payroll_run_api::{
     PayrollJournalDraftRequest, PayrollJournalLineRequest, PayrollTrialCloseRequest,
     WageLedgerEntryRequest, WageLineKindDto,
 };
-use oya_payroll_run_runtime::{
+use oya_payroll_run_infrastructure::{
     PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH, PAYROLL_HEALTH_PATH,
     PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH, PAYROLL_TRIAL_CLOSE_PATH, dispatch_payroll_request,
     payroll_runtime_routes, payroll_server_config,

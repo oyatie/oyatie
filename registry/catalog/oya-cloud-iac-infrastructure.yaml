@@ -1,5 +1,5 @@
 context: cloud-iac
-role: runtime
+role: infrastructure
 capability: cloud-iac-module-registry-runtime
 plane: control
 slo: preview-control-plane

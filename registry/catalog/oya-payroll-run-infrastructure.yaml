@@ -1,5 +1,5 @@
 context: payroll
-role: runtime
+role: infrastructure
 capability: run
 plane: control
 slo: preview-control-plane

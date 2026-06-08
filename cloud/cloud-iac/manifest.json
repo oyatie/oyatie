@@ -13,7 +13,7 @@
         "oya-cloud-iac-app",
         "oya-cloud-iac-domain",
         "oya-cloud-iac-rest",
-        "oya-cloud-iac-runtime"
+        "oya-cloud-iac-infrastructure"
       ]
     }
   ],
@@ -164,19 +164,19 @@
     {
       "tier": "T1",
       "name": "cloud-iac-module-registry-runtime-composition",
-      "file": "crates/oya-cloud-iac-runtime/src/lib.rs",
+      "file": "crates/oya-cloud-iac-infrastructure/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-module-registry-http-handler",
-      "file": "crates/oya-cloud-iac-runtime/src/lib.rs",
+      "file": "crates/oya-cloud-iac-infrastructure/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-module-registry-service-assembly",
-      "file": "crates/oya-cloud-iac-runtime/src/lib.rs",
+      "file": "crates/oya-cloud-iac-infrastructure/src/lib.rs",
       "risk_class": "high"
     },
     {
@@ -188,7 +188,7 @@
     {
       "tier": "T1",
       "name": "cloud-iac-module-registry-loopback-listener-harness",
-      "file": "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs",
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs",
       "risk_class": "high"
     },
     {
@@ -324,31 +324,31 @@
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001",
       "title": "In-process runtime composition for OpenTofu module registry REST router and API boundary",
       "acceptance_status": "implemented-local-runtime-composition",
-      "file": "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs"
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-HTTP-HANDLER-001",
       "title": "Transport-neutral HTTP handler for OpenTofu module registry responses",
       "acceptance_status": "implemented-local-http-handler-boundary",
-      "file": "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs"
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-SERVICE-ASSEMBLY-001",
       "title": "Canonical Hyper-adapter router and middleware assembly for OpenTofu module registry handler",
       "acceptance_status": "implemented-local-service-assembly",
-      "file": "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs"
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-METHOD-SEAM-001",
       "title": "Canonical router and Hyper-adapter method-mismatch seam for OpenTofu module registry dispatch",
       "acceptance_status": "implemented-local-dispatch-seam",
-      "file": "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs"
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-LOOPBACK-LISTENER-001",
       "title": "Deterministic one-connection loopback listener harness for OpenTofu module registry service assembly",
       "acceptance_status": "implemented-local-loopback-harness",
-      "file": "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs"
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-ENTRYPOINT-001",
@@ -1646,7 +1646,7 @@
     ]
   },
   "module_registry_runtime_composition_scope": {
-    "crate": "crates/oya-cloud-iac-runtime",
+    "crate": "crates/oya-cloud-iac-infrastructure",
     "rest_crate": "crates/oya-cloud-iac-rest",
     "api_crate": "crates/oya-cloud-iac-api",
     "domain_crate": "crates/oya-cloud-iac-domain",
@@ -1671,7 +1671,7 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001",
-      "crate": "oya-cloud-iac-runtime",
+      "crate": "oya-cloud-iac-infrastructure",
       "rest_crate": "oya-cloud-iac-rest",
       "api_crate": "oya-cloud-iac-api",
       "runtime_mode": "in-process-runtime-composition-no-live-http-runtime",
@@ -1701,8 +1701,8 @@
     ]
   },
   "module_registry_http_handler_scope": {
-    "crate": "crates/oya-cloud-iac-runtime",
-    "runtime_composition": "crates/oya-cloud-iac-runtime/src/lib.rs::dispatch_module_registry_runtime_request",
+    "crate": "crates/oya-cloud-iac-infrastructure",
+    "runtime_composition": "crates/oya-cloud-iac-infrastructure/src/lib.rs::dispatch_module_registry_runtime_request",
     "http_kernel": "crates/oya-http-middleware-kernel",
     "status": "transport-neutral-http-handler-boundary-no-live-http-runtime",
     "runtime_mode": "local-http-handler-tests",
@@ -1726,7 +1726,7 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-HTTP-HANDLER-001",
-      "crate": "oya-cloud-iac-runtime",
+      "crate": "oya-cloud-iac-infrastructure",
       "runtime_mode": "transport-neutral-http-handler-boundary-no-live-http-runtime",
       "enforced_invariants": [
         "HTTP handler uses transport-neutral oya-http-middleware-kernel HttpRequest/HttpResponse only and does not import Hyper",
@@ -1754,8 +1754,8 @@
     ]
   },
   "module_registry_service_assembly_scope": {
-    "crate": "crates/oya-cloud-iac-runtime",
-    "http_handler": "crates/oya-cloud-iac-runtime/src/lib.rs::CloudIacModuleRegistryHttpHandler",
+    "crate": "crates/oya-cloud-iac-infrastructure",
+    "http_handler": "crates/oya-cloud-iac-infrastructure/src/lib.rs::CloudIacModuleRegistryHttpHandler",
     "http_runtime_adapter": "crates/oya-http-runtime-hyper-adapter",
     "http_router_kernel": "crates/oya-http-router-kernel",
     "http_middleware_kernel": "crates/oya-http-middleware-kernel",
@@ -1780,7 +1780,7 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-SERVICE-ASSEMBLY-001",
-      "crate": "oya-cloud-iac-runtime",
+      "crate": "oya-cloud-iac-infrastructure",
       "runtime_mode": "hyper-adapter-router-middleware-assembly-no-bind-no-listen-no-deploy",
       "enforced_invariants": [
         "Service assembly registers exactly three official OpenTofu module registry GET routes in oya-http-router-kernel",
@@ -1809,7 +1809,7 @@
   "module_registry_method_seam_scope": {
     "http_router_kernel": "crates/oya-http-router-kernel/src/lib.rs::Router::path_matches_any_method",
     "http_runtime_adapter": "crates/oya-http-runtime-hyper-adapter/src/lib.rs::dispatch",
-    "cloud_iac_regression_test": "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs::service_assembly_preserves_method_not_allowed_through_canonical_adapter_path",
+    "cloud_iac_regression_test": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs::service_assembly_preserves_method_not_allowed_through_canonical_adapter_path",
     "status": "local-canonical-dispatch-method-seam-no-bind-no-listen-no-deploy",
     "runtime_mode": "router-hyper-adapter-dispatch-tests",
     "method_mismatch_policy": {
@@ -1848,8 +1848,8 @@
   },
   "module_registry_loopback_listener_scope": {
     "http_runtime_adapter": "crates/oya-http-runtime-hyper-adapter/src/lib.rs::serve_one_connection",
-    "cloud_iac_serve_parts": "crates/oya-cloud-iac-runtime/src/lib.rs::CloudIacModuleRegistryHttpServiceAssembly::into_serve_parts",
-    "cloud_iac_loopback_test": "crates/oya-cloud-iac-runtime/tests/cloud_iac_runtime.rs::loopback_listener_serves_discovery_through_hyper_boundary_without_deploy_claim",
+    "cloud_iac_serve_parts": "crates/oya-cloud-iac-infrastructure/src/lib.rs::CloudIacModuleRegistryHttpServiceAssembly::into_serve_parts",
+    "cloud_iac_loopback_test": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs::loopback_listener_serves_discovery_through_hyper_boundary_without_deploy_claim",
     "status": "one-connection-local-loopback-listener-harness-no-daemon-no-deploy",
     "runtime_mode": "local-test-only-loopback-http-boundary",
     "listener_policy": {

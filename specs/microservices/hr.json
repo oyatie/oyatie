@@ -168,7 +168,7 @@
       "given": "a future HR HTTP adapter receives JSON for onboarding, labor workflow planning, sensitive-read policy decisions, leave payroll-impact planning, or health checks",
       "when": "the HR runtime adapter router dispatches the request through the repo-native Hyper foundation",
       "then": "OpenAPI-aligned JSON responses and validation/forbidden error envelopes are returned with bounded body limits and explicit non-claims for deployed listener, storage, Workflow execution, Payroll calls, sensitive-data fetch, and runtime audit emission",
-      "test_ref": "microservices/hr/crates/oya-hr-employment-runtime/tests/runtime.rs::{hr_runtime_dispatches_sensitive_read_and_leave,hr_runtime_dispatches_onboarding_and_labor_workflow_metadata,hr_runtime_rejects_invalid_json_and_forbidden_sensitive_purpose,hr_runtime_manifest_and_health_preserve_honest_non_claims}"
+      "test_ref": "microservices/hr/crates/oya-hr-employment-infrastructure/tests/runtime.rs::{hr_runtime_dispatches_sensitive_read_and_leave,hr_runtime_dispatches_onboarding_and_labor_workflow_metadata,hr_runtime_rejects_invalid_json_and_forbidden_sensitive_purpose,hr_runtime_manifest_and_health_preserve_honest_non_claims}"
     },
     {
       "id": "AC-13",
