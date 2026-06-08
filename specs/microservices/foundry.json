@@ -31,9 +31,9 @@
       "ADR-0255-intelligence-as-two-layer-ai-substrate",
       "ADR-0247-self-hosting-self-modification-doctrine",
       "ADR-0220-consumer-intelligence-substrate",
-      "ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18",
+      "ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18",
       "ADR-0136-amendment",
-      "ADR-0138-foundry-six-path-deprecation",
+      "ADR-0138-intelligence-six-path-deprecation",
       "ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline"
     ],
     "precedent_waves": [

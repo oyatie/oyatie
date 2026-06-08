@@ -145,7 +145,7 @@ docs/decisions/ADR-0052-inventory-grit-cutover.md
 docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md
 docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
 docs/decisions/ADR-0090-hyper-canonical-http-backbone.md
-docs/decisions/ADR-0091-foundry-write-gate-foundations.md
+docs/decisions/ADR-0091-governance-write-gate-foundations.md
 docs/decisions/ADR-0092-workspace-dependency-seam-policy.md
 docs/decisions/ADR-0107-tools-implicit-app-convention.md
 docs/decisions/ADR-0108-sunset-lifecycle-automation.md
@@ -2759,10 +2759,10 @@ docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md:- For history o
 docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md:- For PR-equivalent operations agents currently use `gh pr create` for, `grit done` is the closest primitive — does `grit done` create a PR on a remote, or does it merge locally and leave PR creation to a separate non-agent flow?
 docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md:1. **Read `grit done --help`, `grit watch --help`, `grit symbols --help`, `grit session --help`, `grit show-session --help` (if present), and `grit assign --help` in full to map the agent read-side surface.** Document which `git`/`gh` read-side calls are absorbed natively vs which require a non-agent helper wrapper.
 docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md:   - "For agent read-side surface where `grit` has no equivalent (e.g., `git log`-style commit-history queries), is the answer: (a) icm `recall -t commits-oyatie`, (b) a sanctioned non-agent helper, or (c) extend grit with the missing read primitive?"
-docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md:This ADR records the rename decision. **The actual crate rename is a prerequisite task separate from M02-P06 implementation** and executes before any Wave 3 grit units open against these crates.
-docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md:- Wave 3 grit units can open with conformant crate names on day-1.
-docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md:- The rename itself must precede Wave 3a grit claim (`grit claim --agent worker-3a …`) or
-docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md:1. **Prerequisite task** — Execute the three-crate rename before Wave 3a grit unit opens.
+docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md:This ADR records the rename decision. **The actual crate rename is a prerequisite task separate from M02-P06 implementation** and executes before any Wave 3 grit units open against these crates.
+docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md:- Wave 3 grit units can open with conformant crate names on day-1.
+docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md:- The rename itself must precede Wave 3a grit claim (`grit claim --agent worker-3a …`) or
+docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md:1. **Prerequisite task** — Execute the three-crate rename before Wave 3a grit unit opens.
 docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md:  {grit, icm, oya-tooling-agent-read}. Direct git/gh permitted only with
 docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md:# ADR-0053: grit + icm + oya-tooling-agent-read as sole sanctioned primitives for agentic work
 docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md:- **Siblings landing in parallel:** ADR-0052 (pre-grit artifact inventory), ADR-0054 (grit scaffold-claim pattern)
@@ -3106,7 +3106,7 @@ docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0056-rust-clean-arch
 docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0063-documentation-suite-coverage.md | mentions `grit` in evidence path | **P2** |
 docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0066-live-code-introspection-docs-portal.md | references `grit` in section header | **P2** |
 docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md | references `grit` | **P2** |
-docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0097-foundry-account-adapter-rename-target-slot-last.md | uses `grit` claim/work/done semantics | **P1** |
+docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0097-intelligence-account-adapter-rename-target-slot-last.md | uses `grit` claim/work/done semantics | **P1** |
 docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0069-active-machine-readable-artifact-contract.md | references `grit` ledger | **P2** |
 docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0092-workspace-dependency-seam-policy.md | references `grit` | **P2** |
 docs/architecture/adr-corpus-line-audit-2026-05-21.md:| ADR-0107-tools-implicit-app-convention.md | references `icm:` URL scheme | **P2** |

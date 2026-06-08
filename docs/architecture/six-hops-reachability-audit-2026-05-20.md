@@ -7455,7 +7455,7 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 27 | `docs/release/progressive-delivery/blue-green-spec.md` | 10 | 8 | n/a | unreachable |
 | 28 | `microservices/payments/ARCHITECTURE.md` | 10 | 8 | n/a | unreachable |
 | 29 | `docs/DOCUMENTATION.md` | 10 | 7 | 1 | reachable |
-| 30 | `docs/decisions/ADR-0024-foundry-eval-harness-and-replay.md` | 10 | 0 | 2 | reachable |
+| 30 | `docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md` | 10 | 0 | 2 | reachable |
 | 31 | `docs/ADR-INDEX.md` | 9 | 210 | 1 | reachable |
 | 32 | `docs/release/progressive-delivery/stable-cohort-spec.md` | 9 | 9 | n/a | unreachable |
 | 33 | `docs/advanced-cicd/progressive-delivery/stable-cohort-spec.md` | 9 | 8 | n/a | unreachable |
@@ -7479,8 +7479,8 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 51 | `docs/ADR-LEGACY-REGRESSION-MAPPING.md` | 7 | 4 | 1 | reachable |
 | 52 | `docs/standards/dependency-policy.md` | 7 | 2 | 2 | reachable |
 | 53 | `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md` | 7 | 0 | 2 | reachable |
-| 54 | `docs/decisions/ADR-0020-foundry-multi-provider-adapter-model.md` | 7 | 0 | 2 | reachable |
-| 55 | `docs/decisions/ADR-0021-foundry-capability-registry-and-mcp-gateway.md` | 7 | 0 | 2 | reachable |
+| 54 | `docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md` | 7 | 0 | 2 | reachable |
+| 55 | `docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md` | 7 | 0 | 2 | reachable |
 | 56 | `docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md` | 7 | 0 | 2 | reachable |
 | 57 | `docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md` | 7 | 0 | 2 | reachable |
 | 58 | `docs/decisions/ADR-0049-cross-region-replication-and-residency.md` | 7 | 0 | 2 | reachable |

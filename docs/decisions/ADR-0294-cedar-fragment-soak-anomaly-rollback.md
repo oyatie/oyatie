@@ -36,7 +36,7 @@ related:
   - ADR-0248-amazon-shape-cellular-architecture.md
   - ADR-0251-compliance-pack-cell-certification-levels.md
   - ADR-0263-observability-emission-contract.md
-  - ADR-0293-foundry-meta-trust-root.md
+  - ADR-0293-governance-meta-trust-root.md
 related_adrs:
   - ADR-0297
   - ADR-0311

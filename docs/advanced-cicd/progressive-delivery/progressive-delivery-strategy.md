@@ -37,7 +37,7 @@ Hyperscaler equivalents we honour: Google SRE multi-window burn-rate ([SRE Workb
 | **Adapter** (`-adapter-<provider>`) | Canary, **per-provider** | Provider behaviour drift is the #1 incident class | N/A | Flagger |
 | **Runtime** (agent / WASM substrate) | Blue/green per cell | Replay-safety; stateful runtime | All-tenant blue/green | Argo Rollouts (BG) |
 | **Migration** (schema / data) | Blue/green + dual-write | Replay infeasible; D14 mandate | All-tenant blue/green | Argo Rollouts (BG) |
-| **Capability** (Foundry publish) | Canary + eval-set gate | Per [ADR-0024](../../../docs/decisions/ADR-0024-foundry-eval-harness-and-replay.md) | Stable cohort honoured | Flagger + capability-publish-kernel |
+| **Capability** (Foundry publish) | Canary + eval-set gate | Per [ADR-0024](../../../docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md) | Stable cohort honoured | Flagger + capability-publish-kernel |
 
 **Default = canary.** Blue/green is reserved for stateful migrations + runtime cutovers + KMS roots. **Rolling-update is forbidden** for any change class above (rolling = no metric gate).
 

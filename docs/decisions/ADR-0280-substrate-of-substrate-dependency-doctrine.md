@@ -37,7 +37,7 @@ related:
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0131-per-microservice-flat-layout.md
   - ADR-0132-product-platform-and-bundle-dissolution.md
-  - ADR-0136-foundry-as-single-microservice.md
+  - ADR-0136-intelligence-as-single-microservice.md
   - ADR-0139-agentic-slo-gated-promotion.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0148-service-mesh-cilium.md

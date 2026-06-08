@@ -17,12 +17,12 @@ ADR-0016	ADR-0015	kept:docs/decisions/ADR-0016-wave-and-plane-integration-framew
 ADR-0017	ADR-0016	kept:docs/decisions/ADR-0017-brand-naming-and-repo-layout.md
 ADR-0018	ADR-0017	kept:docs/decisions/ADR-0018-glossary-and-terminology-canon.md
 ADR-0019	ADR-0018	kept:docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md
-ADR-0020	ADR-0019	kept:docs/decisions/ADR-0020-foundry-multi-provider-adapter-model.md
-ADR-0021	ADR-0020	kept:docs/decisions/ADR-0021-foundry-capability-registry-and-mcp-gateway.md
+ADR-0020	ADR-0019	kept:docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md
+ADR-0021	ADR-0020	kept:docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md
 ADR-0022	ADR-0021	kept:docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md
-ADR-0023	ADR-0022	kept:docs/decisions/ADR-0023-foundry-sandbox-wasmtime-firecracker.md
-ADR-0024	ADR-0023	kept:docs/decisions/ADR-0024-foundry-eval-harness-and-replay.md
-ADR-0025	ADR-0024	kept:docs/decisions/ADR-0025-foundry-as-engineering-platform.md
+ADR-0023	ADR-0022	kept:docs/decisions/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md
+ADR-0024	ADR-0023	kept:docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md
+ADR-0025	ADR-0024	kept:docs/decisions/ADR-0025-intelligence-as-engineering-platform.md
 ADR-0026	ADR-0025	kept:docs/decisions/ADR-0026-in-house-ai-model-substrate-roadmap.md
 ADR-0027	ADR-0026	kept:docs/decisions/ADR-0027-robotics-vision-speech-sub-substrates.md
 ADR-0028	ADR-0027	kept:docs/decisions/ADR-0028-cloud-microservice-architecture.md
@@ -67,18 +67,18 @@ ADR-0067	ADR-0062	kept:docs/decisions/ADR-0067-ops-oyatie-com-hyperscaler-operat
 ADR-0069	ADR-0063	kept:docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md
 ADR-0083	ADR-0064	kept:docs/decisions/ADR-0083-rust-error-handling-tier-decision.md
 ADR-0090	ADR-0065	kept:docs/decisions/ADR-0090-hyper-canonical-http-backbone.md
-ADR-0091	ADR-0066	kept:docs/decisions/ADR-0091-foundry-write-gate-foundations.md
+ADR-0091	ADR-0066	kept:docs/decisions/ADR-0091-governance-write-gate-foundations.md
 ADR-0092	ADR-0067	kept:docs/decisions/ADR-0092-workspace-dependency-seam-policy.md
 ADR-0093	ADR-0068	kept:docs/decisions/ADR-0093-latency-budget-reporter-rename.md
 ADR-0094	ADR-0069	kept:docs/decisions/ADR-0094-handler-trait-with-associated-error.md
 ADR-0095	ADR-0070	kept:docs/decisions/ADR-0095-tenant-slug-in-tenancy-kernel.md
 ADR-0096	ADR-0071	kept:docs/decisions/ADR-0096-supervisor-language-rust-not-node.md
-ADR-0097	ADR-0072	kept:docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md
+ADR-0097	ADR-0072	kept:docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md
 ADR-0098	ADR-0073	kept:docs/decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md
 ADR-0099	ADR-0074	kept:docs/decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md
 ADR-0100	ADR-0075	kept:docs/decisions/ADR-0100-supervisor-public-contract-lean-a10.md
 ADR-0101	ADR-0076	kept:docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md
-ADR-0102	ADR-0077	kept:docs/decisions/ADR-0102-foundry-settings-template-canonical-rendering.md
+ADR-0102	ADR-0077	kept:docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md
 ADR-0103	DELETED	Wave 15-ZH retired/deprecated marker slug=grit-cutover-inventory
 ADR-0104	ADR-0078	kept:docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md
 ADR-0105	ADR-0079	kept:docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md
@@ -88,7 +88,7 @@ ADR-0108	ADR-0081	kept:docs/decisions/ADR-0108-sunset-lifecycle-automation.md
 ADR-0109	ADR-0082	kept:docs/decisions/ADR-0109-lifecycle-automation-framework.md
 ADR-0110	ADR-0083	kept:docs/decisions/ADR-0110-changeset-state-machine.md
 ADR-0111	ADR-0084	kept:docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
-ADR-0112	ADR-0085	kept:docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md
+ADR-0112	ADR-0085	kept:docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md
 ADR-0113	ADR-0086	kept:docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md
 ADR-0114	ADR-0087	kept:docs/decisions/ADR-0114-canary-observability-rollback.md
 ADR-0115	ADR-0088	kept:docs/decisions/ADR-0115-registry-consolidation-flat-singular.md
@@ -109,14 +109,14 @@ ADR-0132	ADR-0100	kept:docs/decisions/ADR-0132-product-suite-and-bundle-dissolut
 ADR-0133	ADR-0101	kept:docs/decisions/ADR-0133-industry-best-practice-conformance-program.md
 ADR-0134	ADR-0102	kept:docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md
 ADR-0135	ADR-0103	kept:docs/decisions/ADR-0135-aspirational-enforcement-gate.md
-ADR-0136	ADR-0104	kept:docs/decisions/ADR-0136-foundry-as-single-microservice.md
-ADR-0137	ADR-0105	kept:docs/decisions/ADR-0137-foundry-bounded-contexts.md
+ADR-0136	ADR-0104	kept:docs/decisions/ADR-0136-intelligence-as-single-microservice.md
+ADR-0137	ADR-0105	kept:docs/decisions/ADR-0137-intelligence-bounded-contexts.md
 ADR-0138	DELETED	Wave 15-ZH retired/deprecated marker slug=foundry-six-path-deprecation
 ADR-0139	ADR-0106	kept:docs/decisions/ADR-0139-agentic-slo-gated-promotion.md
 ADR-0140	DELETED	frontmatter status=Superseded
 ADR-0141	DELETED	frontmatter status=Superseded
 ADR-0142	ADR-0107	kept:docs/decisions/ADR-0142-crdt-portability-trait.md
-ADR-0143	ADR-0108	kept:docs/decisions/ADR-0143-foundry-per-bc-release-pointer.md
+ADR-0143	ADR-0108	kept:docs/decisions/ADR-0143-intelligence-per-bc-release-pointer.md
 ADR-0144	ADR-0109	kept:docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
 ADR-0145	ADR-0110	kept:docs/decisions/ADR-0145-inter-microservice-communication-reform.md
 ADR-0146	ADR-0111	kept:docs/decisions/ADR-0146-container-base-image-distroless-nonroot.md
@@ -202,7 +202,7 @@ ADR-0235	ADR-0190	kept:docs/decisions/ADR-0235-connect-core-public-contracts.md
 ADR-0236	ADR-0191	kept:docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md
 ADR-0237	ADR-0192	kept:docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md
 ADR-0238	ADR-0193	kept:docs/decisions/ADR-0238-connect-super-app-expansion.md
-ADR-0239	ADR-0194	kept:docs/decisions/ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md
+ADR-0239	ADR-0194	kept:docs/decisions/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
 ADR-0240	ADR-0195	kept:docs/decisions/ADR-0240-sovereign-cloud-per-regional-pack.md
 ADR-0241	ADR-0196	kept:docs/decisions/ADR-0241-dr-business-continuity-portfolio-policy.md
 ADR-0242	ADR-0197	kept:docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md
@@ -232,7 +232,7 @@ ADR-0276	ADR-0220	kept:docs/decisions/ADR-0276-backup-portability-format-gdpr-ar
 ADR-0280	ADR-0221	kept:docs/decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md
 ADR-0284	ADR-0222	kept:docs/decisions/ADR-0284-platform-owner-name-indirection.md
 ADR-0292	ADR-0223	kept:docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md
-ADR-0293	ADR-0224	kept:docs/decisions/ADR-0293-foundry-meta-trust-root.md
+ADR-0293	ADR-0224	kept:docs/decisions/ADR-0293-governance-meta-trust-root.md
 ADR-0294	ADR-0225	kept:docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md
 ADR-0295	ADR-0226	kept:docs/decisions/ADR-0295-bootstrap-ci-spiffe-kill-switch.md
 ADR-0296	ADR-0227	kept:docs/decisions/ADR-0296-library-first-credential-sidecar.md

@@ -23,7 +23,7 @@ related_adrs: [ADR-0040, ADR-0020]
 
 [OpenFeature](https://openfeature.dev/) is the CNCF-incubating vendor-neutral flag SDK. We adopt it as the **single in-tree flag API**. Per [Directive 4](../../plans/MASTERPLAN.md) (provider-agnostic), every flag-provider integration lives in an adapter crate behind the OpenFeature `Provider` interface. Application code never imports a provider SDK directly.
 
-This mirrors the existing Foundry adapter pattern ([ADR-0020](../../../docs/decisions/ADR-0020-foundry-multi-provider-adapter-model.md)).
+This mirrors the existing Foundry adapter pattern ([ADR-0020](../../../docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md)).
 
 ## 2. Kernel + adapter layout
 

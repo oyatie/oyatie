@@ -360,7 +360,7 @@ Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#
 
 1. [ADR-0110-changeset-state-machine.md](decisions/ADR-0110-changeset-state-machine.md) - ADR 0110 Changeset State Machine: decision record; read for why this primitive or policy exists before changing dependent specs.
 2. [ADR-0111-merge-queue-projected-state-fix-at-any-stage.md](decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md) - ADR 0111 Merge Queue Projected State Fix At Any Stage: decision record; read for why this primitive or policy exists before changing dependent specs.
-3. [ADR-0112-webhook-driven-foundry-agent-invocation.md](decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md) - ADR 0112 Webhook Driven Foundry Agent Invocation: decision record; read for why this primitive or policy exists before changing dependent specs.
+3. [ADR-0112-webhook-driven-intelligence-agent-invocation.md](decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md) - ADR 0112 Webhook Driven Foundry Agent Invocation: decision record; read for why this primitive or policy exists before changing dependent specs.
 4. [ADR-0113-vcs-orchestrator-end-to-end.md](decisions/ADR-0113-vcs-orchestrator-end-to-end.md) - ADR 0113 Vcs Orchestrator End To End: decision record; read for why this primitive or policy exists before changing dependent specs.
 5. [ADR-0114-canary-observability-rollback.md](decisions/ADR-0114-canary-observability-rollback.md) - ADR 0114 Canary Observability Rollback: decision record; read for why this primitive or policy exists before changing dependent specs.
 6. [ADR-0115-registry-consolidation-flat-singular.md](decisions/ADR-0115-registry-consolidation-flat-singular.md) - ADR 0115 Registry Consolidation Flat Singular: decision record; read for why this primitive or policy exists before changing dependent specs.
@@ -1038,7 +1038,7 @@ Foundry and the pipeline docs explain how agentic work is claimed, verified, rev
 
 1. [ADR-0110](decisions/ADR-0110-changeset-state-machine.md) - ChangeSet state machine for pipeline control.
 2. [ADR-0111](decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md) - merge queue projected-state and fix-at-any-stage doctrine.
-3. [ADR-0112](decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md) - webhook-driven Foundry agent invocation.
+3. [ADR-0112](decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md) - webhook-driven Foundry agent invocation.
 4. [ADR-0113](decisions/ADR-0113-vcs-orchestrator-end-to-end.md) - end-to-end VCS orchestrator.
 5. [ADR-0116](decisions/ADR-0116-retire-external-agent-coordination-tooling.md) - retirement of external agent coordination tooling.
 6. [Foundry product PRD](products/foundry/PRD.md) - Foundry product PRD.

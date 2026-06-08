@@ -174,7 +174,7 @@ and stop re-flagging them.
     - **Verdict:** DEFERRED. ADR-0054/ADR-0052/ADR-0057 are in the
       cutover-protected set per task brief. Listed for tracking.
 
-19. `docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md:89,93`
+19. `docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md:89,93`
     — "Alt A — Keep existing names, add BNF exemption" + "BNF exemption
     requires a new ADR to extend the 12-value layer enum or carve out a
     special".
@@ -209,14 +209,14 @@ and stop re-flagging them.
 
 These are deny-by-default closed sets, not exceptions to a canonical rule:
 
-24. `ADR-0020-foundry-multi-provider-adapter-model.md:54,95`
+24. `ADR-0020-intelligence-multi-provider-adapter-model.md:54,95`
     — `data_class_allowlist`. Closed set per capability. Canonical.
 
-25. `ADR-0023-foundry-sandbox-wasmtime-firecracker.md:39,42,72,81,83,87,94,101,113,121,145`
+25. `ADR-0023-intelligence-sandbox-wasmtime-firecracker.md:39,42,72,81,83,87,94,101,113,121,145`
     — `syscall_allowlist`, `egress_allowlist`. Deny-by-default per tool.
     Canonical security primitive.
 
-26. `ADR-0024-foundry-eval-harness-and-replay.md:62,64`
+26. `ADR-0024-intelligence-eval-harness-and-replay.md:62,64`
     — "data classes outside its declared allowlist"; "egress allowlist".
     Same security primitive. Canonical.
 

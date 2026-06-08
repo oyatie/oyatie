@@ -15,10 +15,10 @@ owners:
   - axis-audit-chain
 supersedes: []
 amends:
-  - ADR-0136-foundry-as-single-microservice.md
+  - ADR-0136-intelligence-as-single-microservice.md
   - ADR-0136-amendment (Foundry internal-only carve-out)
   - ADR-0220-consumer-intelligence-substrate.md
-  - ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md
+  - ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
   - ADR-0221-agentic-development-pipeline-hardening.md (§M-04 audience-of-microservice field)
 superseded_by: []
 related:

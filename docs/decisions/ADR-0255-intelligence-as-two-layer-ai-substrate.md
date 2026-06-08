@@ -26,7 +26,7 @@ related:
   - ADR-0099-data-class-registry.md
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0128-hyperscaler-architecture-invariants.md
-  - ADR-0136-foundry-as-single-microservice.md
+  - ADR-0136-intelligence-as-single-microservice.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0150-cedar-policy-engine.md
@@ -44,7 +44,7 @@ related:
   - ADR-0219-no-code-builder-suite.md
   - ADR-0220-consumer-intelligence-substrate.md
   - ADR-0221-agentic-development-pipeline-hardening.md
-  - ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md
+  - ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
   - ADR-0240-sovereign-cloud-per-regional-pack.md
   - ADR-0241-dr-business-continuity-portfolio-policy.md
   - ADR-0242-oyatie-is-a-tenant-doctrine.md

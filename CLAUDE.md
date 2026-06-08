@@ -41,6 +41,6 @@ current_substrate_adrs:
   - docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md
 historical_vcs_ratchet_adrs:
   - docs/decisions/ADR-0110-changeset-state-machine.md
-  - docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md
+  - docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md
   - docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md
 <!-- agent-instructions:end -->

@@ -8,7 +8,7 @@ superseded_by: []
 related:
   - ADR-0054-grit-scaffold-claim-pattern.md
   - ADR-0069-active-machine-readable-artifact-contract.md
-  - ADR-0097-foundry-account-adapter-rename-target-slot-last.md
+  - ADR-0097-intelligence-account-adapter-rename-target-slot-last.md
 purpose: Promote `registry/` (flat, singular) as the canonical home for all machine-readable registry entries; retire `registries/cross-cutting/` (plural + nested).
 ---
 

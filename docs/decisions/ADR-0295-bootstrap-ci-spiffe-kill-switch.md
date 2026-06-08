@@ -40,7 +40,7 @@ related:
   - ADR-0250-build-ahead-of-certification-doctrine.md
   - ADR-0251-compliance-pack-cell-certification-levels.md
   - ADR-0280-substrate-of-substrate-dependency-doctrine.md
-  - ADR-0293-foundry-meta-trust-root.md
+  - ADR-0293-governance-meta-trust-root.md
   - ADR-0294-cedar-fragment-soak-anomaly-rollback.md
 related_specs:
   - /specs/platform-architecture.json

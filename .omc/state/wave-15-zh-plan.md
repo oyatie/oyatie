@@ -75,7 +75,7 @@ Count: 17
 - `docs/decisions/ADR-0107-tools-implicit-app-convention.md` -> DELETE; reason: frontmatter status=Superseded; successor rewrite: `ADR-0105`
 - `docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=retire-external-agent-coordination-tooling; successor rewrite: `ADR-0113`
 - `docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=retire-archive-orphan-fitness-lane; successor rewrite: `ADR-0113`
-- `docs/decisions/ADR-0138-foundry-six-path-deprecation.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=foundry-six-path-deprecation; successor rewrite: `ADR-0255`
+- `docs/decisions/ADR-0138-intelligence-six-path-deprecation.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=foundry-six-path-deprecation; successor rewrite: `ADR-0255`
 - `docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md` -> DELETE; reason: frontmatter status=Superseded; successor rewrite: `ADR-0145`
 - `docs/decisions/ADR-0141-workflow-ontology-read-path-direct.md` -> DELETE; reason: frontmatter status=Superseded; successor rewrite: `ADR-0145`
 - `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=capability-tier-over-product-fragmentation; successor rewrite: `ADR-0330`
@@ -442,7 +442,7 @@ Count: 175
 - `docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md`
 - `docs/decisions/ADR-0092-workspace-dependency-seam-policy.md`
 - `docs/decisions/ADR-0096-supervisor-language-rust-not-node.md`
-- `docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md`
+- `docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md`
 - `docs/decisions/ADR-0103-grit-cutover-inventory.md`
 - `docs/decisions/ADR-0109-lifecycle-automation-framework.md`
 - `docs/decisions/ADR-0115-registry-consolidation-flat-singular.md`
@@ -598,12 +598,12 @@ Count: 175
 - `ADR-0017` -> `ADR-0016` for `docs/decisions/ADR-0017-brand-naming-and-repo-layout.md`
 - `ADR-0018` -> `ADR-0017` for `docs/decisions/ADR-0018-glossary-and-terminology-canon.md`
 - `ADR-0019` -> `ADR-0018` for `docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md`
-- `ADR-0020` -> `ADR-0019` for `docs/decisions/ADR-0020-foundry-multi-provider-adapter-model.md`
-- `ADR-0021` -> `ADR-0020` for `docs/decisions/ADR-0021-foundry-capability-registry-and-mcp-gateway.md`
+- `ADR-0020` -> `ADR-0019` for `docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md`
+- `ADR-0021` -> `ADR-0020` for `docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md`
 - `ADR-0022` -> `ADR-0021` for `docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md`
-- `ADR-0023` -> `ADR-0022` for `docs/decisions/ADR-0023-foundry-sandbox-wasmtime-firecracker.md`
-- `ADR-0024` -> `ADR-0023` for `docs/decisions/ADR-0024-foundry-eval-harness-and-replay.md`
-- `ADR-0025` -> `ADR-0024` for `docs/decisions/ADR-0025-foundry-as-engineering-platform.md`
+- `ADR-0023` -> `ADR-0022` for `docs/decisions/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md`
+- `ADR-0024` -> `ADR-0023` for `docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md`
+- `ADR-0025` -> `ADR-0024` for `docs/decisions/ADR-0025-intelligence-as-engineering-platform.md`
 - `ADR-0026` -> `ADR-0025` for `docs/decisions/ADR-0026-in-house-ai-model-substrate-roadmap.md`
 - `ADR-0027` -> `ADR-0026` for `docs/decisions/ADR-0027-robotics-vision-speech-sub-substrates.md`
 - `ADR-0028` -> `ADR-0027` for `docs/decisions/ADR-0028-cloud-microservice-architecture.md`
@@ -645,18 +645,18 @@ Count: 175
 - `ADR-0069` -> `ADR-0063` for `docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md`
 - `ADR-0083` -> `ADR-0064` for `docs/decisions/ADR-0083-rust-error-handling-tier-decision.md`
 - `ADR-0090` -> `ADR-0065` for `docs/decisions/ADR-0090-hyper-canonical-http-backbone.md`
-- `ADR-0091` -> `ADR-0066` for `docs/decisions/ADR-0091-foundry-write-gate-foundations.md`
+- `ADR-0091` -> `ADR-0066` for `docs/decisions/ADR-0091-governance-write-gate-foundations.md`
 - `ADR-0092` -> `ADR-0067` for `docs/decisions/ADR-0092-workspace-dependency-seam-policy.md`
 - `ADR-0093` -> `ADR-0068` for `docs/decisions/ADR-0093-latency-budget-reporter-rename.md`
 - `ADR-0094` -> `ADR-0069` for `docs/decisions/ADR-0094-handler-trait-with-associated-error.md`
 - `ADR-0095` -> `ADR-0070` for `docs/decisions/ADR-0095-tenant-slug-in-tenancy-kernel.md`
 - `ADR-0096` -> `ADR-0071` for `docs/decisions/ADR-0096-supervisor-language-rust-not-node.md`
-- `ADR-0097` -> `ADR-0072` for `docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md`
+- `ADR-0097` -> `ADR-0072` for `docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md`
 - `ADR-0098` -> `ADR-0073` for `docs/decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md`
 - `ADR-0099` -> `ADR-0074` for `docs/decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md`
 - `ADR-0100` -> `ADR-0075` for `docs/decisions/ADR-0100-supervisor-public-contract-lean-a10.md`
 - `ADR-0101` -> `ADR-0076` for `docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md`
-- `ADR-0102` -> `ADR-0077` for `docs/decisions/ADR-0102-foundry-settings-template-canonical-rendering.md`
+- `ADR-0102` -> `ADR-0077` for `docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md`
 - `ADR-0104` -> `ADR-0078` for `docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md`
 - `ADR-0105` -> `ADR-0079` for `docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md`
 - `ADR-0106` -> `ADR-0080` for `docs/decisions/ADR-0106-rename-application-to-usecase.md`
@@ -664,7 +664,7 @@ Count: 175
 - `ADR-0109` -> `ADR-0082` for `docs/decisions/ADR-0109-lifecycle-automation-framework.md`
 - `ADR-0110` -> `ADR-0083` for `docs/decisions/ADR-0110-changeset-state-machine.md`
 - `ADR-0111` -> `ADR-0084` for `docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md`
-- `ADR-0112` -> `ADR-0085` for `docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md`
+- `ADR-0112` -> `ADR-0085` for `docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md`
 - `ADR-0113` -> `ADR-0086` for `docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md`
 - `ADR-0114` -> `ADR-0087` for `docs/decisions/ADR-0114-canary-observability-rollback.md`
 - `ADR-0115` -> `ADR-0088` for `docs/decisions/ADR-0115-registry-consolidation-flat-singular.md`
@@ -683,11 +683,11 @@ Count: 175
 - `ADR-0133` -> `ADR-0101` for `docs/decisions/ADR-0133-industry-best-practice-conformance-program.md`
 - `ADR-0134` -> `ADR-0102` for `docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md`
 - `ADR-0135` -> `ADR-0103` for `docs/decisions/ADR-0135-aspirational-enforcement-gate.md`
-- `ADR-0136` -> `ADR-0104` for `docs/decisions/ADR-0136-foundry-as-single-microservice.md`
-- `ADR-0137` -> `ADR-0105` for `docs/decisions/ADR-0137-foundry-bounded-contexts.md`
+- `ADR-0136` -> `ADR-0104` for `docs/decisions/ADR-0136-intelligence-as-single-microservice.md`
+- `ADR-0137` -> `ADR-0105` for `docs/decisions/ADR-0137-intelligence-bounded-contexts.md`
 - `ADR-0139` -> `ADR-0106` for `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`
 - `ADR-0142` -> `ADR-0107` for `docs/decisions/ADR-0142-crdt-portability-trait.md`
-- `ADR-0143` -> `ADR-0108` for `docs/decisions/ADR-0143-foundry-per-bc-release-pointer.md`
+- `ADR-0143` -> `ADR-0108` for `docs/decisions/ADR-0143-intelligence-per-bc-release-pointer.md`
 - `ADR-0144` -> `ADR-0109` for `docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md`
 - `ADR-0145` -> `ADR-0110` for `docs/decisions/ADR-0145-inter-microservice-communication-reform.md`
 - `ADR-0146` -> `ADR-0111` for `docs/decisions/ADR-0146-container-base-image-distroless-nonroot.md`
@@ -773,7 +773,7 @@ Count: 175
 - `ADR-0236` -> `ADR-0191` for `docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md`
 - `ADR-0237` -> `ADR-0192` for `docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md`
 - `ADR-0238` -> `ADR-0193` for `docs/decisions/ADR-0238-connect-super-app-expansion.md`
-- `ADR-0239` -> `ADR-0194` for `docs/decisions/ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md`
+- `ADR-0239` -> `ADR-0194` for `docs/decisions/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md`
 - `ADR-0240` -> `ADR-0195` for `docs/decisions/ADR-0240-sovereign-cloud-per-regional-pack.md`
 - `ADR-0241` -> `ADR-0196` for `docs/decisions/ADR-0241-dr-business-continuity-portfolio-policy.md`
 - `ADR-0242` -> `ADR-0197` for `docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md`
@@ -803,7 +803,7 @@ Count: 175
 - `ADR-0280` -> `ADR-0221` for `docs/decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md`
 - `ADR-0284` -> `ADR-0222` for `docs/decisions/ADR-0284-platform-owner-name-indirection.md`
 - `ADR-0292` -> `ADR-0223` for `docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md`
-- `ADR-0293` -> `ADR-0224` for `docs/decisions/ADR-0293-foundry-meta-trust-root.md`
+- `ADR-0293` -> `ADR-0224` for `docs/decisions/ADR-0293-governance-meta-trust-root.md`
 - `ADR-0294` -> `ADR-0225` for `docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md`
 - `ADR-0295` -> `ADR-0226` for `docs/decisions/ADR-0295-bootstrap-ci-spiffe-kill-switch.md`
 - `ADR-0296` -> `ADR-0227` for `docs/decisions/ADR-0296-library-first-credential-sidecar.md`

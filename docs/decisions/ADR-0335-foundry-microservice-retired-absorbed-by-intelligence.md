@@ -28,11 +28,11 @@ related:
   - ADR-0255-intelligence-as-two-layer-ai-substrate.md
   - ADR-0247-self-hosting-self-modification-doctrine.md
   - ADR-0220-consumer-intelligence-substrate.md
-  - ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md
+  - ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
   - ADR-0136-amendment
-  - ADR-0138-foundry-six-path-deprecation.md
+  - ADR-0138-intelligence-six-path-deprecation.md
   - ADR-0116-retire-external-agent-coordination-tooling.md
-  - ADR-0112-webhook-driven-foundry-agent-invocation.md
+  - ADR-0112-webhook-driven-intelligence-agent-invocation.md
   - ADR-0113-vcs-orchestrator-end-to-end.md
   - ADR-0132-product-platform-and-bundle-dissolution.md
   - ADR-0245-substrate-vs-product-layering.md

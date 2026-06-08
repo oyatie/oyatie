@@ -43,7 +43,7 @@ related:
   - ADR-0263-observability-emission-contract.md
   - ADR-0276-backup-portability-gdpr-art-20.md
   - ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md
-  - ADR-0293-foundry-meta-trust-root.md
+  - ADR-0293-governance-meta-trust-root.md
   - ADR-0294-cedar-fragment-soak-anomaly-rollback.md
   - ADR-0295-bootstrap-ci-spiffe-kill-switch.md
   - ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md

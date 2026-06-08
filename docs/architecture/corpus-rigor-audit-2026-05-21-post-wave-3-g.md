@@ -3116,7 +3116,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | OpenAPI below 3.2.0 prose/config | 22 | docs/architecture/ip-corpus-line-audit-2026-05-21.md:220; docs/architecture/adr-corpus-line-audit-2026-05-21.md:323; docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:3117; docs/automation/openapi-pipeline.md:58; microservices/calendar/IP-011-contracts-openapi-asyncapi-proto.md:22 |
 | AsyncAPI below 3.1.0 prose/config | 49 | docs/decisions/ADR-0011-cross-microservice-contract-registry.md:102; docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md:75; docs/user-stories/b2c-consumer-surfaces.md:2240; docs/architecture/ip-corpus-line-audit-2026-05-21.md:111; docs/architecture/adr-corpus-line-audit-2026-05-21.md:334 |
 | 12-layer drift | 120 | docs/DOC-CATALOG.md:81; docs/ADR-INDEX.md:77; docs/plans/rename-plan-v4-clean-arch-2026-05-13.md:22; docs/machine-readable/decisions.json:665; docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:3089 |
-| React client-stack drift | 131 | docs/decisions/ADR-0205-code-editor-canonical-codemirror.md:39; docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1987; docs/decisions/ADR-0203-documentation-engine-three-tier.md:104; docs/decisions/ADR-0185-workflow-studio-client-stack.md:43; docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md:35 |
+| React client-stack drift | 131 | docs/decisions/ADR-0205-code-editor-canonical-codemirror.md:39; docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1987; docs/decisions/ADR-0203-documentation-engine-three-tier.md:104; docs/decisions/ADR-0185-workflow-studio-client-stack.md:43; docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md:35 |
 
 ### §11.1 placeholder marker and code-only deferral
 - `docs/COMPLIANCE-MATRIX.md:178` — `> **placeholder marker v0.2** — full A.5 ... A.18 mapping per ISO 27001:2022 Annex A; cross-reference to existing controls. Same pattern for 27017 (cloud), 27018 (PII in cloud), 27701 (PIMS).`
@@ -3173,7 +3173,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1987` — `- React/SSR per-session: CSS class names are post-build randomised`
 - `docs/decisions/ADR-0203-documentation-engine-three-tier.md:104` — `- **Docusaurus** — React-based, mature, but breaks the`
 - `docs/decisions/ADR-0185-workflow-studio-client-stack.md:43` — `1. **One UI framework everywhere** (Flutter, React Native, Compose Multiplatform UI) — produces non-idiomatic UX per platform; lowest-common-denominator UI quality.`
-- `docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md:35` — `- React to per-commit events (e.g., "agent pushed a fix to PR-B's`
+- `docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md:35` — `- React to per-commit events (e.g., "agent pushed a fix to PR-B's`
 - `docs/decisions/ADR-0253-network-topology-edge-service-mesh.md:1687` — `compression); React/Solid SSR-hydrated canvas renders within ~50ms`
 - `docs/decisions/ADR-0204-workflow-studio-canvas-library.md:84` — `### (a) React Flow (`@xyflow/react`) — REJECTED`
 - `docs/decisions/ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md:1751` — `parallel ADR will address React Native / iOS / Android`

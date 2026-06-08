@@ -11,7 +11,7 @@ final_shape_compliance: true
 dependency_additions: []
 source_adrs:
   - ../../../../../../docs/decisions/ADR-0110-changeset-state-machine.md
-  - ../../../../../../docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md
+  - ../../../../../../docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md
   - ../../../../../../docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md
   - ../../../../../../docs/decisions/ADR-0114-canary-observability-rollback.md
 depends_on:

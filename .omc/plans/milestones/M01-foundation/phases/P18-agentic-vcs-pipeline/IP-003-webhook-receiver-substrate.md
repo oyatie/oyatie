@@ -10,7 +10,7 @@ changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions:
   - axum (Rust HTTP framework) OR hyper-http-tower — decide at impl
-source_adr: ../../../../../../docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md
+source_adr: ../../../../../../docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md
 purpose: Land the HTTP webhook receiver that turns the pipeline from poll-driven to event-driven — HMAC-verified, dedup'd, routed to Foundry agents per a canonical event-router table.
 ---
 

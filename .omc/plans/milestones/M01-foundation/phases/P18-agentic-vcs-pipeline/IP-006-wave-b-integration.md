@@ -10,7 +10,7 @@ changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
 source_adrs:
-  - ../../../../../../docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md
+  - ../../../../../../docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md
   - ../../../../../../docs/decisions/ADR-0114-canary-observability-rollback.md
 depends_on:
   - M01-P18-IP-001

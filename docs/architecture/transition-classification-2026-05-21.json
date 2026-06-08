@@ -489,7 +489,7 @@
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0025-foundry-as-engineering-platform.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0025-intelligence-as-engineering-platform.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
@@ -614,7 +614,7 @@
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },

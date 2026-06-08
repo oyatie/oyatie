@@ -298,7 +298,7 @@ hyperscaler-gate runs per PR — easily ≫ 66 engineer-hours per quarter.)
     2026-05-18 to 2026-11-18; BLOCKER from 2026-11-18 onward.
 - **Deprecation notices** are NOT authored at the six dead paths
   themselves (they no longer exist). Instead:
-  - This ADR (`docs/decisions/ADR-0138-foundry-six-path-deprecation.md`)
+  - This ADR (`docs/decisions/ADR-0138-intelligence-six-path-deprecation.md`)
     is the single deprecation-notice-of-record.
   - The bc-sources archive carries a sub-folder per BC; the BC-internal
     references to former paths inside those preserved documents are

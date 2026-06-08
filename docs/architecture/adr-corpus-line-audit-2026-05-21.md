@@ -114,7 +114,7 @@ A contradiction is a pair of ADRs both at `Status: Accepted` (or both `Proposed`
 | ADR-0257-ontology-object-type-versioning-deprecation-handshake.md | `id: ADR-0257` | ADR-0356-amendment-library-first-ontology-read-path.md | `id: ADR-0257-amendment-...` | Same defect as 0246. | **P0** |
 | ADR-0006-ontology-typed-entity-layer.md | Still uses "Object Graph" terminology in §C/§D | ADR-0055-object-graph-renamed-to-ontology.md | normative body of the rename | ADR-0006 predates the rename; ADR-0055 + ADR-0122 perform the rename. ADR-0006 should be cleaned up; currently it carries the retired term in its `Accepted` body. | **P1** |
 | ADR-0059-workflow-ontology-ecosystem-adapter-layer.md | `status: accepted` (lowercase) | ADR-0145-inter-microservice-communication-reform.md | normative body | Memory `feedback_workflow_objectgraph_adapter_layer` (RETIRED per ADR-0145) explicitly notes ADR-0145 *replaces* the Workflow+Ontology forced-adapter rule. ADR-0059 ships `accepted` (lowercase, schema-invalid enum) and lacks `superseded_by: ADR-0145`. | **P0** |
-| ADR-0136-foundry-as-single-microservice.md | `status: Accepted` (2026-05-18) | ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md + ADR-0247-self-hosting-self-modification-doctrine.md | normative body | Per the synthesis doc §3 KB-F1 finding, ADR-0136 is functionally superseded by ADR-0247 + ADR-0239 amendment but carries no `superseded_by:`. | **P1** |
+| ADR-0136-intelligence-as-single-microservice.md | `status: Accepted` (2026-05-18) | ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md + ADR-0247-self-hosting-self-modification-doctrine.md | normative body | Per the synthesis doc §3 KB-F1 finding, ADR-0136 is functionally superseded by ADR-0247 + ADR-0239 amendment but carries no `superseded_by:`. | **P1** |
 | ADR-0107-tools-implicit-app-convention.md | `status: Superseded`, `superseded_by: ADR-0105-13-layer-enum-and-check-family-patterns.md` | ADR-0105 file | normative | The `superseded_by:` field embeds the *filename* not the canonical id `ADR-0105`. Schema-invalid pointer shape. | **P2** |
 | ADR-0066-live-code-introspection-docs-portal.md | `status: accepted` (lowercase) | doc-style frontmatter | normative | Lowercase status enum; not canonical. | **P2** |
 | ADR-0263-observability-emission-contract.md | `status: Proposed` then `status: OK` (multiple) | ADR-0263 frontmatter itself | self | The file contains multiple `status:` keys; only the first is honored by YAML parsers but lints flag duplicates. | **P1** |
@@ -166,7 +166,7 @@ ADRs that mention BYOK but **DO NOT disambiguate provider-BYOK vs encryption-BYO
 - ADR-0246-policy-engine-substrate-promotion.md — P1
 - ADR-0245-substrate-vs-product-layering.md — P1
 - ADR-0254-deployment-model-spectrum.md — P1
-- ADR-0293-foundry-meta-trust-root.md — P1
+- ADR-0293-governance-meta-trust-root.md — P1
 - ADR-0356-amendment-library-first-ontology-read-path.md — P1
 - ADR-0284-platform-owner-name-indirection.md — P1
 - ADR-0355-amendment-library-first-network-opt-in-clarification.md — P1
@@ -194,7 +194,7 @@ ADRs invoking a layer enum:
   - ADR-0056-rust-clean-architecture-bnf.md — ⚠ this *defines* the BNF; needs explicit ADR-0105 acknowledgment + 13-layer adoption
   - ADR-0083-rust-error-handling-tier-decision.md
   - ADR-0069-active-machine-readable-artifact-contract.md
-  - ADR-0097-foundry-account-adapter-rename-target-slot-last.md
+  - ADR-0097-intelligence-account-adapter-rename-target-slot-last.md
   - ADR-0092-workspace-dependency-seam-policy.md
   - ADR-0096-supervisor-language-rust-not-node.md
   - ADR-0118-retire-archive-orphan-fitness-lane.md
@@ -264,7 +264,7 @@ ADRs still **treating these as canonical primitives** (not merely referencing th
 | ADR-0063-documentation-set-coverage.md | mentions `grit` in evidence path | **P2** |
 | ADR-0066-live-code-introspection-docs-portal.md | references `grit` in section header | **P2** |
 | ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md | references `grit` | **P2** |
-| ADR-0097-foundry-account-adapter-rename-target-slot-last.md | uses `grit` claim/work/done semantics | **P1** |
+| ADR-0097-intelligence-account-adapter-rename-target-slot-last.md | uses `grit` claim/work/done semantics | **P1** |
 | ADR-0069-active-machine-readable-artifact-contract.md | references `grit` ledger | **P2** |
 | ADR-0109-lifecycle-automation-framework.md | mentions ICM step | **P1** |
 | ADR-0092-workspace-dependency-seam-policy.md | references `grit` | **P2** |
@@ -298,7 +298,7 @@ ADRs still using `oya vcs` / `oya-vcs`:
 - ADR-0110-changeset-state-machine.md — references `oya vcs` in state transitions. **P1.**
 - ADR-0124-own-merge-queue-webhook-driven.md — references `oya vcs`. **P1.**
 - ADR-0139-agentic-slo-gated-promotion.md — references `oya vcs`. **P2.**
-- ADR-0143-foundry-per-bc-release-pointer.md — references `oya vcs`. **P2.**
+- ADR-0143-intelligence-per-bc-release-pointer.md — references `oya vcs`. **P2.**
 - ADR-0221-agentic-development-pipeline-hardening.md — references `oya vcs`. **P2.**
 - ADR-0238-connect-super-app-expansion.md — references `oya vcs`. **P2.**
 - ADR-0237-connect-dissolution-strangler-migration.md — references `oya vcs`. **P2.**
@@ -376,7 +376,7 @@ ADRs that should carry `superseded_by:` but do not:
 | ADR-0054-grit-scaffold-claim-pattern.md | ADR-0116 (but ships `status: deprecated`) | **P1** |
 | ADR-0103-grit-cutover-inventory.md | ADR-0116 | **P0** |
 | ADR-0059-workflow-ontology-ecosystem-adapter-layer.md | ADR-0145 | **P0** |
-| ADR-0136-foundry-as-single-microservice.md | ADR-0247 + ADR-0239 amendment | **P1** |
+| ADR-0136-intelligence-as-single-microservice.md | ADR-0247 + ADR-0239 amendment | **P1** |
 | ADR-0006-ontology-typed-entity-layer.md | ADR-0055 + ADR-0122 (rename) — partial, not full supersession | **P1** |
 | ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md | ADR-0148-service-mesh-cilium-ambient-layered.md (conflict) | **P1** |
 
@@ -424,7 +424,7 @@ The rigor matrix sets the ADR-row floor at **1500 lines**. The corpus contains *
 | ADR | Lines | Severity |
 |---|---:|---|
 | ADR-0101-supervisor-mountpoint-direct-hyper.md | 27 | **P1** |
-| ADR-0102-foundry-settings-template-canonical-rendering.md | 32 | **P1** |
+| ADR-0102-intelligence-settings-template-canonical-rendering.md | 32 | **P1** |
 | ADR-0100-supervisor-public-contract-lean-a10.md | 33 | **P1** |
 | ADR-0155-per-tenant-resource-quotas.md | 58 | **P1** |
 | ADR-0152-rpo-rto-canonical.md | 60 | **P1** |
@@ -448,12 +448,12 @@ The rigor matrix sets the ADR-row floor at **1500 lines**. The corpus contains *
 | ADR-0055-object-graph-renamed-to-ontology.md | 104 | **P1** |
 | ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md | 104 | **P1** |
 | ADR-0236-op11-corpus-remediation-planning-contract.md | 105 | **P1** |
-| ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md | 105 | **P1** (amendment floor: 1000) |
+| ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md | 105 | **P1** (amendment floor: 1000) |
 | ADR-0051-mobile-and-native-client-strategy.md | 106 | **P1** |
 | ADR-0106-rename-application-to-usecase.md | 110 | **P1** |
 | ADR-0216-open-integration-and-migration-out-policy.md | 110 | **P1** |
 | ADR-0132-product-platform-and-bundle-dissolution.md | 111 | **P1** |
-| ADR-0091-foundry-write-gate-foundations.md | 115 | **P1** |
+| ADR-0091-governance-write-gate-foundations.md | 115 | **P1** |
 | ADR-0218-tenant-granular-control-surface.md | 116 | **P1** |
 | ADR-0018-glossary-and-terminology-canon.md | 117 | **P1** |
 | ADR-0119-specs-flat-root-topology.md | 118 | **P1** |
@@ -753,7 +753,7 @@ ADRs that should be moved to `docs/decisions/superseded/` (does not currently ex
 | ADR-0052-inventory-grit-cutover.md | `docs/decisions/superseded/` | (CORRECT target to ADR-0116, not ADR-0118) | Wrong target |
 | ADR-0059-workflow-ontology-ecosystem-adapter-layer.md | `docs/decisions/superseded/` | `ADR-0145` | Replaced by inter-microservice communication reform |
 | ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md | `docs/decisions/superseded/` (PENDING: pick winner first) | `ADR-0148` (if Cilium wins) | Mesh-choice conflict |
-| ADR-0136-foundry-as-single-microservice.md | `docs/decisions/superseded/` | `ADR-0247` | Per synthesis §3 KB-F1 |
+| ADR-0136-intelligence-as-single-microservice.md | `docs/decisions/superseded/` | `ADR-0247` | Per synthesis §3 KB-F1 |
 | ADR-0006-ontology-typed-entity-layer.md | NOT moved (still useful) — UPDATE in place | (none) | Renamed-term cleanup, not supersession |
 | ADR-0107-tools-implicit-app-convention.md | already `Superseded`; verify move | `ADR-0105` | Fix `superseded_by` pointer to canonical id |
 | ADR-0140-cross-cutting-carriers-adapter-exemption.md | already `Superseded`; verify move | `ADR-0145` | OK |
@@ -877,7 +877,7 @@ These are the most acute rigor failures. Each MUST be expanded to ≥1500 lines 
 | ADR | Lines | Status | Gap | Remediation refs |
 |---|---:|---|---:|---|
 | ADR-0101-supervisor-mountpoint-direct-hyper | 27 | Accepted | -1473 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
-| ADR-0102-foundry-settings-template-canonical-rendering | 32 | Accepted | -1468 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
+| ADR-0102-intelligence-settings-template-canonical-rendering | 32 | Accepted | -1468 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0100-supervisor-public-contract-lean-a10 | 33 | Accepted | -1467 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0155-per-tenant-resource-quotas | 58 | Proposed | -1442 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0152-rpo-rto-canonical | 60 | Proposed | -1440 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 (cite AWS DR tiers) |
@@ -901,12 +901,12 @@ These are the most acute rigor failures. Each MUST be expanded to ≥1500 lines 
 | ADR-0055-object-graph-renamed-to-ontology | 104 | Accepted | -1396 | R-P0-08, R-P1-15 |
 | ADR-0120-rust-first-onprem-tooling-with-paired-uninstall | 104 | Accepted | -1396 | R-P0-08, R-P1-15 |
 | ADR-0236-op11-corpus-remediation-planning-contract | 105 | Proposed | -1395 | R-P0-08, R-P1-15 |
-| ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18 | 105 | Accepted | -895 (amendment floor 1000) | R-P0-08, R-P1-15 |
+| ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18 | 105 | Accepted | -895 (amendment floor 1000) | R-P0-08, R-P1-15 |
 | ADR-0051-mobile-and-native-client-strategy | 106 | Accepted | -1394 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0106-rename-application-to-usecase | 110 | Accepted | -1390 | R-P0-08, R-P1-15 |
 | ADR-0216-open-integration-and-migration-out-policy | 110 | Proposed | -1390 | R-P0-08, R-P1-15 |
 | ADR-0132-product-platform-and-bundle-dissolution | 111 | Accepted | -1389 | R-P0-08, R-P1-15 |
-| ADR-0091-foundry-write-gate-foundations | 115 | Accepted | -1385 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
+| ADR-0091-governance-write-gate-foundations | 115 | Accepted | -1385 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0218-tenant-granular-control-surface | 116 | Proposed | -1384 | R-P0-08, R-P1-15 |
 | ADR-0018-glossary-and-terminology-canon | 117 | Accepted | -1383 | R-P0-08, R-P1-15, R-P1-03 (declare Object Graph→Ontology rename) |
 | ADR-0119-specs-flat-root-topology | 118 | Accepted | -1382 | R-P0-08, R-P1-15 |
@@ -930,7 +930,7 @@ These are the most acute rigor failures. Each MUST be expanded to ≥1500 lines 
 | ADR-0053-grit-icm-as-sanctioned-primitives | 141 | Accepted | -1359 | **R-P0-04** (move to superseded/) |
 | ADR-0095-tenant-slug-in-tenancy-kernel | 141 | Accepted | -1359 | R-P0-08, R-P1-15 |
 | ADR-0205-code-editor-canonical-codemirror | 142 | Proposed | -1358 | R-P0-08, R-P1-15 |
-| ADR-0021-foundry-capability-registry-and-mcp-gateway | 144 | Proposed | -1356 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
+| ADR-0021-intelligence-capability-registry-and-mcp-gateway | 144 | Proposed | -1356 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0028-cloud-microservice-architecture | 146 | Proposed | -1354 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0031-ads-and-analytics-microservice-architecture | 147 | Proposed | -1353 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0180-slo-composition-inheritance-arithmetic | 148 | Proposed | -1352 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
@@ -949,16 +949,16 @@ These ADRs have minimal structure but are far from the rigor floor. Each MUST be
 | ADR-0190-scim-2-provisioning-enterprise-tenants | 151 | Proposed | -1349 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0181-container-image-promotion-pipeline | 152 | Proposed | -1348 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0030-search-microservice-architecture | 154 | Proposed | -1346 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
-| ADR-0097-foundry-account-adapter-rename-target-slot-last | 155 | Accepted | -1345 | R-P0-08, R-P1-15 |
+| ADR-0097-intelligence-account-adapter-rename-target-slot-last | 155 | Accepted | -1345 | R-P0-08, R-P1-15 |
 | ADR-0160-progressive-delivery-flagger | 155 | Proposed | -1345 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0059-workflow-ontology-ecosystem-adapter-layer | 156 | accepted (lowercase) | -1344 | **R-P0-06** (move to superseded/), R-P2-01 |
 | ADR-0116-retire-external-agent-coordination-tooling | 157 | Accepted | -1343 | R-P0-08, R-P1-15 (the authority ADR; expand to rigor floor) |
 | ADR-0009-cell-architecture-per-tenant-per-region | 158 | Proposed | -1342 | R-P0-08, R-P1-15, R-P1-16, R-P1-17, R-P1-18 |
 | ADR-0011-cross-microservice-contract-registry | 158 | Proposed | -1342 | R-P0-08, R-P1-15, R-P1-06 (AsyncAPI 3.1.0) |
-| ADR-0024-foundry-eval-harness-and-replay | 158 | Proposed | -1342 | R-P0-08, R-P1-15 |
+| ADR-0024-intelligence-eval-harness-and-replay | 158 | Proposed | -1342 | R-P0-08, R-P1-15 |
 | ADR-0157-api-gateway-tier | 158 | Proposed | -1342 | R-P0-08, R-P1-15, R-P1-05 (OpenAPI 3.2.0) |
 | ADR-0204-workflow-studio-canvas-library | 158 | Proposed | -1342 | R-P0-08, R-P1-15 |
-| ADR-0023-foundry-sandbox-wasmtime-firecracker | 159 | Proposed | -1341 | R-P0-08, R-P1-15 |
+| ADR-0023-intelligence-sandbox-wasmtime-firecracker | 159 | Proposed | -1341 | R-P0-08, R-P1-15 |
 | ADR-0207-accessibility-wcag-2-2-aa | 160 | Proposed | -1340 | R-P0-08, R-P1-15 |
 | ADR-0026-in-house-ai-model-substrate-roadmap | 161 | Proposed | -1339 | R-P0-08, R-P1-15 |
 | ADR-0206-i18n-substrate-fluent-icu | 161 | Proposed | -1339 | R-P0-08, R-P1-15, **R-P1-19** (remove placeholder marker) |
@@ -971,7 +971,7 @@ These ADRs have minimal structure but are far from the rigor floor. Each MUST be
 | ADR-0158-multi-region-active-active | 164 | Proposed | -1336 | R-P0-08, R-P1-15 |
 | ADR-0115-registry-consolidation-flat-singular | 165 | Accepted | -1335 | R-P0-08, R-P1-15 |
 | ADR-0163-tenant-environment-tiers | 165 | Proposed | -1335 | R-P0-08, R-P1-15 |
-| ADR-0025-foundry-as-engineering-platform | 166 | Proposed | -1334 | R-P0-08, R-P1-15, R-P2-07 |
+| ADR-0025-intelligence-as-engineering-platform | 166 | Proposed | -1334 | R-P0-08, R-P1-15, R-P2-07 |
 | ADR-0165-chaos-engineering-substrate | 166 | Proposed | -1334 | R-P0-08, R-P1-15 |
 | ADR-0161-csi-storage-class-canonical | 167 | Proposed | -1333 | R-P0-08, R-P1-15 |
 | ADR-0002-tenant-and-identity-kernel | 169 | Proposed | -1331 | R-P0-08, R-P1-15 |
@@ -981,7 +981,7 @@ These ADRs have minimal structure but are far from the rigor floor. Each MUST be
 | ADR-0188-passkey-webauthn-substrate | 173 | Proposed | -1327 | R-P0-08, R-P1-15 |
 | ADR-0069-active-machine-readable-artifact-contract | 174 | Accepted | -1326 | R-P0-08, R-P1-15 |
 | ADR-0187-canonical-oidc-idp-zitadel-primary | 174 | Proposed | -1326 | R-P0-08, R-P1-15 |
-| ADR-0020-foundry-multi-provider-adapter-model | 175 | Proposed | -1325 | R-P0-08, R-P1-15 |
+| ADR-0020-intelligence-multi-provider-adapter-model | 175 | Proposed | -1325 | R-P0-08, R-P1-15 |
 | ADR-0022-autonomy-ceiling-runtime-enforcement | 175 | Proposed | -1325 | R-P0-08, R-P1-15 |
 | ADR-0029-connect-dual-context-architecture | 175 | Proposed | -1325 | R-P0-08, R-P1-15 |
 | ADR-0058-flat-microservice-catalog | 175 | Accepted | -1325 | R-P0-08, R-P1-15 |
@@ -1037,12 +1037,12 @@ These ADRs have minimal structure but are far from the rigor floor. Each MUST be
 | ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure | 225 | Proposed | -1275 | R-P0-08, R-P1-15 |
 | ADR-0211-in-house-tech-stack-policy | 225 | Proposed | -1275 | R-P0-08, R-P1-15 |
 | ADR-0036-plugin-substrate-wasm-and-trust | 226 | Proposed | -1274 | R-P0-08, R-P1-15 |
-| ADR-0112-webhook-driven-foundry-agent-invocation | 227 | Accepted | -1273 | R-P0-08, R-P1-15 |
+| ADR-0112-webhook-driven-intelligence-agent-invocation | 227 | Accepted | -1273 | R-P0-08, R-P1-15 |
 | ADR-0142-crdt-portability-trait | 227 | Accepted | -1273 | R-P0-08, R-P1-15 |
 | ADR-0048-korean-morphology-and-multilingual-tokenization | 229 | Proposed | -1271 | R-P0-08, R-P1-15 |
 | ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag | 231 | Proposed | -1269 | R-P0-08, R-P1-15 |
 | ADR-0049-cross-region-replication-and-residency | 231 | Proposed | -1269 | R-P0-08, R-P1-15 |
-| ADR-0143-foundry-per-bc-release-pointer | 231 | Accepted | -1269 | R-P0-08, R-P1-15, R-P1-04 |
+| ADR-0143-intelligence-per-bc-release-pointer | 231 | Accepted | -1269 | R-P0-08, R-P1-15, R-P1-04 |
 | ADR-0042-observability-stack-otel-and-in-house-ui | 233 | Proposed | -1267 | R-P0-08, R-P1-15, **R-P1-11** (promote to Accepted) |
 | ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits | 234 | Proposed | -1266 | R-P0-08, R-P1-15 |
 | ADR-0170-developer-portal | 235 | Proposed | -1265 | R-P0-08, R-P1-15 |
@@ -1082,14 +1082,14 @@ These ADRs have minimal structure but are far from the rigor floor. Each MUST be
 | ADR-0213-ecosystem-as-a-service-architecture | 344 | Proposed | -1156 | R-P0-08, R-P1-15, **R-P1-19** (remove placeholder marker), R-P1-04 |
 | ADR-0092-workspace-dependency-seam-policy | 350 | Accepted | -1150 | R-P0-08, R-P1-15 |
 | ADR-0140-cross-cutting-carriers-adapter-exemption | 350 | Superseded | -1150 | OK as superseded |
-| ADR-0137-foundry-bounded-contexts | 365 | Accepted | -1135 | R-P0-08, R-P1-15 |
-| ADR-0138-foundry-six-path-deprecation | 368 | Accepted | -1132 | R-P0-08, R-P1-15 |
+| ADR-0137-intelligence-bounded-contexts | 365 | Accepted | -1135 | R-P0-08, R-P1-15 |
+| ADR-0138-intelligence-six-path-deprecation | 368 | Accepted | -1132 | R-P0-08, R-P1-15 |
 | ADR-0238-connect-super-app-expansion | 369 | Proposed | -1131 | R-P0-08, R-P1-15, R-P1-04 |
 | ADR-0131-per-microservice-flat-layout | 391 | Accepted | -1109 | R-P0-08, R-P1-15 |
 | ADR-0173-vendor-lock-in-avoidance-and-stack-ownership | 396 | Proposed | -1104 | R-P0-08, R-P1-15, **R-P1-19** (remove placeholder marker) |
 | ADR-0147-container-sandboxing-runtime-ladder | 416 | Proposed | -1084 | R-P0-08, R-P1-15 |
 | ADR-0237-connect-dissolution-strangler-migration | 424 | Proposed | -1076 | R-P0-08, R-P1-15, R-P1-04 |
-| ADR-0136-foundry-as-single-microservice | 425 | Accepted | -1075 | **R-P1-09** (mark Superseded by ADR-0247), R-P0-08, R-P1-15 |
+| ADR-0136-intelligence-as-single-microservice | 425 | Accepted | -1075 | **R-P1-09** (mark Superseded by ADR-0247), R-P0-08, R-P1-15 |
 | ADR-0052-inventory-grit-cutover | 581 | Superseded | -919 | **R-P2-03** (fix superseded_by target to ADR-0116) |
 
 **Subtotal Tier-A: 138 ADRs.**
@@ -1107,7 +1107,7 @@ These ADRs are within striking distance of the rigor floor and require targeted 
 | ADR-0258-api-versioning-model | 1107 | Accepted | -393 | R-P1-15, R-P1-05 (OpenAPI 3.2.0), R-P1-06 (AsyncAPI 3.1.0) |
 | ADR-0355-amendment-library-first-network-opt-in-clarification | 1186 | Proposed | +186 vs 1000 amendment floor | R-P0-01 (renumber) |
 | ADR-0295-bootstrap-ci-spiffe-kill-switch | 1242 | Proposed | -258 | R-P1-15, R-P1-21 |
-| ADR-0293-foundry-meta-trust-root | 1348 | Proposed | -152 | R-P1-15, R-P1-21 |
+| ADR-0293-governance-meta-trust-root | 1348 | Proposed | -152 | R-P1-15, R-P1-21 |
 | ADR-0296-library-first-credential-sidecar | 1377 | Proposed | -123 | R-P1-15, R-P1-01 (BYOK), R-P1-21 |
 
 ### 13.4 Tier-G — At-or-above-floor (≥1500 lines)

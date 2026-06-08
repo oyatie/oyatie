@@ -38,7 +38,7 @@ related:
   - ADR-0045-secret-and-cache-substitutions.md
   - ADR-0099-data-class-registry.md
   - ADR-0108-deprecation-and-sunset-policy.md
-  - ADR-0138-foundry-six-path-deprecation.md
+  - ADR-0138-intelligence-six-path-deprecation.md
   - ADR-0150-cedar-policy-engine.md
   - ADR-0192-milvus-vector-substrate.md
   - ADR-0211-in-house-tech-stack-preference.md

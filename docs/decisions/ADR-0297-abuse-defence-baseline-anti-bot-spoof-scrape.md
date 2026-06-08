@@ -50,7 +50,7 @@ related:
   - ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md
   - ADR-0276-backup-portability-gdpr-art-20.md
   - ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md
-  - ADR-0293-foundry-meta-trust-root.md
+  - ADR-0293-governance-meta-trust-root.md
   - ADR-0295-bootstrap-ci-spiffe-kill-switch.md
   - ADR-0296-library-first-credential-sidecar.md
   - ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md

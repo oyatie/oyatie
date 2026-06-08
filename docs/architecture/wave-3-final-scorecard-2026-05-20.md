@@ -146,17 +146,17 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 48 refs / 179 lines = 26.82 per 100 lines
 - artifact: `docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md`
 - named gaps: verification evidence absent
-### ADR-0020 — ADR-0020-foundry-multi-provider-adapter-model.md
+### ADR-0020 — ADR-0020-intelligence-multi-provider-adapter-model.md
 - status: proposed
 - depth: A-rigorous; lines=176; substance_markers=7
 - cross-ref-density: 26 refs / 176 lines = 14.77 per 100 lines
-- artifact: `docs/decisions/ADR-0020-foundry-multi-provider-adapter-model.md`
+- artifact: `docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md`
 - named gaps: none named; retain in regression audit
-### ADR-0021 — ADR-0021-foundry-capability-registry-and-mcp-gateway.md
+### ADR-0021 — ADR-0021-intelligence-capability-registry-and-mcp-gateway.md
 - status: proposed
 - depth: A-rigorous; lines=145; substance_markers=11
 - cross-ref-density: 32 refs / 145 lines = 22.07 per 100 lines
-- artifact: `docs/decisions/ADR-0021-foundry-capability-registry-and-mcp-gateway.md`
+- artifact: `docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0022 — ADR-0022-autonomy-ceiling-runtime-enforcement.md
 - status: proposed
@@ -164,23 +164,23 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 67 refs / 176 lines = 38.07 per 100 lines
 - artifact: `docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md`
 - named gaps: none named; retain in regression audit
-### ADR-0023 — ADR-0023-foundry-sandbox-wasmtime-firecracker.md
+### ADR-0023 — ADR-0023-intelligence-sandbox-wasmtime-firecracker.md
 - status: proposed
 - depth: A-rigorous; lines=160; substance_markers=8
 - cross-ref-density: 18 refs / 160 lines = 11.25 per 100 lines
-- artifact: `docs/decisions/ADR-0023-foundry-sandbox-wasmtime-firecracker.md`
+- artifact: `docs/decisions/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md`
 - named gaps: none named; retain in regression audit
-### ADR-0024 — ADR-0024-foundry-eval-harness-and-replay.md
+### ADR-0024 — ADR-0024-intelligence-eval-harness-and-replay.md
 - status: proposed
 - depth: A-rigorous; lines=159; substance_markers=7
 - cross-ref-density: 23 refs / 159 lines = 14.47 per 100 lines
-- artifact: `docs/decisions/ADR-0024-foundry-eval-harness-and-replay.md`
+- artifact: `docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md`
 - named gaps: none named; retain in regression audit
-### ADR-0025 — ADR-0025-foundry-as-engineering-platform.md
+### ADR-0025 — ADR-0025-intelligence-as-engineering-platform.md
 - status: proposed
 - depth: A-rigorous; lines=167; substance_markers=9
 - cross-ref-density: 23 refs / 167 lines = 13.77 per 100 lines
-- artifact: `docs/decisions/ADR-0025-foundry-as-engineering-platform.md`
+- artifact: `docs/decisions/ADR-0025-intelligence-as-engineering-platform.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0026 — ADR-0026-in-house-ai-model-substrate-roadmap.md
 - status: proposed
@@ -572,11 +572,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 9 refs / 130 lines = 6.92 per 100 lines
 - artifact: `docs/decisions/ADR-0090-hyper-canonical-http-backbone.md`
 - named gaps: none named; retain in regression audit
-### ADR-0091 — ADR-0091-foundry-write-gate-foundations.md
+### ADR-0091 — ADR-0091-governance-write-gate-foundations.md
 - status: accepted
 - depth: B-complete; lines=116; substance_markers=6
 - cross-ref-density: 10 refs / 116 lines = 8.62 per 100 lines
-- artifact: `docs/decisions/ADR-0091-foundry-write-gate-foundations.md`
+- artifact: `docs/decisions/ADR-0091-governance-write-gate-foundations.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0092 — ADR-0092-workspace-dependency-seam-policy.md
 - status: accepted
@@ -608,11 +608,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 22 refs / 141 lines = 15.6 per 100 lines
 - artifact: `docs/decisions/ADR-0096-supervisor-language-rust-not-node.md`
 - named gaps: none named; retain in regression audit
-### ADR-0097 — ADR-0097-foundry-account-adapter-rename-target-slot-last.md
+### ADR-0097 — ADR-0097-intelligence-account-adapter-rename-target-slot-last.md
 - status: accepted
 - depth: D-thin; lines=156; substance_markers=1
 - cross-ref-density: 11 refs / 156 lines = 7.05 per 100 lines
-- artifact: `docs/decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md`
+- artifact: `docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md`
 - named gaps: verification evidence absent
 ### ADR-0098 — ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md
 - status: accepted
@@ -638,11 +638,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 2 refs / 28 lines = 7.14 per 100 lines
 - artifact: `docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md`
 - named gaps: thin rationale body; low cross-reference density; alternatives/rejections not explicit; verification evidence absent
-### ADR-0102 — ADR-0102-foundry-settings-template-canonical-rendering.md
+### ADR-0102 — ADR-0102-intelligence-settings-template-canonical-rendering.md
 - status: Accepted
 - depth: D-thin; lines=33; substance_markers=1
 - cross-ref-density: 2 refs / 33 lines = 6.06 per 100 lines
-- artifact: `docs/decisions/ADR-0102-foundry-settings-template-canonical-rendering.md`
+- artifact: `docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md`
 - named gaps: thin rationale body; low cross-reference density; alternatives/rejections not explicit; verification evidence absent
 ### ADR-0103 — ADR-0103-grit-cutover-inventory.md
 - status: Accepted
@@ -698,11 +698,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 10 refs / 212 lines = 4.72 per 100 lines
 - artifact: `docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md`
 - named gaps: alternatives/rejections not explicit
-### ADR-0112 — ADR-0112-webhook-driven-foundry-agent-invocation.md
+### ADR-0112 — ADR-0112-webhook-driven-intelligence-agent-invocation.md
 - status: Proposed
 - depth: B-complete; lines=228; substance_markers=5
 - cross-ref-density: 21 refs / 228 lines = 9.21 per 100 lines
-- artifact: `docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md`
+- artifact: `docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0113 — ADR-0113-vcs-orchestrator-end-to-end.md
 - status: Proposed
@@ -842,23 +842,23 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 13 refs / 130 lines = 10.0 per 100 lines
 - artifact: `docs/decisions/ADR-0135-aspirational-enforcement-gate.md`
 - named gaps: none named; retain in regression audit
-### ADR-0136 — ADR-0136-foundry-as-single-microservice.md
+### ADR-0136 — ADR-0136-intelligence-as-single-microservice.md
 - status: Accepted
 - depth: A-rigorous; lines=426; substance_markers=11
 - cross-ref-density: 115 refs / 426 lines = 27.0 per 100 lines
-- artifact: `docs/decisions/ADR-0136-foundry-as-single-microservice.md`
+- artifact: `docs/decisions/ADR-0136-intelligence-as-single-microservice.md`
 - named gaps: none named; retain in regression audit
-### ADR-0137 — ADR-0137-foundry-bounded-contexts.md
+### ADR-0137 — ADR-0137-intelligence-bounded-contexts.md
 - status: Accepted
 - depth: A-rigorous; lines=366; substance_markers=9
 - cross-ref-density: 86 refs / 366 lines = 23.5 per 100 lines
-- artifact: `docs/decisions/ADR-0137-foundry-bounded-contexts.md`
+- artifact: `docs/decisions/ADR-0137-intelligence-bounded-contexts.md`
 - named gaps: none named; retain in regression audit
-### ADR-0138 — ADR-0138-foundry-six-path-deprecation.md
+### ADR-0138 — ADR-0138-intelligence-six-path-deprecation.md
 - status: Accepted
 - depth: A-rigorous; lines=369; substance_markers=10
 - cross-ref-density: 170 refs / 369 lines = 46.07 per 100 lines
-- artifact: `docs/decisions/ADR-0138-foundry-six-path-deprecation.md`
+- artifact: `docs/decisions/ADR-0138-intelligence-six-path-deprecation.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0139 — ADR-0139-agentic-slo-gated-promotion.md
 - status: Accepted
@@ -884,11 +884,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 14 refs / 228 lines = 6.14 per 100 lines
 - artifact: `docs/decisions/ADR-0142-crdt-portability-trait.md`
 - named gaps: none named; retain in regression audit
-### ADR-0143 — ADR-0143-foundry-per-bc-release-pointer.md
+### ADR-0143 — ADR-0143-intelligence-per-bc-release-pointer.md
 - status: Accepted
 - depth: A-rigorous; lines=232; substance_markers=7
 - cross-ref-density: 34 refs / 232 lines = 14.66 per 100 lines
-- artifact: `docs/decisions/ADR-0143-foundry-per-bc-release-pointer.md`
+- artifact: `docs/decisions/ADR-0143-intelligence-per-bc-release-pointer.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0144 — ADR-0144-eu-ai-act-graduated-risk-tier-model.md
 - status: Accepted
@@ -1460,11 +1460,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 151 refs / 371 lines = 40.7 per 100 lines
 - artifact: `docs/decisions/ADR-0238-connect-super-app-expansion.md`
 - named gaps: none named; retain in regression audit
-### ADR-0239 — ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md
+### ADR-0239 — ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
 - status: accepted
 - depth: B-complete; lines=106; substance_markers=5
 - cross-ref-density: 35 refs / 106 lines = 33.02 per 100 lines
-- artifact: `docs/decisions/ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md`
+- artifact: `docs/decisions/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md`
 - named gaps: verification evidence absent
 ### ADR-0240 — ADR-0240-sovereign-cloud-per-regional-pack.md
 - status: Accepted
@@ -1784,11 +1784,11 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - cross-ref-density: 346 refs / 1945 lines = 17.79 per 100 lines
 - artifact: `docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md`
 - named gaps: none named; retain in regression audit
-### ADR-0293 — ADR-0293-foundry-meta-trust-root.md
+### ADR-0293 — ADR-0293-governance-meta-trust-root.md
 - status: Proposed
 - depth: A-rigorous; lines=1349; substance_markers=11
 - cross-ref-density: 210 refs / 1349 lines = 15.57 per 100 lines
-- artifact: `docs/decisions/ADR-0293-foundry-meta-trust-root.md`
+- artifact: `docs/decisions/ADR-0293-governance-meta-trust-root.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0294 — ADR-0294-cedar-fragment-soak-anomaly-rollback.md
 - status: Proposed

@@ -43,7 +43,7 @@ related:
   - ADR-0255-intelligence-as-two-layer-ai-substrate.md
   - ADR-0355-amendment-library-first-network-opt-in-clarification.md
   - ADR-0263-observability-emission-contract.md
-  - ADR-0293-foundry-meta-trust-root.md
+  - ADR-0293-governance-meta-trust-root.md
   - ADR-0294-cedar-fragment-soak-anomaly-rollback.md
   - ADR-0295-bootstrap-ci-spiffe-kill-switch.md
 related_specs:

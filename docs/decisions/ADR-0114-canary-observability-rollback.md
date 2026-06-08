@@ -8,7 +8,7 @@ superseded_by: []
 related:
   - ADR-0110-changeset-state-machine.md
   - ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
-  - ADR-0112-webhook-driven-foundry-agent-invocation.md
+  - ADR-0112-webhook-driven-intelligence-agent-invocation.md
   - ADR-0113-vcs-orchestrator-end-to-end.md
 purpose: Define the canary observability gate that conditions dev→staging→production auto-promotion + the rollback mechanism when canary fails.
 ---
