@@ -1,9 +1,9 @@
 ---
 id: ADR-0015
-status: accepted
+status: Superseded
 doc_status: published
-superseded_by: [ADR-0131]
-supersession_note: "Partial — ADR-0131 supersedes only the docs-vs-crates top-level split for per-service ownership; ADR-0015's BC and layer rules remain in force, so status stays accepted."
+superseded_by: [ADR-0131, ADR-0512]
+supersession_note: "ADR-0131 supersedes the docs-vs-crates top-level split; ADR-0512 supersedes the flat-crates location + forbidden-vocab context enum (D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-3/FC-1)."
 ---
 
 # ADR-0015: Architectural flattening target — flat-crates `crates/oya-<context>-<role>[-<capability>]/`, role taxonomy (kernel / domain / app / api / worker / adapter / runtime), dep-direction kernel←domain←app←api/worker/adapter←runtime, boundary validator, migration path from legacy modules / services / platform tree

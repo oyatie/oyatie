@@ -1,10 +1,12 @@
 ---
 id: ADR-0101
 title: Foundry Supervisor Mountpoint (Direct Hyper)
-status: Accepted
+status: Superseded
 doc_status: published
 owner: council-architecture
 date: 2026-05-15
+superseded_by: []
+supersession_note: "Temporary bypass shortcut promoted to architecture; foundry context retired. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5."
 ---
 
 # ADR-0101: Foundry Supervisor Mountpoint (Direct Hyper)

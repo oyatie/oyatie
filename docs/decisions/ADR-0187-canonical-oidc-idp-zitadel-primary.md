@@ -1,11 +1,12 @@
 ---
 id: ADR-0187
-status: Accepted
+status: Superseded
 deciders: council-architecture, axis-identity, ops-security
 date: 2026-05-18
 owner: axis-identity
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0476]
+supersession_note: "Zitadel demoted from canonical IdP to Phase-1 vendored bridge; superseded-as-endpoint by ADR-0476 (oya-identity bespoke Rust, owned endpoint). D5 ruling. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-13/P2."
 related: [ADR-0145, ADR-0182, ADR-0183, ADR-0173-vendor-lock-in-avoidance-and-stack-ownership]
 related_specs:
   - /specs/microservices/manifest-schema.json

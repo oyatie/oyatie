@@ -1,19 +1,20 @@
 ---
 id: ADR-0053
-status: Accepted
+status: Superseded
 doc_status: published
 date: 2026-05-12
 owners:
   - council-architecture
   - foundry
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0116, ADR-0363, ADR-0515]
 doc_class: DecisionRecord
 purpose: >
   Fix the agent-callable coordination/state-transition primitive set at
   {grit, icm, oya-tooling-agent-read}. Direct git/gh permitted only with
   documented rationale per Directive 12.
 planned_enforcement_ref: oya-governance-banned-primitives
+supersession_note: "Dead grit/icm toolchain mandated live; superseded by ADR-0116 (retire external agent-coordination tooling), ADR-0363 (agentic-VCS retired), ADR-0515 (canonical CI/CD). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-6."
 ---
 
 # ADR-0053: grit + icm + oya-tooling-agent-read as sole sanctioned primitives for agentic work

@@ -1,11 +1,12 @@
 ---
 id: ADR-0143
-status: Accepted
+status: Superseded
 deciders: council-architecture, axis-foundry, axis-foundry-runtime, axis-foundry-supervisor, axis-foundry-eval, axis-foundry-evidence, axis-foundry-guardrails, axis-foundry-providers, ops-sre-reliability
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0389]
+supersession_note: "Foundry per-BC release pointer superseded by ADR-0389 cloud-intelligence framework successor. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-11."
 related: [ADR-0056, ADR-0067, ADR-0131, ADR-0136, ADR-0137, ADR-0138, ADR-0139]
 related_memory: [feedback_no_silent_regression, feedback_quality_performance_scalability_bar, feedback_clean_architecture_requirements]
 related_specs:

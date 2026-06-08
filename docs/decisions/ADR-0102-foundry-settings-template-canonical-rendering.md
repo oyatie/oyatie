@@ -1,10 +1,12 @@
 ---
 id: ADR-0102
 title: Foundry Settings Template Canonical Rendering
-status: Accepted
+status: Superseded
 doc_status: published
 owner: council-architecture
 date: 2026-05-15
+superseded_by: []
+supersession_note: "Foundry settings render; atomic-render+sref pattern salvaged. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5."
 ---
 
 # ADR-0102: Foundry Settings Template Canonical Rendering

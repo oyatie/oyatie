@@ -1,11 +1,12 @@
 ---
 id: ADR-0137
-status: Accepted
+status: Superseded
 deciders: council-architecture, axis-foundry, axis-foundry-runtime, axis-foundry-supervisor, axis-foundry-eval, axis-foundry-evidence, axis-foundry-guardrails, axis-foundry-providers
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0389]
+supersession_note: "Foundry bounded-contexts declared dead context (D-FOUNDRY-CLARIFY); superseded by ADR-0389 cloud-intelligence framework successor. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-11."
 related: [ADR-0022, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0136, ADR-0138]
 related_memory: [feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145), feedback_naming_justification, feedback_quality_performance_scalability_bar]
 related_specs:
