@@ -4128,6 +4128,7 @@ dependencies = [
  "oya-ci-config-kernel",
  "oya-cloud-ci-automation-ratchet-app",
  "oya-cloud-ci-bnf-layer-suffix-app",
+ "oya-cloud-ci-cargo-prefix-app",
  "oya-cloud-ci-cross-artifact-agreement-app",
  "oya-cloud-ci-manifest-hygiene-app",
  "oya-cloud-ci-staleness-reaper-app",
@@ -4149,6 +4150,15 @@ version = "0.1.0"
 dependencies = [
  "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-cargo-prefix-app"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-config-kernel",
+ "oya-intelligence-cargo-prefix-domain",
  "serde_json",
 ]
 

@@ -132,5 +132,10 @@ input_kind = "producer-face"
 face = "manifest_hygiene"
 
 [[gates.enabled]]
+id = "cloud-ci-cargo-prefix"
+input_kind = "producer-face"
+face = "cargo_prefix"
+
+[[gates.enabled]]
 id = "cloud-ci-brand-residue"
 input_kind = "raw-corpus-collector"

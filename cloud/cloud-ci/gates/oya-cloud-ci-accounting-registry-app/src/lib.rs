@@ -487,6 +487,12 @@ pub struct GateInputs<'a> {
     /// each first-party `oya-*` Cargo.toml. The gate's `evaluate_keyed` is a pure flag→Finding
     /// policy. Empty in unit tests.
     pub manifest_hygiene: &'a Value,
+    /// The ADR-0017 cargo-prefix gate input: `{"rows":[{"member_path", "package_name"}]}` — the
+    /// first-party `oya-*` workspace members the binary enumerates from the tracked Cargo.toml
+    /// manifests (member-path = the dir holding the manifest; package_name = its `[package].name`).
+    /// The gate's `evaluate_keyed` reuses `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix`
+    /// per crate (surface-all). Empty in unit tests.
+    pub cargo_prefix: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
     /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
     /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
@@ -532,6 +538,11 @@ fn producer_face_keys(
         ),
         GateFace::ManifestHygiene => group_findings(
             oya_cloud_ci_manifest_hygiene_app::evaluate_keyed(inputs.manifest_hygiene)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+        GateFace::CargoPrefix => group_findings(
+            oya_cloud_ci_cargo_prefix_app::evaluate_keyed(inputs.cargo_prefix)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
@@ -813,6 +824,7 @@ mod tests {
             staleness: &staleness,
             bnf_layer_suffix: &empty_face,
             manifest_hygiene: &empty_face,
+            cargo_prefix: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
@@ -856,6 +868,7 @@ mod tests {
             staleness: &staleness,
             bnf_layer_suffix: &empty_face,
             manifest_hygiene: &empty_face,
+            cargo_prefix: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();

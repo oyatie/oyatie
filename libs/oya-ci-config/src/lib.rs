@@ -595,6 +595,7 @@ pub enum GateFace {
     Staleness,
     BnfLayerSuffix,
     ManifestHygiene,
+    CargoPrefix,
 }
 
 /// One enabled gate: its id, its input KIND, and (for `producer-face`) which face it binds.
@@ -667,6 +668,11 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             id: "cloud-ci-manifest-hygiene".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::ManifestHygiene),
+        },
+        GateSpec {
+            id: "cloud-ci-cargo-prefix".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::CargoPrefix),
         },
         GateSpec {
             id: "cloud-ci-brand-residue".to_owned(),
@@ -749,9 +755,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_seven_gates_with_input_kinds() {
+    fn bundled_default_enables_all_eight_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 7);
+        assert_eq!(cfg.gates.enabled.len(), 8);
         let brand = cfg
             .gates
             .enabled
@@ -768,6 +774,14 @@ mod tests {
             .expect("bnf gate enabled");
         assert_eq!(bnf.input_kind, GateInputKind::ProducerFace);
         assert_eq!(bnf.face, Some(GateFace::BnfLayerSuffix));
+        let cargo_prefix = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-cargo-prefix")
+            .expect("cargo-prefix gate enabled");
+        assert_eq!(cargo_prefix.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(cargo_prefix.face, Some(GateFace::CargoPrefix));
     }
 
     #[test]
