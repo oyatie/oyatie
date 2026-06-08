@@ -75,7 +75,7 @@ Runtime tier:
 | changelog-row | new-standard | STANDARD/changelog-discipline | oya-governance-changelog-row-kernel | tools/oya-governance-changelog-row | `cargo run -p oya-governance-changelog-row` | 300 | HIGH |
 | adr-index | existing-extension | STANDARD/adr-index | oya-foundry-adr-index-kernel | tools/oya-governance-adr-index | `cargo run -p oya-governance-adr-index` | 250 | HIGH |
 | cargo-prefix | existing-extension | STANDARD/cargo-prefix | oya-foundry-cargo-prefix-kernel | tools/oya-governance-cargo-prefix | `cargo run -p oya-governance-cargo-prefix` | 150 | BLOCKER |
-| codeowners-mirror | existing-extension | STANDARD/codeowners-mirror | oya-foundry-codeowners-mirror-kernel | tools/oya-governance-codeowners-mirror | `cargo run -p oya-governance-codeowners-mirror` | 300 | HIGH |
+| codeowners-mirror | existing-extension | STANDARD/codeowners-mirror | CodeownersMirrorFitnessReport (kernel contract) | tools/oya-governance-codeowners-mirror | `cargo run -p oya-governance-codeowners-mirror` | 300 | HIGH |
 | constitution-cite | existing-extension | STANDARD/constitution-derivation | oya-foundry-constitution-cite-kernel | tools/oya-governance-constitution-cite | `cargo run -p oya-governance-constitution-cite` | 350 | HIGH |
 | claim-ceiling | existing-extension | STANDARD/claim-ceiling | oya-foundry-claim-ceiling-kernel | tools/oya-governance-claim-ceiling | `cargo run -p oya-governance-claim-ceiling` | 300 | HIGH |
 | cost-budget | existing-extension | STANDARD/cost-budget | oya-foundry-cost-budget-kernel | tools/oya-governance-cost-budget | `cargo run -p oya-governance-cost-budget` | 600 | MED |

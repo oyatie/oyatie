@@ -184,7 +184,7 @@ glob `crates/*-domain/Cargo.toml`); no `lifecycle_stage` promotion applies.
 The crate has no `[package.metadata.oya]` block today; adding one solely to
 emit a non-canonical `lifecycle.stage = "live"` would be the first such
 "live" marker in the workspace and is deferred to the workspace-wide
-lifecycle-promotion IP that converts all `oya-foundry-vcs-*-kernel` markers
+lifecycle-promotion IP that converts all kernel lifecycle markers
 together.
 
 ### Closing reference

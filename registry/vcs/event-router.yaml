@@ -35,7 +35,7 @@
 rows:
   - event: pull_request
     action: opened
-    agent: oya-foundry-vcs-orchestrator-app
+    agent: RETIRED  # orchestrator crate deleted in ADR-0363 PR-2 cutover (frozen evidence)
     purpose: Begin changeset state transition to pr_open
 
   - event: pull_request
@@ -45,7 +45,7 @@ rows:
 
   - event: pull_request
     action: closed
-    agent: oya-foundry-vcs-orchestrator-app
+    agent: RETIRED  # orchestrator crate deleted in ADR-0363 PR-2 cutover (frozen evidence)
     purpose: If merged=true, transition to merged_dev
 
   # ADR-0112 §"Event-router table" rows 4-5: workflow_run/completed is
@@ -79,5 +79,5 @@ rows:
 
   - event: pull_request_review
     action: submitted
-    agent: oya-foundry-vcs-orchestrator-app
+    agent: RETIRED  # orchestrator crate deleted in ADR-0363 PR-2 cutover (frozen evidence)
     purpose: Update changeset state if human override

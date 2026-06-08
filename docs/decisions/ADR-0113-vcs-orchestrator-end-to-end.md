@@ -218,8 +218,7 @@ Sync mode (`--wait`):
 
 ### Neutral
 
-- The orchestrator app
-  (`oya-foundry-vcs-orchestrator-app`, new in wave-A) is small
+- The orchestrator app (new in wave-A) is small
   (~400 LOC) and delegates almost everything to the existing
   IP-004/005/006 + promotion workflows + webhook receiver.
   It's a thin coordination layer, not a new substrate.
@@ -227,9 +226,9 @@ Sync mode (`--wait`):
 ## Implementation sequencing
 
 - **Wave A** (this ADR Accepted):
-  1. `oya-foundry-vcs-orchestrator-kernel` — pure-domain
+  1. The orchestrator kernel — pure-domain
      state-validator + idempotency-key generator.
-  2. `oya-foundry-vcs-orchestrator-app` — runner; integrates
+  2. The orchestrator app — runner; integrates
      `oya verify` + `git push` + `gh pr create` + event-log
      appending.
   3. `oya vcs done` subcommand in `oya-dev-cli` delegates to
@@ -244,8 +243,8 @@ Sync mode (`--wait`):
 
 ## Naming justification
 
-- `oya-foundry-vcs-orchestrator-{kernel,app}` — `oya-foundry-`
-  product, `vcs-orchestrator` concept, role suffix.
+- The orchestrator kernel + app (RETIRED per ADR-0363) followed
+  the canonical role-suffix convention.
 - Subcommand `oya vcs done` retains its name (canonical CLI
   surface; semantics are extended, not renamed).
 - `oya vcs override` is the human-escape subcommand.

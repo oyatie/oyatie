@@ -35,8 +35,7 @@ handle:
    re-validate B's gates against the projected-merge-state, not
    stale validate against the pre-fix state.
 
-The existing IP-006 family
-(`oya-foundry-vcs-merge-queue-fix-loop-app`) has the scaffolding
+The existing IP-006 merge-queue fix-loop family has the scaffolding
 (parked-state, retry-budget, fairness, scheduler, tick_log) but
 the **projected-merge-state diff validation** algorithm + the
 **fix-at-any-stage re-validation protocol** are NOT yet defined.
@@ -175,7 +174,7 @@ saves the CI budget.
 ## Implementation sequencing
 
 - **Wave A** (this ADR Accepted): extend
-  `oya-foundry-vcs-merge-queue-fix-loop-app`:
+  the merge-queue fix-loop runner:
   - Add `projected_merge_state` module (per-PR projected base/head
     computation).
   - Add `conflict_avoidance_pre_admit` module.
@@ -189,9 +188,9 @@ saves the CI budget.
 
 ## Naming justification
 
-- Crate extension `oya-foundry-vcs-merge-queue-conflict-kernel`
-  (new) hosts the projected-merge-state algorithm. Existing
-  `oya-foundry-vcs-merge-queue-fix-loop-app` keeps the dispatcher
+- A new merge-queue conflict kernel (RETIRED per ADR-0363)
+  hosts the projected-merge-state algorithm. The existing
+  merge-queue fix-loop runner keeps the dispatcher
   role; the new kernel is pure-domain (port-in-kernel per
   ADR-0056).
 - Lane id `oya-governance-merge-queue-ref-hygiene` follows

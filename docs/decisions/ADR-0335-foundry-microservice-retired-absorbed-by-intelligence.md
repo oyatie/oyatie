@@ -393,8 +393,8 @@ D-71. The VCS-orchestrator end-to-end pattern of ADR-0113 remains
 valid; the orchestrator lives across vcs-orchestrator + intelligence
 + workflow, not inside a retired foundry µservice.
 
-D-72. The webhook-receiver crate `oya-foundry-webhook-receiver-kernel`
-is transition debt per D-37; its substance is preserved for future
+D-72. The webhook-receiver kernel (RETIRED per ADR-0363)
+was transition debt per D-37; its substance is preserved for future
 relocation to intelligence.
 
 D-73. The changeset-state-machine, admission-gate, merge-queue, and

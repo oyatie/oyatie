@@ -38,7 +38,7 @@ ADR-0064/ADR-0090 retired for HTTP framing.
 
 ## Decision
 
-`oya-foundry-write-gate-kernel` owns the canonical write-gate state machine:
+The write-gate kernel owns the canonical write-gate state machine:
 
 ```
 Proposed → Reviewed { reviewer } → Approved { approver } → Executed

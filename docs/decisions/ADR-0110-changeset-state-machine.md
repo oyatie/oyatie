@@ -107,7 +107,7 @@ Every state transition appends one row to
   "from_state": "ci_passed",
   "to_state": "reviewed",
   "at": "2026-05-16T01:42:18.443Z",
-  "emitted_by": "oya-foundry-pr-review-dispatcher-app",
+  "emitted_by": "<ci-pipeline>",
   "cost_budget_remaining": {
     "usd_remaining": 4.73,                  // USD budget left for this changeset
     "tokens_remaining": 1_842_117,          // total tokens left across all retries
@@ -158,7 +158,7 @@ testing; agentic callers MUST use the subscription model.
 
 ### Backward-compat with IP-006 tick_log
 
-IP-006's existing `tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/tick_log.rs`
+IP-006's existing merge-queue fix-loop tick log
 keeps emitting queue-local events. ADR-0110's adoption layer adds
 a one-way bridge: every IP-006 admission emits BOTH a tick_log row
 (queue-internal) AND a changeset-event-log row (pipeline-spanning).
@@ -192,17 +192,16 @@ A future ADR may unify the two; for now they coexist.
 ### Neutral
 
 - The state machine is implementable in either a typed Rust enum
-  or a string-keyed YAML registry; the kernel
-  (`oya-foundry-vcs-changeset-state-kernel`, new in wave-A) uses
+  or a string-keyed YAML registry; the changeset-state kernel uses
   a typed enum to make the closed set a compile-time guarantee.
 
 ## Implementation sequencing
 
 - **Wave A** (this ADR is Accepted):
-  1. `oya-foundry-vcs-changeset-state-kernel` (closed-enum +
+  1. The changeset-state kernel (closed-enum +
      monotonicity validator, pure-domain port-in-kernel per
      ADR-0056).
-  2. `oya-foundry-vcs-changeset-state-app` (runner; appends events
+  2. The changeset-state runner (appends events
      to `registry/vcs/changeset-event-log.json`).
   3. `oya-governance-changeset-state-monotonicity` lane
      (asserts every changeset's event log is monotonic).
@@ -218,11 +217,9 @@ A future ADR may unify the two; for now they coexist.
 
 ## Naming justification
 
-- Crate `oya-foundry-vcs-changeset-state-kernel` — `oya-` prefix,
-  `foundry-vcs` product context, `changeset-state` concept, `kernel`
-  role suffix per ADR-0056 12-value layer enum.
-- Module path `crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs`
-  — same kernel-pattern as every other check kernel.
+- The changeset-state kernel crate (RETIRED per ADR-0363) followed the
+  `kernel` role suffix per ADR-0056 12-value layer enum; same
+  kernel-pattern as every other check kernel.
 - Lane id `oya-governance-changeset-state-monotonicity` (and
   `-enum-closed`) — `oya-governance-` family prefix per
   registry/quality/lanes.yaml conventions; descriptive suffix.

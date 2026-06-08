@@ -185,7 +185,6 @@ runtime   — composition root (binary; the daemon)
 | `oya-foundry-catalog-kernel` | kernel | Catalog record primitive (per `registry/catalog/<crate>.yaml`) |
 | `oya-foundry-catalog-app` | app | Catalog projection + validation |
 | `oya-foundry-catalog-api` | api | Catalog read/write API |
-| `oya-foundry-repoctl-app` | app | repoctl CLI orchestration; current compatibility binary is in `crates/oya-tooling-cli-dev-runtime`, with persona split planned under `crates/oya-tooling-cli-*` |
 | `oya-foundry-gate-kernel` | kernel | Gate primitive (CI gate for cross-axis review, claim-ceiling, etc.) |
 | `oya-foundry-gate-domain` | domain | Gate rule evaluation |
 | `oya-foundry-bypass-kernel` | kernel | Foundation-bypass record primitive |
@@ -198,7 +197,6 @@ runtime   — composition root (binary; the daemon)
 | `oya-foundry-scorecard-kernel` | kernel | Scorecard primitive (per ADR-0026 + ADR-0040 Proof Ladder) |
 | `oya-foundry-scorecard-app` | app | Per-axis per-quarter scorecard publishing |
 | `oya-foundry-supply-app` | app | Supply-chain attestation (Cosign + Trivy + SBOM per ADR-0039) |
-| `oya-foundry-branch-protection-app` | app | Branch protection as code per #1295 |
 | `oya-foundry-runtime` | runtime | Foundry engineering platform composition root |
 
 ### 4.3 External-facing surfaces

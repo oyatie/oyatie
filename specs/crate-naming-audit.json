@@ -140,34 +140,10 @@
     },
     {
       "verdict": "RENAME-CASE-BY-CASE",
-      "suffix": "<one-off-vcs-and-other-drift>",
-      "count": 8,
+      "suffix": "<one-off-drift>",
+      "count": 4,
       "rationale": "One-off non-canonical suffixes that don't generalize. Each crate's shape (lib-only vs bin vs both) determines the correct canonical mapping.",
       "crates": [
-        {
-          "current": "oya-foundry-vcs-promotion-controller",
-          "shape": "lib-only",
-          "proposed": "oya-foundry-vcs-promotion-application",
-          "note": "controller logic is a library composed at app-level; application layer fits."
-        },
-        {
-          "current": "oya-foundry-vcs-review-mergequeue",
-          "shape": "lib-only",
-          "proposed": "oya-foundry-vcs-review-domain",
-          "note": "merge-queue is domain logic; rename to domain. Or split into kernel+domain+adapter if the queue has I/O seams."
-        },
-        {
-          "current": "oya-foundry-vcs-cli-ratchet",
-          "shape": "lib-only",
-          "proposed": "oya-foundry-vcs-cli",
-          "note": "the `-ratchet` is a feature name; the layer should be `cli`. Drop the suffix."
-        },
-        {
-          "current": "oya-foundry-vcs-test-standard-gate",
-          "shape": "lib-only",
-          "proposed": "oya-foundry-vcs-test-standard-domain",
-          "note": "gate logic is domain; rename."
-        },
         {
           "current": "oya-vcs-polyglot-indexer-adapters",
           "shape": "lib-only",
@@ -207,8 +183,8 @@
     "rejected_patterns": [
       "tools/-implicit-app (rejected per ADR-0107 amendment 2026-05-15 — replaced by explicit canonical-suffix binding)"
     ],
-    "renames_required": 11,
-    "rename_estimate": "11 atomic commits, ~30-60 min per crate (C1-shaped: workspace.members + Cargo.toml + crate dir + all importers + verification build)"
+    "renames_required": 7,
+    "rename_estimate": "7 atomic commits, ~30-60 min per crate (C1-shaped: workspace.members + Cargo.toml + crate dir + all importers + verification build)"
   },
   "execution_dependencies": [
     "ADR-0056 amendment ratification (per governance-amendment.json §procedure) BEFORE any rename executes",

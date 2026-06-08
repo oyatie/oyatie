@@ -21,11 +21,7 @@
     "crates/oya-vcs-ast-index-kernel",
     "crates/oya-vcs-lockstore-adapter",
     "crates/oya-vcs-changebundle-kernel",
-    "crates/oya-vcs-polyglot-indexer-adapters",
-    "crates/oya-foundry-vcs-test-standard-gate",
-    "crates/oya-foundry-vcs-promotion-controller",
-    "crates/oya-foundry-vcs-review-mergequeue",
-    "crates/oya-foundry-vcs-cli-ratchet"
+    "crates/oya-vcs-polyglot-indexer-adapters"
   ],
   "validation": [
     {

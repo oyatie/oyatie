@@ -33,12 +33,8 @@ Two unrelated low-risk hygiene issues surfaced in a recent repo audit:
 
 2. `git mv deploy/gitops/oya-vcs-admission infra/kyverno/oya-vcs-admission`
    (history-preserving), removing the now-empty `deploy/gitops/` and
-   `deploy/` parents. Rewrite all 7 inbound path references across 5
+   `deploy/` parents. Rewrite all 4 inbound path references across 3
    files:
-   - `crates/oya-foundry-vcs-provider-execution-gate-kernel/src/lib.rs`
-     (3 hits)
-   - `tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs`
-     (1 hit, the `ARGO_MANIFEST` constant)
    - `evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json`
      (2 hits — configuration-target refs, not historical migration
      records; the rewrite preserves the same truth at the new location)

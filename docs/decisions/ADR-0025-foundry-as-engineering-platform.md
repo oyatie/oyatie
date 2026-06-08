@@ -33,7 +33,6 @@ Engineering platform crates sit alongside the agent runtime under the Foundry na
 
 ```
 crates/oya-foundry-*                 — agent runtime (capability, step, run, evidence, provider, autonomy, sandbox, eval)
-crates/oya-foundry-repoctl-app       — repoctl CLI orchestration
 crates/oya-foundry-catalog-{kernel,app,api} — catalog record + projection
 crates/oya-foundry-gate-{kernel,domain,app} — gate primitive + rule evaluation
 crates/oya-foundry-bypass-{kernel,app}      — foundation-bypass ledger + autonomy break-glass ledger
@@ -41,7 +40,6 @@ crates/oya-foundry-lane-{kernel,app}        — CI lane primitive + per-PR routi
 crates/oya-governance-*                — one crate per fitness function
 crates/oya-foundry-scorecard-{kernel,app}   — quality scorecard rollup
 crates/oya-foundry-supply-app               — Cosign + Trivy + SBOM
-crates/oya-foundry-branch-protection-app    — branch protection as code
 crates/oya-foundry-plugin-substrate-app     — plugin sandbox + signing
 crates/oya-foundry-marketplace-app          — plugin + capability marketplace authoring
 ```

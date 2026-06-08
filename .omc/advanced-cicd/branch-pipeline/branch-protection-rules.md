@@ -24,12 +24,7 @@ related_adrs: [ADR-0039, ADR-0041]
 
 ## 1. Provider-agnostic protection schema
 
-Branch protection is encoded in `.github/branch-protection.yaml` (the GitHub-native filename retained for backward compatibility; the schema is the source of truth). A per-provider adapter applies the schema:
-
-- `oya-foundry-branch-protection-adapter-github` — GitHub branch-protection API.
-- `oya-foundry-branch-protection-adapter-gitlab` — GitLab project-level Protected Branches API.
-- `oya-foundry-branch-protection-adapter-gitea` — Gitea branch-protection endpoint.
-- `oya-foundry-branch-protection-adapter-bitbucket` — Bitbucket repository-restrictions API.
+Branch protection is encoded in `.github/branch-protection.yaml` (the GitHub-native filename retained for backward compatibility; the schema is the source of truth). The schema is applied through the GitHub branch-protection API.
 
 A nightly drift-check (`oya-governance-branch-protection-drift`, BLOCKER) compares the live branch-protection state to the schema and refuses divergence.
 

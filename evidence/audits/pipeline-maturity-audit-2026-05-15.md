@@ -50,7 +50,7 @@ Net: the architecture is mature on paper, the *enforcement surface* is partial, 
 
 ## Recommended next-3 IPs to drive maturity
 
-1. **IP-MCC-P10-001 — `oya` CLI binary + `oya gate run-all` aggregator.** Thin wrapper crate `tools/oya-cli` dispatching to existing kernels (`oya-foundry-vcs-*-kernel`, all `oya-governance-*-kernel`). Single entry point closes Stages 1/3/4 simultaneously and ends the silent `git`/`gh` bypass. **Highest ROI.**
+1. **IP-MCC-P10-001 — `oya` CLI binary + `oya gate run-all` aggregator.** Thin wrapper crate `tools/oya-cli` dispatching to existing kernels (all `oya-governance-*-kernel`). Single entry point closes Stages 1/3/4 simultaneously and ends the silent `git`/`gh` bypass. **Highest ROI.**
 2. **IP-MCC-P10-002 — Mistakes-ledger lane + preflight runbook.** Ship `oya-governance-mistakes-ledger-{kernel,app}` + `docs/runbooks/sanctioned-primitives/preflight.md` + `docs/templates/mistakes-ledger-row-template.md` + wire into the new `oya gate run-all`. Implements the 5-control stack from `feedback_repeat_mistake_prevention.md` that is currently 0/5 on disk. Closes Stage 10.
 3. **IP-MCC-P10-003 — PR-review automation + branch-protection deployment.** Author `.github/workflows/pr-review.yml` (multispectrum subagent fan-out → APPROVE/REJECT Check Run), deploy `.github/branch-protection.yaml` to live GitHub (admin action), flip `allow_auto_merge: true`. Closes Stages 5 + 6 + 7 in one phase. **URGENT sub-step (branch-protection deploy) can ship same-day independent of the workflow build.**
 
