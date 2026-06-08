@@ -61,84 +61,42 @@ jobs:
           path: cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/*.generated.json
           if-no-files-found: error
 
-  # ── GATE-1 (born-blocking): cross-artifact-agreement
-  gate-cross-artifact-agreement:
-    name: GATE-1 cross-artifact-agreement
+  # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
+  #    `cargo test -p <gate crate>` — so instead of copy-pasting a job per gate, a single
+  #    matrixed `gate` job fans out over the crate list. Adding a gate is ONE line in the matrix
+  #    below; the `gate_registration` meta-test (in the cloud-ci-firewall lane) ENFORCES that
+  #    every in-tree gate crate is listed here AND that this job is a fan-in dependency, so a
+  #    gate can never be silently dropped. Each matrix leg is its own check-run
+  #    `gate (oya-cloud-ci-<x>-app)`, preserving per-gate attribution; legs with a live-corpus
+  #    self-test are born-blocking. `fail-fast: false` = surface-all (every leg runs to
+  #    completion even if a sibling fails). `fetch-depth: 0` because the born-blocking
+  #    self-tests run the producer, which derives last_touch_commit via `git log`.
+  #    (Deliberately a matrix, NOT a `workflow_call` reusable workflow: a called workflow would
+  #    rename the published check-runs [`<caller> / <job>`], breaking the `oya-ci-required`
+  #    branch-protection context. A future owned oya-ci runner can reuse this matrix verbatim —
+  #    "one logic, two runners", D-CICD-AUTHORITY.)
+  gate:
+    # Descriptive per-leg check-run name (matrix.label) — each leg publishes as
+    # "gate · <discipline>", not a bare "gate (crate)". Adding a gate = one `include` line
+    # (crate + label); the gate_registration meta-test enforces every gate crate is listed.
+    name: ${{ matrix.label }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { crate: oya-cloud-ci-cross-artifact-agreement-app, label: "gate · cross-artifact-agreement (GATE-1)" }
+          - { crate: oya-cloud-ci-total-accounting-app,         label: "gate · total-accounting (GATE-2)" }
+          - { crate: oya-cloud-ci-staleness-reaper-app,         label: "gate · staleness-reaper (GATE-3, born-blocking)" }
+          - { crate: oya-cloud-ci-automation-ratchet-app,       label: "gate · automation-ratchet (GATE-4, polices gates)" }
+          - { crate: oya-cloud-ci-bnf-layer-suffix-app,         label: "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)" }
+          - { crate: oya-cloud-ci-manifest-hygiene-app,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
     steps:
       - uses: actions/checkout@v4
         with:
-          # Full history: the accounting producer derives last_touch_commit via
-          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
-          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
-          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
-          # and identical to a full local clone.
           fetch-depth: 0
-      - name: cargo test cross-artifact-agreement
-        run: cargo test --no-fail-fast -p oya-cloud-ci-cross-artifact-agreement-app -- --test-threads=1
-
-  # ── GATE-2 (born-blocking): total-accounting
-  gate-total-accounting:
-    name: GATE-2 total-accounting
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # Full history: the accounting producer derives last_touch_commit via
-          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
-          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
-          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
-          # and identical to a full local clone.
-          fetch-depth: 0
-      - name: cargo test total-accounting
-        run: cargo test --no-fail-fast -p oya-cloud-ci-total-accounting-app -- --test-threads=1
-
-  # ── GATE-3 (born-blocking, REPORTS never reaps): staleness-reaper
-  gate-staleness-reaper:
-    name: GATE-3 staleness-reaper
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # Full history: the accounting producer derives last_touch_commit via
-          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
-          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
-          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
-          # and identical to a full local clone.
-          fetch-depth: 0
-      - name: cargo test staleness-reaper
-        run: cargo test --no-fail-fast -p oya-cloud-ci-staleness-reaper-app -- --test-threads=1
-
-  # ── GATE-4 (born-blocking, polices the other gates): automation-ratchet
-  gate-automation-ratchet:
-    name: GATE-4 automation-ratchet
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # Full history: the accounting producer derives last_touch_commit via
-          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
-          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
-          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
-          # and identical to a full local clone.
-          fetch-depth: 0
-      - name: cargo test automation-ratchet
-        run: cargo test --no-fail-fast -p oya-cloud-ci-automation-ratchet-app -- --test-threads=1
-
-  # ── cloud-ci-bnf-layer-suffix (§2.5#4 floor gate S1, born-blocking): every first-party oya-*
-  #    crate's trailing dash-segment must be a canonical ADR-0056 layer value; baseline-block-on-new
-  #    so only NEW non-canonical suffixes block (the ~79 BNF debt is frozen, burned down before L1).
-  gate-bnf-layer-suffix:
-    name: cloud-ci-bnf-layer-suffix (BNF §2.5#4)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # Full history: the born-blocking self-test runs the producer, which derives
-          # last_touch_commit via `git log`. A shallow checkout degrades it (false-green).
-          fetch-depth: 0
-      - name: cargo test bnf-layer-suffix
-        run: cargo test --no-fail-fast -p oya-cloud-ci-bnf-layer-suffix-app -- --test-threads=1
+      - name: cargo test ${{ matrix.crate }}
+        run: cargo test --no-fail-fast -p ${{ matrix.crate }} -- --test-threads=1
 
   # ── registry-drift: committed == regenerated byte-equal. Depends on producer-regen so the
   #    diff target reflects the candidate tree (the regen runs in-job for hermeticity).
@@ -188,29 +146,19 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     needs:
-      - gate-cross-artifact-agreement
-      - gate-total-accounting
-      - gate-staleness-reaper
-      - gate-automation-ratchet
-      - gate-bnf-layer-suffix
-      - gate-registry-drift
-      - gate-cloud-ci-firewall
+      - gate                    # the matrix of homogeneous gate lanes (success IFF every leg passed)
+      - gate-registry-drift     # bespoke: committed == regenerated byte-parity
+      - gate-cloud-ci-firewall  # bespoke: baseline ratchet + gate_registration meta-test
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
         run: |
           echo "Gate results:"
-          echo "  cross-artifact-agreement = ${{ needs.gate-cross-artifact-agreement.result }}"
-          echo "  total-accounting         = ${{ needs.gate-total-accounting.result }}"
-          echo "  staleness-reaper         = ${{ needs.gate-staleness-reaper.result }}"
-          echo "  automation-ratchet       = ${{ needs.gate-automation-ratchet.result }}"
-          echo "  bnf-layer-suffix         = ${{ needs.gate-bnf-layer-suffix.result }}"
-          echo "  registry-drift           = ${{ needs.gate-registry-drift.result }}"
-          echo "  cloud-ci-firewall        = ${{ needs.gate-cloud-ci-firewall.result }}"
-          if [ "${{ needs.gate-cross-artifact-agreement.result }}" = "success" ] \
-            && [ "${{ needs.gate-total-accounting.result }}" = "success" ] \
-            && [ "${{ needs.gate-staleness-reaper.result }}" = "success" ] \
-            && [ "${{ needs.gate-automation-ratchet.result }}" = "success" ] \
-            && [ "${{ needs.gate-bnf-layer-suffix.result }}" = "success" ] \
+          echo "  gate (matrix)     = ${{ needs.gate.result }}"
+          echo "  registry-drift    = ${{ needs.gate-registry-drift.result }}"
+          echo "  cloud-ci-firewall = ${{ needs.gate-cloud-ci-firewall.result }}"
+          # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
+          # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
+          if [ "${{ needs.gate.result }}" = "success" ] \
             && [ "${{ needs.gate-registry-drift.result }}" = "success" ] \
             && [ "${{ needs.gate-cloud-ci-firewall.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."

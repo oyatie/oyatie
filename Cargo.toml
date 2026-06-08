@@ -237,6 +237,7 @@ members = [
   "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app",
   "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app",
   "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app",
+  "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app",
   "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app",
   "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app",
   "cloud/cloud-ci/gates/registry-drift",
