@@ -4059,7 +4059,6 @@ dependencies = [
  "oya-ci-webhook-gateway-authz-cedar-adapter",
  "oya-ci-webhook-gateway-ed25519-adapter",
  "oya-ci-webhook-gateway-github-adapter",
- "oya-ci-webhook-gateway-jenkins-adapter",
  "oya-ci-webhook-gateway-kernel",
  "serde",
  "serde_json",
@@ -4088,17 +4087,6 @@ dependencies = [
 
 [[package]]
 name = "oya-ci-webhook-gateway-github-adapter"
-version = "0.1.0"
-dependencies = [
- "httpmock",
- "oya-ci-webhook-gateway-kernel",
- "reqwest",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-jenkins-adapter"
 version = "0.1.0"
 dependencies = [
  "httpmock",
@@ -8541,36 +8529,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-vcs-admission-gate-app"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-admission-gate-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-vcs-admission-gate-kernel"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-vcs-provider-execution-gate-app"
-version = "0.1.0"
-dependencies = [
- "oya-vcs-provider-execution-gate-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "oya-vcs-provider-execution-gate-kernel"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "oya-warehouse-fulfillment-app"
 version = "0.1.0"
 dependencies = [
@@ -9851,7 +9809,6 @@ dependencies = [
  "rustls-platform-verifier",
  "serde",
  "serde_json",
- "serde_urlencoded",
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
@@ -10268,18 +10225,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6662b5879511e06e8999a8a235d848113e942c9124f211511b16466ee2995f26"
 dependencies = [
  "serde_core",
-]
-
-[[package]]
-name = "serde_urlencoded"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3491c14715ca2294c4d6a88f15e84739788c1d030eed8c110436aafdaa2f3fd"
-dependencies = [
- "form_urlencoded",
- "itoa",
- "ryu",
- "serde",
 ]
 
 [[package]]

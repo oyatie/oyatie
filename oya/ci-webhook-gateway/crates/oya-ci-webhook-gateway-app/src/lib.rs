@@ -14,11 +14,9 @@
 //! 2. ed25519 verify raw body bytes.
 //! 3. Cedar authz gate.
 //! 4. `route_github_event` → `CiTriggerEvent`.
-//! 4.5. Replay guard: check + record the delivery key (after verify+authz+route, before Step 5). A replay within the TTL short-circuits with a benign 200 idempotent ack; no second Jenkins kickoff.
-//! 5. Jenkins `trigger` → `JenkinsJob`.
-//! 6. GitHub `post_all` pending statuses.
-//! 7. Jenkins `poll_status` loop.
-//! 8. GitHub `post_all` final statuses.
+//! 4.5. Replay guard: check + record the delivery key (after verify+authz+route, before Step 5).
+//!      A replay within the TTL short-circuits with a benign 200 idempotent ack.
+//! 5. GitHub `post_all` queued statuses (CI system dispatches asynchronously via oya-ci).
 //!
 //! ## ADR-0083 Tier-3
 //!
@@ -38,29 +36,27 @@ use axum::{
     routing::{get, post},
 };
 use oya_ci_webhook_gateway_kernel::{
-    CommitStatusPoster, JenkinsClient, RouteOutcome, SignatureVerifier, WebhookAuthzGate,
+    CommitStatusPoster, JobStatus, RouteOutcome, SignatureVerifier, WebhookAuthzGate,
     WebhookAuthzRequest, WebhookSignature, route_github_event,
 };
 use replay::{DeliveryGuard, DeliveryKey, Verdict};
 use std::sync::{Arc, Mutex};
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 /// Shared application state — all adapters are behind `Arc<dyn Trait>` so the
 /// router state is `Clone + Send + Sync`.
 #[derive(Clone)]
 pub struct AppState {
-    pub verifier: Arc<dyn SignatureVerifier + Send + Sync>, // data_class: INTERNAL_ONLY
-    pub authz: Arc<dyn WebhookAuthzGate + Send + Sync>,     // data_class: INTERNAL_ONLY
-    pub jenkins: Arc<dyn JenkinsClient + Send + Sync>,      // data_class: INTERNAL_ONLY
+    pub verifier: Arc<dyn SignatureVerifier + Send + Sync>,      // data_class: INTERNAL_ONLY
+    pub authz: Arc<dyn WebhookAuthzGate + Send + Sync>,          // data_class: INTERNAL_ONLY
     pub status_poster: Arc<dyn CommitStatusPoster + Send + Sync>, // data_class: INTERNAL_ONLY
-    pub target_branch: String,                              // data_class: INTERNAL_ONLY
-    pub github_owner: String,                               // data_class: INTERNAL_ONLY
-    pub github_repo: String,                                // data_class: INTERNAL_ONLY
-    pub jenkins_job_name: String,                           // data_class: INTERNAL_ONLY
+    pub target_branch: String,                                    // data_class: INTERNAL_ONLY
+    pub github_owner: String,                                     // data_class: INTERNAL_ONLY
+    pub github_repo: String,                                      // data_class: INTERNAL_ONLY
     /// Delivery-replay / dedup guard.  Shared across all handler instances via
     /// `Arc<Mutex<_>>`.  The `Mutex` provides interior mutability so the guard
     /// can live behind the `Clone`-able, `Send + Sync` `AppState`.
-    pub delivery_guard: Arc<Mutex<DeliveryGuard>>,          // data_class: INTERNAL_ONLY
+    pub delivery_guard: Arc<Mutex<DeliveryGuard>>,                // data_class: INTERNAL_ONLY
 }
 
 /// Build the axum [`Router`] with all routes and shared state.
@@ -89,11 +85,11 @@ async fn handle_metrics() -> impl IntoResponse {
 /// `POST /webhook/github` — main webhook handler.
 ///
 /// Returns:
-/// - `202 Accepted` on a routable event that was dispatched to Jenkins.
+/// - `202 Accepted` on a routable event that was accepted and queued statuses posted.
 /// - `200 OK` on an ignorable event (ping, non-target-branch, draft PR, etc.).
 /// - `400 Bad Request` on signature / payload errors.
 /// - `403 Forbidden` on Cedar authz denial.
-/// - `502 Bad Gateway` on Jenkins / GitHub downstream failures.
+/// - `502 Bad Gateway` on GitHub downstream failures.
 async fn handle_github_webhook(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -172,12 +168,11 @@ async fn handle_github_webhook(
     // Populate repo from app config.
     event.repo = format!("{}/{}", state.github_owner, state.github_repo);
 
-    // Step 4.5 — Replay / dedup guard (after verify+authz+route, before trigger).
+    // Step 4.5 — Replay / dedup guard (after verify+authz+route, before status post).
     //
-    // Record-on-receipt: the key is recorded BEFORE Jenkins fires so that a
-    // concurrent replay of the same delivery is deduped even while the first
-    // is still in-flight.  See replay module docs for the retry-on-failure
-    // trade-off.
+    // Record-on-receipt: the key is recorded BEFORE any downstream action so that a
+    // concurrent replay of the same delivery is deduped even while the first is still
+    // in-flight.  See replay module docs for the retry-on-failure trade-off.
     //
     // Opportunistic prune: run on every call; cost is O(n) over the seen map
     // which stays small (TTL=5 min, typical delivery rate is low).
@@ -204,57 +199,20 @@ async fn handle_github_webhook(
         return (StatusCode::OK, "duplicate delivery, already accepted").into_response();
     }
 
-    // Step 5 — Jenkins trigger.
-    let job = match state.jenkins.trigger(&state.jenkins_job_name, &event) {
-        Ok(j) => j,
-        Err(e) => {
-            error!(delivery_id, error = %e, "jenkins trigger failed");
-            return (StatusCode::BAD_GATEWAY, format!("{e}")).into_response();
-        }
-    };
-
-    info!(
-        delivery_id,
-        build_number = job.build_number,
-        "jenkins build triggered"
-    );
-
-    // Step 6 — post pending statuses to GitHub.
-    let build_url = job.build_url.as_deref();
+    // Step 5 — post queued statuses to GitHub.
+    // The oya-ci pipeline picks up the event asynchronously and posts final statuses.
     if let Err(e) = state.status_poster.post_all(
         &state.github_owner,
         &state.github_repo,
         &event.head_sha,
-        oya_ci_webhook_gateway_kernel::JobStatus::Running,
-        build_url,
+        JobStatus::Queued,
+        None,
     ) {
-        warn!(delivery_id, error = %e, "failed to post pending GitHub statuses");
-        // Non-fatal: continue with Jenkins polling.
+        warn!(delivery_id, error = %e, "failed to post queued GitHub statuses");
+        return (StatusCode::BAD_GATEWAY, format!("{e}")).into_response();
     }
 
-    // Step 7+8 — poll + post final statuses.
-    // This is done synchronously in the handler.  Stage-9 will move this to a
-    // background task queue so the HTTP response returns before the build
-    // completes.
-    let final_status = match state.jenkins.poll_status(&job) {
-        Ok(s) => s,
-        Err(e) => {
-            error!(delivery_id, error = %e, "jenkins poll failed");
-            oya_ci_webhook_gateway_kernel::JobStatus::Unknown
-        }
-    };
-
-    if let Err(e) = state.status_poster.post_all(
-        &state.github_owner,
-        &state.github_repo,
-        &event.head_sha,
-        final_status,
-        build_url,
-    ) {
-        error!(delivery_id, error = %e, "failed to post final GitHub statuses");
-    }
-
-    info!(delivery_id, status = ?final_status, "pipeline complete");
+    info!(delivery_id, head_sha = %event.head_sha, "webhook accepted, queued statuses posted");
     (StatusCode::ACCEPTED, "dispatched").into_response()
 }
 

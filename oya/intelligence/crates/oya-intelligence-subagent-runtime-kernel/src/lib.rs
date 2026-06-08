@@ -45,8 +45,7 @@ use std::fmt;
 use oya_intelligence_account_kernel::SecretReference;
 
 /// One facet's recommendation from one subagent invocation. Mirrors
-/// the `final_recommendation` enum in
-/// `specs/multispectrum-review.json#consensus_debate_protocol`.
+/// the `final_recommendation` enum in the consensus debate protocol.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FacetRecommendation {
     /// Facet finds no policy/quality drift; PR may merge.
@@ -466,7 +465,7 @@ fn mock_findings_body(request: &SubagentRequest, recommendation: FacetRecommenda
 /// Serializer for the per-facet `<facet>.json` evidence file consumed
 /// by IP-004's `tools/oya-intelligence-pr-review-dispatcher-app::parse_recommendation`.
 /// The shape matches `consensus_debate_protocol.rounds.round_1_independent.required_keys`
-/// from `specs/multispectrum-review.json`.
+/// from the multispectrum review protocol.
 ///
 /// We avoid serde here for two reasons: (a) zero non-workspace deps
 /// at the kernel layer; (b) the output is small + deterministic so a
