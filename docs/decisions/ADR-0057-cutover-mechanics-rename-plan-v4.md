@@ -3,7 +3,7 @@ doc_class: DecisionRecord
 shape: ~
 length_cap: 300
 authority_tier: 2
-status: Accepted
+status: Superseded
 doc_status: published
 date: 2026-05-13
 purpose: |
@@ -15,6 +15,7 @@ purpose: |
 canonical_authority: docs/CONSTITUTION.md
 supersedes: docs/decisions/ADR-0055-rename-plan-v3-cutover.md
 superseded_by: ~
+supersession_note: "Executed one-shot migration; dangling+colliding supersedes edge to phantom ADR-0055-v3 file. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5, C-4/D11(c)."
 related_adrs:
   - ADR-0015
   - ADR-0053

@@ -1,13 +1,14 @@
 ---
 id: ADR-0509
 title: "Hyperscaler service decomposition pattern (single-crate-per-service + mod-based subsystems)"
-status: Accepted
+status: Superseded
 date: 2026-05-28
 authority: founder
 owner: council-architecture
 planning_impact: true
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0512]
+supersession_note: "ADR-0512 supersedes this; status was drifted (0512 named it as superseded but 0509 had no edge). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-3/FC-5."
 related: [ADR-0392, ADR-0476, ADR-0478, ADR-0479, ADR-0480, ADR-0481]
 ---
 

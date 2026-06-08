@@ -2,13 +2,14 @@
 doc_class: ADR
 adr_id: ADR-0103
 title: Grit cutover inventory of legacy primitives
-status: Accepted
+status: Superseded
 doc_status: published
 owner: council-architecture
 deciders: council-architecture + axis-foundry
 date: 2026-05-14
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0116, ADR-0363]
+supersession_note: "grit/icm sanctioned-VCS + ban-git context retired; superseded by ADR-0116 (retire external agent-coordination tooling) and ADR-0363 (agentic-VCS retired). D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-6."
 relates_to:
   - ADR-0052-inventory-grit-cutover.md
   - ADR-0054-grit-scaffold-claim-pattern.md

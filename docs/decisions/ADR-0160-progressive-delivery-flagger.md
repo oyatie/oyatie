@@ -1,11 +1,12 @@
 ---
 id: ADR-0160
-status: Accepted
+status: Superseded
 deciders: council-architecture, axis-cloud-k8s, axis-observability, ops-sre-reliability
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0515]
+supersession_note: "Flagger superseded by Argo Rollouts per D10 ruling; ADR-0515 is the canonical CI/CD + progressive-delivery ADR. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-12/P1."
 related: [ADR-0110, ADR-0114, ADR-0121, ADR-0124, ADR-0139, ADR-0148, ADR-0157, ADR-0158]
 related_specs:
   - /specs/agentic-slo-gated-promotion.json

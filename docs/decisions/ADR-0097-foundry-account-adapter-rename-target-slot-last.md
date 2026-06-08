@@ -1,7 +1,7 @@
 ---
 id: ADR-0097
 title: "Rename oya-foundry-account-adapter-{claude-code,codex-cli,gemini-cli} → oya-foundry-{claude,codex,gemini}-account-adapter"
-status: accepted
+status: Superseded
 doc_status: published
 owner: council-architecture
 date: 2026-05-15
@@ -10,9 +10,11 @@ deciders:
   - Architect (v4 BNF consensus)
   - Critic (v6 PRE-1..PRE-6 mandate sweep)
 supersedes: []
+superseded_by: []
 related:
   - ADR-0056  # 12-layer enum + BNF v4.1 (layer token MUST be last)
   - ADR-0096  # supervisor language: Rust (cites these adapter crates)
+supersession_note: "3-crate cosmetic foundry rename; subsumed by the foundry sweep. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5."
 ---
 
 # ADR-0097: Rename `oya-foundry-account-adapter-*` — Layer Token Must Be Last
