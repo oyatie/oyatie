@@ -91,6 +91,7 @@ jobs:
           - { crate: oya-cloud-ci-automation-ratchet-app,       label: "gate · automation-ratchet (GATE-4, polices gates)" }
           - { crate: oya-cloud-ci-bnf-layer-suffix-app,         label: "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)" }
           - { crate: oya-cloud-ci-manifest-hygiene-app,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
+          - { crate: oya-cloud-ci-cargo-prefix-app,            label: "gate · cargo-prefix (ADR-0017)" }
     steps:
       - uses: actions/checkout@v4
         with:

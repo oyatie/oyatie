@@ -132,6 +132,10 @@ fn run() -> Result<(), CliError> {
     let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths, &cfg);
     // The §2.5#7 manifest-hygiene gate input: per-crate Cargo.toml hygiene flags.
     let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths, &cfg);
+    // The ADR-0017 cargo-prefix gate input: the first-party oya-* workspace members + their
+    // package names. The gate's evaluate_keyed reuses
+    // oya_intelligence_cargo_prefix_domain::validate_cargo_prefix per crate.
+    let cargo_prefix = collect_cargo_prefix(&repo_root, &inputs.tracked_paths, &cfg);
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
@@ -139,6 +143,7 @@ fn run() -> Result<(), CliError> {
         staleness: &staleness_input,
         bnf_layer_suffix: &bnf_layer_suffix,
         manifest_hygiene: &manifest_hygiene,
+        cargo_prefix: &cargo_prefix,
         brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&cfg, &gate_inputs, &config_digest)?;
@@ -151,6 +156,7 @@ fn run() -> Result<(), CliError> {
             "ttl-policy" => &policy.ttl_policy_face(),
             "bnf-layer-suffix" => &bnf_layer_suffix,
             "manifest-hygiene" => &manifest_hygiene,
+            "cargo-prefix" => &cargo_prefix,
             "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
@@ -374,6 +380,50 @@ fn collect_bnf_layer_suffix(
     let rows: Vec<Value> = names
         .into_iter()
         .map(|name| json!({ "crate_name": name }))
+        .collect();
+    json!({ "rows": rows })
+}
+
+/// Enumerate the first-party `oya-*` workspace members + their package names (the ADR-0017
+/// cargo-prefix gate's I/O). For each tracked `<dir>/Cargo.toml` with an `oya-*` `[package].name`
+/// it emits a row of `{"member_path": "<dir>", "package_name": "<name>"}` — the same
+/// member_path + package_name pair the dev-cli's cargo-prefix validator builds (the gate reuses
+/// `validate_cargo_prefix` per crate). Skips vendored `third-party/` manifests + the virtual
+/// workspace root (no `[package]`). Deterministic: rows go through a BTreeMap keyed by member_path
+/// (sorted+deduped) so committed==regenerated holds byte-for-byte. Scoped to `oya-*` (the rule's
+/// domain) so the intentional bare `registry-drift` rust_test is not flagged.
+fn collect_cargo_prefix(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Value {
+    let prefix = cfg.naming.required_prefix.as_str();
+    let mut by_member: BTreeMap<String, String> = BTreeMap::new();
+    for path in tracked_paths {
+        if !path.ends_with("Cargo.toml") {
+            continue;
+        }
+        if is_path_excluded(path, cfg) {
+            continue;
+        }
+        let Some(name) = parse_package_name(&read_text(&repo_root.join(path))) else {
+            continue;
+        };
+        if !name.starts_with(prefix) {
+            continue;
+        }
+        // member_path = the directory holding the Cargo.toml (the workspace member path).
+        let member_path = path
+            .strip_suffix("/Cargo.toml")
+            .unwrap_or(path)
+            .to_owned();
+        by_member.insert(member_path, name);
+    }
+    let rows: Vec<Value> = by_member
+        .into_iter()
+        .map(|(member_path, package_name)| {
+            json!({ "member_path": member_path, "package_name": package_name })
+        })
         .collect();
     json!({ "rows": rows })
 }

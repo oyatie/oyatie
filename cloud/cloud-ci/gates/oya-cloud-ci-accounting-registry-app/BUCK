@@ -13,6 +13,7 @@ rust_library(
         "//cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app:oya-cloud-ci-manifest-hygiene-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -32,6 +33,7 @@ rust_test(
         "//cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app:oya-cloud-ci-manifest-hygiene-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -51,6 +53,7 @@ rust_binary(
         "//cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app:oya-cloud-ci-manifest-hygiene-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
         # The binary runs the forbidden-vocab census (cloud-ci-brand-residue gate) over the
         # live corpus and folds the per-(stem,file) keys into the baseline.
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
