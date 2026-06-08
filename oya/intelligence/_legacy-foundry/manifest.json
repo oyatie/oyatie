@@ -975,7 +975,7 @@
       "id": "ADR-0020",
       "title": "Foundry Multi Provider Adapter Model",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0020-foundry-multi-provider-adapter-model.md"
+      "file": "docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md"
     },
     {
       "id": "ADR-0022",
@@ -987,19 +987,19 @@
       "id": "ADR-0023",
       "title": "Foundry Sandbox Wasmtime Firecracker",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0023-foundry-sandbox-wasmtime-firecracker.md"
+      "file": "docs/decisions/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md"
     },
     {
       "id": "ADR-0024",
       "title": "Foundry Eval Harness And Replay",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0024-foundry-eval-harness-and-replay.md"
+      "file": "docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md"
     },
     {
       "id": "ADR-0025",
       "title": "Foundry As Engineering Platform",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0025-foundry-as-engineering-platform.md"
+      "file": "docs/decisions/ADR-0025-intelligence-as-engineering-platform.md"
     },
     {
       "id": "ADR-0026",
@@ -1071,19 +1071,19 @@
       "id": "ADR-0136",
       "title": "Foundry As Single Microservice",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0136-foundry-as-single-microservice.md"
+      "file": "docs/decisions/ADR-0136-intelligence-as-single-microservice.md"
     },
     {
       "id": "ADR-0137",
       "title": "Foundry Bounded Contexts",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0137-foundry-bounded-contexts.md"
+      "file": "docs/decisions/ADR-0137-intelligence-bounded-contexts.md"
     },
     {
       "id": "ADR-0138",
       "title": "Foundry Six Path Deprecation",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0138-foundry-six-path-deprecation.md"
+      "file": "docs/decisions/ADR-0138-intelligence-six-path-deprecation.md"
     },
     {
       "id": "ADR-0139",

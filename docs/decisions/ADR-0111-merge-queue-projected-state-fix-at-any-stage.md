@@ -8,7 +8,7 @@ supersedes: []
 superseded_by: []
 related:
   - ADR-0110-changeset-state-machine.md
-  - ADR-0112-webhook-driven-foundry-agent-invocation.md
+  - ADR-0112-webhook-driven-intelligence-agent-invocation.md
   - ADR-0113-vcs-orchestrator-end-to-end.md
 purpose: Define the merge-queue algorithm (projected-merge-state diff validation + fix-at-any-stage adjustment) that prevents divergence + conflicts under heavy agentic concurrency.
 ---

@@ -64,7 +64,7 @@ companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
   - docs/decisions/ADR-0108-sunset-lifecycle-automation.md
-  - docs/decisions/ADR-0138-foundry-six-path-deprecation.md
+  - docs/decisions/ADR-0138-intelligence-six-path-deprecation.md
   - docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md
   - docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md
 inbound_citations:

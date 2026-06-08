@@ -686,7 +686,7 @@ Exit artifact: `bootcamp-page-22-adr-0292`.
 
 ## Page 23. ADR-0293 - ADR-0293: Foundry Meta-Trust-Root for Self-Modification Witness
 
-ADR source: [decisions/ADR-0293-foundry-meta-trust-root.md](../decisions/ADR-0293-foundry-meta-trust-root.md).
+ADR source: [decisions/ADR-0293-governance-meta-trust-root.md](../decisions/ADR-0293-governance-meta-trust-root.md).
 Doctrine summary: Promotion-gate fix **1 of 4** for the keystone bundle 2026-05-20 (`docs/architecture/keystone-bundle-2026-05-20-synthesis.md` §5.1 + §5.5).
 Binding docs: [keystone synthesis](../architecture/keystone-bundle-2026-05-20-synthesis.md), [documentation rigor](../standards/documentation-rigor.md), and [glossary](../GLOSSARY.md).
 Why it matters: This decision prevents product teams from inventing a parallel identity, policy, workflow, ontology, audit, compliance, or extension grammar.
@@ -932,7 +932,7 @@ Exit artifact: `bootcamp-page-30-adr-0317`.
 - Exit row 20: cite [ADR-0280](../decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md), one glossary row, one binding doc, and one verification command.
 - Exit row 21: cite [ADR-0284](../decisions/ADR-0284-platform-owner-name-indirection.md), one glossary row, one binding doc, and one verification command.
 - Exit row 22: cite [ADR-0292](../decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md), one glossary row, one binding doc, and one verification command.
-- Exit row 23: cite [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), one glossary row, one binding doc, and one verification command.
+- Exit row 23: cite [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), one glossary row, one binding doc, and one verification command.
 - Exit row 24: cite [ADR-0294](../decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md), one glossary row, one binding doc, and one verification command.
 - Exit row 25: cite [ADR-0295](../decisions/ADR-0295-bootstrap-ci-spiffe-kill-switch.md), one glossary row, one binding doc, and one verification command.
 - Exit row 26: cite [ADR-0296](../decisions/ADR-0296-library-first-credential-sidecar.md), one glossary row, one binding doc, and one verification command.
@@ -1008,7 +1008,7 @@ Refusal signal: The note says the control waits for customer demand.
 
 ### Drill 13 - Meta-trust-root
 Prompt: Pick one Foundry or agentic action and name the attestation root.
-Artifact: A five-line note citing [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), meta-trust-root glossary row, and evidence bundle.
+Artifact: A five-line note citing [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), meta-trust-root glossary row, and evidence bundle.
 Refusal signal: The note allows self-modification without provenance.
 
 ### Drill 14 - Minor user doctrine

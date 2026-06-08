@@ -191,7 +191,7 @@ ADR-0140, ADR-0141, ADR-0142, ADR-0143, ADR-0144 numbers were ALLOCATED to Fix-C
 - ADR-0140-cross-cutting-carriers-adapter-exemption (Fix-C) → SUBSUMED by ADR-0145 (no exemption needed)
 - ADR-0141-workflow-ontology-read-path-direct (Fix-D) → SUBSUMED by ADR-0145
 - ADR-0142-crdt-portability-trait (Fix-D) → INDEPENDENT (CRDT concern); proceeds as-is
-- ADR-0143-foundry-per-bc-release-pointer (Fix-D) → INDEPENDENT (foundry concern); proceeds as-is
+- ADR-0143-intelligence-per-bc-release-pointer (Fix-D) → INDEPENDENT (foundry concern); proceeds as-is
 - ADR-0144-eu-ai-act-graduated-risk-tier-model (Fix-D) → INDEPENDENT (EU AI Act concern); proceeds as-is
 
 Post-Fix-C/Fix-D landing, mark ADR-0140 and ADR-0141 status `superseded_by: ADR-0145` in their frontmatter.

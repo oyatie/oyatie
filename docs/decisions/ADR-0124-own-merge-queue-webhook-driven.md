@@ -9,7 +9,7 @@ supersedes: none
 superseded_by: [ADR-0515]
 related:
   - ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
-  - ADR-0112-webhook-driven-foundry-agent-invocation.md
+  - ADR-0112-webhook-driven-intelligence-agent-invocation.md
   - ADR-0113-vcs-orchestrator-end-to-end.md
   - ADR-0116-retire-external-agent-coordination-tooling.md
 ---

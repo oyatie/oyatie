@@ -23,7 +23,7 @@ related:
   - ADR-0050-event-bus-kafka.md
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0128-hyperscaler-architecture-invariants.md
-  - ADR-0136-foundry-as-single-microservice.md
+  - ADR-0136-intelligence-as-single-microservice.md
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0148-service-mesh-cilium.md

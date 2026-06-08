@@ -23,7 +23,7 @@ doc_status: published
 
 ## 1. Provider-agnostic CI adapter
 
-Every CI lane is invoked through `oya-intelligence-ci-runner-kernel` (NEW) + per-provider adapter, per [Directive 4](../../../docs/MASTERPLAN.md) and the existing Foundry adapter posture ([ADR-0020](../../decisions/ADR-0020-foundry-multi-provider-adapter-model.md)):
+Every CI lane is invoked through `oya-intelligence-ci-runner-kernel` (NEW) + per-provider adapter, per [Directive 4](../../../docs/MASTERPLAN.md) and the existing Foundry adapter posture ([ADR-0020](../../decisions/ADR-0020-intelligence-multi-provider-adapter-model.md)):
 
 - `oya-intelligence-ci-runner-adapter-github-actions` — GitHub Actions workflow_dispatch.
 - `oya-intelligence-ci-runner-adapter-buildkite` — Buildkite pipeline trigger.

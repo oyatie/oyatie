@@ -3496,7 +3496,7 @@ It changes everything.
 - ADR-0218-tenant-granular-control-surface.md
 - ADR-0220-consumer-intelligence-substrate.md
 - ADR-0221-agentic-development-pipeline-hardening.md
-- ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md
+- ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
 - ADR-0240-sovereign-cloud-per-regional-pack.md
 - ADR-0241-dr-business-continuity-portfolio-policy.md
 

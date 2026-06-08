@@ -150,7 +150,7 @@ docs/decisions/ADR-0014-build-vs-buy-policy.md
 docs/decisions/ADR-0015-architectural-flattening-target.md
 docs/decisions/ADR-0016-wave-and-plane-integration-framework.md
 docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md
-docs/decisions/ADR-0025-foundry-as-engineering-platform.md
+docs/decisions/ADR-0025-intelligence-as-engineering-platform.md
 docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md
 docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md
 docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
@@ -171,7 +171,7 @@ docs/decisions/ADR-0108-sunset-lifecycle-automation.md
 docs/decisions/ADR-0109-lifecycle-automation-framework.md
 docs/decisions/ADR-0110-changeset-state-machine.md
 docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
-docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md
+docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md
 docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md
 docs/decisions/ADR-0114-canary-observability-rollback.md
 docs/decisions/ADR-0115-registry-consolidation-flat-singular.md

@@ -11,7 +11,7 @@ superseded_by: []
 related:
   - ADR-0028-cloud-microservice-architecture.md
   - ADR-0009-cell-architecture-per-tenant-per-region.md
-  - ADR-0020-foundry-multi-provider-adapter-model.md
+  - ADR-0020-intelligence-multi-provider-adapter-model.md
   - ADR-0004-plane-separation-control-data-analytics.md
 doc_class: Architecture-Decision-Record
 purpose: >

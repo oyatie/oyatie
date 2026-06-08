@@ -107,12 +107,12 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.roadmap` | `ROADMAP.md` | `tactical-m3-launch` (until [wave name per PRD §3.1]); thereafter rolling | EVT-WAVE-GATE-PASSED, EVT-FOUNDRY-CAPABILITY-PROMOTED, EVT-AUDIT-FINDING (P0/P1) | bi-weekly | PRD.md, batches.json, RISK-REGISTER.md | `roadmap-band-totals`, `roadmap-foundry-batch-shape` | YES — agent may rebalance bands; band-promotion requires human |
 | `doc.adr_index` | `ADR-INDEX.md` | `crew-adr-promotion` | EVT-ADR-AUTHORED, EVT-ADR-PROMOTED | per event | DESIGN.md, machine-readable/decisions.json | `adr-index-completeness`, `adr-supersession-graph` | YES — agent re-emits index from `decisions/` directory |
 | `doc.adr_0096` | `decisions/ADR-0096-supervisor-language-rust-not-node.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
-| `doc.adr_0097` | `decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0097` | `decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0098` | `decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0099` | `decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0100` | `decisions/ADR-0100-supervisor-public-contract-lean-a10.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0101` | `decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
-| `doc.adr_0102` | `decisions/ADR-0102-foundry-settings-template-canonical-rendering.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0102` | `decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0104` | `decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0105` | `decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0106` | `decisions/ADR-0106-rename-application-to-usecase.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
@@ -121,7 +121,7 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.adr_0109` | `decisions/ADR-0109-lifecycle-automation-framework.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0110` | `decisions/ADR-0110-changeset-state-machine.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0111` | `decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
-| `doc.adr_0112` | `decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0112` | `decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0113` | `decisions/ADR-0113-vcs-orchestrator-end-to-end.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0114` | `decisions/ADR-0114-canary-observability-rollback.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0115` | `decisions/ADR-0115-registry-consolidation-flat-singular.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |

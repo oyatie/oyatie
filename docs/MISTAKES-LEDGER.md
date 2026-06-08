@@ -73,7 +73,7 @@ Per [`standards/prevention-doctrine.md §6`](standards/prevention-doctrine.md):
 
 Per `standards/prevention-doctrine.md §5 step 6`:
 - Each shipped prevention tested against the original failure mode (replay or fuzz)
-- Replay-as-eval per [ADR-0024 foundry-eval-harness-and-replay](decisions/ADR-0024-foundry-eval-harness-and-replay.md)
+- Replay-as-eval per [ADR-0024 foundry-eval-harness-and-replay](decisions/ADR-0024-intelligence-eval-harness-and-replay.md)
 - Per-quarter `oya.prevention.verify-coverage` capability run
 
 ## 6. Sources

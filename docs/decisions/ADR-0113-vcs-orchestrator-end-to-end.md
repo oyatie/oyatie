@@ -8,7 +8,7 @@ superseded_by: [ADR-0363]
 related:
   - ADR-0110-changeset-state-machine.md
   - ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
-  - ADR-0112-webhook-driven-foundry-agent-invocation.md
+  - ADR-0112-webhook-driven-intelligence-agent-invocation.md
 purpose: Define the `oya vcs done` orchestrator that drives a changeset through the full agentic pipeline (PR-open → CI → review → merge → promote) and the agentic subscription contract for callers.
 ---
 

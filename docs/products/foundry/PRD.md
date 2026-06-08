@@ -2619,7 +2619,7 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0021-agentic-development-pipeline-hardening.md
 - docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md
 - docs/decisions/ADR-0024-cross-session-memory.md
-- docs/decisions/ADR-0025-foundry-as-engineering-platform.md
+- docs/decisions/ADR-0025-intelligence-as-engineering-platform.md
 - docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md
 - docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md
 - docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md

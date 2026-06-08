@@ -27,7 +27,7 @@ amends:
   - ADR-0131
 related:
   - ADR-0248-amazon-shape-cellular-architecture.md
-  - ADR-0138-foundry-six-path-deprecation.md
+  - ADR-0138-intelligence-six-path-deprecation.md
   - ADR-0131-per-microservice-flat-layout.md
   - ADR-0244-tenant-as-universal-scoping-primitive.md
   - ADR-0243-cedar-as-universal-gate.md
@@ -37,7 +37,7 @@ related_sources:
   - microservices/cell/PRD.md
   - microservices/cell/coherence-audit-2026-05-20.md
   - docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md
-  - docs/decisions/ADR-0138-foundry-six-path-deprecation.md
+  - docs/decisions/ADR-0138-intelligence-six-path-deprecation.md
   - docs/decisions/ADR-0131-per-microservice-flat-layout.md
 doc_class: Architecture-Decision-Record
 purpose: >

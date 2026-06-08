@@ -228,7 +228,7 @@ Artifact: `month-one-week-1-19` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), and `foundry` term if present.
 
 ### Week 1 task 20
 Focus: Apply `ops-dashboard` doctrine to doctrine replay and first reviewed contribution with ADR-0294 as the decision anchor.
@@ -528,7 +528,7 @@ Artifact: `month-one-week-1-49` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), and `tenancy` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), and `tenancy` term if present.
 
 ### Week 1 task 50
 Focus: Apply `policy-engine` doctrine to doctrine replay and first reviewed contribution with ADR-0294 as the decision anchor.
@@ -980,7 +980,7 @@ Artifact: `month-one-week-2-19` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), and `foundry` term if present.
 
 ### Week 2 task 20
 Focus: Apply `ops-dashboard` doctrine to substrate microservices deep dive with ADR-0294 as the decision anchor.
@@ -1280,7 +1280,7 @@ Artifact: `month-one-week-2-49` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), and `tenancy` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), and `tenancy` term if present.
 
 ### Week 2 task 50
 Focus: Apply `policy-engine` doctrine to substrate microservices deep dive with ADR-0294 as the decision anchor.
@@ -1732,7 +1732,7 @@ Artifact: `month-one-week-3-19` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), and `foundry` term if present.
 
 ### Week 3 task 20
 Focus: Apply `ops-dashboard` doctrine to capability tier authoring and journey catalog contribution with ADR-0294 as the decision anchor.
@@ -2032,7 +2032,7 @@ Artifact: `month-one-week-3-49` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), and `tenancy` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), and `tenancy` term if present.
 
 ### Week 3 task 50
 Focus: Apply `policy-engine` doctrine to capability tier authoring and journey catalog contribution with ADR-0294 as the decision anchor.
@@ -2484,7 +2484,7 @@ Artifact: `month-one-week-4-19` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), and `foundry` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), and `foundry` term if present.
 
 ### Week 4 task 20
 Focus: Apply `ops-dashboard` doctrine to incident shadow and first sole-ownership slice with ADR-0294 as the decision anchor.
@@ -2784,7 +2784,7 @@ Artifact: `month-one-week-4-49` containing changed path or no-change evidence, s
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
 Operational check: Identify emitted audit event, trace, metric, or explicit no-runtime-impact statement.
 Escalation: If the task touches production credentials, live infrastructure, destructive cleanup, or external services, stop that branch and escalate to the named reviewer.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md), and `tenancy` term if present.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md), and `tenancy` term if present.
 
 ### Week 4 task 50
 Focus: Apply `policy-engine` doctrine to incident shadow and first sole-ownership slice with ADR-0294 as the decision anchor.
@@ -3133,7 +3133,7 @@ Artifact: `sole-owner-slice-21` with target file paths, rollback plan, verificat
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 22: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.
-Artifact: `sole-owner-slice-22` with target file paths, rollback plan, verification command, and [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md).
+Artifact: `sole-owner-slice-22` with target file paths, rollback plan, verification command, and [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md).
 Verification: Evidence proves either a passing local check or a named blocker that the intern cannot resolve safely.
 
 Acceptance item 23: The slice has one owner, one scope boundary, one binding ADR, one glossary row set, and one reviewer.

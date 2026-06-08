@@ -259,7 +259,7 @@ Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concre
 Artifact: Commit-note draft `week-one-day-0-23` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md) in the artifact.
 
 ### Day 0 step 24
 Goal: Learn the laptop bring-up and safety rails path by tying `Workflow` to ADR-0294 and `docs/standards/doc-style.md`.
@@ -711,7 +711,7 @@ Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concre
 Artifact: Commit-note draft `week-one-day-1-23` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md) in the artifact.
 
 ### Day 1 step 24
 Goal: Learn the repo orientation, master roster, documentation rigor, and keystone synthesis path by tying `Workflow` to ADR-0294 and `docs/architecture/keystone-bundle-2026-05-20-synthesis.md`.
@@ -1163,7 +1163,7 @@ Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concre
 Artifact: Commit-note draft `week-one-day-2-23` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md) in the artifact.
 
 ### Day 2 step 24
 Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0294 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
@@ -1615,7 +1615,7 @@ Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concre
 Artifact: Commit-note draft `week-one-day-3-23` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md) in the artifact.
 
 ### Day 3 step 24
 Goal: Learn the personas, journeys, and continuity of identity path by tying `Workflow` to ADR-0294 and `docs/architecture/day-in-the-life-coherent-ecosystem-2026-05-21.md`.
@@ -2067,7 +2067,7 @@ Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concre
 Artifact: Commit-note draft `week-one-day-4-23` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md) in the artifact.
 
 ### Day 4 step 24
 Goal: Learn the keystone adr deep dive and decision-trace discipline path by tying `Workflow` to ADR-0294 and `docs/onboarding/doctrine-bootcamp-2026-05-21.md`.
@@ -2519,7 +2519,7 @@ Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concre
 Artifact: Commit-note draft `week-one-day-5-23` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
 Escalation: If the source path contradicts the glossary, pause that step and file a doc-drift note to `doc-style-reviewer` plus `council-architecture`.
-Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-foundry-meta-trust-root.md) in the artifact.
+Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md) in the artifact.
 
 ### Day 5 step 24
 Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Workflow` to ADR-0294 and `docs/GLOSSARY.md`.

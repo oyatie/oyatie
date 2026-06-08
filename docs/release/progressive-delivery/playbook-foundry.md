@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-Foundry capability publishes through `oya-intelligence-capability-kernel` + `oya-intelligence-mcp-gateway-kernel` ([ADR-0021](../../decisions/ADR-0021-foundry-capability-registry-and-mcp-gateway.md)).
+Foundry capability publishes through `oya-intelligence-capability-kernel` + `oya-intelligence-mcp-gateway-kernel` ([ADR-0021](../../decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md)).
 
 ## 2. Default rail
 
@@ -31,7 +31,7 @@ Per [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md), capabili
 
 ## 3. Pre-publish gates
 
-1. Eval-set PASS (per [ADR-0024](../../decisions/ADR-0024-foundry-eval-harness-and-replay.md)) — capability run against versioned eval-set; pass rate ≥ baseline.
+1. Eval-set PASS (per [ADR-0024](../../decisions/ADR-0024-intelligence-eval-harness-and-replay.md)) — capability run against versioned eval-set; pass rate ≥ baseline.
 2. Cosign signature ([ADR-0039](../../decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md)) — capability artefact signed; SBOM attested.
 3. Autonomy-ceiling declaration ([ADR-0022](../../decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md)) — capability declares max tier (T1–T4).
 4. Audit-chain emit hook registered.
@@ -48,7 +48,7 @@ Per [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md), capabili
 
 ## 5. Per-provider canary
 
-If the capability has multiple provider-adapter backings (Claude / OpenAI / Gemini per [ADR-0020](../../decisions/ADR-0020-foundry-multi-provider-adapter-model.md)), each adapter is canaried independently. Provider-A breach does not block Provider-B promotion.
+If the capability has multiple provider-adapter backings (Claude / OpenAI / Gemini per [ADR-0020](../../decisions/ADR-0020-intelligence-multi-provider-adapter-model.md)), each adapter is canaried independently. Provider-A breach does not block Provider-B promotion.
 
 ## 6. Rollback
 

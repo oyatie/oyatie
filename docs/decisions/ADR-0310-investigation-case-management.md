@@ -44,7 +44,7 @@ related:
   - ADR-0258-api-versioning-semver-policy.md
   - ADR-0263-observability-emission-contract.md
   - ADR-0276-backup-portability-gdpr-art-20.md
-  - ADR-0293-foundry-meta-trust-root.md
+  - ADR-0293-governance-meta-trust-root.md
   - ADR-0294-cedar-fragment-soak-anomaly-rollback.md
   - ADR-0295-bootstrap-ci-spiffe-kill-switch.md
   - ADR-0296-library-first-credential-sidecar.md

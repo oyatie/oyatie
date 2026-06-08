@@ -20,7 +20,7 @@ amends:
   - ADR-0132
 related:
   - ADR-0132-product-platform-and-bundle-dissolution.md
-  - ADR-0138-foundry-six-path-deprecation.md
+  - ADR-0138-intelligence-six-path-deprecation.md
   - ADR-0238-connect-super-app-expansion.md
   - ADR-0245-substrate-vs-product-layering.md
   - ADR-0317-role-based-projection-unified-ux-shell.md

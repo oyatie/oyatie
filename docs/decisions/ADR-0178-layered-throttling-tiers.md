@@ -10,7 +10,7 @@ owners:
 supersedes: []
 superseded_by: []
 related:
-  - ADR-0021-foundry-capability-registry-and-mcp-gateway.md
+  - ADR-0021-intelligence-capability-registry-and-mcp-gateway.md
   - ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
   - ADR-0148-service-mesh-cilium.md
   - ADR-0157-api-gateway-tier.md

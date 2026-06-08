@@ -34,7 +34,7 @@ related:
   - ADR-0131-per-microservice-flat-layout.md
   - ADR-0132-product-platform-and-bundle-dissolution.md
   - ADR-0135-connect-super-app-expansion.md
-  - ADR-0136-foundry-as-single-microservice.md
+  - ADR-0136-intelligence-as-single-microservice.md
   - ADR-0139-agentic-slo-gated-promotion.md
   - ADR-0145-inter-microservice-communication-reform.md
   - ADR-0148-service-mesh-cilium.md
@@ -47,7 +47,7 @@ related:
   - ADR-0213-ecosystem-as-a-service-architecture.md
   - ADR-0218-tenant-granular-control-surface.md
   - ADR-0220-consumer-intelligence-substrate.md
-  - ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md
+  - ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
   - ADR-0240-sovereign-cloud-per-regional-pack.md
   - ADR-0241-dr-business-continuity-portfolio-policy.md
   - ADR-0242-oyatie-is-a-tenant-doctrine.md

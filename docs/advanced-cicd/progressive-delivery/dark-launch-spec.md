@@ -32,7 +32,7 @@ Two flavours:
 
 Write-side dark-launch is REQUIRED for:
 
-- **Foundry capability publish** with replay-affecting changes ([ADR-0024](../../../docs/decisions/ADR-0024-foundry-eval-harness-and-replay.md)).
+- **Foundry capability publish** with replay-affecting changes ([ADR-0024](../../../docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md)).
 - **Cross-axis contract** changes ([ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)).
 - **Cedar policy** changes ([ADR-0007](../../../docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md)).
 - **Audit-chain** schema changes ([ADR-0003](../../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md)).
