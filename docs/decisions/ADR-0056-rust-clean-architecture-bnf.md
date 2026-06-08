@@ -40,6 +40,16 @@ companion_docs:
 > **Supersedes:** The v3 crate-naming BNF in `docs/standards/crate-naming-convention.md`
 > and the v4.0 `shared|vertical` slot2 enum (retired per session decision 2026-05-13).
 
+> **F-0029 RECONCILIATION (ratified 2026-06-07, door:one-way).** The layer enum across the
+> amendment chain ADR-0056 → ADR-0105 → ADR-0106 is reconciled to a single SSOT: **13 closed
+> product-layer values** — `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`,
+> `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`, `api` — **plus the governance-only `check`
+> family layer** (used only by `oya-check-*`; a self-layering convention, NOT a product value and
+> NOT a BNF terminal token). `application` is **retired** (→ `usecase`, ADR-0106); `runtime` was
+> **never canonical** (→ `app`). Resolution order is the ADR chain: ADR-0056 (base 12) → ADR-0105
+> (+`api` ⇒ 13) → ADR-0106 (`application` → `usecase`). This banner closes ADR-0106 Follow-ups
+> #1–#2; the normative enum/BNF/semantics in this ADR are updated in place below to match.
+
 ---
 
 ## Context
@@ -66,17 +76,17 @@ microservice   ::= kebab-token ( "-" kebab-token )*    (* 1..3 tokens; registry-
 
 bc-tokens      ::= kebab-token ( "-" kebab-token )*    (* 0..N; OPTIONAL *)
 
-layer          ::= "kernel" | "domain" | "application" | "app"
+layer          ::= "kernel" | "domain" | "usecase" | "app"
                  | "adapter" | "infrastructure"
                  | "cli" | "rest" | "grpc" | "graphql"
-                 | "worker" | "sdk"
+                 | "worker" | "sdk" | "api"
 
 rule-name      ::= kebab-token ( "-" kebab-token )*    (* 1..4 tokens; open *)
 
 kebab-token    ::= [a-z] [a-z0-9]*
 ```
 
-**Parser rule**: split crate name on `-`; LAST token MUST be a layer value (one of 12
+**Parser rule**: split crate name on `-`; LAST token MUST be a layer value (one of 13
 canonical); FIRST token is `oya`; SECOND token (after `oya-`) begins the microservice
 name (1..3 tokens, registry-validated); remaining middle tokens (if any) = BC tokens
 (optional). The `oya-check-*` namespace is fully exempt.
@@ -98,7 +108,7 @@ BC slot is OPTIONAL:
   Examples: `oya-medical-domain`, `oya-tenancy-kernel`, `oya-cloud-cli`.
 - **Include BC** when the µservice has multiple binaries OR multiple BC-level splits
   at the same layer. Examples: `oya-foundry-grit-cli`, `oya-foundry-icm-cli`,
-  `oya-workflow-state-machine-domain`, `oya-workflow-approvals-application`.
+  `oya-workflow-state-machine-domain`, `oya-workflow-approvals-usecase`.
 
 ### Check-namespace exemption
 
@@ -156,21 +166,23 @@ analytics = { owner = "council-ads" }
 # ... (full list per flat catalog; ADR-0058)
 ```
 
-### 12-Value Layer Enum (closed)
+### 13-Value Layer Enum (closed) — reconciled per ADR-0105 (+`api`) and ADR-0106 (`application` → `usecase`)
 
 | Group | Values |
 |---|---|
-| Inner / pure (4) | `kernel`, `domain`, `application`, `app` |
+| Inner / pure (4) | `kernel`, `domain`, `usecase`, `app` |
 | Outer / external (2) | `adapter`, `infrastructure` |
-| Presentation / entry-point (6) | `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk` |
+| Presentation / entry-point (7) | `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`, `api` |
 
-Adding a layer value is a **1-ADR action**. No aliases or overlaps.
+Adding a layer value is a **1-ADR action**. No aliases or overlaps. The governance-only `check`
+family (`oya-check-*`) is a self-layering convention (ADR-0105 Amendment 2), NOT one of the 13
+product values.
 
 ### Layer semantics
 
 - **`kernel`** — Pure types + ports (trait declarations). ZERO business logic, zero I/O, zero async.
 - **`domain`** — Business logic on kernel types. Pure; no I/O; no framework deps.
-- **`application`** — Use cases / application services orchestrating domain via port-trait bounds. No concrete adapters.
+- **`usecase`** *(was `application`; renamed per ADR-0106)* — Use cases / application services orchestrating domain via port-trait bounds. No concrete adapters.
 - **`app`** — Composition-root binary wiring every other layer into a deployable service. Unrestricted inward deps.
 - **`adapter`** — Trait implementations of kernel ports + DTO mappers.
 - **`infrastructure`** — Framework / driver glue without being a trait impl (axum routers, OTel exporters, pool helpers).
@@ -180,6 +192,7 @@ Adding a layer value is a **1-ADR action**. No aliases or overlaps.
 - **`graphql`** — GraphQL schema + resolvers.
 - **`worker`** — Long-running background workers: queue consumers, pubsub, scheduled tasks.
 - **`sdk`** — Client libraries for external consumers; depends on `kernel` only.
+- **`api`** *(added per ADR-0105)* — Protocol-neutral contract surface: typed inputs/outputs/error variants without HTTP/gRPC/GraphQL commitment. Producer of types; depends on `kernel` only.
 
 ### Port location: `kernel` (not `domain`)
 
@@ -211,7 +224,7 @@ The 14 CI lanes that enforce the 12-layer enum + clean-arch rules on every PR
 | `oya-shared-bounded-contexts-check-cli` (LEAN-A2) | BC registration + cross-product-refusal at BC level |
 | `oya-shared-supply-chain-check-cli` (LEAN-A3) | `cargo-deny` bans + SBOM — BLOCKER day-1 |
 | `oya-shared-semver-check-cli` (LEAN-A4) | API stability per ADR-0037 tiers — BLOCKER day-1 |
-| `oya-check-statelessness-cli` | No module-level mutable state in presentation/application/worker |
+| `oya-check-statelessness-cli` | No module-level mutable state in presentation/usecase/worker |
 | `oya-check-shardability-cli` | DB designs declare `tenant_id` partition key + RLS |
 | `oya-check-perf-budget-cli` | Impl plans include load-test results meeting declared targets |
 | `oya-check-benchmark-cli` | PRDs include Competitive Benchmark section before L4→L5 |
@@ -224,7 +237,7 @@ ADR-0125 (domain naming canon). Per ADR-0060 inheritance rule.
 
 ```
 oya-medical-encounter-domain        — Medical µservice, Encounter BC, domain
-oya-payments-ledger-application     — Payments µservice, Ledger BC, application
+oya-payments-ledger-usecase         — Payments µservice, Ledger BC, usecase
 oya-workflow-state-machine-domain   — Workflow µservice, State-Machine BC, domain
 oya-ontology-entity-kernel          — Ontology µservice, Entity BC, kernel
 oya-cloud-tenancy-adapter           — Cloud µservice, Tenancy BC, adapter
