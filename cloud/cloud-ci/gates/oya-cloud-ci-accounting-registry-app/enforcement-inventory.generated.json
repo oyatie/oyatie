@@ -284,21 +284,21 @@
       "has_wired_buck2_target": false,
       "id": "ADR-0374-verified_by-L23",
       "maps_to_oya_cli": true,
-      "source_artifact": "docs/decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md"
+      "source_artifact": "docs/decisions/ADR-0374-ci-webhook-gateway-github-actions.md"
     },
     {
       "claims_enforced": true,
       "has_wired_buck2_target": false,
       "id": "ADR-0374-verified_by-L35",
       "maps_to_oya_cli": true,
-      "source_artifact": "docs/decisions/ADR-0374-ci-webhook-gateway-forgejo-jenkins.md"
+      "source_artifact": "docs/decisions/ADR-0374-ci-webhook-gateway-github-actions.md"
     },
     {
       "claims_enforced": true,
       "has_wired_buck2_target": false,
       "id": "ADR-0377-verified_by-L35",
       "maps_to_oya_cli": true,
-      "source_artifact": "docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md"
+      "source_artifact": "docs/decisions/ADR-0377-github-board-git-ref-cas-fallback.md"
     },
     {
       "claims_enforced": true,
@@ -326,7 +326,7 @@
       "has_wired_buck2_target": false,
       "id": "ADR-0387-verified_by-L40",
       "maps_to_oya_cli": true,
-      "source_artifact": "docs/decisions/ADR-0387-ci-webhook-gateway-forgejo-to-jenkins-commit-status.md"
+      "source_artifact": "docs/decisions/ADR-0387-ci-webhook-gateway-github-actions-commit-status.md"
     },
     {
       "claims_enforced": true,
