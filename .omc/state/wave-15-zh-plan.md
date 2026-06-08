@@ -83,7 +83,7 @@ Count: 17
 - `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=tier-system-retired-replaced-by-tenant-class; successor rewrite: `ADR-0330`
 - `docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=cell-microservice-retired-pattern-not-service; successor rewrite: `ADR-0351`
 - `docs/decisions/ADR-0334-shorts-microservice-merged-into-social.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=shorts-microservice-merged-into-social; successor rewrite: `ADR-0132`
-- `docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=foundry-microservice-retired-absorbed-by-intelligence; successor rewrite: `ADR-0255`
+- `docs/decisions/ADR-0335-intelligence-microservice-consolidation.md` -> DELETE; reason: Wave 15-ZH retired/deprecated marker slug=foundry-microservice-retired-absorbed-by-intelligence; successor rewrite: `ADR-0255`
 
 ## Pass B edit: capability-tier and Bronze/Silver/Gold/Platinum references
 
@@ -851,7 +851,7 @@ Count: 175
 - `ADR-0344` -> `ADR-0269` for `docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md`
 - `ADR-0345` -> `ADR-0270` for `docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md`
 - `ADR-0346` -> `ADR-0271` for `docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md`
-- `ADR-0347` -> `ADR-0272` for `docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md`
+- `ADR-0347` -> `ADR-0272` for `docs/decisions/ADR-0347-governance-fitness-bulk-rename.md`
 - `ADR-0348` -> `ADR-0273` for `docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md`
 - `ADR-0349` -> `ADR-0274` for `docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md`
 - `ADR-0350` -> `ADR-0275` for `docs/decisions/ADR-0350-uuidv7-canonical-id-primitive.md`

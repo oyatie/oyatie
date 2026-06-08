@@ -20,7 +20,7 @@ supersedes: []
 superseded_by: []
 amends:
   - ADR-0132-no-grouping-policy-and-flat-microservice-layout.md (the new_governance_lane_prefix declaration from ADR-0132 is materialized corpus-wide; the prior CLAUDE.md sentence "existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP" is replaced by the bulk-rename approach in this ADR, which collapses 34 per-lane migration IPs into a single Wave 15-ZB executor PR)
-  - ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md (the retirement of the foundry microservice declared in ADR-0335 is reflected in CI lane terminology: continuing to use the `oya-governance-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about which µservice / team owns the lane; this ADR removes the anachronism)
+  - ADR-0335-intelligence-microservice-consolidation.md (the retirement of the foundry microservice declared in ADR-0335 is reflected in CI lane terminology: continuing to use the `oya-governance-fitness-*` prefix after foundry is retired is anachronistic and misleads readers about which µservice / team owns the lane; this ADR removes the anachronism)
   - ADR-0136-amendment-foundry-as-hermes-internal-pipeline.md (the foundry-as-Hermes-internal-pipeline shape from ADR-0136 amendment is consistent with ADR-0335 retirement; this ADR carries the consistent terminology forward by aligning CI lane prefixes with the actual owning surface (governance) rather than the retired pipeline owner (foundry))
   - ADR-0245-substrate-vs-product-layering.md (the substrate-vs-product split applies cleanly to CI lanes: governance is the substrate concern; foundry-fitness was the legacy operator label; the rename clarifies that lane authority sits on the substrate axis owned by axis-governance + council-architecture, not on the retired foundry product surface)
   - ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md (the oya-governance-stewardship-class-vocabulary lane authored in ADR-0345 already uses the canonical `oya-governance-*` prefix; this ADR generalizes that prefix discipline corpus-wide so the governance prefix is the sole canonical lane prefix for governance-owned checks)
@@ -46,7 +46,7 @@ related_adrs:
   - ADR-0327-realignment-wave-promotion-gate.md
   - ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md
   - ADR-0333-cell-microservice-retired-pattern-not-service.md
-  - ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md
+  - ADR-0335-intelligence-microservice-consolidation.md
   - ADR-0340-capacity-model-per-microservice-manifest.md
   - ADR-0341-cellular-promotion-gates-explicit-per-tier.md
   - ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md
@@ -78,7 +78,7 @@ companion_docs:
 inbound_citations:
   - /Users/jasonlee/oyatie/CLAUDE.md (new_governance_lane_prefix line)
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0132-no-grouping-policy-and-flat-microservice-layout.md
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0335-intelligence-microservice-consolidation.md
 doc_class: Architecture-Decision-Record
 shape: Decision
 authority_tier: 1

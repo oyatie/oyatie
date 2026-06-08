@@ -171,7 +171,7 @@ docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md
 docs/decisions/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md
 docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md
 docs/decisions/ADR-0334-shorts-microservice-merged-into-social.md
-docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md
+docs/decisions/ADR-0335-intelligence-microservice-consolidation.md
 docs/decisions/ADR-0339-shared-iac-module-library.md
 
 ~~~

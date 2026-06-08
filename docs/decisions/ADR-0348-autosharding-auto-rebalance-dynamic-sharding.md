@@ -53,7 +53,7 @@ related_adrs:
   - ADR-0327-realignment-wave-promotion-gate.md
   - ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md
   - ADR-0333-cell-microservice-retired-pattern-not-service.md
-  - ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md
+  - ADR-0335-intelligence-microservice-consolidation.md
   - ADR-0338-pod-runtime-tier-declaration.md
   - ADR-0340-capacity-model-per-microservice-manifest.md
   - ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md
@@ -62,7 +62,7 @@ related_adrs:
   - ADR-0344-sustainability-finops-dimensional-model.md
   - ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md
   - ADR-0346-product-readiness-checklist.md
-  - ADR-0347-foundry-fitness-to-governance-bulk-rename.md
+  - ADR-0347-governance-fitness-bulk-rename.md
 related_specs:
   - /specs/master-plan-sequencing.json
   - /specs/microservices/manifest-schema.json

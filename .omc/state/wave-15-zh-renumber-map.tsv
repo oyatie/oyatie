@@ -286,7 +286,7 @@ ADR-0343	ADR-0268	kept:docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservic
 ADR-0344	ADR-0269	kept:docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md
 ADR-0345	ADR-0270	kept:docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md
 ADR-0346	ADR-0271	kept:docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
-ADR-0347	ADR-0272	kept:docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md
+ADR-0347	ADR-0272	kept:docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 ADR-0348	ADR-0273	kept:docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
 ADR-0349	ADR-0274	kept:docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 ADR-0350	ADR-0275	kept:docs/decisions/ADR-0350-uuidv7-canonical-id-primitive.md

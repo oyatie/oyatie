@@ -247,7 +247,7 @@ No code modifications were made. No `cargo` builds were run. No Cargo.toml depen
 - `docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md` — no-suite single-concern policy
 - `docs/decisions/ADR-0135` — connect umbrella sub-µservice dissolution (cited by `microservices/connect/RETIREMENT-PLAN.md`)
 - `docs/decisions/ADR-0333-cell-microservice-retired-cellular-architecture-as-pattern.md` — cell retirement + oya-shuffle-sharding
-- `docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md` — foundry retirement
+- `docs/decisions/ADR-0335-intelligence-microservice-consolidation.md` — foundry retirement
 - `specs/crate-naming-audit.json` — per-crate ground truth
 - `microservices/connect/RETIREMENT-PLAN.md` — connect umbrella retirement criteria
 - `microservices/intelligence/RETIRED.md`, `microservices/cell/RETIRED.md` — retirement markers

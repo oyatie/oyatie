@@ -49,7 +49,7 @@ related:
   - ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md
   - ADR-0331-cross-microservice-tenant-class-adoption-template.md
   - ADR-0333-cell-microservice-retired-pattern-not-service.md
-  - ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md
+  - ADR-0335-intelligence-microservice-consolidation.md
   - ADR-0336-valkey-not-redis-substrate.md
   - ADR-0337-iceberg-canonical-olap-write-path.md
   - ADR-0338-pod-runtime-tier-0-3.md
