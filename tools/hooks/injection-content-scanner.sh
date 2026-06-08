@@ -15,41 +15,24 @@ set -uo pipefail
 
 payload="$(cat)"
 
-# ── Extract tool result content ───────────────────────────────────────────────
-result_content="$(printf '%s' "$payload" | python3 -c '
-import sys, json
-try:
-    d = json.load(sys.stdin)
-    # Claude Code PostToolUse: tool_response or output field
-    for field in ("tool_response", "output", "result", "content", "stdout"):
-        v = d.get(field, "")
-        if isinstance(v, str) and v:
-            print(v[:8000])
-            sys.exit(0)
-        if isinstance(v, list):
-            # List of content blocks
-            parts = []
-            for item in v:
-                if isinstance(item, dict):
-                    parts.append(item.get("text", "") or item.get("content", ""))
-                elif isinstance(item, str):
-                    parts.append(item)
-            joined = "\n".join(parts)
-            if joined.strip():
-                print(joined[:8000])
-                sys.exit(0)
-    # Codex shape
-    ti = d.get("tool_input", {})
-    for field in ("content", "new_string", "command"):
-        v = ti.get(field, "")
-        if isinstance(v, str) and v:
-            print(v[:8000])
-            sys.exit(0)
-except Exception:
-    pass
-# Fall back to raw payload scan
-print(sys.stdin.read() if False else "")
-' 2>/dev/null || true)"
+# ── Extract tool result content without an interpreter hot path ───────────────
+json_string_field() {
+    local key="$1"
+    printf '%s' "$payload" \
+        | tr '\n' ' ' \
+        | sed -nE "s/.*\"$key\"[[:space:]]*:[[:space:]]*\"(([^\"\\\\]|\\\\.)*)\".*/\\1/p" \
+        | head -n 1 \
+        | sed -E 's/\\n/ /g; s/\\t/ /g; s/\\r/ /g; s/\\"/"/g; s/\\\\/\\/g'
+}
+
+result_content=""
+for field in tool_response output result content text stdout new_string command; do
+    result_content="$(json_string_field "$field")"
+    if [ -n "$result_content" ]; then
+        result_content="$(printf '%s' "$result_content" | head -c 8000)"
+        break
+    fi
+done
 
 # If no content extracted, scan raw payload (capped)
 if [ -z "$result_content" ]; then

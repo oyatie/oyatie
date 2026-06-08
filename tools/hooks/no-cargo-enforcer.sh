@@ -7,12 +7,14 @@ set -uo pipefail
 
 payload="$(cat)"
 
-# Extract the Bash command from the PreToolUse tool_input JSON (fall back to raw payload).
-cmd="$(printf '%s' "$payload" | python3 -c 'import sys,json
-try:
-    print(json.load(sys.stdin).get("tool_input",{}).get("command",""))
-except Exception:
-    print("")' 2>/dev/null || true)"
+# Extract the Bash command from the PreToolUse tool_input JSON without an external
+# interpreter (interpreter-free runtime hook hot path; the Buck2/Prow checker owns
+# manifest/config drift enforcement). Empty extraction simply means no command matched.
+cmd="$(printf '%s' "$payload" \
+  | tr '\n' ' ' \
+  | sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p' \
+  | head -n 1 \
+  | sed -E 's/\\n/ /g; s/\\t/ /g; s/\\r/ /g; s/\\"/"/g; s/\\\\/\\/g')"
 
 # cargo, optional toolchain (+stable), then a build/verify subcommand → blocked.
 if printf '%s' "$cmd" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench)([[:space:]]|$)'; then
