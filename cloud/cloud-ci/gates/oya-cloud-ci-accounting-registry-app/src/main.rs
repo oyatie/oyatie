@@ -111,11 +111,16 @@ fn run() -> Result<(), CliError> {
     // The fifth gate (cloud-ci-brand-residue) scans the raw tracked corpus for the forbidden
     // vocab stems and freezes the per-(stem,file) residue as the shrink-only-ratchet baseline.
     let brand_residue = collect_brand_residue(&repo_root, &inputs.tracked_paths);
+    // The §2.5#4 bnf-layer-suffix gate input: the first-party oya-* crate names enumerated from
+    // the tracked Cargo.toml manifests. The gate's evaluate_keyed resolves the role carve-out-
+    // aware and reuses oya_governance_predictable_naming_kernel::check.
+    let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths);
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
         automation_ratchet: &automation_matrix,
         staleness: &staleness_input,
+        bnf_layer_suffix: &bnf_layer_suffix,
         brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&gate_inputs)?;
@@ -126,6 +131,7 @@ fn run() -> Result<(), CliError> {
             "decision-crosswalk" => &crosswalk,
             "enforcement-inventory" => &enforcement,
             "ttl-policy" => &policy.ttl_policy_face(),
+            "bnf-layer-suffix" => &bnf_layer_suffix,
             "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
@@ -265,6 +271,58 @@ fn collect_brand_residue(
         grouped.entry(finding.code).or_default().insert(finding.key);
     }
     grouped
+}
+
+/// Enumerate the first-party `oya-*` crate package names from the tracked Cargo.toml manifests
+/// (the §2.5#4 gate's I/O). Skips vendored `third-party/` manifests and the virtual workspace
+/// root (which has no `[package]`). Deterministic: names go through a BTreeSet (sorted+deduped)
+/// so committed==regenerated holds byte-for-byte. Scoped to `oya-*` (the BNF rule's domain);
+/// the intentional bare `registry-drift` rust_test is not flagged.
+fn collect_bnf_layer_suffix(repo_root: &Path, tracked_paths: &[String]) -> Value {
+    let mut names: BTreeSet<String> = BTreeSet::new();
+    for path in tracked_paths {
+        if !path.ends_with("Cargo.toml") {
+            continue;
+        }
+        if path.starts_with("third-party/") || path.contains("/third-party/") {
+            continue;
+        }
+        if let Some(name) = parse_package_name(&read_text(&repo_root.join(path))) {
+            if name.starts_with("oya-") {
+                names.insert(name);
+            }
+        }
+    }
+    let rows: Vec<Value> = names
+        .into_iter()
+        .map(|name| json!({ "crate_name": name }))
+        .collect();
+    json!({ "rows": rows })
+}
+
+/// Extract `name = "..."` from the `[package]` table of a Cargo.toml. Lightweight line-scan
+/// (no `toml` dependency — minimal-deps doctrine); `name` is never workspace-inherited, so it
+/// is always a string literal under `[package]`.
+fn parse_package_name(contents: &str) -> Option<String> {
+    let mut in_package = false;
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('[') {
+            in_package = trimmed == "[package]";
+            continue;
+        }
+        if in_package {
+            if let Some(rest) = trimmed.strip_prefix("name") {
+                if let Some(rest) = rest.trim_start().strip_prefix('=') {
+                    let value = rest.trim().trim_matches('"');
+                    if !value.is_empty() {
+                        return Some(value.to_owned());
+                    }
+                }
+            }
+        }
+    }
+    None
 }
 
 /// HEAD commit time in epoch seconds (the deterministic "now" for aging the corpus).

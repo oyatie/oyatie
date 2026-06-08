@@ -459,11 +459,12 @@ pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-
 /// `cloud-ci-brand-residue` is the forbidden-vocab shrink-only ratchet (register #25,
 /// boundary enforcement): its per-stem keys are the live residue files, frozen so any NEW
 /// occurrence is RED while the historical residue ages out without churning history.
-pub const GATE_IDS: [&str; 5] = [
+pub const GATE_IDS: [&str; 6] = [
     "cloud-ci-total-accounting",
     "cloud-ci-cross-artifact-agreement",
     "cloud-ci-automation-ratchet",
     "cloud-ci-staleness-reaper",
+    "cloud-ci-bnf-layer-suffix",
     "cloud-ci-brand-residue",
 ];
 
@@ -478,6 +479,11 @@ pub struct GateInputs<'a> {
     pub cross_artifact: &'a Value,
     pub automation_ratchet: &'a Value,
     pub staleness: &'a Value,
+    /// The §2.5#4 BNF layer-suffix gate input: `{"rows":[{"crate_name": "oya-..."}]}` —
+    /// the first-party `oya-*` crate names the binary enumerates from the tracked Cargo.toml
+    /// manifests. The gate's `evaluate_keyed` resolves the role carve-out-aware and reuses
+    /// `oya_governance_predictable_naming_kernel::check`. Empty in unit tests.
+    pub bnf_layer_suffix: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
     /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
     /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
@@ -498,6 +504,14 @@ fn current_keys_per_gate(
         "cloud-ci-total-accounting",
         group_findings(
             oya_cloud_ci_total_accounting_app::evaluate_keyed(inputs.total_accounting)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+    );
+    out.insert(
+        "cloud-ci-bnf-layer-suffix",
+        group_findings(
+            oya_cloud_ci_bnf_layer_suffix_app::evaluate_keyed(inputs.bnf_layer_suffix)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),

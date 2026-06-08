@@ -11,6 +11,7 @@ rust_library(
         "//cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:oya-cloud-ci-cross-artifact-agreement-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app:oya-cloud-ci-staleness-reaper-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         "third-party//:serde",
         "third-party//:serde_json",
     ],
@@ -27,6 +28,7 @@ rust_test(
         "//cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:oya-cloud-ci-cross-artifact-agreement-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app:oya-cloud-ci-staleness-reaper-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         "third-party//:serde",
         "third-party//:serde_json",
     ],
@@ -43,6 +45,7 @@ rust_binary(
         "//cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:oya-cloud-ci-cross-artifact-agreement-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app:oya-cloud-ci-staleness-reaper-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         # The binary runs the forbidden-vocab census (cloud-ci-brand-residue gate) over the
         # live corpus and folds the per-(stem,file) keys into the baseline.
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
