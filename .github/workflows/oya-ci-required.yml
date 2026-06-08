@@ -43,6 +43,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
       # rust-toolchain.toml at the repo root pins the channel (1.95.0); the default runner
       # rustup honors it, so no explicit toolchain action is needed (zero version drift).
       - name: Regenerate accounting faces in-place
@@ -60,6 +67,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
       - name: cargo test cross-artifact-agreement
         run: cargo test --no-fail-fast -p oya-cloud-ci-cross-artifact-agreement-app -- --test-threads=1
 
@@ -69,6 +83,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
       - name: cargo test total-accounting
         run: cargo test --no-fail-fast -p oya-cloud-ci-total-accounting-app -- --test-threads=1
 
@@ -78,6 +99,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
       - name: cargo test staleness-reaper
         run: cargo test --no-fail-fast -p oya-cloud-ci-staleness-reaper-app -- --test-threads=1
 
@@ -87,6 +115,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
       - name: cargo test automation-ratchet
         run: cargo test --no-fail-fast -p oya-cloud-ci-automation-ratchet-app -- --test-threads=1
 
@@ -98,6 +133,13 @@ jobs:
     needs: [producer-regen]
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
       - name: Regenerate faces then assert byte-parity
         run: |
           cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root .
@@ -112,6 +154,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
       - name: cargo test cloud-ci-firewall
         run: cargo test --no-fail-fast -p oya-cloud-ci-firewall-app -- --test-threads=1
 
