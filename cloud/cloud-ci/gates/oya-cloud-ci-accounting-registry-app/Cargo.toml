@@ -24,6 +24,10 @@ path = "src/main.rs"
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
+# The oya-ci config kernel (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3): the producer reads the
+# policy (naming/vocab/manifest/roots/sources/gates) from the config instead of hardcoded
+# consts, defaulting to the bundled default (== today's values) for byte-for-byte parity.
+oya-ci-config-kernel = { path = "../../../../libs/oya-ci-config" }
 # The producer's fifth face (gate-baseline.generated.json) runs each gate's pure
 # evaluate_keyed over the live faces to capture TODAY's accepted-violation KEYS. The
 # gate libs depend only on serde_json, so there is no cycle (the gate↔producer coupling

@@ -319,6 +319,11 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
             "the deny-list patterns themselves are not residue",
         ),
         (
+            VocabCarveOutKind::PathPrefix,
+            "libs/oya-ci-config/",
+            "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)",
+        ),
+        (
             VocabCarveOutKind::PathExact,
             "registry/catalog/oya-check-brand-residue.yaml",
             "the catalog deny-list spec is not residue",
@@ -698,8 +703,9 @@ mod tests {
                 "forbidden_oya-vcs",
             ]
         );
-        // 6 carve-out rules, including the line-level palantir exemption.
-        assert_eq!(cfg.vocab.carve_outs.len(), 6);
+        // 7 carve-out rules, including the line-level palantir exemption + the oya-ci-config
+        // deny-list SSOT path carve-out.
+        assert_eq!(cfg.vocab.carve_outs.len(), 7);
         assert!(cfg
             .vocab
             .carve_outs

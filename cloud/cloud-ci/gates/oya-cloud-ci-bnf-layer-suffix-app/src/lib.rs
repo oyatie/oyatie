@@ -32,11 +32,25 @@
 
 use std::collections::BTreeSet;
 
+use oya_ci_config_kernel::NamingConfig;
 use oya_governance_predictable_naming_kernel::{
-    check, is_backend_qualified_adapter, is_check_family, is_doctrinal_carve_out, CrateNaming,
-    NamingViolationKind,
+    check_with_policy, is_backend_qualified_adapter_with, is_check_family_with,
+    is_doctrinal_carve_out_with, CrateNaming, NamingPolicy, NamingViolationKind,
 };
 use serde_json::Value;
+
+/// Map the oya-ci config `[naming]` section onto the kernel's injected [`NamingPolicy`]
+/// (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). The bundled default reproduces today's `const`s,
+/// so the gate's findings are byte-for-byte unchanged.
+fn naming_policy(cfg: &NamingConfig) -> NamingPolicy {
+    NamingPolicy {
+        required_prefix: cfg.required_prefix.clone(),
+        allowed_roles: cfg.allowed_roles.clone(),
+        check_family_prefix: cfg.check_family_prefix.clone(),
+        backend_suffixes: cfg.backend_suffixes.clone(),
+        doctrinal_carve_outs: cfg.doctrinal_carve_outs.clone(),
+    }
+}
 
 /// The gate id, matching the buck2 target + the firewall baseline gate-id.
 pub const GATE_ID: &str = "cloud-ci-bnf-layer-suffix";
@@ -114,11 +128,13 @@ fn code_slug(kind: &NamingViolationKind) -> &'static str {
 /// ADR-0105 carve-outs so `check()` only flags genuine layer-suffix violations. The
 /// trailing dash-segment is the inferred role for the general case; `declared_context` is
 /// always `Some` because this gate scopes to the layer-suffix axis only.
-fn resolve_naming(crate_name: &str) -> CrateNaming {
-    let declared_role = if is_check_family(crate_name) || is_doctrinal_carve_out(crate_name) {
+fn resolve_naming(crate_name: &str, policy: &NamingPolicy) -> CrateNaming {
+    let declared_role = if is_check_family_with(crate_name, policy)
+        || is_doctrinal_carve_out_with(crate_name, policy)
+    {
         // Self-layering (check-family) / doctrinal primitive: no declared role required.
         None
-    } else if is_backend_qualified_adapter(crate_name) {
+    } else if is_backend_qualified_adapter_with(crate_name, policy) {
         // `oya-<svc>-adapter-<backend>`: the effective layer is `adapter`.
         Some("adapter".to_owned())
     } else {
@@ -137,6 +153,10 @@ fn resolve_naming(crate_name: &str) -> CrateNaming {
 /// Pure evaluator: takes `{"rows": [{"crate_name": "oya-..."}, ...]}` and returns one
 /// `Finding` per layer-suffix violation. Reuses `oya_governance_predictable_naming_kernel::check`.
 pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
+    // The naming policy is sourced from the oya-ci config `[naming]` section. In this floor
+    // the gate uses the bundled default (== today's consts), so findings are byte-identical;
+    // the producer's input-binding routes the live config in Stage 3.
+    let policy = naming_policy(&NamingConfig::default());
     let rows = input
         .get("rows")
         .and_then(Value::as_array)
@@ -145,9 +165,9 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     let namings: Vec<CrateNaming> = rows
         .iter()
         .filter_map(|row| row.get("crate_name").and_then(Value::as_str))
-        .map(resolve_naming)
+        .map(|name| resolve_naming(name, &policy))
         .collect();
-    let report = match check(&namings) {
+    let report = match check_with_policy(&namings, &policy) {
         Ok(report) => report,
         // An empty crate name is the only error; treat it as a single blocking finding so the
         // gate never silently passes on malformed input.

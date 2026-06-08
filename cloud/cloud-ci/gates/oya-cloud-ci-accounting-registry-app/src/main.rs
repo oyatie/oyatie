@@ -88,18 +88,23 @@ fn run() -> Result<(), CliError> {
         i += 1;
     }
 
+    // The oya-ci policy (naming/vocab/manifest/roots/sources/gates) is sourced from the config
+    // (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). In this floor stage it defaults to the bundled
+    // default (== today's hardcoded values), so every face is byte-for-byte unchanged.
+    let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+
     let repo_root = match repo_root {
         Some(root) => root,
-        None => discover_repo_root()?,
+        None => discover_repo_root(&cfg)?,
     };
     let out_dir = out_dir
         .unwrap_or_else(|| repo_root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app"));
 
-    let policy = Policy::from_bundled()?;
-    let inputs = collect_repo_inputs(&repo_root)?;
+    let policy = Policy::from_config(&cfg)?;
+    let inputs = collect_repo_inputs(&repo_root, &cfg)?;
     let registry = build_registry(&inputs, &policy)?;
-    let crosswalk = build_decision_crosswalk(&collect_crosswalk_inputs(&repo_root))?;
-    let enforcement = build_enforcement_inventory(&collect_enforcement_inputs(&repo_root))?;
+    let crosswalk = build_decision_crosswalk(&collect_crosswalk_inputs(&repo_root, &cfg))?;
+    let enforcement = build_enforcement_inventory(&collect_enforcement_inputs(&repo_root, &cfg))?;
 
     // The fifth face freezes TODAY's accepted-violation KEYS per (gate, code). It runs each
     // gate's pure evaluate_keyed over the four live faces. Two faces need a light per-gate
@@ -114,9 +119,9 @@ fn run() -> Result<(), CliError> {
     // The §2.5#4 bnf-layer-suffix gate input: the first-party oya-* crate names enumerated from
     // the tracked Cargo.toml manifests. The gate's evaluate_keyed resolves the role carve-out-
     // aware and reuses oya_governance_predictable_naming_kernel::check.
-    let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths);
+    let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths, &cfg);
     // The §2.5#7 manifest-hygiene gate input: per-crate Cargo.toml hygiene flags.
-    let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths);
+    let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths, &cfg);
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
@@ -168,19 +173,21 @@ fn run() -> Result<(), CliError> {
 
 /// Walk up from cwd to the repo root (the dir holding `specs/root-hub-pointers.json`),
 /// matching the existing kernel-test convention.
-fn discover_repo_root() -> Result<PathBuf, CliError> {
+fn discover_repo_root(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<PathBuf, CliError> {
+    let markers = &cfg.repo.root_markers;
     let mut dir = std::env::current_dir().map_err(|e| CliError::Io(e.to_string()))?;
     for _ in 0..16 {
-        if dir.join("specs/root-hub-pointers.json").is_file() {
+        if markers.iter().any(|m| dir.join(m).is_file()) {
             return Ok(dir);
         }
         if !dir.pop() {
             break;
         }
     }
-    Err(CliError::Io(
-        "failed to locate repo root (no specs/root-hub-pointers.json up-tree)".into(),
-    ))
+    Err(CliError::Io(format!(
+        "failed to locate repo root (no {} up-tree)",
+        markers.join(" / ")
+    )))
 }
 
 fn write_face(path: &Path, value: &Value) -> Result<(), CliError> {
@@ -282,17 +289,22 @@ fn collect_brand_residue(
 /// root (which has no `[package]`). Deterministic: names go through a BTreeSet (sorted+deduped)
 /// so committed==regenerated holds byte-for-byte. Scoped to `oya-*` (the BNF rule's domain);
 /// the intentional bare `registry-drift` rust_test is not flagged.
-fn collect_bnf_layer_suffix(repo_root: &Path, tracked_paths: &[String]) -> Value {
+fn collect_bnf_layer_suffix(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Value {
+    let prefix = cfg.naming.required_prefix.as_str();
     let mut names: BTreeSet<String> = BTreeSet::new();
     for path in tracked_paths {
         if !path.ends_with("Cargo.toml") {
             continue;
         }
-        if path.starts_with("third-party/") || path.contains("/third-party/") {
+        if is_path_excluded(path, cfg) {
             continue;
         }
         if let Some(name) = parse_package_name(&read_text(&repo_root.join(path))) {
-            if name.starts_with("oya-") {
+            if name.starts_with(prefix) {
                 names.insert(name);
             }
         }
@@ -344,20 +356,25 @@ struct ManifestFlags {
 /// Enumerate the first-party `oya-*` crates and emit their §2.5#7 manifest-hygiene flags (the
 /// gate's I/O). The gate's `evaluate_keyed` turns missing flags into Findings. Deterministic
 /// (BTreeMap, sorted) so committed==regenerated holds byte-for-byte. Scoped to `oya-*`.
-fn collect_manifest_hygiene(repo_root: &Path, tracked_paths: &[String]) -> Value {
+fn collect_manifest_hygiene(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Value {
+    let prefix = cfg.naming.required_prefix.as_str();
     let mut by_name: BTreeMap<String, ManifestFlags> = BTreeMap::new();
     for path in tracked_paths {
         if !path.ends_with("Cargo.toml") {
             continue;
         }
-        if path.starts_with("third-party/") || path.contains("/third-party/") {
+        if is_path_excluded(path, cfg) {
             continue;
         }
         let contents = read_text(&repo_root.join(path));
         let Some(name) = parse_package_name(&contents) else {
             continue;
         };
-        if !name.starts_with("oya-") {
+        if !name.starts_with(prefix) {
             continue;
         }
         by_name.insert(name, parse_manifest_flags(&contents));
@@ -501,10 +518,13 @@ fn git_commit_timestamps(repo_root: &Path) -> Result<BTreeMap<String, u64>, CliE
 /// (status + reciprocal supersession edges), spec/masterplan/roadmap presence, the
 /// duplicate-id collision (two files carrying one id), and the generated-face axes drift
 /// (catalog.json vs contracts.json `axes_count`). Single pass over the ADR corpus.
-fn collect_crosswalk_inputs(repo_root: &Path) -> CrosswalkInputs {
-    let decisions_dir = repo_root.join("docs/decisions");
-    let masterplan = read_text(&repo_root.join("specs/masterplan.json"));
-    let roadmap = read_text(&repo_root.join("specs/master-plan-sequencing.json"));
+fn collect_crosswalk_inputs(
+    repo_root: &Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> CrosswalkInputs {
+    let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
+    let masterplan = read_text(&repo_root.join(&cfg.reachability.masterplan));
+    let roadmap = read_text(&repo_root.join(&cfg.justification.roadmap));
 
     // id -> the decision files carrying it (dup detection is files-per-id > 1).
     let mut files_by_id: BTreeMap<String, Vec<PathBuf>> = BTreeMap::new();
@@ -584,13 +604,17 @@ fn json_number_at(repo_root: &Path, rel: &str, path: &[&str]) -> Option<i64> {
 /// crates (claim "enforce" by name; wired only if a BUCK gate target exists), the
 /// governance lanes (diataxis-doc-class / prd-axis-coverage), and the ADR `verified_by`
 /// lines that route a blocking invariant through an `oya gate`/`oya gen` CLI call.
-fn collect_enforcement_inputs(repo_root: &Path) -> EnforcementInputs {
+fn collect_enforcement_inputs(
+    repo_root: &Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> EnforcementInputs {
     let mut rows: Vec<EnforcementRow> = Vec::new();
+    let governance_substr = cfg.enforcement.governance_crate_substr.clone();
 
     // (1) oya-governance-* kernel crates: they name themselves "governance" enforcers,
     // but none is wired into the cloud-ci gate build graph (no gate BUCK target backs them).
     for cargo in tracked_paths_matching(repo_root, |p| {
-        p.contains("oya-governance") && p.ends_with("/Cargo.toml")
+        p.contains(&governance_substr) && p.ends_with("/Cargo.toml")
     }) {
         let crate_dir = cargo.trim_end_matches("/Cargo.toml");
         let id = crate_dir.rsplit('/').next().unwrap_or(crate_dir).to_owned();
@@ -604,10 +628,8 @@ fn collect_enforcement_inputs(repo_root: &Path) -> EnforcementInputs {
     }
 
     // (2) Governance lanes that claim a doc/coverage class is enforced.
-    for lane in [
-        "docs/governance-lanes/diataxis-doc-class.md",
-        "docs/governance-lanes/prd-axis-coverage.md",
-    ] {
+    for lane in &cfg.enforcement.governance_lanes {
+        let lane = lane.as_str();
         if repo_root.join(lane).is_file() {
             let id = lane.rsplit('/').next().unwrap_or(lane).trim_end_matches(".md");
             rows.push(EnforcementRow {
@@ -622,7 +644,7 @@ fn collect_enforcement_inputs(repo_root: &Path) -> EnforcementInputs {
 
     // (3) ADR `verified_by:` lines that name an `oya gate`/`oya gen` CLI invocation
     // (ADR-0365's retired CLI authority). Each is a blocking invariant mapped to oya CLI.
-    let decisions_dir = repo_root.join("docs/decisions");
+    let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
     if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
         let mut files: Vec<PathBuf> = entries
             .flatten()
@@ -725,12 +747,15 @@ fn front_matter_lines(body: &str) -> Vec<&str> {
 
 /// Collect the real repo facts. git plumbing via std::process (no new crate); the
 /// owner/justification/reachability maps are derived from the live repo sources.
-fn collect_repo_inputs(repo_root: &Path) -> Result<RepoInputs, CliError> {
+fn collect_repo_inputs(
+    repo_root: &Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Result<RepoInputs, CliError> {
     let tracked_paths = git_ls_files(repo_root)?;
     let last_touch = git_last_touch(repo_root)?;
-    let owners = resolve_owners(repo_root, &tracked_paths);
-    let reachability = resolve_reachability(repo_root, &tracked_paths);
-    let justifications = resolve_justifications(repo_root, &tracked_paths);
+    let owners = resolve_owners(repo_root, &tracked_paths, cfg);
+    let reachability = resolve_reachability(repo_root, &tracked_paths, cfg);
+    let justifications = resolve_justifications(repo_root, &tracked_paths, cfg);
 
     Ok(RepoInputs {
         tracked_paths,
@@ -795,10 +820,15 @@ fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, CliError
 /// Resolve the nearest up-tree `OWNERS` file for each path. With zero OWNERS files
 /// on the tree today this returns an empty map (every row ⇒ unowned), which is the
 /// born-blocking exhibit — the gap is DATA (no OWNERS rows), not scanner code.
-fn resolve_owners(repo_root: &Path, paths: &[String]) -> BTreeMap<String, String> {
+fn resolve_owners(
+    repo_root: &Path,
+    paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> BTreeMap<String, String> {
+    let owners_file = cfg.owners.file_name.as_str();
     let owners_dirs: BTreeSet<String> = paths
         .iter()
-        .filter(|p| p.ends_with("/OWNERS") || p.as_str() == "OWNERS")
+        .filter(|p| p.ends_with(&format!("/{owners_file}")) || p.as_str() == owners_file)
         .map(|p| {
             p.rsplit_once('/')
                 .map(|(dir, _)| dir.to_owned())
@@ -835,10 +865,14 @@ fn nearest_ancestor(path: &str, dirs: &BTreeSet<String>) -> Option<String> {
 /// Reachability: a path is reachable if a live registry points at it. We resolve the
 /// real registries (masterplan.json / root-hub-pointers.json / Cargo.toml members /
 /// DOC-CATALOG) and mark each tracked path with the registries that mention it.
-fn resolve_reachability(repo_root: &Path, paths: &[String]) -> BTreeMap<String, Vec<String>> {
-    let masterplan = read_text(&repo_root.join("specs/masterplan.json"));
-    let root_hub = read_text(&repo_root.join("specs/root-hub-pointers.json"));
-    let doc_catalog = read_text(&repo_root.join("docs/DOC-CATALOG.md"));
+fn resolve_reachability(
+    repo_root: &Path,
+    paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> BTreeMap<String, Vec<String>> {
+    let masterplan = read_text(&repo_root.join(&cfg.reachability.masterplan));
+    let root_hub = read_text(&repo_root.join(&cfg.reachability.root_hub));
+    let doc_catalog = read_text(&repo_root.join(&cfg.reachability.doc_catalog));
     let cargo_members = read_cargo_member_prefixes(repo_root);
 
     let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -899,9 +933,13 @@ fn read_cargo_member_prefixes(repo_root: &Path) -> Vec<String> {
 /// Built as a single pass over the ADR corpus (NOT O(paths x ADRs)): each ADR body is
 /// tokenized once into the repo-relative path-like tokens it references, populating a
 /// `token -> first ADR id` index. Per-path lookup is then an O(1) map hit.
-fn resolve_justifications(repo_root: &Path, paths: &[String]) -> BTreeMap<String, String> {
+fn resolve_justifications(
+    repo_root: &Path,
+    paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> BTreeMap<String, String> {
     let tracked: BTreeSet<&str> = paths.iter().map(String::as_str).collect();
-    let decisions_dir = repo_root.join("docs/decisions");
+    let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
 
     // token (a tracked path mentioned in an ADR) -> first ADR id mentioning it.
     let mut mentioned: BTreeMap<String, String> = BTreeMap::new();
@@ -964,4 +1002,14 @@ fn adr_id_from_filename(name: &str) -> Option<String> {
 
 fn read_text(path: &Path) -> String {
     std::fs::read_to_string(path).unwrap_or_default()
+}
+
+/// Whether a tracked path is excluded by the config's `[repo].path_excludes` (the producer's
+/// `collect_*` filter). Reproduces the legacy `third-party/` semantics exactly: a path is
+/// excluded iff, for some configured prefix P, it `starts_with(P)` OR `contains("/" + P)`
+/// (so both a top-level `third-party/...` and a nested `.../third-party/...` are caught).
+fn is_path_excluded(path: &str, cfg: &oya_ci_config_kernel::OyaCiConfig) -> bool {
+    cfg.repo.path_excludes.iter().any(|prefix| {
+        path.starts_with(prefix.as_str()) || path.contains(&format!("/{prefix}"))
+    })
 }

@@ -4125,6 +4125,7 @@ name = "oya-cloud-ci-accounting-registry-app"
 version = "0.1.0"
 dependencies = [
  "oya-check-brand-residue",
+ "oya-ci-config-kernel",
  "oya-cloud-ci-automation-ratchet-app",
  "oya-cloud-ci-bnf-layer-suffix-app",
  "oya-cloud-ci-cross-artifact-agreement-app",
@@ -4146,6 +4147,7 @@ dependencies = [
 name = "oya-cloud-ci-bnf-layer-suffix-app"
 version = "0.1.0"
 dependencies = [
+ "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
  "serde_json",
 ]
