@@ -72,6 +72,7 @@ members = [
   "libs/oya-check-vendor-lockin-discipline",
   "libs/oya-check-vendor-recency",
   "libs/oya-check-wasm-runtime-discipline",
+  "libs/oya-ci-config",
   "libs/oya-data-boundary-kernel",
   "libs/oya-gen-microservice-manifests-app",
   "libs/oya-governance-adapter-with-no-importer-kernel",
