@@ -22,7 +22,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn faces_dir(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/accounting-registry-producer")
+    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
 }
 
 /// The committed generated faces and the `--face` name that regenerates each. registry-drift
@@ -58,7 +58,7 @@ fn committed_faces_equal_regenerated() {
             .arg("run")
             .arg("--quiet")
             .arg("-p")
-            .arg("accounting-registry-producer")
+            .arg("oya-cloud-ci-accounting-registry-app")
             .arg("--")
             .arg("--repo-root")
             .arg(&root)

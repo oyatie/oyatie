@@ -17,5 +17,5 @@
       "ttl": {"ttl_class": "code", "budget_days": null, "action": "report", "protected": false}
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/total-accounting/tests/total_accounting.rs"
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs"
 }

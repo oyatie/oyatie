@@ -20,6 +20,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":registry-drift",
-        "//cloud/cloud-ci/gates/accounting-registry-producer:accounting-registry-producer",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
     ],
 )
