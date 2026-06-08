@@ -50,7 +50,7 @@ oya-intelligence-supervisor-app
   ├─→ oya-intelligence-jsonl-supervisor-adapter (impl InboxStore)
   ├─→ oya-intelligence-settings-template-adapter (impl SettingsRenderer)
   │
-  └─→ oya-foundry-account-adapter-* (SessionDriver impls)
+  └─→ oya-intelligence-account-adapter-* (SessionDriver impls)
 
 oya-intelligence-jsonl-supervisor-adapter
   └─→ oya-intelligence-supervisor-kernel (port trait def)

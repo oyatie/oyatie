@@ -13,7 +13,7 @@ fn foundation_bypass_gate_allows_empty_or_fresh_ledgers() {
     fs::create_dir_all(&temp).expect("ledger dir created");
     fs::write(
         temp.join("byp_0001.yaml"),
-        "id: byp_0001\npr_ref: gh:oyatie/oyatie#123\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: temporary foundation sequencing gap\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
+        "id: byp_0001\npr_ref: gh:oyatie/oyatie#123\ncrate_ref: oya-intelligence-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: temporary foundation sequencing gap\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
     )
     .expect("bypass record written");
 
@@ -50,7 +50,7 @@ fn foundation_bypass_gate_rejects_zero_window_and_expired_records() {
     fs::create_dir_all(&temp).expect("ledger dir created");
     fs::write(
         temp.join("byp_0002.yaml"),
-        "id: byp_0002\npr_ref: gh:oyatie/oyatie#124\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: temporary foundation sequencing gap\nregression_window_days: 0\ncreated_at_epoch_days: 10\n",
+        "id: byp_0002\npr_ref: gh:oyatie/oyatie#124\ncrate_ref: oya-intelligence-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: temporary foundation sequencing gap\nregression_window_days: 0\ncreated_at_epoch_days: 10\n",
     )
     .expect("bypass record written");
 
@@ -110,7 +110,7 @@ fn foundation_bypass_gate_rejects_malformed_or_unknown_record_fields() {
     fs::create_dir_all(&malformed).expect("ledger dir created");
     fs::write(
         malformed.join("byp_malformed.yaml"),
-        "id: byp_malformed\nthis line is not yaml-ish\npr_ref: gh:oyatie/oyatie#125\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
+        "id: byp_malformed\nthis line is not yaml-ish\npr_ref: gh:oyatie/oyatie#125\ncrate_ref: oya-intelligence-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
     )
     .expect("malformed bypass record written");
 
@@ -134,7 +134,7 @@ fn foundation_bypass_gate_rejects_malformed_or_unknown_record_fields() {
     fs::create_dir_all(&unknown).expect("ledger dir created");
     fs::write(
         unknown.join("byp_unknown.yaml"),
-        "id: byp_unknown\npr_ref: gh:oyatie/oyatie#126\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 10\ncreated_at_epoch_days: 10\nsurprise_field: no\n",
+        "id: byp_unknown\npr_ref: gh:oyatie/oyatie#126\ncrate_ref: oya-intelligence-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 10\ncreated_at_epoch_days: 10\nsurprise_field: no\n",
     )
     .expect("unknown-field bypass record written");
 
@@ -164,7 +164,7 @@ fn foundation_bypass_gate_rejects_duplicate_record_fields() {
     fs::create_dir_all(&temp).expect("ledger dir created");
     fs::write(
         temp.join("byp_duplicate.yaml"),
-        "id: byp_duplicate\npr_ref: gh:oyatie/oyatie#127\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 0\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
+        "id: byp_duplicate\npr_ref: gh:oyatie/oyatie#127\ncrate_ref: oya-intelligence-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 0\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
     )
     .expect("duplicate-field bypass record written");
 
@@ -296,8 +296,8 @@ fn plane_class_gate_accepts_stable_catalog_planes() {
     let temp = temp_dir("plane-stable");
     let baseline = temp.join("baseline");
     let current = temp.join("current");
-    write_catalog_record(&baseline, "oya-foundry-capability-kernel", "control");
-    write_catalog_record(&current, "oya-foundry-capability-kernel", "control");
+    write_catalog_record(&baseline, "oya-intelligence-capability-kernel", "control");
+    write_catalog_record(&current, "oya-intelligence-capability-kernel", "control");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -331,8 +331,8 @@ fn plane_class_gate_rejects_unreviewed_plane_changes() {
     let temp = temp_dir("plane-change");
     let baseline = temp.join("baseline");
     let current = temp.join("current");
-    write_catalog_record(&baseline, "oya-foundry-capability-kernel", "control");
-    write_catalog_record(&current, "oya-foundry-capability-kernel", "data");
+    write_catalog_record(&baseline, "oya-intelligence-capability-kernel", "control");
+    write_catalog_record(&current, "oya-intelligence-capability-kernel", "data");
 
     let rejected = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -360,7 +360,7 @@ fn plane_class_gate_rejects_unreviewed_plane_changes() {
             "--baseline",
             baseline.to_str().expect("utf8 baseline registry"),
             "--reviewed-change",
-            "oya-foundry-capability-kernel",
+            "oya-intelligence-capability-kernel",
         ])
         .output()
         .expect("plane gate command runs");
@@ -382,7 +382,7 @@ fn plane_class_gate_rejects_unreviewed_plane_changes() {
 #[test]
 fn claim_ceiling_gate_rejects_catalog_claims_above_foundation() {
     let temp = temp_dir("claim-ceiling");
-    write_catalog_record_with_claim(&temp, "oya-foundry-capability-kernel", "control", "stable");
+    write_catalog_record_with_claim(&temp, "oya-intelligence-capability-kernel", "control", "stable");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -404,19 +404,19 @@ fn claim_ceiling_gate_rejects_catalog_claims_above_foundation() {
 #[test]
 fn license_policy_gate_rejects_forbidden_workspace_crate_license() {
     let temp = temp_dir("license-policy");
-    let crate_dir = temp.join("crates/oya-foundry-capability-kernel");
+    let crate_dir = temp.join("crates/oya-intelligence-capability-kernel");
     fs::create_dir_all(&crate_dir).expect("crate dir created");
     fs::write(
         temp.join("Cargo.toml"),
         r#"[workspace]
-members = ["crates/oya-foundry-capability-kernel"]
+members = ["crates/oya-intelligence-capability-kernel"]
 "#,
     )
     .expect("workspace manifest written");
     fs::write(
         crate_dir.join("Cargo.toml"),
         r#"[package]
-name = "oya-foundry-capability-kernel"
+name = "oya-intelligence-capability-kernel"
 edition = "2024"
 version = "0.1.0"
 license = "GPL-3.0"
@@ -1686,8 +1686,8 @@ fn cargo_prefix_gate_accepts_oya_workspace_members() {
     let temp = temp_dir("cargo-prefix-valid");
     write_cargo_prefix_workspace(
         &temp,
-        "crates/oya-foundry-capability-kernel",
-        "oya-foundry-capability-kernel",
+        "crates/oya-intelligence-capability-kernel",
+        "oya-intelligence-capability-kernel",
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
@@ -1714,7 +1714,7 @@ fn cargo_prefix_gate_rejects_unprefixed_package_name() {
     let temp = temp_dir("cargo-prefix-unprefixed-package");
     write_cargo_prefix_workspace(
         &temp,
-        "crates/oya-foundry-capability-kernel",
+        "crates/oya-intelligence-capability-kernel",
         "foundry-capability-kernel",
     );
 
@@ -1738,8 +1738,8 @@ fn cargo_prefix_gate_rejects_member_path_package_name_mismatch() {
     let temp = temp_dir("cargo-prefix-mismatch");
     write_cargo_prefix_workspace(
         &temp,
-        "crates/oya-foundry-capability-kernel",
-        "oya-foundry-policy-kernel",
+        "crates/oya-intelligence-capability-kernel",
+        "oya-intelligence-policy-kernel",
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
@@ -2485,7 +2485,7 @@ fn data_class_gate_accepts_annotated_fields_and_tracked_legacy_fields() {
 #[test]
 fn slo_coverage_gate_rejects_catalog_record_without_slo() {
     let temp = temp_dir("slo-coverage-missing");
-    write_slo_catalog_record(&temp, "oya-foundry-capability-kernel", None);
+    write_slo_catalog_record(&temp, "oya-intelligence-capability-kernel", None);
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -2509,7 +2509,7 @@ fn slo_coverage_gate_accepts_catalog_records_with_slo() {
     let temp = temp_dir("slo-coverage-present");
     write_slo_catalog_record(
         &temp,
-        "oya-foundry-capability-kernel",
+        "oya-intelligence-capability-kernel",
         Some("preview-control-plane"),
     );
 
@@ -4260,7 +4260,7 @@ fn write_supply_chain_fixture(
     fs::create_dir_all(root.join("registry/catalog")).expect("supply catalog dir created");
     fs::create_dir_all(root.join("scripts")).expect("scripts dir created");
     fs::write(
-        root.join("registry/catalog/oya-foundry-capability-kernel.yaml"),
+        root.join("registry/catalog/oya-intelligence-capability-kernel.yaml"),
         format!(
             "context: foundry\nrole: kernel\ncapability: capability\nplane: control\ndata_classes_owned: [INTERNAL_ONLY]\napi_stability: preview\nsecurity_review: unreviewed\nsupply_chain: {attestation}\n"
         ),

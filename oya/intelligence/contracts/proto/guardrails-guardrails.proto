@@ -1,4 +1,4 @@
-// oya-foundry-guardrails — gRPC contract
+// oya-intelligence-guardrails — gRPC contract
 // Peer to contracts/openapi/guardrails.yaml for clients that prefer gRPC.
 // Per ADR-0131 + ADR-0140 (retired per ADR-0145).
 

@@ -7494,7 +7494,7 @@
           "microservices/intelligence/AUDIT-FINDINGS-2026-05-18.json",
           "microservices/intelligence/IP-056-evidence-audit-chain-bridge.md",
           "microservices/intelligence/IP-journey-j95-iso27001-soc2-annual-audit.md",
-          "microservices/intelligence/catalog/oya-foundry-evidence-evidence-pack-builder-adapter-audit-chain-bridge.yaml",
+          "microservices/intelligence/catalog/oya-intelligence-evidence-evidence-pack-builder-adapter-audit-chain-bridge.yaml",
           "microservices/intelligence/manifest.json#audit_chain",
           "microservices/intelligence/policy/eval-auditor-scope.cedar",
           "microservices/intelligence/policy/evidence-auditor-scope.cedar",

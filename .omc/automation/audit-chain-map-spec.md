@@ -13,7 +13,7 @@ lift_target: oyatie/docs/visualization/audit-chain.md
 enforced_by: oya-governance-audit-chain-map
 extends_crates:
   - oya-governance-cohesion-fitness-kernel
-  - oya-foundry-evidence-kernel
+  - oya-intelligence-evidence-kernel
   - oya-intelligence-architecture-map-kernel
 companion_docs:
   - INDEX.md
@@ -47,10 +47,10 @@ consumes = ["EVT-CAPABILITY-INVOKED"]
 event_id: EVT-CAPABILITY-INVOKED
 schema_path: contracts/eventschema/EVT-CAPABILITY-INVOKED.yaml
 emitter_crates:
-  - oya-foundry-policy-kernel
-  - oya-foundry-capability-kernel
+  - oya-intelligence-policy-kernel
+  - oya-intelligence-capability-kernel
 consumer_crates:
-  - oya-foundry-evidence-kernel
+  - oya-intelligence-evidence-kernel
   - oya-platform-audit-store-kernel
 retention_days: 2555  # 7 years
 data_class: CUSTOMER_CONFIDENTIAL
@@ -120,7 +120,7 @@ The pipeline statically inspects every consumer's event-handler signature: a con
 ## 8. Cross-references
 
 - `architecture-map-kernel-spec.md` consumes the event graph as one of its sources.
-- `oya-foundry-evidence-kernel` consumes the topic list at runtime to wire emitters.
+- `oya-intelligence-evidence-kernel` consumes the topic list at runtime to wire emitters.
 - `docs/decisions/ADR-0003-*` is the constitutional authority.
 
 ## 9. Out-of-scope

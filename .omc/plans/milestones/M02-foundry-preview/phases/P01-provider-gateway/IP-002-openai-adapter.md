@@ -19,8 +19,8 @@ Ship OpenAI adapter in both API and subscription auth modes.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-adapter-openai-api/src/lib.rs::OpenAiApiAdapter
-crates/oya-foundry-adapter-openai-subscription/src/lib.rs::OpenAiSubscriptionAdapter
+crates/oya-intelligence-adapter-openai-api/src/lib.rs::OpenAiApiAdapter
+crates/oya-intelligence-adapter-openai-subscription/src/lib.rs::OpenAiSubscriptionAdapter
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

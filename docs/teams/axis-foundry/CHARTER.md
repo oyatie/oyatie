@@ -12,23 +12,23 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 ## Owned axes / surfaces / contracts
 
 ### Agent Runtime (Foundry — Axis 3)
-- `oya-foundry-capability-kernel` — `Capability`, `CapabilityId`, `CapabilitySpec`, `AutonomyTier`
-- `oya-foundry-evidence-kernel` — `EvidenceRecord`, `EvidenceChainRef`, `StepTrace`
-- `oya-foundry-policy-kernel` — `AutonomyCeilingPolicy`, `BreakGlass`, `PolicySet`
-- `oya-foundry-domain-*` — capability lifecycle, run orchestration, autonomy-ceiling enforcement use-cases
-- `oya-foundry-adapter-codex` — Codex provider adapter (isolated `CODEX_HOME` per run)
-- `oya-foundry-adapter-claude` — Claude provider adapter (isolated `CLAUDE_CONFIG_DIR` per run)
+- `oya-intelligence-capability-kernel` — `Capability`, `CapabilityId`, `CapabilitySpec`, `AutonomyTier`
+- `oya-intelligence-evidence-kernel` — `EvidenceRecord`, `EvidenceChainRef`, `StepTrace`
+- `oya-intelligence-policy-kernel` — `AutonomyCeilingPolicy`, `BreakGlass`, `PolicySet`
+- `oya-intelligence-domain-*` — capability lifecycle, run orchestration, autonomy-ceiling enforcement use-cases
+- `oya-intelligence-adapter-codex` — Codex provider adapter (isolated `CODEX_HOME` per run)
+- `oya-intelligence-adapter-claude` — Claude provider adapter (isolated `CLAUDE_CONFIG_DIR` per run)
 - `oya-foundation-app` — bootstrap capability invocation REST contract source (`contracts/openapi/foundry/capability-v1.yaml`); future `oya-intelligence-api` owns the deployable REST/gRPC surface
-- `oya-foundry-registry` — capability registry projection (reads from `registry/catalog/`)
-- `oya-foundry-rag` — RAG endpoint (Foundry + Search cross-axis contract)
-- `oya-foundry-runtime-*` — planned flat agent-daemon composition roots and hardening work (#1266 hook_bus, #1267 credential shadowing, #1268 shutdown checkpoint)
+- `oya-intelligence-registry` — capability registry projection (reads from `registry/catalog/`)
+- `oya-intelligence-rag` — RAG endpoint (Foundry + Search cross-axis contract)
+- `oya-intelligence-runtime-*` — planned flat agent-daemon composition roots and hardening work (#1266 hook_bus, #1267 credential shadowing, #1268 shutdown checkpoint)
 - Provider authentication: subscription mode (Claude Pro / OpenAI Plus / Gemini Advanced) + API mode (Anthropic API / OpenAI API / Google Gemini API)
 - PTY/process launch backend: direct `openpty`/`forkpty` per spawned provider (not tmux for production; tmux optional for developer-attached debug only)
 - SecretProvider / KMS integration (Issue #1315 — P0 blocker for live-provider execution)
 - Smoke lane: live provider smoke tests (Issue #1316, env-flag gated)
 
 ### Foundry (Axis 4 — consolidated into Foundry)
-- `oya-foundry-catalog-kernel` — `CatalogRecord`, `CrateTarget`, `PlaneDecloration`, `LaneClass`
+- `oya-intelligence-catalog-kernel` — `CatalogRecord`, `CrateTarget`, `PlaneDecloration`, `LaneClass`
 - `oya-foundry-gate-kernel` — `Gate`, `ClaimCeiling`, `Bypass`, `BypassExpiry`
 - `oya-governance-*` — all fitness-function crates (one per domain: tenant-shape, audit-emission, data-use-boundary, eventing-topic, architecture-boundaries, doc-catalog, product-prd, horizontal-scale, contract-orphan)
 - `oya-governance-scorecard-*` — quality scorecard rollup surfaces
@@ -72,7 +72,7 @@ This team does **not** own per-axis business logic (each axis owns its domain); 
 - Daemon hardening: hook_bus stale anchor (#1266), credential shadowing (#1267), shutdown checkpoint (#1268)
 - AutonomyCeiling policy enforcement (#1279): Cedar policy evaluation per capability invocation
 - Capability registry: read from `registry/catalog/`, serve to all axes, maintain projection
-- Evidence chain emission: every agent step emits via `oya-foundry-evidence` → `platform-audit-evidence` chain
+- Evidence chain emission: every agent step emits via `oya-intelligence-evidence` → `platform-audit-evidence` chain
 - RAG endpoint: expose search to Foundry; per-class consent gate (Data Use Boundary)
 - Live provider smoke lane (Issue #1316): env-flag gated CI lane for real provider tests
 - Multi-provider authentication: subscription-mode handshake (Claude Pro / OpenAI Plus / Gemini Advanced); API-mode key management (Anthropic API, OpenAI API, Google Gemini API)

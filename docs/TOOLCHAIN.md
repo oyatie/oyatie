@@ -112,7 +112,7 @@ Foundry's agent surface needs tools that *only matter for agents*. Each is built
 
 ### 4.1 Capability registry + tool-use schema
 
-- `oya-foundry-capability-kernel` defines `Capability { id, namespace, input_schema, output_schema, autonomy_tier_required, data_classes_touched, evidence_emission_topic, regulatory_packs_consumed }`.
+- `oya-intelligence-capability-kernel` defines `Capability { id, namespace, input_schema, output_schema, autonomy_tier_required, data_classes_touched, evidence_emission_topic, regulatory_packs_consumed }`.
 - Wire format: JSON Schema-compatible per [MCP — Model Context Protocol](https://modelcontextprotocol.io) so any MCP-aware client (including Claude Desktop, Continue, Cursor) can consume Foundry capabilities directly.
 - Tool-use schema validation runs at invocation time AND at registration time.
 - Per-tenant per-capability allow/deny with policy gates (Cedar).
@@ -135,7 +135,7 @@ Foundry's agent surface needs tools that *only matter for agents*. Each is built
 
 ### 4.4 Multi-provider router + cost ceiling
 
-- `oya-foundry-router` selects provider per capability per tenant per session.
+- `oya-intelligence-router` selects provider per capability per tenant per session.
 - Routing inputs: latency budget, cost ceiling (per-tenant and per-capability), quality target (eval-set bound), data-class constraint (some classes can only go to providers with specific contractual data-handling).
 - Failover: ordered preference list `[claude-api, openai-api, gemini-api, claude-subscription, ...]` with timeouts.
 - Cost ceiling enforcement: hard stop when monthly tenant budget exhausted; soft warn at 80%.
@@ -149,14 +149,14 @@ Foundry's agent surface needs tools that *only matter for agents*. Each is built
 
 ### 4.6 RAG endpoint shared across agents
 
-- `oya-foundry-rag` exposes per-tenant + per-capability search retrieval with consent enforcement.
+- `oya-intelligence-rag` exposes per-tenant + per-capability search retrieval with consent enforcement.
 - Inputs: query, tenant, capability, max-context-window.
 - Outputs: ranked passages with provenance + audit-chain emission.
 - Backed by the search axis (per-tier index segregation).
 
 ### 4.7 Agent eval harness
 
-- `oya-foundry-eval` runs golden-set evaluations on every capability change.
+- `oya-intelligence-eval` runs golden-set evaluations on every capability change.
 - Per-capability eval set with versioning.
 - Replay against past traces (regression detection).
 - A/B testing of provider routing decisions.
@@ -222,7 +222,7 @@ Per-tool instructions are sourced from the CLI's structured `--help` + per-subco
 
 - Foundry agents inside Oyatie
 - External agents (Claude Desktop, Cursor, Continue, Cline) when the customer enables their tenant's MCP endpoint
-- The `oya-foundry-router` for capability routing
+- The `oya-intelligence-router` for capability routing
 
 ### 4.A.2 Why MCP and not a proprietary RPC
 
@@ -258,7 +258,7 @@ Customer builders authoring workflows or plugins via Workflow Studio can also dr
 
 ### 4.A.6 Implementation
 
-- Server: `crates/oya-foundry-mcp-server-*` (Rust, axum + the official Anthropic MCP Rust SDK or in-house if SDK is insufficient)
+- Server: `crates/oya-intelligence-mcp-server-*` (Rust, axum + the official Anthropic MCP Rust SDK or in-house if SDK is insufficient)
 - Tool catalog: generated from `oya <persona> <subcommand> --emit-mcp` per CLI, plus capability registry projection
 - Transport: MCP stdio for local; MCP SSE/HTTP for remote
 - Versioning: per-tool semver; deprecation per ADR-0001 + ADR-0040
@@ -266,7 +266,7 @@ Customer builders authoring workflows or plugins via Workflow Studio can also dr
 
 ### 4.A.7 Investment timing
 
-Per [§8 investment sequence](#8-tooling-investment-sequence-what-to-build-first), `oya-foundry-mcp-server` slots in at order **#3.5** (right after capability registry, since the registry IS the source of truth the MCP server publishes from).
+Per [§8 investment sequence](#8-tooling-investment-sequence-what-to-build-first), `oya-intelligence-mcp-server` slots in at order **#3.5** (right after capability registry, since the registry IS the source of truth the MCP server publishes from).
 
 ---
 
@@ -329,17 +329,17 @@ CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents an
 | Order | Tool | Why first |
 |---|---|---|
 | 1 | `oya verify` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
-| 2 | `oya-foundry-adapter-kernel` + adapters for Anthropic / OpenAI / Gemini × API + subscription | Foundry preview gate |
-| 3 | `oya-foundry-capability-kernel` + MCP-compatible registry | Foundry preview gate |
-| 4 | `oya-foundry-router` (multi-provider routing + cost ceiling) | Production agent reliability |
-| 5 | `oya-foundry-evidence` (audit-chain emission per agent step) | Compliance + cohesion |
-| 6 | `oya-foundry-sandbox` (Wasmtime + Firecracker) | Safety |
-| 7 | `oya-foundry-rag` (shared RAG endpoint) | Cross-axis retrieval |
-| 8 | `oya-foundry-eval` (golden-set + replay) | Regression prevention |
-| 9 | `oya-foundry-trace` (step-level + replay) | Debugging |
-| 10 | `oya-foundry-cache` (prompt + semantic cache) | Cost reduction |
+| 2 | `oya-intelligence-adapter-kernel` + adapters for Anthropic / OpenAI / Gemini × API + subscription | Foundry preview gate |
+| 3 | `oya-intelligence-capability-kernel` + MCP-compatible registry | Foundry preview gate |
+| 4 | `oya-intelligence-router` (multi-provider routing + cost ceiling) | Production agent reliability |
+| 5 | `oya-intelligence-evidence` (audit-chain emission per agent step) | Compliance + cohesion |
+| 6 | `oya-intelligence-sandbox` (Wasmtime + Firecracker) | Safety |
+| 7 | `oya-intelligence-rag` (shared RAG endpoint) | Cross-axis retrieval |
+| 8 | `oya-intelligence-eval` (golden-set + replay) | Regression prevention |
+| 9 | `oya-intelligence-trace` (step-level + replay) | Debugging |
+| 10 | `oya-intelligence-cache` (prompt + semantic cache) | Cost reduction |
 | 11 | `oya dev / admin / build / agent / ops / pack / catalog / gate` CLI split | Persona separation |
-| 12 | `oya-foundry-marketplace` (plugin authoring + signing + sandbox) | Customer-extensible Foundry |
+| 12 | `oya-intelligence-marketplace` (plugin authoring + signing + sandbox) | Customer-extensible Foundry |
 | 13 | `oya-portal` (IDP / catalog UI in Leptos) | Replace Backstage bootstrap |
 | 14 | `oya-toolchain` (shared Rust libs every team uses) | Cohesion compounds |
 | 15 | `oya-bench` (benchmark harness) | Perf regression detection |
@@ -352,7 +352,7 @@ CI lane `oya-governance-license` runs `cargo deny` + per-language equivalents an
 ## 9. Open questions
 
 1. **Bazel adoption** — should we adopt Bazel for cross-language remote-execution + caching? Currently cargo + pnpm + ad-hoc. Pro: scales beyond Rust. Con: Bazel learning curve. Defer until the second non-Rust workspace appears at scale.
-2. **In-house notebook environment** — should we build an Oyatie-native Python+Rust notebook, or use Jupyter? Current pick: Jupyter for ad hoc; consider in-house when integrated with `oya-foundry-rag`.
+2. **In-house notebook environment** — should we build an Oyatie-native Python+Rust notebook, or use Jupyter? Current pick: Jupyter for ad hoc; consider in-house when integrated with `oya-intelligence-rag`.
 3. **Code-search index** — Sourcegraph is a great tool; license is Apache-2 (verify); should we adopt or build? Probably adopt initially; in-house later if scale demands.
 4. **Documentation site generator** — mdbook (Rust, Apache-2/MIT) is the natural Rust-stack default; alternative: in-house. Pick mdbook initially with Leptos overlays for interactive surfaces.
 5. **Cargo workspace splitting** — after the workspace grows past the historical 91-crate split inventory, do we shard the workspace into multiple repos? Current pick: stay in one repo with `cargo build --workspace --target` sharding; live count was 64 on 2026-05-11; revisit at 200+ crates.

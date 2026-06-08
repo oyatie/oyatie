@@ -104,13 +104,13 @@ FROM clux/muslrust:${RUST_VERSION}-stable AS builder
 WORKDIR /src
 COPY . .
 RUN cargo build --release --target x86_64-unknown-linux-musl \
-    --package oya-foundry-runtime-rag
+    --package oya-intelligence-runtime-rag
 
 FROM ${DISTROLESS} AS runtime
 ARG GIT_SHA
 LABEL org.opencontainers.image.source="https://github.com/oyatie/oyatie"
 LABEL org.opencontainers.image.revision="${GIT_SHA}"
-COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/oya-foundry-runtime-rag \
+COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/oya-intelligence-runtime-rag \
      /usr/local/bin/runtime
 USER 65532:65532
 ENTRYPOINT ["/usr/local/bin/runtime"]
@@ -147,8 +147,8 @@ Per [`security-review.md`](security-review.md) §4:
 
 ```sh
 COSIGN_EXPERIMENTAL=1 cosign sign \
-  --bundle target/cosign/oya-foundry-runtime-rag.bundle \
-  ghcr.io/oyatie/oya-foundry-runtime-rag@sha256:...
+  --bundle target/cosign/oya-intelligence-runtime-rag.bundle \
+  ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:...
 ```
 
 - Cosign pin: **≥ v3.0.6** (the `--bundle` form is now mandatory; v2
@@ -160,11 +160,11 @@ COSIGN_EXPERIMENTAL=1 cosign sign \
 ## 7. SBOM (Syft, CycloneDX)
 
 ```sh
-syft ghcr.io/oyatie/oya-foundry-runtime-rag@sha256:... \
+syft ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:... \
   -o cyclonedx-json=target/sbom/runtime-rag.cdx.json
 cosign attest --predicate target/sbom/runtime-rag.cdx.json \
   --type cyclonedx --bundle target/cosign/runtime-rag.sbom.bundle \
-  ghcr.io/oyatie/oya-foundry-runtime-rag@sha256:...
+  ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:...
 ```
 
 - Syft produces CycloneDX JSON.
@@ -178,7 +178,7 @@ cosign attest --predicate target/sbom/runtime-rag.cdx.json \
 ```sh
 cosign attest --predicate provenance.json --type slsaprovenance \
   --bundle target/cosign/runtime-rag.provenance.bundle \
-  ghcr.io/oyatie/oya-foundry-runtime-rag@sha256:...
+  ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:...
 ```
 
 SLSA L2 requires:
@@ -219,7 +219,7 @@ HIGH + CRITICAL CVEs block release.
 
 ```sh
 trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress \
-  ghcr.io/oyatie/oya-foundry-runtime-rag@sha256:...
+  ghcr.io/oyatie/oya-intelligence-runtime-rag@sha256:...
 ```
 
 ## 11. Anti-patterns

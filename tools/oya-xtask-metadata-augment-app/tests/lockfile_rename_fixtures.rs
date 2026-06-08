@@ -149,9 +149,9 @@ fn row3_external_unchanged() {
 // ──────────────────────────────────────────────────────────────────────────────
 #[test]
 fn row4_quoted_form() {
-    let content = "[[package]]\nname = \"oya-foundry-evidence-kernel\"\nversion = \"0.1.0\"\n";
+    let content = "[[package]]\nname = \"oya-intelligence-evidence-kernel\"\nversion = \"0.1.0\"\n";
     let m = make_map(&[(
-        "oya-foundry-evidence-kernel",
+        "oya-intelligence-evidence-kernel",
         "oya-intelligence-evidence-domain",
     )]);
     let out = rewrite(content, &m);

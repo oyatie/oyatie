@@ -73,25 +73,25 @@ Twelve `oya-cloud-{billing,marketplace,capacity,data,finops,observability}-adapt
 - Cloud-billing adapters land when M02-P18 `cloud-billing` µservice introduces its runtime.
 - Cloud-marketplace, cloud-capacity, cloud-data, cloud-finops, cloud-observability adapters land with their respective M02-P18 µservices.
 - Each reintroduction follows the patterns documented in the
-  `oya-foundry-account-adapter-inmemory` rename (commit `c7fda53`): real
+  `oya-intelligence-account-adapter-inmemory` rename (commit `c7fda53`): real
   port impl, real tests, honest doc-comment about NOT-FOR-PRODUCTION
   when it's a test-double, real SDK integration when it's an AWS/OCI
   variant.
 
-**`oya-foundry-account-app` and `oya-foundry-account-runtime`** — deleted, NOT being reintroduced.
+**`oya-intelligence-account-app` and `oya-intelligence-account-runtime`** — deleted, NOT being reintroduced.
 
-The account family's composition root is `oya-foundry-supervisor-app`,
-which already wires together `oya-foundry-claude-account-adapter` +
-`oya-foundry-codex-account-adapter` + `oya-foundry-gemini-account-adapter`
-+ `oya-foundry-account-adapter-inmemory` against
-`oya-foundry-supervisor-kernel`'s port traits. There is no remaining
-responsibility for a separate `oya-foundry-account-app` (the supervisor
+The account family's composition root is `oya-intelligence-supervisor-app`,
+which already wires together `oya-intelligence-claude-account-adapter` +
+`oya-intelligence-codex-account-adapter` + `oya-intelligence-gemini-account-adapter`
++ `oya-intelligence-account-adapter-inmemory` against
+`oya-intelligence-supervisor-kernel`'s port traits. There is no remaining
+responsibility for a separate `oya-intelligence-account-app` (the supervisor
 IS the account-app). The `-runtime` variant is doubly redundant per
 ADR-0056 §"Concrete migration" lines 283-289, which slate `*-runtime` for
-rename to `*-app` — and `oya-foundry-account-app` already exists in the
+rename to `*-app` — and `oya-intelligence-account-app` already exists in the
 deleted form. The pair was never coherent.
 
-**Trigger for re-creation.** Only if a genuinely separate account composition root needs to exist alongside the supervisor (e.g., a customer-facing standalone account-management binary). At that point, name it for what it is (e.g., `oya-foundry-account-management-app`) rather than recycling the empty crate names.
+**Trigger for re-creation.** Only if a genuinely separate account composition root needs to exist alongside the supervisor (e.g., a customer-facing standalone account-management binary). At that point, name it for what it is (e.g., `oya-intelligence-account-management-app`) rather than recycling the empty crate names.
 
 ## Consequences
 

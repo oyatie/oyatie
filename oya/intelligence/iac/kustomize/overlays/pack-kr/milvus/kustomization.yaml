@@ -11,7 +11,7 @@ resources: []
 patches:
   - target:
       kind: MilvusCluster
-      name: oya-foundry-milvus
+      name: oya-intelligence-milvus
     patch: |
       - op: replace
         path: /spec/externalS3/region

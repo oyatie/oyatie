@@ -81,6 +81,6 @@ Every data-class label is a glossary term; `oya-governance-glossary-coverage-ker
 
 ## 8. Out-of-scope
 
-- Runtime PII redaction enforcement (covered by `oya-foundry-policy-kernel` Cedar layer).
+- Runtime PII redaction enforcement (covered by `oya-intelligence-policy-kernel` Cedar layer).
 - Egress filtering (covered by the data-use-boundary runtime; ADR-0008 §Implementation).
 - Synthetic-data class for test fixtures (separate `synthetic-data-pipeline.md`, not in this batch).

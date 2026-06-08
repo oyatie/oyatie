@@ -14,7 +14,7 @@ purpose: |
 planned_enforcement_ref: oya-governance-orphan-detection
 extends_crates:
   - oya-governance-readme-doc-coverage-kernel
-  - oya-foundry-catalog-kernel
+  - oya-intelligence-catalog-kernel
   - oya-governance-placeholder-debt-kernel
 companion_docs:
   - INDEX.md
@@ -80,7 +80,7 @@ When the lane fails on a PR, the bot comments:
 oya-governance-orphan-detection: HIGH
 
 The following files lack a `purpose:` frontmatter field:
-- crates/oya-foundry-new-feature-kernel/Cargo.toml
+- crates/oya-intelligence-new-feature-kernel/Cargo.toml
 - docs/runbooks/new-runbook.md
 
 The following files have zero inbound references:

@@ -158,7 +158,7 @@ fn valid_bypass(id: &str, regression_window_days: u32) -> FoundationBypassInput 
     FoundationBypassInput {
         id: id.into(),
         pr_ref: "gh:oyatie/oyatie#123".into(),
-        crate_ref: "oya-foundry-capability-kernel".into(),
+        crate_ref: "oya-intelligence-capability-kernel".into(),
         gate_bypassed: "architecture".into(),
         bypassing_actor: "usr_architect".into(),
         rationale: "temporary foundation sequencing gap".into(),

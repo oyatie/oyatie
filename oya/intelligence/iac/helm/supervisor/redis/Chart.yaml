@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-foundry-supervisor-redis
+name: oya-intelligence-supervisor-redis
 description: Valkey Cluster (3 shards × 2 replicas per pack region) for kill-switch state cache + supervision-event-bus Valkey Streams (Redis wire-compat). Per policy/supervisor-isolation.md TI-R-*.
 type: application
 version: 0.1.0

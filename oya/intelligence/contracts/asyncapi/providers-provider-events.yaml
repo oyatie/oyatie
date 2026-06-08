@@ -9,7 +9,7 @@ info:
     so downstream consumers verify authenticity.
 defaultContentType: application/json
 servers:
-  oya-foundry-providers-events:
+  oya-intelligence-providers-events:
     url: nats://foundry-providers.{pack}.oyatie.com:4222
     protocol: nats
     description: NATS JetStream per pack

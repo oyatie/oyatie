@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-foundry-supervisor-postgres
+name: oya-intelligence-supervisor-postgres
 description: HA PostgreSQL (Patroni-managed primary + replica per pack region) for foundry-supervisor fleet-state, deployment history, autonomy entitlement store. Per policy/supervisor-isolation.md TI-P-*.
 type: application
 version: 0.1.0

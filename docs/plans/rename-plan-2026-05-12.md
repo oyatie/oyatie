@@ -98,11 +98,11 @@ the workspace `Cargo.toml` files (`grep -r 'path = "../<crate>"'`).
 | # | Current name | Proposed name | Class | Direct consumers | Effort | Risk | Cutover order |
 |---:|---|---|---|---:|:---:|---|---:|
 | 1 | `oya-foundation-app` | `oya-foundation-composition-app` | TOOSHORT | 1 (`oya-tooling-cli-dev-runtime`) | M | low-MED — sole foundation singleton; dep is the dev-runtime CLI; doc cross-refs need update | 8 |
-| 2 | `oya-intelligence-api` | `oya-foundry-policy-binding-api` *(see §2.1)* | TOOSHORT | 0–1 | S | low — newly-stood-up crate, minimal consumers | 1 |
+| 2 | `oya-intelligence-api` | `oya-intelligence-policy-binding-api` *(see §2.1)* | TOOSHORT | 0–1 | S | low — newly-stood-up crate, minimal consumers | 1 |
 | 3 | `oya-governance-data-class-fitness-kernel` | `oya-governance-data-class-kernel` *(drop `fitness`; the foundry context already implies fitness)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low — fitness is the foundry context's purpose | 2 |
 | 4 | `oya-governance-raci-team-coverage-kernel` | `oya-governance-raci-coverage-kernel` *(drop `team`; RACI implies team)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 3 |
 | 5 | `oya-governance-readme-doc-coverage-kernel` | `oya-governance-readme-coverage-kernel` *(README implies doc)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 4 |
-| 6 | `oya-foundry-release-evidence-pack-kernel` | `oya-foundry-release-pack-kernel` *(evidence is implied by foundry context)* OR `oya-foundry-evidence-pack-kernel` *(drop `release`; the artifact is the pack)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | MED — pick one; doc cross-refs in `release-management.md` need update | 5 |
+| 6 | `oya-intelligence-release-evidence-pack-kernel` | `oya-intelligence-release-pack-kernel` *(evidence is implied by foundry context)* OR `oya-intelligence-evidence-pack-kernel` *(drop `release`; the artifact is the pack)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | MED — pick one; doc cross-refs in `release-management.md` need update | 5 |
 | 7 | `oya-governance-vendor-contract-recency-kernel` | `oya-governance-vendor-recency-kernel` *(contract is implied)* | LONG-FEATURE | 1 (`oya-tooling-cli-dev-runtime`) | S | low | 6 |
 | 8 | `oya-tooling-agent-read` | `oya-tooling-agent-cli-read` *(insert role `cli` before capability `read`)* OR `oya-tooling-agent-read-cli` *(role last)* | NO-ROLE | 0 | S | low — newly-added bin-only crate; not yet imported | 7 |
 | 9 | `oya-tooling-cli-dev-runtime` | `oya-tooling-dev-runtime` *(`cli` and `runtime` are redundant; pick role `runtime`)* OR keep as-is by admitting `cli-dev` as compound | LONG-CAPTAIL | many (workspace dev-binary host) | L | **HIGH** — this is the workspace's primary dev binary (`oya`, `repoctl`); CI scripts, AGENTS.md, docs reference it by name | 9 |
@@ -115,13 +115,13 @@ Possible re-interpretations:
 1. Insert a feature segment naming the bound surface. The crate's
    `[lib]` exposes the foundry policy binding for external consumers
    (foundry policy ↔ cloud / platform contracts). Proposed:
-   `oya-foundry-policy-binding-api` — but this clashes semantically with
+   `oya-intelligence-policy-binding-api` — but this clashes semantically with
    the existing `oya-intelligence-policy-api`. The right answer is probably to
    **merge** the two into `oya-intelligence-policy-api` and retire
    `oya-intelligence-api`. This adds a **MERGE** row to the plan; flagged for
    architect review.
 2. If the crate truly has a distinct surface, choose a feature segment
-   that does not clash (e.g. `oya-foundry-meta-api`).
+   that does not clash (e.g. `oya-intelligence-meta-api`).
 
 Carrying forward as a rename candidate; the merge option is the user's call.
 
@@ -150,7 +150,7 @@ scripts will need a coordinated update.
 2. oya-governance-data-class-fitness-kernel   (1 consumer)
 3. oya-governance-raci-team-coverage-kernel   (1 consumer)
 4. oya-governance-readme-doc-coverage-kernel  (1 consumer)
-5. oya-foundry-release-evidence-pack-kernel (1 consumer)
+5. oya-intelligence-release-evidence-pack-kernel (1 consumer)
 6. oya-governance-vendor-contract-recency-kernel (1 consumer)
 7. oya-tooling-agent-read                  (0 consumers)
 8. oya-foundation-app                      (1 consumer; coordinate with sub-plan B step 9)

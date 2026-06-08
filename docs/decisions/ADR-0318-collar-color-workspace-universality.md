@@ -1421,7 +1421,7 @@ E-2.22. Required declaration: microservices/foundry/ux/device-profile-matrix.jso
 E-2.22. Required declaration: microservices/foundry/ux/workspace-profile-matrix.json.
 E-2.22. Required declaration: microservices/foundry/ux/collar-color-shell-matrix.json.
 E-2.22. Required declaration: microservices/foundry/ux/accommodation-profile-matrix.json.
-E-2.22. Runtime adapter: crates/oya-foundry-ux-profile-adapter when the service renders user-facing work.
+E-2.22. Runtime adapter: crates/oya-intelligence-ux-profile-adapter when the service renders user-facing work.
 E-2.22. Audit: UXProfileResolved includes microservice=foundry.
 E-2.22. Test: profile matrix fixture verifies canonical action ids for foundry.
 

@@ -38,7 +38,7 @@ This phase consolidates the grit/icm/oya-tooling-agent-read scaffolds into a coh
 
 | µservice | Bounded Contexts | Files / crates affected | BNF v4.1 crate names |
 |---|---|---|---|
-| `foundry` | `grit`, `icm`, `architecture-check`, `bounded-contexts-check`, `supply-chain-check`, `semver-check` | `crates/oya-foundry-grit-cli/`, `crates/oya-foundry-icm-cli/`, `crates/oya-foundry-agent-read-cli/`, `crates/oya-shared-architecture-check-cli/`, `crates/oya-shared-bounded-contexts-check-cli/`, `crates/oya-shared-supply-chain-check-cli/`, `crates/oya-shared-semver-check-cli/`, `crates/oya-check-statelessness-cli/`, `crates/oya-check-shardability-cli/`, `crates/oya-check-perf-budget-cli/` | `oya-foundry-grit-cli`, `oya-foundry-icm-cli`, `oya-foundry-agent-read-cli`, `oya-shared-architecture-check-cli`, `oya-shared-bounded-contexts-check-cli`, `oya-shared-supply-chain-check-cli`, `oya-shared-semver-check-cli`, `oya-check-statelessness-cli`, `oya-check-shardability-cli`, `oya-check-perf-budget-cli` |
+| `foundry` | `grit`, `icm`, `architecture-check`, `bounded-contexts-check`, `supply-chain-check`, `semver-check` | `crates/oya-intelligence-grit-cli/`, `crates/oya-intelligence-icm-cli/`, `crates/oya-intelligence-agent-read-cli/`, `crates/oya-shared-architecture-check-cli/`, `crates/oya-shared-bounded-contexts-check-cli/`, `crates/oya-shared-supply-chain-check-cli/`, `crates/oya-shared-semver-check-cli/`, `crates/oya-check-statelessness-cli/`, `crates/oya-check-shardability-cli/`, `crates/oya-check-perf-budget-cli/` | `oya-intelligence-grit-cli`, `oya-intelligence-icm-cli`, `oya-intelligence-agent-read-cli`, `oya-shared-architecture-check-cli`, `oya-shared-bounded-contexts-check-cli`, `oya-shared-supply-chain-check-cli`, `oya-shared-semver-check-cli`, `oya-check-statelessness-cli`, `oya-check-shardability-cli`, `oya-check-perf-budget-cli` |
 
 Naming justification for new crates:
 
@@ -136,9 +136,9 @@ oya-check-perf-budget-cli --workspace . --report-only    # exit 0
 
 | Crate (BNF v4.1) | Layer | Port traits in kernel? | Impls in adapter? | Presentation-only? |
 |---|---|---|---|---|
-| `oya-foundry-grit-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
-| `oya-foundry-icm-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
-| `oya-foundry-agent-read-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
+| `oya-intelligence-grit-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
+| `oya-intelligence-icm-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
+| `oya-intelligence-agent-read-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
 | `oya-shared-architecture-check-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
 | `oya-shared-bounded-contexts-check-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
 | `oya-shared-supply-chain-check-cli` | `cli` | N/A | N/A | Yes — CLI entry point |
@@ -179,8 +179,8 @@ crates/oya-shared-semver-check-cli/src/main.rs::main
 crates/oya-check-statelessness-cli/src/main.rs::main
 crates/oya-check-shardability-cli/src/main.rs::main
 crates/oya-check-perf-budget-cli/src/main.rs::main
-crates/oya-foundry-grit-cli/src/main.rs::main
-crates/oya-foundry-icm-cli/src/main.rs::main
+crates/oya-intelligence-grit-cli/src/main.rs::main
+crates/oya-intelligence-icm-cli/src/main.rs::main
 ```
 
 TTL recommendation: `--ttl 7200` (2 h); re-claim if exceeding.

@@ -57,7 +57,7 @@ provider:
 autonomy:
   tier_required: T2                       # T1 (recommend) | T2 (flag+freeze) | T3 (execute-with-approval) | T4 (auto-execute)
   cedar_policy_ref: policies/foundry/<id>.cedar   # MUST exist when tier >= T2; oya-governance-autonomy-ceiling enforces
-  runtime_gate_ref: crates/oya-foundry-runtime-autonomy/src/lib.rs::AutonomyGate
+  runtime_gate_ref: crates/oya-intelligence-runtime-autonomy/src/lib.rs::AutonomyGate
 
 data_class:
   allowlist:                              # explicit per docs/PRIVACY-PROGRAM.md §2.2.1; default-deny

@@ -6,7 +6,7 @@ authority_tier: 1
 status: pending approval
 purpose: |
   Write-side dark-launch (shadow traffic + diff-compare) for high-risk surfaces.
-  Diff kernel: oya-foundry-shadow-diff-kernel. Aligned with Foundry RAG gate pattern.
+  Diff kernel: oya-intelligence-shadow-diff-kernel. Aligned with Foundry RAG gate pattern.
 lift_target: oyatie/docs/release/dark-launch-spec.md
 enforced_by:
   - oya-governance-shadow-diff
@@ -38,7 +38,7 @@ Write-side dark-launch is REQUIRED for:
 - **Search ranking** changes (per [`playbook-search.md`](playbook-search.md)).
 - **DSR / proof-of-erasure** logic ([ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)).
 
-## 3. The diff kernel: `oya-foundry-shadow-diff-kernel` (NEW)
+## 3. The diff kernel: `oya-intelligence-shadow-diff-kernel` (NEW)
 
 Compares baseline-output and shadow-output records, classifies diffs, and emits a verdict. Inputs: pair-stream `(baseline_output, shadow_output, request_context)`. Outputs: per-pair classification + aggregate verdict.
 
@@ -61,14 +61,14 @@ Sampling rate is configurable per surface; defaults: 100% for Cedar/audit/billin
 
 ## 4. Alignment with Foundry RAG gate pattern
 
-The Foundry RAG retrieval gate ([commit 498b3ce](../../../docs/decisions/)) is the precedent: cross-tenant boundary gated before citations. Dark-launch generalises that pattern — the shadow gate runs before the new path is observable to callers. `oya-foundry-shadow-diff-kernel` follows the same kernel/api/adapter shape: pure diff logic in the kernel, transport adapters per surface.
+The Foundry RAG retrieval gate ([commit 498b3ce](../../../docs/decisions/)) is the precedent: cross-tenant boundary gated before citations. Dark-launch generalises that pattern — the shadow gate runs before the new path is observable to callers. `oya-intelligence-shadow-diff-kernel` follows the same kernel/api/adapter shape: pure diff logic in the kernel, transport adapters per surface.
 
 ## 5. Adapter crates
 
-- `oya-foundry-shadow-diff-adapter-http` (NEW) — HTTP request/response pair capture.
-- `oya-foundry-shadow-diff-adapter-grpc` (NEW) — gRPC unary/streaming pair capture.
-- `oya-foundry-shadow-diff-adapter-event` (NEW) — outbox-pattern event pair capture ([ADR-0005](../../../docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md)).
-- `oya-foundry-shadow-diff-adapter-cedar` (NEW) — Cedar evaluation pair capture (decision-only).
+- `oya-intelligence-shadow-diff-adapter-http` (NEW) — HTTP request/response pair capture.
+- `oya-intelligence-shadow-diff-adapter-grpc` (NEW) — gRPC unary/streaming pair capture.
+- `oya-intelligence-shadow-diff-adapter-event` (NEW) — outbox-pattern event pair capture ([ADR-0005](../../../docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md)).
+- `oya-intelligence-shadow-diff-adapter-cedar` (NEW) — Cedar evaluation pair capture (decision-only).
 
 ## 6. Write-side safety
 

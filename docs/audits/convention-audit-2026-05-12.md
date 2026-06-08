@@ -94,15 +94,15 @@ oya-cloud-storage-kernel             oya-cloud-surface-kernel
 ### 2.2 Foundry (17 GREEN)
 
 ```
-oya-foundry-adapter-kernel           oya-foundry-bypass-kernel
-oya-foundry-capability-kernel        oya-foundry-catalog-kernel
-oya-foundry-eval-app                 oya-foundry-eval-kernel
-oya-foundry-evidence-adapter-file    oya-foundry-evidence-kernel
-oya-intelligence-mdbook-kernel            oya-foundry-openapi-kernel
-oya-intelligence-policy-api               oya-foundry-policy-kernel
+oya-intelligence-adapter-kernel           oya-intelligence-bypass-kernel
+oya-intelligence-capability-kernel        oya-intelligence-catalog-kernel
+oya-intelligence-eval-app                 oya-intelligence-eval-kernel
+oya-intelligence-evidence-adapter-file    oya-intelligence-evidence-kernel
+oya-intelligence-mdbook-kernel            oya-intelligence-openapi-kernel
+oya-intelligence-policy-api               oya-intelligence-policy-kernel
 oya-intelligence-rag-api                  oya-intelligence-registry-api
-oya-foundry-run-adapter-file         oya-foundry-run-kernel
-oya-foundry-step-adapter-file        oya-foundry-step-kernel
+oya-intelligence-run-adapter-file         oya-intelligence-run-kernel
+oya-intelligence-step-adapter-file        oya-intelligence-step-kernel
 ```
 
 ### 2.3 Platform (18 GREEN)
@@ -195,24 +195,24 @@ rename plan for the recommended path per row.
 | 6 | `oya-governance-authority-cohesion-kernel` | compound feature `authority-cohesion` not registered | NEW-COMPOUND |
 | 7 | `oya-governance-brand-residue-kernel` | compound feature `brand-residue` not registered | NEW-COMPOUND |
 | 8 | `oya-governance-claim-ceiling-kernel` | compound feature `claim-ceiling` not registered | NEW-COMPOUND |
-| 9 | `oya-foundry-cloud-mutation-kernel` | compound feature `cloud-mutation` not registered | NEW-COMPOUND |
+| 9 | `oya-intelligence-cloud-mutation-kernel` | compound feature `cloud-mutation` not registered | NEW-COMPOUND |
 | 11 | `oya-governance-cohesion-fitness-kernel` | compound feature `cohesion-fitness` not registered | NEW-COMPOUND |
 | 12 | `oya-governance-constitution-cite-kernel` | compound feature `constitution-cite` not registered | ~~NEW-COMPOUND~~ SUNSET 2026-05-15 — crate deleted in commit `526e4bf` (strike: retire docs/CONSTITUTION.md and its enforcement crate); row preserved for historical audit integrity |
-| 13 | `oya-foundry-cost-budget-kernel` | compound feature `cost-budget` not registered | NEW-COMPOUND |
+| 13 | `oya-intelligence-cost-budget-kernel` | compound feature `cost-budget` not registered | NEW-COMPOUND |
 | 14 | `oya-governance-data-class-fitness-kernel` | 3-token feature exceeds cap | LONG-FEATURE |
 | 15 | `oya-governance-doc-catalog-kernel` | compound feature `doc-catalog` not registered | NEW-COMPOUND |
 | 16 | `oya-governance-documentation-system-kernel` | compound feature `documentation-system` not registered | NEW-COMPOUND |
 | 17 | `oya-governance-glossary-coverage-kernel` | compound feature `glossary-coverage` not registered | NEW-COMPOUND |
 | 18 | `oya-governance-glossary-vocabulary-kernel` | compound feature `glossary-vocabulary` not registered | NEW-COMPOUND |
 | 19 | `oya-governance-license-policy-kernel` | compound feature `license-policy` not registered | NEW-COMPOUND |
-| 20 | `oya-foundry-mcp-gateway-kernel` | compound feature `mcp-gateway` not registered | NEW-COMPOUND |
-| 21 | `oya-foundry-mobile-native-kernel` | compound feature `mobile-native` not registered | NEW-COMPOUND |
+| 20 | `oya-intelligence-mcp-gateway-kernel` | compound feature `mcp-gateway` not registered | NEW-COMPOUND |
+| 21 | `oya-intelligence-mobile-native-kernel` | compound feature `mobile-native` not registered | NEW-COMPOUND |
 | 22 | `oya-governance-placeholder-debt-kernel` | compound feature `placeholder-debt` not registered | NEW-COMPOUND |
 | 24 | `oya-governance-pre-push-kernel` | compound feature `pre-push` not registered | NEW-COMPOUND |
 | 25 | `oya-governance-quality-lane-kernel` | compound feature `quality-lane` not registered | NEW-COMPOUND |
 | 26 | `oya-governance-raci-team-coverage-kernel` | 3-token feature exceeds cap | LONG-FEATURE |
 | 27 | `oya-governance-readme-doc-coverage-kernel` | 3-token feature exceeds cap | LONG-FEATURE |
-| 28 | `oya-foundry-release-evidence-pack-kernel` | 3-token feature exceeds cap | LONG-FEATURE |
+| 28 | `oya-intelligence-release-evidence-pack-kernel` | 3-token feature exceeds cap | LONG-FEATURE |
 | 29 | `oya-governance-runbook-freshness-kernel` | compound feature `runbook-freshness` not registered | NEW-COMPOUND |
 | 30 | `oya-governance-runbook-index-kernel` | compound feature `runbook-index` not registered | NEW-COMPOUND |
 | 31 | `oya-governance-slo-coverage-kernel` | compound feature `slo-coverage` not registered | NEW-COMPOUND |

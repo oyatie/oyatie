@@ -810,7 +810,7 @@ mod tests {
             &tracked
         ));
         assert!(!is_head_tracked_artifact_path(
-            "crates/oya-foundry-settings-template",
+            "crates/oya-intelligence-settings-template",
             &tracked
         ));
     }

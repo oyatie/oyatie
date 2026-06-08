@@ -148,7 +148,7 @@ The user clicks approve. The substrate runs the following resolution path before
 
 Cross-context transfer claim: a user who learned approve in marketplace (approving a basket checkout) learns approve for free in workflow studio, HR capability tier (approving a leave request), ERP capability tier (approving a purchase order), incident response (approving a runbook step), clinical handoff (approving a discharge plan), and audit (approving an evidence package). The mechanical experience and the evidence trail are the same.
 
-Implementation reference: substrate routing belongs to `oya-ux-shell-action-router` (planned) plus `oya-foundry-workflow-engine` plus `oya-foundry-policy-engine-cedar` plus `oya-shared-audit-chain` plus `oya-shared-ontology`.
+Implementation reference: substrate routing belongs to `oya-ux-shell-action-router` (planned) plus `oya-intelligence-workflow-engine` plus `oya-intelligence-policy-engine-cedar` plus `oya-shared-audit-chain` plus `oya-shared-ontology`.
 
 ### 2.3 Verb walkthrough: assign
 Assign places a workflow step on a different role's queue inside the current tenant. Substrate path is identical to approve plus a role-projection-target argument.
@@ -481,7 +481,7 @@ The savings table is robust to ±30 percent variation in any single parameter. A
 ### 8.8 Claim discipline
 Savings are claimable only when training analytics show all four of: lower time-to-first-successful-action, lower per-employee support-ticket volume, lower wrong-context-action denial rate, and stable accessibility-task-completion rate across role projections. If any of those four signals does not move in the right direction, the doctrine is not being realized and the savings table is hypothetical.
 
-The four signals are emitted by the substrate as audit-chain projections (`oya-shared-audit-chain`), Workflow Engine telemetry (`oya-foundry-workflow-engine`), Cedar denial events (`oya-foundry-policy-engine-cedar`), and UX shell timing (`oya-ux-shell-action-router`). The savings are auditable, not asserted.
+The four signals are emitted by the substrate as audit-chain projections (`oya-shared-audit-chain`), Workflow Engine telemetry (`oya-intelligence-workflow-engine`), Cedar denial events (`oya-intelligence-policy-engine-cedar`), and UX shell timing (`oya-ux-shell-action-router`). The savings are auditable, not asserted.
 
 ## Section 9 - Industry-pack training walkthroughs
 
@@ -878,8 +878,8 @@ Specifically: the marketing narrative may not state a per-employee training-cost
 
 ### 11.6 Telemetry implementation references
 - `oya-shared-audit-chain` — emits per-verb sealed events with full context tuple.
-- `oya-foundry-workflow-engine` — emits time-to-first-successful-action per user.
-- `oya-foundry-policy-engine-cedar` — emits denial-class counts per root-cause.
+- `oya-intelligence-workflow-engine` — emits time-to-first-successful-action per user.
+- `oya-intelligence-policy-engine-cedar` — emits denial-class counts per root-cause.
 - `oya-shared-ux-shell-action-router` — emits verb-completion events with assistive-input modality.
 
 ## Section 12 - Doctrine evolution and review cadence
@@ -1197,8 +1197,8 @@ A case-study claim chain ties marketing copy to a sealed audit-chain projection 
 
 ### Implementation microservices referenced
 - oya-shared-ux-shell-action-router (planned; thirteen-verb enum enforcement)
-- oya-foundry-workflow-engine (durable-process substrate)
-- oya-foundry-policy-engine-cedar (authorization substrate)
+- oya-intelligence-workflow-engine (durable-process substrate)
+- oya-intelligence-policy-engine-cedar (authorization substrate)
 - oya-shared-audit-chain (evidence substrate)
 - oya-shared-ontology (object-graph substrate)
 - oya-shared-marketplace-settlement (universal settlement substrate)

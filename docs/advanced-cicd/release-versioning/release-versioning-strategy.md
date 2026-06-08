@@ -38,7 +38,7 @@ Twilio / Rust / Java).
 
 | Axis | Scheme | Example | Source of truth | Hyperscaler precedent |
 |---|---|---|---|---|
-| **Crate / SDK / library** | SemVer 2.0.0 | `oya-foundry-control-kernel v3.4.1` | `Cargo.toml` workspace | AWS SDK for Rust, Google libraries, Azure SDK, OCI SDK |
+| **Crate / SDK / library** | SemVer 2.0.0 | `oya-intelligence-control-kernel v3.4.1` | `Cargo.toml` workspace | AWS SDK for Rust, Google libraries, Azure SDK, OCI SDK |
 | **Product / platform** | SemVer-derived | `oya-v3.4.0` | `release/X.Y` tag | Kubernetes (`v1.30.0`), .NET (`net10`), Java (`21 LTS`) |
 | **External API** | Hybrid stability+date | `/foundry/v1/...?api-version=2026-05-12` | OpenAPI 3.1 spec | Google AIP-180 + Microsoft Azure + AWS + Stripe |
 

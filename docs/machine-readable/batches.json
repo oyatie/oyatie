@@ -157,7 +157,7 @@
     "provider-adapter-anthropic-api": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-foundry-adapter-anthropic-api-*"
+        "crates/oya-intelligence-adapter-anthropic-api-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -167,7 +167,7 @@
     "provider-adapter-anthropic-subscription": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-foundry-adapter-anthropic-subscription-*"
+        "crates/oya-intelligence-adapter-anthropic-subscription-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -177,7 +177,7 @@
     "provider-adapter-openai-api": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-foundry-adapter-openai-api-*"
+        "crates/oya-intelligence-adapter-openai-api-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -187,7 +187,7 @@
     "provider-adapter-openai-subscription": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-foundry-adapter-openai-subscription-*"
+        "crates/oya-intelligence-adapter-openai-subscription-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -197,7 +197,7 @@
     "provider-adapter-gemini-api": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-foundry-adapter-gemini-api-*"
+        "crates/oya-intelligence-adapter-gemini-api-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -207,7 +207,7 @@
     "provider-adapter-gemini-subscription": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-foundry-adapter-gemini-subscription-*"
+        "crates/oya-intelligence-adapter-gemini-subscription-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -227,7 +227,7 @@
     "foundry-mcp-server": {
       "fanout": 1,
       "shared_writes": [
-        "crates/oya-foundry-mcp-server-*"
+        "crates/oya-intelligence-mcp-server-*"
       ],
       "depends_on": [
         "foundry-mvp-chain"
@@ -743,7 +743,7 @@
     "ai-model-substrate-train": {
       "fanout": 5,
       "shared_writes": [
-        "crates/oya-foundry-model-train-*"
+        "crates/oya-intelligence-model-train-*"
       ],
       "depends_on": [
         "cloud-compute-vm"
@@ -753,7 +753,7 @@
     "ai-model-substrate-serve": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-foundry-model-serve-*"
+        "crates/oya-intelligence-model-serve-*"
       ],
       "depends_on": [
         "ai-model-substrate-train"
@@ -763,7 +763,7 @@
     "ai-model-substrate-vision": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-foundry-model-vision-*"
+        "crates/oya-intelligence-model-vision-*"
       ],
       "depends_on": [
         "ai-model-substrate-train"
@@ -773,7 +773,7 @@
     "ai-model-substrate-speech": {
       "fanout": 4,
       "shared_writes": [
-        "crates/oya-foundry-model-speech-*"
+        "crates/oya-intelligence-model-speech-*"
       ],
       "depends_on": [
         "ai-model-substrate-train"
@@ -783,7 +783,7 @@
     "ai-robotics-control": {
       "fanout": 3,
       "shared_writes": [
-        "crates/oya-foundry-robotics-control-*",
+        "crates/oya-intelligence-robotics-control-*",
         "crates/oya-vertical-industrial-robotics-*"
       ],
       "depends_on": [

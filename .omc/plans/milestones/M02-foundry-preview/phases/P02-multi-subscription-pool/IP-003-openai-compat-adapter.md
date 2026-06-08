@@ -110,7 +110,7 @@ $ cargo clippy -p oya-intelligence-adapter-openai-compat-api -- -D warnings     
 $ cargo deny check                                                                # expect: PASS
 $ oya gate validate oya-governance-compat-api-shape-binding                  # expect: PASS (response shape matches OpenAI OpenAPI)
 $ oya-tooling-agent-read run-evidence "scripts/smoke/openai-compat-smoke.sh"      # expect: async-openai-rs client smoke + LangChain smoke pass
-$ docker buildx build --target distroless-debian13 -t oya-foundry-openai-compat:test # expect: image < 25 MiB
+$ docker buildx build --target distroless-debian13 -t oya-intelligence-openai-compat:test # expect: image < 25 MiB
 ```
 
 Integration test required: drive the endpoint with `async-openai` directly; assert request/response schemas; assert SSE stream uses `data: {…}\n\ndata: [DONE]\n\n` framing.

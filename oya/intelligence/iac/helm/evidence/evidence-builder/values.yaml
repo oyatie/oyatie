@@ -1,5 +1,5 @@
 # Helm values for the foundry-evidence evidence-builder stack.
-# Five Deployments composed from the single oya-foundry-evidence-evidence-pack-builder-app binary
+# Five Deployments composed from the single oya-intelligence-evidence-evidence-pack-builder-app binary
 # with role-flagged entrypoints:
 #   - recorder-rest      (sync receipt API)
 #   - pack-builder-worker (signal aggregation + pack assembly)
@@ -10,7 +10,7 @@
 
 image:
   repository: ocir.oyatie.com/foundry-evidence/evidence-builder
-  tag: "1.0.0"  # LTS pin; matches oya-foundry-evidence-evidence-pack-builder-app crate version
+  tag: "1.0.0"  # LTS pin; matches oya-intelligence-evidence-evidence-pack-builder-app crate version
   pullPolicy: IfNotPresent
   pullSecret: ocir-pull
 

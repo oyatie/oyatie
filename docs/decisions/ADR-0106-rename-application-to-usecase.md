@@ -75,7 +75,7 @@ Six workspace crates renamed:
 |---|---|
 | `oya-dsr-application` | `oya-dsr-usecase` |
 | `oya-identity-application` | `oya-identity-usecase` |
-| `oya-foundry-eval-application` | `oya-foundry-eval-usecase` |
+| `oya-intelligence-eval-application` | `oya-intelligence-eval-usecase` |
 | `oya-ops-workspace-shell-application` | `oya-ops-workspace-shell-usecase` |
 | `oya-ops-docs-portal-application` | `oya-ops-docs-portal-usecase` |
 | `oya-audit-chain-application` | `oya-audit-chain-usecase` |

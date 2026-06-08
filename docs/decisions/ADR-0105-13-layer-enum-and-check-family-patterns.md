@@ -33,7 +33,7 @@ The 2026-05-15 crate-naming audit (`specs/crate-naming-audit.json`) classified 2
 
 2. **36 crates use `oya-check-<feature>` form** — fitness-check µservice family with implicit self-layering. The crate IS a check; the layer is "lib + optional bin"; the feature name is the layer in spirit.
 
-3. **13 crates use `*-adapter-<backend>` form** — backend qualifier on a canonical `adapter` layer (e.g., `oya-foundry-account-adapter-inmemory`, `oya-cloud-*-adapter-{aws,fake,oci}` — though the latter were deleted per ADR-0104). The pattern is well-formed: layer is `adapter`; backend is a qualifier.
+3. **13 crates use `*-adapter-<backend>` form** — backend qualifier on a canonical `adapter` layer (e.g., `oya-intelligence-account-adapter-inmemory`, `oya-cloud-*-adapter-{aws,fake,oci}` — though the latter were deleted per ADR-0104). The pattern is well-formed: layer is `adapter`; backend is a qualifier.
 
 User directive 2026-05-15: *"if they are well defined and serve a purpose, consider adopting them. otherwise stick to canonical layer types."*
 
@@ -80,7 +80,7 @@ Constraints:
 - The `<backend>` token MUST be in the recognized-backend set (currently open per CODEOWNERS; future tightening: ADR-required to add a new backend name).
 - A `*-adapter-<backend>` MUST implement at least one port trait from the corresponding `*-kernel`.
 - Backend MAY be a software-implementation name (`postgres`, `sqlite`) OR a cloud-vendor name (`aws`, `oci`, `gcp`, `azure`) OR a test-double marker (`fake`, `inmemory`).
-- `fake` and `inmemory` are honest test-doubles with explicit "NOT FOR PRODUCTION" doc-comments (see `oya-foundry-account-adapter-inmemory` per commit `c7fda53`).
+- `fake` and `inmemory` are honest test-doubles with explicit "NOT FOR PRODUCTION" doc-comments (see `oya-intelligence-account-adapter-inmemory` per commit `c7fda53`).
 
 ## Consequences
 

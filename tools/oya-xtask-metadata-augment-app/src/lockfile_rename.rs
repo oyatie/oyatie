@@ -217,9 +217,9 @@ checksum = "abc123"
     /// Row 4: quoted form works (toml_edit always emits quoted strings)
     #[test]
     fn test_quoted_form() {
-        let content = "[[package]]\nname = \"oya-foundry-evidence-kernel\"\nversion = \"0.1.0\"\n";
+        let content = "[[package]]\nname = \"oya-intelligence-evidence-kernel\"\nversion = \"0.1.0\"\n";
         let m = map(&[(
-            "oya-foundry-evidence-kernel",
+            "oya-intelligence-evidence-kernel",
             "oya-intelligence-evidence-domain",
         )]);
         let out = rewrite_lockfile(content, &m).unwrap();

@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-eval-run-latency
+  name: oya-intelligence-eval-run-latency
   displayName: "foundry-eval: eval-run latency p95 ≤ 5min for 100-case set"
   labels:
     microservice: foundry

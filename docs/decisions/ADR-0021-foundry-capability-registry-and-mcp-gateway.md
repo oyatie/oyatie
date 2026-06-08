@@ -25,12 +25,12 @@ We need a capability schema rich enough to gate autonomy, route providers, attri
 
 ## Decision
 
-We define the canonical `Capability` record in `oya-foundry-capability-kernel` and serve it via an MCP-compatible gateway that exposes a per-tenant endpoint. The catalog YAML in `registry/catalog/` is the source of truth; the kernel projects it into typed records at runtime.
+We define the canonical `Capability` record in `oya-intelligence-capability-kernel` and serve it via an MCP-compatible gateway that exposes a per-tenant endpoint. The catalog YAML in `registry/catalog/` is the source of truth; the kernel projects it into typed records at runtime.
 
-### Capability primitive (`oya-foundry-capability-kernel`)
+### Capability primitive (`oya-intelligence-capability-kernel`)
 
 ```rust
-// crates/oya-foundry-capability-kernel/src/lib.rs
+// crates/oya-intelligence-capability-kernel/src/lib.rs
 pub struct Capability {
     pub id: CapabilityId,                            // e.g. "workflow.preview-vertical"
     pub namespace: Namespace,                        // owning axis ("foundry", "saas", "vertical-healthcare", ...)
@@ -55,7 +55,7 @@ pub struct Capability {
 }
 ```
 
-### MCP gateway (`oya-foundry-mcp-gateway`)
+### MCP gateway (`oya-intelligence-mcp-gateway`)
 
 The gateway implements the [Model Context Protocol](https://modelcontextprotocol.io) so any compliant client can discover and invoke capabilities:
 
@@ -79,8 +79,8 @@ Each subcommand is mirrored as an MCP tool in the gateway, so the same surface i
 
 ### Catalog flow
 
-1. Author writes a `registry/catalog/oya-foundry-capability-<id>.yaml` per the capability-record template.
-2. CI lane `foundry-capability-schema` validates against `oya-foundry-capability-kernel`'s JSON schema.
+1. Author writes a `registry/catalog/oya-intelligence-capability-<id>.yaml` per the capability-record template.
+2. CI lane `foundry-capability-schema` validates against `oya-intelligence-capability-kernel`'s JSON schema.
 3. CI lane `foundry-capability-eval-coverage` confirms a golden eval set is checked in (ADR-0024 dependency).
 4. CI lane `foundry-capability-autonomy-coherence` validates that the declared autonomy tier is consistent with the declared data classes (e.g. PHI access cannot be T4-default).
 5. On merge, `oya admin capability publish` projects the YAML into the registry and emits `EVT-CAPABILITY-AUTHORED` to the audit chain.
@@ -88,7 +88,7 @@ Each subcommand is mirrored as an MCP tool in the gateway, so the same surface i
 
 ### CI lanes
 
-- `foundry-capability-schema` — kernel-driven validation of every `registry/catalog/oya-foundry-capability-*.yaml`.
+- `foundry-capability-schema` — kernel-driven validation of every `registry/catalog/oya-intelligence-capability-*.yaml`.
 - `foundry-capability-eval-coverage` — refuses publish without an eval set (delegates to ADR-0024).
 - `foundry-capability-autonomy-coherence` — refuses incoherent autonomy/data-class pairings.
 - `foundry-mcp-gateway-contract` — asserts MCP wire compatibility against the upstream MCP test set.

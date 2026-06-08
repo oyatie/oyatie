@@ -35,7 +35,7 @@ This team owns Oyatie's search engine axis: crawler, parser, inverted index, vec
 - Ranking: BM25 + semantic reranker, freshness, authority signals, diversity, Korean-specific ranking signals, click-stream feedback (privacy-gated via Data Use Boundary)
 - Query understanding: parser, query expansion, spelling correction, autocomplete, QA, RAG retrieval path
 - SERP: organic result assembly, sponsored slot stitching, result diversity, RTBF/PIPA/GDPR safety filter
-- RAG endpoint: expose indexed content to Foundry via `oya-foundry-rag`; consent gate on every retrieval
+- RAG endpoint: expose indexed content to Foundry via `oya-intelligence-rag`; consent gate on every retrieval
 - DSR cascade: delete index entries on DSR trigger; emit proof-of-erasure to `platform-audit-evidence`
 - Trust portal evidence read surface (the search infra hosts the read side; content comes from audit chain)
 - Per-tenant index isolation: tenant-private indexes never surface in cross-tenant results

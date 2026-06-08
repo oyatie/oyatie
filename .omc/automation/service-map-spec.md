@@ -14,7 +14,7 @@ enforced_by: oya-governance-service-map
 extends_crates:
   - oya-governance-cohesion-fitness-kernel
   - oya-intelligence-architecture-map-kernel
-  - oya-foundry-catalog-kernel
+  - oya-intelligence-catalog-kernel
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
@@ -40,8 +40,8 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 | Layer | Role | Examples |
 |---|---|---|
 | `kernel` | Pure value-object; no I/O | `oya-governance-cohesion-fitness-kernel`, `oya-governance-runbook-freshness-kernel` |
-| `runtime` | Schedulers, lifecycles, side-effect orchestrators | `oya-foundry-run-kernel`, `oya-foundry-step-kernel` |
-| `adapter` | Provider-specific I/O (storage, network, KMS, AI) | `oya-foundry-evidence-adapter-file`, `oya-foundry-run-adapter-file` |
+| `runtime` | Schedulers, lifecycles, side-effect orchestrators | `oya-intelligence-run-kernel`, `oya-intelligence-step-kernel` |
+| `adapter` | Provider-specific I/O (storage, network, KMS, AI) | `oya-intelligence-evidence-adapter-file`, `oya-intelligence-run-adapter-file` |
 | `api` | External-surface HTTP/gRPC handlers | `oya-intelligence-api`, `oya-cloud-iam-api` |
 | `app` | Top-level binary; composes kernels + runtimes + adapters | `oya-foundation-app`, `oya-cloud-billing-app` |
 
@@ -91,7 +91,7 @@ The pipeline also emits per-layer subviews `docs/visualization/service-map-<laye
 1. **Layer declaration.** Every workspace crate has `[package.metadata.oyatie.layer]` (BLOCKER).
 2. **Downstream-only edges.** A `kernel` crate MUST NOT depend on a `runtime`/`adapter`/`api`/`app` crate (BLOCKER). A `runtime` crate MUST NOT depend on an `adapter`/`api`/`app` crate. The pipeline enforces the strict DAG ordering.
 3. **Cycle ban.** Workspace-internal dependency cycles → BLOCKER (cargo already rejects, but the pipeline asserts the rendered DAG is acyclic for visual clarity).
-4. **Catalog presence.** Every crate exists in the registry catalog (cross-validated via `oya-foundry-catalog-kernel`).
+4. **Catalog presence.** Every crate exists in the registry catalog (cross-validated via `oya-intelligence-catalog-kernel`).
 5. **Generated drift.** Committed service map differs from re-rendered (BLOCKER).
 6. **SVG presence.** Every rendered diagram has a CI-produced SVG sibling.
 

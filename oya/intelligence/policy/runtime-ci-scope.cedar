@@ -21,7 +21,7 @@ forbid (
 // PERMIT 1 — CI lane reads runtime self-observability metrics
 // =============================================================================
 //
-// CI principals (lane runners like oya-foundry-runtime-load-latency) read the
+// CI principals (lane runners like oya-intelligence-runtime-load-latency) read the
 // runtime's self-emitted metrics for promotion-readiness verdicts. They may
 // not read customer-tenant per-session data.
 

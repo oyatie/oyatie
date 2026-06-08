@@ -7,7 +7,7 @@
   "description": "Frozen live exhibit class: a foundry-residue file justified by ADR-0363, which claims the Foundry name was 'eradicated' (ADR-0363:35) — the justification does not resolve. owner + reachability + ttl_class are all present so ONLY unjustified fires.",
   "rows": [
     {
-      "path": "oya/intelligence/catalog/oya-foundry-eval/src/lib.rs",
+      "path": "oya/intelligence/catalog/oya-intelligence-eval/src/lib.rs",
       "unit_class": "code",
       "owner": "platform-intelligence",
       "justification_ref": "ADR-0363",

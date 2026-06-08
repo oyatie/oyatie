@@ -8,7 +8,7 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every kernel capability declared in a `*-kernel` crate is published to `docs/CAPABILITY-MAP.md`.
 - enforces: STANDARD/capability-map; AGENTS.md fitness-lane `oya-governance-capability-publish`.
-- kernel_crate: `oya-foundry-capability-kernel` (EXISTING; extend with verdict) — `CapabilityDecl { crate_id, capability_id }`, `PublishedRow { capability_id, crate_id }`, verdict `CapabilityPublishFitnessReport { capabilities_checked }`.
+- kernel_crate: `oya-intelligence-capability-kernel` (EXISTING; extend with verdict) — `CapabilityDecl { crate_id, capability_id }`, `PublishedRow { capability_id, crate_id }`, verdict `CapabilityPublishFitnessReport { capabilities_checked }`.
 - runner_path: `tools/oya-governance-capability-publish`
 - inputs: kernel sources `// capability:` markers, `docs/CAPABILITY-MAP.md`.
 - failure_modes:

@@ -47,7 +47,7 @@
       "consumer_axes": [
         "all-regulated"
       ],
-      "location": "crates/oya-foundry-policy-kernel + crates/oya-intelligence-policy-api + contracts/openapi/foundry/policy-v1.yaml",
+      "location": "crates/oya-intelligence-policy-kernel + crates/oya-intelligence-policy-api + contracts/openapi/foundry/policy-v1.yaml",
       "change_review": "governance + security"
     },
     {
@@ -222,7 +222,7 @@
       "consumer_axes": [
         "agent-mediated cloud ops"
       ],
-      "location": "crates/oya-foundry-cloud-mutation-kernel",
+      "location": "crates/oya-intelligence-cloud-mutation-kernel",
       "change_review": "foundry + cloud + security"
     },
     {
@@ -231,7 +231,7 @@
       "consumer_axes": [
         "RAG"
       ],
-      "location": "crates/oya-foundry-rag-kernel + crates/oya-search-retrieval-kernel",
+      "location": "crates/oya-intelligence-rag-kernel + crates/oya-search-retrieval-kernel",
       "change_review": "foundry + search + privacy"
     },
     {
@@ -259,7 +259,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-foundry-contract-registry-*",
+      "location": "crates/oya-intelligence-contract-registry-*",
       "change_review": "council-architecture"
     }
   ],
@@ -437,7 +437,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/foundry/eval-v1.yaml",
       "operation_id": "runFoundryEval",
-      "runtime_crate": "oya-foundry-eval-app"
+      "runtime_crate": "oya-intelligence-eval-app"
     },
     {
       "id": "workspace.drive.put",

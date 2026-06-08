@@ -30,7 +30,7 @@ We commit to a long-horizon **W-AI-Model-Substrate** wave that produces in-house
 ### In-scope model families
 
 ```rust
-// crates/oya-foundry-model-kernel/src/family.rs
+// crates/oya-intelligence-model-kernel/src/family.rs
 pub enum ModelFamily {
     KrFirstFoundationLlm,        // Korean-first foundation; small/medium parameter counts; vertical-tuned
     EmbeddingForRagAndSearch,    // Per-locale embedding models for Search RAG (ADR-0021 RAG endpoint)
@@ -52,7 +52,7 @@ pub enum ModelFamily {
 ### Cutover gate (`ADR-0024` integration)
 
 ```rust
-// crates/oya-foundry-model-cutover/src/lib.rs
+// crates/oya-intelligence-model-cutover/src/lib.rs
 pub fn evaluate_cutover(
     capability_id: CapabilityId,
     incumbent_route: ProviderRoute,    // e.g. claude-api
@@ -74,7 +74,7 @@ pub fn evaluate_cutover(
 Per-tenant fine-tuning is offered via LoRA adapters layered on the in-house base model (never on a provider model — provider TOS routinely forbid this). Tenant consent is explicit, tier-bound, and recorded in the audit chain; the LoRA adapter weights are tenant-scoped and never cross tenant boundaries.
 
 ```rust
-// crates/oya-foundry-model-lora/src/lib.rs
+// crates/oya-intelligence-model-lora/src/lib.rs
 pub struct TenantLoraAdapter {
     pub tenant_id: TenantId,
     pub base_model: InternalModelId,

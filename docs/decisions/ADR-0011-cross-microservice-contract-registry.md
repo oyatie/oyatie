@@ -60,7 +60,7 @@ contracts:
     owner_microservice: foundry
     consumer_microservices: [tenancy, connect, ontology, cloud, search, ads, medical, payments]
     surface_kind: rest-api
-    source_of_truth: crates/oya-foundry-runtime-rest
+    source_of_truth: crates/oya-intelligence-runtime-rest
     spec_paths: [openapi/capability-invocation.yaml]
     plane: control
     review_class: cross-microservice-capability
@@ -122,7 +122,7 @@ Breaking-change protocol (per ADR-0019 deprecation governance):
 
 ### SDK generation auto from registry
 
-The registry is the single input to per-language SDK codegen (`oya-foundry-sdk-gen-*`). SDKs are committed under `contracts/sdks/<lang>/<contract-id>/`. Hand-edited SDKs are rejected by the lane.
+The registry is the single input to per-language SDK codegen (`oya-intelligence-sdk-gen-*`). SDKs are committed under `contracts/sdks/<lang>/<contract-id>/`. Hand-edited SDKs are rejected by the lane.
 
 ---
 

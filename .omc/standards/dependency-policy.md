@@ -162,11 +162,11 @@ pub trait ProviderAdapter: Send + Sync {
 
 Concrete implementations:
 
-- `oya-foundry-adapter-anthropic` — Anthropic claude API (no official Rust
+- `oya-intelligence-adapter-anthropic` — Anthropic claude API (no official Rust
   SDK; in-tree HTTP client over reqwest+rustls).
-- `oya-foundry-adapter-openai` — OpenAI API (community crate
+- `oya-intelligence-adapter-openai` — OpenAI API (community crate
   `async-openai 0.38.1`; cargo-vet certified).
-- `oya-foundry-adapter-gemini` — Google Gemini (no official Rust SDK;
+- `oya-intelligence-adapter-gemini` — Google Gemini (no official Rust SDK;
   in-tree HTTP client).
 - `oya-cloud-adapter-aws`, `-gcp`, `-azure`, `-oci` — cloud SDK adapters.
 - `oya-platform-adapter-secrets-openbao` — secrets adapter.

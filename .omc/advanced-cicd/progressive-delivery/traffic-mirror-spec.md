@@ -83,7 +83,7 @@ Mirror is configured per-cell. A global dark-launch is N per-cell mirror configu
 
 ## 9. Cost
 
-Mirror = 1.0×–1.1× compute on the shadow path (cold-start amortised by long-running shadow pods). Network egress doubled for mirrored portion. Budgeted per release in `oya-foundry-cost-budget-kernel`.
+Mirror = 1.0×–1.1× compute on the shadow path (cold-start amortised by long-running shadow pods). Network egress doubled for mirrored portion. Budgeted per release in `oya-intelligence-cost-budget-kernel`.
 
 ## 10. Hyperscaler equivalents
 

@@ -18,7 +18,7 @@ doc_status: published
 ## Trigger
 
 ONE of:
-- Runtime pod crashloop (FM-01): `kube_pod_status_phase{phase="Running",pod=~"oya-foundry-runtime-.*"}` drops; `oya_foundry_runtime_pod_restarts_total` rises.
+- Runtime pod crashloop (FM-01): `kube_pod_status_phase{phase="Running",pod=~"oya-intelligence-runtime-.*"}` drops; `oya_foundry_runtime_pod_restarts_total` rises.
 - Sibling unreachable (FM-08): per-sibling circuit-breaker opens; `oya_foundry_runtime_sibling_failures_total{sibling="..."} > threshold`.
 - Capacity exhaustion (FM-14): rate-limit-exceeded climbs; HPA at ceiling.
 - Long invocation (FM-15): invocation duration tail spikes.
@@ -33,7 +33,7 @@ ONE of:
 
 | Step | Action | Time |
 |---|---|---|
-| 1 | Verify pod state: `kubectl -n foundry-runtime get pods -l app=oya-foundry-runtime-capability-executor-app` | ≤2min |
+| 1 | Verify pod state: `kubectl -n foundry-runtime get pods -l app=oya-intelligence-runtime-capability-executor-app` | ≤2min |
 | 2 | Check pod logs: `kubectl -n foundry-runtime logs <pod> --tail=200 --previous` for crash cause | ≤5min |
 | 3 | Verify HPA scaling: `kubectl -n foundry-runtime get hpa` | ≤2min |
 | 4 | Cordon affected node if pattern; allow cross-AZ rebalance | ≤5min |
@@ -60,7 +60,7 @@ ONE of:
 | Step | Action | Time |
 |---|---|---|
 | 1 | Verify rate-limit-exceeded source: `topk(5, sum by (tenant_id) (rate(oya_foundry_runtime_rate_limit_exceeded_total[5m])))` | ≤2min |
-| 2 | Check HPA at ceiling: `kubectl -n foundry-runtime get hpa oya-foundry-runtime-capability-executor-app` | ≤2min |
+| 2 | Check HPA at ceiling: `kubectl -n foundry-runtime get hpa oya-intelligence-runtime-capability-executor-app` | ≤2min |
 | 3 | If single tenant: engage tenant on capability-concurrency discipline; surface their per-capability dispatch dashboard | ≤30min |
 | 4 | If cluster-wide: raise HPA ceiling within global budget (per `capacity-model.md`); scale pool warm pods | ≤15min |
 | 5 | Verify recovery: rate-limit-exceeded rate returns to baseline | ≤15min |

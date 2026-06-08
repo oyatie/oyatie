@@ -202,7 +202,7 @@ mod tests {
         let cfg = DisciplineConfig::canonical();
         let manifests = vec![
             mf(
-                "oya-foundry-tool-runner",
+                "oya-intelligence-tool-runner",
                 "[dependencies]\noya-shared-wasm-runtime-kernel = { path = \"../oya-shared-wasm-runtime-kernel\" }",
             ),
             mf(

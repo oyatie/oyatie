@@ -240,7 +240,7 @@ evidence_hash: <sha256>
 - Page `oya-crypto-operations-primary` for attestation drift, quorum loss, or HSM isolation.
 - Page `oya-cloud-iam-primary` when session signing depends on affected keys.
 - Page `oya-cloud-network-primary` when tenant CA issuance fails.
-- Page `oya-foundry-primary` when artifact signing fails.
+- Page `oya-intelligence-primary` when artifact signing fails.
 - Notify `#inc-cloud-kms` with cell, tier, vendor, and tenant scope.
 - Notify `#support-cloud-kms-tenant-impact` for decrypt or sign impact.
 - Notify compliance when regulated tenants lose FIPS-backed operation.

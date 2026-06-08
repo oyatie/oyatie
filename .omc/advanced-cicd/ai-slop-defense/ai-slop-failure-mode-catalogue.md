@@ -52,7 +52,7 @@ owner: axis-foundry + ops-security
 
 | ID | Description | Example | Severity | Mechanical prevention |
 |----|---|---|---|---|
-| **AIS-040** | IO call inside a pure-kernel crate (e.g., `reqwest::get` in `oya-foundry-policy-kernel`). | Direct `tokio::fs::read` in policy kernel. | H | `oya-governance-flat-crates` boundary check + new `oya-governance-kernel-purity` (deny `tokio::fs`, `reqwest`, `std::process` in kernel crates). |
+| **AIS-040** | IO call inside a pure-kernel crate (e.g., `reqwest::get` in `oya-intelligence-policy-kernel`). | Direct `tokio::fs::read` in policy kernel. | H | `oya-governance-flat-crates` boundary check + new `oya-governance-kernel-purity` (deny `tokio::fs`, `reqwest`, `std::process` in kernel crates). |
 | **AIS-041** | Provider-specific import outside adapter crate ([MASTERPLAN §2 Directive 4](../../plans/MASTERPLAN.md)). | `aws_sdk_s3::Client` in `oya-cloud-storage-kernel`. | C | Existing `oya-governance-provider-coupling` lane (MASTERPLAN row 4). |
 | **AIS-042** | Logic in adapter (the inverse): adapter holds tenant-routing logic. | Tenant routing inside `oya-cloud-adapter-aws-s3`. | H | Same lane (AIS-041), inverse direction; new rule. |
 
@@ -85,7 +85,7 @@ owner: axis-foundry + ops-security
 
 | ID | Description | Example | Severity | Mechanical prevention |
 |----|---|---|---|---|
-| **AIS-080** | Orphan `tokio::spawn` whose `JoinHandle` is dropped ([Tokio task tracker docs](https://docs.rs/tokio/latest/tokio/task/)). | `tokio::spawn(work()); // handle dropped` | H | `clippy::disallowed_methods` deny bare `tokio::spawn`; mandate `oya-foundry-task-supervisor` wrapper that registers + drains. |
+| **AIS-080** | Orphan `tokio::spawn` whose `JoinHandle` is dropped ([Tokio task tracker docs](https://docs.rs/tokio/latest/tokio/task/)). | `tokio::spawn(work()); // handle dropped` | H | `clippy::disallowed_methods` deny bare `tokio::spawn`; mandate `oya-intelligence-task-supervisor` wrapper that registers + drains. |
 | **AIS-081** | Cancellation-unsafe future inside `select!` ([Cybernetist — Tokio cancellation](https://cybernetist.com/2024/04/19/rust-tokio-task-cancellation-patterns/)). | Read-half of a stream lost mid-message. | C | `loom` + `tokio-test` for every async surface; new lane `oya-governance-cancel-safety`. |
 | **AIS-082** | Deadlock from acquired-lock-order divergence. | Two `Mutex` acquired in opposite order. | C | `loom` model-check lane (same as AIS-081). |
 

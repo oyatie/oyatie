@@ -8,171 +8,171 @@
       "name": "foundry-eval",
       "description": "Bounded context 'foundry-eval' within foundry-eval (control plane)",
       "crates": [
-        "oya-foundry-eval-eval-runner-adapter",
-        "oya-foundry-eval-eval-runner-adapter-gpu",
-        "oya-foundry-eval-eval-runner-adapter-s3",
-        "oya-foundry-eval-eval-runner-api",
-        "oya-foundry-eval-eval-runner-app",
-        "oya-foundry-eval-eval-runner-domain",
-        "oya-foundry-eval-eval-runner-kernel",
-        "oya-foundry-eval-eval-runner-rest",
-        "oya-foundry-eval-eval-runner-sdk",
-        "oya-foundry-eval-eval-runner-usecase",
-        "oya-foundry-eval-eval-runner-worker",
-        "oya-foundry-eval-parity-analyzer-adapter-clickhouse"
+        "oya-intelligence-eval-eval-runner-adapter",
+        "oya-intelligence-eval-eval-runner-adapter-gpu",
+        "oya-intelligence-eval-eval-runner-adapter-s3",
+        "oya-intelligence-eval-eval-runner-api",
+        "oya-intelligence-eval-eval-runner-app",
+        "oya-intelligence-eval-eval-runner-domain",
+        "oya-intelligence-eval-eval-runner-kernel",
+        "oya-intelligence-eval-eval-runner-rest",
+        "oya-intelligence-eval-eval-runner-sdk",
+        "oya-intelligence-eval-eval-runner-usecase",
+        "oya-intelligence-eval-eval-runner-worker",
+        "oya-intelligence-eval-parity-analyzer-adapter-clickhouse"
       ]
     },
     {
       "name": "foundry-evidence",
       "description": "Bounded context 'foundry-evidence' within foundry-evidence (control plane)",
       "crates": [
-        "oya-foundry-evidence-capability-invocation-recorder-kernel",
-        "oya-foundry-evidence-evidence-pack-builder-adapter",
-        "oya-foundry-evidence-evidence-pack-builder-adapter-audit-chain-bridge",
-        "oya-foundry-evidence-evidence-pack-builder-adapter-postgres",
-        "oya-foundry-evidence-evidence-pack-builder-adapter-s3",
-        "oya-foundry-evidence-evidence-pack-builder-api",
-        "oya-foundry-evidence-evidence-pack-builder-app",
-        "oya-foundry-evidence-evidence-pack-builder-domain",
-        "oya-foundry-evidence-evidence-pack-builder-rest",
-        "oya-foundry-evidence-evidence-pack-builder-usecase",
-        "oya-foundry-evidence-evidence-pack-builder-worker",
-        "oya-foundry-evidence-sdk"
+        "oya-intelligence-evidence-capability-invocation-recorder-kernel",
+        "oya-intelligence-evidence-evidence-pack-builder-adapter",
+        "oya-intelligence-evidence-evidence-pack-builder-adapter-audit-chain-bridge",
+        "oya-intelligence-evidence-evidence-pack-builder-adapter-postgres",
+        "oya-intelligence-evidence-evidence-pack-builder-adapter-s3",
+        "oya-intelligence-evidence-evidence-pack-builder-api",
+        "oya-intelligence-evidence-evidence-pack-builder-app",
+        "oya-intelligence-evidence-evidence-pack-builder-domain",
+        "oya-intelligence-evidence-evidence-pack-builder-rest",
+        "oya-intelligence-evidence-evidence-pack-builder-usecase",
+        "oya-intelligence-evidence-evidence-pack-builder-worker",
+        "oya-intelligence-evidence-sdk"
       ]
     },
     {
       "name": "foundry-guardrails",
       "description": "Bounded context 'foundry-guardrails' within foundry-guardrails (control plane)",
       "crates": [
-        "oya-foundry-guardrails-ai-slop-detector-kernel",
+        "oya-intelligence-guardrails-ai-slop-detector-kernel",
         "oya-governance-guardrails-autonomy-ceiling-gate-adapter-cedar",
         "oya-governance-guardrails-autonomy-ceiling-gate-kernel",
-        "oya-foundry-guardrails-content-safety-rule-engine-adapter-postgres",
-        "oya-foundry-guardrails-content-safety-rule-engine-kernel",
-        "oya-foundry-guardrails-jailbreak-detector-adapter-classifier-model",
-        "oya-foundry-guardrails-jailbreak-detector-kernel",
-        "oya-foundry-guardrails-output-validator-kernel",
-        "oya-foundry-guardrails-prompt-classifier-app",
-        "oya-foundry-guardrails-prompt-classifier-kernel",
-        "oya-foundry-guardrails-prompt-classifier-rest"
+        "oya-intelligence-guardrails-content-safety-rule-engine-adapter-postgres",
+        "oya-intelligence-guardrails-content-safety-rule-engine-kernel",
+        "oya-intelligence-guardrails-jailbreak-detector-adapter-classifier-model",
+        "oya-intelligence-guardrails-jailbreak-detector-kernel",
+        "oya-intelligence-guardrails-output-validator-kernel",
+        "oya-intelligence-guardrails-prompt-classifier-app",
+        "oya-intelligence-guardrails-prompt-classifier-kernel",
+        "oya-intelligence-guardrails-prompt-classifier-rest"
       ]
     },
     {
       "name": "foundry-providers",
       "description": "Bounded context 'foundry-providers' within foundry-providers (control plane)",
       "crates": [
-        "oya-foundry-providers-adapter-anthropic-api",
-        "oya-foundry-providers-adapter-anthropic-subscription",
-        "oya-foundry-providers-adapter-gemini-api",
-        "oya-foundry-providers-adapter-gemini-subscription",
-        "oya-foundry-providers-adapter-in-house",
-        "oya-foundry-providers-adapter-openai-api",
-        "oya-foundry-providers-adapter-openai-subscription",
-        "oya-foundry-providers-adapter-openbao",
-        "oya-foundry-providers-router-adapter",
-        "oya-foundry-providers-router-api",
-        "oya-foundry-providers-router-app",
-        "oya-foundry-providers-router-domain",
-        "oya-foundry-providers-router-kernel",
-        "oya-foundry-providers-router-rest",
-        "oya-foundry-providers-router-sdk",
-        "oya-foundry-providers-router-usecase",
-        "oya-foundry-providers-router-worker"
+        "oya-intelligence-providers-adapter-anthropic-api",
+        "oya-intelligence-providers-adapter-anthropic-subscription",
+        "oya-intelligence-providers-adapter-gemini-api",
+        "oya-intelligence-providers-adapter-gemini-subscription",
+        "oya-intelligence-providers-adapter-in-house",
+        "oya-intelligence-providers-adapter-openai-api",
+        "oya-intelligence-providers-adapter-openai-subscription",
+        "oya-intelligence-providers-adapter-openbao",
+        "oya-intelligence-providers-router-adapter",
+        "oya-intelligence-providers-router-api",
+        "oya-intelligence-providers-router-app",
+        "oya-intelligence-providers-router-domain",
+        "oya-intelligence-providers-router-kernel",
+        "oya-intelligence-providers-router-rest",
+        "oya-intelligence-providers-router-sdk",
+        "oya-intelligence-providers-router-usecase",
+        "oya-intelligence-providers-router-worker"
       ]
     },
     {
       "name": "foundry-runtime",
       "description": "Bounded context 'foundry-runtime' within foundry-runtime (control plane)",
       "crates": [
-        "oya-foundry-runtime-capability-executor-adapter",
-        "oya-foundry-runtime-capability-executor-api",
-        "oya-foundry-runtime-capability-executor-app",
-        "oya-foundry-runtime-capability-executor-domain",
-        "oya-foundry-runtime-capability-executor-kernel",
-        "oya-foundry-runtime-capability-executor-rest",
-        "oya-foundry-runtime-capability-executor-sdk",
-        "oya-foundry-runtime-capability-executor-usecase",
-        "oya-foundry-runtime-capability-registry-cache-adapter",
-        "oya-foundry-runtime-capability-registry-cache-adapter-postgres",
-        "oya-foundry-runtime-capability-registry-cache-api",
-        "oya-foundry-runtime-capability-registry-cache-app",
-        "oya-foundry-runtime-capability-registry-cache-kernel",
-        "oya-foundry-runtime-capability-registry-cache-usecase",
-        "oya-foundry-runtime-capability-registry-cache-worker",
-        "oya-foundry-runtime-invocation-orchestrator-adapter",
-        "oya-foundry-runtime-invocation-orchestrator-api",
-        "oya-foundry-runtime-invocation-orchestrator-app",
-        "oya-foundry-runtime-invocation-orchestrator-domain",
-        "oya-foundry-runtime-invocation-orchestrator-kernel",
-        "oya-foundry-runtime-invocation-orchestrator-usecase",
-        "oya-foundry-runtime-invocation-orchestrator-worker",
-        "oya-foundry-runtime-runtime-pool-adapter",
-        "oya-foundry-runtime-runtime-pool-api",
-        "oya-foundry-runtime-runtime-pool-app",
-        "oya-foundry-runtime-runtime-pool-kernel",
-        "oya-foundry-runtime-runtime-pool-usecase",
-        "oya-foundry-runtime-runtime-pool-worker",
-        "oya-foundry-runtime-session-state-adapter",
-        "oya-foundry-runtime-session-state-adapter-postgres",
-        "oya-foundry-runtime-session-state-adapter-redis",
-        "oya-foundry-runtime-session-state-api",
-        "oya-foundry-runtime-session-state-app",
-        "oya-foundry-runtime-session-state-domain",
-        "oya-foundry-runtime-session-state-kernel",
-        "oya-foundry-runtime-session-state-sdk",
-        "oya-foundry-runtime-session-state-usecase"
+        "oya-intelligence-runtime-capability-executor-adapter",
+        "oya-intelligence-runtime-capability-executor-api",
+        "oya-intelligence-runtime-capability-executor-app",
+        "oya-intelligence-runtime-capability-executor-domain",
+        "oya-intelligence-runtime-capability-executor-kernel",
+        "oya-intelligence-runtime-capability-executor-rest",
+        "oya-intelligence-runtime-capability-executor-sdk",
+        "oya-intelligence-runtime-capability-executor-usecase",
+        "oya-intelligence-runtime-capability-registry-cache-adapter",
+        "oya-intelligence-runtime-capability-registry-cache-adapter-postgres",
+        "oya-intelligence-runtime-capability-registry-cache-api",
+        "oya-intelligence-runtime-capability-registry-cache-app",
+        "oya-intelligence-runtime-capability-registry-cache-kernel",
+        "oya-intelligence-runtime-capability-registry-cache-usecase",
+        "oya-intelligence-runtime-capability-registry-cache-worker",
+        "oya-intelligence-runtime-invocation-orchestrator-adapter",
+        "oya-intelligence-runtime-invocation-orchestrator-api",
+        "oya-intelligence-runtime-invocation-orchestrator-app",
+        "oya-intelligence-runtime-invocation-orchestrator-domain",
+        "oya-intelligence-runtime-invocation-orchestrator-kernel",
+        "oya-intelligence-runtime-invocation-orchestrator-usecase",
+        "oya-intelligence-runtime-invocation-orchestrator-worker",
+        "oya-intelligence-runtime-runtime-pool-adapter",
+        "oya-intelligence-runtime-runtime-pool-api",
+        "oya-intelligence-runtime-runtime-pool-app",
+        "oya-intelligence-runtime-runtime-pool-kernel",
+        "oya-intelligence-runtime-runtime-pool-usecase",
+        "oya-intelligence-runtime-runtime-pool-worker",
+        "oya-intelligence-runtime-session-state-adapter",
+        "oya-intelligence-runtime-session-state-adapter-postgres",
+        "oya-intelligence-runtime-session-state-adapter-redis",
+        "oya-intelligence-runtime-session-state-api",
+        "oya-intelligence-runtime-session-state-app",
+        "oya-intelligence-runtime-session-state-domain",
+        "oya-intelligence-runtime-session-state-kernel",
+        "oya-intelligence-runtime-session-state-sdk",
+        "oya-intelligence-runtime-session-state-usecase"
       ]
     },
     {
       "name": "foundry-supervisor",
       "description": "Bounded context 'foundry-supervisor' within foundry-supervisor (control plane)",
       "crates": [
-        "oya-foundry-supervisor-agent-fleet-lifecycle-adapter",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-adapter-k8s-operator",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-adapter-postgres",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-api",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-app",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-domain",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-kernel",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-rest",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-sdk",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-usecase",
-        "oya-foundry-supervisor-agent-fleet-lifecycle-worker",
-        "oya-foundry-supervisor-autonomy-policy-enforcement-adapter",
-        "oya-foundry-supervisor-autonomy-policy-enforcement-api",
-        "oya-foundry-supervisor-autonomy-policy-enforcement-app",
-        "oya-foundry-supervisor-autonomy-policy-enforcement-domain",
-        "oya-foundry-supervisor-autonomy-policy-enforcement-kernel",
-        "oya-foundry-supervisor-autonomy-policy-enforcement-rest",
-        "oya-foundry-supervisor-autonomy-policy-enforcement-sdk",
-        "oya-foundry-supervisor-autonomy-policy-enforcement-usecase",
-        "oya-foundry-supervisor-capability-deployment-adapter",
-        "oya-foundry-supervisor-capability-deployment-adapter-postgres",
-        "oya-foundry-supervisor-capability-deployment-api",
-        "oya-foundry-supervisor-capability-deployment-app",
-        "oya-foundry-supervisor-capability-deployment-domain",
-        "oya-foundry-supervisor-capability-deployment-kernel",
-        "oya-foundry-supervisor-capability-deployment-rest",
-        "oya-foundry-supervisor-capability-deployment-sdk",
-        "oya-foundry-supervisor-capability-deployment-usecase",
-        "oya-foundry-supervisor-capability-deployment-worker",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-adapter",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-adapter-k8s-operator",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-api",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-app",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-domain",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-kernel",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-rest",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-sdk",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-usecase",
-        "oya-foundry-supervisor-kill-switch-circuit-breaker-worker",
-        "oya-foundry-supervisor-supervision-event-bus-adapter",
-        "oya-foundry-supervisor-supervision-event-bus-api",
-        "oya-foundry-supervisor-supervision-event-bus-app",
-        "oya-foundry-supervisor-supervision-event-bus-kernel",
-        "oya-foundry-supervisor-supervision-event-bus-sdk",
-        "oya-foundry-supervisor-supervision-event-bus-usecase",
-        "oya-foundry-supervisor-supervision-event-bus-worker"
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-adapter",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-adapter-k8s-operator",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-adapter-postgres",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-api",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-app",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-domain",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-kernel",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-rest",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-sdk",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-usecase",
+        "oya-intelligence-supervisor-agent-fleet-lifecycle-worker",
+        "oya-intelligence-supervisor-autonomy-policy-enforcement-adapter",
+        "oya-intelligence-supervisor-autonomy-policy-enforcement-api",
+        "oya-intelligence-supervisor-autonomy-policy-enforcement-app",
+        "oya-intelligence-supervisor-autonomy-policy-enforcement-domain",
+        "oya-intelligence-supervisor-autonomy-policy-enforcement-kernel",
+        "oya-intelligence-supervisor-autonomy-policy-enforcement-rest",
+        "oya-intelligence-supervisor-autonomy-policy-enforcement-sdk",
+        "oya-intelligence-supervisor-autonomy-policy-enforcement-usecase",
+        "oya-intelligence-supervisor-capability-deployment-adapter",
+        "oya-intelligence-supervisor-capability-deployment-adapter-postgres",
+        "oya-intelligence-supervisor-capability-deployment-api",
+        "oya-intelligence-supervisor-capability-deployment-app",
+        "oya-intelligence-supervisor-capability-deployment-domain",
+        "oya-intelligence-supervisor-capability-deployment-kernel",
+        "oya-intelligence-supervisor-capability-deployment-rest",
+        "oya-intelligence-supervisor-capability-deployment-sdk",
+        "oya-intelligence-supervisor-capability-deployment-usecase",
+        "oya-intelligence-supervisor-capability-deployment-worker",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-adapter",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-adapter-k8s-operator",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-api",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-app",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-domain",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-kernel",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-rest",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-sdk",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-usecase",
+        "oya-intelligence-supervisor-kill-switch-circuit-breaker-worker",
+        "oya-intelligence-supervisor-supervision-event-bus-adapter",
+        "oya-intelligence-supervisor-supervision-event-bus-api",
+        "oya-intelligence-supervisor-supervision-event-bus-app",
+        "oya-intelligence-supervisor-supervision-event-bus-kernel",
+        "oya-intelligence-supervisor-supervision-event-bus-sdk",
+        "oya-intelligence-supervisor-supervision-event-bus-usecase",
+        "oya-intelligence-supervisor-supervision-event-bus-worker"
       ]
     }
   ],
@@ -325,61 +325,61 @@
   ],
   "slos": [
     {
-      "name": "oya-foundry-eval-determinism-correctness",
+      "name": "oya-intelligence-eval-determinism-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_foundry_eval_replay_total{outcome=\"deterministic\"}[5m]))",
       "file": "microservices/foundry/slos/eval-determinism-correctness.openslo.yaml"
     },
     {
-      "name": "oya-foundry-eval-run-latency",
+      "name": "oya-intelligence-eval-run-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_foundry_eval_run_duration_seconds_bucket{le=\"300\"}[5m]))",
       "file": "microservices/foundry/slos/eval-run-latency.openslo.yaml"
     },
     {
-      "name": "oya-foundry-evidence-chain-integrity-correctness",
+      "name": "oya-intelligence-evidence-chain-integrity-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_foundry_evidence_chain_verify_total{outcome=\"intact\"}[5m]))",
       "file": "microservices/foundry/slos/evidence-chain-integrity-correctness.openslo.yaml"
     },
     {
-      "name": "oya-foundry-evidence-emit-latency",
+      "name": "oya-intelligence-evidence-emit-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_foundry_evidence_emit_duration_seconds_bucket{le=\"1\"}[5m]))",
       "file": "microservices/foundry/slos/evidence-emit-latency.openslo.yaml"
     },
     {
-      "name": "oya-foundry-guardrails-policy-eval-latency",
+      "name": "oya-intelligence-guardrails-policy-eval-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_foundry_guardrails_eval_duration_seconds_bucket{le=\"0.01\"}[5m]))",
       "file": "microservices/foundry/slos/guardrails-policy-eval-latency.openslo.yaml"
     },
     {
-      "name": "oya-foundry-guardrails-shadow-mode-fp-budget",
+      "name": "oya-intelligence-guardrails-shadow-mode-fp-budget",
       "target": "0.99",
       "sli": "sum(rate(oya_foundry_guardrails_shadow_decision_total{verdict_correct=\"true\"}[5m]))",
       "file": "microservices/foundry/slos/guardrails-shadow-mode-false-positive-budget.openslo.yaml"
     },
     {
-      "name": "oya-foundry-providers-availability-anthropic",
+      "name": "oya-intelligence-providers-availability-anthropic",
       "target": "0.995",
       "sli": "sum(rate(oya_foundry_providers_call_total{provider=\"anthropic\",outcome=\"success\"}[5m]))",
       "file": "microservices/foundry/slos/providers-availability-anthropic.openslo.yaml"
     },
     {
-      "name": "oya-foundry-providers-availability-google",
+      "name": "oya-intelligence-providers-availability-google",
       "target": "0.995",
       "sli": "sum(rate(oya_foundry_providers_call_total{provider=\"google\",outcome=\"success\"}[5m]))",
       "file": "microservices/foundry/slos/providers-availability-google.openslo.yaml"
     },
     {
-      "name": "oya-foundry-providers-availability-openai",
+      "name": "oya-intelligence-providers-availability-openai",
       "target": "0.995",
       "sli": "sum(rate(oya_foundry_providers_call_total{provider=\"openai\",outcome=\"success\"}[5m]))",
       "file": "microservices/foundry/slos/providers-availability-openai.openslo.yaml"
     },
     {
-      "name": "oya-foundry-providers-circuit-breaker-correctness",
+      "name": "oya-intelligence-providers-circuit-breaker-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_foundry_providers_cb_trip_event_total{outcome=\"correct\"}[5m]))",
       "file": "microservices/foundry/slos/providers-circuit-breaker-correctness.openslo.yaml"
@@ -424,55 +424,55 @@
     },
     {
       "id": "IP-003-capability-executor-kernel",
-      "title": "IP-003: oya-foundry-runtime-capability-executor-kernel",
+      "title": "IP-003: oya-intelligence-runtime-capability-executor-kernel",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-003-runtime-capability-executor-kernel.md"
     },
     {
       "id": "IP-004-capability-executor-domain-and-usecase",
-      "title": "IP-004: oya-foundry-runtime-capability-executor-{domain,usecase}",
+      "title": "IP-004: oya-intelligence-runtime-capability-executor-{domain,usecase}",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-004-runtime-capability-executor-domain-and-usecase.md"
     },
     {
       "id": "IP-005-capability-registry-cache-stack",
-      "title": "IP-005: oya-foundry-runtime-capability-registry-cache stack",
+      "title": "IP-005: oya-intelligence-runtime-capability-registry-cache stack",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-005-runtime-capability-registry-cache-stack.md"
     },
     {
       "id": "IP-006-session-state-stack",
-      "title": "IP-006: oya-foundry-runtime-session-state stack",
+      "title": "IP-006: oya-intelligence-runtime-session-state stack",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-006-runtime-session-state-stack.md"
     },
     {
       "id": "IP-007-invocation-orchestrator-stack",
-      "title": "IP-007: oya-foundry-runtime-invocation-orchestrator stack",
+      "title": "IP-007: oya-intelligence-runtime-invocation-orchestrator stack",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-007-runtime-invocation-orchestrator-stack.md"
     },
     {
       "id": "IP-008-runtime-pool-stack",
-      "title": "IP-008: oya-foundry-runtime-runtime-pool stack",
+      "title": "IP-008: oya-intelligence-runtime-runtime-pool stack",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-008-runtime-runtime-pool-stack.md"
     },
     {
       "id": "IP-009-capability-executor-api-and-rest",
-      "title": "IP-009: oya-foundry-runtime-capability-executor-{api,rest}",
+      "title": "IP-009: oya-intelligence-runtime-capability-executor-{api,rest}",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-009-runtime-capability-executor-api-and-rest.md"
     },
     {
       "id": "IP-010-capability-executor-sdk",
-      "title": "IP-010: oya-foundry-runtime-capability-executor-sdk",
+      "title": "IP-010: oya-intelligence-runtime-capability-executor-sdk",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-010-runtime-capability-executor-sdk.md"
     },
     {
       "id": "IP-011-capability-executor-app",
-      "title": "IP-011: oya-foundry-runtime-capability-executor-app (composition root)",
+      "title": "IP-011: oya-intelligence-runtime-capability-executor-app (composition root)",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-011-runtime-capability-executor-app.md"
     },
@@ -604,67 +604,67 @@
     },
     {
       "id": "IP-003-eval-runner-kernel",
-      "title": "IP-003: oya-foundry-eval-eval-runner-kernel",
+      "title": "IP-003: oya-intelligence-eval-eval-runner-kernel",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-033-eval-eval-runner-kernel.md"
     },
     {
       "id": "IP-004-eval-runner-domain",
-      "title": "IP-004: oya-foundry-eval-eval-runner-domain",
+      "title": "IP-004: oya-intelligence-eval-eval-runner-domain",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-034-eval-eval-runner-domain.md"
     },
     {
       "id": "IP-005-eval-runner-usecase",
-      "title": "IP-005: oya-foundry-eval-eval-runner-usecase",
+      "title": "IP-005: oya-intelligence-eval-eval-runner-usecase",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-035-eval-eval-runner-usecase.md"
     },
     {
       "id": "IP-006-eval-runner-api",
-      "title": "IP-006: oya-foundry-eval-eval-runner-api",
+      "title": "IP-006: oya-intelligence-eval-eval-runner-api",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-036-eval-eval-runner-api.md"
     },
     {
       "id": "IP-007-eval-runner-adapter",
-      "title": "IP-007: oya-foundry-eval-eval-runner-adapter",
+      "title": "IP-007: oya-intelligence-eval-eval-runner-adapter",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-037-eval-eval-runner-adapter.md"
     },
     {
       "id": "IP-008-eval-runner-adapter-s3",
-      "title": "IP-008: oya-foundry-eval-eval-runner-adapter-s3",
+      "title": "IP-008: oya-intelligence-eval-eval-runner-adapter-s3",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-038-eval-eval-runner-adapter-s3.md"
     },
     {
       "id": "IP-009-eval-runner-adapter-gpu",
-      "title": "IP-009: oya-foundry-eval-eval-runner-adapter-gpu",
+      "title": "IP-009: oya-intelligence-eval-eval-runner-adapter-gpu",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-039-eval-eval-runner-adapter-gpu.md"
     },
     {
       "id": "IP-010-eval-runner-rest",
-      "title": "IP-010: oya-foundry-eval-eval-runner-rest",
+      "title": "IP-010: oya-intelligence-eval-eval-runner-rest",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-040-eval-eval-runner-rest.md"
     },
     {
       "id": "IP-011-eval-runner-worker",
-      "title": "IP-011: oya-foundry-eval-eval-runner-worker",
+      "title": "IP-011: oya-intelligence-eval-eval-runner-worker",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-041-eval-eval-runner-worker.md"
     },
     {
       "id": "IP-012-eval-runner-sdk",
-      "title": "IP-012: oya-foundry-eval-eval-runner-sdk",
+      "title": "IP-012: oya-intelligence-eval-eval-runner-sdk",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-042-eval-eval-runner-sdk.md"
     },
     {
       "id": "IP-013-eval-runner-app",
-      "title": "IP-013: oya-foundry-eval-eval-runner-app",
+      "title": "IP-013: oya-intelligence-eval-eval-runner-app",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-043-eval-eval-runner-app.md"
     },
@@ -790,13 +790,13 @@
     },
     {
       "id": "IP-004-prompt-classifier-kernel",
-      "title": "IP-004: oya-foundry-guardrails-prompt-classifier-kernel",
+      "title": "IP-004: oya-intelligence-guardrails-prompt-classifier-kernel",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-064-guardrails-prompt-classifier-kernel.md"
     },
     {
       "id": "IP-005-output-validator-kernel",
-      "title": "IP-005: oya-foundry-guardrails-output-validator-kernel",
+      "title": "IP-005: oya-intelligence-guardrails-output-validator-kernel",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-065-guardrails-output-validator-kernel.md"
     },
@@ -808,7 +808,7 @@
     },
     {
       "id": "IP-007-content-safety-rule-engine-kernel-and-postgres-adapter",
-      "title": "IP-007: oya-foundry-guardrails-content-safety-rule-engine-kernel + adapter-postgres",
+      "title": "IP-007: oya-intelligence-guardrails-content-safety-rule-engine-kernel + adapter-postgres",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-067-guardrails-content-safety-rule-engine-kernel-and-postgres-adapter.md"
     },
@@ -826,7 +826,7 @@
     },
     {
       "id": "IP-010-classifier-model-adapter-onnx",
-      "title": "IP-010: oya-foundry-guardrails-prompt-classifier-adapter-classifier-model (ONNX runtime client)",
+      "title": "IP-010: oya-intelligence-guardrails-prompt-classifier-adapter-classifier-model (ONNX runtime client)",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-070-guardrails-classifier-model-adapter-onnx.md"
     },
@@ -862,79 +862,79 @@
     },
     {
       "id": "IP-001-router-kernel",
-      "title": "IP-001: oya-foundry-providers-router-kernel",
+      "title": "IP-001: oya-intelligence-providers-router-kernel",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-076-providers-router-kernel.md"
     },
     {
       "id": "IP-002-router-domain",
-      "title": "IP-002: oya-foundry-providers-router-domain",
+      "title": "IP-002: oya-intelligence-providers-router-domain",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-077-providers-router-domain.md"
     },
     {
       "id": "IP-003-router-usecase",
-      "title": "IP-003: oya-foundry-providers-router-usecase",
+      "title": "IP-003: oya-intelligence-providers-router-usecase",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-078-providers-router-usecase.md"
     },
     {
       "id": "IP-004-router-api",
-      "title": "IP-004: oya-foundry-providers-router-api",
+      "title": "IP-004: oya-intelligence-providers-router-api",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-079-providers-router-api.md"
     },
     {
       "id": "IP-005-router-adapter",
-      "title": "IP-005: oya-foundry-providers-router-adapter",
+      "title": "IP-005: oya-intelligence-providers-router-adapter",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-080-providers-router-adapter.md"
     },
     {
       "id": "IP-006-adapter-anthropic-api",
-      "title": "IP-006: oya-foundry-providers-adapter-anthropic-api",
+      "title": "IP-006: oya-intelligence-providers-adapter-anthropic-api",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-081-providers-adapter-anthropic-api.md"
     },
     {
       "id": "IP-007-adapter-anthropic-subscription",
-      "title": "IP-007: oya-foundry-providers-adapter-anthropic-subscription",
+      "title": "IP-007: oya-intelligence-providers-adapter-anthropic-subscription",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-082-providers-adapter-anthropic-subscription.md"
     },
     {
       "id": "IP-008-adapter-openai-api",
-      "title": "IP-008: oya-foundry-providers-adapter-openai-api",
+      "title": "IP-008: oya-intelligence-providers-adapter-openai-api",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-083-providers-adapter-openai-api.md"
     },
     {
       "id": "IP-009-adapter-openai-subscription",
-      "title": "IP-009: oya-foundry-providers-adapter-openai-subscription",
+      "title": "IP-009: oya-intelligence-providers-adapter-openai-subscription",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-084-providers-adapter-openai-subscription.md"
     },
     {
       "id": "IP-010-adapter-gemini-api",
-      "title": "IP-010: oya-foundry-providers-adapter-gemini-api",
+      "title": "IP-010: oya-intelligence-providers-adapter-gemini-api",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-085-providers-adapter-gemini-api.md"
     },
     {
       "id": "IP-011-adapter-gemini-subscription",
-      "title": "IP-011: oya-foundry-providers-adapter-gemini-subscription",
+      "title": "IP-011: oya-intelligence-providers-adapter-gemini-subscription",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-086-providers-adapter-gemini-subscription.md"
     },
     {
       "id": "IP-012-adapter-in-house",
-      "title": "IP-012: oya-foundry-providers-adapter-in-house",
+      "title": "IP-012: oya-intelligence-providers-adapter-in-house",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-087-providers-adapter-in-house.md"
     },
     {
       "id": "IP-013-adapter-openbao",
-      "title": "IP-013: oya-foundry-providers-adapter-openbao",
+      "title": "IP-013: oya-intelligence-providers-adapter-openbao",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-088-providers-adapter-openbao.md"
     },
@@ -946,7 +946,7 @@
     },
     {
       "id": "IP-015-router-sdk",
-      "title": "IP-015: oya-foundry-providers-router-sdk",
+      "title": "IP-015: oya-intelligence-providers-router-sdk",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-090-providers-router-sdk.md"
     }

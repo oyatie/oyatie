@@ -9,7 +9,7 @@
 //!   Anthropic API key from a `SecretReference` (canonically backed by
 //!   local OpenBao per the SecretReference memory directive) and issues
 //!   an HTTPS POST to the `/v1/messages` endpoint. The HTTP transport is
-//!   delegated to the existing `oya-foundry-adapter-anthropic-api-*`
+//!   delegated to the existing `oya-intelligence-adapter-anthropic-api-*`
 //!   substrate when the live-network feature is enabled; until that
 //!   substrate exposes a message-completion shape, this crate carries
 //!   the JSON request/response shaping so production wiring is a single

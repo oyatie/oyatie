@@ -1,4 +1,4 @@
-// oya-foundry-runtime — gRPC contract
+// oya-intelligence-runtime — gRPC contract
 // Peer to contracts/openapi/foundry-runtime.yaml for clients that prefer gRPC.
 // Per ADR-0025 + ADR-0131.
 

@@ -27,10 +27,10 @@ We also need an eval substrate that is the same substrate the in-house model eff
 
 Every capability publishes with a golden eval set; the eval harness gates publish, runs nightly, runs A/B against routing decisions, and replays against past production traces for regression detection. Adversarial and regional linguistic cohorts are mandatory.
 
-### Eval kernel (`oya-foundry-eval-kernel`)
+### Eval kernel (`oya-intelligence-eval-kernel`)
 
 ```rust
-// crates/oya-foundry-eval-kernel/src/lib.rs
+// crates/oya-intelligence-eval-kernel/src/lib.rs
 pub struct EvalSet {
     pub capability_id: CapabilityId,
     pub version: EvalSetVersion,

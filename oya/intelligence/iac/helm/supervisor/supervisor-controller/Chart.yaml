@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-foundry-supervisor-controller
+name: oya-intelligence-supervisor-controller
 description: Foundry-supervisor Kubernetes Operator (kube-rs); CRDs (Agent, AgentDeployment, AutonomyPolicy, KillSwitch); RBAC; admission webhook
 type: application
 version: 0.1.0

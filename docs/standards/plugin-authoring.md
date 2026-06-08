@@ -82,7 +82,7 @@ Per ADR-0039:
 ## 6. Capability invocation from plugin
 
 Per ADR-0021:
-- Plugin invokes Foundry capabilities via `oya-foundry-capability` MCP tool
+- Plugin invokes Foundry capabilities via `oya-intelligence-capability` MCP tool
 - Per-plugin per-tenant capability allowlist enforced
 - Per-capability autonomy ceiling check
 - Per-invocation cost attribution to plugin's tenant

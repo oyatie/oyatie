@@ -107,7 +107,7 @@ BC slot is OPTIONAL:
 - **Omit BC** when the µservice has a single binary or single concept at the layer.
   Examples: `oya-medical-domain`, `oya-tenancy-kernel`, `oya-cloud-cli`.
 - **Include BC** when the µservice has multiple binaries OR multiple BC-level splits
-  at the same layer. Examples: `oya-foundry-grit-cli`, `oya-foundry-icm-cli`,
+  at the same layer. Examples: `oya-intelligence-grit-cli`, `oya-intelligence-icm-cli`,
   `oya-workflow-state-machine-domain`, `oya-workflow-approvals-usecase`.
 
 ### Check-namespace exemption
@@ -242,7 +242,7 @@ oya-workflow-state-machine-domain   — Workflow µservice, State-Machine BC, do
 oya-ontology-entity-kernel          — Ontology µservice, Entity BC, kernel
 oya-cloud-tenancy-adapter           — Cloud µservice, Tenancy BC, adapter
 oya-cloud-storage-sdk               — Cloud µservice, Storage BC, sdk (public_layers)
-oya-foundry-grit-cli                — Foundry µservice, Grit BC, CLI
+oya-intelligence-grit-cli                — Foundry µservice, Grit BC, CLI
 oya-application-product-enablement-rest — Application µservice, Product-Enablement BC, rest
 oya-messenger-grpc          — µservice, Messenger BC, grpc
 oya-tenancy-kernel                  — Tenancy µservice, no BC (single concept), kernel

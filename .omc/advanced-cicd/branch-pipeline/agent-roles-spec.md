@@ -33,7 +33,7 @@ Four new roles that operate the four-layer auto-promotion graph in [`branch-pipe
 
 1. PR shape — invokes `oya-tooling-agent-read` to fetch PR body; verifies five-H2 conformance.
 2. Reviewer-agent dispatch — by file-glob change class (per §5 of this file + `docs/AGENTS.md`), invokes each applicable reviewer agent via the agent-runtime Skill API; waits for `APPROVE` verdict (or `REQUEST_CHANGES`); records via `icm store -t pr-review-verdicts`.
-3. CI clearance — polls fitness-lane outcomes via `oya-foundry-ci-state-store`; requires every lane GREEN on the PR HEAD.
+3. CI clearance — polls fitness-lane outcomes via `oya-intelligence-ci-state-store`; requires every lane GREEN on the PR HEAD.
 
 When all three gates green simultaneously, invokes `gh pr merge --squash --auto` (under [Directive 12](../../plans/MASTERPLAN.md) with `icm store -t direct-tool-invocations -c '<rationale>' -i high -k 'gh,dev-promoter'`).
 
@@ -59,7 +59,7 @@ When all three gates green simultaneously, invokes `gh pr merge --squash --auto`
 
 **Failure mode.** On any gate red, emits `EVT-DEV-PROMOTION-BLOCKED` with the specific gate that failed. The originating agent (or `staging-fixer` for Mode-B intervention) picks up and addresses.
 
-**Image.** `gcr.io/distroless/static-debian12`; binary `oya-foundry-dev-promoter`.
+**Image.** `gcr.io/distroless/static-debian12`; binary `oya-intelligence-dev-promoter`.
 
 ## 3. `staging-promoter` agent
 
@@ -139,7 +139,7 @@ Reviewer agents render verdicts on PRs at the **local-dev → origin/dev** bound
 | Error-handling change | `silent-failure-hunter` | Verifies no silent failures | no |
 | API or contract change (`contracts/**`) | `doc-updater` | Verifies doc updated | no |
 | Doc-only change (`docs/**/*.md`) | `doc-style-reviewer` | Approve / Request-Changes | no |
-| Capability publish (`crates/oya-foundry-capability-*`) | `capability-reviewer` | Approve / Request-Changes (BLOCKER class) | **yes** |
+| Capability publish (`crates/oya-intelligence-capability-*`) | `capability-reviewer` | Approve / Request-Changes (BLOCKER class) | **yes** |
 | Performance change (benchmarks / hot path) | `perf-reviewer` | Approve / Request-Changes | **yes** (uses post-canary perf data) |
 
 Verdict recorded via `icm store -t pr-review-verdicts` per Directive 12; without the record, `oya-governance-pr-review-verdict-present` blocks promotion.

@@ -79,7 +79,7 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-2026-05-1
 Naming-justification (v4 BNF + 12-layer enum):
 
 1. **`oya-intelligence-supervisor-kernel`** — *kernel layer.* Pure types/traits, std + `core` only. BNF: `oya-<product:foundry>-<service:supervisor>-<layer:kernel>`. 12-layer enum: `kernel`. Cohesion: zero I/O, no `tokio`.
-2. **`oya-foundry-supervisor-adapter-jsonl`** — *adapter layer.* Reference file-backed inbox/outbox. BNF: `oya-<product>-<service>-<role:adapter>-<medium:jsonl>`. 12-layer enum: `adapter`. Cohesion: only filesystem I/O + `tokio::fs`.
+2. **`oya-intelligence-supervisor-adapter-jsonl`** — *adapter layer.* Reference file-backed inbox/outbox. BNF: `oya-<product>-<service>-<role:adapter>-<medium:jsonl>`. 12-layer enum: `adapter`. Cohesion: only filesystem I/O + `tokio::fs`.
 3. **`oya-intelligence-supervisor-app`** — *app layer.* Daemon entrypoint that composes (a) `supervisor-kernel`, (b) `supervisor-adapter-jsonl`, (c) the 3 CLI driver impls, (d) `route-policy-kernel`, (e) `usage-window-kernel`, (f) `provider-pool-kernel`, (g) `evidence-domain`, (h) `dashboard-kernel` projection. BNF: `oya-<product>-<service>-<role:app>`. 12-layer enum: `app`. Cohesion: composition only — no business logic.
 
 Surface expansions (no new crate):
@@ -87,9 +87,9 @@ Surface expansions (no new crate):
 - `oya-intelligence-usage-window-kernel` — add `try_reserve_for(ticket, projected_tokens) -> Reservation { Reserved | RefuseRetryAfter(Duration) | HardDeny(reason) }` and `observed_spend(ticket, actual_tokens)`.
 
 Adapter impls (no new crate; impl lives in the existing CLI adapter):
-- `oya-foundry-account-adapter-claude-code` — `impl SessionDriver` (native stop-hook).
-- `oya-foundry-account-adapter-codex-cli` — `impl SessionDriver` (stop-hook IF available, else stdout-sentinel + exit-code fallback; documented RISK).
-- `oya-foundry-account-adapter-gemini-cli` — `impl SessionDriver` (same fallback rule; documented RISK).
+- `oya-intelligence-account-adapter-claude-code` — `impl SessionDriver` (native stop-hook).
+- `oya-intelligence-account-adapter-codex-cli` — `impl SessionDriver` (stop-hook IF available, else stdout-sentinel + exit-code fallback; documented RISK).
+- `oya-intelligence-account-adapter-gemini-cli` — `impl SessionDriver` (same fallback rule; documented RISK).
 
 ### B.2 Public contracts (rough compilable shape)
 
@@ -297,13 +297,13 @@ Doc-coverage (ADR-0063 mandates the full suite per crate):
 Build:
 ```
 rtk cargo build -p oya-intelligence-supervisor-kernel
-rtk cargo build -p oya-foundry-supervisor-adapter-jsonl
+rtk cargo build -p oya-intelligence-supervisor-adapter-jsonl
 rtk cargo build -p oya-intelligence-supervisor-app
 ```
 
 Conformance:
 ```
-rtk cargo test -p oya-foundry-supervisor-conformance --features claude,codex,gemini
+rtk cargo test -p oya-intelligence-supervisor-conformance --features claude,codex,gemini
 ```
 
 E2E live-smoke matrix (3 CLI × ≥ 2 accounts × {api, subscription} × ≥ 1 msg):
@@ -337,14 +337,14 @@ Merge order (each row = one `grit claim --intent ... <file::Identifier>`):
 3. `crates/oya-intelligence-supervisor-kernel/src/lib.rs::InboxSource`
 4. `crates/oya-intelligence-supervisor-kernel/src/lib.rs::OutboxSink`
 5. `crates/oya-intelligence-supervisor-kernel/src/lib.rs::HeartbeatPolicy`
-6. `crates/oya-foundry-supervisor-adapter-jsonl/src/lib.rs::JsonlInbox`
-7. `crates/oya-foundry-supervisor-adapter-jsonl/src/lib.rs::JsonlOutbox`
+6. `crates/oya-intelligence-supervisor-adapter-jsonl/src/lib.rs::JsonlInbox`
+7. `crates/oya-intelligence-supervisor-adapter-jsonl/src/lib.rs::JsonlOutbox`
 8. `crates/oya-intelligence-route-policy-kernel/src/lib.rs::select_account_for_message`
 9. `crates/oya-intelligence-usage-window-kernel/src/lib.rs::try_reserve_for`
 10. `crates/oya-intelligence-usage-window-kernel/src/lib.rs::observed_spend`
-11. `crates/oya-foundry-account-adapter-claude-code/src/lib.rs::ClaudeCodeSessionDriver`
-12. `crates/oya-foundry-account-adapter-codex-cli/src/lib.rs::CodexCliSessionDriver`
-13. `crates/oya-foundry-account-adapter-gemini-cli/src/lib.rs::GeminiCliSessionDriver`
+11. `crates/oya-intelligence-account-adapter-claude-code/src/lib.rs::ClaudeCodeSessionDriver`
+12. `crates/oya-intelligence-account-adapter-codex-cli/src/lib.rs::CodexCliSessionDriver`
+13. `crates/oya-intelligence-account-adapter-gemini-cli/src/lib.rs::GeminiCliSessionDriver`
 14. `crates/oya-intelligence-supervisor-app/src/lib.rs::SupervisorDaemon`
 15. `crates/oya-intelligence-supervisor-app/src/lib.rs::rest_routes`
 16. `crates/oya-intelligence-capability-registry-app/src/lib.rs::register_supervisor_rows`

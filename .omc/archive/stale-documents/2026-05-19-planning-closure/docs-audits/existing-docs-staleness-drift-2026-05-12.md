@@ -54,7 +54,7 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 
 7. **Hyperscaler-best-practices spec is not referenced anywhere in docs tree** — `docs/standards/hyperscaler-best-practices.md` (387 lines, research-backed) has zero cites in 408 doc files. MASTERPLAN Principle 6 mandates adoption. **Fix:** Add systematic cites to TOOLCHAIN.md, standards/code-style.md, standards/ci-lanes.md, standards/code-review.md.
 
-8. **DESIGN.md missing Foundry vision completeness** — §3.0.2 Vision/Speech/Robotics added 2026-05-09 per user directive but robotics-control-plane crate mapping is incomplete; autonomy ceiling carve-out (T4 disabled for actuation) documented but Foundry-kernel references missing. **Fix:** Complete crate mappings in §3.0.2; cite oya-foundry-robotics-control-* and oya-vertical-industrial-robotics-*.
+8. **DESIGN.md missing Foundry vision completeness** — §3.0.2 Vision/Speech/Robotics added 2026-05-09 per user directive but robotics-control-plane crate mapping is incomplete; autonomy ceiling carve-out (T4 disabled for actuation) documented but Foundry-kernel references missing. **Fix:** Complete crate mappings in §3.0.2; cite oya-intelligence-robotics-control-* and oya-vertical-industrial-robotics-*.
 
 ---
 

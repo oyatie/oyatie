@@ -8,12 +8,12 @@
 #
 # Build:
 #   docker build \
-#     --build-arg BIN_NAME=oya-foundry-runtime \
+#     --build-arg BIN_NAME=oya-intelligence-runtime \
 #     --build-arg TARGET=x86_64-unknown-linux-musl \
-#     -f Dockerfile.distroless -t oya-foundry-runtime:dev .
+#     -f Dockerfile.distroless -t oya-intelligence-runtime:dev .
 
 ARG TARGET=x86_64-unknown-linux-musl
-ARG BIN_NAME=oya-foundry-runtime
+ARG BIN_NAME=oya-intelligence-runtime
 ARG RUST_VERSION=1.82
 
 # --- Stage 1: musl builder ------------------------------------------------

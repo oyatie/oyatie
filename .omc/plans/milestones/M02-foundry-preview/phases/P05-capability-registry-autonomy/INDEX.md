@@ -29,7 +29,7 @@ Per [`../../../../../docs/ROADMAP.md`](../../../../../docs/ROADMAP.md) §2.2 W-F
 3 agents in parallel; disjoint crate suffix.
 
 ## Symbols-touched
-`crates/oya-foundry-capability-registry-*`, `crates/oya-governance-autonomy-ceiling-*`, `crates/oya-foundry-rag-endpoint-*`.
+`crates/oya-intelligence-capability-registry-*`, `crates/oya-governance-autonomy-ceiling-*`, `crates/oya-intelligence-rag-endpoint-*`.
 
 ## Agent-handoff
 ```

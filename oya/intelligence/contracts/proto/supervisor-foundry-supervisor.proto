@@ -1,4 +1,4 @@
-// oya-foundry-supervisor — gRPC contract
+// oya-intelligence-supervisor — gRPC contract
 // Peer to contracts/openapi/foundry-supervisor.yaml for clients preferring gRPC.
 // Per ADR-0131 + /specs/foundry-supervisor-control-plane.json.
 

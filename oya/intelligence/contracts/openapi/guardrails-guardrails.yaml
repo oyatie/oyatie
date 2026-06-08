@@ -1,6 +1,6 @@
 openapi: 3.2.0
 info:
-  title: oya-foundry-guardrails
+  title: oya-intelligence-guardrails
   version: 1.0.0
   summary: REST API for foundry-guardrails — prompt classification, output validation, autonomy-ceiling enforcement, content-safety, jailbreak detection, AI-slop detection
   description: |

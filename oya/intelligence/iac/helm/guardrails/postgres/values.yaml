@@ -65,7 +65,7 @@ postgresql-ha:
     allowFrom:
       - podSelector:
           matchLabels:
-            app.kubernetes.io/part-of: oya-foundry-guardrails
+            app.kubernetes.io/part-of: oya-intelligence-guardrails
   backup:
     enabled: true
     schedule: "0 2 * * *"        # daily 2am pack-local

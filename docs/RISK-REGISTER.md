@@ -54,7 +54,7 @@ We score each risk on three dimensions:
 | R-013 | Subscription-mode session breakage (Claude/OpenAI/Gemini change auth flow) | 3 | 4 | 3 | **36** | `axis-foundry` | Per-provider subscription contract tests (top-20 #16); subscription↔API failover; PTY warm pool; idle refresh | Per-provider subscription health probe |
 | R-014 | KCMVP HSM procurement lead-time (6-9 months) blocks KR cloud GA | 4 | 3 | 2 | **24** (~25) | `axis-cloud` + `regional-packs/oya-pack-kr` | Order at month 0 of W-Cloud-Preview per recon; secondary supplier identified | HSM delivery tracking |
 | R-015 | Plugin substrate trust gate failure allows malicious plugin install | 5 | 2 | 3 | **30** | `axis-foundry` (foundry surface — plugin substrate) + `ops-security` | Cosign keyless signing per ADR-0039; Wasmtime sandbox per ADR-0023; plugin trust tiers per ADR-0036; sigstore + Rekor mirror (top-20 D-1) | Plugin signature verification audit; sandbox escape attempts |
-| R-016 | Autonomy-ceiling implementation gap (Cedar policy authored but no runtime enforcement) | 5 | 2 | 3 | **30** | `axis-foundry` | Top-20 #1 — runtime gate, not docs; `oya-foundry-policy` runtime check on every capability invocation | Capability-invocation policy-check log |
+| R-016 | Autonomy-ceiling implementation gap (Cedar policy authored but no runtime enforcement) | 5 | 2 | 3 | **30** | `axis-foundry` | Top-20 #1 — runtime gate, not docs; `oya-intelligence-policy` runtime check on every capability invocation | Capability-invocation policy-check log |
 | R-017 | Per-capability eval set regression on a model upgrade | 3 | 4 | 2 | **24** (~25) | `axis-foundry` | Per-capability eval contract (PRD-shaping #10); golden tasks + nightly run + regression gating | Per-capability eval pass rate trend |
 
 ### 2.4 Medium (score 10-24)
@@ -102,7 +102,7 @@ A real-time risk dashboard tracks for each risk:
 - Mitigation status (% complete)
 - Last review date
 
-Powered by `oya-foundry-risk-tracker` (a capability that aggregates audit-chain events + CI lane status + manual council inputs). Surfaced on `dev.oyatie.com/risks` for internal staff and on `trust.oyatie.com/risks` (filtered) for customers.
+Powered by `oya-intelligence-risk-tracker` (a capability that aggregates audit-chain events + CI lane status + manual council inputs). Surfaced on `dev.oyatie.com/risks` for internal staff and on `trust.oyatie.com/risks` (filtered) for customers.
 
 ---
 

@@ -9,15 +9,15 @@ changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Scaffold the 7 oya-foundry-account-* crates per P00-01.
+purpose: Scaffold the 7 oya-intelligence-account-* crates per P00-01.
 ---
 
 # M02-P00-IP-001 — Clean Architecture skeleton + 7-crate scaffold-claim (ADR-0054 path)
 
 ## Acceptance Criteria
 
-- **AC-001**: All 7 `oya-foundry-account-*` crates scaffold successfully and compile with zero errors.
-  - test_id: `cargo check -p oya-intelligence-account-kernel -p oya-intelligence-account-domain -p oya-foundry-account-app -p oya-foundry-account-adapter-codex-cli -p oya-foundry-account-adapter-claude-code -p oya-foundry-account-adapter-gemini-cli -p oya-foundry-account-adapter-openbao -p oya-foundry-account-runtime`
+- **AC-001**: All 7 `oya-intelligence-account-*` crates scaffold successfully and compile with zero errors.
+  - test_id: `cargo check -p oya-intelligence-account-kernel -p oya-intelligence-account-domain -p oya-intelligence-account-app -p oya-intelligence-account-adapter-codex-cli -p oya-intelligence-account-adapter-claude-code -p oya-intelligence-account-adapter-gemini-cli -p oya-intelligence-account-adapter-openbao -p oya-intelligence-account-runtime`
   - verification_command: `cargo check --workspace --all-features`
 - **AC-002**: Cohesion fitness lane passes for all 7 new crates.
   - test_id: `oya gate validate cohesion`
@@ -37,18 +37,18 @@ purpose: Scaffold the 7 oya-foundry-account-* crates per P00-01.
   - status: pending-spec-author
 
 ## Purpose
-Scaffold the 7 oya-foundry-account-* crates per P00-01.
+Scaffold the 7 oya-intelligence-account-* crates per P00-01.
 
 ## Symbols-to-grit-claim
 ```
 crates/oya-intelligence-account-kernel/src/lib.rs::placeholder
 crates/oya-intelligence-account-domain/src/lib.rs::placeholder
-crates/oya-foundry-account-app/src/lib.rs::placeholder
-crates/oya-foundry-account-adapter-codex-cli/src/lib.rs::placeholder
-crates/oya-foundry-account-adapter-claude-code/src/lib.rs::placeholder
-crates/oya-foundry-account-adapter-gemini-cli/src/lib.rs::placeholder
-crates/oya-foundry-account-adapter-openbao/src/lib.rs::placeholder
-crates/oya-foundry-account-runtime/src/lib.rs::placeholder
+crates/oya-intelligence-account-app/src/lib.rs::placeholder
+crates/oya-intelligence-account-adapter-codex-cli/src/lib.rs::placeholder
+crates/oya-intelligence-account-adapter-claude-code/src/lib.rs::placeholder
+crates/oya-intelligence-account-adapter-gemini-cli/src/lib.rs::placeholder
+crates/oya-intelligence-account-adapter-openbao/src/lib.rs::placeholder
+crates/oya-intelligence-account-runtime/src/lib.rs::placeholder
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

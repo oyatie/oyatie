@@ -18,19 +18,19 @@ resources:
   - service-mesh-tenant-headers.yaml
 
 helmCharts:
-  - name: oya-foundry-runtime-pool
+  - name: oya-intelligence-runtime-pool
     valuesFile: ../../helm/runtime-pool/values.yaml
     releaseName: foundry-runtime-pool
     namespace: foundry-runtime
-  - name: oya-foundry-runtime-redis
+  - name: oya-intelligence-runtime-redis
     valuesFile: ../../helm/redis/values.yaml
     releaseName: foundry-runtime-redis
     namespace: foundry-runtime
-  - name: oya-foundry-runtime-postgres
+  - name: oya-intelligence-runtime-postgres
     valuesFile: ../../helm/postgres/values.yaml
     releaseName: foundry-runtime-postgres
     namespace: foundry-runtime
 
 commonLabels:
-  app.kubernetes.io/part-of: oya-foundry-runtime
+  app.kubernetes.io/part-of: oya-intelligence-runtime
   oyatie/microservice: foundry-runtime

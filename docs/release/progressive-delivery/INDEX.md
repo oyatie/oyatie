@@ -53,7 +53,7 @@ doc_status: published
 
 1. `oya-platform-slo-burn-rate-kernel` — provider-agnostic SLO burn-rate computation.
 2. `oya-platform-tenant-cohort-kernel` — per-tenant cohort assignment + intersection.
-3. `oya-foundry-shadow-diff-kernel` — shadow-output diff classifier.
+3. `oya-intelligence-shadow-diff-kernel` — shadow-output diff classifier.
 4. `oya-platform-rollout-controller-kernel` — Flagger / Argo Rollouts adapter core.
 5. `oya-platform-traffic-mirror-kernel` — mesh-mirror primitive (Istio / Envoy / App Mesh adapters).
 6. `oya-platform-traffic-shift-kernel` — atomic traffic-shift for blue/green cutover.

@@ -39,7 +39,7 @@ crate), packaged with a thin `[[bin]]` runner under
 | Ergonomics on `Cargo.toml` parsing | brittle (TOML edge cases) | first-class (`toml` crate) |
 | Cross-platform CI parity | bash + `grep -P` differs Linux/macOS | identical |
 | Integration with existing foundry lanes | bolt-on | first-class (`oya-governance-*` corpus) |
-| Reuses existing workspace primitives | none | reuses `oya-governance-cargo-prefix-kernel`, `oya-foundry-catalog-kernel` |
+| Reuses existing workspace primitives | none | reuses `oya-governance-cargo-prefix-kernel`, `oya-intelligence-catalog-kernel` |
 
 The kernel is **<400 LOC** (parser + classifier + edge-walker) and lands
 faster than a `bash` reimplementation once cross-platform CI is in
@@ -159,7 +159,7 @@ The lane emits two artifacts:
    }
    ```
    The JSON feeds the foundry evidence pipeline per
-   `oya-foundry-evidence-kernel`.
+   `oya-intelligence-evidence-kernel`.
 
 ## 5. CI wiring
 

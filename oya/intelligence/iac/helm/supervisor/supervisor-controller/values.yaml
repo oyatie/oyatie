@@ -49,7 +49,7 @@ admissionWebhook:
     enabled: true
     issuer: "foundry-supervisor-ca-issuer"
   # Refuse CRD mutations not from supervisor SA SPIFFE identity
-  policy: oya-foundry-supervisor-admission-webhook
+  policy: oya-intelligence-supervisor-admission-webhook
   failurePolicy: Fail  # default-deny on webhook unavailability
 
 opaGatekeeper:

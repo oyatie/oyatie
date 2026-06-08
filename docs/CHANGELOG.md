@@ -279,7 +279,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-12 — Foundry autonomy ceiling policy publish API contract
 
-- Added the stable `foundry.policy.autonomy-ceiling.publish` REST boundary over `oya-foundry-policy-kernel`, including idempotent publish semantics, Cedar policy refs, autonomy decision evidence, and OpenAPI runtime/schema parity.
+- Added the stable `foundry.policy.autonomy-ceiling.publish` REST boundary over `oya-intelligence-policy-kernel`, including idempotent publish semantics, Cedar policy refs, autonomy decision evidence, and OpenAPI runtime/schema parity.
 - Registered `contracts/openapi/foundry/policy-v1.yaml` in the OpenAPI registries, catalog, SPEC, Foundry PRD, and machine-readable contract mirror.
 
 ## 2026-05-12 — Platform DSR cascade execute API contract
@@ -314,7 +314,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-12 — Foundry eval run API contract
 
-- Added `foundry.eval.run` OpenAPI/runtime/schema/catalog parity via `oya-foundry-eval-app`.
+- Added `foundry.eval.run` OpenAPI/runtime/schema/catalog parity via `oya-intelligence-eval-app`.
 - Bound authenticated, idempotent eval-run recording to signed eval sets, mandatory adversarial + linguistic cohorts, pass-threshold enforcement, and stable error envelopes.
 - Mirrored the contract in SPEC, Foundry PRD, machine-readable contracts, and OpenAPI registries.
 

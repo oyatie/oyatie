@@ -1,4 +1,4 @@
-# oya-foundry-providers-postgres Helm values
+# oya-intelligence-providers-postgres Helm values
 # Per-pack override in iac/kustomize/overlays/<pack>/postgres-values.yaml
 
 postgresql:
@@ -35,7 +35,7 @@ postgresql:
     cronjob:
       schedule: "0 2 * * *"   # 02:00 UTC daily
       storage:
-        existingClaim: oya-foundry-providers-postgres-backups
+        existingClaim: oya-intelligence-providers-postgres-backups
         size: 200Gi
         storageClass: oci-bv-archive
   metrics:

@@ -33,9 +33,9 @@ Canon #2 retires the "foundry" brand → **cloud-intelligence** (AI/agent substr
 
 ### C2 — Half-completed `foundry→intelligence` rename, internally inconsistent inside single tables  *(canon #2 + AI-slop internal-contradiction)*
 `products/foundry/PRD.md` is mid-rename: `oya-intelligence-*` crates sit in the SAME tables/rows as `oya-foundry-*` crates, several describing the same seam:
-- `:148` `oya-intelligence-capability-domain` beside `:147,149` `oya-foundry-capability-kernel/app`.
-- `:153` `oya-intelligence-run-domain`; `:170` `oya-intelligence-policy-domain`; `:172` `oya-intelligence-policy-api` ("…over `oya-foundry-policy-kernel`"); `:175` `oya-intelligence-registry-api`; `:178` `oya-intelligence-rag-api`.
-- `:228` autonomy-ceiling seam: trait in `oya-foundry-policy-kernel`, publish fn in `oya-intelligence-policy-api` — one seam, two brand prefixes.
+- `:148` `oya-intelligence-capability-domain` beside `:147,149` `oya-intelligence-capability-kernel/app`.
+- `:153` `oya-intelligence-run-domain`; `:170` `oya-intelligence-policy-domain`; `:172` `oya-intelligence-policy-api` ("…over `oya-intelligence-policy-kernel`"); `:175` `oya-intelligence-registry-api`; `:178` `oya-intelligence-rag-api`.
+- `:228` autonomy-ceiling seam: trait in `oya-intelligence-policy-kernel`, publish fn in `oya-intelligence-policy-api` — one seam, two brand prefixes.
 - `:195-197` fitness crates already renamed `oya-governance-*` (matches canon #2 governance target) while the doc still calls the lane "Foundry engineering platform."
 **Fix:** complete the rename in one pass per canon #2 split; an architecture/contract fitness lane should reject mixed `oya-foundry-*` + `oya-intelligence-*` for the same context.
 

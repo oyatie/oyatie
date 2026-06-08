@@ -1042,9 +1042,9 @@
       "label": "oya-intelligence-cloud-mutation-domain"
     },
     {
-      "id": "crates/oya-foundry-eval-application",
+      "id": "crates/oya-intelligence-eval-application",
       "kind": "crate",
-      "label": "oya-foundry-eval-application"
+      "label": "oya-intelligence-eval-application"
     },
     {
       "id": "crates/oya-governance-eval-domain",
@@ -1072,14 +1072,14 @@
       "label": "oya-intelligence-mdbook-domain"
     },
     {
-      "id": "crates/oya-foundry-meta-rest",
+      "id": "crates/oya-intelligence-meta-rest",
       "kind": "crate",
-      "label": "oya-foundry-meta-rest"
+      "label": "oya-intelligence-meta-rest"
     },
     {
-      "id": "crates/oya-foundry-metadata-augment-cli",
+      "id": "crates/oya-intelligence-metadata-augment-cli",
       "kind": "crate",
-      "label": "oya-foundry-metadata-augment-cli"
+      "label": "oya-intelligence-metadata-augment-cli"
     },
     {
       "id": "microservices/intelligence/crates/oya-intelligence-openapi-domain",
@@ -1092,19 +1092,19 @@
       "label": "oya-intelligence-policy-domain"
     },
     {
-      "id": "crates/oya-foundry-policy-rest",
+      "id": "crates/oya-intelligence-policy-rest",
       "kind": "crate",
-      "label": "oya-foundry-policy-rest"
+      "label": "oya-intelligence-policy-rest"
     },
     {
-      "id": "crates/oya-foundry-rag-rest",
+      "id": "crates/oya-intelligence-rag-rest",
       "kind": "crate",
-      "label": "oya-foundry-rag-rest"
+      "label": "oya-intelligence-rag-rest"
     },
     {
-      "id": "crates/oya-foundry-registry-rest",
+      "id": "crates/oya-intelligence-registry-rest",
       "kind": "crate",
-      "label": "oya-foundry-registry-rest"
+      "label": "oya-intelligence-registry-rest"
     },
     {
       "id": "microservices/intelligence/crates/oya-intelligence-run-domain",

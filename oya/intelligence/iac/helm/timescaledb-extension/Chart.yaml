@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers
 apiVersion: v2
-name: oya-foundry-timescaledb-extension
+name: oya-intelligence-timescaledb-extension
 description: |
   Post-install hook that installs the TimescaleDB 2.26.x community-edition
   (Apache-2.0) extension into the foundry µservice's existing Postgres 18.4

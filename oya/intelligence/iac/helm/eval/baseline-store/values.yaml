@@ -31,11 +31,11 @@ minio:
   # SSE-KMS with per-pack KMS keyring
   serverSideEncryption:
     enabled: true
-    kmsKeyId: "alias/oya-foundry-eval-kek-kr"
+    kmsKeyId: "alias/oya-intelligence-eval-kek-kr"
 
   # Buckets created via post-install Job
   buckets:
-    - name: oya-foundry-eval-baselines-kr
+    - name: oya-intelligence-eval-baselines-kr
       versioning: enabled
       objectLock: enabled
       lifecyclePolicies:
@@ -44,7 +44,7 @@ minio:
           transitions:
             - days: 90
               storageClass: GLACIER
-    - name: oya-foundry-eval-replay-kr
+    - name: oya-intelligence-eval-replay-kr
       versioning: enabled
       objectLock: enabled
       lifecyclePolicies:
@@ -95,7 +95,7 @@ cosignVerifier:
 # Per-subject DEK envelope helper
 dekEnvelope:
   enabled: true
-  kmsKeyringAlias: "alias/oya-foundry-eval-kek-kr"
+  kmsKeyringAlias: "alias/oya-intelligence-eval-kek-kr"
   rotationPolicy:
     dekRotationDays: 90
     kekRotationDays: 365

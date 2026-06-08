@@ -13,7 +13,7 @@
 //! - The [`SubagentRequest`] / [`SubagentResponse`] value types.
 //! - The [`SubagentPort`] trait — one method, `complete`; adapter
 //!   implementations satisfy it (live HTTP via the existing
-//!   `oya-foundry-adapter-anthropic-api-*` substrate, plus the
+//!   `oya-intelligence-adapter-anthropic-api-*` substrate, plus the
 //!   `MockSubagentPort` canonical deterministic-test path).
 //! - The [`FacetFindingJson::render`] serializer that emits the
 //!   exact `evidence/debate/<change_id>-<facet_id>-r1.json` shape

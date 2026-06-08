@@ -1,4 +1,4 @@
-# oya-foundry-providers-router Helm values
+# oya-intelligence-providers-router Helm values
 # Per-pack values override in iac/kustomize/overlays/<pack>/.
 
 image:
@@ -24,7 +24,7 @@ router-rest:
           matchExpressions:
             - key: app.kubernetes.io/name
               operator: In
-              values: [oya-foundry-providers-router-rest]
+              values: [oya-intelligence-providers-router-rest]
         topologyKey: kubernetes.io/hostname
 
 router-worker:
@@ -87,14 +87,14 @@ openbao:
     cacheEnabled: true
 
 postgres:
-  endpoint: "oya-foundry-providers-postgres.<pack>.svc.cluster.local:5432"
+  endpoint: "oya-intelligence-providers-postgres.<pack>.svc.cluster.local:5432"
   database: "providers"
   user: "providers_app"
   # password resolved via OpenBao SecretReference; NOT literal here.
   passwordSecretReference: "openbao://<pack>/internal/foundry-providers/postgres-app-password"
 
 redis:
-  endpoint: "oya-foundry-providers-redis.<pack>.svc.cluster.local:6379"
+  endpoint: "oya-intelligence-providers-redis.<pack>.svc.cluster.local:6379"
   passwordSecretReference: "openbao://<pack>/internal/foundry-providers/redis-app-password"
 
 mesh:
@@ -107,7 +107,7 @@ residency:
 
 eventEmission:
   nats:
-    endpoint: "oya-foundry-evidence-nats.<pack>.svc.cluster.local:4222"
+    endpoint: "oya-intelligence-evidence-nats.<pack>.svc.cluster.local:4222"
     subjects:
       providerInvoked: "oya.foundry.providers.invocation"
       routerDecided: "oya.foundry.providers.router-decided"

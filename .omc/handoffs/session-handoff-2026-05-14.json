@@ -44,8 +44,8 @@
         "missing_artifacts": [
           "/registry/tech-debt-ledger.json (11 ledger rows, schema)",
           "crates/oya-check-dependency-seam-discipline/ (8-sub-check composite lane)",
-          "crates/oya-foundry-trigger-dsl-kernel/ (pure AST + policy)",
-          "crates/oya-foundry-trigger-dsl-runtime/ (file + CI evidence resolver)",
+          "crates/oya-intelligence-trigger-dsl-kernel/ (pure AST + policy)",
+          "crates/oya-intelligence-trigger-dsl-runtime/ (file + CI evidence resolver)",
           "crates/oya-http-sse-kernel/ (rename from oya-http-sse-domain)",
           "ADR-0091..ADR-0094 (4 ADRs)",
           "/registry/dri.json + role-roster.json + CODEOWNERS guard",

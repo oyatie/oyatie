@@ -302,7 +302,7 @@
             },
             {
               "line": 71,
-              "excerpt": "Token-bucket implementation lives in `oya-foundry-providers-router-adapter` (Redis-backed). Per ADR-0117, per-pack Valkey Sentinel HA ensures bucket state survives a single-node failure."
+              "excerpt": "Token-bucket implementation lives in `oya-intelligence-providers-router-adapter` (Redis-backed). Per ADR-0117, per-pack Valkey Sentinel HA ensures bucket state survives a single-node failure."
             }
           ],
           "hits_total": 2
@@ -484,7 +484,7 @@
           "hits": [
             {
               "line": 68,
-              "excerpt": "| [`IP-005-router-adapter.md`](IP-005-router-adapter.md) | `oya-foundry-providers-router-adapter`: Postgres + Valkey repository impls (provider-config + token-bucket) | pending | axis-foundry | IP-001 "
+              "excerpt": "| [`IP-005-router-adapter.md`](IP-005-router-adapter.md) | `oya-intelligence-providers-router-adapter`: Postgres + Valkey repository impls (provider-config + token-bucket) | pending | axis-foundry | IP-001 "
             }
           ],
           "hits_total": 1
@@ -498,7 +498,7 @@
             },
             {
               "line": 153,
-              "excerpt": "| Rate-limit / token-bucket state | Valkey (per-pack; sentinel HA) | `oya-foundry-providers-router-adapter` (token-bucket impl) |"
+              "excerpt": "| Rate-limit / token-bucket state | Valkey (per-pack; sentinel HA) | `oya-intelligence-providers-router-adapter` (token-bucket impl) |"
             }
           ],
           "hits_total": 2
@@ -508,7 +508,7 @@
           "hits": [
             {
               "line": 23,
-              "excerpt": "Sizing formulas + baseline numbers for every Layer-A component (Postgres / Valkey / OpenBao agent) and Layer-B component (`oya-foundry-providers-router-*`, `oya-foundry-providers-adapter-*`). Drives `c"
+              "excerpt": "Sizing formulas + baseline numbers for every Layer-A component (Postgres / Valkey / OpenBao agent) and Layer-B component (`oya-intelligence-providers-router-*`, `oya-intelligence-providers-adapter-*`). Drives `c"
             },
             {
               "line": 113,
@@ -526,7 +526,7 @@
           "hits": [
             {
               "line": 46,
-              "excerpt": "| Valkey (rate-limit / token-bucket state) | `oya-foundry-providers-adapter-*` (8 crates per-vendor + transport) |"
+              "excerpt": "| Valkey (rate-limit / token-bucket state) | `oya-intelligence-providers-adapter-*` (8 crates per-vendor + transport) |"
             },
             {
               "line": 140,
@@ -636,7 +636,7 @@
           "hits": [
             {
               "line": 23,
-              "excerpt": "Sizing formulas + reference-architecture baseline numbers for every layer-A component (Valkey 8.1 (Redis wire-compat) cluster + Postgres 16 LTS) and layer-B component (`oya-foundry-runtime-*`). Drives `cost-budget.md`"
+              "excerpt": "Sizing formulas + reference-architecture baseline numbers for every layer-A component (Valkey 8.1 (Redis wire-compat) cluster + Postgres 16 LTS) and layer-B component (`oya-intelligence-runtime-*`). Drives `cost-budget.md`"
             },
             {
               "line": 52,
@@ -654,7 +654,7 @@
           "hits": [
             {
               "line": 48,
-              "excerpt": "| Valkey 8.1 (Redis wire-compat) OSS LTS (session-state hot tier) | `oya-foundry-runtime-session-state-*` (9 crates) |"
+              "excerpt": "| Valkey 8.1 (Redis wire-compat) OSS LTS (session-state hot tier) | `oya-intelligence-runtime-session-state-*` (9 crates) |"
             },
             {
               "line": 87,
@@ -852,7 +852,7 @@
             },
             {
               "line": 46,
-              "excerpt": "| Valkey Cluster (kill-switch state, supervision-event-bus stream) | `oya-foundry-supervisor-capability-deployment-*` (10 crates) |"
+              "excerpt": "| Valkey Cluster (kill-switch state, supervision-event-bus stream) | `oya-intelligence-supervisor-capability-deployment-*` (10 crates) |"
             },
             {
               "line": 89,
@@ -1186,7 +1186,7 @@
           "hits": [
             {
               "line": 49,
-              "excerpt": "| SeaweedFS / S3-compatible (baseline-outputs + replay traces, per-subject-keyed envelope) | `oya-foundry-eval-parity-analyzer-*` |"
+              "excerpt": "| SeaweedFS / S3-compatible (baseline-outputs + replay traces, per-subject-keyed envelope) | `oya-intelligence-eval-parity-analyzer-*` |"
             }
           ],
           "hits_total": 1

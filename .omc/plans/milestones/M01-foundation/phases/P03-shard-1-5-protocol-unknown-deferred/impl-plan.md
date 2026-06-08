@@ -54,7 +54,7 @@ JUSTIFICATION:
 ```
 
 Specific cases requiring attention:
-- `oya-intelligence-rag-api` (row 74): streaming retrieval → likely `grpc` (server-streaming) OR `rest` with SSE; if multi-protocol, split into `oya-foundry-rag-rest` + `oya-foundry-rag-worker`.
+- `oya-intelligence-rag-api` (row 74): streaming retrieval → likely `grpc` (server-streaming) OR `rest` with SSE; if multi-protocol, split into `oya-intelligence-rag-rest` + `oya-intelligence-rag-worker`.
 - `oya-cloud-observability-api` (row 59): OTLP ingestion typically `grpc`; control-surface `rest`; may require split.
 - `oya-workspace-chat-api` / `oya-connect-messenger-api`: WebSocket/GraphQL subscriptions candidate → `graphql` if async-graphql; `worker` if event-stream consumer.
 

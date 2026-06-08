@@ -48,11 +48,11 @@ mod tests {
     fn rejects_catalog_record_missing_slo_row() {
         assert_eq!(
             validate_slo_coverage(&[SloCatalogRecord {
-                crate_id: "oya-foundry-capability-kernel".into(),
+                crate_id: "oya-intelligence-capability-kernel".into(),
                 slo: None,
             }]),
             Err(SloCoverageError::MissingSlo {
-                crate_id: "oya-foundry-capability-kernel".into()
+                crate_id: "oya-intelligence-capability-kernel".into()
             })
         );
     }
@@ -61,11 +61,11 @@ mod tests {
     fn rejects_blank_slo_row() {
         assert_eq!(
             validate_slo_coverage(&[SloCatalogRecord {
-                crate_id: "oya-foundry-capability-kernel".into(),
+                crate_id: "oya-intelligence-capability-kernel".into(),
                 slo: Some(" ".into()),
             }]),
             Err(SloCoverageError::MissingSlo {
-                crate_id: "oya-foundry-capability-kernel".into()
+                crate_id: "oya-intelligence-capability-kernel".into()
             })
         );
     }
@@ -75,11 +75,11 @@ mod tests {
         assert_eq!(
             validate_slo_coverage(&[
                 SloCatalogRecord {
-                    crate_id: "oya-foundry-capability-kernel".into(),
+                    crate_id: "oya-intelligence-capability-kernel".into(),
                     slo: Some("preview-control-plane".into()),
                 },
                 SloCatalogRecord {
-                    crate_id: "oya-foundry-run-kernel".into(),
+                    crate_id: "oya-intelligence-run-kernel".into(),
                     slo: Some("preview-data-plane".into()),
                 },
             ]),

@@ -17,7 +17,7 @@ length_cap: 120
 
 - **Owner:** axis-foundry.
 - **Severity:** BLOCKER (PR cannot merge if lane red).
-- **Trigger:** every PR touching `crates/oya-intelligence-provider-pool-kernel/**`, `crates/oya-foundry-policy-kernel/**`, or `crates/oya-foundry-adapter-*-compat-api/**`.
+- **Trigger:** every PR touching `crates/oya-intelligence-provider-pool-kernel/**`, `crates/oya-intelligence-policy-kernel/**`, or `crates/oya-intelligence-adapter-*-compat-api/**`.
 - **Check:** simulated routing decision sequence (100 deterministic inputs) → assert every emitted `EVT-PROVIDER-POOL-ROUTING` audit event carries (a) the account_id returned by `pick_account`, (b) the routing_reason, (c) a non-null `tos_ack_ref` when `pool_size > 1`, (d) the trace_id propagated from the inbound request. Any silent account switch (i.e., adapter calls a ProviderAccount not named in the decision) fails the lane.
 - **Implementation:** `tools/oya-governance-pool-routing-honor/src/main.rs`.
 - **Acceptance:** `oya gate validate oya-governance-pool-routing-honor` exit code 0; CI lane name matches the gate name.
@@ -44,10 +44,10 @@ length_cap: 120
 
 - **Owner:** axis-foundry.
 - **Severity:** BLOCKER.
-- **Trigger:** every PR touching `crates/oya-foundry-adapter-*-compat-api/**` or `contracts/foundry-compat-*-v1.openapi.yaml`.
+- **Trigger:** every PR touching `crates/oya-intelligence-adapter-*-compat-api/**` or `contracts/foundry-compat-*-v1.openapi.yaml`.
 - **Check:** generate a sample request from each contract operation; replay against the running adapter; validate the response shape strictly against the upstream OpenAPI schema (Anthropic Messages v1 or OpenAI Chat Completions v1). Any deviation — extra field, missing field, wrong type, wrong SSE framing — fails the lane.
 - **Implementation:** `tools/oya-governance-compat-api-shape-binding/src/main.rs` driving `wiremock` + the live adapter.
-- **Acceptance:** `oya gate validate oya-governance-compat-api-shape-binding` exit code 0; smoke fixtures captured under `crates/oya-foundry-adapter-*-compat-api/tests/fixtures/`.
+- **Acceptance:** `oya gate validate oya-governance-compat-api-shape-binding` exit code 0; smoke fixtures captured under `crates/oya-intelligence-adapter-*-compat-api/tests/fixtures/`.
 
 ## 5. Lane interaction matrix
 

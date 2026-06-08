@@ -12,7 +12,7 @@ purpose: |
 lift_target: oyatie/docs/automation/fitness-lane-reports-pipeline.md
 enforced_by: oya-governance-lane-rollup
 extends_crates:
-  - oya-foundry-eval-kernel
+  - oya-intelligence-eval-kernel
   - oya-governance-quality-lane-kernel
   - oya-intelligence-mdbook-kernel
 companion_docs:
@@ -47,7 +47,7 @@ Every fitness lane writes `target/fitness-reports/<lane-id>.json` on every run:
 }
 ```
 
-The shape is validated by `oya-foundry-eval-kernel`-shaped value-object checks before rollup.
+The shape is validated by `oya-intelligence-eval-kernel`-shaped value-object checks before rollup.
 
 ## 3. Inputs
 

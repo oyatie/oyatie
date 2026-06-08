@@ -318,7 +318,7 @@ Canonical examples (replace draft-5 examples):
 - `oya-shared-eventing-application` — shared BC `eventing`, layer `application`
 - `oya-shared-codeview-cli` — shared BC `codeview` (formerly v3 `oya-tooling-agent-read`), layer `cli`
 - `oya-shared-composition-app` — shared BC `composition` (formerly v3 `oya-foundation-app`), layer `app`
-- `oya-foundry-policy-evaluator-cedar-domain` — vertical `foundry`, BC `policy-evaluator-cedar`, layer `domain`
+- `oya-intelligence-policy-evaluator-cedar-domain` — vertical `foundry`, BC `policy-evaluator-cedar`, layer `domain`
 - `oya-cloud-compute-vm-rest` — vertical `cloud`, BC `compute-vm`, layer `rest`
 - `oya-cloud-storage-object-adapter-aws` — vertical `cloud`, BC `storage-object-adapter-aws` (multi-token BC; AWS-specific adapter), layer (none in this example — actually parses as BC `storage-object`, layer `adapter`, with `aws` as additional BC qualifier; see audit §3 for canonical resolution under the 12-layer enum: ports go in `kernel`, trait impls in `adapter`, framework wrappers in `infrastructure`)
 - `oya-workspace-drive-domain` — vertical `workspace`, BC `drive`, layer `domain`
@@ -477,7 +477,7 @@ that carries business logic), SPLIT it OR document as an Exception in
 12. Pure client library for external consumers? → `sdk`
 
 **Audit implication** for §3: a v3 crate currently named
-`oya-foundry-policy-kernel` might actually be a `domain` crate if it
+`oya-intelligence-policy-kernel` might actually be a `domain` crate if it
 has business logic; the audit must inspect `src/` to classify
 correctly. This may flip layer assignments for some crates relative to
 v3 names. The audit is the source of truth; v3 naming is advisory only.
@@ -632,7 +632,7 @@ Examples of v4.1 `proposed_name` after translation:
   (BC promoted to slot2; domain noun `tenancy` per ADR-0125)
 - `oya-platform-identity-kernel` → `oya-identity-kernel`
 - `oya-platform-audit-chain-kernel` → `oya-audit-chain-kernel`
-- `oya-intelligence-policy-api` → `oya-foundry-policy-rest`
+- `oya-intelligence-policy-api` → `oya-intelligence-policy-rest`
 - `oya-cloud-storage-object-api` → `oya-cloud-storage-object-rest`
 - `oya-foundation-app` → `oya-application-app` (B2B shell µservice)
 - `oya-tooling-agent-read` → `oya-codeview-cli`
@@ -810,26 +810,26 @@ to the flat `check` namespace.
 | # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected |
 |--:|---|---|---|---|---|---|---|---|:-:|--:|
 | 60 | `oya-intelligence-api` | `foundry` | `meta` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry meta-surface; aggregator API; likely REST but iter-4 must confirm. BC = `meta` disambiguates from per-feature foundry-* BCs) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
-| 61 | `oya-foundry-adapter-kernel` | `foundry` | `adapter` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (note: BC is `adapter` as a domain noun — this crate is the foundry's pluggable-adapter framework, not itself a `adapter` layer crate) | `oya-intelligence-adapter-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 63 | `oya-foundry-capability-kernel` | `foundry` | `capability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-capability-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 64 | `oya-foundry-catalog-kernel` | `foundry` | `catalog` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-catalog-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 65 | `oya-foundry-cloud-mutation-kernel` | `foundry` | `cloud-mutation` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-cloud-mutation-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 66 | `oya-foundry-evidence-kernel` | `foundry` | `evidence` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-evidence-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 67 | `oya-foundry-evidence-adapter-file` | `foundry` | `evidence-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` (v3 `*-adapter-file` = trait impl; classified `adapter`) | `oya-intelligence-evidence-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 68 | `oya-foundry-eval-kernel` | `foundry` | `eval` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-governance-eval-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 69 | `oya-foundry-eval-app` | `foundry` | `eval` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-eval-application` | PROPOSED-NEW | 2 | est. 5–10 |
-| 70 | `oya-foundry-mcp-gateway-kernel` | `foundry` | `mcp-gateway` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-mcp-gateway-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 71 | `oya-foundry-policy-kernel` | `foundry` | `policy` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-policy-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 61 | `oya-intelligence-adapter-kernel` | `foundry` | `adapter` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (note: BC is `adapter` as a domain noun — this crate is the foundry's pluggable-adapter framework, not itself a `adapter` layer crate) | `oya-intelligence-adapter-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 63 | `oya-intelligence-capability-kernel` | `foundry` | `capability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-capability-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 64 | `oya-intelligence-catalog-kernel` | `foundry` | `catalog` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-catalog-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 65 | `oya-intelligence-cloud-mutation-kernel` | `foundry` | `cloud-mutation` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-cloud-mutation-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 66 | `oya-intelligence-evidence-kernel` | `foundry` | `evidence` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-evidence-domain` | PROPOSED-NEW | 3 | est. 10–20 |
+| 67 | `oya-intelligence-evidence-adapter-file` | `foundry` | `evidence-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` (v3 `*-adapter-file` = trait impl; classified `adapter`) | `oya-intelligence-evidence-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 68 | `oya-intelligence-eval-kernel` | `foundry` | `eval` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-governance-eval-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 69 | `oya-intelligence-eval-app` | `foundry` | `eval` | `vertical` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-eval-application` | PROPOSED-NEW | 2 | est. 5–10 |
+| 70 | `oya-intelligence-mcp-gateway-kernel` | `foundry` | `mcp-gateway` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-mcp-gateway-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 71 | `oya-intelligence-policy-kernel` | `foundry` | `policy` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-policy-domain` | PROPOSED-NEW | 3 | est. 10–20 |
 | 72 | `oya-intelligence-policy-api` | `foundry` | `policy` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry policy decision API; likely REST request/response) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
 | 73 | `oya-intelligence-registry-api` | `foundry` | `registry` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (capability registry CRUD; likely REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
 | 74 | `oya-intelligence-rag-api` | `foundry` | `rag` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (retrieval-augmented generation; streaming retrieval suggests gRPC or SSE-over-HTTP; multi-protocol candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 75 | `oya-foundry-run-kernel` | `foundry` | `run` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-run-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 76 | `oya-foundry-run-adapter-file` | `foundry` | `run-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-run-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 77 | `oya-foundry-step-kernel` | `foundry` | `step` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-step-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 78 | `oya-foundry-step-adapter-file` | `foundry` | `step-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-step-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 75 | `oya-intelligence-run-kernel` | `foundry` | `run` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-run-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 76 | `oya-intelligence-run-adapter-file` | `foundry` | `run-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-run-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+| 77 | `oya-intelligence-step-kernel` | `foundry` | `step` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-step-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 78 | `oya-intelligence-step-adapter-file` | `foundry` | `step-file` | `vertical` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-step-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
 | 79 | `oya-intelligence-api-semver-kernel` | `foundry` | `api-semver` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-api-semver-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 | 80 | `oya-intelligence-mdbook-kernel` | `foundry` | `mdbook` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-mdbook-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 81 | `oya-foundry-openapi-kernel` | `foundry` | `openapi` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-openapi-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 81 | `oya-intelligence-openapi-kernel` | `foundry` | `openapi` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-openapi-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 | 82 | `oya-governance-cargo-prefix-kernel` | `foundry` | `cargo-prefix` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-intelligence-cargo-prefix-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 
 > Conformant rows (60, 72, 73, 74) need only metadata-block additions, not
@@ -860,20 +860,20 @@ to the flat `check` namespace.
 | 87 | `oya-governance-claim-ceiling-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `claim-ceiling`) | `oya-check-claim-ceiling` | PROPOSED-NEW | 2 | est. 5 |
 | 89 | `oya-governance-cohesion-fitness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cohesion`) | `oya-check-cohesion` | PROPOSED-NEW | 2 | est. 5 |
 | 90 | `oya-governance-constitution-cite-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | ~~`NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `constitution-cite`)~~ SUNSET 2026-05-15 | ~~`oya-check-constitution-cite`~~ SUNSET — crate deleted in commit `526e4bf` (strike: retire docs/CONSTITUTION.md and its enforcement crate) | SUNSET | n/a | n/a |
-| 91 | `oya-foundry-cost-budget-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cost-budget`) | `oya-check-cost-budget` | PROPOSED-NEW | 2 | est. 5 |
+| 91 | `oya-intelligence-cost-budget-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cost-budget`) | `oya-check-cost-budget` | PROPOSED-NEW | 2 | est. 5 |
 | 92 | `oya-governance-data-class-fitness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `data-class`) | `oya-check-data-class` | PROPOSED-NEW | 2 | est. 5 |
 | 93 | `oya-governance-doc-catalog-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `doc-catalog`) | `oya-check-doc-catalog` | PROPOSED-NEW | 2 | est. 5 |
 | 94 | `oya-governance-documentation-system-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `documentation-system`) | `oya-check-documentation-system` | PROPOSED-NEW | 2 | est. 5 |
 | 95 | `oya-governance-glossary-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `glossary-coverage`) | `oya-check-glossary-coverage` | PROPOSED-NEW | 2 | est. 5 |
 | 96 | `oya-governance-glossary-vocabulary-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `glossary-vocabulary`) | `oya-check-glossary-vocabulary` | PROPOSED-NEW | 2 | est. 5 |
 | 97 | `oya-governance-license-policy-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `license-policy`) | `oya-check-license-policy` | PROPOSED-NEW | 2 | est. 5 |
-| 98 | `oya-foundry-mobile-native-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `mobile-native`) | `oya-check-mobile-native` | PROPOSED-NEW | 2 | est. 5 |
+| 98 | `oya-intelligence-mobile-native-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `mobile-native`) | `oya-check-mobile-native` | PROPOSED-NEW | 2 | est. 5 |
 | 99 | `oya-governance-placeholder-debt-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `placeholder-debt`) | `oya-check-placeholder-debt` | PROPOSED-NEW | 2 | est. 5 |
 | 101 | `oya-governance-pre-push-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `pre-push`) | `oya-check-pre-push` | PROPOSED-NEW | 2 | est. 5 |
 | 102 | `oya-governance-quality-lane-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `quality-lane`) | `oya-check-quality-lane` | PROPOSED-NEW | 2 | est. 5 |
 | 103 | `oya-governance-raci-team-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `raci-coverage`) | `oya-check-raci-coverage` | PROPOSED-NEW | 2 | est. 5 |
 | 104 | `oya-governance-readme-doc-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `readme-coverage`) | `oya-check-readme-coverage` | PROPOSED-NEW | 2 | est. 5 |
-| 105 | `oya-foundry-release-evidence-pack-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `release-pack`) | `oya-check-release-pack` | PROPOSED-NEW | 3 | est. 10–20 |
+| 105 | `oya-intelligence-release-evidence-pack-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `release-pack`) | `oya-check-release-pack` | PROPOSED-NEW | 3 | est. 10–20 |
 | 106 | `oya-governance-runbook-freshness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `runbook-freshness`) | `oya-check-runbook-freshness` | PROPOSED-NEW | 2 | est. 5 |
 | 107 | `oya-governance-runbook-index-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `runbook-index`) | `oya-check-runbook-index` | PROPOSED-NEW | 2 | est. 5 |
 | 108 | `oya-governance-slo-coverage-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `slo-coverage`) | `oya-check-slo-coverage` | PROPOSED-NEW | 2 | est. 5 |
@@ -1929,7 +1929,7 @@ multi-token)**:
 - Granularity within a vertical is expressed via multi-token bounded
   contexts (slot 3), where granularity-by-name is already the
   established pattern (e.g., `oya-cloud-storage-object-adapter`,
-  `oya-foundry-policy-evaluator-domain`).
+  `oya-intelligence-policy-evaluator-domain`).
 
 **Reserved literal**: `shared` is RESERVED as a non-vertical literal
 in slot 2. The verticals registry MUST refuse any entry whose `name ==
@@ -2088,7 +2088,7 @@ Other verticals can opt-in:
   → REFUSED (target layer `domain` ∉ `cloud.public_layers`); the
   workspace crate must consume cloud-storage via the SDK or
   via a `shared` mediating crate.
-- `oya-foundry-eval-application` depending on `oya-cloud-storage-object-sdk`
+- `oya-intelligence-eval-application` depending on `oya-cloud-storage-object-sdk`
   → ALLOWED (same reason; foundry is a separate vertical but cloud's
   SDK is on the public allowlist).
 - `oya-shared-audit-chain-domain` depending on `oya-cloud-storage-object-domain`

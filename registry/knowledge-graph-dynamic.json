@@ -141,7 +141,7 @@
       "predicate": "reads",
       "object_id": "SecretStorePort",
       "object_type": "Block",
-      "object_description": "SecretStorePort trait implemented by oya-foundry-account-adapter-openbao; resolves sref://openbao/... references to actual secret values at render time",
+      "object_description": "SecretStorePort trait implemented by oya-intelligence-account-adapter-openbao; resolves sref://openbao/... references to actual secret values at render time",
       "added_at": "2026-05-15T00:00:00Z",
       "added_by": "worker-registry",
       "source_amendment": "v6-PRE-4",

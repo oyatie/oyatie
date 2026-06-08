@@ -10,17 +10,17 @@ use std::time::{SystemTime, UNIX_EPOCH};
 fn catalog_validate_cli_checks_workspace_members_against_registry_records() {
     let temp = temp_dir("catalog-valid");
     fs::create_dir_all(temp.join("registry/catalog")).expect("registry dir created");
-    fs::create_dir_all(temp.join("crates/oya-foundry-capability-kernel"))
+    fs::create_dir_all(temp.join("crates/oya-intelligence-capability-kernel"))
         .expect("crate dir created");
     fs::write(
         temp.join("Cargo.toml"),
         r#"[workspace]
-members = ["crates/oya-foundry-capability-kernel"]
+members = ["crates/oya-intelligence-capability-kernel"]
 "#,
     )
     .expect("workspace manifest written");
     fs::write(
-        temp.join("registry/catalog/oya-foundry-capability-kernel.yaml"),
+        temp.join("registry/catalog/oya-intelligence-capability-kernel.yaml"),
         "context: foundry\nrole: kernel\ncapability: capability\nplane: control\ndata_classes_owned: [INTERNAL_ONLY]\napi_stability: preview\nsecurity_review: unreviewed\nsupply_chain: source-only\n",
     )
     .expect("catalog record written");
@@ -56,12 +56,12 @@ members = ["crates/oya-foundry-capability-kernel"]
 fn catalog_validate_cli_rejects_missing_workspace_record() {
     let temp = temp_dir("catalog-missing");
     fs::create_dir_all(temp.join("registry/catalog")).expect("registry dir created");
-    fs::create_dir_all(temp.join("crates/oya-foundry-capability-kernel"))
+    fs::create_dir_all(temp.join("crates/oya-intelligence-capability-kernel"))
         .expect("crate dir created");
     fs::write(
         temp.join("Cargo.toml"),
         r#"[workspace]
-members = ["crates/oya-foundry-capability-kernel"]
+members = ["crates/oya-intelligence-capability-kernel"]
 "#,
     )
     .expect("workspace manifest written");

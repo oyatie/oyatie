@@ -4,7 +4,7 @@ parent: ../../INDEX.md
 id: M02-P00
 title: Account-Auth Contracts (Phase 00 lift)
 status: complete
-purpose: Lift Foundry Phase 00 account-auth contract surface from foundry-salvage into `oyatie/docs/products/foundry/PHASE-00-SPEC.md` and ship the seven `oya-foundry-account-*` crates under Clean Architecture.
+purpose: Lift Foundry Phase 00 account-auth contract surface from foundry-salvage into `oyatie/docs/products/foundry/PHASE-00-SPEC.md` and ship the seven `oya-intelligence-account-*` crates under Clean Architecture.
 ---
 
 # M02-P00 — Account-Auth Contracts
@@ -28,7 +28,7 @@ Per [`../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`]
 IP-001 serializes (scaffold-claim under `scaffold-locks-oyatie`); IP-002 + IP-003 fan out to 2-3 agents after IP-001 merge.
 
 ## Symbols-touched
-`crates/oya-foundry-account-{kernel,domain,app,adapter-codex-cli,adapter-claude-code,adapter-gemini-cli,adapter-openbao,runtime}-*`, `docs/products/foundry/PHASE-00-SPEC.md` (new), ADR-0XXX local-OpenBao-as-default-SecretStorePort.
+`crates/oya-intelligence-account-{kernel,domain,app,adapter-codex-cli,adapter-claude-code,adapter-gemini-cli,adapter-openbao,runtime}-*`, `docs/products/foundry/PHASE-00-SPEC.md` (new), ADR-0XXX local-OpenBao-as-default-SecretStorePort.
 
 ## Agent-handoff
 ```

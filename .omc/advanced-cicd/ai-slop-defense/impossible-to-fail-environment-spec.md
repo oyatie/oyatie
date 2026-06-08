@@ -35,7 +35,7 @@ not at code-review or social agreement.
 | **I-06** | No agent can emit PII to logs. | Compile (L0) + pre-commit (L1) | `data_class:` struct annotation + `tracing` field-filter macro. |
 | **I-07** | No agent can land a migration without rollback evidence. | CI (L2) | `oya-governance-schema-migration` + per-tenant + per-cell rollback lanes. |
 | **I-08** | No agent can hide instructions via Unicode (BiDi controls). | Pre-commit (L1) + CI (L2) | `oya-governance-unicode-discipline`. |
-| **I-09** | No agent can orphan a `tokio::spawn`. | Compile (L0) + runtime (L6) | `clippy::disallowed_methods` deny bare `tokio::spawn`; `oya-foundry-task-supervisor` wrapper. |
+| **I-09** | No agent can orphan a `tokio::spawn`. | Compile (L0) + runtime (L6) | `clippy::disallowed_methods` deny bare `tokio::spawn`; `oya-intelligence-task-supervisor` wrapper. |
 | **I-10** | Every Sev-1 / Sev-2 produces a new mechanical prevention before the next merge into `main`. | Governance (L8) | `oya-governance-mistakes-ledger-cite`. |
 
 ## 2. Mechanical preventions

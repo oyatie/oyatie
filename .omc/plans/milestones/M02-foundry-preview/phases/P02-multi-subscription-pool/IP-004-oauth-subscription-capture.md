@@ -11,7 +11,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
-  Extend `oya-foundry-agent-runtime::foundry::auth` with a Claude.ai-subscription-specific
+  Extend `oya-intelligence-agent-runtime::foundry::auth` with a Claude.ai-subscription-specific
   OAuth capture path (and an OpenAI parallel where applicable). Operator launches the flow
   from the operator console; browser handles the PKCE handshake against the upstream
   provider; oyatie receives the redirect on a loopback port (35593 default, matching
@@ -20,11 +20,11 @@ purpose: |
   `EVT-PROVIDER-ACCOUNT-VERIFIED`. Raw token never enters repo, chat, checkpoint, log, or
   trace.
 grit_claim_symbols:
-  - "crates/oya-foundry-agent-runtime/src/foundry/auth.rs::capture_subscription_token"
-  - "crates/oya-foundry-agent-runtime/src/foundry/auth.rs::SubscriptionOAuthFlow"
-  - "crates/oya-foundry-agent-runtime/src/foundry/auth.rs::SubscriptionTokenCaptureRequest"
-  - "crates/oya-foundry-agent-runtime/src/foundry/auth.rs::SubscriptionTokenCaptureResponse"
-  - "crates/oya-foundry-agent-runtime/src/foundry/auth.rs::OAuthLoopbackServer"
+  - "crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::capture_subscription_token"
+  - "crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::SubscriptionOAuthFlow"
+  - "crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::SubscriptionTokenCaptureRequest"
+  - "crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::SubscriptionTokenCaptureResponse"
+  - "crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::OAuthLoopbackServer"
 agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
   - ./INDEX.md
@@ -67,12 +67,12 @@ the storage discipline: the token *only* exists in transit; on receipt it is wra
 ## Symbols to grit-claim
 
 ```
-crates/oya-foundry-agent-runtime/src/foundry/auth.rs::capture_subscription_token
-crates/oya-foundry-agent-runtime/src/foundry/auth.rs::SubscriptionOAuthFlow
-crates/oya-foundry-agent-runtime/src/foundry/auth.rs::SubscriptionTokenCaptureRequest
-crates/oya-foundry-agent-runtime/src/foundry/auth.rs::SubscriptionTokenCaptureResponse
-crates/oya-foundry-agent-runtime/src/foundry/auth.rs::OAuthLoopbackServer
-crates/oya-foundry-agent-runtime/src/foundry/auth.rs::FlowKind
+crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::capture_subscription_token
+crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::SubscriptionOAuthFlow
+crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::SubscriptionTokenCaptureRequest
+crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::SubscriptionTokenCaptureResponse
+crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::OAuthLoopbackServer
+crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::FlowKind
 ```
 
 ### Flow
@@ -99,7 +99,7 @@ Before `grit claim`, the agent **MUST**:
 1. `icm recall-context "P02 oauth subscription capture claude.ai openbao" --limit 5`.
 2. Read `docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md` (mandatory).
 3. Read `.omc/standards/security-review.md §7` (secret handling).
-4. Confirm `crates/oya-foundry-agent-runtime/src/foundry/auth.rs::capture_subscription_token` unclaimed via `oya-tooling-agent-read grit-status`.
+4. Confirm `crates/oya-intelligence-agent-runtime/src/foundry/auth.rs::capture_subscription_token` unclaimed via `oya-tooling-agent-read grit-status`.
 5. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/forbidden-operations.json` (FO-01..FO-10; specifically: no raw secrets in repo / log / chat / checkpoint).
 6. Read parent INDEX `./INDEX.md`.
 <!-- agent-instructions:end -->
@@ -109,13 +109,13 @@ Before `grit claim`, the agent **MUST**:
 ## Acceptance test commands
 
 ```
-$ cargo nextest run -p oya-foundry-agent-runtime --test subscription_oauth_capture  # expect: PASS, 0 failures
-$ cargo clippy -p oya-foundry-agent-runtime -- -D warnings                          # expect: PASS, 0 warnings
+$ cargo nextest run -p oya-intelligence-agent-runtime --test subscription_oauth_capture  # expect: PASS, 0 failures
+$ cargo clippy -p oya-intelligence-agent-runtime -- -D warnings                          # expect: PASS, 0 warnings
 $ cargo deny check                                                                  # expect: PASS
 $ oya gate validate oya-governance-secret-rotation                             # expect: PASS
-$ node scripts/hooks/guard-secrets.mjs --scan crates/oya-foundry-agent-runtime      # expect: PASS (no raw token strings)
-$ trufflehog filesystem crates/oya-foundry-agent-runtime --only-verified            # expect: 0 findings
-$ gitleaks detect --source crates/oya-foundry-agent-runtime --no-banner             # expect: 0 leaks
+$ node scripts/hooks/guard-secrets.mjs --scan crates/oya-intelligence-agent-runtime      # expect: PASS (no raw token strings)
+$ trufflehog filesystem crates/oya-intelligence-agent-runtime --only-verified            # expect: 0 findings
+$ gitleaks detect --source crates/oya-intelligence-agent-runtime --no-banner             # expect: 0 leaks
 $ oya-tooling-agent-read run-evidence "scripts/smoke/oauth-capture-mock-server.sh"  # expect: mock IdP → loopback → SecretReference returned; raw-token redaction scan = 0 hits in audit chain
 ```
 

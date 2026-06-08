@@ -916,7 +916,7 @@
     {
       "adr": "ADR-0097",
       "number": 97,
-      "title": "Rename `oya-foundry-account-adapter-*` — Layer Token Must Be Last",
+      "title": "Rename `oya-intelligence-account-adapter-*` — Layer Token Must Be Last",
       "status": "accepted",
       "owner": "council-architecture",
       "date": "2026-05-15",

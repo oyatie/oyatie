@@ -39,7 +39,7 @@ Per [ADR-0055](../../decisions/ADR-0055-four-layer-branch-pipeline.md), Search c
 
 ## 3. Ranker rollout (the most common case)
 
-1. **Dark-launch.** 100% mirror of production query traffic; new ranker produces shadow rankings; `oya-foundry-shadow-diff-kernel` diffs top-10 overlap + per-position position-bias-corrected delta.
+1. **Dark-launch.** 100% mirror of production query traffic; new ranker produces shadow rankings; `oya-intelligence-shadow-diff-kernel` diffs top-10 overlap + per-position position-bias-corrected delta.
 2. **Hold-out test set replay.** Versioned golden query set replays against the new ranker; quality metric (nDCG / MRR) tracked.
 3. **Canary cohort A/B.** 1% → 5% → 25% on `canary-eligible` cohort; both control and treatment served; quality metric AND business metric (engagement, follow-up query rate) measured.
 4. **Promote.** Full rollout, with `stable-regulated` lagged 28 d.

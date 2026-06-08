@@ -74,7 +74,7 @@ Per stage, emit a single D14 artefact aggregating:
 - Cohort intersection results.
 - Lockstep verdict (promote / hold / abort).
 
-Stored in `oya-foundry-evidence-kernel`; verified by `oya-governance-rollback-evidence`.
+Stored in `oya-intelligence-evidence-kernel`; verified by `oya-governance-rollback-evidence`.
 
 ## 8. Rollback
 

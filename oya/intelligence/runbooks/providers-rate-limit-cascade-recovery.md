@@ -68,7 +68,7 @@ ONE of:
 | Gemini API | 60 req/min, 32K tok/min | tier-dependent | Per vendor docs |
 | in-house | per-pod-served-capacity | per pack capacity | self-served; no upstream throttle |
 
-Token-bucket implementation lives in `oya-foundry-providers-router-adapter` (Redis-backed). Per ADR-0117, per-pack Valkey Sentinel HA ensures bucket state survives a single-node failure.
+Token-bucket implementation lives in `oya-intelligence-providers-router-adapter` (Redis-backed). Per ADR-0117, per-pack Valkey Sentinel HA ensures bucket state survives a single-node failure.
 
 ## Cost Ceiling Tuning
 

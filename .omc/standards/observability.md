@@ -99,7 +99,7 @@ Every log line carries:
 |---|---|---|---|
 | `timestamp` | ISO-8601 UTC | YES | nanosecond precision |
 | `severity` | string | YES | `ERROR`/`WARN`/`INFO`/`DEBUG`/`TRACE` |
-| `service` | string | YES | crate package name (`oya-foundry-runtime-rag`) |
+| `service` | string | YES | crate package name (`oya-intelligence-runtime-rag`) |
 | `version` | string | YES | git SHA short |
 | `trace_id` | hex | when in span | W3C trace context |
 | `span_id` | hex | when in span | W3C span context |

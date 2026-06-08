@@ -19,8 +19,8 @@ Ship Gemini adapter in both API and subscription auth modes.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-adapter-gemini-api/src/lib.rs::GeminiApiAdapter
-crates/oya-foundry-adapter-gemini-subscription/src/lib.rs::GeminiSubscriptionAdapter
+crates/oya-intelligence-adapter-gemini-api/src/lib.rs::GeminiApiAdapter
+crates/oya-intelligence-adapter-gemini-subscription/src/lib.rs::GeminiSubscriptionAdapter
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

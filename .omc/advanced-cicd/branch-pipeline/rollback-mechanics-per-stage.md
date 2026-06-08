@@ -93,7 +93,7 @@ For regulated tenants (per [ADR-0034](../../../docs/decisions/ADR-0034-per-verti
 
 ## 7. Rollback evidence catalogue
 
-Every rollback emits a signed D14 artefact via `oya-foundry-evidence-kernel`:
+Every rollback emits a signed D14 artefact via `oya-intelligence-evidence-kernel`:
 
 | Rollback class | Artefact shape | Signed by | Stored in |
 |---|---|---|---|

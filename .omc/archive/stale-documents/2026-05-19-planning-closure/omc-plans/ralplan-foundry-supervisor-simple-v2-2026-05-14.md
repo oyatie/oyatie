@@ -101,7 +101,7 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v2-2026-0
 | `serve(addr, router, chain, ServerConfig) -> Result<(), HyperRuntimeError>` | `crates/oya-http-runtime-hyper-adapter/src/lib.rs` | 284–335 | Real hyper server; `tokio` runtime; `ServerConfig::with_*`. |
 | `Router<SyncHandler>` + `MiddlewareChain` + `dispatch` | same | 206–221 + middleware-kernel | Real router; we use this for the supervisor's webhook surface (Branch §B.7). |
 | `oya-intelligence-api-rest-adapter` | `crates/oya-intelligence-api-rest-adapter/src/lib.rs` | 1–68 | **CONFIRMED STUB** — `handle()` returns fixed `RestResponse { status_code: 200 }`. No real router. **Not used for supervisor mountpoint.** |
-| `oya-foundry-account-adapter-{claude-code,codex-cli,gemini-cli}` | each crate's `src/lib.rs` | L1–3 only | **All three are `pub fn placeholder() {}` skeletons.** No real CLI invocation logic yet — this is a finding, not a regression. |
+| `oya-intelligence-account-adapter-{claude-code,codex-cli,gemini-cli}` | each crate's `src/lib.rs` | L1–3 only | **All three are `pub fn placeholder() {}` skeletons.** No real CLI invocation logic yet — this is a finding, not a regression. |
 | Workspace deps | `Cargo.toml` | 481–492 | `tracing`, `hyper`, `hyper-util`, `tokio` (rt-multi-thread, net, macros), `http-body-util`, `bytes`. **No `rustix`, no `async-trait`, no `nix`, no `serde`, no `criterion`.** |
 | Capability seed file | `registry/capabilities/foundry-internal.json` | 8.8 KB, 50+ caps | Confirmed exists; T4 count must be 0 (capability-registry-app:307). |
 | Cedar policy files | `policy/` or `policies/` or `registry/` | **None found** | RISK: no `.cedar` files exist yet. Supervisor capability rows must NOT cite non-existent files. See §B.8. |
@@ -115,7 +115,7 @@ purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v2-2026-0
 | `oya-intelligence-supervisor-kernel` | `oya-<foundry>-<supervisor>-<kernel>` — foundry is the registered µservice (`Cargo.toml:290`); supervisor is the new feature target; kernel is layer #1 of the 12-layer enum (pure types, no I/O). |
 | `oya-intelligence-supervisor-app` | Same prefix; app is layer #4 — orchestrates kernel ports, owns the tokio runtime, hosts `benches/heartbeat.rs`. |
 | `oya-intelligence-jsonl-supervisor-adapter` | `oya-<foundry>-<jsonl-supervisor>-<adapter>` — jsonl-supervisor is the target slot (file-format + feature compound; same shape as `oya-cloud-storage-block-adapter`); adapter is layer #5; the ONLY crate that does `std::fs` writes + rename. |
-| `oya-foundry-supervisor-conformance` | `oya-<foundry>-<supervisor>-<conformance>` — conformance is a target slot (not a layer; same as `oya-adapter-substitution-test`). Stand-alone test crate that emits the capability registry seed row for each driver at its measured T-level. Declared HERE (not inline) per Architect feedback. |
+| `oya-intelligence-supervisor-conformance` | `oya-<foundry>-<supervisor>-<conformance>` — conformance is a target slot (not a layer; same as `oya-adapter-substitution-test`). Stand-alone test crate that emits the capability registry seed row for each driver at its measured T-level. Declared HERE (not inline) per Architect feedback. |
 
 **Bench harness file:** `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs` — declared as part of supervisor-app, not a separate crate. Build target = `[[bench]] name = "heartbeat"` in supervisor-app `Cargo.toml`.
 
@@ -531,12 +531,12 @@ The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on
 | Doc-coverage suite (lean-a5) per crate | `docs/foundry/supervisor/{README,architecture,operations,security,sample-payloads}.md` for each of 4 new crates |
 | Capability seed | `registry/capabilities/foundry-supervisor.toml` |
 | Bench harness | `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs` |
-| Conformance build script | `crates/oya-foundry-supervisor-conformance/build.rs` (emits measured T-tier into seed file at build time) |
+| Conformance build script | `crates/oya-intelligence-supervisor-conformance/build.rs` (emits measured T-tier into seed file at build time) |
 
 **Renames (prerequisite ADR, NOT part of this plan):**
-- `oya-foundry-account-adapter-claude-code` → `oya-intelligence-claude-account-adapter`
-- `oya-foundry-account-adapter-codex-cli` → `oya-intelligence-codex-account-adapter`
-- `oya-foundry-account-adapter-gemini-cli` → `oya-intelligence-gemini-account-adapter`
+- `oya-intelligence-account-adapter-claude-code` → `oya-intelligence-claude-account-adapter`
+- `oya-intelligence-account-adapter-codex-cli` → `oya-intelligence-codex-account-adapter`
+- `oya-intelligence-account-adapter-gemini-cli` → `oya-intelligence-gemini-account-adapter`
 
 ### B.11 Verification gates (concrete commands; runnable as-is)
 
@@ -550,16 +550,16 @@ The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on
 | Watchdog timing | `cargo test -p oya-intelligence-supervisor-app --test lifecycle watchdog_kill_p95` |
 | Dead-letter lane | `cargo test -p oya-intelligence-supervisor-app --test lifecycle poison_message_quarantine_after_3` |
 | Audit chain | `cargo test -p oya-intelligence-supervisor-app --test audit_chain` |
-| Conformance — Codex | `OYA_DRIVER=codex cargo test -p oya-foundry-supervisor-conformance -- stop_hook_codex --test-threads=1` |
-| Conformance — Gemini | `OYA_DRIVER=gemini cargo test -p oya-foundry-supervisor-conformance -- stop_hook_gemini --test-threads=1` |
-| Conformance — Claude | `OYA_DRIVER=claude cargo test -p oya-foundry-supervisor-conformance -- stop_hook_claude --test-threads=1` |
+| Conformance — Codex | `OYA_DRIVER=codex cargo test -p oya-intelligence-supervisor-conformance -- stop_hook_codex --test-threads=1` |
+| Conformance — Gemini | `OYA_DRIVER=gemini cargo test -p oya-intelligence-supervisor-conformance -- stop_hook_gemini --test-threads=1` |
+| Conformance — Claude | `OYA_DRIVER=claude cargo test -p oya-intelligence-supervisor-conformance -- stop_hook_claude --test-threads=1` |
 | Capability seed emitted | `test -f registry/capabilities/foundry-supervisor.toml && grep -c '\[\[driver\]\]' registry/capabilities/foundry-supervisor.toml | grep -q '^3$'` |
-| Capability seed loads | `cargo test -p oya-foundry-supervisor-conformance -- seed_loads_and_publishes_to_registry` |
+| Capability seed loads | `cargo test -p oya-intelligence-supervisor-conformance -- seed_loads_and_publishes_to_registry` |
 | Bench harness | `cargo test --release -p oya-intelligence-supervisor-app --bench heartbeat` |
 | Live smoke matrix | `OYA_LIVE_SMOKE=1 cargo test -p oya-intelligence-supervisor-app --test matrix_3x2x2 -- --include-ignored --test-threads=1` |
 | Lean-a10 (no kernel surface change) | `cargo public-api -p oya-intelligence-route-policy-kernel \| diff - .omc/snapshots/route-policy-kernel.public-api.txt` (snapshot stays byte-identical) |
 | Lean-a5 doc coverage | `cargo run -p oya-check-doc-catalog -- --crate oya-intelligence-supervisor-kernel --require README,architecture,operations,security,sample-payloads` (repeat for each of 4 crates) |
-| Predictable naming | `cargo run -p oya-governance-predictable-naming-kernel -- --check crates/oya-foundry-supervisor-{kernel,app,conformance} crates/oya-intelligence-jsonl-supervisor-adapter` |
+| Predictable naming | `cargo run -p oya-governance-predictable-naming-kernel -- --check crates/oya-intelligence-supervisor-{kernel,app,conformance} crates/oya-intelligence-jsonl-supervisor-adapter` |
 | Banned primitives | `cargo run -p oya-governance-banned-primitives-kernel -- --check crates/oya-intelligence-supervisor-app` (must show only sanctioned `grit`/`icm`/`oya-tooling-agent-read`) |
 | Net-new dep count | `cargo metadata --format-version 1 \| jq '[.packages[] \| select(.source != null) \| .name] \| length'` baseline vs after (must be **equal** — Branch Y) |
 
@@ -599,8 +599,8 @@ The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on
 | 30 | `crates/oya-intelligence-supervisor-app/tests/crash_injection.rs::*` | M02-P01 | |
 | 31 | `crates/oya-intelligence-supervisor-app/tests/audit_chain.rs::*` | M02-P01 | |
 | 32 | `crates/oya-intelligence-supervisor-app/tests/matrix_3x2x2.rs::*` | M02-P01 | Gated on `$OYA_LIVE_SMOKE` |
-| 33 | `crates/oya-foundry-supervisor-conformance/build.rs::main` | M02-P01 | Emits T-tier into seed file |
-| 34 | `crates/oya-foundry-supervisor-conformance/src/lib.rs::*` | M02-P01 | |
+| 33 | `crates/oya-intelligence-supervisor-conformance/build.rs::main` | M02-P01 | Emits T-tier into seed file |
+| 34 | `crates/oya-intelligence-supervisor-conformance/src/lib.rs::*` | M02-P01 | |
 | 35 | `registry/capabilities/foundry-supervisor.toml::header` | M02-P01 | Seed file (build.rs writes T-tiers) |
 | 36 | `.omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway/INDEX.md::add-ip-supervisor-row` | M02-P01 | |
 | 37 | `.omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway/IP-NNN-supervisor.md::header` | M02-P01 | Phase IP |
@@ -626,13 +626,13 @@ The lean-a10 lane runs **only on the owner phase**. lean-a5-doc-coverage runs on
 | C.6 | **Watchdog kill timing lane green** — fake driver `loop{sleep(1s)}` killed within 5.0s p95 | row 6 |
 | C.7 | **Dead-letter lane green** — poison line moves to `dead-letter/` after 3 retries; tier demoted by 1 step | row 7 |
 | C.8 | Audit chain test passes; every spawn/commit emits an `EvidenceRef` (capability-registry-kernel:27) linked to capability_id | row 8 |
-| C.9 | **Codex stop-hook verification** — `crates/oya-foundry-supervisor-conformance/artifacts/codex-stop-hook.json` exists with `{stop_hook_count: 1, idempotency_replay: ok}` | row 9 |
-| C.10 | **Gemini stop-hook verification** — `crates/oya-foundry-supervisor-conformance/artifacts/gemini-stop-hook.json` exists; if `request_id_supported=false`, tier demoted to T2Suggest is RECORDED | row 10 |
+| C.9 | **Codex stop-hook verification** — `crates/oya-intelligence-supervisor-conformance/artifacts/codex-stop-hook.json` exists with `{stop_hook_count: 1, idempotency_replay: ok}` | row 9 |
+| C.10 | **Gemini stop-hook verification** — `crates/oya-intelligence-supervisor-conformance/artifacts/gemini-stop-hook.json` exists; if `request_id_supported=false`, tier demoted to T2Suggest is RECORDED | row 10 |
 | C.11 | Claude stop-hook verification — equivalent artifact at T1 baseline | row 11 |
 | C.12 | **Capability seed file** `registry/capabilities/foundry-supervisor.toml` exists with exactly 3 `[[driver]]` blocks, each carrying a measured `autonomy_tier` filled by the conformance build.rs | rows 12, 13 |
 | C.13 | Bench harness produces 4 measured metrics: idle-tick p95 ≤ 25 tok, restart p95 ≤ 1.5s, RSS ≤ 64 MiB, watchdog kill ≤ 5.0s | row 14 |
 | C.14 | **Live smoke matrix green** — 3×CLI × 2×accounts × 2×providers = 12 combinations each process at least 1 message and commit at least 1 outbox line | row 15 |
-| C.15 | **Lean-a10 public-API snapshot stays byte-identical** for `oya-intelligence-route-policy-kernel`, `oya-intelligence-usage-window-kernel`, `oya-cloud-billing-kernel`, `oya-intelligence-account-domain`, `oya-governance-autonomy-ceiling-{kernel,domain,app}`, `oya-foundry-capability-registry-{kernel,domain,app}` (no kernel touched) | row 16 |
+| C.15 | **Lean-a10 public-API snapshot stays byte-identical** for `oya-intelligence-route-policy-kernel`, `oya-intelligence-usage-window-kernel`, `oya-cloud-billing-kernel`, `oya-intelligence-account-domain`, `oya-governance-autonomy-ceiling-{kernel,domain,app}`, `oya-intelligence-capability-registry-{kernel,domain,app}` (no kernel touched) | row 16 |
 | C.16 | Lean-a5 doc-coverage green for all 4 new crates | row 17 |
 | C.17 | Predictable-naming + banned-primitives lanes green for the 4 new crates | rows 18, 19 |
 | C.18 | **Net-new external dep count = 0** (Branch Y) — `cargo metadata` package count unchanged | row 20 |
@@ -652,7 +652,7 @@ Open-questions appended to: `/Users/jasonlee/oyatie/.omc/plans/open-questions.md
 ## §E. Open questions (append to `.omc/plans/open-questions.md`)
 
 1. **Cedar policy bootstrap** — zero `.cedar` files exist in the workspace; supervisor capabilities carry `Cedar policy path = TBD`. Should this plan block on `ADR-cedar-policy-bootstrap` landing, or proceed with autonomy-ceiling-only enforcement and a follow-up ADR? Recommendation: proceed; track risk.
-2. **Driver-crate rename ADR ordering** — does the rename ADR (`oya-foundry-account-adapter-*` → `oya-foundry-*-account-adapter`) need to merge BEFORE this plan starts, or can it land in the same PR train? Recommendation: separate ADR merges first.
+2. **Driver-crate rename ADR ordering** — does the rename ADR (`oya-intelligence-account-adapter-*` → `oya-foundry-*-account-adapter`) need to merge BEFORE this plan starts, or can it land in the same PR train? Recommendation: separate ADR merges first.
 3. **`api-rest-adapter` future** — by side-stepping the stub, do we commit to it remaining a stub until M02-P04? Or does this plan create pressure to land the real router earlier? Recommendation: stays stub until M02-P04.
 4. **Gemini idempotency** — if a future Gemini SDK release ships an idempotency key, who is responsible for re-running the conformance crate to re-measure the tier? Recommendation: lean-a5-doc-coverage row in the gemini-driver crate.
 5. **Live smoke matrix gating** — what is the canonical way to flag `$OYA_LIVE_SMOKE=1` in CI without burning credit on every PR? Recommendation: nightly-only lane.

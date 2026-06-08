@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-evidence-chain-integrity-correctness
+  name: oya-intelligence-evidence-chain-integrity-correctness
   displayName: "foundry-evidence: chain integrity correctness 100% (bridges to audit-chain)"
   labels:
     microservice: foundry

@@ -54,7 +54,7 @@ list is closed and grows only by ADR amendment.
   pod pool, capability registry cache (read-through mirror of the
   supervisor's canonical registry).
 - **Owner sub-axis**: axis-foundry-runtime.
-- **Crate fan-out**: `oya-foundry-runtime-{capability-executor,
+- **Crate fan-out**: `oya-intelligence-runtime-{capability-executor,
   session-state, invocation-orchestrator, runtime-pool, capability-
   registry-cache}-{kernel,domain,usecase,api,adapter,adapter-redis,
   adapter-postgres,rest,sdk,worker,app}` per `bc-sources/runtime/PRD.md`
@@ -71,7 +71,7 @@ list is closed and grows only by ADR amendment.
   circuit-breaker, autonomy policy enforcement, supervision event bus.
   The control plane of the foundry product.
 - **Owner sub-axis**: axis-foundry-supervisor.
-- **Crate fan-out**: `oya-foundry-supervisor-{agent-fleet-lifecycle,
+- **Crate fan-out**: `oya-intelligence-supervisor-{agent-fleet-lifecycle,
   capability-deployment, kill-switch-circuit-breaker, autonomy-policy-
   enforcement, supervision-event-bus}-{kernel,...,app}` per
   `bc-sources/supervisor/PRD.md`.
@@ -88,7 +88,7 @@ list is closed and grows only by ADR amendment.
   capability output across providers / versions), replay engine, golden-
   output store.
 - **Owner sub-axis**: axis-foundry-eval.
-- **Crate fan-out**: `oya-foundry-eval-{eval-runner,parity-analyzer,
+- **Crate fan-out**: `oya-intelligence-eval-{eval-runner,parity-analyzer,
   replay-engine,...}-{kernel,...,app}` per `bc-sources/eval/PRD.md`.
 - **Contract surface**: `contracts/openapi/eval-eval-runner.yaml` +
   `contracts/asyncapi/eval-eval-events.yaml` +
@@ -101,9 +101,9 @@ list is closed and grows only by ADR amendment.
 - **Purpose**: capability-invocation recorder, evidence pack builder,
   regulator export, audit-chain bridge.
 - **Owner sub-axis**: axis-foundry-evidence.
-- **Crate fan-out**: `oya-foundry-evidence-{capability-invocation-
+- **Crate fan-out**: `oya-intelligence-evidence-{capability-invocation-
   recorder,evidence-pack-builder,...}-{kernel,...,app}` +
-  `oya-foundry-evidence-sdk` per `bc-sources/evidence/PRD.md`.
+  `oya-intelligence-evidence-sdk` per `bc-sources/evidence/PRD.md`.
 - **Contract surface**: `contracts/openapi/evidence-foundry-evidence.yaml`
   + `contracts/asyncapi/evidence-foundry-evidence-events.yaml` +
   `contracts/proto/evidence-foundry-evidence.proto`.
@@ -116,7 +116,7 @@ list is closed and grows only by ADR amendment.
   (Cedar adapter), content-safety rule engine, jailbreak detector,
   AI-slop detector.
 - **Owner sub-axis**: axis-foundry-guardrails.
-- **Crate fan-out**: `oya-foundry-guardrails-{prompt-classifier,
+- **Crate fan-out**: `oya-intelligence-guardrails-{prompt-classifier,
   output-validator,autonomy-tier-gate,content-safety-rule-engine,
   jailbreak-detector,ai-slop-detector}-{kernel,adapter-cedar,
   adapter-classifier-model,adapter-postgres,rest,app}` per
@@ -134,8 +134,8 @@ list is closed and grows only by ADR amendment.
   Subscription, OpenAI API + Subscription, Gemini API + Subscription,
   in-house, OpenBao credential isolation).
 - **Owner sub-axis**: axis-foundry-providers.
-- **Crate fan-out**: `oya-foundry-providers-router-{kernel,domain,usecase,
-  api,adapter,rest,sdk,worker,app}` + `oya-foundry-providers-adapter-
+- **Crate fan-out**: `oya-intelligence-providers-router-{kernel,domain,usecase,
+  api,adapter,rest,sdk,worker,app}` + `oya-intelligence-providers-adapter-
   {anthropic-api,anthropic-subscription,openai-api,openai-subscription,
   gemini-api,gemini-subscription,in-house,openbao}` per
   `bc-sources/providers/PRD.md`.
@@ -174,8 +174,8 @@ imports across BCs.
 authored in a follow-up IP):
 
 - Direct kernel-port import across BCs (e.g.,
-  `oya-foundry-runtime-capability-executor-kernel` importing
-  `oya-foundry-providers-router-kernel`) — forbidden. Use the typed
+  `oya-intelligence-runtime-capability-executor-kernel` importing
+  `oya-intelligence-providers-router-kernel`) — forbidden. Use the typed
   RPC contract under `contracts/proto/<other-bc>-<service>.proto`.
 - Direct adapter import across BCs (e.g., a runtime adapter calling
   guardrails adapter functions directly) — forbidden. Use the

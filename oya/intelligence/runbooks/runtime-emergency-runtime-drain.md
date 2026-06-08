@@ -89,8 +89,8 @@ After drain (or cluster-wide drain):
 
 ```bash
 # Validate drain primitive idempotency + safety
-cargo nextest run -p oya-foundry-runtime-runtime-pool-worker --test drain_parks_in_flight
-cargo nextest run -p oya-foundry-runtime-runtime-pool-worker --test drain_failure_emits_invocation_failed
+cargo nextest run -p oya-intelligence-runtime-runtime-pool-worker --test drain_parks_in_flight
+cargo nextest run -p oya-intelligence-runtime-runtime-pool-worker --test drain_failure_emits_invocation_failed
 ```
 
 ## Post-incident updates

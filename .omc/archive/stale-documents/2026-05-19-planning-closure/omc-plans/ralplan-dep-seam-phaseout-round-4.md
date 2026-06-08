@@ -57,7 +57,7 @@ D. Forked-vendor-in-tree — rejected (supply-chain surface doubled).
 4. **Review movement** — `oya-check-debt-ledger-review-contract` sub-check; 3 quarters zero-movement fails.
 5. **Distroless + musl smoke** — `oya-check-distroless-deployment-bar` (musl x86_64/aarch64; DNS+getrandom+epoll+cert-bundle; cold-start ≤100ms; SIGTERM ≤30s).
 6. **Active-artifact contract** — ledger + DRI + reports + reviews machine-readable per ADR-0089; ledger generator self-heals (§10 Step 3).
-7. **Trigger DSL parser + evaluator regression** — `oya-foundry-trigger-dsl-runtime` fixtures cover stale-source, immutable-evidence, monotonic-transition, missing-pointer (§10 Step 4).
+7. **Trigger DSL parser + evaluator regression** — `oya-intelligence-trigger-dsl-runtime` fixtures cover stale-source, immutable-evidence, monotonic-transition, missing-pointer (§10 Step 4).
 8. **Layer-metadata coverage** — every crate declares `[package.metadata.oyatie.layer]` ∈ `{kernel, runtime, adapter, api, app}`; sub-check rejects missing/invalid (§18).
 9. **Ops binary cloud-native conformance** — `/healthz`, `/livez`, `/readyz` per k8s; binds `0.0.0.0`/`[::]`; reads `PORT`; SIGTERM drains; distroless builds (§7 + §19).
 10. **CI carve-out** — `gh api` read-side only when `GITHUB_ACTIONS=true`; local agent invocation fails fast with grit-redirect (§4).
@@ -150,11 +150,11 @@ ci-uri-run    := "ci:" <lane-id> ":run:" <run-id> ":" <row-id>        # IMMUTABL
 ci-uri-latest := "ci:" <lane-id> ":latest:" <row-id>                  # MUTABLE — advisory dashboards only; REJECTED for status transitions
 ```
 
-The `oya-foundry-trigger-dsl-runtime` evaluator rejects `ci-uri-latest` in any predicate that gates a status transition (i.e., any predicate inside `replacement_trigger.all_of` / `replacement_trigger.any_of` / `cve_acceleration_trigger.*`). `latest` is permitted only in advisory `dashboards` block (not modeled in W0).
+The `oya-intelligence-trigger-dsl-runtime` evaluator rejects `ci-uri-latest` in any predicate that gates a status transition (i.e., any predicate inside `replacement_trigger.all_of` / `replacement_trigger.any_of` / `cve_acceleration_trigger.*`). `latest` is permitted only in advisory `dashboards` block (not modeled in W0).
 
 ### Trigger DSL — evaluator semantics (NEW — codex Concern 3 closes operational gap)
 
-The `oya-foundry-trigger-dsl-runtime` crate (renamed from R3's `*-domain` per codex Concern 1 — see §18) ships a parser AND evaluator. Four policies are mandatory per trigger:
+The `oya-intelligence-trigger-dsl-runtime` crate (renamed from R3's `*-domain` per codex Concern 1 — see §18) ships a parser AND evaluator. Four policies are mandatory per trigger:
 
 | Policy | Values | Default | Behavior |
 |---|---|---|---|
@@ -484,10 +484,10 @@ Inherited round-3 risks: trigger-never-fires (F1), seam-lane-bypass (F2), replac
 - **Outputs:** `/registry/tech-debt-ledger.json` (envelope `version: "1.1.0"`; `entries` = object map; timestamps from `current_date()`); `/registry/schemas/tech-debt-ledger.schema.json` (rejects array `entries`; requires 4 evaluator policy fields on every trigger).
 - **Verification:** schema validated; coverage sub-check green; fixture dep without ledger entry → fail; same-PR guard → fail; **self-heal fixture:** delete entries `hyper` + `bytes`, run `--self-heal`, result bit-for-bit identical (SHA-256); object-map lexicographic ordering enforced.
 
-**Step 4 — `oya-foundry-trigger-dsl-runtime` parser + evaluator + ADR-0091 + ADR-0092 + ADR-0093** (M+; Architect+Critic+codex) — REVISED per codex Concerns 1, 3, 4, 5
-- Crate **renamed in round 4** from R3's `oya-foundry-trigger-dsl-domain` to `oya-foundry-trigger-dsl-runtime` (per codex Concern 1; canonical layer enum has NO `domain`; this crate parses + evaluates + reads files, so `runtime` is correct).
-- **Tool:** `cargo test -p oya-foundry-trigger-dsl-runtime`; `oya-check-adr-index`; `oya-check-adr-citation`.
-- **Outputs:** `crates/oya-foundry-trigger-dsl-runtime/` with `[package.metadata.oyatie.layer] = "runtime"`; parser + evaluator modules; `tests/fixtures/` covering: 11 seed triggers parse; 5 malformed reject with structured errors; stale-source fixture (file mtime older than `last_reviewed_at`); immutable-evidence fixture (rejects `ci-uri-latest` in status-gating predicate); missing-pointer fixture (`fail` vs `not-yet-armed`); monotonic-transition fixture (`replaced → active` rejected); `{"never": true}` fixture (returns `disarmed`).
+**Step 4 — `oya-intelligence-trigger-dsl-runtime` parser + evaluator + ADR-0091 + ADR-0092 + ADR-0093** (M+; Architect+Critic+codex) — REVISED per codex Concerns 1, 3, 4, 5
+- Crate **renamed in round 4** from R3's `oya-intelligence-trigger-dsl-domain` to `oya-intelligence-trigger-dsl-runtime` (per codex Concern 1; canonical layer enum has NO `domain`; this crate parses + evaluates + reads files, so `runtime` is correct).
+- **Tool:** `cargo test -p oya-intelligence-trigger-dsl-runtime`; `oya-check-adr-index`; `oya-check-adr-citation`.
+- **Outputs:** `crates/oya-intelligence-trigger-dsl-runtime/` with `[package.metadata.oyatie.layer] = "runtime"`; parser + evaluator modules; `tests/fixtures/` covering: 11 seed triggers parse; 5 malformed reject with structured errors; stale-source fixture (file mtime older than `last_reviewed_at`); immutable-evidence fixture (rejects `ci-uri-latest` in status-gating predicate); missing-pointer fixture (`fail` vs `not-yet-armed`); monotonic-transition fixture (`replaced → active` rejected); `{"never": true}` fixture (returns `disarmed`).
 - ADRs: `docs/decisions/ADR-0091-*.md` (revised round-4); `docs/decisions/ADR-0092-lane-runner-vs-kernel-crate-naming.md`; `docs/decisions/ADR-0093-ci-only-gh-readside-carveout.md`.
 - **Verification:** all fixtures green; ADR-0091 §Decisions cites 4 evaluator policies + `{"never": true}` + carve-out; ADR-0092 + ADR-0093 indexed; signed by Architect + Critic + codex.
 
@@ -530,7 +530,7 @@ Inherited round-3 risks: trigger-never-fires (F1), seam-lane-bypass (F2), replac
 - [ ] `crates/oya-check-dependency-seam-discipline/` exists with `[package.metadata.oyatie.layer] = "runtime"`; policy doc + CI job wired; **8 sub-checks** active (seam + ledger-coverage + freshness + vendor-residue + cve-watch + review-contract + **layer-metadata** + **ledger-transition-monotonicity**).
 - [ ] **`gh` invocation gated by `GITHUB_ACTIONS=true`**; local invocation fails fast with grit-redirect message; ADR-0093 indexed + accepted.
 - [ ] `oya-dev-cli` subcommands authored: `gate validate dependency-seam [--offline]`, `gate emit tech-debt-ledger [--self-heal]`, `gate emit layer-metadata-bootstrap`, `gate validate ledger-coverage`, `gate emit ops-workspace-shell-baseline`, `gate emit middleware-adapter-import-audit`. **REMOVED:** `gate emit rollback-pr` (replaced by grit primitive — §6).
-- [ ] **`crates/oya-foundry-trigger-dsl-runtime/`** ships W0 (renamed from round-3's `*-domain` per codex Concern 1); `[package.metadata.oyatie.layer] = "runtime"`; 11 seed parse; 5 malformed fail; stale + immutable + missing-pointer + monotonic-transition + never-trigger fixtures all pass.
+- [ ] **`crates/oya-intelligence-trigger-dsl-runtime/`** ships W0 (renamed from round-3's `*-domain` per codex Concern 1); `[package.metadata.oyatie.layer] = "runtime"`; 11 seed parse; 5 malformed fail; stale + immutable + missing-pointer + monotonic-transition + never-trigger fixtures all pass.
 - [ ] Ledger generator self-heals (SHA-256 bit-for-bit roundtrip on object-map envelope).
 - [ ] ADR-0091 written + indexed + accepted (Architect+Critic+codex). Includes §Drivers NIH-honesty, §CVE-acceleration, §DRI mapping, §Walk-away (grit-mediated; no `gh pr create`), §Risks empirical-base-rate paragraph, **§DSL-policies, §CI-carve-out, §Cloud-native-code-contract**.
 - [ ] ADR-0092 written + indexed (lane runner vs kernel naming).
@@ -572,7 +572,7 @@ Persisted to `.omc/plans/open-questions.md` (append-only).
 ### Codex round-3 concerns → resolution
 
 - **Concern 1 (CRITICAL) — §18 layer-enum violation: `*-trigger-dsl-domain` invokes non-existent `domain` layer.** Closed by:
-  - §2 + §10 Step 4 + §18: crate renamed `oya-foundry-trigger-dsl-domain` → **`oya-foundry-trigger-dsl-runtime`**.
+  - §2 + §10 Step 4 + §18: crate renamed `oya-intelligence-trigger-dsl-domain` → **`oya-intelligence-trigger-dsl-runtime`**.
   - §18.A audit table now uses ONLY the canonical 5 layers `{kernel, runtime, adapter, api, app}`.
   - §3: `*-middleware-domain` crates renamed to `*-middleware-runtime`; `oya-http-sse-domain` → `*-runtime`.
   - §10 Step 0 (NEW): every workspace member's `Cargo.toml` gets `[package.metadata.oyatie.layer]` block authored explicitly via `gate emit layer-metadata-bootstrap`.
@@ -673,7 +673,7 @@ Canonical: `{kernel, runtime, adapter, api, app}`. No `domain`. The round-3 §18
 | `oya-http-runtime-hyper-adapter` | referenced | `adapter` | Provider-specific I/O (hyper). |
 | `oya-ops-workspace-shell-runtime` | referenced; refactored in Step 8 | `runtime` | Binary's runtime shell. |
 | `oya-check-dependency-seam-discipline` | authored (Step 2) | `runtime` | Lane runner. |
-| **`oya-foundry-trigger-dsl-runtime`** (renamed from R3's `*-domain`) | authored (Step 4) | `runtime` | Parses + evaluates JSON triggers; reads files; I/O surface confirmed. **No `domain` layer exists** per canonical enum. |
+| **`oya-intelligence-trigger-dsl-runtime`** (renamed from R3's `*-domain`) | authored (Step 4) | `runtime` | Parses + evaluates JSON triggers; reads files; I/O surface confirmed. **No `domain` layer exists** per canonical enum. |
 | `oya-bench-cold-start-harness` | authored (Step 5) | `runtime` | Subprocess + `CLOCK_MONOTONIC`; I/O orchestrator. |
 | `oya-check-distroless-deployment-bar` | authored (Step 5) | `runtime` | Lane runner. |
 | `oya-check-replacement-parity` | authored (W1+) | `runtime` | Lane runner. |

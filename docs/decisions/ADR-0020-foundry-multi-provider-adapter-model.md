@@ -25,12 +25,12 @@ The forces are: (a) we want capability authors to write provider-agnostic code; 
 
 ## Decision
 
-We introduce a single normalized provider contract in `oya-foundry-adapter-kernel` and wire every concrete provider through it. The runtime — not the capability author — chooses which adapter handles a given invocation.
+We introduce a single normalized provider contract in `oya-intelligence-adapter-kernel` and wire every concrete provider through it. The runtime — not the capability author — chooses which adapter handles a given invocation.
 
-### Trait surface (`oya-foundry-adapter-kernel`)
+### Trait surface (`oya-intelligence-adapter-kernel`)
 
 ```rust
-// crates/oya-foundry-adapter-kernel/src/lib.rs
+// crates/oya-intelligence-adapter-kernel/src/lib.rs
 pub trait ProviderAdapter: Send + Sync {
     fn id(&self) -> ProviderId;                      // e.g. "anthropic-api", "openai-subscription"
     fn auth_mode(&self) -> ProviderAuthMode;         // Api | Subscription
@@ -76,21 +76,21 @@ pub enum Event {
 
 One crate per (provider × auth-mode):
 
-- `oya-foundry-adapter-anthropic-api`
-- `oya-foundry-adapter-anthropic-subscription`
-- `oya-foundry-adapter-openai-api`
-- `oya-foundry-adapter-openai-subscription`
-- `oya-foundry-adapter-gemini-api`
-- `oya-foundry-adapter-gemini-subscription`
+- `oya-intelligence-adapter-anthropic-api`
+- `oya-intelligence-adapter-anthropic-subscription`
+- `oya-intelligence-adapter-openai-api`
+- `oya-intelligence-adapter-openai-subscription`
+- `oya-intelligence-adapter-gemini-api`
+- `oya-intelligence-adapter-gemini-subscription`
 
-Subscription adapters are **headless adapters behind an authenticated session**: they manage a rotating session-token vault (`oya-foundry-adapter-session-vault`) backed by the SecretProvider; tokens rotate on a configured cadence and on every detected challenge. API adapters resolve their secret via `SecretProvider` (OpenBao-backed per the platform secret contract) — the secret is never inlined in catalog YAML, never logged, and never returned in audit-chain payloads.
+Subscription adapters are **headless adapters behind an authenticated session**: they manage a rotating session-token vault (`oya-intelligence-adapter-session-vault`) backed by the SecretProvider; tokens rotate on a configured cadence and on every detected challenge. API adapters resolve their secret via `SecretProvider` (OpenBao-backed per the platform secret contract) — the secret is never inlined in catalog YAML, never logged, and never returned in audit-chain payloads.
 
 ### Routing decision
 
 The runtime computes the route per invocation using a deterministic resolver:
 
 ```rust
-// crates/oya-foundry-adapter-router/src/lib.rs
+// crates/oya-intelligence-adapter-router/src/lib.rs
 pub fn resolve_route(
     capability: &Capability,
     tenant: &Tenant,
@@ -159,7 +159,7 @@ Failover is at the **invocation** boundary (not mid-stream). A `RetryableError` 
 
 1. **Subscription-mode tenant attribution.** Foundry maintains a `SubscriptionBinding` registry mapping each developer-account-held subscription to a scoped set of tenants (one-to-many or one-to-one) at registration time. Per-invocation cost attribution flows through the binding to the tenant cost-center. Subscription invocations without an active `SubscriptionBinding` are denied at the adapter boundary; the binding registration itself emits to the audit chain. Cross-tenant subscription pooling requires explicit Founder + council-architecture sign-off and a per-pool cost-attribution policy.
 2. **Mid-stream partial-then-error failover policy: restart, not replay.** When the primary adapter emits a partial token stream then errors, the partial response is discarded, the original prompt is restarted on the failover adapter, and a `ResponseRestartEvent` is emitted to the audit chain so observability attributes cost to both attempts. Replay-mid-stream is rejected because token-level position semantics differ across providers (Anthropic / OpenAI / Gemini tokenize differently and would produce inconsistent stitched output). Capabilities that cannot tolerate restart (e.g. side-effecting tool-use chains) declare `failover_mode: deny` in their capability record and surface the original error to the caller.
-3. **Per-tenant cost ceiling enforcement** is split: Cedar policy authors the *predicate* (per-tenant per-capability budget headroom) so it composes with the autonomy ceiling check; a dedicated `oya-foundry-cost-budget-kernel` evaluates the predicate at adapter pre-flight and tracks the running spend window. Same surface as autonomy; same audit-chain footprint.
+3. **Per-tenant cost ceiling enforcement** is split: Cedar policy authors the *predicate* (per-tenant per-capability budget headroom) so it composes with the autonomy ceiling check; a dedicated `oya-intelligence-cost-budget-kernel` evaluates the predicate at adapter pre-flight and tracks the running spend window. Same surface as autonomy; same audit-chain footprint.
 4. **Subscription session-token vault** is the platform `SecretProvider` (per ADR-0043 secrets-management) with a Foundry-specific lease type that knows how to refresh subscription challenges. No Foundry-internal duplicate vault.
 
 ## Open questions
@@ -172,4 +172,4 @@ Failover is at the **invocation** boundary (not mid-stream). A `RetryableError` 
 
 - Internal: ADR-0021 (capability registry; consumes the route chain), ADR-0022 (autonomy ceiling; gates whether a route is allowed at all), ADR-0024 (eval harness; A/B tests routing decisions), ADR-0026 (in-house substrate; extends the trait to `oya-internal-<model-id>`).
 - Architectural posture: in-house obligatory (per the build-vs-buy matrix); external providers are adapters behind a sealed port.
-- Flat-crates binding: the sealed provider-adapter contract lives in `crates/oya-foundry-adapter-kernel`; provider-specific adapters land under `crates/oya-foundry-*` or approved runtime crates. The retired `services/agent/daemon` path is historical only and must not be recreated.
+- Flat-crates binding: the sealed provider-adapter contract lives in `crates/oya-intelligence-adapter-kernel`; provider-specific adapters land under `crates/oya-foundry-*` or approved runtime crates. The retired `services/agent/daemon` path is historical only and must not be recreated.

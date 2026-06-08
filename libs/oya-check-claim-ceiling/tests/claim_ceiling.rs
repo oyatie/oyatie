@@ -9,7 +9,7 @@ use oya_intelligence_catalog_domain::{CatalogIndex, CatalogRecordInput};
 fn foundation_claim_ceiling_accepts_preview_source_only_records() {
     let index = CatalogIndex::from_records(vec![
         record(
-            "oya-foundry-capability-kernel",
+            "oya-intelligence-capability-kernel",
             "preview",
             "unreviewed",
             "source-only",
@@ -29,7 +29,7 @@ fn foundation_claim_ceiling_accepts_preview_source_only_records() {
 fn foundation_claim_ceiling_blocks_unshipped_stability_security_and_supply_chain_claims() {
     let stable_api = CatalogIndex::from_records(vec![
         record(
-            "oya-foundry-capability-kernel",
+            "oya-intelligence-capability-kernel",
             "stable",
             "unreviewed",
             "source-only",
@@ -45,7 +45,7 @@ fn foundation_claim_ceiling_blocks_unshipped_stability_security_and_supply_chain
 
     let security_review = CatalogIndex::from_records(vec![
         record(
-            "oya-foundry-capability-kernel",
+            "oya-intelligence-capability-kernel",
             "preview",
             "independent",
             "source-only",
@@ -61,7 +61,7 @@ fn foundation_claim_ceiling_blocks_unshipped_stability_security_and_supply_chain
 
     let signed_supply_chain = CatalogIndex::from_records(vec![
         record(
-            "oya-foundry-capability-kernel",
+            "oya-intelligence-capability-kernel",
             "preview",
             "unreviewed",
             "signed-provenance",

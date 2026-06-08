@@ -202,7 +202,7 @@ mod tests {
     #[test]
     fn gemini_in_runtime_flagged() {
         let imports = vec![imp(
-            "oya-foundry-runtime",
+            "oya-intelligence-runtime",
             "src/lib.rs",
             12,
             "gemini_api::Generate",
@@ -215,7 +215,7 @@ mod tests {
     #[test]
     fn claude_in_application_flagged() {
         let imports = vec![imp(
-            "oya-foundry-account-application",
+            "oya-intelligence-account-application",
             "src/lib.rs",
             3,
             "claude_pkg::Stream",
@@ -249,7 +249,7 @@ mod tests {
     #[test]
     fn casing_does_not_evade_detection() {
         let imports = vec![imp(
-            "oya-foundry-runtime",
+            "oya-intelligence-runtime",
             "src/lib.rs",
             7,
             "Anthropic_SDK::Foo",
@@ -268,7 +268,7 @@ mod tests {
 
     #[test]
     fn empty_import_errors() {
-        let imports = vec![imp("oya-foundry-runtime", "src/lib.rs", 1, "")];
+        let imports = vec![imp("oya-intelligence-runtime", "src/lib.rs", 1, "")];
         let err = check(&imports).unwrap_err();
         assert!(matches!(err, ProviderCouplingError::EmptyImport { .. }));
     }
@@ -276,9 +276,9 @@ mod tests {
     #[test]
     fn multiple_violations_collected() {
         let imports = vec![
-            imp("oya-foundry-runtime", "src/a.rs", 1, "anthropic_sdk::A"),
-            imp("oya-foundry-runtime", "src/b.rs", 2, "openai_sdk::B"),
-            imp("oya-foundry-runtime", "src/c.rs", 3, "gemini_sdk::C"),
+            imp("oya-intelligence-runtime", "src/a.rs", 1, "anthropic_sdk::A"),
+            imp("oya-intelligence-runtime", "src/b.rs", 2, "openai_sdk::B"),
+            imp("oya-intelligence-runtime", "src/c.rs", 3, "gemini_sdk::C"),
         ];
         let r = check(&imports).unwrap();
         assert_eq!(r.violations.len(), 3);

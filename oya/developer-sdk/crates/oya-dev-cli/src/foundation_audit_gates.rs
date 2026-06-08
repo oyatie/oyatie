@@ -119,7 +119,7 @@ pub(crate) fn validate_foundation_bypass_gate(
 
 // Grounded domain path: foundation bypass records are explicit, expiring
 // gate-exception ledger entries. Loading fails closed and every entry is
-// validated by oya-foundry-bypass-kernel; this is not recovery-path fallback.
+// validated by oya-intelligence-bypass-kernel; this is not recovery-path fallback.
 fn read_foundation_bypasses(ledger_dir: &Path) -> Result<Vec<BypassLedgerRecord>, String> {
     let entries = fs::read_dir(ledger_dir)
         .map_err(|error| format!("foundation gate exception directory unreadable: {error}"))?;

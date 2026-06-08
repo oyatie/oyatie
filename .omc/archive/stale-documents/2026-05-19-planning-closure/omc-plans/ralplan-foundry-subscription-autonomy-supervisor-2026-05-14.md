@@ -62,7 +62,7 @@ purpose: Auto-backfilled purpose for ralplan-foundry-subscription-autonomy-super
 
 1. **Inbox race on concurrent producers.**
    *Scenario:* Two relays (webhook + cron) append to `io/inbox.jsonl` at the same instant. The supervisor reads with byte-offset cursor, but the second writer’s line is partial when the cursor crosses it. Result: corrupted JSON line is treated as poison and the session crashes.
-   *Design defenses:* (a) writers MUST use `O_APPEND` + bounded line size (`InboxFrame::MAX_BYTES = 64 KiB`) so the kernel write is atomic on POSIX up to `PIPE_BUF`; (b) reader uses *line-aware* readahead — never advance cursor until `\n` is observed AND `serde_json::from_str` succeeds; (c) on parse failure, write to `io/quarantine.jsonl` and advance cursor *past* the bad line; emit `inbox.parse_failed` evidence row. (d) acceptance: `oya-foundry-supervisor-conformance` lane runs a fuzzer that fan-writes 10 producers × 10k messages and asserts zero loss + zero double-delivery.
+   *Design defenses:* (a) writers MUST use `O_APPEND` + bounded line size (`InboxFrame::MAX_BYTES = 64 KiB`) so the kernel write is atomic on POSIX up to `PIPE_BUF`; (b) reader uses *line-aware* readahead — never advance cursor until `\n` is observed AND `serde_json::from_str` succeeds; (c) on parse failure, write to `io/quarantine.jsonl` and advance cursor *past* the bad line; emit `inbox.parse_failed` evidence row. (d) acceptance: `oya-intelligence-supervisor-conformance` lane runs a fuzzer that fan-writes 10 producers × 10k messages and asserts zero loss + zero double-delivery.
 
 2. **Hung CLI process leaks file handles or credits.**
    *Scenario:* The CLI binary hangs after model response but before stdout close (we’ve seen this in Claude Code 1.x when MCP server stalls). Watchdog kills with `SIGTERM`, then `SIGKILL`, but inherited file descriptors (stdout pipe, hook socket) leak in the daemon. Over hours, FD exhaustion. Worse: a partial response counted against subscription budget but never reaches outbox — operator sees “message consumed, no reply.”
@@ -77,8 +77,8 @@ purpose: Auto-backfilled purpose for ralplan-foundry-subscription-autonomy-super
 | Lane | Scope | Owner | Acceptance |
 |---|---|---|---|
 | **Unit** | `kernel` value types: `InboxFrame`, `OutboxFrame`, `RestartPolicy`, `WatchdogPolicy`, `SessionState`, `OffsetCursor` | `oya-intelligence-supervisor-kernel` | ≥ 60 tests, ≥ 95 % line coverage |
-| **Integration (in-proc)** | `runtime` driving a *mock* `SessionDriver` that scripts (a) clean exit, (b) hang, (c) crash, (d) partial-output, (e) poison-restart | `oya-foundry-supervisor-runtime` | Pre-mortem scenarios 1-3 reproduced + defenses verified |
-| **Integration (live)** | Real Codex / Claude Code / Gemini binaries against a stub MCP echo server | `oya-foundry-supervisor-conformance` | 3 × 50-message round-trip + restart-per-message bench |
+| **Integration (in-proc)** | `runtime` driving a *mock* `SessionDriver` that scripts (a) clean exit, (b) hang, (c) crash, (d) partial-output, (e) poison-restart | `oya-intelligence-supervisor-runtime` | Pre-mortem scenarios 1-3 reproduced + defenses verified |
+| **Integration (live)** | Real Codex / Claude Code / Gemini binaries against a stub MCP echo server | `oya-intelligence-supervisor-conformance` | 3 × 50-message round-trip + restart-per-message bench |
 | **E2E** | Operator-plane HTTP control surface (start/stop/inject/drain) via hyper, evidence chain reaches `oya-cloud-billing-kernel`, cost-ceiling triggers stop | `oya-intelligence-supervisor-app` | Cost-ceiling cuts off within 1 message of breach |
 | **Observability** | OTel spans per restart, per hook fire, per outbox flush; metrics: `restart_latency_p95_ms`, `idle_tick_tokens_p50`, `partial_response_count_total` | `oya-http-telemetry-middleware-infrastructure` | All three metrics shipped to ops dashboard P02 |
 | **Perf budget** | Idle tick ≤ 25 tokens (95th percentile); restart latency p95 ≤ 1.5 s; supervisor RSS ≤ 64 MiB with 3 idle workers | bench harness | Stat-significant (n ≥ 1000) |
@@ -92,16 +92,16 @@ purpose: Auto-backfilled purpose for ralplan-foundry-subscription-autonomy-super
 | Crate | Layer | Status | One-line BNF / 12-layer justification | Wires into |
 |---|---|---|---|---|
 | `oya-intelligence-supervisor-kernel` | kernel (Layer 2) | **new** | `<oya>-<foundry>-<supervisor>-<kernel>` — pure value types for sessions/inboxes/policies; no I/O. Mirrors `oya-intelligence-usage-window-kernel`. | consumed by runtime + every adapter |
-| `oya-foundry-supervisor-domain` | domain (Layer 3) | **new** | Owns the `SessionLifecycle` state machine (`Spawned → Injected → Draining → Exited → Quarantined`); std-only. | re-exports kernel; consumed by runtime |
+| `oya-intelligence-supervisor-domain` | domain (Layer 3) | **new** | Owns the `SessionLifecycle` state machine (`Spawned → Injected → Draining → Exited → Quarantined`); std-only. | re-exports kernel; consumed by runtime |
 | `oya-intelligence-supervisor-app` | app (Layer 4) | **new** | Operator-plane use-cases: `StartSupervisor`, `InjectMessage`, `DrainAndStop`, `QueryHealth`. Calls ports only. | hyper layer 5 above |
-| `oya-foundry-supervisor-runtime` | runtime (Layer 5) | **new** | The daemon binary entrypoint. Hosts hyper listener + `tokio::process::Command` worker tree + JSONL persistence. The ONLY new crate that touches the network. | parents: supervisor-app + hyper-runtime |
-| `oya-foundry-supervisor-adapter-jsonl` | adapter (Layer 5) | **new** | Reference `InboxSource`/`OutboxSink` impl over `io/inbox.jsonl` + `io/outbox.jsonl` + `io/.inbox-offset` (byte cursor). | supervisor-runtime |
-| `oya-foundry-supervisor-adapter-claude-code` | adapter (Layer 5) | **new** | `SessionDriver` impl that spawns `claude` CLI, mounts stop-hook via `~/.claude/hooks/`, parses JSON IPC, signals `.restart`. | supervisor-runtime; reuses `oya-foundry-account-adapter-claude-code` for auth |
-| `oya-foundry-supervisor-adapter-codex-cli` | adapter (Layer 5) | **new** | `SessionDriver` impl for `codex` CLI; mounts stdio-MCP harness; uses sentinel parsing if stop-hook unavailable (RISK §B.4). | reuses `oya-foundry-account-adapter-codex-cli` |
-| `oya-foundry-supervisor-adapter-gemini-cli` | adapter (Layer 5) | **new** | `SessionDriver` impl for `gemini` CLI; stop-hook on ≥ v0.3, PTY-scrape fallback gated behind `pty` feature (RISK §B.4). | reuses `oya-foundry-account-adapter-gemini-cli` |
-| `oya-foundry-supervisor-adapter-webhook-hyper` | adapter (Layer 5) | **new** | Hyper-only inbound relay; POST `/v1/foundry/supervisor/inbox` writes one frame to JSONL. | depends only on hyper-runtime |
-| `oya-foundry-supervisor-adapter-cron-tokio` | adapter (Layer 5) | **new** | Cron-trigger using `tokio::time::interval` + a 5-field cron parser (std-only, hand-rolled — see B.10 ADR). | no new external dep |
-| `oya-foundry-supervisor-conformance` | dev-tool (Layer 6) | **new** | Shared conformance suite the three CLI adapters all run. Lives under `tools/` not `crates/` if test-only. | dev-dependency of each adapter |
+| `oya-intelligence-supervisor-runtime` | runtime (Layer 5) | **new** | The daemon binary entrypoint. Hosts hyper listener + `tokio::process::Command` worker tree + JSONL persistence. The ONLY new crate that touches the network. | parents: supervisor-app + hyper-runtime |
+| `oya-intelligence-supervisor-adapter-jsonl` | adapter (Layer 5) | **new** | Reference `InboxSource`/`OutboxSink` impl over `io/inbox.jsonl` + `io/outbox.jsonl` + `io/.inbox-offset` (byte cursor). | supervisor-runtime |
+| `oya-intelligence-supervisor-adapter-claude-code` | adapter (Layer 5) | **new** | `SessionDriver` impl that spawns `claude` CLI, mounts stop-hook via `~/.claude/hooks/`, parses JSON IPC, signals `.restart`. | supervisor-runtime; reuses `oya-intelligence-account-adapter-claude-code` for auth |
+| `oya-intelligence-supervisor-adapter-codex-cli` | adapter (Layer 5) | **new** | `SessionDriver` impl for `codex` CLI; mounts stdio-MCP harness; uses sentinel parsing if stop-hook unavailable (RISK §B.4). | reuses `oya-intelligence-account-adapter-codex-cli` |
+| `oya-intelligence-supervisor-adapter-gemini-cli` | adapter (Layer 5) | **new** | `SessionDriver` impl for `gemini` CLI; stop-hook on ≥ v0.3, PTY-scrape fallback gated behind `pty` feature (RISK §B.4). | reuses `oya-intelligence-account-adapter-gemini-cli` |
+| `oya-intelligence-supervisor-adapter-webhook-hyper` | adapter (Layer 5) | **new** | Hyper-only inbound relay; POST `/v1/foundry/supervisor/inbox` writes one frame to JSONL. | depends only on hyper-runtime |
+| `oya-intelligence-supervisor-adapter-cron-tokio` | adapter (Layer 5) | **new** | Cron-trigger using `tokio::time::interval` + a 5-field cron parser (std-only, hand-rolled — see B.10 ADR). | no new external dep |
+| `oya-intelligence-supervisor-conformance` | dev-tool (Layer 6) | **new** | Shared conformance suite the three CLI adapters all run. Lives under `tools/` not `crates/` if test-only. | dev-dependency of each adapter |
 | `oya-intelligence-capability-registry-kernel` | kernel | **extended** | Adds `foundry.supervisor.*` capability rows (start/stop/inject/quarantine/health). | P05 |
 | `oya-cloud-billing-kernel` | kernel | **extended** | Adds `LineItem::session_kind = Subscription` flag + restart-cost-row emission contract. | M-CC-M03-P03 |
 | `oya-intelligence-route-policy-kernel` | kernel | **extended (small)** | Adds policy hook: `RestartPolicy::should_restart(now, history) -> Allow | DenyForBudget`. | P01 |
@@ -162,7 +162,7 @@ pub trait HeartbeatPolicy {
 ### B.3 Daemon lifecycle
 
 ```
-oya-foundry-supervisor-runtime  (daemon, 1 process)
+oya-intelligence-supervisor-runtime  (daemon, 1 process)
 ├── hyper listener (Layer 5; routes /v1/foundry/supervisor/*)
 ├── inbox watcher (tokio task; tails io/inbox.jsonl via OffsetCursor + inotify-free poll)
 ├── worker tree (one tokio supervisor task per CliFamily)
@@ -208,17 +208,17 @@ oya-foundry-supervisor-runtime  (daemon, 1 process)
 
 ### B.6 Hyper integration
 
-The webhook receiver in `oya-foundry-supervisor-adapter-webhook-hyper`:
+The webhook receiver in `oya-intelligence-supervisor-adapter-webhook-hyper`:
 - Mounts on the existing daemon’s `oya-http-runtime-hyper-adapter` `Router`.
 - Route: `POST /v1/foundry/supervisor/inbox` → body decoded as one JSONL line → appended to `io/inbox.jsonl` via `OutboxSink` (sic — same trait, the inbox is conceptually an outbox of the webhook).
-- Auth: `oya-http-tenant-middleware-infrastructure` for tenant-id, `oya-foundry-account-adapter-openbao` for inbound HMAC secret.
+- Auth: `oya-http-tenant-middleware-infrastructure` for tenant-id, `oya-intelligence-account-adapter-openbao` for inbound HMAC secret.
 - Operator-plane reads: `GET /v1/foundry/supervisor/health`, `GET /v1/foundry/supervisor/workers`, `GET /v1/foundry/supervisor/messages?since=<cursor>` — all flow through P02 read-only kernel projections (no writes here — writes only on `/inbox` and `/drain`).
 - **No axum, no tower-http, no warp.** Layers 1-4 stay std-only; only the runtime crate touches hyper.
 
 ### B.7 Secret handling
 
 - Provider tokens (Claude Code subscription token, Codex OpenAI token, Gemini Google token) live in OpenBao and surface as `SecretReference` only — never serialized to `io/inbox.jsonl`, `io/outbox.jsonl`, logs, or telemetry.
-- Each `SessionDriver::spawn` dereferences `SecretReference → AuthToken` inside the worker process via the existing `oya-foundry-account-adapter-openbao` (no new dep).
+- Each `SessionDriver::spawn` dereferences `SecretReference → AuthToken` inside the worker process via the existing `oya-intelligence-account-adapter-openbao` (no new dep).
 - `Debug` impls stay redacted (mirrors `SecretReference` already in `oya-intelligence-account-kernel`).
 - Inbox/outbox HMAC secret similarly via `SecretReference`.
 - **Audit-chain rule:** any failed dereference emits `auth.secret_missing` evidence WITHOUT logging the reference body.
@@ -245,16 +245,16 @@ Maps to **M02-foundry-preview**. Three phases touched:
 #### M02-P01 (Provider Gateway) — new IPs
 
 - **IP-005-supervisor-kernel-and-driver-contract**
-  Deliverable: `oya-foundry-supervisor-{kernel,domain}` crates green; 60 unit tests; ports compile against `oya-intelligence-account-kernel`.
-  Completion bar: `cargo build -p oya-intelligence-supervisor-kernel -p oya-foundry-supervisor-domain && cargo test`.
+  Deliverable: `oya-intelligence-supervisor-{kernel,domain}` crates green; 60 unit tests; ports compile against `oya-intelligence-account-kernel`.
+  Completion bar: `cargo build -p oya-intelligence-supervisor-kernel -p oya-intelligence-supervisor-domain && cargo test`.
 
 - **IP-006-supervisor-runtime-and-jsonl-adapter**
-  Deliverable: `oya-foundry-supervisor-runtime` daemon + `oya-foundry-supervisor-adapter-jsonl` reference impl; in-proc mock driver passes pre-mortem scenarios 1-3.
-  Completion bar: integration test `crates/oya-foundry-supervisor-runtime/tests/pre_mortem_scenarios.rs` green; fsync invariants verified.
+  Deliverable: `oya-intelligence-supervisor-runtime` daemon + `oya-intelligence-supervisor-adapter-jsonl` reference impl; in-proc mock driver passes pre-mortem scenarios 1-3.
+  Completion bar: integration test `crates/oya-intelligence-supervisor-runtime/tests/pre_mortem_scenarios.rs` green; fsync invariants verified.
 
 - **IP-007-supervisor-adapter-claude-code** (parallel)
   Deliverable: stop-hook + JSON IPC driver; live-smoke against real `claude` binary.
-  Completion bar: `oya-foundry-supervisor-conformance` 50-message round-trip green.
+  Completion bar: `oya-intelligence-supervisor-conformance` 50-message round-trip green.
 
 - **IP-008-supervisor-adapter-codex-cli** (parallel)
   Deliverable: stdout-JSON streaming driver; protocol-version probe; sentinel fallback.
@@ -267,7 +267,7 @@ Maps to **M02-foundry-preview**. Three phases touched:
 #### M02-P02 (Visibility / Operator-plane) — new IPs
 
 - **IP-004-supervisor-operator-plane-hyper-routes**
-  Deliverable: `oya-foundry-supervisor-adapter-webhook-hyper` mounted on dashboard kernel; six read endpoints + two write endpoints (`inject`, `drain`).
+  Deliverable: `oya-intelligence-supervisor-adapter-webhook-hyper` mounted on dashboard kernel; six read endpoints + two write endpoints (`inject`, `drain`).
   Completion bar: e2e via `tools/oya-dashboard-e2e`; negative test asserts every other verb returns 405 + `forbidden_write_attempt`.
 
 #### M02-P05 (Capability Registry / Autonomy)
@@ -312,31 +312,31 @@ Doc-coverage entries (lean-a5-doc-coverage gate):
 ```bash
 # per-crate build
 cargo build -p oya-intelligence-supervisor-kernel
-cargo build -p oya-foundry-supervisor-domain
+cargo build -p oya-intelligence-supervisor-domain
 cargo build -p oya-intelligence-supervisor-app
-cargo build -p oya-foundry-supervisor-runtime
-cargo build -p oya-foundry-supervisor-adapter-jsonl
-cargo build -p oya-foundry-supervisor-adapter-claude-code
-cargo build -p oya-foundry-supervisor-adapter-codex-cli
-cargo build -p oya-foundry-supervisor-adapter-gemini-cli
-cargo build -p oya-foundry-supervisor-adapter-webhook-hyper
-cargo build -p oya-foundry-supervisor-adapter-cron-tokio
+cargo build -p oya-intelligence-supervisor-runtime
+cargo build -p oya-intelligence-supervisor-adapter-jsonl
+cargo build -p oya-intelligence-supervisor-adapter-claude-code
+cargo build -p oya-intelligence-supervisor-adapter-codex-cli
+cargo build -p oya-intelligence-supervisor-adapter-gemini-cli
+cargo build -p oya-intelligence-supervisor-adapter-webhook-hyper
+cargo build -p oya-intelligence-supervisor-adapter-cron-tokio
 
 # unit + integration
 cargo test -p oya-intelligence-supervisor-kernel
-cargo test -p oya-foundry-supervisor-runtime --test pre_mortem_scenarios
-cargo test -p oya-foundry-supervisor-conformance
+cargo test -p oya-intelligence-supervisor-runtime --test pre_mortem_scenarios
+cargo test -p oya-intelligence-supervisor-conformance
 
 # e2e bench harness (token-per-idle-tick measurement)
-cargo run --bin oya-foundry-supervisor-bench --   \
+cargo run --bin oya-intelligence-supervisor-bench --   \
   --cli claude-code --duration 600 --report json   \
   > /evidence/supervisor-bench-claude-$(date +%s).json
 
 # 3 × CLI live-smoke matrix (the M02 acceptance gate clause)
-oya-foundry-supervisor-conformance --cli claude-code,codex-cli,gemini-cli --messages 50
+oya-intelligence-supervisor-conformance --cli claude-code,codex-cli,gemini-cli --messages 50
 
 # fitness lanes
-oya-governance-predictable-naming-kernel run --paths crates/oya-foundry-supervisor-*
+oya-governance-predictable-naming-kernel run --paths crates/oya-intelligence-supervisor-*
 oya-governance-pool-routing-honor run
 lean-a5-doc-coverage run --product foundry/supervisor
 lean-a10-no-silent-regression run --base origin/main --head HEAD
@@ -359,16 +359,16 @@ Hard order:
 
 A senior engineer signs off iff *all* of the following are demonstrable:
 
-1. **Three CLI adapters pass the shared conformance suite.** `oya-foundry-supervisor-conformance --cli claude-code,codex-cli,gemini-cli --messages 50` exits 0 with `lost=0, double_delivered=0, quarantined<=1`.
+1. **Three CLI adapters pass the shared conformance suite.** `oya-intelligence-supervisor-conformance --cli claude-code,codex-cli,gemini-cli --messages 50` exits 0 with `lost=0, double_delivered=0, quarantined<=1`.
 2. **Restart-per-message preserves fresh-session semantics.** Token-budget bench shows mean restart token cost within ±10 % of the upstream `claude-heartbeat` baseline (~500 tokens/restart for Claude Code; per-CLI baselines published in `PERFORMANCE-BUDGET.md`).
 3. **Idle tick ≤ 25 tokens (p95).** `supervisor-bench` over 600 s of idle reports `idle_tick_tokens_p95 <= 25` with n ≥ 600.
 4. **Watchdog kills hung sessions within `hang_timeout_seconds`.** Integration test `pre_mortem_scenarios::hung_cli_is_killed` asserts elapsed time between hang detection and `ExitKind::WatchdogKilled` ≤ `hang_timeout_seconds + kill_grace_seconds + 100 ms`.
-5. **Hyper-based webhook + cron-trigger compile against workspace.** `cargo build -p oya-foundry-supervisor-adapter-webhook-hyper -p oya-foundry-supervisor-adapter-cron-tokio` green; `cargo deny check` shows no new external crate (or, if `pty` enabled, only `nix` behind ADR-0099).
-6. **Live-smoke matrix green in CI.** 1ES-templated lane `oya-foundry-supervisor-live-smoke` green nightly across 3 CLIs × 2 auth modes = 6 cells.
+5. **Hyper-based webhook + cron-trigger compile against workspace.** `cargo build -p oya-intelligence-supervisor-adapter-webhook-hyper -p oya-intelligence-supervisor-adapter-cron-tokio` green; `cargo deny check` shows no new external crate (or, if `pty` enabled, only `nix` behind ADR-0099).
+6. **Live-smoke matrix green in CI.** 1ES-templated lane `oya-intelligence-supervisor-live-smoke` green nightly across 3 CLIs × 2 auth modes = 6 cells.
 7. **Zero new external crates introduced** OR ADR-0099 (`nix` for PTY fallback) + benchmark filed and accepted.
 8. **No silent regression.** `lean-a10-no-silent-regression` green; any change to `oya-intelligence-supervisor-kernel` public surface carries an ADR + version bump.
 9. **Doc coverage green.** `lean-a5-doc-coverage --product foundry/supervisor` reports 100 % coverage across the six doc files in §B.10.
-10. **Cost-ceiling cuts off within 1 message of breach.** `oya-foundry-supervisor-runtime/tests/budget_breach.rs` asserts `BudgetPaused` is entered after the first `EnforcementVerdict::OverUsageLimit`.
+10. **Cost-ceiling cuts off within 1 message of breach.** `oya-intelligence-supervisor-runtime/tests/budget_breach.rs` asserts `BudgetPaused` is entered after the first `EnforcementVerdict::OverUsageLimit`.
 
 ---
 
@@ -383,12 +383,12 @@ A senior engineer signs off iff *all* of the following are demonstrable:
   - Option B (per-CLI binaries + shared kernel) — rejected: 3× operator surface; cron/webhook duplication.
   - Option D (embed each CLI as a library) — rejected: violates ToS; duplicates auth state.
   - Keep Node.js claude-heartbeat as sidecar — rejected: violates ADR-0090 (hyper backbone), ADR-0092 (workspace-dep-seam), ADR-0064 (Rust-native standard).
-- **Why chosen:** maps to existing `oya-foundry-account-{kernel,domain,runtime,app}` topology; allows per-CLI worker quarantine; lets the kernel stay sync + std-only; lets new doc-coverage land cleanly under `foundry/supervisor`.
+- **Why chosen:** maps to existing `oya-intelligence-account-{kernel,domain,runtime,app}` topology; allows per-CLI worker quarantine; lets the kernel stay sync + std-only; lets new doc-coverage land cleanly under `foundry/supervisor`.
 - **Consequences:**
   - *Positive:* unified ops surface; cost-ceiling re-uses M02 audit chain; ADR-0090 hyper-only invariant preserved.
   - *Negative:* one daemon = one upgrade window for three CLIs; supervisor-of-supervisors complexity in lifecycle code.
 - **Follow-ups:**
-  - Decide whether to promote `oya-foundry-supervisor-conformance` to a workspace-wide fitness lane (probably yes — M02-P03 gate).
+  - Decide whether to promote `oya-intelligence-supervisor-conformance` to a workspace-wide fitness lane (probably yes — M02-P03 gate).
   - Track Codex CLI’s stop-hook roadmap; once available, retire stdout-sentinel fallback.
   - Track Gemini CLI versions; once v0.3+ is the floor, drop the `pty` feature flag and retire ADR-0099’s `nix` dep.
 
@@ -397,10 +397,10 @@ A senior engineer signs off iff *all* of the following are demonstrable:
 ## E. Open Questions (extracted by planner; will be persisted to `.omc/plans/open-questions.md`)
 
 - [ ] Confirm Codex CLI subscription-mode binary actually emits `{"type":"session_end"}` on `--json-output` in current OSS release (we assume yes; if not, the sentinel-only path is the primary, not the fallback). — Driver bar correctness.
-- [ ] Confirm `oya-foundry-account-adapter-openbao` exposes a sync `dereference` or whether the supervisor needs an async wrapper (kernel stays sync but runtime can await). — IP-007/008/009 implementation detail.
-- [ ] Decide whether `oya-foundry-supervisor-conformance` lives under `crates/` (as a regular crate) or `tools/` (as a runner) — affects whether it counts toward `cargo deny` external-dep accounting.
+- [ ] Confirm `oya-intelligence-account-adapter-openbao` exposes a sync `dereference` or whether the supervisor needs an async wrapper (kernel stays sync but runtime can await). — IP-007/008/009 implementation detail.
+- [ ] Decide whether `oya-intelligence-supervisor-conformance` lives under `crates/` (as a regular crate) or `tools/` (as a runner) — affects whether it counts toward `cargo deny` external-dep accounting.
 - [ ] Confirm the existing `tools/oya-dashboard-e2e` framework can host the negative-test for write-method rejection on the supervisor read endpoints (P02 already has this for visibility; supervisor inherits).
-- [ ] Decide whether `oya-foundry-supervisor-adapter-cron-tokio`’s hand-rolled cron parser belongs in its own kernel (`oya-foundry-cron-kernel`) for re-use across Foundry, or stays inlined.
+- [ ] Decide whether `oya-intelligence-supervisor-adapter-cron-tokio`’s hand-rolled cron parser belongs in its own kernel (`oya-intelligence-cron-kernel`) for re-use across Foundry, or stays inlined.
 - [ ] Confirm the M02 acceptance gate’s “3 × 2 = 6 cells live-smoke” clause counts subscription-mode autonomy *via supervisor* as satisfying the subscription cell, or whether the supervisor is additive (likely additive, but needs explicit confirmation).
 
 ---

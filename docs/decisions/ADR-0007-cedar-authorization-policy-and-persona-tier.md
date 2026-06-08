@@ -84,12 +84,12 @@ evidence_emission_topic: oya.cloud.iam.role-published.v1
 plane: control
 ```
 
-The runtime gate (in `crates/oya-foundry-runtime-policy-*`) refuses to invoke if `tenant.autonomy_tier < capability.autonomy_tier_required`.
+The runtime gate (in `crates/oya-intelligence-runtime-policy-*`) refuses to invoke if `tenant.autonomy_tier < capability.autonomy_tier_required`.
 
 ### Runtime enforcement gate
 
 ```rust
-// crates/oya-foundry-runtime-policy
+// crates/oya-intelligence-runtime-policy
 pub async fn evaluate_invocation(
     principal: &Principal,
     tenant: &Tenant,

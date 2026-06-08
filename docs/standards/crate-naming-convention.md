@@ -196,12 +196,12 @@ Legacy `application`, `runtime`, and `test` role records are transitional compat
 
 | Role | Capability tail | Examples |
 |---|---|---|
-| `kernel` | **forbidden** | `oya-foundry-evidence-kernel` (no tail) |
+| `kernel` | **forbidden** | `oya-intelligence-evidence-kernel` (no tail) |
 | `domain` | optional | n/a in workspace yet |
 | `app` | optional | `oya-cloud-billing-tax-app` (tail = `tax` on feature `billing`) |
 | `api` | optional | `oya-cloud-compute-vm-api` (tail = `vm` on feature `compute`) |
 | `worker` | optional | n/a in workspace yet |
-| `adapter` | **REQUIRED** | `oya-foundry-evidence-adapter-file` (file backend) |
+| `adapter` | **REQUIRED** | `oya-intelligence-evidence-adapter-file` (file backend) |
 | `runtime` | optional | `oya-tooling-cli-dev-runtime` (tail = `dev`; see §6.1) |
 | `cli` | optional | n/a in workspace yet |
 | `sdk` | optional | n/a in workspace yet |
@@ -388,7 +388,7 @@ Inside a crate, the standard tracks the
 2. **Kernel with capability tail.** A kernel is by definition
    capability-agnostic; if the kernel needs a capability tail, it isn't a
    kernel — it's an adapter or an app.
-3. **Headless adapter** (e.g. `oya-foundry-evidence-file`). The role token
+3. **Headless adapter** (e.g. `oya-intelligence-evidence-file`). The role token
    is missing; readers cannot tell whether the crate is a kernel with a
    file-format feature or an adapter binding evidence to a file backend.
 4. **Compound feature without ADR.** Adding a fourth-token feature

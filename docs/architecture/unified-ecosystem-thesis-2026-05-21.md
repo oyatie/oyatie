@@ -189,8 +189,8 @@ For the 5,000-person enterprise above, total annual fragmentation-tax delta (exc
 ### 2.1 The substrate-vs-product layering
 ADR-0245 establishes that substrate microservices serve all products with no duplication. The substrate is:
 - `oya-shared-identity` plus `oya-shared-tenancy` (ADR-0244)
-- `oya-foundry-policy-engine-cedar` (ADR-0243 universal gate)
-- `oya-foundry-workflow-engine` (durable-process substrate)
+- `oya-intelligence-policy-engine-cedar` (ADR-0243 universal gate)
+- `oya-intelligence-workflow-engine` (durable-process substrate)
 - `oya-shared-ontology` (object-graph plus projections)
 - `oya-shared-audit-chain` (evidence substrate; ADR-0251 retention-class aware)
 - `oya-shared-marketplace-settlement` (universal settlement; ADR-0314)
@@ -262,7 +262,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Identity recovery event: freeze high-risk actions until passkey recovery and tenant membership facts are reconciled.
 - Passkey-binding drift: if the user's passkey is replaced on a new device, require a re-attestation flow before high-risk verbs are re-permitted.
 
-**Implementation references**: `oya-shared-identity`, `oya-shared-identity-domain`, `oya-shared-tenancy`, `oya-shared-role-projection`, `oya-foundry-policy-engine-cedar`.
+**Implementation references**: `oya-shared-identity`, `oya-shared-identity-domain`, `oya-shared-tenancy`, `oya-shared-role-projection`, `oya-intelligence-policy-engine-cedar`.
 
 **Worked example**: Dr. Patel is a physician at three hospitals plus a part-time clinical-researcher at a CRO plus a side-business medical-spa owner. She has four tenant memberships under one passkey-backed identity. Switching tenants is one keystroke; her audit-chain history is one stream. When her passkey is replaced after a device upgrade, every tenant's high-risk verb is frozen until re-attestation completes. When she leaves one hospital, her membership in that tenant is deprovisioned without affecting the other three or her personal tenant.
 
@@ -277,7 +277,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Scalability: policy evaluation is per-action; Cedar evaluation is sharded by tenant; cache invalidation on policy-fragment version bump.
 - Performance: Cedar evaluation must complete within 2 ms p50, 8 ms p99 for the substrate action-router admission path.
 - Optimization: hot-path policy fragments are pre-compiled; cold-path policies fall back to interpreted evaluation.
-- Code quality: policy authoring tooling at `oya-tools-policy-author` (planned); policy-fragment-fuzz testing at `oya-foundry-policy-fuzz` (planned).
+- Code quality: policy authoring tooling at `oya-tools-policy-author` (planned); policy-fragment-fuzz testing at `oya-intelligence-policy-fuzz` (planned).
 
 **Failure-mode tree**:
 - Stale policy version: deny by default, refresh policy projection, emit stale-policy audit evidence, and require re-evaluation before permitting the action.
@@ -287,7 +287,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Emergency override: only via break-glass capability tier; every override emits a heightened audit-chain event and triggers a synchronous notification to the tenant's policy administrators.
 - Policy-engine outage: prefer cached-decision-with-deny-fallback for write actions; permit cached read decisions with bounded TTL.
 
-**Implementation references**: `oya-foundry-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`.
+**Implementation references**: `oya-intelligence-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`.
 
 **Worked example**: An employer wants to permit a contractor to view-but-not-edit project-management Ontology objects. The Cedar policy fragment grants `view` on the project-management object class scoped to the contractor's tenant-membership for the duration of the engagement. When the engagement ends, a workflow run deletes the membership and the Cedar evaluation immediately denies all subsequent view attempts. The audit-chain records the deprovisioning event.
 
@@ -312,7 +312,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Template-version migration: migration policy lives in the template; running runs continue under their starting version unless explicitly rebased.
 - Cross-tenant workflow: forbidden by default; cross-tenant runs require explicit cross-tenant Cedar permit plus marketplace-settlement scope.
 
-**Implementation references**: `oya-foundry-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`.
+**Implementation references**: `oya-intelligence-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`.
 
 **Worked example**: A purchase-order approval workflow requires: requester submits, manager approves, finance reviews, vendor onboarding check, contract signing, PO issuance. Every step uses one of the thirteen verbs; every state transition is audit-chain-sealed; every Cedar evaluation respects the tenant's spending-authority matrix.
 
@@ -447,7 +447,7 @@ The invariants define what never forks even when role, capability tier, or tenan
 - Pack-specific evidence absent: workflow deferred until evidence is attached; denial-recovery widget guides the user.
 - Pack-attestation expiry: workflow defers high-stakes verbs until attestation is renewed.
 
-**Implementation references**: `oya-shared-compliance-pack`, `oya-shared-compliance-pack-overlays`, `oya-foundry-policy-engine-cedar`.
+**Implementation references**: `oya-shared-compliance-pack`, `oya-shared-compliance-pack-overlays`, `oya-intelligence-policy-engine-cedar`.
 
 **Worked example**: A multi-national life-sciences tenant has HIPAA (US clinical), GDPR (EU clinical), PCI (e-commerce), and SOC2 (corporate IT) packs active. A US-clinical-research-coordinator's verify-context shows the active packs scoped to the current action; data exported from the US clinical-research workflow is scoped to HIPAA-pack export grammar; data exported from the EU sales-portal is scoped to GDPR-pack export grammar.
 
@@ -1942,7 +1942,7 @@ The policy-engine primitive carries:
 - Audit-chain links: every evaluation is sealed.
 - Hot-path precompilation: high-frequency policy fragments precompile for performance.
 
-Implementation references: `oya-foundry-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`, `oya-shared-policy-author`.
+Implementation references: `oya-intelligence-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`, `oya-shared-policy-author`.
 
 ### 13.D.3 Workflow-engine primitive details
 The workflow-engine primitive carries:
@@ -1953,7 +1953,7 @@ The workflow-engine primitive carries:
 - Workflow-template version management with backward-compat.
 - Audit-chain links: every state transition is sealed.
 
-Implementation references: `oya-foundry-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`, `oya-shared-workflow-replay`.
+Implementation references: `oya-intelligence-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`, `oya-shared-workflow-replay`.
 
 ### 13.D.4 Ontology primitive details
 The ontology primitive carries:
@@ -2320,10 +2320,10 @@ The substrate teams own the substrate primitives plus their respective conforman
 Owns: `oya-shared-identity`, `oya-shared-identity-domain`, `oya-shared-identity-recovery`, `oya-shared-identity-passkey`, `oya-shared-tenancy`, `oya-shared-tenant-membership`. Conformance lanes: `oya-governance-dual-tenant`, `oya-governance-tenant-primitive`. ADRs: ADR-0244, ADR-0311, ADR-0313, ADR-0320, ADR-0242.
 
 ### 13.L.3 Policy-team scope
-Owns: `oya-foundry-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`, `oya-shared-policy-author`. Conformance lanes: `oya-governance-policy-engine`. ADRs: ADR-0243, ADR-0250.
+Owns: `oya-intelligence-policy-engine-cedar`, `oya-shared-policy-store`, `oya-shared-cedar-evaluator`, `oya-shared-policy-author`. Conformance lanes: `oya-governance-policy-engine`. ADRs: ADR-0243, ADR-0250.
 
 ### 13.L.4 Workflow-team scope
-Owns: `oya-foundry-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`, `oya-shared-workflow-replay`. Conformance lanes: `oya-governance-workflow-engine`, `oya-governance-workflow-escalation`. ADRs: ADR-0245.
+Owns: `oya-intelligence-workflow-engine`, `oya-shared-workflow-templates`, `oya-shared-workflow-runtime`, `oya-shared-workflow-replay`. Conformance lanes: `oya-governance-workflow-engine`, `oya-governance-workflow-escalation`. ADRs: ADR-0245.
 
 ### 13.L.5 Ontology-team scope
 Owns: `oya-shared-ontology`, `oya-shared-ontology-schema`, `oya-shared-ontology-projection`, `oya-shared-ontology-migration`. Conformance lanes: `oya-governance-ontology`. ADRs: ADR-0244, ADR-0245.
@@ -2471,8 +2471,8 @@ Each section is self-contained for spot-reading. Cross-references are explicit. 
 ### Implementation microservices
 - oya-shared-identity, oya-shared-identity-domain (ONE-IDENTITY)
 - oya-shared-tenancy (ONE-IDENTITY plus ADR-0244 tenancy primitive)
-- oya-foundry-policy-engine-cedar, oya-shared-policy-store, oya-shared-cedar-evaluator (ONE-POLICY-ENGINE)
-- oya-foundry-workflow-engine, oya-shared-workflow-templates, oya-shared-workflow-runtime (ONE-WORKFLOW-ENGINE)
+- oya-intelligence-policy-engine-cedar, oya-shared-policy-store, oya-shared-cedar-evaluator (ONE-POLICY-ENGINE)
+- oya-intelligence-workflow-engine, oya-shared-workflow-templates, oya-shared-workflow-runtime (ONE-WORKFLOW-ENGINE)
 - oya-shared-ontology, oya-shared-ontology-schema, oya-shared-ontology-projection (ONE-ONTOLOGY)
 - oya-shared-audit-chain, oya-shared-audit-chain-schema, oya-shared-audit-replay (ONE-AUDIT-CHAIN)
 - oya-shared-marketplace-settlement, oya-shared-marketplace-admission, oya-shared-marketplace-dispute (ONE-MARKETPLACE)

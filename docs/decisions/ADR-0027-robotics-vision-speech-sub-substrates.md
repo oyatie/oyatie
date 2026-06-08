@@ -27,20 +27,20 @@ We also have an explicit anti-scope: no defense / weaponized robotics work witho
 
 We define three sub-substrates as Foundry capability classes, layered on the in-house model kernel (ADR-0026): **vision**, **speech**, and **robotics control**. Real-time control loops have deterministic latency budgets; safety-critical actuation defaults to T4-disabled per ADR-0022; per-vertical safety regulators bind in the registry; simulation-first for new actuation capabilities; per-region anti-scope (defense / weaponized robotics) is structurally enforced.
 
-### Vision substrate (`crates/oya-foundry-model-vision-*`)
+### Vision substrate (`crates/oya-intelligence-model-vision-*`)
 
 ```
-crates/oya-foundry-model-vision-kernel
-crates/oya-foundry-model-vision-ocr-app
-crates/oya-foundry-model-vision-classification-app
-crates/oya-foundry-model-vision-detection-app
-crates/oya-foundry-model-vision-video-analytics-app
-crates/oya-foundry-model-vision-facial-recognition-app   // lawful-only; per-pack hard gates
-crates/oya-foundry-model-vision-scene-anomaly-app
+crates/oya-intelligence-model-vision-kernel
+crates/oya-intelligence-model-vision-ocr-app
+crates/oya-intelligence-model-vision-classification-app
+crates/oya-intelligence-model-vision-detection-app
+crates/oya-intelligence-model-vision-video-analytics-app
+crates/oya-intelligence-model-vision-facial-recognition-app   // lawful-only; per-pack hard gates
+crates/oya-intelligence-model-vision-scene-anomaly-app
 ```
 
 ```rust
-// crates/oya-foundry-model-vision-kernel/src/lib.rs
+// crates/oya-intelligence-model-vision-kernel/src/lib.rs
 pub enum VisionTask {
     Ocr { script_set: ScriptSet, locale_hint: Option<LocaleId> },
     ImageClassification { taxonomy: TaxonomyRef },
@@ -56,18 +56,18 @@ pub enum VisionTask {
 
 Facial recognition carries a structurally enforced lawful-basis check: the registry refuses publish without a per-pack `LawfulBasis` declaration; the runtime refuses invocation without matching consent receipts. Per-region pack overrides may HARD_DENY facial recognition entirely.
 
-### Speech substrate (`crates/oya-foundry-model-speech-*`)
+### Speech substrate (`crates/oya-intelligence-model-speech-*`)
 
 ```
-crates/oya-foundry-model-speech-kernel
-crates/oya-foundry-model-speech-stt-app
-crates/oya-foundry-model-speech-tts-app
-crates/oya-foundry-model-speech-voice-biometric-app
-crates/oya-foundry-model-speech-wake-word-app
+crates/oya-intelligence-model-speech-kernel
+crates/oya-intelligence-model-speech-stt-app
+crates/oya-intelligence-model-speech-tts-app
+crates/oya-intelligence-model-speech-voice-biometric-app
+crates/oya-intelligence-model-speech-wake-word-app
 ```
 
 ```rust
-// crates/oya-foundry-model-speech-kernel/src/lib.rs
+// crates/oya-intelligence-model-speech-kernel/src/lib.rs
 pub enum SpeechTask {
     Stt { locale: LocaleId, streaming: bool },
     Tts { locale: LocaleId, voice_profile: VoiceProfileRef },
@@ -86,8 +86,8 @@ Voice biometrics carries the same lawful-basis gate as facial recognition. TTS v
 ### Robotics control plane
 
 ```
-crates/oya-foundry-robotics-control-kernel        // Foundry-side control primitives
-crates/oya-foundry-robotics-control-app           // policy-bound control loop runner
+crates/oya-intelligence-robotics-control-kernel        // Foundry-side control primitives
+crates/oya-intelligence-robotics-control-app           // policy-bound control loop runner
 crates/oya-vertical-industrial-robotics-agv-app
 crates/oya-vertical-industrial-robotics-amr-app
 crates/oya-vertical-industrial-robotics-arm-app
@@ -96,7 +96,7 @@ crates/oya-vertical-industrial-robotics-av-app    // autonomous vehicles; per-re
 ```
 
 ```rust
-// crates/oya-foundry-robotics-control-kernel/src/lib.rs
+// crates/oya-intelligence-robotics-control-kernel/src/lib.rs
 pub struct ControlLoop {
     pub loop_id: ControlLoopId,
     pub deterministic_budget: LatencyBudget {
@@ -120,7 +120,7 @@ pub enum SafetyClass {
 
 ### Real-time loops
 
-Robotics control loops run in dedicated runtime profiles (`oya-foundry-robotics-control-runtime`) — not on the general Foundry daemon — because the deterministic latency budget cannot share scheduling with capability invocations whose tail latencies are in the seconds. Per-vertical control-plane runtimes coordinate via a sealed control-bus; the bus carries safety messages with a separate priority class.
+Robotics control loops run in dedicated runtime profiles (`oya-intelligence-robotics-control-runtime`) — not on the general Foundry daemon — because the deterministic latency budget cannot share scheduling with capability invocations whose tail latencies are in the seconds. Per-vertical control-plane runtimes coordinate via a sealed control-bus; the bus carries safety messages with a separate priority class.
 
 ### Safety-critical actuation T4 disabled by default
 
@@ -143,7 +143,7 @@ Every new actuation capability passes a regulator-aligned sim suite before the r
 Defense and weaponized-robotics work is structurally anti-scope unless the founder + legal carve-out is recorded in a regional pack override with explicit scope:
 
 ```rust
-// crates/oya-foundry-robotics-control-kernel/src/anti_scope.rs
+// crates/oya-intelligence-robotics-control-kernel/src/anti_scope.rs
 pub fn refuse_anti_scope(capability: &Capability) -> Result<(), AntiScopeViolation> {
     if capability.tags.contains(&CapabilityTag::Defense)
         || capability.tags.contains(&CapabilityTag::WeaponizedRobotics)

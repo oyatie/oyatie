@@ -210,7 +210,7 @@ Examples:
 - `oya-identity-api`
 - `oya-workflow-engine-domain`
 - `oya-ontology-function-api`
-- `oya-foundry-capability-kernel`
+- `oya-intelligence-capability-kernel`
 - `oya-cloud-compute-adapter-oci`
 - `oya-search-index-vector-domain`
 - `oya-ops-docs-portal-rest`

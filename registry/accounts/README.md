@@ -1,6 +1,6 @@
 # registry/accounts/ — Foundry Supervisor Account Schema
 
-Per-driver account list for `oya-foundry-supervisor`. Each `.toml` file declares one or more provider accounts for a single driver family (Claude / Codex / Gemini).
+Per-driver account list for `oya-intelligence-supervisor`. Each `.toml` file declares one or more provider accounts for a single driver family (Claude / Codex / Gemini).
 
 ## Schema
 
@@ -40,7 +40,7 @@ priority = 1                        # lower = higher priority; supervisor select
 
 ## Secret references
 
-All secrets use OpenBao `sref://` references per **ADR-0067** (`secret-reference-openbao-pattern`). The supervisor resolves them at runtime via `SecretStorePort` (implemented in `oya-foundry-account-adapter-openbao`). **Never commit raw API keys.**
+All secrets use OpenBao `sref://` references per **ADR-0067** (`secret-reference-openbao-pattern`). The supervisor resolves them at runtime via `SecretStorePort` (implemented in `oya-intelligence-account-adapter-openbao`). **Never commit raw API keys.**
 
 ## Autonomy tier ceilings
 

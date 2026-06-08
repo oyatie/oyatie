@@ -243,10 +243,10 @@ header for the authoritative version):
   "adoption_rationale": "...",
   "replacement_path": "in-house foundry-runtime model substrate (ADR-0026)",
   "replacement_readiness_gate": "human-eval >= 95% on internal benchmark + tool-use parity demonstrated",
-  "seam_adapter_trait": "crates/oya-foundry-adapter-anthropic-api-kernel",
+  "seam_adapter_trait": "crates/oya-intelligence-adapter-anthropic-api-kernel",
   "seam_adapter_impls": [
-    "crates/oya-foundry-adapter-anthropic-api-adapter",
-    "crates/oya-foundry-adapter-anthropic-subscription-adapter"
+    "crates/oya-intelligence-adapter-anthropic-api-adapter",
+    "crates/oya-intelligence-adapter-anthropic-subscription-adapter"
   ],
   "phase_out_target_date_or_signal": "signal: foundry-runtime parity demonstrated"
 }

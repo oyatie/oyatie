@@ -31,7 +31,7 @@ The implicit invariant: **staging traffic on a canary cohort must
 PASS observability thresholds before production promotion fires.**
 ADR-0110/0111/0112/0113 all mark canary observability as FUTURE
 without specifying it. ADR-0114 locks the design before
-implementation begins on `oya-foundry-canary-controller-{kernel,app}`
+implementation begins on `oya-intelligence-canary-controller-{kernel,app}`
 or the cell-cohort registry.
 
 ## Decision
@@ -129,7 +129,7 @@ For each (product, stage):
 
 The verdict is emitted as a `changeset-event-log` row (per ADR-0110)
 on the staging→production transition's behalf, with
-`emitted_by: oya-foundry-canary-controller-app`.
+`emitted_by: oya-intelligence-canary-controller-app`.
 
 ### 5. Rollback mechanism
 
@@ -208,7 +208,7 @@ cells back to production-HEAD, not just the most-recent stage.
 ### Negative
 
 - New crate family
-  (`oya-foundry-canary-controller-{kernel,app}` + signal-emission
+  (`oya-intelligence-canary-controller-{kernel,app}` + signal-emission
   lane + thresholds registry + rewind-log) — ~600 LOC + 4 new
   lanes.
 - Observability backend assumed (OpenTelemetry collector
@@ -231,9 +231,9 @@ cells back to production-HEAD, not just the most-recent stage.
 ## Implementation sequencing
 
 - **Wave A** (this ADR Accepted):
-  1. `oya-foundry-canary-controller-kernel` — pure-domain
+  1. `oya-intelligence-canary-controller-kernel` — pure-domain
      threshold evaluator + verdict emitter.
-  2. `oya-foundry-canary-controller-app` — runner; subscribes to
+  2. `oya-intelligence-canary-controller-app` — runner; subscribes to
      signal sources, emits verdicts every 30 s, writes
      `changeset-event-log` rows.
   3. `registry/cells/canary-cohort.yaml` + `registry/canary/thresholds.yaml`
@@ -260,7 +260,7 @@ cells back to production-HEAD, not just the most-recent stage.
 
 ## Naming justification
 
-- `oya-foundry-canary-controller-{kernel,app}` — `oya-foundry-`
+- `oya-intelligence-canary-controller-{kernel,app}` — `oya-foundry-`
   product, `canary-controller` concept, role suffix.
 - Lane id `oya-governance-canary-signal-emission` — fitness
   family prefix.

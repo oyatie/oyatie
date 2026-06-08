@@ -104,7 +104,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigation in progress.
 - acceptance posture: Avoid for prohibited practices; reduce for high-risk deployer/provider obligations.
 - transfer posture: E&O insurance only covers defense cost; product prohibition is not transferable.
-- microservice mitigations: `oya-foundry-guardrails-autonomy-tier-gate-kernel`, `oya-check-high-risk-auto-decision-refusal`, `oya-regional-pack-api`, and `oya-foundry-evidence-regulator-export-framework-profiles`.
+- microservice mitigations: `oya-intelligence-guardrails-autonomy-tier-gate-kernel`, `oya-check-high-risk-auto-decision-refusal`, `oya-regional-pack-api`, and `oya-intelligence-evidence-regulator-export-framework-profiles`.
 - Cedar policies: `policy.ai_high_risk_deployer_gate`, `policy.prohibited_practice_refusal`, `policy.human_oversight_required`, `policy.regional_pack_ai_act_overlay`.
 - monitoring: `microservices/intelligence/dashboards/runtime-autonomy-tier-mix.json`, `microservices/intelligence/dashboards/guardrails-jailbreak-attempt-rate.json`, `registry/dashboards/compliance-pack-attestation-lag.yaml`.
 - named indicators: high-risk workflow count, T3/T4 autonomy attempt rate, AI Act pack attestation age, denied prohibited-practice requests, regulator publication delta.
@@ -168,7 +168,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - reducing through owner assignment and runbook coverage.
 - acceptance posture: Accept residual specialist scarcity; reduce single-person dependency.
 - transfer posture: Recruiting partners and contractor bench transfer schedule pressure only.
-- microservice mitigations: `oya-foundry-evidence-evidence-pack-builder-usecase`, `oya-check-raci-completeness`, `oya-check-codeowners-mirror`, `oya-foundry-supervisor-agent-fleet-lifecycle-domain`.
+- microservice mitigations: `oya-intelligence-evidence-evidence-pack-builder-usecase`, `oya-check-raci-completeness`, `oya-check-codeowners-mirror`, `oya-intelligence-supervisor-agent-fleet-lifecycle-domain`.
 - Cedar policies: `policy.owner_handoff_required`, `policy.break_glass_dual_control`, `policy.capability_owner_backup_required`.
 - monitoring: RACI freshness, CODEOWNERS mirror, runbook orphan check, capability owner backup count.
 - named indicators: ownerless capability rows, stale runbooks, no backup reviewer, missed risk review, unresolved ADR owner.
@@ -200,7 +200,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - accepted residual macro risk.
 - acceptance posture: Accept macro exposure; reduce burn and sequence revenue proof.
 - transfer posture: Non-dilutive funding, cloud credits, customer prepay, and insurance do not transfer product-market risk.
-- microservice mitigations: `oya-cloud-billing-tax-app`, `oya-cloud-finops-api`, `oya-metering-domain`, `oya-foundry-providers-router-domain`.
+- microservice mitigations: `oya-cloud-billing-tax-app`, `oya-cloud-finops-api`, `oya-metering-domain`, `oya-intelligence-providers-router-domain`.
 - Cedar policies: `policy.cost_budget_enforced`, `policy.provider_cost_ceiling`, `policy.tenant_margin_guard`, `policy.discount_approval_dual_control`.
 - monitoring: `microservices/intelligence/dashboards/providers-provider-cost-per-tenant.json`, `registry/dashboards/capability-tier-sla-conformance.yaml`, FinOps monthly close.
 - named indicators: runway months, CAC payback, cloud cost per active tenant, provider quota spend, discount depth, deferred compliance work.
@@ -232,7 +232,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - reduce through durable workflow/evidence differentiation.
 - acceptance posture: Accept model commoditization; reduce dependence on model novelty.
 - transfer posture: Not transferable; partnership and provider abstraction reduce provider-specific exposure.
-- microservice mitigations: `oya-foundry-eval-eval-runner-domain`, `oya-foundry-evidence-evidence-pack-builder-domain`, `oya-foundry-guardrails-output-validator-kernel`, `oya-foundry-providers-router-domain`.
+- microservice mitigations: `oya-intelligence-eval-eval-runner-domain`, `oya-intelligence-evidence-evidence-pack-builder-domain`, `oya-intelligence-guardrails-output-validator-kernel`, `oya-intelligence-providers-router-domain`.
 - Cedar policies: `policy.model_provider_abstraction_required`, `policy.eval_gate_before_model_cutover`, `policy.evidence_pack_required`.
 - monitoring: `microservices/intelligence/dashboards/eval-parity-trend.json`, `microservices/intelligence/dashboards/providers-provider-error-rate.json`, `microservices/intelligence/dashboards/evidence-pack-assembly-rate.json`.
 - named indicators: eval parity delta, per-capability pass rate, model vendor feature overlap, churn due to "good enough" customer agents.
@@ -296,7 +296,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through autonomy ceilings and evidence-first controls.
 - acceptance posture: Reduce; do not accept opaque T3/T4 autonomy in regulated flows.
 - transfer posture: E&O and cyber coverage help response cost but not trust recovery.
-- microservice mitigations: `oya-foundry-supervisor-autonomy-policy-enforcement-kernel`, `oya-foundry-supervisor-kill-switch-circuit-breaker-domain`, `oya-audit-chain-domain`.
+- microservice mitigations: `oya-intelligence-supervisor-autonomy-policy-enforcement-kernel`, `oya-intelligence-supervisor-kill-switch-circuit-breaker-domain`, `oya-audit-chain-domain`.
 - Cedar policies: `policy.autonomy_ceiling_runtime_enforced`, `policy.human_approval_required_for_t4`, `policy.kill_switch_authorized_operator`.
 - monitoring: `microservices/intelligence/dashboards/supervisor-autonomy-violation-rate.json`, `microservices/intelligence/dashboards/supervisor-kill-switch-coverage.json`.
 - named indicators: autonomy violation attempts, kill-switch coverage gaps, customer override rate, human approval latency, public complaint volume.
@@ -362,7 +362,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - reducing through seal checks and replay drills.
 - acceptance posture: Reduce; do not accept silent evidence gaps on regulated paths.
 - transfer posture: Cyber insurance transfers response cost only.
-- microservice mitigations: `oya-audit-chain-domain`, `oya-platform-audit-chain-kernel`, `oya-foundry-evidence-evidence-pack-builder-adapter-audit-chain-bridge`.
+- microservice mitigations: `oya-audit-chain-domain`, `oya-platform-audit-chain-kernel`, `oya-intelligence-evidence-evidence-pack-builder-adapter-audit-chain-bridge`.
 - Cedar policies: `policy.audit_event_emit_required`, `policy.evidence_pack_read_scope`, `policy.audit_chain_replay_operator`.
 - monitoring: `registry/dashboards/audit-event-emission-throughput.yaml`, `microservices/intelligence/dashboards/evidence-pack-assembly-rate.json`, `microservices/intelligence/dashboards/evidence-regulator-export-status.json`.
 - named indicators: emission gap count, hash-chain verification failure, replay divergence, evidence export failure, per-capability missing event rate.
@@ -490,7 +490,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigating through fragment discipline and anomaly rollback.
 - acceptance posture: Reduce; no accepted cross-tenant allow without explicit contract.
 - transfer posture: Not meaningfully transferable.
-- microservice mitigations: `oya-policy-cedar-domain`, `oya-policy-cedar-api`, `oya-check-cedar-fragment-coverage`, `oya-foundry-guardrails-cedar-engine`.
+- microservice mitigations: `oya-policy-cedar-domain`, `oya-policy-cedar-api`, `oya-check-cedar-fragment-coverage`, `oya-intelligence-guardrails-cedar-engine`.
 - Cedar policies: `policy.cedar_publish_review_required`, `policy.tenant_boundary_invariant`, `policy.fragment_soak_required`, `policy.emergency_policy_rollback`.
 - monitoring: `registry/dashboards/cedar-policy-evaluation-latency.yaml`, policy deny-rate dashboards, fragment anomaly alerts.
 - named indicators: allow-rate spike, deny-rate collapse, policy evaluation latency spike, fragment publish without soak, schema mismatch.
@@ -554,7 +554,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - reducing through runbook-index and drill evidence.
 - acceptance posture: Reduce; accept minor prose drift only when critical command path is valid.
 - transfer posture: Not transferable.
-- microservice mitigations: `oya-foundry-evidence-evidence-pack-builder-usecase`, `oya-check-runbook-index-resolves`, `oya-check-doc-catalog`.
+- microservice mitigations: `oya-intelligence-evidence-evidence-pack-builder-usecase`, `oya-check-runbook-index-resolves`, `oya-check-doc-catalog`.
 - Cedar policies: `policy.incident_commander_runbook_ack`, `policy.evidence_pack_required_for_close`, `policy.regulator_notice_dual_control`.
 - monitoring: runbook freshness, orphan runbook count, incident evidence completeness, game-day pass rate.
 - named indicators: broken runbook link, stale owner, failed drill, missing evidence pack, postmortem action reopened.
@@ -716,7 +716,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through notice inventory and data-use boundary.
 - acceptance posture: Reduce; no accepted unclear processing notice for regulated flows.
 - transfer posture: privacy counsel supports interpretation; controller accountability remains.
-- microservice mitigations: `oya-dsr-domain`, `oya-data-boundary-kernel`, `oya-regional-pack-api`, `oya-foundry-evidence-regulator-export`.
+- microservice mitigations: `oya-dsr-domain`, `oya-data-boundary-kernel`, `oya-regional-pack-api`, `oya-intelligence-evidence-regulator-export`.
 - Cedar policies: `policy.notice_required_before_processing`, `policy.data_class_notice_match`, `policy.dsr_export_allowed_scope`.
 - monitoring: DSR SLA, notice coverage, consent change delta, privacy policy diff review, pack attestation age.
 - named indicators: unnotified data class, DSR clarification spike, customer DPA redline, regulator inquiry, privacy notice stale age.
@@ -748,7 +748,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by residency and transfer manifests.
 - acceptance posture: Reduce; do not accept silent EU transfer outside approved mechanism.
 - transfer posture: subprocesser SCCs transfer contractual remedies only.
-- microservice mitigations: `oya-platform-residency-kernel`, `oya-cloud-region-domain`, `oya-foundry-evidence-regulator-export-framework-profiles`, `oya-dsr-domain`.
+- microservice mitigations: `oya-platform-residency-kernel`, `oya-cloud-region-domain`, `oya-intelligence-evidence-regulator-export-framework-profiles`, `oya-dsr-domain`.
 - Cedar policies: `policy.eu_transfer_mechanism_required`, `policy.support_access_region_bound`, `policy.scc_subprocessor_check`.
 - monitoring: transfer manifest drift, region access logs, subprocesser roster, residency egress detector, export destination.
 - named indicators: US access to EU data, missing SCC, stale transfer impact assessment, export job route mismatch, support session from disallowed country.
@@ -780,7 +780,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by KR pack and PIPC watch.
 - acceptance posture: Reduce; delay KR feature launch when PIPA mapping is incomplete.
 - transfer posture: local counsel supports interpretation; accountability remains internal.
-- microservice mitigations: `oya-regional-pack-api`, `oya-platform-residency-kernel`, `oya-data-boundary-kernel`, `oya-foundry-evidence-regulator-export`.
+- microservice mitigations: `oya-regional-pack-api`, `oya-platform-residency-kernel`, `oya-data-boundary-kernel`, `oya-intelligence-evidence-regulator-export`.
 - Cedar policies: `policy.kr_pipa_cross_border_notice`, `policy.kr_behavioral_data_consent`, `policy.kr_domestic_agent_required`.
 - monitoring: regulator publication feed, KR pack attestation lag, consent opt-in rate, cross-border transfer manifest, vulnerability backlog.
 - named indicators: missing Korean notice, unlisted overseas processor, breach notice late, behavior-based analytics without consent, SQLi critical finding.
@@ -876,7 +876,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigating through risk-class registry.
 - acceptance posture: Avoid prohibited practices; reduce high-risk obligations.
 - transfer posture: not transferable except for counsel and conformity-assessment support.
-- microservice mitigations: `specs/capabilities/eu-ai-act-risk-class-registry.json`, `oya-check-high-risk-auto-decision-refusal`, `oya-foundry-guardrails-output-validator-kernel`.
+- microservice mitigations: `specs/capabilities/eu-ai-act-risk-class-registry.json`, `oya-check-high-risk-auto-decision-refusal`, `oya-intelligence-guardrails-output-validator-kernel`.
 - Cedar policies: `policy.eu_ai_act_classification_required`, `policy.prohibited_ai_refusal`, `policy.high_risk_human_oversight`.
 - monitoring: risk-class coverage, high-risk capability count, human oversight SLA, transparency notice coverage, model eval drift.
 - named indicators: Annex III match, automated decision appeal count, high-risk system without technical file, transparency notice missing.
@@ -908,7 +908,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through DORA workflow templates and evidence export.
 - acceptance posture: Reduce; accept delayed financial-sector go-live if evidence incomplete.
 - transfer posture: contractual liability caps and insurance transfer some cost only.
-- microservice mitigations: `oya-foundry-evidence-regulator-export`, `oya-observability-domain`, `oya-cloud-cell-app`, `oya-provider-router-domain`.
+- microservice mitigations: `oya-intelligence-evidence-regulator-export`, `oya-observability-domain`, `oya-cloud-cell-app`, `oya-provider-router-domain`.
 - Cedar policies: `policy.dora_financial_tenant_controls`, `policy.ict_subprocessor_review_required`, `policy.incident_report_dual_control`.
 - monitoring: resilience drill age, incident reporting clock, critical ICT provider roster, subcontractor change notice, exit-plan test.
 - named indicators: customer DORA questionnaire gap, untested DR, subcontractor no-notice change, incident-report SLA breach.
@@ -940,7 +940,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through sovereign overlays and air-gapped doctrine.
 - acceptance posture: Reduce; accept slower feature availability in sovereign cells.
 - transfer posture: local hosting partner transfers operations only when contractually bound.
-- microservice mitigations: `oya-platform-residency-kernel`, `oya-cloud-cell-app`, `oya-cloud-kms-domain`, `oya-foundry-providers-router-domain`.
+- microservice mitigations: `oya-platform-residency-kernel`, `oya-cloud-cell-app`, `oya-cloud-kms-domain`, `oya-intelligence-providers-router-domain`.
 - Cedar policies: `policy.sovereign_cell_no_external_provider`, `policy.local_operator_required`, `policy.telemetry_redaction_required`.
 - monitoring: sovereign cell egress, local key custody, provider-call deny count, telemetry export attempts, certification status.
 - named indicators: external AI call from sovereign cell, nonlocal support access, telemetry aggregate with personal data, HSM nonlocal.
@@ -972,7 +972,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through screening and region deny policies.
 - acceptance posture: Avoid sanctioned use; reduce ambiguous dual-use exposure.
 - transfer posture: screening vendors transfer data support only.
-- microservice mitigations: `oya-marketplace-domain`, `oya-tenancy-domain`, `oya-foundry-guardrails-rule-store`, `oya-regional-pack-api`.
+- microservice mitigations: `oya-marketplace-domain`, `oya-tenancy-domain`, `oya-intelligence-guardrails-rule-store`, `oya-regional-pack-api`.
 - Cedar policies: `policy.sanctions_screen_required`, `policy.export_control_region_deny`, `policy.restricted_capability_hold`.
 - monitoring: screening match rate, geolocation mismatch, restricted capability attempts, denied region signups, manual review backlog.
 - named indicators: sanctions hit, VPN/geovelocity mismatch, dual-use workflow request, restricted export destination, blocked payment.
@@ -1036,7 +1036,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - monitored.
 - acceptance posture: Accept unsupported region delay; reduce when entering market.
 - transfer posture: local counsel and reseller terms transfer limited interpretation risk.
-- microservice mitigations: `oya-regional-pack-api`, `oya-platform-residency-kernel`, `oya-foundry-evidence-regulator-export`.
+- microservice mitigations: `oya-regional-pack-api`, `oya-platform-residency-kernel`, `oya-intelligence-evidence-regulator-export`.
 - Cedar policies: `policy.apac_pack_required`, `policy.financial_outsourcing_evidence_required`, `policy.local_breach_clock`.
 - monitoring: regulator publication feed, pack attestation lag, APAC tenant count, counsel memo freshness.
 - named indicators: first APAC regulated tenant, outsourcing questionnaire, data-localization request, breach-report clock.
@@ -1100,7 +1100,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - reduce before personal tenant expansion.
 - acceptance posture: Avoid behavioral advertising to minors; reduce other exposure.
 - transfer posture: parental consent processors transfer limited verification support.
-- microservice mitigations: `oya-identity-domain`, `oya-messenger-domain`, `oya-community-social-domain`, `oya-mail-domain`, `oya-ads-analytics-domain`, `oya-foundry-guardrails-content-safety-rule-engine-kernel`.
+- microservice mitigations: `oya-identity-domain`, `oya-messenger-domain`, `oya-community-social-domain`, `oya-mail-domain`, `oya-ads-analytics-domain`, `oya-intelligence-guardrails-content-safety-rule-engine-kernel`.
 - Cedar policies: `policy.minor_age_gate`, `policy.minor_no_sale_share`, `policy.guardian_consent_required`, `policy.default_private_minor`.
 - monitoring: age assurance failure, minor content report, consent expiration, ad sharing deny count, account recovery risk.
 - named indicators: under-16 signal, guardian dispute, minor data in ads, social-media complaint, safety escalation.
@@ -1294,7 +1294,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through fragment discipline and latency dashboard.
 - acceptance posture: Reduce; accept complexity only with benchmark and ownership.
 - transfer posture: not transferable.
-- microservice mitigations: `oya-policy-cedar-domain`, `oya-foundry-guardrails-cedar-engine`, `oya-check-cedar-fragment-coverage`.
+- microservice mitigations: `oya-policy-cedar-domain`, `oya-intelligence-guardrails-cedar-engine`, `oya-check-cedar-fragment-coverage`.
 - Cedar policies: `policy.cedar_fragment_registry_required`, `policy.policy_benchmark_required`, `policy.policy_deprecation_window`.
 - monitoring: `registry/dashboards/cedar-policy-evaluation-latency.yaml`, fragment count, allow/deny entropy, policy authoring backlog.
 - named indicators: p99 eval latency breach, fragment duplication, authoring exceptions, false-positive support tickets, rollback frequency.
@@ -1358,7 +1358,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by per-tenant quotas and autoscaling.
 - acceptance posture: Reduce; accept graceful throttling rather than uncontrolled spend.
 - transfer posture: cloud credits and provider SLAs only partly transfer cost.
-- microservice mitigations: `oya-cloud-capacity-domain`, `oya-shared-tenant-quota-kernel`, `oya-foundry-providers-router-domain`, `oya-analytics-domain`.
+- microservice mitigations: `oya-cloud-capacity-domain`, `oya-shared-tenant-quota-kernel`, `oya-intelligence-providers-router-domain`, `oya-analytics-domain`.
 - Cedar policies: `policy.tenant_quota_enforced`, `policy.provider_quota_fallback`, `policy.capacity_emergency_scale_operator`.
 - monitoring: quota utilization, provider rate limits, queue lag, vector DB capacity, GPU pool saturation, cost anomaly.
 - named indicators: 80 percent quota sustained, provider 429 spike, queue delay, cost anomaly, cell saturation.
@@ -1422,7 +1422,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated through eval replay and model cutover runbooks.
 - acceptance posture: Reduce; accept residual nondeterminism only under monitored confidence bands.
 - transfer posture: provider terms transfer limited SLA risk only.
-- microservice mitigations: `oya-foundry-eval-eval-runner-domain`, `oya-foundry-providers-router-domain`, `oya-foundry-guardrails-output-validator-kernel`, `oya-foundry-evidence-capability-invocation-recorder-kernel`.
+- microservice mitigations: `oya-intelligence-eval-eval-runner-domain`, `oya-intelligence-providers-router-domain`, `oya-intelligence-guardrails-output-validator-kernel`, `oya-intelligence-evidence-capability-invocation-recorder-kernel`.
 - Cedar policies: `policy.model_cutover_eval_required`, `policy.provider_fallback_allowed`, `policy.high_risk_model_change_hold`.
 - monitoring: eval pass rate, parity trend, guardrail false positive, provider error, token cost, jailbreak attempts.
 - named indicators: eval regression, output drift, cost spike, provider 5xx, fairness degradation, high-risk refusal miss.
@@ -1486,7 +1486,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by node autoscaling and cell topology maps.
 - acceptance posture: Reduce; accept degraded scheduling only in preview.
 - transfer posture: cloud provider SLA transfers limited node failure cost.
-- microservice mitigations: `oya-cloud-compute-domain`, `oya-cloud-cell-app`, `oya-shared-hyperscaler-metrics-kernel`, `oya-foundry-runtime-invocation-orchestrator-domain`.
+- microservice mitigations: `oya-cloud-compute-domain`, `oya-cloud-cell-app`, `oya-shared-hyperscaler-metrics-kernel`, `oya-intelligence-runtime-invocation-orchestrator-domain`.
 - Cedar policies: `policy.workload_cell_affinity_required`, `policy.regulated_workload_node_selector`, `policy.k8s_emergency_drain_operator`.
 - monitoring: pending pods, node pressure, autoscaler failures, topology skew, network policy drops, regulated workload placement.
 - named indicators: pod unschedulable, cross-cell placement, node quota failure, PDB deadlock, Karpenter provisioning delay.
@@ -1552,7 +1552,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by migration-out and portability formats.
 - acceptance posture: Reduce; accept platform dependency only when exit is evidenced.
 - transfer posture: contractual exit clauses transfer some customer concern.
-- microservice mitigations: `oya-dsr-usecase`, `oya-workflow-engine-domain`, `oya-ontology-domain`, `oya-foundry-evidence-evidence-pack-builder-api`.
+- microservice mitigations: `oya-dsr-usecase`, `oya-workflow-engine-domain`, `oya-ontology-domain`, `oya-intelligence-evidence-evidence-pack-builder-api`.
 - Cedar policies: `policy.tenant_export_authorized`, `policy.portability_export_scope`, `policy.migration_out_evidence_required`.
 - monitoring: export success rate, migration-out requests, customer security questionnaire objections, data-portability SLA.
 - named indicators: RFP lock-in objection, failed export, custom format gap, competitor FUD, renewal legal redline.
@@ -1584,7 +1584,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - monitored.
 - acceptance posture: Accept competitive narrative as market reality; reduce with evidence.
 - transfer posture: not transferable.
-- microservice mitigations: `oya-foundry-evidence-evidence-pack-builder-api`, `oya-developer-portal`, `oya-marketplace-domain`, migration export tooling.
+- microservice mitigations: `oya-intelligence-evidence-evidence-pack-builder-api`, `oya-developer-portal`, `oya-marketplace-domain`, migration export tooling.
 - Cedar policies: `policy.trust_portal_public_evidence`, `policy.customer_export_demo_allowed`, `policy.competitive_claim_review_required`.
 - monitoring: RFP objection tracker, win/loss notes, trust portal views, export demo pass rate.
 - named indicators: competitor document names lock-in, deal delay, analyst question, procurement objection.
@@ -1712,7 +1712,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - managed.
 - acceptance posture: Accept competitive pressure; reduce through metering and tiering.
 - transfer posture: provider commitments and reserved capacity transfer some cost volatility.
-- microservice mitigations: `oya-cloud-billing-domain`, `oya-metering-domain`, `oya-cloud-finops-api`, `oya-foundry-providers-router-domain`.
+- microservice mitigations: `oya-cloud-billing-domain`, `oya-metering-domain`, `oya-cloud-finops-api`, `oya-intelligence-providers-router-domain`.
 - Cedar policies: `policy.discount_approval_dual_control`, `policy.cost_budget_by_tenant`, `policy.provider_cost_ceiling`.
 - monitoring: gross margin, cost per tenant, provider token cost, storage retention cost, discount depth, overage disputes.
 - named indicators: margin below threshold, high discount rate, provider price hike, tenant overage complaint, quota bypass.
@@ -1746,7 +1746,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by evidence and kill switch.
 - acceptance posture: Reduce; accept residual media risk only with evidence-ready posture.
 - transfer posture: crisis communications retainer supports response only.
-- microservice mitigations: `oya-foundry-supervisor-kill-switch-circuit-breaker-domain`, `oya-foundry-evidence-evidence-pack-builder-api`, `oya-audit-chain-domain`.
+- microservice mitigations: `oya-intelligence-supervisor-kill-switch-circuit-breaker-domain`, `oya-intelligence-evidence-evidence-pack-builder-api`, `oya-audit-chain-domain`.
 - Cedar policies: `policy.autonomy_incident_freeze`, `policy.public_statement_review`, `policy.customer_fact_pack_access`.
 - monitoring: autonomy violation dashboard, social listening, trust portal incident views, customer support spike.
 - named indicators: viral post, press inquiry, regulator question, customer board escalation, autonomy incident.
@@ -1778,7 +1778,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - monitored.
 - acceptance posture: Reduce through fast evidence gathering.
 - transfer posture: PR retainer and insurance help response cost only.
-- microservice mitigations: `oya-dsr-domain`, `oya-foundry-evidence-evidence-pack-builder-api`, `oya-audit-chain-domain`, support access controls.
+- microservice mitigations: `oya-dsr-domain`, `oya-intelligence-evidence-evidence-pack-builder-api`, `oya-audit-chain-domain`, support access controls.
 - Cedar policies: `policy.support_access_break_glass`, `policy.privacy_incident_fact_pack`, `policy.public_response_approval`.
 - monitoring: social sentiment, support escalations, DSR SLA, privacy complaint rate, trust portal hits.
 - named indicators: public complaint, journalist inquiry, DSR SLA miss, screenshot with personal data, support access anomaly.
@@ -1842,7 +1842,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by provenance and disclaimers.
 - acceptance posture: Reduce; accept bounded output risk with review controls.
 - transfer posture: AI provider indemnity and E&O transfer partial risk.
-- microservice mitigations: `oya-foundry-guardrails-output-validator-kernel`, `oya-foundry-evidence-capability-invocation-recorder-kernel`, `oya-marketplace-domain`.
+- microservice mitigations: `oya-intelligence-guardrails-output-validator-kernel`, `oya-intelligence-evidence-capability-invocation-recorder-kernel`, `oya-marketplace-domain`.
 - Cedar policies: `policy.generated_content_review_required`, `policy.ip_sensitive_output_hold`, `policy.model_provider_terms_checked`.
 - monitoring: content dispute tickets, generated output similarity alerts, provider indemnity coverage, customer edits.
 - named indicators: takedown request, IP complaint, hallucinated citation, output similarity hit, customer legal escalation.
@@ -1874,7 +1874,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by moderation and takedown controls.
 - acceptance posture: Reduce; accept private enterprise content boundary only where contractually controlled.
 - transfer posture: moderation vendors and insurance transfer some operational cost only.
-- microservice mitigations: `oya-foundry-guardrails-content-safety-rule-engine-kernel`, `oya-marketplace-domain`, `oya-community-social-domain`, `oya-messenger-domain`, `oya-mail-domain`, storage abuse controls.
+- microservice mitigations: `oya-intelligence-guardrails-content-safety-rule-engine-kernel`, `oya-marketplace-domain`, `oya-community-social-domain`, `oya-messenger-domain`, `oya-mail-domain`, storage abuse controls.
 - Cedar policies: `policy.content_takedown_authorized`, `policy.abuse_report_triage`, `policy.public_marketplace_listing_review`.
 - monitoring: abuse report queue, takedown SLA, classifier false negatives, marketplace listing flags, repeat offender count.
 - named indicators: illegal content report, customer harassment complaint, public listing abuse, law enforcement request.
@@ -1906,7 +1906,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by transparency, works-council pack, and high-risk AI gates.
 - acceptance posture: Avoid emotion recognition and prohibited profiling; reduce other workforce AI.
 - transfer posture: customer terms do not transfer platform design responsibility.
-- microservice mitigations: `oya-tasks-domain`, `oya-analytics-domain`, `oya-workplace-integration-policy`, `oya-foundry-guardrails-output-validator-kernel`.
+- microservice mitigations: `oya-tasks-domain`, `oya-analytics-domain`, `oya-workplace-integration-policy`, `oya-intelligence-guardrails-output-validator-kernel`.
 - Cedar policies: `policy.workplace_monitoring_notice`, `policy.worker_analytics_minimization`, `policy.hiring_ai_human_review_required`.
 - monitoring: workforce feature usage, appeal rate, fairness audit, works-council approval, denied prohibited-practice requests.
 - named indicators: employee complaint, works-council objection, fairness metric drift, high-risk AI classification, press inquiry.

@@ -552,7 +552,7 @@
           "name": "audit_chain_schema_touched",
           "type": "boolean",
           "weight_if_true": 20,
-          "detection": "diff hits evidence/audit-chain.jsonl schema OR oya-foundry-audit-chain-* crates"
+          "detection": "diff hits evidence/audit-chain.jsonl schema OR oya-intelligence-audit-chain-* crates"
         },
         {
           "id": "S5",

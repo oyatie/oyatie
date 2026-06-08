@@ -161,7 +161,7 @@ SCC inventory:
 | ADR-0094 | accepted | 1 | 124 | 2 | 1 | 0 | 240 | 239 | C07 | ADR-0094: `Handler` trait with associated `Error` type |
 | ADR-0095 | accepted | 1 | 141 | 2 | 1 | 0 | 241 | 240 | C03 | ADR-0095: `TenantSlug` centralized in `oya-tenancy-kernel` |
 | ADR-0096 | accepted | 1 | 140 | 4 | 3 | 0 | 198 | 217 | C03 | ADR-0096: Supervisor Language: Rust, not Node |
-| ADR-0097 | accepted | 1 | 155 | 2 | 1 | 0 | 242 | 241 | C03 | ADR-0097: Rename `oya-foundry-account-adapter-*` — Layer Token Must Be Last |
+| ADR-0097 | accepted | 1 | 155 | 2 | 1 | 0 | 242 | 241 | C03 | ADR-0097: Rename `oya-intelligence-account-adapter-*` — Layer Token Must Be Last |
 | ADR-0098 | accepted | 1 | 208 | 3 | 18 | 0 | 58 | 229 | C11 | ADR-0098: Supervisor Dep-Policy Branch Y: Zero Net-New External Deps + Best-Effort Durability |
 | ADR-0099 | accepted | 1 | 252 | 5 | 29 | 0 | 35 | 203 | C01 | ADR-0099: Cedar Policy Extension: Foundry Supervisor Capabilities at T1–T4 |
 | ADR-0100 | accepted | 1 | 33 | 1 | 4 | 0 | 177 | 249 | C03 | ADR-0100: Foundry Supervisor Public Contract (Lean-a10) |
