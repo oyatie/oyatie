@@ -95,14 +95,14 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 
 | Crate family | Role |
 |---|---|
-| `crates/oya-foundry-model-train-*` | Distributed training orchestration (multi-node, multi-GPU, FSDP / DeepSpeed / Megatron-LM-class scheduler) |
-| `crates/oya-foundry-model-data-pipeline-*` | Training-data ingestion + filtering + deduplication + DP/k-anonymity gates per Data Use Boundary |
-| `crates/oya-foundry-model-eval-*` | Eval harness: golden sets + adversarial + per-vertical safety + per-region linguistic |
-| `crates/oya-foundry-model-registry-*` | Model artifact + version + lineage + provenance (signed via Cosign) |
-| `crates/oya-foundry-model-serve-*` | Inference serving: vLLM-class for Transformers; in-house Rust serving for embedding models; per-capability routing |
-| `crates/oya-foundry-model-finetune-*` | Per-tenant fine-tuning (consent-gated; per-tenant LoRA adapters) |
-| `crates/oya-foundry-model-redteam-*` | Continuous red-team + adversarial-eval pipeline |
-| `crates/oya-foundry-adapter-oya-{api,subscription}-*` | The "Oyatie-as-provider" adapter; uses same `ProviderAdapter` trait as Anthropic / OpenAI / Gemini adapters |
+| `crates/oya-intelligence-model-train-*` | Distributed training orchestration (multi-node, multi-GPU, FSDP / DeepSpeed / Megatron-LM-class scheduler) |
+| `crates/oya-intelligence-model-data-pipeline-*` | Training-data ingestion + filtering + deduplication + DP/k-anonymity gates per Data Use Boundary |
+| `crates/oya-intelligence-model-eval-*` | Eval harness: golden sets + adversarial + per-vertical safety + per-region linguistic |
+| `crates/oya-intelligence-model-registry-*` | Model artifact + version + lineage + provenance (signed via Cosign) |
+| `crates/oya-intelligence-model-serve-*` | Inference serving: vLLM-class for Transformers; in-house Rust serving for embedding models; per-capability routing |
+| `crates/oya-intelligence-model-finetune-*` | Per-tenant fine-tuning (consent-gated; per-tenant LoRA adapters) |
+| `crates/oya-intelligence-model-redteam-*` | Continuous red-team + adversarial-eval pipeline |
+| `crates/oya-intelligence-adapter-oya-{api,subscription}-*` | The "Oyatie-as-provider" adapter; uses same `ProviderAdapter` trait as Anthropic / OpenAI / Gemini adapters |
 
 **Critical contracts:**
 - Training data must satisfy `purpose = model_training_oya` permission per [PRIVACY-PROGRAM §2.2.2](PRIVACY-PROGRAM.md). Tenant data without that grant is excluded.
@@ -123,9 +123,9 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 
 | Surface | Foundry crate (model substrate) | Per-vertical consumers |
 |---|---|---|
-| Vision | `crates/oya-foundry-model-vision-*` (OCR, image classification, object detection, video analytics, facial recognition where lawful, scene anomaly) | Industrial (CCTV facility per ADR-0027; AMR mapping per ADR-0027); Healthcare (clinical imaging per ADR-0033); Logistics (yard / dock vision); Retail (anti-theft, customer flow); Workspace (Drive doc OCR + understanding) |
-| Speech | `crates/oya-foundry-model-speech-*` (STT, TTS, voice biometrics, wake-word, multilingual incl. KR/JP/EN/ES/PT/HI/AR) | Workspace (Meet transcription + AI summary); Healthcare (voice-charting); Vertical contact-center (per-vertical voice agents); (voice messaging) |
-| Robotics control | `crates/oya-foundry-robotics-control-*` (agent-mediated under autonomy ceiling T1-T3 default; T4 disabled for actuation) + `crates/oya-vertical-industrial-robotics-*` (fleet, simulator, kinematics) | Industrial (AGV/AMR/robotic arms/drones per ADR-0027+0143); Logistics (yard jockeys, ASRS, automated trucks); Healthcare (surgical robotics — anti-scope unless founder ratifies; disinfection robots OK) |
+| Vision | `crates/oya-intelligence-model-vision-*` (OCR, image classification, object detection, video analytics, facial recognition where lawful, scene anomaly) | Industrial (CCTV facility per ADR-0027; AMR mapping per ADR-0027); Healthcare (clinical imaging per ADR-0033); Logistics (yard / dock vision); Retail (anti-theft, customer flow); Workspace (Drive doc OCR + understanding) |
+| Speech | `crates/oya-intelligence-model-speech-*` (STT, TTS, voice biometrics, wake-word, multilingual incl. KR/JP/EN/ES/PT/HI/AR) | Workspace (Meet transcription + AI summary); Healthcare (voice-charting); Vertical contact-center (per-vertical voice agents); (voice messaging) |
+| Robotics control | `crates/oya-intelligence-robotics-control-*` (agent-mediated under autonomy ceiling T1-T3 default; T4 disabled for actuation) + `crates/oya-vertical-industrial-robotics-*` (fleet, simulator, kinematics) | Industrial (AGV/AMR/robotic arms/drones per ADR-0027+0143); Logistics (yard jockeys, ASRS, automated trucks); Healthcare (surgical robotics — anti-scope unless founder ratifies; disinfection robots OK) |
 
 **Critical design constraints** for Robotics in particular:
 - Real-time control loops (deterministic latency budgets) — not Foundry's default async; runs on dedicated runtime with guaranteed scheduling
@@ -265,7 +265,7 @@ Foundry must work with **both subscription auth and API auth** across **Claude, 
 | OpenAI | ChatGPT Plus / Team / Enterprise session token via headless adapter | `OPENAI_API_KEY` direct API |
 | Google Gemini | Gemini Advanced session token via headless adapter | `GOOGLE_GEMINI_API_KEY` direct API |
 
-The `ProviderAdapter` trait in `oya-foundry-adapter-kernel` exposes a uniform `invoke(prompt, tools, policy) -> Stream<Event>` interface; concrete impls live in `oya-foundry-adapter-{anthropic,openai,gemini}-{api,subscription}-*`. Per-tenant per-capability the `ProviderAuth` enum selects the auth mode. Subscription mode requires the `oya-foundry-session-vault` to hold rotating session tokens with refresh logic; API mode hits the SecretProvider for the API key. Capability-level routing supports failover across providers (e.g. `prefer: claude-api → fallback: openai-api → fallback: gemini-subscription`) per autonomy-ceiling and per FinOps cost ceiling.
+The `ProviderAdapter` trait in `oya-intelligence-adapter-kernel` exposes a uniform `invoke(prompt, tools, policy) -> Stream<Event>` interface; concrete impls live in `oya-intelligence-adapter-{anthropic,openai,gemini}-{api,subscription}-*`. Per-tenant per-capability the `ProviderAuth` enum selects the auth mode. Subscription mode requires the `oya-intelligence-session-vault` to hold rotating session tokens with refresh logic; API mode hits the SecretProvider for the API key. Capability-level routing supports failover across providers (e.g. `prefer: claude-api → fallback: openai-api → fallback: gemini-subscription`) per autonomy-ceiling and per FinOps cost ceiling.
 
 Foundry is axis 3 of the six, but it is also the *substrate* for the other five. Once Foundry preview is online with provider adapters (Anthropic / OpenAI / Gemini × subscription + API auth), capability registry, autonomy-ceiling enforcement, evidence-chain emission, AND the consolidated foundry surfaces, then:
 
@@ -297,11 +297,11 @@ After step 7, Foundry can fan out *parallel* capability authorship across all si
 | Contract | Owners | Consumers |
 |---|---|---|
 | Capability invocation API (`oya-intelligence-api`) | Foundry | Every axis (SaaS workflows, vertical runbooks, cloud control-plane mutators, search index ops, ad-campaign mutators) |
-| Autonomy-ceiling enforcement (`oya-foundry-policy`) | Foundry + ADR-0050 governance | Every regulated capability across all axes |
-| Evidence-chain emission (`oya-foundry-evidence`, ties to ADR-0003) | Foundry + audit subsystem | Every axis that touches regulated data |
-| Capability registry (`oya-foundry-registry`, projection from `registry/catalog/`) | Foundry + Foundry catalog | Every axis (every capability they expose) |
-| Provider adapter trait (`oya-foundry-adapter`) | Foundry | Codex, Claude, future model providers |
-| RAG endpoint (`oya-foundry-rag`) | Foundry + Search | Every axis that needs retrieval |
+| Autonomy-ceiling enforcement (`oya-intelligence-policy`) | Foundry + ADR-0050 governance | Every regulated capability across all axes |
+| Evidence-chain emission (`oya-intelligence-evidence`, ties to ADR-0003) | Foundry + audit subsystem | Every axis that touches regulated data |
+| Capability registry (`oya-intelligence-registry`, projection from `registry/catalog/`) | Foundry + Foundry catalog | Every axis (every capability they expose) |
+| Provider adapter trait (`oya-intelligence-adapter`) | Foundry | Codex, Claude, future model providers |
+| RAG endpoint (`oya-intelligence-rag`) | Foundry + Search | Every axis that needs retrieval |
 
 ---
 
@@ -352,8 +352,8 @@ The forbidden-edge graph: `kernel ← domain ← app ← {api, worker, adapter} 
 |---|---|---|---|
 | 1. SaaS | 6-10 | Stable platform invariants (tenant, workspace, identity, RBAC, plane, metering) | `oya-platform-tenant-kernel`, `oya-platform-identity-kernel` |
 | 2. Vertical | 1-3 per vertical | Per-vertical entity model (Patient, WorkOrder, Shipment, Loan) | `oya-vertical-healthcare-kernel`, `oya-vertical-industrial-kernel` |
-| 3. Foundry | 4-6 | Capability, Step, Run, Evidence, Provider, AutonomyCeiling | `oya-foundry-capability-kernel`, `oya-foundry-evidence-kernel` |
-| 4. Foundry | 3-5 | Catalog, Lane, Gate, Bypass | `oya-foundry-catalog-kernel`, `oya-foundry-gate-kernel` |
+| 3. Foundry | 4-6 | Capability, Step, Run, Evidence, Provider, AutonomyCeiling | `oya-intelligence-capability-kernel`, `oya-intelligence-evidence-kernel` |
+| 4. Foundry | 3-5 | Catalog, Lane, Gate, Bypass | `oya-intelligence-catalog-kernel`, `oya-foundry-gate-kernel` |
 | 5. Cloud | 5-8 | Resource, Region, AZ, Cell, IAM, Billing | `oya-cloud-resource-kernel`, `oya-cloud-iam-kernel` |
 | 6. Search | 3-5 | Document, Index, Query, Result, Ranker | `oya-search-document-kernel`, `oya-search-index-kernel` |
 | 7. Ads | 4-6 | Campaign, Auction, Impression, Click, Conversion, Audience | `oya-ads-campaign-kernel`, `oya-ads-auction-kernel` |
@@ -435,7 +435,7 @@ The single tamper-evident record-keeping surface across all axes. Built on hash-
 - **Hash-chain integrity**: each record references the prior block hash; periodic root anchoring published to a customer-facing trust portal (search-axis is the surface for it).
 - **Per-tenant chain shard**: chains are tenant-scoped to keep regulator queries scoped; cross-tenant root index for global proofs.
 - **Replayable**: chain replay must reconstruct the regulatory state at any prior `t`. No live mutation can break replay.
-- **Foundry-emitted**: agent invocations write evidence directly via `oya-foundry-evidence` so non-agent paths are the exception, not the rule.
+- **Foundry-emitted**: agent invocations write evidence directly via `oya-intelligence-evidence` so non-agent paths are the exception, not the rule.
 
 The audit-chain is the backbone of cross-axis trust. The PRD's hard zero on "tenant data egress without consent receipt" depends on the audit chain working — which is why audit-chain immutability is a P0 structural requirement, not a follow-up.
 
@@ -534,7 +534,7 @@ This is the table that is auditable. Every entry is an inter-axis contract; any 
 | `Tenant` kernel | SaaS | All others | `oya-platform-tenant-kernel` | All-axis review; ADR amendment if shape changes |
 | `Identity / RBAC / Cedar policy` | SaaS | All others | `oya-platform-identity-kernel` + Cedar | Cross-axis review; security-reviewer agent |
 | `Capability invocation` | Foundry | All others | `oya-intelligence-api` + `contracts/openapi/foundry/capability-v1.yaml` | Foundry review + the consuming axis review |
-| `Autonomy ceiling policy` | Foundry + Governance (ADR-0050) | All regulated capabilities | `oya-foundry-policy-kernel` | Governance + security review |
+| `Autonomy ceiling policy` | Foundry + Governance (ADR-0050) | All regulated capabilities | `oya-intelligence-policy-kernel` | Governance + security review |
 | `Audit-chain event` | Audit subsystem (per ADR-0003) | All emitters | `oya-platform-audit-chain-kernel` + event schema | Audit + downstream-consumer review |
 | `Capability registry record` | Foundry catalog | Foundry, all axes | `registry/catalog/<crate>.yaml` (any future relocation requires a catalog protocol update) | Catalog gate + consuming-axis review |
 | `Plane class` | Foundry catalog | All surfaces | `registry/catalog/<crate>.yaml: plane:` | Cross-plane review trigger |
@@ -552,11 +552,11 @@ This is the table that is auditable. Every entry is an inter-axis contract; any 
 | `Eventing backbone (outbox + Kafka topic)` | Foundation contracts (`oya-foundation-contracts`, not "Platform") | All axes | `oya-platform-eventing-kernel` | Cross-axis on topic shape |
 | `CLOUD_SEARCH_CAPACITY_AND_RESIDENCY` | Cloud + Search | Search shard placement; crawl/index capacity; data residency per region; deletion propagation; cost attribution | `crates/oya-cloud-capacity-kernel` + `crates/oya-search-shard-placement` | Cloud + Search review + Privacy review (residency) |
 | `SEARCH_ADS_SERP_AND_QUERY_PRIVACY` | Search + Ads | Sponsored-result labeling; query-privacy; ad-eligibility per query class; ranking separation; minors / medical / financial ad exclusions; click + conversion attribution | `crates/oya-search-serp-kernel` + `crates/oya-ads-eligibility-kernel` | Search + Ads + Privacy review |
-| `FOUNDRY_CLOUD_MUTATION_CONTROL` | Foundry + Cloud | Agent-driven control-plane mutation: dry-run, M-of-N approval, break-glass, rollback, per-mutation audit evidence | `crates/oya-foundry-cloud-mutation-kernel` | Foundry + Cloud + Security review |
-| `FOUNDRY_SEARCH_RETRIEVAL_BOUNDARY` | Foundry + Search | RAG retrieval isolation: per-tenant boundary, prompt + tool-trace data class, source-citation evidence, public-corpus rights enforcement, minor-subject filter | `crates/oya-foundry-rag-kernel` + `crates/oya-search-retrieval-kernel` | Foundry + Search + Privacy review |
+| `FOUNDRY_CLOUD_MUTATION_CONTROL` | Foundry + Cloud | Agent-driven control-plane mutation: dry-run, M-of-N approval, break-glass, rollback, per-mutation audit evidence | `crates/oya-intelligence-cloud-mutation-kernel` | Foundry + Cloud + Security review |
+| `FOUNDRY_SEARCH_RETRIEVAL_BOUNDARY` | Foundry + Search | RAG retrieval isolation: per-tenant boundary, prompt + tool-trace data class, source-citation evidence, public-corpus rights enforcement, minor-subject filter | `crates/oya-intelligence-rag-kernel` + `crates/oya-search-retrieval-kernel` | Foundry + Search + Privacy review |
 | `TENANT_ADS_ANALYTICS_ELIGIBILITY` | SaaS / Vertical + Ads / Analytics | Tenant ad-free modes; per-vertical override (healthcare / fintech / education hard-deny); consent inheritance; event-schema; attribution; DSR cascade | `crates/oya-platform-ads-eligibility-kernel` + per-vertical override pack | SaaS + Vertical + Ads + Privacy review |
 | `REVENUE_METERING_TAX_INVOICE` | SaaS + Cloud + Ads + Marketplace | Cross-axis billing-event contract; per-region tax-invoice format (KR 전자세금계산서, JP 適格請求書, EU per-country e-invoicing, IN GST, BR NF-e, KSA FATOORA, UAE e-invoicing); dispute / chargeback / reconciliation flow | `crates/oya-platform-billing-kernel` + per-pack tax adapter | Billing + Tax + per-pack regional review |
-| `FOUNDATION_BUILDER_CONTRACT_REGISTRY` | Foundry (foundry surface) | Source of truth for every cross-axis contract row in this table; CI fitness function generates this table from the registry | `crates/oya-foundry-contract-registry-*` | Foundation Council |
+| `FOUNDATION_BUILDER_CONTRACT_REGISTRY` | Foundry (foundry surface) | Source of truth for every cross-axis contract row in this table; CI fitness function generates this table from the registry | `crates/oya-intelligence-contract-registry-*` | Foundation Council |
 
 Anytime a PR touches a row above, the cross-axis label is required, and the labeled review block in the PR template is mandatory. The fitness function (`oya-governance-contracts`) checks for orphan contract changes.
 

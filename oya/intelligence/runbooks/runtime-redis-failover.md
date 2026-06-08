@@ -60,7 +60,7 @@ ONE of:
 |---|---|---|
 | 1 | Identify failing shard: `redis-cli cluster info` shows failed primary | ≤2min |
 | 2 | Replica auto-promote (Valkey Cluster); verify promotion: `cluster nodes` | ≤2min |
-| 3 | Schedule replacement of failed pod; `kubectl rollout restart sts/oya-foundry-runtime-redis-<shard>` | ≤10min |
+| 3 | Schedule replacement of failed pod; `kubectl rollout restart sts/oya-intelligence-runtime-redis-<shard>` | ≤10min |
 | 4 | Once new pod up, verify it joins as replica and replication starts | ≤5min |
 
 ## Verification

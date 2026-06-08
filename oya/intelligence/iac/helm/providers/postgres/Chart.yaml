@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-foundry-providers-postgres
+name: oya-intelligence-providers-postgres
 description: |
   Postgres HA primary+replica for foundry-providers µservice provider-config
   persistence. Per-pack deployment per ADR-0117 residency posture.

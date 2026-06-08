@@ -56,7 +56,7 @@ This team owns the tamper-evident audit chain that is the backbone of cross-axis
 | All 7 axes | `AuditEmitter` trait, chain append endpoint | Every regulated capability invocation |
 | `ops-compliance` | Regulatory replay API, per-regulator evidence packs | Monthly + on-demand |
 | `council-privacy` | DSR cascade proof-of-erasure, consent withdrawal records | Per DSR event |
-| `axis-foundry` | Evidence chain emission for every agent step (ADR-0003 + `oya-foundry-evidence`) | Every Foundry run |
+| `axis-foundry` | Evidence chain emission for every agent step (ADR-0003 + `oya-intelligence-evidence`) | Every Foundry run |
 | `gtm-customer-success` | Trust portal evidence export for design-partner auditors | Per audit request |
 
 ## Success metrics

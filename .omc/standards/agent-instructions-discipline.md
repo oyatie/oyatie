@@ -194,14 +194,14 @@ The following block is a complete, conformant directive:
 >
 > ```
 > <!-- agent-instructions:start -->
-> grit claim "oya-foundry-runtime-rag/src/gate.rs::tenant_gate_check"
+> grit claim "oya-intelligence-runtime-rag/src/gate.rs::tenant_gate_check"
 > icm recall-context "rag tenant gate, foundry runtime" --limit 5
 > # ...edits via Read/Edit/Write...
-> rtk cargo nextest run --package oya-foundry-runtime-rag --no-fail-fast
+> rtk cargo nextest run --package oya-intelligence-runtime-rag --no-fail-fast
 > icm store -t decisions-foundry \
 >   -c "tenant-gate-check rejects cross-tenant retrieval" \
 >   -i high -k "foundry,rag,tenant-gate"
-> grit done "oya-foundry-runtime-rag/src/gate.rs::tenant_gate_check"
+> grit done "oya-intelligence-runtime-rag/src/gate.rs::tenant_gate_check"
 > <!-- agent-instructions:end -->
 > ```
 

@@ -33,7 +33,7 @@ ONE of:
 | 1 | Verify foundry-supervisor reachability: `kubectl exec <runtime-pod> -- curl -s https://foundry-supervisor.internal/health` | ≤2min |
 | 2 | If supervisor unreachable: engage foundry-supervisor on-call | ≤5min |
 | 3 | Verify replication path: Postgres logical replication slot active; `pg_replication_slots` | ≤5min |
-| 4 | Force cache resync: `cargo run -p oya-foundry-runtime-capability-registry-cache-app -- resync --tenant all` | ≤10min |
+| 4 | Force cache resync: `cargo run -p oya-intelligence-runtime-capability-registry-cache-app -- resync --tenant all` | ≤10min |
 | 5 | Verify cache age returns < 60s | ≤10min |
 | 6 | If outage > 30min: tenant comms (some newly-registered descriptors delayed) | ≤30min |
 
@@ -55,7 +55,7 @@ ONE of:
 
 ```bash
 # Trigger a single-capability hot reload bypassing event-driven path
-cargo run -p oya-foundry-runtime-capability-registry-cache-app -- hot-reload \
+cargo run -p oya-intelligence-runtime-capability-registry-cache-app -- hot-reload \
   --tenant <tenant_id> \
   --capability-id <capability_id> \
   --reason "<rfc>"

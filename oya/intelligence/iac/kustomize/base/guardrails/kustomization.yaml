@@ -17,19 +17,19 @@ resources:
   - cosign-key-refs.yaml
 
 helmCharts:
-  - name: oya-foundry-guardrails-cedar-engine
+  - name: oya-intelligence-guardrails-cedar-engine
     valuesFile: ../../helm/cedar-engine/values.yaml
     releaseName: cedar-engine
     namespace: foundry-guardrails
-  - name: oya-foundry-guardrails-classifier-model-serving
+  - name: oya-intelligence-guardrails-classifier-model-serving
     valuesFile: ../../helm/classifier-model-serving/values.yaml
     releaseName: classifier-model-serving
     namespace: foundry-guardrails
-  - name: oya-foundry-guardrails-postgres
+  - name: oya-intelligence-guardrails-postgres
     valuesFile: ../../helm/postgres/values.yaml
     releaseName: postgres
     namespace: foundry-guardrails
 
 commonLabels:
-  app.kubernetes.io/part-of: oya-foundry-guardrails
+  app.kubernetes.io/part-of: oya-intelligence-guardrails
   oyatie/microservice: foundry-guardrails

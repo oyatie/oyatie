@@ -23,13 +23,13 @@ doc_status: published
 
 ## 1. Provider-agnostic CI adapter
 
-Every CI lane is invoked through `oya-foundry-ci-runner-kernel` (NEW) + per-provider adapter, per [Directive 4](../../../docs/MASTERPLAN.md) and the existing Foundry adapter posture ([ADR-0020](../../decisions/ADR-0020-foundry-multi-provider-adapter-model.md)):
+Every CI lane is invoked through `oya-intelligence-ci-runner-kernel` (NEW) + per-provider adapter, per [Directive 4](../../../docs/MASTERPLAN.md) and the existing Foundry adapter posture ([ADR-0020](../../decisions/ADR-0020-foundry-multi-provider-adapter-model.md)):
 
-- `oya-foundry-ci-runner-adapter-github-actions` — GitHub Actions workflow_dispatch.
-- `oya-foundry-ci-runner-adapter-buildkite` — Buildkite pipeline trigger.
-- `oya-foundry-ci-runner-adapter-circleci` — CircleCI v2 API.
-- `oya-foundry-ci-runner-adapter-1es` — Microsoft 1ES templated pipelines.
-- `oya-foundry-ci-runner-adapter-gitlab-ci` — GitLab pipeline trigger.
+- `oya-intelligence-ci-runner-adapter-github-actions` — GitHub Actions workflow_dispatch.
+- `oya-intelligence-ci-runner-adapter-buildkite` — Buildkite pipeline trigger.
+- `oya-intelligence-ci-runner-adapter-circleci` — CircleCI v2 API.
+- `oya-intelligence-ci-runner-adapter-1es` — Microsoft 1ES templated pipelines.
+- `oya-intelligence-ci-runner-adapter-gitlab-ci` — GitLab pipeline trigger.
 
 Swap a provider = change one workspace dep. Lane definitions live in `contracts/governance-lanes/*.yaml`; the adapter translates to provider-native config at deploy time.
 
@@ -62,7 +62,7 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 
 **Gate semantics:** **gate 3** of the 3-gate verification requires **every BLOCKER lane GREEN** on the PR HEAD. Combined with gate 1 (PR shape) and gate 2 (reviewer-agent `APPROVE`), the auto-merge fires.
 
-**Re-run policy.** Lane re-runs on every commit pushed to the PR HEAD (the agent may have addressed a `REQUEST_CHANGES` verdict). Lane outcomes are stored in `oya-foundry-ci-state-store` keyed by commit SHA.
+**Re-run policy.** Lane re-runs on every commit pushed to the PR HEAD (the agent may have addressed a `REQUEST_CHANGES` verdict). Lane outcomes are stored in `oya-intelligence-ci-state-store` keyed by commit SHA.
 
 **Why CI is blocking here.** This is the **first shared-world boundary**. The cost of catching defects here is lowest (smallest change set, only the originating agent affected by a bounce). Letting red CI through this boundary would force every downstream layer to absorb the cost — including production.
 

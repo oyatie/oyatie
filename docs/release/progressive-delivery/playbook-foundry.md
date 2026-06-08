@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-Foundry capability publishes through `oya-foundry-capability-kernel` + `oya-foundry-mcp-gateway-kernel` ([ADR-0021](../../decisions/ADR-0021-foundry-capability-registry-and-mcp-gateway.md)).
+Foundry capability publishes through `oya-intelligence-capability-kernel` + `oya-intelligence-mcp-gateway-kernel` ([ADR-0021](../../decisions/ADR-0021-foundry-capability-registry-and-mcp-gateway.md)).
 
 ## 2. Default rail
 
@@ -52,7 +52,7 @@ If the capability has multiple provider-adapter backings (Claude / OpenAI / Gemi
 
 ## 6. Rollback
 
-Per-cell rollback default. Capability-publish rollback re-emits a D14 entry naming the prior published version. The MCP gateway re-routes to the prior version atomically via `oya-foundry-mcp-gateway-kernel` traffic-shift.
+Per-cell rollback default. Capability-publish rollback re-emits a D14 entry naming the prior published version. The MCP gateway re-routes to the prior version atomically via `oya-intelligence-mcp-gateway-kernel` traffic-shift.
 
 For **replay-affecting** capability changes (output schema, tool-call signature), blue/green is mandatory; rollback re-shifts traffic to the prior version's MCP endpoint.
 

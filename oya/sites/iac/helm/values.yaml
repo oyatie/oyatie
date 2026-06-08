@@ -38,7 +38,7 @@ page:
   port: 9102
   aiPageBuild:
     enabled: true
-    foundryRuntimeEndpoint: oya-foundry-runtime.foundry-runtime.svc.cluster.local:9000
+    foundryRuntimeEndpoint: oya-intelligence-runtime.foundry-runtime.svc.cluster.local:9000
     perTenantDailyCap: 500
 
 block:

@@ -84,7 +84,7 @@ Each `capability_overrides` declares Enforcement / Verification / Validation / A
 (oya-intelligence-settings-template-kernel) --generates--> (per-account on-disk settings files)
 (oya-intelligence-settings-template-kernel) --consumes--> (registry/accounts/*.toml)
 (lean-settings-drift) --enforces--> (foundry-supervisor-template-*)
-(SettingsRenderer) --reads--> (SecretStorePort @ oya-foundry-account-adapter-openbao)
+(SettingsRenderer) --reads--> (SecretStorePort @ oya-intelligence-account-adapter-openbao)
 ```
 
 ---

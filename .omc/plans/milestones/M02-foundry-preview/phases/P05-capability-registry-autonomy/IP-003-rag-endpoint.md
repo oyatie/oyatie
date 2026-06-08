@@ -19,7 +19,7 @@ Ship RAG endpoint to Foundry-internal capabilities; per-class data boundary.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-rag-endpoint-api/src/lib.rs::rag_query
+crates/oya-intelligence-rag-endpoint-api/src/lib.rs::rag_query
 crates/oya-intelligence-rag-endpoint-app/src/lib.rs::retrieve_with_data_boundary
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)

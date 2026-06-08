@@ -3,7 +3,7 @@
 //
 // Purpose: enforce per-tenant read/write scope on capability dispatch, session-state read,
 //          invocation-history read, and capability-descriptor read served via
-//          oya-foundry-runtime-capability-executor-rest, SDK, and Workflow Studio surface.
+//          oya-intelligence-runtime-capability-executor-rest, SDK, and Workflow Studio surface.
 // Owner:   ops-security + axis-foundry-runtime
 // Audit:   every deny emits oya_foundry_runtime_unauthorized_attempt_total
 // References: runtime-isolation.md §"Invariant TI-04 + TI-07"

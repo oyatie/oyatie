@@ -1189,27 +1189,27 @@ in the platform after absorption. The crate moves are tracked here.
 
 | Current Foundry crate | Destination | Destination BC | Notes |
 |---|---|---|---|
-| `crates/oya-foundry-provider-domain/` | `microservices/intelligence/crates/oya-intelligence-transport/` | Substrate `transport` | Provider abstraction model folded into transport's provider-adapter trait set. |
-| `crates/oya-foundry-provider-kernel/` | `microservices/intelligence/crates/oya-intelligence-transport/` | Substrate `transport` | Provider kernel logic (request shaping, retry, circuit-breaker) folded into transport per-modality adapters. |
-| `crates/oya-foundry-provider-anthropic-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-anthropic/` | Substrate `transport::providers::anthropic` | Anthropic API adapter; updated to support multi-modal (image input) per Claude 3.5 Sonnet 2024-06. |
-| `crates/oya-foundry-provider-openai-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-openai/` | Substrate `transport::providers::openai` | OpenAI API adapter; updated to support GPT-4o multi-modal 2024-05 + Assistants v2 + Realtime API. |
-| `crates/oya-foundry-provider-google-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-google/` | Substrate `transport::providers::google` | Google Generative AI API adapter; Gemini multi-modal day-one. |
-| `crates/oya-foundry-provider-bedrock-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-aws-bedrock/` | Substrate `transport::providers::aws_bedrock` | AWS Bedrock adapter; supports IAM role assumption per AWS Bedrock 2024 GA. |
-| `crates/oya-foundry-provider-azure-openai-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-azure-openai/` | Substrate `transport::providers::azure_openai` | Azure OpenAI adapter; supports Azure Managed Identity. |
-| `crates/oya-foundry-provider-vllm-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-vllm/` | Substrate `transport::providers::vllm_self_hosted` | vLLM self-hosted adapter. |
-| `crates/oya-foundry-provider-sglang-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-sglang/` | Substrate `transport::providers::sglang_self_hosted` | SGLang self-hosted adapter; supports SGLang structured output. |
-| `crates/oya-foundry-provider-tensorrt-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-tensorrt/` | Substrate `transport::providers::tensorrt_llm_self_hosted` | TensorRT-LLM adapter for NVIDIA-optimized inference. |
-| `crates/oya-foundry-provider-credential-store-adapter/` | `microservices/intelligence/crates/oya-intelligence-credential-resolver/` | Substrate `credential-resolver` | Credential resolution logic folded into the new provider-BYOK SecretReference flow per §D-4. The Foundry version owned credentials directly; this version owns only references. |
-| `crates/oya-foundry-guardrails-domain/` | `microservices/intelligence/crates/oya-intelligence-guardrails/` | Substrate `guardrails` | Guardrails domain model folded; per-audience configuration added. |
-| `crates/oya-foundry-guardrails-kernel/` | `microservices/intelligence/crates/oya-intelligence-guardrails/` | Substrate `guardrails` | Guardrails kernel; pre-call + post-call pipeline. |
-| `crates/oya-foundry-guardrails-pii-redaction/` | `microservices/intelligence/crates/oya-intelligence-guardrails-pii-redaction/` | Substrate `guardrails::pii_redaction` | PII redaction logic; per-data-class behavior. |
-| `crates/oya-foundry-guardrails-prompt-injection-detector/` | `microservices/intelligence/crates/oya-intelligence-guardrails-prompt-injection-detector/` | Substrate `guardrails::prompt_injection_detector` | Prompt-injection heuristic + LLM-as-judge detector. |
-| `crates/oya-foundry-guardrails-toxic-content-classifier/` | `microservices/intelligence/crates/oya-intelligence-guardrails-toxic-content-classifier/` | Substrate `guardrails::toxic_content_classifier` | Toxic content classifier. |
-| `crates/oya-foundry-eval-domain/` | `microservices/intelligence/crates/oya-intelligence-eval/` | Substrate `eval` (new BC under Intelligence; not in the 8 listed above — added here, see note) | Eval domain model. |
-| `crates/oya-foundry-eval-kernel/` | `microservices/intelligence/crates/oya-intelligence-eval/` | Substrate `eval` | Eval kernel; runs golden-set evaluations + multispectrum review fan-out. |
-| `crates/oya-foundry-eval-runner/` | `microservices/intelligence/crates/oya-intelligence-eval-runner/` | Substrate `eval::runner` | Per-eval-job runner; orchestrates eval rubrics + LLM-as-judge. |
-| `crates/oya-foundry-eval-multispectrum-review-runner/` | `microservices/intelligence/crates/oya-intelligence-eval-multispectrum-review-runner/` | Substrate `eval::multispectrum_review_runner` | Multispectrum review v2.4.0 fan-out runner. |
-| `crates/oya-foundry-eval-golden-set-curator/` | `microservices/intelligence/crates/oya-intelligence-eval-golden-set-curator/` | Substrate `eval::golden_set_curator` | Per-capability golden set curation. |
+| `crates/oya-intelligence-provider-domain/` | `microservices/intelligence/crates/oya-intelligence-transport/` | Substrate `transport` | Provider abstraction model folded into transport's provider-adapter trait set. |
+| `crates/oya-intelligence-provider-kernel/` | `microservices/intelligence/crates/oya-intelligence-transport/` | Substrate `transport` | Provider kernel logic (request shaping, retry, circuit-breaker) folded into transport per-modality adapters. |
+| `crates/oya-intelligence-provider-anthropic-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-anthropic/` | Substrate `transport::providers::anthropic` | Anthropic API adapter; updated to support multi-modal (image input) per Claude 3.5 Sonnet 2024-06. |
+| `crates/oya-intelligence-provider-openai-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-openai/` | Substrate `transport::providers::openai` | OpenAI API adapter; updated to support GPT-4o multi-modal 2024-05 + Assistants v2 + Realtime API. |
+| `crates/oya-intelligence-provider-google-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-google/` | Substrate `transport::providers::google` | Google Generative AI API adapter; Gemini multi-modal day-one. |
+| `crates/oya-intelligence-provider-bedrock-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-aws-bedrock/` | Substrate `transport::providers::aws_bedrock` | AWS Bedrock adapter; supports IAM role assumption per AWS Bedrock 2024 GA. |
+| `crates/oya-intelligence-provider-azure-openai-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-azure-openai/` | Substrate `transport::providers::azure_openai` | Azure OpenAI adapter; supports Azure Managed Identity. |
+| `crates/oya-intelligence-provider-vllm-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-vllm/` | Substrate `transport::providers::vllm_self_hosted` | vLLM self-hosted adapter. |
+| `crates/oya-intelligence-provider-sglang-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-sglang/` | Substrate `transport::providers::sglang_self_hosted` | SGLang self-hosted adapter; supports SGLang structured output. |
+| `crates/oya-intelligence-provider-tensorrt-adapter/` | `microservices/intelligence/crates/oya-intelligence-transport-tensorrt/` | Substrate `transport::providers::tensorrt_llm_self_hosted` | TensorRT-LLM adapter for NVIDIA-optimized inference. |
+| `crates/oya-intelligence-provider-credential-store-adapter/` | `microservices/intelligence/crates/oya-intelligence-credential-resolver/` | Substrate `credential-resolver` | Credential resolution logic folded into the new provider-BYOK SecretReference flow per §D-4. The Foundry version owned credentials directly; this version owns only references. |
+| `crates/oya-intelligence-guardrails-domain/` | `microservices/intelligence/crates/oya-intelligence-guardrails/` | Substrate `guardrails` | Guardrails domain model folded; per-audience configuration added. |
+| `crates/oya-intelligence-guardrails-kernel/` | `microservices/intelligence/crates/oya-intelligence-guardrails/` | Substrate `guardrails` | Guardrails kernel; pre-call + post-call pipeline. |
+| `crates/oya-intelligence-guardrails-pii-redaction/` | `microservices/intelligence/crates/oya-intelligence-guardrails-pii-redaction/` | Substrate `guardrails::pii_redaction` | PII redaction logic; per-data-class behavior. |
+| `crates/oya-intelligence-guardrails-prompt-injection-detector/` | `microservices/intelligence/crates/oya-intelligence-guardrails-prompt-injection-detector/` | Substrate `guardrails::prompt_injection_detector` | Prompt-injection heuristic + LLM-as-judge detector. |
+| `crates/oya-intelligence-guardrails-toxic-content-classifier/` | `microservices/intelligence/crates/oya-intelligence-guardrails-toxic-content-classifier/` | Substrate `guardrails::toxic_content_classifier` | Toxic content classifier. |
+| `crates/oya-intelligence-eval-domain/` | `microservices/intelligence/crates/oya-intelligence-eval/` | Substrate `eval` (new BC under Intelligence; not in the 8 listed above — added here, see note) | Eval domain model. |
+| `crates/oya-intelligence-eval-kernel/` | `microservices/intelligence/crates/oya-intelligence-eval/` | Substrate `eval` | Eval kernel; runs golden-set evaluations + multispectrum review fan-out. |
+| `crates/oya-intelligence-eval-runner/` | `microservices/intelligence/crates/oya-intelligence-eval-runner/` | Substrate `eval::runner` | Per-eval-job runner; orchestrates eval rubrics + LLM-as-judge. |
+| `crates/oya-intelligence-eval-multispectrum-review-runner/` | `microservices/intelligence/crates/oya-intelligence-eval-multispectrum-review-runner/` | Substrate `eval::multispectrum_review_runner` | Multispectrum review v2.4.0 fan-out runner. |
+| `crates/oya-intelligence-eval-golden-set-curator/` | `microservices/intelligence/crates/oya-intelligence-eval-golden-set-curator/` | Substrate `eval::golden_set_curator` | Per-capability golden set curation. |
 
 **Note on `eval` BC:** §D-2 listed 8 substrate BCs. The `eval`
 BC absorbed from Foundry brings the substrate to **9 BCs**. The
@@ -1697,15 +1697,15 @@ The selected alternative, fully specified in §Decision.
 | `/specs/tool-call-protocol.json` | NEW — Intelligence ↔ Ontology tool-call protocol |
 | `microservices/intelligence/manifest.json` | UPDATE — list 9 substrate BCs + 6 brand surface BCs |
 | `microservices/intelligence/crates/oya-intelligence-transport/` | NEW (absorbs Foundry provider crates) |
-| `microservices/intelligence/crates/oya-intelligence-transport-anthropic/` | NEW (absorbs `oya-foundry-provider-anthropic-adapter/`) |
-| `microservices/intelligence/crates/oya-intelligence-transport-openai/` | NEW (absorbs `oya-foundry-provider-openai-adapter/`) |
-| `microservices/intelligence/crates/oya-intelligence-transport-google/` | NEW (absorbs `oya-foundry-provider-google-adapter/`) |
-| `microservices/intelligence/crates/oya-intelligence-transport-aws-bedrock/` | NEW (absorbs `oya-foundry-provider-bedrock-adapter/`) |
-| `microservices/intelligence/crates/oya-intelligence-transport-azure-openai/` | NEW (absorbs `oya-foundry-provider-azure-openai-adapter/`) |
-| `microservices/intelligence/crates/oya-intelligence-transport-vllm/` | NEW (absorbs `oya-foundry-provider-vllm-adapter/`) |
-| `microservices/intelligence/crates/oya-intelligence-transport-sglang/` | NEW (absorbs `oya-foundry-provider-sglang-adapter/`) |
-| `microservices/intelligence/crates/oya-intelligence-transport-tensorrt/` | NEW (absorbs `oya-foundry-provider-tensorrt-adapter/`) |
-| `microservices/intelligence/crates/oya-intelligence-credential-resolver/` | NEW (absorbs `oya-foundry-provider-credential-store-adapter/`; rewritten for provider-BYOK SecretReference resolution) |
+| `microservices/intelligence/crates/oya-intelligence-transport-anthropic/` | NEW (absorbs `oya-intelligence-provider-anthropic-adapter/`) |
+| `microservices/intelligence/crates/oya-intelligence-transport-openai/` | NEW (absorbs `oya-intelligence-provider-openai-adapter/`) |
+| `microservices/intelligence/crates/oya-intelligence-transport-google/` | NEW (absorbs `oya-intelligence-provider-google-adapter/`) |
+| `microservices/intelligence/crates/oya-intelligence-transport-aws-bedrock/` | NEW (absorbs `oya-intelligence-provider-bedrock-adapter/`) |
+| `microservices/intelligence/crates/oya-intelligence-transport-azure-openai/` | NEW (absorbs `oya-intelligence-provider-azure-openai-adapter/`) |
+| `microservices/intelligence/crates/oya-intelligence-transport-vllm/` | NEW (absorbs `oya-intelligence-provider-vllm-adapter/`) |
+| `microservices/intelligence/crates/oya-intelligence-transport-sglang/` | NEW (absorbs `oya-intelligence-provider-sglang-adapter/`) |
+| `microservices/intelligence/crates/oya-intelligence-transport-tensorrt/` | NEW (absorbs `oya-intelligence-provider-tensorrt-adapter/`) |
+| `microservices/intelligence/crates/oya-intelligence-credential-resolver/` | NEW (absorbs `oya-intelligence-provider-credential-store-adapter/`; rewritten for provider-BYOK SecretReference resolution) |
 | `microservices/intelligence/crates/oya-intelligence-policy-engine-client/` | NEW |
 | `microservices/intelligence/crates/oya-intelligence-guardrails/` | NEW (absorbs Foundry guardrails crates) |
 | `microservices/intelligence/crates/oya-intelligence-guardrails-pii-redaction/` | NEW |
@@ -1734,12 +1734,12 @@ The selected alternative, fully specified in §Decision.
 | `crates/oya-shared-rag-citation/` | NEW |
 | `crates/oya-shared-rag-prompt-builder/` | NEW |
 | `crates/oya-shared-rag-reranker/` | NEW |
-| Removal of `crates/oya-foundry-provider-*/` (10 crates) | SWEEP per §D-16 |
-| Removal of `crates/oya-foundry-guardrails-*/` (5 crates) | SWEEP per §D-16 |
-| Removal of `crates/oya-foundry-eval-*/` (5 crates) | SWEEP per §D-16 |
-| Update of call sites currently using `oya-foundry-provider-*` → `oya-intelligence-transport-*` | SWEEP |
-| Update of call sites currently using `oya-foundry-guardrails-*` → `oya-intelligence-guardrails-*` | SWEEP |
-| Update of call sites currently using `oya-foundry-eval-*` → `oya-intelligence-eval*` | SWEEP |
+| Removal of `crates/oya-intelligence-provider-*/` (10 crates) | SWEEP per §D-16 |
+| Removal of `crates/oya-intelligence-guardrails-*/` (5 crates) | SWEEP per §D-16 |
+| Removal of `crates/oya-intelligence-eval-*/` (5 crates) | SWEEP per §D-16 |
+| Update of call sites currently using `oya-intelligence-provider-*` → `oya-intelligence-transport-*` | SWEEP |
+| Update of call sites currently using `oya-intelligence-guardrails-*` → `oya-intelligence-guardrails-*` | SWEEP |
+| Update of call sites currently using `oya-intelligence-eval-*` → `oya-intelligence-eval*` | SWEEP |
 | ADR-0220 frontmatter updated with `superseded_by: [ADR-0255]` for audience-as-µservice-scope framing | EDIT |
 | ADR-0220 explanatory banner pointing to ADR-0255 | EDIT |
 | `microservices/intelligence/PRD.md` rewritten | UPDATE |

@@ -68,7 +68,7 @@ If drift is detected, trigger reconciliation:
 
 ```bash
 export OYA_SUPERVISOR_SETTINGS_RENDERER_MODE=Reconcile
-systemctl restart oya-foundry-supervisor
+systemctl restart oya-intelligence-supervisor
 
 # Next tick will render all drifted accounts
 # Check: .omc/state/settings-drift-report.json should now be all "Match"

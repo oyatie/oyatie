@@ -570,9 +570,9 @@ The following Category E crates (operational code) reference `oya-governance-fit
 - `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs` — hardcoded crate name list
 - `crates/oya-check-pre-push/src/lib.rs` — hardcoded crate name list
 - `crates/oya-dev-cli/src/documentation_gates.rs` — references `oya-governance-fitness-docs` lane string
-- `crates/oya-foundry-gate-catalog-domain/src/lib.rs` — prefix detection logic (requires updating the detection prefix from `oya-governance-fitness-` to `oya-governance-` after all crates are renamed)
+- `crates/oya-intelligence-gate-catalog-domain/src/lib.rs` — prefix detection logic (requires updating the detection prefix from `oya-governance-fitness-` to `oya-governance-` after all crates are renamed)
 
-**Note:** `crates/oya-foundry-gate-catalog-domain/src/lib.rs` line 324 contains:
+**Note:** `crates/oya-intelligence-gate-catalog-domain/src/lib.rs` line 324 contains:
 ```rust
 if status == "active" && id.starts_with("oya-governance-fitness-") {
 ```
@@ -619,11 +619,11 @@ These files use `oya-governance-fitness-` as **operational logic**, not as docum
 | `crates/oya-dev-cli/tests/gate_cli.rs` | Integration test fixtures embedding fitness lane names for gate testing. |
 | `crates/oya-dev-cli/tests/lint_cli.rs` | Integration test using `oya-governance-fitness-docs` lane string in fixture. |
 | `crates/oya-governance-architecture-map-kernel/src/lib.rs` | Lane reference in doc comment. |
-| `crates/oya-foundry-gate-catalog-domain/src/lib.rs` | **Critical**: `id.starts_with("oya-governance-fitness-")` prefix detection on line 324, 157. Must update after all crate migration completes. |
+| `crates/oya-intelligence-gate-catalog-domain/src/lib.rs` | **Critical**: `id.starts_with("oya-governance-fitness-")` prefix detection on line 324, 157. Must update after all crate migration completes. |
 
 ### E category risk note
 
-`crates/oya-foundry-gate-catalog-domain/src/lib.rs` contains a **runtime prefix check** (`id.starts_with("oya-governance-fitness-")`). After crate migration is complete and all CI lane IDs have been renamed to `oya-governance-*`, this check MUST be updated to `oya-governance-*` in the same PR that renames the last fitness crate. Until then, it correctly gates against the old prefix and must not be changed.
+`crates/oya-intelligence-gate-catalog-domain/src/lib.rs` contains a **runtime prefix check** (`id.starts_with("oya-governance-fitness-")`). After crate migration is complete and all CI lane IDs have been renamed to `oya-governance-*`, this check MUST be updated to `oya-governance-*` in the same PR that renames the last fitness crate. Until then, it correctly gates against the old prefix and must not be changed.
 
 Similarly, `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs` validates that `planned_enforced_by` names an `oya-governance-fitness-*` lane. After crate migration, this validation must be updated to accept `oya-governance-*`.
 
@@ -699,7 +699,7 @@ Category A specs with remaining oya-governance-fitness-:        0
    ```
 
 3. **Update Category E operational code** after each Phase completes:
-   - `crates/oya-foundry-gate-catalog-domain/src/lib.rs` lines 157, 324: update prefix check from `"oya-governance-fitness-"` to `"oya-governance-"` once all fitness crates are renamed
+   - `crates/oya-intelligence-gate-catalog-domain/src/lib.rs` lines 157, 324: update prefix check from `"oya-governance-fitness-"` to `"oya-governance-"` once all fitness crates are renamed
    - `crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs`: update `planned_enforced_by` validation prefix
    - `crates/oya-dev-cli/src/pre_push_contract_gate.rs`: update supply-chain workflow name from `oya-governance-fitness-supply-chain` to `oya-governance-supply-chain` (requires renaming the `.github/workflows/oya-governance-fitness-supply-chain.yml` file too)
    - `crates/oya-dev-cli/src/documentation_gates.rs`: update `oya-governance-fitness-docs` lane string
@@ -972,7 +972,7 @@ The operational code in Category E has two layers of dependency:
 
 1. **Crate name strings** — `oya-governance-fitness-claim-ceiling-kernel` etc. appear in `oya-check-pre-push/src/lib.rs` as a hardcoded allowlist of kernel crate names. If renamed before the crates themselves are renamed, the allowlist would reference non-existent crates and CI would fail.
 
-2. **Prefix detection logic** — `oya-foundry-gate-catalog-domain/src/lib.rs` line 324 uses `id.starts_with("oya-governance-fitness-")` as an active runtime gate. This correctly gates current lane IDs. Changing it before crates are renamed would break the gate for all currently-active lanes.
+2. **Prefix detection logic** — `oya-intelligence-gate-catalog-domain/src/lib.rs` line 324 uses `id.starts_with("oya-governance-fitness-")` as an active runtime gate. This correctly gates current lane IDs. Changing it before crates are renamed would break the gate for all currently-active lanes.
 
 The correct sequencing is: crate rename (Category C) → update operational code (Category E). This sequencing is enforced by §9 remaining-work items 2 and 3.
 

@@ -15,7 +15,7 @@ supersession_note: "Temporary bypass shortcut promoted to architecture; foundry 
 Accepted
 
 ## Context
-The Foundry Supervisor requires a webhook surface for inbox ingestion and health checks. `oya-foundry-api-rest-adapter` is currently a stub.
+The Foundry Supervisor requires a webhook surface for inbox ingestion and health checks. `oya-intelligence-api-rest-adapter` is currently a stub.
 
 ## Decision
 The Foundry Supervisor will mount its webhook surface directly via `oya-http-runtime-hyper-adapter` (Hyper/Tokio) instead of going through the `api-rest-adapter`.

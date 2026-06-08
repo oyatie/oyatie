@@ -1,6 +1,6 @@
 openapi: 3.2.0
 info:
-  title: oya-foundry-runtime
+  title: oya-intelligence-runtime
   version: 1.0.0
   summary: REST API for the foundry-runtime µservice — capability invocation, session read, autonomy ceiling read, descriptor validation
   description: |

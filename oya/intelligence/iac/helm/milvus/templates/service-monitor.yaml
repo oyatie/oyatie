@@ -3,7 +3,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: oya-foundry-milvus
+  name: oya-intelligence-milvus
   namespace: {{ .Release.Namespace }}
   labels:
     prometheus: observability

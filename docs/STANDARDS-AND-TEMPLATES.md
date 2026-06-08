@@ -94,7 +94,7 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | `user-prompt-submit-skill-routing` | Claude Code UserPromptSubmit | Routes magic-keyword prompts to the right skill | `.claude/hooks/user-prompt-submit-skill-routing.sh` |
 | `stop-validation` | Claude Code Stop | Verifies no leftover incomplete tasks before yielding | `.claude/hooks/stop-validation.sh` |
 | `pr-merge-review-guard` | gh CLI PreToolUse | Refuses `gh pr merge` without `## Code Review` H2 with reviewer-agent verdict | `scripts/hooks/guard-pr-merge-review.mjs` (existing) |
-| `audit-emission-on-capability-invoke` | runtime | Every capability invocation emits an audit-chain record per ADR-0003 | `crates/oya-foundry-evidence-*` |
+| `audit-emission-on-capability-invoke` | runtime | Every capability invocation emits an audit-chain record per ADR-0003 | `crates/oya-intelligence-evidence-*` |
 | `cohesion-fitness-on-pr` | CI | Runs `oya-governance-cohesion` on every PR | `.github/workflows/cohesion-fitness.yml` |
 | `license-fitness-on-pr` | CI | Runs `cargo deny licenses` + Trivy `--scanners license` + custom container scan | `.github/workflows/license-fitness.yml` |
 
@@ -109,7 +109,7 @@ Skills are agent-invocable workflows. Under `.claude/skills/<id>/SKILL.md`. Alia
 | `oya-dev-check` | `.claude/skills/oya-dev-check/SKILL.md` | Run pre-push checks | `oya verify` |
 | `oya-adr-author` | `.claude/skills/oya-adr-author/SKILL.md` | Draft a new ADR with all required sections | `oya catalog adr new` |
 | `oya-adr-promote` | `.claude/skills/oya-adr-promote/SKILL.md` | Promote a Proposed → Accepted ADR with shipped-evidence verification | `oya catalog adr promote` |
-| `oya-foundry-capability-author` | `.claude/skills/oya-foundry-capability-author/SKILL.md` | Scaffold a new capability YAML + eval set + adapter | `oya agent capability new` |
+| `oya-intelligence-capability-author` | `.claude/skills/oya-intelligence-capability-author/SKILL.md` | Scaffold a new capability YAML + eval set + adapter | `oya agent capability new` |
 | `oya-regional-pack-author` | `.claude/skills/oya-regional-pack-author/SKILL.md` | Scaffold a new regional pack with all 14 sections | `oya pack new` |
 | `oya-vertical-onboard` | `.claude/skills/oya-vertical-onboard/SKILL.md` | Onboard a new vertical end-to-end | (orchestrates several) |
 | `oya-runbook-author` | `.claude/skills/oya-runbook-author/SKILL.md` | Scaffold a new runbook | `oya ops runbook new` |

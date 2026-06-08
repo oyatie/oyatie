@@ -15,7 +15,7 @@ enforced_by: oya-governance-architecture-map-freshness
 extends_crates:
   - oya-governance-cohesion-fitness-kernel
   - oya-intelligence-mdbook-kernel
-  - oya-foundry-catalog-kernel
+  - oya-intelligence-catalog-kernel
 companion_docs:
   - INDEX.md
   - product-map-spec.md

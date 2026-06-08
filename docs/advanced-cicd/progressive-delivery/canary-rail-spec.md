@@ -68,7 +68,7 @@ spec:
       - name: cohort-honor-check
         url: http://oya-platform-tenant-cohort-kernel:8080/canary/intersect
       - name: rollback-evidence-emit
-        url: http://oya-foundry-evidence-kernel:8080/d14/emit
+        url: http://oya-intelligence-evidence-kernel:8080/d14/emit
 ```
 
 ## 4. Argo Rollouts Rollout (when needed)

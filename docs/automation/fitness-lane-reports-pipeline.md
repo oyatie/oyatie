@@ -12,7 +12,7 @@ purpose: |
   surface for "is the discipline holding?" at AWS/Google/MS/Oracle bar.
 planned_enforcement_ref: oya-governance-lane-rollup
 extends_crates:
-  - oya-foundry-eval-kernel
+  - oya-intelligence-eval-kernel
   - oya-governance-quality-lane-kernel
   - oya-intelligence-mdbook-kernel
 companion_docs:
@@ -50,7 +50,7 @@ Every fitness lane writes `target/fitness-reports/<lane-id>.json` on every run:
 }
 ```
 
-The shape is validated by `oya-foundry-eval-kernel`-shaped value-object checks before rollup.
+The shape is validated by `oya-intelligence-eval-kernel`-shaped value-object checks before rollup.
 
 ## 3. Inputs
 

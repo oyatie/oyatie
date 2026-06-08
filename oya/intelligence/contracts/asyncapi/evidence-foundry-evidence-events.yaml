@@ -1,6 +1,6 @@
 asyncapi: 3.1.0
 info:
-  title: oya-foundry-evidence — Workflow events
+  title: oya-intelligence-evidence — Workflow events
   version: 1.0.0
   summary: |
     Inbound subscriptions from foundry-runtime / foundry-eval / foundry-guardrails /

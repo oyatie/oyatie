@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-providers-availability-google
+  name: oya-intelligence-providers-availability-google
   displayName: "foundry-providers: Google (Gemini) adapter availability 99.5%"
   labels:
     microservice: foundry

@@ -8,7 +8,7 @@ doc_status: published
 - date: 2026-05-12
 - enforces: STANDARD/no-silent-bypass; AGENTS.md fitness-lane `oya-governance-bypass`.
 - adr_citations: ADR-0053 (sanctioned primitives — bypass directives must carry an accepted ADR justification, consistent with the primitive-restriction rationale model)
-- kernel_crate: `oya-foundry-bypass-kernel` (EXISTING) — `BypassDirective { path, line, directive, justification_ref }`, verdict `BypassFitnessReport { directives_checked, justified }`.
+- kernel_crate: `oya-intelligence-bypass-kernel` (EXISTING) — `BypassDirective { path, line, directive, justification_ref }`, verdict `BypassFitnessReport { directives_checked, justified }`.
 - runner_path: `tools/oya-governance-bypass`
 - inputs: every source/doc file, registry of allowed bypass directives + justification ADR ids.
 - failure_modes:

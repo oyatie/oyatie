@@ -1,7 +1,7 @@
 # ECH (Encrypted Client Hello) configuration — feature-flags
 # Binding ADR: ADR-0253 (HTTP/3 + ECH + PQC)
 # RFC 9460 + draft-ietf-tls-esni-22
-# Key rotation: ≥90 days (automated via oya-foundry-key-rotation-worker)
+# Key rotation: ≥90 days (automated via oya-intelligence-key-rotation-worker)
 
 apiVersion: v1
 kind: ConfigMap

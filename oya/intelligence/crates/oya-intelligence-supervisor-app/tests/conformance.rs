@@ -1,6 +1,6 @@
 //! Conformance tests — seed read-back + tier assertions (placeholder).
 //!
-//! Formerly `oya-foundry-supervisor-conformance` (dropped — `conformance` is not a
+//! Formerly `oya-intelligence-supervisor-conformance` (dropped — `conformance` is not a
 //! valid ADR-0056 v4.1 12-layer-enum suffix; idiomatically test work lives in the
 //! consuming crate per team-lead Option A decision 2026-05-15).
 //!

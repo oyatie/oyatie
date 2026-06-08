@@ -56,7 +56,7 @@ ONE of:
 |---|---|
 | 1 | Inspect recent Cedar fragment changes; rollback if recent |
 | 2 | Apply field-length bounds at REST layer if not present |
-| 3 | Profile Cedar evaluator: `cargo flamegraph -p oya-foundry-supervisor-autonomy-policy-enforcement-worker -- --bench` |
+| 3 | Profile Cedar evaluator: `cargo flamegraph -p oya-intelligence-supervisor-autonomy-policy-enforcement-worker -- --bench` |
 | 4 | If pathological input from a specific tenant: rate-limit; engage tenant |
 | 5 | Postmortem + Cedar-fragment-coverage lane update |
 

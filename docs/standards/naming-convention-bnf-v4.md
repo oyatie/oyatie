@@ -705,7 +705,7 @@ new artifacts with the retired name.
 | BNF-SURF-002 | Rust domain crate | `oya-policy-cedar-domain` | `cedarDomain` | `oya-check-crate-name-parity` |
 | BNF-SURF-003 | Rust usecase crate | `oya-workflow-template-start-usecase` | `start_workflow` | `oya-check-layer-token` |
 | BNF-SURF-004 | Rust adapter crate | `oya-mail-smtp-adapter-aws-ses` | `ses-mailer` | `oya-check-provider-suffix` |
-| BNF-SURF-005 | Rust runtime crate | `oya-foundry-provider-runtime` | `foundry_service` | `oya-check-runtime-token` |
+| BNF-SURF-005 | Rust runtime crate | `oya-intelligence-provider-runtime` | `foundry_service` | `oya-check-runtime-token` |
 | BNF-SURF-006 | API contract file | `tenant-registry-v1.openapi.yaml` | `api.yaml` | `oya-check-openapi-names` |
 | BNF-SURF-007 | Event contract file | `workflow-state-v1.asyncapi.yaml` | `events.yaml` | `oya-check-asyncapi-names` |
 | BNF-SURF-008 | Proto contract file | `workflow_state_v1.proto` | `workflow.proto` | `oya-check-proto-names` |

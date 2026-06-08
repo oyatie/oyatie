@@ -105,9 +105,9 @@
       "amendment_action": "Per-crate rename to `-app` suffix. Each rename = C1-shaped atomic commit (workspace.members + crate dir + Cargo.toml + all importers + any *-runtime binary refs in workflows/scripts).",
       "crates": [
         {
-          "current": "oya-foundry-account-runtime",
-          "proposed": "oya-foundry-account-app",
-          "conflict_note": "Already a crate named oya-foundry-account-app. Likely candidates: merge into the existing -app crate, OR rename to oya-foundry-account-runtime-app, OR rename to a more specific name like oya-foundry-account-supervisor-app. Council-architecture decision required."
+          "current": "oya-intelligence-account-runtime",
+          "proposed": "oya-intelligence-account-app",
+          "conflict_note": "Already a crate named oya-intelligence-account-app. Likely candidates: merge into the existing -app crate, OR rename to oya-intelligence-account-runtime-app, OR rename to a more specific name like oya-intelligence-account-supervisor-app. Council-architecture decision required."
         },
         {
           "current": "oya-ops-workspace-shell-runtime",

@@ -30,7 +30,7 @@ ONE of:
 
 ## Pre-checks
 
-1. Confirm the rollback target version: `kubectl exec -n foundry-eval deploy/eval-set-registry -- oya-foundry-eval-eval-set-registry-rest list --capability <cap> --order-by version` returns the prior eligible version.
+1. Confirm the rollback target version: `kubectl exec -n foundry-eval deploy/eval-set-registry -- oya-intelligence-eval-eval-set-registry-rest list --capability <cap> --order-by version` returns the prior eligible version.
 2. Confirm the prior version is itself signed via Cosign + has a valid Rekor inclusion proof.
 3. Confirm the prior version's most recent nightly run was passing (pass-rate ≥ threshold).
 4. If manual: capture the rollback reason for `EvalSetRolledBack` event.
@@ -51,7 +51,7 @@ ONE of:
 ## Rollback of the rollback
 
 If reverting to the prior version surfaces a different regression:
-1. Identify next-prior signed version via `oya-foundry-eval-eval-set-registry-rest list`.
+1. Identify next-prior signed version via `oya-intelligence-eval-eval-set-registry-rest list`.
 2. Repeat steps 3–5 against that version.
 3. Escalate to ExecSponsor if repeated reverts indicate accumulated regression debt.
 

@@ -33,10 +33,10 @@ variable "compartment_ocid" {
 # Kubernetes ServiceAccount per adapter family (spiffe-bound).
 resource "kubernetes_service_account" "router_rest" {
   metadata {
-    name      = "oya-foundry-providers-router-rest"
-    namespace = "oya-foundry-providers-${var.pack}"
+    name      = "oya-intelligence-providers-router-rest"
+    namespace = "oya-intelligence-providers-${var.pack}"
     labels = {
-      "app.kubernetes.io/name" = "oya-foundry-providers-router-rest"
+      "app.kubernetes.io/name" = "oya-intelligence-providers-router-rest"
       "spiffe.io/identity"     = "spiffe://oyatie.dev/foundry-providers/router-rest/pack/${var.pack}"
     }
   }
@@ -44,10 +44,10 @@ resource "kubernetes_service_account" "router_rest" {
 
 resource "kubernetes_service_account" "adapter_anthropic_api" {
   metadata {
-    name      = "oya-foundry-providers-adapter-anthropic-api"
-    namespace = "oya-foundry-providers-${var.pack}"
+    name      = "oya-intelligence-providers-adapter-anthropic-api"
+    namespace = "oya-intelligence-providers-${var.pack}"
     labels = {
-      "app.kubernetes.io/name" = "oya-foundry-providers-adapter-anthropic-api"
+      "app.kubernetes.io/name" = "oya-intelligence-providers-adapter-anthropic-api"
       "spiffe.io/identity"     = "spiffe://oyatie.dev/foundry-providers/adapter-anthropic-api/pack/${var.pack}"
     }
   }
@@ -57,7 +57,7 @@ resource "kubernetes_service_account" "adapter_anthropic_api" {
 # OpenBao policy binding: ONLY read on providers/* for the pack+tenant pair.
 # Per credential-isolation.md CI-INV-05.
 resource "openbao_policy" "foundry_providers_adapter_anthropic_api" {
-  name   = "oya-foundry-providers-adapter-anthropic-api-${var.pack}"
+  name   = "oya-intelligence-providers-adapter-anthropic-api-${var.pack}"
   policy = <<-HCL
     # Read-only on Anthropic API credentials for the pack.
     path "secret/data/${var.pack}/+/providers/anthropic/+" {
@@ -75,7 +75,7 @@ resource "openbao_policy" "foundry_providers_adapter_anthropic_api" {
 # KMS keyring for per-pack signing keys.
 resource "oci_kms_key" "router_signing_key" {
   compartment_id = var.compartment_ocid
-  display_name   = "oya-foundry-providers-router-signing-${var.pack}"
+  display_name   = "oya-intelligence-providers-router-signing-${var.pack}"
   key_shape {
     algorithm = "RSA"
     length    = 4096

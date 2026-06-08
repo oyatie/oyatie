@@ -869,32 +869,32 @@
         {
           "provider": "anthropic",
           "mode": "subscription",
-          "adapter_crate": "crates/oya-foundry-adapter-anthropic-subscription-*"
+          "adapter_crate": "crates/oya-intelligence-adapter-anthropic-subscription-*"
         },
         {
           "provider": "anthropic",
           "mode": "api",
-          "adapter_crate": "crates/oya-foundry-adapter-anthropic-api-*"
+          "adapter_crate": "crates/oya-intelligence-adapter-anthropic-api-*"
         },
         {
           "provider": "openai",
           "mode": "subscription",
-          "adapter_crate": "crates/oya-foundry-adapter-openai-subscription-*"
+          "adapter_crate": "crates/oya-intelligence-adapter-openai-subscription-*"
         },
         {
           "provider": "openai",
           "mode": "api",
-          "adapter_crate": "crates/oya-foundry-adapter-openai-api-*"
+          "adapter_crate": "crates/oya-intelligence-adapter-openai-api-*"
         },
         {
           "provider": "gemini",
           "mode": "subscription",
-          "adapter_crate": "crates/oya-foundry-adapter-gemini-subscription-*"
+          "adapter_crate": "crates/oya-intelligence-adapter-gemini-subscription-*"
         },
         {
           "provider": "gemini",
           "mode": "api",
-          "adapter_crate": "crates/oya-foundry-adapter-gemini-api-*"
+          "adapter_crate": "crates/oya-intelligence-adapter-gemini-api-*"
         }
       ]
     },

@@ -22,10 +22,10 @@ purpose: Land the canary observability gate that conditions dev→staging→prod
 
 Implement ADR-0114 wave-A:
 
-- New kernel `oya-foundry-canary-controller-kernel` — pure-domain
+- New kernel `oya-intelligence-canary-controller-kernel` — pure-domain
   threshold evaluator + verdict emitter. Closed enum
   `CanaryVerdict { Promote, Rollback, ExtendObservation, Escalate }`.
-- New app `oya-foundry-canary-controller-app` — 30 s eval cadence
+- New app `oya-intelligence-canary-controller-app` — 30 s eval cadence
   loop. Pulls signals (latency p99, error rate, SLO breach,
   per-product KPI) from OpenTelemetry collector. Compares canary
   cells vs control cells. Emits verdict events to
@@ -70,9 +70,9 @@ This IP ships the EMITTER only; consumers wire in IP-006.
 
 ## Symbols to grit-claim
 
-- `crates/oya-foundry-canary-controller-kernel/src/lib.rs::*`
-- `tools/oya-foundry-canary-controller-app/src/main.rs::main`
-- `tools/oya-foundry-canary-controller-app/src/{signal_pull,verdict_emit,cell_target_ref}.rs::*`
+- `crates/oya-intelligence-canary-controller-kernel/src/lib.rs::*`
+- `tools/oya-intelligence-canary-controller-app/src/main.rs::main`
+- `tools/oya-intelligence-canary-controller-app/src/{signal_pull,verdict_emit,cell_target_ref}.rs::*`
 - `registry/cells/canary-cohort.yaml::*`
 - `registry/canary/thresholds.yaml::*`
 - `crates/oya-dev-cli/src/canary_signal_emission_gate.rs::*` (new

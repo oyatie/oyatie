@@ -59,7 +59,7 @@ Cadence: every PR + nightly main + weekly full-history rescan.
 ### Cosign keyless signing
 
 ```bash
-# crates/oya-foundry-release/scripts/sign.sh
+# crates/oya-intelligence-release/scripts/sign.sh
 COSIGN_EXPERIMENTAL=1 cosign sign \
   --identity-token "${OIDC_TOKEN}" \
   --output-signature "${ARTIFACT}.sig" \

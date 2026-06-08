@@ -193,10 +193,10 @@ benchmark demonstrates that blocking-pool I/O is the latency bottleneck at produ
 1. **F-BRANCH-Y-COST-BENEFIT-QUANTIFY-ADR-1** — After Wave 2f bench harness (`heartbeat.rs`)
    produces JSONL latency data at 64-session concurrency, re-evaluate Branch X threshold.
    If p99 tick latency > 50 ms, reopen this ADR.
-2. **JSONL adapter rustdoc** — `oya-foundry-jsonl-supervisor-adapter/src/lib.rs` must include
+2. **JSONL adapter rustdoc** — `oya-intelligence-jsonl-supervisor-adapter/src/lib.rs` must include
    the `/// # Durability` block verbatim as specified in §Decision above.
 3. **Semaphore constant** — `MAX_IN_FLIGHT: usize = 64` must be a workspace-level const
-   declared in `oya-foundry-supervisor-kernel` so all callers share the same default.
+   declared in `oya-intelligence-supervisor-kernel` so all callers share the same default.
 
 ## References
 

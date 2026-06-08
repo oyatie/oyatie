@@ -7,13 +7,13 @@ doc_status: published
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every cloud-mutation (create/update/delete cloud resource) goes through the sanctioned mutation kernel and carries an idempotency key.
-- enforces: STANDARD/cloud-mutation; existing crate `oya-foundry-cloud-mutation-kernel` (EXISTING).
+- enforces: STANDARD/cloud-mutation; existing crate `oya-intelligence-cloud-mutation-kernel` (EXISTING).
 - adr_citations: ADR-0053 (sanctioned primitives — cloud mutations must route through the sanctioned kernel, not call provider SDKs directly)
-- kernel_crate: `oya-foundry-cloud-mutation-kernel` (EXISTING) — `CloudMutation { mutation_id, kernel_path, idempotency_key }`, verdict `CloudMutationFitnessReport { mutations_checked }`.
+- kernel_crate: `oya-intelligence-cloud-mutation-kernel` (EXISTING) — `CloudMutation { mutation_id, kernel_path, idempotency_key }`, verdict `CloudMutationFitnessReport { mutations_checked }`.
 - runner_path: `tools/oya-governance-cloud-mutation`
 - inputs: mutation registry, source AST showing cloud SDK calls.
 - failure_modes:
-  - cloud SDK called outside `oya-foundry-cloud-mutation-kernel`
+  - cloud SDK called outside `oya-intelligence-cloud-mutation-kernel`
   - mutation has no idempotency key
   - duplicate mutation id
 - ci_invocation: `cargo run -p oya-governance-cloud-mutation`

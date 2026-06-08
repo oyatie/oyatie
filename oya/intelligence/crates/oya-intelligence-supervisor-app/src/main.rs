@@ -1,4 +1,4 @@
-//! oya-foundry-supervisor binary entry point.
+//! oya-intelligence-supervisor binary entry point.
 
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .json()
         .init();
 
-    tracing::info!("Starting oya-foundry-supervisor");
+    tracing::info!("Starting oya-intelligence-supervisor");
 
     // 2. Setup config
     let config = SupervisorConfig {

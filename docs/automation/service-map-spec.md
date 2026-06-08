@@ -14,7 +14,7 @@ planned_enforcement_ref: oya-governance-service-map
 extends_crates:
   - oya-governance-cohesion-fitness-kernel
   - oya-intelligence-architecture-map-kernel
-  - oya-foundry-catalog-kernel
+  - oya-intelligence-catalog-kernel
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
@@ -46,9 +46,9 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 | `domain` | Business invariants and port traits | `oya-identity-domain` |
 | `usecase` | Application/use-case orchestration over domain ports | `oya-identity-usecase`, `oya-audit-chain-usecase` |
 | `app` | Deployable/composition root; composes usecases + adapters/surfaces; never imports another app | `oya-foundation-app`, `oya-cloud-billing-app` |
-| `adapter` | Provider-specific I/O (storage, network, KMS, AI) | `oya-foundry-evidence-adapter-file`, `oya-foundry-run-adapter-file` |
-| `rest` / `grpc` / `graphql` / `api` | External-surface handlers | `oya-foundry-rest`, `oya-cloud-iam-api` |
-| `worker` | Queue/scheduled entrypoints | `oya-foundry-ci-worker` |
+| `adapter` | Provider-specific I/O (storage, network, KMS, AI) | `oya-intelligence-evidence-adapter-file`, `oya-intelligence-run-adapter-file` |
+| `rest` / `grpc` / `graphql` / `api` | External-surface handlers | `oya-intelligence-rest`, `oya-cloud-iam-api` |
+| `worker` | Queue/scheduled entrypoints | `oya-intelligence-ci-worker` |
 
 Layer is declared in `[package.metadata.oya.layer]` / catalog `role`. The pipeline rejects crates without a catalog role. The active dependency rule is inward-only: `kernel <- domain <- usecase <- app`; `app -> app` is a blocker.
 
@@ -100,7 +100,7 @@ The pipeline also emits per-layer subviews `docs/visualization/service-map-<laye
 1. **Layer declaration.** Every workspace crate has catalog `role` plus `[package.metadata.oya.layer]` where present (BLOCKER).
 2. **Downstream-only edges.** A `kernel` crate MUST NOT depend on outer layers; `domain` must not depend on `usecase`/`app`/adapters/surfaces; `usecase` must not depend on concrete adapters or apps; `app -> app` is a BLOCKER. The pipeline enforces strict inward dependency direction.
 3. **Cycle ban.** Workspace-internal dependency cycles → BLOCKER (cargo already rejects, but the pipeline asserts the rendered DAG is acyclic for visual clarity).
-4. **Catalog presence.** Every crate exists in the registry catalog (cross-validated via `oya-foundry-catalog-kernel`).
+4. **Catalog presence.** Every crate exists in the registry catalog (cross-validated via `oya-intelligence-catalog-kernel`).
 5. **Generated drift.** Committed service map differs from re-rendered (BLOCKER).
 6. **SVG presence.** Every rendered diagram has a CI-produced SVG sibling.
 

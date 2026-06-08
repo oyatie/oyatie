@@ -23,7 +23,7 @@ purpose: Auto-backfilled purpose for oyatie-mega-plan-execution.md
 
 ### Decision Drivers (top 3)
 1. **Unblock CI** — Wave 0 stale hook-names, broken validators, and stale citation paths are currently red. Nothing else ships until green.
-2. **Preserve the existing G001-G006 work** — `oya-foundry-agent-runtime` already has the account-auth domain logic. Wave 1 §2 must migrate (not rewrite) into `oya-foundry-account-*` per clean-architecture.
+2. **Preserve the existing G001-G006 work** — `oya-intelligence-agent-runtime` already has the account-auth domain logic. Wave 1 §2 must migrate (not rewrite) into `oya-intelligence-account-*` per clean-architecture.
 3. **Idempotent re-runs** — grit claim+lease semantics + atomic `goals.json` writes are required so parallel agents do not corrupt shared state on retry.
 
 ### Viable Options
@@ -65,7 +65,7 @@ Touch-zones are too overlapping for safe parallelism. Each task is a single grit
   - `rtk grep -r "WorktreeCreated\|WorktreeRemoved" .claude/ agents/ crates/ .github/` returns 0 hits
   - Validators previously referencing old names parse the new payload (add a test asserting the renamed event flows through)
   - CI job `hook-name-drift-guard` (or equivalent) goes green
-- **Verification**: `rtk cargo test -p oya-foundry-agent-runtime --test foundry_spec` + targeted hook-payload validator test
+- **Verification**: `rtk cargo test -p oya-intelligence-agent-runtime --test foundry_spec` + targeted hook-payload validator test
 
 #### W0-T2: Replace declarative-only validators with executable+tested implementations
 - **Validators**: `conflict-hotspot-diff-guard`, `generated-artifact-guard`, `script-value-guard`, `stale-ci-state-guard`
@@ -122,29 +122,29 @@ Touch-zones are too overlapping for safe parallelism. Each task is a single grit
 
 ---
 
-### Wave 1 §2 — P00-01..P00-08: Migrate account-auth into `oya-foundry-account-*` crates
+### Wave 1 §2 — P00-01..P00-08: Migrate account-auth into `oya-intelligence-account-*` crates
 
-The G001-G006 logic already lives in `oya-foundry-agent-runtime` (`domain.rs`, `auth.rs`, `provider_gateway.rs`, `providers.rs`, `http.rs`). The clean-architecture target is the 8 `oya-foundry-account-*` crates that exist as skeletons.
+The G001-G006 logic already lives in `oya-intelligence-agent-runtime` (`domain.rs`, `auth.rs`, `provider_gateway.rs`, `providers.rs`, `http.rs`). The clean-architecture target is the 8 `oya-intelligence-account-*` crates that exist as skeletons.
 
 **These 8 sub-tasks ARE parallelizable** — each crate is independently scoped. Use `/ultrawork` with 4-way concurrency (more risks llm context thrash on shared review).
 
-| Task | Source (in `oya-foundry-agent-runtime`) | Target crate | Notes |
+| Task | Source (in `oya-intelligence-agent-runtime`) | Target crate | Notes |
 |---|---|---|---|
 | P00-01 | `domain.rs` (account-auth types) | `oya-intelligence-account-domain` | Pure types; no I/O |
 | P00-02 | `auth.rs` (kernel ports/traits) | `oya-intelligence-account-kernel` | Trait definitions only |
-| P00-03 | use-case orchestration | `oya-foundry-account-app` | Depends on kernel + domain |
-| P00-04 | `providers.rs` (Claude Code provider) | `oya-foundry-account-adapter-claude-code` | Adapter |
-| P00-05 | `providers.rs` (Codex CLI provider) | `oya-foundry-account-adapter-codex-cli` | Adapter |
-| P00-06 | `providers.rs` (Gemini CLI provider) | `oya-foundry-account-adapter-gemini-cli` | Adapter |
-| P00-07 | OpenBao SecretReference resolution | `oya-foundry-account-adapter-openbao` | Adapter |
-| P00-08 | `http.rs` + binding wire-up | `oya-foundry-account-runtime` | Composition root |
+| P00-03 | use-case orchestration | `oya-intelligence-account-app` | Depends on kernel + domain |
+| P00-04 | `providers.rs` (Claude Code provider) | `oya-intelligence-account-adapter-claude-code` | Adapter |
+| P00-05 | `providers.rs` (Codex CLI provider) | `oya-intelligence-account-adapter-codex-cli` | Adapter |
+| P00-06 | `providers.rs` (Gemini CLI provider) | `oya-intelligence-account-adapter-gemini-cli` | Adapter |
+| P00-07 | OpenBao SecretReference resolution | `oya-intelligence-account-adapter-openbao` | Adapter |
+| P00-08 | `http.rs` + binding wire-up | `oya-intelligence-account-runtime` | Composition root |
 
 #### Per-task acceptance criteria template
 For each P00-0X:
 - **Dependency direction verified**: `cargo tree -p <crate>` shows imports only flow toward kernel/domain (no upward leak)
 - **All ported tests green**: tests moved alongside code run green in new crate
-- **Original crate cleaned**: dead code or now-duplicate definitions removed from `oya-foundry-agent-runtime` (only after target crate is green)
-- **Public API parity**: a workspace-level integration test (in `oya-foundry-account-runtime` or a top-level `tests/` crate) demonstrates the runtime composes adapters end-to-end equivalently to pre-migration behavior
+- **Original crate cleaned**: dead code or now-duplicate definitions removed from `oya-intelligence-agent-runtime` (only after target crate is green)
+- **Public API parity**: a workspace-level integration test (in `oya-intelligence-account-runtime` or a top-level `tests/` crate) demonstrates the runtime composes adapters end-to-end equivalently to pre-migration behavior
 - **Edition 2024 / Rust 1.95**: no warnings, no `cargo clippy` violations
 - **SecretReference invariant**: no raw secrets in any moved code; OpenBao adapter is the only credential resolver
 
@@ -155,10 +155,10 @@ For each P00-0X:
 
 #### grit workflow per task
 ```
-grit claim <task-id> --crate oya-foundry-account-<role>
+grit claim <task-id> --crate oya-intelligence-account-<role>
 # ... edits in worktree ...
-rtk cargo test -p oya-foundry-account-<role>
-rtk cargo clippy -p oya-foundry-account-<role>
+rtk cargo test -p oya-intelligence-account-<role>
+rtk cargo clippy -p oya-intelligence-account-<role>
 grit done <task-id>
 ```
 
@@ -173,7 +173,7 @@ After W0 complete and P00-01, P00-02 green:
 ## Success Criteria (overall)
 
 - All 7 Wave 0 tasks (W0-T1..W0-T7) green in CI
-- All 8 Wave 1 §2 tasks (P00-01..P00-08) green; `oya-foundry-agent-runtime` slimmed to only its rightful runtime concerns
+- All 8 Wave 1 §2 tasks (P00-01..P00-08) green; `oya-intelligence-agent-runtime` slimmed to only its rightful runtime concerns
 - Workspace `rtk cargo test --workspace` green
 - Workspace `rtk cargo clippy --workspace -- -D warnings` clean
 - `grit status` shows no orphaned claims
@@ -196,15 +196,15 @@ rtk cargo clippy --workspace -- -D warnings
 # Wave 1 §2 sweep
 rtk cargo test -p oya-intelligence-account-domain
 rtk cargo test -p oya-intelligence-account-kernel
-rtk cargo test -p oya-foundry-account-app
-rtk cargo test -p oya-foundry-account-adapter-claude-code
-rtk cargo test -p oya-foundry-account-adapter-codex-cli
-rtk cargo test -p oya-foundry-account-adapter-gemini-cli
-rtk cargo test -p oya-foundry-account-adapter-openbao
-rtk cargo test -p oya-foundry-account-runtime
+rtk cargo test -p oya-intelligence-account-app
+rtk cargo test -p oya-intelligence-account-adapter-claude-code
+rtk cargo test -p oya-intelligence-account-adapter-codex-cli
+rtk cargo test -p oya-intelligence-account-adapter-gemini-cli
+rtk cargo test -p oya-intelligence-account-adapter-openbao
+rtk cargo test -p oya-intelligence-account-runtime
 
 # Dependency-direction guard
-cargo tree -p oya-foundry-account-runtime | grep -E "oya-foundry-account-(kernel|domain|app|adapter)"
+cargo tree -p oya-intelligence-account-runtime | grep -E "oya-intelligence-account-(kernel|domain|app|adapter)"
 
 # grit hygiene
 grit status

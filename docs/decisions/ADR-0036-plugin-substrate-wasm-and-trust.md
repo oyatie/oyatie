@@ -30,7 +30,7 @@ We adopt **Wasmtime + WASI Preview 2** as the canonical plugin runtime; **capabi
 ### Runtime: Wasmtime + WASI Preview 2
 
 ```rust
-// crates/oya-foundry-plugin-runtime-kernel
+// crates/oya-intelligence-plugin-runtime-kernel
 pub struct PluginRuntime {
     pub engine: wasmtime::Engine,
     pub linker: wasmtime::component::Linker<PluginContext>,

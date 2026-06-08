@@ -57,12 +57,12 @@ Scaffolds all 10 foundry and check crates, implements 7 sub-commands on `oya-sha
 | `crates/oya-check-shardability-cli/src/main.rs` | create | parse migration SQL files; assert all multi-tenant tables have `tenant_id` column + RLS policy |
 | `crates/oya-check-perf-budget-cli/Cargo.toml` | create | perf budget verifier |
 | `crates/oya-check-perf-budget-cli/src/main.rs` | create | scan impl-plan.md files for `## Load test` section; report missing |
-| `crates/oya-foundry-grit-cli/Cargo.toml` | create | thin wrapper over grit binary |
-| `crates/oya-foundry-grit-cli/src/main.rs` | create | delegates to `grit` binary via std::process::Command |
-| `crates/oya-foundry-icm-cli/Cargo.toml` | create | thin wrapper over icm binary |
-| `crates/oya-foundry-icm-cli/src/main.rs` | create | delegates to `icm` binary via std::process::Command |
-| `crates/oya-foundry-agent-read-cli/Cargo.toml` | create | agent-read scaffold |
-| `crates/oya-foundry-agent-read-cli/src/main.rs` | create | reads AGENTS.md files for workspace agents |
+| `crates/oya-intelligence-grit-cli/Cargo.toml` | create | thin wrapper over grit binary |
+| `crates/oya-intelligence-grit-cli/src/main.rs` | create | delegates to `grit` binary via std::process::Command |
+| `crates/oya-intelligence-icm-cli/Cargo.toml` | create | thin wrapper over icm binary |
+| `crates/oya-intelligence-icm-cli/src/main.rs` | create | delegates to `icm` binary via std::process::Command |
+| `crates/oya-intelligence-agent-read-cli/Cargo.toml` | create | agent-read scaffold |
+| `crates/oya-intelligence-agent-read-cli/src/main.rs` | create | reads AGENTS.md files for workspace agents |
 | `Cargo.toml` | update | add all 10 crates to `[workspace.members]` |
 | `deny.toml` | create | `cargo deny` configuration: licenses allowlist, bans, advisories |
 

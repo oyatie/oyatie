@@ -139,7 +139,7 @@
       "crates/oya-http-runtime-hyper-adapter/src/lib.rs (ServerConfig + collect_body_with_limit + handler_to_sync + boundary conversions)",
       "crates/oya-http-{latency-budget,telemetry,tenant}-middleware-infrastructure/ (renamed from -domain + body refactor + new type names)",
       "crates/oya-tenancy-kernel/src/lib.rs (added TenantSlug newtype + grammar)",
-      "crates/oya-foundry-adapter-{anthropic,openai}-compat-api (updated to oya_http_sse_kernel use)"
+      "crates/oya-intelligence-adapter-{anthropic,openai}-compat-api (updated to oya_http_sse_kernel use)"
     ],
     "adrs_authored_this_session": [
       "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md (Accepted)",

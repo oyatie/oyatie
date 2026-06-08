@@ -206,7 +206,7 @@ runtime   — composition root (binary)
 | Audit-chain event | SaaS / Audit subsystem | `oya-platform-audit-chain-kernel` | Audit + downstream-consumer review |
 | Eventing backbone | SaaS | `oya-platform-eventing-kernel` | Cross-axis on topic shape |
 | Capability invocation | Foundry | `contracts/foundry-capability.openapi.yaml` | Cross-axis (foundry + cloud) |
-| Autonomy ceiling | Foundry | `oya-foundry-policy-kernel` | Governance + security |
+| Autonomy ceiling | Foundry | `oya-intelligence-policy-kernel` | Governance + security |
 | Regulatory pack | SaaS / Vertical | `oya-platform-regulatory-kernel` | Vertical + regulatory review |
 | Metering kernel | SaaS | `oya-platform-metering-kernel` | Billing + tax review |
 

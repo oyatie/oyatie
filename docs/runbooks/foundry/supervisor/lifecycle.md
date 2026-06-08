@@ -18,7 +18,7 @@ The Foundry Supervisor is a long-lived daemon that orchestrates sessions across 
 ### 2.1 Starting the Supervisor
 ```bash
 # Production
-./target/release/oya-foundry-supervisor
+./target/release/oya-intelligence-supervisor
 
 # Development
 cargo run -p oya-intelligence-supervisor-app

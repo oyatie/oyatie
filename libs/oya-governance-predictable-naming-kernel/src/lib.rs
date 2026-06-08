@@ -324,7 +324,7 @@ mod tests {
     #[test]
     fn unknown_role_flagged() {
         let r = check(&[row(
-            "oya-foundry-account-helper",
+            "oya-intelligence-account-helper",
             Some("helper"),
             Some("foundry"),
         )])
@@ -458,7 +458,7 @@ mod tests {
     #[test]
     fn runtime_role_no_longer_accepted() {
         let r = check(&[row(
-            "oya-foundry-account-runtime",
+            "oya-intelligence-account-runtime",
             Some("runtime"),
             Some("foundry"),
         )])
@@ -490,7 +490,7 @@ mod tests {
             "oya-cloud-billing-adapter-aws"
         ));
         assert!(is_backend_qualified_adapter("oya-x-adapter-postgres"));
-        assert!(!is_backend_qualified_adapter("oya-foundry-account-adapter")); // no backend
+        assert!(!is_backend_qualified_adapter("oya-intelligence-account-adapter")); // no backend
         assert!(!is_backend_qualified_adapter(
             "oya-intelligence-account-domain"
         ));

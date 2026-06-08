@@ -22,7 +22,7 @@ mkdir -p ~/.oya/supervisor
 mkdir -p /var/log/oya/supervisor
 
 # 3. Start daemon (foreground, for debugging)
-RUST_LOG=info oya-foundry-supervisor
+RUST_LOG=info oya-intelligence-supervisor
 
 # 4. In another terminal, check health
 curl http://localhost:8080/health
@@ -31,7 +31,7 @@ curl http://localhost:8080/health
 ### Systemd Service
 
 ```ini
-# /etc/systemd/system/oya-foundry-supervisor.service
+# /etc/systemd/system/oya-intelligence-supervisor.service
 [Unit]
 Description=Oyatie Foundry Supervisor Daemon
 After=network-online.target
@@ -42,7 +42,7 @@ User=oya
 Group=oya
 WorkingDirectory=/opt/oya
 EnvironmentFile=/etc/oya/supervisor.env
-ExecStart=/usr/local/bin/oya-foundry-supervisor
+ExecStart=/usr/local/bin/oya-intelligence-supervisor
 Restart=always
 RestartSec=5s
 StandardOutput=journal
@@ -54,12 +54,12 @@ WantedBy=multi-user.target
 
 ```bash
 # Enable and start
-sudo systemctl enable oya-foundry-supervisor
-sudo systemctl start oya-foundry-supervisor
-sudo systemctl status oya-foundry-supervisor
+sudo systemctl enable oya-intelligence-supervisor
+sudo systemctl start oya-intelligence-supervisor
+sudo systemctl status oya-intelligence-supervisor
 
 # View logs
-journalctl -u oya-foundry-supervisor -f
+journalctl -u oya-intelligence-supervisor -f
 ```
 
 ## Configuration
@@ -122,7 +122,7 @@ jq '.[] | select(.event_class == "foundry_supervisor_session_duration_micros") |
 
 ```bash
 export OYA_SUPERVISOR_WATCHDOG_TIMEOUT_SECS=240
-systemctl restart oya-foundry-supervisor
+systemctl restart oya-intelligence-supervisor
 ```
 
 ### Scenario 2: Hung Sessions Not Being Killed
@@ -136,14 +136,14 @@ jq '.[] | select(.event_class == "foundry_supervisor_watchdog_spawn")' \
   evidence/audit-chain.jsonl | wc -l
 
 # Check system for hung processes
-ps aux | grep oya-foundry-supervisor | grep -v grep
+ps aux | grep oya-intelligence-supervisor | grep -v grep
 ps aux | grep "Claude\|claude" | wc -l  # spawned session count
 ```
 
 **Fix:** Watchdog may not be running due to a bug. Check logs:
 
 ```bash
-journalctl -u oya-foundry-supervisor --since="5 min ago" | grep watchdog
+journalctl -u oya-intelligence-supervisor --since="5 min ago" | grep watchdog
 ```
 
 If no watchdog messages, restart the daemon.
@@ -173,7 +173,7 @@ cat .omc/state/settings-drift-report.json | jq '.[] | select(.state != "Match")'
 
 # If RendererMode is VerifyOnly, manually reconcile
 export OYA_SUPERVISOR_SETTINGS_RENDERER_MODE=Reconcile
-systemctl restart oya-foundry-supervisor
+systemctl restart oya-intelligence-supervisor
 
 # Wait for next tick
 sleep 2
@@ -218,7 +218,7 @@ curl -X POST http://localhost:8080/inbox \
   }'
 
 # Watch logs for processing
-journalctl -u oya-foundry-supervisor -f | grep "foundry_supervisor_spawn"
+journalctl -u oya-intelligence-supervisor -f | grep "foundry_supervisor_spawn"
 
 # Verify spend record was written
 tail -5 ~/.oya/outbox/spend-records.jsonl

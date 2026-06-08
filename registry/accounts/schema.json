@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/schemas/foundry-accounts.schema.json",
   "title": "FoundryAccountList",
-  "description": "Per-driver account list for oya-foundry-supervisor. Each file covers one provider family (Claude / Codex / Gemini). Parsed by account-kernel:48 parser — provider_family MUST be CamelCase. No raw credentials; all secrets via sref:// OpenBao references per ADR-0067.",
+  "description": "Per-driver account list for oya-intelligence-supervisor. Each file covers one provider family (Claude / Codex / Gemini). Parsed by account-kernel:48 parser — provider_family MUST be CamelCase. No raw credentials; all secrets via sref:// OpenBao references per ADR-0067.",
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-FOUNDRY-ACCOUNTS",

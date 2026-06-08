@@ -82,7 +82,7 @@ Examples typically OK as dev-only: GPL-licensed code generators, AGPL-licensed d
 | TypeScript | `license-checker` + custom validator | per-package |
 | Python | `pip-licenses` + custom validator | per-package |
 | Go | `go-licenses` | per-module |
-| WASM plugins | `oya-foundry-marketplace` license check at upload time | per-plugin |
+| WASM plugins | `oya-intelligence-marketplace` license check at upload time | per-plugin |
 
 ### CI lane: `oya-governance-license`
 

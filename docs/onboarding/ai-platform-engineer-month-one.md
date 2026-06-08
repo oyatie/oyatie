@@ -110,7 +110,7 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 7. crates/oya-intelligence-rag-api/src/lib.rs
 8. crates/oya-intelligence-rag-api/tests/foundry_rag_retrieve_api.rs
 9. crates/oya-intelligence-rag-endpoint-kernel/src/lib.rs
-10. microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+10. microservices/intelligence/catalog/oya-intelligence-guardrails-prompt-classifier-kernel.yaml
 11. microservices/intelligence/capabilities/guardrails-classify-prompt.yaml
 12. microservices/intelligence/IP-064-guardrails-prompt-classifier-kernel.md
 13. docs/runbooks/foundry/prompt-injection-fired.md
@@ -462,7 +462,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-009 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-010: fairness audit evidence
-- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-intelligence-guardrails-prompt-classifier-kernel.yaml
 - Connects to: audit-chain attribution for model choice and generated output
 - Build or inspect: a minimal artifact that proves fairness audit evidence without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for fairness audit evidence.
@@ -612,7 +612,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-024 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-025: high-risk refusal
-- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-intelligence-guardrails-prompt-classifier-kernel.yaml
 - Connects to: model card, lifecycle stage, eval, and rollback schema
 - Build or inspect: a minimal artifact that proves high-risk refusal without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for high-risk refusal.
@@ -762,7 +762,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-039 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-040: prompt injection fired
-- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-intelligence-guardrails-prompt-classifier-kernel.yaml
 - Connects to: audit-chain attribution for model choice and generated output
 - Build or inspect: a minimal artifact that proves prompt injection fired without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for prompt injection fired.
@@ -912,7 +912,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-054 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-055: tenant-isolated RAG retrieve
-- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-intelligence-guardrails-prompt-classifier-kernel.yaml
 - Connects to: model card, lifecycle stage, eval, and rollback schema
 - Build or inspect: a minimal artifact that proves tenant-isolated RAG retrieve without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant-isolated RAG retrieve.
@@ -1062,7 +1062,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-069 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-070: human appeal path
-- Read: microservices/intelligence/catalog/oya-foundry-guardrails-prompt-classifier-kernel.yaml
+- Read: microservices/intelligence/catalog/oya-intelligence-guardrails-prompt-classifier-kernel.yaml
 - Connects to: audit-chain attribution for model choice and generated output
 - Build or inspect: a minimal artifact that proves human appeal path without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for human appeal path.

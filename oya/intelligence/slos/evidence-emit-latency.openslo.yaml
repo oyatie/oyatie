@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-evidence-emit-latency
+  name: oya-intelligence-evidence-emit-latency
   displayName: "foundry-evidence: evidence emit latency p95 ≤ 1s per record"
   labels:
     microservice: foundry

@@ -17,10 +17,10 @@ Runtime tier:
 | glossary | existing | STANDARD/glossary-required-terms | oya-governance-glossary-kernel | tools/oya-governance-glossary | `cargo run -p oya-governance-glossary` | 700 | HIGH |
 | adr-citation | existing | STANDARD/adr-citation | oya-governance-adr-citation-kernel | tools/oya-governance-adr-citation | `cargo run -p oya-governance-adr-citation` | 800 | BLOCKER |
 | brand-residue | existing | STANDARD/brand-hygiene | oya-governance-brand-residue-kernel | tools/oya-governance-brand-residue | `cargo run -p oya-governance-brand-residue` | 900 | HIGH |
-| bypass | existing | STANDARD/no-silent-bypass | oya-foundry-bypass-kernel | tools/oya-governance-bypass | `cargo run -p oya-governance-bypass` | 700 | BLOCKER |
+| bypass | existing | STANDARD/no-silent-bypass | oya-intelligence-bypass-kernel | tools/oya-governance-bypass | `cargo run -p oya-governance-bypass` | 700 | BLOCKER |
 | flat-crates | existing | STANDARD/flat-workspace | oya-governance-flat-crates-kernel | tools/oya-governance-flat-crates | `cargo run -p oya-governance-flat-crates` | 100 | BLOCKER |
 | runbook-index-resolves | existing | STANDARD/runbook-index | oya-governance-runbook-index-kernel | tools/oya-governance-runbook-index-resolves | `cargo run -p oya-governance-runbook-index-resolves` | 250 | HIGH |
-| doc-catalog | existing | STANDARD/doc-catalog | oya-foundry-catalog-kernel | tools/oya-governance-doc-catalog | `cargo run -p oya-governance-doc-catalog` | 400 | BLOCKER |
+| doc-catalog | existing | STANDARD/doc-catalog | oya-intelligence-catalog-kernel | tools/oya-governance-doc-catalog | `cargo run -p oya-governance-doc-catalog` | 400 | BLOCKER |
 | authority-cohesion | existing | STANDARD/single-source-authority | oya-governance-authority-cohesion-kernel | tools/oya-governance-authority-cohesion | `cargo run -p oya-governance-authority-cohesion` | 350 | BLOCKER |
 | mistakes-ledger-cite | existing | STANDARD/mistakes-ledger | oya-governance-mistakes-ledger-kernel | tools/oya-governance-mistakes-ledger-cite | `cargo run -p oya-governance-mistakes-ledger-cite` | 600 | HIGH |
 | adr-shape | existing | TEMPLATE/adr-template | oya-governance-adr-shape-kernel | tools/oya-governance-adr-shape | `cargo run -p oya-governance-adr-shape` | 250 | BLOCKER |
@@ -30,7 +30,7 @@ Runtime tier:
 | traceability-validator | existing | STANDARD/traceability-chain | oya-governance-traceability-kernel | tools/oya-governance-traceability-validator | `cargo run -p oya-governance-traceability-validator` | 1500 | BLOCKER |
 | redirect-thinness | existing | STANDARD/redirect-shape | oya-governance-redirect-thinness-kernel | tools/oya-governance-redirect-thinness | `cargo run -p oya-governance-redirect-thinness` | 200 | MED |
 | cross-axis-notify | existing | STANDARD/cross-axis-notify | oya-governance-cross-axis-notify-kernel | tools/oya-governance-cross-axis-notify | `cargo run -p oya-governance-cross-axis-notify` | 250 | HIGH |
-| capability-publish | existing | STANDARD/capability-map | oya-foundry-capability-kernel | tools/oya-governance-capability-publish | `cargo run -p oya-governance-capability-publish` | 400 | HIGH |
+| capability-publish | existing | STANDARD/capability-map | oya-intelligence-capability-kernel | tools/oya-governance-capability-publish | `cargo run -p oya-governance-capability-publish` | 400 | HIGH |
 | portfolio-citation | new-directive | Directive A1 (bidirectional bominal<->oyatie PRD cite) | oya-governance-portfolio-citation-kernel | tools/oya-governance-portfolio-citation | `cargo run -p oya-governance-portfolio-citation` | 800 | HIGH |
 | banned-primitives | new-directive | Directive 12 (sanctioned primitives) | oya-governance-banned-primitives-kernel | tools/oya-governance-banned-primitives-app | `cargo run -q -p oya-dev-cli -- gate validate banned-primitives --require-command-log-corpus --command-log-root registry/governance-corpora/banned-primitives` | 500 | BLOCKER |
 | archive-orphan | new-directive | Directive A3 P7 gate | oya-governance-archive-orphan-kernel | tools/oya-governance-archive-orphan | `cargo run -p oya-governance-archive-orphan` | 1200 | BLOCKER |
@@ -72,8 +72,8 @@ Runtime tier:
 | codeowners-mirror | existing-extension | STANDARD/codeowners-mirror | CodeownersMirrorFitnessReport (kernel contract) | tools/oya-governance-codeowners-mirror | `cargo run -p oya-governance-codeowners-mirror` | 300 | HIGH |
 | constitution-cite | existing-extension | STANDARD/constitution-derivation | oya-governance-constitution-cite-kernel | tools/oya-governance-constitution-cite | `cargo run -p oya-governance-constitution-cite` | 350 | HIGH |
 | claim-ceiling | existing-extension | STANDARD/claim-ceiling | oya-governance-claim-ceiling-kernel | tools/oya-governance-claim-ceiling | `cargo run -p oya-governance-claim-ceiling` | 300 | HIGH |
-| cost-budget | existing-extension | STANDARD/cost-budget | oya-foundry-cost-budget-kernel | tools/oya-governance-cost-budget | `cargo run -p oya-governance-cost-budget` | 600 | MED |
-| cloud-mutation | existing-extension | STANDARD/cloud-mutation | oya-foundry-cloud-mutation-kernel | tools/oya-governance-cloud-mutation | `cargo run -p oya-governance-cloud-mutation` | 800 | BLOCKER |
-| adapter-kernel | existing-extension | STANDARD/adapter-shape | oya-foundry-adapter-kernel | tools/oya-governance-adapter-kernel | `cargo run -p oya-governance-adapter-kernel` | 800 | BLOCKER |
+| cost-budget | existing-extension | STANDARD/cost-budget | oya-intelligence-cost-budget-kernel | tools/oya-governance-cost-budget | `cargo run -p oya-governance-cost-budget` | 600 | MED |
+| cloud-mutation | existing-extension | STANDARD/cloud-mutation | oya-intelligence-cloud-mutation-kernel | tools/oya-governance-cloud-mutation | `cargo run -p oya-governance-cloud-mutation` | 800 | BLOCKER |
+| adapter-kernel | existing-extension | STANDARD/adapter-shape | oya-intelligence-adapter-kernel | tools/oya-governance-adapter-kernel | `cargo run -p oya-governance-adapter-kernel` | 800 | BLOCKER |
 
 Total: 64 lanes. See sibling `<lane-id>.md` for kernel sketch, failure modes, and runtime budget.

@@ -8,7 +8,7 @@ metadata:
     oya.adr: "0192"
 spec:
   cluster:
-    name: oya-foundry-milvus  # Helm release name
+    name: oya-intelligence-milvus  # Helm release name
   properties:
     db.replica.num: "2"
     db.resource_groups: '["__default_resource_group"]'

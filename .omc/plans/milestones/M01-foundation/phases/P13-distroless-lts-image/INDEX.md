@@ -39,7 +39,7 @@ Original acceptance items not delivered, with bounded FixupTask citations:
 - `tech-debt-ledger.json` with state machine → simplified to
   `dependency-rationales.json` (flat 11-row overlay). State machine deferred
   with re-evaluation triggers T1-T6 in ADR-0092.
-- `oya-foundry-trigger-dsl-{kernel,runtime}` → DROPPED. Re-introduce in Cedar
+- `oya-intelligence-trigger-dsl-{kernel,runtime}` → DROPPED. Re-introduce in Cedar
   (`oya-policy-cedar-*`) only if T6 fires.
 - ADR-0091..ADR-0094 → renumbered ADR-0092..ADR-0095 (0091 was already taken
   by foundry-write-gate-foundations).
@@ -56,7 +56,7 @@ Phase-level exit-gate items NOT yet delivered (block P06 closure):
 5 agents: distroless/image lane, LTS roster, dependency-seam composite lane, trigger-DSL/ledger, and static-musl pipeline. Step 0→1 in IP-002 remains sequential; post-Step-1 work fans out.
 
 ## Symbols-touched
-`crates/oya-governance-{image-discipline,lts-dependency}-kernel`, `crates/oya-check-dependency-seam-discipline`, `crates/oya-foundry-trigger-dsl-{kernel,runtime}`, `/registry/tech-debt-ledger.json`, `Dockerfile.distroless`, `docs/standards/image-size-budgets.md`.
+`crates/oya-governance-{image-discipline,lts-dependency}-kernel`, `crates/oya-check-dependency-seam-discipline`, `crates/oya-intelligence-trigger-dsl-{kernel,runtime}`, `/registry/tech-debt-ledger.json`, `Dockerfile.distroless`, `docs/standards/image-size-budgets.md`.
 
 ## Agent-handoff
 ```

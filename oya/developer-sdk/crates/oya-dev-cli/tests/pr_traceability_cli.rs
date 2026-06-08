@@ -113,7 +113,7 @@ fn write_pr_body(root: &Path, contents: &str) -> std::path::PathBuf {
 }
 
 fn valid_pr_body() -> &'static str {
-    "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-foundry-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n\n## Code Review\nreviewer-agent: APPROVE\n"
+    "## Issue\nCloses #123\n\n## Summary\n- Implemented the thing.\n\n## Verification\n- pass: oya dev check\n\n## Traceability\n- Catalog records touched: oya-intelligence-capability-kernel\n- Cross-axis contracts touched: none\n- ADRs cited: ADR-0001\n\n## Evidence\n- Audit-chain emission: EVT-1\n- Foundation-bypass referenced (if any): none\n- Per-pack regulator-watch impact (if any): none\n\n## Code Review\nreviewer-agent: APPROVE\n"
 }
 
 fn temp_dir(label: &str) -> std::path::PathBuf {

@@ -28,7 +28,7 @@ autonomy_level: T2
 inputs:
   - name: invocation_envelope
     type: object
-    schema_ref: oya-foundry-evidence-capability-invocation-recorder-domain::InvocationEnvelope
+    schema_ref: oya-intelligence-evidence-capability-invocation-recorder-domain::InvocationEnvelope
     required: true
   - name: spiffe_principal
     type: string

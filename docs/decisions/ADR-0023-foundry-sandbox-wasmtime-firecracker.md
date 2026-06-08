@@ -27,10 +27,10 @@ We need two-tier process isolation: a **fast** path for short-lived deterministi
 
 We adopt a two-tier sandbox: **Wasmtime + WASI Preview 2** for short-lived deterministic tools and **Firecracker microVMs** for tools that require a full kernel surface. The capability declares its sandbox class in the registry; the runtime selects the substrate; both substrates share a uniform per-spawn audit emission and a uniform resource-cap contract.
 
-### Sandbox kernel (`oya-foundry-sandbox-kernel`)
+### Sandbox kernel (`oya-intelligence-sandbox-kernel`)
 
 ```rust
-// crates/oya-foundry-sandbox-kernel/src/lib.rs
+// crates/oya-intelligence-sandbox-kernel/src/lib.rs
 pub enum SandboxClass {
     Wasm,        // short-lived, deterministic, WASI Preview 2
     Firecracker, // full kernel, microVM
@@ -70,7 +70,7 @@ pub trait Sandbox: Send + Sync {
 }
 ```
 
-### Wasmtime path (`oya-foundry-sandbox-wasm-app`)
+### Wasmtime path (`oya-intelligence-sandbox-wasm-app`)
 
 - Runtime: Wasmtime with WASI Preview 2 (component model).
 - Cold-start budget: **p99 < 2 s**; **p99 < 100 ms warm** (module cache + instantiation reuse).
@@ -79,7 +79,7 @@ pub trait Sandbox: Send + Sync {
 - Filesystem: WASI preopens limited to the per-agent worktree (read-only by default; RW preopens require explicit declaration).
 - Determinism: tools opting into determinism mode get a fixed clock and a deterministic PRNG seed for reproducibility (ADR-0024 replay needs this).
 
-### Firecracker path (`oya-foundry-sandbox-firecracker-app`)
+### Firecracker path (`oya-intelligence-sandbox-firecracker-app`)
 
 - Runtime: Firecracker microVM with a hardened minimal Linux rootfs (Alpine base, jailer enforced).
 - Cold-start budget: **p99 < 2 s** (kernel + rootfs preboot pool); warm pool of pre-booted VMs accepts injected workloads.
@@ -94,7 +94,7 @@ Every spawn (success or failure) emits `EVT-FOUNDRY-SANDBOX-SPAWN` to the audit 
 
 ### Sandbox-escape detection
 
-A separate `oya-foundry-sandbox-escape-detector` consumes:
+A separate `oya-intelligence-sandbox-escape-detector` consumes:
 
 - Wasm: any host-call attempt outside the WASI Preview 2 import surface (Wasmtime traps; we record the trap context).
 - Firecracker: any seccomp-bpf rejection (logged from the jailer) and any egress attempt that bypasses the per-tool allowlist (the SOCKS proxy refuses + logs).

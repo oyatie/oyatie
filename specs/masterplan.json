@@ -740,7 +740,7 @@
         "Adopt triggered incremental phase-out with GREEN/AMBER/RED parity bands.",
         "Add registry-top-level default_evaluator_policies with per-row overrides and structured override warnings.",
         "Resolve SSE classification by renaming oya-http-sse-domain to oya-http-sse-kernel; defer oya-http-sse-runtime until real orchestration exists.",
-        "Split oya-foundry-trigger-dsl into kernel (pure AST/policy/status graph) and runtime (file/CI evidence resolution).",
+        "Split oya-intelligence-trigger-dsl into kernel (pure AST/policy/status graph) and runtime (file/CI evidence resolution).",
         "Pin ReadinessGate transitions: Initializing -> Ready only after catalog loaded, W0 downstream count zero, and bind succeeded; Ready -> Draining on SIGTERM.",
         "Treat CI-only gh api/gh pr view carve-out as ADR-0093 Proposed in Step 4 and Accepted only in Step 6 with CODEOWNERS plus same-PR guard."
       ],

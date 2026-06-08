@@ -43,7 +43,7 @@ crates/oya-<context>-<role>[-<capability>]/
 - `<role>` ∈ closed taxonomy below.
 - `<capability>` (optional) = the specific capability inside the role (e.g. `oya-tenancy-residency-kernel` if the kernel splits by capability).
 
-Examples: `oya-tenancy-kernel`, `oya-foundry-runtime-policy-app`, `oya-cloud-iam-api`, `oya-search-index-vector-adapter-pgvector`, `oya-pack-kr-tax-app`.
+Examples: `oya-tenancy-kernel`, `oya-intelligence-runtime-policy-app`, `oya-cloud-iam-api`, `oya-search-index-vector-adapter-pgvector`, `oya-pack-kr-tax-app`.
 
 ### Role taxonomy (closed)
 
@@ -105,8 +105,8 @@ Each axis ships kernels sized for its bounded contexts (per DESIGN §4):
 | SaaS | 6-10 | `oya-tenancy-kernel`, `oya-identity-kernel` |
 | Workspace | 4-8 | `oya-workspace-doc-kernel`, `oya-workspace-mail-kernel` |
 | Vertical | 1-3 per vertical | `oya-vertical-healthcare-kernel`, `oya-vertical-fintech-kernel` |
-| Foundry (runtime) | 4-6 | `oya-foundry-capability-kernel`, `oya-foundry-evidence-kernel` |
-| Foundry (engineering platform) | 3-5 | `oya-foundry-catalog-kernel`, `oya-foundry-gate-kernel` |
+| Foundry (runtime) | 4-6 | `oya-intelligence-capability-kernel`, `oya-intelligence-evidence-kernel` |
+| Foundry (engineering platform) | 3-5 | `oya-intelligence-catalog-kernel`, `oya-foundry-gate-kernel` |
 | Cloud | 5-8 | `oya-cloud-resource-kernel`, `oya-cloud-iam-kernel` |
 | Search | 3-5 | `oya-search-document-kernel`, `oya-search-index-kernel` |
 | Ads | 4-6 | `oya-ads-campaign-kernel`, `oya-ads-auction-kernel` |
@@ -186,7 +186,7 @@ This section is retained as migration doctrine and historical sequencing context
 
 ## Open questions
 
-1. **Q1.** Sub-context naming inside an axis (e.g. Foundry's runtime vs engineering platform — both `oya-foundry-*` but distinct sub-contexts) — separator convention? Default: `<role>-<sub-context>` so `oya-foundry-runtime-policy-app` reads cleanly. → owner: `council-architecture`.
+1. **Q1.** Sub-context naming inside an axis (e.g. Foundry's runtime vs engineering platform — both `oya-foundry-*` but distinct sub-contexts) — separator convention? Default: `<role>-<sub-context>` so `oya-intelligence-runtime-policy-app` reads cleanly. → owner: `council-architecture`.
 2. **Q2.** Cargo workspace splitting after the workspace grows past the historical 91-crate split inventory — stay one repo or shard? Default: stay one repo with `cargo build --workspace --target` sharding; live count was 64 on 2026-05-11; revisit at 200+ crates. (TOOLCHAIN §9 Q5.) → owner: `council-architecture`.
 3. **Q3.** Per-pack crate naming under `oya-pack-<pack-id>-*` — inherit the same role taxonomy? Default: yes; packs are bounded contexts with kernel/domain/adapter roles. → ADR-0010.
 4. **Q4.** `tooling` context for repoctl + CLI — does it host all CLI personas under one context or one per persona? Default: one context with capability segmentation (`oya-tooling-cli-dev-app`, `oya-tooling-cli-admin-app`, etc.). → ROADMAP §8 Q16.

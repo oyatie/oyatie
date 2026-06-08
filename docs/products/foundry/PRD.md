@@ -125,7 +125,7 @@ This PRD is intentionally the **deepest of the five axis PRDs (~25-40 pages of c
 The Foundry axis owns the **`foundry` and `builder` bounded contexts** per [DESIGN.md §1](../../DESIGN.md). Crate prefixes:
 
 - `crates/oya-foundry-*` — agent runtime (capability, step, run, evidence, provider, autonomy)
-- `crates/oya-foundry-adapter-{codex,claude,gemini,...}-*` — provider adapters (one crate per provider, per auth mode)
+- `crates/oya-intelligence-adapter-{codex,claude,gemini,...}-*` — provider adapters (one crate per provider, per auth mode)
 - `crates/oya-foundry-{repoctl,catalog,gates,scorecard,fitness,bypass,lane,supply}-*` — Foundry engineering platform engineering surfaces
 
 Per ADR-0015 §1: `oya-<context>-<role>[-<capability>]`. As of 2026-05-09, `oya-foundry-*` is folded into the Foundry axis (single team owns both contexts; no cross-axis review required between them).
@@ -144,51 +144,51 @@ runtime   — composition root (binary; the daemon)
 
 | Crate | Role | One-line role |
 |---|---|---|
-| `oya-foundry-capability-kernel` | kernel | Capability primitives (id, schema, autonomy, plane, data-class, provider-allowed) |
+| `oya-intelligence-capability-kernel` | kernel | Capability primitives (id, schema, autonomy, plane, data-class, provider-allowed) |
 | `oya-intelligence-capability-domain` | domain | Capability lifecycle (register / version / deprecate per ADR-0040) |
-| `oya-foundry-capability-app` | app | Capability resolver from `registry/catalog/` projection |
-| `oya-foundry-capability-api` | api | Capability invocation API (HTTP + gRPC) |
-| `oya-foundry-step-kernel` | kernel | Step primitive (one tool call within a Run) |
-| `oya-foundry-run-kernel` | kernel | Run primitive (a capability invocation rolled out across steps) |
+| `oya-intelligence-capability-app` | app | Capability resolver from `registry/catalog/` projection |
+| `oya-intelligence-capability-api` | api | Capability invocation API (HTTP + gRPC) |
+| `oya-intelligence-step-kernel` | kernel | Step primitive (one tool call within a Run) |
+| `oya-intelligence-run-kernel` | kernel | Run primitive (a capability invocation rolled out across steps) |
 | `oya-intelligence-run-domain` | domain | Run orchestrator, retry, timeout, cancellation |
-| `oya-foundry-run-worker` | worker | Run executor consuming capability-invocation queue |
-| `oya-foundry-evidence-kernel` | kernel | Evidence primitive (per-step + per-run audit-chain emission) |
-| `oya-foundry-evidence-app` | app | Evidence builder; ties to `oya-platform-audit-chain-kernel` |
-| `oya-foundry-eval-kernel` | kernel | Eval set and run invariants per ADR-0024 |
-| `oya-foundry-eval-application` | application | Inbound `foundry.eval.run` API boundary over the eval gate with idempotency and cohort evidence |
-| `oya-foundry-provider-kernel` | kernel | `Provider`, `ProviderAdapter` trait, `ProviderAuth` enum, `ProviderRoute` |
-| `oya-foundry-provider-domain` | domain | Provider routing (per tenant × per capability × per region pack) |
-| `oya-foundry-provider-app` | app | Provider failover, retry, circuit-break |
-| `oya-foundry-adapter-codex-api` | adapter | OpenAI Codex API-key adapter |
-| `oya-foundry-adapter-codex-subscription` | adapter | OpenAI Codex CLI / ChatGPT Plus subscription-auth adapter (headless authenticated session) |
-| `oya-foundry-adapter-claude-api` | adapter | Anthropic Claude API-key adapter |
-| `oya-foundry-adapter-claude-subscription` | adapter | Anthropic Claude Code / Claude Pro subscription-auth adapter (headless session) |
-| `oya-foundry-adapter-gemini-api` | adapter | Google Gemini API-key adapter |
-| `oya-foundry-adapter-gemini-subscription` | adapter | Google Gemini Advanced subscription-auth adapter |
-| `oya-foundry-adapter-regional-pack-{kr,jp,...}-*` | adapter | Per-pack provider adapters (HyperCLOVA / Kakao / Upstage / EXAONE / Mistral / Sarvam / etc.) |
-| `oya-foundry-policy-kernel` | kernel | AutonomyCeiling primitive; policy fragments |
+| `oya-intelligence-run-worker` | worker | Run executor consuming capability-invocation queue |
+| `oya-intelligence-evidence-kernel` | kernel | Evidence primitive (per-step + per-run audit-chain emission) |
+| `oya-intelligence-evidence-app` | app | Evidence builder; ties to `oya-platform-audit-chain-kernel` |
+| `oya-intelligence-eval-kernel` | kernel | Eval set and run invariants per ADR-0024 |
+| `oya-intelligence-eval-application` | application | Inbound `foundry.eval.run` API boundary over the eval gate with idempotency and cohort evidence |
+| `oya-intelligence-provider-kernel` | kernel | `Provider`, `ProviderAdapter` trait, `ProviderAuth` enum, `ProviderRoute` |
+| `oya-intelligence-provider-domain` | domain | Provider routing (per tenant × per capability × per region pack) |
+| `oya-intelligence-provider-app` | app | Provider failover, retry, circuit-break |
+| `oya-intelligence-adapter-codex-api` | adapter | OpenAI Codex API-key adapter |
+| `oya-intelligence-adapter-codex-subscription` | adapter | OpenAI Codex CLI / ChatGPT Plus subscription-auth adapter (headless authenticated session) |
+| `oya-intelligence-adapter-claude-api` | adapter | Anthropic Claude API-key adapter |
+| `oya-intelligence-adapter-claude-subscription` | adapter | Anthropic Claude Code / Claude Pro subscription-auth adapter (headless session) |
+| `oya-intelligence-adapter-gemini-api` | adapter | Google Gemini API-key adapter |
+| `oya-intelligence-adapter-gemini-subscription` | adapter | Google Gemini Advanced subscription-auth adapter |
+| `oya-intelligence-adapter-regional-pack-{kr,jp,...}-*` | adapter | Per-pack provider adapters (HyperCLOVA / Kakao / Upstage / EXAONE / Mistral / Sarvam / etc.) |
+| `oya-intelligence-policy-kernel` | kernel | AutonomyCeiling primitive; policy fragments |
 | `oya-intelligence-policy-domain` | domain | Autonomy enforcement at capability boundary |
-| `oya-foundry-policy-app` | app | Per-tenant per-capability ceiling resolution + Cedar binding |
-| `oya-intelligence-policy-api` | api | Stable inbound `foundry.policy.autonomy-ceiling.publish` boundary over `oya-foundry-policy-kernel`; OpenAPI source `contracts/openapi/foundry/policy-v1.yaml` |
-| `oya-foundry-registry-kernel` | kernel | Registry projection types from `registry/catalog/` |
-| `oya-foundry-registry-app` | app | Registry sync from catalog YAML |
+| `oya-intelligence-policy-app` | app | Per-tenant per-capability ceiling resolution + Cedar binding |
+| `oya-intelligence-policy-api` | api | Stable inbound `foundry.policy.autonomy-ceiling.publish` boundary over `oya-intelligence-policy-kernel`; OpenAPI source `contracts/openapi/foundry/policy-v1.yaml` |
+| `oya-intelligence-registry-kernel` | kernel | Registry projection types from `registry/catalog/` |
+| `oya-intelligence-registry-app` | app | Registry sync from catalog YAML |
 | `oya-intelligence-registry-api` | api | Capability publish boundary (`foundry.capability.publish`) over schema + eval gates |
-| `oya-foundry-rag-kernel` | kernel | RAG primitives (Query → Retrieve → Cite) |
-| `oya-foundry-rag-app` | app | RAG saga (consumes search axis); cite surface |
+| `oya-intelligence-rag-kernel` | kernel | RAG primitives (Query → Retrieve → Cite) |
+| `oya-intelligence-rag-app` | app | RAG saga (consumes search axis); cite surface |
 | `oya-intelligence-rag-api` | api | Stable inbound `foundry.rag.retrieve` boundary with tenant/data-class/consent receipt enforcement; OpenAPI source `contracts/openapi/foundry/rag-v1.yaml` |
-| `oya-foundry-secret-app` | app | SecretProvider binding (OpenBao per ADR-0043) |
-| `oya-foundry-mcp-adapter` | adapter | Model Context Protocol server / client (per ADR-0001) |
-| `oya-foundry-memory-kernel` | kernel | Cross-session memory (per ADR-0024) |
-| `oya-foundry-memory-adapter` | adapter | Memory store backend (Postgres + Redis) |
-| `oya-foundry-eac-app` | app | Engineering Agent Console (ADR-0025) |
-| `oya-foundry-runtime` | runtime | Planned Foundry daemon composition root; legacy `services/agent/daemon` is retired and must not be recreated |
-| `oya-foundry-catalog-kernel` | kernel | Catalog record primitive (per `registry/catalog/<crate>.yaml`) |
-| `oya-foundry-catalog-app` | app | Catalog projection + validation |
-| `oya-foundry-catalog-api` | api | Catalog read/write API |
+| `oya-intelligence-secret-app` | app | SecretProvider binding (OpenBao per ADR-0043) |
+| `oya-intelligence-mcp-adapter` | adapter | Model Context Protocol server / client (per ADR-0001) |
+| `oya-intelligence-memory-kernel` | kernel | Cross-session memory (per ADR-0024) |
+| `oya-intelligence-memory-adapter` | adapter | Memory store backend (Postgres + Redis) |
+| `oya-intelligence-eac-app` | app | Engineering Agent Console (ADR-0025) |
+| `oya-intelligence-runtime` | runtime | Planned Foundry daemon composition root; legacy `services/agent/daemon` is retired and must not be recreated |
+| `oya-intelligence-catalog-kernel` | kernel | Catalog record primitive (per `registry/catalog/<crate>.yaml`) |
+| `oya-intelligence-catalog-app` | app | Catalog projection + validation |
+| `oya-intelligence-catalog-api` | api | Catalog read/write API |
 | `oya-foundry-gate-kernel` | kernel | Gate primitive (CI gate for cross-axis review, claim-ceiling, etc.) |
 | `oya-foundry-gate-domain` | domain | Gate rule evaluation |
-| `oya-foundry-bypass-kernel` | kernel | Foundation-bypass record primitive |
-| `oya-foundry-bypass-app` | app | Bypass-ledger maintenance + reporting |
+| `oya-intelligence-bypass-kernel` | kernel | Foundation-bypass record primitive |
+| `oya-intelligence-bypass-app` | app | Bypass-ledger maintenance + reporting |
 | `oya-governance-lane-kernel` | kernel | CI lane primitive (control / data / analytics; per ADR-0017) |
 | `oya-governance-lane-app` | app | Per-lane PR routing |
 | `oya-governance-kernel` | kernel | Fitness function primitive |
@@ -197,7 +197,7 @@ runtime   — composition root (binary; the daemon)
 | `oya-governance-scorecard-kernel` | kernel | Scorecard primitive (per ADR-0026 + ADR-0040 Proof Ladder) |
 | `oya-governance-scorecard-app` | app | Per-axis per-quarter scorecard publishing |
 | `oya-foundry-supply-app` | app | Supply-chain attestation (Cosign + Trivy + SBOM per ADR-0039) |
-| `oya-foundry-runtime` | runtime | Foundry engineering platform composition root |
+| `oya-intelligence-runtime` | runtime | Foundry engineering platform composition root |
 
 ### 4.3 External-facing surfaces
 
@@ -208,7 +208,7 @@ runtime   — composition root (binary; the daemon)
 | `Foundry RAG Endpoint` | `contracts/openapi/foundry/rag-v1.yaml` | data + audit | p99 ≤ 250 ms (consumes search axis SLO) |
 | `Foundry Registry API` | `contracts/foundry-registry.openapi.yaml` | control | p99 ≤ 100 ms; 99.99% |
 | `Foundry Evidence Query API` | `contracts/foundry-evidence.openapi.yaml` | analytics + audit | p99 ≤ 500 ms; 99.9% |
-| `Foundry Provider Adapter Surface` | `oya-foundry-provider-kernel` (Rust trait) + per-adapter REST | data | per-provider SLO (depends on upstream provider) |
+| `Foundry Provider Adapter Surface` | `oya-intelligence-provider-kernel` (Rust trait) + per-adapter REST | data | per-provider SLO (depends on upstream provider) |
 | `OG Agent Gateway (OG-AG)` | `contracts/og-agent-gateway.openapi.yaml` (ADR-0021) | data + audit | p99 ≤ 100 ms |
 | `MCP Server / Client` | `contracts/foundry-mcp.openapi.yaml` (ADR-0001) | data + audit | per-MCP-binding SLO |
 | `Engineering Agent Console` (ADR-0025) | `apps/oya-eac/` (Leptos, ADR-0033) | control | p95 ≤ 1 000 ms; 99.9% |
@@ -222,18 +222,18 @@ runtime   — composition root (binary; the daemon)
 
 | Seam | Trait / interface name | Consumer products |
 |---|---|---|
-| Capability invocation | `Capability::invoke(...)` in `oya-foundry-capability-kernel` | All axes (every `*.tune` / `*.optimize` / `*.recommend` / `*.execute` capability) |
-| Autonomy ceiling | `AutonomyCeiling::permit(capability, context)` in `oya-foundry-policy-kernel`; inbound policy publish via `publish_foundry_policy_autonomy_ceiling_from_api(...)` in `oya-intelligence-policy-api` | All axes (gate before any regulated capability call) |
-| Evidence emission | `Evidence::emit(record)` in `oya-foundry-evidence-kernel` | All axes (every regulated capability emits; ties to `oya-platform-audit-chain-kernel`) |
-| Eval run gate | `run_foundry_eval_from_api(...)` in `oya-foundry-eval-application` over `EvalGate` | Capability publishing, nightly eval, A/B routing, and replay gates |
-| Provider adapter | `ProviderAdapter` trait + `ProviderAuth` enum in `oya-foundry-provider-kernel` | Foundry-internal (not directly consumed by other axes; routed through capability invocation) |
-| RAG endpoint | `Rag::retrieve(query, namespace, k)` in `oya-foundry-rag-kernel`; inbound retrieval via `retrieve_foundry_rag_from_api(...)` in `oya-intelligence-rag-api` | All axes that ground LLM responses in tenant/public corpus |
-| Registry projection | `Registry::resolve(capability_id)` in `oya-foundry-registry-kernel`; inbound publish via `publish_foundry_capability_from_api(...)` in `oya-intelligence-registry-api` | All axes (capability discovery); Foundry engineering platform catalog (source-of-truth) |
+| Capability invocation | `Capability::invoke(...)` in `oya-intelligence-capability-kernel` | All axes (every `*.tune` / `*.optimize` / `*.recommend` / `*.execute` capability) |
+| Autonomy ceiling | `AutonomyCeiling::permit(capability, context)` in `oya-intelligence-policy-kernel`; inbound policy publish via `publish_foundry_policy_autonomy_ceiling_from_api(...)` in `oya-intelligence-policy-api` | All axes (gate before any regulated capability call) |
+| Evidence emission | `Evidence::emit(record)` in `oya-intelligence-evidence-kernel` | All axes (every regulated capability emits; ties to `oya-platform-audit-chain-kernel`) |
+| Eval run gate | `run_foundry_eval_from_api(...)` in `oya-intelligence-eval-application` over `EvalGate` | Capability publishing, nightly eval, A/B routing, and replay gates |
+| Provider adapter | `ProviderAdapter` trait + `ProviderAuth` enum in `oya-intelligence-provider-kernel` | Foundry-internal (not directly consumed by other axes; routed through capability invocation) |
+| RAG endpoint | `Rag::retrieve(query, namespace, k)` in `oya-intelligence-rag-kernel`; inbound retrieval via `retrieve_foundry_rag_from_api(...)` in `oya-intelligence-rag-api` | All axes that ground LLM responses in tenant/public corpus |
+| Registry projection | `Registry::resolve(capability_id)` in `oya-intelligence-registry-kernel`; inbound publish via `publish_foundry_capability_from_api(...)` in `oya-intelligence-registry-api` | All axes (capability discovery); Foundry engineering platform catalog (source-of-truth) |
 | OG Agent Gateway | `OgAg::tool_call(...)` per ADR-0021 | All axes that allow LLM tool-use against Object Graph |
 | Cross-session memory | `Memory::recall / persist` (ADR-0024) | Foundry-internal capabilities; tenant agents |
 | MCP server / client | `McpServer / McpClient` per ADR-0001 | Tenant integrations (external MCP-compatible clients) |
-| Catalog read | `Catalog::lookup(crate_id)` in `oya-foundry-catalog-kernel` | All axes (every PR validates against catalog) |
-| Foundation-bypass ledger | `Bypass::record(...)` in `oya-foundry-bypass-kernel` | All axes (any merge that bypasses a foundation gate is recorded) |
+| Catalog read | `Catalog::lookup(crate_id)` in `oya-intelligence-catalog-kernel` | All axes (every PR validates against catalog) |
+| Foundation-bypass ledger | `Bypass::record(...)` in `oya-intelligence-bypass-kernel` | All axes (any merge that bypasses a foundation gate is recorded) |
 | Fitness function execution | `Fitness::evaluate(...)` per check class | All axes (per-axis fitness suite is mandatory CI) |
 | Scorecard publishing | `Scorecard::publish(...)` per ADR-0040 Proof Ladder | All axes (per-quarter Proof Ladder rung publishing) |
 | Plugin signing | `PluginSigner::cosign(...)` (Cosign+Rekor per ADR-0039) | SaaS plugin axis, marketplace |
@@ -267,7 +267,7 @@ runtime   — composition root (binary; the daemon)
 ### 5.1 Kernel entities (in `crates/oya-foundry-*-kernel` and related flat `crates/oya-foundry-*` surfaces)
 
 ```rust
-// oya-foundry-capability-kernel
+// oya-intelligence-capability-kernel
 pub struct Capability {
     pub id: CapabilityId,                                 // semver-versioned: {axis.context.action.v1}
     pub axis: AxisId,                                     // saas | foundry | cloud | search | ads | analytics | vertical
@@ -288,7 +288,7 @@ pub struct Capability {
     pub idempotency_required: bool,
     pub semver: SemanticVersion,
     pub deprecated_at: Option<DateTime<Utc>>,             // per ADR-0040
-    pub catalog_record_ref: CatalogRecordRef,             // links to oya-foundry-catalog-kernel
+    pub catalog_record_ref: CatalogRecordRef,             // links to oya-intelligence-catalog-kernel
     pub data_class: DataClass,                            // PUBLIC (capability metadata)
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -316,7 +316,7 @@ pub enum AutonomyTier {
 ```
 
 ```rust
-// oya-foundry-step-kernel
+// oya-intelligence-step-kernel
 pub struct Step {
     pub id: StepId,                                       // ulid
     pub run_id: RunId,
@@ -341,7 +341,7 @@ pub struct Step {
 ```
 
 ```rust
-// oya-foundry-run-kernel
+// oya-intelligence-run-kernel
 pub struct Run {
     pub id: RunId,                                        // ulid
     pub tenant_id: TenantId,                              // every record carries tenant
@@ -370,7 +370,7 @@ pub struct Run {
 ```
 
 ```rust
-// oya-foundry-evidence-kernel
+// oya-intelligence-evidence-kernel
 pub struct Evidence {
     pub id: EvidenceId,                                   // ulid; chain link
     pub run_id: RunId,
@@ -391,7 +391,7 @@ pub struct Evidence {
 ```
 
 ```rust
-// oya-foundry-provider-kernel
+// oya-intelligence-provider-kernel
 pub struct Provider {
     pub kind: ProviderKind,                               // Codex | Claude | Gemini | HyperCLOVA | Kakao | Upstage | EXAONE | Mistral | Sarvam | Falcon
     pub display_name: String,
@@ -473,8 +473,8 @@ pub trait ProviderAdapter: Send + Sync {
     fn kind(&self) -> ProviderKind;
 
     /// The auth modes this adapter supports (typically one per adapter crate; e.g.
-    /// `oya-foundry-adapter-claude-api` supports ApiKey only;
-    /// `oya-foundry-adapter-claude-subscription` supports Subscription only).
+    /// `oya-intelligence-adapter-claude-api` supports ApiKey only;
+    /// `oya-intelligence-adapter-claude-subscription` supports Subscription only).
     fn auth_modes(&self) -> &[ProviderAuthMode];
 
     /// Execute one tool-call step against the provider, given the resolved auth.
@@ -500,7 +500,7 @@ pub struct ProviderRoute {
 ```
 
 ```rust
-// oya-foundry-policy-kernel
+// oya-intelligence-policy-kernel
 pub struct AutonomyCeiling {
     pub tenant_id: TenantId,
     pub capability_id: CapabilityId,
@@ -527,9 +527,9 @@ pub struct PolicyDecision {
 ```
 
 ```rust
-// oya-foundry-catalog-kernel
+// oya-intelligence-catalog-kernel
 pub struct CatalogRecord {
-    pub crate_id: CrateId,                                // e.g. "oya-foundry-capability-kernel"
+    pub crate_id: CrateId,                                // e.g. "oya-intelligence-capability-kernel"
     pub axis: AxisId,
     pub plane: PlaneTag,                                  // per ADR-0017
     pub role: CrateRole,                                  // kernel | domain | app | api | worker | adapter | runtime
@@ -549,7 +549,7 @@ pub struct CatalogRecord {
 ```
 
 ```rust
-// oya-foundry-bypass-kernel
+// oya-intelligence-bypass-kernel
 pub struct FoundationBypass {
     pub id: BypassId,                                     // ulid
     pub pr_ref: PrRef,                                    // GitHub PR reference
@@ -616,7 +616,7 @@ pub enum ProofLadderRung {
 ```
 
 ```rust
-// oya-foundry-memory-kernel (per ADR-0024)
+// oya-intelligence-memory-kernel (per ADR-0024)
 pub struct CrossSessionMemory {
     pub id: MemoryId,
     pub tenant_id: TenantId,
@@ -728,7 +728,7 @@ Per [DESIGN.md §7](../../DESIGN.md) + ADR-0003, every regulated capability must
 - **Reversibility**: capability semver promotes via Argo Rollouts (ADR-0050); per-capability deprecation horizon ≥ 12 months (ADR-0040); CatalogRecord rejects orphan consumer drift.
 - **Dry-run gate**: Foundry engineering platform fitness function `oya-governance-product-prd` validates every PRD update; `oya-governance-flat-crates` validates every kernel-shape change; `oya-governance-contracts` validates every cross-axis contract change.
 - **Capability-deprecation-cascade**: deprecating a capability fires `foundry.capability_deprecated.v1`; consumers must remove invocations within deprecation horizon or accept fitness failure.
-- **Provider-adapter migration**: provider semver tracked separately; `oya-foundry-adapter-*` migrations are per-adapter and don't break the `ProviderAdapter` trait surface (which is a stability surface per ADR-0040).
+- **Provider-adapter migration**: provider semver tracked separately; `oya-intelligence-adapter-*` migrations are per-adapter and don't break the `ProviderAdapter` trait surface (which is a stability surface per ADR-0040).
 
 ## 6. Optimization practices (required) — *slice-level*
 
@@ -753,7 +753,7 @@ Per [DESIGN.md §12](../../DESIGN.md):
 
 | Seam | Trait | Per-pack impl needed? | Tested with which packs? |
 |---|---|---|---|
-| Provider adapter (per-pack LLM provider) | `ProviderAdapter` in `oya-foundry-provider-kernel` | yes | KR (HyperCLOVA / Kakao / Upstage / EXAONE), JP (SAKANA / ELYZA), US (Codex / Claude / Gemini), EU (Mistral / Aleph Alpha), IN (Sarvam), KSA (Falcon), UAE (G42 Falcon) |
+| Provider adapter (per-pack LLM provider) | `ProviderAdapter` in `oya-intelligence-provider-kernel` | yes | KR (HyperCLOVA / Kakao / Upstage / EXAONE), JP (SAKANA / ELYZA), US (Codex / Claude / Gemini), EU (Mistral / Aleph Alpha), IN (Sarvam), KSA (Falcon), UAE (G42 Falcon) |
 | Provider-residency validation | `Provider.residency_compliant_for` declaration | yes | per-pack (which providers may serve which residency tier) |
 | Per-pack autonomy default | `AutonomyDefault` overlay | yes | KR (T1 default for medical capabilities; T2 max), EU (T1 default for personal-data capabilities under GDPR), US (T2 default), KSA (T0 default for sovereign capabilities) |
 | Per-pack regulator portal (for autonomy-decision evidence export) | `RegulatorPortal` per pack | yes | per-pack regulator |
@@ -768,9 +768,9 @@ Per [DESIGN.md §12](../../DESIGN.md):
 | External dep | Maturity tier | License | In-house alternative considered? | Decision |
 |---|---|---|---|---|
 | `axum` / `tokio` / `serde` / `tonic` / `rustls` / `sqlx` | kernel-grade | MIT/Apache-2 | no | adopt |
-| `OpenAI SDK` / `openai` Rust crate | secondary | MIT | own client — rejected; vendor stability | adopt for `oya-foundry-adapter-codex-api` |
-| `Anthropic SDK` / `anthropic-sdk-rust` | secondary | MIT | own client — rejected | adopt for `oya-foundry-adapter-claude-api` |
-| `google-genai` / Gemini SDK | secondary | Apache-2 | own client — rejected | adopt for `oya-foundry-adapter-gemini-api` |
+| `OpenAI SDK` / `openai` Rust crate | secondary | MIT | own client — rejected; vendor stability | adopt for `oya-intelligence-adapter-codex-api` |
+| `Anthropic SDK` / `anthropic-sdk-rust` | secondary | MIT | own client — rejected | adopt for `oya-intelligence-adapter-claude-api` |
+| `google-genai` / Gemini SDK | secondary | Apache-2 | own client — rejected | adopt for `oya-intelligence-adapter-gemini-api` |
 | Subscription-mode adapters (Claude Code CLI / Codex CLI / Gemini CLI headless wrappers) | secondary | varies | own session manager — adopted for renewal flow + headless control | adopt with thin wrapper crate per provider |
 | `Wasmtime` (capability extension sandbox) | secondary | Apache-2 | reuse from SaaS axis (ADR-0023) | adopt |
 | `Cosign` / `Rekor` | secondary | Apache-2 | own signing — rejected | adopt (ADR-0039, ADR-0039) |
@@ -786,7 +786,7 @@ Per [DESIGN.md §12](../../DESIGN.md):
 | `Argo Rollouts` (capability + adapter promotion) | secondary | Apache-2 | own canary — rejected | adopt (ADR-0050) |
 | `Wasm Component Model` / WASI Preview 2 | secondary | Apache-2 | reuse from SaaS axis | adopt |
 | `Apache Pinot` (capability invocation analytics, gated) | secondary | Apache-2 | ClickHouse primary | gated alternative |
-| `MCP Rust SDK` (Model Context Protocol) | secondary | Apache-2 (anticipated) | own — rejected | adopt for `oya-foundry-mcp-adapter` (ADR-0001) |
+| `MCP Rust SDK` (Model Context Protocol) | secondary | Apache-2 (anticipated) | own — rejected | adopt for `oya-intelligence-mcp-adapter` (ADR-0001) |
 | `prost` / `prost-build` | kernel-grade | Apache-2 | no | adopt |
 | `arrow-rs` (capability columnar export) | secondary | Apache-2 | no | adopt |
 | `serde_yaml` (catalog YAML) | secondary | MIT/Apache-2 | no | adopt (with the `serde_yaml` deprecation watch — replace with `serde_yml` if needed) |
@@ -827,14 +827,14 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Provider residency violation (e.g., KR-strict tenant routed to US-only provider) | Catastrophic | `Provider.residency_compliant_for` × `Tenant.residency` validated at routing; per-pack adapter restriction; audit emission per-route; chaos-test per quarter | Foundry + Per-pack + Audit |
 | Autonomy-ceiling bypass attempt | Catastrophic | `AutonomyCeiling::permit` is the only path; Cedar policy fragments; per-Run audit emission of `autonomy_decision`; no internal-only bypass; chaos-test attempts to bypass and verifies refusal | Foundry + Governance |
 | Evidence emission silently fails (capability runs without audit) | Catastrophic | Evidence emission is on the hot path; on emit-failure capability-call returns failure; circuit-break on audit-chain unavailability shifts to local persistent queue + alert; emission completeness is a 100% target metric | Foundry + Audit |
-| Capability sprawl (uncatalogued capabilities) | High | `oya-foundry-registry-app` rejects capabilities not in `registry/catalog/`; per-PR catalog-validation gate; foundation-bypass record on any catalog skip | Foundry + Foundry engineering platform |
+| Capability sprawl (uncatalogued capabilities) | High | `oya-intelligence-registry-app` rejects capabilities not in `registry/catalog/`; per-PR catalog-validation gate; foundation-bypass record on any catalog skip | Foundry + Foundry engineering platform |
 | Cross-session memory leaks across tenants | High | `CrossSessionMemory.tenant_id` is mandatory; per-record `data_class`; DSR cascade ack mandatory; cross-tenant access refused at retrieval | Foundry + Privacy |
 | ProviderAdapter trait drift (breaking adapter implementations) | High | `ProviderAdapter` is a stability surface per ADR-0040; trait changes require all-adapter-update PR; deprecation horizon ≥ 6 months | Foundry |
 | Multi-provider failover loop (cascading failures) | High | Circuit-break per provider; max 3 failover hops per Run; backoff on cascading failure; SRE alert on cascading-failover rate | Foundry + SRE |
 | Foundry engineering platform surfaces become divergent from Foundry runtime | Medium | Single team owns both contexts (axis consolidation 2026-05-09); shared CatalogRecord; cross-context fitness function | Foundry team (single ownership) |
 | Foundation-bypass ledger grows unbounded | Medium | Per-bypass `regression_window_days` mandatory; quarterly bypass-remediation sprint; scorecard publishes open-bypass count per axis | Foundry + Architecture council |
 | Cedar policy explosion (per-tenant per-capability rules) | Medium | Cedar policy compiler with per-tenant policy-size budget; per-axis policy template; lint at policy-author time | Foundry + SaaS (shared with RBAC) |
-| MCP integration security model immature | Medium | `oya-foundry-mcp-adapter` gated until MCP spec stabilizes; per-MCP-binding capability-allow-list; tenant-controlled MCP-server enable/disable | Foundry |
+| MCP integration security model immature | Medium | `oya-intelligence-mcp-adapter` gated until MCP spec stabilizes; per-MCP-binding capability-allow-list; tenant-controlled MCP-server enable/disable | Foundry |
 | Engineering Agent Console too aggressive (autonomous PR creation) | High | EAC bound to T2 max for code authoring; human-review-mandatory for code merge; per-engineer per-repository EAC enable/disable; audit emission per-PR-action | Foundry + Engineering management |
 | repoctl divergence from upstream Cargo / GitHub APIs | Medium | repoctl pinned dependency versions; quarterly upstream-compat audit; ADR-0044 deploy-platform-consolidation governance | Foundry + Foundry engineering platform |
 | Capability marketplace listing abuse (spam / malicious capabilities) | Medium | Per-listing review (shared with `oya-saas-marketplace-kernel` review pipeline); per-publisher trust tier; takedown workflow | Foundry + SaaS marketplace + Trust & Safety |
@@ -872,13 +872,13 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 
 | Dimension | Palantir Foundry | AWS Bedrock Agents | OpenAI Responses / Agents | LangChain / LangSmith | GitHub Copilot Workspace | **Oyatie Foundry (this PRD)** |
 |---|---|---|---|---|---|---|
-| Agent runtime | Closed enterprise; no external SDK | Managed Lambda-backed orchestration; natural-language config | Responses API + Conversations state with built-in tools; Assistants thread/run model is deprecated legacy context | LangGraph orchestration with memory + human-in-loop | Agent mode per-task; multi-LLM dispatch | `oya-foundry-run-*` + `oya-foundry-capability-*`; autonomy-tiered (T0..T5); multi-provider (Codex / Claude / Gemini + regional packs) |
-| Tool / capability registry | Ontology-backed action registry | Action-group + knowledge-base per-agent config | Responses / Agents tool calling and prompt configuration; no tenant-exportable global capability registry | Toolkits per chain; no global registry | MCP-server config per org; no formal registry | Semver-versioned `Capability` in `oya-foundry-registry-*`; CI-fitness-gate on every catalog registration; cross-axis contract gate |
+| Agent runtime | Closed enterprise; no external SDK | Managed Lambda-backed orchestration; natural-language config | Responses API + Conversations state with built-in tools; Assistants thread/run model is deprecated legacy context | LangGraph orchestration with memory + human-in-loop | Agent mode per-task; multi-LLM dispatch | `oya-intelligence-run-*` + `oya-intelligence-capability-*`; autonomy-tiered (T0..T5); multi-provider (Codex / Claude / Gemini + regional packs) |
+| Tool / capability registry | Ontology-backed action registry | Action-group + knowledge-base per-agent config | Responses / Agents tool calling and prompt configuration; no tenant-exportable global capability registry | Toolkits per chain; no global registry | MCP-server config per org; no formal registry | Semver-versioned `Capability` in `oya-intelligence-registry-*`; CI-fitness-gate on every catalog registration; cross-axis contract gate |
 | Multi-agent orchestration | Proprietary agent-network model | Supervisor + subagent architecture | Agents platform supports tool-using agent apps; cross-agent topology remains app-owned | LangGraph multi-agent support; human-in-loop | Single-agent per task; third-party agents via MCP | ADR-0021 OG-AG gateway plus ADR-0110/0111/0112/0113/0116 pipeline substrate; per-Run `on_behalf_of` consent inheritance; T5 governance-mode for multi-tenant multi-axis; `foundry.run_started.v1` fan-out |
 | Sandbox isolation | Palantir-managed infra; no Wasm | Lambda execution boundary | Code interpreter sandboxed by OpenAI | No native sandbox; user-managed | Copilot-managed execution; no user sandbox control | Wasmtime + Firecracker (ADR-0023); per-capability `SideEffectClass`; `CrossAxisWrite` forces cross-axis review |
 | Memory / state | Ontology persistent state; per-user | Managed memory per agent (cross-session retained) | Responses state + Conversations; Assistants Threads remain migration-only legacy context | LangGraph checkpointing; Redis backend | Thread history (28d); no explicit episodic/declarative split | `CrossSessionMemory` (ADR-0024): declarative / episodic / procedural; per-tenant per-principal retention; DSR cascade; Postgres + Redis hot tier |
 | Observability / replay | Palantir internal; no external export | CloudWatch metrics; no trace replay | Minimal; no per-step audit replay | LangSmith tracing + aggregate trend metrics | Audit logs (enterprise); billing dashboard | Per-step `Evidence` chain with Merkle linkage (ADR-0003, ADR-0110, ADR-0113); Ed25519-signed records; immutable S3 anchor; regulator export API; `oya-governance-foundry-evidence-completeness` CI gate |
-| Eval harness | Manual + Palantir AIP evaluation | No native eval; third-party required | Evals product (API + CI integration) | LangSmith eval on offline/production datasets | No eval harness | `oya-foundry-eval-*` (ADR-0024); `foundry.eval.run` API boundary; cohort evidence; idempotency; nightly eval + A/B routing gate |
+| Eval harness | Manual + Palantir AIP evaluation | No native eval; third-party required | Evals product (API + CI integration) | LangSmith eval on offline/production datasets | No eval harness | `oya-intelligence-eval-*` (ADR-0024); `foundry.eval.run` API boundary; cohort evidence; idempotency; nightly eval + A/B routing gate |
 | Provenance / audit chain | Internal audit log; not tenant-exported | CloudTrail; per-account | OpenAI platform logs; no customer Merkle chain | LangSmith traces; no cryptographic provenance | Enterprise audit logs | Merkle-chained `Evidence` per step; `oya-platform-audit-chain-kernel` cross-axis; 7y retention; regulator-portal per pack (ADR-0003, ADR-0042, ADR-0116) |
 | Secret handling | Palantir-managed vault | AWS Secrets Manager / IAM roles | OpenAI platform secrets (no tenant vault) | User-managed; no platform secret store | No platform secret store | OpenBao (ADR-0043); `SecretReference` newtype (sref:// only); per-`(tenant_id, capability_id, provider_kind)` path; rotation-window enforced; secret-redaction CI scan |
 | Policy / authorization gating | Palantir RBAC; no external policy language | IAM roles + Bedrock Guardrails | System prompt only; no formal policy language | No policy engine; user-managed | Enterprise admin control plane | Cedar policy (ADR-0007); `AutonomyCeiling::permit` is the only execution path; T0..T5 tier enforcement; per-pack overlay (KR T1 default, KSA T0 sovereign); no internal bypass |
@@ -892,11 +892,11 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Gap in peers | Oyatie Foundry resolution |
 |---|---|
 | No peer provides cryptographically-provable per-step evidence chain exportable to tenants | Merkle-chained `Evidence` with Ed25519 signatures; `BulkExportEvidence` API; 7-year retention |
-| AWS Bedrock / OpenAI Responses / Agents have no formal tenant-exportable capability registry with semver lifecycle | `oya-foundry-registry-*` with ADR-0040 semver evolution; `oya-governance-product-prd` CI gate |
+| AWS Bedrock / OpenAI Responses / Agents have no formal tenant-exportable capability registry with semver lifecycle | `oya-intelligence-registry-*` with ADR-0040 semver evolution; `oya-governance-product-prd` CI gate |
 | LangChain has no platform-level secret store | OpenBao per-tenant per-capability with `SecretReference` newtype; never logged |
 | GitHub Copilot Workspace has no autonomy tier for graduated agent authority | T0..T5 `AutonomyTier` enforced at `AutonomyCeiling::permit`; Cedar policy per capability |
 | No peer has per-pack regional LLM provider abstraction with residency enforcement | `Provider.residency_compliant_for` × `Tenant.residency` routing; per-pack adapters for KR/JP/EU/IN/KSA |
-| Eval harness is optional in LangSmith; non-existent in Bedrock/Copilot | `oya-foundry-eval-*` is a mandatory CI gate before capability publishing |
+| Eval harness is optional in LangSmith; non-existent in Bedrock/Copilot | `oya-intelligence-eval-*` is a mandatory CI gate before capability publishing |
 
 ---
 
@@ -906,17 +906,17 @@ The following patterns are adopted from industry-leading agentic platforms and a
 
 | Pattern | Industry source | Oyatie Foundry implementation |
 |---|---|---|
-| **Structured capability registry with versioned schema** | Palantir Foundry Ontology actions; OpenAI Responses / Agents tool schema | Semver-versioned `Capability` entity in `oya-foundry-capability-kernel`; `registry/catalog/<crate>.yaml` as source of truth; `foundry.capability_registered.v1` event on publish |
+| **Structured capability registry with versioned schema** | Palantir Foundry Ontology actions; OpenAI Responses / Agents tool schema | Semver-versioned `Capability` entity in `oya-intelligence-capability-kernel`; `registry/catalog/<crate>.yaml` as source of truth; `foundry.capability_registered.v1` event on publish |
 | **Per-step audit trail with tamper-evidence** | Palantir audit log; AWS CloudTrail | Merkle-chained `Evidence` with Ed25519 per-record signature (ADR-0003, ADR-0028); chain segment root frozen on `Run` completion |
-| **Multi-provider model abstraction behind a stable trait** | LangChain `BaseLLM`; AWS Bedrock model catalog | `ProviderAdapter` trait in `oya-foundry-provider-kernel`; `ProviderKind` enum; per-adapter crate isolation; `ProviderAuth` enum covers API-key / subscription / OAuth / vendor-managed-identity |
+| **Multi-provider model abstraction behind a stable trait** | LangChain `BaseLLM`; AWS Bedrock model catalog | `ProviderAdapter` trait in `oya-intelligence-provider-kernel`; `ProviderKind` enum; per-adapter crate isolation; `ProviderAuth` enum covers API-key / subscription / OAuth / vendor-managed-identity |
 | **Graduated autonomy tiers with human-in-the-loop gates** | GitHub Copilot (human review before merge); AWS Bedrock human-review integration | `AutonomyTier` T0..T5; `AutonomyCeiling::permit` enforced on every run; T3+ requires explicit tenant opt-in; EAC capped at T2 default |
 | **Cross-session memory with typed retention** | OpenAI Responses / Conversations state; AWS Bedrock managed memory | `CrossSessionMemory` (declarative / episodic / procedural); per-record `data_class`; DSR cascade ack mandatory; retention bound by tenant policy |
-| **Eval harness as first-class CI gate** | LangSmith evaluation suite; OpenAI Evals | `oya-foundry-eval-*`; nightly eval + A/B routing gate; `foundry.eval.run` idempotent API; cohort evidence required for capability promotion |
+| **Eval harness as first-class CI gate** | LangSmith evaluation suite; OpenAI Evals | `oya-intelligence-eval-*`; nightly eval + A/B routing gate; `foundry.eval.run` idempotent API; cohort evidence required for capability promotion |
 | **Supply-chain attestation for every artifact** | GitHub supply chain security (Sigstore); AWS Artifact | Cosign + Rekor + Trivy + SBOM (ADR-0039); `builder.supply_chain_attested.v1` on every release; `oya-foundry-supply-app` CI gate |
 | **Wasm sandbox for third-party plugin extension** | Cloudflare Workers (V8 isolate); Fastly Compute@Edge | Wasmtime + WASI Preview 2 (ADR-0023); per-plugin trust gate; `PluginSigner::cosign` required before marketplace listing |
 | **Declarative policy-as-code for authorization** | AWS Cedar (Amazon Verified Permissions); OPA | Cedar policy fragments (ADR-0007); `AutonomyCeiling` + `CapabilityId` as principal+resource; per-pack policy overlay |
 | **Outbox pattern for reliable event emission** | AWS event-driven storage streams / transactional outbox before Kafka | Outbox + Kafka (ADR-0046, ADR-0050); `Evidence` emit on hot path; circuit-break shifts to local persistent queue on audit-chain unavailability |
-| **MCP (Model Context Protocol) for tool interoperability** | GitHub Copilot MCP integration; Anthropic MCP | `oya-foundry-mcp-adapter` (ADR-0001); tenant-controlled MCP-server enable; per-binding capability allow-list |
+| **MCP (Model Context Protocol) for tool interoperability** | GitHub Copilot MCP integration; Anthropic MCP | `oya-intelligence-mcp-adapter` (ADR-0001); tenant-controlled MCP-server enable; per-binding capability allow-list |
 | **FinOps unit-economics surfaced to tenants** | AWS Cost Explorer; Anthropic usage dashboard | Per-tenant per-capability cost in `UsageWindow`; `oya-platform-metering-kernel`; FinOps console; `foundry.provider_failover.v1` fed to FinOps stream |
 | **Progressive delivery with canary + rollback** | Argo Rollouts; AWS CodeDeploy | Argo Rollouts for capability + adapter promotion (ADR-0050); per-capability semver deprecation horizon ≥ 12 months (ADR-0040) |
 | **Observability with distributed tracing** | LangSmith tracing; AWS X-Ray; OpenTelemetry everywhere | OpenTelemetry (ADR-0042); per-step `latency_ms`; hot-path benchmarks wired to `oya-governance-bench` |
@@ -934,7 +934,7 @@ The following patterns are adopted from industry-leading agentic platforms and a
 | **Model / provider lock-in** | Vendor pricing power; residency violation if provider exits region | `ProviderAdapter` trait isolates all provider specifics; `ProviderKind.Custom(CustomProviderRef)` for future providers; per-pack failover chain; residency-validated routing rejects non-compliant providers |
 | **Silent account switching** | Audit gap; potential cross-tenant data exposure | `ProviderAccount` state machine forbids concurrent `Active` with same `(provider, subscription)`; every switch emits `foundry.subscription_session_renewed.v1` audit event |
 | **Secrets in repo / logs / fixtures** | Credential exfiltration | `SecretReference` newtype with `sref://` scheme; `Debug` shows only redacted tail; `guard-secrets.mjs` CI scan blocks merge; OpenBao only persists reference, not secret material |
-| **Uncatalogued capabilities running in production** | No audit trail; no autonomy enforcement | `oya-foundry-registry-app` rejects capabilities not in `registry/catalog/`; per-PR catalog-validation gate; `FoundationBypass` record required for any skip |
+| **Uncatalogued capabilities running in production** | No audit trail; no autonomy enforcement | `oya-intelligence-registry-app` rejects capabilities not in `registry/catalog/`; per-PR catalog-validation gate; `FoundationBypass` record required for any skip |
 | **Cross-tenant memory leaks** | Privacy violation; regulatory breach | `CrossSessionMemory.tenant_id` mandatory; cross-tenant retrieval refused at kernel; DSR cascade mandatory; per-record `data_class` checked at every access |
 | **Evidence emission bypassed for performance** | Capability runs without audit trail | Evidence emit is on the hot path; `Evidence::emit` failure causes `Run` failure; no performance exception path exists |
 | **Autonomous agent operating outside registered surface** | Uncontrolled side effects; no audit | Every agent run must originate from a registered `Capability` with a registered `AutonomyCeiling`; "agent-internet" style unconstrained runs are explicitly out-of-scope |

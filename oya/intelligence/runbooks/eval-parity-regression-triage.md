@@ -31,7 +31,7 @@ ONE of:
 
 ## Pre-checks
 
-1. Confirm latest parity report: `oya-foundry-eval-parity-analyzer-rest report --capability <cap> --route-a <a> --route-b <b>`.
+1. Confirm latest parity report: `oya-intelligence-eval-parity-analyzer-rest report --capability <cap> --route-a <a> --route-b <b>`.
 2. Confirm the eval-set is unchanged (no manifest churn correlating with regression).
 3. Confirm the judge identity (HumanJudged cohort: did judge rotate this quarter?).
 4. Confirm provider release notes for the incumbent / candidate.
@@ -42,7 +42,7 @@ ONE of:
 |---|---|---|
 | 1 | Open `#inc-<id>`; assign IC; declare severity | ≤ 5 min |
 | 2 | Pre-checks above | ≤ 10 min |
-| 3 | Identify regressing cohort(s): which adversarial / linguistic / domain cohort regressed? `oya-foundry-eval-parity-analyzer-rest cohort-deltas --capability <cap>` | ≤ 10 min |
+| 3 | Identify regressing cohort(s): which adversarial / linguistic / domain cohort regressed? `oya-intelligence-eval-parity-analyzer-rest cohort-deltas --capability <cap>` | ≤ 10 min |
 | 4 | Categorise: (a) judge-rotation bias (κ < 0.7 against prior judges); (b) provider drift (incumbent changed under us); (c) eval-set contamination (newly added cases overlap training set); (d) tokeniser drift; (e) genuine quality regression | ≤ 30 min |
 | 5 | For (a): pause cutover-eligibility recomputation until judge consistency check re-runs; if κ < 0.7 sustained, revert judge to prior + investigate | per category |
 | 6 | For (b): compare incumbent's recent provider release-notes to confirm material change; if confirmed, hold cutover until next stable provider version | per category |

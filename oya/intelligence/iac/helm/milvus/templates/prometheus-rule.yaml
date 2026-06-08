@@ -5,14 +5,14 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: oya-foundry-milvus-slo
+  name: oya-intelligence-milvus-slo
   namespace: {{ .Release.Namespace }}
   labels:
     prometheus: observability
     oya.adr: "0139,0186,0192"
 spec:
   groups:
-    - name: oya-foundry-milvus.slo.search-latency.4-window
+    - name: oya-intelligence-milvus.slo.search-latency.4-window
       interval: 30s
       rules:
         # SLO target: 99% of search requests <30ms (hot HNSW path per ADR-0192).
@@ -41,7 +41,7 @@ spec:
           annotations:
             summary: "Milvus search latency burn rate (6h window)"
 
-    - name: oya-foundry-milvus.slo.ingest.4-window
+    - name: oya-intelligence-milvus.slo.ingest.4-window
       interval: 30s
       rules:
         - alert: MilvusIngestBacklog
@@ -52,7 +52,7 @@ spec:
           annotations:
             summary: "Milvus sealed-segment backlog exceeds 5K — index build catching up"
 
-    - name: oya-foundry-milvus.cluster.health
+    - name: oya-intelligence-milvus.cluster.health
       interval: 30s
       rules:
         - alert: MilvusCoordinatorDown

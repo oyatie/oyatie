@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-foundry-runtime-redis
+name: oya-intelligence-runtime-redis
 description: Valkey 8.1 (Redis wire-compat) OSS LTS cluster (6 shards × RF=2) for session-state hot tier per policy/runtime-isolation.md + capacity-model.md
 type: application
 version: 0.1.0

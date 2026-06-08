@@ -781,13 +781,13 @@ fn expect_self_test_app_can_depend_on_usecase() -> Result<(), Vec<String>> {
 
 fn expect_self_test_app_to_app_forbidden() -> Result<(), Vec<String>> {
     let (runtime_pkg, runtime_rec) = fixture_package(
-        "oya-foundry-review-app",
+        "oya-intelligence-review-app",
         "app",
-        &["oya-foundry-subagent-app"],
+        &["oya-intelligence-subagent-app"],
         "crates",
     );
     let (subagent_pkg, subagent_rec) =
-        fixture_package("oya-foundry-subagent-app", "app", &[], "crates");
+        fixture_package("oya-intelligence-subagent-app", "app", &[], "crates");
     let packages = vec![runtime_pkg, subagent_pkg];
     let catalog: BTreeMap<_, _> = [runtime_rec, subagent_rec].into_iter().collect();
     let errors = run_fixture(packages, catalog, BTreeSet::new());
@@ -1125,13 +1125,13 @@ mod tests {
     #[test]
     fn app_depending_on_app_is_forbidden() {
         let (left_pkg, left_rec) = fixture_package(
-            "oya-foundry-review-app",
+            "oya-intelligence-review-app",
             "app",
-            &["oya-foundry-subagent-app"],
+            &["oya-intelligence-subagent-app"],
             "crates",
         );
         let (right_pkg, right_rec) =
-            fixture_package("oya-foundry-subagent-app", "app", &[], "crates");
+            fixture_package("oya-intelligence-subagent-app", "app", &[], "crates");
         let packages = vec![left_pkg, right_pkg];
         let catalog = [left_rec, right_rec].into_iter().collect();
         let (errors, _, _) =

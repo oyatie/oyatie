@@ -510,7 +510,7 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 
 ### 12.1 Crate naming
 
-Per ADR-0105 + ADR-0106: `oya-<context>-<role>[-<capability>]`. Canonical roles: `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`, `api`. `app -> app` is forbidden; shared orchestration belongs in `usecase`. Examples: `oya-platform-tenant-kernel`, `oya-identity-usecase`, `oya-foundry-policy-app`, `oya-cloud-iam-rest`.
+Per ADR-0105 + ADR-0106: `oya-<context>-<role>[-<capability>]`. Canonical roles: `kernel`, `domain`, `usecase`, `app`, `adapter`, `infrastructure`, `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`, `api`. `app -> app` is forbidden; shared orchestration belongs in `usecase`. Examples: `oya-platform-tenant-kernel`, `oya-identity-usecase`, `oya-intelligence-policy-app`, `oya-cloud-iam-rest`.
 
 ### 12.2 ADR naming
 

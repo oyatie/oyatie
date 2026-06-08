@@ -1,6 +1,6 @@
 openapi: 3.2.0
 info:
-  title: oya-foundry-supervisor
+  title: oya-intelligence-supervisor
   version: 1.0.0
   summary: REST API for the foundry-supervisor control plane — capability admit/deploy/rollback, fleet query, kill-switch engage/disengage, autonomy entitlement query
   description: |

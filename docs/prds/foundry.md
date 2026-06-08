@@ -63,7 +63,7 @@ Foundry is on-host CLI tooling and CI infrastructure; targets are latency + reli
 |---|---|---|
 | `oya-check-architecture` per-sub-command (workspace ~140 crates) | ≤300s | cargo metadata + AST scan; cached across PR runs |
 | `oya-check-doc-coverage --workspace` | ≤600s | walks `docs/` + pack manifests + milestone dirs |
-| `oya-foundry-evidence` segment-seal latency | <1s per (tenant, period) | per Bominal ADR-0028 audit-chain target |
+| `oya-intelligence-evidence` segment-seal latency | <1s per (tenant, period) | per Bominal ADR-0028 audit-chain target |
 | Agent autonomy-ceiling validation p99 | ≤50ms | Cedar policy eval per Bominal ADR-0107 |
 | Capability-token mint p99 | ≤100ms | symmetric key-derivation; bound to (agent, capability, ttl) tuple |
 
@@ -91,7 +91,7 @@ Cross-region story: not applicable; Foundry is build-time infrastructure, not ru
 ## Architectural posture
 
 - **No customer-facing surface** — Foundry never receives a tenant request; it exists between agents + CI + the codebase
-- **Composition root only** — `oya-foundry-cli-dev-runtime` is the single binary aggregating Foundry tooling; agents call sub-commands
+- **Composition root only** — `oya-intelligence-cli-dev-runtime` is the single binary aggregating Foundry tooling; agents call sub-commands
 - **Pack-neutral** — Foundry has zero jurisdiction-specific logic; localization packs do NOT extend Foundry (the localization-pack pluggability rule §ADR-0064 §2 does NOT apply to internal-engine µservices)
 
 ## Open dependencies

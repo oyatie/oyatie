@@ -41,7 +41,7 @@ cedarEngine:
     allowFrom:
       - podSelector:
           matchLabels:
-            app.kubernetes.io/part-of: oya-foundry-guardrails
+            app.kubernetes.io/part-of: oya-intelligence-guardrails
     denyEgressTo:
       - cidrs: ["0.0.0.0/0"]   # default-deny egress; explicit allows below
     egressAllowList:

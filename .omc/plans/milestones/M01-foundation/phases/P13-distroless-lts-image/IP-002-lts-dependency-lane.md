@@ -40,7 +40,7 @@ This IP owns the dependency-seam and phase-out control surface. It does **not** 
 - Chosen option: triggered incremental phase-out with GREEN/AMBER/RED parity bands.
 - Defect closed: `oya-http-sse-domain` must not become `runtime` because that would create adapter→runtime confusion. It becomes `oya-http-sse-kernel` now; future `oya-http-sse-runtime` is ADR-gated only when reconnect/keepalive/backpressure orchestration exists.
 - Defect closed: trigger policy example inherits top-level `default_evaluator_policies` instead of repeating all 4 fields per row.
-- Defect closed: `oya-foundry-trigger-dsl` splits into `kernel` (pure AST/policy/status graph) and `runtime` (file + CI evidence resolution).
+- Defect closed: `oya-intelligence-trigger-dsl` splits into `kernel` (pure AST/policy/status graph) and `runtime` (file + CI evidence resolution).
 - Defect closed: `ReadinessGate` flip is pinned and testable.
 
 ## Concrete file targets
@@ -50,8 +50,8 @@ This IP owns the dependency-seam and phase-out control surface. It does **not** 
 | `/registry/tech-debt-ledger.json` | create | Object-map ledger with 11 seed deps, DRI handles, statuses, replacement targets, trigger DSL, CVE acceleration, ADR citations, default evaluator policies. |
 | `.omc/schemas/tech-debt-ledger.schema.json` or `/specs/tech-debt-ledger.schema.json` | create | Schema enforcing top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, and cross-row acyclicity. |
 | `crates/oya-check-dependency-seam-discipline/` | create | Composite runtime lane with 8 sub-checks. |
-| `crates/oya-foundry-trigger-dsl-kernel/` | create | Pure AST parser, predicate registry types, evaluator policy enums, status-transition graph validator. Zero I/O. |
-| `crates/oya-foundry-trigger-dsl-runtime/` | create | Git-toplevel file URI resolver, CI evidence fetcher, composite evaluator; consumes kernel crate. |
+| `crates/oya-intelligence-trigger-dsl-kernel/` | create | Pure AST parser, predicate registry types, evaluator policy enums, status-transition graph validator. Zero I/O. |
+| `crates/oya-intelligence-trigger-dsl-runtime/` | create | Git-toplevel file URI resolver, CI evidence fetcher, composite evaluator; consumes kernel crate. |
 | `crates/oya-http-sse-kernel/` | rename/create | Rename from `oya-http-sse-domain`; pure `SseEvent` types + serializer; layer=`kernel`. |
 | `crates/oya-http-{deadline,telemetry,tenant}-middleware-runtime/` | rename/refactor | Rename from `*-domain`; remove `bytes` and hyper-adapter deps; consume kernel newtypes only. |
 | `crates/oya-http-router-kernel/` | update | Add `HttpHeaderMap`, `HttpHeaderName`, `HttpHeaderValue` newtypes. |
@@ -140,7 +140,7 @@ Severity ramp: Day 0-30 report-only; Day 30+ error/BLOCKER after soak and green 
 1. SSE kernel split + middleware-runtime refactor + crate renames + adapter dependency removal; update `Cargo.toml` and `Cargo.lock` atomically.
 2. Author `oya-check-dependency-seam-discipline` composite lane and fixtures.
 3. Commit ledger, schema, generator, self-heal, object-map envelope, inheritance defaults.
-4. Author `oya-foundry-trigger-dsl-{kernel,runtime}` and draft ADR-0091..ADR-0094.
+4. Author `oya-intelligence-trigger-dsl-{kernel,runtime}` and draft ADR-0091..ADR-0094.
 5. Add distroless smoke, cold-start harness, and `oya-check-distroless-deployment-bar`.
 6. Add `dri.json`, `role-roster.json`, CODEOWNERS guard, same-PR self-promotion fixture, and accept ADR-0093.
 7. Flip lane to error after 30-day soak; update `.omc/governance-lanes/INDEX.md`; add quarterly review template.
@@ -155,7 +155,7 @@ Hard dependency: Step 0 before Step 1. Steps 2-8 fan out after Step 1; Step 7 de
 - [ ] `{"never": true}` trigger short-circuits policies and is accepted only for terminal keep/abandoned rows.
 - [ ] Monotonic status transition sub-check rejects backward moves; `monotonic_transitions_only: false` emits `monotonicity-disabled:<dep>` warning.
 - [ ] `oya-check-dependency-seam-discipline` exists with all 8 sub-checks.
-- [ ] `oya-foundry-trigger-dsl-kernel` and `oya-foundry-trigger-dsl-runtime` exist with correct layer metadata and fixtures.
+- [ ] `oya-intelligence-trigger-dsl-kernel` and `oya-intelligence-trigger-dsl-runtime` exist with correct layer metadata and fixtures.
 - [ ] `oya-http-sse-domain` renamed to `oya-http-sse-kernel`; no `oya-http-sse-runtime` in W0.
 - [ ] `oya-http-{deadline,telemetry,tenant}-middleware-runtime` crates remove `bytes` and hyper-adapter deps.
 - [ ] Only `oya-http-runtime-hyper-adapter` declares hyper-family deps and `bytes` after W0.
@@ -170,8 +170,8 @@ Hard dependency: Step 0 before Step 1. Steps 2-8 fan out after Step 1; Step 7 de
 ```text
 /registry/tech-debt-ledger.json::entries
 crates/oya-check-dependency-seam-discipline/src/lib.rs::check
-crates/oya-foundry-trigger-dsl-kernel/src/lib.rs::TriggerDslAst
-crates/oya-foundry-trigger-dsl-runtime/src/lib.rs::evaluate
+crates/oya-intelligence-trigger-dsl-kernel/src/lib.rs::TriggerDslAst
+crates/oya-intelligence-trigger-dsl-runtime/src/lib.rs::evaluate
 crates/oya-http-sse-kernel/src/lib.rs::SseEvent
 crates/oya-http-runtime-hyper-adapter/Cargo.toml::dependencies
 Cargo.toml::workspace.members
@@ -184,8 +184,8 @@ Scaffold-lock via ADR-0054 if symbols are not registered.
 
 ```bash
 cargo test -p oya-check-dependency-seam-discipline --all-features
-cargo test -p oya-foundry-trigger-dsl-kernel --all-features
-cargo test -p oya-foundry-trigger-dsl-runtime --all-features
+cargo test -p oya-intelligence-trigger-dsl-kernel --all-features
+cargo test -p oya-intelligence-trigger-dsl-runtime --all-features
 cargo check --workspace --all-features
 cargo clippy --workspace --all-features --all-targets -- -D warnings
 cargo deny check
@@ -270,7 +270,7 @@ seam audit (Cargo.toml + .rs imports):
 | `{never: true}` short-circuit | N/A (rejected as speculative) |
 | Monotonic status transition sub-check | N/A (no transitions yet) |
 | `oya-check-dependency-seam-discipline` with 8 sub-checks | Slimmed to 3 mechanical + 3 multispectrum sub-checks per ADR-0092 D13. Lane crate scaffold is FixupTask F-LANE-SEAM-IMPL. |
-| `oya-foundry-trigger-dsl-{kernel,runtime}` | DROPPED entirely. Predicates inline as Rust fns when needed (multispectrum F1+F2+F6). |
+| `oya-intelligence-trigger-dsl-{kernel,runtime}` | DROPPED entirely. Predicates inline as Rust fns when needed (multispectrum F1+F2+F6). |
 | `oya-http-sse-domain` renamed to `oya-http-sse-kernel`; no `oya-http-sse-runtime` in W0 | ✅ shipped (Phase 1). |
 | Middleware crates remove bytes + hyper-adapter deps | ✅ shipped (Phase 2 root-cause fix; Phase 3 layer rename to -infrastructure). |
 | Only `oya-http-runtime-hyper-adapter` declares hyper-family deps + bytes | ✅ shipped — mechanically verified. |

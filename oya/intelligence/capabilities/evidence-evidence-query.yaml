@@ -78,7 +78,7 @@ inputs:
 outputs:
   - name: items
     type: array
-    schema_ref: oya-foundry-evidence-evidence-query-domain::EvidencePack
+    schema_ref: oya-intelligence-evidence-evidence-query-domain::EvidencePack
   - name: next_cursor
     type: string
     nullable: true

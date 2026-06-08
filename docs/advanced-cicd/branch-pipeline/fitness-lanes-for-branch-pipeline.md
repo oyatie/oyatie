@@ -150,15 +150,15 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 ### 8.1 `oya-governance-no-direct-origin-dev-commit` (BLOCKER)
 
-Verifies every commit on `origin/dev` is a `dev-promoter` squash-merge commit (mutator identity = `oya-foundry-dev-promoter` Cosign identity). Direct human or other-agent commits → FAIL with the offending sha.
+Verifies every commit on `origin/dev` is a `dev-promoter` squash-merge commit (mutator identity = `oya-intelligence-dev-promoter` Cosign identity). Direct human or other-agent commits → FAIL with the offending sha.
 
 ### 8.2 `oya-governance-no-direct-staging-commit` (BLOCKER)
 
-Verifies every commit on `staging` is a `staging-promoter` fast-forward (mutator identity = `oya-foundry-staging-promoter`). Direct commits → FAIL.
+Verifies every commit on `staging` is a `staging-promoter` fast-forward (mutator identity = `oya-intelligence-staging-promoter`). Direct commits → FAIL.
 
 ### 8.3 `oya-governance-no-direct-prod-commit` (BLOCKER)
 
-Verifies every commit on `prod` is a `prod-promoter` fast-forward (mutator identity = `oya-foundry-prod-promoter`). Direct commits → FAIL.
+Verifies every commit on `prod` is a `prod-promoter` fast-forward (mutator identity = `oya-intelligence-prod-promoter`). Direct commits → FAIL.
 
 ## 9. Cadence + quality lanes
 

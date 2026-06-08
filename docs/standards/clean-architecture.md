@@ -284,7 +284,7 @@ remains synchronous — async is forbidden in kernel.
 | `kernel` | Pure unit | `cargo nextest run -p <kernel-crate>`; no `tokio` | Invariants on value types; property tests via `proptest` / `quickcheck` |
 | `domain` | Trait-mock + property | `cargo nextest run -p <domain-crate>`; `mockall` or hand-rolled in-mem adapter | Port-contract assertions; property tests on workflow invariants |
 | `app` | Integration with in-mem adapters | `cargo nextest run -p <app-crate>`; in-memory adapter implementations live in the app's `tests/` dir | Use-case happy-path + failure-path coverage |
-| `api` | Contract test against OpenAPI/AsyncAPI | `cargo nextest run -p <api-crate>` + `oya-foundry-openapi-kernel` validation | Request/response schema; auth-extraction; error-rendering |
+| `api` | Contract test against OpenAPI/AsyncAPI | `cargo nextest run -p <api-crate>` + `oya-intelligence-openapi-kernel` validation | Request/response schema; auth-extraction; error-rendering |
 | `worker` | Contract test against queue schema | Same as api | Message schema + idempotency proofs |
 | `adapter` | Integration against real backing service | `cargo nextest run -p <adapter-crate> --features integration`; `testcontainers` for dockerable services; local OpenBao for secrets adapter | Backend semantics + boundary error translation |
 | `runtime` | Smoke test | `cargo run --bin <name> -- --help`; `cargo nextest run -p <runtime-crate>` for startup-config tests | Binary builds, DI wiring resolves, `--help` exits 0 |

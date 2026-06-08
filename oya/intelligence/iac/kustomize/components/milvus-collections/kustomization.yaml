@@ -14,5 +14,5 @@ labels:
   - includeSelectors: true
     pairs:
       app.kubernetes.io/component: milvus-collections
-      app.kubernetes.io/part-of: oya-foundry-milvus
+      app.kubernetes.io/part-of: oya-intelligence-milvus
       oya.adr: "0192"

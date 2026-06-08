@@ -32,7 +32,7 @@ ONE of:
 
 ## Pre-checks
 
-1. Confirm scope: how many objects affected? `aws s3api list-objects --bucket oya-foundry-eval-baselines-<pack> --prefix baselines/<tenant>/<cap>/` to enumerate.
+1. Confirm scope: how many objects affected? `aws s3api list-objects --bucket oya-intelligence-eval-baselines-<pack> --prefix baselines/<tenant>/<cap>/` to enumerate.
 2. Confirm DR-pair availability for affected pack (if DR pack).
 3. Confirm KMS keyring availability + per-subject DEK availability.
 

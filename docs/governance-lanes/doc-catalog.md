@@ -8,7 +8,7 @@ doc_status: published
 - date: 2026-05-12
 - purpose: Verify every canonical doc has a row in `docs/CATALOG.md` with declared doc-class, owner, last-reviewed, and that no orphan doc-class rows exist.
 - enforces: STANDARD/doc-catalog; AGENTS.md fitness-lane `oya-governance-doc-catalog`.
-- kernel_crate: `oya-foundry-catalog-kernel` (EXISTING; extend with verdict) — `CatalogRow { path, doc_class, owner_axis, last_reviewed }`, verdict `DocCatalogFitnessReport { rows_checked, docs_checked }`.
+- kernel_crate: `oya-intelligence-catalog-kernel` (EXISTING; extend with verdict) — `CatalogRow { path, doc_class, owner_axis, last_reviewed }`, verdict `DocCatalogFitnessReport { rows_checked, docs_checked }`.
 - runner_path: `tools/oya-governance-doc-catalog`
 - inputs: `docs/CATALOG.md`, `docs/**/*.md`.
 - failure_modes:

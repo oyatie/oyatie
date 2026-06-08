@@ -66,7 +66,7 @@ data_classes_consumed:
 data_classes_produced:
   - internal
 cedar_policy: registry/capability-templates/policies/foundry.rag.semantic-search.cedar
-runtime_gate: oya-foundry-runtime-rag::gate::semantic_search
+runtime_gate: oya-intelligence-runtime-rag::gate::semantic_search
 audit_topic: EVT-CAPABILITY-INVOKED
 eval_set: registry/capability-templates/eval-sets/foundry.rag.semantic-search/
   - golden.jsonl
@@ -116,7 +116,7 @@ Source: [Cedar — Policy Language](https://www.cedarpolicy.com/),
 
 ## 4. Runtime gate
 
-Every capability binding is invoked through `oya-foundry-runtime-*::invoke`,
+Every capability binding is invoked through `oya-intelligence-runtime-*::invoke`,
 which performs five non-bypassable steps in order:
 
 1. **Verify capability record signature** (Cosign attestation of the record).

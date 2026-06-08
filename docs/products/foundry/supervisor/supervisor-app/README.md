@@ -11,7 +11,7 @@ doc_status: published
 **Crate:** `oya-intelligence-supervisor-app`  
 **Layer:** Application (12-layer-enum L5)  
 **Wave:** 2d (M02-P06)  
-**Entry point:** `bin/oya-foundry-supervisor` (daemon binary)
+**Entry point:** `bin/oya-intelligence-supervisor` (daemon binary)
 
 ## Overview
 
@@ -121,10 +121,10 @@ The daemon runs an async watchdog that:
 # Start daemon with default config:
 export OYA_SUPERVISOR_MAX_IN_FLIGHT=12
 export OYA_SUPERVISOR_WATCHDOG_TIMEOUT_SECS=300
-oya-foundry-supervisor
+oya-intelligence-supervisor
 
 # Or with config file:
-oya-foundry-supervisor --config /etc/oya/supervisor.toml
+oya-intelligence-supervisor --config /etc/oya/supervisor.toml
 
 # Inject message via webhook:
 curl -X POST http://localhost:8080/inbox \

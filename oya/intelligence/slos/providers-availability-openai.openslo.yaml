@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-providers-availability-openai
+  name: oya-intelligence-providers-availability-openai
   displayName: "foundry-providers: OpenAI adapter availability 99.5%"
   labels:
     microservice: foundry

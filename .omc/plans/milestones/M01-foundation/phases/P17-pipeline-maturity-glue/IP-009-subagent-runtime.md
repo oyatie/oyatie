@@ -12,7 +12,7 @@ dependency_additions: []
 source_audit: ../../../../../../evidence/audits/pipeline-maturity-audit-2026-05-15.md
 audit_amendment_ref: "Cross-cutting follow-up: every IP-004/IP-005/IP-006 emission currently carries subagent_runtime_pending=true because the per-facet subagent invocation isn't wired into a Rust binary."
 upstream_kernel: oya-intelligence-subagent-runtime-kernel
-purpose: Close the `subagent_runtime_pending=true` gap left by IP-004 / IP-005 / IP-006 by shipping a real per-facet subagent runtime that loads per-facet prompt templates, invokes the Claude API via the existing `oya-foundry-adapter-anthropic-api-*` substrate against an OpenBao-resolved `SecretReference`, parses the per-facet response into a `FacetFinding`, writes it to `evidence/pipeline-maturity-glue/ip-004-pr-review/<pr>/<facet>.json`, and lets the IP-006 admission gate refuse APPROVE events that still carry the pending flag.
+purpose: Close the `subagent_runtime_pending=true` gap left by IP-004 / IP-005 / IP-006 by shipping a real per-facet subagent runtime that loads per-facet prompt templates, invokes the Claude API via the existing `oya-intelligence-adapter-anthropic-api-*` substrate against an OpenBao-resolved `SecretReference`, parses the per-facet response into a `FacetFinding`, writes it to `evidence/pipeline-maturity-glue/ip-004-pr-review/<pr>/<facet>.json`, and lets the IP-006 admission gate refuse APPROVE events that still carry the pending flag.
 ---
 
 # M01-P17-IP-009 — Subagent runtime (per-facet Claude API invocation)

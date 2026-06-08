@@ -12,7 +12,7 @@ purpose: |
   HTTP-shaped Oyatie API surface.
 planned_enforcement_ref: oya-governance-openapi-publish
 extends_crates:
-  - oya-foundry-openapi-kernel
+  - oya-intelligence-openapi-kernel
   - oya-intelligence-mdbook-kernel
   - oya-intelligence-api-semver-kernel
 companion_docs:
@@ -76,6 +76,6 @@ For each operation `(method, path)` in the spec:
 
 ## 8. Out-of-scope
 
-- gRPC / connect surfaces (separate `proto-pipeline.md` once `oya-foundry-proto-kernel` lands).
-- WebSocket / SSE protocols (tracked under `oya-foundry-eventing-protocols-kernel`).
+- gRPC / connect surfaces (separate `proto-pipeline.md` once `oya-intelligence-proto-kernel` lands).
+- WebSocket / SSE protocols (tracked under `oya-intelligence-eventing-protocols-kernel`).
 - Internal cross-crate Rust APIs (covered by `rustdoc-pipeline.md`).

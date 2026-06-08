@@ -141,7 +141,7 @@ across 50K runs/week (per M04 done criterion) compounds.
 
 **Fix**: Adopt `loom` model-check lane (`oya-governance-cancel-safety`)
 + `clippy::disallowed_methods` deny of bare `tokio::spawn` (mandate
-`oya-foundry-task-supervisor` wrapper which registers a `TaskTracker`).
+`oya-intelligence-task-supervisor` wrapper which registers a `TaskTracker`).
 Blocker for M02 (Foundry-Preview).
 
 ## 4. Coverage trajectory

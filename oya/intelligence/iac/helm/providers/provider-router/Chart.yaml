@@ -1,5 +1,5 @@
 apiVersion: v2
-name: oya-foundry-providers-router
+name: oya-intelligence-providers-router
 description: |
   Helm chart for the foundry-providers µservice composition: provider-router
   (REST + worker + app) and the per-vendor adapter pods. Deployed per-pack

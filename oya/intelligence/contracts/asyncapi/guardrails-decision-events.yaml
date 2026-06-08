@@ -1,6 +1,6 @@
 asyncapi: 3.1.0
 info:
-  title: oya-foundry-guardrails — decision events
+  title: oya-intelligence-guardrails — decision events
   version: 1.0.0
   summary: GuardrailDecisionEmitted, JailbreakDetected, AutonomyLevelViolation, ContentSafetyRuleFired, RuleStoreMutated, ClassifierModelDeployed, FalsePositiveEscalated events
   description: |

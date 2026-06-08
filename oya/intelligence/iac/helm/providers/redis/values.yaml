@@ -1,4 +1,4 @@
-# oya-foundry-providers-redis Helm values
+# oya-intelligence-providers-redis Helm values
 
 redis:
   image:

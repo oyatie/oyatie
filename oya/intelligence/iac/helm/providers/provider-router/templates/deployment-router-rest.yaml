@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oya-foundry-providers-router-rest
+  name: oya-intelligence-providers-router-rest
   labels:
-    app.kubernetes.io/name: oya-foundry-providers-router-rest
-    app.kubernetes.io/part-of: oya-foundry-providers
+    app.kubernetes.io/name: oya-intelligence-providers-router-rest
+    app.kubernetes.io/part-of: oya-intelligence-providers
     oya.microservice: foundry-providers
 spec:
   replicas: {{ .Values.router-rest.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: oya-foundry-providers-router-rest
+      app.kubernetes.io/name: oya-intelligence-providers-router-rest
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: oya-foundry-providers-router-rest
+        app.kubernetes.io/name: oya-intelligence-providers-router-rest
         spiffe.io/identity: "spiffe://oyatie.dev/foundry-providers/router-rest/pack/{{ .Values.residency.pack }}"
       annotations:
         # Istio mTLS STRICT enforced at namespace level via PeerAuthentication
         proxy.istio.io/config: |
           holdApplicationUntilProxyStarts: true
     spec:
-      serviceAccountName: oya-foundry-providers-router-rest
+      serviceAccountName: oya-intelligence-providers-router-rest
       automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
@@ -88,7 +88,7 @@ spec:
           emptyDir: {}
         - name: openbao-agent-config
           configMap:
-            name: oya-foundry-providers-openbao-agent-config
+            name: oya-intelligence-providers-openbao-agent-config
       affinity:
         podAntiAffinity:
           {{- toYaml .Values.router-rest.podAntiAffinity | nindent 10 }}
@@ -96,14 +96,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: oya-foundry-providers-router-rest
+  name: oya-intelligence-providers-router-rest
   labels:
-    app.kubernetes.io/name: oya-foundry-providers-router-rest
-    app.kubernetes.io/part-of: oya-foundry-providers
+    app.kubernetes.io/name: oya-intelligence-providers-router-rest
+    app.kubernetes.io/part-of: oya-intelligence-providers
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: oya-foundry-providers-router-rest
+    app.kubernetes.io/name: oya-intelligence-providers-router-rest
   ports:
     - port: 8080
       targetPort: 8080

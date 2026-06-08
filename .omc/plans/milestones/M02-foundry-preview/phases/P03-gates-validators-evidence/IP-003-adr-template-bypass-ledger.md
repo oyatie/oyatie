@@ -20,8 +20,8 @@ Ship ADR template + foundation-bypass ledger with expiry tracking.
 ## Symbols-to-grit-claim
 ```
 docs/standards/adr-template.md::Template
-crates/oya-foundry-foundation-bypass-ledger-app/src/lib.rs::FoundationBypass
-crates/oya-foundry-foundation-bypass-ledger-app/src/lib.rs::expiry_check
+crates/oya-intelligence-foundation-bypass-ledger-app/src/lib.rs::FoundationBypass
+crates/oya-intelligence-foundation-bypass-ledger-app/src/lib.rs::expiry_check
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

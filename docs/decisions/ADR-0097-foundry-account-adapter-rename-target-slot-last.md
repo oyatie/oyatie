@@ -1,6 +1,6 @@
 ---
 id: ADR-0097
-title: "Rename oya-foundry-account-adapter-{claude-code,codex-cli,gemini-cli} → oya-foundry-{claude,codex,gemini}-account-adapter"
+title: "Rename oya-intelligence-account-adapter-{claude-code,codex-cli,gemini-cli} → oya-foundry-{claude,codex,gemini}-account-adapter"
 status: Superseded
 doc_status: published
 owner: council-architecture
@@ -17,7 +17,7 @@ related:
 supersession_note: "3-crate cosmetic foundry rename; subsumed by the foundry sweep. Archived per D-DISPOSITIONS-RATIFIED: ARCHIVE-5."
 ---
 
-# ADR-0097: Rename `oya-foundry-account-adapter-*` — Layer Token Must Be Last
+# ADR-0097: Rename `oya-intelligence-account-adapter-*` — Layer Token Must Be Last
 
 ## Status
 
@@ -29,9 +29,9 @@ M02-P06 Wave 3 introduces three CLI-driver crates, one per AI provider account:
 
 | Current name (non-conformant) | v4 BNF parse result |
 |---|---|
-| `oya-foundry-account-adapter-claude-code` | layer = `code`? — NOT a recognised layer value |
-| `oya-foundry-account-adapter-codex-cli` | layer = `cli` BUT `adapter-codex` is not a BC token; `adapter` is mid-name |
-| `oya-foundry-account-adapter-gemini-cli` | same problem |
+| `oya-intelligence-account-adapter-claude-code` | layer = `code`? — NOT a recognised layer value |
+| `oya-intelligence-account-adapter-codex-cli` | layer = `cli` BUT `adapter-codex` is not a BC token; `adapter` is mid-name |
+| `oya-intelligence-account-adapter-gemini-cli` | same problem |
 
 ADR-0056 BNF v4.1 parser rule:
 
@@ -47,24 +47,24 @@ Rename the three provider account-adapter crates so that `adapter` is the final 
 
 | Before | After |
 |---|---|
-| `oya-foundry-account-adapter-claude-code` | `oya-foundry-claude-account-adapter` |
-| `oya-foundry-account-adapter-codex-cli` | `oya-foundry-codex-account-adapter` |
-| `oya-foundry-account-adapter-gemini-cli` | `oya-foundry-gemini-account-adapter` |
+| `oya-intelligence-account-adapter-claude-code` | `oya-intelligence-claude-account-adapter` |
+| `oya-intelligence-account-adapter-codex-cli` | `oya-intelligence-codex-account-adapter` |
+| `oya-intelligence-account-adapter-gemini-cli` | `oya-intelligence-gemini-account-adapter` |
 
 **BNF v4.1 parse of the new names:**
 
 ```
-oya-foundry-claude-account-adapter
+oya-intelligence-claude-account-adapter
     microservice = foundry
     bc-tokens    = claude-account
     layer        = adapter   ✓ (last token, recognised layer value)
 
-oya-foundry-codex-account-adapter
+oya-intelligence-codex-account-adapter
     microservice = foundry
     bc-tokens    = codex-account
     layer        = adapter   ✓
 
-oya-foundry-gemini-account-adapter
+oya-intelligence-gemini-account-adapter
     microservice = foundry
     bc-tokens    = gemini-account
     layer        = adapter   ✓
@@ -74,7 +74,7 @@ oya-foundry-gemini-account-adapter
 
 1. **ADR-0056 §Parser rule** — last segment must be one of the 12 closed layer values. Current names violate this by placing provider-qualifier tokens (`claude-code`, `codex-cli`, `gemini-cli`) after `adapter`.
 
-2. **Sibling precedent** — `oya-foundry-jsonl-supervisor-adapter` follows the pattern correctly:
+2. **Sibling precedent** — `oya-intelligence-jsonl-supervisor-adapter` follows the pattern correctly:
    `microservice=foundry`, `bc-tokens=jsonl-supervisor`, `layer=adapter`. Provider account
    adapters must follow the same shape: `microservice=foundry`, `bc-tokens=<provider>-account`,
    `layer=adapter`.
@@ -83,8 +83,8 @@ oya-foundry-gemini-account-adapter
    CI lanes derive the expected layer from the last crate-name segment. Non-conformant names
    cause false CI failures or silently bypass the layer-correctness check.
 
-4. **v6 amendment PRE-1 analogy** — PRE-1 renames `oya-foundry-settings-template-adapter-fs` →
-   `oya-foundry-settings-template-adapter` for the identical reason (layer token must be last).
+4. **v6 amendment PRE-1 analogy** — PRE-1 renames `oya-intelligence-settings-template-adapter-fs` →
+   `oya-intelligence-settings-template-adapter` for the identical reason (layer token must be last).
    Account-adapter crates have the same structural defect.
 
 ## Alternatives Considered
@@ -99,7 +99,7 @@ either breaks or must be patched to special-case these names.
 
 **Verdict: REJECTED** — BNF extension cost > rename cost; drift precedent unacceptable.
 
-### Alt B — Drop provider qualifier entirely (`oya-foundry-account-adapter`)
+### Alt B — Drop provider qualifier entirely (`oya-intelligence-account-adapter`)
 
 **Shape:** Single crate routing across all three providers.
 
@@ -152,6 +152,6 @@ confirmed.
 ## References
 
 - ADR-0056 §Parser rule — 12-layer enum, BNF v4.1
-- ADR-0056 §Examples — `oya-foundry-jsonl-supervisor-adapter` sibling precedent
-- v6 amendments PRE-1 — identical fix applied to `oya-foundry-settings-template-adapter-fs`
+- ADR-0056 §Examples — `oya-intelligence-jsonl-supervisor-adapter` sibling precedent
+- v6 amendments PRE-1 — identical fix applied to `oya-intelligence-settings-template-adapter-fs`
 - `feedback_naming_justification.md` — every new name must carry one-line BNF + layer conformance justification

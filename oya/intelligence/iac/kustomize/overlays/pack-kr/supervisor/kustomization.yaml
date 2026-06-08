@@ -45,8 +45,8 @@ configMapGenerator:
       - REGION=ap-seoul-1
       - JURISDICTION=kr
       - OCI_OBJECTSTORAGE_ENDPOINT=https://objectstorage.ap-seoul-1.oraclecloud.com
-      # OCI_KMS_KEY_ID is provisioned by `oya-foundry-supervisor-kustomize-bootstrap` job at first deploy; populated into Kubernetes Secret `oya-foundry-supervisor-kms` (key: `kms_key_id`) which envFrom-mounts into pods. Per ADR-0043 secrets-management, raw KMS OCID never appears in git-tracked manifests.
-      - OCI_KMS_KEY_ID_SOURCE=secretRef:oya-foundry-supervisor-kms#kms_key_id
+      # OCI_KMS_KEY_ID is provisioned by `oya-intelligence-supervisor-kustomize-bootstrap` job at first deploy; populated into Kubernetes Secret `oya-intelligence-supervisor-kms` (key: `kms_key_id`) which envFrom-mounts into pods. Per ADR-0043 secrets-management, raw KMS OCID never appears in git-tracked manifests.
+      - OCI_KMS_KEY_ID_SOURCE=secretRef:oya-intelligence-supervisor-kms#kms_key_id
       - OPENBAO_ADDR=https://openbao.cloud-secrets.svc.cluster.local:8200
       - SUPERVISOR_REDIS_CLUSTER_ADDRS=redis-cluster-0.foundry-supervisor.svc.cluster.local:6379,redis-cluster-1.foundry-supervisor.svc.cluster.local:6379,redis-cluster-2.foundry-supervisor.svc.cluster.local:6379
-      - OCI_FOUNDRY_SUPERVISOR_WAL_BUCKET=oya-foundry-supervisor-pack-kr-wal
+      - OCI_FOUNDRY_SUPERVISOR_WAL_BUCKET=oya-intelligence-supervisor-pack-kr-wal

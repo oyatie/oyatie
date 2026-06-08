@@ -92,7 +92,7 @@ client req (Anthropic shape)
     → AnthropicMessagesRequest::deserialize
     → translate::to_internal_invoke(req) -> CapabilityInvokeRequest
     → pool_kernel::pick_account(...) -> PoolRoutingDecision
-    → ProviderAdapter::invoke(...) [resolves to oya-foundry-adapter-anthropic for the chosen account]
+    → ProviderAdapter::invoke(...) [resolves to oya-intelligence-adapter-anthropic for the chosen account]
     → translate::from_internal_invoke(resp) -> AnthropicMessagesResponse
     → Body::from_stream(...) (SSE for streaming, single chunk for non-streaming)
 ```
@@ -120,7 +120,7 @@ $ cargo deny check                                                              
 $ oya gate validate oya-governance-compat-api-shape-binding                  # expect: PASS (response shape matches Anthropic OpenAPI)
 $ oya gate validate oya-governance-provider-coupling                         # expect: PASS (no provider imports outside adapter)
 $ oya-tooling-agent-read run-evidence "scripts/smoke/anthropic-compat-smoke.sh"   # expect: 200 OK + valid Messages-API JSON + SSE stream replays
-$ docker buildx build --target distroless-debian13 -t oya-foundry-anthropic-compat:test # expect: image < 25 MiB
+$ docker buildx build --target distroless-debian13 -t oya-intelligence-anthropic-compat:test # expect: image < 25 MiB
 ```
 
 Integration test required: spin up `wiremock` recording an Anthropic upstream; POST `/v1/messages` with text + tool-use + vision payloads; assert response matches Anthropic OpenAPI schema; assert SSE event sequence `message_start`, `content_block_start`, `content_block_delta…`, `message_stop`.

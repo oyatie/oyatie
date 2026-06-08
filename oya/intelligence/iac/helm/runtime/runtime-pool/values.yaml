@@ -96,8 +96,8 @@ networkPolicy:
     - foundry-supervisor
     - tenancy
   allowInfrastructure:
-    - oya-foundry-runtime-redis  # in-cluster
-    - oya-foundry-runtime-postgres  # in-cluster
+    - oya-intelligence-runtime-redis  # in-cluster
+    - oya-intelligence-runtime-postgres  # in-cluster
 
 # OpenBao SecretReference materialisation
 openBao:

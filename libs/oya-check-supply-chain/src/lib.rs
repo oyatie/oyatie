@@ -597,7 +597,7 @@ mod tests {
     fn accepts_source_only_bootstrap_with_dependency_scans_wired() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 evidence()
             ),
             Ok(SupplyChainReport {
@@ -611,7 +611,7 @@ mod tests {
     fn rejects_missing_dependency_scan_wiring() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 SupplyChainEvidence {
                     cargo_audit_check_wired: false,
                     ..evidence()
@@ -621,7 +621,7 @@ mod tests {
         );
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 SupplyChainEvidence {
                     cargo_deny_check_wired: false,
                     ..evidence()
@@ -635,7 +635,7 @@ mod tests {
     fn rejects_unpinned_third_party_actions() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 SupplyChainEvidence {
                     third_party_actions_pinned: false,
                     ..evidence()
@@ -649,7 +649,7 @@ mod tests {
     fn rejects_release_manifest_without_trivy_cosign_and_sbom_evidence() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 SupplyChainEvidence {
                     release_manifest_present: true,
                     ..evidence()
@@ -665,7 +665,7 @@ mod tests {
     fn rejects_full_adr0039_lane_without_required_evidence() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 SupplyChainEvidence {
                     require_adr0039_evidence: true,
                     ..evidence()
@@ -681,7 +681,7 @@ mod tests {
     fn accepts_full_adr0039_lane_when_static_evidence_is_wired() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 full_adr0039_evidence()
             ),
             Ok(SupplyChainReport {
@@ -695,7 +695,7 @@ mod tests {
     fn accepts_full_adr0039_lane_with_explicit_pre_release_empty_scope() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 SupplyChainEvidence {
                     release_images_declared: false,
                     release_empty_scope_declared: true,
@@ -713,7 +713,7 @@ mod tests {
     fn rejects_full_adr0039_lane_without_release_artifacts_or_empty_scope_rationale() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "source-only")],
+                [record("oya-intelligence-capability-kernel", "source-only")],
                 SupplyChainEvidence {
                     release_images_declared: false,
                     release_empty_scope_declared: false,
@@ -730,25 +730,25 @@ mod tests {
     fn rejects_sbom_or_signed_claim_without_evidence() {
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "sbom")],
+                [record("oya-intelligence-capability-kernel", "sbom")],
                 evidence()
             ),
             Err(SupplyChainError::UnsupportedAttestationClaim {
-                subject: "oya-foundry-capability-kernel".into(),
+                subject: "oya-intelligence-capability-kernel".into(),
                 attestation: "sbom".into(),
                 missing_evidence: "sbom_dual_format_wired",
             })
         );
         assert_eq!(
             validate_supply_chain(
-                [record("oya-foundry-capability-kernel", "signed-provenance")],
+                [record("oya-intelligence-capability-kernel", "signed-provenance")],
                 SupplyChainEvidence {
                     sbom_dual_format_wired: true,
                     ..evidence()
                 }
             ),
             Err(SupplyChainError::UnsupportedAttestationClaim {
-                subject: "oya-foundry-capability-kernel".into(),
+                subject: "oya-intelligence-capability-kernel".into(),
                 attestation: "signed-provenance".into(),
                 missing_evidence: "cosign_release_signing_wired",
             })

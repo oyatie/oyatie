@@ -17,9 +17,9 @@ The Foundry Supervisor needs to compose multiple existing kernels (`RoutePolicy`
 
 ## Decision
 The Foundry Supervisor will expose zero new public APIs on existing kernels. Instead:
-1. All supervisor-specific types (`SessionTicket`, `MessageId`, etc.) live in the new `oya-foundry-supervisor-kernel`.
+1. All supervisor-specific types (`SessionTicket`, `MessageId`, etc.) live in the new `oya-intelligence-supervisor-kernel`.
 2. Existing kernel primitives are composed as pure ports.
-3. The `AccountSnapshotProvider` port lives inside `oya-foundry-supervisor-kernel` to keep the supervisor I/O-free without changing `oya-foundry-account-domain`.
+3. The `AccountSnapshotProvider` port lives inside `oya-intelligence-supervisor-kernel` to keep the supervisor I/O-free without changing `oya-intelligence-account-domain`.
 
 ## Drivers
 - **Lean-a10 (Zero-Surface-Change):** Maintain existing kernel stability.

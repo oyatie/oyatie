@@ -188,7 +188,7 @@
       "score": 30,
       "tier": "structural",
       "owner": "axis-foundry",
-      "mitigation": "Top-20 #1 \u2014 runtime gate, not docs; oya-foundry-policy runtime check on every capability invocation"
+      "mitigation": "Top-20 #1 \u2014 runtime gate, not docs; oya-intelligence-policy runtime check on every capability invocation"
     },
     {
       "id": "R-017",

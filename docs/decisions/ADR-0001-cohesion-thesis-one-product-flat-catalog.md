@@ -77,9 +77,9 @@ Each substrate has exactly one owning bounded context (per BNF v4.1, ADR-0056):
 - Single tenancy → `oya-tenancy-kernel` (ADR-0002)
 - Single identity → `oya-identity-kernel` (ADR-0002)
 - Single audit chain → `oya-audit-chain-kernel` (ADR-0003)
-- Single capability registry → `oya-foundry-capability-kernel` + catalog (ADR-0011)
-- Single agent runtime → `oya-foundry-runtime-*` (ADR-0007)
-- Single autonomy ceiling → `oya-foundry-policy-kernel` (ADR-0007)
+- Single capability registry → `oya-intelligence-capability-kernel` + catalog (ADR-0011)
+- Single agent runtime → `oya-intelligence-runtime-*` (ADR-0007)
+- Single autonomy ceiling → `oya-intelligence-policy-kernel` (ADR-0007)
 
 ### Cohesion invariants
 

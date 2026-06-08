@@ -48,9 +48,9 @@ We adopt a **four-layer pipeline** with **asymmetric auto-promotion gates** and 
 
 **Mutator allowlist.** Each long-lived branch has exactly one mutator agent identity:
 
-- `origin/dev` ← `dev-promoter` (Cosign identity `oya-foundry-dev-promoter`).
-- `staging` ← `staging-promoter` (Cosign identity `oya-foundry-staging-promoter`).
-- `prod` ← `prod-promoter` (Cosign identity `oya-foundry-prod-promoter`).
+- `origin/dev` ← `dev-promoter` (Cosign identity `oya-intelligence-dev-promoter`).
+- `staging` ← `staging-promoter` (Cosign identity `oya-intelligence-staging-promoter`).
+- `prod` ← `prod-promoter` (Cosign identity `oya-intelligence-prod-promoter`).
 
 Direct commits forbidden by branch-protection. Enforced by three BLOCKER lanes: `oya-governance-no-direct-origin-dev-commit`, `oya-governance-no-direct-staging-commit`, `oya-governance-no-direct-prod-commit`.
 

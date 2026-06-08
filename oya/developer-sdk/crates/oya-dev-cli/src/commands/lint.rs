@@ -10,12 +10,12 @@ use std::process::ExitCode;
 const REQUIRED_ACCOUNT_CRATES: &[&str] = &[
     "oya-intelligence-account-kernel",
     "oya-intelligence-account-domain",
-    "oya-foundry-account-app",
-    "oya-foundry-account-adapter-codex-cli",
-    "oya-foundry-account-adapter-claude-code",
-    "oya-foundry-account-adapter-gemini-cli",
-    "oya-foundry-account-adapter-openbao",
-    "oya-foundry-account-runtime",
+    "oya-intelligence-account-app",
+    "oya-intelligence-account-adapter-codex-cli",
+    "oya-intelligence-account-adapter-claude-code",
+    "oya-intelligence-account-adapter-gemini-cli",
+    "oya-intelligence-account-adapter-openbao",
+    "oya-intelligence-account-runtime",
 ];
 
 const REQUIRED_P03_KERNEL_CRATES: &[&str] = &[

@@ -11,7 +11,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
-  Extend `oya-foundry-policy-kernel` with the `ToSAcknowledgment` record + `PoolingPolicyCheck`
+  Extend `oya-intelligence-policy-kernel` with the `ToSAcknowledgment` record + `PoolingPolicyCheck`
   function that gates pool-membership > 1 on an explicit per-(tenant, provider) ToS-ack.
   Every routing decision emits `EVT-PROVIDER-POOL-ROUTING` to the audit chain with the
   account_id, pool_id, reason, and a reference to the ToS-ack record. Anti-correlation:
@@ -20,11 +20,11 @@ purpose: |
   This IP is what makes multi-subscription pooling legally defensible vs ccproxy-api's
   implicit posture.
 grit_claim_symbols:
-  - "crates/oya-foundry-policy-kernel/src/lib.rs::ToSAcknowledgment"
-  - "crates/oya-foundry-policy-kernel/src/lib.rs::PoolingPolicyCheck"
-  - "crates/oya-foundry-policy-kernel/src/lib.rs::TenantPoolingPolicy"
-  - "crates/oya-foundry-policy-kernel/src/lib.rs::AntiCorrelationRule"
-  - "crates/oya-foundry-policy-kernel/src/audit.rs::emit_pool_routing_event"
+  - "crates/oya-intelligence-policy-kernel/src/lib.rs::ToSAcknowledgment"
+  - "crates/oya-intelligence-policy-kernel/src/lib.rs::PoolingPolicyCheck"
+  - "crates/oya-intelligence-policy-kernel/src/lib.rs::TenantPoolingPolicy"
+  - "crates/oya-intelligence-policy-kernel/src/lib.rs::AntiCorrelationRule"
+  - "crates/oya-intelligence-policy-kernel/src/audit.rs::emit_pool_routing_event"
 agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
   - ./INDEX.md
@@ -63,13 +63,13 @@ immutable ledger.
 ## Symbols to grit-claim
 
 ```
-crates/oya-foundry-policy-kernel/src/lib.rs::ToSAcknowledgment
-crates/oya-foundry-policy-kernel/src/lib.rs::TenantPoolingPolicy
-crates/oya-foundry-policy-kernel/src/lib.rs::PoolingPolicyCheck
-crates/oya-foundry-policy-kernel/src/lib.rs::AntiCorrelationRule
-crates/oya-foundry-policy-kernel/src/lib.rs::PoolingPolicyVerdict
-crates/oya-foundry-policy-kernel/src/audit.rs::emit_pool_routing_event
-crates/oya-foundry-policy-kernel/cedar/foundry.pooling.cedar::ToSAckRequired
+crates/oya-intelligence-policy-kernel/src/lib.rs::ToSAcknowledgment
+crates/oya-intelligence-policy-kernel/src/lib.rs::TenantPoolingPolicy
+crates/oya-intelligence-policy-kernel/src/lib.rs::PoolingPolicyCheck
+crates/oya-intelligence-policy-kernel/src/lib.rs::AntiCorrelationRule
+crates/oya-intelligence-policy-kernel/src/lib.rs::PoolingPolicyVerdict
+crates/oya-intelligence-policy-kernel/src/audit.rs::emit_pool_routing_event
+crates/oya-intelligence-policy-kernel/cedar/foundry.pooling.cedar::ToSAckRequired
 ```
 
 ### Shape
@@ -132,8 +132,8 @@ Before `grit claim`, the agent **MUST**:
 ## Acceptance test commands
 
 ```
-$ cargo nextest run -p oya-foundry-policy-kernel --all-features                  # expect: PASS, 0 failures
-$ cargo clippy -p oya-foundry-policy-kernel -- -D warnings                       # expect: PASS, 0 warnings
+$ cargo nextest run -p oya-intelligence-policy-kernel --all-features                  # expect: PASS, 0 failures
+$ cargo clippy -p oya-intelligence-policy-kernel -- -D warnings                       # expect: PASS, 0 warnings
 $ cargo deny check                                                               # expect: PASS
 $ oya gate validate oya-governance-tos-acknowledgment                       # expect: PASS
 $ oya gate validate oya-governance-pool-routing-honor                       # expect: PASS
@@ -157,7 +157,7 @@ Property tests required:
 - [ ] Audit-chain `EVT-TOS-POLICY-ACTIVE` emitted at first PoolingPolicyCheck merge.
 - [ ] Council-Privacy reviewer-agent verdict: APPROVE.
 - [ ] Cedar policy unit tests green; runtime + Cedar cross-check property test green.
-- [ ] Operator-console onboarding wizard surfaces the ack panel (UI hand-off to `oya-foundry-console-tos-wizard`).
+- [ ] Operator-console onboarding wizard surfaces the ack panel (UI hand-off to `oya-intelligence-console-tos-wizard`).
 
 ## Rollback procedure
 

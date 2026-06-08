@@ -27,7 +27,7 @@ Autonomous agents invert all three: attention is cheap and async, coordination h
 4. **RACI → AgentPodManifest.** Responsible/Accountable/Consulted/Informed is replaced by a typed manifest declaring `owns`, `autonomy.max_tier`, `tpm_required_if`, `escalates_to`. The manifest is policy code, not a wiki page.
 5. **Standup / status doc / weekly review → continuous trace stream + dashboards.** Status meetings disappear; humans subscribe to event topics keyed by goal/pod/release-train.
 
-These map cleanly onto the existing Foundry kernels (`oya-foundry-capability/run/step/evidence/policy/provider`) plus the new Delivery Fabric kernels (`ChangeSet/PatchSet/Stack/EvidenceBundle/PolicyVerdict/AgentPodManifest/LaneDefinition`). The remaining gap is the **upper layer**: Goal, Plan, Verifier, Release-Train, Ops-Loop. Those are what this report formalizes.
+These map cleanly onto the existing Foundry kernels (`oya-intelligence-capability/run/step/evidence/policy/provider`) plus the new Delivery Fabric kernels (`ChangeSet/PatchSet/Stack/EvidenceBundle/PolicyVerdict/AgentPodManifest/LaneDefinition`). The remaining gap is the **upper layer**: Goal, Plan, Verifier, Release-Train, Ops-Loop. Those are what this report formalizes.
 
 ---
 
@@ -146,18 +146,18 @@ The following table is the backbone of this report. Each row names a primitive t
 
 | Primitive | Why humans need it | Agent equivalent | Load-bearing artifact |
 |---|---|---|---|
-| **OKRs / quarterly cascade** | scarce attention forces batching of priorities | durable **Goal** records w/ quantified acceptance criteria, autonomy ceiling, evidence pointer | `oya-foundry-goal-kernel` Goal struct |
-| **Sprint / iteration boundary** | gives slow humans a coherent batch to plan around | continuous flow w/ **budget envelope** (token / wall-clock / cost / retry / child-agent) per Goal | `oya-foundry-budget-kernel` BudgetEnvelope |
+| **OKRs / quarterly cascade** | scarce attention forces batching of priorities | durable **Goal** records w/ quantified acceptance criteria, autonomy ceiling, evidence pointer | `oya-intelligence-goal-kernel` Goal struct |
+| **Sprint / iteration boundary** | gives slow humans a coherent batch to plan around | continuous flow w/ **budget envelope** (token / wall-clock / cost / retry / child-agent) per Goal | `oya-intelligence-budget-kernel` BudgetEnvelope |
 | **Standup / status report** | synchronizes async humans on shared state | continuous **event stream** + dashboards keyed by Goal, Pod, ChangeSet, Release-Train | OpenTelemetry `gen_ai.*` spans + event topics |
-| **Sprint planning meeting** | slow humans can't replan continuously | **planner-agent** that converts Goal → Plan DAG with blast-radius classification + write-scope leases | `oya-foundry-planner-app` |
-| **Code review meeting / readability review** | slow human attention is the only quality gate | **verifier-agent** that ingests EvidenceBundle + does typed checks; senior-human gate only when policy verdict crosses ceiling | `oya-foundry-verifier-app` |
-| **Postmortem / COE doc** | humans need narrative to learn | **trace-grading + auto-postmortem agent** that emits root-cause + mitigations + tests for mitigations from typed traces | `oya-foundry-incident-grader` |
+| **Sprint planning meeting** | slow humans can't replan continuously | **planner-agent** that converts Goal → Plan DAG with blast-radius classification + write-scope leases | `oya-intelligence-planner-app` |
+| **Code review meeting / readability review** | slow human attention is the only quality gate | **verifier-agent** that ingests EvidenceBundle + does typed checks; senior-human gate only when policy verdict crosses ceiling | `oya-intelligence-verifier-app` |
+| **Postmortem / COE doc** | humans need narrative to learn | **trace-grading + auto-postmortem agent** that emits root-cause + mitigations + tests for mitigations from typed traces | `oya-intelligence-incident-grader` |
 | **RACI / DACI / CODEOWNERS** | human ownership is implicit and needs documentation | **AgentPodManifest** (typed YAML schema) declaring `owns`, `autonomy.max_tier`, `tpm_required_if`, `escalates_to` | `oya.delivery.agent-pod.v1` schema |
 | **Release readiness review** | humans are the gate of last resort | **release-captain pipeline** w/ canary/wave/bake/rollback policy declared as code | `oya.delivery.release.v1` |
-| **OP1/OP2 capacity planning** | humans allocate FTEs annually | **agent-cohort policy** — N agents × per-agent cost ceiling × per-Goal budget; reshapes continuously | `oya-foundry-cohort-app` |
+| **OP1/OP2 capacity planning** | humans allocate FTEs annually | **agent-cohort policy** — N agents × per-agent cost ceiling × per-Goal budget; reshapes continuously | `oya-intelligence-cohort-app` |
 | **ADR / RFC / design doc** | humans need to read the why | **same artifact, agent-drafted, human-approved** at policy-defined risk threshold | `docs/consolidated/decisions/ADR-*.md` (unchanged) |
 | **Bar Raiser / Readability / Security review** | independent human objector adds skepticism | **adversarial critic agent** whose verdict is required for autonomy uplift; no self-approval | `oh-my-claudecode:critic` pattern (already in repo) |
-| **Promotion packet / autonomy uplift** | humans need to prove they've grown | **autonomy-tier ratchet** based on accumulated evidence — eval pass rate, postmortem-clean rate, blast-radius coverage | `oya-foundry-autonomy-domain` autonomy ratchet rule |
+| **Promotion packet / autonomy uplift** | humans need to prove they've grown | **autonomy-tier ratchet** based on accumulated evidence — eval pass rate, postmortem-clean rate, blast-radius coverage | `oya-intelligence-autonomy-domain` autonomy ratchet rule |
 
 The pattern is consistent: every PM primitive has a typed-record + adversarial-critic-agent equivalent. Where humans rely on narrative judgment, agents rely on typed evidence + adversarial checking.
 
@@ -340,12 +340,12 @@ For each of the seven bottlenecks identified in §1.3, the agentic optimization 
 
 | Bottleneck | Human time | Agent time | Compression mechanism | Load-bearing primitive |
 |---|---|---|---|---|
-| Spec ambiguity | 2–6 weeks | minutes–hours | deep-interview to ≤20% ambiguity, machine-checked acceptance criteria | `oya-foundry-spec-interview-app` (deep-interview skill kernelized) |
+| Spec ambiguity | 2–6 weeks | minutes–hours | deep-interview to ≤20% ambiguity, machine-checked acceptance criteria | `oya-intelligence-spec-interview-app` (deep-interview skill kernelized) |
 | Capacity rebalancing | 6–12 weeks (OP1/OP2) | continuous | per-goal budget envelope; cohort-controller reshapes provider concurrency | `BudgetEnvelope` + `CohortController` |
-| Review wait | hours–days | seconds–minutes | verifier-agent + adversarial critic; senior human only on threshold | `oya-foundry-verifier-app` |
+| Review wait | hours–days | seconds–minutes | verifier-agent + adversarial critic; senior human only on threshold | `oya-intelligence-verifier-app` |
 | CI duration | 30–90 min | 3–10 min affected | Rust affected-graph + nextest sharding + sccache + remote cache | per Delivery Fabric PRD § 5 |
 | Approval queues | weeks | seconds–hours | policy envelope evaluated at runtime; human approval only on boundary crossing | `oya-intelligence-policy-domain` runtime gate |
-| Postmortem latency | days–weeks | online | typed-trace incident grader emits RCA during execution | `oya-foundry-incident-grader` |
+| Postmortem latency | days–weeks | online | typed-trace incident grader emits RCA during execution | `oya-intelligence-incident-grader` |
 | Coordination tax | 15–30% senior eng time | ~0% on routine | event-stream subscriptions replace standups/status meetings | OpenTelemetry `gen_ai.*` + event topics |
 
 The total compression across all seven, conservatively estimated: a 4–8 week strategy-to-shipped cycle compresses to **24–72 hours for a low-blast-radius pod-owned change**, gated only by the policy envelope and verifier verdict.
@@ -377,26 +377,26 @@ Cross-referenced against Claude Code backup analysis Appendix A + Delivery Fabri
 
 | Missing | Source(s) demanding it | Where it goes |
 |---|---|---|
-| Goal kernel (separate from Run) | Appendix A § A.5.1; this report § 4.1 | `crates/oya-foundry-goal-kernel` |
-| Plan DAG kernel + planner-app | Appendix A § A.5.2; this report § 4.3 | `crates/oya-foundry-plan-kernel` + `-planner-app` |
-| TaskLease kernel + lease-manager | Appendix A § A.5.4 + § A.7.5; this report § 4.4 | `crates/oya-foundry-lease-kernel` + `-lease-domain` |
-| EvidenceBundle kernel + verifier-app | Appendix A § A.5.5; this report § 4.5; Delivery Fabric PRD § 3.4 | `crates/oya-foundry-evidence-kernel` (PRD'd, not yet) + `-verifier-app` |
-| AgentPodManifest schema + registry | Delivery Fabric PRD § 3.6 | `crates/oya-foundry-pod-kernel` + `-pod-domain` |
-| ChangeSet/PatchSet/Stack kernels | Delivery Fabric PRD § 3.1–3.3 | `crates/oya-foundry-change-kernel` |
+| Goal kernel (separate from Run) | Appendix A § A.5.1; this report § 4.1 | `crates/oya-intelligence-goal-kernel` |
+| Plan DAG kernel + planner-app | Appendix A § A.5.2; this report § 4.3 | `crates/oya-intelligence-plan-kernel` + `-planner-app` |
+| TaskLease kernel + lease-manager | Appendix A § A.5.4 + § A.7.5; this report § 4.4 | `crates/oya-intelligence-lease-kernel` + `-lease-domain` |
+| EvidenceBundle kernel + verifier-app | Appendix A § A.5.5; this report § 4.5; Delivery Fabric PRD § 3.4 | `crates/oya-intelligence-evidence-kernel` (PRD'd, not yet) + `-verifier-app` |
+| AgentPodManifest schema + registry | Delivery Fabric PRD § 3.6 | `crates/oya-intelligence-pod-kernel` + `-pod-domain` |
+| ChangeSet/PatchSet/Stack kernels | Delivery Fabric PRD § 3.1–3.3 | `crates/oya-intelligence-change-kernel` |
 | PolicyEnvelope runtime gate (Cedar) | Appendix A § A.5.3; PRD § 13.3.1 #1 (autonomy ceiling as runtime gate, not docs) | `crates/oya-intelligence-policy-domain` (PRD'd) |
-| Anthropic Claude adapter (api + subscription) | DESIGN § 3.0 | `crates/oya-foundry-adapter-claude-{api,subscription}` |
-| Google Gemini adapter (api + subscription) | DESIGN § 3.0 | `crates/oya-foundry-adapter-gemini-{api,subscription}` |
-| OpenAI Codex/ChatGPT subscription adapter (subscription mode) | DESIGN § 3.0 (api mode lives now) | `crates/oya-foundry-adapter-codex-subscription` |
-| Stop-hook persistence loop equivalent (or per-provider equivalent) for Codex | Backup analysis Part B § B.5.5 | `crates/oya-foundry-persistence-domain` |
-| Critic / adversarial-verifier agent contract | Appendix A § A.7.2; this report § 3, 4.5 | `crates/oya-foundry-critic-app` |
-| Trace store + grading harness | Appendix A § A.7.13; backup analysis § 26.3 | `crates/oya-foundry-trace-{kernel,app}` |
-| Replay harness | Backup analysis § 26.3; Delivery Fabric PRD § 9 M2 | `crates/oya-foundry-replay-app` |
-| Cross-axis Merkle DAG evidence chain | Foundry top-20 #11; PRD § 5.1 | `crates/oya-platform-audit-chain-kernel` (cross-axis) + `oya-foundry-evidence-app` |
-| OpenTelemetry `gen_ai.*` semconv emission | Foundry top-20 #14 | `crates/oya-foundry-telemetry-app` |
-| Autonomy-tier ratchet (T0..T4 grant policy) | This report § 3, 4.7 | `crates/oya-foundry-autonomy-domain` |
-| Cohort-controller (per-provider concurrency reshape) | This report § 3, 4.3 | `crates/oya-foundry-cohort-app` |
-| Incident-grader / auto-postmortem agent | This report § 4.7 | `crates/oya-foundry-incident-grader` |
-| Release-captain pipeline | Delivery Fabric PRD § 8 | `crates/oya-foundry-release-app` |
+| Anthropic Claude adapter (api + subscription) | DESIGN § 3.0 | `crates/oya-intelligence-adapter-claude-{api,subscription}` |
+| Google Gemini adapter (api + subscription) | DESIGN § 3.0 | `crates/oya-intelligence-adapter-gemini-{api,subscription}` |
+| OpenAI Codex/ChatGPT subscription adapter (subscription mode) | DESIGN § 3.0 (api mode lives now) | `crates/oya-intelligence-adapter-codex-subscription` |
+| Stop-hook persistence loop equivalent (or per-provider equivalent) for Codex | Backup analysis Part B § B.5.5 | `crates/oya-intelligence-persistence-domain` |
+| Critic / adversarial-verifier agent contract | Appendix A § A.7.2; this report § 3, 4.5 | `crates/oya-intelligence-critic-app` |
+| Trace store + grading harness | Appendix A § A.7.13; backup analysis § 26.3 | `crates/oya-intelligence-trace-{kernel,app}` |
+| Replay harness | Backup analysis § 26.3; Delivery Fabric PRD § 9 M2 | `crates/oya-intelligence-replay-app` |
+| Cross-axis Merkle DAG evidence chain | Foundry top-20 #11; PRD § 5.1 | `crates/oya-platform-audit-chain-kernel` (cross-axis) + `oya-intelligence-evidence-app` |
+| OpenTelemetry `gen_ai.*` semconv emission | Foundry top-20 #14 | `crates/oya-intelligence-telemetry-app` |
+| Autonomy-tier ratchet (T0..T4 grant policy) | This report § 3, 4.7 | `crates/oya-intelligence-autonomy-domain` |
+| Cohort-controller (per-provider concurrency reshape) | This report § 3, 4.3 | `crates/oya-intelligence-cohort-app` |
+| Incident-grader / auto-postmortem agent | This report § 4.7 | `crates/oya-intelligence-incident-grader` |
+| Release-captain pipeline | Delivery Fabric PRD § 8 | `crates/oya-intelligence-release-app` |
 | Rust affected-graph CI lane planner | Delivery Fabric PRD § 5 | `crates/oya-governance-lane-planner` |
 
 ### 6.3 The triple alignment
@@ -439,10 +439,10 @@ Per the user's directive: a continuously running engine with three providers and
 ### 7.1 v0 in-scope
 
 1. **Provider adapter trait + 6 adapters**:
-   - `oya-foundry-provider-kernel::ProviderAdapter` trait + `ProviderAuth` enum (already PRD'd)
-   - `oya-foundry-adapter-codex-{api,subscription}`
-   - `oya-foundry-adapter-claude-{api,subscription}`
-   - `oya-foundry-adapter-gemini-{api,subscription}`
+   - `oya-intelligence-provider-kernel::ProviderAdapter` trait + `ProviderAuth` enum (already PRD'd)
+   - `oya-intelligence-adapter-codex-{api,subscription}`
+   - `oya-intelligence-adapter-claude-{api,subscription}`
+   - `oya-intelligence-adapter-gemini-{api,subscription}`
    - SecretProvider binding (OpenBao per ADR-0043)
    - Per-tenant per-capability auth-mode selection
    - Failover policy: `prefer: claude-api → fallback: openai-api → fallback: gemini-subscription`
@@ -503,7 +503,7 @@ Week 1–2:
 - `oya-foundry-{goal,plan,lease,evidence,policy,pod}-kernel` crates (no I/O; pure types)
 
 Week 3–4:
-- `ProviderAdapter` trait + `ProviderAuth` enum land in `oya-foundry-provider-kernel`
+- `ProviderAdapter` trait + `ProviderAuth` enum land in `oya-intelligence-provider-kernel`
 - Codex API adapter migrated from existing `app_server.rs` to a kernel-conformant trait impl
 - Anthropic Claude API adapter (initial)
 - Gemini API adapter (initial)
@@ -592,7 +592,7 @@ The deep-dive's Phase 4 should crystallize these before any code lands:
 
 8. **Existing in-flight Foundry work**: there is active development in `services/agent/daemon/src/foundry/`. Is the proposed `crates/oya-foundry-*-kernel` migration a fresh build alongside the daemon (with a cutover later), an in-place refactor of the daemon, or a parallel-with-bridge approach?
 
-9. **Where does ChangeSet/PatchSet live**: under `crates/oya-foundry-change-*` (treats VCS as Foundry domain) or under `crates/oya-platform-delivery-*` (treats VCS as a cross-axis platform concern)?
+9. **Where does ChangeSet/PatchSet live**: under `crates/oya-intelligence-change-*` (treats VCS as Foundry domain) or under `crates/oya-platform-delivery-*` (treats VCS as a cross-axis platform concern)?
 
 10. **Postmortem trigger**: is the auto-postmortem agent only for Sev1/Sev2 (current incident model), or for *every* failed Goal? If the latter, it shapes the trace store retention policy.
 

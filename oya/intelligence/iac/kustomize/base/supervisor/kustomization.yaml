@@ -16,19 +16,19 @@ resources:
   - service-mesh-tenant-headers.yaml
 
 helmCharts:
-  - name: oya-foundry-supervisor-postgres
+  - name: oya-intelligence-supervisor-postgres
     valuesFile: ../../helm/postgres/values.yaml
     releaseName: postgres
     namespace: foundry-supervisor
-  - name: oya-foundry-supervisor-redis
+  - name: oya-intelligence-supervisor-redis
     valuesFile: ../../helm/redis/values.yaml
     releaseName: redis
     namespace: foundry-supervisor
-  - name: oya-foundry-supervisor-controller
+  - name: oya-intelligence-supervisor-controller
     valuesFile: ../../helm/supervisor-controller/values.yaml
     releaseName: supervisor
     namespace: foundry-supervisor
 
 commonLabels:
-  app.kubernetes.io/part-of: oya-foundry-supervisor
+  app.kubernetes.io/part-of: oya-intelligence-supervisor
   oyatie/microservice: foundry-supervisor

@@ -19,8 +19,8 @@ Ship Anthropic adapter in both API and subscription auth modes.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-adapter-anthropic-api/src/lib.rs::AnthropicApiAdapter
-crates/oya-foundry-adapter-anthropic-subscription/src/lib.rs::AnthropicSubscriptionAdapter
+crates/oya-intelligence-adapter-anthropic-api/src/lib.rs::AnthropicApiAdapter
+crates/oya-intelligence-adapter-anthropic-subscription/src/lib.rs::AnthropicSubscriptionAdapter
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

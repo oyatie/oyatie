@@ -25,12 +25,12 @@ We need an enforcement point that is **outside** the capability author's control
 
 ## Decision
 
-We enforce the autonomy ceiling at `oya-foundry-policy-app` on **every** capability invocation. The effective ceiling is the minimum of four sources; agents inherit (and cannot exceed) tenant permissions; healthcare and fintech tenant classes force T1/T2 maxima for regulated capabilities; agentic ad-buying defaults to recommend-only.
+We enforce the autonomy ceiling at `oya-intelligence-policy-app` on **every** capability invocation. The effective ceiling is the minimum of four sources; agents inherit (and cannot exceed) tenant permissions; healthcare and fintech tenant classes force T1/T2 maxima for regulated capabilities; agentic ad-buying defaults to recommend-only.
 
 ### Effective-ceiling resolution
 
 ```rust
-// crates/oya-foundry-policy-kernel/src/ceiling.rs
+// crates/oya-intelligence-policy-kernel/src/ceiling.rs
 pub struct AutonomyCeilingInputs {
     pub tenant_configured: AutonomyTier,
     pub capability_min_required: AutonomyTier,
@@ -50,10 +50,10 @@ impl AutonomyCeilingInputs {
 }
 ```
 
-### Runtime gate (`oya-foundry-policy-app`)
+### Runtime gate (`oya-intelligence-policy-app`)
 
 ```rust
-// crates/oya-foundry-policy-app/src/gate.rs
+// crates/oya-intelligence-policy-app/src/gate.rs
 pub fn enforce(
     cedar_engine: &CedarEngine,
     invocation: &InvocationRequest,
@@ -101,7 +101,7 @@ Break-glass raises the effective ceiling for a bounded window when the standing 
 ### Tenant-class overrides
 
 ```rust
-// crates/oya-foundry-policy-domain/src/tenant_class.rs
+// crates/oya-intelligence-policy-domain/src/tenant_class.rs
 pub fn class_override(class: TenantClass, capability: &Capability) -> Option<AutonomyTier> {
     use TenantClass::*;
     match (class, capability.regulatory_packs_consumed.dominant()) {
@@ -172,4 +172,4 @@ Capabilities namespaced under `ads.*` whose action is `bid` or `budget.adjust` d
 - Internal: ADR-0021 (capability registry — declares the required tier), ADR-0023 (sandbox — process-level isolation complements policy enforcement), ADR-0024 (eval harness — adversarial autonomy-bypass cases are mandatory), ADR-0025 (audit chain — all decisions emit there).
 - Cedar: [Cedar policy language](https://www.cedarpolicy.com).
 - Compliance binding: KR PIPA, HIPAA, PCI DSS, KR FSC, JP FSA pack policies.
-- Flat-crates binding: autonomy-ceiling enforcement lives in `crates/oya-foundry-policy-kernel` and capability invocation surfaces consume it through flat `oya-foundry-*` crates. The retired `services/agent/daemon` path is historical only and must not be recreated.
+- Flat-crates binding: autonomy-ceiling enforcement lives in `crates/oya-intelligence-policy-kernel` and capability invocation surfaces consume it through flat `oya-foundry-*` crates. The retired `services/agent/daemon` path is historical only and must not be recreated.

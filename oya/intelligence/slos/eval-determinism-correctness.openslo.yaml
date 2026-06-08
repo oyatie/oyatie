@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-eval-determinism-correctness
+  name: oya-intelligence-eval-determinism-correctness
   displayName: "foundry-eval: deterministic-replay correctness 100% (load-bearing)"
   labels:
     microservice: foundry

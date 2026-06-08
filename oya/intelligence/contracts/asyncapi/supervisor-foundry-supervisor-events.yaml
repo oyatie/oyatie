@@ -1,6 +1,6 @@
 asyncapi: 3.1.0
 info:
-  title: oya-foundry-supervisor — supervision events
+  title: oya-intelligence-supervisor — supervision events
   version: 1.0.0
   summary: Capability deployment, kill-switch, autonomy violation, fleet lifecycle events emitted by the foundry-supervisor control plane
   description: |

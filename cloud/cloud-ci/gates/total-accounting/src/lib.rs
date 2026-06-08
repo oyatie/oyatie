@@ -255,7 +255,7 @@ mod tests {
     fn foundry_residue_orphan_is_unjustified() {
         let fixture = json!({
             "rows": [{
-                "path": "oya/intelligence/catalog/oya-foundry-eval/src/lib.rs",
+                "path": "oya/intelligence/catalog/oya-intelligence-eval/src/lib.rs",
                 "owner": "platform-intelligence",
                 "justification_ref": "ADR-0363",
                 "justification_resolves": false,
@@ -272,7 +272,7 @@ mod tests {
     fn evaluate_keyed_carries_the_row_path_as_key() {
         let fixture = json!({
             "rows": [{
-                "path": "oya/intelligence/catalog/oya-foundry-eval/src/lib.rs",
+                "path": "oya/intelligence/catalog/oya-intelligence-eval/src/lib.rs",
                 "owner": "platform-intelligence",
                 "justification_ref": "ADR-0363",
                 "justification_resolves": false,
@@ -283,7 +283,7 @@ mod tests {
         let findings = evaluate_keyed(&fixture);
         assert!(findings.contains(&Finding::new(
             "unjustified",
-            "oya/intelligence/catalog/oya-foundry-eval/src/lib.rs"
+            "oya/intelligence/catalog/oya-intelligence-eval/src/lib.rs"
         )));
         // evaluate() is exactly the bare-code projection of evaluate_keyed().
         let projected: BTreeSet<String> =

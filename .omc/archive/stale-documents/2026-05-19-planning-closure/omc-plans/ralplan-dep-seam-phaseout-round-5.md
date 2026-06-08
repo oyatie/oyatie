@@ -90,7 +90,7 @@ Round 4 mandated 4 evaluator policies on every trigger but its **example trigger
 }
 ```
 
-**Inheritance rule (schema-enforced):** every trigger inherits `default_evaluator_policies`. A row MAY override one or more policies by emitting an `evaluator_policies` block inside the trigger; missing fields fall back to defaults. The `oya-foundry-trigger-dsl-runtime` parser resolves at load time and emits a structured warning per override (audit trail).
+**Inheritance rule (schema-enforced):** every trigger inherits `default_evaluator_policies`. A row MAY override one or more policies by emitting an `evaluator_policies` block inside the trigger; missing fields fall back to defaults. The `oya-intelligence-trigger-dsl-runtime` parser resolves at load time and emits a structured warning per override (audit trail).
 
 ### `data_source` URI grammar (unchanged from R4)
 
@@ -101,7 +101,7 @@ ci-uri-run    := "ci:" <lane-id> ":run:" <run-id> ":" <row-id>    # IMMUTABLE
 ci-uri-latest := "ci:" <lane-id> ":latest:" <row-id>              # advisory only
 ```
 
-**Relative-path resolution rule (round 5 — Critic MINOR fix).** All `file:` URIs are resolved relative to **the git-toplevel** (`git rev-parse --show-toplevel`). NOT cargo-workspace-root, NOT lane-CWD, NOT plan-file-directory. The `oya-foundry-trigger-dsl-runtime` evaluator calls `git rev-parse --show-toplevel` once at startup and prepends to every relative `file:` URI. The composite lane's CI invocation runs from the toplevel; local invocation (`--offline`) also resolves from toplevel.
+**Relative-path resolution rule (round 5 — Critic MINOR fix).** All `file:` URIs are resolved relative to **the git-toplevel** (`git rev-parse --show-toplevel`). NOT cargo-workspace-root, NOT lane-CWD, NOT plan-file-directory. The `oya-intelligence-trigger-dsl-runtime` evaluator calls `git rev-parse --show-toplevel` once at startup and prepends to every relative `file:` URI. The composite lane's CI invocation runs from the toplevel; local invocation (`--offline`) also resolves from toplevel.
 
 ### Evaluator semantics — 4 policies (with `monotonicity-disabled` audit treatment — Architect Note 1)
 
@@ -285,12 +285,12 @@ oya-http-{deadline,telemetry,tenant}-middleware-runtime                 |
 
 `bytes` declared only by the adapter post-W0. Ledger row 5 (`bytes`) `allowed_crates_regex` = `^oya-http-runtime-hyper-adapter$`.
 
-### 3.F — `oya-foundry-trigger-dsl-*` naming — kernel/runtime split (Critic MINOR fix)
+### 3.F — `oya-intelligence-trigger-dsl-*` naming — kernel/runtime split (Critic MINOR fix)
 
-Round 4 named the DSL crate `oya-foundry-trigger-dsl-runtime` and justified with "parses + reads files". Critic flagged the classification as borderline. Round 5 splits per service-map-spec.md §3 honestly:
+Round 4 named the DSL crate `oya-intelligence-trigger-dsl-runtime` and justified with "parses + reads files". Critic flagged the classification as borderline. Round 5 splits per service-map-spec.md §3 honestly:
 
-- `oya-foundry-trigger-dsl-kernel` (layer=`kernel`): JSON AST parser + predicate-registry types + evaluator-policy enums + pure status-transition-graph validator. Zero I/O.
-- `oya-foundry-trigger-dsl-runtime` (layer=`runtime`): file-reader (resolves `file:` URIs against git-toplevel) + ci-evidence fetcher + composite evaluator that consumes the kernel's pure logic.
+- `oya-intelligence-trigger-dsl-kernel` (layer=`kernel`): JSON AST parser + predicate-registry types + evaluator-policy enums + pure status-transition-graph validator. Zero I/O.
+- `oya-intelligence-trigger-dsl-runtime` (layer=`runtime`): file-reader (resolves `file:` URIs against git-toplevel) + ci-evidence fetcher + composite evaluator that consumes the kernel's pure logic.
 
 The kernel is reusable (other lanes can validate trigger ASTs in tests without filesystem). The runtime is the lane-consumed crate. This is a Linus-grade split — not a borderline classification. Both crates are W0 Step 4 deliverables.
 
@@ -352,7 +352,7 @@ ReadinessGate ::= Initializing | Ready | Draining
 ```
 
 **Initializing → Ready** when ALL of:
-1. **Catalog loaded.** `oya-foundry-catalog-runtime::load()` returns Ok and the parsed catalog version matches the binary's expected schema.
+1. **Catalog loaded.** `oya-intelligence-catalog-runtime::load()` returns Ok and the parsed catalog version matches the binary's expected schema.
 2. **Downstream count = 0 in W0.** The ops binary has zero outbound dependencies in W0 (no eventing, no ontology, no external HTTP). Future versions extend this with downstream-reachability probes; W0 explicitly asserts the empty set.
 3. **Bind succeeded.** Listener is bound to `PORT`; first `accept()` may not yet have occurred (the flip can happen before traffic).
 
@@ -378,7 +378,7 @@ Cold-start harness (`oya-bench-cold-start-harness`, `CLOCK_MONOTONIC`), throughp
 11. `gh api` / `gh pr view` permitted CI-only under `GITHUB_ACTIONS=true` (ADR-0093 carve-out).
 12. Cloud-native code contract for `oya-ops-workspace-shell-runtime` (§7 + §19) including `ReadinessGate` flip condition.
 13. *(NEW round-5)* `oya-http-sse-domain` splits into `oya-http-sse-kernel` (pure types; W0 Step 1) + future `*-runtime` deferred; ADR-0094 codifies.
-14. *(NEW round-5)* `oya-foundry-trigger-dsl-*` ships as kernel/runtime pair (pure parser + I/O evaluator).
+14. *(NEW round-5)* `oya-intelligence-trigger-dsl-*` ships as kernel/runtime pair (pure parser + I/O evaluator).
 15. *(NEW round-5)* `monotonicity-disabled` warn-level lane finding documented when a row sets `monotonic_transitions_only: false`.
 
 **Drivers:** unchanged from R3.
@@ -464,9 +464,9 @@ Lane crate + policy doc + CI job + 8 sub-checks. 6 fixture crates (kernel-import
 
 New files unchanged from R4. **Schema additions per round 5:** `default_evaluator_policies` block required at registry top-level; rows inherit; per-row `evaluator_policies` block optional. Self-heal fixture also covers inheritance: delete a row's optional `evaluator_policies` override; result is bit-for-bit identical when defaults match the overridden values.
 
-### Step 4 — `oya-foundry-trigger-dsl-{kernel,runtime}` + ADR-0091 + ADR-0092 + ADR-0093 (draft) + ADR-0094 (M+; Architect+Critic+codex) — REVISED per Critic MINOR
+### Step 4 — `oya-intelligence-trigger-dsl-{kernel,runtime}` + ADR-0091 + ADR-0092 + ADR-0093 (draft) + ADR-0094 (M+; Architect+Critic+codex) — REVISED per Critic MINOR
 
-- Two crates net-new: `oya-foundry-trigger-dsl-kernel` (layer=`kernel`; pure AST parser + policy enum + status-graph validator); `oya-foundry-trigger-dsl-runtime` (layer=`runtime`; file resolution + CI evidence fetch + composite evaluator).
+- Two crates net-new: `oya-intelligence-trigger-dsl-kernel` (layer=`kernel`; pure AST parser + policy enum + status-graph validator); `oya-intelligence-trigger-dsl-runtime` (layer=`runtime`; file resolution + CI evidence fetch + composite evaluator).
 - **ADRs drafted in this step (status = Proposed):** `ADR-0091`, `ADR-0092`, `ADR-0093`, `ADR-0094`.
 - **ADR-0093 status pin:** drafted (Proposed) here; accepted at Step 6 (when CODEOWNERS rule + same-PR guard land together).
 - **Outputs:** both crates; fixtures covering: 11 seed parse; 5 malformed reject; stale-source; immutable-evidence; missing-pointer; monotonic-transition rejection; `{"never": true}` returns `disarmed`; `monotonic_transitions_only: false` emits `monotonicity-disabled` warn; inheritance fixture (row inherits all 4 defaults, parser emits no warning); inheritance-override fixture (row sets `staleness_policy: "warn-on-stale"`, parser emits structured override warning).
@@ -540,8 +540,8 @@ Step 0 is the only hard predecessor of Step 1. Steps 2-8 fan out from Step 1; St
 - [ ] `crates/oya-check-dependency-seam-discipline/` exists, `layer = "runtime"`; **8 sub-checks** active.
 - [ ] `gh` invocation gated by `GITHUB_ACTIONS=true`; ADR-0093 indexed; **Status: Accepted at Step 6** (not Step 4 draft).
 - [ ] `oya-dev-cli` subcommands authored: `gate validate dependency-seam [--offline]`, `gate emit tech-debt-ledger [--self-heal]`, `gate emit layer-metadata-bootstrap`, `gate validate ledger-coverage`, `gate emit ops-workspace-shell-baseline`, `gate emit middleware-adapter-import-audit`, **`gate emit sse-classification-audit`** (NEW round 5), **`gate emit current-date`** (NEW round 5 — single emit-tool for `current_date()` literals; Critic MINOR). REMOVED: `gate emit rollback-pr`.
-- [ ] **`oya-foundry-trigger-dsl-kernel`** (layer=`kernel`) ships W0; pure AST parser + policy enums + status-graph validator.
-- [ ] **`oya-foundry-trigger-dsl-runtime`** (layer=`runtime`) ships W0; file resolution + CI evidence fetcher + composite evaluator.
+- [ ] **`oya-intelligence-trigger-dsl-kernel`** (layer=`kernel`) ships W0; pure AST parser + policy enums + status-graph validator.
+- [ ] **`oya-intelligence-trigger-dsl-runtime`** (layer=`runtime`) ships W0; file resolution + CI evidence fetcher + composite evaluator.
 - [ ] Ledger generator self-heals (SHA-256 bit-for-bit roundtrip; inheritance defaults preserved).
 - [ ] ADR-0091 written + indexed + accepted; includes §DSL-policies (inheritance), §CI-carve-out (status pin), §Cloud-native (`ReadinessGate`), §SSE-split.
 - [ ] ADR-0092 written + indexed (lane runner vs kernel naming).
@@ -621,7 +621,7 @@ Persisted to `.omc/plans/open-questions.md` (append-only).
 ### Critic MINORs → **CLOSED**
 
 - `current_date()` literal emit-tool cited: **`oya-dev-cli emit current-date`** (§11 acceptance + plan header).
-- `oya-foundry-trigger-dsl` naming: **split into kernel/runtime pair** (§3.F + §10 Step 4).
+- `oya-intelligence-trigger-dsl` naming: **split into kernel/runtime pair** (§3.F + §10 Step 4).
 - Lockfile invalidation: **Step 1 enumerates `cargo update -p oya-http-sse-domain --precise` removal + `cargo check --workspace` + commit regenerated `Cargo.lock`** (§10 Step 1 item 9).
 - Workspace member list root Cargo.toml: **lines 383, 385, 386, 387 enumerated** (§10 Step 1 items 1-4).
 - `data_source` URI relative-paths: **resolved against `git rev-parse --show-toplevel`; NOT cargo-workspace-root; NOT lane-CWD** (§2 grammar).
@@ -682,8 +682,8 @@ Canonical: `{kernel, runtime, adapter, api, app}`. No `domain`.
 | `oya-http-runtime-hyper-adapter` | referenced | `adapter` | Provider-specific I/O (hyper). |
 | `oya-ops-workspace-shell-runtime` | referenced; refactored Step 8 | `runtime` | Binary's runtime shell. |
 | `oya-check-dependency-seam-discipline` | authored Step 2 | `runtime` | Lane runner. |
-| **`oya-foundry-trigger-dsl-kernel`** (NEW; split per §3.F) | authored Step 4 | `kernel` | Pure AST parser + policy enums + status-graph validator. |
-| **`oya-foundry-trigger-dsl-runtime`** (NEW; split per §3.F) | authored Step 4 | `runtime` | File resolution + CI evidence fetcher + composite evaluator. |
+| **`oya-intelligence-trigger-dsl-kernel`** (NEW; split per §3.F) | authored Step 4 | `kernel` | Pure AST parser + policy enums + status-graph validator. |
+| **`oya-intelligence-trigger-dsl-runtime`** (NEW; split per §3.F) | authored Step 4 | `runtime` | File resolution + CI evidence fetcher + composite evaluator. |
 | `oya-bench-cold-start-harness` | authored Step 5 | `runtime` | Subprocess + `CLOCK_MONOTONIC`. |
 | `oya-check-distroless-deployment-bar` | authored Step 5 | `runtime` | Lane runner. |
 | `oya-check-replacement-parity` | authored W1+ | `runtime` | Lane runner. |
@@ -720,7 +720,7 @@ Step 0 + Step 1 + Step 4 explicitly rename + declare layer metadata for every cr
 
 - Routes: `/healthz` (always 200 once process bound), `/livez` (always 200 once process bound), `/readyz` (consults `ReadinessGate`).
 - **`ReadinessGate` flip condition (pinned per §7):**
-  - `Initializing → Ready` when ALL of: (1) `oya-foundry-catalog-runtime::load()` returns Ok + version matches; (2) downstream count = 0 in W0 (no eventing/ontology/external HTTP); (3) listener bound to `PORT`.
+  - `Initializing → Ready` when ALL of: (1) `oya-intelligence-catalog-runtime::load()` returns Ok + version matches; (2) downstream count = 0 in W0 (no eventing/ontology/external HTTP); (3) listener bound to `PORT`.
   - `Ready → Draining` when SIGTERM received.
   - `Draining → exit` when in-flight = 0 OR 30s budget expires.
 - Legacy `/workspace/api/v1/health` retained one release with `X-Deprecated` header.
@@ -746,7 +746,7 @@ Step 0 + Step 1 + Step 4 explicitly rename + declare layer metadata for every cr
 | Architect Note 2: `ReadinessGate` flip condition | Architect | `Initializing → Ready` pinned: catalog-loaded + downstreams=0 + bind-succeeded | §7, §19.3 |
 | Architect Note 3: §13 open-question resolution mechanism | Architect | ADR-amendment-gated; council-architecture files | §13 |
 | MINOR: `current_date()` emit-tool | Critic | `oya-dev-cli emit current-date` cited in plan header + acceptance | header, §11 |
-| MINOR: `oya-foundry-trigger-dsl-runtime` naming borderline | Critic | Split into `*-kernel` (pure) + `*-runtime` (I/O) pair | §3.F, §10 Step 4, §18.A |
+| MINOR: `oya-intelligence-trigger-dsl-runtime` naming borderline | Critic | Split into `*-kernel` (pure) + `*-runtime` (I/O) pair | §3.F, §10 Step 4, §18.A |
 | MINOR: Lockfile invalidation impact | Critic | §10 Step 1 item 9: `cargo update --precise` removal + `cargo check --workspace` + commit regen | §10 Step 1 |
 | MINOR: Workspace member list root Cargo.toml | Critic | Lines 383/385/386/387 enumerated | §10 Step 1 |
 | MINOR: `data_source` relative-path resolution | Critic | `git rev-parse --show-toplevel` | §2 |

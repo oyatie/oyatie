@@ -1,6 +1,6 @@
 openapi: 3.2.0
 info:
-  title: oya-foundry-evidence
+  title: oya-intelligence-evidence
   version: 1.0.0
   description: |
     Foundry-specific evidence frontend. Per-capability-invocation evidence packs

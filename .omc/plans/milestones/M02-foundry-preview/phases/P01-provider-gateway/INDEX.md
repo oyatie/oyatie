@@ -13,7 +13,7 @@ purpose: Ship Claude / OpenAI / Gemini provider adapters in subscription + API a
 Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §3.0 multi-provider authentication model + Directive 4 (provider-agnostic by default). This phase IS the canonical implementation of the principle for the rest of the project to copy.
 
 ## Acceptance
-- 6 adapter crates green: `crates/oya-foundry-adapter-{anthropic,openai,gemini}-{api,subscription}-*`.
+- 6 adapter crates green: `crates/oya-intelligence-adapter-{anthropic,openai,gemini}-{api,subscription}-*`.
 - Live-smoke lane green: 3 providers × 2 auth modes = 6 cells.
 - Failover routing with cost-ceiling enforcement.
 - Usage-window kernel: 5h / 1wk / project windows; `usage_limit_pct` enforcement; `reserve_remaining_pct` validation (P00-05).
@@ -31,7 +31,7 @@ Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §3.0 multi
 3 agents in parallel (one per provider); IP-004 follows on usage-window kernel completion.
 
 ## Symbols-touched
-`crates/oya-foundry-adapter-{anthropic,openai,gemini}-{api,subscription}-*`, `crates/oya-intelligence-usage-window-kernel`, `crates/oya-intelligence-route-policy-kernel`.
+`crates/oya-intelligence-adapter-{anthropic,openai,gemini}-{api,subscription}-*`, `crates/oya-intelligence-usage-window-kernel`, `crates/oya-intelligence-route-policy-kernel`.
 
 ## Agent-handoff
 ```

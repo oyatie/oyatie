@@ -24,7 +24,7 @@ artifacts_observed=0 (no `specs/**/*.capability.json` files yet)
 violations=0
 ```
 
-Fresh kernel; capability files appear once `oya-foundry-capability-registry-*` ships its first grant manifests.
+Fresh kernel; capability files appear once `oya-intelligence-capability-registry-*` ships its first grant manifests.
 
 ## Done-criteria (Wave A)
 - `cargo run -q -p oya-governance-capability-status-lifecycle-app -- --warn-only` succeeds (vacuous baseline).

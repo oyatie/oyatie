@@ -34,7 +34,7 @@ ONE of:
 |---|---|---|
 | 1 | Identify failing replica: `kubectl -n foundry-runtime get pods -l role=postgres-replica` | ≤2min |
 | 2 | Check replication health: connect to primary; `SELECT * FROM pg_stat_replication` | ≤5min |
-| 3 | Restart replica pod: `kubectl rollout restart sts/oya-foundry-runtime-postgres-replica-N` | ≤5min |
+| 3 | Restart replica pod: `kubectl rollout restart sts/oya-intelligence-runtime-postgres-replica-N` | ≤5min |
 | 4 | Verify replication catches up: `pg_replication_lag_seconds < 30` for ≥5min | ≤15min |
 | 5 | If pattern (multiple replica fails in 24h): engage cloud-secrets / OCI support; scale Postgres vertically | ≤30min |
 

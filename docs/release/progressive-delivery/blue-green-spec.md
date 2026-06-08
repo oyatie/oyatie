@@ -78,7 +78,7 @@ Every blue/green release MUST emit signed evidence covering all five rollback mo
 | **Per-tenant** | Re-shift one tenant back to blue while others stay on green | Per-tenant routing rule + cohort intersect log |
 | **Per-cell** | Re-shift one cell back to blue (default unit per [ADR-0040](../../decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md)) | Per-cell traffic-shift log |
 
-All five emitted by `oya-foundry-evidence-kernel` and validated by `oya-governance-rollback-evidence` (NEW; BLOCKER if unsigned).
+All five emitted by `oya-intelligence-evidence-kernel` and validated by `oya-governance-rollback-evidence` (NEW; BLOCKER if unsigned).
 
 
 ## 6. Per-tenant blue/green (regulated)
@@ -87,7 +87,7 @@ Regulated tenants in the stable cohort may **stay on blue indefinitely** until p
 
 ## 7. Cost
 
-Blue/green for databases = 2× capacity during cutover. Budgeted per release; cost-review gate runs at PR time via `oya-foundry-cost-budget-kernel`.
+Blue/green for databases = 2× capacity during cutover. Budgeted per release; cost-review gate runs at PR time via `oya-intelligence-cost-budget-kernel`.
 
 ## 8. Hyperscaler equivalents
 

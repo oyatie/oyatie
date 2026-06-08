@@ -20,8 +20,8 @@ Ship SecretStorePort + local OpenBao default adapter; integration + fake-in-memo
 ## Symbols-to-grit-claim
 ```
 crates/oya-intelligence-account-domain/src/lib.rs::SecretStorePort
-crates/oya-foundry-account-adapter-openbao/src/lib.rs::OpenBaoAdapter
-crates/oya-foundry-account-adapter-openbao/src/lib.rs::store_secret_reference
+crates/oya-intelligence-account-adapter-openbao/src/lib.rs::OpenBaoAdapter
+crates/oya-intelligence-account-adapter-openbao/src/lib.rs::store_secret_reference
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

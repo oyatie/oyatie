@@ -38,14 +38,14 @@ doc_status: published
 |---|---|---|
 | 1 | Open `#inc-<id>`; assign IC; declare severity | ≤ 5 min |
 | 2 | Pre-checks above | ≤ 3 min |
-| 3 | Identify the divergent cohort: `oya-foundry-eval-replay-engine-rest divergence --capability <cap> --top 10 --order divergence_ms desc` lists top divergent replay-samples | ≤ 5 min |
+| 3 | Identify the divergent cohort: `oya-intelligence-eval-replay-engine-rest divergence --capability <cap> --top 10 --order divergence_ms desc` lists top divergent replay-samples | ≤ 5 min |
 | 4 | Categorise: (a) non-deterministic case (seed not present / seed value differs); (b) provider response drift (provider model changed); (c) tokeniser drift; (d) capability prompt template changed; (e) baseline-output mismatch | ≤ 15 min |
 | 5 | For (a) — non-deterministic case: tag for exclusion from determinism cohort + filed as eval-set authoring gap | per category |
 | 6 | For (b) — provider drift: open provider's release-notes; if breaking, hold model upgrade + notify capability owner | per category |
 | 7 | For (c) — tokeniser drift: confirm tokeniser version pin; if violated, revert to prior tokeniser version | per category |
 | 8 | For (d) — prompt template changed: check capability registry version pin; if mismatch, revert capability to prior version | per category |
 | 9 | For (e) — baseline mismatch: re-verify baseline Cosign signature; if signature valid, re-evaluate baseline (may need refresh) | per category |
-| 10 | Re-run replay against affected cohort: `oya-foundry-eval-replay-engine-rest replay --capability <cap> --cohort <cohort-id>` | ≤ 30 min |
+| 10 | Re-run replay against affected cohort: `oya-intelligence-eval-replay-engine-rest replay --capability <cap> --cohort <cohort-id>` | ≤ 30 min |
 | 11 | If divergence persists: escalate to ExecSponsor + axis-foundry weekly | — |
 | 12 | If divergence resolves: emit `ReplayDivergenceResolved` event; release the held model-upgrade gate | ≤ 5 min |
 | 13 | Postmortem within 5 business days for Sev-1 cases | — |

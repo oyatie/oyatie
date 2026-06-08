@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-providers-circuit-breaker-correctness
+  name: oya-intelligence-providers-circuit-breaker-correctness
   displayName: "foundry-providers: circuit-breaker correctness 100% (INV-CIRCUIT-BREAKER-BULKHEAD)"
   labels:
     microservice: foundry

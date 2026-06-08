@@ -2,7 +2,7 @@
 
 - purpose: Verify no code or doc circumvents a fitness lane via `#[allow]`, `// fitness-skip`, `<!-- fitness-skip -->`, or env-flag without an ADR + icm record.
 - enforces: STANDARD/no-silent-bypass; AGENTS.md fitness-lane `oya-governance-bypass`.
-- kernel_crate: `oya-foundry-bypass-kernel` (EXISTING) — `BypassDirective { path, line, directive, justification_ref }`, verdict `BypassFitnessReport { directives_checked, justified }`.
+- kernel_crate: `oya-intelligence-bypass-kernel` (EXISTING) — `BypassDirective { path, line, directive, justification_ref }`, verdict `BypassFitnessReport { directives_checked, justified }`.
 - runner_path: `tools/oya-governance-bypass`
 - inputs: every source/doc file, registry of allowed bypass directives + justification ADR ids.
 - failure_modes:

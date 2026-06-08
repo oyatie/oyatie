@@ -44,7 +44,7 @@ branches:
         users: []                           # no human users
         teams: []                           # no human teams
         apps:
-          - oya-foundry-dev-promoter        # the ONLY mutator
+          - oya-intelligence-dev-promoter        # the ONLY mutator
       required_pull_request_reviews:
         required_approving_review_count: 0  # human-button-free
         require_code_owner_reviews: false   # CODEOWNERS not honoured here
@@ -52,7 +52,7 @@ branches:
           users: []
           teams: []
           apps:
-            - oya-foundry-dev-promoter
+            - oya-intelligence-dev-promoter
       required_status_checks:
         contexts:
         - oya-governance-cohesion
@@ -85,7 +85,7 @@ branches:
         users: []
         teams: []
         apps:
-          - oya-foundry-staging-promoter    # the ONLY mutator
+          - oya-intelligence-staging-promoter    # the ONLY mutator
       required_pull_request_reviews:
         required_approving_review_count: 0  # no PR mechanism here; ff-only
       required_status_checks:
@@ -120,7 +120,7 @@ branches:
         users: []
         teams: []
         apps:
-          - oya-foundry-prod-promoter       # the ONLY mutator
+          - oya-intelligence-prod-promoter       # the ONLY mutator
       required_pull_request_reviews:
         required_approving_review_count: 0
       required_status_checks:

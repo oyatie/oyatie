@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-guardrails-shadow-mode-fp-budget
+  name: oya-intelligence-guardrails-shadow-mode-fp-budget
   displayName: "foundry-guardrails: shadow-mode false-positive budget < 1%"
   labels:
     microservice: foundry

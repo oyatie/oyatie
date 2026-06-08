@@ -1,11 +1,11 @@
 asyncapi: 3.1.0
 info:
-  title: oya-foundry-runtime — invocation lifecycle events
+  title: oya-intelligence-runtime — invocation lifecycle events
   version: 1.0.0
   summary: InvocationStarted, InvocationStepEmitted, InvocationCompleted, InvocationFailed, InvocationCancelled, AutonomyViolationDetected, SessionEvicted, RuntimePodDrained
   description: |
-    Cross-µservice Workflow events emitted by `oya-foundry-runtime-invocation-orchestrator-worker`
-    and `oya-foundry-runtime-runtime-pool-worker`. Per ADR-0025 + ADR-0131.
+    Cross-µservice Workflow events emitted by `oya-intelligence-runtime-invocation-orchestrator-worker`
+    and `oya-intelligence-runtime-runtime-pool-worker`. Per ADR-0025 + ADR-0131.
 
     Consumers:
     - `foundry-evidence` µservice (Ed25519 audit-chain seal per Bominal ADR-0028)

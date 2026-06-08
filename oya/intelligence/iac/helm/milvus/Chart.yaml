@@ -1,6 +1,6 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
-name: oya-foundry-milvus
+name: oya-intelligence-milvus
 description: |
   Milvus 2.6.x disaggregated vector database per ADR-0192.
   Four-plane shape: Access (proxy) + Coordinator (root/query/data/index)

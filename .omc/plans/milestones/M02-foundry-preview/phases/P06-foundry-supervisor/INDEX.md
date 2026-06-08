@@ -23,7 +23,7 @@ Multi-account, multi-provider session supervisor implementing the hook + inbox/o
 | `oya-intelligence-supervisor-kernel` | kernel (L1) | Value types, port traits, pure decision logic |
 | `oya-intelligence-supervisor-app` | app (L5) | Daemon binary, call chain, hyper webhook |
 | `oya-intelligence-jsonl-supervisor-adapter` | adapter (L4) | File-backed InboxStore + OutboxSink |
-| `oya-foundry-supervisor-conformance` | conformance | build.rs seed + read-back tests |
+| `oya-intelligence-supervisor-conformance` | conformance | build.rs seed + read-back tests |
 | `oya-intelligence-settings-template-kernel` | kernel (L1) | Settings template value types (v5 delta) |
 | `oya-intelligence-settings-template-adapter` | adapter (L4) | Per-provider settings renderer (v5 delta) |
 | `oya-intelligence-claude-account-adapter` | adapter (L4) | Claude CLI driver |

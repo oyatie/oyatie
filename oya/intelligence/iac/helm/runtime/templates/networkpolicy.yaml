@@ -12,7 +12,7 @@ Per ADR-0131 per-µservice flat layout.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-foundry-default-deny
+  name: oya-intelligence-default-deny
   namespace: foundry
 spec:
   podSelector: {}
@@ -21,7 +21,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-foundry-allow-mesh-ingress
+  name: oya-intelligence-allow-mesh-ingress
   namespace: foundry
 spec:
   podSelector:
@@ -40,7 +40,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: oya-foundry-allow-egress
+  name: oya-intelligence-allow-egress
   namespace: foundry
 spec:
   podSelector:

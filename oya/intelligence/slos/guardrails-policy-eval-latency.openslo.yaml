@@ -2,7 +2,7 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: oya-foundry-guardrails-policy-eval-latency
+  name: oya-intelligence-guardrails-policy-eval-latency
   displayName: "foundry-guardrails: policy eval latency p99 ≤ 10ms"
   labels:
     microservice: foundry

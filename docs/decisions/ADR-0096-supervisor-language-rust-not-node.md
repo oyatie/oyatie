@@ -46,10 +46,10 @@ The build-vs-adopt question: should `oya-*` reuse the upstream Node implementati
    precedent for non-Rust runtime artifacts in `crates/`.
 
 2. **Kernel type composition** — The supervisor's call chain composes directly with:
-   - `RoutePolicy::select` (oya-foundry-route-policy-kernel)
-   - `UsageEnforcement::check_limit` (oya-foundry-usage-window-kernel)
+   - `RoutePolicy::select` (oya-intelligence-route-policy-kernel)
+   - `UsageEnforcement::check_limit` (oya-intelligence-usage-window-kernel)
    - `validate_usage` / `finalize_line` (oya-cloud-billing-kernel)
-   - `check_silent_switch` / `ProviderAccount` state machine (oya-foundry-account-domain)
+   - `check_silent_switch` / `ProviderAccount` state machine (oya-intelligence-account-domain)
    - `CeilingPolicy::enforce_for_tenant` (oya-governance-autonomy-ceiling-app)
 
    A Node sidecar cannot share these kernel types without an IPC bridge (JSON/CBOR
@@ -116,7 +116,7 @@ estimated across 4 crates. Language purity maintained. Kernel type composition i
   directly (zero-copy, no serialization)
 - Cedar `enforce_for_tenant` + `emit_audit_row` in same process → crash atomic
 - Single CI toolchain (Rust + cargo)
-- Dead-letter / peek-lock contract lives in `oya-foundry-jsonl-supervisor-adapter`
+- Dead-letter / peek-lock contract lives in `oya-intelligence-jsonl-supervisor-adapter`
   with the same crash-injection test harness used by other adapter crates
 
 ### Negative / Trade-offs
