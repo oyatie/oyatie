@@ -13,6 +13,46 @@
 
 pub const REQUIRED_PREFIX: &str = "oya-";
 
+/// The injectable naming policy (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3): the prefix + role
+/// enum + adopted-pattern tables that were hardcoded as the `const`s below, lifted into a
+/// value the producer can source from `oya-ci.toml`'s `[naming]` section. The bundled
+/// default ([`NamingPolicy::bundled_default`]) reproduces the `const`s exactly, so
+/// [`check_with_policy`] with the default is byte-for-byte identical to the legacy [`check`].
+///
+/// The kernel stays dependency-free: this is a plain owned struct; the config crate
+/// (`oya-ci-config-kernel`) maps its `[naming]` section onto it at the producer boundary.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NamingPolicy {
+    pub required_prefix: String,
+    pub allowed_roles: Vec<String>,
+    pub check_family_prefix: String,
+    pub backend_suffixes: Vec<String>,
+    pub doctrinal_carve_outs: Vec<String>,
+}
+
+impl NamingPolicy {
+    /// The bundled default — byte-for-byte the legacy `const`s (REQUIRED_PREFIX / ALLOWED_ROLES
+    /// / CHECK_FAMILY_PREFIX / BACKEND_SUFFIXES / DOCTRINAL_CARVE_OUTS).
+    pub fn bundled_default() -> Self {
+        Self {
+            required_prefix: REQUIRED_PREFIX.to_owned(),
+            allowed_roles: ALLOWED_ROLES.iter().map(|s| (*s).to_owned()).collect(),
+            check_family_prefix: CHECK_FAMILY_PREFIX.to_owned(),
+            backend_suffixes: BACKEND_SUFFIXES.iter().map(|s| (*s).to_owned()).collect(),
+            doctrinal_carve_outs: DOCTRINAL_CARVE_OUTS
+                .iter()
+                .map(|s| (*s).to_owned())
+                .collect(),
+        }
+    }
+}
+
+impl Default for NamingPolicy {
+    fn default() -> Self {
+        Self::bundled_default()
+    }
+}
+
 /// The 13-value canonical layer enum per ADR-0056 (amended by ADR-0105
 /// and ADR-0106).
 ///
@@ -70,31 +110,51 @@ pub const BACKEND_SUFFIXES: [&str; 9] = [
 /// Sole entry as of ADR-0107's 2026-05-15 supersede: `oya-tooling-agent-read`.
 pub const DOCTRINAL_CARVE_OUTS: [&str; 1] = ["oya-tooling-agent-read"];
 
-/// True iff the crate name is in the closed `DOCTRINAL_CARVE_OUTS` set.
-pub fn is_doctrinal_carve_out(crate_name: &str) -> bool {
-    DOCTRINAL_CARVE_OUTS.contains(&crate_name)
+/// True iff the crate name is in the policy's closed doctrinal-carve-out set.
+pub fn is_doctrinal_carve_out_with(crate_name: &str, policy: &NamingPolicy) -> bool {
+    policy
+        .doctrinal_carve_outs
+        .iter()
+        .any(|c| c == crate_name)
 }
 
-/// True iff the crate name follows the `oya-check-<feature>` pattern, in
-/// which case the role-requirement is satisfied by the prefix alone.
-pub fn is_check_family(crate_name: &str) -> bool {
-    crate_name.starts_with(CHECK_FAMILY_PREFIX)
-        && crate_name.len() > CHECK_FAMILY_PREFIX.len()
-        && !crate_name[CHECK_FAMILY_PREFIX.len()..].contains('/')
+/// True iff the crate name follows the `<check_family_prefix><feature>` pattern, in which
+/// case the role-requirement is satisfied by the prefix alone.
+pub fn is_check_family_with(crate_name: &str, policy: &NamingPolicy) -> bool {
+    let prefix = policy.check_family_prefix.as_str();
+    crate_name.starts_with(prefix)
+        && crate_name.len() > prefix.len()
+        && !crate_name[prefix.len()..].contains('/')
 }
 
-/// True iff the crate name follows the `*-adapter-<backend>` pattern,
-/// where `<backend>` is in [`BACKEND_SUFFIXES`]. In that case the
-/// effective layer is `adapter` (the trailing token is the backend
-/// qualifier, not the layer).
-pub fn is_backend_qualified_adapter(crate_name: &str) -> bool {
+/// True iff the crate name follows the `*-adapter-<backend>` pattern, where `<backend>` is in
+/// the policy's `backend_suffixes`. In that case the effective layer is `adapter`.
+pub fn is_backend_qualified_adapter_with(crate_name: &str, policy: &NamingPolicy) -> bool {
     let segments: Vec<&str> = crate_name.split('-').collect();
     if segments.len() < 2 {
         return false;
     }
     let last = segments[segments.len() - 1];
     let penult = segments[segments.len() - 2];
-    penult == "adapter" && BACKEND_SUFFIXES.contains(&last)
+    penult == "adapter" && policy.backend_suffixes.iter().any(|b| b == last)
+}
+
+/// True iff the crate name is in the closed `DOCTRINAL_CARVE_OUTS` set (bundled-default
+/// projection of [`is_doctrinal_carve_out_with`]).
+pub fn is_doctrinal_carve_out(crate_name: &str) -> bool {
+    is_doctrinal_carve_out_with(crate_name, &NamingPolicy::bundled_default())
+}
+
+/// True iff the crate name follows the `oya-check-<feature>` pattern (bundled-default
+/// projection of [`is_check_family_with`]).
+pub fn is_check_family(crate_name: &str) -> bool {
+    is_check_family_with(crate_name, &NamingPolicy::bundled_default())
+}
+
+/// True iff the crate name follows the `*-adapter-<backend>` pattern (bundled-default
+/// projection of [`is_backend_qualified_adapter_with`]).
+pub fn is_backend_qualified_adapter(crate_name: &str) -> bool {
+    is_backend_qualified_adapter_with(crate_name, &NamingPolicy::bundled_default())
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -161,7 +221,12 @@ fn infer_role(crate_name: &str) -> Option<&str> {
     crate_name.rsplit_once('-').map(|(_, role)| role)
 }
 
-pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
+/// Validate crate names against an INJECTED [`NamingPolicy`] (the config-driven entry point;
+/// OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). [`check`] is the bundled-default projection of this.
+pub fn check_with_policy(
+    rows: &[CrateNaming],
+    policy: &NamingPolicy,
+) -> Result<NamingReport, NamingError> {
     let mut violations = Vec::new();
     for row in rows {
         if row.crate_name.is_empty() {
@@ -173,7 +238,7 @@ pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
                 kind: NamingViolationKind::NameContainsUppercase,
             });
         }
-        let Some(rest) = row.crate_name.strip_prefix(REQUIRED_PREFIX) else {
+        let Some(rest) = row.crate_name.strip_prefix(policy.required_prefix.as_str()) else {
             violations.push(NamingViolation {
                 crate_name: row.crate_name.clone(),
                 kind: NamingViolationKind::MissingOyaPrefix,
@@ -195,9 +260,9 @@ pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
         // ADR-0053) are exempt from canonical-suffix enforcement — NOT
         // because of an enum exception, but because their name is
         // locked at the agent-operating-contract layer.
-        let check_family = is_check_family(&row.crate_name);
-        let backend_qualified = is_backend_qualified_adapter(&row.crate_name);
-        let doctrinal_carve_out = is_doctrinal_carve_out(&row.crate_name);
+        let check_family = is_check_family_with(&row.crate_name, policy);
+        let backend_qualified = is_backend_qualified_adapter_with(&row.crate_name, policy);
+        let doctrinal_carve_out = is_doctrinal_carve_out_with(&row.crate_name, policy);
 
         let inferred = if backend_qualified {
             "adapter"
@@ -207,6 +272,7 @@ pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
         } else {
             infer_role(&row.crate_name).unwrap_or("")
         };
+        let role_allowed = |role: &str| policy.allowed_roles.iter().any(|r| r == role);
 
         match &row.declared_role {
             None => {
@@ -224,15 +290,14 @@ pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
                 }
             }
             Some(declared) => {
-                if !ALLOWED_ROLES.contains(&declared.as_str()) {
+                if !role_allowed(declared.as_str()) {
                     violations.push(NamingViolation {
                         crate_name: row.crate_name.clone(),
                         kind: NamingViolationKind::UnknownRole {
                             role: declared.clone(),
                         },
                     });
-                } else if !check_family && ALLOWED_ROLES.contains(&inferred) && declared != inferred
-                {
+                } else if !check_family && role_allowed(inferred) && declared != inferred {
                     violations.push(NamingViolation {
                         crate_name: row.crate_name.clone(),
                         kind: NamingViolationKind::RoleMismatch {
@@ -256,6 +321,12 @@ pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
         crates_checked: rows.len(),
         violations,
     })
+}
+
+/// Validate crate names against the bundled-default policy (the legacy `const`-backed
+/// contract). Byte-for-byte equivalent to `check_with_policy(rows, &NamingPolicy::bundled_default())`.
+pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
+    check_with_policy(rows, &NamingPolicy::bundled_default())
 }
 
 #[cfg(test)]

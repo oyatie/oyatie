@@ -99,6 +99,14 @@ impl Policy {
         Self::from_strs(UNIT_CLASS_POLICY_JSON, TTL_POLICY_JSON)
     }
 
+    /// Parse the carve-out + TTL tables from the oya-ci config (OYA-CI-CONFORMANCE-FLOOR-PLAN
+    /// §3.3). The config carries these two tables as DATA (the `[unit_class]` + `[ttl]`
+    /// sections); the bundled default reproduces today's JSON byte-for-byte, so this is
+    /// equivalent to [`Policy::from_bundled`] under the default config.
+    pub fn from_config(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<Self, ProducerError> {
+        Self::from_strs(cfg.unit_class_policy_json(), cfg.ttl_policy_json())
+    }
+
     pub fn from_strs(unit_class_json: &str, ttl_json: &str) -> Result<Self, ProducerError> {
         let unit_value: Value = serde_json::from_str(unit_class_json)
             .map_err(|e| ProducerError::Policy(format!("unit-class-policy.json: {e}")))?;
