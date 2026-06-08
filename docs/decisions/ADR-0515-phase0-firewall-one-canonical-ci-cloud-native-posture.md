@@ -33,13 +33,13 @@ related_specs:
 homes: [cloud/cloud-scm, cloud/cloud-ci, cloud/cloud-cd]
 affected_surfaces:
   crates:
-    - accounting-registry-producer
-    - cloud-ci-cross-artifact-agreement
-    - cloud-ci-total-accounting
-    - cloud-ci-staleness-reaper
-    - cloud-ci-automation-ratchet
+    - oya-cloud-ci-accounting-registry-app
+    - oya-cloud-ci-cross-artifact-agreement-app
+    - oya-cloud-ci-total-accounting-app
+    - oya-cloud-ci-staleness-reaper-app
+    - oya-cloud-ci-automation-ratchet-app
     - registry-drift
-    - cloud-ci-firewall
+    - oya-cloud-ci-firewall-app
     - oya-ci-controller
   microservices: []
   specs:
@@ -135,11 +135,11 @@ authority / parallel shadow / per-changeset multi-lens critique / CLI-and-shell 
   recorded loss, not a silent one).
 
 ### 4. The firewall substrate already exists on disk (the verified ground truth)
-`cloud/cloud-ci/gates/*` carries seven Rust crates: the `accounting-registry-producer` (one record per
+`cloud/cloud-ci/gates/*` carries seven Rust crates: the `oya-cloud-ci-accounting-registry-app` (one record per
 `git ls-files` path + the TTL / decision-crosswalk / enforcement-inventory faces), four born-blocking
-gates (`cloud-ci-cross-artifact-agreement` GATE-1, `cloud-ci-total-accounting` GATE-2,
-`cloud-ci-staleness-reaper` GATE-3, `cloud-ci-automation-ratchet` GATE-4), the `registry-drift`
-committed==regenerated gate, and the `cloud-ci-firewall` ratchet that layers the committed baseline as
+gates (`oya-cloud-ci-cross-artifact-agreement-app` GATE-1, `oya-cloud-ci-total-accounting-app` GATE-2,
+`oya-cloud-ci-staleness-reaper-app` GATE-3, `oya-cloud-ci-automation-ratchet-app` GATE-4), the `registry-drift`
+committed==regenerated gate, and the `oya-cloud-ci-firewall-app` ratchet that layers the committed baseline as
 a second predicate (blocks only **new** debt). The verdict is **data, not control flow**
 (`compare()` loops the union of `(gate, code)` keys with no early exit; surface-all is a property of the
 `BTreeSet` aggregation). The committed branch-protection SSOT is **already re-authored**
@@ -151,7 +151,7 @@ a second predicate (blocks only **new** debt). The verdict is **data, not contro
 ### D1. The Phase-0 firewall is the enforcement substrate
 The Phase-0 false-green firewall is the substrate that makes merge-gate enforcement **real**:
 
-1. **One generated accounting-registry.** `accounting-registry-producer` emits one deterministic record
+1. **One generated accounting-registry.** `oya-cloud-ci-accounting-registry-app` emits one deterministic record
    per tracked path (+ the TTL / crosswalk / enforcement-inventory faces); `registry-drift` enforces
    `committed == regenerated` byte-for-byte, making a hand-edit of any generated face structurally
    impossible.
@@ -325,7 +325,7 @@ Per D-SEQUENCE, enforcement becomes real *before* the canon is fixed through it.
 sitting** to bound the half-hardened window:
 
 1. **Stand up real enforcement (automatable-now).** Land the firewall substrate + the
-   `cloud-ci-firewall` aggregator bin (with the TAMPER/empty-input-exits-non-zero test and the
+   `oya-cloud-ci-firewall-app` aggregator bin (with the TAMPER/empty-input-exits-non-zero test and the
    gate-registration-completeness meta-test) + the zero-build `oya-ci-required` fan-in + the
    branch-protection drift gate (report-only until the SSOT re-author lands and the live state is
    hardened — its soak target is "live == re-authored SSOT") + kill within-lane fail-fast. Prove the

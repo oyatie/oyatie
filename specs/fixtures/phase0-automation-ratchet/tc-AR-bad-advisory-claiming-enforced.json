@@ -22,5 +22,5 @@
       "has_wired_buck2_target": false
     }
   ],
-  "source_test": "cloud/cloud-ci/gates/automation-ratchet/tests/automation_ratchet.rs"
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
 }

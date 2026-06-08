@@ -7,5 +7,5 @@
   "description": "A hand-edit to the generated accounting-registry face: committed != regenerated. The only legal way to change a generated face is to change source + re-run the producer; a hand-edit is structurally RED (registry_drift). Modeled here via the registry_hand_edited signal; the live byte-diff is enforced by the :registry-drift gate.",
   "registry_hand_edited": true,
   "rows": [],
-  "source_test": "cloud/cloud-ci/gates/total-accounting/tests/total_accounting.rs"
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs"
 }
