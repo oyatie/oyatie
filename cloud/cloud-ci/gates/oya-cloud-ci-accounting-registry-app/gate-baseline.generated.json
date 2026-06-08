@@ -4,7 +4,7 @@
     "baseline_schema_version": 1,
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:59fc012cbf3a8b37"
+    "source_inputs_digest": "fnv1a64:ffa7432b5d1f2bc5"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -6037,6 +6037,10 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/BUCK",
+          "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/Cargo.toml",
+          "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/src/lib.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/tests/bnf_layer_suffix.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs",
@@ -23022,6 +23026,10 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/BUCK",
+          "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/Cargo.toml",
+          "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/src/lib.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app/tests/bnf_layer_suffix.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/src/lib.rs",
