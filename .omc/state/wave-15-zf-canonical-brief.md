@@ -25,7 +25,7 @@ Each subagent MUST read these files in this order BEFORE touching any artifact:
 3. `tools/hooks/_canonical-primitives.md` — canonical primitives (oya git, OpenAPI 3.2.0, Valkey, etc.)
 4. The 4 new ADRs themselves:
    - `docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md`
-   - `docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md`
+   - `docs/decisions/ADR-0347-governance-fitness-bulk-rename.md`
    - `docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md`
    - `docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md`
 5. `CLAUDE.md` (root) — project rules

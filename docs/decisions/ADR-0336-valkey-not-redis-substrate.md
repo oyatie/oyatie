@@ -54,7 +54,7 @@ related:
   - ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md
   - ADR-0329-tier-system-retired-replaced-by-tenant-class.md
   - ADR-0331-cross-microservice-tenant-class-adoption-template.md
-  - ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md
+  - ADR-0335-intelligence-microservice-consolidation.md
 related_specs:
   - /specs/master-plan-sequencing.json
   - /specs/microservices/manifest-schema.json

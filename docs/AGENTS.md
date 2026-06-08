@@ -54,7 +54,7 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
 
-Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine until superseded or amended by a newer ADR. ADR-0513/platform-readiness is the current amendment for CI authority: Prow-shaped cloud-ci/oya-ci is the destination, Jenkins is a bridge, and `oya` CLI must not be promoted as protected-branch CI authority.
+Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine until superseded or amended by a newer ADR. ADR-0513/platform-readiness is the current amendment for CI authority: Prow-shaped cloud-ci/oya-ci is the destination, Jenkins is a bridge, and `oya` CLI must not be promoted as protected-branch CI authority.
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|

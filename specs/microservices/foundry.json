@@ -27,7 +27,7 @@
     "absorbed_by_manifest": "microservices/intelligence/manifest.json",
     "retirement_marker": "microservices/intelligence/RETIRED.md",
     "authority_adrs": [
-      "ADR-0335-foundry-microservice-retired-absorbed-by-intelligence",
+      "ADR-0335-intelligence-microservice-consolidation",
       "ADR-0255-intelligence-as-two-layer-ai-substrate",
       "ADR-0247-self-hosting-self-modification-doctrine",
       "ADR-0220-consumer-intelligence-substrate",
@@ -138,7 +138,7 @@
       "microservices/intelligence/manifest.json",
       "microservices/intelligence/PRD.md",
       "microservices/intelligence/ARCHITECTURE.md",
-      "docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md"
+      "docs/decisions/ADR-0335-intelligence-microservice-consolidation.md"
     ]
   }
 }

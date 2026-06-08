@@ -62,7 +62,7 @@ related_adrs:
   - ADR-0324-anti-script-anti-template-doctrine.md
   - ADR-0327-realignment-wave-promotion-gate.md
   - ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md
-  - ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md
+  - ADR-0335-intelligence-microservice-consolidation.md
   - ADR-0339-shared-iac-module-library.md
   - ADR-0340-capacity-model-per-microservice-manifest.md
   - ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md
@@ -71,7 +71,7 @@ related_adrs:
   - ADR-0344-sustainability-finops-dimensional-model.md
   - ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md
   - ADR-0346-oya-verify-must-run-full-ci-mirror.md
-  - ADR-0347-foundry-fitness-to-governance-bulk-rename.md
+  - ADR-0347-governance-fitness-bulk-rename.md
 related_specs:
   - /specs/master-plan-sequencing.json
   - /specs/oss-stewardship-registry.json
@@ -936,7 +936,7 @@ I.34. **ADR-0345** (`docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cv
 
 I.35. **ADR-0346** (`docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md`) — verify entry point; Jenkinsfile pipelines invoke `oya verify --ci-required` per D-3.6.
 
-I.36. **ADR-0347** (`docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md`) — governance prefix discipline; the five new lanes use `oya-governance-*` per G.10.
+I.36. **ADR-0347** (`docs/decisions/ADR-0347-governance-fitness-bulk-rename.md`) — governance prefix discipline; the five new lanes use `oya-governance-*` per G.10.
 
 I.37. **`feedback_jenkins_argocd_substrate_2026_05_21.md`** — the canonical doctrine memory.
 

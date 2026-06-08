@@ -72,7 +72,7 @@
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
     "adr_0347_foundry_fitness_governance_bulk_rename": {
-      "current_path": "docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md",
+      "current_path": "docs/decisions/ADR-0347-governance-fitness-bulk-rename.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "purpose": "ADR-0347 authority for the single Wave 15-ZB bulk rename of `oya-governance-*` lane prefixes to `oya-governance-*` and the associated residue, vocabulary, and inventory-presence governance lanes.",

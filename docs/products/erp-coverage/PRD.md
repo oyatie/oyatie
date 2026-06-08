@@ -2505,7 +2505,7 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
 - docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
-- docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md
+- docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
 - docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 - specs/microservices/accounting.json
