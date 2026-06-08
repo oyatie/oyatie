@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17567,
-    "source_inputs_digest": "fnv1a64:8dd3eff1556ed468"
+    "source_inputs_digest": "fnv1a64:e3de32a9b1ac8737"
   },
   "rows": [
     {
@@ -729,7 +729,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "19ff4886a1b072cdd66a53c89c217c4a458d907b",
+      "last_touch_commit": "97ba0bbe0a9208a9077894a09a08ae0bf82b7fcb",
       "owner": null,
       "path": ".github/workflows/oya-ci-required.yml",
       "reachable_from": [],
