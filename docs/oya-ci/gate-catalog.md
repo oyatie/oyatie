@@ -1,0 +1,59 @@
+# oya-ci gate catalog
+
+Each gate is a thin, pure projection: the producer builds an input, the gate's `evaluate_keyed`
+turns it into a set of `Finding{code, key}`, and the firewall ratchets the per-(gate,code) keys
+against the committed baseline. Gates are config-declared in `[[gates.enabled]]`; a repo enables
+the gates of the packs it uses.
+
+## Input KINDs (the §3.5 INPUT-BINDING abstraction)
+
+Each enabled gate declares HOW its current keys are sourced:
+
+- **`producer-face`** — the producer builds a face (a `Value`), and the gate's pure
+  `evaluate_keyed(&face)` produces the keys. Six gates use this; each binds one `face`.
+- **`raw-corpus-collector`** — the keys arrive ALREADY GROUPED `code -> keys` from a raw-corpus
+  census the binary runs over the tracked text files (NOT a face, NOT `evaluate_keyed`).
+  `cloud-ci-brand-residue` uses this.
+- **`frozen-empty-meta`** — the gate contributes NO current keys; its codes exist only in the
+  disposition table and are stamped permanently-empty. (Today every such code lives *under* an
+  existing gate via its disposition's `frozen_empty: true` — e.g. the `registry_drift` code under
+  `cloud-ci-total-accounting`. The KIND is reserved for a wholly-meta gate.)
+
+## Packs
+
+- **`core` (language-agnostic):** total-accounting, cross-artifact-agreement, automation-ratchet,
+  staleness-reaper (all `producer-face`); brand-residue (`raw-corpus-collector`). Collectors
+  operate on tracked text + the ADR/markdown corpus + git history — no language assumption.
+- **`rust-cargo`:** bnf-layer-suffix + manifest-hygiene (both `producer-face`). Collectors
+  enumerate `Cargo.toml`; consume the `[naming]` + `[manifest]` policy.
+
+A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo`.
+
+## The gates
+
+| Gate id | Pack | Input KIND (face) | Violation codes |
+|---|---|---|---|
+| `cloud-ci-total-accounting` | core | producer-face (`total_accounting`) | `unaccounted`, `unowned`, `unjustified`, `unreachable`, `no_ttl_class`, `registry_drift` (frozen-empty) |
+| `cloud-ci-cross-artifact-agreement` | core | producer-face (`cross_artifact`) | `generated_face_drift`, `dual_decision_collision`, `supersession_half_edge`, `unpropagated_decision`, `orphan_decision`, `status_disagreement` |
+| `cloud-ci-automation-ratchet` | core | producer-face (`automation_ratchet`) | `advisory_claiming_enforced`, `blocking_invariant_mapped_to_oya_cli`, `ratchet_regression` (frozen-empty), `enforceable_or_automatable_marked_human_judgment`, `duplicate_row_id` (frozen-empty), `unknown_classification`, `missing_or_empty_required_field` |
+| `cloud-ci-staleness-reaper` | core | producer-face (`staleness`) | `stale_over_budget_unreachable`, `untyped_staleness`, `reap_without_report` (frozen-empty) |
+| `cloud-ci-brand-residue` | core | raw-corpus-collector | one `forbidden_<stem>` code per configured `[vocab]` stem |
+| `cloud-ci-bnf-layer-suffix` | rust-cargo | producer-face (`bnf_layer_suffix`) | `bnf_unknown_role`, `bnf_role_mismatch`, `bnf_missing_oya_prefix`, `bnf_empty_after_prefix`, `bnf_undeclared_role`, `bnf_undeclared_context`, `bnf_name_uppercase` |
+| `cloud-ci-manifest-hygiene` | rust-cargo | producer-face (`manifest_hygiene`) | `manifest_missing_version_workspace`, `manifest_missing_rust_version_workspace`, `manifest_missing_publish_false`, `manifest_missing_license`, `manifest_missing_lints_workspace`, `manifest_missing_lib_doctest_false` |
+
+## Key shapes (what a `key` identifies)
+
+- total-accounting / staleness: the registry row `path`.
+- cross-artifact: a decision id.
+- automation-ratchet: a surface/row id.
+- brand-residue: the file path containing a stem (per-file, NOT per-line — stable under in-file
+  edits; only fully cleaning a file shrinks the set).
+- bnf / manifest: the crate name.
+
+## frozen-empty codes
+
+A `frozen_empty: true` disposition forces a code's baseline to be permanently empty regardless of
+current keys, so ANY occurrence is NEW debt the firewall blocks. `registry_drift` (under
+total-accounting), `ratchet_regression` + `duplicate_row_id` (under automation-ratchet), and
+`reap_without_report` (under staleness) are frozen-empty meta codes — they cannot accumulate a
+baseline.
