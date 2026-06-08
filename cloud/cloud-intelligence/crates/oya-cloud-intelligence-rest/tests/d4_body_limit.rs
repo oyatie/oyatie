@@ -11,7 +11,7 @@ use oya_cloud_intelligence_kernel::{
     SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
 };
 use oya_cloud_intelligence_rest::{
-    AppState, EventSink, LlmGatewayEvent, OpenBaoSecretStore, RestAdapterError,
+    AppState, EventSink, LlmGatewayEvent, OpenBaoSecretStore, PoolRegistry, RestAdapterError,
     TokenRefreshSingleflight, build_router,
 };
 use tower::ServiceExt; // for `oneshot`
@@ -61,11 +61,15 @@ fn make_state() -> Arc<AppState> {
     .unwrap();
     Arc::new(AppState {
         pool: Arc::new(Mutex::new(pool)),
+        pool_registry: PoolRegistry::new(),
         gate: Arc::new(AlwaysAllow),
         sink: Arc::new(NoopSink),
         secret_store: Arc::new(StubStore),
         anthropic_base_url: "http://127.0.0.1:1".to_string(),
         tenant_id: tenant,
+        admin_bearer_token: None,
+        environment: "test".to_string(),
+        oauth_approved_providers: std::collections::HashSet::new(),
         token_singleflight: Arc::new(TokenRefreshSingleflight::new()),
         http_client: Arc::new(reqwest::Client::new()),
     })

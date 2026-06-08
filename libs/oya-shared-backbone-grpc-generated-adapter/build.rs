@@ -5,7 +5,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let manifest_dir = PathBuf::from(
         std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| "../../..".to_string()),
     );
-    let proto_root = manifest_dir.join("specs/proto/backbone");
+    let proto_root = manifest_dir.join("../../specs/proto/backbone");
     let proto_files = [
         proto_root.join("messenger/message_stream.proto"),
         proto_root.join("mail/mail.proto"),
