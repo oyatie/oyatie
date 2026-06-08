@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17587,
-    "source_inputs_digest": "fnv1a64:90ec4b8974f9f4c6"
+    "source_inputs_digest": "fnv1a64:70b2f8d62ba61a6a"
   },
   "rows": [
     {
@@ -68527,7 +68527,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "b284d3c89df1b2e291755977e0eceab28e45f797",
       "owner": null,
       "path": "docs/oya-ci/README.md",
       "reachable_from": [],
@@ -68548,7 +68548,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "b284d3c89df1b2e291755977e0eceab28e45f797",
       "owner": null,
       "path": "docs/oya-ci/config-reference.md",
       "reachable_from": [],
@@ -68569,7 +68569,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "b284d3c89df1b2e291755977e0eceab28e45f797",
       "owner": null,
       "path": "docs/oya-ci/firewall-model.md",
       "reachable_from": [],
@@ -68590,7 +68590,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "b284d3c89df1b2e291755977e0eceab28e45f797",
       "owner": null,
       "path": "docs/oya-ci/gate-catalog.md",
       "reachable_from": [],
@@ -68611,7 +68611,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "b284d3c89df1b2e291755977e0eceab28e45f797",
       "owner": null,
       "path": "docs/oya-ci/quick-start.md",
       "reachable_from": [],
