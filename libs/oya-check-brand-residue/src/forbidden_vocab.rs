@@ -140,21 +140,78 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
     },
 ];
 
-/// Whether `path` is wholly carved out (path-level rules only).
-pub fn is_path_carved_out(path: &str) -> bool {
-    CARVE_OUT_RULES.iter().any(|rule| match rule.kind {
-        CarveOutKind::PathPrefix => path.starts_with(rule.value),
+/// One owned stem (the runtime, config-sourced form of [`ForbiddenStem`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OwnedStem {
+    pub stem: String,
+    pub code: String,
+}
+
+/// One owned carve-out rule (the runtime, config-sourced form of [`CarveOutRule`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OwnedCarveOut {
+    pub kind: CarveOutKind,
+    pub value: String,
+}
+
+/// The INJECTABLE forbidden-vocab policy (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3 / Stage 3): the
+/// stem table + carve-out table lifted out of the `const`s into a value the producer sources
+/// from `oya-ci.toml`'s `[vocab]` section. [`VocabPolicy::bundled_default`] reproduces the
+/// `const`s exactly, so the `_with` census variants under the default are byte-for-byte
+/// identical to the legacy const-based census.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VocabPolicy {
+    pub stems: Vec<OwnedStem>,
+    pub carve_outs: Vec<OwnedCarveOut>,
+}
+
+impl VocabPolicy {
+    /// The bundled default — byte-for-byte the legacy `FORBIDDEN_VOCAB_STEMS` + `CARVE_OUT_RULES`.
+    pub fn bundled_default() -> Self {
+        Self {
+            stems: FORBIDDEN_VOCAB_STEMS
+                .iter()
+                .map(|s| OwnedStem {
+                    stem: s.stem.to_owned(),
+                    code: s.code.to_owned(),
+                })
+                .collect(),
+            carve_outs: CARVE_OUT_RULES
+                .iter()
+                .map(|c| OwnedCarveOut {
+                    kind: c.kind,
+                    value: c.value.to_owned(),
+                })
+                .collect(),
+        }
+    }
+}
+
+impl Default for VocabPolicy {
+    fn default() -> Self {
+        Self::bundled_default()
+    }
+}
+
+/// Whether `path` is wholly carved out by an INJECTED policy's path-level rules.
+pub fn is_path_carved_out_with(path: &str, policy: &VocabPolicy) -> bool {
+    policy.carve_outs.iter().any(|rule| match rule.kind {
+        CarveOutKind::PathPrefix => path.starts_with(rule.value.as_str()),
         CarveOutKind::PathExact => path == rule.value,
-        CarveOutKind::PathSuffix => path.ends_with(rule.value),
+        CarveOutKind::PathSuffix => path.ends_with(rule.value.as_str()),
         CarveOutKind::LineContainsCi => false,
     })
 }
 
-/// Whether `line` is carved out by a line-level rule (e.g. proper-noun prose). `line_lower`
-/// is the caller-supplied lower-cased line (computed once per line).
-fn is_line_carved_out(line_lower: &str) -> bool {
-    CARVE_OUT_RULES.iter().any(|rule| {
-        rule.kind == CarveOutKind::LineContainsCi && line_lower.contains(rule.value)
+/// Whether `path` is wholly carved out (bundled-default projection of [`is_path_carved_out_with`]).
+pub fn is_path_carved_out(path: &str) -> bool {
+    is_path_carved_out_with(path, &VocabPolicy::bundled_default())
+}
+
+/// Whether `line_lower` is carved out by an INJECTED policy's line-level rule.
+fn is_line_carved_out_with(line_lower: &str, policy: &VocabPolicy) -> bool {
+    policy.carve_outs.iter().any(|rule| {
+        rule.kind == CarveOutKind::LineContainsCi && line_lower.contains(rule.value.as_str())
     })
 }
 
@@ -177,7 +234,7 @@ pub fn line_has_forbidden_stem(line: &str) -> Option<&'static ForbiddenStem> {
 /// A line carved out by a line-level rule (e.g. Palantir proper-noun prose) yields nothing.
 pub fn line_forbidden_stems(line: &str) -> Vec<&'static ForbiddenStem> {
     let lower = line.to_ascii_lowercase();
-    if is_line_carved_out(&lower) {
+    if is_line_carved_out_with(&lower, &VocabPolicy::bundled_default()) {
         return Vec::new();
     }
     FORBIDDEN_VOCAB_STEMS
@@ -186,38 +243,49 @@ pub fn line_forbidden_stems(line: &str) -> Vec<&'static ForbiddenStem> {
         .collect()
 }
 
-/// The pure per-(stem, file) census. For each document NOT wholly carved out, a file
-/// contributes one [`Finding`] per stem it contains on any non-carved-out line. The result
-/// is the keyed set the producer freezes; its per-code cardinality is the per-stem file
-/// count (the shrink-only ratchet metric).
-///
-/// Deterministic: findings flow through a `BTreeSet`, so the same corpus yields a
-/// byte-identical baseline (committed == regenerated).
-pub fn census_findings<'a, I>(documents: I) -> BTreeSet<Finding>
+/// The pure per-(stem, file) census over an INJECTED [`VocabPolicy`] (OYA-CI-CONFORMANCE-FLOOR
+/// §3.3 / Stage 3). For each document NOT wholly carved out, a file contributes one [`Finding`]
+/// per stem it contains on any non-carved-out line. Deterministic (BTreeSet); the bundled-default
+/// policy reproduces the legacy const-based census byte-for-byte.
+pub fn census_findings_with<'a, I>(documents: I, policy: &VocabPolicy) -> BTreeSet<Finding>
 where
     I: IntoIterator<Item = CensusDocument<'a>>,
 {
     let mut findings: BTreeSet<Finding> = BTreeSet::new();
     for doc in documents {
-        if is_path_carved_out(doc.path) {
+        if is_path_carved_out_with(doc.path, policy) {
             continue;
         }
         // Per-file: which stems appear on at least one non-carved-out line. A line may carry
         // several stems; the file is flagged for every one of them.
-        let mut stems_in_file: BTreeSet<&'static str> = BTreeSet::new();
+        let mut codes_in_file: BTreeSet<String> = BTreeSet::new();
         for line in doc.contents.lines() {
-            for stem in line_forbidden_stems(line) {
-                stems_in_file.insert(stem.code);
+            let lower = line.to_ascii_lowercase();
+            if is_line_carved_out_with(&lower, policy) {
+                continue;
+            }
+            for stem in &policy.stems {
+                if lower.contains(stem.stem.as_str()) {
+                    codes_in_file.insert(stem.code.clone());
+                }
             }
         }
-        for code in stems_in_file {
+        for code in codes_in_file {
             findings.insert(Finding {
-                code: code.to_owned(),
+                code,
                 key: doc.path.to_owned(),
             });
         }
     }
     findings
+}
+
+/// The pure per-(stem, file) census (bundled-default projection of [`census_findings_with`]).
+pub fn census_findings<'a, I>(documents: I) -> BTreeSet<Finding>
+where
+    I: IntoIterator<Item = CensusDocument<'a>>,
+{
+    census_findings_with(documents, &VocabPolicy::bundled_default())
 }
 
 /// The per-stem file COUNT (the shrink-only ratchet metric), derived from the census. Keyed
