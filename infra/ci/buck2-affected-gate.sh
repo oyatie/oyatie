@@ -10,9 +10,9 @@
 #         base-ref  — the merge-base anchor (e.g. origin/dev)
 #         head-ref  — the tip to diff (default: HEAD)
 #
-# The 1-arg form (buck2-affected-gate.sh origin/dev) is BACKWARD-COMPATIBLE:
-# HEAD is the PR checkout in the Jenkins bridge path, so omitting head-ref
-# keeps the existing Jenkins call unchanged.
+# The 1-arg form (buck2-affected-gate.sh origin/dev) diffs the current
+# checkout: HEAD is the PR checkout in the GitHub Actions runner, so omitting
+# head-ref is the default invocation.
 #
 # The 2-arg form (buck2-affected-gate.sh origin/dev origin/pr-N) is used by
 # the controller Job, where the working tree is trunk (dev) and the PR ref

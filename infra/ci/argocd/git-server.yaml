@@ -3,7 +3,8 @@
 #
 # An initContainer seeds a bare repo from the manifests ConfigMap; the main
 # container serves it read-only over git://. Production points ArgoCD at the
-# real VCS (Jenkins GitHub App lane, ADR-0359); this is the local analogue.
+# real VCS (GitHub; ci-webhook-gateway per ADR-0374/0387); this is the local
+# analogue.
 ---
 apiVersion: v1
 kind: ConfigMap

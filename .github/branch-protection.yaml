@@ -14,18 +14,17 @@
 #   - dev        Shared-world entry point. PRs target here. 3-gate:
 #                signed-commits + linear-history + every required
 #                CI check green. Default branch on github.
-#   - staging    Auto-promoted from dev by the Jenkins promote-dev-to-staging
-#                pipeline (per ADR-0361 Jenkins-native CI/CD; pipeline impl
-#                tracked in registry/placeholder-debt/adr-follow-ups.yaml
-#                #adr-0361-promote-pipelines). The prior GHA workflow at
-#                .github/workflows/promote-dev-to-staging.yml was retired in
-#                R5 (ADR-0361). No PR review; signed-commits + linear-history;
-#                CANARY cohort exposure begins on this ref.
-#   - production Auto-promoted from staging by the Jenkins
-#                promote-staging-to-production pipeline (per ADR-0361; pipeline
-#                impl tracked in the same placeholder-debt entry). The prior
-#                GHA workflow was retired in R5. No PR review; signed-commits
-#                + linear-history; FULL ROLLOUT exposure on this ref.
+#   - staging    Auto-promoted from dev by the promote-dev-to-staging
+#                pipeline (GitHub Actions is the sole CI per ADR-0515 D3;
+#                pipeline impl tracked in registry/placeholder-debt/
+#                adr-follow-ups.yaml#adr-0361-promote-pipelines). No PR review;
+#                signed-commits + linear-history; CANARY cohort exposure begins
+#                on this ref.
+#   - production Auto-promoted from staging by the
+#                promote-staging-to-production pipeline (GitHub Actions per
+#                ADR-0515 D3; pipeline impl tracked in the same placeholder-debt
+#                entry). No PR review; signed-commits + linear-history; FULL
+#                ROLLOUT exposure on this ref.
 #
 # `main` is RETAINED for read-only legacy compatibility but has NO
 # protection and is not the default branch. PRs targeting `main` are
@@ -56,8 +55,9 @@ branches:
       - oya-ci-required
 
   staging:
-    # Auto-promoted from dev by the Jenkins promote-dev-to-staging pipeline
-    # (per ADR-0361); the fast-forward inherits dev's signature + CI state.
+    # Auto-promoted from dev by the promote-dev-to-staging pipeline
+    # (GitHub Actions per ADR-0515 D3); the fast-forward inherits dev's
+    # signature + CI state.
     # No PR required, no review, no CI gate at THIS layer — those gates
     # already fired on dev. What we do enforce: the ref must only move
     # forward, the underlying commits must be signed, no force-push, no
@@ -70,8 +70,9 @@ branches:
     require_signed_tags: true
 
   production:
-    # Auto-promoted from staging by the Jenkins promote-staging-to-production
-    # pipeline (per ADR-0361); same fast-forward inheritance as staging.
+    # Auto-promoted from staging by the promote-staging-to-production
+    # pipeline (GitHub Actions per ADR-0515 D3); same fast-forward inheritance
+    # as staging.
     # FULL-rollout layer; canary observability gate (per FINAL-FINAL) is the
     # future addition that conditions this promotion. Pipeline impl tracked
     # in registry/placeholder-debt/adr-follow-ups.yaml#adr-0361-promote-pipelines.
