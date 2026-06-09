@@ -23,7 +23,7 @@ from pathlib import Path
 
 REPO = Path(__file__).parent.parent.resolve()
 # Never touch generated/vendored/upstream trees.
-SKIP_PREFIXES = ("third-party/", "buck-out/", "tools/agent-skills/", "prelude/", ".")
+SKIP_PREFIXES = ("third-party/", "buck-out/", "prelude/", ".")
 
 # Crates whose -unittest target currently fails under buck2 — emit is deferred
 # until each is fixed (see #85). Re-running the emitter must NOT re-introduce a

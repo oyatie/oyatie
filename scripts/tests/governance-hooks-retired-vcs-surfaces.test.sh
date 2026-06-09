@@ -20,21 +20,24 @@ fi
 retired_git_output="$tmpdir/retired-git.out"
 TOOL_INPUT='{"command":"oya git status --short"}' \
   bash "$repo_root/tools/hooks/stale-tool-suggester.sh" >"$retired_git_output" 2>&1
-grep -q 'Retired VCS surface detected' "$retired_git_output"
-grep -q 'Use plain git for VCS work' "$retired_git_output"
+grep -q 'Retired local authority surface detected' "$retired_git_output"
+grep -q 'Use plain git for local VCS work' "$retired_git_output"
 
 retired_vcs_output="$tmpdir/retired-vcs.out"
 TOOL_INPUT='{"command":"oya vcs status"}' \
   bash "$repo_root/tools/hooks/stale-tool-suggester.sh" >"$retired_vcs_output" 2>&1
-grep -q 'Retired VCS surface detected' "$retired_vcs_output"
-grep -q 'Use plain git for VCS work' "$retired_vcs_output"
+grep -q 'Retired local authority surface detected' "$retired_vcs_output"
+grep -q 'Use plain git for local VCS work' "$retired_vcs_output"
+
+existing_hook_configs=()
+for hook_config in   "$repo_root/.codex/hooks.json"   "$repo_root/.claude/settings.json"   "$repo_root/.gemini/settings.json"; do
+  if [ -f "$hook_config" ]; then
+    existing_hook_configs+=("$hook_config")
+  fi
+done
 
 context_registration_pattern='SessionStart|UserPromptSubmit|BeforeAgent|oya-session-context|oya-canonical-primer'
-if rg -n "$context_registration_pattern" \
-  "$repo_root/.codex/hooks.json" \
-  "$repo_root/.claude/settings.json" \
-  "$repo_root/.gemini/settings.json" \
-  "$repo_root/tools/hook-bootstrap/install.sh"; then
+if [ "${#existing_hook_configs[@]}" -gt 0 ] && rg -n "$context_registration_pattern" "${existing_hook_configs[@]}"; then
   echo "context-injection hooks should not be registered by managed hook configs" >&2
   exit 1
 fi
@@ -49,13 +52,11 @@ for retired_context_hook in session-start-context-inject.sh userprompt-canonical
   fi
 done
 
+stale_vcs_scan_paths=("$repo_root/tools/hooks")
+stale_vcs_scan_paths+=("${existing_hook_configs[@]}")
 if rg -n \
   'Preferred drop-in surface: oya git|policy ratchet compatibility|policy-ratchet|route through `oya git`|Top-level subcommands: git|oya-git cutover|migrate plain git/drop-in docs toward oya git' \
-  "$repo_root/tools/hooks" \
-  "$repo_root/tools/hook-bootstrap" \
-  "$repo_root/.codex/hooks.json" \
-  "$repo_root/.claude/settings.json" \
-  "$repo_root/.gemini/settings.json"; then
+  "${stale_vcs_scan_paths[@]}"; then
   echo "active governance hook surface still contains stale VCS guidance" >&2
   exit 1
 fi

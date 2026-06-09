@@ -254,4 +254,4 @@ The service owns render, plan preview, apply, rollback, provenance, and drift re
 - Source contracts checked: `cloud-iac.yaml`, `cloud-iac-events.yaml`, and cloud-iac proto.
 - Source policies checked: `iac-isolation.md`, `public-read.cedar`, `tenant-scope.cedar`, `ci-scope.cedar`, `auditor-scope.cedar`.
 - No in-flight microservice directories were edited.
-- Oya VCS scope: `microservices`.
+- GitOps change-bundle scope: `microservices`.

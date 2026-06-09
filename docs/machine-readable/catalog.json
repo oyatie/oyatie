@@ -54,25 +54,6 @@
       "validation_check": "readme-doc-coverage",
       "agent_authoring_allowed": true
     },
-    "doc.bootstrap": {
-      "path": "docs/bootstrap.md",
-      "owner_team": "axis-foundry",
-      "tier": "cross-cutting",
-      "update_trigger": [
-        "contributor bootstrap contract change",
-        "hook install contract change"
-      ],
-      "update_cadence": "per-change",
-      "dependent_docs": [
-        "doc.toolchain",
-        "doc.agent_instruction_sources"
-      ],
-      "validation_check": [
-        "doc-catalog-self-coverage",
-        "readme-doc-coverage"
-      ],
-      "agent_authoring_allowed": true
-    },
     "doc.masterplan": {
       "path": "docs/MASTERPLAN.md",
       "owner_team": "council-architecture",
@@ -604,7 +585,7 @@
       "tier": 3,
       "update_trigger": [
         "EVT-PRICING-CHANGE",
-        "capacity-cost ≥ 10% drift"
+        "capacity-cost \u2265 10% drift"
       ],
       "update_cadence": "monthly",
       "dependent_docs": [

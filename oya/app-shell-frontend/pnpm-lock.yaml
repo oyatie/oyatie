@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@tanstack/server-functions-plugin': 1.99.5
+
 importers:
 
   .:
@@ -36,8 +39,8 @@ importers:
 
 packages:
 
-  '@babel/code-frame@7.27.1':
-    resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
+  '@babel/code-frame@7.26.2':
+    resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/code-frame@7.29.7':
@@ -917,19 +920,20 @@ packages:
   '@speed-highlight/core@1.2.15':
     resolution: {integrity: sha512-BMq1K3DsElxDWawkX6eLg9+CKJrTVGCBAWVuHXVUV2u0s2711qiChLSId6ikYPfxhdYocLNt3wWwSvDiTvFabw==}
 
-  '@tanstack/directive-functions-plugin@1.142.1':
-    resolution: {integrity: sha512-k4HhAaitobp+z2pXBkmoWgE8Ollhx7fQXpVL+PQ7HeHZc2PilrQtC3ysxvoPunufrztIxweSE9HAWkZ2AFNaLw==}
+  '@tanstack/directive-functions-plugin@1.99.5':
+    resolution: {integrity: sha512-+1e6iOVipOqzA8f/dDU/cnb1WtaxS7h5CgGNYn3PaXU6Iw+wR0HXj7jqjfOUL6y9a3utnA1rLtpivCS2icADsw==}
     engines: {node: '>=12'}
-    peerDependencies:
-      vite: '>=6.0.0 || >=7.0.0'
 
   '@tanstack/router-utils@1.141.0':
     resolution: {integrity: sha512-/eFGKCiix1SvjxwgzrmH4pHjMiMxc+GA4nIbgEkG2RdAJqyxLcRhd7RPLG0/LZaJ7d0ad3jrtRqsHLv2152Vbw==}
     engines: {node: '>=12'}
 
-  '@tanstack/server-functions-plugin@1.142.1':
-    resolution: {integrity: sha512-ltTOj6dIDlRV3M8+PzontDYFMnIQ+icUnD+OKzIRfKo6bbvC0qvy8ttuWmVJxmqHy9xsWgkNt4gZrKVjtWXIhQ==}
+  '@tanstack/server-functions-plugin@1.99.5':
+    resolution: {integrity: sha512-aw2Um2vW4T3rLh9fVEmPcQ8odOMAK3o67XfSYYGlUHpT/V6TsLzn7ONBoQz8lBqaBBZfyULp2XQJZQh/M9MbqQ==}
     engines: {node: '>=12'}
+
+  '@types/babel__code-frame@7.27.0':
+    resolution: {integrity: sha512-Dwlo+LrxDx/0SpfmJ/BKveHf7QXWvLBLc+x03l5sbzykj3oB9nHygCpSECF1a+s+QIxbghe+KHqC90vGtxLRAA==}
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -1383,6 +1387,14 @@ packages:
       supports-color: '*'
     peerDependenciesMeta:
       supports-color:
+        optional: true
+
+  dedent@1.7.2:
+    resolution: {integrity: sha512-WzMx3mW98SN+zn3hgemf4OzdmyNhhhKz5Ay0pUfQiMQ3e1g+xmTJWp/pKdwKVXhdSkAEGIIzqeuWrL3mV/AXbA==}
+    peerDependencies:
+      babel-plugin-macros: ^3.1.0
+    peerDependenciesMeta:
+      babel-plugin-macros:
         optional: true
 
   deepmerge@4.3.1:
@@ -2847,7 +2859,7 @@ packages:
 
 snapshots:
 
-  '@babel/code-frame@7.27.1':
+  '@babel/code-frame@7.26.2':
     dependencies:
       '@babel/helper-validator-identifier': 7.29.7
       js-tokens: 4.0.0
@@ -3563,7 +3575,7 @@ snapshots:
 
   '@solidjs/start@1.1.0(solid-js@1.9.7)(vinxi@0.5.11(@types/node@22.15.21)(db0@0.3.4)(ioredis@5.10.1)(jiti@2.7.0)(terser@5.48.0))(vite@6.3.5(@types/node@22.15.21)(jiti@2.7.0)(terser@5.48.0))':
     dependencies:
-      '@tanstack/server-functions-plugin': 1.142.1(vite@6.3.5(@types/node@22.15.21)(jiti@2.7.0)(terser@5.48.0))
+      '@tanstack/server-functions-plugin': 1.99.5
       '@vinxi/plugin-directives': 0.5.1(vinxi@0.5.11(@types/node@22.15.21)(db0@0.3.4)(ioredis@5.10.1)(jiti@2.7.0)(terser@5.48.0))
       '@vinxi/server-components': 0.5.1(vinxi@0.5.11(@types/node@22.15.21)(db0@0.3.4)(ioredis@5.10.1)(jiti@2.7.0)(terser@5.48.0))
       defu: 6.1.7
@@ -3580,24 +3592,32 @@ snapshots:
       vite-plugin-solid: 2.11.6(solid-js@1.9.7)(vite@6.3.5(@types/node@22.15.21)(jiti@2.7.0)(terser@5.48.0))
     transitivePeerDependencies:
       - '@testing-library/jest-dom'
+      - babel-plugin-macros
       - solid-js
       - supports-color
       - vite
 
   '@speed-highlight/core@1.2.15': {}
 
-  '@tanstack/directive-functions-plugin@1.142.1(vite@6.3.5(@types/node@22.15.21)(jiti@2.7.0)(terser@5.48.0))':
+  '@tanstack/directive-functions-plugin@1.99.5':
     dependencies:
-      '@babel/code-frame': 7.27.1
+      '@babel/code-frame': 7.26.2
       '@babel/core': 7.29.7
+      '@babel/plugin-syntax-jsx': 7.29.7(@babel/core@7.29.7)
+      '@babel/plugin-syntax-typescript': 7.29.7(@babel/core@7.29.7)
+      '@babel/template': 7.29.7
       '@babel/traverse': 7.29.7
       '@babel/types': 7.29.7
       '@tanstack/router-utils': 1.141.0
+      '@types/babel__code-frame': 7.27.0
+      '@types/babel__core': 7.20.5
+      '@types/babel__template': 7.4.4
+      '@types/babel__traverse': 7.28.0
       babel-dead-code-elimination: 1.0.12
-      pathe: 2.0.3
+      dedent: 1.7.2
       tiny-invariant: 1.3.3
-      vite: 6.3.5(@types/node@22.15.21)(jiti@2.7.0)(terser@5.48.0)
     transitivePeerDependencies:
+      - babel-plugin-macros
       - supports-color
 
   '@tanstack/router-utils@1.141.0':
@@ -3613,21 +3633,28 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/server-functions-plugin@1.142.1(vite@6.3.5(@types/node@22.15.21)(jiti@2.7.0)(terser@5.48.0))':
+  '@tanstack/server-functions-plugin@1.99.5':
     dependencies:
-      '@babel/code-frame': 7.27.1
+      '@babel/code-frame': 7.26.2
       '@babel/core': 7.29.7
       '@babel/plugin-syntax-jsx': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-syntax-typescript': 7.29.7(@babel/core@7.29.7)
       '@babel/template': 7.29.7
       '@babel/traverse': 7.29.7
       '@babel/types': 7.29.7
-      '@tanstack/directive-functions-plugin': 1.142.1(vite@6.3.5(@types/node@22.15.21)(jiti@2.7.0)(terser@5.48.0))
+      '@tanstack/directive-functions-plugin': 1.99.5
+      '@types/babel__code-frame': 7.27.0
+      '@types/babel__core': 7.20.5
+      '@types/babel__template': 7.4.4
+      '@types/babel__traverse': 7.28.0
       babel-dead-code-elimination: 1.0.12
+      dedent: 1.7.2
       tiny-invariant: 1.3.3
     transitivePeerDependencies:
+      - babel-plugin-macros
       - supports-color
-      - vite
+
+  '@types/babel__code-frame@7.27.0': {}
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -3706,7 +3733,7 @@ snapshots:
       consola: 3.4.2
       defu: 6.1.7
       get-port-please: 3.2.0
-      h3: 1.15.3
+      h3: 1.15.11
       http-shutdown: 1.2.2
       jiti: 1.21.7
       mlly: 1.8.2
@@ -4081,6 +4108,8 @@ snapshots:
       ms: 2.1.3
     optionalDependencies:
       supports-color: 10.2.2
+
+  dedent@1.7.2: {}
 
   deepmerge@4.3.1: {}
 

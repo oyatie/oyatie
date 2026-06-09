@@ -216,15 +216,15 @@ Cross-product rule: `cloud-secrets` MUST NOT import any other product µservice 
 
 CI lanes that must green:
 
-- `oya gate validate lean-a1 --microservice cloud-secrets` — dependency-direction
-- `oya gate validate lean-a2 --microservice cloud-secrets` — cross-product-refusal
-- `oya gate validate lean-a11 --microservice cloud-secrets` — raw-secret-emission (BLOCKER)
-- `oya gate validate port-location --microservice cloud-secrets`
-- `oya gate validate layer-correctness --microservice cloud-secrets`
-- `oya gate validate per-microservice-layout --microservice cloud-secrets`
-- `oya gate validate statelessness --microservice cloud-secrets` (resolver only; operator is stateful by design)
-- `oya gate validate shardability --microservice cloud-secrets`
-- `oya gate validate authority-cohesion` — HG-CLOUD-SECRETS registers here
+- Branch-protected `oya-ci-required` gate packet `lean-a1` — dependency-direction
+- Branch-protected `oya-ci-required` gate packet `lean-a2` — cross-product-refusal
+- Branch-protected `oya-ci-required` gate packet `lean-a11` — raw-secret-emission (BLOCKER)
+- Branch-protected `oya-ci-required` gate packet `port-location`
+- Branch-protected `oya-ci-required` gate packet `layer-correctness`
+- Branch-protected `oya-ci-required` gate packet `per-microservice-layout`
+- Branch-protected `oya-ci-required` gate packet `statelessness` (resolver only; operator is stateful by design)
+- Branch-protected `oya-ci-required` gate packet `shardability`
+- Branch-protected `oya-ci-required` gate packet `authority-cohesion` — HG-CLOUD-SECRETS registers here
 
 ## Integration via Workflow + Ontology
 
@@ -341,13 +341,13 @@ Sharding:
 | AC-01 | A `${openbao:secret/<path>}` reference resolves to the live value via the SDK within p99 ≤25ms | bench under `microservices/cloud-secrets/tests/bench/resolution-latency.rs` |
 | AC-02 | A rotated secret invalidates every consumer's cache within p99 ≤2s | drill under `tests/e2e/cascade-rotation.rs` |
 | AC-03 | A revoked secret is unresolvable from every consumer within p99 ≤5s | drill under `tests/e2e/emergency-revoke.rs` |
-| AC-04 | The LEAN-A11 `oya-check-raw-secret-emission` lane refuses a PR introducing a credential-shaped string | `cargo run -p oya-dev-cli -- gate validate lean-a11 --fixture tests/fixtures/raw-secret-leak.txt` exit non-zero |
+| AC-04 | The LEAN-A11 raw-secret-emission packet refuses a PR introducing a credential-shaped string | Branch-protected `oya-ci-required` evidence shows the `lean-a11` fixture check exits non-zero for a credential-shaped fixture |
 | AC-05 | An HSM-signing operation completes within p99 ≤50ms | bench against OCI Cloud-HSM in pack-kr |
 | AC-06 | A new tenant's namespace provisions within p99 ≤10s on `TenantRegistered` | event-driven e2e test |
 | AC-07 | Every `SecretAccessed` event seals in `audit-chain` within p99 ≤1s | end-to-end audit emission drill |
 | AC-08 | `helm install` of pack-kr overlay reaches `Ready` on a kind cluster within 10 min | CI lane `oya-cloud-secrets-iac-smoke` |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-secrets` exit 0 | ADR-0131 lane |
-| AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 | ADR-0123 lane; HG-CLOUD-SECRETS registered |
+| AC-09 | Branch-protected `oya-ci-required` evidence shows the `per-microservice-layout` packet passes for `cloud-secrets` | ADR-0131 lane |
+| AC-10 | Branch-protected `oya-ci-required` evidence shows the `authority-cohesion` packet passes with HG-CLOUD-SECRETS registered | ADR-0123 lane; HG-CLOUD-SECRETS registered |
 | AC-11 | Emergency-revoke drill propagates revocation across 100 consumers within p99 ≤5s end-to-end | timed chaos drill |
 | AC-12 | A KEK attestation report is produced every 24h and sealed in audit-chain | attestation cron evidence |
 
@@ -358,8 +358,8 @@ Sharding:
 | 1 | Per-pack HSM vendor — OCI Cloud-HSM universal vs Thales Luna per regulated pack | ops-security + ops-finance | resolved in IP-005 |
 | 2 | Cache TTL ceiling — 60s default vs per-secret-class override | axis-cloud-secrets | resolved in IP-003 |
 | 3 | Revocation push transport — OpenBao server-sent-events vs WebSocket vs pub/sub | axis-cloud-secrets | resolved in IP-004 |
-| 4 | KEK rotation cadence — 365d default vs per-pack regulatory ceiling | council-privacy + ops-security | per-pack overlay, see policy/data-residency.md |
-| 5 | encryption-BYOK material acceptance — accept tenant-supplied KEK wrapped under our KEK-of-KEKs, or only HSM-generated? | council-architecture | ADR successor-IP |
+| 4 | KEK rotation cadence — 365d default vs per-pack regulatory ceiling | privacy-reviewer + ops-security | per-pack overlay, see policy/data-residency.md |
+| 5 | encryption-BYOK material acceptance — accept tenant-supplied KEK wrapped under our KEK-of-KEKs, or only HSM-generated? | architecture-reviewer | ADR successor-IP |
 
 ## Related ADRs
 
@@ -387,18 +387,36 @@ Highlights:
 - **key-custody-BYOK + sovereign-tenant key custody** — sovereign tenant may bring its own HSM-generated KEK; cloud-secrets accepts the KEK wrapped under cell KEK-of-KEKs. encryption-BYOK material is HSM-stored; never exported.
 - **In-cell HSM partition** — per-pack: Thales Luna (KSA / EU-sovereign), financial-grade HSM (KR FSC), FIPS 140-3 L4 (US-Gov).
 
-CI lane `oya gate validate air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM, (c) encryption-BYOK paths use HSM-wrapped material only.
+Branch-protected `oya-ci-required` gate packet `air-gap-overlay` enforces (a) air-gap packs contain no external KMS adapter binary, (b) OpenBao auto-unseal binds to in-cell HSM, (c) encryption-BYOK paths use HSM-wrapped material only.
 
 ## ADR-0158 Update — Single-Region Disposition
 
 Per ADR-0158 (2026-05-18), the cloud-secrets µservice is declared `single_region`. Secret material does not cross region. Cross-region replication is forbidden by construction; failover is intra-region only via OpenBao Raft + Patroni HA. See `multi-region.md` for the full disposition statement.
 
+## Current authority
+
+- Canon source: `registry/stores/design-store.json` and
+  `registry/stores/instructions-store.json` (`D-SSOT-CURRENT-TRUTH`,
+  `D-AUTHORITY-CONVERSATION`, `D-CLOUD-NATIVE`, `D-CICD-AUTHORITY`, and
+  `D-GOVERNANCE-CENTRAL`) plus `specs/masterplan.json` for planning projection.
+- Merge/gate authority: branch-protected GitHub Actions required context
+  `oya-ci-required` is the live blocker until the owned `oya-ci` cutover reuses
+  the same shared Rust gate logic. Retired local verifier/gate wrappers, dev-entrypoint flows, Cargo-only
+  checks, shell scripts, and legacy build-server mirrors are
+  non-authoritative unless explicitly re-homed through the cloud-ci pipeline.
+- Delivery authority: Kubernetes/cloud-native services, controllers, APIs, and
+  declarative manifests are canonical. ArgoCD/GitOps consumes signed
+  declarative state; manual `kubectl apply`, Helm CLI deploys, and local
+  operator scripts are break-glass diagnostics only, not canonical procedure.
+- ADR-0346/ADR-0349 text below preserves historical control intent only where
+  it does not conflict with the current authority chain above.
+
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0346 — legacy CI-mirror control intent only. The former local verifier authority wording is superseded for `cloud-secrets`; the branch-protected `oya-ci-required` context is the live required gate, and reusable Rust gate logic must be re-homed into cloud-ci / owned `oya-ci` rather than revived as local CLI authority.
+- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 — legacy self-hostable substrate control intent only. The retired build-server bridge is not a parallel merge authority for `cloud-secrets`; GitHub Actions `oya-ci-required` remains the live required context until owned `oya-ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-secrets` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

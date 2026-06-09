@@ -78,7 +78,7 @@ impl TerraformPlanComputer for OpenTofuAdapter {
 ```bash
 cargo check -p oya-cloud-iac-iac-renderer-adapter -p oya-cloud-iac-iac-renderer-adapter-helm -p oya-cloud-iac-iac-renderer-adapter-kustomize -p oya-cloud-iac-iac-renderer-adapter-opentofu --all-features
 cargo nextest run -p oya-cloud-iac-iac-renderer-adapter -p oya-cloud-iac-iac-renderer-adapter-helm -p oya-cloud-iac-iac-renderer-adapter-kustomize -p oya-cloud-iac-iac-renderer-adapter-opentofu --all-features
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-iac
+cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

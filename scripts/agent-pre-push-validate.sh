@@ -169,9 +169,10 @@ else
 fi
 
 # ── Gate 5: nextest ────────────────────────────────────────────────────
-# Mirrors CI: cargo nextest run --workspace --no-fail-fast with ci profile
-# (pr-tests.yml sets NEXTEST_PROFILE=ci; .config/nextest.toml [profile.ci]
-# sets fail-fast=false and junit output — omitting the profile diverges from CI).
+# Mirrors the local evidence profile: cargo nextest run --workspace
+# --no-fail-fast with NEXTEST_PROFILE=ci. `.config/nextest.toml`
+# [profile.ci] sets fail-fast=false and junit output; omitting the profile
+# diverges from the tracked pre-push/score-card recovery contract.
 # Capture non-zero statuses explicitly so set -e does not mask failed gates.
 echo "Running cargo nextest run..."
 if [ "${#TOUCHED_CRATES[@]}" -gt 0 ]; then

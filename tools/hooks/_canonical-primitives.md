@@ -7,19 +7,18 @@ than duplicating strings. Keep sections machine-parseable (no nested bullets).
 
 ## VCS / Git
 
-Canonical: plain `git`. The `oya git` wrapper and the `oya vcs` ratchet are
-RETIRED per ADR-0363 (substrate = git + GitHub Actions + cloud-scm (interim)). They no
-longer exist as commands — do NOT use them.
+Canonical: plain `git`. Retired local source-control wrapper surfaces are not operator or product interfaces. ADR-0363 keeps the substrate on git + GitHub Actions + cloud-scm (interim); do not revive bespoke local VCS authority.
 
 Coordination (per agent lane):
   isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   commit and push on that lane
   open a PR against `dev`             # enters the governance pipeline
-  GitHub Actions CI + `oya gate run-all` + reviewer APPROVE gate merge readiness
+  cloud-ci/oya-ci pipeline posts `oya-ci-required` + reviewer APPROVE gate merge readiness
 
-`oya` is a governance-gate engine only: `oya gate ...`, `oya verify [--ci-required]`.
+Retired local verifier output is shift-left evidence only. It is never protected-branch
+merge authority and never replaces the cloud-ci/oya-ci `oya-ci-required` status.
 
-Authority: ADR-0363 (retire bespoke agentic-VCS; GitHub substrate; oya = gate engine)
+Authority: ADR-0363 (retire bespoke agentic-VCS; GitHub substrate; cloud-ci/oya-ci = governance gate engine)
 
 ---
 
@@ -53,9 +52,8 @@ Counterpart-fact preservation: external-product Redis references (Discord/Twitch
 
 ## AI Substrate
 
-microservices/intelligence/  — canonical AI substrate (Layer A + Layer B) per ADR-0255 KS#14; absorbs foundry per ADR-0335 (Wave 15I)
-microservices/intelligence/       — RETIRED 2026-05-21 per ADR-0335; see microservices/intelligence/RETIRED.md
-Authority: ADR-0255 (intelligence two-layer); ADR-0335 (foundry retirement + Hermes drop); ADR-0247 (self-modification via oyatie.foundry.* Cedar principals — principal namespace persists)
+microservices/intelligence/  — canonical AI substrate (Layer A + Layer B) per ADR-0255 KS#14; predecessor AI-platform wording is retired by ADR-0335 (Wave 15I)
+Authority: ADR-0255 (intelligence two-layer); ADR-0335 (AI substrate consolidation); ADR-0247 (self-modification principal namespace persists as historical compatibility only)
 
 Hermes terminology: RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. Do NOT introduce "Hermes" as a canonical primitive in new content.
 
@@ -87,8 +85,8 @@ Tenant-customer code paths and substrate µservices touching tenant data plane M
 
 Default for new µservices: Tier 2 (no evidence required). Tier 0 / Tier 1 / Tier 3 declarations require manifest
 pod_runtime_tier_justification + pod_runtime_tier_surface_evidence citation. Tier 2 → Tier 1 promotion requires the
-ADR-0338 D-10 evidence pack at microservices/<name>/IPs/IP-tier-promotion-2-to-1.md and council-architecture +
-council-security approval. Quarterly tier review walks the corpus per ADR-0338 D-8.
+ADR-0338 D-10 evidence pack at microservices/<name>/IPs/IP-tier-promotion-2-to-1.md and architecture-governance +
+security-governance approval. Quarterly tier review walks the corpus per ADR-0338 D-8.
 
 Authority: ADR-0338 (pod runtime tier 0..3); amends ADR-0254 (K8s + Cloud Hypervisor + Kata invariant); co-varies
 with ADR-0248 (cellular tier numbering); admission gate via ADR-0183 (policy-engine separation: Kyverno admission).
@@ -101,12 +99,12 @@ Migration sub-wave: 15S-Pod-Runtime-Tier-declaration (queued; dispatches after A
 Canonical: explicit machine-checkable promotion-gate criteria for every cellular tier-edge per ADR-0248 Tier 0..Tier 4
 (Tier 0 = highest blast-radius / most isolated; Tier 4 = best-effort / edge / lowest blast-radius — convention preserved verbatim).
 
-Six gate inputs (AND-evaluated for promotion; OR-evaluated for demotion per ADR-0341 §D-5 with stricter thresholds):
+Six gate inputs (AND-evaluated for promotion; OR-evaluated for downgrade per ADR-0341 §D-5 with stricter thresholds):
   Gate 1 — Error budget intact (≥ 99 % of SLO budget remaining on current tier; OpenSLO + ADR-0186)
   Gate 2 — Warm-soak floor (≥ N days in current tier; per-edge floors below)
   Gate 3 — Canary cohort SLO compliance ≥ 99.5 % over warm-soak window (ADR-0186 canary cohort)
   Gate 4 — Cell-mesh health: cross-cell call success ≥ 99.95 % over warm-soak window (ADR-0044 mesh tunnel)
-  Gate 5 — tenant-class coverage: both demo_trial + paid present on current tier (ADR-0330)
+  Gate 5 — tenant-class coverage: both trial + paid present on current tier (ADR-0330)
   Gate 6 — compliance-pack coverage: every applicable pack signed off (ADR-0251)
 
 Per-edge warm-soak + quiet-window floors:
@@ -116,15 +114,15 @@ Per-edge warm-soak + quiet-window floors:
   Tier 3 → 4: warm-soak 56 days + quiet window 168 hours
   Inverse edges (Tier 4 → 3 → 2 → 1 → 0; cell graduating into more-critical tier): symmetric floors apply.
 
-Auto-promotion: cell-orchestrator µservice (running inside tenancy + observability per ADR-0148; oyatie.foundry.* Cedar
+Auto-promotion: cell-orchestrator µservice (running inside tenancy + observability per ADR-0148; cloud-control Cedar
 namespace per ADR-0247; pod_runtime_tier 1 per ADR-0338) evaluates gates every 60 s + fires promotion event when all six
 gates pass AND quiet window elapses without alert burst. Signed cell.promotion.executed audit-chain row per ADR-0263 +
 Kyverno-admitted node label mutation + manifest cell_promotion_history update via self-modification PR per ADR-0247.
 
-Demotion: same evaluator with STRICTER thresholds (error budget < 95 %; canary SLO < 99 %; mesh < 99.9 %; pack revocation);
-no quiet window (demotion is immediate to protect blast-radius); 24-hour cooldown before re-entering promotion path.
+Downgrade: same evaluator with STRICTER thresholds (error budget < 95 %; canary SLO < 99 %; mesh < 99.9 %; pack revocation);
+no quiet window (downgrade is immediate to protect blast-radius); 24-hour cooldown before re-entering promotion path.
 
-Emergency override (rare): multi-party authorization (incident commander + on-call SRE + council-security signatures);
+Emergency override (rare): multi-party authorization (incident commander + on-call SRE + security-governance signatures);
 emits cell.promotion.override audit-chain event; skips warm-soak floor + gate AND-condition but NOT the audit trail;
 evidence pack required at microservices/<name>/IPs/IP-cell-promotion-override-<cell-id>-<timestamp>.md.
 
@@ -257,9 +255,9 @@ ADR-0218: Tenant granular control — per-tenant feature flags + policy
 ADR-0219: No-code-first UX with optional AI-assist layer
 ADR-0220: Intelligence µservice scope — consumer-facing only (historical; per ADR-0335 Wave 15I, intelligence now absorbs the full AI substrate)
 ADR-0221: Agentic pipeline hardening — hooks are GUIDANCE, not enforcement; CI gates enforce
-ADR-0136-amendment: Foundry internal scope — Hermes pipeline only (historical; superseded by ADR-0335 retirement)
-ADR-0255: Intelligence two-layer AI substrate (KS#14) — absorbs foundry
-ADR-0335: foundry µservice retired (Wave 15I) — AI substrate absorbed into intelligence; Hermes terminology dropped corpus-wide
+ADR-0136-amendment: predecessor AI-platform internal scope — Hermes pipeline only (historical; superseded by ADR-0335 retirement)
+ADR-0255: Intelligence two-layer AI substrate (KS#14)
+ADR-0335: predecessor AI-platform µservice retired (Wave 15I) — AI substrate absorbed into intelligence; Hermes terminology dropped corpus-wide
 
 ---
 
@@ -267,15 +265,17 @@ ADR-0335: foundry µservice retired (Wave 15I) — AI substrate absorbed into in
 
 See: specs/master-plan-sequencing.json#forbidden_primitives
 Summary: Bash agent commands use plain `git` for ordinary git operations. The
-retired wrappers `oya git` and `oya vcs` must not be used. Governance
-verification uses `./bin/oya verify --ci-required` and `oya gate run-all`;
+retired local `oya` wrappers must not be used. Governance verification is the
+cloud-ci/oya-ci produced `oya-ci-required` status; local
+local oya wrapper subcommands and dev-cli wrappers are retired authority
+mechanisms and must not be used as local substitutes for that required context.
 OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ---
 
 ## Common Pitfalls
 
-1. Using retired `oya git` / `oya vcs` surfaces instead of plain git + PR + GitHub Actions cloud-ci governance gates.
+1. Using retired local `oya` wrapper surfaces instead of plain git + PR + GitHub Actions cloud-ci governance gates.
 2. Writing `openapi: 3.3.0` (no such released version as of 2026-05-18)
 3. Writing `asyncapi: 3.0.0` (use 3.1.0)
 4. Treating microservices/intelligence/ as a live µservice (ADR-0335 absorbed it into microservices/intelligence/)
@@ -288,29 +288,32 @@ OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ---
 
-## oya-dev-cli Invocation Pattern
+## Dogfood Tenant Invariant
 
-Direct:     cargo run --quiet -p oya-dev-cli -- <subcommand> [args]
-Via wrapper: ./bin/oya <subcommand> [args]  (after PATH_add bin via .envrc)
-Top-level subcommands: gate, governance-gates, foundation-audit-gates, catalog,
-                        check, demo, doc, lint, onprem, ops, submit,
-                        supply-chain, verify
+Cloud substrate, control-plane, identity, KMS, storage, CI, and GitOps surfaces expose declarative/API/controller contracts that Oyatie products consume exactly as tenants. Product and enterprise surfaces must not bypass into cloud internals or use privileged host-login/operator workflows. Tenant identity, tenancy boundaries, policy/RBAC, data residency/isolation, audit/evidence, and lifecycle are first-class, testable contract surfaces.
+
+---
+
+## Retired Local Dev-CLI Invocation Pattern
+
+Local dev-cli invocation is retired as an authority mechanism. Prefer Buck2
+targets for local confidence and the cloud-ci/oya-ci `oya-ci-required` status
+for protected-branch evidence. Do not add new dev-cli hook or checklist
+requirements.
 
 ---
 
 ## Wave 15-ZF Doctrine Primitives (ADR-0346..ADR-0349)
 
-ADR-0346: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix:
-  cargo fmt --all --check; cargo check --workspace --all-targets --keep-going; cargo clippy --workspace --all-targets
-  --keep-going -- -D warnings; cargo nextest run --workspace --no-fail-fast (or cargo test --workspace if nextest is absent);
-  oya gate run-all --ci-required. Mandatory steps block on exit-0 of EACH step before verifier success.
-Enforced by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics;
-  oya-governance-oya-verify-skip-flag-allowlist; oya-governance-oya-submit-calls-verify;
-  oya-governance-oya-verify-exit-code-contract.
+ADR-0346 legacy local-verifier wording is superseded for active work by
+ADR-0515 and the current canon stores: `oya-ci-required` is the one canonical
+blocking status, produced by the cloud-ci/oya-ci pipeline. Retired local oya
+wrappers must not be used as protected-branch authority or revived as a local
+authority mechanism.
 
 ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB
   bulk-rename pull request; the deterministic inventory path is .omc/state/oya-governance-rename-inventory-2026-05-21.json.
-Enforced by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary;
+Enforced by: retired-fitness-residue-detection; oya-governance-lane-prefix-vocabulary;
   oya-governance-rename-inventory-presence.
 
 ADR-0348: cellular topology MUST support three control-plane-driven automation modes under ADR-0341 cell-level promotion gates:
@@ -331,8 +334,7 @@ Enforced by: oya-governance-argocd-application-cosign-verified;
 
 ## Lifecycle Skill Map
 
-Vendored at tools/agent-skills/skills/
-Source: https://github.com/addyosmani/agent-skills (MIT — Addy Osmani and contributors)
+Installed in the active agent runtime, not vendored in this repository. Codex default: `~/.codex/skills` for skills and `~/.codex/agents` for role prompts. Project `.codex/...` overlays require explicit review.
 
 Define phase:
   interview-me                  — extract real requirements before writing code
@@ -368,9 +370,9 @@ Ship phase:
   documentation-and-adrs        — ADR authoring and doc coverage
   shipping-and-launch           — final checklist before merge/release
 
-Persona agents (tools/agent-skills/agents/):
+Runtime roles:
   code-reviewer    — use for review tasks
-  security-auditor — use for security tasks
+  security-auditor — use for security tasks where installed
   test-engineer    — use for testing tasks
 
 Discovery rule: invoke the skill matching the task phase BEFORE producing output.

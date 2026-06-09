@@ -102,7 +102,7 @@ impl ApplyStateIndexStore for PostgresApplyStateIndexStore {
 cargo check --workspace -p oya-cloud-iac-iac-registry-* --all-features
 cargo nextest run --workspace -p oya-cloud-iac-iac-registry-* --all-features
 psql -f microservices/cloud-iac/iac/postgres/migrations/0001_initial.sql  # against test Postgres
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-iac
+cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

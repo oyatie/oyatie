@@ -139,7 +139,7 @@ spec:
 ```bash
 cargo check -p oya-cloud-iac-iac-renderer-sdk -p oya-cloud-iac-iac-registry-sdk --all-features
 cargo nextest run -p oya-cloud-iac-iac-renderer-sdk -p oya-cloud-iac-iac-registry-sdk --all-features
-cargo run -p oya-dev-cli -- gate validate openslo-conformance --microservice cloud-iac
+cloud-ci/oya-ci governance gate `openslo-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

@@ -1,6 +1,6 @@
 # cloud-secrets
 
-_This file was created by the Wave-3-C anchor-sweep. Expand all stub sections during content-pass review._
+_This file records the current cloud-secrets architecture anchors carried forward from Wave-3-C; sections below are authoritative only where backed by the cited policy, SLO, runbook, contract, or migration artifacts._
 
 ---
 
@@ -48,7 +48,7 @@ This anchor is closed for `cloud-secrets` against ADR-0242 §D-1: principal rost
 ### Hyperscaler precedents
 - Precedent 1: AWS IAM service-linked roles is the reference pattern for the control shape described here.
 - Precedent 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -63,7 +63,7 @@ This anchor is closed for `cloud-secrets` against ADR-0242 §D-1: principal rost
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -110,7 +110,7 @@ This anchor is closed for `cloud-secrets` against ADR-0243 §D-2: Cedar fragment
 ### Hyperscaler precedents
 - Precedent 1: AWS Verified Permissions Cedar policy evaluation is the reference pattern for the control shape described here.
 - Precedent 2: Google Zanzibar relationship checks is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -125,7 +125,7 @@ This anchor is closed for `cloud-secrets` against ADR-0243 §D-2: Cedar fragment
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -138,10 +138,7 @@ This anchor is closed for `cloud-secrets` against ADR-0244 §D-3: tenant_id, aud
 - Provider credential mode is `tenant-provider-byok where external providers exist; platform-default credentials otherwise`; provider-BYOK and encryption-BYOK stay separate per ADR-0255 §D-4 / ADR-0251 §D-10.
 - Required fields on mutable rows/events: `tenant_id`, `principal_id`, `caller_tenant_id` when delegated, `home_cell`, `jurisdiction_code`, `data_class`, and `audit_event_class`.
 - State surface `cloud_secrets.cloud_secrets` is documented as tenant-scoped with `tenant_id`, `principal_id`, `audit_event_class`, `home_cell`, and `lifecycle_state` columns/events.
-- Planned table/event surface `cloud_secrets.audit_query_2` inherits the same `tenant_id` and audit fields until a migration file supersedes this placeholder name.
-- Planned table/event surface `cloud_secrets.audit_query_3` inherits the same `tenant_id` and audit fields until a migration file supersedes this placeholder name.
-- Planned table/event surface `cloud_secrets.audit_query_4` inherits the same `tenant_id` and audit fields until a migration file supersedes this placeholder name.
-- Planned table/event surface `cloud_secrets.audit_query_5` inherits the same `tenant_id` and audit fields until a migration file supersedes this placeholder name.
+- Audit-query projection surfaces inherit the same `tenant_id` and audit fields only after a concrete migration file names them. Until then, `cloud_secrets.cloud_secrets` remains the only documented state surface for this anchor.
 - Cross-tenant reads fail at Cedar before storage adapters see a query; storage row-level policy is defence-in-depth, not the primary guard.
 - Example: `audit-query` reads include `tenant_id` and `home_cell`; a stale `jurisdiction_code` forces most-restrictive-pack handling until tenancy refresh completes.
 
@@ -174,7 +171,7 @@ This anchor is closed for `cloud-secrets` against ADR-0244 §D-3: tenant_id, aud
 ### Hyperscaler precedents
 - Precedent 1: Stripe connected-account isolation is the reference pattern for the control shape described here.
 - Precedent 2: AWS Organizations account-boundary pattern is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -189,7 +186,7 @@ This anchor is closed for `cloud-secrets` against ADR-0244 §D-3: tenant_id, aud
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -236,7 +233,7 @@ This anchor is closed for `cloud-secrets` against ADR-0245 §D-1: substrate/prod
 ### Hyperscaler precedents
 - Precedent 1: Palantir Foundry shared ontology substrate is the reference pattern for the control shape described here.
 - Precedent 2: Google Cloud shared VPC/service-project split is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -251,7 +248,7 @@ This anchor is closed for `cloud-secrets` against ADR-0245 §D-1: substrate/prod
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -298,7 +295,7 @@ This anchor is closed for `cloud-secrets` against ADR-0246 §D-4: library-first 
 ### Hyperscaler precedents
 - Precedent 1: AWS Verified Permissions local Cedar model is the reference pattern for the control shape described here.
 - Precedent 2: Open Policy Agent sidecar evaluation is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -313,7 +310,7 @@ This anchor is closed for `cloud-secrets` against ADR-0246 §D-4: library-first 
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -360,7 +357,7 @@ This anchor is closed for `cloud-secrets` against ADR-0248 §D-1: cell tier, sha
 ### Hyperscaler precedents
 - Precedent 1: AWS cell-based architecture is the reference pattern for the control shape described here.
 - Precedent 2: Route 53 shuffle-sharding isolation is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -375,7 +372,7 @@ This anchor is closed for `cloud-secrets` against ADR-0248 §D-1: cell tier, sha
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -422,7 +419,7 @@ This anchor is closed for `cloud-secrets` against ADR-0253 §D-1: HTTP/3 fallbac
 ### Hyperscaler precedents
 - Precedent 1: Google QUIC/HTTP3 rollout pattern is the reference pattern for the control shape described here.
 - Precedent 2: Cloudflare ECH and post-quantum TLS experiments is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -437,7 +434,7 @@ This anchor is closed for `cloud-secrets` against ADR-0253 §D-1: HTTP/3 fallbac
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -484,7 +481,7 @@ This anchor is closed for `cloud-secrets` against ADR-0254 §D-2: Kubernetes, Cl
 ### Hyperscaler precedents
 - Precedent 1: AWS Firecracker microVM isolation is the reference pattern for the control shape described here.
 - Precedent 2: GKE Sandbox/Kata isolation is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -499,7 +496,7 @@ This anchor is closed for `cloud-secrets` against ADR-0254 §D-2: Kubernetes, Cl
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -546,7 +543,7 @@ This anchor is closed for `cloud-secrets` against ADR-0263 §D-1: audit events, 
 ### Hyperscaler precedents
 - Precedent 1: Google SRE four core signals is the reference pattern for the control shape described here.
 - Precedent 2: OpenTelemetry semantic conventions is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -561,7 +558,7 @@ This anchor is closed for `cloud-secrets` against ADR-0263 §D-1: audit events, 
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -608,7 +605,7 @@ This anchor is closed for `cloud-secrets` against ADR-0297 §D-3: anti-bot, anti
 ### Hyperscaler precedents
 - Precedent 1: Cloudflare Bot Management and Turnstile is the reference pattern for the control shape described here.
 - Precedent 2: Stripe Radar passive risk scoring is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -623,7 +620,7 @@ This anchor is closed for `cloud-secrets` against ADR-0297 §D-3: anti-bot, anti
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -670,7 +667,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.5
 ### Hyperscaler precedents
 - Precedent 1: Google SRE incident playbooks is the reference pattern for the control shape described here.
 - Precedent 2: Stripe idempotent mutation recovery is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -685,7 +682,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.5
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -732,7 +729,7 @@ This anchor is closed for `cloud-secrets` against ADR-0296 §D-1: credential sid
 ### Hyperscaler precedents
 - Precedent 1: HashiCorp Vault dynamic secrets is the reference pattern for the control shape described here.
 - Precedent 2: AWS KMS envelope-key isolation is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -747,7 +744,7 @@ This anchor is closed for `cloud-secrets` against ADR-0296 §D-1: credential sid
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- Branch-protected `oya-ci-required` evidence should include marker absence, JSON manifest parse status, and contract/schema validation where available; local pre-push checks are rehearsal only, not merge authority.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.

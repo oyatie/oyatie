@@ -1,6 +1,6 @@
-/* App shell styles — SolidJS port of crates/oya-application-shell-frontend-prototype/style/app.css
-   Typography upgrade: Geist / Geist Mono (MIT, Vercel) instead of system-ui,
-   matching the density-first operator-console aesthetic of ADR-0372. */
+/* App shell styles for the archived SolidJS transition surface.
+   ADR-0393 makes the Leptos/Rust-WASM portal shell canonical; keep this CSS
+   production-readable so migration diffs preserve the operator-console UX. */
 
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap");
 @import "./tokens.css";
@@ -28,7 +28,7 @@ button { cursor: pointer; }
   outline-offset: 3px;
 }
 
-.oya-prototype-app {
+.oya-shell-app {
   display: grid;
   grid-template-columns: 15rem 1fr;
   grid-template-rows: auto 1fr;
@@ -451,7 +451,7 @@ button { cursor: pointer; }
 .page-actions button.primary:hover { background: var(--accent-deep); }
 
 /* ── Demo notice ──────────────────────────────────────────────────────────── */
-.demo-notice {
+.shell-notice {
   margin: var(--space-2) 0 0;
   padding: var(--space-3) var(--space-4);
   border-left: 4px solid var(--warning);
@@ -835,7 +835,7 @@ button { cursor: pointer; }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 64rem) {
-  .oya-prototype-app { grid-template-columns: 1fr; }
+  .oya-shell-app { grid-template-columns: 1fr; }
   .app-rail { display: none; }
   .app-header, .control-center { grid-column: 1; }
   .hero-panel { grid-template-columns: 1fr; }

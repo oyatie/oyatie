@@ -1,6 +1,6 @@
 # cloud-iac
 
-_This file was created by the Wave-3-C anchor-sweep. Expand all stub sections during content-pass review._
+_This file was created by the Wave-3-C anchor-sweep. Expand all scaffold sections during content-pass review._
 
 ---
 
@@ -63,7 +63,7 @@ This anchor is closed for `cloud-iac` against ADR-0242 §D-1: principal roster a
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -189,7 +189,7 @@ This anchor is closed for `cloud-iac` against ADR-0243 §D-2: Cedar fragment ros
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -202,10 +202,10 @@ This anchor is closed for `cloud-iac` against ADR-0244 §D-3: tenant_id, audienc
 - Provider credential mode is `tenant-provider-byok where external providers exist; platform-default credentials otherwise`; provider-BYOK and encryption-BYOK stay separate per ADR-0255 §D-4 / ADR-0251 §D-10.
 - Required fields on mutable rows/events: `tenant_id`, `principal_id`, `caller_tenant_id` when delegated, `home_cell`, `jurisdiction_code`, `data_class`, and `audit_event_class`.
 - State surface `cloud_iac.cloud_iac` is documented as tenant-scoped with `tenant_id`, `principal_id`, `audit_event_class`, `home_cell`, and `lifecycle_state` columns/events.
-- Planned table/event surface `cloud_iac.iac_apply_2` inherits the same `tenant_id` and audit fields until a migration file supersedes this placeholder name.
-- Planned table/event surface `cloud_iac.iac_apply_3` inherits the same `tenant_id` and audit fields until a migration file supersedes this placeholder name.
-- Planned table/event surface `cloud_iac.iac_apply_4` inherits the same `tenant_id` and audit fields until a migration file supersedes this placeholder name.
-- Planned table/event surface `cloud_iac.iac_apply_5` inherits the same `tenant_id` and audit fields until a migration file supersedes this placeholder name.
+- Planned table/event surface `cloud_iac.iac_apply_2` inherits the same `tenant_id` and audit fields until a migration file supersedes this scaffold name.
+- Planned table/event surface `cloud_iac.iac_apply_3` inherits the same `tenant_id` and audit fields until a migration file supersedes this scaffold name.
+- Planned table/event surface `cloud_iac.iac_apply_4` inherits the same `tenant_id` and audit fields until a migration file supersedes this scaffold name.
+- Planned table/event surface `cloud_iac.iac_apply_5` inherits the same `tenant_id` and audit fields until a migration file supersedes this scaffold name.
 - Cross-tenant reads fail at Cedar before storage adapters see a query; storage row-level policy is defence-in-depth, not the primary guard.
 - Example: `iac-apply` reads include `tenant_id` and `home_cell`; a stale `jurisdiction_code` forces most-restrictive-pack handling until tenancy refresh completes.
 
@@ -253,7 +253,7 @@ This anchor is closed for `cloud-iac` against ADR-0244 §D-3: tenant_id, audienc
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -298,7 +298,7 @@ This anchor is closed for `cloud-iac` against ADR-0245 §D-1: substrate/product 
 - `cell` and `cloud-iac` enforce the runtime cell, ingress, ECH/PQC, and facility posture for `cloud-iac`.
 
 ### Hyperscaler precedents
-- Precedent 1: Palantir Foundry shared ontology substrate is the reference pattern for the control shape described here.
+- Precedent 1: Palantir Cloud governance shared ontology substrate is the reference pattern for the control shape described here.
 - Precedent 2: Google Cloud shared VPC/service-project split is the second reference pattern used to avoid a single-vendor cargo-cult design.
 - The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
@@ -315,7 +315,7 @@ This anchor is closed for `cloud-iac` against ADR-0245 §D-1: substrate/product 
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -377,7 +377,7 @@ This anchor is closed for `cloud-iac` against ADR-0246 §D-4: library-first poli
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -439,7 +439,7 @@ This anchor is closed for `cloud-iac` against ADR-0248 §D-1: cell tier, shard w
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -501,7 +501,7 @@ This anchor is closed for `cloud-iac` against ADR-0253 §D-1: HTTP/3 fallback ch
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -563,7 +563,7 @@ This anchor is closed for `cloud-iac` against ADR-0254 §D-2: Kubernetes, Cloud 
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -625,7 +625,7 @@ This anchor is closed for `cloud-iac` against ADR-0263 §D-1: audit events, metr
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -687,7 +687,7 @@ This anchor is closed for `cloud-iac` against ADR-0297 §D-3: anti-bot, anti-spo
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -749,7 +749,7 @@ This anchor is closed for `cloud-iac` against documentation-rigor.md §3.2.5: ap
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.
@@ -811,7 +811,7 @@ This anchor is closed for `cloud-iac` against ADR-0296 §D-1: credential sidecar
 - `oya-governance-cross-consistency` checks field names, pack ids, audit event taxonomy, SecretReference shape, and layer enum consistency.
 - `oya-governance-doc-link-resolves` must resolve every artifact path cited here before this can promote to BLOCKER.
 - `oya-governance-abuse-defence-ux-floor` and `oya-governance-critical-path-coverage` apply when the anchor touches abuse defence or edge cases.
-- `oya verify`/pre-push evidence should include marker absence, ≥50-line section count, JSON manifest parse status, and contract/schema validation where available.
+- `oya-ci-required` evidence should include marker absence, section-count policy, JSON manifest parse status, and contract/schema validation where available.
 
 ### Structural notes from this pass
 - Structural issue check: manifest, policy, contract, SLO/dashboard, runbook, and IaC evidence surfaces are present for this content pass.

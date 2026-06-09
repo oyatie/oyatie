@@ -1,6 +1,6 @@
-// Root application shell.
-// Ported from crates/oya-application-shell-frontend-prototype/src/app.rs (App component).
-// SSR-first, streaming hydration per ADR-0372 D1 + ADR-0067 §5.
+// Root application shell for the archived SolidJS transition surface.
+// ADR-0393 makes the Leptos/Rust-WASM portal shell canonical; this surface stays
+// SSR/typecheck/build-testable as migration evidence only.
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";

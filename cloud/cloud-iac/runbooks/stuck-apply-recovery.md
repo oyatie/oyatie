@@ -25,10 +25,10 @@ An iac-applier-worker job hangs > 15min, exceeding the p999 apply latency target
 
 ## Pre-checks
 
-1. Identify the stuck apply: `cargo run -p oya-dev-cli -- iac status --microservice <ms> --env <env>`.
+1. Identify the stuck apply: cloud-native IaC controller/API `status --microservice` workflow.
 2. Inspect applier-worker logs: `kubectl -n cloud-iac logs -l app=iac-applier-worker --tail=200`.
 3. Verify Kubernetes apiserver health from applier pod: `kubectl exec <pod> -- curl -s https://<apiserver>/livez`.
-4. Verify OpenTofu state-lock state: `cargo run -p oya-dev-cli -- iac state-lock status --microservice <ms> --env <env>`.
+4. Verify OpenTofu state-lock state: cloud-native IaC controller/API `state-lock status` workflow.
 
 ## Recovery Path A — k8s apiserver resource conflict / finalizer loop
 
@@ -38,15 +38,15 @@ An iac-applier-worker job hangs > 15min, exceeding the p999 apply latency target
 | 2 | Inspect finalizer state: `kubectl get <kind> <name> -o yaml \| yq '.metadata.finalizers'` |
 | 3 | If a finalizer is hung: identify owning controller; restart owning controller pod |
 | 4 | If finalizer is orphaned (controller gone): manually remove via `kubectl patch <kind> <name> -p '{"metadata":{"finalizers":[]}}' --type=merge` (requires JIT + 2-person rule for production-tier) |
-| 5 | Abort stuck apply via `cargo run -p oya-dev-cli -- iac abort --job <job-id>`; applier retries with backoff |
+| 5 | Abort stuck apply via cloud-native IaC controller/API `abort --job` workflow; applier retries with backoff |
 | 6 | Verify apply completes within RTO; if not, escalate |
 
 ## Recovery Path B — OpenTofu state-lock not released (FM-04)
 
 | Step | Action |
 |---|---|
-| 1 | Identify stale lock: `cargo run -p oya-dev-cli -- iac state-lock status` shows lock-holder + age |
-| 2 | If holder is dead (no corresponding applier pod): force-unlock via `cargo run -p oya-dev-cli -- iac state-lock force-unlock --microservice <ms> --env <env> --lock-id <id> --reason "<rfc>"`. Requires JIT + 2-person rule |
+| 1 | Identify stale lock: cloud-native IaC controller/API `state-lock status` workflow shows lock-holder + age |
+| 2 | If holder is dead (no corresponding applier pod): force-unlock via cloud-native IaC controller/API `state-lock force-unlock` workflow. Requires JIT + 2-person rule |
 | 3 | Force-unlock emits audit-chain seal; never use without justification |
 | 4 | Re-trigger apply; verify lock acquired by new applier |
 

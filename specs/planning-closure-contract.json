@@ -473,23 +473,30 @@
   },
   "stale_document_policy": {
     "stale_documents_must_be_archived": true,
-    "archive_manifest": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
     "current_goal_prompt": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
     "live_planning_roots": [
       "/specs/root-hub-pointers.json",
       "/specs/masterplan.json",
       "/specs/planning-closure-contract.json",
+      "/specs/planning-closure-status-closure-ledger.json",
       "/specs/master-plan-sequencing.json",
-      ".omc/plans/milestones/",
       "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
     ],
     "forbidden_live_authority_paths": [
       "/evidence/goals/implement-masterplan.md",
       "/evidence/goals/implement-masterplan-goal-prompt.json",
       ".omc/plans/*.md",
-      ".omc/plans/*.json"
+      ".omc/plans/*.json",
+      ".omc/**",
+      ".omx/**"
     ],
-    "rule": "Any document that encodes retired authority, obsolete sequencing, open-question ledgers, stale dispatch scripts, or deprecated execution primitives must move under the archive manifest before planning closure can pass. Archived files are historical evidence only and cannot be used as implementation-start permission."
+    "rule": "Any document that encodes retired authority, obsolete sequencing, open-question ledgers, stale dispatch scripts, or deprecated execution primitives must be either migrated to a tracked machine-readable authority under /specs, /registry, /evidence, or /templates, or remain historical evidence in git history only. Archived files are historical evidence only and cannot be used as implementation-start permission. The .omc/ and .omx/ durable roots are local-only runtime state and must stay gitignored.",
+    "retired_archive_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
+    "durable_roots_must_be_local_only": true,
+    "ignored_durable_roots": [
+      ".omc/",
+      ".omx/"
+    ]
   },
   "no_placeholder_policy": {
     "no_placeholders_stubs_thin_scaffolds": true,

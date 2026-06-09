@@ -12,7 +12,7 @@ Rules:
   - path deps -> //<relative>:<name>
   - registry deps -> third-party//:<name>-<major>  (best-match from BUCK)
   - Skips crates that already have a BUCK file (unless --force)
-  - Skips third-party/, tools/agent-skills/, buck-out/
+  - Skips third-party/, buck-out/
 """
 
 import argparse
@@ -25,7 +25,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).parent.parent.resolve()
-SKIP_DIRS = {"third-party", "buck-out", ".git", "tools/agent-skills", "target"}
+SKIP_DIRS = {"third-party", "buck-out", ".git", "target"}
 
 # Crates with build.rs that need special treatment
 # Key = crate name, value = dict of extra attrs

@@ -128,10 +128,10 @@ cargo clippy -p oya-cloud-iac-iac-renderer-kernel --all-features -- -D warnings
 cargo nextest run -p oya-cloud-iac-iac-renderer-kernel --all-features
 cargo deny check
 cargo doc -p oya-cloud-iac-iac-renderer-kernel --no-deps
-cargo run -p oya-dev-cli -- gate validate lean-a1 --crate oya-cloud-iac-iac-renderer-kernel
-cargo run -p oya-dev-cli -- gate validate port-location --crate oya-cloud-iac-iac-renderer-kernel
-cargo run -p oya-dev-cli -- gate validate layer-correctness --crate oya-cloud-iac-iac-renderer-kernel
-cargo run -p oya-dev-cli -- gate validate data-class --crate oya-cloud-iac-iac-renderer-kernel
+cloud-ci/oya-ci governance gate `lean-a1` for --crate oya-cloud-iac-iac-renderer-kernel is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `port-location` for --crate oya-cloud-iac-iac-renderer-kernel is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `layer-correctness` for --crate oya-cloud-iac-iac-renderer-kernel is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `data-class` for --crate oya-cloud-iac-iac-renderer-kernel is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

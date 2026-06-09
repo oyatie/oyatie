@@ -36,7 +36,7 @@ For each workspace/stack, map its Terraform modules to the `cloud-iac` catalogue
 | --- | --- | --- |
 | `terraform-aws-modules/vpc/aws` v5+ | `aws-vpc-canonical` in `oya-iac-modules-paid-per-usage-v1` | Direct map; update input names |
 | `terraform-aws-modules/eks/aws` v20+ | `aws-eks-managed` in `oya-iac-modules-paid-governed-v1` | Map; paid-only |
-| Custom in-house module | n/a | Author as a new module + sign + submit through `oya vcs claim` |
+| Custom in-house module | n/a | Author as a new module + sign + submit through `GitOps change-bundle claim` |
 
 For each module not in the catalogue, file a backlog entry under `microservices/cloud-iac/backlog/starter-modules.md`.
 

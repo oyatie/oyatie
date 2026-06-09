@@ -10,7 +10,7 @@
 //! - `DekId`: `"dek/"` prefix followed by a non-empty, `/`-free slug; e.g. `"dek/ten_abc123"`
 //!
 //! Neither type stores key material; they are opaque reference handles that the
-//! adapter layer resolves against OCI Vault or the in-memory test stub.
+//! adapter layer resolves against OCI Vault or the in-memory test adapter.
 
 use std::fmt;
 

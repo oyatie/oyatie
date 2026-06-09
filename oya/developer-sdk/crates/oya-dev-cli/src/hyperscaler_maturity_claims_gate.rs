@@ -6,7 +6,7 @@ use serde_json::Value;
 
 use crate::usage;
 
-const GOVERNANCE_PROTECTION_CONTEXT_MATCH_CHECK: &str = "oya-governance-protection-context-match";
+const OYA_CI_REQUIRED_CONTEXT: &str = "oya-ci-required";
 const AGENT_PR_REVIEW_CONTEXT: &str = "oya-pr-review";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -40,10 +40,12 @@ pub(crate) fn parse_hyperscaler_maturity_claims_validate_args(
         workflow_path: PathBuf::from("specs/microservices/workflow.json"),
         workspace_hygiene_path: PathBuf::from("specs/workspace-hygiene.json"),
         branch_protection_path: PathBuf::from(".github/branch-protection.yaml"),
-        // ADR-0361: the PR-review + CI-fix-loop closure is now the Jenkins-native
-        // pipeline closure contract, not the retired GitHub Actions workflows.
-        pr_review_workflow_path: PathBuf::from("infra/ci/jenkins/pipeline-closure-contract.md"),
-        ci_fix_loop_workflow_path: PathBuf::from("infra/ci/jenkins/pipeline-closure-contract.md"),
+        // Current authority is the single cloud-ci/oya-ci required context. The
+        // GitHub Actions workflow is a bridge producer for that context until the
+        // Kubernetes-native oya-ci-controller owns status production; the retired
+        // oya-dev-cli/Jenkins/local CLI surfaces must not be merge authority.
+        pr_review_workflow_path: PathBuf::from(".github/workflows/oya-ci-required.yml"),
+        ci_fix_loop_workflow_path: PathBuf::from(".github/workflows/oya-ci-required.yml"),
         gitops_vcs_path: PathBuf::from("specs/gitops-vcs-replacement.json"),
         merge_queue_path: PathBuf::from("specs/merge-queue-parked-pr.json"),
         iterative_fix_loop_path: PathBuf::from("specs/iterative-fix-loop.json"),
@@ -318,14 +320,38 @@ fn validate_pr_review_pipeline(
     pr_review_workflow: &str,
 ) -> Result<(), String> {
     let protection = parse_dev_branch_protection(branch_protection)?;
+    validate_oya_ci_required_branch_protection(&protection)?;
+    validate_oya_ci_required_workflow(pr_review_workflow)?;
+    Ok(())
+}
+
+fn validate_oya_ci_required_branch_protection(
+    protection: &BranchProtectionContract,
+) -> Result<(), String> {
     if !protection
         .required_status_checks
-        .contains(AGENT_PR_REVIEW_CONTEXT)
+        .contains(OYA_CI_REQUIRED_CONTEXT)
     {
-        return Err("dev branch protection must require the agent-run oya-pr-review check".into());
+        return Err("dev branch protection must require the single oya-ci-required context".into());
+    }
+    for retired_context in [
+        AGENT_PR_REVIEW_CONTEXT,
+        "cargo-fmt",
+        "cargo-check",
+        "cargo-clippy",
+        "cargo-nextest",
+        "oya-governance-protection-context-match",
+    ] {
+        if protection.required_status_checks.contains(retired_context) {
+            return Err(format!(
+                "dev branch protection must not require retired/local context {retired_context}"
+            ));
+        }
     }
     if protection.commented_out_oya_pr_review {
-        return Err("dev branch protection still documents oya-pr-review as commented out".into());
+        return Err(
+            "branch protection must not preserve commented-out oya-pr-review authority".into(),
+        );
     }
     if protection.required_approving_reviews != Some(0) {
         return Err(
@@ -335,57 +361,57 @@ fn validate_pr_review_pipeline(
     if !protection.agent_review_authority_comment {
         return Err("branch protection must document automated agent review authority".into());
     }
-
-    // ADR-0361: the PR-review command contract is asserted against the Jenkins
-    // pipeline closure contract (`infra/ci/jenkins/pipeline-closure-contract.md`),
-    // not a GitHub Actions workflow YAML. Same semantic assertions: the agent review
-    // runtime + dispatcher commands, deterministic-mock, fail-on-pending, and the
-    // runtime-before-dispatcher order.
-    let contract = pr_review_workflow;
-    require_contains(
-        contract,
-        "cargo run -q -p oya-intelligence-subagent-runtime-app -- fan-out",
-        "Jenkins PR-review closure must run the agent review runtime",
-    )?;
-    require_contains(
-        contract,
-        "cargo run -q -p oya-intelligence-pr-review-dispatcher-app",
-        "Jenkins PR-review closure must run the dispatcher after runtime fan-out",
-    )?;
-    require_contains(
-        contract,
-        "--mode deterministic-mock",
-        "Jenkins PR-review closure must use the deterministic agent runtime in CI",
-    )?;
-    require_contains(
-        contract,
-        "runtime still pending",
-        "Jenkins PR-review closure must fail when the agent runtime stays pending",
-    )?;
-    require_order(
-        contract,
-        "cargo run -q -p oya-intelligence-subagent-runtime-app -- fan-out",
-        "cargo run -q -p oya-intelligence-pr-review-dispatcher-app",
-        "Jenkins PR-review closure must run the agent runtime before the dispatcher",
-    )?;
     Ok(())
 }
 
-/// Assert `first` appears before `second` in `contents` (order contract).
-fn require_order(contents: &str, first: &str, second: &str, context: &str) -> Result<(), String> {
-    let a = contents
-        .find(first)
-        .ok_or_else(|| format!("{context}: missing {first:?}"))?;
-    let b = contents
-        .find(second)
-        .ok_or_else(|| format!("{context}: missing {second:?}"))?;
-    if a < b {
-        Ok(())
-    } else {
-        Err(format!(
-            "{context}: {first:?} must appear before {second:?}"
-        ))
+fn validate_oya_ci_required_workflow(workflow: &str) -> Result<(), String> {
+    for expected in [
+        "name: oya-ci-required",
+        "fail-fast: false",
+        "persist-credentials: false",
+        "fetch-depth: 0",
+        "Install buck2",
+        "buck2 build //cloud/cloud-ci/...",
+        "buck2 test //cloud/cloud-ci/...",
+        "gate-registration meta-test",
+        "generated-output-diff-policy",
+        "app-shell-codegen",
+        "oya-ci-required: GREEN",
+        "oya-ci-required: RED",
+    ] {
+        require_contains(workflow, expected, "oya-ci-required workflow contract")?;
     }
+    require_contains(
+        workflow,
+        "needs:\n      - gate",
+        "oya-ci-required fan-in must depend on the gate matrix",
+    )?;
+    require_contains(
+        workflow,
+        "- buck2",
+        "oya-ci-required fan-in must include the Buck2 hermetic lane",
+    )?;
+    require_contains(
+        workflow,
+        "Materialize cloud-ci generated faces",
+        "oya-ci-required workflow must materialize cloud-ci faces before gate consumption",
+    )?;
+    for forbidden in [
+        "cargo run -q -p oya-dev-cli",
+        "cargo run -p oya-dev-cli",
+        "./bin/oya",
+        "oya gate",
+        "oya verify",
+        "infra/ci/jenkins/pipeline-closure-contract.md",
+        "Jenkinsfile",
+    ] {
+        require_absent(
+            workflow,
+            forbidden,
+            "oya-ci-required workflow must not use retired CLI/Jenkins authority",
+        )?;
+    }
+    Ok(())
 }
 
 fn validate_pipeline_closure(
@@ -404,81 +430,14 @@ fn validate_pipeline_closure(
     if protection.disallow_force_push != Some(true) {
         return Err("branch protection must disallow force-push on protected branches".into());
     }
-    if !protection
-        .required_status_checks
-        .contains(GOVERNANCE_PROTECTION_CONTEXT_MATCH_CHECK)
-        && !protection
-            .required_status_checks
-            .contains(AGENT_PR_REVIEW_CONTEXT)
-    {
-        return Err(
-            "branch protection must require context matching directly or via oya-pr-review".into(),
-        );
-    }
-
-    validate_pr_review_fix_loop(pr_review_workflow)?;
-    validate_ci_fix_loop(ci_fix_loop_workflow)?;
+    validate_oya_ci_required_branch_protection(&protection)?;
+    validate_oya_ci_required_workflow(pr_review_workflow)?;
+    validate_oya_ci_required_workflow(ci_fix_loop_workflow)?;
     validate_merge_safety_specs(
         gitops_vcs,
         merge_queue,
         iterative_fix_loop,
         ci_fix_loop_retry_budget,
-    )?;
-    Ok(())
-}
-
-fn validate_pr_review_fix_loop(pr_review_workflow: &str) -> Result<(), String> {
-    for expected in [
-        "push → CI → fix-loop until green → review → fix-loop until APPROVE → merge",
-        "Review only fires once CI is green",
-        "pr-review-approved",
-        "pr-review-fix-requested",
-        "consumed by IP-006 merge-queue",
-        "consumed by IP-005 fix-loop",
-        "CHANGES_REQUESTED — fix-loop dispatched via pr-review-fix-requested event",
-        "There is no human PR-review gate",
-    ] {
-        require_contains(pr_review_workflow, expected, "PR review/fix loop contract")?;
-    }
-    Ok(())
-}
-
-fn validate_ci_fix_loop(ci_fix_loop_workflow: &str) -> Result<(), String> {
-    // ADR-0361: Jenkins-native triggers replace the GitHub Actions
-    // `workflow_run:` / `repository_dispatch:` keys; the fix-loop semantics are
-    // identical (upstream build + webhook dispatch, surface-all-failures,
-    // automated remediation only).
-    for expected in [
-        "ci-failure-fix-loop",
-        "upstream oya-verify build completion",
-        "webhook repository-dispatch",
-        "pr-review-fix-requested",
-        "oya-vcs-ci-fix-loop-dispatcher-app",
-        "Surface-all-failures",
-        "failed-jobs.tsv",
-        "agent-remediation-required",
-        "fix-loop-exhausted",
-    ] {
-        require_contains(
-            ci_fix_loop_workflow,
-            expected,
-            "CI fix-loop workflow contract",
-        )?;
-    }
-    require_absent(
-        ci_fix_loop_workflow,
-        "human-escalation",
-        "CI fix-loop must route exhausted work to automated remediation, not human escalation",
-    )?;
-    require_absent(
-        ci_fix_loop_workflow,
-        "subagent_runtime_pending",
-        "CI fix-loop must not document a pending runtime as accepted maturity evidence",
-    )?;
-    require_absent(
-        ci_fix_loop_workflow,
-        "grit",
-        "CI fix-loop must not use retired grit coordination",
     )?;
     Ok(())
 }
