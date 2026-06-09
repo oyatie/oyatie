@@ -19,7 +19,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
   - `oya-platform-web-kernel` / `oya-platform-web-app` — SaaS web layer
   - Bench: collaborative workspace surface (uses OG + workflow + identity)
   - Connect: partner integration surface
-  - Product index: `docs/products/README.md` SaaS Platform entry (`docs/products/saas-platform/PRD.md` remains a tracked product-PRD gap, not a readiness claim)
+  - Product PRD: `docs/products/saas-platform/PRD.md` (planning-closed contract authored; live readiness requires changeset gate evidence)
 - **Cross-axis contracts (DESIGN §10):**
   - `Object Graph property tier` (co-owner with `platform-eventing-og`, `platform-privacy-dub`) — OG shape changes are cross-axis
   - `Marketplace listing` (co-owner with `axis-foundry`) — plugin signing + sandbox gate
@@ -91,7 +91,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 - Cross-team review: monthly cross-axis contract audit for OG and marketplace contract changes
 
 ## Bandwidth + hiring
-Capacity is tracked outside this repository in the staffing system and is not a product-readiness signal. W-SaaS-Preview readiness is gated by the functional, security, SLO, and runbook evidence in this charter rather than placeholder FTE counts.
+Capacity is tracked outside this repository in the staffing system and is not a product-readiness signal. W-SaaS-Preview readiness is gated by the functional, security, SLO, and runbook evidence in this charter rather than staffing-count assertions.
 
 ## Operating norms
 - Code review: per CLAUDE.md `## Code Review` rules; OG contract PRs require cross-axis label
@@ -108,4 +108,4 @@ Capacity is tracked outside this repository in the staffing system and is not a 
 | Marketplace fraudulent plugin listed | Medium | Plugin signing + review pipeline; automated static analysis |
 
 ## Sources scanned
-docs/PRD.md §2 and §3.1 (W-SaaS-Preview), docs/products/README.md SaaS Platform entry, specs/masterplan.json M03-P04/M03-P08 references, docs/decisions/ADR-0035, ADR-0036, ADR-0249, ADR-0314, and DOC-CATALOG.md §2.5.
+docs/PRD.md §2 and §3.1 (W-SaaS-Preview), docs/products/README.md SaaS Platform entry, docs/products/saas-platform/PRD.md, specs/masterplan.json M03-P04/M03-P08 references, docs/decisions/ADR-0035, ADR-0036, ADR-0249, ADR-0314, registry/stores/* current-truth stores, HANDOFF.md, and DOC-CATALOG.md §2.5.

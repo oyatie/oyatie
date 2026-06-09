@@ -20,7 +20,7 @@ Each Oyatie product (an axis or a vertical) has its own PRD here. Every PRD foll
 
 | Product | PRD | Owning team | Status |
 |---|---|---|---|
-| SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | draft |
+| SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored |
 | Workspace | [`workspace/PRD.md`](workspace/PRD.md) | `axis-workspace` | draft |
 | Foundry (agent runtime + engineering platform) | [`foundry/PRD.md`](foundry/PRD.md) | `axis-foundry` | draft |
 | Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft |
