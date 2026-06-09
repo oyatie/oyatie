@@ -15,8 +15,13 @@ if (!packageJson.description.includes("ADR-0393")) {
   failures.push("package description must cite ADR-0393 canonical frontend authority");
 }
 
-if (!packageJson.scripts?.build?.includes("@solidjs/start/node_modules/.bin")) {
-  failures.push("build script must use the existing @solidjs/start-scoped vinxi bin under pnpm");
+if (packageJson.scripts?.build !== "node scripts/run-vinxi.mjs build") {
+  failures.push("build script must use scripts/run-vinxi.mjs so pnpm resolves the @solidjs/start-scoped vinxi bin deterministically");
+}
+
+const runVinxi = readFileSync(resolve(root, "scripts/run-vinxi.mjs"), "utf8");
+if (!runVinxi.includes("node_modules/@solidjs/start/node_modules/.bin/vinxi") || !runVinxi.includes("realpathSync")) {
+  failures.push("scripts/run-vinxi.mjs must resolve the @solidjs/start-scoped vinxi bin through realpathSync");
 }
 
 const checkedFiles = [
