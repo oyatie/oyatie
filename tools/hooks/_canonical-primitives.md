@@ -7,9 +7,7 @@ than duplicating strings. Keep sections machine-parseable (no nested bullets).
 
 ## VCS / Git
 
-Canonical: plain `git`. The `oya git` wrapper and the `oya vcs` ratchet are
-RETIRED per ADR-0363 (substrate = git + GitHub Actions + cloud-scm (interim)). They no
-longer exist as commands — do NOT use them.
+Canonical: plain `git`. Retired local source-control wrapper surfaces are not operator or product interfaces. ADR-0363 keeps the substrate on git + GitHub Actions + cloud-scm (interim); do not revive bespoke local VCS authority.
 
 Coordination (per agent lane):
   isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
@@ -17,10 +15,10 @@ Coordination (per agent lane):
   open a PR against `dev`             # enters the governance pipeline
   cloud-ci/oya-ci pipeline posts `oya-ci-required` + reviewer APPROVE gate merge readiness
 
-`oya` local verifier output is shift-left evidence only. It is never protected-branch
+Retired local verifier output is shift-left evidence only. It is never protected-branch
 merge authority and never replaces the cloud-ci/oya-ci `oya-ci-required` status.
 
-Authority: ADR-0363 (retire bespoke agentic-VCS; GitHub substrate; oya = gate engine)
+Authority: ADR-0363 (retire bespoke agentic-VCS; GitHub substrate; cloud-ci/oya-ci = governance gate engine)
 
 ---
 

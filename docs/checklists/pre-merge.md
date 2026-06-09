@@ -20,7 +20,7 @@ doc_status: published
 4. ☐ `## Traceability` lists flat-crates targets touched + cross-axis contract impact
 5. ☐ `## Evidence` links to CI runs + eval-set output (if governed capability) + audit-chain emission record
 6. ☐ Dogfood tenant invariant evidence is present when a cloud/product boundary changes: tenant identity, tenancy boundary, policy/RBAC, residency/isolation, audit/evidence, and lifecycle remain first-class contract surfaces consumed through APIs/controllers/GitOps/admission/policy/frontends, with no privileged product shortcut into cloud internals.
-8. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker)
+7. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker)
 8. ☐ Per-blast-radius reviewers approved per [DESIGN §3.0.5.3](../DESIGN.md):
    - cross-axis-contract → all affected axis teams
    - flat-crates-move → merge-queue serialization on root Cargo.toml
@@ -38,10 +38,10 @@ doc_status: published
 
 ## After merge
 
-16. ☐ Post-merge cloud-ci/oya-ci required status remains green on the promoted commit within 5 min
+17. ☐ Post-merge cloud-ci/oya-ci required status remains green on the promoted commit within 5 min
 18. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
 19. ☐ Per-affected-team Slack ping (auto)
-110. ☐ Per-changelog auto-emit (governed capability `pr.changelog.row`)
+20. ☐ Per-changelog auto-emit (governed capability `pr.changelog.row`)
 
 ## Anti-patterns
 
