@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17653,
-    "source_inputs_digest": "fnv1a64:fb121dd6d16a4a4d"
+    "source_inputs_digest": "fnv1a64:b23b37e566312d05"
   },
   "rows": [
     {
@@ -13643,7 +13643,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "01de14bf117344ee103db26c3fbf0123a4be4e8f",
+      "last_touch_commit": "d076b26667673dcb742845acabc6416250fbad0b",
       "owner": null,
       "path": "HANDOFF.md",
       "reachable_from": [
@@ -20345,7 +20345,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "d66676c1b23eaafaf59827d9b4d17df82036b53f",
+      "last_touch_commit": "d076b26667673dcb742845acabc6416250fbad0b",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
       "reachable_from": [
@@ -365765,7 +365765,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0119",
-      "last_touch_commit": "2161fb3862f446708e56403c9475d2568a7098a1",
+      "last_touch_commit": "d076b26667673dcb742845acabc6416250fbad0b",
       "owner": null,
       "path": "specs/master-plan-sequencing.json",
       "reachable_from": [
@@ -365790,7 +365790,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0104",
-      "last_touch_commit": "3c3cdec635034e184b815dfd61627087d965d011",
+      "last_touch_commit": "d076b26667673dcb742845acabc6416250fbad0b",
       "owner": null,
       "path": "specs/masterplan.json",
       "reachable_from": [
