@@ -41,5 +41,23 @@ evidence/oci-readiness/a1-capacity-retry.log
 .omc/state/hud-stdin-cache.json
 test-results/
 
+# Generated outputs default to untracked. Public/productized generated
+# artifacts that must be committed are force-added intentionally and declared in
+# registry/generated-artifact-control-plane.json, where cloud-ci enforces owner,
+# generator, materialization, and merge policy. Keep this preventive layer aligned
+# with the manifest's generated_path_rules; the Rust gate is authoritative.
+**/generated/**
+**/__generated__/**
+**/generated-sources/**
+**/generated-types/**
+**/gen/**
+**/*.generated.json
+**/*.generated.ts
+**/*.generated.d.ts
+**/*.pb.go
+**/*.pb.rs
+!**/generated/
+!**/generated/.gitkeep
+
 # buck2 build output
 /buck-out/

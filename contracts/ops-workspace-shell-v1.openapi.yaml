@@ -162,6 +162,20 @@ components:
           type: string
         cell_id:
           type: string
+    CedarDenyResponse:
+      type: object
+      additionalProperties: false
+      required: [error, policy_id]
+      properties:
+        error:
+          type: string
+          description: Human-readable Cedar deny reason
+        policy_id:
+          type: string
+          description: Cedar policy identifier that denied the request
+        principal:
+          type: [string, "null"]
+          description: Principal that was denied (may be omitted for unauthenticated requests)
   responses:
     Unauthorized:
       description: Cedar denied (no principal context)

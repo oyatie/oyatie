@@ -1,15 +1,16 @@
 // cloud-ci-generated-artifact-control-plane live-corpus gate.
 //
 // The test is intentionally hermetic and product-shaped: read the repo-authored generated
-// artifact policy manifest plus the committed SCM facts snapshot, then run the Rust predicate.
-// It does not call git, does not invoke a CI-provider API, and does not depend on a local merge
-// driver. That makes the same test shape portable to any project adopting oya-ci.
+// artifact policy manifest plus the SCM facts snapshot materialized from the candidate tree,
+// then run the Rust predicate. It does not call git, does not invoke a CI-provider API, and does
+// not depend on a local merge driver. That makes the same test shape portable to any project
+// adopting oya-ci.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::fs;
 use std::path::PathBuf;
 
-use serde_json::Value;
+use serde_json::{Value, json};
 
 use oya_cloud_ci_generated_artifact_control_plane_app::{Verdict, evaluate, evaluate_keyed};
 
@@ -60,4 +61,33 @@ fn live_generated_artifacts_are_declared_in_the_control_plane() {
         Verdict::Green,
         "generated-artifact control-plane findings: {findings:#?}"
     );
+}
+
+#[test]
+fn stale_scm_facts_for_deleted_generated_outputs_are_red() {
+    let manifest = read_json(input_path(
+        MANIFEST_ENV,
+        "registry/generated-artifact-control-plane.json",
+    ));
+    let stale_paths = [
+        "oya/app-shell-frontend/generated/hr-api.d.ts",
+        "oya/app-shell-frontend/generated/ops-workspace-shell-v1.patched.yaml",
+        "oya/app-shell-frontend/generated/ops-workspace-shell.d.ts",
+    ];
+    let scm_facts = json!({
+        "schema": "oya-ci/scm-facts/v1",
+        "tracked_paths": stale_paths,
+        "last_touch_commit": {}
+    });
+
+    let findings = evaluate_keyed(&manifest, &scm_facts);
+    for stale_path in stale_paths {
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "generated_artifact_tracked_generated_output_not_declared"
+                    && finding.key == stale_path
+            }),
+            "stale generated path {stale_path} must stay visible to the gate; findings: {findings:#?}"
+        );
+    }
 }

@@ -3,14 +3,14 @@
   "schema_version": 1,
   "canonical_name": "generated-artifact-control-plane",
   "ci_product_surface": "oya-ci",
-  "purpose": "Productized control plane for generated artifacts in hermetic Rust cloud-ci. It declares which generated artifacts exist, who owns them, how they materialize, and why generated JSON must be regenerated from source instead of hand-merged.",
-  "public_product_contract": "Any repository adopting oya-ci can provide this manifest plus an SCM-facts snapshot to the Rust gate. GitHub Actions is a bridge runner; the policy is CI-provider-neutral, hermetic, and suitable for native cloud-ci execution.",
+  "purpose": "Productized control plane for generated artifacts in hermetic Rust cloud-ci. It declares generated-output path rules, which generated artifacts exist, who owns them, how they materialize, and why generated outputs must be ignored by default or regenerated from source instead of hand-merged.",
+  "public_product_contract": "Any repository adopting oya-ci can provide this manifest plus an SCM-facts snapshot to the Rust gate. GitHub Actions is a bridge runner; the policy is CI-provider-neutral, hermetic, and suitable for native cloud-ci execution. Generated outputs matching generated_path_rules are ignored by default; any force-added generated output must be declared here with owner, generator, materialization mode, and non-source merge policy.",
   "artifacts": [
     {
       "artifact_id": "cloud-ci-accounting-registry-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "materialization_mode": "merge-candidate-regenerated",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -20,7 +20,7 @@
         "specs/**",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
+      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
       "public_product_contract": "A repo-wide accounting projection must be controller-regenerated; humans and agents must not resolve conflicts by editing the JSON.",
       "generator": {
         "runner": "buck2",
@@ -41,7 +41,7 @@
       "artifact_id": "cloud-ci-decision-crosswalk-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "materialization_mode": "merge-candidate-regenerated",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -49,7 +49,7 @@
         "docs/machine-readable/*.json",
         "contracts/**"
       ],
-      "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
+      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
       "public_product_contract": "Cross-artifact agreement data is a generated projection and must be regenerated rather than hand-merged.",
       "generator": {
         "runner": "buck2",
@@ -70,7 +70,7 @@
       "artifact_id": "cloud-ci-enforcement-inventory-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "materialization_mode": "merge-candidate-regenerated",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -78,7 +78,7 @@
         "cloud/cloud-ci/gates/**",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
+      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
       "public_product_contract": "Enforcement inventory is generated CI product metadata and must have deterministic final-tree parity.",
       "generator": {
         "runner": "buck2",
@@ -99,7 +99,7 @@
       "artifact_id": "cloud-ci-gate-baseline-ratchet-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "materialization_mode": "merge-candidate-regenerated",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
@@ -107,7 +107,7 @@
         "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "registry-drift byte-parity plus baseline ratchet validation; growth requires explicit signoff source",
+      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
       "public_product_contract": "The baseline ratchet is shrink-only generated policy; merge conflict handling must not launder new debt into the baseline.",
       "generator": {
         "runner": "buck2",
@@ -155,14 +155,14 @@
       "artifact_id": "cloud-ci-ttl-policy-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "materialization_mode": "merge-candidate-regenerated",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
         "libs/oya-ci-config/src/bundled/ttl-policy.json",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
+      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
       "public_product_contract": "TTL policy is data-derived generated CI policy and must be deterministic across repositories.",
       "generator": {
         "runner": "buck2",
@@ -252,14 +252,14 @@
     {
       "layer_id": "pre-commit-pre-push",
       "name": "Pre-commit and pre-push",
-      "automation": "Fast checks reject undeclared generated artifacts and normal-source merge policies for generated JSON before a branch reaches CI.",
-      "enforcement": "Hooks may block local pushes, but the server-side gate repeats the check and remains authoritative."
+      "automation": "Fast checks reject undeclared generated outputs, normal-source merge policies for tracked generated artifacts, and non-deletion generated-output edits before a branch reaches CI.",
+      "enforcement": "Hooks may block local pushes, but the server-side generated-output diff policy and Rust gate repeat the check and remain authoritative."
     },
     {
       "layer_id": "pull-request-presubmit",
       "name": "Pull request presubmit",
-      "automation": "Hermetic Rust gates run over committed manifest plus SCM-facts snapshot and can upload generated diff evidence without requiring hand conflict resolution.",
-      "enforcement": "The single fan-in context oya-ci-required turns red on undeclared generated artifacts or unsafe merge policies."
+      "automation": "Hermetic Rust gates run over committed manifest plus materialized SCM-facts snapshot; presubmit rejects non-deletion generated-output edits and uploads regenerated evidence without requiring hand conflict resolution.",
+      "enforcement": "The single fan-in context oya-ci-required turns red on undeclared generated artifacts, unsafe merge policies, or generated outputs used as PR merge surfaces."
     },
     {
       "layer_id": "merge-queue-projected-state",
@@ -291,8 +291,73 @@
     "presubmit_authority": "merge-queue-projected-state",
     "postsubmit_authority": "postsubmit-main-materialization",
     "protected_branch_trigger": "push:dev",
-    "manual_conflict_resolution_policy": "reject-generated-json-conflict-hunks-regenerate-from-source-tree",
+    "manual_conflict_resolution_policy": "reject-generated-output-conflict-hunks-regenerate-from-source-tree",
     "drift_repair_policy": "fail-closed-and-open-generated-only-repair-pr",
-    "portable_runner_contract": "The controller runs after source-tree projection and after protected-branch updates. It regenerates declared artifacts from the accepted tree, records digests, and treats handwritten generated JSON conflict resolution as invalid input."
-  }
+    "portable_runner_contract": "The controller runs after source-tree projection and after protected-branch updates. It regenerates declared artifacts from the accepted tree, records digests, and treats handwritten generated-output conflict resolution as invalid input."
+  },
+  "generated_path_rules": [
+    {
+      "rule_id": "generated-json-files",
+      "rule_kind": "path_suffix",
+      "pattern": ".generated.json",
+      "description": "Canonical oya-ci generated JSON face suffix."
+    },
+    {
+      "rule_id": "generated-directory-component",
+      "rule_kind": "path_component",
+      "pattern": "generated",
+      "description": "Default generated output directory component used by TypeScript/OpenAPI and many code generators.",
+      "exclude_file_names": [
+        ".gitkeep"
+      ]
+    },
+    {
+      "rule_id": "double-underscore-generated-component",
+      "rule_kind": "path_component",
+      "pattern": "__generated__",
+      "description": "Common GraphQL, Relay, and TypeScript generated output directory."
+    },
+    {
+      "rule_id": "generated-sources-component",
+      "rule_kind": "path_component",
+      "pattern": "generated-sources",
+      "description": "Common JVM/Maven/Gradle generated source directory."
+    },
+    {
+      "rule_id": "generated-types-component",
+      "rule_kind": "path_component",
+      "pattern": "generated-types",
+      "description": "Common SDK and API-client generated type directory."
+    },
+    {
+      "rule_id": "short-generated-directory-component",
+      "rule_kind": "path_component",
+      "pattern": "gen",
+      "description": "Short generated-output directory convention used by protobuf, Thrift, and SDK generators."
+    },
+    {
+      "rule_id": "protobuf-go-generated-file-suffix",
+      "rule_kind": "path_suffix",
+      "pattern": ".pb.go",
+      "description": "Common Go protobuf generated output suffix."
+    },
+    {
+      "rule_id": "protobuf-rust-generated-file-suffix",
+      "rule_kind": "path_suffix",
+      "pattern": ".pb.rs",
+      "description": "Common Rust protobuf generated output suffix."
+    },
+    {
+      "rule_id": "typescript-generated-file-suffix",
+      "rule_kind": "path_suffix",
+      "pattern": ".generated.ts",
+      "description": "Common TypeScript generated output suffix."
+    },
+    {
+      "rule_id": "typescript-generated-declaration-suffix",
+      "rule_kind": "path_suffix",
+      "pattern": ".generated.d.ts",
+      "description": "Common TypeScript generated declaration output suffix."
+    }
+  ]
 }
