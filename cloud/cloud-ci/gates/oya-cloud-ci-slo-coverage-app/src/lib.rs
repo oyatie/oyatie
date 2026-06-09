@@ -2,13 +2,13 @@
 //!
 //! Portable conformance gate for catalog SLO declarations. The producer owns all repository I/O:
 //! it enumerates `registry/catalog/*.yaml`, maps each file stem to `crate_id`, and parses the
-//! top-level `slo:` scalar into rows shaped as `{"crate_id", "slo"}`. This crate stays pure and
-//! reuses `oya_check_slo_coverage::validate_slo_coverage` per row so the legacy predicate and the
-//! cloud-ci gate cannot drift.
+//! top-level `slo:` scalar into rows shaped as `{"crate_id", "source_path", "slo"}`. This crate
+//! stays pure and reuses `oya_check_slo_coverage::validate_slo_coverage` per row so the legacy
+//! predicate and the cloud-ci gate cannot drift.
 //!
 //! `evaluate_keyed` returns one `Finding{code,key}` per invalid catalog row. Current oyatie corpus
-//! is clean, so the disposition table marks both codes `frozen_empty`: a future missing SLO cannot
-//! be laundered into the accepted baseline by regeneration.
+//! is clean, so the disposition table marks all violation codes `frozen_empty`: a future missing
+//! SLO cannot be laundered into the accepted baseline by regeneration.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 

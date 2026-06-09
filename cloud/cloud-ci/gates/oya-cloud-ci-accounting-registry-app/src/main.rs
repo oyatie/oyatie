@@ -532,7 +532,7 @@ fn collect_slo_coverage(
     tracked_paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
 ) -> Value {
-    let mut by_crate: BTreeMap<String, Option<String>> = BTreeMap::new();
+    let mut records: Vec<(String, String, Option<String>)> = Vec::new();
     for path in tracked_paths {
         if is_path_excluded(path, cfg) {
             continue;
@@ -549,12 +549,15 @@ fn collect_slo_coverage(
             continue;
         };
         let contents = read_text(&repo_root.join(path));
-        by_crate.insert(crate_id, parse_catalog_slo(&contents));
+        records.push((crate_id, path.clone(), parse_catalog_slo(&contents)));
     }
+    records.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
-    let rows: Vec<Value> = by_crate
+    let rows: Vec<Value> = records
         .into_iter()
-        .map(|(crate_id, slo)| json!({ "crate_id": crate_id, "slo": slo }))
+        .map(|(crate_id, source_path, slo)| {
+            json!({ "crate_id": crate_id, "source_path": source_path, "slo": slo })
+        })
         .collect();
     json!({ "rows": rows })
 }
@@ -615,6 +618,65 @@ fn parse_catalog_slo(contents: &str) -> Option<String> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn unique_temp_repo() -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock after epoch")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "oya-slo-coverage-duplicate-test-{}-{nanos}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&root).expect("create temp repo");
+        root
+    }
+
+    #[test]
+    fn slo_coverage_preserves_duplicate_basenames_to_prevent_false_green() {
+        let root = unique_temp_repo();
+        let first = root.join("registry/catalog-a/service.yaml");
+        let second = root.join("registry/catalog-b/service.yaml");
+        fs::create_dir_all(first.parent().expect("first parent")).expect("create first parent");
+        fs::create_dir_all(second.parent().expect("second parent")).expect("create second parent");
+        fs::write(&first, "slo: preview-control-plane\n").expect("write first catalog row");
+        fs::write(&second, "# deliberately missing slo\n").expect("write second catalog row");
+
+        let mut cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        cfg.slo_coverage.catalog_record_globs = vec![
+            "registry/catalog-a/*.yaml".to_owned(),
+            "registry/catalog-b/*.yaml".to_owned(),
+        ];
+        let tracked_paths = vec![
+            "registry/catalog-a/service.yaml".to_owned(),
+            "registry/catalog-b/service.yaml".to_owned(),
+        ];
+
+        let face = collect_slo_coverage(&root, &tracked_paths, &cfg);
+        let rows = face["rows"].as_array().expect("rows");
+        assert_eq!(rows.len(), 2, "duplicate stems must not collapse rows");
+        assert_eq!(rows[0]["crate_id"], "service");
+        assert_eq!(rows[0]["source_path"], "registry/catalog-a/service.yaml");
+        assert_eq!(rows[1]["crate_id"], "service");
+        assert_eq!(rows[1]["source_path"], "registry/catalog-b/service.yaml");
+
+        let findings = oya_cloud_ci_slo_coverage_app::evaluate_keyed(&face);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "slo_missing_or_blank_slo" && finding.key == "service"
+            }),
+            "one duplicate row with a valid SLO must not hide the missing-SLO duplicate: {findings:?}"
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
 }
 
 /// Extract `name = "..."` from the `[package]` table of a Cargo.toml. Lightweight line-scan
