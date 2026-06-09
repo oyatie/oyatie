@@ -25,41 +25,37 @@ fn repo_root() -> PathBuf {
 fn run_producer_face(root: &Path, face: &str) -> Value {
     let scm_facts = root
         .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
-    let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
+    let (mut command, run_description) = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
         let bin = if Path::new(&bin).is_absolute() {
             PathBuf::from(bin)
         } else {
             root.join(bin)
         };
-        Command::new(bin)
-            .arg("--repo-root")
-            .arg(root)
-            .arg("--scm-facts")
-            .arg(&scm_facts)
-            .arg("--stdout")
-            .arg("--face")
-            .arg(face)
-            .current_dir(root)
-            .output()
-            .expect("run producer binary")
+        (Command::new(bin), "run producer binary")
     } else {
-        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
+        let mut command =
+            Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()));
+        command
             .arg("run")
             .arg("--quiet")
             .arg("-p")
             .arg("oya-cloud-ci-accounting-registry-app")
-            .arg("--")
-            .arg("--repo-root")
-            .arg(root)
-            .arg("--scm-facts")
-            .arg(&scm_facts)
-            .arg("--stdout")
-            .arg("--face")
-            .arg(face)
-            .current_dir(root)
-            .output()
-            .expect("cargo run oya-cloud-ci-accounting-registry-app")
+            .arg("--");
+        (command, "cargo run oya-cloud-ci-accounting-registry-app")
     };
+
+    let output = command
+        .arg("--repo-root")
+        .arg(root)
+        .arg("--scm-facts")
+        .arg(&scm_facts)
+        .arg("--stdout")
+        .arg("--face")
+        .arg(face)
+        .current_dir(root)
+        .output()
+        .expect(run_description);
+
     assert!(
         output.status.success(),
         "producer failed: {}",

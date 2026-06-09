@@ -40,7 +40,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-governance-raci-team-coverage` | every team charter has RACI and CODEOWNERS coverage | RACI-OWNERSHIP.md |
 | `oya-governance-readme-doc-coverage` | every root doc has catalog and README discoverability | README.md / DOC-CATALOG.md |
 | `oya-governance-runbook-index-resolves` | every RUNBOOKS-INDEX entry is a real file | RUNBOOKS-INDEX.md |
-| `oya-governance-slo-coverage` | every catalog record carries SLO coverage | SLO-CATALOG.md |
+| `cloud-ci-slo-coverage` | every catalog record carries SLO coverage | SLO-CATALOG.md |
 | `oya-governance-catalog-records` | every Cargo workspace member has a catalog record | ADR-0015 / registry/catalog |
 | `oya-governance-product-index` | product README index and machine-readable product catalog stay in sync | products/README.md |
 | `oya-governance-adr-citation` | only-new-pack-citations check | ADR-LEGACY-REGRESSION-MAPPING |

@@ -93,20 +93,19 @@ fn finding_for(error: SloCoverageError) -> Finding {
 /// finding per invalid SLO catalog row. Running the legacy validator per row converts its
 /// fail-fast whole-corpus contract into surface-all cloud-ci findings without re-deriving policy.
 pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
-    let rows = input
-        .get("rows")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
     let mut findings = BTreeSet::new();
-    if rows.is_empty() {
-        findings.insert(Finding::new(
-            "slo_no_catalog_records",
-            "<empty-slo-catalog>",
-        ));
-        return findings;
-    }
-    for row in &rows {
+    let rows = match input.get("rows").and_then(Value::as_array) {
+        Some(rows) if !rows.is_empty() => rows,
+        _ => {
+            findings.insert(Finding::new(
+                "slo_no_catalog_records",
+                "<empty-slo-catalog>",
+            ));
+            return findings;
+        }
+    };
+
+    for row in rows {
         let record = record_from_row(row);
         if let Err(error) = validate_slo_coverage(&[record]) {
             findings.insert(finding_for(error));

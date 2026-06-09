@@ -10,7 +10,7 @@ purpose: |
   Metric-gated promotion at 1% → 5% → 25% → 50% → 100% with SLO-burn-rate-bounded hold durations.
 planned_enforcement_ref:
   - oya-governance-canary-required
-  - oya-governance-slo-coverage
+  - cloud-ci-slo-coverage
 related_adrs: [ADR-0040, ADR-0042, ADR-0044, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 doc_status: published
@@ -105,7 +105,7 @@ AWS CodeDeploy "Canary 10/45" + "Linear 10/3min"; Microsoft Azure Deployment Rin
 ## 10. Compliance gates
 
 - `oya-governance-canary-required` (NEW; BLOCKER for kernel/domain/app/api/adapter classes).
-- `oya-governance-slo-coverage` (existing; extended).
+- `cloud-ci-slo-coverage` (existing; extended).
 
 ## 11. Lift target
 
