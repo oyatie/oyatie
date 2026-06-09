@@ -47,14 +47,14 @@
     {
       "check": "generated-face fixpoint",
       "command": "buck2 git-facts emitter + accounting-registry producer, then registry-drift",
-      "evidence": "Run after evidence commit and generated-face settle; final PR branch must pass registry-drift locally and remotely.",
-      "status": "PENDING_FINAL_SETTLE"
+      "evidence": "Final generated faces were regenerated and registry-drift passed locally after evidence addition.",
+      "status": "PASS"
     },
     {
       "check": "secret-pattern scan",
       "command": "git diff $(git merge-base HEAD origin/dev)..HEAD -- . ':(exclude)Cargo.lock' | grep -E -i 'password\\s*=|api[_-]?key\\s*=|secret\\s*=|private[_-]?key|token\\s*='",
-      "evidence": "No obvious secret assignments expected; final scan runs after settle.",
-      "status": "PENDING_FINAL_SCAN"
+      "evidence": "Final branch diff scan found no obvious secret assignments.",
+      "status": "PASS"
     }
   ],
   "known_gaps": [
@@ -65,5 +65,5 @@
     "reversibility": "Revert the workflow trigger commit and generated-face settle; no runtime/data migration.",
     "merge_policy": "Do not merge without remote oya-ci-required green and reviewer approval."
   },
-  "closure": "Evidence added; generated faces must be settled and verified before PR #620 is considered ready."
+  "closure": "Evidence is present, generated faces are settled, and local registry-drift proves committed generated JSON equals regenerated output on the branch head."
 }
