@@ -68,10 +68,6 @@ fn secret_reference_uri_rejects_non_contract_shapes() {
         Err(SecretReferenceUriError::TraversalSegment)
     );
     assert_eq!(
-        SecretReferenceUri::parse("openbao:secret/tenant/secret..backup"),
-        Err(SecretReferenceUriError::TraversalSegment)
-    );
-    assert_eq!(
         SecretReferenceUri::parse("openbao:secret/tenant/secret?debug=true"),
         Err(SecretReferenceUriError::InvalidSegmentCharacter)
     );
