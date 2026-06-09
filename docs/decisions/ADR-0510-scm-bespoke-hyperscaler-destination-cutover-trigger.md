@@ -1,7 +1,7 @@
 ---
 id: ADR-0510
 title: "SCM destination = bespoke hyperscaler monorepo-VCS; GitHub transitory; cutover numerically triggered"
-status: Proposed
+status: Accepted
 authority: founder
 deciders: founder, council-architecture
 date: 2026-05-29
@@ -11,6 +11,7 @@ door: two-way
 supersedes: []
 superseded_by: []
 amends: [ADR-0363]
+amended_by: [ADR-0518, ADR-0526]
 related: [ADR-0363, ADR-0367, ADR-0369, ADR-0111, ADR-0173, ADR-0247, ADR-0248, ADR-0362, ADR-0511]
 related_specs: [/specs/gitops-vcs-replacement.json, /specs/hyperscaler-architecture-invariants.json]
 numbering_note: "decisions.json records next_adr=ADR-0392, but that index is stale: origin/dev already carries ADRs through ADR-0509, and ADR-0392/ADR-0408 are reserved by the in-flight Buck2-reversal branch (feat/adr-0392-0408-buck2-reversal-2026-05-29). To avoid collision this ADR takes ADR-0510 (first free number above dev's highest, ADR-0509). decisions.json next_adr must be re-derived from the on-disk corpus, not trusted at face value."
@@ -24,9 +25,26 @@ purpose: Record the SCM destination as the bespoke hyperscaler monorepo-VCS patt
 
 ## Status
 
-Proposed — 2026-05-29. **DRAFT for founder review — do NOT auto-merge.**
+**Accepted — 2026-06-08 (founder-ruled; ratified at the WAVE-1 convergence door; door: two-way).**
+Originally Proposed 2026-05-29; ratified to Accepted as part of the WAVE-1 fabric convergence
+(resolve-every-Proposed rule), with the amendments below.
 
 Amends ADR-0363 (which adopted GitHub (interim) + plain git as the change-coordination substrate and framed it as "canonical"): this ADR makes that canonicality explicitly **transitory** — GitHub is the canonical host **until** the numeric cutover trigger fires, at which point the bespoke hyperscaler monorepo-VCS becomes the destination. ADR-0363's "keep git as-is / don't reinvent the wheel" verdict stands for the near term and is the *reason* the cutover is deferred, not abandoned.
+
+## Amendment (2026-06-08, WAVE-1 fabric convergence)
+
+This ADR is **amended in place** (no tombstone; git history preserves the pre-amendment body):
+
+- **ADR-0518** DEFINES the deferred destination concretely as the 10-stage AST work-area change
+  pipeline (native-only, leases-not-locks). The numeric cutover-trigger discipline (§3) and the
+  "GitHub transitory until trigger fires" stance (§2) are PRESERVED unchanged — W4 is cutover-gated per
+  this ADR.
+- **ADR-0526** de-risks the GitHub→bespoke-SCM cutover to a single `ScmFactsSource` adapter impl-swap
+  by removing the transitional impl name (git) from the oya-ci facts contract + adapter (the
+  scm-facts boundary). The cutover becomes a one-impl addition, not a contract rewrite.
+
+The destination is now a decided, concretely-defined, Accepted record; the only open variable remains
+the cutover TIMING gated on §3's numeric triggers.
 
 ## Context
 

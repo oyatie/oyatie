@@ -6,7 +6,8 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0064, ADR-0131, ADR-0161, ADR-0173-vendor-lock-in-avoidance-and-stack-ownership, ADR-0184, ADR-0186, ADR-0197, ADR-0199]
+amended_by: [ADR-0520]
+related: [ADR-0064, ADR-0131, ADR-0161, ADR-0173-vendor-lock-in-avoidance-and-stack-ownership, ADR-0184, ADR-0186, ADR-0197, ADR-0199, ADR-0520]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json
   - /specs/microservices/manifest-schema.json
@@ -297,6 +298,16 @@ operational task, not an application rewrite.
   oya-shared-object-store-kernel`.
 - Bucket naming convention enforced by `oya-check-tenant-cost-labels-
   coverage` (advisory) and the IaC-side bucket preallocator.
+
+## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence)
+
+Amended in place (no tombstone; git history preserves the pre-amendment body). **ADR-0520** qualifies
+SeaweedFS/Ceph as explicitly **TRANSITIONAL** behind the `object-store-kernel` interface: the W5
+bespoke infinite-scale object-store (the "Phase 2 in-house object store" already foreseen in the
+in-house roadmap above) sits behind that interface and SUPERSEDES SeaweedFS/Ceph at a parity-gated
+cutover, consistent with the ADR-0482 bridge-discipline. The `ObjectStore` trait remains the seam; the
+choice of SeaweedFS as today's primary and Ceph as the named scale-up path is unchanged for the
+transitional period.
 
 ## Footnotes (versions verified 2026-05-18)
 

@@ -1,6 +1,6 @@
 ---
 id: ADR-0280
-status: Proposed
+status: Accepted
 date: 2026-05-20
 owners:
   - council-architecture
@@ -18,7 +18,8 @@ owners:
   - axis-ontology
   - axis-intelligence
   - axis-workflow-engine
-  - axis-foundry
+amended_by:
+  - ADR-0520
 supersedes: []
 amends:
   - ADR-0245-substrate-vs-product-layering.md (hardens §D-4 dependency-direction text into a machine-readable DAG spec + acyclicity lane)
@@ -114,7 +115,23 @@ enforced_by:
 
 ## Status
 
-Proposed — 2026-05-20.
+**Accepted — 2026-06-08 (founder-ruled; ratified at the WAVE-1 convergence door).** Originally Proposed
+2026-05-20; ratified to Accepted as part of the WAVE-1 fabric convergence (resolve-every-Proposed
+rule), and **amended by ADR-0520**.
+
+## Amendment (2026-06-08, WAVE-1 fabric convergence)
+
+This ADR is **amended in place** (no tombstone; git history preserves the pre-amendment body).
+**ADR-0520** hardens this substrate-of-substrate dependency doctrine into the
+"transitional-impl-behind-a-stable-interface, none blocking, infinite-scale-locked-into-interfaces-now"
+sequencing rule, inserts the Agentic Delivery Fabric + owned AST substrate (ADR-0516/0517) as the top
+layer above the substrate DAG, and names the W1 interface set to lock (`WorkAreaTree`, `scm-facts`,
+`object-store-kernel`, the DB trait, the gate contract, the content-address). The acyclicity invariant
+and the Tier-1 DAG below are unchanged. (Forbidden "foundry" vocabulary in this doctrine is scrubbed
+per the WAVE-1 vocab-eradication; the platform's own self-hosting meta-substrate is referenced by its
+canonical name, not the legacy term.)
+
+(Original 2026-05-20 status note, preserved:)
 
 This ADR sequences after the foundational keystone bundle (ADR-0242
 through ADR-0255) and the Tier-1 hardening wave. It lands as part of the substrate-hardening keystone
