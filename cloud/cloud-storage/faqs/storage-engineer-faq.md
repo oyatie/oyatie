@@ -4,7 +4,7 @@
 
 ---
 
-**Q1. Does `cloud-storage` replace AWS S3 / GCS / Azure Blob / Cloudflare R2 / MinIO / Backblaze B2?**
+**Q1. Does `cloud-storage` replace AWS S3 / GCS / Azure Blob / Cloudflare R2 / Backblaze B2?**
 
 For Oyatie-tenant workloads — yes. `cloud-storage` is API-compatible with all of S3, Azure Blob, GCS, and (in paid tenant_class regulated profiles) B2 and
 R2. Tenants point existing applications at the `cloud-storage` endpoints; standard SDKs (boto3, Azure Blob SDK, gcloud-python)
@@ -12,14 +12,14 @@ just work. We're not a public S3 alternative; we're the per-tenant storage subst
 
 ---
 
-**Q2. Why MinIO Enterprise as the backend?**
+**Q2. Why SeaweedFS now and owned object-store interfaces long term?**
 
 Three reasons:
-1. **S3 API completeness** — MinIO Enterprise has the highest API parity with AWS S3 of any non-AWS implementation.
-2. **Erasure coding ergonomics** — built-in EC:14+4 in paid tenant_class production profiles gives us cross-rack durability without RAID-style operational pain.
-3. **Open source + paid support** — we control the deployment + get vendor support.
+1. **Current Kubernetes-native substrate** — SeaweedFS is the in-cluster object-bucket substrate selected by the active cloud/runtime direction and wired through `infra/seaweedfs`.
+2. **Stable product boundary** — tenants use `cloud-storage` APIs and compatibility adapters; the backing object store remains behind the storage domain/interface so an owned object-store implementation can replace the substrate without changing tenant contracts.
+3. **Self-hostable operations** — the current path keeps object storage inside Oyatie-managed cells, with Kubernetes NetworkPolicy, per-consumer credentials, and cell placement instead of a provider-owned final backend.
 
-Alternative we considered: SeaweedFS (immature ops), Ceph RGW (operational complexity high), proprietary (lock-in).
+Alternative considered: Ceph RGW for larger scale-up cells, retained as a future scale-up path behind the same domain boundary.
 
 ---
 
@@ -140,7 +140,7 @@ issue transition / expiration operations. Lifecycle events anchor to `audit-chai
 
 **Q15. How does this work for petabyte-scale tenants?**
 
-Paid tenant_class production profiles support 1 PB per tenant; paid tenant_class regulated profiles are contract-unbounded. The MinIO Enterprise cluster scales horizontally; we shard tenants across
+Paid tenant_class production profiles support 1 PB per tenant; paid tenant_class regulated profiles are contract-unbounded. Storage cells scale horizontally behind the `cloud-storage` domain boundary; we shard tenants across
 storage cells. Tenant buckets within a single tenant can span cells (transparent to the API).
 
 ---
