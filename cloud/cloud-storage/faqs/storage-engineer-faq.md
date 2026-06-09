@@ -108,7 +108,7 @@ to presigned URL issuance (e.g. "only issue presigned URLs that expire within 60
 
 We issue short-lived AWS-Sig-v4-compatible access-key + secret-key pairs via `oya storage s3-credential issue`. The keys are
 tenant-scoped + can be further scoped (read-only, write-only, prefix-only). TTL is configurable up to the tenant_class/profile maximum
-(1 h demo_trial, 4 h paid baseline, 12 h paid production, 4 h paid regulated — regulated is lower because tighter security posture).
+(1 h community trial tenant_class, 4 h paid baseline, 12 h paid production, 4 h paid regulated — regulated is lower because tighter security posture).
 
 ---
 
@@ -161,7 +161,7 @@ delete-marker is created but V1 remains (locked) and is restorable until retenti
 
 **Q18. What's the durability target?**
 
-demo_trial: 99.99 % (4 nines; EC:4+2 single-AZ).
+community trial tenant_class: 99.99 % (4 nines; EC:4+2 single-AZ).
 paid baseline profile: 99.9999999 % (9 nines; EC:8+4 multi-AZ + cross-region replica option).
 paid production profile: 99.999999999 % (11 nines; EC:14+4 + multi-region active-active).
 paid regulated profile: 99.999999999999 % (14 nines; EC:18+6 + tape archive + sovereign air-gap).
@@ -170,11 +170,12 @@ Measured per AWS S3 model: probability of object loss per year.
 
 ---
 
-**Q19. Where does Foundry hook in?**
+**Q19. Where do cloud-ci and toolchain pipelines store artifacts?**
 
-Foundry pipelines store build artefacts + test results in `cloud-storage` as `oyatie.foundry.<pipeline-id>` principals. The
-artefact bucket has a 90-day lifecycle to Cold + 365-day expiration. Cedar permits for Foundry are narrow: `PutObject`,
-`GetObject`, `ListObjects` on the foundry artefact bucket only.
+Cloud-ci/toolchain pipelines store build artifacts and verification evidence in `cloud-storage` through the storage-domain
+artifact interface. Principal and bucket names are assigned by the current registry/stores authority; this FAQ does not define
+merge authority. Artifact buckets keep a 90-day lifecycle to Cold plus 365-day expiration, and Cedar permits stay narrow:
+`PutObject`, `GetObject`, and `ListObjects` on the pipeline artifact bucket only.
 
 ---
 
