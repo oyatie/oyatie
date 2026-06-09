@@ -5,7 +5,7 @@
 1. Canonical service direction: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md` D-15 through D-20, plus `docs/standards/brief-template.md` lines 746-758 requiring `cloud-iam` across all six contexts.
 2. Machine-readable direction: `specs/master-plan-sequencing.json` deployment contexts lines 704-745, OpenTofu substrate lines 747-775, supported OSes lines 777-815, language policy lines 817-855, and OCI Always Free lines 856-867.
 3. Service-local purpose: ADR-0329 + ADR-0330 + ADR-0331 lines 7-91, `microservices/cloud-iam/faqs/iam-engineer-faq.md` lines 7-182, and `microservices/cloud-iam/reference-implementations/issue-scoped-token-rust-sdk.md` lines 1-182.
-4. Product-level cloud contract: `docs/products/cloud/PRD.md` lines 117-120, 172-204, and `docs/DOC-COVERAGE.md` lines 130-136 marking `cloud-iam` as a stub.
+4. Product-level cloud contract: `docs/products/cloud/PRD.md` lines 117-120 and 172-204; historical coverage inventory at `docs/DOC-COVERAGE.md` lines 130-136 is provenance only and is not current product-state evidence.
 5. Counterpart sources: AWS IAM docs at `https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html`, AWS IAM Identity Center docs at `https://docs.aws.amazon.com/en_en/singlesignon/latest/userguide/what-is.html`, Google Cloud IAM docs at `https://docs.cloud.google.com/iam/docs/overview`, and Microsoft Entra docs at `https://learn.microsoft.com/en-us/entra/fundamentals/what-is-entra`.
 
 ## 1. Counterpart 1 - AWS IAM With IAM Identity Center Capability Surface
@@ -379,7 +379,7 @@ Ledger R46 Compliance overlays: map FedRAMP, SOC 2, ISO, KCMVP, eIDAS, Aadhaar, 
 Ledger R47 Regional isolation: define region, cell, tenant, sovereign pack, and data-residency boundaries.
 Ledger R48 Admin UX: define a UI/API split for policy authoring, federation setup, token inspection, and incident response.
 Ledger R49 SDK ownership: state whether the Rust SDK example becomes generated SDK output or remains educational sample code.
-Ledger R50 CLI ownership: define an Oya CLI surface for intern-buildable workflows instead of shell fragments.
+Ledger R50 cloud-ci ownership: define the branch-protected `oya-ci-required` / owned `oya-ci` gate surface for intern-buildable workflows instead of shell fragments.
 Ledger R51 Migration tooling: replace Okta/AWS extraction examples with a governed Rust migration command and fixture tests.
 Ledger R52 Import validation: add dry-run, diff, approval, and rollback behavior for imported identities and policies.
 Ledger R53 Account linking: define how external IdP subjects link to Oyatie principals and how conflicts resolve.
@@ -394,7 +394,7 @@ Ledger R61 OpenTofu modules: add per-context modules before claiming deployabili
 Ledger R62 State backends: publish per-context state backend, locking, encryption, signing, and recovery model.
 Ledger R63 Module signing: connect OpenTofu modules to ADR-0039 sigstore expectations.
 Ledger R64 OS manifest: add Tier-1, Tier-2, out-of-scope, package format, and CI lane declarations.
-Ledger R65 Build invocation: document `cargo build --workspace --release --all-features --locked` or a sanctioned Oya wrapper.
+Ledger R65 Build invocation: document the branch-protected `oya-ci-required` / owned `oya-ci` build target; local Cargo runs are rehearsal only and are not release authority.
 Ledger R66 SLO files: add OpenSLO for authorize, token issue, introspect, revoke, federation callback, provider translation, and audit append.
 Ledger R67 Capacity model: add role, principal, policy, IdP, token, and audit-event ceilings by tenant_class policy/context.
 Ledger R68 Cost budget: add tenant_class policies cost envelopes, with OCI demo_trial tenant_class explicitly zero paid infrastructure.
