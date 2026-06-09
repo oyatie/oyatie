@@ -3087,7 +3087,7 @@ const GRAPH = {
       {
         "id": "UNASSIGNED",
         "title": "UNASSIGNED",
-        "adr_count": 56,
+        "adr_count": 57,
         "deliverables": [],
         "source": "source/docs/machine-readable/masterplan.generated.json"
       },
@@ -3365,7 +3365,7 @@ const GRAPH = {
       {
         "id": "M-APP-SHELL-FRONTEND",
         "title": "M-APP-SHELL-FRONTEND",
-        "adr_count": 1,
+        "adr_count": 2,
         "deliverables": [
           {
             "id": "ADR-0372-D1",
@@ -3667,6 +3667,52 @@ const GRAPH = {
         "source": "source/docs/machine-readable/masterplan.generated.json"
       },
       {
+        "id": "M-TOOLCHAIN",
+        "title": "M-TOOLCHAIN",
+        "adr_count": 2,
+        "deliverables": [
+          {
+            "id": "ADR-0514-D1",
+            "title": "Hermetic clang+lld+sysroot toolchain cell as default (replaces host /usr/bin/clang).",
+            "status": "declared"
+          },
+          {
+            "id": "ADR-0514-D2",
+            "title": "Trunk-sourced gate security fix: deployed controller Job clones dev (trusted) + PR-ref as data.",
+            "status": "declared"
+          },
+          {
+            "id": "ADR-0514-D3",
+            "title": "Idempotent buckify + durable DEP propagation (post-buckify patch step).",
+            "status": "declared"
+          },
+          {
+            "id": "ADR-0514-D4",
+            "title": "ControllerDispatcher wiring + cutover from cloud-ci to deployed oya-ci-controller (P1 core only).",
+            "status": "declared"
+          },
+          {
+            "id": "ADR-0514-D5",
+            "title": "Affected-gate rdeps depth-cap + presubmit/postsubmit two-tier + NativeLink CAS MVP.",
+            "status": "declared"
+          },
+          {
+            "id": "ADR-0514-D6",
+            "title": "Structured failure summary from buck2 event-log JSON (replaces fragile grep).",
+            "status": "declared"
+          }
+        ],
+        "gate": "cloud-ci/Rust gate packet hermetic-toolchain-default",
+        "source": "source/docs/machine-readable/masterplan.generated.json"
+      },
+      {
+        "id": "M-IDP-CENTRAL-HUB",
+        "title": "M-IDP-CENTRAL-HUB",
+        "adr_count": 1,
+        "deliverables": [],
+        "source": "source/docs/machine-readable/masterplan.generated.json"
+      },
+      {
         "id": "M-IDENTITY-V2",
         "title": "M-IDENTITY-V2",
         "adr_count": 1,
@@ -3734,11 +3780,46 @@ const GRAPH = {
         "adr_count": 1,
         "deliverables": [],
         "source": "source/docs/machine-readable/masterplan.generated.json"
+      },
+      {
+        "id": "W0",
+        "title": "W0",
+        "adr_count": 2,
+        "deliverables": [],
+        "source": "source/docs/machine-readable/masterplan.generated.json"
+      },
+      {
+        "id": "W1",
+        "title": "W1",
+        "adr_count": 9,
+        "deliverables": [],
+        "source": "source/docs/machine-readable/masterplan.generated.json"
+      },
+      {
+        "id": "W4",
+        "title": "W4",
+        "adr_count": 1,
+        "deliverables": [],
+        "source": "source/docs/machine-readable/masterplan.generated.json"
+      },
+      {
+        "id": "W2",
+        "title": "W2",
+        "adr_count": 4,
+        "deliverables": [],
+        "source": "source/docs/machine-readable/masterplan.generated.json"
+      },
+      {
+        "id": "W3",
+        "title": "W3",
+        "adr_count": 4,
+        "deliverables": [],
+        "source": "source/docs/machine-readable/masterplan.generated.json"
       }
     ],
     "meta": {
-      "adr_count": 81,
-      "deliverable_count": 102,
+      "adr_count": 106,
+      "deliverable_count": 108,
       "deliverable_status_model": "declared (v1; CI-derived status deferred per ADR-0364 §3)",
       "generator": "oya gen masterplan",
       "source": "source/docs/machine-readable/masterplan.generated.json"
