@@ -5,36 +5,21 @@ doc_status: published
 
 # Oyatie Runbook — Plugin Sandbox Escape
 
-> **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))
-> **Owner:** TBD per RACI
-> **Authored from:** [`templates/runbook-template.md`](../templates/runbook-template.md)
-> **Last verified:** 2026-05-09 (stub authored to satisfy doc-link integrity; full procedure lands at W-Foundation gate)
+> **Status:** Link-continuity page; the canonical SaaS operator procedure is [`docs/runbooks/saas/plugin-runtime-sandbox-escape.md`](saas/plugin-runtime-sandbox-escape.md).
+> **Owner:** `axis-saas`
+> **Authority:** `docs/products/saas-platform/PRD.md`, `specs/masterplan.json` M03-P04/M03-P08, and the canonical SaaS runbook linked above.
+> **Last verified:** 2026-06-09 (root path checked against the canonical SaaS procedure and SSOT chain).
 
-## Symptom
-TODO — fill at W-Foundation authoring pass.
+## Operator action
 
-## Detection
-TODO — fill at W-Foundation authoring pass. Source signals + paging policy per [INCIDENT-MANAGEMENT.md](../INCIDENT-MANAGEMENT.md).
+Use [`docs/runbooks/saas/plugin-runtime-sandbox-escape.md`](saas/plugin-runtime-sandbox-escape.md) for plugin runtime sandbox escape containment. This root path is retained for existing inbound links only and does not define a separate incident authority.
 
-## First-response checklist
-1. Acknowledge page; declare incident in #incident-bridge
-2. Open the SLO dashboard for the affected surface
-3. Capture the audit-chain segment for the impact window per ADR-0003
-4. Apply the immediate stop-bleeding step listed in §"Containment"
+## Guardrails
 
-## Containment
-TODO — fill at W-Foundation authoring pass.
-
-## Diagnosis
-TODO — fill at W-Foundation authoring pass.
-
-## Recovery
-TODO — fill at W-Foundation authoring pass.
-
-## Verify-recovery
-- Confirm SLO error budget recovers within recovery SLO
-- Confirm audit-chain integrity per ADR-0003
-- File MFL row + ship a fitness lane catch if structural
+- Do not execute an alternate recovery flow from this page.
+- Do not treat workstation checks as production authority; the canonical procedure requires cloud control-plane status, sealed audit evidence, and `oya-ci-required` evidence where merge readiness is involved.
+- If the canonical procedure and this link page diverge, the canonical SaaS procedure wins.
 
 ## Sources
-[INCIDENT-MANAGEMENT.md](../INCIDENT-MANAGEMENT.md), [SLO-CATALOG.md](../SLO-CATALOG.md), [`standards/prevention-doctrine.md`](../standards/prevention-doctrine.md), [`templates/runbook-template.md`](../templates/runbook-template.md), ADR-0003.
+
+[`docs/runbooks/saas/plugin-runtime-sandbox-escape.md`](saas/plugin-runtime-sandbox-escape.md), [`docs/products/saas-platform/PRD.md`](../products/saas-platform/PRD.md), `specs/masterplan.json` M03-P04/M03-P08, and `HANDOFF.md`.

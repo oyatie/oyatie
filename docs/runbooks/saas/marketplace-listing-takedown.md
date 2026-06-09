@@ -4,17 +4,17 @@ doc_status: published
 
 # Oyatie Runbook — Marketplace Listing Takedown
 
-> **Status:** Production procedure authored for the W-SaaS-Preview documentation gate; not evidence that production alerts are already green.
+> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `oya-ci-required` are green.
 > **Owner:** `axis-saas + ops-security + legal/compliance when regulatory or sanctions scope is present`
 > **Severity scope:** Sev 3 by default; escalate to Sev 1 for active exploit, sanctions/export-control, regulated data exposure, or cross-tenant settlement impact.
-> **Authority:** ADR-0249 marketplace doctrine, ADR-0314 DealSet settlement doctrine, ADR-0036 plugin trust model, W-SaaS-Preview marketplace listing gate in `docs/PRD.md`, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
-> **Last verified:** 2026-06-09 (legacy scaffold wording removed; procedure grounded in existing docs and ADRs).
+> **Authority:** ADR-0249 marketplace doctrine, ADR-0314 DealSet settlement doctrine, ADR-0036 plugin trust model, the SaaS Platform PRD, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
+> **Last verified:** 2026-06-09 (SSOT chain checked against HANDOFF.md, registry/stores/*, specs/root-hub-pointers.json, specs/masterplan.json, and docs/products/saas-platform/PRD.md).
 
 ## Operator contract
 - **Incident channel:** `#inc-saas-marketplace`.
 - **Primary invariant:** takedown changes listing discoverability and installability without silently deleting tenant entitlements, DealSet settlement evidence, or audit history.
 - **Tenant boundary:** every action is scoped by `listing_id`, `publisher_tenant_id`, affected `buyer_tenant_id` set, `deal_set_id` where applicable, `plugin_id` where applicable, `cell_id`, and jurisdiction pack.
-- **Cloud authority:** production listing/install state changes flow through marketplace/cloud control-plane APIs and sealed audit evidence. Local CLI checks are diagnostic only.
+- **Cloud authority:** production listing/install state changes flow through marketplace/cloud control-plane APIs and sealed audit evidence. Workstation diagnostics are supporting evidence only.
 - **Audit event:** every hide, freeze, entitlement hold, install revoke, DealSet state change, tenant notice, and restore decision emits `EVT-SAAS-MARKETPLACE-LISTING-TAKEDOWN-INCIDENT` with `incident_id`, `listing_id`, `publisher_tenant_id`, `tenant_id`, `deal_set_id`, `operator_id`, `decision_id`, and `evidence_hash`.
 - **Stop condition:** the listing cannot be discovered or newly installed where prohibited, affected tenants have a migration/restore decision, settlement state is explicit, audit evidence is sealed, and prevention ownership is recorded.
 
@@ -85,4 +85,4 @@ Classify exactly one primary branch before recovery:
 - Update this runbook if the classified branch, state name, metric, or prevention gate was missing.
 
 ## Sources
-`docs/PRD.md` W-SaaS-Preview, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`, `docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md`, `docs/decisions/ADR-0036-plugin-substrate-wasm-and-trust.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.
+`docs/products/saas-platform/PRD.md`, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`, `docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md`, `docs/decisions/ADR-0036-plugin-substrate-wasm-and-trust.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.
