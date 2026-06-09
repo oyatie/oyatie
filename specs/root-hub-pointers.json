@@ -39,6 +39,12 @@
   },
   "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file. Agents read this JSON to discover canonical entry points; humans read the README/CLAUDE/AGENTS summaries that mirror this.",
   "entry_points": {
+    "session_handoff": {
+      "current_path": "HANDOFF.md",
+      "kind": "doc",
+      "purpose": "Fresh-session handoff at repo root (founder directive 2026-06-08): cross-repo state, full backlog, hard guardrails, and the sibling/kernel consolidation map. Joins README/CLAUDE/AGENTS as a purposeful root markdown; agents read this to resume with zero context loss.",
+      "target_path_after_md_retirement": "same"
+    },
     "_retired_constitutional_authority": {
       "retired_on": "2026-05-15",
       "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Strike executed 2026-05-15. Content redistributed to 4 machine-readable successor specs (see decision_principles, forbidden_operations, decision_rights, governance_amendment entry_points below). docs/CONSTITUTION.md deleted; crates/oya-check-constitution-cite deleted; oya-dev-cli constitution-cite gate removed. Per-file citation sweep tracked as follow-up.",
