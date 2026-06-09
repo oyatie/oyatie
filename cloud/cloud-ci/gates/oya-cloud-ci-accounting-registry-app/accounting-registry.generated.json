@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17637,
-    "source_inputs_digest": "fnv1a64:4e529440fed4cf51"
+    "source_inputs_digest": "fnv1a64:056e6c4098f1ec71"
   },
   "rows": [
     {
@@ -71842,7 +71842,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "55056a1df950c09a0038e3e8c882f9f4ca8153bb",
       "owner": null,
       "path": "docs/plans/task20-import-manifest-freeze-20260609.md",
       "reachable_from": [],
@@ -115614,7 +115614,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "55056a1df950c09a0038e3e8c882f9f4ca8153bb",
       "owner": null,
       "path": "evidence/consolidation/task20-import-manifest-freeze-20260609.json",
       "reachable_from": [],
@@ -116554,7 +116554,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": null,
+      "last_touch_commit": "55056a1df950c09a0038e3e8c882f9f4ca8153bb",
       "owner": null,
       "path": "evidence/multispectrum/task20-import-manifest-freeze-20260609-1780983615.json",
       "reachable_from": [],
