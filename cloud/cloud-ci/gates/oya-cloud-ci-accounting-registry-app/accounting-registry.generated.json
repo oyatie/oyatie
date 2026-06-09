@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17648,
-    "source_inputs_digest": "fnv1a64:4f807f0fac156b0b"
+    "source_inputs_digest": "fnv1a64:1888e710f8d8b95f"
   },
   "rows": [
     {
@@ -116667,7 +116667,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "25baaa3883cef8af2658c9b06a397956ba30dde1",
+      "last_touch_commit": "feb8a15be8b16c3d65773038e9a97bc87c744f99",
       "owner": null,
       "path": "evidence/multispectrum/brand-residue-historical-labels-20260609-1780996750.json",
       "reachable_from": [],
@@ -342435,7 +342435,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "25baaa3883cef8af2658c9b06a397956ba30dde1",
+      "last_touch_commit": "feb8a15be8b16c3d65773038e9a97bc87c744f99",
       "owner": null,
       "path": "registry/catalog/oya-check-brand-residue.yaml",
       "reachable_from": [],
