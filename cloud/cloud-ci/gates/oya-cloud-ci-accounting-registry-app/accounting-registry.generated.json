@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17645,
-    "source_inputs_digest": "fnv1a64:3376feefb84e2bbb"
+    "source_inputs_digest": "fnv1a64:b626c48a73ce7089"
   },
   "rows": [
     {
@@ -330,7 +330,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "8574f045239f73e38b421d424c92e51d02f5f93b",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": ".github/workflows/oya-ci-required.yml",
       "reachable_from": [],
@@ -13200,7 +13200,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "8574f045239f73e38b421d424c92e51d02f5f93b",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "Cargo.toml",
       "reachable_from": [
@@ -19233,7 +19233,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a29006645ce0a15224ef31d13b7078b09c29185d",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/BUCK",
       "reachable_from": [
@@ -20038,7 +20038,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a29006645ce0a15224ef31d13b7078b09c29185d",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/BUCK",
       "reachable_from": [
@@ -20061,7 +20061,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "8574f045239f73e38b421d424c92e51d02f5f93b",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/Cargo.toml",
       "reachable_from": [
@@ -20084,7 +20084,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a29006645ce0a15224ef31d13b7078b09c29185d",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/src/lib.rs",
       "reachable_from": [
@@ -20107,7 +20107,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a29006645ce0a15224ef31d13b7078b09c29185d",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/tests/generated_artifact_control_plane.rs",
       "reachable_from": [
@@ -341026,7 +341026,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a29006645ce0a15224ef31d13b7078b09c29185d",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "registry/BUCK",
       "reachable_from": [],
@@ -341173,7 +341173,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "8574f045239f73e38b421d424c92e51d02f5f93b",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "registry/artifact-capabilities-registry.json",
       "reachable_from": [
@@ -360439,7 +360439,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a29006645ce0a15224ef31d13b7078b09c29185d",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "registry/generated-artifact-control-plane.json",
       "reachable_from": [],
@@ -365073,7 +365073,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a29006645ce0a15224ef31d13b7078b09c29185d",
+      "last_touch_commit": "4d60dc441916d05c92de35edccda7ca3e2d73843",
       "owner": null,
       "path": "specs/generated-artifact-control-plane.schema.json",
       "reachable_from": [],
