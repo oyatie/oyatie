@@ -185,7 +185,7 @@ lanes:
     source: RUNBOOKS-INDEX.md
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate runbook-index-resolves
-  - id: oya-governance-slo-coverage
+  - id: cloud-ci-slo-coverage
     stage: foundation
     status: active
     owner_team: ops-sre-reliability

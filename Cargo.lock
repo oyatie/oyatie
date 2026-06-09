@@ -4131,6 +4131,7 @@ dependencies = [
  "oya-cloud-ci-cargo-prefix-app",
  "oya-cloud-ci-cross-artifact-agreement-app",
  "oya-cloud-ci-manifest-hygiene-app",
+ "oya-cloud-ci-slo-coverage-app",
  "oya-cloud-ci-staleness-reaper-app",
  "oya-cloud-ci-total-accounting-app",
  "serde",
@@ -4188,6 +4189,14 @@ name = "oya-cloud-ci-scm-facts-emitter-app"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-ci-accounting-registry-app",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-slo-coverage-app"
+version = "0.1.0"
+dependencies = [
+ "oya-check-slo-coverage",
  "serde_json",
 ]
 

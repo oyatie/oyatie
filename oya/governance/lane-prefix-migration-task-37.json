@@ -44,7 +44,7 @@
     {"ip_id": "GOV-PREFIX-019", "old_lane_id": "oya-governance-raci-team-coverage", "new_lane_id": "oya-governance-raci-team-coverage", "status": "queued"},
     {"ip_id": "GOV-PREFIX-020", "old_lane_id": "oya-governance-readme-doc-coverage", "new_lane_id": "oya-governance-readme-doc-coverage", "status": "queued"},
     {"ip_id": "GOV-PREFIX-021", "old_lane_id": "oya-governance-runbook-index-resolves", "new_lane_id": "oya-governance-runbook-index-resolves", "status": "queued"},
-    {"ip_id": "GOV-PREFIX-022", "old_lane_id": "oya-governance-slo-coverage", "new_lane_id": "oya-governance-slo-coverage", "status": "queued"},
+    {"ip_id": "GOV-PREFIX-022", "old_lane_id": "oya-governance-slo-coverage", "new_lane_id": "cloud-ci-slo-coverage", "status": "queued"},
     {"ip_id": "GOV-PREFIX-023", "old_lane_id": "oya-governance-catalog-records", "new_lane_id": "oya-governance-catalog-records", "status": "completed"},
     {"ip_id": "GOV-PREFIX-024", "old_lane_id": "oya-governance-flat-crates", "new_lane_id": "oya-governance-flat-crates", "status": "queued"},
     {"ip_id": "GOV-PREFIX-025", "old_lane_id": "oya-governance-product-index", "new_lane_id": "oya-governance-product-index", "status": "queued"},
