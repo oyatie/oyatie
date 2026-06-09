@@ -5,7 +5,7 @@ doc_status: published
 # Oyatie Runbook — Plugin Runtime Sandbox Escape
 
 > **Status:** Production procedure authored for the W-SaaS-Preview documentation gate; not evidence that production alerts are already green.
-> **Owner:** `axis-saas + axis-foundry + ops-security`
+> **Owner:** `axis-saas + cloud-intelligence + central governance + ops-security`
 > **Severity scope:** Sev 1.
 > **Authority:** ADR-0036 plugin substrate trust model, ADR-0534 higher-trust gate marketplace extension, W-SaaS-Preview plugin install gate in `docs/PRD.md`, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
 > **Last verified:** 2026-06-09 (legacy scaffold wording removed; procedure grounded in existing docs and ADRs).

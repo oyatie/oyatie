@@ -36,7 +36,7 @@ doc_status: published
 ## Containment
 - **Single definition:** freeze new instance creation for the affected `workflow_id@workflow_version`; let unrelated workflow definitions continue.
 - **Single tenant:** pause the tenant's affected workflow definition and keep other tenants on the same definition version running.
-- **Cross-tenant definition drift:** block promotion of the definition version, pin tenants to the last known-good version, and open architecture council review if the cross-axis contract changed.
+- **Cross-tenant definition drift:** block promotion of the definition version, pin tenants to the last known-good version, and open founder-governed architecture review if the cross-axis contract changed.
 - **Saga participant outage:** stop new transitions that call the failing capability, keep completed sealed steps immutable, and queue compensations behind the participant recovery gate.
 - **Regulated-pack impact:** page privacy/compliance on-call and preserve all state-vector/audit evidence before replay.
 

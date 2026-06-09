@@ -22,7 +22,7 @@ Each Oyatie product (an axis or a vertical) has its own PRD here. Every PRD foll
 |---|---|---|---|
 | SaaS Platform | [`saas-platform/PRD.md`](saas-platform/PRD.md) | `axis-saas` | planning-closed-contract-authored |
 | Workspace | [`workspace/PRD.md`](workspace/PRD.md) | `axis-workspace` | draft |
-| Foundry (agent runtime + engineering platform) | [`foundry/PRD.md`](foundry/PRD.md) | `axis-foundry` | draft |
+| Intelligence Platform (cloud-intelligence + oya-intelligence) | Task #25 canon rename pending | `cloud-intelligence / oya-intelligence` | draft |
 | Cloud Provider | [`cloud/PRD.md`](cloud/PRD.md) | `axis-cloud` | draft |
 | Search | [`search/PRD.md`](search/PRD.md) | `axis-search` | draft |
 | Ads + Analytics | [`ads-analytics/PRD.md`](ads-analytics/PRD.md) | `axis-ads-analytics` | draft |
@@ -56,7 +56,7 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 | Regional packs | [`../regional-packs/`](../regional-packs/) | One pack per locale (KR / JP / US / EU / IN / BR / KSA / UAE / AU / SG / …); each is its own folder with `PACK.md` + `i18n/` + `regulatory/` + `payment-rails/` + `identity/` + `tax/` |
 | Engineering teams | [`../teams/`](../teams/) | One charter per team |
 
-## Required sections per product PRD (validated by `oya gate validate product-prd-json`)
+## Required sections per product PRD (validated by the product PRD Rust gate in `oya-ci-required`)
 
 1. **North star** — what + who + why
 2. **Target users** — personas + value-exchange
@@ -68,7 +68,7 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 8. **In-house vs external dependency posture** — license-tier table
 9. **Success metrics** — per-wave targets + structural metrics
 10. **Risks + mitigations** — slice-level risk register
-11. **Open questions** — council-pending
+11. **Open questions** — founder-/governance-pending
 12. **Decision log** — slice-level decisions
 13. **Sources scanned** — fresh
 

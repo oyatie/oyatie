@@ -70,7 +70,7 @@ The product exists to make tenant business operations programmable and governabl
 ### 3.2 Out of scope / anti-scope
 
 - Cloud infrastructure hosting, Kubernetes cluster lifecycle, IAM/KMS/secrets implementation, and storage substrate internals are Cloud-axis responsibilities.
-- Agent runtime model/provider execution is Foundry/agent-runtime scope; SaaS consumes capability-bound agent execution through workflow steps.
+- Model/provider execution is `cloud-intelligence` scope; SaaS consumes capability-bound `oya-intelligence` tenant workflow execution through workflow steps.
 - Search indexing implementation is Search-axis scope; SaaS emits consent- and ontology-scoped content contracts.
 - Per-vertical domain logic remains with vertical/business/workplace teams; SaaS provides the shared workflow/plugin/marketplace substrate.
 - Local CLI, shell scripts, or human-invoked governance are not destination authority. Any existing local command is diagnostic or developer convenience only; enforcement belongs in cloud-native services, declarative manifests, Rust gate crates, and the live `oya-ci-required` context.
@@ -94,7 +94,7 @@ The SaaS Platform bounded context owns reusable tenant application primitives an
 |---|---|---|---|
 | SaaS↔Cloud | Declare tenant workload, storage residency, billing-event, and cell-affinity requirements. | `axis-cloud` | Cloud resource and billing contracts pass M03-P08 fitness; no local control-plane authority. |
 | SaaS↔Search | Emit ontology/data-boundary scoped index events and consent tiers. | `axis-search` | Search consumes only permitted tenant content and rejects stale schema. |
-| SaaS↔Agent-runtime | Invoke agents only through capability-bound workflow steps with autonomy ceilings. | Foundry/agent-runtime | Capability registry and audit evidence prove agent action bounds. |
+| SaaS↔Agent-runtime | Invoke agents only through capability-bound workflow steps with autonomy ceilings. | `cloud-intelligence` / `oya-intelligence` | Capability registry and audit evidence prove agent action bounds. |
 | SaaS↔Workplace/verticals | Provide template library, plugin substrate, and workflow runtime without owning domain semantics. | Workplace and vertical teams | Template definitions compile and pass domain-owner contract checks. |
 | SaaS↔Governance/audit | Emit immutable events and consume central Cedar/PaC/CaC/PaaS/CaaS decisions. | central governance + audit-chain | Gate and audit evidence are sealed before readiness claims. |
 

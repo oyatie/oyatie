@@ -5,7 +5,7 @@ doc_status: published
 # Team: Axis — SaaS Multi-Tenant Platform
 
 ## Mission
-This team owns the SaaS multi-tenant platform axis: the workflow engine, Object Graph, plugin substrate and marketplace, Bench (collaborative workspace), and partner surface. It exists to make Oyatie the operating system for tenant businesses — the layer that end users touch every day, shaped per vertical by the vertical teams but authored and governed here. It does **not** own the underlying cloud infrastructure (→ `axis-cloud`), the agent runtime (→ `axis-foundry`), or per-vertical domain logic beyond what is shared across all verticals.
+This team owns the SaaS multi-tenant platform axis: the workflow engine, Object Graph, plugin substrate and marketplace, Bench (collaborative workspace), and partner surface. It exists to make Oyatie the operating system for tenant businesses — the layer that end users touch every day, shaped per vertical by the vertical teams but authored and governed here. It does **not** own the underlying cloud infrastructure (→ `axis-cloud`), model/provider execution (→ `cloud-intelligence`), tenant intelligence servicing (→ `oya-intelligence`), or per-vertical domain logic beyond what is shared across all verticals.
 
 ## Owned axes / surfaces / contracts
 - **Axis(es):** SaaS multi-tenant (Axis 1)
@@ -22,7 +22,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
   - Product PRD: `docs/products/saas-platform/PRD.md` (planning-closed contract authored; live readiness requires changeset gate evidence)
 - **Cross-axis contracts (DESIGN §10):**
   - `Object Graph property tier` (co-owner with `platform-eventing-og`, `platform-privacy-dub`) — OG shape changes are cross-axis
-  - `Marketplace listing` (co-owner with `axis-foundry`) — plugin signing + sandbox gate
+  - `Marketplace listing` (co-owner with `cloud-intelligence`, `oya-intelligence`, and central governance) — plugin signing + sandbox gate
   - `Billing event` (co-owner with `axis-cloud`) — SaaS metering side
   - `Webhook delivery + signing` (consumer of `platform-api-sdk` — SaaS-authored webhooks)
   - `Public REST stability tier` (consumer — SaaS surface slice)
@@ -44,7 +44,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 
 ## Out-of-scope (anti-scope)
 - Cloud infrastructure hosting SaaS (→ `axis-cloud`)
-- Agent runtime (→ `axis-foundry`)
+- Model/provider execution and tenant intelligence servicing (→ `cloud-intelligence` / `oya-intelligence`)
 - Per-vertical FHIR/EDI/ISA-95 domain logic (→ per-vertical teams; SaaS provides the workflow substrate)
 - Public API gateway infrastructure (→ `platform-api-sdk`)
 - Audit chain infrastructure (→ `platform-audit-evidence` — SaaS emits but doesn't own the chain)
@@ -57,10 +57,10 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 | `platform-tenancy-identity` | Tenant/identity kernel, RBAC enforcement | Per-release |
 | `platform-eventing-og` | OG property-tier schema, outbox relay | Per-release |
 | `platform-privacy-dub` | Data Use Boundary check on OG tier changes | Per OG schema change |
-| `axis-foundry` | Capability invocation API for agent-authored workflows | Wave gate |
+| `cloud-intelligence` / `oya-intelligence` | Capability invocation API for agent-authored workflows | Wave gate |
 | `axis-cloud` | Compute cells for workflow execution, storage for OG | Wave gate |
 | `platform-api-sdk` | Webhook delivery, public REST stability tier | Per-release |
-| `axis-foundry` | Catalog gate for plugin signing, fitness functions | Per-release |
+| central governance | Catalog gate for plugin signing and contract fitness functions | Per-release |
 
 ## Teams that depend on us
 | Consumer | What they need | Cadence |
@@ -81,8 +81,8 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 
 ## Escalation path
 - Internal: tech lead → team manager
-- Cross-team: architecture council (`teams/council-architecture/CHARTER.md`) for OG contract changes
-- Privacy: privacy council for OG tier → data-class disputes
+- Cross-team: founder-governed architecture review for OG contract changes
+- Privacy: `platform-privacy-dub` and central governance for OG tier → data-class disputes
 - Founder: as last resort
 
 ## Communication cadence
