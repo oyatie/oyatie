@@ -44,8 +44,10 @@ jobs:
     name: producer-regen (accounting-registry)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
+          persist-credentials: false
           # Full history: the accounting producer derives last_touch_commit via
           # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
           # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
@@ -57,7 +59,8 @@ jobs:
       - name: Regenerate accounting faces in-place
         run: cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root .
       - name: Upload regenerated faces
-        uses: actions/upload-artifact@v4
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: accounting-faces
           path: cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/*.generated.json
@@ -96,8 +99,10 @@ jobs:
           - { crate: oya-cloud-ci-cargo-prefix-app,            label: "gate · cargo-prefix (ADR-0017)" }
           - { crate: oya-cloud-ci-generated-artifact-control-plane-app, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: cargo test ${{ matrix.crate }}
         run: cargo test --no-fail-fast -p ${{ matrix.crate }} -- --test-threads=1
@@ -109,8 +114,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [producer-regen]
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
+          persist-credentials: false
           # Full history: the accounting producer derives last_touch_commit via
           # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
           # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
@@ -130,8 +137,10 @@ jobs:
     name: cloud-ci-firewall (baseline ratchet + gate-registration meta-test)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
+          persist-credentials: false
           # Full history: the accounting producer derives last_touch_commit via
           # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
           # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
@@ -156,8 +165,10 @@ jobs:
     name: buck2 (hermetic build + affected gate tests)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
+          persist-credentials: false
           # Full history: the scm-facts-regen step below runs the emitter, which derives
           # last_touch via `git log --name-only`; a shallow checkout collapses it (PM1).
           fetch-depth: 0
@@ -195,7 +206,8 @@ jobs:
       # Warm buck-out + the buck2 daemon cache across runs so ephemeral runners do not
       # cold-bootstrap the toolchain (design §3.1 / ADR-0515 D4).
       - name: Cache buck-out
-        uses: actions/cache@v4
+        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: buck-out
           key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}-${{ github.sha }}
