@@ -46,6 +46,9 @@ oya-cloud-ci-manifest-hygiene-app = { path = "../oya-cloud-ci-manifest-hygiene-a
 # cloud-ci-cargo-prefix (ADR-0017 floor gate S3): the producer enumerates the oya-* workspace
 # members + package names (the I/O); the gate's pure evaluate_keyed reuses validate_cargo_prefix.
 oya-cloud-ci-cargo-prefix-app = { path = "../oya-cloud-ci-cargo-prefix-app" }
+# cloud-ci-slo-coverage: the producer expands the config-declared catalog globs into
+# {crate_id,slo} rows; the gate reuses the existing oya-check-slo-coverage kernel.
+oya-cloud-ci-slo-coverage-app = { path = "../oya-cloud-ci-slo-coverage-app" }
 # The fifth gate (cloud-ci-brand-residue) is the forbidden-vocab shrink-only ratchet. Its
 # census + carve-out DATA + stem catalog are the SSOT in oya-check-brand-residue; the binary
 # runs it over the live corpus and the lib freezes the per-(stem,file) keys into the baseline.

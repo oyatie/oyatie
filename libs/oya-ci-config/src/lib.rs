@@ -89,6 +89,8 @@ pub struct OyaCiConfig {
     #[serde(default)]
     pub enforcement: EnforcementConfig,
     #[serde(default)]
+    pub slo_coverage: SloCoverageConfig,
+    #[serde(default)]
     pub ttl: TtlConfig,
     #[serde(default)]
     pub unit_class: UnitClassConfig,
@@ -115,6 +117,7 @@ impl OyaCiConfig {
             justification: JustificationConfig::default(),
             owners: OwnersConfig::default(),
             enforcement: EnforcementConfig::default(),
+            slo_coverage: SloCoverageConfig::default(),
             ttl: TtlConfig::default(),
             unit_class: UnitClassConfig::default(),
             gates: GatesConfig::default(),
@@ -542,6 +545,35 @@ impl Default for EnforcementConfig {
 }
 
 // ---------------------------------------------------------------------------
+// [slo_coverage]  (portable input contract for cloud-ci-slo-coverage)
+// ---------------------------------------------------------------------------
+
+/// `[slo_coverage]` — declared catalog input globs for the SLO coverage gate.
+///
+/// The legacy dev-cli default was an implicit `registry/catalog` directory walk. The cloud-ci
+/// product boundary makes that repo shape DATA instead: adopters keep the same pure gate engine
+/// and point `catalog_record_globs` at their own catalog-row source. The producer expands these
+/// globs against the declared tracked-path universe; the gate itself remains I/O-free.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SloCoverageConfig {
+    #[serde(default = "default_slo_catalog_record_globs")]
+    pub catalog_record_globs: Vec<String>,
+}
+
+fn default_slo_catalog_record_globs() -> Vec<String> {
+    vec!["registry/catalog/*.yaml".to_owned()]
+}
+
+impl Default for SloCoverageConfig {
+    fn default() -> Self {
+        Self {
+            catalog_record_globs: default_slo_catalog_record_globs(),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // [ttl] / [unit_class]  (subsumes the already-DATA JSON tables, plan §3.1)
 // ---------------------------------------------------------------------------
 
@@ -596,6 +628,7 @@ pub enum GateFace {
     BnfLayerSuffix,
     ManifestHygiene,
     CargoPrefix,
+    SloCoverage,
 }
 
 /// One enabled gate: its id, its input KIND, and (for `producer-face`) which face it binds.
@@ -675,6 +708,11 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             face: Some(GateFace::CargoPrefix),
         },
         GateSpec {
+            id: "cloud-ci-slo-coverage".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::SloCoverage),
+        },
+        GateSpec {
             id: "cloud-ci-brand-residue".to_owned(),
             input_kind: GateInputKind::RawCorpusCollector,
             face: None,
@@ -752,12 +790,16 @@ mod tests {
         let disp: serde_json::Value =
             serde_json::from_str(cfg.gates.disposition_json()).expect("disposition json");
         assert!(disp.get("gates").is_some());
+        assert_eq!(
+            cfg.slo_coverage.catalog_record_globs,
+            vec!["registry/catalog/*.yaml".to_owned()]
+        );
     }
 
     #[test]
-    fn bundled_default_enables_all_eight_gates_with_input_kinds() {
+    fn bundled_default_enables_all_nine_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 8);
+        assert_eq!(cfg.gates.enabled.len(), 9);
         let brand = cfg
             .gates
             .enabled
@@ -782,6 +824,14 @@ mod tests {
             .expect("cargo-prefix gate enabled");
         assert_eq!(cargo_prefix.input_kind, GateInputKind::ProducerFace);
         assert_eq!(cargo_prefix.face, Some(GateFace::CargoPrefix));
+        let slo_coverage = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-slo-coverage")
+            .expect("slo-coverage gate enabled");
+        assert_eq!(slo_coverage.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(slo_coverage.face, Some(GateFace::SloCoverage));
     }
 
     #[test]

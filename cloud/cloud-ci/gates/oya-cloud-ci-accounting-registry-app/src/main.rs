@@ -12,8 +12,8 @@
 //!   oya-cloud-ci-accounting-registry-app [--repo-root <path>] [--out-dir <path>] [--stdout]
 //!                                        [--scm-facts <path>]
 //!
-//! With `--stdout` the registry is written to stdout (used by the registry-drift gate
-//! to regenerate in a sandbox and byte-diff). Default writes the four faces under
+//! With `--stdout` one generated face is written to stdout (used by the registry-drift gate
+//! to regenerate in a sandbox and byte-diff). Default writes all generated faces under
 //! `<out-dir>` (default `<repo-root>/cloud/cloud-ci/gates`). `--scm-facts` defaults to the
 //! committed `scm-facts.generated.json` beside the faces.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -223,6 +223,10 @@ fn run() -> Result<(), CliError> {
     // package names. The gate's evaluate_keyed reuses
     // oya_intelligence_cargo_prefix_domain::validate_cargo_prefix per crate.
     let cargo_prefix = collect_cargo_prefix(&repo_root, &inputs.tracked_paths, &cfg);
+    // The SLO coverage gate input: the config-declared catalog record globs expanded over the
+    // tracked-path universe. This makes the lane input contract portable DATA instead of an
+    // Oyatie-only hardcoded directory walk.
+    let slo_coverage = collect_slo_coverage(&repo_root, &inputs.tracked_paths, &cfg);
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
@@ -231,6 +235,7 @@ fn run() -> Result<(), CliError> {
         bnf_layer_suffix: &bnf_layer_suffix,
         manifest_hygiene: &manifest_hygiene,
         cargo_prefix: &cargo_prefix,
+        slo_coverage: &slo_coverage,
         brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&cfg, &gate_inputs, &config_digest)?;
@@ -244,6 +249,7 @@ fn run() -> Result<(), CliError> {
             "bnf-layer-suffix" => &bnf_layer_suffix,
             "manifest-hygiene" => &manifest_hygiene,
             "cargo-prefix" => &cargo_prefix,
+            "slo-coverage" => &slo_coverage,
             "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
@@ -514,6 +520,101 @@ fn collect_cargo_prefix(
         })
         .collect();
     json!({ "rows": rows })
+}
+
+/// Enumerate SLO catalog rows from the config-declared `[slo_coverage].catalog_record_globs`.
+/// This replaces the legacy dev-cli's implicit `registry/catalog` walk with a portable, closed-
+/// schema input contract. The current default still mirrors Oyatie's catalog source
+/// (`registry/catalog/*.yaml`), but adopters can point the same gate at their own catalog layout
+/// without forking the producer or evaluator.
+fn collect_slo_coverage(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Value {
+    let mut by_crate: BTreeMap<String, Option<String>> = BTreeMap::new();
+    for path in tracked_paths {
+        if is_path_excluded(path, cfg) {
+            continue;
+        }
+        if !cfg
+            .slo_coverage
+            .catalog_record_globs
+            .iter()
+            .any(|glob| path_glob_matches(path, glob))
+        {
+            continue;
+        }
+        let Some(crate_id) = file_stem(path) else {
+            continue;
+        };
+        let contents = read_text(&repo_root.join(path));
+        by_crate.insert(crate_id, parse_catalog_slo(&contents));
+    }
+
+    let rows: Vec<Value> = by_crate
+        .into_iter()
+        .map(|(crate_id, slo)| json!({ "crate_id": crate_id, "slo": slo }))
+        .collect();
+    json!({ "rows": rows })
+}
+
+/// Minimal path-glob matcher for declared gate input contracts. Supports exact paths,
+/// directory-prefix (`dir/**` and `dir/`), recursive extension (`**/*.yaml`), basename extension
+/// (`*.yaml`), and one-level directory extension (`dir/*.yaml`). Unknown shapes fail closed.
+fn path_glob_matches(path: &str, glob: &str) -> bool {
+    let path = path.strip_prefix("./").unwrap_or(path);
+    let glob = glob.strip_prefix("./").unwrap_or(glob);
+    if path == glob {
+        return true;
+    }
+    if let Some(prefix) = glob.strip_suffix("/**") {
+        return path == prefix || path.starts_with(&format!("{prefix}/"));
+    }
+    if glob.ends_with('/') {
+        return path.starts_with(glob);
+    }
+    if let Some(ext) = glob.strip_prefix("**/*.") {
+        return path.ends_with(&format!(".{ext}"));
+    }
+    if let Some(ext) = glob.strip_prefix("*.") {
+        return !path.contains('/') && path.ends_with(&format!(".{ext}"));
+    }
+    if let Some((dir, pattern)) = glob.rsplit_once("/*.")
+        && !dir.is_empty()
+    {
+        let prefix = format!("{dir}/");
+        if let Some(rest) = path.strip_prefix(&prefix) {
+            return !rest.contains('/') && rest.ends_with(&format!(".{pattern}"));
+        }
+    }
+    false
+}
+
+fn file_stem(path: &str) -> Option<String> {
+    let name = path.rsplit('/').next().unwrap_or(path);
+    let (stem, _) = name.rsplit_once('.')?;
+    if stem.is_empty() {
+        None
+    } else {
+        Some(stem.to_owned())
+    }
+}
+
+fn parse_catalog_slo(contents: &str) -> Option<String> {
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let Some((key, value)) = trimmed.split_once(':') else {
+            continue;
+        };
+        if key.trim() == "slo" {
+            return Some(value.trim().to_owned());
+        }
+    }
+    None
 }
 
 /// Extract `name = "..."` from the `[package]` table of a Cargo.toml. Lightweight line-scan
