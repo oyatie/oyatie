@@ -20,7 +20,7 @@ doc_status: published
 8. ☐ **YAML date integrity** — every YAML date is quoted (per mistakes-and-fixes-ledger).
 9. ☐ **Forward-reference discipline** — no markdown link to a path not yet on `origin/main` (per Issue #1433).
 10. ☐ **Catalog record up-to-date** — if a crate added/role-changed, `registry/catalog/<crate>.yaml` exists + matches `[package] name`.
-11. ☐ **Capability record up-to-date** — if a Foundry capability added/changed, `registry/capability-templates/<id>.yaml` updated; eval-set passes.
+11. ☐ **Capability record up-to-date** — if a governed capability added/changed, `registry/capability-templates/<id>.yaml` updated; eval-set passes.
 12. ☐ **Audit-chain emission** — if the change touches a regulated capability, emission is wired (per ADR-0003).
 13. ☐ **PR body shape ready** — 5 H2 sections per CLAUDE.md (`## Issue / Summary / Verification / Traceability / Evidence`).
 14. ☐ **Branch protection** — pushing to a feature branch (never directly to `main` or `release/*`).
@@ -40,4 +40,4 @@ doc_status: published
 - Pushing to `main` directly — never
 - Pushing without running tests — never; even on a hotfix, run the affected-set
 - Adding a dependency without ledger entry — CI will fail; pre-empt
-- Treating `.git/hooks/pre-push`, retired local verifier, or retired local gate output as merge authority — never
+- Treating `.git/hooks/pre-push` or retired local wrapper output as merge authority — never

@@ -6,7 +6,7 @@ doc_status: published
 
 > **When:** Before `gh pr merge`. After all CI lanes green + reviewer-agent verdict.
 > **Owner:** PR author + reviewer.
-> **Validator:** protected PR status `oya-ci-required` + reviewer-agent verdict. Local retired local gate output is advisory only.
+> **Validator:** protected PR status `oya-ci-required` + reviewer-agent verdict. Local hook output is advisory evidence only.
 
 ---
 
@@ -18,18 +18,18 @@ doc_status: published
 2. ☐ PR has 5 mandatory H2s: `## Issue / Summary / Verification / Traceability / Evidence`
 3. ☐ `## Verification` lists every check from CI + outcome (no hand-wave)
 4. ☐ `## Traceability` lists flat-crates targets touched + cross-axis contract impact
-5. ☐ `## Evidence` links to CI runs + eval-set output (if Foundry capability) + audit-chain emission record
+5. ☐ `## Evidence` links to CI runs + eval-set output (if governed capability) + audit-chain emission record
 6. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker)
 7. ☐ Per-blast-radius reviewers approved per [DESIGN §3.0.5.3](../DESIGN.md):
    - cross-axis-contract → all affected axis teams
    - flat-crates-move → merge-queue serialization on root Cargo.toml
-   - data-class-impact → privacy-reviewer
+   - data-class-impact → privacy-governance
    - regulatory-impact → ops-compliance
    - security-class → ops-security
 8. ☐ Glossary alignment per `oya-governance-glossary` — no new domain term without GLOSSARY entry
 9. ☐ ADR cited where applicable (only new pack ADR-0001..0051, plus future pack ADRs after their files exist; legacy ADR-#### forbidden in active text)
 10. ☐ Brand check — canonical `Oyatie` usage preserved; deprecated aliases and tautological rebrand statements rejected (per ADR-0017 / MFL-0011)
-11. ☐ Capability eval-set passes (if Foundry capability change)
+11. ☐ Capability eval-set passes (if governed capability change)
 12. ☐ Migration ledger entry (if ADR-0015 flat-crates phase PR)
 13. ☐ `Co-Authored-By:` footer present if agent-paired
 14. ☐ `Signed-off-by:` per signed-commits posture
@@ -40,7 +40,7 @@ doc_status: published
 16. ☐ Post-merge cloud-ci/oya-ci required status remains green on the promoted commit within 5 min
 17. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
 18. ☐ Per-affected-team Slack ping (auto)
-19. ☐ Per-changelog auto-emit (Foundry capability `pr.changelog.row`)
+19. ☐ Per-changelog auto-emit (governed capability `pr.changelog.row`)
 
 ## Anti-patterns
 
