@@ -45,7 +45,7 @@ doc_status: published
 - Metric `oya_cloud_iam_provider_write_error_ratio{target="gcp"}` exceeds 0.02.
 - Metric `oya_cloud_iam_provider_write_error_ratio{target="azure"}` exceeds 0.02.
 - Metric `oya_cloud_iam_provider_write_error_ratio{target="okta"}` exceeds 0.02.
-- CI gate `cargo run -p oya-dev-cli -- gate validate cloud-iam-translation --production-snapshot` fails.
+- Branch-protected `oya-ci-required` / cloud-ci production-snapshot gate for `cloud-iam-translation` fails.
 - Support case is tagged `cloud-iam.translation.customer-visible`.
 - A tenant reports denied access after a Cedar policy publish that should have permitted access.
 - A tenant reports permitted access after a Cedar policy rollback that should have denied access.
@@ -134,7 +134,7 @@ doc_status: published
 ```
 
 ## Mitigation
-1. Freeze policy promotion: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+1. Freeze policy promotion: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
 2. Disable automated provider writes: `oya flags set oya.cloud_iam.translation.auto_apply=false --cell $CELL --reason $INCIDENT_ID`.
 3. Keep Cedar evaluation online: `oya flags set oya.cloud_iam.cedar_authority_only=true --cell $CELL --reason $INCIDENT_ID`.
 4. Open translation breaker: `oya ops breaker open cloud-iam-translation --cell $CELL --ttl 30m --reason $INCIDENT_ID`.
@@ -165,11 +165,11 @@ doc_status: published
 7. Add regression fixture: `fixtures/cloud-iam/translation/$INCIDENT_ID.json`.
 8. Run translator test: `cargo test -p oya-cloud-iam-domain translation -- --nocapture`.
 9. Run API test: `cargo test -p oya-cloud-iam-api cloud_iam_policy_translation -- --nocapture`.
-10. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate cloud-iam-translation --production-snapshot --cell $CELL`.
+10. Verify the branch-protected production-snapshot gate for `cloud-iam-translation` in `oya-ci-required` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
 11. Re-enable auto apply for one tenant: `oya flags set oya.cloud_iam.translation.auto_apply=true --tenant $TENANT --cell $CELL`.
 12. Re-run digest comparison: `oya iam target digest --tenant $TENANT --provider all --cell $CELL --expect cedar-current`.
 13. Close breaker: `oya ops breaker close cloud-iam-translation --cell $CELL --reason resolved-$INCIDENT_ID`.
-14. Unhold promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold promotion: recovery PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_IAM_TRANSLATION_FAILURE_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist
