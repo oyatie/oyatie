@@ -1,7 +1,7 @@
-/* Design tokens — ported from crates/oya-application-shell-frontend-prototype/style/tokens.css
+/* Design tokens shared by the archived SolidJS transition surface and the
+   canonical ADR-0393 Leptos/Rust-WASM portal shell migration target.
    Bominal-derived design language: flat professional shell, cool neutrals,
-   ink-blue accent, tight radii, density-first spacing, tabular numerals.
-   The SolidJS shell inherits this token set exactly; no visual regression vs the Leptos prototype. */
+   ink-blue accent, tight radii, density-first spacing, tabular numerals. */
 
 :root {
   color-scheme: light;
