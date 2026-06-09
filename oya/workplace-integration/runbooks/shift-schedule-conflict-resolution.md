@@ -33,7 +33,7 @@ doc_status: draft_target_non_claim
 - Open sev1 if `oya_workplace_integration_shift_schedule_conflict_total` exceeds the threshold documented in `oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
 - Open sev1 if `oya_workplace_integration_shift_schedule_conflict_resolution_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `workplace-integration.shift-schedule-conflict-resolution.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workplace-integration-shift-schedule-conflict-resolution --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from `oya-ci-required` when the workplace-integration `shift-schedule-conflict-resolution` production-snapshot Rust gate exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/shift-schedule-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `oya/workplace-integration/dashboards/audit-evidence.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/shift-schedule-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `oya/workplace-integration/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workplace-integration",runbook="shift-schedule-conflict-resolution"}`.
@@ -167,12 +167,12 @@ Shift Schedule Conflict Resolution incident decision tree
 4. Patch policy: `edit oya/workplace-integration/policies/esign-initiate.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit oya/workplace-integration/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p WorkplaceAgreement domain shift_schedule_conflict_resolution_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate workplace-integration-shift-schedule-conflict-resolution --fixture incident-shift-schedule-conflict-resolution.json`.
+7. Add gate evidence from the `oya-ci-required` workplace-integration `shift-schedule-conflict-resolution` fixture lane for `incident-shift-schedule-conflict-resolution.json`.
 8. Add SLO assertion: `update oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml with alert ShiftScheduleConflictResolutionCritical when this was a missing alert`.
 9. Add dashboard panel: `update oya/workplace-integration/dashboards/audit-evidence.json with oya_workplace_integration_shift_schedule_conflict_resolution_error_ratio, oya_workplace_integration_shift_schedule_conflict_resolution_lag_seconds, and oya_workplace_integration_shift_schedule_conflict_total`.
 10. Rebuild affected crate: `cargo check -p WorkplaceAgreement domain --all-targets`.
 11. Run targeted tests: `cargo test -p WorkplaceAgreement domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate workplace-integration-policy --microservice workplace-integration`.
+12. Run the `oya-ci-required` workplace-integration policy validation lane for the `workplace-integration` microservice.
 13. Deploy canary: `oya deploy canary --microservice workplace-integration --component workplace-integration-shift-schedule-conflict-resolution-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_workplace_integration_shift_schedule_conflict_resolution_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close workplace-integration-shift-schedule-conflict-resolution-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

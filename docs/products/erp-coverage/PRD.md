@@ -43,6 +43,7 @@ companion_docs:
   - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
   - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
 planned_enforcement_ref: D-GOVERNANCE-CENTRAL
+live_readiness_claim: target_non_claim_until_oya_ci_required_evidence
 ---
 
 # PRD: ERP Coverage - SAP-Parity Composition
