@@ -61,9 +61,9 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: docs-graph-drift-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
+          # Lockfile-scoped cache avoids per-commit cache churn; cargo still validates sources.
+          key: docs-graph-drift-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
-            docs-graph-drift-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-
             docs-graph-drift-${{ runner.os }}-
       - name: Build + test the architecture-graph generator
         env:
