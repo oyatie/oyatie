@@ -16,3 +16,15 @@ rust_binary(
         "third-party//:serde_json",
     ],
 )
+
+
+rust_test(
+    name = "oya-cloud-ci-git-facts-emitter-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
+        "third-party//:serde_json",
+    ],
+)

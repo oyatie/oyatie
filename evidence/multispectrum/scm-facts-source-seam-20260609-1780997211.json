@@ -1,0 +1,66 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "scm-facts-source-seam-20260609",
+  "change_class_id": "CC-4_interface_lock",
+  "created_at": "2026-06-09T09:26:51Z",
+  "agent_id": "codex-executor",
+  "branch": "w1/scm-facts-source",
+  "scope": {
+    "summary": "Lock the ScmFactsSource seam inside the git-facts emitter so the productized cloud-ci pipeline can swap Git CLI for a future bespoke SCM facts source without changing emitted face shape or gate consumers.",
+    "files_touched": [
+      "cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app/src/main.rs",
+      "cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app/BUCK",
+      "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+      "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json",
+      "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+      "evidence/multispectrum/scm-facts-source-seam-20260609-1780997211.json",
+      "evidence/audit-chain.jsonl"
+    ],
+    "explicit_non_claims": [
+      "No emitted git-facts schema, CLI flag, default path, or committed-face format changes.",
+      "No additional in-graph git call, shell boundary, workflow, or required status context is introduced.",
+      "No source Markdown files are added or modified.",
+      "No production deployment, bespoke SCM runtime, or non-Git SCM implementation is shipped in this slice."
+    ]
+  },
+  "hyperscaler_lens": {
+    "north_star": "A public, hermetic, Rust cloud-ci product where SCM facts are a versioned interface rather than an ambient Git side effect.",
+    "scale_property": "The seam keeps the producer and gates as pure consumers of committed facts, enabling future content-addressed work-area hashes, RBE cacheability, and a bespoke SCM source without multiplying CI authorities.",
+    "canonical_names": [
+      "ScmFactsSource",
+      "GitCliScmFactsSource",
+      "emit_git_facts",
+      "oya-ci-required",
+      "registry-drift"
+    ]
+  },
+  "facets": {
+    "F1_correctness": "The current Git CLI implementation remains implementation #1 behind ScmFactsSource and the emitted v1 facts shape is unchanged.",
+    "F2_tests": "Unit tests cover the seam and generated-class filtering; byte-parity smoke and registry-drift prove committed faces are regenerated rather than hand-merged.",
+    "F3_maintainability": "SCM fact acquisition is isolated behind three primitives: tracked_paths, last_touch, and revision_author_timestamps.",
+    "F4_compatibility": "Existing oya-ci producer and gate consumers continue reading the same committed git-facts.generated.json face.",
+    "F5_security": "The single out-of-graph Git boundary remains explicit; no credential, permission, or workflow expansion occurs.",
+    "F6_privacy": "No tenant or personal data processing changes.",
+    "F7_operability": "CI operators keep one canonical oya-ci-required fan-in while the implementation seam reduces future migration blast radius.",
+    "F8_performance": "No CI fanout or runtime path is added; future SCM source replacement can preserve cacheable gate consumers.",
+    "F9_compliance": "Audit-chain and multispectrum evidence record the interface-lock decision without adding Markdown.",
+    "F10_reversibility": "The seam can be reverted as a code-only refactor while preserving generated-face regeneration discipline.",
+    "F11_observability": "Evidence captures the non-claim boundary and verification plan for future governance review.",
+    "F13_migration": "Supports ADR-0526/ADR-0525 migration from Git CLI facts to an owned SCM substrate behind a stable interface."
+  },
+  "verification_plan": [
+    "rustfmt --check cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app/src/main.rs",
+    "python3 -m json.tool evidence/multispectrum/scm-facts-source-seam-20260609-1780997211.json",
+    "python3 -c 'import json; [json.loads(line) for line in open(\"evidence/audit-chain.jsonl\") if line.strip()]'",
+    "git diff --check origin/dev...HEAD",
+    "git diff --name-status --diff-filter=A origin/dev...HEAD -- '*.md' '*.markdown' (must be empty)",
+    "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app-unittest",
+    "buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app --show-output",
+    "emitter byte-parity smoke against committed git-facts.generated.json",
+    "buck2 test //cloud/cloud-ci/gates/registry-drift:registry-drift-gate //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration"
+  ],
+  "known_gaps": [
+    "Reviewer approval remains pending; PR is not merged.",
+    "This slice only defines the seam and keeps Git CLI as transitional implementation #1; bespoke SCM facts source implementation remains future work."
+  ]
+}

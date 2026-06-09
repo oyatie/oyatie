@@ -62,13 +62,73 @@ fn run() -> Result<(), String> {
         None => discover_repo_root()?,
     };
     let out = out.unwrap_or_else(|| {
-        repo_root
-            .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json")
+        repo_root.join(
+            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json",
+        )
     });
 
-    let tracked_paths = git_ls_files(&repo_root)?;
-    let last_touch_commit = git_last_touch(&repo_root)?;
-    let all_commit_ts = git_commit_timestamps(&repo_root)?;
+    let source = GitCliScmFactsSource::new(repo_root.clone());
+    let value = emit_git_facts(&source)?;
+    let tracked_paths_len = value
+        .get("tracked_paths")
+        .and_then(serde_json::Value::as_array)
+        .map_or(0, std::vec::Vec::len);
+
+    // Build the face as a serde_json Value with BTreeMap-backed maps so the on-disk key order
+    // is the canonical sorted order, then serialize through the producer's exact canonicalizer
+    // (to_string_pretty + trailing newline).
+    let text = to_canonical_json(&value).map_err(|e| format!("serialize: {e}"))?;
+    std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
+    eprintln!(
+        "oya-cloud-ci-git-facts-emitter-app: {} tracked paths -> {}",
+        tracked_paths_len,
+        out.display()
+    );
+    Ok(())
+}
+
+/// Stable seam for the scm-facts source. Git CLI is transitional implementation #1;
+/// a future bespoke SCM source should implement these same three primitives without
+/// changing the emitted v1 facts shape or producer/gate consumers.
+trait ScmFactsSource {
+    /// The tracked path universe, sorted and deduplicated by the implementation.
+    fn tracked_paths(&self) -> Result<Vec<String>, String>;
+
+    /// Path -> last-touch revision id, with generated-class paths excluded.
+    fn last_touch(&self) -> Result<BTreeMap<String, String>, String>;
+
+    /// Revision id -> author timestamp (epoch secs).
+    fn revision_author_timestamps(&self) -> Result<BTreeMap<String, u64>, String>;
+}
+
+struct GitCliScmFactsSource {
+    repo_root: PathBuf,
+}
+
+impl GitCliScmFactsSource {
+    fn new(repo_root: PathBuf) -> Self {
+        Self { repo_root }
+    }
+}
+
+impl ScmFactsSource for GitCliScmFactsSource {
+    fn tracked_paths(&self) -> Result<Vec<String>, String> {
+        git_ls_files(&self.repo_root)
+    }
+
+    fn last_touch(&self) -> Result<BTreeMap<String, String>, String> {
+        git_last_touch(&self.repo_root)
+    }
+
+    fn revision_author_timestamps(&self) -> Result<BTreeMap<String, u64>, String> {
+        git_commit_timestamps(&self.repo_root)
+    }
+}
+
+fn emit_git_facts(source: &impl ScmFactsSource) -> Result<serde_json::Value, String> {
+    let tracked_paths = source.tracked_paths()?;
+    let last_touch_commit = source.last_touch()?;
+    let all_commit_ts = source.revision_author_timestamps()?;
 
     // CONVERGENCE: git-facts must be a pure function of the COMMITTED TREE STATE, never of which
     // commit is currently HEAD — otherwise every commit (which advances HEAD and appends a new
@@ -91,24 +151,13 @@ fn run() -> Result<(), String> {
         .collect();
     let head_time_secs = commit_author_ts_secs.values().copied().max().unwrap_or(0);
 
-    // Build the face as a serde_json Value with BTreeMap-backed maps so the on-disk key order
-    // is the canonical sorted order, then serialize through the producer's exact canonicalizer
-    // (to_string_pretty + trailing newline).
-    let value = json!({
+    Ok(json!({
         "schema": SCHEMA,
         "head_time_secs": head_time_secs,
         "tracked_paths": tracked_paths,
         "last_touch_commit": last_touch_commit,
         "commit_author_ts_secs": commit_author_ts_secs,
-    });
-    let text = to_canonical_json(&value).map_err(|e| format!("serialize: {e}"))?;
-    std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
-    eprintln!(
-        "oya-cloud-ci-git-facts-emitter-app: {} tracked paths -> {}",
-        tracked_paths.len(),
-        out.display()
-    );
-    Ok(())
+    }))
 }
 
 /// Walk up from cwd to the repo root (the dir holding `specs/root-hub-pointers.json`).
@@ -217,4 +266,67 @@ fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> 
         }
     }
     Ok(map)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct FakeScmFactsSource {
+        tracked_paths: Vec<String>,
+        last_touch: BTreeMap<String, String>,
+        revision_author_timestamps: BTreeMap<String, u64>,
+    }
+
+    impl ScmFactsSource for FakeScmFactsSource {
+        fn tracked_paths(&self) -> Result<Vec<String>, String> {
+            Ok(self.tracked_paths.clone())
+        }
+
+        fn last_touch(&self) -> Result<BTreeMap<String, String>, String> {
+            Ok(self.last_touch.clone())
+        }
+
+        fn revision_author_timestamps(&self) -> Result<BTreeMap<String, u64>, String> {
+            Ok(self.revision_author_timestamps.clone())
+        }
+    }
+
+    #[test]
+    fn emit_git_facts_uses_scm_source_primitives_without_behavior_change() {
+        let source = FakeScmFactsSource {
+            tracked_paths: vec!["a.txt".to_owned(), "b.txt".to_owned()],
+            last_touch: BTreeMap::from([
+                ("a.txt".to_owned(), "rev-a".to_owned()),
+                ("b.txt".to_owned(), "rev-b".to_owned()),
+            ]),
+            revision_author_timestamps: BTreeMap::from([
+                ("rev-a".to_owned(), 10),
+                ("rev-b".to_owned(), 20),
+                ("unused-head".to_owned(), 30),
+            ]),
+        };
+
+        let facts = emit_git_facts(&source).unwrap();
+
+        assert_eq!(facts["schema"], SCHEMA);
+        assert_eq!(facts["head_time_secs"], 20);
+        assert_eq!(facts["tracked_paths"], json!(["a.txt", "b.txt"]));
+        assert_eq!(facts["last_touch_commit"]["a.txt"], "rev-a");
+        assert_eq!(facts["last_touch_commit"]["b.txt"], "rev-b");
+        assert_eq!(
+            facts["commit_author_ts_secs"],
+            json!({"rev-a": 10, "rev-b": 20})
+        );
+    }
+
+    #[test]
+    fn generated_class_filter_matches_existing_policy() {
+        assert!(is_generated_class(
+            "cloud/cloud-ci/gates/app/foo.generated.json"
+        ));
+        assert!(is_generated_class("Cargo.lock"));
+        assert!(is_generated_class("docs/machine-readable/catalog.json"));
+        assert!(!is_generated_class("cloud/cloud-ci/gates/app/src/main.rs"));
+    }
 }
