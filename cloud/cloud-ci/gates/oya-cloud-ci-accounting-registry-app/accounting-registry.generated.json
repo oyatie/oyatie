@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17063,
-    "source_inputs_digest": "fnv1a64:66eebce2fb1af1d8"
+    "source_inputs_digest": "fnv1a64:52363cda2d077f00"
   },
   "rows": [
     {
@@ -45047,7 +45047,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a19a4e07fa222de742d0912edab642e3ac775130",
+      "last_touch_commit": "7a02815cd311dffd5ba694b93635584d1232c792",
       "owner": null,
       "path": "docs/checklists/pre-merge.md",
       "reachable_from": [],
@@ -45068,7 +45068,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "a19a4e07fa222de742d0912edab642e3ac775130",
+      "last_touch_commit": "7a02815cd311dffd5ba694b93635584d1232c792",
       "owner": null,
       "path": "docs/checklists/pre-push.md",
       "reachable_from": [],
@@ -362952,7 +362952,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0335",
-      "last_touch_commit": "5c9ebd7d2f295ed1a40bf55726f08f7e54ef6334",
+      "last_touch_commit": "7a02815cd311dffd5ba694b93635584d1232c792",
       "owner": null,
       "path": "tools/hooks/_canonical-primitives.md",
       "reachable_from": [],
