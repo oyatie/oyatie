@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:0ad7405174ca4a0c",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:d952bae4f6ad133e"
+    "source_inputs_digest": "fnv1a64:5b252d459e6d952d"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -10397,6 +10397,7 @@
           "evidence/ledger/markdown-retirement-ledger.json",
           "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
           "evidence/ledger/ops-portal-ledger.json",
+          "evidence/multispectrum/brand-residue-historical-labels-20260609-1780996750.json",
           "evidence/multispectrum/retire-backbone-workflow-20260609-1780996350.json",
           "evidence/multispectrum/scm-facts-source-seam-20260609-1780997211.json",
           "evidence/multispectrum/task20-import-manifest-freeze-20260609-1780983615.json",
@@ -27940,6 +27941,7 @@
           "evidence/ledger/markdown-retirement-ledger.json",
           "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
           "evidence/ledger/ops-portal-ledger.json",
+          "evidence/multispectrum/brand-residue-historical-labels-20260609-1780996750.json",
           "evidence/multispectrum/retire-backbone-workflow-20260609-1780996350.json",
           "evidence/multispectrum/scm-facts-source-seam-20260609-1780997211.json",
           "evidence/multispectrum/task20-import-manifest-freeze-20260609-1780983615.json",
@@ -44851,6 +44853,7 @@
           "evidence/goals/durable-goal-execution-ledger-2026-05-16.json",
           "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
           "evidence/ledger/ops-portal-ledger.json",
+          "evidence/multispectrum/brand-residue-historical-labels-20260609-1780996750.json",
           "evidence/multispectrum/retire-backbone-workflow-20260609-1780996350.json",
           "evidence/multispectrum/scm-facts-source-seam-20260609-1780997211.json",
           "evidence/multispectrum/task20-import-manifest-freeze-20260609-1780983615.json",
