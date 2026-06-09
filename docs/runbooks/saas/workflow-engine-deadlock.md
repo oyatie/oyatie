@@ -8,7 +8,7 @@ doc_status: published
 > **Owner:** `axis-saas`
 > **Severity scope:** Sev 2 by default; escalate to Sev 1 for cross-cell, regulated-pack, or revenue-impacting workflow stalls.
 > **Authority:** ADR-0035 workflow engine semantics, W-SaaS-Preview functional gate in `docs/PRD.md`, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
-> **Last verified:** 2026-06-09 (stub language removed; procedure grounded in existing docs and ADRs).
+> **Last verified:** 2026-06-09 (legacy scaffold wording removed; procedure grounded in existing docs and ADRs).
 
 ## Operator contract
 - **Incident channel:** `#inc-saas-workflow-engine`.

@@ -8,7 +8,7 @@ doc_status: published
 > **Owner:** `axis-saas + axis-foundry + ops-security`
 > **Severity scope:** Sev 1.
 > **Authority:** ADR-0036 plugin substrate trust model, ADR-0534 higher-trust gate marketplace extension, W-SaaS-Preview plugin install gate in `docs/PRD.md`, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
-> **Last verified:** 2026-06-09 (stub language removed; procedure grounded in existing docs and ADRs).
+> **Last verified:** 2026-06-09 (legacy scaffold wording removed; procedure grounded in existing docs and ADRs).
 
 ## Operator contract
 - **Incident channel:** `#inc-saas-plugin-runtime`.

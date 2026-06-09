@@ -8,7 +8,7 @@ doc_status: published
 > **Owner:** `axis-saas + ops-security + legal/compliance when regulatory or sanctions scope is present`
 > **Severity scope:** Sev 3 by default; escalate to Sev 1 for active exploit, sanctions/export-control, regulated data exposure, or cross-tenant settlement impact.
 > **Authority:** ADR-0249 marketplace doctrine, ADR-0314 DealSet settlement doctrine, ADR-0036 plugin trust model, W-SaaS-Preview marketplace listing gate in `docs/PRD.md`, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
-> **Last verified:** 2026-06-09 (stub language removed; procedure grounded in existing docs and ADRs).
+> **Last verified:** 2026-06-09 (legacy scaffold wording removed; procedure grounded in existing docs and ADRs).
 
 ## Operator contract
 - **Incident channel:** `#inc-saas-marketplace`.

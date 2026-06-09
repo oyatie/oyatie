@@ -165,6 +165,15 @@ No new dependency is introduced by this PRD. Future dependency additions require
 | Cross-axis contract drift | 0 unreviewed contract changes at merge. | M03-P08 fitness lanes and branch-protected `oya-ci-required`. |
 | Audit evidence completeness | 100% of mutable workflow/plugin/listing/entitlement state changes sealed. | Audit-chain correlation checks. |
 
+## Competitive benchmark
+
+| Comparator | SaaS Platform benchmark stance | Evidence / caveat |
+|---|---|---|
+| Salesforce Flow / AppExchange | Oyatie targets a unified workflow + plugin + marketplace substrate instead of separate automation, extension, entitlement, and audit surfaces. | Target contract only until M03-P04/M03-P08 changesets prove workflow execution, plugin install, marketplace listing, entitlement, and audit-chain behavior behind `oya-ci-required`. |
+| ServiceNow App Engine / Store | Oyatie requires tenant-scoped workflow and plugin execution with sealed audit evidence, regional-pack overlays, and central policy authority. | Success gates include p99 under 500 ms for synchronous workflow steps, 0 unresolved production sandbox escapes, and 100% billable-event emission. |
+| Zapier / n8n automation ecosystems | Oyatie treats workflow automation as an in-tenant governed execution fabric, not an external integration-only tool. | Local CLI checks remain diagnostic; cloud-native control-plane evidence and branch-protected CI are the readiness authority. |
+| AWS Marketplace / Atlassian Marketplace | Oyatie's marketplace benchmark is install governance, trust-tier publishing, takedown, DealSet entitlement state, and tenant/audit continuity. | Listing review target is ≤ 5 business days for complete verified-ISV submissions; live readiness remains a target/non-claim until gate evidence exists. |
+
 ## 10. Risks and mitigations
 
 | Risk | Severity | Mitigation |
