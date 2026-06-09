@@ -171,6 +171,24 @@ jobs:
           chmod +x /tmp/buck2
           sudo mv /tmp/buck2 /usr/local/bin/buck2
           buck2 --version
+      # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
+      # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
+      # resolves rustc/cargo/clippy per-compile-action, and buck2 runs those actions in
+      # PARALLEL. On a cold runner each action's first shim call triggers rustup to install the
+      # rust-toolchain.toml channel (1.95.0 + rustfmt,clippy) concurrently — the racing rustup
+      # processes collide on the shared `~/.rustup/downloads/*.partial` files and fail with
+      # `rustup::utils::rename ... No such file or directory (os error 2)` (a different component
+      # each run: clippy, then cargo — proving a concurrency race, not a config defect). rustup
+      # is not concurrency-safe. Installing the toolchain once here makes it ambient so the
+      # parallel actions find it already present (no download). The cargo lanes never hit this
+      # because cargo provisions the toolchain in a single up-front invocation.
+      - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
+        run: |
+          set -euo pipefail
+          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
+          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustc --version
+          cargo --version
       # Warm buck-out + the buck2 daemon cache across runs so ephemeral runners do not
       # cold-bootstrap the toolchain (design §3.1 / ADR-0515 D4).
       - name: Cache buck-out
