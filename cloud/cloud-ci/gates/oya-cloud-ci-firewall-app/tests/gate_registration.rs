@@ -22,12 +22,12 @@ use std::path::{Path, PathBuf};
 /// that EMIT the faces (registered in the workflow via a `run` step, not a `cargo test -p ...`
 /// gate lane). These are the intentional exclusions from the gate-registration invariant:
 ///   - the accounting producer (emits the five accounting faces);
-///   - the git-facts emitter (the single out-of-graph git boundary that emits
-///     git-facts.generated.json; OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5).
+///   - the scm-facts emitter (the single out-of-graph git boundary that emits
+///     scm-facts.generated.json; OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5).
 const PRODUCER_CRATE: &str = "oya-cloud-ci-accounting-registry-app";
 const NON_GATE_CRATES: [&str; 2] = [
     "oya-cloud-ci-accounting-registry-app",
-    "oya-cloud-ci-git-facts-emitter-app",
+    "oya-cloud-ci-scm-facts-emitter-app",
 ];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -97,8 +97,8 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
     let gates = gates_dir(&root);
     let wf = workflow_path(&root);
 
-    let workflow = fs::read_to_string(&wf)
-        .unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
     let crates = gate_crate_dirs(&gates);
     assert!(
@@ -153,8 +153,8 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
     let root = repo_root();
     let gates = gates_dir(&root);
     let wf = workflow_path(&root);
-    let workflow = fs::read_to_string(&wf)
-        .unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
     // Isolate the text of the fan-in job (from its `oya-ci-required:` header to EOF). The
     // fan-in is the last job in the file by construction.

@@ -11,9 +11,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_cloud_ci_firewall_app::{
-    baseline_keys_map, evaluate_firewall, Baseline, SignOff,
-};
+use oya_cloud_ci_firewall_app::{Baseline, SignOff, baseline_keys_map, evaluate_firewall};
 use serde_json::Value;
 
 fn repo_root() -> PathBuf {
@@ -38,8 +36,7 @@ fn signoff_path(root: &Path) -> PathBuf {
 }
 
 fn load_json(path: &Path) -> Value {
-    let text =
-        fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
@@ -47,9 +44,9 @@ fn load_json(path: &Path) -> Value {
 /// HERMETICALLY (no `env!("CARGO")`, the compile-time cargo-only macro that breaks the buck2
 /// build). The producer binary is resolved at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN`
 /// (the `$(exe ...)`-substituted built binary), else under cargo via the runtime `CARGO` env
-/// var. The producer reads the committed git-facts face (a declared input); it never calls git.
+/// var. The producer reads the committed scm-facts face (a declared input); it never calls git.
 fn regenerate_baseline(root: &Path) -> Value {
-    let git_facts = faces_dir(root).join("git-facts.generated.json");
+    let scm_facts = faces_dir(root).join("scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
         let bin = if Path::new(&bin).is_absolute() {
             PathBuf::from(bin)
@@ -59,8 +56,8 @@ fn regenerate_baseline(root: &Path) -> Value {
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .arg("--face")
             .arg("baseline")
@@ -76,8 +73,8 @@ fn regenerate_baseline(root: &Path) -> Value {
             .arg("--")
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .arg("--face")
             .arg("baseline")
@@ -106,7 +103,12 @@ fn current_from_value(value: &Value) -> BTreeMap<String, BTreeMap<String, BTreeS
                 for (code, keys) in codes_obj {
                     let set: BTreeSet<String> = keys
                         .as_array()
-                        .map(|a| a.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+                        .map(|a| {
+                            a.iter()
+                                .filter_map(Value::as_str)
+                                .map(str::to_owned)
+                                .collect()
+                        })
                         .unwrap_or_default();
                     code_map.insert(code.clone(), set);
                 }
@@ -136,7 +138,10 @@ fn firewall_fixtures_execute_red_green_cases() {
         })
         .collect();
     tc_paths.sort();
-    assert!(!tc_paths.is_empty(), "firewall fixture corpus must not be empty");
+    assert!(
+        !tc_paths.is_empty(),
+        "firewall fixture corpus must not be empty"
+    );
 
     let mut seen_green = false;
     let mut seen_red = false;
@@ -162,7 +167,12 @@ fn firewall_fixtures_execute_red_green_cases() {
 
         let expected_failing: BTreeSet<String> = fixture["expected_failing_codes"]
             .as_array()
-            .map(|a| a.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+            .map(|a| {
+                a.iter()
+                    .filter_map(Value::as_str)
+                    .map(str::to_owned)
+                    .collect()
+            })
             .unwrap_or_default();
         let actual_failing: BTreeSet<String> = report
             .codes
@@ -170,7 +180,10 @@ fn firewall_fixtures_execute_red_green_cases() {
             .filter(|r| r.fails())
             .map(|r| r.code.clone())
             .collect();
-        assert_eq!(actual_failing, expected_failing, "{label}: failing-code set mismatch");
+        assert_eq!(
+            actual_failing, expected_failing,
+            "{label}: failing-code set mismatch"
+        );
 
         match fixture["expected_firewall"].as_str() {
             Some("GREEN") => {
@@ -254,7 +267,10 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         "GO-LIVE: committed baseline == regenerated, so the ratchet must show zero growth, got {:?}",
         report.ratchet_growth
     );
-    assert!(report.is_green(), "firewall must be GREEN with the baseline frozen at today");
+    assert!(
+        report.is_green(),
+        "firewall must be GREEN with the baseline frozen at today"
+    );
 
     // Sanity: the baseline is NON-trivial (the frozen pre-existing corpus debt is real).
     let total_baselined: usize = report.codes.iter().map(|r| r.baseline).sum();
@@ -291,11 +307,19 @@ fn firewall_goes_red_on_a_synthetic_new_violation() {
         .find(|r| r.gate == "cloud-ci-total-accounting" && r.code == "unjustified")
         .expect("unjustified code present");
     assert!(
-        unjust.regressions.contains("SYNTHETIC/new-unjustified-file.rs"),
+        unjust
+            .regressions
+            .contains("SYNTHETIC/new-unjustified-file.rs"),
         "the synthetic NEW file must show up as a regression"
     );
-    assert!(unjust.fails(), "a NEW unjustified file must FAIL the firewall");
-    assert!(!report.is_green(), "firewall must be RED on a NEW finite violation");
+    assert!(
+        unjust.fails(),
+        "a NEW unjustified file must FAIL the firewall"
+    );
+    assert!(
+        !report.is_green(),
+        "firewall must be RED on a NEW finite violation"
+    );
 }
 
 /// RATCHET proof against the LIVE corpus: a regen that GROWS the baseline (without sign-off)

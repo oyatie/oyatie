@@ -1,17 +1,29 @@
 # The SINGLE out-of-graph git boundary (OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5, Option C).
 # buck2 BUILDS this rust_binary (so it is itself a hermetic, cacheable artifact), but it is
-# RUN by the CI git-facts-regen pre-step + the local regen hook — NEVER inside a cacheable
+# RUN by the CI scm-facts-regen pre-step + the local regen hook — NEVER inside a cacheable
 # buck2 action. It shells git ONCE at the build-graph edge and writes the committed,
-# registry-drift-protected git-facts.generated.json face. The producer + every gate rust_test
+# registry-drift-protected scm-facts.generated.json face. The producer + every gate rust_test
 # consume that committed face as a DECLARED input, so no buck2 action ever calls git.
 rust_binary(
-    name = "oya-cloud-ci-git-facts-emitter-app",
+    name = "oya-cloud-ci-scm-facts-emitter-app",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        # Reuse the producer's exact canonicalizer so the git-facts face is byte-formatted
+        # Reuse the producer's exact canonicalizer so the scm-facts face is byte-formatted
         # identically to the other five faces.
+        "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
+        "third-party//:serde_json",
+    ],
+)
+
+
+rust_test(
+    name = "oya-cloud-ci-scm-facts-emitter-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
         "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
         "third-party//:serde_json",
     ],

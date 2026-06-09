@@ -1,9 +1,9 @@
 // :registry-drift gate — committed == regenerated (PHASE-0-FIREWALL-PLAN §5.3).
 // Re-runs the producer in --stdout (sandbox) mode and byte-diffs against the committed
-// accounting faces, AND re-runs the git-facts emitter and byte-diffs the committed
-// git-facts.generated.json (OYA-CI-HERMETIC-EXECUTION-DESIGN §1, Option C: the git-facts face
+// accounting faces, AND re-runs the scm-facts emitter and byte-diffs the committed
+// scm-facts.generated.json (OYA-CI-HERMETIC-EXECUTION-DESIGN §1, Option C: the scm-facts face
 // is byte-parity-protected exactly like the other faces). A hand-edit to any generated face —
-// including git-facts — fails this test. ADR-0083 Tier-3: integration tests use unwrap/expect.
+// including scm-facts — fails this test. ADR-0083 Tier-3: integration tests use unwrap/expect.
 //
 // HERMETIC: no `env!("CARGO")` (a compile-time cargo-only macro that breaks the buck2 build).
 // The producer + emitter binaries are resolved at RUNTIME:
@@ -12,7 +12,7 @@
 //   - under cargo (local dev): the producer/emitter are invoked via the runtime `CARGO` env
 //     var (`cargo run -p <crate>`), which cargo sets for integration tests — a RUNTIME read,
 //     never a compile-time `env!`, so there is no cargo-specific compile-time coupling.
-// The git-facts face the producer consumes is the committed one (a declared input); the
+// The scm-facts face the producer consumes is the committed one (a declared input); the
 // producer never calls git.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -47,22 +47,25 @@ const FACES: [(&str, &str); 5] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
     ("decision-crosswalk.generated.json", "decision-crosswalk"),
-    ("enforcement-inventory.generated.json", "enforcement-inventory"),
+    (
+        "enforcement-inventory.generated.json",
+        "enforcement-inventory",
+    ),
     ("gate-baseline.generated.json", "baseline"),
 ];
 
-const GIT_FACTS_FACE: &str = "git-facts.generated.json";
+const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
 
 /// Run the producer to regenerate a single face to stdout. Prefers the buck2-provided binary
 /// (`OYA_CI_PRODUCER_BIN`), else falls back to `cargo run -p` via the RUNTIME `CARGO` env var.
 fn regenerate_face(root: &Path, face: &str) -> String {
-    let git_facts = faces_dir(root).join(GIT_FACTS_FACE);
+    let scm_facts = faces_dir(root).join(SCM_FACTS_FACE);
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
         Command::new(resolve_bin(root, &bin))
             .args(["--repo-root"])
             .arg(root)
-            .args(["--git-facts"])
-            .arg(&git_facts)
+            .args(["--scm-facts"])
+            .arg(&scm_facts)
             .args(["--stdout", "--face", face])
             .current_dir(root)
             .output()
@@ -78,8 +81,8 @@ fn regenerate_face(root: &Path, face: &str) -> String {
                 "--repo-root",
             ])
             .arg(root)
-            .args(["--git-facts"])
-            .arg(&git_facts)
+            .args(["--scm-facts"])
+            .arg(&scm_facts)
             .args(["--stdout", "--face", face])
             .current_dir(root)
             .output()
@@ -93,11 +96,11 @@ fn regenerate_face(root: &Path, face: &str) -> String {
     String::from_utf8(output.stdout).expect("producer stdout utf8")
 }
 
-/// Run the git-facts emitter to regenerate the git-facts face to a temp path, returning its
+/// Run the scm-facts emitter to regenerate the scm-facts face to a temp path, returning its
 /// bytes. Prefers the buck2-provided binary (`OYA_CI_EMITTER_BIN`), else `cargo run -p`.
-fn regenerate_git_facts(root: &Path) -> String {
+fn regenerate_scm_facts(root: &Path) -> String {
     let out = std::env::temp_dir().join(format!(
-        "oya-ci-git-facts-regen-{}.json",
+        "oya-ci-scm-facts-regen-{}.json",
         std::process::id()
     ));
     let status = if let Ok(bin) = std::env::var("OYA_CI_EMITTER_BIN") {
@@ -115,7 +118,7 @@ fn regenerate_git_facts(root: &Path) -> String {
                 "run",
                 "--quiet",
                 "-p",
-                "oya-cloud-ci-git-facts-emitter-app",
+                "oya-cloud-ci-scm-facts-emitter-app",
                 "--",
                 "--repo-root",
             ])
@@ -126,8 +129,8 @@ fn regenerate_git_facts(root: &Path) -> String {
             .status()
             .expect("cargo run emitter")
     };
-    assert!(status.success(), "git-facts emitter failed");
-    let bytes = fs::read_to_string(&out).expect("read regenerated git-facts");
+    assert!(status.success(), "scm-facts emitter failed");
+    let bytes = fs::read_to_string(&out).expect("read regenerated scm-facts");
     let _ = fs::remove_file(&out);
     bytes
 }
@@ -142,11 +145,7 @@ fn cargo() -> String {
 /// absolute against the resolved repo root so the test can exec it.
 fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
     let p = PathBuf::from(bin);
-    if p.is_absolute() {
-        p
-    } else {
-        root.join(p)
-    }
+    if p.is_absolute() { p } else { root.join(p) }
 }
 
 /// Regenerate each face in-memory (sandbox) and assert it byte-matches the committed face.
@@ -175,50 +174,50 @@ fn committed_faces_equal_regenerated() {
     }
 }
 
-/// Regenerate the git-facts face (the single git boundary) and assert it byte-matches the
-/// committed git-facts.generated.json. A hand-edit to git-facts — or a stale git-facts vs the
+/// Regenerate the scm-facts face (the single git boundary) and assert it byte-matches the
+/// committed scm-facts.generated.json. A hand-edit to scm-facts — or a stale scm-facts vs the
 /// real history — fails this test, identical to the other faces (OYA-CI-HERMETIC-EXECUTION-
-/// DESIGN §1.4: git-facts folds into the existing registry-drift tamper-evidence, no new trust
+/// DESIGN §1.4: scm-facts folds into the existing registry-drift tamper-evidence, no new trust
 /// root).
 #[test]
-fn committed_git_facts_equal_regenerated() {
-    // The git-facts emitter is the SINGLE out-of-graph git boundary (OYA-CI-HERMETIC-EXECUTION-
-    // DESIGN §1.5): git is allowed to run in the CI git-facts-regen pre-step and in local cargo
+fn committed_scm_facts_equal_regenerated() {
+    // The scm-facts emitter is the SINGLE out-of-graph git boundary (OYA-CI-HERMETIC-EXECUTION-
+    // DESIGN §1.5): git is allowed to run in the CI scm-facts-regen pre-step and in local cargo
     // dev, but NEVER inside a hermetic buck2 action (no ambient git in the action graph — an RBE
     // worker has no `.git`, and a shallow checkout collapses history non-deterministically, PM1).
     // So this regen-validation runs ONLY from a git-bearing boundary context:
     //   - under cargo (the `CARGO` env var is set by cargo for integration tests), and
-    //   - in the CI git-facts-regen pre-step (which sets `OYA_CI_GIT_FACTS_REGEN=1`).
+    //   - in the CI scm-facts-regen pre-step (which sets `OYA_CI_SCM_FACTS_REGEN=1`).
     // When run as a sandboxed buck2 action (neither set), it SKIPS — git is intentionally out of
     // the action graph; the producer-faces drift check above stays fully hermetic. This is the
     // boundary doctrine, not a `local_only` / cargo-fallback escape: the SAME logic runs at the
     // out-of-graph boundary on every runner.
     let regen_boundary = std::env::var_os("CARGO").is_some()
-        || std::env::var("OYA_CI_GIT_FACTS_REGEN").as_deref() == Ok("1");
+        || std::env::var("OYA_CI_SCM_FACTS_REGEN").as_deref() == Ok("1");
     if !regen_boundary {
         eprintln!(
-            "git-facts regen-validation SKIPPED: not a git boundary context (run via cargo or \
-             the CI git-facts-regen pre-step with OYA_CI_GIT_FACTS_REGEN=1). The hermetic \
+            "scm-facts regen-validation SKIPPED: not a git boundary context (run via cargo or \
+             the CI scm-facts-regen pre-step with OYA_CI_SCM_FACTS_REGEN=1). The hermetic \
              producer-faces drift check ran; git stays out of the buck2 action graph."
         );
         return;
     }
 
     let root = repo_root();
-    let committed_path = faces_dir(&root).join(GIT_FACTS_FACE);
+    let committed_path = faces_dir(&root).join(SCM_FACTS_FACE);
     let committed = fs::read_to_string(&committed_path).unwrap_or_else(|e| {
         panic!(
-            "committed git-facts face missing at {} ({e}); run the git-facts emitter to generate it",
+            "committed scm-facts face missing at {} ({e}); run the scm-facts emitter to generate it",
             committed_path.display()
         )
     });
 
-    let regenerated = regenerate_git_facts(&root);
+    let regenerated = regenerate_scm_facts(&root);
 
     assert_eq!(
         committed, regenerated,
-        "GIT-FACTS DRIFT: committed {GIT_FACTS_FACE} != regenerated. \
-         The git-facts face was hand-edited, or git history advanced without re-running the \
-         emitter. Re-run //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app to regenerate."
+        "SCM-FACTS DRIFT: committed {SCM_FACTS_FACE} != regenerated. \
+         The scm-facts face was hand-edited, or git history advanced without re-running the \
+         emitter. Re-run //cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app to regenerate."
     );
 }

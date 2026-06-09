@@ -36,7 +36,7 @@ rust_test(
     crate_root = "tests/bnf_layer_suffix.rs",
     # HERMETIC: the test execs the buck2-BUILT producer binary (no `env!("CARGO")`, no `cargo
     # run`). `$(exe ...)` makes buck2 build the producer and substitute its sandbox path here;
-    # the producer reads the committed git-facts face (a declared input) — no action calls git.
+    # the producer reads the committed scm-facts face (a declared input) — no action calls git.
     env = {
         "OYA_CI_PRODUCER_BIN": "$(exe //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin)",
     },

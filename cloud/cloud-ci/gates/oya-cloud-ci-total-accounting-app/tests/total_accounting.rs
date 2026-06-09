@@ -7,8 +7,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use oya_cloud_ci_total_accounting_app::{Verdict, evaluate};
 use serde_json::Value;
-use oya_cloud_ci_total_accounting_app::{evaluate, Verdict};
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
 /// existing kernel-test convention.
@@ -30,8 +30,7 @@ fn fixture_dir() -> PathBuf {
 }
 
 fn load_json(path: &PathBuf) -> Value {
-    let text = fs::read_to_string(path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
@@ -62,7 +61,10 @@ fn total_accounting_fixtures_execute_red_green_cases() {
         })
         .collect();
     tc_paths.sort();
-    assert!(!tc_paths.is_empty(), "total-accounting fixture corpus must not be empty");
+    assert!(
+        !tc_paths.is_empty(),
+        "total-accounting fixture corpus must not be empty"
+    );
 
     let mut seen_green = false;
     let mut seen_red = false;
@@ -90,16 +92,9 @@ fn total_accounting_fixtures_execute_red_green_cases() {
             }
             Some("RED") => {
                 seen_red = true;
-                assert_eq!(
-                    report.verdict,
-                    Verdict::Red,
-                    "{label} should be RED"
-                );
+                assert_eq!(report.verdict, Verdict::Red, "{label} should be RED");
                 // The contract: report.violations EXACTLY equals expected_violations.
-                assert_eq!(
-                    report.violations, expected,
-                    "{label} violations mismatch"
-                );
+                assert_eq!(report.violations, expected, "{label} violations mismatch");
             }
             other => panic!("{label} has unsupported expected_verdict {other:?}"),
         }
@@ -151,10 +146,7 @@ fn gate2_is_born_blocking_on_the_live_corpus() {
     );
 
     // Count the real exhibits for the evidence digest.
-    let unowned = rows
-        .iter()
-        .filter(|r| r["owner"].is_null())
-        .count();
+    let unowned = rows.iter().filter(|r| r["owner"].is_null()).count();
     let unreachable = rows
         .iter()
         .filter(|r| {
@@ -175,7 +167,9 @@ fn gate2_is_born_blocking_on_the_live_corpus() {
     let governance_unreachable = rows
         .iter()
         .filter(|r| {
-            r["path"].as_str().is_some_and(|p| p.contains("oya-governance"))
+            r["path"]
+                .as_str()
+                .is_some_and(|p| p.contains("oya-governance"))
                 && r["reachable_from"]
                     .as_array()
                     .map(Vec::is_empty)
@@ -200,10 +194,10 @@ fn gate2_is_born_blocking_on_the_live_corpus() {
 /// compile-time cargo-only macro that breaks the buck2 build). The producer binary is resolved
 /// at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN` (the `$(exe ...)`-substituted built
 /// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
-/// git-facts face (a declared input); it never calls git.
+/// scm-facts face (a declared input); it never calls git.
 fn run_producer_stdout(root: &Path) -> Value {
-    let git_facts = root
-        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json");
+    let scm_facts = root
+        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
         let bin = if Path::new(&bin).is_absolute() {
             PathBuf::from(bin)
@@ -213,8 +207,8 @@ fn run_producer_stdout(root: &Path) -> Value {
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .current_dir(root)
             .output()
@@ -228,8 +222,8 @@ fn run_producer_stdout(root: &Path) -> Value {
             .arg("--")
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .current_dir(root)
             .output()

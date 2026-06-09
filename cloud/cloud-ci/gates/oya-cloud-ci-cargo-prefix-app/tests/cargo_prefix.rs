@@ -12,7 +12,7 @@ use std::process::Command;
 
 use serde_json::Value;
 
-use oya_cloud_ci_cargo_prefix_app::{evaluate, evaluate_keyed, Verdict};
+use oya_cloud_ci_cargo_prefix_app::{Verdict, evaluate, evaluate_keyed};
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -31,17 +31,21 @@ fn repo_root() -> PathBuf {
 /// compile-time cargo-only macro that breaks the buck2 build). The producer binary is resolved
 /// at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN` (the `$(exe ...)`-substituted built
 /// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
-/// git-facts face (a declared input); it never calls git.
+/// scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let git_facts =
-        root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json");
+    let scm_facts = root
+        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() { PathBuf::from(bin) } else { root.join(bin) };
+        let bin = if Path::new(&bin).is_absolute() {
+            PathBuf::from(bin)
+        } else {
+            root.join(bin)
+        };
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .arg("--face")
             .arg(face)
@@ -57,8 +61,8 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
             .arg("--")
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .arg("--face")
             .arg(face)
