@@ -2,8 +2,8 @@
 # tools/hooks/stale-tool-suggester.sh
 #
 # Trigger:  Claude Code PreToolUse(Bash)
-# Purpose:  When a Bash command references retired VCS wrapper surfaces,
-#           suggest the current plain git + governance gate path.
+# Purpose:  When a Bash command references retired local authority surfaces,
+#           suggest the current plain git + cloud-ci/oya-ci gate path.
 # Behavior: Reads $TOOL_INPUT (JSON with "command" field) from environment or stdin.
 #           Prints a suggestion to stderr with the canonical replacement.
 #           Agent decides whether to rewrite.
@@ -36,12 +36,13 @@ if [ -z "$COMMAND_TEXT" ]; then
     exit 0
 fi
 
-RETIRED_VCS_PATTERN='(^|[;&|][;&|]?[[:space:]]*|\([[:space:]]*)oya[[:space:]]+(git|vcs)([[:space:]]|$)'
+RETIRED_VCS_PATTERN='(^|[;&|][;&|]?[[:space:]]*|\([[:space:]]*)(\./bin/|bin/)?oya[[:space:]]+(git|vcs)([[:space:]]|$)'
 
 if printf '%s\n' "$COMMAND_TEXT" | grep -Eq "$RETIRED_VCS_PATTERN" 2>/dev/null; then
     echo "ℹ [stale-tool-suggester] Retired VCS surface detected: oya git/oya vcs are retired by ADR-0363." >&2
-    echo "ℹ  Use plain git for VCS work; use ./bin/oya verify --ci-required or oya gate run-all for governance gates." >&2
-    echo "ℹ  This is advisory only; command semantics are not changed by the hook." >&2
+    echo "ℹ  Use plain git for local VCS work; merge readiness is the cloud-ci/oya-ci produced 'oya-ci-required' status." >&2
+    echo "ℹ  Local verifier output is shift-left evidence only and must not be cited as protected-branch authority." >&2
+    echo "ℹ  This advisory is paired with local-authority-enforcer, which blocks the retired wrapper command." >&2
 fi
 
 exit 0

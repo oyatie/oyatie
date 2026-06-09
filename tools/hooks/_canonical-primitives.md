@@ -15,9 +15,10 @@ Coordination (per agent lane):
   isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   commit and push on that lane
   open a PR against `dev`             # enters the governance pipeline
-  GitHub Actions CI + `oya gate run-all` + reviewer APPROVE gate merge readiness
+  cloud-ci/oya-ci pipeline posts `oya-ci-required` + reviewer APPROVE gate merge readiness
 
-`oya` is a governance-gate engine only: `oya gate ...`, `oya verify [--ci-required]`.
+`oya` local verifier output is shift-left evidence only. It is never protected-branch
+merge authority and never replaces the cloud-ci/oya-ci `oya-ci-required` status.
 
 Authority: ADR-0363 (retire bespoke agentic-VCS; GitHub substrate; oya = gate engine)
 
@@ -268,7 +269,8 @@ ADR-0335: foundry µservice retired (Wave 15I) — AI substrate absorbed into in
 See: specs/master-plan-sequencing.json#forbidden_primitives
 Summary: Bash agent commands use plain `git` for ordinary git operations. The
 retired wrappers `oya git` and `oya vcs` must not be used. Governance
-verification uses `./bin/oya verify --ci-required` and `oya gate run-all`;
+verification is the cloud-ci/oya-ci produced `oya-ci-required` status; local
+`oya verify`/`oya gate` output is optional shift-left evidence only;
 OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ---
@@ -290,23 +292,18 @@ OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ## oya-dev-cli Invocation Pattern
 
-Direct:     cargo run --quiet -p oya-dev-cli -- <subcommand> [args]
-Via wrapper: ./bin/oya <subcommand> [args]  (after PATH_add bin via .envrc)
-Top-level subcommands: gate, governance-gates, foundation-audit-gates, catalog,
-                        check, demo, doc, lint, onprem, ops, submit,
-                        supply-chain, verify
+Local dev-cli invocation is not merge authority. Prefer Buck2 targets and the
+cloud-ci/oya-ci `oya-ci-required` status for evidence. Do not add new
+`cargo run -p oya-dev-cli` hook or checklist requirements.
 
 ---
 
 ## Wave 15-ZF Doctrine Primitives (ADR-0346..ADR-0349)
 
-ADR-0346: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix:
-  cargo fmt --all --check; cargo check --workspace --all-targets --keep-going; cargo clippy --workspace --all-targets
-  --keep-going -- -D warnings; cargo nextest run --workspace --no-fail-fast (or cargo test --workspace if nextest is absent);
-  oya gate run-all --ci-required. Mandatory steps block on exit-0 of EACH step before verifier success.
-Enforced by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics;
-  oya-governance-oya-verify-skip-flag-allowlist; oya-governance-oya-submit-calls-verify;
-  oya-governance-oya-verify-exit-code-contract.
+ADR-0346 legacy local-verifier wording is superseded for active work by
+ADR-0515: `oya-ci-required` is the one canonical blocking status, produced by
+the cloud-ci/oya-ci pipeline. Local verifier output may be attached as
+shift-left evidence but must not be used as protected-branch authority.
 
 ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB
   bulk-rename pull request; the deterministic inventory path is .omc/state/oya-governance-rename-inventory-2026-05-21.json.

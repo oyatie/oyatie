@@ -6,14 +6,13 @@ doc_status: published
 
 > **When:** Before `gh pr merge`. After all CI lanes green + reviewer-agent verdict.
 > **Owner:** PR author + reviewer.
-> **Validator:** `oya gate validate` + `guard-pr-merge-review.mjs`.
+> **Validator:** protected PR status `oya-ci-required` + reviewer-agent verdict. Local `oya gate` output is advisory only.
 
 ---
 
 1. ☐ All CI lanes green per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md):
-   - cargo-fmt / cargo-clippy / cargo-nextest --all-features / cargo check --all-features
-   - cargo-deny licenses / `oya gate validate architecture-boundaries`
-   - oya catalog validate / oya gate validate (claim-ceiling, foundation-bypass, plane-class)
+   - Buck2/cloud-ci format, lint, test, and type lanes for affected targets
+   - license, architecture-boundary, claim-ceiling, foundation-bypass, and plane-class gates through cloud-ci/oya-ci
    - Trivy / Cosign / SBOM
    - oya-governance-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius}
 2. ☐ PR has 5 mandatory H2s: `## Issue / Summary / Verification / Traceability / Evidence`
@@ -38,7 +37,7 @@ doc_status: published
 
 ## After merge
 
-16. ☐ Post-merge `cargo check --workspace --all-features` on `main` green within 5 min
+16. ☐ Post-merge cloud-ci/oya-ci required status remains green on the promoted commit within 5 min
 17. ☐ Audit-chain emits `EVT-PR-MERGED` with PR # + commit SHA
 18. ☐ Per-affected-team Slack ping (auto)
 19. ☐ Per-changelog auto-emit (Foundry capability `pr.changelog.row`)

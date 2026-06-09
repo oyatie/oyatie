@@ -6,7 +6,7 @@ doc_status: published
 
 > **Trigger:** per bypass expiry
 > **Owner:** `council-architecture` accountable; owning crate team executes.
-> **Validator:** `oya gate validate foundation-bypass` plus PR traceability evidence per [`STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §3.
+> **Validator:** cloud-ci/oya-ci foundation-bypass gate evidence in `oya-ci-required` plus PR traceability evidence per [`STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §3. Local dev-cli output is not accepted as renewal authority.
 
 ## Pre-flight
 1. Identify the expiring `registry/foundation-bypasses/*.yaml` record.
@@ -21,8 +21,8 @@ doc_status: published
 5. Do not merge a renewal that widens scope, changes `gate_bypassed`, or extends an exception without reviewer sign-off from both `council-architecture` and the owning crate team.
 
 ## Validation
-- `cargo run -p oya-tooling-cli-dev-runtime -- gate validate foundation-bypass`
-- `cargo run -p oya-tooling-cli-dev-runtime -- gate validate pr-traceability`
+- `oya-ci-required` run URL showing the foundation-bypass and PR-traceability gate results
+- reviewer-agent traceability verdict for the renewal PR
 - Per-step evidence captured in the PR.
 - Owner team and `council-architecture` sign-off.
 
