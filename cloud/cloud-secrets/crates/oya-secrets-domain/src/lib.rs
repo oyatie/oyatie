@@ -264,9 +264,7 @@ impl SecretReferenceUri {
         })
     }
 
-    pub fn parse_config_reference(
-        input: impl AsRef<str>,
-    ) -> Result<Self, SecretReferenceUriError> {
+    pub fn parse_config_reference(input: impl AsRef<str>) -> Result<Self, SecretReferenceUriError> {
         let input = input.as_ref();
         let Some(without_prefix) = input.strip_prefix(CONFIG_SECRET_REFERENCE_PREFIX) else {
             return Err(SecretReferenceUriError::MissingConfigWrapper);
@@ -296,10 +294,7 @@ impl SecretReferenceUri {
     pub fn normalized_uri(&self) -> String {
         match self.version {
             Some(version) => {
-                format!(
-                    "{OPENBAO_SECRET_REFERENCE_PREFIX}{}@v{version}",
-                    self.path
-                )
+                format!("{OPENBAO_SECRET_REFERENCE_PREFIX}{}@v{version}", self.path)
             }
             None => format!("{OPENBAO_SECRET_REFERENCE_PREFIX}{}", self.path),
         }
@@ -633,7 +628,7 @@ fn validate_reference_path(path: &str) -> Result<(), SecretReferenceUriError> {
         if segment.is_empty() {
             return Err(SecretReferenceUriError::EmptySegment);
         }
-        if segment == ".." {
+        if segment.contains("..") {
             return Err(SecretReferenceUriError::TraversalSegment);
         }
         if !segment.chars().all(is_reference_segment_character) {
