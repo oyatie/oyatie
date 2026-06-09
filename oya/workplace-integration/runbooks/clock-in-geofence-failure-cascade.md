@@ -9,7 +9,7 @@ audience: workplace-incident-commander
 owner_team: axis-workplace-integration + ops-sre-reliability
 source_wave: codex-runbooks-substrate-w3
 change_scope: net-new runbook
-doc_status: published
+doc_status: draft_target_non_claim
 ---
 
 # Runbook: Clock In Geofence Failure Cascade

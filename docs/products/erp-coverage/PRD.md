@@ -42,7 +42,7 @@ related_adrs:
 companion_docs:
   - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
   - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-planned_enforcement_ref: oya-governance-erp-parity-prd-coverage
+planned_enforcement_ref: D-GOVERNANCE-CENTRAL
 ---
 
 # PRD: ERP Coverage - SAP-Parity Composition

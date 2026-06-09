@@ -58,7 +58,7 @@ ADR346-ENFORCED-BY-004: oya-governance-oya-submit-calls-verify (new lane; refuse
 ADR346-ENFORCED-BY-005: oya-governance-oya-verify-exit-code-contract (new lane; refuses verify.rs changes that violate the closed exit-code enum `{0 = ALL passed, 1 = at least one failed, 2 = invalid arguments}` per D-11)
 
 ## 4. Canonical ADR-0347 Wording
-ADR347-PURPOSE-001: Every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
+ADR347-PURPOSE-001: Every `central-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `central-governance-*` in a single bulk-rename pull request.
 ADR347-PURPOSE-002: The rename surface includes workflows, registry lane records, catalog records, crates, ADR cross-citations, standards, state, sequencing, canonical primitives, branch protection, and per-microservice manifest governance_lanes arrays.
 ADR347-PURPOSE-003: The pre-rename inventory is machine-readable at `.omc/state/oya-governance-rename-inventory-2026-05-21.json`.
 ADR347-ENFORCED-BY-001: oya-governance-retired-vocab-residue (new lane; greps the corpus and refuses any non-historical reference to `oya-governance-*`; historical references inside ADR-0335 + ADR-0347 retirement-context paragraphs are exempted via an allowlist of file paths declared in the lane's config)
@@ -91,6 +91,12 @@ ADR349-ENFORCED-BY-003: oya-governance-argocd-tenant-namespace-isolation (new la
 ADR349-ENFORCED-BY-004: oya-governance-declarative-ci-config-only (new lane; refuses CI controller state declared via the UI; every CI controller state file is authored under microservices/cloud-iac/modules/<context>/retired-build-server/jcasc/ with declarative JCasC YAML per D-1; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
 ADR349-ENFORCED-BY-005: oya-governance-deploy-audit-chain-emit (new lane; refuses ArgoCD sync transitions that do not emit an audit-chain row per ADR-0263 D.4 deploy-event class; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
 
+## 6. Current D-CICD-AUTHORITY Replacement For ADR-0349
+D-CICD-AUTHORITY-004: One canonical CI authority exists: GitHub Actions required context `oya-ci-required` now, owned oya-ci after cutover.
+D-CICD-AUTHORITY-005: Delivery substrate references are subordinate implementation context and do not create a second merge authority.
+D-CICD-AUTHORITY-006: GitOps delivery remains declarative and evidence-backed; manual deploy commands are not promotion authority.
+D-GOVERNANCE-CENTRAL-002: Deployment evidence must flow through central compliance and attestation pipelines.
+D-CLOUD-NATIVE-002: Cloud-native services/controllers/APIs/declarative pipelines supersede local or self-host-only control surfaces.
 ## 7. Downstream Implementation Plan
 PLAN-001: Read the manifest sharding_automation block before creating code or workflow changes.
 PLAN-002: Reject any downstream design that makes manual placement the default.
@@ -115,7 +121,7 @@ PLAN-020: Ensure auto_rebalance.honors_residency is true when auto_rebalance is 
 PLAN-021: Ensure auto_rebalance.honors_compliance_packs is true when auto_rebalance is enabled.
 PLAN-022: Ensure audit_chain_emit is true for auto_rebalance when enabled.
 PLAN-023: Ensure audit_chain_emit is true for dynamic_sharding when enabled.
-PLAN-024: Use ADR-0346 verification before any downstream push.
+PLAN-024: Use branch-protected `oya-ci-required` acceptance before any downstream push/merge.
 PLAN-025: Use ADR-0347 governance lane names in downstream evidence.
 PLAN-026: Use ADR-0349 retired build-server bridge parity when self-hosted CI is introduced.
 PLAN-027: Use ADR-0349 ArgoCD cosign verification when deployment manifests are introduced.

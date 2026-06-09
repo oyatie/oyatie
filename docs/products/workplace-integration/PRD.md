@@ -317,7 +317,7 @@ service-owned import targets required for promotion
 └── oya/workflow-studio/.../template.workflow_spec.v1.json # editable Studio starter
 ```
 
-A flow is not production-ready until both the workplace-owned source bundle and the service-owned import targets resolve in the repository and pass their owning lanes' contract checks. This PRD therefore treats absent service-owned import targets as promotion blockers, not as completed artifacts.
+A flow is not promotion-eligible until both the workplace-owned source bundle and the service-owned import targets resolve in the repository and pass their owning lanes' contract checks. This PRD therefore treats absent service-owned import targets as promotion blockers, not as completed artifacts.
 
 ### 3.4 Inter-µservice communication
 
@@ -2465,6 +2465,4 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 - docs/decisions/ADR-0255-intelligence-two-layer-model.md
 - docs/decisions/ADR-0263-audit-event-registry.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
-- docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
-- docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md

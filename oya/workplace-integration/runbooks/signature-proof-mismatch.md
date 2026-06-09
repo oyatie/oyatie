@@ -9,7 +9,7 @@ audience: workplace-incident-commander
 owner_team: axis-workplace-integration + ops-sre-reliability
 source_wave: codex-runbooks-substrate-w3
 change_scope: substance rewrite of existing thin runbook
-doc_status: published
+doc_status: draft_target_non_claim
 ---
 
 # Runbook: Signature Proof Mismatch

@@ -7,7 +7,7 @@ owner_team: axis-workplace-integration
 primary_adr: ADR-0320
 related_adrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0263, ADR-0319, ADR-0320]
 companion_docs: [oya/workplace-integration/README.md, docs/products/workplace-integration/PRD.md, docs/standards/documentation-rigor.md]
-planned_enforcement_ref: oya-governance-workplace-integration-doc-set
+planned_enforcement_ref: D-GOVERNANCE-CENTRAL
 naming_justifications: BNF v4 service_action_resource grammar and 13-layer-enum conformance are declared inline in this document
 ---
 
