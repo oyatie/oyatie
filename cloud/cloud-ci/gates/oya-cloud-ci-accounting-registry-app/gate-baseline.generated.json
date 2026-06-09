@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:0ad7405174ca4a0c",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:0dcc7be1f4df95b3"
+    "source_inputs_digest": "fnv1a64:fa3bac9e9a610a87"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -534,7 +534,6 @@
           "AGENTS.md",
           "Cargo.toml",
           "HANDOFF.md",
-          "README.md",
           "cloud/cell-lifecycle/ARCH.md",
           "cloud/cell-lifecycle/IPs/IP-CL-008-foundry-self-modification-boundary.md",
           "cloud/cell-lifecycle/PRD.md",
