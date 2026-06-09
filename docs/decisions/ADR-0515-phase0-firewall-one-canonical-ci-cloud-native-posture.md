@@ -380,5 +380,27 @@ a known-good it passes + proof it runs in the pipeline and BLOCKS):
   real candidate SHAs AND the live ruleset requires `oya-ci-required` (closing the SSOT→live drift); only
   then may `claim_boundary.p0_0_green` flip true.
 
+## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence — refined, NOT superseded)
+
+ADR-0515 remains the **governing floor** and stays Accepted. The WAVE-1 convergence (ADR-0516
+umbrella) refines this ADR in place without a tombstone; the prior text above stands and git history
+preserves the pre-amendment body. The refinements:
+
+- **ADR-0516** names this ADR's firewall + one-canonical-CI (`oya-ci-required`) as the **W0 floor** of
+  fabric Component 2 (not the whole of it).
+- **ADR-0519 / ADR-0529** extend the born-blocking/advisory model with the AUTO/ADVISE/GATE
+  per-finding-code tier as schema-enforced DATA in `gate-disposition.json`, the untagged-code
+  meta-gate, and the five-property AUTO-promotion proof.
+- **ADR-0522 / ADR-0523** make the lifecycle-wide hermeticity and the closed irreducible-glue ledger
+  precise — ADR-0523 refines D3's "no shell bar a narrow exception" into the closed five-item ledger.
+- **ADR-0525** supplies the concrete hermetic buck2 execution model (git-facts boundary, buck2-native
+  gates, RBE/CAS) that operationalizes D2/D3/D4/D5; **ADR-0526** renames that boundary to scm-facts
+  (amends D3 vocabulary).
+- **ADR-0527 / ADR-0530** add the engine-vs-policy seam and the engineering-excellence floor gates;
+  the firewall predicates stay byte-unchanged.
+- **ADR-0528** adds `remediate()` to the gate contract (WS-D) this ADR established.
+
+None of these reverses a decision of ADR-0515; it is the governing floor the fabric builds upon.
+
 ---
-*Accepted 2026-06-07 (founder-ruled; door:one-way). Authority: D-CICD-AUTHORITY · ONE CANONICAL CI · D-CLOUD-NATIVE · D-GOVERNANCE-CENTRAL · D-MULTISPECTRUM-RETIRED · D-SSOT-CURRENT-TRUTH · D-SEQUENCE · D-DOCTRINE (decision-record-oyatie-canon.md). Plan: CICD-DESIGN-PLAN.md (ralplan-APPROVED). Reciprocal `superseded_by` edges written on 0124/0349/0359/0361/0511/0513/0514; 0092 amended; 0408/0392 depends_on. Superseded files hard-destroyed per D-SSOT-CURRENT-TRUTH (git history is the sole archive).*
+*Accepted 2026-06-07 (founder-ruled; door:one-way). Authority: D-CICD-AUTHORITY · ONE CANONICAL CI · D-CLOUD-NATIVE · D-GOVERNANCE-CENTRAL · D-MULTISPECTRUM-RETIRED · D-SSOT-CURRENT-TRUTH · D-SEQUENCE · D-DOCTRINE (decision-record-oyatie-canon.md). Plan: CICD-DESIGN-PLAN.md (ralplan-APPROVED). Reciprocal `superseded_by` edges written on 0124/0349/0359/0361/0511/0513/0514; 0092 amended; 0392 depends_on (the former ADR-0408 CI/CD reversal is re-authored into ADR-0525). Superseded files hard-destroyed per D-SSOT-CURRENT-TRUTH (git history is the sole archive). Refined (not superseded) 2026-06-08 by the WAVE-1 fabric cluster ADR-0516/0519/0522/0523/0525/0526/0527/0528/0529/0530.*

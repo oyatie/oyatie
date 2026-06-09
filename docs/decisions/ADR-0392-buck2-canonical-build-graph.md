@@ -1,6 +1,6 @@
 ---
 id: ADR-0392
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder, council-architecture
 date: 2026-05-29
@@ -8,6 +8,7 @@ owner: council-architecture
 supersedes: [ADR-0358]
 superseded_by: []
 amends: []
+amended_by: [ADR-0522, ADR-0524]
 related: [ADR-0358, ADR-0408, ADR-0359, ADR-0346, ADR-0111, ADR-0181, ADR-0357, ADR-0092]
 related_specs:
   - /specs/cloud-toolchain-target.json
@@ -26,7 +27,22 @@ affected_surfaces:
 
 ## Status
 
-Proposed — 2026-05-29. DRAFT for founder review; this overturns a reasoned decision (ADR-0358 §2) and must NOT auto-merge.
+**Accepted — 2026-06-08 (founder-ruled; ratified at the WAVE-1 convergence door; door: two-way).**
+Originally Proposed 2026-05-29; ratified to Accepted as part of the WAVE-1 fabric convergence
+(resolve-every-Proposed rule). This overturns a reasoned decision (ADR-0358 §2).
+
+## Amendment (2026-06-08, WAVE-1 fabric convergence)
+
+This ADR is **amended/extended in place** (no tombstone; git history preserves the pre-amendment body):
+
+- **ADR-0522** generalizes "the build graph" into "one lifecycle graph driven by four runners"
+  (build · CI · CD · dev-env) — the same buck2 target graph, with thin generated adapters per runner.
+- **ADR-0524** adds the kernel-side buckification this ADR never scoped (ADR-0392 covered only the
+  cloud build graph): the kernel port enters the one buck2 graph additive-first, retiring `build.sh`
+  and the tracked `out/*.elf` carrier blobs.
+
+ADR-0392 remains an UPSTREAM `depends_on` of the hermetic execution model (ADR-0525). The Buck2 +
+Reindeer + NativeLink decision below is unchanged.
 
 ## Date
 

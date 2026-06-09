@@ -9,8 +9,8 @@ doctrine_meta: true
 owner: founder
 supersedes: []
 superseded_by: []
-related: [ADR-0388, ADR-0392, ADR-0409, ADR-0434, ADR-0451, ADR-0474, ADR-0475, ADR-0476, ADR-0477, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0483, ADR-0484, ADR-0506, ADR-0507, ADR-0508]
-amended_by: [kubers-anchor-2026-05-28]
+related: [ADR-0388, ADR-0392, ADR-0409, ADR-0434, ADR-0451, ADR-0474, ADR-0475, ADR-0476, ADR-0477, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0483, ADR-0484, ADR-0506, ADR-0507, ADR-0508, ADR-0516, ADR-0520, ADR-0521]
+amended_by: [kubers-anchor-2026-05-28, ADR-0520, ADR-0521]
 door: one-way
 milestone: M-BESPOKE-ROADMAP
 ---
@@ -173,3 +173,17 @@ Closed-loop identity family (all three tiers required for full stack ownership):
 - **oya-crypto** (Tier-4, ADR-0506) — crypto primitive layer underpinning both RP and authenticator
 
 See ADR-0508 for full parity table, phasing, and silicon ownership roadmap.
+
+## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence)
+
+Amended in place (no tombstone; git history preserves the pre-amendment body):
+
+- **ADR-0520** inserts the Agentic Delivery Fabric (ADR-0516) + the owned AST substrate (ADR-0517) as
+  the TOP layer above this tiered bespoke-component roadmap, and reaffirms — does not replace — this
+  ADR's bridge-discipline (parallel-run, per-feature parity gates, quality-gated cutover, no
+  hard-deadline cutover).
+- **ADR-0521** sequences this roadmap as the staged W0–W6 fabric roadmap (convergence-first,
+  interface-locking, cutover-gated).
+
+The phased tiers, bridge discipline, and existential framing below are unchanged; the fabric sits
+above them as the apex destination.

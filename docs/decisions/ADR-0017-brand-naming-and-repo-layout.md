@@ -2,6 +2,7 @@
 id: ADR-0017
 status: accepted
 doc_status: published
+amended_by: [ADR-0532]
 ---
 
 # ADR-0017: Brand naming and repo layout — Oyatie / oYa logo / oyatie.com domain, oya-<microservice>-<layer> Cargo prefix, repo path / GitHub slug oyatie retained
@@ -112,8 +113,20 @@ Each sub-batch is a separate PR with bounded blast radius.
 
 ---
 
+## Amendment (2026-06-08, WAVE-1 Agentic Delivery Fabric convergence)
+
+Amended in place (no tombstone; git history preserves the pre-amendment body). **ADR-0532** (platform
+product-line taxonomy + canonical product names) supersedes the oyatie-internal app-naming and
+repo-layout assumptions FOR THE LIFECYCLE-TOOLING PRODUCTS: the `oya-` prefix moves from a baked-in
+assumption to a per-profile config value (`profile = 'neutral' | 'oyatie'`, ADR-0533), and the
+gate-pack namespace becomes product-rooted (`<pack>.<gate>`). The product-surface brand rules
+(Oyatie / oYa / oyatie.com) and the repo-path retention below are otherwise unchanged for first-party
+oyatie surfaces; ADR-0532 only generalizes the prefix/layout for third-party adopters of the product
+line.
+
 ## Related
 
 - ADR-0001 (cohesion — single brand)
 - ADR-0018 (glossary — forbidden term enforcement)
 - ADR-0056 (BNF v4.1 — Cargo prefix `oya-<microservice>-(<bc>-)?<layer>`)
+- ADR-0532 (platform product-line taxonomy — amends the prefix/layout assumptions for lifecycle tooling)
