@@ -30,6 +30,10 @@ rust_test(
     srcs = glob(["tests/**/*.rs"]),
     crate = "oya_cloud_ci_generated_artifact_control_plane_app_corpus",
     crate_root = "tests/generated_artifact_control_plane.rs",
+    env = {
+        "OYA_CI_GENERATED_ARTIFACT_MANIFEST": "$(location //registry:generated-artifact-control-plane.json)",
+        "OYA_CI_GENERATED_ARTIFACT_SCM_FACTS": "$(location //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:git-facts.generated.json)",
+    },
     visibility = ["PUBLIC"],
     deps = [
         ":oya-cloud-ci-generated-artifact-control-plane-app",

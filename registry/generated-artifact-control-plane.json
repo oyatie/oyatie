@@ -13,7 +13,6 @@
       "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
-      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face registry",
       "source_inputs": [
         "scm-facts snapshot",
         "OWNERS",
@@ -22,7 +21,21 @@
         "oya-ci.toml"
       ],
       "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
-      "public_product_contract": "A repo-wide accounting projection must be controller-regenerated; humans and agents must not resolve conflicts by editing the JSON."
+      "public_product_contract": "A repo-wide accounting projection must be controller-regenerated; humans and agents must not resolve conflicts by editing the JSON.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",
+        "operation_id": "emit-accounting-face",
+        "parameters": {
+          "face": "registry"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs",
+          "scm-facts-snapshot"
+        ],
+        "output_mode": "stdout-json"
+      }
     },
     {
       "artifact_id": "cloud-ci-decision-crosswalk-face",
@@ -31,14 +44,27 @@
       "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
-      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face decision-crosswalk",
       "source_inputs": [
         "docs/decisions/**",
         "docs/machine-readable/*.json",
         "contracts/**"
       ],
       "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
-      "public_product_contract": "Cross-artifact agreement data is a generated projection and must be regenerated rather than hand-merged."
+      "public_product_contract": "Cross-artifact agreement data is a generated projection and must be regenerated rather than hand-merged.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",
+        "operation_id": "emit-accounting-face",
+        "parameters": {
+          "face": "decision-crosswalk"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs",
+          "scm-facts-snapshot"
+        ],
+        "output_mode": "stdout-json"
+      }
     },
     {
       "artifact_id": "cloud-ci-enforcement-inventory-face",
@@ -47,14 +73,27 @@
       "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
-      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face enforcement-inventory",
       "source_inputs": [
         "scm-facts snapshot",
         "cloud/cloud-ci/gates/**",
         "oya-ci.toml"
       ],
       "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
-      "public_product_contract": "Enforcement inventory is generated CI product metadata and must have deterministic final-tree parity."
+      "public_product_contract": "Enforcement inventory is generated CI product metadata and must have deterministic final-tree parity.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",
+        "operation_id": "emit-accounting-face",
+        "parameters": {
+          "face": "enforcement-inventory"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs",
+          "scm-facts-snapshot"
+        ],
+        "output_mode": "stdout-json"
+      }
     },
     {
       "artifact_id": "cloud-ci-gate-baseline-ratchet-face",
@@ -63,14 +102,27 @@
       "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
-      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face baseline",
       "source_inputs": [
         "all enabled gate faces",
         "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
         "oya-ci.toml"
       ],
       "final_tree_validation": "registry-drift byte-parity plus baseline ratchet validation; growth requires explicit signoff source",
-      "public_product_contract": "The baseline ratchet is shrink-only generated policy; merge conflict handling must not launder new debt into the baseline."
+      "public_product_contract": "The baseline ratchet is shrink-only generated policy; merge conflict handling must not launder new debt into the baseline.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",
+        "operation_id": "emit-accounting-face",
+        "parameters": {
+          "face": "baseline"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs",
+          "scm-facts-snapshot"
+        ],
+        "output_mode": "stdout-json"
+      }
     },
     {
       "artifact_id": "cloud-ci-scm-facts-boundary-snapshot",
@@ -79,7 +131,6 @@
       "materialization_mode": "main-branch-materialized",
       "merge_policy": "controller-owned-main-materialization",
       "owner_team": "cloud-ci-platform",
-      "generator_command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app -- --repo-root . --out cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json",
       "source_inputs": [
         "full-depth SCM checkout",
         "tracked path list",
@@ -87,7 +138,18 @@
         "commit author timestamps"
       ],
       "final_tree_validation": "The protected-branch push trigger and merge-queue projected-state controller regenerate SCM facts from the accepted final tree; branch-head facts are advisory only for squash-only merge paths.",
-      "public_product_contract": "SCM facts are the single non-hermetic boundary snapshot. Native cloud-ci must materialize them from the accepted final tree, not hand-merge branch-head JSON."
+      "public_product_contract": "SCM facts are the single non-hermetic boundary snapshot. Native cloud-ci must materialize them from the accepted final tree, not hand-merge branch-head JSON.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app",
+        "operation_id": "emit-scm-facts-boundary-snapshot",
+        "parameters": {},
+        "input_contract": [
+          "repo-root",
+          "full-depth-scm"
+        ],
+        "output_mode": "declared-artifact-path-write"
+      }
     },
     {
       "artifact_id": "cloud-ci-ttl-policy-face",
@@ -96,13 +158,26 @@
       "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "cloud-ci-platform",
-      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face ttl-policy",
       "source_inputs": [
         "libs/oya-ci-config/src/bundled/ttl-policy.json",
         "oya-ci.toml"
       ],
       "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
-      "public_product_contract": "TTL policy is data-derived generated CI policy and must be deterministic across repositories."
+      "public_product_contract": "TTL policy is data-derived generated CI policy and must be deterministic across repositories.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",
+        "operation_id": "emit-accounting-face",
+        "parameters": {
+          "face": "ttl-policy"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs",
+          "scm-facts-snapshot"
+        ],
+        "output_mode": "stdout-json"
+      }
     },
     {
       "artifact_id": "machine-readable-board-sync-projection",
@@ -111,14 +186,26 @@
       "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "planning-platform",
-      "generator_command": "oya gen board-sync --write",
       "source_inputs": [
         "docs/decisions/**",
         "specs/masterplan.json",
         "registry/**"
       ],
       "final_tree_validation": "generated artifact controller must regenerate the projection from final candidate sources before merge",
-      "public_product_contract": "Board-sync is a generated planning projection; public adopters must declare equivalent derived planning outputs instead of hand-merging them."
+      "public_product_contract": "Board-sync is a generated planning projection; public adopters must declare equivalent derived planning outputs instead of hand-merging them.",
+      "generator": {
+        "runner": "oya-ci-native-controller",
+        "generator_target": "oya-ci://generated-artifact-controller/planning/board-sync",
+        "operation_id": "emit-planning-projection",
+        "parameters": {
+          "projection": "board-sync"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs"
+        ],
+        "output_mode": "controller-materialized"
+      }
     },
     {
       "artifact_id": "machine-readable-masterplan-projection",
@@ -127,14 +214,26 @@
       "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
       "merge_policy": "never-manual-merge-regenerate-from-source-tree",
       "owner_team": "planning-platform",
-      "generator_command": "oya gen masterplan --write",
       "source_inputs": [
         "specs/masterplan.json",
         "specs/master-plan-sequencing.json",
         "docs/decisions/**"
       ],
       "final_tree_validation": "generated artifact controller must regenerate the projection from final candidate sources before merge",
-      "public_product_contract": "Masterplan projection is generated planning data and must be materialized by a controller, not manually resolved in PR branches."
+      "public_product_contract": "Masterplan projection is generated planning data and must be materialized by a controller, not manually resolved in PR branches.",
+      "generator": {
+        "runner": "oya-ci-native-controller",
+        "generator_target": "oya-ci://generated-artifact-controller/planning/masterplan",
+        "operation_id": "emit-planning-projection",
+        "parameters": {
+          "projection": "masterplan"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs"
+        ],
+        "output_mode": "controller-materialized"
+      }
     }
   ],
   "development_lifecycle_enforcement_layers": [

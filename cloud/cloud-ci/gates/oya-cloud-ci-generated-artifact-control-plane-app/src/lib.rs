@@ -79,10 +79,34 @@ const ARTIFACT_FIELDS: [&str; 10] = [
     "materialization_mode",
     "merge_policy",
     "owner_team",
-    "generator_command",
+    "generator",
     "source_inputs",
     "final_tree_validation",
     "public_product_contract",
+];
+
+const GENERATOR_FIELDS: [&str; 6] = [
+    "runner",
+    "generator_target",
+    "operation_id",
+    "parameters",
+    "input_contract",
+    "output_mode",
+];
+
+const GENERATOR_RUNNERS: [&str; 2] = ["buck2", "oya-ci-native-controller"];
+
+const GENERATOR_OUTPUT_MODES: [&str; 3] = [
+    "stdout-json",
+    "declared-artifact-path-write",
+    "controller-materialized",
+];
+
+const GENERATOR_INPUT_CONTRACTS: [&str; 4] = [
+    "repo-root",
+    "declared-source-inputs",
+    "scm-facts-snapshot",
+    "full-depth-scm",
 ];
 
 const LIFECYCLE_LAYER_FIELDS: [&str; 4] = ["layer_id", "name", "automation", "enforcement"];
@@ -215,6 +239,176 @@ fn required_string_array(
         if item.as_str().is_none_or(|value| value.trim().is_empty()) {
             findings.insert(Finding::new(item_code, format!("{owner}.{key}[{index}]")));
         }
+    }
+}
+
+fn validate_generator(
+    artifact: &Value,
+    artifact_id: &str,
+    artifact_class: &str,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let Some(generator) = artifact.get("generator") else {
+        findings.insert(Finding::new(
+            "generated_artifact_manifest_generator_missing",
+            artifact_id,
+        ));
+        return;
+    };
+    if !validate_object_fields(
+        generator,
+        &GENERATOR_FIELDS,
+        "generated_artifact_manifest_generator_not_object",
+        "generated_artifact_manifest_generator_unknown_field",
+        artifact_id,
+        findings,
+    ) {
+        return;
+    }
+
+    let runner = required_str(generator, "runner");
+    let generator_target = required_str(generator, "generator_target");
+    let operation_id = required_str(generator, "operation_id");
+    let output_mode = required_str(generator, "output_mode");
+
+    match runner {
+        Some(value) if allowed(&GENERATOR_RUNNERS, value) => {}
+        Some(value) => {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generator_runner_unknown",
+                format!("{artifact_id}.{value}"),
+            ));
+        }
+        None => {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generator_runner_missing",
+                artifact_id,
+            ));
+        }
+    };
+
+    match output_mode {
+        Some(value) if allowed(&GENERATOR_OUTPUT_MODES, value) => {}
+        Some(value) => {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generator_output_mode_unknown",
+                format!("{artifact_id}.{value}"),
+            ));
+        }
+        None => {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generator_output_mode_missing",
+                artifact_id,
+            ));
+        }
+    };
+
+    match generator_target {
+        Some(value) => {
+            if runner == Some("buck2") && !value.starts_with("//") {
+                findings.insert(Finding::new(
+                    "generated_artifact_manifest_generator_buck2_target_not_canonical",
+                    artifact_id,
+                ));
+            }
+            if runner == Some("oya-ci-native-controller")
+                && !value.starts_with("oya-ci://generated-artifact-controller/")
+            {
+                findings.insert(Finding::new(
+                    "generated_artifact_manifest_generator_controller_target_not_canonical",
+                    artifact_id,
+                ));
+            }
+        }
+        None => {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generator_target_missing",
+                artifact_id,
+            ));
+        }
+    }
+    if operation_id.is_none() {
+        findings.insert(Finding::new(
+            "generated_artifact_manifest_generator_operation_id_missing",
+            artifact_id,
+        ));
+    }
+    let Some(parameters) = generator.get("parameters") else {
+        findings.insert(Finding::new(
+            "generated_artifact_manifest_generator_parameters_missing",
+            artifact_id,
+        ));
+        return;
+    };
+    let Some(parameters) = parameters.as_object() else {
+        findings.insert(Finding::new(
+            "generated_artifact_manifest_generator_parameters_not_object",
+            artifact_id,
+        ));
+        return;
+    };
+    for (key, value) in parameters {
+        if value.as_str().is_none_or(|value| value.trim().is_empty()) {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generator_parameter_not_string",
+                format!("{artifact_id}.{key}"),
+            ));
+        }
+    }
+
+    let Some(input_contracts) = required_array(generator, "input_contract") else {
+        findings.insert(Finding::new(
+            "generated_artifact_manifest_generator_input_contract_missing",
+            artifact_id,
+        ));
+        return;
+    };
+    let mut input_contract_set = BTreeSet::new();
+    for (index, item) in input_contracts.iter().enumerate() {
+        let Some(value) = item.as_str().filter(|value| !value.trim().is_empty()) else {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generator_input_contract_item_not_string",
+                format!("{artifact_id}.input_contract[{index}]"),
+            ));
+            continue;
+        };
+        if !allowed(&GENERATOR_INPUT_CONTRACTS, value) {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generator_input_contract_unknown",
+                format!("{artifact_id}.{value}"),
+            ));
+        }
+        input_contract_set.insert(value.to_owned());
+    }
+
+    if runner == Some("oya-ci-native-controller") && output_mode != Some("controller-materialized")
+    {
+        findings.insert(Finding::new(
+            "generated_artifact_manifest_generator_controller_output_not_materialized",
+            artifact_id,
+        ));
+    }
+    if artifact_class == "scm-facts-boundary-snapshot" && runner != Some("buck2") {
+        findings.insert(Finding::new(
+            "generated_artifact_scm_facts_generator_not_buck2_boundary",
+            artifact_id,
+        ));
+    }
+    if artifact_class == "scm-facts-boundary-snapshot"
+        && output_mode != Some("declared-artifact-path-write")
+    {
+        findings.insert(Finding::new(
+            "generated_artifact_scm_facts_generator_not_declared_path_write",
+            artifact_id,
+        ));
+    }
+    if artifact_class == "scm-facts-boundary-snapshot"
+        && !input_contract_set.contains("full-depth-scm")
+    {
+        findings.insert(Finding::new(
+            "generated_artifact_scm_facts_generator_missing_full_depth_scm_contract",
+            artifact_id,
+        ));
     }
 }
 
@@ -505,12 +699,7 @@ fn parse_declared_artifacts(
                 artifact_id,
             ));
         }
-        if required_str(artifact, "generator_command").is_none() {
-            findings.insert(Finding::new(
-                "generated_artifact_manifest_generator_command_missing",
-                artifact_id,
-            ));
-        }
+        validate_generator(artifact, artifact_id, artifact_class, findings);
         required_string_array(
             artifact,
             "source_inputs",
@@ -651,7 +840,14 @@ mod tests {
             "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
             "merge_policy": "never-manual-merge-regenerate-from-source-tree",
             "owner_team": "cloud-ci-platform",
-            "generator_command": "oya ci generated-artifact materialize",
+            "generator": {
+                "runner": "buck2",
+                "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",
+                "operation_id": "emit-accounting-face",
+                "parameters": {"face": "registry"},
+                "input_contract": ["repo-root", "declared-source-inputs", "scm-facts-snapshot"],
+                "output_mode": "stdout-json"
+            },
             "source_inputs": ["src/**"],
             "final_tree_validation": "regenerate from final candidate tree and compare bytes",
             "public_product_contract": "portable hermetic Rust cloud-ci generated artifact policy"
@@ -827,6 +1023,48 @@ mod tests {
         assert!(findings.iter().any(|finding| {
             finding.code == "generated_artifact_manifest_source_inputs_item_not_string"
                 && finding.key == "example-face.source_inputs[2]"
+        }));
+    }
+
+    #[test]
+    fn shell_shaped_generator_command_is_rejected() {
+        let mut artifact = artifact("example-face", "out/example.generated.json");
+        artifact["generator_command"] =
+            json!("cargo run --quiet -p example && curl https://example.invalid");
+        artifact.as_object_mut().unwrap().remove("generator");
+        let manifest = manifest(vec![artifact]);
+        let scm_facts = scm(&["out/example.generated.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_manifest_artifact_unknown_field"
+                && finding.key == "artifacts[0].generator_command"
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_manifest_generator_missing"
+                && finding.key == "example-face"
+        }));
+    }
+
+    #[test]
+    fn generator_requires_canonical_target_and_output_contract() {
+        let mut artifact = artifact("example-face", "out/example.generated.json");
+        artifact["generator"]["generator_target"] = json!("cargo run -p example");
+        artifact["generator"]["output_mode"] = json!("shell-script");
+        artifact["generator"]["input_contract"] = json!(["repo-root", "host-shell"]);
+        let manifest = manifest(vec![artifact]);
+        let scm_facts = scm(&["out/example.generated.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_manifest_generator_buck2_target_not_canonical"
+                && finding.key == "example-face"
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_manifest_generator_output_mode_unknown"
+                && finding.key == "example-face.shell-script"
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_manifest_generator_input_contract_unknown"
+                && finding.key == "example-face.host-shell"
         }));
     }
 

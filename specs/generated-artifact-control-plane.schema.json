@@ -244,7 +244,7 @@
         "materialization_mode",
         "merge_policy",
         "owner_team",
-        "generator_command",
+        "generator",
         "source_inputs",
         "final_tree_validation",
         "public_product_contract"
@@ -291,9 +291,8 @@
           "type": "string",
           "minLength": 1
         },
-        "generator_command": {
-          "type": "string",
-          "minLength": 1
+        "generator": {
+          "$ref": "#/$defs/generator"
         },
         "source_inputs": {
           "type": "array",
@@ -313,6 +312,103 @@
         }
       },
       "additionalProperties": false
+    },
+    "generator": {
+      "type": "object",
+      "required": [
+        "runner",
+        "generator_target",
+        "operation_id",
+        "parameters",
+        "input_contract",
+        "output_mode"
+      ],
+      "properties": {
+        "runner": {
+          "enum": [
+            "buck2",
+            "oya-ci-native-controller"
+          ]
+        },
+        "generator_target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "input_contract": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "repo-root",
+              "declared-source-inputs",
+              "scm-facts-snapshot",
+              "full-depth-scm"
+            ]
+          }
+        },
+        "output_mode": {
+          "enum": [
+            "stdout-json",
+            "declared-artifact-path-write",
+            "controller-materialized"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "runner": {
+                "const": "buck2"
+              }
+            },
+            "required": [
+              "runner"
+            ]
+          },
+          "then": {
+            "properties": {
+              "generator_target": {
+                "pattern": "^//"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "runner": {
+                "const": "oya-ci-native-controller"
+              }
+            },
+            "required": [
+              "runner"
+            ]
+          },
+          "then": {
+            "properties": {
+              "generator_target": {
+                "pattern": "^oya-ci://generated-artifact-controller/"
+              },
+              "output_mode": {
+                "const": "controller-materialized"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }
