@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:48e7d8a62cc71b60",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:e547bc774f0aae63"
+    "source_inputs_digest": "fnv1a64:fc13191ca2ba5350"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -421,16 +421,9 @@
           "cloud/cloud-data/runbooks/hot-split.md",
           "cloud/cloud-data/slos/autosharding-events.openslo.yaml",
           "cloud/cloud-finops/crates/oya-cloud-finops-api/src/lib.rs",
-          "cloud/cloud-iac/IP-015-hg-cloud-iac-registration.md",
-          "cloud/cloud-iac/IPs/IP-WAVE-15-ZD-sharding-automation.md",
-          "cloud/cloud-iac/PHASE-01-META-IAC-PIPELINE-SUBSTRATE.md",
-          "cloud/cloud-iac/PRD.md",
-          "cloud/cloud-iac/README.md",
-          "cloud/cloud-iac/backfill-replay.md",
           "cloud/cloud-iac/benchmarks/cloud-iac-vs-terraform-cloud-vs-pulumi-cloud-vs-spacelift-vs-env0.md",
           "cloud/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml",
           "cloud/cloud-iac/faqs/infrastructure-engineer-faq.md",
-          "cloud/cloud-iac/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
           "cloud/cloud-iac/policy/ci-scope.cedar",
           "cloud/cloud-iam/ARCH.md",
           "cloud/cloud-iam/IPs/IP-WAVE-15-ZD-sharding-automation.md",
@@ -3374,12 +3367,6 @@
           "cloud/cloud-data/runbooks/hot-split.md",
           "cloud/cloud-data/slos/autosharding-events.openslo.yaml",
           "cloud/cloud-data/threat-models/threat-model.md",
-          "cloud/cloud-iac/IPs/IP-WAVE-15-ZD-sharding-automation.md",
-          "cloud/cloud-iac/PRD.md",
-          "cloud/cloud-iac/README.md",
-          "cloud/cloud-iac/capabilities/capability-catalog.md",
-          "cloud/cloud-iac/manifest.json",
-          "cloud/cloud-iac/migration-playbooks/wave-15-zd-adr-0346-0349-migration-playbook.md",
           "cloud/cloud-iam/ARCH.md",
           "cloud/cloud-iam/IPs/IP-WAVE-15-ZD-sharding-automation.md",
           "cloud/cloud-iam/PRD.md",
