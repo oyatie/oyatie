@@ -4,7 +4,7 @@ doc_id: DPIA-CLOUD_IAC
 microservice: cloud-iac
 status: wave-15-zf-doctrine-propagation
 date: 2026-05-21
-owner_team: axis-compliance + axis-governance
+owner_team: compliance-governance + axis-governance
 bounded_context: automation-event-driven-data-flow
 implementation_phase: doctrine-propagation-only
 rust_code_status: not-authored-in-this-wave
@@ -30,7 +30,7 @@ source_adrs:
 
 ### ADR-Bound Controls
 - ADR-0346 supersession: retired local oya verifier/gate/check wrappers are not authority mechanisms for active work; protected-branch merge readiness is the cloud-ci/oya-ci `oya-ci-required` status backed by shared Rust gate logic and the local-authority enforcer.
-- ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB). Enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB). Enforced by retired-fitness-residue detection, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348: AUTOSHARDING means tenant→cell/shard placement is computed by the control plane automatically; AUTO-REBALANCE automatically migrates tenants from hot cells to cooler cells; DYNAMIC SHARDING adjusts shard count within a cell based on load. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
 - ADR-0349 supersession: GitHub Actions produces the live required `oya-ci-required` context until the owned oya-ci runner cutover; ArgoCD REPLACES manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-ci-required`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, and `oya-governance-deploy-audit-chain-emit`.
 

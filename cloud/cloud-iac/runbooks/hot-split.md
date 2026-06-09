@@ -34,7 +34,7 @@ source_adrs:
 - ADR-0346 supersession: retired local oya verifier/gate/check wrappers are not active authority; `oya-ci-required` is the cloud-ci/oya-ci required context.
 - ADR-0346 enforced_by lanes: `oya-ci-required`; cloud-ci shared Rust gate logic; `local-authority-enforcer` for retired local authority commands.
 - ADR-0347 purpose wording: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
-- ADR-0347 enforced_by lanes: `oya-governance-retired-vocab-residue`; `oya-governance-lane-prefix-vocabulary`; `oya-governance-rename-inventory-presence`.
+- ADR-0347 enforced_by lanes: retired-fitness-residue detection; `oya-governance-lane-prefix-vocabulary`; `oya-governance-rename-inventory-presence`.
 - ADR-0348 purpose wording: cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341.
 - ADR-0348 auto-rebalance wording: when cell load skews beyond promotion-gate criteria, the cell-orchestrator automatically migrates tenants from hot cells to cooler cells.
 - ADR-0348 dynamic-sharding wording: shard count within a cell adjusts based on load: HOT-SPLIT when shard p99 latency exceeds SLO OR capacity utilization exceeds 80%; COLD-MERGE when adjacent shards both run below 20% utilization for more than 24 hours.

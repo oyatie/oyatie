@@ -4,7 +4,7 @@
 # Blocks retired local authority surfaces before they become muscle memory in
 # agent sessions. The live merge authority is the `oya-ci-required` status
 # produced by the cloud-ci/oya-ci pipeline. Local source control uses plain
-# git; local oya gate/verify/check wrappers must not coordinate work or decide
+# git; retired local authority wrappers must not coordinate work or decide
 # merge readiness.
 
 set -uo pipefail

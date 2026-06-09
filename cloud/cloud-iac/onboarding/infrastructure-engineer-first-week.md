@@ -90,7 +90,7 @@ You should be able to explain:
 - [ ] You can explain why `oya-ci-required` is the only blocking CI authority for PRs.
 - [ ] You submitted one scoped PR or review note against a real `cloud/cloud-iac/**` artifact.
 - [ ] You ran relevant Buck2/local checks and labeled them as shift-left evidence.
-- [ ] You identified any exact blocker instead of creating incomplete IaC, local-only command flows, or false production-readiness claims.
+- [ ] You identified any exact blocker instead of creating temporary IaC, local-only command flows, or false production-readiness claims.
 
 ## Rookie traps
 
