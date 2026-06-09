@@ -218,8 +218,8 @@
       "canonical destination decision from HANDOFF",
       "future placement rules for compatibility contracts, framekernel metadata, and signed module policy"
     ],
-    "referenced_evidence_path": "evidence/multispectrum/cloud-os-kernel-scaffold-20260609-1780988583.json",
-    "referenced_evidence_path_status": "absent_in_current_worktree; not written because evidence/ is outside this task write scope",
+    "referenced_evidence_path": "evidence/multispectrum/cloud-os-kernel-scaffold-20260609-1781014600.json",
+    "referenced_evidence_path_status": "present_in_current_worktree; canonical scaffold evidence is tracked under evidence/multispectrum; runtime/prod readiness remains target_non_claim",
     "scope_guardrails_verified": [
       "no infra/talos runtime move",
       "no cloud/cloud-k8s asset move",
