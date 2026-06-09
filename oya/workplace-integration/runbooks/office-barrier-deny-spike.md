@@ -9,7 +9,7 @@ audience: workplace-incident-commander
 owner_team: axis-workplace-integration + ops-sre-reliability
 source_wave: codex-runbooks-substrate-w3
 change_scope: substance rewrite of existing thin runbook
-doc_status: published
+doc_status: draft_target_non_claim
 ---
 
 # Runbook: Office Barrier Deny Spike
@@ -85,8 +85,8 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workplace-integration-ops/office-barrier-deny-spike?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKPLACE_INTEGRATION_OFFICE_BARRIER_DENY_SPIKE_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops workplace-integration office-barrier-deny-spike status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate workplace-integration-office-barrier-deny-spike --production-snapshot --cell $CELL`.
-16. Run crate smoke test: `cargo test -p WorkplaceAgreement domain office_barrier_deny_spike -- --nocapture`.
+15. Attach branch-protected CI evidence: `oya-ci-required` shared Rust gate evidence.
+16. Run Buck target smoke check: `buck2 test root//oya/workplace-integration/crates/oya-workplace-integration-doc-set-scaffold:oya-workplace-integration-doc-set-scaffold`.
 17. Check API contract smoke: `curl -s https://workplace-integration.internal.oyatie.dev/v1/workplace-integration/office-barrier-deny-spike/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f oya/workplace-integration/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' oya/workplace-integration/iac/kustomize/base/kustomization.yaml`.
 19. Inspect feature flags: `oya flags get oya.workplace-integration.office_barrier_deny_spike.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
@@ -271,7 +271,7 @@ evidence_hash: <sha256>
 - Incident commander: first responder from axis-workplace-integration + ops-sre-reliability; transfer only by explicit message in `#inc-workplace-integration`.
 - Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
 - Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
-- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- Architecture escalation: page `architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
 - External vendors: DocuSign enterprise support; Workday HCM support; ADP Workforce Now support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
 - Customer communications: use status page component `oyatie-workplace-integration-office-barrier-deny-spike` and keep private details in the incident channel.
 - Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.

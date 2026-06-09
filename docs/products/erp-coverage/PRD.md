@@ -5,8 +5,8 @@ prd_id: PRD-erp-coverage
 product: erp-coverage
 status: Draft
 date: 2026-05-20
-owner: council-product + council-architecture + axis-erp-parity
-owner_team: council-product + council-architecture + axis-erp-parity
+owner: axis-product + axis-architecture + axis-erp-parity
+owner_team: axis-product + axis-architecture + axis-erp-parity
 related_oyatie_adrs:
   - ADR-0131
   - ADR-0132
@@ -30,7 +30,7 @@ related_microservices:
   - workflow-studio
   - ontology
   - policy-engine
-tenant_class: ["demo_trial", "paid"]
+tenant_class: ["evaluation_limited", "paid"]
 related_adrs:
   - ADR-0131
   - ADR-0132
@@ -42,7 +42,7 @@ related_adrs:
 companion_docs:
   - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
   - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-planned_enforcement_ref: oya-governance-erp-parity-prd-coverage
+planned_enforcement_ref: D-GOVERNANCE-CENTRAL
 ---
 
 # PRD: ERP Coverage - SAP-Parity Composition
@@ -2030,7 +2030,7 @@ Evidence: Flow 6 emits workflow trace, audit-chain events, tenant-scoped metrics
 
 ## Hero Surface Substance Bar Addendum - ERP Coverage
 
-This addendum is the 2026-05-20 product-doc deepening wave for the ERP hero surface. It keeps the existing SAP-parity catalog above, but adds the missing buildable product layer: named personas, JTBDs, user stories with pass criteria, surface sketches, data model, Cedar policy model, workflow integration, ADR-0255 two-layer intelligence integration, ADR-0251 pack overlays, ADR-0263 telemetry, migration playbooks, ADR-0316 capability tiers, and cross-product dependencies.
+This addendum is the 2026-05-20 product-doc deepening wave for the ERP hero surface. It keeps the existing SAP-parity catalog above, but adds the missing buildable product layer: named personas, jobs-to-be-done, user stories with pass criteria, surface sketches, data model, Cedar policy model, workflow integration, ADR-0255 two-layer intelligence integration, ADR-0251 pack overlays, ADR-0263 telemetry, migration playbooks, ADR-0316 capability tiers, and cross-product dependencies.
 
 ## Vision
 
@@ -2051,47 +2051,47 @@ ERP Coverage exists so an organization can start with one oyatie tenant and neve
 
 ## Jobs-to-be-Done
 
-### JTBD-ERP-01 - Close the books without leaving the tenant
+### Job-to-be-done-ERP-01 - Close the books without leaving the tenant
 - Situation: Helena closes a public-company month with subsidiaries in KR, US, EU, and BR.
 - Motivation: She needs GL, AP, AR, fixed assets, treasury, and audit evidence in one tenant graph.
 - Acceptance: close status is visible per subsidiary, every journal source links to ontology objects, and EVT-ERP-CLOSE-STEP-SEALED emits for every control step.
 - Acceptance: Cedar denies a cross-subsidiary journal unless parent-scope approval exists.
 
-### JTBD-ERP-02 - Move from SAP to oyatie with reversible proof
+### Job-to-be-done-ERP-02 - Move from SAP to oyatie with reversible proof
 - Situation: Marcus runs an SAP dry-run migration.
 - Motivation: He must prove that source identifiers, authorization, tax treatment, and audit evidence survive migration.
 - Acceptance: migration dry run produces object-count parity, rejected-row reasons, rollback checkpoints, and source-to-oyatie lineage.
 - Acceptance: pass criteria include zero unclassified master-data rows and zero orphan accounting documents.
 
-### JTBD-ERP-03 - Procure to pay with supplier governance
+### Job-to-be-done-ERP-03 - Procure to pay with supplier governance
 - Situation: Hana needs a critical part, the supplier is new, and spend exceeds the local approval threshold.
 - Motivation: She needs requisition, vendor onboarding, purchase order, goods receipt, invoice, and payment in one flow.
 - Acceptance: workflow-engine runs ReqToPaySaga with KYC, budget, sanctions, goods receipt, invoice match, and payment release nodes.
 - Acceptance: Cedar enforces requester, approver, receiving clerk, and payment releaser separation of duties.
 
-### JTBD-ERP-04 - Make plant quality holds operationally visible
+### Job-to-be-done-ERP-04 - Make plant quality holds operationally visible
 - Situation: A batch fails inspection and must block shipment.
 - Motivation: Operations needs fast hold propagation without manual spreadsheet coordination.
 - Acceptance: QualityHold object links batch, lot, shipment, customer order, and financial reserve.
 - Acceptance: the hold emits EVT-ERP-QUALITY-HOLD-PLACED and blocks delivery release until a signed disposition exists.
 
-### JTBD-ERP-05 - Convert side-business simplicity into enterprise depth
+### Job-to-be-done-ERP-05 - Convert side-business simplicity into enterprise depth
 - Situation: Tomas starts with invoices and inventory, then adds treasury, warehouse, compliance, and HR.
 - Motivation: He should activate modules without tenant migration.
 
-### JTBD-ERP-06 - Govern trade, customs, and sanctions
+### Job-to-be-done-ERP-06 - Govern trade, customs, and sanctions
 - Situation: Alejandra ships dual-use goods from KR to EU.
 - Motivation: She needs GTS checks at order, shipment, and invoice release.
 - Acceptance: export-control classification, sanctioned-party screen, customs document, and evidence export are all linked to the shipment graph.
 - Acceptance: Cedar forbids shipment release when sanctions status is stale or unresolved.
 
-### JTBD-ERP-07 - Forecast cash and liquidity
+### Job-to-be-done-ERP-07 - Forecast cash and liquidity
 - Situation: Treasury sees cash concentration risk.
 - Motivation: It needs working-capital view across AP, AR, payroll, taxes, debt, and FX.
 - Acceptance: treasury projection consumes ERP cash events and emits daily liquidity forecast with confidence band.
 - Acceptance: forecast drift > configured threshold opens a workflow-engine investigation.
 
-### JTBD-ERP-08 - Preserve auditability across every module
+### Job-to-be-done-ERP-08 - Preserve auditability across every module
 - Situation: Sam audits a SOX control across procurement and GL.
 - Motivation: He needs immutable evidence without asking module owners for screenshots.
 - Acceptance: every module step links to audit-chain event id, policy decision id, workflow run id, and ontology object id.
@@ -2381,7 +2381,7 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 
 ## Pack Overlays
 
-- Pack KR-CSAP activates strict region, KCMVP key custody, Korean tax invoice rules, and labor overlay.
+- Pack KR-CSAP activates strict region, Korean cryptographic-module-validation key custody, Korean tax invoice rules, and labor overlay.
 - Pack EU-DORA activates financial resilience evidence, EU data residency, and vendor exit proof.
 - Pack BR-LGPD activates tax-id validation, consent redaction, and LGPD data-subject response hooks.
 - Pack US-SOX activates SOX control evidence, segregation-of-duties, and audit export retention.
@@ -2489,10 +2489,10 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 
 This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
 
-- ADR-0346 binds ERP Coverage acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 binds ERP authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
-- ADR-0348 binds ERP module placement, migration runs, supply-chain workflows, and regulated evidence export to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 binds ERP deployment and migration dry-run delivery to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+- D-CICD-AUTHORITY binds this lane to the branch-protected `oya-ci-required` cloud-ci/oya-ci gate as live merge authority; local command output is transition evidence only. Historical ADR-0346 verifier wording is retained only where it does not conflict with `registry/stores/design-store.json` current truth.
+- D-GOVERNANCE-CENTRAL: central PaC/CaC/PDP/evidence pipelines own governance authority; do not scatter authority across local CLI lanes.
+- ADR-0348 binds ERP module placement, migration runs, supply-chain workflows, and regulated evidence export to cellular topology. Enforcement evidence flows through central governance and the branch-protected `oya-ci-required` gate, not scattered local lanes.
+- D-CICD-AUTHORITY keeps one canonical CI authority now (`oya-ci-required`) and the owned oya-ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities. Historical ADR-0349 substrate wording is retained only as non-authoritative context until reconciled with the current stores.
 
 ## References
 
@@ -2509,7 +2509,6 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
 - docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
-- docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 - specs/microservices/accounting.json
 - specs/microservices/hr.json
 - specs/microservices/payroll.json

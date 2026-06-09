@@ -5,7 +5,7 @@ prd_id: PRD-workplace-integration
 product: workplace-integration
 status: Published
 date: 2026-05-20
-owner: council-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
+owner: axis-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
 sales_segment: cross-cutting-product-layer
 tier: product-layer-cross-cutting
 milestone_first_ship: M04-workplace-integration-foundation
@@ -37,7 +37,7 @@ related_microservices:
   - identity
   - ontology
   - plugin-app-store
-tenant_class: ["demo_trial", "paid"]
+tenant_class: ["evaluation_limited", "paid"]
 related_adrs:
   - ADR-0009-cell-architecture-per-tenant-per-region
   - ADR-0028-cloud-microservice-architecture
@@ -96,8 +96,8 @@ related_memory:
   - feedback_canonical_base_localization
   - feedback_doc_coverage_enforced
   - feedback_no_silent_regression
-owner_team: council-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
-doc_status: published
+owner_team: axis-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
+doc_status: draft_target_non_claim
 ---
 
 # PRD: Workplace Integration — Cross-Cutting Product Layer
@@ -240,7 +240,7 @@ The following are explicitly out-of-scope for the Workplace Integration product 
 7. **HR record-of-truth schema authoring** — owned by `oya/hr/` (reserved-then-promoted; see §5.4) and ontology object types `Employee`, `LeaveBalance`, `EmploymentRecord`.
 8. **General-purpose document storage** — owned by `oya/drive/`; workplace-integration documents are stored in drive with retention policy refs.
 
-Promotion of any anti-scope item to in-scope requires a council decision recorded in this PRD's §12 decision log.
+Promotion of any anti-scope item to in-scope requires a founder-/governance-recorded decision in this PRD's §12 decision log.
 
 ### 2.4 Wave gating
 
@@ -350,7 +350,7 @@ Per ADR-0242 + ADR-0244:
 
 - Every flow carries a `tenant_id` + optional `sub_scope` (e.g., `tenant-acme.engineering.team-platform`).
 - Sub-scopes inherit parent policy unless explicit override.
-- The `oyatie` tenant uses sub-scopes like `oyatie.foundry.engineer.<id>` for engineer principals; their workplace flows (vacation, e-sign, expense) work identically to a customer tenant's `tenant-acme.employee.<id>`.
+- The `oyatie` tenant uses sub-scopes like `oyatie.engineer.<id>` for engineer principals; their workplace flows (vacation, e-sign, expense) work identically to a customer tenant's `tenant-acme.employee.<id>`.
 - Per-jurisdiction labor-law overlay is selected by the tenant's `jurisdiction_code` per ADR-0117 + ADR-0240.
 
 ### 3.6 Workflow Studio as the visual authoring surface
@@ -1533,7 +1533,7 @@ Each user story has a stable AC-ID. Per `agent-durable-goal.json#spec_contract.a
 
 **AC-WI-39 — `oyatie` tenant dogfooding (oyatie engineer)**
 - **Persona**: oyatie engineer
-- **Given**: engineer is principal `oyatie.foundry.engineer.jasonlee`
+- **Given**: engineer is principal `oyatie.engineer.jasonlee`
 - **When**: engineer requests vacation, signs ADR, books meeting, submits expense
 - **Then**: all flows work identically to customer tenant; audit-chain segregated to `oyatie.*` stream; DSAR-compatible
 
@@ -2050,15 +2050,15 @@ The workplace-integration product layer ships in IPs (Implementation Plans) unde
 ## 14. Open questions
 
 1. **HR/Payroll/Compensation promotion ADRs** — each requires its own ADR with full certification-gate articulation. Target authoring date: M04 preview minus 30 days.
-2. **Plugin App Store provider list for M04 preview** — which initial set of Plugin App Store integrations ship Day-1? Candidates: BambooHR, Greenhouse, Gusto, ADP, Stripe (for payments), QuickBooks, NetSuite, Concur (read-only), Notarize. Open question for council-product.
-3. **Per-jurisdiction overlay completeness target** — at M04 preview, which ≤ 5 jurisdictions (KR, US-federal + CA + NY, EU-core, JP) are mandatory? At GA, target ≥ 30. Open question for council-compliance.
-4. **Anonymous whistleblower flow** — Flow N variant; EU Whistleblowing Directive 2019/1937 requires anonymity; design needed for true-anonymity vs pseudonymity tradeoff. Open question for council-privacy + council-security.
+2. **Plugin App Store provider list for M04 preview** — which initial set of Plugin App Store integrations ship Day-1? Candidates: BambooHR, Greenhouse, Gusto, ADP, Stripe (for payments), QuickBooks, NetSuite, Concur (read-only), Notarize. Open question for axis-product.
+3. **Per-jurisdiction overlay completeness target** — at M04 preview, which ≤ 5 jurisdictions (KR, US-federal + CA + NY, EU-core, JP) are mandatory? At GA, target ≥ 30. Open question for axis-compliance.
+4. **Anonymous whistleblower flow** — Flow N variant; EU Whistleblowing Directive 2019/1937 requires anonymity; design needed for true-anonymity vs pseudonymity tradeoff. Open question for axis-privacy + axis-security.
 5. **Equity-grant integration** — currently routed via compensation µservice; 409A valuation + ASC 718 accounting; cap-table integration. Out-of-scope for M04 preview; tracked for M05.
-6. **Time-zone fairness in meeting scheduling** — Intelligence-driven heuristic ("don't always schedule outside business hours for one timezone") needs explicit policy definition. Open question for council-product.
+6. **Time-zone fairness in meeting scheduling** — Intelligence-driven heuristic ("don't always schedule outside business hours for one timezone") needs explicit policy definition. Open question for axis-product.
 7. **Cross-jurisdiction tax withholding** — for remote-worker leave + expense + travel; coordination with reserved `tax-engine` µservice. Tracked for M05+.
 8. **Voice-trigger latency for accessibility** — Apple/Google App Intents have varying latency budgets; verify they meet WCAG 2.2 timing requirements for assistive-tech users.
-9. **Plugin certification process** — for marketplace plugins extending workplace flows, what is the security review + functional testing requirement before listing? Open question for council-security + plugin-app-store team.
-10. **Localisation completeness** — at M04 preview, which languages are fully localised vs Intelligence-translated? Open question for council-product + council-design-system.
+9. **Plugin certification process** — for marketplace plugins extending workplace flows, what is the security review + functional testing requirement before listing? Open question for axis-security + plugin-app-store team.
+10. **Localisation completeness** — at M04 preview, which languages are fully localised vs Intelligence-translated? Open question for axis-product + axis-design-system.
 
 ---
 
@@ -2089,42 +2089,42 @@ Workplace Integration exists so a person can complete real work without thinking
 
 ## Jobs-to-be-Done
 
-### JTBD-WI-01 - Request leave without context switching
+### Job-to-be-done-WI-01 - Request leave without context switching
 - Situation: An employee asks for leave from mobile.
 - Acceptance: LeaveRequestSaga touches HR balance, Calendar OOO, Messenger approval, Mail notice, AuditChain seal, and policy-engine decision.
 - Acceptance: denial explains the policy and cites the pack rule.
 
-### JTBD-WI-02 - Approve spend inside daily communication
+### Job-to-be-done-WI-02 - Approve spend inside daily communication
 - Situation: A manager receives an expense card in Messenger.
 - Acceptance: ExpenseSaga shows amount, receipt, budget, policy, and approver scope.
 - Acceptance: approval creates audit evidence and never bypasses finance review threshold.
 
-### JTBD-WI-03 - Onboard a new employee with IT, HR, payroll, calendar, and drive ready
+### Job-to-be-done-WI-03 - Onboard a new employee with IT, HR, payroll, calendar, and drive ready
 - Situation: Priya starts a new hire.
 - Acceptance: OnboardingSaga creates account, group, drive folder, payroll task, security training, equipment request, and manager checklist.
 - Acceptance: each node has idempotency and owner fallback.
 
-### JTBD-WI-04 - Schedule meetings fairly across time zones
+### Job-to-be-done-WI-04 - Schedule meetings fairly across time zones
 - Situation: Aisha schedules a team meeting spanning KR, US, and EU.
 - Acceptance: MeetingScheduleSaga proposes slots, explains fairness, and respects local work-hour pack overlays.
 - Acceptance: repeated unfair time-zone burden triggers a fairness alert.
 
-### JTBD-WI-05 - Capture field work on rugged or kiosk devices
+### Job-to-be-done-WI-05 - Capture field work on rugged or kiosk devices
 - Situation: Carlos submits safety incident and time clock from a rugged device.
 - Acceptance: offline queue, device identity, photo evidence, and kiosk timeout are enforced.
 - Acceptance: sync conflict opens a supervisor review task.
 
-### JTBD-WI-06 - Make workplace flows audit-ready
+### Job-to-be-done-WI-06 - Make workplace flows audit-ready
 - Situation: Sam audits access review, leave approval, expense reimbursement, and e-sign.
 - Acceptance: every flow exports workflow run, Cedar decision, signer, event id, data class, and pack redaction evidence.
 - Acceptance: export completeness is measurable without screenshots.
 
-### JTBD-WI-07 - Extend a workflow with a plugin safely
+### Job-to-be-done-WI-07 - Extend a workflow with a plugin safely
 - Situation: A tenant installs a travel provider plugin.
 - Acceptance: PluginAppStore extension runs in signed, scoped, Cedar-gated mode.
 - Acceptance: extension cannot read or mutate outside declared flow resources.
 
-### JTBD-WI-08 - Explain work state with intelligence
+### Job-to-be-done-WI-08 - Explain work state with intelligence
 - Situation: A user asks why a workflow is blocked.
 - Acceptance: intelligence retrieves tenant-private workflow, policy, and document context with citations.
 - Acceptance: explanation cannot approve, deny, or mutate.
@@ -2353,7 +2353,7 @@ Pass: Cedar denies undeclared resource access.
 ## Pack Overlays
 
 - KR labor pack activates working-hour, overtime, leave, personal information, and kiosk guard rules.
-- EU working-time pack activates time-zone fairness, retention minimization, and works-council evidence.
+- EU working-time pack activates time-zone fairness, retention minimization, and worker-representation evidence.
 - US FLSA pack activates exempt/non-exempt overtime and state leave overlays.
 - JP labor pack activates work-style reform constraints and local document retention.
 - Healthcare pack activates HIPAA redaction and clinical persona access constraints.
@@ -2462,10 +2462,10 @@ Pass: Cedar denies undeclared resource access.
 
 This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
 
-- ADR-0346 binds Workplace Integration acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 binds Workplace Integration authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
-- ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 binds workplace deployment and product-preview delivery to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+- D-CICD-AUTHORITY binds this lane to the branch-protected `oya-ci-required` cloud-ci/oya-ci gate as live merge authority; local command output is transition evidence only. Historical ADR-0346 verifier wording is retained only where it does not conflict with `registry/stores/design-store.json` current truth.
+- D-GOVERNANCE-CENTRAL: central PaC/CaC/PDP/evidence pipelines own governance authority; do not scatter authority across local CLI lanes.
+- ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology. Enforcement evidence flows through central governance and the branch-protected `oya-ci-required` gate, not scattered local lanes.
+- D-CICD-AUTHORITY keeps one canonical CI authority now (`oya-ci-required`) and the owned oya-ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities. Historical ADR-0349 substrate wording is retained only as non-authoritative context until reconciled with the current stores.
 
 ## References
 
@@ -2480,8 +2480,6 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0255-intelligence-two-layer-model.md
 - docs/decisions/ADR-0263-audit-event-registry.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
-- docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
-- docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
 - docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 - specs/products/workplace-integration.json
