@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:0ad7405174ca4a0c",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:372d0c11660cada6"
+    "source_inputs_digest": "fnv1a64:0dcc7be1f4df95b3"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -313,6 +313,7 @@
           ".omc/state/fleet-removal-list.json",
           ".omc/state/fleet-worktree-inventory.json",
           ".omc/state/fleet-worktree-inventory.md",
+          "HANDOFF.md",
           "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/gate-disposition.json",
           "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
@@ -532,6 +533,7 @@
           "ADR-INVENTORY.tsv",
           "AGENTS.md",
           "Cargo.toml",
+          "HANDOFF.md",
           "README.md",
           "cloud/cell-lifecycle/ARCH.md",
           "cloud/cell-lifecycle/IPs/IP-CL-008-foundry-self-modification-boundary.md",
@@ -3538,6 +3540,7 @@
           ".omx/verification/2026-06-01-lane-d/verification-notes.json",
           "ADR-INVENTORY.tsv",
           "AGENTS.md",
+          "HANDOFF.md",
           "cloud/cell-lifecycle/ARCH.md",
           "cloud/cell-lifecycle/PRD.md",
           "cloud/cell-lifecycle/README.md",
@@ -4734,6 +4737,7 @@
           ".omc/state/wave-15-zh-plan.md",
           ".omc/state/wave-15-zh-v2-plan-categoryB.md",
           "ADR-INVENTORY.tsv",
+          "HANDOFF.md",
           "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/gate-disposition.json",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
           "cloud/cloud-secrets/policy/secret-isolation.md",
@@ -6060,6 +6064,7 @@
           "Cargo.lock",
           "Cargo.toml",
           "Dockerfile.distroless",
+          "HANDOFF.md",
           "LICENSE",
           "Makefile",
           "README.md",
@@ -23116,6 +23121,7 @@
           "Cargo.lock",
           "Cargo.toml",
           "Dockerfile.distroless",
+          "HANDOFF.md",
           "LICENSE",
           "Makefile",
           "README.md",
