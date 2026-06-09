@@ -121,8 +121,8 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
         rows.len()
     );
 
-    let now_secs = git_now_secs(&root);
-    let commit_ts = git_commit_timestamps(&root);
+    let now_secs = scm_now_secs(&root);
+    let commit_ts = scm_commit_author_timestamps(&root);
 
     // Build the gate input by aging each row from its last-touch commit timestamp.
     let mut aged_rows: Vec<Value> = Vec::new();
@@ -235,20 +235,20 @@ fn scm_facts_path(root: &Path) -> PathBuf {
     root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json")
 }
 
-/// "now" = the HEAD commit time, read from the committed scm-facts face (NOT ambient git):
-/// deterministic per-checkout, fully hermetic, identical to what the producer aged the
-/// staleness face from. The producer derived this from `git log -1 --format=%ct` via the
-/// out-of-graph emitter; the gate reads the same frozen value so its aging matches the face.
-fn git_now_secs(root: &Path) -> u64 {
+/// "now" = the deterministic aging timestamp read from the committed scm-facts face (NOT
+/// ambient git): fully hermetic, identical to what the producer aged the staleness face from.
+/// The emitter derives it from the max current-tree last-touch timestamp, so generated-face
+/// settle commits do not churn the face forever.
+fn scm_now_secs(root: &Path) -> u64 {
     scm_facts_value(root)["head_time_secs"]
         .as_u64()
         .unwrap_or(0)
 }
 
 /// The commit-sha -> author-timestamp map, read from the committed scm-facts face (NOT ambient
-/// git). Mirrors the producer's `commit_author_ts_secs`, so the gate ages each row exactly as
-/// the producer did.
-fn git_commit_timestamps(root: &Path) -> BTreeMap<String, u64> {
+/// SCM source). Mirrors the producer's `commit_author_ts_secs`, so the gate ages each row exactly
+/// as the producer did.
+fn scm_commit_author_timestamps(root: &Path) -> BTreeMap<String, u64> {
     let value = scm_facts_value(root);
     let mut map = BTreeMap::new();
     if let Some(obj) = value["commit_author_ts_secs"].as_object() {

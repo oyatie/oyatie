@@ -1,7 +1,7 @@
 //! Binary entry point for the accounting-registry producer.
 //!
 //! A PURE function of declared inputs: it reads `scm-facts.generated.json` (the committed,
-//! registry-drift-protected snapshot of the four git outputs emitted by the out-of-graph
+//! registry-drift-protected snapshot of SCM boundary facts emitted by the out-of-graph
 //! `oya-cloud-ci-scm-facts-emitter-app`) + the real reachability/owner/justification sources, then
 //! delegates to the deterministic library to build the registry + companion faces. NO ambient
 //! git — the producer never shells out (OYA-CI-HERMETIC-EXECUTION-DESIGN §1.3, Option C). This is
@@ -54,10 +54,10 @@ impl std::fmt::Display for CliError {
     }
 }
 
-/// The committed snapshot of the four git outputs (emitted by `oya-cloud-ci-scm-facts-emitter-app`).
+/// The committed snapshot of SCM boundary facts (emitted by `oya-cloud-ci-scm-facts-emitter-app`).
 /// The producer is a pure function of {this face + oya-ci.toml + the declared tracked tree}.
 struct ScmFacts {
-    /// HEAD commit time in epoch seconds (the deterministic "now" for aging the corpus).
+    /// Deterministic aging timestamp in epoch seconds (max last-touch timestamp, no wall-clock).
     head_time_secs: u64,
     /// The tracked-paths universe (sorted+deduped), exactly as `git ls-files` produced it.
     tracked_paths: Vec<String>,
@@ -318,10 +318,10 @@ fn write_face(path: &Path, value: &Value) -> Result<(), CliError> {
 }
 
 /// Build the GATE-3 staleness-reaper input from the registry by aging each row from its
-/// `last_touch_commit` against the HEAD commit time (deterministic per-checkout, no
-/// wall-clock). Reads HEAD time + commit timestamps from the declared scm-facts face (no
-/// ambient git). Mirrors the gate's born-blocking self-test exactly so the baseline freezes
-/// the same keys the gate would flag today.
+/// `last_touch_commit` against the deterministic scm-facts aging timestamp (no wall-clock).
+/// Reads aging time + commit timestamps from the declared scm-facts face (no ambient git).
+/// Mirrors the gate's born-blocking self-test exactly so the baseline freezes the same keys
+/// the gate would flag today.
 fn build_staleness_input(scm_facts: &ScmFacts, registry: &Value) -> Value {
     let now_secs = scm_facts.head_time_secs;
     let commit_ts = &scm_facts.commit_author_ts_secs;
