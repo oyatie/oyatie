@@ -107,6 +107,7 @@ doc_status: published
 > **Owning axis:** cross-cutting product layer (NOT a single µservice)
 > **Catalog reference:** `oya/workplace-integration/catalog/oya-workplace-integration-application.yaml` plus layer catalog entries under `oya/workplace-integration/catalog/`
 > **Last updated:** 2026-05-20 by council-product
+> **Path convention:** repo-local service artifacts use `oya/<service>/...`; machine-readable service specs use `specs/microservices/*.json`; legacy `microservices/...` paths are not authoritative in this checkout.
 
 ---
 
@@ -310,37 +311,28 @@ Plus three delivery surfaces:
 
 ### 3.3 Saga authoring convention
 
-Every flow's saga is authored as a `workflow_spec.v1.json` document (per `workflow-engine` PRD + Bominal ADR-0164) living at:
+Every flow's saga is authored as a `workflow_spec.v1.json` document (per `workflow-engine` PRD + Bominal ADR-0164). The workplace-owned source bundle in this checkout is the concrete doc/contract set under `oya/workplace-integration/` plus this PRD; downstream Workflow Engine and Workflow Studio service lanes consume that bundle through the acceptance contract below before any flow can be promoted.
+
+Required artifact contract per promoted flow:
 
 ```
-oya/workflow-engine/specs/workplace-integration/<flow-id>/
-├── saga.workflow_spec.v1.json          # canonical durable saga definition
-├── ontology-bindings.json              # object-type reads + writes
-├── cedar-fragments/                    # per-step + per-jurisdiction policy
-│   ├── default.cedar
-│   ├── pack-kr-labor.cedar
-│   ├── pack-eu-working-time.cedar
-│   ├── pack-us-flsa.cedar
-│   └── pack-us-healthcare-hipaa.cedar
-├── events-produced.asyncapi.yaml       # workflow events emitted
-├── events-consumed.asyncapi.yaml       # workflow events consumed
-├── audit-emission-contract.json        # what each step emits to audit-chain
-├── ux-surfaces/
-│   ├── messenger-card.template.json
-│   ├── mail-template.html.tmpl
-│   ├── mobile-mini-app.tsx             # Leptos/Rust-WASM embedded mobile surface per ADR-0393
-│   └── voice-trigger.intents.json      # Siri / Google Assistant
-└── README.md                           # flow description + acceptance criteria
+workplace-owned source bundle
+├── docs/products/workplace-integration/PRD.md         # product-layer requirements and flow acceptance
+├── oya/workplace-integration/contracts/               # OpenAPI, AsyncAPI, proto surfaces
+├── oya/workplace-integration/policies/                # Cedar policy fragments owned by this layer
+├── oya/workplace-integration/runbooks/                # operator recovery evidence
+├── oya/workplace-integration/IP-journey-<id>-*.md     # implementation IPs when present
+└── docs/user-journeys/j<id>-*/                        # story, UX, handshake, and test-plan context
+
+service-owned import targets required for promotion
+├── oya/workflow-engine/.../saga.workflow_spec.v1.json # durable saga definition
+├── oya/workflow-engine/.../ontology-bindings.json     # object-type reads + writes
+├── oya/workflow-engine/.../events-*.asyncapi.yaml     # workflow events emitted/consumed
+├── oya/workflow-engine/.../audit-emission-contract.*  # audit-chain contract
+└── oya/workflow-studio/.../template.workflow_spec.v1.json # editable Studio starter
 ```
 
-And the Workflow Studio companion template at:
-
-```
-oya/workflow-studio/templates/workplace-integration/<flow-id>/
-├── template.workflow_spec.v1.json      # editable starter
-├── node-library-overlay.json           # workplace-specific nodes available
-└── description.md                      # template card description
-```
+A flow is not production-ready until both the workplace-owned source bundle and the service-owned import targets resolve in the repository and pass their owning lanes' contract checks. This PRD therefore treats absent service-owned import targets as promotion blockers, not as completed artifacts.
 
 ### 3.4 Inter-µservice communication
 
@@ -365,7 +357,7 @@ Per ADR-0242 + ADR-0244:
 
 Per `feedback_workflow_studio_scope` (Workflow Studio is the n8n-class first hero product covering multi-domain workflows including business/HR/healthcare/supply-chain/delivery):
 
-- Every saga A–N ships with a corresponding Workflow Studio template under `oya/workflow-studio/templates/workplace-integration/<flow-id>/`.
+- Every promoted saga A–N must resolve a corresponding Workflow Studio template in the Workflow Studio service lane before promotion; absent templates are promotion blockers, not completed artifacts.
 - Tenant power users (HR, finance, ops) can open Studio, load the template, customise it (e.g., add a second approval level, change the policy threshold, append a Slack-equivalent notification), and save as their tenant-specific workflow.
 - The customised workflow is registered with workflow-engine's spec-store; subsequent triggers run the tenant's variant rather than the default template.
 - Round-trip byte-equality between Studio canvas and workflow_spec.v1.json is the load-bearing invariant (per workflow-studio PRD AC-02).
@@ -402,7 +394,7 @@ Records employee arrival + departure times to the HR µservice for: timesheet ge
 
 #### A.3 Saga: `ClockingInSaga`
 
-Saga spec at `oya/workflow-engine/specs/workplace-integration/clocking-in/saga.workflow_spec.v1.json`. Steps:
+Saga source for the current workplace-owned slice is `oya/workplace-integration/IP-journey-j37-clock-in-geofence.md`; its Workflow Engine import target must resolve before promotion. Steps:
 
 1. **`receive_trigger`** — accept signed trigger event from one of A.2 sources; validate signature; extract `(tenant_id, employee_id, trigger_source, trigger_timestamp)`.
 2. **`resolve_employee`** — gRPC call to `hr` µservice `GetEmploymentRecord(employee_id)`; verify employment status is `active` (or `on_probation`); fetch `assigned_work_schedule`. Cedar gate: `action == "ClockIn", principal == employee_id, resource == EmploymentRecord`.
@@ -1056,7 +1048,7 @@ Steps:
 3. **`progress_tracking`** — daily standups in Messenger; weekly check-ins; milestone reviews via Meet (Flow D).
 4. **`task_completion`** — assignee marks done; reviewer verifies; emit `TaskCompleted` event.
 5. **`risk_detection`** — Intelligence flags overdue tasks, blocked dependencies, resource conflicts.
-6. **`milestone_review`** — meeting saga; demo recordings posted; lessons-learned doc.
+6. **`milestone_review`** — meeting saga; review recordings posted; lessons-learned doc.
 7. **`project_close`** — final retro; deliverables archived in drive; lessons-learned in community/knowledge-base.
 
 #### L.4 Edge cases

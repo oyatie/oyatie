@@ -44,12 +44,12 @@ Implementation IPs present in this doc set:
 
 Related journey anchors live in ../../docs/user-journeys/ and remain the source for persona/story/UX/test-plan context until a workplace-integration implementation IP exists for that journey. This README does not claim missing IP files as complete.
 
-## Naming justifications: BNF v4 and 12-layer enum conformance
+## Naming justifications: BNF v4 and 13-layer enum conformance
 
 Every new artifact uses the BNF v4 grammar `<service>.<bounded_context>.<action>.<resource>` for actions and `oya-workplace-integration-<bounded-context>-<layer>` for crate and catalog names.
 The ADR-0105 canonical 13-layer enum used by this doc set is kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, graphql, worker, cli, sdk, api.
-The doc set keeps ADR-0105 compatibility by mapping the 12 deployable layers into the larger canonical enum without inventing a new layer name.
-The service slug `workplace-integration` is retained because it is already the microservice directory name, policy prefix, catalog prefix, and endpoint namespace.
+The manifest uses the ADR-0105 canonical 13-layer enum for bounded-context layers; iac, policy, and observability remain operational artifact groups rather than layer-enum values.
+The service slug `workplace-integration` is retained because it is already the service directory name, policy prefix, catalog prefix, and endpoint namespace.
 The primitive name `WorkplaceAgreement` is retained because it is the smallest stable object that lets the journey IP slices share one contract without leaking unrelated service ownership.
 The secondary primitive `ESignSession` is retained because it names the audit-backed record that downstream services consume without taking direct table ownership.
 

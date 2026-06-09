@@ -310,4 +310,4 @@ evidence_hash: <sha256>
 ## Checkpoint Closure Criteria
 - The runbook remains current when `OfferGenerationClauseDriftCritical`, `OfferGenerationClauseDriftSloBurn`, `oya_workplace_integration_offer_clause_drift_total`, `oya.workplace-integration.offer_generation_clause_drift.incident_hold`, and `workplace-integration-offer-generation-clause-drift-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when `./bin/oya verify --ci-required --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.

@@ -14,7 +14,7 @@ state_machine:
   states:
 
     - name: not_started
-      description: Pre-workflow placeholder; expecting CCO initiation
+      description: Awaiting CCO-initiated governance.board_report_workflow_initiate event; transition requires cco_principal_and_passkey Cedar permit before draft state is entered
       sla_max_duration: indefinite
       transitions:
         - to: draft
