@@ -85,8 +85,8 @@ doc_status: draft_target_non_claim
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workplace-integration-ops/program-identity-auto-revoke?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKPLACE_INTEGRATION_PROGRAM_IDENTITY_AUTO_REVOKE_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops workplace-integration program-identity-auto-revoke status --cell $CELL --tenant $TENANT --output json`.
-15. Review the production snapshot packet for shared Rust gate `workplace-integration-program-identity-auto-revoke` for `$CELL` in `oya-ci-required`.
-16. Run crate smoke test: `cargo test -p WorkplaceAgreement domain program_identity_auto_revoke -- --nocapture`.
+15. Attach branch-protected CI evidence: `oya-ci-required` shared Rust gate evidence.
+16. Run Buck target smoke check: `buck2 test root//oya/workplace-integration/crates/oya-workplace-integration-doc-set-scaffold:oya-workplace-integration-doc-set-scaffold`.
 17. Check API contract smoke: `curl -s https://workplace-integration.internal.oyatie.dev/v1/workplace-integration/program-identity-auto-revoke/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f oya/workplace-integration/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' oya/workplace-integration/iac/kustomize/base/kustomization.yaml`.
 19. Inspect feature flags: `oya flags get oya.workplace-integration.program_identity_auto_revoke.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
@@ -271,7 +271,7 @@ evidence_hash: <sha256>
 - Incident commander: first responder from axis-workplace-integration + ops-sre-reliability; transfer only by explicit message in `#inc-workplace-integration`.
 - Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
 - Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
-- Architecture escalation: page `architecture-reviewer-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- Architecture escalation: page `architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
 - External vendors: DocuSign enterprise support; Workday HCM support; ADP Workforce Now support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
 - Customer communications: use status page component `oyatie-workplace-integration-program-identity-auto-revoke` and keep private details in the incident channel.
 - Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.

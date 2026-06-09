@@ -18,7 +18,7 @@ Workplace Integration is the workplace agreement, e-sign, roster, and regulated 
 ## Tenant class model
 
 Per ADR-0330, Workplace Integration uses `tenant_class` instead of customer
-capability tiers. `evaluation_trial` tenants exercise capped onboarding, CSV export,
+capability tiers. `evaluation_limited` tenants exercise capped onboarding, CSV export,
 and preview workflows. `paid` tenants use the same product surface with
 commercial terms represented through `billing_components`: `revenue_share`,
 `per_seat`, and `per_usage`.
