@@ -1,5 +1,8 @@
 /target/
 **/target/
+# Local agent/runtime state is durable outside git only. Do not commit OMC/OMX
+# plans, sessions, checkpoints, HUD state, logs, or verification scratch.
+/.omc/
 /.omx/
 .DS_Store
 **/.DS_Store
@@ -26,19 +29,16 @@ __pycache__/
 .audit/
 evidence/oci-readiness/a1-capacity-retry.log
 
-# OMC atomic-write temp residue (write-then-rename crash debris)
-# Pattern catches *.json.tmp.<uuid> and *.tmp.<uuid> shapes.
+# Atomic-write temp residue (write-then-rename crash debris).
+# Pattern catches *.json.tmp.<uuid> and *.tmp.<uuid> shapes outside ignored
+# runtime roots.
 **/*.json.tmp.*
-.omc/**/*.tmp.*
 
 # Agent-spawned Claude Code worktrees (transient; each is a git worktree itself).
 # .claude/settings.json (project-scoped) and .claude/commands/ remain tracked.
 .claude/worktrees/
 
-# Transient session state (regenerable; not part of PR scope)
-.omc/state/sessions/
-.omc/state/last-tool-error.json
-.omc/state/hud-stdin-cache.json
+# Transient test output
 test-results/
 
 # Generated outputs default to untracked. Public/productized generated

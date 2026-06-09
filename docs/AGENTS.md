@@ -35,7 +35,7 @@ authority_chain_declaration: |
     > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until /specs/agent-operating-contract.json PHASE-5 promotion)
     > /specs/root-hub-pointers.json (redirect/index hub; pointer cohesion, not an override of CLAUDE/docs/AGENTS)
     > tools/agent-skills/AGENTS.md (inherited base from addyosmani/agent-skills MIT — universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration; oyatie overlays via this file and wins on conflict)
-    > machine-readable specs and registries under .omc/
+    > machine-readable specs and registries under /specs, /registry, /evidence, and /templates
     > docs/ authority files during markdown-retirement compatibility
     > tools/agent-skills/CLAUDE.md (informational; describes vendored subtree, not oyatie)
     > working drafts (never authoritative)
@@ -87,7 +87,7 @@ system / developer / user instructions
   > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until /specs/agent-operating-contract.json PHASE-5 promotion)
   > /specs/root-hub-pointers.json (redirect/index hub; pointer cohesion, not an override of CLAUDE/docs/AGENTS)
   > tools/agent-skills/AGENTS.md (inherited base from addyosmani/agent-skills MIT)
-  > machine-readable specs and registries under .omc/
+  > machine-readable specs and registries under /specs, /registry, /evidence, and /templates
   > docs/ authority files during markdown-retirement compatibility
   > tools/agent-skills/CLAUDE.md (informational; describes vendored subtree, not oyatie)
   > working drafts (never authoritative)
@@ -321,7 +321,7 @@ Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-
 
 Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
 
-State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by governance evidence in the plain-git/Jenkins/GitHub path.
+State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat `.omc/` and `.omx/` as local-only, gitignored session state/provenance; live machine-readable authority belongs under `/specs`, `/registry`, `/evidence`, and `/templates`.
 
 ## Anti-overlap
 

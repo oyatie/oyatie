@@ -25,8 +25,9 @@ const EXPECTED_SCOPE_POSTURE: &str = "not_mvp_not_preview_not_reduced_scope";
 const EXPECTED_EXIT_CLAIM_BAR: &str = "industry_leading_production_grade_hyperscaler_grade";
 const EXPECTED_GOAL_PROMPT_PATH: &str =
     "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json";
-const EXPECTED_STALE_ARCHIVE_MANIFEST: &str =
+const RETIRED_STALE_ARCHIVE_MANIFEST_PATH: &str =
     ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json";
+const RETIRED_LOCAL_DURABLE_ROOTS: &[&str] = &[".omc/", ".omx/"];
 const EXPECTED_CLOSED_STATUS_FIELD_COUNT: u64 = 177;
 const EXPECTED_VERTICAL_ADR_PATH: &str = "docs/decisions/ADR-0217-vertical-slice-rollout-order.md";
 const EXPECTED_KR_PACK_OVERVIEW_PATH: &str = "docs/localization-packs/kr.md";
@@ -288,12 +289,6 @@ pub(crate) fn validate_planning_closure_gate(
     let root_hub = read_json(&args.root_hub_path, "root hub pointers")?;
     let vertical_adr = fs::read_to_string(&args.vertical_adr_path)
         .map_err(|error| format!("{} unreadable: {error}", args.vertical_adr_path.display()))?;
-    let stale_archive_manifest_path =
-        repo_root_for(&args.root_hub_path).join(EXPECTED_STALE_ARCHIVE_MANIFEST);
-    let stale_archive_manifest = read_json(
-        &stale_archive_manifest_path,
-        "stale document archive manifest",
-    )?;
     let status_ledger_path =
         repo_root_for(&args.root_hub_path).join(EXPECTED_STATUS_LEDGER_REF.trim_start_matches('/'));
     let status_ledger = read_json(&status_ledger_path, "planning closure status ledger")?;
@@ -312,13 +307,6 @@ pub(crate) fn validate_planning_closure_gate(
     validate_master_plan(
         object(&master_plan, "master plan root")?,
         &contract_architecture_rules,
-    )?;
-    validate_stale_archive_manifest(
-        object(
-            &stale_archive_manifest,
-            "stale document archive manifest root",
-        )?,
-        "stale document archive manifest root",
     )?;
     validate_vertical_adr(&vertical_adr, &args.vertical_adr_path)?;
 
@@ -467,11 +455,18 @@ fn validate_stale_document_policy(
     context: &str,
 ) -> Result<(), String> {
     require_bool_value(policy, "stale_documents_must_be_archived", true, context)?;
+    require_bool_value(policy, "durable_roots_must_be_local_only", true, context)?;
     require_string_value(
         policy,
-        "archive_manifest",
-        EXPECTED_STALE_ARCHIVE_MANIFEST,
+        "retired_archive_manifest_path",
+        RETIRED_STALE_ARCHIVE_MANIFEST_PATH,
         context,
+    )?;
+    let ignored_roots = string_set_field(policy, "ignored_durable_roots", context)?;
+    require_seen_set(
+        &ignored_roots,
+        RETIRED_LOCAL_DURABLE_ROOTS,
+        &format!("{context}.ignored_durable_roots"),
     )?;
     require_string_value(
         policy,
@@ -479,6 +474,8 @@ fn validate_stale_document_policy(
         EXPECTED_GOAL_PROMPT_PATH,
         context,
     )?;
+    let live_roots = string_set_field(policy, "live_planning_roots", context)?;
+    reject_retired_durable_authority_refs(&live_roots, &format!("{context}.live_planning_roots"))?;
     let forbidden = string_set_field(policy, "forbidden_live_authority_paths", context)?;
     require_seen_set(
         &forbidden,
@@ -491,43 +488,7 @@ fn validate_stale_document_policy(
         "Archived files are historical evidence only",
         context,
     )?;
-    Ok(())
-}
-
-fn validate_stale_archive_manifest(
-    manifest: &Map<String, Value>,
-    context: &str,
-) -> Result<(), String> {
-    require_string_value(
-        manifest,
-        "status",
-        "archived_stale_do_not_use_as_authority",
-        context,
-    )?;
-    require_string_value(
-        manifest,
-        "archival_rule",
-        "Files under this archive are historical evidence only. Agents must not use them as execution authority, sequencing authority, open-question authority, or implementation-start permission.",
-        context,
-    )?;
-    let current_authority = string_set_field(manifest, "current_authority", context)?;
-    require_seen_set(
-        &current_authority,
-        &[
-            EXPECTED_MASTERPLAN_PATH,
-            EXPECTED_CONTRACT_REF,
-            EXPECTED_STATUS_LEDGER_REF,
-            EXPECTED_GOAL_PROMPT_PATH,
-        ],
-        &format!("{context}.current_authority"),
-    )?;
-    let scope = object_field(manifest, "archive_scope", context)?;
-    let left_live = string_set_field(scope, "left_live", &format!("{context}.archive_scope"))?;
-    require_seen_set(
-        &left_live,
-        &[".omc/plans/milestones/", EXPECTED_GOAL_PROMPT_PATH],
-        &format!("{context}.archive_scope.left_live"),
-    )?;
+    require_string_contains(policy, "rule", "local-only", context)?;
     Ok(())
 }
 
@@ -565,8 +526,8 @@ fn validate_root_hub(root: &Map<String, Value>) -> Result<(), String> {
     )?;
     require_string_value(
         durable_goal,
-        "archive_manifest",
-        EXPECTED_STALE_ARCHIVE_MANIFEST,
+        "retired_archive_manifest_path",
+        RETIRED_STALE_ARCHIVE_MANIFEST_PATH,
         "entry_points.agent_durable_goal",
     )?;
     let status_ledger = object_field(
@@ -788,8 +749,8 @@ fn validate_stale_document_archival(root: &Map<String, Value>) -> Result<(), Str
     )?;
     require_string_value(
         stale,
-        "manifest",
-        EXPECTED_STALE_ARCHIVE_MANIFEST,
+        "retired_manifest_path",
+        RETIRED_STALE_ARCHIVE_MANIFEST_PATH,
         "_metadata.archived_stale_documents",
     )?;
     require_string_value(
@@ -819,6 +780,7 @@ fn validate_stale_document_archival(root: &Map<String, Value>) -> Result<(), Str
             "master_plan_discovery_order must include current goal prompt {EXPECTED_GOAL_PROMPT_PATH}"
         ));
     }
+    reject_retired_durable_authority_refs(&discovery, "master_plan_discovery_order")?;
     for retired in RETIRED_DISCOVERY_PATHS {
         if discovery.contains(*retired) {
             return Err(format!(
@@ -827,6 +789,27 @@ fn validate_stale_document_archival(root: &Map<String, Value>) -> Result<(), Str
         }
     }
     Ok(())
+}
+
+fn reject_retired_durable_authority_refs(
+    refs: &BTreeSet<String>,
+    context: &str,
+) -> Result<(), String> {
+    for value in refs {
+        if is_retired_durable_root_ref(value) {
+            return Err(format!(
+                "{context} must not use retired local durable root as live authority: {value}"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn is_retired_durable_root_ref(value: &str) -> bool {
+    let normalized = value.trim_start_matches('/');
+    RETIRED_LOCAL_DURABLE_ROOTS
+        .iter()
+        .any(|root| normalized.starts_with(root))
 }
 
 fn validate_master_plan(

@@ -26,9 +26,7 @@
       "/templates/checklists/per-phase-completion-checklist.md",
       "/templates/evidence-bundle-template.json",
       "/specs/gitops-vcs-replacement.json",
-      "/specs/bespoke-cloud-toolchain-services.json",
-      ".omx/plans/prd-platform-readiness.md",
-      ".omx/plans/test-spec-phase0.md"
+      "/specs/bespoke-cloud-toolchain-services.json"
     ],
     "deduplicates_existing": [
       "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
@@ -37,14 +35,17 @@
       "/templates/checklists/per-phase-completion-checklist.md"
     ],
     "archived_stale_documents": {
-      "manifest": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
       "do_not_use_as_authority": [
         "/evidence/goals/implement-masterplan.md",
         "/evidence/goals/implement-masterplan-goal-prompt.json",
         ".omc/plans/*.md",
-        ".omc/plans/*.json"
+        ".omc/plans/*.json",
+        ".omc/**",
+        ".omx/**"
       ],
-      "live_replacement": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
+      "live_replacement": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
+      "retired_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
+      "retired_manifest_status": "retired-from-tracked-tree-local-only; historical evidence remains in git history, not live authority"
     },
     "updated_at": "2026-06-02T00:00:00Z",
     "op11_audit_reference": "registry/stub-audit/2026-05-17/CONSOLIDATED.md"
@@ -53,19 +54,12 @@
     "/specs/root-hub-pointers.json",
     "/specs/masterplan.json",
     "/specs/bespoke-cloud-toolchain-services.json",
-    ".omx/plans/prd-platform-readiness.md",
-    ".omx/plans/test-spec-phase0.md",
     "/specs/planning-closure-contract.json",
+    "/specs/planning-closure-status-closure-ledger.json",
     "/specs/master-plan-sequencing.json",
     "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
     "/specs/gitops-vcs-replacement.json",
     "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
-    ".omc/plans/milestones/*/README.md",
-    ".omc/plans/milestones/*/INDEX.md",
-    ".omc/plans/milestones/*/phases/*/INDEX.md",
-    ".omc/plans/milestones/*/phases/*/phase-spec.md",
-    ".omc/plans/milestones/*/phases/*/impl-plan.md",
-    ".omc/plans/milestones/*/phases/*/IP-*.md",
     "docs/MASTERPLAN.md"
   ],
   "planning_closure_contract": {
