@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17651,
-    "source_inputs_digest": "fnv1a64:048bf98f01efb34a"
+    "source_inputs_digest": "fnv1a64:8db414d3ef2fa378"
   },
   "rows": [
     {
@@ -34567,7 +34567,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "5ccdbe3eb5ff558afe1207dd6ad0fada05fbdb6d",
+      "last_touch_commit": "935563ba2404592157a5be71ac2abc48205413c1",
       "owner": null,
       "path": "cloud/cloud-kernel/manifest.json",
       "reachable_from": [],
@@ -38488,7 +38488,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "5ccdbe3eb5ff558afe1207dd6ad0fada05fbdb6d",
+      "last_touch_commit": "935563ba2404592157a5be71ac2abc48205413c1",
       "owner": null,
       "path": "cloud/cloud-os/manifest.json",
       "reachable_from": [],
@@ -116730,7 +116730,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "5ccdbe3eb5ff558afe1207dd6ad0fada05fbdb6d",
+      "last_touch_commit": "935563ba2404592157a5be71ac2abc48205413c1",
       "owner": null,
       "path": "evidence/multispectrum/cloud-os-kernel-scaffold-20260609-1781014600.json",
       "reachable_from": [],
