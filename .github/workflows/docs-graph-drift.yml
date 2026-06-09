@@ -45,7 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
       - name: Install Rust toolchain
@@ -53,21 +54,29 @@ jobs:
         with:
           toolchain: stable
       - name: Cache cargo registry + target
-        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
-          shared-key: docs-graph-drift
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          # Lockfile-scoped cache avoids per-commit cache churn; cargo still validates sources.
+          key: docs-graph-drift-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            docs-graph-drift-${{ runner.os }}-
       - name: Build + test the architecture-graph generator
         env:
           CARGO_TERM_COLOR: always
           CARGO_INCREMENTAL: "0"
         run: |
           set -euo pipefail
-          cargo build -p oya-architecture-graph-generator-app
-          cargo test -p oya-architecture-graph-generator-app
+          cargo build --locked -p oya-architecture-graph-generator-app
+          cargo test --locked -p oya-architecture-graph-generator-app
       - name: Regenerate the dashboard
         run: |
           set -euo pipefail
-          cargo run -q -p oya-architecture-graph-generator-app \
+          cargo run --locked -q -p oya-architecture-graph-generator-app \
             --bin oya-architecture-graph-generator -- --write
       - name: Fail on dashboard drift
         run: |
