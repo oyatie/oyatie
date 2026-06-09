@@ -77,7 +77,7 @@ permit(
 };
 
 forbid(
-  principal in [ServicePrincipal::"oyatie.github-actions.oya-ci-required", ServicePrincipal::"oyatie.oya-ci.cutover"],
+  (principal == ServicePrincipal::"oyatie.github-actions.oya-ci-required" || principal == ServicePrincipal::"oyatie.oya-ci.cutover"),
   action in [Action::"RunCloudCiRequired", Action::"RunOwnedCiAfterCutover"],
   resource is ServiceCiSurface
 ) when {

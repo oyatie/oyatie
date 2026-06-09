@@ -63,7 +63,7 @@ metadata:
     adr_0348_enforced_by: "D-GOVERNANCE-CENTRAL; D-CICD-AUTHORITY"
     adr_0349_purpose: "Historical substrate context only; oya-ci-required is the live CI authority until owned oya-ci cutover."
 spec:
-  description: "ADR-0348 makes AUTO-REBALANCE migrate tenants from hot cells to cooler cells while honoring residency and compliance packs; this SLO bounds workplace-integration rebalance migration time and requires observable, reversible, audit-chain-emitting automation enforced with ADR-0346, ADR-0347, and ADR-0349 governance lanes."
+  description: "ADR-0348 makes AUTO-REBALANCE migrate tenants from hot cells to cooler cells while honoring residency and compliance packs; this SLO bounds workplace-integration rebalance migration time and requires observable, reversible, audit-chain-emitting automation with central governance evidence and branch-protected `oya-ci-required` acceptance."
   indicator:
     metadata:
       name: workplace-integration-autosharding-rebalance-migration-time-indicator

@@ -206,10 +206,13 @@ components:
         purpose: >-
           Current SSOT replacement: central governance vocabulary supersedes scattered lane naming in active authority surfaces.
         enforced_by:
+          - D-GOVERNANCE-CENTRAL
       ADR-0348:
         purpose: >-
           Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
         enforced_by:
+          - D-GOVERNANCE-CENTRAL
+          - D-CICD-AUTHORITY
         event_surface:
           autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
           auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
