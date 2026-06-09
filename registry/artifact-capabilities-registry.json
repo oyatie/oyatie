@@ -2198,6 +2198,81 @@
           "last_modified_at": "2026-05-16T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "generated-artifact-control-plane-schema",
+      "artifact_path": "/specs/generated-artifact-control-plane.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform",
+      "purpose_short": "Public oya-ci schema for declaring generated artifact ownership, materialization, merge policy, and final-tree validation.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-ci-generated-artifact-control-plane"
+        },
+        "verification": {
+          "checker_crate": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app",
+          "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app:oya-cloud-ci-generated-artifact-control-plane-app-gate"
+        },
+        "validation": {
+          "validator": "JSON Schema Draft 2020-12 plus cloud-ci-generated-artifact-control-plane gate"
+        },
+        "autogen": {
+          "generator": "not-applicable; schema is source-authored"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-06-09T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "generated-artifact-control-plane-registry",
+      "artifact_path": "/registry/generated-artifact-control-plane.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform",
+      "purpose_short": "Repo-local generated artifact control plane consumed by the hermetic Rust cloud-ci gate.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cloud-ci-generated-artifact-control-plane"
+        },
+        "verification": {
+          "checker_crate": "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app",
+          "command": "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app:oya-cloud-ci-generated-artifact-control-plane-app-gate"
+        },
+        "validation": {
+          "validator": "specs/generated-artifact-control-plane.schema.json"
+        },
+        "autogen": {
+          "generator": "not-applicable; the registry declares generated outputs and must not be generated from those outputs"
+        },
+        "selfheal": {
+          "healer": "cloud-ci generated artifact controller may suggest missing rows; humans review policy before merge"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_ci_generated_artifact_control_plane_declared_artifacts_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "artifact_class",
+                "materialization_mode"
+              ],
+              "cardinality_budget": 1000
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-06-09T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

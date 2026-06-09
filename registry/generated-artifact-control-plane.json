@@ -1,0 +1,199 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/generated-artifact-control-plane.schema.json",
+  "schema_version": 1,
+  "canonical_name": "generated-artifact-control-plane",
+  "ci_product_surface": "oya-ci",
+  "purpose": "Productized control plane for generated artifacts in hermetic Rust cloud-ci. It declares which generated artifacts exist, who owns them, how they materialize, and why generated JSON must be regenerated from source instead of hand-merged.",
+  "public_product_contract": "Any repository adopting oya-ci can provide this manifest plus an SCM-facts snapshot to the Rust gate. GitHub Actions is a bridge runner; the policy is CI-provider-neutral, hermetic, and suitable for native cloud-ci execution.",
+  "artifacts": [
+    {
+      "artifact_id": "cloud-ci-accounting-registry-face",
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face registry",
+      "source_inputs": [
+        "scm-facts snapshot",
+        "OWNERS",
+        "docs/decisions/**",
+        "specs/**",
+        "oya-ci.toml"
+      ],
+      "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
+      "public_product_contract": "A repo-wide accounting projection must be controller-regenerated; humans and agents must not resolve conflicts by editing the JSON."
+    },
+    {
+      "artifact_id": "cloud-ci-decision-crosswalk-face",
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face decision-crosswalk",
+      "source_inputs": [
+        "docs/decisions/**",
+        "docs/machine-readable/*.json",
+        "contracts/**"
+      ],
+      "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
+      "public_product_contract": "Cross-artifact agreement data is a generated projection and must be regenerated rather than hand-merged."
+    },
+    {
+      "artifact_id": "cloud-ci-enforcement-inventory-face",
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face enforcement-inventory",
+      "source_inputs": [
+        "scm-facts snapshot",
+        "cloud/cloud-ci/gates/**",
+        "oya-ci.toml"
+      ],
+      "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
+      "public_product_contract": "Enforcement inventory is generated CI product metadata and must have deterministic final-tree parity."
+    },
+    {
+      "artifact_id": "cloud-ci-gate-baseline-ratchet-face",
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face baseline",
+      "source_inputs": [
+        "all enabled gate faces",
+        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
+        "oya-ci.toml"
+      ],
+      "final_tree_validation": "registry-drift byte-parity plus baseline ratchet validation; growth requires explicit signoff source",
+      "public_product_contract": "The baseline ratchet is shrink-only generated policy; merge conflict handling must not launder new debt into the baseline."
+    },
+    {
+      "artifact_id": "cloud-ci-scm-facts-boundary-snapshot",
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json",
+      "artifact_class": "scm-facts-boundary-snapshot",
+      "materialization_mode": "main-branch-materialized",
+      "merge_policy": "controller-owned-main-materialization",
+      "owner_team": "cloud-ci-platform",
+      "generator_command": "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app -- --repo-root . --out cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json",
+      "source_inputs": [
+        "full-depth SCM checkout",
+        "tracked path list",
+        "last-touch commit map",
+        "commit author timestamps"
+      ],
+      "final_tree_validation": "The protected-branch push trigger and merge-queue projected-state controller regenerate SCM facts from the accepted final tree; branch-head facts are advisory only for squash-only merge paths.",
+      "public_product_contract": "SCM facts are the single non-hermetic boundary snapshot. Native cloud-ci must materialize them from the accepted final tree, not hand-merge branch-head JSON."
+    },
+    {
+      "artifact_id": "cloud-ci-ttl-policy-face",
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "generator_command": "cargo run --quiet -p oya-cloud-ci-accounting-registry-app -- --repo-root . --stdout --face ttl-policy",
+      "source_inputs": [
+        "libs/oya-ci-config/src/bundled/ttl-policy.json",
+        "oya-ci.toml"
+      ],
+      "final_tree_validation": "registry-drift regenerates the face from the final candidate tree and byte-compares committed output",
+      "public_product_contract": "TTL policy is data-derived generated CI policy and must be deterministic across repositories."
+    },
+    {
+      "artifact_id": "machine-readable-board-sync-projection",
+      "path": "docs/machine-readable/board-sync.generated.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "planning-platform",
+      "generator_command": "oya gen board-sync --write",
+      "source_inputs": [
+        "docs/decisions/**",
+        "specs/masterplan.json",
+        "registry/**"
+      ],
+      "final_tree_validation": "generated artifact controller must regenerate the projection from final candidate sources before merge",
+      "public_product_contract": "Board-sync is a generated planning projection; public adopters must declare equivalent derived planning outputs instead of hand-merging them."
+    },
+    {
+      "artifact_id": "machine-readable-masterplan-projection",
+      "path": "docs/machine-readable/masterplan.generated.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "branch-committed-regenerated-until-controller-materialization",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "planning-platform",
+      "generator_command": "oya gen masterplan --write",
+      "source_inputs": [
+        "specs/masterplan.json",
+        "specs/master-plan-sequencing.json",
+        "docs/decisions/**"
+      ],
+      "final_tree_validation": "generated artifact controller must regenerate the projection from final candidate sources before merge",
+      "public_product_contract": "Masterplan projection is generated planning data and must be materialized by a controller, not manually resolved in PR branches."
+    }
+  ],
+  "development_lifecycle_enforcement_layers": [
+    {
+      "layer_id": "project-creation",
+      "name": "Project creation",
+      "automation": "Scaffold generated-artifact manifest rows, default artifact classes, native cloud-ci runner configuration, and required documentation pointers before the first commit.",
+      "enforcement": "New project templates fail self-check if generated artifacts can appear without a manifest row."
+    },
+    {
+      "layer_id": "local-authoring",
+      "name": "Local authoring",
+      "automation": "Editors and local checks can run the same Rust predicate over the manifest and SCM-facts snapshot for fast advisory feedback.",
+      "enforcement": "Local findings are advisory only; merge authority remains the hermetic cloud-ci gate."
+    },
+    {
+      "layer_id": "pre-commit-pre-push",
+      "name": "Pre-commit and pre-push",
+      "automation": "Fast checks reject undeclared generated artifacts and normal-source merge policies for generated JSON before a branch reaches CI.",
+      "enforcement": "Hooks may block local pushes, but the server-side gate repeats the check and remains authoritative."
+    },
+    {
+      "layer_id": "pull-request-presubmit",
+      "name": "Pull request presubmit",
+      "automation": "Hermetic Rust gates run over committed manifest plus SCM-facts snapshot and can upload generated diff evidence without requiring hand conflict resolution.",
+      "enforcement": "The single fan-in context oya-ci-required turns red on undeclared generated artifacts or unsafe merge policies."
+    },
+    {
+      "layer_id": "merge-queue-projected-state",
+      "name": "Merge queue projected state",
+      "automation": "A trusted controller resolves generated-only conflicts by regenerating from the projected source tree and reruns final-tree validation before queue admission.",
+      "enforcement": "Source conflicts fail to the fix loop; generated conflict hunks are not accepted as authority."
+    },
+    {
+      "layer_id": "postsubmit-main-materialization",
+      "name": "Postsubmit and main materialization",
+      "automation": "Native cloud-ci materializes canonical aggregate artifacts from the accepted tree, records digests, and emits audit telemetry.",
+      "enforcement": "Drift on the protected branch creates a repair action and fails closed if the artifact is undeclared."
+    },
+    {
+      "layer_id": "release-and-deployment",
+      "name": "Release and deployment",
+      "automation": "CD consumes only generated artifacts with declared provenance, owner, source inputs, and final-tree validation evidence.",
+      "enforcement": "Release packaging rejects undeclared or drifted generated artifacts."
+    },
+    {
+      "layer_id": "operations-drift-repair",
+      "name": "Operations and drift repair",
+      "automation": "Scheduled controllers detect drift, create repair PRs, and report generated artifact metrics by class and materialization mode.",
+      "enforcement": "Missing policy rows and failed regeneration remain red until repaired through the same manifest-controlled workflow."
+    }
+  ],
+  "final_tree_materialization": {
+    "controller_id": "oya-ci-generated-artifact-controller",
+    "presubmit_authority": "merge-queue-projected-state",
+    "postsubmit_authority": "postsubmit-main-materialization",
+    "protected_branch_trigger": "push:dev",
+    "manual_conflict_resolution_policy": "reject-generated-json-conflict-hunks-regenerate-from-source-tree",
+    "drift_repair_policy": "fail-closed-and-open-generated-only-repair-pr",
+    "portable_runner_contract": "The controller runs after source-tree projection and after protected-branch updates. It regenerates declared artifacts from the accepted tree, records digests, and treats handwritten generated JSON conflict resolution as invalid input."
+  }
+}
