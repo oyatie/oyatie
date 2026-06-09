@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17637,
-    "source_inputs_digest": "fnv1a64:056e6c4098f1ec71"
+    "source_inputs_digest": "fnv1a64:382d9b4458b093db"
   },
   "rows": [
     {
@@ -13244,7 +13244,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "01de14bf117344ee103db26c3fbf0123a4be4e8f",
+      "last_touch_commit": "d076b26667673dcb742845acabc6416250fbad0b",
       "owner": null,
       "path": "HANDOFF.md",
       "reachable_from": [
@@ -19946,7 +19946,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "d66676c1b23eaafaf59827d9b4d17df82036b53f",
+      "last_touch_commit": "d076b26667673dcb742845acabc6416250fbad0b",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
       "reachable_from": [
@@ -56316,7 +56316,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0066",
-      "last_touch_commit": "e38624dc483c425f238c34a4414793742c81f421",
+      "last_touch_commit": "1925f6662016a03964d6a2a128f85a48eb4db6b6",
       "owner": null,
       "path": "docs/architecture/product-graph.html",
       "reachable_from": [],
@@ -71842,7 +71842,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "55056a1df950c09a0038e3e8c882f9f4ca8153bb",
+      "last_touch_commit": "b626818d18703a4e94e35d68100901b11714e7bc",
       "owner": null,
       "path": "docs/plans/task20-import-manifest-freeze-20260609.md",
       "reachable_from": [],
@@ -115614,7 +115614,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "55056a1df950c09a0038e3e8c882f9f4ca8153bb",
+      "last_touch_commit": "b626818d18703a4e94e35d68100901b11714e7bc",
       "owner": null,
       "path": "evidence/consolidation/task20-import-manifest-freeze-20260609.json",
       "reachable_from": [],
@@ -116554,7 +116554,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "55056a1df950c09a0038e3e8c882f9f4ca8153bb",
+      "last_touch_commit": "b626818d18703a4e94e35d68100901b11714e7bc",
       "owner": null,
       "path": "evidence/multispectrum/task20-import-manifest-freeze-20260609-1780983615.json",
       "reachable_from": [],
@@ -365429,7 +365429,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0119",
-      "last_touch_commit": "2161fb3862f446708e56403c9475d2568a7098a1",
+      "last_touch_commit": "d076b26667673dcb742845acabc6416250fbad0b",
       "owner": null,
       "path": "specs/master-plan-sequencing.json",
       "reachable_from": [
@@ -365454,7 +365454,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0104",
-      "last_touch_commit": "3c3cdec635034e184b815dfd61627087d965d011",
+      "last_touch_commit": "d076b26667673dcb742845acabc6416250fbad0b",
       "owner": null,
       "path": "specs/masterplan.json",
       "reachable_from": [

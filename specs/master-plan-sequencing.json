@@ -1964,6 +1964,28 @@
       "cloud-cd bridge/native cutover after release-ledger/canary/rollback fixtures are fixture-backed"
     ],
     "parallelism": "SCM API/graph, CI runner/evidence, and CD ledger/reconciler can be designed in parallel after the shared tenant-isolation contract locks. Branch-protection contexts, tenant-isolation policy, and authority cutovers are serialized lanes.",
-    "hard_stop": "No internal or tenant pipeline can share credentials, runners/workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, or branch-protection bypasses."
+    "hard_stop": "No internal or tenant pipeline can share credentials, runners/workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, or branch-protection bypasses.",
+    "fabric_cluster_adrs": [
+      "ADR-0516",
+      "ADR-0517",
+      "ADR-0518",
+      "ADR-0519",
+      "ADR-0520",
+      "ADR-0521",
+      "ADR-0522",
+      "ADR-0523",
+      "ADR-0524",
+      "ADR-0525",
+      "ADR-0526",
+      "ADR-0527",
+      "ADR-0528",
+      "ADR-0529",
+      "ADR-0530",
+      "ADR-0531",
+      "ADR-0532",
+      "ADR-0533",
+      "ADR-0534",
+      "ADR-0535"
+    ]
   }
 }

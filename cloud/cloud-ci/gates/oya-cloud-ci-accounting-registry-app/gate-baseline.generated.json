@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:0ad7405174ca4a0c",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:ea4e9cfef910e8be"
+    "source_inputs_digest": "fnv1a64:6d6188703cd2a544"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5046,27 +5046,7 @@
           "ADR-0508",
           "ADR-0510",
           "ADR-0512",
-          "ADR-0515",
-          "ADR-0516",
-          "ADR-0517",
-          "ADR-0518",
-          "ADR-0519",
-          "ADR-0520",
-          "ADR-0521",
-          "ADR-0522",
-          "ADR-0523",
-          "ADR-0524",
-          "ADR-0525",
-          "ADR-0526",
-          "ADR-0527",
-          "ADR-0528",
-          "ADR-0529",
-          "ADR-0530",
-          "ADR-0531",
-          "ADR-0532",
-          "ADR-0533",
-          "ADR-0534",
-          "ADR-0535"
+          "ADR-0515"
         ],
         "mode": "baseline-block-on-new"
       }

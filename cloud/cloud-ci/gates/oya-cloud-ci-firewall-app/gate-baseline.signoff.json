@@ -129,7 +129,18 @@
       "unpropagated_decision": [
         "ADR-0280",
         "ADR-0392",
-        "ADR-0510",
+        "ADR-0510"
+      ]
+    }
+  },
+  "_sign_off_retirements": [
+    {
+      "date": "2026-06-09",
+      "retired_by": "agent/masterplan-reachability-20260609",
+      "rationale": "ADR-0516..ADR-0535 fabric-cluster unpropagated_decision signoff entries removed after canonical masterplan + roadmap reachability wiring; future loss of reachability must fail the ratchet instead of reusing the bootstrap door.",
+      "gate": "cloud-ci-cross-artifact-agreement",
+      "code": "unpropagated_decision",
+      "keys": [
         "ADR-0516",
         "ADR-0517",
         "ADR-0518",
@@ -152,5 +163,5 @@
         "ADR-0535"
       ]
     }
-  }
+  ]
 }
