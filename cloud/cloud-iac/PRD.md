@@ -423,8 +423,8 @@ Sharding:
 | AC-06 | Drift detector finds a manually-mutated cluster resource within 1h | e2e injection drill |
 | AC-07 | SLSA L3 attestation verified pre-apply | integration test against signed + unsigned chart |
 | AC-08 | All Layer-A IaC components (ArgoCD + OpenTofu + Helm-controller + Kustomize-controller) deploy clean against a kind cluster | CI lane `oya-cloud-iac-iac-smoke` |
-| AC-09 | cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context exit 0 | ADR-0131 lane |
-| AC-10 | cloud-ci/oya-ci governance gate `authority-cohesion` is green in the branch-protected `oya-ci-required` context exit 0 | ADR-0123 lane; HG-CLOUD-IAC registered |
+| AC-09 | cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context | ADR-0131 lane |
+| AC-10 | cloud-ci/oya-ci governance gate `authority-cohesion` is green in the branch-protected `oya-ci-required` context | ADR-0123 lane; HG-CLOUD-IAC registered |
 | AC-11 | Apply latency p99 ≤ 5min per µservice (excluding workload-health waits) | load test under `microservices/cloud-iac/tests/load/apply-latency.rs` |
 | AC-12 | Drift-detection cycle per cluster ≤ 1h validated under nominal load | observability self-SLO |
 

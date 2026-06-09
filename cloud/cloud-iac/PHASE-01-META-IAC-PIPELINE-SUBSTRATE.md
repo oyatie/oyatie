@@ -11,9 +11,9 @@ entry_gate: |
 exit_gate: |
   All 15 IPs merged; HG-CLOUD-IAC gate in /specs/hyperscaler-gates.json registers green; the
   iac-applier consumes a real EligibilityChanged (eligible) event end-to-end and applies a µservice;
-  drift-detector runs continuously across pack-kr cluster; rollback drill verified ≤2min; cargo
-  nextest run --workspace exits 0; cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice is green in the branch-protected `oya-ci-required` context
-  cloud-iac exits 0; cloud-ci/oya-ci governance gate `authority-cohesion` for exits 0. is green in the branch-protected `oya-ci-required` context
+  drift-detector runs continuously across pack-kr cluster; rollback drill verified ≤2min; the
+  branch-protected `oya-ci-required` fan-in reports green for workspace tests,
+  per-microservice-layout, and authority-cohesion gates.
 depends_on:
   - milestone: M01-foundation
     phase: prior phases per master-plan-sequencing
@@ -198,7 +198,7 @@ Enforced via `cargo nextest run --workspace --all-features` + `cargo llvm-cov --
 
 Per ADR-0116, this phase uses branch-protected GitOps primitives and controller-managed change bundles.
 
-```bash
+```text
 Claim before beginning each IP: branch-protected GitOps/PR workflow with controller-managed change-bundle evidence scoped to the changed paths and intent.
 
 Verify: branch-protected GitOps/PR workflow with controller-managed change-bundle evidence
