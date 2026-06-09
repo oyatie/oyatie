@@ -6,7 +6,7 @@ date: 2026-05-12
 purpose: |
   Extends `docs/AGENTS.md §Done-Definition checklist` D1-D18 with per-change-class variants. Walked before every PR is declared "ready to merge" and re-walked at the loop-cancellation boundary per `docs/AGENTS.md §Long-running loop rule`.
 enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
-owner_team: axis-foundry + council-architecture
+owner_team: oya/intelligence + architecture-reviewer
 related:
   - docs/AGENTS.md
   - docs/templates/pull-request-template-v2.md

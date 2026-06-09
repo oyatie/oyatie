@@ -40,4 +40,4 @@ doc_status: published
 - Pushing to `main` directly — never
 - Pushing without running tests — never; even on a hotfix, run the affected-set
 - Adding a dependency without ledger entry — CI will fail; pre-empt
-- Treating `.git/hooks/pre-push`, `oya verify`, or `oya gate` output as merge authority — never
+- Treating `.git/hooks/pre-push`, retired local verifier, or retired local gate output as merge authority — never

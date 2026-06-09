@@ -3,9 +3,9 @@ doc_class: ProductRequirements
 template_id: TPL-PRD
 prd_id: PRD-workplace-integration
 product: workplace-integration
-status: Published
+status: Draft
 date: 2026-05-20
-owner: council-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
+owner: founder + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
 sales_segment: cross-cutting-product-layer
 tier: product-layer-cross-cutting
 milestone_first_ship: M04-workplace-integration-foundation
@@ -37,7 +37,7 @@ related_microservices:
   - identity
   - ontology
   - plugin-app-store
-tenant_class: ["demo_trial", "paid"]
+tenant_class: ["evaluation_trial", "paid"]
 related_adrs:
   - ADR-0009-cell-architecture-per-tenant-per-region
   - ADR-0028-cloud-microservice-architecture
@@ -68,21 +68,6 @@ related_adrs:
   - ADR-0251-compliance-pack-cell-certification-levels
   - ADR-0252-workflow-engine-per-step-idempotency
 related_specs:
-  - /specs/products/workplace-integration.json
-  - /specs/oya/workflow-engine.json
-  - /specs/oya/workflow-studio.json
-  - /specs/oya/calendar.json
-  - /specs/oya/meet.json
-  - /specs/oya/mail.json
-  - /specs/oya/messenger.json
-  - /specs/oya/drive.json
-  - /specs/oya/intelligence.json
-  - /specs/oya/policy-engine.json
-  - /specs/oya/audit-chain.json
-  - /specs/oya/tenancy.json
-  - /specs/oya/identity.json
-  - /specs/oya/ontology.json
-  - /specs/oya/plugin-app-store.json
   - /specs/per-microservice-flat-layout.json
   - /specs/agentic-slo-gated-promotion.json
 related_memory:
@@ -96,17 +81,17 @@ related_memory:
   - feedback_canonical_base_localization
   - feedback_doc_coverage_enforced
   - feedback_no_silent_regression
-owner_team: council-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
+owner_team: founder + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
 doc_status: published
 ---
 
 # PRD: Workplace Integration — Cross-Cutting Product Layer
 
 > **Status:** published; wave-gated promotion targets remain in §2.4
-> **Owning team:** council-product (with axis-workflow as primary executor)
+> **Owning team:** founder + axis-workflow as primary executor
 > **Owning axis:** cross-cutting product layer (NOT a single µservice)
 > **Catalog reference:** `oya/workplace-integration/catalog/oya-workplace-integration-application.yaml` plus layer catalog entries under `oya/workplace-integration/catalog/`
-> **Last updated:** 2026-05-20 by council-product
+> **Last updated:** 2026-05-20 by founder/product authority
 > **Path convention:** repo-local service artifacts use `oya/<service>/...`; machine-readable service specs use `specs/microservices/*.json`; legacy `microservices/...` paths are not authoritative in this checkout.
 
 ---
@@ -240,7 +225,7 @@ The following are explicitly out-of-scope for the Workplace Integration product 
 7. **HR record-of-truth schema authoring** — owned by `oya/hr/` (reserved-then-promoted; see §5.4) and ontology object types `Employee`, `LeaveBalance`, `EmploymentRecord`.
 8. **General-purpose document storage** — owned by `oya/drive/`; workplace-integration documents are stored in drive with retention policy refs.
 
-Promotion of any anti-scope item to in-scope requires a council decision recorded in this PRD's §12 decision log.
+Promotion of any anti-scope item to in-scope requires a founder/governance decision recorded in this PRD's §12 decision log.
 
 ### 2.4 Wave gating
 
@@ -350,7 +335,7 @@ Per ADR-0242 + ADR-0244:
 
 - Every flow carries a `tenant_id` + optional `sub_scope` (e.g., `tenant-acme.engineering.team-platform`).
 - Sub-scopes inherit parent policy unless explicit override.
-- The `oyatie` tenant uses sub-scopes like `oyatie.foundry.engineer.<id>` for engineer principals; their workplace flows (vacation, e-sign, expense) work identically to a customer tenant's `tenant-acme.employee.<id>`.
+- The `oyatie` tenant uses sub-scopes like `oyatie.engineering.engineer.<id>` for engineer principals; their workplace flows (vacation, e-sign, expense) work identically to a customer tenant's `tenant-acme.employee.<id>`.
 - Per-jurisdiction labor-law overlay is selected by the tenant's `jurisdiction_code` per ADR-0117 + ADR-0240.
 
 ### 3.6 Workflow Studio as the visual authoring surface
@@ -1195,7 +1180,7 @@ For Workplace Integration to reach M04 stable, workforce dependencies must be ex
 
 - **`oya/hr/`** — repo-local HR service anchor for records of truth (employment, leave-balance, org-chart, compensation-summary). Promotion remains certification-gated: PRD, threat-model, DPIA, manifest tier=product tier_subtype=product-consumer-hr, IaC, SOC 2 Type II employment-data controls, and per-jurisdiction labor-law overlay packs (KR pack-kr-labor, EU pack-eu-working-time, US pack-us-flsa).
 - **`oya/payroll/`** — repo-local payroll service anchor for payroll calculation + paycheck issuance; coordinates with banking via reserved `payments` µservice + Plugin App Store integrations (ADP, Gusto, Justworks, Rippling). Promotion remains gated on per-jurisdiction tax authority registrations (US-IRS, KR-NTS, EU-VAT-MOSS, etc.) and labor-law packs.
-- **`oya/compensation/`** — not present as a repo-local service anchor in this checkout; compensation remains promotion-blocked until a council-approved service anchor, PRD, threat model, DPIA, manifest, IaC, 409A provider integration, and ASC 718 controls exist.
+- **`oya/compensation/`** — not present as a repo-local service anchor in this checkout; compensation remains promotion-blocked until a founder-approved service anchor, PRD, threat model, DPIA, manifest, IaC, 409A provider integration, and ASC 718 controls exist.
 
 Until every promotion gate lands, Workplace Integration sagas that need HR/payroll/compensation data use the existing service anchors where present and otherwise integrate via Plugin App Store providers (BambooHR, Rippling, Gusto, ADP) with their respective APIs; they must not silently assume an unavailable record-of-truth service.
 
@@ -1533,7 +1518,7 @@ Each user story has a stable AC-ID. Per `agent-durable-goal.json#spec_contract.a
 
 **AC-WI-39 — `oyatie` tenant dogfooding (oyatie engineer)**
 - **Persona**: oyatie engineer
-- **Given**: engineer is principal `oyatie.foundry.engineer.jasonlee`
+- **Given**: engineer is principal `oyatie.engineering.engineer.jasonlee`
 - **When**: engineer requests vacation, signs ADR, books meeting, submits expense
 - **Then**: all flows work identically to customer tenant; audit-chain segregated to `oyatie.*` stream; DSAR-compatible
 
@@ -2050,15 +2035,15 @@ The workplace-integration product layer ships in IPs (Implementation Plans) unde
 ## 14. Open questions
 
 1. **HR/Payroll/Compensation promotion ADRs** — each requires its own ADR with full certification-gate articulation. Target authoring date: M04 preview minus 30 days.
-2. **Plugin App Store provider list for M04 preview** — which initial set of Plugin App Store integrations ship Day-1? Candidates: BambooHR, Greenhouse, Gusto, ADP, Stripe (for payments), QuickBooks, NetSuite, Concur (read-only), Notarize. Open question for council-product.
-3. **Per-jurisdiction overlay completeness target** — at M04 preview, which ≤ 5 jurisdictions (KR, US-federal + CA + NY, EU-core, JP) are mandatory? At GA, target ≥ 30. Open question for council-compliance.
-4. **Anonymous whistleblower flow** — Flow N variant; EU Whistleblowing Directive 2019/1937 requires anonymity; design needed for true-anonymity vs pseudonymity tradeoff. Open question for council-privacy + council-security.
+2. **Plugin App Store provider list for M04 preview** — which initial set of Plugin App Store integrations ship Day-1? Candidates: BambooHR, Greenhouse, Gusto, ADP, Stripe (for payments), QuickBooks, NetSuite, Concur (read-only), Notarize. Open question for founder-product.
+3. **Per-jurisdiction overlay completeness target** — at M04 preview, which ≤ 5 jurisdictions (KR, US-federal + CA + NY, EU-core, JP) are mandatory? At GA, target ≥ 30. Open question for axis-compliance.
+4. **Anonymous whistleblower flow** — Flow N variant; EU Whistleblowing Directive 2019/1937 requires anonymity; design needed for true-anonymity vs pseudonymity tradeoff. Open question for privacy-reviewer + security-reviewer.
 5. **Equity-grant integration** — currently routed via compensation µservice; 409A valuation + ASC 718 accounting; cap-table integration. Out-of-scope for M04 preview; tracked for M05.
-6. **Time-zone fairness in meeting scheduling** — Intelligence-driven heuristic ("don't always schedule outside business hours for one timezone") needs explicit policy definition. Open question for council-product.
+6. **Time-zone fairness in meeting scheduling** — Intelligence-driven heuristic ("don't always schedule outside business hours for one timezone") needs explicit policy definition. Open question for founder-product.
 7. **Cross-jurisdiction tax withholding** — for remote-worker leave + expense + travel; coordination with reserved `tax-engine` µservice. Tracked for M05+.
 8. **Voice-trigger latency for accessibility** — Apple/Google App Intents have varying latency budgets; verify they meet WCAG 2.2 timing requirements for assistive-tech users.
-9. **Plugin certification process** — for marketplace plugins extending workplace flows, what is the security review + functional testing requirement before listing? Open question for council-security + plugin-app-store team.
-10. **Localisation completeness** — at M04 preview, which languages are fully localised vs Intelligence-translated? Open question for council-product + council-design-system.
+9. **Plugin certification process** — for marketplace plugins extending workplace flows, what is the security review + functional testing requirement before listing? Open question for security-reviewer + plugin-app-store team.
+10. **Localisation completeness** — at M04 preview, which languages are fully localised vs Intelligence-translated? Open question for founder-product + design-system-reviewer.
 
 ---
 
@@ -2353,7 +2338,7 @@ Pass: Cedar denies undeclared resource access.
 ## Pack Overlays
 
 - KR labor pack activates working-hour, overtime, leave, personal information, and kiosk guard rules.
-- EU working-time pack activates time-zone fairness, retention minimization, and works-council evidence.
+- EU working-time pack activates time-zone fairness, retention minimization, and worker-representative evidence.
 - US FLSA pack activates exempt/non-exempt overtime and state leave overlays.
 - JP labor pack activates work-style reform constraints and local document retention.
 - Healthcare pack activates HIPAA redaction and clinical persona access constraints.
@@ -2460,12 +2445,12 @@ Pass: Cedar denies undeclared resource access.
 
 ## AI substrate + Cellular automation
 
-This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
+This product consumes current SSOT doctrine for the intelligence substrate, cellular automation, and cloud-native delivery:
 
-- ADR-0346 binds Workplace Integration acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 binds Workplace Integration authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
-- ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 binds workplace deployment and product-preview delivery to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+- Acceptance is the live branch-protected `oya-ci-required` context backed by shared Rust gate logic; retired local verifier/gate/check wrappers are not authority mechanisms.
+- Central governance owns policy-as-code / controls-as-code checks; product docs reference gate packets and reviewer verdicts, not scattered CLI lane names.
+- Cellular placement, workflow execution locality, and plugin blast-radius control remain control-plane-driven; autosharding, auto-rebalance, and dynamic sharding must honor residency/compliance packs and emit audit evidence.
+- ArgoCD is a GitOps CD bridge/reference adapter under the same protected pipeline; live merge authority remains `oya-ci-required` until owned oya-ci cutover is proven.
 
 ## References
 
@@ -2483,8 +2468,3 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
 - docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
-- docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
-- specs/products/workplace-integration.json
-- specs/oya/workflow-engine.json
-- specs/oya/workflow-studio.json
-- specs/oya/intelligence.json

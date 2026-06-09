@@ -8,7 +8,7 @@ metadata:
     microservice: cloud-iac
     doctrine_wave: wave-15-zf-15
     adr_0346: superseded-local-verifier-retired
-    adr_0347: foundry-fitness-to-governance-bulk-rename
+    adr_0347: retired-vocab-to-governance-vocabulary
     adr_0348: autosharding-auto-rebalance-dynamic-sharding
     adr_0349: superseded-ci-github-actions-oya-ci-required-argocd-gitops
     automation_mode: dynamic_sharding
@@ -50,7 +50,7 @@ metadata:
     microservice: cloud-iac
     doctrine_wave: wave-15-zf-15
     adr_0346: superseded-local-verifier-retired
-    adr_0347: foundry-fitness-to-governance-bulk-rename
+    adr_0347: retired-vocab-to-governance-vocabulary
     adr_0348: autosharding-auto-rebalance-dynamic-sharding
     adr_0349: superseded-ci-github-actions-oya-ci-required-argocd-gitops
     automation_mode: auto_rebalance
@@ -59,7 +59,7 @@ metadata:
   annotations:
     adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
     adr_0346_enforced_by: "oya-ci-required; cloud-ci shared Rust gate logic; local-authority-enforcer"
-    adr_0347_enforced_by: "oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence"
+    adr_0347_enforced_by: "oya-governance-retired-vocab-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence"
     adr_0348_enforced_by: "oya-governance-auto-rebalance-residency-honored; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility"
     adr_0349_purpose: "GitHub Actions produces oya-ci-required until owned oya-ci cutover; ArgoCD is the canonical GitOps CD orchestrator."
 spec:

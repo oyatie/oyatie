@@ -39,7 +39,7 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume `oya-ci-required`, branch protection, and `local-authority-enforcer` protect the current cloud-native CI contract.
 
 ### ADR-0347 Governance Lane Prefix
-- Governance-owned fitness lanes for this microservice use the `oya-governance-*` prefix. The canonical vocabulary is enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- Governance-owned fitness lanes for this microservice use the `oya-governance-*` prefix. The canonical vocabulary is enforced by `oya-governance-retired-vocab-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - Any architecture reference to CI lane ownership must point at the governance prefix and preserve lane invariants, lane checks, and lane semantics across the rename surface.
 
 ### ADR-0348 Sharding Automation Context
@@ -68,10 +68,10 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - Supply chain: every module pin carries ADR-0181 cosign evidence before blocker-mode consumption.
 - Versioning: module semantic versions are independent from public API date versions and SDK semver releases.
 - Observability: module releases emit cost, carbon, tenant, cell, primitive, and version labels for ADR-0344 FinOps review.
-- Security: wrappers pass tenant_class and compliance-pack labels to prevent demo_trial, paid, regulated, and BYOK paths from sharing defaults.
+- Security: wrappers pass tenant_class and compliance-pack labels to prevent evaluation_trial, paid, regulated, and BYOK paths from sharing defaults.
 - Blast radius: primitive updates are reviewed once in cloud-iac and then consumed by explicit per-service pin movement.
 - Five-context posture: aws-guest, oci-guest, oci-guest/always-free, on-prem, colo, and oyatie-as-cloud-provider remain separate wrapper contexts.
-- OCI Always Free: any always-free invocation is demo_trial-only and cannot silently inherit paid-tenant features.
+- OCI Always Free: any always-free invocation is evaluation_trial-only and cannot silently inherit paid-tenant features.
 - On-prem and colo: modules encode kubeadm, Cilium, Istio Ambient, Envoy Gateway, OpenBao, PostgreSQL, and Valkey substrate choices where selected.
 - Oyatie-as-provider: modules encode cell-zone, shard-cell, tenant namespace, per-cell nodepool, observability, audit-chain, KMS, and Cedar bundle primitives where selected.
 - Contract impact: OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 files remain unchanged in this document-stage wave.

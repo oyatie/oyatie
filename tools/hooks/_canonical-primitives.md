@@ -54,9 +54,9 @@ Counterpart-fact preservation: external-product Redis references (Discord/Twitch
 
 ## AI Substrate
 
-microservices/intelligence/  — canonical AI substrate (Layer A + Layer B) per ADR-0255 KS#14; absorbs foundry per ADR-0335 (Wave 15I)
+microservices/intelligence/  — canonical AI substrate (Layer A + Layer B) per ADR-0255 KS#14; absorbs retired AI-runtime scope per ADR-0335 (Wave 15I)
 microservices/intelligence/       — RETIRED 2026-05-21 per ADR-0335; see microservices/intelligence/RETIRED.md
-Authority: ADR-0255 (intelligence two-layer); ADR-0335 (foundry retirement + Hermes drop); ADR-0247 (self-modification via oyatie.foundry.* Cedar principals — principal namespace persists)
+Authority: ADR-0255 (intelligence two-layer); ADR-0335 (AI-runtime retirement + Hermes drop); ADR-0247 (self-modification via oyatie.intelligence.* Cedar principals — principal namespace persists)
 
 Hermes terminology: RETIRED corpus-wide per ADR-0247 D-10 + ADR-0328 D-9.22 + ADR-0335 D-26..D-36. Do NOT introduce "Hermes" as a canonical primitive in new content.
 
@@ -88,8 +88,8 @@ Tenant-customer code paths and substrate µservices touching tenant data plane M
 
 Default for new µservices: Tier 2 (no evidence required). Tier 0 / Tier 1 / Tier 3 declarations require manifest
 pod_runtime_tier_justification + pod_runtime_tier_surface_evidence citation. Tier 2 → Tier 1 promotion requires the
-ADR-0338 D-10 evidence pack at microservices/<name>/IPs/IP-tier-promotion-2-to-1.md and council-architecture +
-council-security approval. Quarterly tier review walks the corpus per ADR-0338 D-8.
+ADR-0338 D-10 evidence pack at microservices/<name>/IPs/IP-tier-promotion-2-to-1.md and architecture-reviewer +
+security-reviewer approval. Quarterly tier review walks the corpus per ADR-0338 D-8.
 
 Authority: ADR-0338 (pod runtime tier 0..3); amends ADR-0254 (K8s + Cloud Hypervisor + Kata invariant); co-varies
 with ADR-0248 (cellular tier numbering); admission gate via ADR-0183 (policy-engine separation: Kyverno admission).
@@ -102,12 +102,12 @@ Migration sub-wave: 15S-Pod-Runtime-Tier-declaration (queued; dispatches after A
 Canonical: explicit machine-checkable promotion-gate criteria for every cellular tier-edge per ADR-0248 Tier 0..Tier 4
 (Tier 0 = highest blast-radius / most isolated; Tier 4 = best-effort / edge / lowest blast-radius — convention preserved verbatim).
 
-Six gate inputs (AND-evaluated for promotion; OR-evaluated for demotion per ADR-0341 §D-5 with stricter thresholds):
+Six gate inputs (AND-evaluated for promotion; OR-evaluated for evaluationtion per ADR-0341 §D-5 with stricter thresholds):
   Gate 1 — Error budget intact (≥ 99 % of SLO budget remaining on current tier; OpenSLO + ADR-0186)
   Gate 2 — Warm-soak floor (≥ N days in current tier; per-edge floors below)
   Gate 3 — Canary cohort SLO compliance ≥ 99.5 % over warm-soak window (ADR-0186 canary cohort)
   Gate 4 — Cell-mesh health: cross-cell call success ≥ 99.95 % over warm-soak window (ADR-0044 mesh tunnel)
-  Gate 5 — tenant-class coverage: both demo_trial + paid present on current tier (ADR-0330)
+  Gate 5 — tenant-class coverage: both evaluation_trial + paid present on current tier (ADR-0330)
   Gate 6 — compliance-pack coverage: every applicable pack signed off (ADR-0251)
 
 Per-edge warm-soak + quiet-window floors:
@@ -117,15 +117,15 @@ Per-edge warm-soak + quiet-window floors:
   Tier 3 → 4: warm-soak 56 days + quiet window 168 hours
   Inverse edges (Tier 4 → 3 → 2 → 1 → 0; cell graduating into more-critical tier): symmetric floors apply.
 
-Auto-promotion: cell-orchestrator µservice (running inside tenancy + observability per ADR-0148; oyatie.foundry.* Cedar
+Auto-promotion: cell-orchestrator µservice (running inside tenancy + observability per ADR-0148; oyatie.intelligence.* Cedar
 namespace per ADR-0247; pod_runtime_tier 1 per ADR-0338) evaluates gates every 60 s + fires promotion event when all six
 gates pass AND quiet window elapses without alert burst. Signed cell.promotion.executed audit-chain row per ADR-0263 +
 Kyverno-admitted node label mutation + manifest cell_promotion_history update via self-modification PR per ADR-0247.
 
-Demotion: same evaluator with STRICTER thresholds (error budget < 95 %; canary SLO < 99 %; mesh < 99.9 %; pack revocation);
-no quiet window (demotion is immediate to protect blast-radius); 24-hour cooldown before re-entering promotion path.
+Evaluationtion: same evaluator with STRICTER thresholds (error budget < 95 %; canary SLO < 99 %; mesh < 99.9 %; pack revocation);
+no quiet window (evaluationtion is immediate to protect blast-radius); 24-hour cooldown before re-entering promotion path.
 
-Emergency override (rare): multi-party authorization (incident commander + on-call SRE + council-security signatures);
+Emergency override (rare): multi-party authorization (incident commander + on-call SRE + security-reviewer signatures);
 emits cell.promotion.override audit-chain event; skips warm-soak floor + gate AND-condition but NOT the audit trail;
 evidence pack required at microservices/<name>/IPs/IP-cell-promotion-override-<cell-id>-<timestamp>.md.
 
@@ -258,9 +258,9 @@ ADR-0218: Tenant granular control — per-tenant feature flags + policy
 ADR-0219: No-code-first UX with optional AI-assist layer
 ADR-0220: Intelligence µservice scope — consumer-facing only (historical; per ADR-0335 Wave 15I, intelligence now absorbs the full AI substrate)
 ADR-0221: Agentic pipeline hardening — hooks are GUIDANCE, not enforcement; CI gates enforce
-ADR-0136-amendment: Foundry internal scope — Hermes pipeline only (historical; superseded by ADR-0335 retirement)
-ADR-0255: Intelligence two-layer AI substrate (KS#14) — absorbs foundry
-ADR-0335: foundry µservice retired (Wave 15I) — AI substrate absorbed into intelligence; Hermes terminology dropped corpus-wide
+ADR-0136-amendment: Legacy internal AI-runtime scope — Hermes pipeline only (historical; superseded by ADR-0335 retirement)
+ADR-0255: Intelligence two-layer AI substrate (KS#14) — absorbs retired AI-runtime scope
+ADR-0335: retired AI-runtime µservice retired (Wave 15I) — AI substrate absorbed into intelligence; Hermes terminology dropped corpus-wide
 
 ---
 
@@ -270,7 +270,7 @@ See: specs/master-plan-sequencing.json#forbidden_primitives
 Summary: Bash agent commands use plain `git` for ordinary git operations. The
 retired local `oya` wrappers must not be used. Governance verification is the
 cloud-ci/oya-ci produced `oya-ci-required` status; local
-`oya verify`/`oya gate`/`oya check`/dev-cli wrappers are retired authority
+retired local verifier/retired local gate/retired local check/dev-cli wrappers are retired authority
 mechanisms and must not be used as local substitutes for that required context.
 OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
@@ -291,7 +291,7 @@ OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ---
 
-## oya-dev-cli Invocation Pattern
+## shared Rust gate logic Invocation Pattern
 
 Local dev-cli invocation is retired as an authority mechanism. Prefer Buck2
 targets for local confidence and the cloud-ci/oya-ci `oya-ci-required` status
@@ -310,7 +310,7 @@ authority mechanism.
 
 ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB
   bulk-rename pull request; the deterministic inventory path is .omc/state/oya-governance-rename-inventory-2026-05-21.json.
-Enforced by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary;
+Enforced by: oya-governance-retired-vocab-residue; oya-governance-lane-prefix-vocabulary;
   oya-governance-rename-inventory-presence.
 
 ADR-0348: cellular topology MUST support three control-plane-driven automation modes under ADR-0341 cell-level promotion gates:

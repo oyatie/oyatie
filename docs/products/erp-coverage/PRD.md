@@ -5,8 +5,8 @@ prd_id: PRD-erp-coverage
 product: erp-coverage
 status: Draft
 date: 2026-05-20
-owner: council-product + council-architecture + axis-erp-parity
-owner_team: council-product + council-architecture + axis-erp-parity
+owner: founder-product + architecture-reviewer + axis-erp-parity
+owner_team: founder-product + architecture-reviewer + axis-erp-parity
 related_oyatie_adrs:
   - ADR-0131
   - ADR-0132
@@ -30,7 +30,7 @@ related_microservices:
   - workflow-studio
   - ontology
   - policy-engine
-tenant_class: ["demo_trial", "paid"]
+tenant_class: ["evaluation_trial", "paid"]
 related_adrs:
   - ADR-0131
   - ADR-0132
@@ -2381,7 +2381,7 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 
 ## Pack Overlays
 
-- Pack KR-CSAP activates strict region, KCMVP key custody, Korean tax invoice rules, and labor overlay.
+- Pack KR-CSAP activates strict region, KCminimum-scope key custody, Korean tax invoice rules, and labor overlay.
 - Pack EU-DORA activates financial resilience evidence, EU data residency, and vendor exit proof.
 - Pack BR-LGPD activates tax-id validation, consent redaction, and LGPD data-subject response hooks.
 - Pack US-SOX activates SOX control evidence, segregation-of-duties, and audit export retention.
@@ -2487,12 +2487,12 @@ Pass: cutover cannot start with unresolved P1 reconciliation defects.
 
 ## AI substrate + Cellular automation
 
-This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
+This product consumes current SSOT doctrine for the intelligence substrate, cellular automation, and cloud-native delivery:
 
-- ADR-0346 binds ERP Coverage acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 binds ERP authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
-- ADR-0348 binds ERP module placement, migration runs, supply-chain workflows, and regulated evidence export to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 binds ERP deployment and migration dry-run delivery to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+- Acceptance is the live branch-protected `oya-ci-required` context backed by shared Rust gate logic; retired local verifier/gate/check wrappers are not authority mechanisms.
+- Central governance owns policy-as-code / controls-as-code checks; ERP docs reference gate packets and reviewer verdicts, not scattered CLI lane names.
+- Cellular module placement, migration runs, supply-chain workflows, and regulated evidence export must honor residency/compliance packs and emit audit evidence.
+- ArgoCD is a GitOps CD bridge/reference adapter under the same protected pipeline; live merge authority remains `oya-ci-required` until owned oya-ci cutover is proven.
 
 ## References
 
@@ -2506,10 +2506,7 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
 - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
-- docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
-- docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
-- docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
 - specs/microservices/accounting.json
 - specs/microservices/hr.json
 - specs/microservices/payroll.json

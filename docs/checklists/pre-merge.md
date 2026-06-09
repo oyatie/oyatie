@@ -6,7 +6,7 @@ doc_status: published
 
 > **When:** Before `gh pr merge`. After all CI lanes green + reviewer-agent verdict.
 > **Owner:** PR author + reviewer.
-> **Validator:** protected PR status `oya-ci-required` + reviewer-agent verdict. Local `oya gate` output is advisory only.
+> **Validator:** protected PR status `oya-ci-required` + reviewer-agent verdict. Local retired local gate output is advisory only.
 
 ---
 
@@ -23,7 +23,7 @@ doc_status: published
 7. ☐ Per-blast-radius reviewers approved per [DESIGN §3.0.5.3](../DESIGN.md):
    - cross-axis-contract → all affected axis teams
    - flat-crates-move → merge-queue serialization on root Cargo.toml
-   - data-class-impact → council-privacy
+   - data-class-impact → privacy-reviewer
    - regulatory-impact → ops-compliance
    - security-class → ops-security
 8. ☐ Glossary alignment per `oya-governance-glossary` — no new domain term without GLOSSARY entry

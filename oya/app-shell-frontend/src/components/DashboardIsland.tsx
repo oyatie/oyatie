@@ -113,7 +113,7 @@ const WorkflowNodeView: Component<{ node: WorkflowNode; isSelected: boolean; onS
   <button
     type="button"
     class={`workflow-node workflow-node--${props.node.kind.toLowerCase()} ${props.isSelected ? "is-selected" : ""}`}
-    style={{ left: `${props.node.x}px`, top: `${props.node.y}px` }}
+    style={`left: ${props.node.x}px; top: ${props.node.y}px;`}
     onClick={props.onSelect}
     aria-pressed={props.isSelected}
     title={props.node.explanation}
@@ -188,7 +188,7 @@ const WorkflowCanvas: Component<{
     class="workflow-canvas"
     role="region"
     aria-label="Workflow node canvas"
-    style={{ position: "relative", height: "10rem", overflow: "auto" }}
+    style="position: relative; height: 10rem; overflow: auto;"
   >
     <For each={props.nodes}>
       {(node) => (

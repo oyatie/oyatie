@@ -33,7 +33,7 @@ doc_status: published
 - Open sev1 if `oya_workplace_integration_shift_schedule_conflict_total` exceeds the threshold documented in `oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
 - Open sev1 if `oya_workplace_integration_shift_schedule_conflict_resolution_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `workplace-integration.shift-schedule-conflict-resolution.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workplace-integration-shift-schedule-conflict-resolution --production-snapshot` exits non-zero against the latest production evidence bundle.
+- Trigger from `oya-ci-required` when the shared Rust gate `workplace-integration-shift-schedule-conflict-resolution` fails against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/shift-schedule-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `oya/workplace-integration/dashboards/audit-evidence.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/shift-schedule-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `oya/workplace-integration/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workplace-integration",runbook="shift-schedule-conflict-resolution"}`.
@@ -85,7 +85,7 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workplace-integration-ops/shift-schedule-conflict-resolution?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKPLACE_INTEGRATION_SHIFT_SCHEDULE_CONFLICT_RESOLUTION_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops workplace-integration shift-schedule-conflict-resolution status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate workplace-integration-shift-schedule-conflict-resolution --production-snapshot --cell $CELL`.
+15. Review the production snapshot packet for shared Rust gate `workplace-integration-shift-schedule-conflict-resolution` for `$CELL` in `oya-ci-required`.
 16. Run crate smoke test: `cargo test -p WorkplaceAgreement domain shift_schedule_conflict_resolution -- --nocapture`.
 17. Check API contract smoke: `curl -s https://workplace-integration.internal.oyatie.dev/v1/workplace-integration/shift-schedule-conflict-resolution/incident-handoff -H "x-oya-tenant: $TENANT"`.
 18. Inspect config: `test -f oya/workplace-integration/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' oya/workplace-integration/iac/kustomize/base/kustomization.yaml`.
@@ -167,12 +167,12 @@ Shift Schedule Conflict Resolution incident decision tree
 4. Patch policy: `edit oya/workplace-integration/policies/esign-initiate.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit oya/workplace-integration/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p WorkplaceAgreement domain shift_schedule_conflict_resolution_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate workplace-integration-shift-schedule-conflict-resolution --fixture incident-shift-schedule-conflict-resolution.json`.
+7. Attach evidence for shared Rust gate `workplace-integration-shift-schedule-conflict-resolution` using fixture `incident-shift-schedule-conflict-resolution.json`.
 8. Add SLO assertion: `update oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml with alert ShiftScheduleConflictResolutionCritical when this was a missing alert`.
 9. Add dashboard panel: `update oya/workplace-integration/dashboards/audit-evidence.json with oya_workplace_integration_shift_schedule_conflict_resolution_error_ratio, oya_workplace_integration_shift_schedule_conflict_resolution_lag_seconds, and oya_workplace_integration_shift_schedule_conflict_total`.
 10. Rebuild affected crate: `cargo check -p WorkplaceAgreement domain --all-targets`.
 11. Run targeted tests: `cargo test -p WorkplaceAgreement domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate workplace-integration-policy --microservice workplace-integration`.
+12. Review the workplace-integration policy gate packet in `oya-ci-required`.
 13. Deploy canary: `oya deploy canary --microservice workplace-integration --component workplace-integration-shift-schedule-conflict-resolution-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_workplace_integration_shift_schedule_conflict_resolution_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close workplace-integration-shift-schedule-conflict-resolution-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
@@ -271,7 +271,7 @@ evidence_hash: <sha256>
 - Incident commander: first responder from axis-workplace-integration + ops-sre-reliability; transfer only by explicit message in `#inc-workplace-integration`.
 - Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
 - Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
-- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- Architecture escalation: page `architecture-reviewer-reviewer` before manual bypass, policy rollback, or invariant relaxation.
 - External vendors: DocuSign enterprise support; Workday HCM support; ADP Workforce Now support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
 - Customer communications: use status page component `oyatie-workplace-integration-shift-schedule-conflict-resolution` and keep private details in the incident channel.
 - Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.

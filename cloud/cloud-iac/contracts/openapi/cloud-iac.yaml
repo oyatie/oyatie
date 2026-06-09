@@ -45,7 +45,7 @@ components:
         purpose: >-
           Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
         enforced_by:
-          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-retired-vocab-residue
           - oya-governance-lane-prefix-vocabulary
           - oya-governance-rename-inventory-presence
       ADR-0348:
@@ -65,7 +65,7 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Historical Jenkins parity wording is superseded for active work: GitHub Actions produces the live required oya-ci-required context until the owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
+          Historical retired build-server bridge parity wording is superseded for active work: GitHub Actions produces the live required oya-ci-required context until the owned oya-ci runner cutover; ArgoCD remains the GitOps CD bridge/reference adapter.
         enforced_by:
           - oya-ci-required
           - oya-governance-argocd-application-cosign-verified

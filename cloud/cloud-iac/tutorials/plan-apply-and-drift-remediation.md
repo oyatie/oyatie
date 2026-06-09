@@ -82,7 +82,7 @@ buck2 test //cloud/cloud-ci/...
 
 If local tools are unavailable, report that as a validation gap and rely on the PR `oya-ci-required` run. Do not replace the protected status with local output.
 
-## What you should be able to demonstrate
+## What you should be able to evaluationnstrate
 
 - How a committed module/catalog change flows into render/validate/apply contracts.
 - Which worker identity owns plan evidence, mutation, rollback, registry, and drift evidence.
