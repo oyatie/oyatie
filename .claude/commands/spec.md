@@ -1,1 +1,0 @@
-../../tools/agent-skills/.claude/commands/spec.md
