@@ -42,7 +42,7 @@ Identify, classify, and mitigate threats to the cloud-secrets µservice's confid
 
 ### In-scope
 
-All components introduced by ADR-0131 Cloud split and this PRD, deployed in a **dedicated cloud-secrets Kubernetes cluster** (decision confirmed 2026-05-17; matches hyperscaler practice — AWS Secrets Manager runs in its own VPC; GCP Secret Manager has its own service project; HashiCorp HCP Vault runs on dedicated infra):
+All components introduced by ADR-0131 Cloud split and this PRD, deployed in a **dedicated cloud-secrets Kubernetes cluster** (decision confirmed 2026-05-17; internal isolation target_non_claim based on cell/blast-radius goals; AWS Secrets Manager, GCP Secret Manager, and HashiCorp HCP Vault are reference patterns, not evidence that Oyatie currently matches provider practice):
 
 | Layer-A (adopted OSS / vendor) | Layer-B (oyatie-owned) |
 |---|---|

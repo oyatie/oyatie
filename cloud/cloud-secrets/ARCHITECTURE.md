@@ -48,7 +48,7 @@ This anchor is closed for `cloud-secrets` against ADR-0242 §D-1: principal rost
 ### Hyperscaler precedents
 - Precedent 1: AWS IAM service-linked roles is the reference pattern for the control shape described here.
 - Precedent 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -110,7 +110,7 @@ This anchor is closed for `cloud-secrets` against ADR-0243 §D-2: Cedar fragment
 ### Hyperscaler precedents
 - Precedent 1: AWS Verified Permissions Cedar policy evaluation is the reference pattern for the control shape described here.
 - Precedent 2: Google Zanzibar relationship checks is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -171,7 +171,7 @@ This anchor is closed for `cloud-secrets` against ADR-0244 §D-3: tenant_id, aud
 ### Hyperscaler precedents
 - Precedent 1: Stripe connected-account isolation is the reference pattern for the control shape described here.
 - Precedent 2: AWS Organizations account-boundary pattern is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -233,7 +233,7 @@ This anchor is closed for `cloud-secrets` against ADR-0245 §D-1: substrate/prod
 ### Hyperscaler precedents
 - Precedent 1: Palantir Foundry shared ontology substrate is the reference pattern for the control shape described here.
 - Precedent 2: Google Cloud shared VPC/service-project split is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -295,7 +295,7 @@ This anchor is closed for `cloud-secrets` against ADR-0246 §D-4: library-first 
 ### Hyperscaler precedents
 - Precedent 1: AWS Verified Permissions local Cedar model is the reference pattern for the control shape described here.
 - Precedent 2: Open Policy Agent sidecar evaluation is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -357,7 +357,7 @@ This anchor is closed for `cloud-secrets` against ADR-0248 §D-1: cell tier, sha
 ### Hyperscaler precedents
 - Precedent 1: AWS cell-based architecture is the reference pattern for the control shape described here.
 - Precedent 2: Route 53 shuffle-sharding isolation is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -419,7 +419,7 @@ This anchor is closed for `cloud-secrets` against ADR-0253 §D-1: HTTP/3 fallbac
 ### Hyperscaler precedents
 - Precedent 1: Google QUIC/HTTP3 rollout pattern is the reference pattern for the control shape described here.
 - Precedent 2: Cloudflare ECH and post-quantum TLS experiments is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -481,7 +481,7 @@ This anchor is closed for `cloud-secrets` against ADR-0254 §D-2: Kubernetes, Cl
 ### Hyperscaler precedents
 - Precedent 1: AWS Firecracker microVM isolation is the reference pattern for the control shape described here.
 - Precedent 2: GKE Sandbox/Kata isolation is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -543,7 +543,7 @@ This anchor is closed for `cloud-secrets` against ADR-0263 §D-1: audit events, 
 ### Hyperscaler precedents
 - Precedent 1: Google SRE four core signals is the reference pattern for the control shape described here.
 - Precedent 2: OpenTelemetry semantic conventions is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -605,7 +605,7 @@ This anchor is closed for `cloud-secrets` against ADR-0297 §D-3: anti-bot, anti
 ### Hyperscaler precedents
 - Precedent 1: Cloudflare Bot Management and Turnstile is the reference pattern for the control shape described here.
 - Precedent 2: Stripe Radar passive risk scoring is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -667,7 +667,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.5
 ### Hyperscaler precedents
 - Precedent 1: Google SRE incident playbooks is the reference pattern for the control shape described here.
 - Precedent 2: Stripe idempotent mutation recovery is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
@@ -729,7 +729,7 @@ This anchor is closed for `cloud-secrets` against ADR-0296 §D-1: credential sid
 ### Hyperscaler precedents
 - Precedent 1: HashiCorp Vault dynamic secrets is the reference pattern for the control shape described here.
 - Precedent 2: AWS KMS envelope-key isolation is the second reference pattern used to avoid a single-vendor cargo-cult design.
-- The adaptation keeps the hyperscaler property that control evidence is observable, versioned, reversible, and tenant-scoped.
+- The adaptation targets observable, versioned, reversible, tenant-scoped control evidence; this is target_non_claim until service-specific tests and cloud-ci evidence prove the property.
 - The adaptation rejects hidden tribal knowledge: a cold reader can trace service, policy, storage, runtime, and audit evidence from this section.
 
 ### Failure modes and rollback
