@@ -290,6 +290,12 @@ OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ---
 
+## Dogfood Tenant Invariant
+
+Cloud substrate, control-plane, identity, KMS, storage, CI, and GitOps surfaces expose declarative/API/controller contracts that Oyatie products consume exactly as tenants. Product and enterprise surfaces must not bypass into cloud internals or use privileged host-login/operator workflows. Tenant identity, tenancy boundaries, policy/RBAC, data residency/isolation, audit/evidence, and lifecycle are first-class, testable contract surfaces.
+
+---
+
 ## Retired Local Dev-CLI Invocation Pattern
 
 Local dev-cli invocation is retired as an authority mechanism. Prefer Buck2

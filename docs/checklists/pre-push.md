@@ -29,7 +29,8 @@ doc_status: published
 17. ☐ **Migration ledger** — if this is a flat-crates move PR (per ADR-0015), `registry/migrations/2026-flat-crate-migration/` entry added.
 18. ☐ **Rebrand check** — no new `Oyatie` brand string in product code (per ADR-0017); repo path / GitHub slug exception OK.
 19. ☐ **License-tier residue** — no new AGPL/GPL/SSPL/BUSL dependency in product code (per drafted License Policy ADR).
-20. ☐ **Wait for** `oya-ci-required` — final blocking verification is the protected PR status, not a local CLI run.
+20. ☐ **Dogfood tenant invariant** — cloud/product boundary changes expose tenant-scoped contracts for identity, tenancy boundary, policy/RBAC, residency/isolation, audit/evidence, and lifecycle; products consume those contracts through APIs/controllers/GitOps/admission/policy/frontends rather than cloud internals or local operator workflows.
+21. ☐ **Wait for** `oya-ci-required` — final blocking verification is the protected PR status, not a local CLI run.
 
 ---
 
