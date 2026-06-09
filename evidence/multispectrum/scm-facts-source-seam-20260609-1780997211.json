@@ -23,6 +23,7 @@
       "cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs",
       "cloud/cloud-ci/gates/registry-drift/BUCK",
       "cloud/cloud-ci/gates/*/tests/*",
+      "HANDOFF.md",
       "evidence/multispectrum/scm-facts-source-seam-20260609-1780997211.json",
       "evidence/audit-chain.jsonl"
     ],
@@ -30,7 +31,7 @@
       "The v1 data keys remain unchanged: head_time_secs, tracked_paths, last_touch_commit, and commit_author_ts_secs.",
       "No --git-facts backward-compat alias, --scm-kind selector, registry/factory, or bespoke SCM implementation is introduced.",
       "No additional in-graph git call, shell boundary, required status context, or production deployment is introduced.",
-      "No new Markdown files are added; existing historical ADR/evidence references may still cite the retired git-facts vocabulary as history."
+      "No new Markdown files are added; the existing HANDOFF guidance is corrected to scm-facts, while historical ADR/evidence references may still cite retired git-facts vocabulary as history."
     ]
   },
   "hyperscaler_lens": {
@@ -58,7 +59,7 @@
     "F6_privacy": "No tenant or personal data processing changes.",
     "F7_operability": "CI operators keep one canonical oya-ci-required fan-in while the implementation seam reduces future migration blast radius.",
     "F8_performance": "No CI fanout or runtime path is added; future SCM source replacement can preserve cacheable gate consumers.",
-    "F9_compliance": "Audit-chain and multispectrum evidence record the interface-lock decision without adding Markdown.",
+    "F9_compliance": "Audit-chain and multispectrum evidence record the interface-lock decision; no new Markdown is added, and existing HANDOFF guidance uses the canonical scm-facts artifact name.",
     "F10_reversibility": "The seam can be reverted as a code-only refactor while preserving generated-face regeneration discipline.",
     "F11_observability": "Evidence captures the non-claim boundary and verification plan for future governance review.",
     "F13_migration": "Supports ADR-0526/ADR-0525 migration from Git CLI facts to an owned SCM substrate behind a stable interface."
@@ -68,6 +69,7 @@
     "python3 -m json.tool evidence/multispectrum/scm-facts-source-seam-20260609-1780997211.json",
     "python3 -c 'import json; [json.loads(line) for line in open(\"evidence/audit-chain.jsonl\") if line.strip()]'",
     "rg live-source residue scan for git-facts/git_facts/GitFacts/GIT_FACTS in Cargo, workflow, cloud/cloud-ci/gates, and registry/generated-artifact-control-plane.json, excluding generated inventories and historical signoff paths",
+    "HANDOFF.md existing-guidance residue scan for retired git-facts artifact names",
     "jq schema assertion for cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     "git diff --check origin/dev...HEAD",
     "git diff --name-status --diff-filter=A origin/dev...HEAD -- \"*.md\" \"*.markdown\" (must be empty)",
