@@ -1,128 +1,101 @@
 # Infrastructure Engineer — First Week on `cloud-iac`
 
-Audience: an infra/platform engineer with Terraform + Pulumi + Kubernetes experience joining the `oya-cloud-iac-*` lane.
-Goal: by Friday EOD you can author + apply a new module, detect drift, and run a multi-provider plan via Foundry.
+Audience: an infra/platform engineer with OpenTofu, Kubernetes, GitOps, policy, and audit-chain experience joining the `oya-cloud-iac-*` lane.
+
+Goal: by Friday EOD you can trace a cloud-iac change from declarative source through render/validate/apply contracts, review the drift-remediation loop, and submit a production-grade PR that waits on the cloud-ci/oya-ci `oya-ci-required` authority.
 
 ## Day 1 — read before touching
 
-- `docs/decisions/ADR-0218-cloud-iac-canonical-declarative-infra.md` — binding definition.
-- `docs/decisions/ADR-0247-self-modification.md` — `cloud-iac` is a substrate that Foundry uses to mutate itself; understand the
-  recursion (Foundry is a tenant of `cloud-iac`).
-- `docs/decisions/ADR-0250-build-ahead-of-certification.md` — every module must be authored to compliance-certified shape day one.
-- ADR-0329 + ADR-0330 + ADR-0331 — retired legacy vocabulary and the tenant_class replacement.
+- `docs/products/cloud/PRD.md` — Cloud Provider substrate, managed Kubernetes, GitOps, audit-chain, IAM/KMS, and control-plane/data-plane expectations.
+- `docs/decisions/ADR-0218-cloud-iac-canonical-declarative-infra.md` — binding definition for declarative infrastructure.
+- `docs/decisions/ADR-0247-self-modification.md` — cloud-scm/self-modification substrate; cloud-iac is a control-plane mutator and must preserve auditability.
+- `docs/decisions/ADR-0250-build-ahead-of-certification.md` — modules must be compliance-shaped from first authoring.
+- `docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md` — `oya-ci-required` is the single current blocking CI authority; local CLI output is shift-left evidence only.
+- `cloud/cloud-iac/PRD.md`, `cloud/cloud-iac/ARCHITECTURE.md`, and `cloud/cloud-iac/threat-model.md` — service-local product, architecture, trust boundaries, and failure-mode anchors.
 
-Clone:
-```bash
-./bin/oya git worktree-add --base dev --branch onboarding/$USER-iac-week1 .worktrees/$USER-iac-week1
-cd .worktrees/$USER-iac-week1
-```
+Work in a plain-git branch/worktree. Do not use retired `oya git` or `oya vcs` wrappers.
 
-## Day 2 — walk a real apply end-to-end
+## Day 2 — trace the real declarative surfaces
 
-Start a loopback cloud-iac cell:
-```bash
-make dev-cell.up CELL=iac-loopback-1 PROFILE=cloud-iac-dev
-```
+Review the current cloud-iac sources of truth:
 
-Run the canonical sample plan:
-```bash
-./bin/oya iac plan \
-  --tenant oyatie.community.dev-sample \
-  --module-set oya-iac-modules-demo-trial-v1 \
-  --inputs samples/demo-trial/minimal.yaml
-```
+| Surface | Path |
+|---|---|
+| OpenTofu module registry | `cloud/cloud-iac/tofu/modules/` |
+| Module release/catalog records | `cloud/cloud-iac/tofu/modules/catalog.json`, `release-index.json`, `provenance.json` |
+| GitOps composition roots | `cloud/cloud-iac/iac/helm/**`, `cloud/cloud-iac/iac/kustomize/**` |
+| Policy boundaries | `cloud/cloud-iac/policy/*.cedar`, `cloud/cloud-iac/policy/*.md` |
+| Public contracts | `cloud/cloud-iac/contracts/openapi/cloud-iac.yaml`, `contracts/asyncapi/cloud-iac-events.yaml`, `contracts/proto/cloud-iac.proto` |
+| Runbooks | `cloud/cloud-iac/runbooks/` |
 
-Expected: structured plan output with `resources_to_add: 7, resources_to_change: 0, resources_to_destroy: 0` and a Cedar permit log
-showing 7 individual `cloud_iac::Action::Plan` permits.
-
-Apply (still loopback):
-```bash
-./bin/oya iac apply --plan-id $(jq -r .plan_id last-plan.json)
-```
-
-## Day 3 — author your first module
-
-Pick an unallocated starter module from `microservices/cloud-iac/backlog/starter-modules.md`. Author under
-`crates/oya-iac-modules-demo-trial/src/<name>/mod.rs`:
-
-```rust
-use oya_iac_module::prelude::*;
-
-#[derive(Module)]
-#[module(
-    name = "demo-trial-cloudflare-zone",
-    version = "0.1.0",
-    providers = ["cloudflare 4.x"],
-    cedar_action = "cloud_iac::Action::Plan"
-)]
-pub struct CloudflareZoneModule {
-    #[input(required)]
-    pub zone_name: String,
-    #[input(default = "free")]
-    pub plan: String,
-    #[output]
-    pub zone_id: String,
-}
-```
-
-Add the corresponding Cedar permit in `policies/demo-trial/cloudflare-zone.cedar`. Add a substance test in
-`crates/oya-iac-modules-demo-trial/tests/cloudflare_zone.rs`. Run:
-```bash
-cargo test -p oya-iac-modules-demo-trial --features dev-cell
-```
-
-## Day 4 — claim and ship the module
+Verification orientation:
 
 ```bash
-./bin/oya vcs claim \
-  --agent infra-eng-$USER \
-  --intent cloud-iac-module-cloudflare-zone \
-  crates/oya-iac-modules-demo-trial microservices/cloud-iac
+buck2 build //cloud/cloud-iac/...
+buck2 test //cloud/cloud-ci/...
 ```
 
-Implement + verify + done; open PR:
+These are local confidence checks. The blocking decision remains the PR's `oya-ci-required` status.
+
+## Day 3 — author or tighten one production module contract
+
+Choose a real module under `cloud/cloud-iac/tofu/modules/<module>/`. Keep the change inside the existing module directory unless the PR explicitly adds a new reviewed module catalog entry.
+
+Required module contract:
+
+- `main.tofu` declares typed inputs, outputs, provider pins, compliance-pack tags, tenant/account/project fields, and state/backend expectations.
+- `README.md` explains apply order, consumed secret references, emitted outputs, and rollback/drift behavior.
+- No raw secrets, provider credentials, or live account identifiers appear in source or docs.
+- State, KMS, OpenBao, namespace, and AppProject bootstrap remain split across the existing module concerns unless an accepted ADR changes the boundary.
+
+Do not create throwaway module sets, trial tenants, or local-only module roots. If a loopback fixture is needed for a test, it must be clearly named as test data and must not claim production readiness.
+
+## Day 4 — submit through the GitOps/CI authority path
+
+Before opening the PR, confirm the change is reviewable:
+
 ```bash
-gh pr create --base dev --title "cloud-iac: demo-trial cloudflare-zone module"
+git diff -- cloud/cloud-iac cloud/cloud-ci .github/workflows/oya-ci-required.yml infra/branch-protection tools/hooks scripts/hooks docs/checklists .codex/hooks.json
+buck2 build //cloud/cloud-iac/...
 ```
 
-The Foundry admission gate enforces `lean-a8-module-attestation` (cosign signature), `lean-a5-doc-coverage` (the README on the
-module), and `lean-a3-tenant-trace` (every action carries `tenant_id`).
+Open the PR against `dev`. The PR is ready only when:
 
-## Day 5 — drift detection and remediation drill
+- `oya-ci-required` is green on the candidate commit.
+- The PR body cites the Cloud PRD, cloud-iac PRD/architecture/threat model, and any ADRs that define the touched contract.
+- Reviewer-agent verdict is recorded by the lead/review lane.
+- Any local command output is labeled "local shift-left evidence", never "merge authority".
 
-Manually induce drift in your loopback cloud account (mock provider):
-```bash
-./bin/oya iac mock provider-mutate \
-  --resource cloudflare_zone.example_com \
-  --field plan \
-  --new-value "pro"
-```
+## Day 5 — drift and rollback review drill
 
-Run drift detection:
-```bash
-./bin/oya iac drift --tenant oyatie.community.dev-sample
-```
+Walk the drift-remediation contract without mutating a live cluster:
 
-Expected output: 1 drifted resource, with the diff and a remediation plan. Apply remediation:
-```bash
-./bin/oya iac remediate-drift --tenant oyatie.community.dev-sample --resource cloudflare_zone.example_com
-```
+- `cloud/cloud-iac/IP-GITOPS-005-drift-detection.md`
+- `cloud/cloud-iac/runbooks/drift-remediation.md`
+- `cloud/cloud-iac/runbooks/rollback-orchestration.md`
+- `cloud/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`
+- `cloud/cloud-iac/policy/ci-scope.cedar`
 
-The remediation is a fresh `cloud_iac::Action::RemediateDrift` Cedar permit — different from `Apply`.
+You should be able to explain:
+
+1. Which worker identity may write a drift report.
+2. Why validation and mutation are separate.
+3. Which audit event is emitted before durable mutation is considered complete.
+4. How rollback stays inside declared apply scope.
+5. Why a local CLI transcript cannot prove production drift remediation.
 
 ## What "done with week 1" means
 
-- [ ] You can recite `tenant_class` eligibility and the paid billing components emitted by `cloud-iac`.
-- [ ] You authored, signed, and merged a module through Foundry.
-- [ ] You walked a drift detection + remediation cycle end-to-end.
-- [ ] You read ADR-0218 + ADR-0247 + ADR-0250.
-- [ ] You filed at least one `oya vcs note` against a gap you found in `demo_trial`.
+- [ ] You can trace render, validate, apply, rollback, registry, drift, policy, audit, and SLO surfaces from committed files.
+- [ ] You can explain why `oya-ci-required` is the only blocking CI authority for PRs.
+- [ ] You submitted one scoped PR or review note against a real `cloud/cloud-iac/**` artifact.
+- [ ] You ran relevant Buck2/local checks and labeled them as shift-left evidence.
+- [ ] You identified any exact blocker instead of creating placeholder IaC, local-only command flows, or false production-readiness claims.
 
 ## Rookie traps
 
-1. **Hand-rolling Terraform.** All Terraform must come through the `cloud-iac` module surface. Hand-written `.tf` files in repo
-   trip the `lean-a8-module-attestation` lane.
-2. **Mixing tenant-class gates.** A `demo_trial` tenant cannot use paid-only module gates even on dev. Cedar refuses.
-3. **Forgetting drift policy.** A module that doesn't declare `#[drift_policy(...)]` defaults to `manual-only` — meaning automated
-   remediation is disabled.
-4. **Skipping cosign.** Unsigned modules fail at plan time with `ModuleAttestationMissing`.
+1. **Treating local CLI output as authority.** Local verifier output is useful evidence, but branch protection keys on `oya-ci-required`.
+2. **Using retired VCS wrappers.** `oya git` and `oya vcs` are blocked; use plain git.
+3. **Hand-rolling unmanaged IaC roots.** New roots need catalog, provenance, policy, runbook, and CI evidence.
+4. **Mixing tenant classes or packs.** Tenant/account/project, jurisdiction, and compliance-pack fields must be explicit.
+5. **Skipping secret indirection.** Use OpenBao/SecretReference patterns; never commit literal credentials.
