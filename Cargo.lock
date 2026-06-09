@@ -4184,7 +4184,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-ci-git-facts-emitter-app"
+name = "oya-cloud-ci-scm-facts-emitter-app"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-ci-accounting-registry-app",

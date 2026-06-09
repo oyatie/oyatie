@@ -200,10 +200,10 @@ fn gate2_is_born_blocking_on_the_live_corpus() {
 /// compile-time cargo-only macro that breaks the buck2 build). The producer binary is resolved
 /// at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN` (the `$(exe ...)`-substituted built
 /// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
-/// git-facts face (a declared input); it never calls git.
+/// scm-facts face (a declared input); it never calls git.
 fn run_producer_stdout(root: &Path) -> Value {
-    let git_facts = root
-        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json");
+    let scm_facts = root
+        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
         let bin = if Path::new(&bin).is_absolute() {
             PathBuf::from(bin)
@@ -213,8 +213,8 @@ fn run_producer_stdout(root: &Path) -> Value {
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .current_dir(root)
             .output()
@@ -228,8 +228,8 @@ fn run_producer_stdout(root: &Path) -> Value {
             .arg("--")
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .current_dir(root)
             .output()

@@ -22,12 +22,12 @@ use std::path::{Path, PathBuf};
 /// that EMIT the faces (registered in the workflow via a `run` step, not a `cargo test -p ...`
 /// gate lane). These are the intentional exclusions from the gate-registration invariant:
 ///   - the accounting producer (emits the five accounting faces);
-///   - the git-facts emitter (the single out-of-graph git boundary that emits
-///     git-facts.generated.json; OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5).
+///   - the scm-facts emitter (the single out-of-graph git boundary that emits
+///     scm-facts.generated.json; OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5).
 const PRODUCER_CRATE: &str = "oya-cloud-ci-accounting-registry-app";
 const NON_GATE_CRATES: [&str; 2] = [
     "oya-cloud-ci-accounting-registry-app",
-    "oya-cloud-ci-git-facts-emitter-app",
+    "oya-cloud-ci-scm-facts-emitter-app",
 ];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical

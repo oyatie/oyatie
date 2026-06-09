@@ -126,7 +126,7 @@
     },
     {
       "artifact_id": "cloud-ci-scm-facts-boundary-snapshot",
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json",
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
       "artifact_class": "scm-facts-boundary-snapshot",
       "materialization_mode": "main-branch-materialized",
       "merge_policy": "controller-owned-main-materialization",
@@ -141,7 +141,7 @@
       "public_product_contract": "SCM facts are the single non-hermetic boundary snapshot. Native cloud-ci must materialize them from the accepted final tree, not hand-merge branch-head JSON.",
       "generator": {
         "runner": "buck2",
-        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app",
+        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app",
         "operation_id": "emit-scm-facts-boundary-snapshot",
         "parameters": {},
         "input_contract": [

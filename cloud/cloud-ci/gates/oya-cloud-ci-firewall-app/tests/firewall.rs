@@ -47,9 +47,9 @@ fn load_json(path: &Path) -> Value {
 /// HERMETICALLY (no `env!("CARGO")`, the compile-time cargo-only macro that breaks the buck2
 /// build). The producer binary is resolved at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN`
 /// (the `$(exe ...)`-substituted built binary), else under cargo via the runtime `CARGO` env
-/// var. The producer reads the committed git-facts face (a declared input); it never calls git.
+/// var. The producer reads the committed scm-facts face (a declared input); it never calls git.
 fn regenerate_baseline(root: &Path) -> Value {
-    let git_facts = faces_dir(root).join("git-facts.generated.json");
+    let scm_facts = faces_dir(root).join("scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
         let bin = if Path::new(&bin).is_absolute() {
             PathBuf::from(bin)
@@ -59,8 +59,8 @@ fn regenerate_baseline(root: &Path) -> Value {
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .arg("--face")
             .arg("baseline")
@@ -76,8 +76,8 @@ fn regenerate_baseline(root: &Path) -> Value {
             .arg("--")
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .arg("--face")
             .arg("baseline")
