@@ -3,3 +3,5 @@ dist/
 .vinxi/
 .output/
 *.local
+generated/*
+!generated/.gitkeep

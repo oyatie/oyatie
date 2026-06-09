@@ -1,16 +1,17 @@
 //! # cloud-ci-generated-artifact-control-plane
 //!
-//! Validates a repo's generated-artifact policy manifest against the SCM facts snapshot used by
-//! cloud-ci. This gate exists because generated outputs are product artifacts, not local build
-//! trash and not contributor-owned merge surfaces. A public adopter should be able to copy the
-//! manifest shape, declare its generated artifacts, and get the same hermetic gate behavior under
-//! any runner that can provide the manifest plus SCM-facts JSON.
+//! Validates a repo's generated-artifact policy manifest against the SCM facts snapshot
+//! materialized from the candidate tree used by cloud-ci. This gate exists because generated
+//! outputs are product artifacts, not local build trash and not contributor-owned merge surfaces.
+//! A public adopter should be able to copy the manifest shape, declare its generated artifacts,
+//! and get the same hermetic gate behavior under any runner that can provide the manifest plus
+//! SCM-facts JSON.
 //!
 //! ## Hermetic contract
 //! Input A: `registry/generated-artifact-control-plane.json` — the repo-authored policy for each
-//! generated artifact family. Input B: the committed SCM-facts snapshot (`tracked_paths`). The gate
-//! calls no VCS, shell, network, or CI provider API. GitHub Actions is only a bridge runner; the
-//! gate itself is a Rust predicate over declared data.
+//! generated artifact family. Input B: the candidate-tree materialized SCM-facts snapshot
+//! (`tracked_paths`). The gate calls no VCS, shell, network, or CI provider API. GitHub Actions
+//! is only a bridge runner; the gate itself is a Rust predicate over declared data.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -21,7 +22,8 @@ use serde_json::Value;
 /// The gate id, matching the workflow matrix identity and public product concept.
 pub const GATE_ID: &str = "cloud-ci-generated-artifact-control-plane";
 
-const GENERATED_JSON_SUFFIX: &str = ".generated.json";
+const GENERATED_OUTPUT_CONFLICT_POLICY: &str =
+    "reject-generated-output-conflict-hunks-regenerate-from-source-tree";
 
 const ARTIFACT_CLASSES: [&str; 7] = [
     "authoritative-source",
@@ -60,7 +62,7 @@ const LIFECYCLE_LAYER_IDS: [&str; 8] = [
     "operations-drift-repair",
 ];
 
-const MANIFEST_FIELDS: [&str; 9] = [
+const MANIFEST_FIELDS: [&str; 10] = [
     "$schema",
     "schema_version",
     "canonical_name",
@@ -68,6 +70,7 @@ const MANIFEST_FIELDS: [&str; 9] = [
     "purpose",
     "public_product_contract",
     "final_tree_materialization",
+    "generated_path_rules",
     "artifacts",
     "development_lifecycle_enforcement_layers",
 ];
@@ -111,6 +114,17 @@ const GENERATOR_INPUT_CONTRACTS: [&str; 4] = [
 
 const LIFECYCLE_LAYER_FIELDS: [&str; 4] = ["layer_id", "name", "automation", "enforcement"];
 
+const GENERATED_PATH_RULE_FIELDS: [&str; 5] = [
+    "rule_id",
+    "rule_kind",
+    "pattern",
+    "description",
+    "exclude_file_names",
+];
+
+const GENERATED_PATH_RULE_KINDS: [&str; 4] =
+    ["path_component", "path_prefix", "path_suffix", "file_name"];
+
 const FINAL_TREE_MATERIALIZATION_FIELDS: [&str; 7] = [
     "controller_id",
     "presubmit_authority",
@@ -150,6 +164,12 @@ impl Finding {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DiffPolicyViolation {
+    pub status: String,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Report {
     pub verdict: Verdict,
     pub violations: BTreeSet<String>,
@@ -180,6 +200,14 @@ struct DeclaredArtifact {
     artifact_class: String,
     materialization_mode: String,
     merge_policy: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct GeneratedPathRule {
+    rule_id: String,
+    rule_kind: String,
+    pattern: String,
+    exclude_file_names: BTreeSet<String>,
 }
 
 fn allowed(values: &[&str], candidate: &str) -> bool {
@@ -412,16 +440,85 @@ fn validate_generator(
     }
 }
 
-fn tracked_generated_json_paths(scm_facts: &Value) -> BTreeSet<String> {
+fn generated_path_rule_matches(path: &str, rule: &GeneratedPathRule) -> bool {
+    let file_name = path.rsplit('/').next().unwrap_or(path);
+    if rule.exclude_file_names.contains(file_name) {
+        return false;
+    }
+
+    match rule.rule_kind.as_str() {
+        "path_component" => path.split('/').any(|component| component == rule.pattern),
+        "path_prefix" => path.starts_with(&rule.pattern),
+        "path_suffix" => path.ends_with(&rule.pattern),
+        "file_name" => file_name == rule.pattern,
+        _ => false,
+    }
+}
+
+fn is_tracked_generated_artifact_path(path: &str, rules: &[GeneratedPathRule]) -> bool {
+    rules
+        .iter()
+        .any(|rule| generated_path_rule_matches(path, rule))
+}
+
+fn tracked_generated_artifact_paths(
+    scm_facts: &Value,
+    rules: &[GeneratedPathRule],
+) -> BTreeSet<String> {
     scm_facts
         .get("tracked_paths")
         .and_then(Value::as_array)
         .into_iter()
         .flatten()
         .filter_map(Value::as_str)
-        .filter(|path| path.ends_with(GENERATED_JSON_SUFFIX))
+        .filter(|path| is_tracked_generated_artifact_path(path, rules))
         .map(ToOwned::to_owned)
         .collect()
+}
+
+fn diff_candidate_path<'a>(status: &str, paths: &'a [&'a str]) -> Option<&'a str> {
+    if status.starts_with('D') {
+        return None;
+    }
+    if status.starts_with('R') || status.starts_with('C') {
+        return paths.get(1).copied();
+    }
+    paths.first().copied()
+}
+
+/// Productized bridge predicate for presubmit diff surfaces. The caller supplies a
+/// `git diff --name-status`-compatible stream, but generated-path classification comes from the
+/// manifest's `generated_path_rules`, not from `.gitignore` or runner-local ignore heuristics.
+pub fn generated_output_diff_policy_violations(
+    manifest: &Value,
+    diff_name_status: &str,
+) -> (BTreeSet<Finding>, Vec<DiffPolicyViolation>) {
+    let mut findings = BTreeSet::new();
+    let generated_path_rules = parse_generated_path_rules(manifest, &mut findings);
+    if !findings.is_empty() {
+        return (findings, Vec::new());
+    }
+
+    let violations = diff_name_status
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .filter_map(|line| {
+            let mut fields = line.split('\t');
+            let status = fields.next()?.to_owned();
+            let paths = fields.collect::<Vec<_>>();
+            let path = diff_candidate_path(&status, &paths)?;
+            if is_tracked_generated_artifact_path(path, &generated_path_rules) {
+                Some(DiffPolicyViolation {
+                    status,
+                    path: path.to_owned(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    (findings, violations)
 }
 
 fn validate_lifecycle_layers(manifest: &Value, findings: &mut BTreeSet<Finding>) {
@@ -539,7 +636,7 @@ fn validate_final_tree_materialization(manifest: &Value, findings: &mut BTreeSet
         ));
     }
     if required_str(policy, "manual_conflict_resolution_policy")
-        != Some("reject-generated-json-conflict-hunks-regenerate-from-source-tree")
+        != Some(GENERATED_OUTPUT_CONFLICT_POLICY)
     {
         findings.insert(Finding::new(
             "generated_artifact_manifest_manual_generated_conflict_policy_invalid",
@@ -566,6 +663,117 @@ fn validate_final_tree_materialization(manifest: &Value, findings: &mut BTreeSet
             "portable_runner_contract",
         ));
     }
+}
+
+fn parse_generated_path_rules(
+    manifest: &Value,
+    findings: &mut BTreeSet<Finding>,
+) -> Vec<GeneratedPathRule> {
+    let Some(rules) = manifest
+        .get("generated_path_rules")
+        .and_then(Value::as_array)
+    else {
+        findings.insert(Finding::new(
+            "generated_artifact_manifest_generated_path_rules_missing",
+            "generated_path_rules",
+        ));
+        return Vec::new();
+    };
+    if rules.is_empty() {
+        findings.insert(Finding::new(
+            "generated_artifact_manifest_generated_path_rules_empty",
+            "generated_path_rules",
+        ));
+    }
+
+    let mut parsed = Vec::new();
+    let mut seen = BTreeSet::new();
+
+    for (index, rule) in rules.iter().enumerate() {
+        let scope = format!("generated_path_rules[{index}]");
+        if !validate_object_fields(
+            rule,
+            &GENERATED_PATH_RULE_FIELDS,
+            "generated_artifact_manifest_generated_path_rule_not_object",
+            "generated_artifact_manifest_generated_path_rule_unknown_field",
+            &scope,
+            findings,
+        ) {
+            continue;
+        }
+
+        let Some(rule_id) = required_str(rule, "rule_id") else {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generated_path_rule_id_missing",
+                format!("{scope}.rule_id"),
+            ));
+            continue;
+        };
+        if !seen.insert(rule_id.to_owned()) {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generated_path_rule_id_duplicate",
+                rule_id,
+            ));
+        }
+
+        let Some(rule_kind) = required_str(rule, "rule_kind") else {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generated_path_rule_kind_missing",
+                rule_id,
+            ));
+            continue;
+        };
+        if !allowed(&GENERATED_PATH_RULE_KINDS, rule_kind) {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generated_path_rule_kind_unknown",
+                format!("{rule_id}.{rule_kind}"),
+            ));
+        }
+
+        let Some(pattern) = required_str(rule, "pattern") else {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generated_path_rule_pattern_missing",
+                rule_id,
+            ));
+            continue;
+        };
+        if required_str(rule, "description").is_none() {
+            findings.insert(Finding::new(
+                "generated_artifact_manifest_generated_path_rule_description_missing",
+                rule_id,
+            ));
+        }
+
+        let mut exclude_file_names = BTreeSet::new();
+        if let Some(items) = rule.get("exclude_file_names") {
+            let Some(items) = items.as_array() else {
+                findings.insert(Finding::new(
+                    "generated_artifact_manifest_generated_path_rule_excludes_not_array",
+                    rule_id,
+                ));
+                continue;
+            };
+            for (item_index, item) in items.iter().enumerate() {
+                let Some(value) = item.as_str().filter(|value| !value.trim().is_empty()) else {
+                    findings.insert(Finding::new(
+                        "generated_artifact_manifest_generated_path_rule_exclude_not_string",
+                        format!("{rule_id}.exclude_file_names[{item_index}]"),
+                    ));
+                    continue;
+                };
+                exclude_file_names.insert(value.to_owned());
+            }
+        }
+
+        parsed.push(GeneratedPathRule {
+            rule_id: rule_id.to_owned(),
+            rule_kind: rule_kind.to_owned(),
+            pattern: pattern.to_owned(),
+            exclude_file_names,
+        });
+    }
+
+    parsed
 }
 
 fn parse_declared_artifacts(
@@ -752,21 +960,23 @@ fn parse_declared_artifacts(
     declared
 }
 
-/// Productized predicate: every tracked `*.generated.json` must be declared, and every declared
-/// generated artifact must carry enough policy for a controller/merge queue to know who owns it,
-/// how it materializes, and why broad merge drivers are not authority.
+/// Productized predicate: every tracked generated output matched by the repo-declared
+/// `generated_path_rules` must be declared, and every declared generated artifact must carry
+/// enough policy for a controller/merge queue to know who owns it, how it materializes, and why
+/// broad merge drivers are not authority.
 pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
+    let generated_path_rules = parse_generated_path_rules(manifest, &mut findings);
     let declared = parse_declared_artifacts(manifest, &mut findings);
     let declared_paths: BTreeSet<String> = declared
         .iter()
         .map(|artifact| artifact.path.clone())
         .collect();
-    let tracked_generated = tracked_generated_json_paths(scm_facts);
+    let tracked_generated = tracked_generated_artifact_paths(scm_facts, &generated_path_rules);
 
     for path in tracked_generated.difference(&declared_paths) {
         findings.insert(Finding::new(
-            "generated_artifact_tracked_generated_json_not_declared",
+            "generated_artifact_tracked_generated_output_not_declared",
             path,
         ));
     }
@@ -778,11 +988,11 @@ pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> 
     }
 
     for artifact in &declared {
-        if artifact.path.ends_with(GENERATED_JSON_SUFFIX)
+        if is_tracked_generated_artifact_path(&artifact.path, &generated_path_rules)
             && artifact.merge_policy == "normal-source-merge"
         {
             findings.insert(Finding::new(
-                "generated_artifact_generated_json_uses_normal_source_merge",
+                "generated_artifact_generated_output_uses_normal_source_merge",
                 &artifact.artifact_id,
             ));
         }
@@ -865,10 +1075,49 @@ mod tests {
                 "presubmit_authority": "merge-queue-projected-state",
                 "postsubmit_authority": "postsubmit-main-materialization",
                 "protected_branch_trigger": "push:dev",
-                "manual_conflict_resolution_policy": "reject-generated-json-conflict-hunks-regenerate-from-source-tree",
+                "manual_conflict_resolution_policy": GENERATED_OUTPUT_CONFLICT_POLICY,
                 "drift_repair_policy": "fail-closed-and-open-generated-only-repair-pr",
                 "portable_runner_contract": "regenerate declared generated artifacts from projected and protected final trees"
             },
+            "generated_path_rules": [
+                {
+                    "rule_id": "generated-json-files",
+                    "rule_kind": "path_suffix",
+                    "pattern": ".generated.json",
+                    "description": "canonical oya-ci generated JSON face suffix"
+                },
+                {
+                    "rule_id": "generated-directory-component",
+                    "rule_kind": "path_component",
+                    "pattern": "generated",
+                    "description": "default generated output directory component",
+                    "exclude_file_names": [".gitkeep"]
+                },
+                {
+                    "rule_id": "double-underscore-generated-component",
+                    "rule_kind": "path_component",
+                    "pattern": "__generated__",
+                    "description": "common GraphQL and TypeScript generated output directory"
+                },
+                {
+                    "rule_id": "generated-sources-component",
+                    "rule_kind": "path_component",
+                    "pattern": "generated-sources",
+                    "description": "common JVM generated output directory"
+                },
+                {
+                    "rule_id": "protobuf-generated-file-suffix",
+                    "rule_kind": "path_suffix",
+                    "pattern": ".pb.go",
+                    "description": "common Go protobuf generated output suffix"
+                },
+                {
+                    "rule_id": "typescript-generated-file-suffix",
+                    "rule_kind": "path_suffix",
+                    "pattern": ".generated.ts",
+                    "description": "common TypeScript generated output suffix"
+                }
+            ],
             "artifacts": artifacts,
             "development_lifecycle_enforcement_layers": LIFECYCLE_LAYER_IDS
                 .iter()
@@ -895,8 +1144,93 @@ mod tests {
         let scm_facts = scm(&["out/example.generated.json"]);
         let findings = evaluate_keyed(&manifest, &scm_facts);
         assert!(findings.iter().any(|finding| {
-            finding.code == "generated_artifact_tracked_generated_json_not_declared"
+            finding.code == "generated_artifact_tracked_generated_output_not_declared"
                 && finding.key == "out/example.generated.json"
+        }));
+    }
+
+    #[test]
+    fn undeclared_tracked_generated_directory_output_is_red() {
+        let manifest = manifest(Vec::new());
+        let scm_facts = scm(&["app/generated/client.d.ts", "app/generated/.gitkeep"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_tracked_generated_output_not_declared"
+                && finding.key == "app/generated/client.d.ts"
+        }));
+        assert!(!findings.iter().any(|finding| {
+            finding.code == "generated_artifact_tracked_generated_output_not_declared"
+                && finding.key == "app/generated/.gitkeep"
+        }));
+    }
+
+    #[test]
+    fn public_generated_output_conventions_are_manifest_rule_driven() {
+        let manifest = manifest(Vec::new());
+        let scm_facts = scm(&[
+            "src/__generated__/types.ts",
+            "proto/foo.pb.go",
+            "openapi/client.generated.ts",
+            "target/generated-sources/foo.java",
+        ]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        for path in [
+            "src/__generated__/types.ts",
+            "proto/foo.pb.go",
+            "openapi/client.generated.ts",
+            "target/generated-sources/foo.java",
+        ] {
+            assert!(
+                findings.iter().any(|finding| {
+                    finding.code == "generated_artifact_tracked_generated_output_not_declared"
+                        && finding.key == path
+                }),
+                "{path} should be classified as generated output"
+            );
+        }
+    }
+
+    #[test]
+    fn diff_policy_is_manifest_derived_and_allows_deletions() {
+        let manifest = manifest(Vec::new());
+        let diff = concat!(
+            "M\tsrc/__generated__/types.ts\n",
+            "A\topenapi/client.generated.ts\n",
+            "D\toya/app-shell-frontend/generated/hr-api.d.ts\n",
+            "M\tapp/generated/.gitkeep\n",
+            "M\tsrc/source.rs\n",
+        );
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+        assert_eq!(findings, BTreeSet::new());
+        assert_eq!(
+            violations,
+            vec![
+                DiffPolicyViolation {
+                    status: "M".to_owned(),
+                    path: "src/__generated__/types.ts".to_owned(),
+                },
+                DiffPolicyViolation {
+                    status: "A".to_owned(),
+                    path: "openapi/client.generated.ts".to_owned(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn invalid_generated_path_rules_are_red() {
+        let mut manifest = manifest(vec![artifact("example-face", "out/example.generated.json")]);
+        manifest["generated_path_rules"][0]["rule_kind"] = json!("regex");
+        manifest["generated_path_rules"][0]["pattern"] = json!("");
+        let scm_facts = scm(&["out/example.generated.json"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_manifest_generated_path_rule_kind_unknown"
+                && finding.key == "generated-json-files.regex"
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_manifest_generated_path_rule_pattern_missing"
+                && finding.key == "generated-json-files"
         }));
     }
 
@@ -919,8 +1253,21 @@ mod tests {
         let scm_facts = scm(&["out/example.generated.json"]);
         let findings = evaluate_keyed(&manifest, &scm_facts);
         assert!(findings.iter().any(|finding| {
-            finding.code == "generated_artifact_generated_json_uses_normal_source_merge"
+            finding.code == "generated_artifact_generated_output_uses_normal_source_merge"
                 && finding.key == "example-face"
+        }));
+    }
+
+    #[test]
+    fn generated_directory_output_cannot_use_normal_source_merge() {
+        let mut artifact = artifact("client-types", "app/generated/client.d.ts");
+        artifact["merge_policy"] = json!("normal-source-merge");
+        let manifest = manifest(vec![artifact]);
+        let scm_facts = scm(&["app/generated/client.d.ts"]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(findings.iter().any(|finding| {
+            finding.code == "generated_artifact_generated_output_uses_normal_source_merge"
+                && finding.key == "client-types"
         }));
     }
 
