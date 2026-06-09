@@ -19,7 +19,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
   - `oya-platform-web-kernel` / `oya-platform-web-app` — SaaS web layer
   - Bench: collaborative workspace surface (uses OG + workflow + identity)
   - Connect: partner integration surface
-  - Products owned: `products/saas-platform/PRD.md`
+  - Product index: `docs/products/README.md` SaaS Platform entry (`docs/products/saas-platform/PRD.md` remains a tracked product-PRD gap, not a readiness claim)
 - **Cross-axis contracts (DESIGN §10):**
   - `Object Graph property tier` (co-owner with `platform-eventing-og`, `platform-privacy-dub`) — OG shape changes are cross-axis
   - `Marketplace listing` (co-owner with `axis-foundry`) — plugin signing + sandbox gate
@@ -27,7 +27,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
   - `Webhook delivery + signing` (consumer of `platform-api-sdk` — SaaS-authored webhooks)
   - `Public REST stability tier` (consumer — SaaS surface slice)
 - **Catalog records:** `crates/oya-saas-*`, `crates/oya-platform-forms-*`, `crates/oya-platform-metering-*`, `crates/oya-platform-web-*`
-- **Runbooks:** `runbooks/workflow-engine-restart.md`, `runbooks/plugin-sandbox-escape.md`, `runbooks/marketplace-listing-takedown.md`
+- **Runbooks:** `docs/runbooks/saas/workflow-engine-deadlock.md`, `docs/runbooks/saas/plugin-runtime-sandbox-escape.md`, `docs/runbooks/saas/marketplace-listing-takedown.md`
 - **ADRs:** ADR-0035 (workflow engine), ADR-0006..0112 (OG — co-author with `platform-eventing-og`)
 
 ## In-scope work
@@ -68,7 +68,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 | All vertical teams | Workflow engine, OG, plugin substrate, metering | Per vertical onboard |
 | `axis-search` | OG-indexed content (via consent tier) | Monthly |
 | `axis-ads-analytics` | Tenant-consented data classes for ad targeting | Wave gate |
-| `gtm-sales-se` | Demo environment, pilot tenant workflows | Monthly |
+| `gtm-sales-se` | Controlled evaluation tenants, sales-engineering validation workflows, and evidence-backed pilot workflow packs | Monthly |
 | `gtm-customer-success` | Tenant health dashboards, workflow analytics | Monthly |
 
 ## Success metrics
@@ -91,9 +91,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 - Cross-team review: monthly cross-axis contract audit for OG and marketplace contract changes
 
 ## Bandwidth + hiring
-- Current FTE: TBD
-- Target FTE: TBD per axis-wave (PRD §3.1)
-- Open requisitions: link to `HIRING-CAPACITY-PLAN.md`
+Capacity is tracked outside this repository in the staffing system and is not a product-readiness signal. W-SaaS-Preview readiness is gated by the functional, security, SLO, and runbook evidence in this charter rather than placeholder FTE counts.
 
 ## Operating norms
 - Code review: per CLAUDE.md `## Code Review` rules; OG contract PRs require cross-axis label
@@ -110,4 +108,4 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 | Marketplace fraudulent plugin listed | Medium | Plugin signing + review pipeline; automated static analysis |
 
 ## Sources scanned
-PRD.md §2, §3.1 (W-SaaS-Preview), DESIGN.md §1 (Axis 1), §10 (OG tier, marketplace, billing event rows), products/saas-platform/PRD.md (draft), DOC-CATALOG.md §2.5.
+docs/PRD.md §2 and §3.1 (W-SaaS-Preview), docs/products/README.md SaaS Platform entry, specs/masterplan.json M03-P04/M03-P08 references, docs/decisions/ADR-0035, ADR-0036, ADR-0249, ADR-0314, and DOC-CATALOG.md §2.5.
