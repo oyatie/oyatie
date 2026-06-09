@@ -199,7 +199,12 @@
         "one_command_or_one_click_reproducible_setup",
         "remote_config_driven_secure_cluster_join",
         "one_time_bootstrap_to_secured_hardened_cluster_member",
-        "distroless_or_scratch_production_images_by_default"
+        "distroless_or_scratch_production_images_by_default",
+        "toolchain_services_are_tenant_facing_cloud_offerings",
+        "internal_pipeline_and_each_tenant_pipeline_isolated_secure_separate",
+        "bespoke_rust_scm_ci_cd_control_planes_with_bridge_adapters_only_until_cutover",
+        "full_bespoke_ci_required_context_before_any_mechanical_enforcement_claim",
+        "affected_only_ci_feedback_cannot_satisfy_merge_or_phase_exit_authority"
       ],
       "exit_rule": "FD-001 planning is closed only when flat microservice boundaries, independent horizontal scaling, clean architecture, API-first contracts, and hyperscaler pattern mappings are accepted before implementation ChangeSets begin.",
       "cloud_control_plane_resource_model": {

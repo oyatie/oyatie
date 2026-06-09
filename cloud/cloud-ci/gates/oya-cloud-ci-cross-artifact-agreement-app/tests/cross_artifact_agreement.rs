@@ -48,6 +48,64 @@ fn expected_violations(fixture: &Value) -> BTreeSet<String> {
         .unwrap_or_default()
 }
 
+fn architecture_rule_set(architecture: &Value, context: &str) -> BTreeSet<String> {
+    if let Some(required_rules) = architecture.get("required_rules") {
+        return string_array_set(required_rules, &format!("{context}.required_rules"));
+    }
+
+    let mut rules = BTreeSet::new();
+    for key in [
+        "required_microservice_rules",
+        "required_clean_architecture_rules",
+        "required_api_first_rules",
+        "required_hyperscaler_pattern_rules",
+    ] {
+        if let Some(values) = architecture.get(key) {
+            rules.extend(string_array_set(values, &format!("{context}.{key}")));
+        }
+    }
+    assert!(
+        !rules.is_empty(),
+        "{context} must define required_rules or split required_*_rules arrays"
+    );
+    rules
+}
+
+fn string_array_set(value: &Value, context: &str) -> BTreeSet<String> {
+    value
+        .as_array()
+        .unwrap_or_else(|| panic!("{context} must be an array"))
+        .iter()
+        .map(|item| {
+            item.as_str()
+                .unwrap_or_else(|| panic!("{context} contains a non-string item"))
+                .to_owned()
+        })
+        .collect()
+}
+
+fn missing_from<'a>(expected: &'a BTreeSet<String>, actual: &'a BTreeSet<String>) -> Vec<&'a str> {
+    expected
+        .difference(actual)
+        .map(String::as_str)
+        .collect::<Vec<_>>()
+}
+
+fn assert_same_rule_set(
+    left: &BTreeSet<String>,
+    right: &BTreeSet<String>,
+    left_name: &str,
+    right_name: &str,
+) {
+    assert_eq!(
+        left,
+        right,
+        "{left_name} and {right_name} architecture rule sets drifted; missing_from_{left_name}={:?}; missing_from_{right_name}={:?}",
+        missing_from(right, left),
+        missing_from(left, right)
+    );
+}
+
 #[test]
 fn cross_artifact_fixtures_execute_red_green_cases() {
     let dir = fixture_dir();
@@ -104,6 +162,34 @@ fn cross_artifact_fixtures_execute_red_green_cases() {
         seen_green && seen_red,
         "cross-artifact-agreement fixtures must include BOTH RED and GREEN cases"
     );
+}
+
+/// Productized false-green guard: planning closure is an architecture authority, so the
+/// cloud-ci cross-artifact gate must fail whenever the contract, masterplan, or sequencing
+/// sidecar carry different first-deliverable architecture rule sets. This is a pure
+/// data-over-data check over JSON artifacts; it does not shell out to the legacy dev-cli gate.
+#[test]
+fn planning_closure_architecture_rules_agree_across_authority_artifacts() {
+    let root = repo_root();
+    let contract = load_json(&root.join("specs/planning-closure-contract.json"));
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let sequencing = load_json(&root.join("specs/master-plan-sequencing.json"));
+
+    let contract_rules = architecture_rule_set(
+        &contract["first_deliverable"]["architecture_exit_bar"],
+        "specs/planning-closure-contract.json:first_deliverable.architecture_exit_bar",
+    );
+    let masterplan_rules = architecture_rule_set(
+        &masterplan["planning_closure"]["first_deliverable"]["architecture_exit_bar"],
+        "specs/masterplan.json:planning_closure.first_deliverable.architecture_exit_bar",
+    );
+    let sequencing_rules = architecture_rule_set(
+        &sequencing["first_deliverable_ordering"]["architecture_exit_bar"],
+        "specs/master-plan-sequencing.json:first_deliverable_ordering.architecture_exit_bar",
+    );
+
+    assert_same_rule_set(&contract_rules, &masterplan_rules, "contract", "masterplan");
+    assert_same_rule_set(&contract_rules, &sequencing_rules, "contract", "sequencing");
 }
 
 /// Born-blocking self-test: GATE-1 must go RED on TODAY's real corpus. Per the firewall

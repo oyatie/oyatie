@@ -101,83 +101,6 @@ const REQUIRED_KR_PACK_SURFACES: &[&str] = &[
     "ops_control_center_localization_runbooks_and_escalation_flows",
 ];
 
-const REQUIRED_ARCHITECTURE_RULES: &[&str] = &[
-    "flat_microservice_catalog_not_grouping_forks",
-    "per_microservice_prd_manifest_phase_ip_contracts",
-    "per_microservice_clean_architecture_crate_layers",
-    "per_microservice_api_first_contracts_before_handlers",
-    "no_direct_cross_microservice_calls",
-    "workflow_and_ontology_as_cross_microservice_adapter_layer",
-    "independent_enablement_and_deployability",
-    "independent_horizontal_scaling_per_microservice",
-    "stateless_rest_and_worker_replicas_where_possible",
-    "tenant_quota_and_backpressure_controls_per_microservice",
-    "cell_shard_partitioning_without_cross_service_hotspots",
-    "tenant_isolation_boundaries_per_microservice",
-    "observability_golden_signals_per_microservice",
-    "auditability_and_evidence_emission_per_microservice",
-    "policy_compliance_controls_per_microservice",
-    "performance_budget_and_capacity_model_per_microservice",
-    "hot_path_and_data_access_plan_per_microservice",
-    "industry_hyperscaler_best_practice_mapping_per_microservice",
-    "no_empty_promises_or_aspirational_claims",
-    "no_false_green_signals_or_empty_coverage",
-    "no_silent_regressions_without_baseline_delta",
-    "development_pipeline_evolves_with_product_evidence",
-    "phase_skill_routing_applied_with_using_agent_skills",
-    "ci_gates_review_loops_and_baselines_ratchet_with_masterplan",
-    "automation_first_development_pipeline",
-    "manual_exception_registry_and_automation_ratchet",
-    "per_microservice_slo_runbook_threat_model_cost_finops",
-    "per_microservice_import_export_migration_paths",
-    "ops_dashboard_control_center_full_depth_operational_surface",
-    "ops_control_center_incident_deployment_tenant_policy_audit_and_recovery_workflows",
-    "kernel_domain_app_api_adapter_runtime_inward_dependency_direction",
-    "business_logic_outside_api_handlers",
-    "ports_declared_in_inner_layers",
-    "adapters_implement_ports_without_peer_adapter_coupling",
-    "runtime_as_composition_root_only",
-    "openapi_asyncapi_proto_contracts_before_handlers",
-    "consistent_error_semantics",
-    "boundary_validation",
-    "idempotency_keys_for_state_changing_rest_operations",
-    "semver_and_compatibility_policy_before_public_release",
-    "slo_error_budget_gating",
-    "progressive_delivery_and_rollback",
-    "tenant_isolation_and_quota_controls",
-    "independent_horizontal_scaling_and_backpressure",
-    "cell_shard_and_partition_strategy",
-    "tenant_isolation_policy_and_data_boundary",
-    "observability_traces_metrics_logs_and_golden_signals",
-    "auditability_event_schema_retention_and_replay",
-    "evidence_backed_claims_and_gate_artifacts",
-    "policy_compliance_cedar_data_residency_and_governance",
-    "performance_latency_throughput_capacity_and_load_test_plan",
-    "industry_hyperscaler_best_practice_source_mapping",
-    "no_empty_promises_or_false_signals",
-    "regression_baseline_diff_and_guardrail",
-    "development_pipeline_continuous_improvement_and_gate_ratchet",
-    "phase_appropriate_agent_skills_required",
-    "automatable_development_cycle_work_is_automated",
-    "manual_steps_have_exception_and_automation_followup",
-    "audit_chain_and_provenance",
-    "supply_chain_signing_sbom_and_attestation",
-    "observability_golden_signals",
-    "runbooks_and_incident_response",
-    "vendor_exit_and_portability",
-    "cloud_native_kubernetes_deployment_contract",
-    "reproducible_deployment_across_major_enterprise_linux_families",
-    "macos_apple_silicon_local_kubernetes_reproducibility",
-    "multi_arch_oci_artifacts_amd64_arm64",
-    "no_host_distro_lock_in",
-    "portable_opentofu_gitops_and_oci_artifacts",
-    "cluster_conformance_matrix_per_deployable",
-    "one_command_or_one_click_reproducible_setup",
-    "remote_config_driven_secure_cluster_join",
-    "one_time_bootstrap_to_secured_hardened_cluster_member",
-    "distroless_or_scratch_production_images_by_default",
-];
-
 const REQUIRED_DEPLOYMENT_HOST_TARGETS: &[&str] = &[
     "talos",
     "ubuntu-lts",
@@ -375,14 +298,21 @@ pub(crate) fn validate_planning_closure_gate(
         repo_root_for(&args.root_hub_path).join(EXPECTED_STATUS_LEDGER_REF.trim_start_matches('/'));
     let status_ledger = read_json(&status_ledger_path, "planning closure status ledger")?;
 
-    validate_contract(object(&contract, "planning closure contract root")?)?;
+    let contract_architecture_rules =
+        validate_contract(object(&contract, "planning closure contract root")?)?;
     validate_status_closure_ledger(object(
         &status_ledger,
         "planning closure status ledger root",
     )?)?;
     validate_root_hub(object(&root_hub, "root hub pointers root")?)?;
-    validate_sequencing(object(&sequencing, "master plan sequencing root")?)?;
-    validate_master_plan(object(&master_plan, "master plan root")?)?;
+    validate_sequencing(
+        object(&sequencing, "master plan sequencing root")?,
+        &contract_architecture_rules,
+    )?;
+    validate_master_plan(
+        object(&master_plan, "master plan root")?,
+        &contract_architecture_rules,
+    )?;
     validate_stale_archive_manifest(
         object(
             &stale_archive_manifest,
@@ -406,13 +336,13 @@ pub(crate) fn validate_planning_closure_gate(
         packaging_axis_count: REQUIRED_PACKAGING_AXES.len(),
         surface_count: REQUIRED_SURFACES.len(),
         kr_pack_surface_count: REQUIRED_KR_PACK_SURFACES.len(),
-        architecture_rule_count: REQUIRED_ARCHITECTURE_RULES.len(),
+        architecture_rule_count: contract_architecture_rules.len(),
         status_fields_checked: status_scan.status_fields_checked,
         blocker_count: status_scan.blocker_count,
     })
 }
 
-fn validate_contract(root: &Map<String, Value>) -> Result<(), String> {
+fn validate_contract(root: &Map<String, Value>) -> Result<BTreeSet<String>, String> {
     let meta = object_field(root, "_meta", "planning closure contract root")?;
     require_string_value(meta, "spec_id", EXPECTED_SPEC_ID, "_meta")?;
     require_string_value(meta, "status", EXPECTED_STATUS, "_meta")?;
@@ -476,7 +406,8 @@ fn validate_contract(root: &Map<String, Value>) -> Result<(), String> {
         "first_deliverable.localization_exit_bar",
     )?;
     let architecture = object_field(first, "architecture_exit_bar", "first_deliverable")?;
-    validate_architecture_exit_bar(architecture, "first_deliverable.architecture_exit_bar")?;
+    let architecture_rules =
+        validate_architecture_exit_bar(architecture, "first_deliverable.architecture_exit_bar")?;
     let deployment = object_field(
         root,
         "deployment_portability_policy",
@@ -528,7 +459,7 @@ fn validate_contract(root: &Map<String, Value>) -> Result<(), String> {
         "no_placeholder_policy",
     )?;
     require_marker_coverage(no_placeholder, "blocking_markers", "no_placeholder_policy")?;
-    Ok(())
+    Ok(architecture_rules)
 }
 
 fn validate_stale_document_policy(
@@ -785,7 +716,10 @@ fn validate_status_closure_ledger(root: &Map<String, Value>) -> Result<(), Strin
     Ok(())
 }
 
-fn validate_sequencing(root: &Map<String, Value>) -> Result<(), String> {
+fn validate_sequencing(
+    root: &Map<String, Value>,
+    expected_architecture_rules: &BTreeSet<String>,
+) -> Result<(), String> {
     validate_stale_document_archival(root)?;
 
     let closure = object_field(
@@ -837,8 +771,9 @@ fn validate_sequencing(root: &Map<String, Value>) -> Result<(), String> {
         "first_deliverable_ordering",
     )?;
     let architecture = object_field(first, "architecture_exit_bar", "first_deliverable_ordering")?;
-    validate_architecture_exit_bar(
+    validate_architecture_exit_bar_matches(
         architecture,
+        expected_architecture_rules,
         "first_deliverable_ordering.architecture_exit_bar",
     )?;
     Ok(())
@@ -894,7 +829,10 @@ fn validate_stale_document_archival(root: &Map<String, Value>) -> Result<(), Str
     Ok(())
 }
 
-fn validate_master_plan(root: &Map<String, Value>) -> Result<(), String> {
+fn validate_master_plan(
+    root: &Map<String, Value>,
+    expected_architecture_rules: &BTreeSet<String>,
+) -> Result<(), String> {
     let meta = object_field(root, "_meta", "master plan root")?;
     require_string_value(
         meta,
@@ -942,8 +880,9 @@ fn validate_master_plan(root: &Map<String, Value>) -> Result<(), String> {
         "architecture_exit_bar",
         "planning_closure.first_deliverable",
     )?;
-    validate_architecture_exit_bar(
+    validate_architecture_exit_bar_matches(
         architecture,
+        expected_architecture_rules,
         "planning_closure.first_deliverable.architecture_exit_bar",
     )?;
     Ok(())
@@ -965,7 +904,7 @@ fn validate_first_deliverable_common(
 fn validate_architecture_exit_bar(
     architecture: &Map<String, Value>,
     context: &str,
-) -> Result<(), String> {
+) -> Result<BTreeSet<String>, String> {
     for key in [
         "clean_architecture_required",
         "api_first_required",
@@ -988,10 +927,18 @@ fn validate_architecture_exit_bar(
         "specs/hyperscaler-architecture-invariants.json",
         context,
     )?;
-    let rules = architecture_rule_set(architecture, context)?;
+    architecture_rule_set(architecture, context)
+}
+
+fn validate_architecture_exit_bar_matches(
+    architecture: &Map<String, Value>,
+    expected_architecture_rules: &BTreeSet<String>,
+    context: &str,
+) -> Result<(), String> {
+    let rules = validate_architecture_exit_bar(architecture, context)?;
     require_exact_seen_set(
         &rules,
-        REQUIRED_ARCHITECTURE_RULES,
+        expected_architecture_rules,
         &format!("{context}.required_rules"),
     )
 }
@@ -1462,20 +1409,16 @@ fn string_set_field(
 
 fn require_exact_seen_set(
     actual_set: &BTreeSet<String>,
-    expected: &[&str],
+    expected_set: &BTreeSet<String>,
     context: &str,
 ) -> Result<(), String> {
-    let expected_set = expected
-        .iter()
-        .map(|value| (*value).to_owned())
-        .collect::<BTreeSet<_>>();
-    if actual_set != &expected_set {
+    if actual_set != expected_set {
         let missing = expected_set
             .difference(actual_set)
             .map(String::as_str)
             .collect::<Vec<_>>();
         let unexpected = actual_set
-            .difference(&expected_set)
+            .difference(expected_set)
             .map(String::as_str)
             .collect::<Vec<_>>();
         return Err(format!(
