@@ -97,7 +97,6 @@
     "3185596f5a1bfbbfd1fff7e1ccd7500af9906613": 1778899783,
     "31def86e09b6acaa61fbeac8f2d2f68f9dbd217b": 1780868017,
     "32b123f84fccec56d5b1226cd3482ef483e3b39f": 1780045142,
-    "3319a2bab5b78c61f44a6963b65b42b927bbf69f": 1780966156,
     "33203a30065371b010fd0754d19173e11dd26aaa": 1779998369,
     "33e6efa250dfd2ec4983103e11754c616783aeba": 1780014996,
     "33ea3fd7d8a51347b280dec0be5621b6269a91de": 1779802115,
@@ -323,6 +322,7 @@
     "9819a57bb64a23d0c6f00139a1a00167f76255c4": 1780364111,
     "981c16c82e959110402b664a9db7482c7a4d4b04": 1779013906,
     "99014e29d75d9a005827aad688740a63f9ae2282": 1780227712,
+    "9a509a623b08fa82f2207b52414f24fc1eba1e43": 1780967050,
     "9a660798a7b72cb76f6a4cbc1396e9dfff901fbc": 1779012291,
     "9a95023ffb85a52ce7cacabec0a6526296c23c7e": 1778733870,
     "9aaaeda9b53582adc39a601603e491a9f3ea6ff0": 1779836923,
@@ -526,7 +526,7 @@
     "ffa99151b9edbe56e877a25faec7cd78a0b23267": 1779939374,
     "fff4fdfc944958a47ecba240a845a620ea490fac": 1778985046
   },
-  "head_time_secs": 1780966156,
+  "head_time_secs": 1780967050,
   "last_touch_commit": {
     "\"benchmarks/cross-\\302\\265service-call-overhead.md\"": "44bca8b95190fb44914713e07cfe3e7f89c68580",
     "\"microservices/developer-sdk/decisions/ADR-SDK-0003-per-developer-sandbox-tenant-via-tenancy-\\302\\265service's-sandbox-.md\"": "3059cbbc86852353ee7339ac3a3338df173c9c63",
@@ -570,7 +570,7 @@
     ".github/workflows/ci-failure-fix-loop.yml": "b221647ba4ee4a118b1044274eb662876535eec9",
     ".github/workflows/cosign.yml": "b221647ba4ee4a118b1044274eb662876535eec9",
     ".github/workflows/docs-graph-drift.yml": "438a895b1605404289df827ade07a473a6c9c5ee",
-    ".github/workflows/oya-ci-required.yml": "3319a2bab5b78c61f44a6963b65b42b927bbf69f",
+    ".github/workflows/oya-ci-required.yml": "9a509a623b08fa82f2207b52414f24fc1eba1e43",
     ".github/workflows/oya-foundry-fitness-api-semver.yml": "b221647ba4ee4a118b1044274eb662876535eec9",
     ".github/workflows/oya-foundry-fitness-aspirational-enforcement.yml": "b221647ba4ee4a118b1044274eb662876535eec9",
     ".github/workflows/oya-foundry-fitness-banned-primitives.yml": "b221647ba4ee4a118b1044274eb662876535eec9",
