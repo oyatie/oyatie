@@ -19,12 +19,30 @@ doc_status: drafted
 
 `cloud-kms` is an active µservice directory with no existing PRD artifact in this checkout. This PRD records the standard PRD header and the Wave 15-ZF doctrine references required before downstream implementation waves consume ADR-0346 through ADR-0349.
 
+## Current authority
+
+- Canon source: `registry/stores/design-store.json` and
+  `registry/stores/instructions-store.json` (`D-SSOT-CURRENT-TRUTH`,
+  `D-AUTHORITY-CONVERSATION`, `D-CLOUD-NATIVE`, `D-CICD-AUTHORITY`, and
+  `D-GOVERNANCE-CENTRAL`) plus `specs/masterplan.json` for planning projection.
+- Merge/gate authority: branch-protected GitHub Actions required context
+  `oya-ci-required` is the live blocker until the owned `oya-ci` cutover reuses
+  the same shared Rust gate logic. Local `oya verify`, `oya gate`, dev CLI,
+  Cargo-only checks, shell scripts, and Jenkins mirrors are non-authoritative
+  unless explicitly re-homed through the cloud-ci pipeline.
+- Delivery authority: Kubernetes/cloud-native services, controllers, APIs, and
+  declarative manifests are canonical. ArgoCD/GitOps consumes signed
+  declarative state; manual `kubectl apply`, Helm CLI deploys, and local
+  operator scripts are break-glass diagnostics only, not canonical procedure.
+- ADR-0346/ADR-0349 text below preserves historical control intent only where
+  it does not conflict with the current authority chain above.
+
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- ADR-0346 — legacy CI-mirror control intent only. The former local `./bin/oya verify --ci-required` authority wording is superseded for `cloud-kms`; the branch-protected `oya-ci-required` context is the live required gate, and reusable Rust gate logic must be re-homed into cloud-ci / owned `oya-ci` rather than revived as local CLI authority.
 - ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 — legacy self-hostable substrate control intent only. Jenkins is not a parallel merge authority for `cloud-kms`; GitHub Actions `oya-ci-required` remains the live required context until owned `oya-ci` cutover. ArgoCD/GitOps remains the declarative CD direction and replaces manual `kubectl apply` or Helm CLI deploys as canonical procedure.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-kms` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

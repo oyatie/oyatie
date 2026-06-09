@@ -32,10 +32,32 @@ companion_docs:
 
 This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349 only. It does not implement Wave 15-ZA, Wave 15-ZB, Wave 15-ZD, or Wave 15-ZE bodies.
 
-### ADR-0346 Local CI Mirror
-- `oya verify --ci-required` is the canonical local pre-push verifier for this microservice's future architecture changes.
-- The verifier MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH mandatory mirror step before success: cargo fmt, cargo check, cargo clippy, cargo nextest, and `oya gate run-all --ci-required`.
-- Architecture changes that add generated docs, manifests, contracts, runbooks, or CI surfaces must assume the `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, and `oya-governance-oya-submit-calls-verify` lanes protect the local-to-CI contract.
+## Current authority
+
+- Canon source: `registry/stores/design-store.json` and
+  `registry/stores/instructions-store.json` (`D-SSOT-CURRENT-TRUTH`,
+  `D-AUTHORITY-CONVERSATION`, `D-CLOUD-NATIVE`, `D-CICD-AUTHORITY`, and
+  `D-GOVERNANCE-CENTRAL`) plus `specs/masterplan.json` for planning projection.
+- Merge/gate authority: branch-protected GitHub Actions required context
+  `oya-ci-required` is the live blocker until the owned `oya-ci` cutover reuses
+  the same shared Rust gate logic. Local `oya verify`, `oya gate`, dev CLI,
+  Cargo-only checks, shell scripts, and Jenkins mirrors are non-authoritative
+  unless explicitly re-homed through the cloud-ci pipeline.
+- Delivery authority: Kubernetes/cloud-native services, controllers, APIs, and
+  declarative manifests are canonical. ArgoCD/GitOps consumes signed
+  declarative state; manual `kubectl apply`, Helm CLI deploys, and local
+  operator scripts are break-glass diagnostics only, not canonical procedure.
+
+### ADR-0346 CI mirror control intent (superseded local authority)
+- ADR-0346 is retained as historical control intent for full-matrix gate parity.
+  It no longer makes `oya verify`, `oya gate`, dev CLI, Cargo-only checks, or
+  shell scripts authoritative for merge readiness.
+- The live required gate is the branch-protected GitHub Actions
+  `oya-ci-required` context until owned `oya-ci` cutover reuses the same shared
+  Rust gate logic.
+- Architecture changes that add generated docs, manifests, contracts, runbooks,
+  or CI surfaces must preserve full-matrix evidence through cloud-ci / owned
+  `oya-ci` rather than reintroducing local CLI authority.
 
 ### ADR-0347 Governance Lane Prefix
 - Governance-owned fitness lanes for this microservice use the `oya-governance-*` prefix. The canonical vocabulary is enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
@@ -48,11 +70,20 @@ This architecture artifact carries doctrine propagation for ADR-0346, ADR-0347, 
 - DYNAMIC SHARDING adjusts shard count within a cell by HOT-SPLIT when shard p99 latency exceeds SLO or utilization exceeds 80 percent, and by COLD-MERGE when adjacent shards both run below 20 percent utilization for more than 24 hours; per-microservice overrides must be explicit.
 - Relevant admission lanes are `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, and `oya-governance-audit-chain-emit-on-automation-events`.
 
-### ADR-0349 Jenkins And ArgoCD CI/CD Context
-- Jenkins LTS and ArgoCD are the canonical self-hostable CI/CD substrates for this microservice across air-gap, on-prem, colo, and Oyatie-as-provider deployment contexts.
-- GitHub Actions remains the hosted PR CI surface; Jenkins augments it in self-hosted contexts with JCasC plus Jenkinsfile parity enforced by `oya-governance-jenkins-github-actions-parity`.
-- ArgoCD is the GitOps CD orchestrator. Application syncs verify cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and preserve tenant namespace isolation through Cedar per ADR-0243.
-- CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit` as acceptance context.
+### ADR-0349 self-hostable CI/CD control intent (bounded by live authority)
+- ADR-0349 is retained as self-hostable CI/CD control intent, not as a parallel
+  merge authority. Jenkins mirrors may support disconnected/self-hosted
+  contexts only after cloud-ci re-homes the shared Rust gate logic.
+- GitHub Actions `oya-ci-required` remains the live branch-protected required
+  context until owned `oya-ci` cutover.
+- ArgoCD/GitOps remains the declarative CD direction. Application syncs verify
+  cosign signatures per ADR-0181, emit audit-chain rows per ADR-0263, and
+  preserve tenant namespace isolation through Cedar per ADR-0243. Manual
+  `kubectl apply` and Helm CLI deploys are not canonical procedure.
+- CI/CD architecture references must preserve `oya-governance-argocd-application-cosign-verified`,
+  `oya-governance-argocd-tenant-namespace-isolation`, and
+  `oya-governance-deploy-audit-chain-emit` as acceptance context while avoiding
+  local CLI or Jenkins-as-merge-authority language.
 
 ## ADR-0339 integration
 - Integration state: PROPOSED for `cloud-kms`; ACCEPTED waits for service wrapper implementation and signed module evidence.
