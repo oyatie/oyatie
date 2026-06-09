@@ -1,0 +1,190 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-os",
+  "version": "0.1.0",
+  "owner": "axis-cloud-platform",
+  "bounded_contexts": [
+    {
+      "name": "cloud-os",
+      "description": "Scaffold-only landing zone for Talos-style node operating-system assets. This manifest records boundaries only; it does not move infra/talos runtime files, alter cloud/cloud-k8s control-plane assets, build OS images, publish installers, or claim live node runtime readiness.",
+      "crates": []
+    }
+  ],
+  "layers": [
+    "scaffold"
+  ],
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "proto": [],
+    "contract_status": "not_claimed_scaffold_only"
+  },
+  "capabilities": [],
+  "slos": [],
+  "ips": [],
+  "regulatory_packs": [],
+  "lts_pins": {},
+  "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
+    {
+      "id": "ADR-0245",
+      "title": "Substrate Vs Product Layering",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0245-substrate-vs-product-layering.md"
+    },
+    {
+      "id": "ADR-0254",
+      "title": "Deployment Model",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0254-deployment-model.md"
+    },
+    {
+      "id": "ADR-0363",
+      "title": "Retire Agentic VCS Platform To Intelligence On GitHub Substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "not_claimed_scaffold_only",
+    "tenant_rate_limit": "not_claimed_scaffold_only",
+    "golden_signals": "not_claimed_scaffold_only",
+    "error_budget_burn": "not_claimed_scaffold_only"
+  },
+  "audit_chain": {
+    "runtime_audit_emitter": false,
+    "evidence_refs": [],
+    "non_claim": "No runtime audit emission or persistence is implemented by this scaffold."
+  },
+  "secrets_substrate": {
+    "provider": "none",
+    "format": "not_claimed_scaffold_only",
+    "non_claim": "No secrets, keys, credentials, or installation tokens are introduced."
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": false,
+    "ambient_ztunnel": false,
+    "ambient_waypoint": false,
+    "runtime_policy_apply": false,
+    "non_claim": "No pod, host, CNI, service mesh, or network policy runtime is deployed."
+  },
+  "data_classes_processed": [],
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.0,
+    "baseline_ram_per_tenant": 0,
+    "storage_per_tenant": 0,
+    "connections_per_tenant": {},
+    "scaling_dimension": "not_claimed_runtime",
+    "cell_placement_class": "not_claimed_scaffold_only",
+    "notes": "Scaffold-only landing zone; no workload-producing service or node runtime capacity is claimed."
+  },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    },
+    "non_claim": "No node placement, tenant placement, or shard movement is implemented."
+  },
+  "dr": {
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "dr_tier": "not_claimed_runtime",
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No OS image replication, failover, restore drill, or measured DR evidence is implemented."
+  },
+  "pod_runtime_tier": 0,
+  "pod_runtime_tier_justification": "No pod runtime is introduced; value is a non-runtime placeholder for scaffold accounting only.",
+  "pod_runtime_tier_surface_evidence": [],
+  "tenant_version_pinning": {
+    "declared_versions": [],
+    "default_version": null,
+    "supported_window_size": 0,
+    "supported_window_minimum_days": 0,
+    "supports_per_tenant_pinning": false,
+    "deprecation_calendar": [],
+    "public_surface_files": {},
+    "non_claim": "No public API or per-tenant version pinning surface exists in this scaffold."
+  },
+  "consumes_upstream_oss": [],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [],
+  "implemented_source_files": [],
+  "explicit_non_claims": [
+    "No infra/talos file is moved, copied, or retired by this scaffold.",
+    "No cloud/cloud-k8s asset is modified by this scaffold.",
+    "No Talos schematic, machine config, installer media, OS image, runtime service, or production node readiness is claimed."
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "criticality_tier": "T1-intended-future",
+  "layer": "scaffold",
+  "canonical_destination_decision": {
+    "destination_path": "cloud/cloud-os/",
+    "alternate_destination_checked": "node-os",
+    "alternate_destination_result": "not_present_in_origin_dev",
+    "source_instruction": "Use an existing node-os destination if present; investigation found no tracked node-os surface in origin/dev, so cloud/cloud-os remains the explicit destination from HANDOFF."
+  },
+  "architecture_boundary": {
+    "owns": [
+      "future node OS image and configuration contracts",
+      "immutable host-OS update policy",
+      "node bootstrap OS invariants",
+      "Talos-style machine configuration contracts once migrated by a separate reviewed change"
+    ],
+    "does_not_own": [
+      "Kubernetes control-plane lifecycle under cloud/cloud-k8s/",
+      "kernel/framekernel assets under cloud/cloud-kernel/",
+      "current Talos runtime files under infra/talos/"
+    ],
+    "status": "scaffold-only; no live OS image, installer, Talos schematic migration, runtime deployment, or production node claim"
+  },
+  "current_slice": {
+    "intent": "Non-breaking landing zone that records ownership and boundaries only.",
+    "adds": [
+      "machine-readable manifest"
+    ],
+    "does_not_add": [
+      "crates",
+      "contracts",
+      "OpenTofu modules",
+      "Helm charts",
+      "Talos schematics",
+      "installation media",
+      "runtime automation"
+    ]
+  },
+  "future_placement_rules": [
+    "Place immutable host-OS image metadata here.",
+    "Place node boot policy and secure update-channel declarations here.",
+    "Place Talos-style machine configuration contracts here only through a separate reviewed migration.",
+    "Any runtime migration from infra/talos/ requires an explicit copy or move plan and verification evidence."
+  ],
+  "source_documentation_policy": {
+    "markdown_source_files": "forbidden",
+    "human_docs": "derive externally from this machine-readable manifest when needed"
+  }
+}
