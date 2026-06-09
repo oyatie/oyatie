@@ -1081,7 +1081,7 @@ status = "active"
 owner = "council-foundry"
 rationale = "Ops µservice — hyperscaler operations console (`ops.oyatie.com`); 20 bounded contexts across 7 waves; Wave 1 = ops.docs (live-introspection docs portal) only per ralplan-ops-portal v7 §6(a); inherits ADR-0067 perf authority (SSR p99 ≤500ms, SSE p99 ≤2s, 10k concurrent SSE). Introducing phase: M03-cloud-saas-search-workspace-preview/P04-saas-platform-preview (IP-X1-docs-portal-substrate-crates)."
 adr_cite = "ADR-0067"
-bounded_contexts = ["docs"]   # Wave 1 only (per ralplan-ops-portal v7 §6(a)); Waves 2-7 add 19 BCs at their respective ralplan landings — `workspace` reclassified per .omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md §6(b) (Wave 2 candidate-or-retire)
+bounded_contexts = ["docs"]   # Wave 1 only (per ralplan-ops-portal v7 §6(a)); Waves 2-7 add 19 BCs at their respective ralplan landings — `workspace` reclassified by the historical ralplan-ops-freelance realignment note now retired from tracked .omc/ durables.
 naming_scope_adr = "ADR-NNNN-microservice-ops"   # authored at M02-P19 IP-X1 (docs §8 follow-up #1)
 status = "planned"
 
@@ -1112,7 +1112,7 @@ opentelemetry_sdk = { version = "0.32.0", default-features = false, features = [
 # Only oya-http-runtime-hyper-adapter (Layer 5) consumes these directly;
 # Layers 1-4 remain std-only.
 #
-# Pooling-convergence campaign (slice 1, 2026-05-29, .omc/pooling-convergence.json):
+# Pooling-convergence campaign (slice 1, 2026-05-29; historical .omc/ plan retired from tracked durables):
 # the intelligence/ provider-pool runtime needs an OUTBOUND HTTPS client, not just
 # the inbound server. `client` + `http2` are added to hyper, and `client-legacy`
 # (the hyper-util pooled legacy Client) + `http2` to hyper-util. hyper-rustls is

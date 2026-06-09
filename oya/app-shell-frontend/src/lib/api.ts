@@ -1,14 +1,13 @@
-// Typed API client for the Leptos prototype dev server render-envelope endpoint.
-// This module will be superseded by the OpenAPI-generated client (ADR-0372 D2)
-// once the Rust backend publishes an OpenAPI 3.2.0 contract for this path.
-// The generated client from `npm run codegen` already covers ops-workspace-shell-v1
-// and hr-api; this file bridges the prototype-only envelope API.
+// Typed API client for the canonical Leptos render-envelope endpoint.
+// ADR-0393 keeps the Rust render_envelope contract as source of truth; this
+// archived TS client remains only until the Leptos shell migration removes it.
+// Generated clients from `pnpm codegen` cover ops-workspace-shell-v1 and hr-api.
 
 import type { DemoContext, TenantRenderEnvelope } from "./render-envelope";
 
-// During development the Leptos prototype server runs on port 3000;
-// the SolidJS shell runs on port 3001. In production this will point at
-// the real Rust backend URL injected via VITE_API_BASE_URL.
+// During transition evidence runs the Leptos render-envelope service runs on
+// port 3000 and this archived shell runs on port 3001. Deployed environments
+// inject the real Rust backend URL via VITE_API_BASE_URL.
 const API_BASE =
   typeof import.meta.env !== "undefined" && import.meta.env["VITE_API_BASE_URL"]
     ? String(import.meta.env["VITE_API_BASE_URL"])
@@ -32,8 +31,8 @@ export class RenderEnvelopeApiError extends Error {
 }
 
 /**
- * Fetch the server-derived render envelope for a given demo context.
- * Mirrors the Leptos prototype endpoint: GET /api/render-envelope/:context
+ * Fetch the server-derived render envelope for a given role context.
+ * Mirrors the Leptos endpoint: GET /api/render-envelope/:context
  */
 export async function fetchRenderEnvelope(
   context: DemoContext,

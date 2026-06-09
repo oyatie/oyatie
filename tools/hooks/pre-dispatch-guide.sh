@@ -78,8 +78,8 @@ if echo "$PROMPT_TEXT" | grep -qi 'test\|spec\|assert\|coverage\|tdd' 2>/dev/nul
 fi
 
 if [ -n "$PERSONA_SUGGESTION" ]; then
-    echo "ℹ [pre-dispatch-guide] Persona match: consider subagent_type '$PERSONA_SUGGESTION'" >&2
-    echo "ℹ  Vendored persona available at: tools/agent-skills/agents/$PERSONA_SUGGESTION.md" >&2
+    echo "ℹ [pre-dispatch-guide] Persona match: consider installed runtime role '$PERSONA_SUGGESTION'" >&2
+    echo "ℹ  Set the explicit agent_type/subagent_type when the current agent surface supports role routing." >&2
 fi
 
 exit 0

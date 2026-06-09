@@ -77,8 +77,8 @@ helm lint microservices/cloud-iac/iac/helm/flux
 helm lint microservices/cloud-iac/iac/helm/helm-controller
 helm lint microservices/cloud-iac/iac/helm/kustomize-controller
 kubectl --dry-run=client apply -k microservices/cloud-iac/iac/kustomize/overlays/pack-kr
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-iac
-cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
+cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `version-pinning-conformance` is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

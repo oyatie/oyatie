@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// ADR-0372 D2: Verify that OpenAPI client generation is deterministic and clean-checkout safe.
-// Run in CI after `pnpm codegen` (or by itself) to enforce "contract change breaks build".
+// ADR-0393 transition guard: while the archived SolidJS shell remains in-tree,
+// verify OpenAPI client generation is deterministic and clean-checkout safe.
 //
 // Usage:  node scripts/codegen-check.mjs
 // Exit code 0 = sources generate non-empty clients; if ignored in-tree clients exist, they match.

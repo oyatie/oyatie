@@ -4,7 +4,7 @@
 
 ---
 
-**Q1. Does `cloud-storage` replace AWS S3 / GCS / Azure Blob / Cloudflare R2 / MinIO / Backblaze B2?**
+**Q1. Does `cloud-storage` replace AWS S3 / GCS / Azure Blob / Cloudflare R2 / Backblaze B2?**
 
 For Oyatie-tenant workloads — yes. `cloud-storage` is API-compatible with all of S3, Azure Blob, GCS, and (in paid tenant_class regulated profiles) B2 and
 R2. Tenants point existing applications at the `cloud-storage` endpoints; standard SDKs (boto3, Azure Blob SDK, gcloud-python)
@@ -12,14 +12,14 @@ just work. We're not a public S3 alternative; we're the per-tenant storage subst
 
 ---
 
-**Q2. Why MinIO Enterprise as the backend?**
+**Q2. Why SeaweedFS now and owned object-store interfaces long term?**
 
 Three reasons:
-1. **S3 API completeness** — MinIO Enterprise has the highest API parity with AWS S3 of any non-AWS implementation.
-2. **Erasure coding ergonomics** — built-in EC:14+4 in paid tenant_class production profiles gives us cross-rack durability without RAID-style operational pain.
-3. **Open source + paid support** — we control the deployment + get vendor support.
+1. **Current Kubernetes-native substrate** — SeaweedFS is the in-cluster object-bucket substrate selected by the active cloud/runtime direction and wired through `infra/seaweedfs`.
+2. **Stable product boundary** — tenants use `cloud-storage` APIs and compatibility adapters; the backing object store remains behind the storage domain/interface so an owned object-store implementation can replace the substrate without changing tenant contracts.
+3. **Self-hostable operations** — the current path keeps object storage inside Oyatie-managed cells, with Kubernetes NetworkPolicy, per-consumer credentials, and cell placement instead of a provider-owned final backend.
 
-Alternative we considered: SeaweedFS (immature ops), Ceph RGW (operational complexity high), proprietary (lock-in).
+Alternative considered: Ceph RGW for larger scale-up cells, retained as a future scale-up path behind the same domain boundary.
 
 ---
 
@@ -108,7 +108,7 @@ to presigned URL issuance (e.g. "only issue presigned URLs that expire within 60
 
 We issue short-lived AWS-Sig-v4-compatible access-key + secret-key pairs via `oya storage s3-credential issue`. The keys are
 tenant-scoped + can be further scoped (read-only, write-only, prefix-only). TTL is configurable up to the tenant_class/profile maximum
-(1 h demo_trial, 4 h paid baseline, 12 h paid production, 4 h paid regulated — regulated is lower because tighter security posture).
+(1 h community trial tenant_class, 4 h paid baseline, 12 h paid production, 4 h paid regulated — regulated is lower because tighter security posture).
 
 ---
 
@@ -140,7 +140,7 @@ issue transition / expiration operations. Lifecycle events anchor to `audit-chai
 
 **Q15. How does this work for petabyte-scale tenants?**
 
-Paid tenant_class production profiles support 1 PB per tenant; paid tenant_class regulated profiles are contract-unbounded. The MinIO Enterprise cluster scales horizontally; we shard tenants across
+Paid tenant_class production profiles support 1 PB per tenant; paid tenant_class regulated profiles are contract-unbounded. Storage cells scale horizontally behind the `cloud-storage` domain boundary; we shard tenants across
 storage cells. Tenant buckets within a single tenant can span cells (transparent to the API).
 
 ---
@@ -161,7 +161,7 @@ delete-marker is created but V1 remains (locked) and is restorable until retenti
 
 **Q18. What's the durability target?**
 
-demo_trial: 99.99 % (4 nines; EC:4+2 single-AZ).
+community trial tenant_class: 99.99 % (4 nines; EC:4+2 single-AZ).
 paid baseline profile: 99.9999999 % (9 nines; EC:8+4 multi-AZ + cross-region replica option).
 paid production profile: 99.999999999 % (11 nines; EC:14+4 + multi-region active-active).
 paid regulated profile: 99.999999999999 % (14 nines; EC:18+6 + tape archive + sovereign air-gap).
@@ -170,11 +170,12 @@ Measured per AWS S3 model: probability of object loss per year.
 
 ---
 
-**Q19. Where does Foundry hook in?**
+**Q19. Where do cloud-ci and toolchain pipelines store artifacts?**
 
-Foundry pipelines store build artefacts + test results in `cloud-storage` as `oyatie.foundry.<pipeline-id>` principals. The
-artefact bucket has a 90-day lifecycle to Cold + 365-day expiration. Cedar permits for Foundry are narrow: `PutObject`,
-`GetObject`, `ListObjects` on the foundry artefact bucket only.
+Cloud-ci/toolchain pipelines store build artifacts and verification evidence in `cloud-storage` through the storage-domain
+artifact interface. Principal and bucket names are assigned by the current registry/stores authority; this FAQ does not define
+merge authority. Artifact buckets keep a 90-day lifecycle to Cold plus 365-day expiration, and Cedar permits stay narrow:
+`PutObject`, `GetObject`, and `ListObjects` on the pipeline artifact bucket only.
 
 ---
 

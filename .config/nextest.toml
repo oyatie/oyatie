@@ -1,8 +1,10 @@
 # Nextest configuration.
 #
-# The `ci` profile is referenced by `.github/workflows/pr-tests.yml`
-# (env `NEXTEST_PROFILE: ci`). Without this file, nextest exits 96 with
-# `profile 'ci' not found`. See PR #3 CI re-trigger 2026-05-15.
+# The `ci` profile is referenced by tracked local/pre-push validation and
+# recovery checks (`scripts/agent-pre-push-validate.sh`,
+# `registry/loop-recovery-patterns/missing-nextest-profile-ci.json`, and
+# `specs/score-cards.json`). Without this file, nextest exits 96 with
+# `profile 'ci' not found`.
 #
 # Profile shape: keep tests deterministic — no retries (a flaky test
 # under DENY is a real bug to fix, not a retry candidate), no fail-fast

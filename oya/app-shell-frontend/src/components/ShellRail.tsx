@@ -1,6 +1,6 @@
-// Port of crates/oya-application-shell-frontend-prototype/src/app.rs :: ShellRail
-// Converted from Leptos view! macro to SolidJS JSX. Signal-driven active state
-// replaces the data-attribute JS mutation in prototype-interactions.js.
+// Archived transition shell rail.
+// Navigation labels mirror the product graph while ADR-0393 migrates the
+// canonical shell to Leptos/Rust-WASM.
 import type { Component } from "solid-js";
 
 interface ShellRailProps {
@@ -23,7 +23,7 @@ const ShellRail: Component<ShellRailProps> = (props) => {
         <p>FD-001 TENANT WORKLOADS</p>
         <strong>Product graph on Oyatie Cloud</strong>
         <span>Messenger · Mail · Community dogfood the substrate.</span>
-        <small>REC-WF-7741 · cell-us-east-2 · local visual routes</small>
+        <small>REC-WF-7741 · cell-us-east-2 · read-only shell routes</small>
         <div class="rail-proof-actions" aria-label="Persistent shell proof routes">
           <button type="button" class="is-selected" aria-pressed="true">Product graph</button>
           <button type="button">Cloud</button>

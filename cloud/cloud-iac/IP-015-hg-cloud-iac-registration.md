@@ -7,7 +7,7 @@ impl_plan_id: IP-015-hg-cloud-iac-registration
 status: pending
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
-owner: axis-foundry + axis-cloud-iac
+owner: axis-cloud-governance + axis-cloud-iac
 acceptance_lanes: [oya-governance-authority-cohesion, oya-governance-hyperscaler-maturity-claims, oya-cloud-iac-iac-smoke]
 ---
 
@@ -78,7 +78,7 @@ kubectl exec -n cloud-iac iac-state-index-pg-0 -- psql -U cloud_iac -f /migratio
 kubectl exec -n cloud-iac iac-state-index-pg-0 -- psql -U cloud_iac -f /migrations/0003_append_only_trigger.sql
 
 # 6. Register cloud-iac µservice in its own registry (now self-tracking)
-cargo run -p oya-dev-cli -- iac register --microservice cloud-iac --pack ${PACK}
+cloud-native IaC controller/API `register --microservice` workflow
 
 # 7. From this point onward, cloud-iac applies its own substrate via the normal apply path.
 echo "Bootstrap complete. cloud-iac now self-managed in ${PACK}."
@@ -94,9 +94,9 @@ microservices/cloud-iac/scripts/bootstrap.sh pack-kr
 cargo nextest run -p oya-cloud-iac-iac-applier-app --test self_apply
 
 # HG-CLOUD-IAC gate registers green
-cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
-cargo run -p oya-dev-cli -- gate validate cloud-iac-iac-smoke --pack pack-kr
+cloud-ci/oya-ci governance gate `authority-cohesion` is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `hyperscaler-maturity-claims` is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `cloud-iac-iac-smoke` for --pack pack-kr is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

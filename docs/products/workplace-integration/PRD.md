@@ -5,7 +5,7 @@ prd_id: PRD-workplace-integration
 product: workplace-integration
 status: Draft
 date: 2026-05-20
-owner: council-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
+owner: axis-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
 sales_segment: cross-cutting-product-layer
 tier: product-layer-cross-cutting
 milestone_first_ship: M04-workplace-integration-foundation
@@ -37,7 +37,7 @@ related_microservices:
   - identity
   - ontology
   - plugin-app-store
-tenant_class: ["demo_trial", "paid"]
+tenant_class: ["evaluation_limited", "paid"]
 related_adrs:
   - ADR-0009-cell-architecture-per-tenant-per-region
   - ADR-0028-cloud-microservice-architecture
@@ -96,23 +96,24 @@ related_memory:
   - feedback_canonical_base_localization
   - feedback_doc_coverage_enforced
   - feedback_no_silent_regression
-owner_team: council-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
-doc_status: published
+owner_team: axis-product + axis-workflow + axis-application-shell + axis-identity + axis-tenancy + axis-compliance
+doc_status: draft_target_non_claim
 ---
 
 # PRD: Workplace Integration — Cross-Cutting Product Layer
 
-> **Status:** draft → preview targeted at M04
-> **Owning team:** council-product (with axis-workflow as primary executor)
+> **Status:** published; wave-gated promotion targets remain in §2.4
+> **Owning team:** founder-governed product authority (with axis-workflow as primary executor)
 > **Owning axis:** cross-cutting product layer (NOT a single µservice)
-> **Catalog reference:** `registry/catalog/workplace-integration.yaml` (to be authored)
-> **Last updated:** 2026-05-20 by council-product
+> **Catalog reference:** `oya/workplace-integration/catalog/oya-workplace-integration-application.yaml` plus layer catalog entries under `oya/workplace-integration/catalog/`
+> **Last updated:** 2026-05-20 by founder-governed product authority
+> **Path convention:** repo-local service artifacts use `oya/<service>/...`; machine-readable service specs use `specs/microservices/*.json`; legacy `microservices/...` paths are not authoritative in this checkout.
 
 ---
 
 ## 1. Purpose
 
-Workplace Integration is the **connective tissue** that turns oyatie's suite of independent first-party B2B µservices — Mail, Messenger, Calendar, Meet, Drive, Notes, Tasks, Forms, Workflow Studio, Workflow Engine, HR (reserved), Payroll (reserved), Compensation (reserved), Plugin App Store, Sites, Recordings, Sheets, Slides, Docs, Comms-Email, Audit-Chain, Tenancy, Identity, Ontology, Intelligence — into a **single coherent workplace platform** that competes head-to-head with the combined offerings of:
+Workplace Integration is the **connective tissue** that turns oyatie's suite of independent first-party B2B µservices — Mail, Messenger, Calendar, Meet, Drive, Notes, Tasks, Forms, Workflow Studio, Workflow Engine, HR, Payroll, Compensation (promotion-gated), Plugin App Store, Sites, Recordings, Sheets, Slides, Docs, Comms-Email, Audit-Chain, Tenancy, Identity, Ontology, Intelligence — into a **single coherent workplace platform** that competes head-to-head with the combined offerings of:
 
 - Microsoft 365 (Outlook + Teams + SharePoint + OneDrive + Power Automate + Viva)
 - Google Workspace (Gmail + Chat + Meet + Calendar + Drive + Docs + Apps Script)
@@ -130,7 +131,7 @@ Workplace Integration is the **connective tissue** that turns oyatie's suite of 
 Workplace Integration is **not a single µservice**. Per ADR-0245 substrate-vs-product layering, it is a **cross-cutting product layer** — a coherent end-user product experience composed of orchestrated capabilities from many µservices. It owns:
 
 1. **The end-user workplace flows** (clocking in, approvals, e-signing, meetings, expenses, leave, performance reviews, onboarding, offboarding, travel, procurement, announcements, project tasks, compliance training).
-2. **The durable saga definitions** that orchestrate each flow across µservices, registered with `microservices/workflow-engine/`.
+2. **The durable saga definitions** that orchestrate each flow across µservices, registered with `oya/workflow-engine/`.
 3. **The cross-µservice integration contracts** (event schemas, ontology object types, Cedar policy fragments, audit emission contracts) that bind these flows together.
 4. **The cross-µservice UX surfaces** (rich Messenger cards, mail templates, mobile mini-apps, voice-trigger handlers, Workflow Studio templates) that expose each flow to end users.
 5. **The competitor-parity feature matrix** that benchmarks oyatie's workplace experience against Microsoft 365 / Google Workspace / Notion / Slack / ServiceNow / Workday / Concur / etc.
@@ -149,9 +150,9 @@ Per ADR-0131 (per-microservice flat layout) + ADR-0132 (no-grouping forward-poli
 
 - **Per-µservice ownership** of each concern (HR owns HR-records, Calendar owns Calendar-events, Workflow-Engine owns saga orchestration, etc.).
 - **A workplace-integration product layer** that authors saga specs (workflow_spec.v1.json artefacts), event contracts, and competitor-parity templates, registers them with the relevant µservices, and packages the UX surfaces.
-- **The Application Shell** (per ADR-0131 IP-M01-MIGR-008; `microservices/application/`) hosts the consolidated end-user surfaces as embedded views.
+- **The Application Shell** (per ADR-0131 IP-M01-MIGR-008; `oya/application/`) hosts the consolidated end-user surfaces as embedded views.
 
-The product layer is documented HERE (this PRD) and IMPLEMENTED across the relevant µservices via per-flow IPs (Implementation Plans). Each saga's workflow_spec.v1.json + ontology object types + Cedar policy fragments + Workflow Studio templates live under `microservices/workflow-engine/specs/workplace-integration/<flow-id>/` and `microservices/workflow-studio/templates/workplace-integration/<flow-id>/`.
+The product layer is documented HERE (this PRD) and IMPLEMENTED across the relevant µservices via per-flow IPs (Implementation Plans). Each saga's workflow_spec.v1.json + ontology object types + Cedar policy fragments + Workflow Studio templates live under `oya/workflow-engine/specs/workplace-integration/<flow-id>/` and `oya/workflow-studio/templates/workplace-integration/<flow-id>/`.
 
 ### 1.3 Competitive thesis
 
@@ -169,7 +170,7 @@ oyatie's workplace integration wins by:
 
 ### 2.1 In-scope workplace flows
 
-Workplace Integration owns thirteen first-class flows (A–N) plus a long tail of derived flows. Each flow is a durable saga registered with `microservices/workflow-engine/`. The thirteen first-class flows:
+Workplace Integration owns thirteen first-class flows (A–N) plus a long tail of derived flows. Each flow is a durable saga registered with `oya/workflow-engine/`. The thirteen first-class flows:
 
 | Flow ID | Name | Primary persona | Saga ID | Wave |
 |---|---|---|---|---|
@@ -233,13 +234,13 @@ The following are explicitly out-of-scope for the Workplace Integration product 
 1. **End-user payment processing** — handled by the reserved `payments` µservice (ADR-0245 D-3.D); workplace flows that need payment routing (expense reimbursement, vendor payment) emit events to the payments substrate post-certification.
 2. **Tax filing engines** — handled by the reserved `tax-engine` µservice.
 3. **Identity verification (KYC) for external counterparties** — handled by the reserved `identity-verification` µservice.
-4. **Brand-surface UI authoring** — owned by `microservices/application/` (Application Shell); workplace-integration provides the embedded views + state, not the shell.
+4. **Brand-surface UI authoring** — owned by `oya/application/` (Application Shell); workplace-integration provides the embedded views + state, not the shell.
 5. **Per-µservice substrate concerns** — Mail's IMAP/JMAP protocol, Calendar's RFC 5545 parser, Meet's LiveKit SFU, Workflow Engine's state machine — all owned by the respective µservice; workplace-integration consumes their stable contracts.
-6. **Country-by-country labor law interpretation** — owned by the `microservices/compliance/` substrate (per-pack overlay); workplace-integration consumes the resolved policy fragment at Cedar evaluation time.
-7. **HR record-of-truth schema authoring** — owned by `microservices/hr/` (reserved-then-promoted; see §5.4) and ontology object types `Employee`, `LeaveBalance`, `EmploymentRecord`.
-8. **General-purpose document storage** — owned by `microservices/drive/`; workplace-integration documents are stored in drive with retention policy refs.
+6. **Country-by-country labor law interpretation** — owned by the `oya/compliance/` substrate (per-pack overlay); workplace-integration consumes the resolved policy fragment at Cedar evaluation time.
+7. **HR record-of-truth schema authoring** — owned by `oya/hr/` (reserved-then-promoted; see §5.4) and ontology object types `Employee`, `LeaveBalance`, `EmploymentRecord`.
+8. **General-purpose document storage** — owned by `oya/drive/`; workplace-integration documents are stored in drive with retention policy refs.
 
-Promotion of any anti-scope item to in-scope requires a council decision recorded in this PRD's §12 decision log.
+Promotion of any anti-scope item to in-scope requires a founder-/governance-recorded decision in this PRD's §12 decision log.
 
 ### 2.4 Wave gating
 
@@ -310,37 +311,28 @@ Plus three delivery surfaces:
 
 ### 3.3 Saga authoring convention
 
-Every flow's saga is authored as a `workflow_spec.v1.json` document (per `workflow-engine` PRD + Bominal ADR-0164) living at:
+Every flow's saga is authored as a `workflow_spec.v1.json` document (per `workflow-engine` PRD + Bominal ADR-0164). The workplace-owned source bundle in this checkout is the concrete doc/contract set under `oya/workplace-integration/` plus this PRD; downstream Workflow Engine and Workflow Studio service lanes consume that bundle through the acceptance contract below before any flow can be promoted.
+
+Required artifact contract per promoted flow:
 
 ```
-microservices/workflow-engine/specs/workplace-integration/<flow-id>/
-├── saga.workflow_spec.v1.json          # canonical durable saga definition
-├── ontology-bindings.json              # object-type reads + writes
-├── cedar-fragments/                    # per-step + per-jurisdiction policy
-│   ├── default.cedar
-│   ├── pack-kr-labor.cedar
-│   ├── pack-eu-working-time.cedar
-│   ├── pack-us-flsa.cedar
-│   └── pack-us-healthcare-hipaa.cedar
-├── events-produced.asyncapi.yaml       # workflow events emitted
-├── events-consumed.asyncapi.yaml       # workflow events consumed
-├── audit-emission-contract.json        # what each step emits to audit-chain
-├── ux-surfaces/
-│   ├── messenger-card.template.json
-│   ├── mail-template.html.tmpl
-│   ├── mobile-mini-app.tsx             # Leptos/Svelte mobile screen
-│   └── voice-trigger.intents.json      # Siri / Google Assistant
-└── README.md                           # flow description + acceptance criteria
+workplace-owned source bundle
+├── docs/products/workplace-integration/PRD.md         # product-layer requirements and flow acceptance
+├── oya/workplace-integration/contracts/               # OpenAPI, AsyncAPI, proto surfaces
+├── oya/workplace-integration/policies/                # Cedar policy fragments owned by this layer
+├── oya/workplace-integration/runbooks/                # operator recovery evidence
+├── oya/workplace-integration/IP-journey-<id>-*.md     # implementation IPs when present
+└── docs/user-journeys/j<id>-*/                        # story, UX, handshake, and test-plan context
+
+service-owned import targets required for promotion
+├── oya/workflow-engine/.../saga.workflow_spec.v1.json # durable saga definition
+├── oya/workflow-engine/.../ontology-bindings.json     # object-type reads + writes
+├── oya/workflow-engine/.../events-*.asyncapi.yaml     # workflow events emitted/consumed
+├── oya/workflow-engine/.../audit-emission-contract.*  # audit-chain contract
+└── oya/workflow-studio/.../template.workflow_spec.v1.json # editable Studio starter
 ```
 
-And the Workflow Studio companion template at:
-
-```
-microservices/workflow-studio/templates/workplace-integration/<flow-id>/
-├── template.workflow_spec.v1.json      # editable starter
-├── node-library-overlay.json           # workplace-specific nodes available
-└── description.md                      # template card description
-```
+A flow is not promotion-eligible until both the workplace-owned source bundle and the service-owned import targets resolve in the repository and pass their owning lanes' contract checks. This PRD therefore treats absent service-owned import targets as promotion blockers, not as completed artifacts.
 
 ### 3.4 Inter-µservice communication
 
@@ -358,21 +350,21 @@ Per ADR-0242 + ADR-0244:
 
 - Every flow carries a `tenant_id` + optional `sub_scope` (e.g., `tenant-acme.engineering.team-platform`).
 - Sub-scopes inherit parent policy unless explicit override.
-- The `oyatie` tenant uses sub-scopes like `oyatie.foundry.engineer.<id>` for engineer principals; their workplace flows (vacation, e-sign, expense) work identically to a customer tenant's `tenant-acme.employee.<id>`.
+- The `oyatie` tenant uses sub-scopes like `oyatie.engineer.<id>` for engineer principals; their workplace flows (vacation, e-sign, expense) work identically to a customer tenant's `tenant-acme.employee.<id>`.
 - Per-jurisdiction labor-law overlay is selected by the tenant's `jurisdiction_code` per ADR-0117 + ADR-0240.
 
 ### 3.6 Workflow Studio as the visual authoring surface
 
 Per `feedback_workflow_studio_scope` (Workflow Studio is the n8n-class first hero product covering multi-domain workflows including business/HR/healthcare/supply-chain/delivery):
 
-- Every saga A–N ships with a corresponding Workflow Studio template under `microservices/workflow-studio/templates/workplace-integration/<flow-id>/`.
+- Every promoted saga A–N must resolve a corresponding Workflow Studio template in the Workflow Studio service lane before promotion; absent templates are promotion blockers, not completed artifacts.
 - Tenant power users (HR, finance, ops) can open Studio, load the template, customise it (e.g., add a second approval level, change the policy threshold, append a Slack-equivalent notification), and save as their tenant-specific workflow.
 - The customised workflow is registered with workflow-engine's spec-store; subsequent triggers run the tenant's variant rather than the default template.
 - Round-trip byte-equality between Studio canvas and workflow_spec.v1.json is the load-bearing invariant (per workflow-studio PRD AC-02).
 
 ### 3.7 Plugin App Store extension points
 
-Per `microservices/plugin-app-store/`:
+Per `oya/plugin-app-store/`:
 
 - Every flow declares **extension points** in its saga spec (e.g., `LeaveRequestSaga` declares extension points `pre-approval`, `post-approval`, `policy-evaluator`, `notification-recipient`).
 - Plugins from the Plugin App Store register handlers at extension points (e.g., a "Concur integration" plugin registers as `expense.post-approval.export-to-concur`).
@@ -402,7 +394,7 @@ Records employee arrival + departure times to the HR µservice for: timesheet ge
 
 #### A.3 Saga: `ClockingInSaga`
 
-Saga spec at `microservices/workflow-engine/specs/workplace-integration/clocking-in/saga.workflow_spec.v1.json`. Steps:
+Saga source for the current workplace-owned slice is `oya/workplace-integration/IP-journey-j37-clock-in-geofence.md`; its Workflow Engine import target must resolve before promotion. Steps:
 
 1. **`receive_trigger`** — accept signed trigger event from one of A.2 sources; validate signature; extract `(tenant_id, employee_id, trigger_source, trigger_timestamp)`.
 2. **`resolve_employee`** — gRPC call to `hr` µservice `GetEmploymentRecord(employee_id)`; verify employment status is `active` (or `on_probation`); fetch `assigned_work_schedule`. Cedar gate: `action == "ClockIn", principal == employee_id, resource == EmploymentRecord`.
@@ -455,7 +447,7 @@ Idempotency: every step keyed per (saga_run_id, step_id, idempotency_key). Retri
 | SG | Employment Act §38 — overtime | 72h/month overtime cap; 1.5x premium |
 | IN | Factories Act §54 — work hours | 9h/day max; 48h/week; weekly off mandatory |
 
-Each rule is encoded as a Cedar fragment in `microservices/policy-engine/fragments/workplace-integration/clocking/<jurisdiction>.cedar` and applied per tenant's `jurisdiction_code`.
+Each rule is encoded as a Cedar fragment in `oya/policy-engine/fragments/workplace-integration/clocking/<jurisdiction>.cedar` and applied per tenant's `jurisdiction_code`.
 
 ---
 
@@ -479,7 +471,7 @@ Steps:
 
 1. **`receive_request`** — accept request with `(employee_id, leave_type, start_date, end_date, partial_day_hours?, reason?, evidence_attachments?)`.
 2. **`resolve_employee_and_policy`** — fetch employment record + applicable leave policy (per-tenant + per-jurisdiction overlay).
-3. **`validate_balance`** — fetch current leave balance from `hr` µservice; compute days requested (excluding weekends + tenant holidays per `microservices/calendar/` calendar-of-record). If balance < requested → route to `step_balance_insufficient_handler`.
+3. **`validate_balance`** — fetch current leave balance from `hr` µservice; compute days requested (excluding weekends + tenant holidays per `oya/calendar/` calendar-of-record). If balance < requested → route to `step_balance_insufficient_handler`.
 4. **`check_eligibility`** — Cedar gate: probation employees may have limited leave; employee under 90d may not be eligible for some leave types (KR labor act); per-tenant blackout-period policy (e.g., no vacation during quarter-end finance close).
 5. **`check_team_coverage`** — gRPC to `calendar` µservice `QueryTeamAvailability(team_id, [start_date, end_date])`; if >50% of team OOO during requested window → flag `team_coverage_risk: high` for manager attention.
 6. **`detect_policy_violations`** — Cedar gate against per-jurisdiction overlay: KR labor act Article 60 requires employer to grant annual leave on requested dates "unless business operations are significantly hindered"; auto-deny is uncommon; flag-for-manager-review is the norm. EU varies. US: at-will employer-discretion (subject to FMLA for medical).
@@ -813,7 +805,7 @@ Steps:
 
 1. **`receive_new_hire`** — accept `(employee_id, start_date, role, manager_id, department, location, employment_class, compensation_summary)`.
 2. **`pre_start_t14d`** — T-14d: send welcome mail to candidate's personal email; collect bank-account info for payroll (encrypted via tenant-DEK); collect personal info needed for HR record; collect emergency contact.
-3. **`pre_start_t7d`** — T-7d: provision identity in `microservices/identity/` (OIDC service principal under `tenant.<dept>.employee.<id>`); generate corp credentials.
+3. **`pre_start_t7d`** — T-7d: provision identity in `oya/identity/` (OIDC service principal under `tenant.<dept>.employee.<id>`); generate corp credentials.
 4. **`pre_start_t7d_devices`** — order laptop / monitor / equipment per role; ship to home address pre-start; emit `EquipmentOrdered` event consumed by `procurement` µservice (Flow J).
 5. **`pre_start_t3d`** — schedule first-week calendar: orientation, manager 1:1s, team intros, training sessions; book conference rooms.
 6. **`pre_start_t1d`** — send Day-1 welcome mail with login info, agenda, building access info, buddy intro.
@@ -1056,7 +1048,7 @@ Steps:
 3. **`progress_tracking`** — daily standups in Messenger; weekly check-ins; milestone reviews via Meet (Flow D).
 4. **`task_completion`** — assignee marks done; reviewer verifies; emit `TaskCompleted` event.
 5. **`risk_detection`** — Intelligence flags overdue tasks, blocked dependencies, resource conflicts.
-6. **`milestone_review`** — meeting saga; demo recordings posted; lessons-learned doc.
+6. **`milestone_review`** — meeting saga; review recordings posted; lessons-learned doc.
 7. **`project_close`** — final retro; deliverables archived in drive; lessons-learned in community/knowledge-base.
 
 #### L.4 Edge cases
@@ -1178,7 +1170,7 @@ Workplace integration sagas publish to and consume from canonical event topics o
 
 ### 5.3 Ontology object types introduced
 
-New object types in `microservices/ontology/` for workplace integration:
+New object types in `oya/ontology/` for workplace integration:
 
 - `TimesheetEntry`, `LatenessRecord`, `WorkSchedule`, `WorkAreaGeofence`
 - `LeaveRequest`, `LeaveBalance`, `LeavePolicy`, `OOOEntry`
@@ -1197,19 +1189,19 @@ New object types in `microservices/ontology/` for workplace integration:
 
 Each object type carries `data_class` annotation per ADR-0099; per-tenant + per-jurisdiction retention; legal-hold compatible; audit-chain integrated.
 
-### 5.4 Reserved µservices to be promoted
+### 5.4 Promotion-gated workforce µservices
 
-For Workplace Integration to reach M04 stable, the following currently-reserved µservices must be promoted out of `reserved` per ADR-0245 D-6:
+For Workplace Integration to reach M04 stable, workforce dependencies must be explicit repo-local service anchors or remain blocked behind promotion gates per ADR-0245 D-6:
 
-- **`microservices/hr/`** — HR records of truth (employment, leave-balance, org-chart, compensation-summary). Currently NOT in the µservice directory listing; promotion ADR required (`ADR-0XXX-hr-microservice-promotion.md`) with: PRD, threat-model, DPIA, manifest tier=product tier_subtype=product-consumer-hr, IaC. Certification gates: SOC 2 Type II (employment-data security); per-jurisdiction labor-law overlay packs (KR pack-kr-labor, EU pack-eu-working-time, US pack-us-flsa).
-- **`microservices/payroll/`** — payroll calculation + paycheck issuance; coordinates with banking via reserved `payments` µservice + Plugin App Store integrations (ADP, Gusto, Justworks, Rippling). Certification gates: per-jurisdiction tax authority registrations (US-IRS, KR-NTS, EU-VAT-MOSS, etc.) + per-jurisdiction labor-law packs.
-- **`microservices/compensation/`** — comp bands, pay equity, equity-grant management, bonus accruals. Certification gates: 409A valuation provider integration + ASC 718 (US stock-comp accounting) compliance.
+- **`oya/hr/`** — repo-local HR service anchor for records of truth (employment, leave-balance, org-chart, compensation-summary). Promotion remains certification-gated: PRD, threat-model, DPIA, manifest tier=product tier_subtype=product-consumer-hr, IaC, SOC 2 Type II employment-data controls, and per-jurisdiction labor-law overlay packs (KR pack-kr-labor, EU pack-eu-working-time, US pack-us-flsa).
+- **`oya/payroll/`** — repo-local payroll service anchor for payroll calculation + paycheck issuance; coordinates with banking via reserved `payments` µservice + Plugin App Store integrations (ADP, Gusto, Justworks, Rippling). Promotion remains gated on per-jurisdiction tax authority registrations (US-IRS, KR-NTS, EU-VAT-MOSS, etc.) and labor-law packs.
+- **`oya/compensation/`** — not present as a repo-local service anchor in this checkout; compensation remains promotion-blocked until a founder-/governance-approved service anchor, PRD, threat model, DPIA, manifest, IaC, 409A provider integration, and ASC 718 controls exist.
 
-Until promotion lands, Workplace Integration sagas that need HR/payroll/compensation data integrate via Plugin App Store providers (BambooHR, Rippling, Gusto, ADP) with their respective APIs.
+Until every promotion gate lands, Workplace Integration sagas that need HR/payroll/compensation data use the existing service anchors where present and otherwise integrate via Plugin App Store providers (BambooHR, Rippling, Gusto, ADP) with their respective APIs; they must not silently assume an unavailable record-of-truth service.
 
 ### 5.5 Cedar policy fragments
 
-Cedar fragments live in `microservices/policy-engine/fragments/workplace-integration/`:
+Cedar fragments live in `oya/policy-engine/fragments/workplace-integration/`:
 
 ```
 workplace-integration/
@@ -1243,7 +1235,7 @@ Each fragment is signed by org root key (per ADR-0242 bootstrap step 5) and refr
 
 ### 5.6 Audit-chain emission contract
 
-Every workplace flow emits to `microservices/audit-chain/` per ADR-0028 envelope:
+Every workplace flow emits to `oya/audit-chain/` per ADR-0028 envelope:
 
 ```json
 {
@@ -1541,7 +1533,7 @@ Each user story has a stable AC-ID. Per `agent-durable-goal.json#spec_contract.a
 
 **AC-WI-39 — `oyatie` tenant dogfooding (oyatie engineer)**
 - **Persona**: oyatie engineer
-- **Given**: engineer is principal `oyatie.foundry.engineer.jasonlee`
+- **Given**: engineer is principal `oyatie.engineer.jasonlee`
 - **When**: engineer requests vacation, signs ADR, books meeting, submits expense
 - **Then**: all flows work identically to customer tenant; audit-chain segregated to `oyatie.*` stream; DSAR-compatible
 
@@ -1710,7 +1702,7 @@ Workplace Integration touches employment data, which is among the most heavily r
 
 ### 8.5 Records retention
 
-Per `microservices/compliance/` per-pack overlay:
+Per `oya/compliance/` per-pack overlay:
 
 | Record class | Retention floor | Jurisdiction sources |
 |---|---|---|
@@ -1949,23 +1941,23 @@ Per ADR-0241 per-µservice `dr_tier`:
 - **ADR-0248 — Amazon-shape cellular architecture**.
 - **ADR-0251 — Compliance pack cell certification levels**.
 - **ADR-0252 — Workflow-engine per-step idempotency**.
-- **`microservices/workflow-engine/PRD.md`** — durable execution substrate.
-- **`microservices/workflow-studio/PRD.md`** — visual authoring product.
-- **`microservices/calendar/PRD.md`** — calendar substrate.
-- **`microservices/meet/PRD.md`** — video meeting.
-- **`microservices/mail/PRD.md`** — mail product.
-- **`microservices/messenger/PRD.md`** — chat product.
-- **`microservices/drive/PRD.md`** — file storage.
-- **`microservices/plugin-app-store/PRD.md`** — plugin marketplace.
-- **`microservices/intelligence/PRD.md`** — AI substrate.
-- **`microservices/audit-chain/PRD.md`** — Merkle-sealed audit.
-- **`microservices/policy-engine/PRD.md`** — Cedar substrate.
-- **`microservices/tenancy/PRD.md`** — tenant + sub-scope.
-- **`microservices/identity/PRD.md`** — OIDC + WebAuthn.
-- **`microservices/ontology/PRD.md`** — canonical entity types.
-- **`microservices/consent-graph/PRD.md`** — DSAR cascade.
-- **`microservices/compliance/PRD.md`** — per-pack overlay.
-- **`microservices/governance/PRD.md`** — fitness gates.
+- **`oya/workflow-engine/PRD.md`** — durable execution substrate.
+- **`oya/workflow-studio/PRD.md`** — visual authoring product.
+- **`oya/calendar/PRD.md`** — calendar substrate.
+- **`oya/meet/PRD.md`** — video meeting.
+- **`oya/mail/PRD.md`** — mail product.
+- **`oya/messenger/PRD.md`** — chat product.
+- **`oya/drive/PRD.md`** — file storage.
+- **`oya/plugin-app-store/PRD.md`** — plugin marketplace.
+- **`oya/intelligence/PRD.md`** — AI substrate.
+- **`oya/audit-chain/PRD.md`** — Merkle-sealed audit.
+- **`oya/policy-engine/PRD.md`** — Cedar substrate.
+- **`oya/tenancy/PRD.md`** — tenant + sub-scope.
+- **`oya/identity/PRD.md`** — OIDC + WebAuthn.
+- **`oya/ontology/PRD.md`** — canonical entity types.
+- **`oya/consent-graph/PRD.md`** — DSAR cascade.
+- **`oya/compliance/PRD.md`** — per-pack overlay.
+- **`oya/governance/PRD.md`** — fitness gates.
 
 ### 10.5 Auto-memory feedback referenced
 
@@ -2037,13 +2029,13 @@ The workplace-integration product layer ships in IPs (Implementation Plans) unde
 
 ## 13. Sources scanned
 
-- `microservices/calendar/PRD.md` (workplace flow integration)
-- `microservices/meet/PRD.md` (meeting/video flow integration)
-- `microservices/workflow-engine/PRD.md` (durable saga substrate)
-- `microservices/workflow-studio/PRD.md` (visual authoring product)
-- `microservices/mail/`, `microservices/messenger/`, `microservices/drive/` (delivery surfaces)
-- `microservices/audit-chain/`, `microservices/policy-engine/`, `microservices/ontology/`, `microservices/tenancy/`, `microservices/identity/`, `microservices/intelligence/` (substrate dependencies)
-- `microservices/plugin-app-store/PRD.md` (extension model)
+- `oya/calendar/PRD.md` (workplace flow integration)
+- `oya/meet/PRD.md` (meeting/video flow integration)
+- `oya/workflow-engine/PRD.md` (durable saga substrate)
+- `oya/workflow-studio/PRD.md` (visual authoring product)
+- `oya/mail/`, `oya/messenger/`, `oya/drive/` (delivery surfaces)
+- `oya/audit-chain/`, `oya/policy-engine/`, `oya/ontology/`, `oya/tenancy/`, `oya/identity/`, `oya/intelligence/` (substrate dependencies)
+- `oya/plugin-app-store/PRD.md` (extension model)
 - `docs/decisions/ADR-0131-per-microservice-flat-layout.md`
 - `docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`
 - `ADR-0242`
@@ -2058,15 +2050,15 @@ The workplace-integration product layer ships in IPs (Implementation Plans) unde
 ## 14. Open questions
 
 1. **HR/Payroll/Compensation promotion ADRs** — each requires its own ADR with full certification-gate articulation. Target authoring date: M04 preview minus 30 days.
-2. **Plugin App Store provider list for M04 preview** — which initial set of Plugin App Store integrations ship Day-1? Candidates: BambooHR, Greenhouse, Gusto, ADP, Stripe (for payments), QuickBooks, NetSuite, Concur (read-only), Notarize. Open question for council-product.
-3. **Per-jurisdiction overlay completeness target** — at M04 preview, which ≤ 5 jurisdictions (KR, US-federal + CA + NY, EU-core, JP) are mandatory? At GA, target ≥ 30. Open question for council-compliance.
-4. **Anonymous whistleblower flow** — Flow N variant; EU Whistleblowing Directive 2019/1937 requires anonymity; design needed for true-anonymity vs pseudonymity tradeoff. Open question for council-privacy + council-security.
+2. **Plugin App Store provider list for M04 preview** — which initial set of Plugin App Store integrations ship Day-1? Candidates: BambooHR, Greenhouse, Gusto, ADP, Stripe (for payments), QuickBooks, NetSuite, Concur (read-only), Notarize. Open question for axis-product.
+3. **Per-jurisdiction overlay completeness target** — at M04 preview, which ≤ 5 jurisdictions (KR, US-federal + CA + NY, EU-core, JP) are mandatory? At GA, target ≥ 30. Open question for axis-compliance.
+4. **Anonymous whistleblower flow** — Flow N variant; EU Whistleblowing Directive 2019/1937 requires anonymity; design needed for true-anonymity vs pseudonymity tradeoff. Open question for axis-privacy + axis-security.
 5. **Equity-grant integration** — currently routed via compensation µservice; 409A valuation + ASC 718 accounting; cap-table integration. Out-of-scope for M04 preview; tracked for M05.
-6. **Time-zone fairness in meeting scheduling** — Intelligence-driven heuristic ("don't always schedule outside business hours for one timezone") needs explicit policy definition. Open question for council-product.
+6. **Time-zone fairness in meeting scheduling** — Intelligence-driven heuristic ("don't always schedule outside business hours for one timezone") needs explicit policy definition. Open question for axis-product.
 7. **Cross-jurisdiction tax withholding** — for remote-worker leave + expense + travel; coordination with reserved `tax-engine` µservice. Tracked for M05+.
 8. **Voice-trigger latency for accessibility** — Apple/Google App Intents have varying latency budgets; verify they meet WCAG 2.2 timing requirements for assistive-tech users.
-9. **Plugin certification process** — for marketplace plugins extending workplace flows, what is the security review + functional testing requirement before listing? Open question for council-security + plugin-app-store team.
-10. **Localisation completeness** — at M04 preview, which languages are fully localised vs Intelligence-translated? Open question for council-product + council-design-system.
+9. **Plugin certification process** — for marketplace plugins extending workplace flows, what is the security review + functional testing requirement before listing? Open question for axis-security + plugin-app-store team.
+10. **Localisation completeness** — at M04 preview, which languages are fully localised vs Intelligence-translated? Open question for axis-product + axis-design-system.
 
 ---
 
@@ -2097,42 +2089,42 @@ Workplace Integration exists so a person can complete real work without thinking
 
 ## Jobs-to-be-Done
 
-### JTBD-WI-01 - Request leave without context switching
+### Job-to-be-done-WI-01 - Request leave without context switching
 - Situation: An employee asks for leave from mobile.
 - Acceptance: LeaveRequestSaga touches HR balance, Calendar OOO, Messenger approval, Mail notice, AuditChain seal, and policy-engine decision.
 - Acceptance: denial explains the policy and cites the pack rule.
 
-### JTBD-WI-02 - Approve spend inside daily communication
+### Job-to-be-done-WI-02 - Approve spend inside daily communication
 - Situation: A manager receives an expense card in Messenger.
 - Acceptance: ExpenseSaga shows amount, receipt, budget, policy, and approver scope.
 - Acceptance: approval creates audit evidence and never bypasses finance review threshold.
 
-### JTBD-WI-03 - Onboard a new employee with IT, HR, payroll, calendar, and drive ready
+### Job-to-be-done-WI-03 - Onboard a new employee with IT, HR, payroll, calendar, and drive ready
 - Situation: Priya starts a new hire.
 - Acceptance: OnboardingSaga creates account, group, drive folder, payroll task, security training, equipment request, and manager checklist.
 - Acceptance: each node has idempotency and owner fallback.
 
-### JTBD-WI-04 - Schedule meetings fairly across time zones
+### Job-to-be-done-WI-04 - Schedule meetings fairly across time zones
 - Situation: Aisha schedules a team meeting spanning KR, US, and EU.
 - Acceptance: MeetingScheduleSaga proposes slots, explains fairness, and respects local work-hour pack overlays.
 - Acceptance: repeated unfair time-zone burden triggers a fairness alert.
 
-### JTBD-WI-05 - Capture field work on rugged or kiosk devices
+### Job-to-be-done-WI-05 - Capture field work on rugged or kiosk devices
 - Situation: Carlos submits safety incident and time clock from a rugged device.
 - Acceptance: offline queue, device identity, photo evidence, and kiosk timeout are enforced.
 - Acceptance: sync conflict opens a supervisor review task.
 
-### JTBD-WI-06 - Make workplace flows audit-ready
+### Job-to-be-done-WI-06 - Make workplace flows audit-ready
 - Situation: Sam audits access review, leave approval, expense reimbursement, and e-sign.
 - Acceptance: every flow exports workflow run, Cedar decision, signer, event id, data class, and pack redaction evidence.
 - Acceptance: export completeness is measurable without screenshots.
 
-### JTBD-WI-07 - Extend a workflow with a plugin safely
+### Job-to-be-done-WI-07 - Extend a workflow with a plugin safely
 - Situation: A tenant installs a travel provider plugin.
 - Acceptance: PluginAppStore extension runs in signed, scoped, Cedar-gated mode.
 - Acceptance: extension cannot read or mutate outside declared flow resources.
 
-### JTBD-WI-08 - Explain work state with intelligence
+### Job-to-be-done-WI-08 - Explain work state with intelligence
 - Situation: A user asks why a workflow is blocked.
 - Acceptance: intelligence retrieves tenant-private workflow, policy, and document context with citations.
 - Acceptance: explanation cannot approve, deny, or mutate.
@@ -2361,7 +2353,7 @@ Pass: Cedar denies undeclared resource access.
 ## Pack Overlays
 
 - KR labor pack activates working-hour, overtime, leave, personal information, and kiosk guard rules.
-- EU working-time pack activates time-zone fairness, retention minimization, and works-council evidence.
+- EU working-time pack activates time-zone fairness, retention minimization, and worker-representation evidence.
 - US FLSA pack activates exempt/non-exempt overtime and state leave overlays.
 - JP labor pack activates work-style reform constraints and local document retention.
 - Healthcare pack activates HIPAA redaction and clinical persona access constraints.
@@ -2468,12 +2460,12 @@ Pass: Cedar denies undeclared resource access.
 
 ## AI substrate + Cellular automation
 
-This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automation, and self-hostable delivery:
+This product consumes current SSOT doctrine for the intelligence substrate, cellular automation, and cloud-native delivery:
 
-- ADR-0346 binds Workplace Integration acceptance to `./bin/oya verify --ci-required` as the canonical local pre-push verifier that MUST locally mirror the full CI matrix and block on exit-0 of EACH mandatory step. Enforced-by cross-reference: `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 binds Workplace Integration authoring to the `oya-governance-*` lane vocabulary after the `oya-governance-*` bulk rename. Enforced-by cross-reference: `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, `oya-governance-rename-inventory-presence`.
-- ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology that MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING as control-plane-driven automation modes. Enforced-by cross-reference: `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 binds workplace deployment and product-preview delivery to Jenkins (LTS) and ArgoCD as the canonical self-hostable CI/CD substrates; GitHub Actions remains the hosted PR review surface, Jenkins augments it for self-hostable contexts, and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys. Enforced-by cross-reference: `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, `oya-governance-deploy-audit-chain-emit`.
+- D-CICD-AUTHORITY binds this lane to the branch-protected `oya-ci-required` cloud-ci/oya-ci gate as live merge authority; local command output is transition evidence only. Historical ADR-0346 verifier wording is retained only where it does not conflict with `registry/stores/design-store.json` current truth.
+- D-GOVERNANCE-CENTRAL: central PaC/CaC/PDP/evidence pipelines own governance authority; do not scatter authority across local CLI lanes.
+- ADR-0348 binds workplace tenant placement, workflow execution locality, and plugin blast-radius control to cellular topology. Enforcement evidence flows through central governance and the branch-protected `oya-ci-required` gate, not scattered local lanes.
+- D-CICD-AUTHORITY keeps one canonical CI authority now (`oya-ci-required`) and the owned oya-ci cutover later; self-hostable delivery references are subordinate to the current SSOT and are not parallel merge authorities. Historical ADR-0349 substrate wording is retained only as non-authoritative context until reconciled with the current stores.
 
 ## References
 
@@ -2488,11 +2480,9 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0255-intelligence-two-layer-model.md
 - docs/decisions/ADR-0263-audit-event-registry.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
-- docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md
-- docs/decisions/ADR-0347-governance-fitness-bulk-rename.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
-- docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md
+- `registry/stores/instructions-store.json` D-CICD-AUTHORITY / D-CLOUD-NATIVE current CI authority
 - specs/products/workplace-integration.json
-- specs/microservices/workflow-engine.json
-- specs/microservices/workflow-studio.json
-- specs/microservices/intelligence.json
+- specs/oya/workflow-engine.json
+- specs/oya/workflow-studio.json
+- specs/oya/intelligence.json

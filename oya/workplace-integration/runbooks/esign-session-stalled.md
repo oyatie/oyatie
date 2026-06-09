@@ -9,7 +9,7 @@ audience: workplace-incident-commander
 owner_team: axis-workplace-integration + ops-sre-reliability
 source_wave: codex-runbooks-substrate-w3
 change_scope: substance rewrite of existing thin runbook
-doc_status: published
+doc_status: draft_target_non_claim
 ---
 
 # Runbook: Esign Session Stalled
@@ -30,12 +30,12 @@ doc_status: published
 ## Trigger Conditions
 - Page on alert `EsignSessionStalledCritical` when `oya_workplace_integration_esign_session_stalled_error_ratio > 0.02` for 10 minutes in any production cell.
 - Page on alert `EsignSessionStalledSloBurn` when `oya_workplace_integration_esign_session_stalled_lag_seconds > 300` for 2 consecutive evaluator windows.
-- Open sev1 if `oya_workplace_integration_esign_session_stalled_total` exceeds the threshold documented in `microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
+- Open sev1 if `oya_workplace_integration_esign_session_stalled_total` exceeds the threshold documented in `oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
 - Open sev1 if `oya_workplace_integration_esign_session_stalled_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `workplace-integration.esign-session-stalled.customer_visible` in Zendesk.
-- Trigger from CI when `cargo run -p oya-dev-cli -- gate validate workplace-integration-esign-session-stalled --production-snapshot` exits non-zero against the latest production evidence bundle.
-- Primary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/esign-session-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/workplace-integration/dashboards/audit-evidence.json`.
-- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/esign-session-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/workplace-integration/dashboards/policy-deny-rate.json`.
+- Trigger from `oya-ci-required` when the workplace-integration `esign-session-stalled` production-snapshot Rust gate exits non-zero against the latest production evidence bundle.
+- Primary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/esign-session-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `oya/workplace-integration/dashboards/audit-evidence.json`.
+- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/esign-session-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `oya/workplace-integration/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workplace-integration",runbook="esign-session-stalled"}`.
 - Alertmanager route: `oyatie-workplace-integration-esign-session-stalled-critical`; silence only with incident commander approval and `EVT_WORKPLACE_INTEGRATION_ESIGN_SESSION_STALLED_INCIDENT` evidence.
 - Synthetic probe: `oya ops probe workplace-integration esign-session-stalled --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
@@ -85,16 +85,16 @@ doc_status: published
 12. Open secondary dashboard: `open "https://grafana.dev.oyatie.internal/d/workplace-integration-ops/esign-session-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202&var-tenant=$TENANT"`.
 13. Verify audit-chain emission: `oya audit-chain query --event-class EVT_WORKPLACE_INTEGRATION_ESIGN_SESSION_STALLED_INCIDENT --since 30m --cell $CELL --tenant $TENANT`.
 14. Verify service state: `oya ops workplace-integration esign-session-stalled status --cell $CELL --tenant $TENANT --output json`.
-15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate workplace-integration-esign-session-stalled --production-snapshot --cell $CELL`.
-16. Run crate smoke test: `cargo test -p WorkplaceAgreement domain esign_session_stalled -- --nocapture`.
+15. Attach branch-protected CI evidence: `oya-ci-required` shared Rust gate evidence.
+16. Run Buck target smoke check: `buck2 test root//oya/workplace-integration/crates/oya-workplace-integration-doc-set-scaffold:oya-workplace-integration-doc-set-scaffold`.
 17. Check API contract smoke: `curl -s https://workplace-integration.internal.oyatie.dev/v1/workplace-integration/esign-session-stalled/incident-handoff -H "x-oya-tenant: $TENANT"`.
-18. Inspect config: `test -f microservices/workplace-integration/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/workplace-integration/iac/kustomize/base/kustomization.yaml`.
+18. Inspect config: `test -f oya/workplace-integration/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' oya/workplace-integration/iac/kustomize/base/kustomization.yaml`.
 19. Inspect feature flags: `oya flags get oya.workplace-integration.esign_session_stalled.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 20. Inspect circuit breaker: `oya ops breaker status workplace-integration-esign-session-stalled-circuit-breaker --cell $CELL --tenant $TENANT`.
 21. Check recent deploy: `kubectl -n workplace-integration rollout history deploy/workplace-integration-esign-session-stalled-worker | tail -20`.
-22. Check policy file: `test -f microservices/workplace-integration/policies/esign-initiate.cedar || find microservices/workplace-integration/policy -maxdepth 2 -type f | sort`.
-23. Check SLO files: `ls microservices/workplace-integration/slos/*.openslo.yaml | sort | rg "clock|dlp"`.
-24. Check contract binding: `test -f microservices/workplace-integration/contracts/openapi-v1.yaml && sed -n '1,120p' microservices/workplace-integration/contracts/openapi-v1.yaml`.
+22. Check policy file: `test -f oya/workplace-integration/policies/esign-initiate.cedar || find oya/workplace-integration/policy -maxdepth 2 -type f | sort`.
+23. Check SLO files: `ls oya/workplace-integration/slos/*.openslo.yaml | sort | rg "clock|dlp"`.
+24. Check contract binding: `test -f oya/workplace-integration/contracts/openapi-v1.yaml && sed -n '1,120p' oya/workplace-integration/contracts/openapi-v1.yaml`.
 25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from workplace_integration_esign_session_stalled_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
 26. Confirm no cross-cell spread: `oya ops cells query --metric oya_workplace_integration_esign_session_stalled_error_ratio --window 30m --threshold 0.02`.
 27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice workplace-integration --runbook esign-session-stalled --output evidence/incidents/$INCIDENT_ID.json`.
@@ -127,7 +127,7 @@ Esign Session Stalled incident decision tree
 4. Enable circuit breaker: `oya ops breaker open workplace-integration-esign-session-stalled-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
 5. Reduce blast radius: `kubectl -n workplace-integration scale deploy/workplace-integration-esign-session-stalled-worker --replicas=1`.
 6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason workplace-integration-esign-session-stalled --ttl 60m`.
-7. Pause promotion: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+7. Pause promotion: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` cloud-ci/oya-ci acceptance required; local command output is transition evidence only).
 8. Drain queue safely: `oya ops workplace-integration esign-session-stalled drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
 9. Execute bounded drain: `oya ops workplace-integration esign-session-stalled drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
 10. Replay missing audit events: `oya audit-chain replay --event-class EVT_WORKPLACE_INTEGRATION_ESIGN_SESSION_STALLED_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
@@ -135,7 +135,7 @@ Esign Session Stalled incident decision tree
 12. Raise HPA cap if saturation is proven: `kubectl -n workplace-integration patch hpa workplace-integration-esign-session-stalled-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface workplace-integration.esign-session-stalled --rps 25 --ttl 30m`.
 14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/workplace-integration/runbooks/esign-session-stalled.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths oya/workplace-integration/runbooks/esign-session-stalled.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice workplace-integration --incident $INCIDENT_ID --channel #inc-workplace-integration`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor "DocuSign enterprise support" --incident $INCIDENT_ID --summary workplace-integration-esign-session-stalled`.
 18. Confirm breaker effect: `oya ops breaker status workplace-integration-esign-session-stalled-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -161,23 +161,23 @@ Esign Session Stalled incident decision tree
   - Required audit: emit `EVT_WORKPLACE_INTEGRATION_ESIGN_SESSION_STALLED_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "esign_session_stalled|EsignSessionStalledCritical|workplace_integration.esign_session_stalled.incident_state" crates microservices/workplace-integration -g "!microservices/workplace-integration/runbooks/**"`.
+1. Identify code owner path: `rg "esign_session_stalled|EsignSessionStalledCritical|workplace_integration.esign_session_stalled.incident_state" crates oya/workplace-integration -g "!oya/workplace-integration/runbooks/**"`.
 2. Patch domain invariant: `edit WorkplaceAgreement domain where esign_session_stalled state transition is validated`.
-3. Patch API guard: `edit microservices/workplace-integration/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
-4. Patch policy: `edit microservices/workplace-integration/policies/esign-initiate.cedar with explicit deny/permit branch and tenant/cell scope`.
-5. Patch runtime config: `edit microservices/workplace-integration/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
+3. Patch API guard: `edit oya/workplace-integration/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
+4. Patch policy: `edit oya/workplace-integration/policies/esign-initiate.cedar with explicit deny/permit branch and tenant/cell scope`.
+5. Patch runtime config: `edit oya/workplace-integration/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p WorkplaceAgreement domain esign_session_stalled_incident_regression -- --nocapture`.
-7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate workplace-integration-esign-session-stalled --fixture incident-esign-session-stalled.json`.
-8. Add SLO assertion: `update microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml with alert EsignSessionStalledCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/workplace-integration/dashboards/audit-evidence.json with oya_workplace_integration_esign_session_stalled_error_ratio, oya_workplace_integration_esign_session_stalled_lag_seconds, and oya_workplace_integration_esign_session_stalled_total`.
+7. Add gate evidence from the `oya-ci-required` workplace-integration `esign-session-stalled` fixture lane for `incident-esign-session-stalled.json`.
+8. Add SLO assertion: `update oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml with alert EsignSessionStalledCritical when this was a missing alert`.
+9. Add dashboard panel: `update oya/workplace-integration/dashboards/audit-evidence.json with oya_workplace_integration_esign_session_stalled_error_ratio, oya_workplace_integration_esign_session_stalled_lag_seconds, and oya_workplace_integration_esign_session_stalled_total`.
 10. Rebuild affected crate: `cargo check -p WorkplaceAgreement domain --all-targets`.
 11. Run targeted tests: `cargo test -p WorkplaceAgreement domain --all-features`.
-12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate workplace-integration-policy --microservice workplace-integration`.
+12. Run the `oya-ci-required` workplace-integration policy validation lane for the `workplace-integration` microservice.
 13. Deploy canary: `oya deploy canary --microservice workplace-integration --component workplace-integration-esign-session-stalled-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_workplace_integration_esign_session_stalled_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close workplace-integration-esign-session-stalled-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.workplace-integration.esign_session_stalled.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+17. Resume promotion: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` cloud-ci/oya-ci acceptance required; local command output is transition evidence only).
 18. Seal resolution audit: `oya audit-chain emit --event-class EVT_WORKPLACE_INTEGRATION_ESIGN_SESSION_STALLED_INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=esign-session-stalled`.
 19. Verify seal: `oya audit-chain verify --event-class EVT_WORKPLACE_INTEGRATION_ESIGN_SESSION_STALLED_INCIDENT --incident $INCIDENT_ID`.
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
@@ -187,19 +187,19 @@ Esign Session Stalled incident decision tree
 - `ESignSession usecase`: inspect for `esign_session_stalled` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `roster-binding worker`: inspect for `esign_session_stalled` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `clock-attestation adapter`: inspect for `esign_session_stalled` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `microservices/workplace-integration/contracts/openapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
-- `microservices/workplace-integration/contracts/asyncapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
-- `microservices/workplace-integration/contracts/workplace-integration-v1.proto`: verify request/response or event contract only when incident evidence points there.
-- `microservices/workplace-integration/dashboards/audit-evidence.json`: verify panel coverage for `oya_workplace_integration_esign_session_stalled_error_ratio`, `oya_workplace_integration_esign_session_stalled_lag_seconds`, and `oya_workplace_integration_esign_session_stalled_total`.
-- `microservices/workplace-integration/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
-- `microservices/workplace-integration/policies/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
+- `oya/workplace-integration/contracts/openapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
+- `oya/workplace-integration/contracts/asyncapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
+- `oya/workplace-integration/contracts/workplace-integration-v1.proto`: verify request/response or event contract only when incident evidence points there.
+- `oya/workplace-integration/dashboards/audit-evidence.json`: verify panel coverage for `oya_workplace_integration_esign_session_stalled_error_ratio`, `oya_workplace_integration_esign_session_stalled_lag_seconds`, and `oya_workplace_integration_esign_session_stalled_total`.
+- `oya/workplace-integration/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
+- `oya/workplace-integration/policies/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
 ## Verification Checklist
 - `EsignSessionStalledCritical` and `EsignSessionStalledSloBurn` are both resolved in Alertmanager for 30 minutes.
 - `oya_workplace_integration_esign_session_stalled_error_ratio < 0.005` for 3 consecutive 10 minute windows.
 - `oya_workplace_integration_esign_session_stalled_lag_seconds < 120` for all production cells.
 - `oya_workplace_integration_esign_session_stalled_queue_depth` is draining and not growing for the affected tenant.
-- Service-specific signal `oya_workplace_integration_esign_session_stalled_total` is below the threshold documented in `microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
+- Service-specific signal `oya_workplace_integration_esign_session_stalled_total` is below the threshold documented in `oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
 - Dashboard `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/esign-session-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` shows green panels for the affected cell.
 - Audit-chain query for `EVT_WORKPLACE_INTEGRATION_ESIGN_SESSION_STALLED_INCIDENT` returns mitigation and resolution events.
 - Circuit breaker `workplace-integration-esign-session-stalled-circuit-breaker` is closed after rollback window.
@@ -271,7 +271,7 @@ evidence_hash: <sha256>
 - Incident commander: first responder from axis-workplace-integration + ops-sre-reliability; transfer only by explicit message in `#inc-workplace-integration`.
 - Security escalation: page `ops-security-primary` immediately for sev0, credential, cross-tenant, fraud, or audit-seal symptoms.
 - Compliance escalation: page `dpo-office-duty` when tenant data, regulator evidence, money movement, or breach-clock symptoms are present.
-- Architecture escalation: page `council-architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
+- Architecture escalation: page `architecture-reviewer` before manual bypass, policy rollback, or invariant relaxation.
 - External vendors: DocuSign enterprise support; Workday HCM support; ADP Workforce Now support. Open a ticket once local dependency health is proven and vendor dependency remains suspect.
 - Customer communications: use status page component `oyatie-workplace-integration-esign-session-stalled` and keep private details in the incident channel.
 - Regulatory clock: if tenant data, financial correctness, or evidence integrity is possibly affected, start the compliance 72h assessment timer even if exposure is unconfirmed.
@@ -301,13 +301,13 @@ evidence_hash: <sha256>
 - Close only after `EVT_WORKPLACE_INTEGRATION_ESIGN_SESSION_STALLED_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
 ## Sources Checked During This Substance Pass
-- `microservices/workplace-integration/dashboards/` for dashboard names and operational panels: audit-evidence.json, policy-deny-rate.json, replay-health.json, service-overview.json, tenant-slo-burn.json.
-- `microservices/workplace-integration/slos/` for OpenSLO alert vocabulary and threshold alignment: clock-attestation-availability.openslo.yaml, dlp-trace-seal-fidelity.openslo.yaml, esign-initiate-availability.openslo.yaml, offer-generation-latency.openslo.yaml, roster-binding-accuracy.openslo.yaml, signature-capture-latency.openslo.yaml.
-- `microservices/workplace-integration/policies/` for named policy and authorization surfaces: clock-attest.cedar, dlp-trace-seal.cedar, esign-initiate.cedar, esign-sign.cedar, offer-generate.cedar, roster-bind.cedar.
-- `microservices/workplace-integration/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/workplace-integration-v1.proto.
-- `microservices/workplace-integration/manifest.json` for owner, dependency, capability, and bounded-context vocabulary; topic `esign-session-stalled` is the scenario anchor.
+- `oya/workplace-integration/dashboards/` for dashboard names and operational panels: audit-evidence.json, policy-deny-rate.json, replay-health.json, service-overview.json, tenant-slo-burn.json.
+- `oya/workplace-integration/slos/` for OpenSLO alert vocabulary and threshold alignment: clock-attestation-availability.openslo.yaml, dlp-trace-seal-fidelity.openslo.yaml, esign-initiate-availability.openslo.yaml, offer-generation-latency.openslo.yaml, roster-binding-accuracy.openslo.yaml, signature-capture-latency.openslo.yaml.
+- `oya/workplace-integration/policies/` for named policy and authorization surfaces: clock-attest.cedar, dlp-trace-seal.cedar, esign-initiate.cedar, esign-sign.cedar, offer-generate.cedar, roster-bind.cedar.
+- `oya/workplace-integration/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/workplace-integration-v1.proto.
+- `oya/workplace-integration/manifest.json` for owner, dependency, capability, and bounded-context vocabulary; topic `esign-session-stalled` is the scenario anchor.
 
 ## Checkpoint Closure Criteria
 - The runbook remains current when `EsignSessionStalledCritical`, `EsignSessionStalledSloBurn`, `oya_workplace_integration_esign_session_stalled_total`, `oya.workplace-integration.esign_session_stalled.incident_hold`, and `workplace-integration-esign-session-stalled-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya vcs verify --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when the branch-protected `oya-ci-required` cloud-ci/oya-ci gate accepts the runbook evidence for the five target scopes; local command output is transition evidence only, not destination authority.

@@ -81,7 +81,7 @@ resource "oci_objectstorage_bucket" "cloud_iac_state" {
 ```bash
 helm lint microservices/cloud-iac/iac/helm/opentofu
 tofu validate microservices/cloud-iac/iac/terraform/
-cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-iac
+cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

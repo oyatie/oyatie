@@ -5,8 +5,8 @@ microservice: cloud-iac
 status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
-owner_team: ops-sre-reliability + ops-security + council-privacy
-deciders: ops-sre-reliability, ops-security, council-privacy, axis-cloud-iac, council-architecture
+owner_team: ops-sre-reliability + ops-security + privacy-governance
+deciders: ops-sre-reliability, ops-security, privacy-governance, axis-cloud-iac, architecture-governance
 related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/threat-model.md
@@ -44,8 +44,8 @@ Per Bominal ADR-0028 (inherited) and oyatie incident-severity standard (`docs/st
 | **Operations Lead (OpsLead)** | ops-sre-reliability secondary | Executes runbook; performs DR failover |
 | **Communications Lead (CommsLead)** | gtm-customer-success or designated | Drafts and sends tenant + status page + regulatory notifications |
 | **Subject-Matter Expert (SME)** | axis-cloud-iac + relevant workload owner | Diagnoses root cause; proposes mitigation |
-| **Privacy Lead (PrivacyLead)** | council-privacy chair | Activates for data-breach-suspect (Sev-1 confidentiality); owns regulatory notification chain |
-| **Executive Sponsor (ExecSponsor)** | council-architecture chair (Sev-1 only) | Decision-rights for cross-org or external comms |
+| **Privacy Lead (PrivacyLead)** | privacy-governance chair | Activates for data-breach-suspect (Sev-1 confidentiality); owns regulatory notification chain |
+| **Executive Sponsor (ExecSponsor)** | architecture-governance chair (Sev-1 only) | Decision-rights for cross-org or external comms |
 | **Scribe** | Any on-call team member | Captures timeline in incident channel (Slack `#inc-<id>`) |
 
 ## Escalation Path
@@ -63,7 +63,7 @@ Engineering manager (axis-cloud-iac lead) paged + Slack
     ↓ (if Sev-1 and no resolution in 30min)
 Director (ops-sre-reliability + ops-security directors) engaged
     ↓ (if Sev-1 and breach-suspect)
-council-privacy chair + ExecSponsor engaged
+privacy-governance chair + ExecSponsor engaged
     ↓ (if confirmed breach)
 Regulatory notification chain begins
     ↓ (if confirmed data-subject impact + GDPR-scope)
@@ -150,7 +150,7 @@ Template — DPA notification:
 
 ```
 To: <Lead Supervisory Authority>
-From: <oyatie council-privacy chair as DPO>
+From: <oyatie privacy-governance chair as DPO>
 Subject: Personal data breach notification under GDPR Art. 33
 
 Date / time of breach discovery: <ISO8601>
@@ -159,7 +159,7 @@ Nature of breach: <categories of personal data + categories of data subjects>
 Approximate number of records affected: <est>
 Likely consequences: <e.g., possible exposure via cross-µservice mutation>
 Measures taken / proposed: <mitigation + DSR support>
-DPO contact: <council-privacy chair>
+DPO contact: <privacy-governance chair>
 Joint controller cascade: tenant <tenant_id_redacted> notified at <ISO8601>;
 tenant is informing its data subjects per Art. 34 where applicable.
 ```
@@ -218,7 +218,7 @@ Per `docs/templates/incident-postmortem-template.md`:
    - Runbook adequacy? (yes / partial / no + improvement)
    - Trust-portal entry (for external publication if customer-facing)
 4. Published to `evidence/postmortems/<year>/<incident-id>.md` (audit-chain-sealed).
-5. Reviewed quarterly by council-architecture for systemic patterns.
+5. Reviewed quarterly by architecture-governance for systemic patterns.
 
 **Blameless culture per Google SRE Workbook ch. 12.**
 
@@ -232,12 +232,12 @@ Inherits observability on-call structure; cloud-iac adds a dedicated axis-cloud-
 | ops-sre-reliability secondary | Same pool offset 1 week | Weekly | Same |
 | axis-cloud-iac SME | 3 engineers | Weekly; KR + EU primary; US business-hours | Same |
 | ops-security on-call | 4 engineers | Weekly; 24/7 for Sev-1 confidentiality | Same |
-| council-privacy chair | Named role; permanent | Always-on-call for breach-suspect | – |
+| privacy-governance chair | Named role; permanent | Always-on-call for breach-suspect | – |
 | Executive Sponsor | Named role; permanent | Sev-1 only | – |
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate incident-runbook-coverage --microservice cloud-iac` — exit 0; every FM-ID has matching runbook.
+- cloud-ci/oya-ci governance gate `incident-runbook-coverage` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0; every FM-ID has matching runbook.
 - Quarterly DR-failover drill validates response chain end-to-end (per `multi-region.md`).
 - Annual tabletop exercise simulates Sev-1 regional outage; comms + regulatory notification chain rehearsed.
 

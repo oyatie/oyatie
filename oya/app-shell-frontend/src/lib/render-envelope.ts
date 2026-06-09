@@ -1,8 +1,7 @@
-// TypeScript port of crates/oya-application-shell-frontend-prototype/src/render_envelope.rs
-// Mirrors the Rust structs 1-to-1 so the /api/render-envelope/:context JSON
-// response can be deserialized without a codegen step for this internal shape.
-// When the Rust backend publishes an OpenAPI contract for this endpoint, replace
-// this hand-maintained file with the generated client from `npm run codegen`.
+// Archived TypeScript mirror of the Rust render_envelope contract.
+// ADR-0393 keeps the Rust Leptos shell as canonical; this mirror exists only so
+// the transition surface can deserialize /api/render-envelope/:context until
+// the SolidJS tree is retired.
 
 export type DemoContext = "tenant-admin" | "corporate-office" | "healthcare-clinician";
 

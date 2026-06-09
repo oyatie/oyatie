@@ -34,10 +34,10 @@ authority_chain_declaration: |
   system / developer / user instructions
     > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until /specs/agent-operating-contract.json PHASE-5 promotion)
     > /specs/root-hub-pointers.json (redirect/index hub; pointer cohesion, not an override of CLAUDE/docs/AGENTS)
-    > tools/agent-skills/AGENTS.md (inherited base from addyosmani/agent-skills MIT — universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration; oyatie overlays via this file and wins on conflict)
-    > machine-readable specs and registries under .omc/
+    > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
+    > machine-readable specs and registries under /specs, /registry, /evidence, and /templates
     > docs/ authority files during markdown-retirement compatibility
-    > tools/agent-skills/CLAUDE.md (informational; describes vendored subtree, not oyatie)
+    > external/upstream skill documentation (informational only; not vendored into this repo)
     > working drafts (never authoritative)
 purpose: "Operating-Contract: Oyatie Agent Operating Contract."
 doc_status: published
@@ -86,16 +86,16 @@ The higher source wins on conflict.
 system / developer / user instructions
   > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until /specs/agent-operating-contract.json PHASE-5 promotion)
   > /specs/root-hub-pointers.json (redirect/index hub; pointer cohesion, not an override of CLAUDE/docs/AGENTS)
-  > tools/agent-skills/AGENTS.md (inherited base from addyosmani/agent-skills MIT)
-  > machine-readable specs and registries under .omc/
+  > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents)
+  > machine-readable specs and registries under /specs, /registry, /evidence, and /templates
   > docs/ authority files during markdown-retirement compatibility
-  > tools/agent-skills/CLAUDE.md (informational; describes vendored subtree, not oyatie)
+  > external/upstream skill documentation (informational only; not vendored into this repo)
   > working drafts (never authoritative)
 ```
 
 The chain is aligned with `/specs/root-hub-pointers.json` discoverability and the markdown-retirement policy while keeping CLAUDE.md + docs/AGENTS.md authoritative until PHASE-5. The `oya-governance-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
 
-`tools/agent-skills/AGENTS.md` is the inherited base from `addyosmani/agent-skills` (MIT) — universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration. Oyatie governance (this file) OVERLAYS and WINS on conflict per Bominal-inheritance precedence (`feedback_bominal_inheritance_precedence`). See `tools/agent-skills/INHERITANCE.md` for the full pattern.
+The installed agent-runtime skill and role catalog provides universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration, and role prompts. Oyatie governance (this file) OVERLAYS and WINS on conflict per Bominal-inheritance precedence (`feedback_bominal_inheritance_precedence`). The retired `tools/agent-skills/` vendor tree is intentionally absent; agents should use their installed runtime surfaces instead of repo-local duplicated copies.
 
 ## RFC-2119 normative-language statement
 
@@ -109,9 +109,9 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 
 | Question | Authority |
 |---|---|
-| Intent→skill mapping, lifecycle phases, anti-rationalization, persona/skill/command orchestration | [`tools/agent-skills/AGENTS.md`](../tools/agent-skills/AGENTS.md) (inherited from addyosmani/agent-skills MIT — oyatie overlays via this file; see [`tools/agent-skills/INHERITANCE.md`](../tools/agent-skills/INHERITANCE.md)) |
-| Universal skill catalog (23 lifecycle skills) | [`tools/agent-skills/skills/`](../tools/agent-skills/skills/) |
-| Reusable agent personas (code-reviewer, security-auditor, test-engineer) | [`tools/agent-skills/agents/`](../tools/agent-skills/agents/) |
+| Intent→skill mapping, lifecycle phases, anti-rationalization, persona/skill/command orchestration | Installed agent-runtime skill catalog (Codex default: `~/.codex/skills`; project `.codex/skills` only when intentionally checked in) |
+| Universal skill catalog | Installed runtime skills, discovered by the active agent surface; no repo-vendored duplicate |
+| Reusable agent personas / roles | Installed runtime roles (Codex default: `~/.codex/agents`; set `agent_type` explicitly for OMX subagents) |
 | Project mission, decision rights, prohibited primitives, amendments | [`MASTERPLAN.md`](MASTERPLAN.md), [`/specs/master-plan-sequencing.json`](..//specs/master-plan-sequencing.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
 | Bootstrap routing for the canonical tree | [`README.md`](README.md) |
 | Architecture, planes, cross-axis contracts, cohesion thesis | [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> |
@@ -321,7 +321,7 @@ Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-
 
 Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
 
-State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by governance evidence in the plain-git/Jenkins/GitHub path.
+State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat `.omc/` and `.omx/` as local-only, gitignored session state/provenance; live machine-readable authority belongs under `/specs`, `/registry`, `/evidence`, and `/templates`.
 
 ## Anti-overlap
 

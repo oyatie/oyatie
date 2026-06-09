@@ -88,8 +88,8 @@ cargo check --workspace -p oya-cloud-iac-iac-renderer-domain -p oya-cloud-iac-ia
 cargo build --workspace -p oya-cloud-iac-iac-renderer-domain -p oya-cloud-iac-iac-renderer-usecase -p oya-cloud-iac-iac-renderer-api --all-features
 cargo clippy --workspace -p oya-cloud-iac-iac-renderer-domain -p oya-cloud-iac-iac-renderer-usecase -p oya-cloud-iac-iac-renderer-api --all-features -- -D warnings
 cargo nextest run --workspace -p oya-cloud-iac-iac-renderer-domain -p oya-cloud-iac-iac-renderer-usecase -p oya-cloud-iac-iac-renderer-api --all-features
-cargo run -p oya-dev-cli -- gate validate lean-a1 --microservice cloud-iac
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-iac
+cloud-ci/oya-ci governance gate `lean-a1` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

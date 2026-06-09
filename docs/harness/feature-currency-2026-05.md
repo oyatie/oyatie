@@ -99,8 +99,7 @@ The current event list is much larger than the 5 oyatie wires: `SessionStart`,
   (Bash/Task), `PostToolUse` (Edit|MultiEdit|Write, Bash|WebFetch|WebSearch).
 - `.codex/hooks.json`: same 5-event wiring; PascalCase keys; matches the current
   Codex schema exactly.
-- `tools/hooks/`: 10 shell hooks. `tools/hook-bootstrap/install.sh` is the generator
-  / source-of-truth; `docs/security.md` documents the model.
+- `tools/hooks/`: local advisory shell hooks. The former retired local hook bootstrap generator was retired after this audit window because it was local-shell glue with no durable cloud-native product value; `docs/security.md` documents the remaining model.
 
 This is already a **strong, current** baseline. The sandbox+permissions redesign and
 the PascalCase Codex schema are both up to date.
@@ -161,7 +160,7 @@ already parse `.tool_input` correctly via python and need no edit;
   `451987f24`. Either restore the inventory hook or drop that assertion. This is a
   currently-red test independent of harness currency; left for the CI owner.
 - **R2 (G5):** Drop the dead `HERMES_DETECTED` branch and `.hermes/hooks.json` summary
-  line from `tools/hook-bootstrap/install.sh` (Hermes retired per ADR-0335/0247).
+  line from the retired hook bootstrap generator (Hermes retired per ADR-0335/0247).
 - **R3 (G6):** Re-sync the `install.sh` CODEX_CONTENT `_note` and the committed
   `.codex/hooks.json` `_note` so the generator and its output match verbatim.
 - **R4 (G3 full):** Optionally delete the `$TOOL_INPUT` env-var branch entirely once

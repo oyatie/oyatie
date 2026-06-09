@@ -5,7 +5,7 @@ doc_status: published
 # Team: Axis — SaaS Multi-Tenant Platform
 
 ## Mission
-This team owns the SaaS multi-tenant platform axis: the workflow engine, Object Graph, plugin substrate and marketplace, Bench (collaborative workspace), and partner surface. It exists to make Oyatie the operating system for tenant businesses — the layer that end users touch every day, shaped per vertical by the vertical teams but authored and governed here. It does **not** own the underlying cloud infrastructure (→ `axis-cloud`), the agent runtime (→ `axis-foundry`), or per-vertical domain logic beyond what is shared across all verticals.
+This team owns the SaaS multi-tenant platform axis: the workflow engine, Object Graph, plugin substrate and marketplace, Bench (collaborative workspace), and partner surface. It exists to make Oyatie the operating system for tenant businesses — the layer that end users touch every day, shaped per vertical by the vertical teams but authored and governed here. It does **not** own the underlying cloud infrastructure (→ `axis-cloud`), model/provider execution (→ `cloud-intelligence`), tenant intelligence servicing (→ `oya-intelligence`), or per-vertical domain logic beyond what is shared across all verticals.
 
 ## Owned axes / surfaces / contracts
 - **Axis(es):** SaaS multi-tenant (Axis 1)
@@ -19,15 +19,15 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
   - `oya-platform-web-kernel` / `oya-platform-web-app` — SaaS web layer
   - Bench: collaborative workspace surface (uses OG + workflow + identity)
   - Connect: partner integration surface
-  - Products owned: `products/saas-platform/PRD.md`
+  - Product PRD: `docs/products/saas-platform/PRD.md` (planning-closed contract authored; live readiness requires changeset gate evidence)
 - **Cross-axis contracts (DESIGN §10):**
   - `Object Graph property tier` (co-owner with `platform-eventing-og`, `platform-privacy-dub`) — OG shape changes are cross-axis
-  - `Marketplace listing` (co-owner with `axis-foundry`) — plugin signing + sandbox gate
+  - `Marketplace listing` (co-owner with `cloud-intelligence`, `oya-intelligence`, and central governance) — plugin signing + sandbox gate
   - `Billing event` (co-owner with `axis-cloud`) — SaaS metering side
   - `Webhook delivery + signing` (consumer of `platform-api-sdk` — SaaS-authored webhooks)
   - `Public REST stability tier` (consumer — SaaS surface slice)
-- **Catalog records:** `crates/oya-saas-*`, `crates/oya-platform-forms-*`, `crates/oya-platform-metering-*`, `crates/oya-platform-web-*`
-- **Runbooks:** `runbooks/workflow-engine-restart.md`, `runbooks/plugin-sandbox-escape.md`, `runbooks/marketplace-listing-takedown.md`
+- **Catalog records:** current registry-store package records for `oya-saas-workflow-kernel`, `oya-saas-workflow-domain`, `oya-saas-workflow-app`, `oya-saas-plugin-app`, `oya-saas-plugin-runtime`, `oya-saas-plugin-marketplace`, `oya-saas-plugin-marketplace-kernel`, `oya-platform-forms-*`, `oya-platform-metering-*`, and `oya-platform-web-*`.
+- **Runbooks:** `docs/runbooks/saas/workflow-engine-deadlock.md`, `docs/runbooks/saas/plugin-runtime-sandbox-escape.md`, `docs/runbooks/saas/marketplace-listing-takedown.md`
 - **ADRs:** ADR-0035 (workflow engine), ADR-0006..0112 (OG — co-author with `platform-eventing-og`)
 
 ## In-scope work
@@ -44,7 +44,7 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 
 ## Out-of-scope (anti-scope)
 - Cloud infrastructure hosting SaaS (→ `axis-cloud`)
-- Agent runtime (→ `axis-foundry`)
+- Model/provider execution and tenant intelligence servicing (→ `cloud-intelligence` / `oya-intelligence`)
 - Per-vertical FHIR/EDI/ISA-95 domain logic (→ per-vertical teams; SaaS provides the workflow substrate)
 - Public API gateway infrastructure (→ `platform-api-sdk`)
 - Audit chain infrastructure (→ `platform-audit-evidence` — SaaS emits but doesn't own the chain)
@@ -57,10 +57,10 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 | `platform-tenancy-identity` | Tenant/identity kernel, RBAC enforcement | Per-release |
 | `platform-eventing-og` | OG property-tier schema, outbox relay | Per-release |
 | `platform-privacy-dub` | Data Use Boundary check on OG tier changes | Per OG schema change |
-| `axis-foundry` | Capability invocation API for agent-authored workflows | Wave gate |
+| `cloud-intelligence` / `oya-intelligence` | Capability invocation API for agent-authored workflows | Wave gate |
 | `axis-cloud` | Compute cells for workflow execution, storage for OG | Wave gate |
 | `platform-api-sdk` | Webhook delivery, public REST stability tier | Per-release |
-| `axis-foundry` | Catalog gate for plugin signing, fitness functions | Per-release |
+| central governance | Catalog gate for plugin signing and contract fitness functions | Per-release |
 
 ## Teams that depend on us
 | Consumer | What they need | Cadence |
@@ -68,11 +68,11 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 | All vertical teams | Workflow engine, OG, plugin substrate, metering | Per vertical onboard |
 | `axis-search` | OG-indexed content (via consent tier) | Monthly |
 | `axis-ads-analytics` | Tenant-consented data classes for ad targeting | Wave gate |
-| `gtm-sales-se` | Demo environment, pilot tenant workflows | Monthly |
+| `gtm-sales-se` | Controlled evaluation tenants, sales-engineering validation workflows, and evidence-backed pilot workflow packs | Monthly |
 | `gtm-customer-success` | Tenant health dashboards, workflow analytics | Monthly |
 
 ## Success metrics
-- **Tenant onboarding + plugin install + marketplace listing all functional:** PRD §4.1 W-SaaS-Preview gate
+- **Tenant onboarding + plugin install + marketplace listing all functional:** M03-P04/M03-P08 changeset evidence plus branch-protected `oya-ci-required` gate; readiness remains `target_non_claim` until that evidence is green.
 - **Workflow execution p99 latency:** < 500 ms for synchronous steps
 - **Plugin sandbox escape incidents:** 0
 - **Marketplace plugin listing review turnaround:** ≤ 5 business days
@@ -81,8 +81,8 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 
 ## Escalation path
 - Internal: tech lead → team manager
-- Cross-team: architecture council (`teams/council-architecture/CHARTER.md`) for OG contract changes
-- Privacy: privacy council for OG tier → data-class disputes
+- Cross-team: founder-governed architecture review for OG contract changes
+- Privacy: `platform-privacy-dub` and central governance for OG tier → data-class disputes
 - Founder: as last resort
 
 ## Communication cadence
@@ -91,14 +91,12 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 - Cross-team review: monthly cross-axis contract audit for OG and marketplace contract changes
 
 ## Bandwidth + hiring
-- Current FTE: TBD
-- Target FTE: TBD per axis-wave (PRD §3.1)
-- Open requisitions: link to `HIRING-CAPACITY-PLAN.md`
+Capacity is tracked outside this repository in the staffing system and is not a product-readiness signal. SaaS readiness is gated by M03-P04/M03-P08 functional, security, SLO, runbook, and `oya-ci-required` evidence rather than staffing-count assertions.
 
 ## Operating norms
 - Code review: per CLAUDE.md `## Code Review` rules; OG contract PRs require cross-axis label
 - PR shape: 5-section H2 template
-- Pre-push: `repoctl check`
+- Readiness authority: branch-protected `oya-ci-required`; workstation diagnostics may help authors but are never merge, production, or hyperscaler authority.
 - ADR proposal cadence: monthly batch
 
 ## Slice of risk register
@@ -110,4 +108,4 @@ This team owns the SaaS multi-tenant platform axis: the workflow engine, Object 
 | Marketplace fraudulent plugin listed | Medium | Plugin signing + review pipeline; automated static analysis |
 
 ## Sources scanned
-PRD.md §2, §3.1 (W-SaaS-Preview), DESIGN.md §1 (Axis 1), §10 (OG tier, marketplace, billing event rows), products/saas-platform/PRD.md (draft), DOC-CATALOG.md §2.5.
+docs/products/README.md SaaS Platform entry, docs/products/saas-platform/PRD.md, specs/masterplan.json M03-P04/M03-P08 references, docs/decisions/ADR-0035, ADR-0036, ADR-0249, ADR-0314, registry/stores/* current-truth stores, specs/root-hub-pointers.json, HANDOFF.md, and DOC-CATALOG.md §2.5.

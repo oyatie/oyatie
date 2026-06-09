@@ -3110,7 +3110,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | Pattern | Hits | Sample citations |
 | --- | --- | --- |
 | placeholder marker and code-only deferral | 1708 | docs/COMPLIANCE-MATRIX.md:178; docs/PRD.md:140; docs/DOC-CATALOG.md:338; docs/ADR-CONSOLIDATION-PLAN.md:30; docs/FINOPS-PLAN.md:38 |
-| retired external tooling (grit/rtk/icm/oya vcs) | 2369 | docs/CHANGELOG.md:238; docs/GLOSSARY.md:568; docs/DOC-COVERAGE.md:206; docs/MASTERPLAN.md:96; docs/bootstrap.md:164 |
+| retired external tooling (grit/rtk/icm/oya vcs) | 2369 | docs/CHANGELOG.md:238; docs/GLOSSARY.md:568; docs/DOC-COVERAGE.md:206; docs/MASTERPLAN.md:96; retired bootstrap doc line 164 |
 | Object Graph retired term | 327 | docs/PRD.md:65; docs/DOC-CATALOG.md:134; docs/ADR-CONSOLIDATION-PLAN.md:59; docs/CHANGELOG.md:85; docs/GLOSSARY.md:230 |
 | foundry-fitness stale lane | 856 | docs/MISTAKES-LEDGER.md:45; docs/ADR-CONSOLIDATION-PLAN.md:34; docs/CHANGELOG.md:44; docs/VENDOR-PARTNER-LEDGER.md:97; docs/ADR-LEGACY-REGRESSION-MAPPING.md:143 |
 | OpenAPI below 3.2.0 prose/config | 22 | docs/architecture/ip-corpus-line-audit-2026-05-21.md:220; docs/architecture/adr-corpus-line-audit-2026-05-21.md:323; docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:3117; docs/automation/openapi-pipeline.md:58; microservices/calendar/IP-011-contracts-openapi-asyncapi-proto.md:22 |
@@ -3163,7 +3163,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/GLOSSARY.md:568` — `| **Oya VCS ChangeSet** | Claimable, verifiable, bundleable, promotable unit of repository work. | [ADR-0223](decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.`
 - `docs/DOC-COVERAGE.md:206` — `Required sections per Impl-Plan: `## Concrete File Targets`, `## Code Shape`, `## Acceptance Gates`, `## Load test`, `## Grit Claim Symbols`, `## ICM Rows to Emit`.`
 - `docs/MASTERPLAN.md:96` — `5. Promote only through Oya VCS claim, verify, done, and promote transitions with evidence.`
-- `docs/bootstrap.md:164` — `- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)`
+- `retired bootstrap doc line 164` — `- ADR-0116: Retired tooling (grit/rtk/icm/vox → oya git for git operations; oya vcs for policy-ratchet compatibility)`
 - `docs/AGENT-INSTRUCTION-SOURCES.md:12` — `This inventory enumerates repo-local files that contain exact `agent-instructions` fences after M01-P08-IP-007. It is the P5 audit surface for the banned-primitives lane; out-of-re`
 - `docs/DESIGN.md:499` — `- **`infra/` is the canonical root for admission policies + GitOps Application manifests** (ADR-0117 consolidated `deploy/gitops/oya-vcs-admission/` under `infra/kyverno/oya-vcs-ad`
 - `docs/AGENTS.md:58` — `Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-rev`

@@ -135,7 +135,7 @@ these in context.
 ### 2.4 Sources you should keep open
 
 - The CLAUDE.md at the repo root.
-- The `tools/agent-skills/AGENTS.md` operating contract.
+- The installed agent-runtime skills/roles that apply to your agent surface.
 - The repo `Cargo.toml` workspace manifest so you can see the crate
   list at a glance.
 - The `microservices/` directory tree open in a separate terminal so

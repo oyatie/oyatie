@@ -147,7 +147,7 @@ doc_status: published
 10. Enable session recording hold: `oya iam session recording hold --tenant $TENANT --principal $PRINCIPAL --incident $INCIDENT_ID`.
 11. Quarantine workload principal: `oya iam workload quarantine --tenant $TENANT --principal $PRINCIPAL --ttl 60m --reason $INCIDENT_ID`.
 12. Pause Foundry principal if implicated: `oya foundry principal pause --principal $PRINCIPAL --reason $INCIDENT_ID`.
-13. Hold cloud-iam promotions: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+13. Hold cloud-iam promotions: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
 14. Notify affected service owners: `oya notify service-owner --incident $INCIDENT_ID --microservice cloud-iam`.
 15. Notify tenant admin through security copy: `oya notify tenant-admin --tenant $TENANT --incident $INCIDENT_ID --template jit-elevation-contained`.
 16. Preserve evidence: `oya evidence freeze --incident $INCIDENT_ID --paths evidence/incidents/$INCIDENT_ID.json`.
@@ -168,7 +168,7 @@ doc_status: published
 9. Add regression for paid tenant_class PIV signature requirement.
 10. Run domain tests: `cargo test -p oya-cloud-iam-domain elevation -- --nocapture`.
 11. Run API tests: `cargo test -p oya-cloud-iam-api elevation -- --nocapture`.
-12. Run policy gate: `cargo run -p oya-dev-cli -- gate validate cloud-iam-elevation-policy --production-snapshot --cell $CELL`.
+12. Verify the branch-protected production-snapshot gate for `cloud-iam-elevation-policy` in `oya-ci-required` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
 13. Verify no active grants: `oya iam elevation list --tenant $TENANT --active --expect none`.
 14. Verify no provider residue: `oya iam target temporary-roles list --tenant $TENANT --principal $PRINCIPAL --provider all --expect none`.
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_IAM_JIT_ELEVATION_MISUSE_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.

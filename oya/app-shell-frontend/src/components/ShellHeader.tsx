@@ -1,5 +1,6 @@
-// Port of crates/oya-application-shell-frontend-prototype/src/app.rs :: ShellHeader
-// SolidJS fine-grained signals replace the data-attribute JS in prototype-interactions.js.
+// Archived transition shell header.
+// ADR-0393 makes Leptos/Rust-WASM canonical; the local signals here are
+// retained only to keep this read-only transition surface testable.
 import { createSignal, type Component } from "solid-js";
 
 const ShellHeader: Component = () => {
@@ -58,9 +59,9 @@ const ShellHeader: Component = () => {
         <kbd>⌘K</kbd>
       </button>
 
-      <div class="header-actions" aria-label="Prototype status">
+      <div class="header-actions" aria-label="Shell status">
         <button type="button" class="header-status">SSR shell</button>
-        <button type="button" class="header-status muted">SolidJS · ADR-0372</button>
+        <button type="button" class="header-status muted">ADR-0393 transition</button>
         <button
           type="button"
           class="header-icon"

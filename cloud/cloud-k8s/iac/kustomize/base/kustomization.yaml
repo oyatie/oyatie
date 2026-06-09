@@ -8,6 +8,9 @@ kind: Kustomization
 
 namespace: cloud-k8s-system
 
+helmGlobals:
+  chartHome: ../../helm
+
 resources:
   - namespace.yaml
   - openbao-secret-references.yaml
@@ -16,34 +19,37 @@ resources:
   - istio-peerauth-strict.yaml
 
 helmCharts:
-  - name: oya-cloud-k8s-cni-cilium
+  - name: cni-cilium
     valuesFile: ../../helm/cni-cilium/values.yaml
     releaseName: cilium
     namespace: cilium-system
-  - name: oya-cloud-k8s-istio-base
+  - name: istio-base
     valuesFile: ../../helm/istio-base/values.yaml
     releaseName: istio-base
     namespace: istio-system
-  - name: oya-cloud-k8s-istiod
+  - name: istiod
     valuesFile: ../../helm/istiod/values.yaml
     releaseName: istiod
     namespace: istio-system
-  - name: oya-cloud-k8s-envoy-gateway
+  - name: envoy-gateway
     valuesFile: ../../helm/envoy-gateway/values.yaml
     releaseName: envoy-gateway
     namespace: istio-system
-  - name: oya-cloud-k8s-csi-block-volume
+  - name: csi-block-volume
     valuesFile: ../../helm/csi-block-volume/values.yaml
     releaseName: csi-block-volume
     namespace: kube-system
-  - name: oya-cloud-k8s-csi-object
+  - name: csi-object
     valuesFile: ../../helm/csi-object/values.yaml
     releaseName: csi-object
     namespace: kube-system
-  - name: oya-cloud-k8s-csi-file
+  - name: csi-file
     valuesFile: ../../helm/csi-file/values.yaml
     releaseName: csi-file
     namespace: kube-system
+
+components:
+  - ../components/storage-classes
 
 commonLabels:
   app.kubernetes.io/part-of: oya-cloud-k8s

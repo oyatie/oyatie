@@ -49,7 +49,7 @@ paid definition 08: paid should include multi-region key replica design, HSM sha
 paid definition 09: paid should include regulated compliance evidence for KCMVP/FIPS/Common Criteria/Pci where claimed.
 paid definition 10: paid should include cross-service integration tests with cloud-iam, cloud-storage, cloud-data, cloud-iac, and audit-chain.
 
-paid definition 01: paid is the hyperscaler and single-tenant capable tier.
+paid definition 01: paid is the target single-tenant/high-scale tier; hyperscaler-class positioning remains target_non_claim until benchmark, failover, compliance, and cross-service evidence pass.
 paid definition 02: Current local paid uses dedicated Utimaco CP5, Thales Luna 7, and Vault Enterprise HSM seal.
 paid definition 03: Current local paid claims FIPS 140-3 Level 3 and Common Criteria EAL4+.
 paid definition 04: Current local paid says unlimited CMKs by contract and 7-day rotation.

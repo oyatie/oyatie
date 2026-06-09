@@ -1,158 +1,91 @@
-# Tutorial — Plan, apply, and remediate drift on a multi-provider module
+# Tutorial — Review plan/apply/drift-remediation contracts without local authority
 
-Goal: take a sample inputs file, generate a plan that touches AWS + Cloudflare, apply it, induce drift on Cloudflare,
-detect and remediate. End-to-end on a loopback cloud-iac cell.
+Goal: understand how cloud-iac plans, applies, detects drift, and remediates through the GitOps/control-plane contracts already committed in this service. This tutorial is a review drill, not a local production runbook.
 
-Pre-reqs:
-- Loopback iac cell: `make dev-cell.up CELL=iac-loopback-1 PROFILE=cloud-iac-dev`
-- Mock provider creds wired by `make dev-cell.up` (no real AWS/Cloudflare account needed)
-- Tenant: `make dev-tenant.create T=oyatie.b2b.smb.acme-software TENANT_CLASS=paid`
+Authority boundary:
 
-## Step 1 — declare the inputs
+- PR merge readiness is the cloud-ci/oya-ci `oya-ci-required` status.
+- Runtime mutation is performed by cloud-iac workers and GitOps/Kubernetes controllers with policy and audit-chain handoffs.
+- controller/API/GitOps evidence, loopback commands, and mock-provider output are not production-readiness evidence.
 
-`samples/paid/acme-website-stack.yaml`:
-```yaml
-module_set: oya-iac-modules-paid-per-usage-v1
-modules:
-  - name: aws-s3-static-site
-    inputs:
-      bucket_name: acme-software-website-prod
-      region: us-east-2
-      acl: private
-  - name: aws-cloudfront-distribution
-    inputs:
-      origin: ${module.aws-s3-static-site.bucket_regional_domain_name}
-      aliases: ["www.acme-software.io"]
-      certificate_arn: ${ref:cloud_secrets.acme_software_io_cert_arn}
-  - name: cloudflare-zone
-    inputs:
-      zone_name: acme-software.io
-      plan: free
-  - name: cloudflare-record
-    inputs:
-      zone_id: ${module.cloudflare-zone.zone_id}
-      name: www
-      type: CNAME
-      value: ${module.aws-cloudfront-distribution.domain_name}
-      proxied: true
-```
+## Step 1 — locate the declaration inputs
 
-## Step 2 — plan
+Start from committed sources:
 
-```bash
-./bin/oya iac plan \
-  --tenant oyatie.b2b.smb.acme-software \
-  --inputs samples/paid/acme-website-stack.yaml \
-  --module-set oya-iac-modules-paid-per-usage-v1
-```
+| Concern | Source |
+|---|---|
+| Module catalog | `cloud/cloud-iac/tofu/modules/catalog.json` |
+| Module releases | `cloud/cloud-iac/tofu/modules/release-index.json` |
+| OpenTofu module bodies | `cloud/cloud-iac/tofu/modules/*/main.tofu` |
+| GitOps roots | `cloud/cloud-iac/iac/helm/**`, `cloud/cloud-iac/iac/kustomize/**` |
+| API contract | `cloud/cloud-iac/contracts/openapi/cloud-iac.yaml` |
+| Event contract | `cloud/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml` |
+| Worker policy | `cloud/cloud-iac/policy/ci-scope.cedar` |
 
-Expected:
-```
-plan_id        : plan-2026-05-20-acme-001
-resources_to_add: 4
-resources_to_change: 0
-resources_to_destroy: 0
-permits_required: 4 × cloud_iac::Action::Plan
-permits_granted : 4 (all)
-graph_signature : blake3-256:5b4a…
-review_status   : NeedsReviewerAgent
-```
+## Step 2 — review the plan-preview contract
 
-The plan output is in `last-plan.json`; inspect with `jq`:
-```bash
-jq '.diff[] | {address, action, provider}' last-plan.json
-```
+Read `cloud/cloud-iac/contracts/openapi/cloud-iac.yaml` and find the plan-preview operation and schemas. A valid plan-preview contract must carry:
 
-## Step 3 — wait for reviewer-agent verdict
+- tenant/account/project scope;
+- principal and policy context;
+- desired module or manifest reference;
+- deterministic diff/resource changes;
+- idempotency and audit correlation fields;
+- version carrier where public contract boundaries apply.
 
-```bash
-./bin/oya iac review-status --plan-id plan-2026-05-20-acme-001
-```
-Expect (within ~30 s on loopback):
-```
-reviewer_agent_decision: APPROVE
-multispectrum_facets_passed: 11/11
-```
+The plan-preview result is evidence for review; it is not authorization to mutate.
 
-## Step 4 — apply
+## Step 3 — review the apply authorization boundary
 
-```bash
-./bin/oya iac apply --plan-id plan-2026-05-20-acme-001
-```
+Read:
 
-Watch the structured progress:
-```
-applying… 1/4 aws-s3-static-site                     ok in 3.1 s
-applying… 2/4 aws-cloudfront-distribution            ok in 11.4 s
-applying… 3/4 cloudflare-zone                        ok in 0.8 s
-applying… 4/4 cloudflare-record                      ok in 0.4 s
-apply_id        : apply-2026-05-20-acme-001
-duration        : 15.9 s (under p95 = 4 min)
-audit_chain_event_id: ce-2026-05-20T08:21:13.214Z-…
-```
+- `cloud/cloud-iac/policy/ci-scope.cedar`
+- `cloud/cloud-iac/policy/iac-isolation.md`
+- `cloud/cloud-iac/threat-model.md`
 
-## Step 5 — induce drift via mock provider
+Confirm these invariants:
+
+- validator identities may write drift/validation evidence but may not apply;
+- applier identities mutate only declared apply scope;
+- rollback identities revert only declared apply scope;
+- registry writes are append/provenance oriented;
+- raw secrets stay behind cloud-secrets/OpenBao references.
+
+## Step 4 — review drift detection
+
+Read:
+
+- `cloud/cloud-iac/IP-GITOPS-005-drift-detection.md`
+- `cloud/cloud-iac/runbooks/drift-remediation.md`
+- `cloud/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`
+
+A valid `DriftDetected` path includes a signed drift report, affected resource reference, severity, tenant/account/project scope, audit correlation, and recommended remediation action.
+
+## Step 5 — review remediation and rollback
+
+Read:
+
+- `cloud/cloud-iac/runbooks/rollback-orchestration.md`
+- `cloud/cloud-iac/runbooks/state-lock-break.md`
+- `cloud/cloud-iac/runbooks/stuck-apply-recovery.md`
+
+The remediation path must use a separate action from initial apply. Rollback must prove prior known-good state, scope containment, state-lock behavior, and audit-chain emission before durable mutation is considered complete.
+
+## Step 6 — collect local shift-left evidence
+
+Use local checks to catch syntax and graph issues before the PR waits on cloud-ci:
 
 ```bash
-./bin/oya iac mock provider-mutate \
-  --resource cloudflare_record.www_acme_software_io \
-  --field proxied \
-  --new-value false
+buck2 build //cloud/cloud-iac/...
+buck2 test //cloud/cloud-ci/...
 ```
 
-## Step 6 — detect drift
+If local tools are unavailable, report that as a validation gap and rely on the PR `oya-ci-required` run. Do not replace the protected status with local output.
 
-```bash
-./bin/oya iac drift --tenant oyatie.b2b.smb.acme-software
-```
-Expected:
-```
-drift_detected: 1 resource
-  cloudflare_record.www_acme_software_io
-    declared : proxied=true
-    actual   : proxied=false
-    severity : Warn (security-impacting; CDN bypass risk)
-recommended_action: RemediateDrift
-```
+## What you should be able to verify
 
-## Step 7 — remediate
-
-```bash
-./bin/oya iac remediate-drift \
-  --tenant oyatie.b2b.smb.acme-software \
-  --resource cloudflare_record.www_acme_software_io
-```
-Expected:
-```
-remediate_id  : rem-2026-05-20-acme-001
-permits_used  : 1 × cloud_iac::Action::RemediateDrift
-outcome       : Success
-duration      : 0.6 s
-audit_chain_event_id: ce-2026-05-20T08:23:01.117Z-…
-```
-
-## Step 8 — verify state is clean
-
-```bash
-./bin/oya iac drift --tenant oyatie.b2b.smb.acme-software
-```
-Expect `drift_detected: 0 resources`.
-
-## Step 9 — cleanup (optional)
-
-```bash
-./bin/oya iac destroy \
-  --tenant oyatie.b2b.smb.acme-software \
-  --inputs samples/paid/acme-website-stack.yaml
-```
-
-The `Destroy` action is Cedar-gated separately from `Apply`; paid tenants get an extra confirmation prompt and a reviewer-agent
-checkpoint for governed operations.
-
-## What you just demonstrated
-
-- Multi-provider plans compose AWS + Cloudflare under one `plan_id` with a graph signature.
-- The reviewer-agent gate happens before apply, not after — matches the Foundry admission-gate doctrine.
-- Drift detection produces a structured diff with severity that translates to a remediation action.
-- Remediation uses a separate Cedar action — auditable distinct from user-initiated `Apply`.
-- Every step writes to `audit-chain`; reproducible by replaying the chain.
+- How a committed module/catalog change flows into render/validate/apply contracts.
+- Which worker identity owns plan evidence, mutation, rollback, registry, and drift evidence.
+- Which audit-chain events prove state transitions.
+- Which runbook owns stuck apply, rollback, and drift remediation.
+- Why no local command or mock-provider transcript can claim production drift remediation.

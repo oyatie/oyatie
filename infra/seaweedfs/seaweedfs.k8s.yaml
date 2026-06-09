@@ -14,19 +14,16 @@
 #       S3/GCS/Blob — what cluster-internal object stores look like when you
 #       build them yourself (Colossus, S3 internals, Azure Blob storage).
 #
-# Single-pod all-in-one MVP (master + volume + filer + bucket-api gateway in
+# Current compact cell topology: master + volume + filer + bucket-api gateway in
 # one process; the bucket-api gateway is what SeaweedFS's CLI invokes via the
-# `-s3` flag — that flag-name is SeaweedFS's own namespace and is unavoidable).
-# Runs fine on the current single-node Talos. When ADR-0381 D2 lands the
-# storage specialty pool, this Deployment splits into 4 sibling Deployments
-# (master, volume, filer, bucket-api gateway) and is node-pinned via:
-#   nodeSelector: { oya.cell/storage: "true" }
-#   tolerations: [{ key: dedicated, operator: Equal, value: storage, effect: NoSchedule }]
+# `-s3` flag — that flag-name is SeaweedFS's own namespace and is unavoidable.
+# ADR-0381 D2 storage-pool affinity is already encoded below, while the compact
+# deployment remains the current Talos runtime shape until sibling Deployments
+# (master, volume, filer, bucket-api gateway) are promoted through GitOps.
 #
-# Cluster-internal only (no Ingress / LoadBalancer); anonymous-access MVP.
-# Auth (identities.json with explicit credentials per consumer — BuildKit cache,
-# sccache, registry overlay) is a hardening follow-on once Cilium L3/L4 cell
-# boundaries (ADR-0381 D3) are also live.
+# Cluster-internal only (no Ingress / LoadBalancer). The bucket-api starts with
+# explicit per-consumer credentials read from the `seaweedfs-s3-credentials`
+# Secret; no static key material is stored in this manifest.
 ---
 apiVersion: v1
 kind: Namespace
@@ -34,10 +31,8 @@ metadata:
   name: oya-storage
   labels:
     oya.io/cell: storage
-    # Image runs as root by default; baseline (NOT restricted) profile until the
-    # rootless image build per ADR-0381 D2 pool isolation lands.
-    pod-security.kubernetes.io/enforce: baseline
-    pod-security.kubernetes.io/warn: baseline
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted
     pod-security.kubernetes.io/audit: restricted
 ---
 apiVersion: v1
@@ -73,6 +68,15 @@ spec:
       labels:
         app: seaweedfs
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       # ADR-0381 D2 cell affinity: prefer the storage specialty pool when it
       # exists; soft preference (preferred… not required…) so single-node Talos
       # still schedules SeaweedFS. Toleration is no-op until the storage pool's
@@ -96,24 +100,79 @@ spec:
           image: chrislusf/seaweedfs:3.79
           # All-in-one: master + volume + filer + bucket-api gateway in one
           # process (`-s3` is SeaweedFS's CLI flag for the gateway — that
-          # naming is its own namespace, not ours). Production splits into 4
-          # Deployments onto the storage specialty pool (ADR-0381 D2).
-          command: ["weed"]
+          # naming is its own namespace, not ours). The S3-compatible identity
+          # file is generated at start from Kubernetes Secret keys, then passed
+          # through SeaweedFS's static S3 config flag.
+          command: ["/bin/sh", "-ec"]
           args:
-            - "server"
-            - "-dir=/data"
-            - "-master.port=9333"
-            - "-master.volumeSizeLimitMB=1024"
-            - "-volume.port=8080"
-            # 10 was exhausted (all slots used by existing collections), so new
-            # collections (e.g. oya-ci-sccache) could not grow a volume -> S3 PUT
-            # 500 "No writable volumes" -> sccache server-startup timeout in CI.
-            # 50 is disk-aligned: 50Gi PVC / 1 GiB-per-volume (volumeSizeLimitMB=1024).
-            - "-volume.max=50"
-            - "-filer"
-            - "-filer.port=8888"
-            - "-s3"
-            - "-s3.port=8333"
+            - |
+              : "${SEAWEEDFS_S3_CI_CACHE_ACCESS_KEY:?missing ci-cache access key}"
+              : "${SEAWEEDFS_S3_CI_CACHE_SECRET_KEY:?missing ci-cache secret key}"
+              : "${SEAWEEDFS_S3_ADMIN_ACCESS_KEY:?missing admin access key}"
+              : "${SEAWEEDFS_S3_ADMIN_SECRET_KEY:?missing admin secret key}"
+              umask 077
+              cat > /tmp/s3.json <<EOF
+              {
+                "identities": [
+                  {
+                    "name": "ci-cache",
+                    "credentials": [
+                      {
+                        "accessKey": "${SEAWEEDFS_S3_CI_CACHE_ACCESS_KEY}",
+                        "secretKey": "${SEAWEEDFS_S3_CI_CACHE_SECRET_KEY}"
+                      }
+                    ],
+                    "actions": ["Read", "Write", "List", "Tagging"]
+                  },
+                  {
+                    "name": "ops-admin",
+                    "credentials": [
+                      {
+                        "accessKey": "${SEAWEEDFS_S3_ADMIN_ACCESS_KEY}",
+                        "secretKey": "${SEAWEEDFS_S3_ADMIN_SECRET_KEY}"
+                      }
+                    ],
+                    "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+                  }
+                ]
+              }
+              EOF
+              exec weed server \
+                -dir=/data \
+                -master.port=9333 \
+                -master.volumeSizeLimitMB=1024 \
+                -volume.port=8080 \
+                -volume.max=50 \
+                -filer \
+                -filer.port=8888 \
+                -s3 \
+                -s3.port=8333 \
+                -s3.config=/tmp/s3.json
+          env:
+            - name: SEAWEEDFS_S3_CI_CACHE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: seaweedfs-s3-credentials
+                  key: ci-cache-access-key
+                  optional: false
+            - name: SEAWEEDFS_S3_CI_CACHE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: seaweedfs-s3-credentials
+                  key: ci-cache-secret-key
+                  optional: false
+            - name: SEAWEEDFS_S3_ADMIN_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: seaweedfs-s3-credentials
+                  key: admin-access-key
+                  optional: false
+            - name: SEAWEEDFS_S3_ADMIN_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: seaweedfs-s3-credentials
+                  key: admin-secret-key
+                  optional: false
           ports:
             - { containerPort: 9333, name: master }
             - { containerPort: 8080, name: volume }
@@ -122,8 +181,11 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+            - name: tmp
+              mountPath: /tmp
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
             seccompProfile:
@@ -150,6 +212,38 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: seaweedfs-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: seaweedfs-bucket-api-ingress
+  namespace: oya-storage
+spec:
+  podSelector:
+    matchLabels:
+      app: seaweedfs
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              oya.io/seaweedfs-client: "true"
+      ports:
+        - protocol: TCP
+          port: 8333
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 9333
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 8888
 ---
 # One Service per port — clients pick the one they need (BuildKit cache and
 # sccache both consume the bucket-api; filer for blob storage; master for

@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-cloud-iac
-deciders: council-architecture, ops-security, axis-cloud-iac, council-privacy
+deciders: architecture-governance, ops-security, axis-cloud-iac, privacy-governance
 related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
   - microservices/cloud-iac/threat-model.md (Trust Boundary 2, T-T-03, T-E-04)
@@ -81,7 +81,7 @@ CI lane: `oya-check-applier-rbac-scope` validates RBAC bindings stay namespace-s
 
 If a µservice's IaC references resources owned by another µservice (e.g., a ServiceAccount in another µservice's namespace), the apply is refused. Cross-µservice integration must flow through Workflow events or Ontology reads/writes, NOT through direct resource cross-references.
 
-Exception path: explicit cross-µservice DAGs require council-architecture approval + Cedar policy entitlement at `policy/cross-microservice-apply.cedar` (Slice D extension). Use cases (audited): cloud-iac applying its own substrate that touches workload-cluster system namespaces (bootstrap paradox, IP-015).
+Exception path: explicit cross-µservice DAGs require architecture-governance approval + Cedar policy entitlement at `policy/cross-microservice-apply.cedar` (Slice D extension). Use cases (audited): cloud-iac applying its own substrate that touches workload-cluster system namespaces (bootstrap paradox, IP-015).
 
 ### Invariant ISO-04: ArgoCD Application scope-attestation
 
@@ -229,10 +229,10 @@ Per-pack overlays at `regional-packs/<pack>/cloud-iac-isolation-overlay.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate iac-apply-scope` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate applier-rbac-scope` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate slsa-l3-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice cloud-iac` — exit 0.
+- cloud-ci/oya-ci governance gate `iac-apply-scope` is green in the branch-protected `oya-ci-required` context — exit 0.
+- cloud-ci/oya-ci governance gate `applier-rbac-scope` is green in the branch-protected `oya-ci-required` context — exit 0.
+- cloud-ci/oya-ci governance gate `slsa-l3-conformance` is green in the branch-protected `oya-ci-required` context — exit 0.
+- cloud-ci/oya-ci governance gate `cedar-fragment-coverage` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0.
 - Annual pen-test against apply-scope boundary; documented in `runbooks/apply-scope-pentest.md` (Slice D).
 - Quarterly chaos drill: induce reserved-scope write + cross-µservice apply attempt; verify rejection + alerting.
 

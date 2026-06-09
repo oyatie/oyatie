@@ -82,7 +82,7 @@ pub async fn consume(deps: ConsumerDeps) -> anyhow::Result<()> {
 ```bash
 cargo check --workspace -p oya-cloud-iac-iac-*-worker --all-features
 cargo nextest run --workspace -p oya-cloud-iac-iac-*-worker --all-features
-cargo run -p oya-dev-cli -- gate validate drift-detection-coverage --microservice cloud-iac
+cloud-ci/oya-ci governance gate `drift-detection-coverage` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

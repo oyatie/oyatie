@@ -4,13 +4,13 @@ microservice: workflow-studio
 version: 1.0.0
 status: Accepted
 date: 2026-05-20
-owner: axis-workflow + council-automation + ops-runtime
+owner: axis-saas + central-governance + ops-runtime
 openapi_version: 3.2.0
 asyncapi_version: 3.1.0
 proto3: true
 ---
 
-Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+Tenant class model: `tenant_class` is `controlled_evaluation` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
 
 # workflow-studio API Reference
 
@@ -22,7 +22,7 @@ sessions, and editor-to-runtime handoff.
 Contract status legend:
 
 - `contract-bound`: implemented in the current OpenAPI, AsyncAPI, or proto3 file.
-- `reference-planned`: canonical API surface derived from the PRD and architecture notes, pending contract promotion.
+- `reference-planned`: canonical planning-closed API surface derived from the SaaS PRD and architecture notes; live readiness remains `target_non_claim` until promoted into contracts and proven by `oya-ci-required`.
 
 ## Quick Start
 
@@ -248,7 +248,7 @@ Authorization failure shape:
 - Status: `reference-planned`.
 - Operation: `verifyNodeLibrary`.
 - Request schema: `VerifyNodeLibraryRequest`.
-- Required fields: `library_version`, `sample_bindings`.
+- Required fields: `library_version`, `validation_bindings`.
 - Response schema: `NodeLibraryVerificationReport`.
 - Status codes: `200`, `400`, `401`, `403`, `404`, `422`, `429`, `500`.
 - Error shape: `WORKFLOW_STUDIO_LIBRARY_VERIFICATION_FAILED`.

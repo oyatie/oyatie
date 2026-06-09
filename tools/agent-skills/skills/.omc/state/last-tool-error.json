@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /Users/jasonlee/Developer/source/.claude/worktrees/wf_42ddbf01-d13-10 && echo \\\"=== files written (scope check: only my 2 paths should be new/modified) ===\\\" && git status --porcelain d...",
-  "error": "Exit code 1\n(eval):1: unmatched \"",
-  "timestamp": "2026-05-31T22:58:55.517Z",
-  "retry_count": 1
-}

@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-finops + axis-cloud-iac + ops-sre-reliability
-deciders: ops-finops, axis-cloud-iac, ops-sre-reliability, council-architecture
+deciders: ops-finops, axis-cloud-iac, ops-sre-reliability, architecture-governance
 related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/capacity-model.md
@@ -113,7 +113,7 @@ Verify-at-deploy: OCI pricing changes; reconfirm at deploy time. Buffer 15% for 
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate cost-budget --microservice cloud-iac` — exit 0; current spend within 110%.
+- cloud-ci/oya-ci governance gate `cost-budget` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0; current spend within 110%.
 - Monthly FinOps review: actual vs forecast; lever decisions logged.
 - Quarterly: capacity-model + cost-budget refresh; re-run formulas with current data.
 

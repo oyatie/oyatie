@@ -268,7 +268,7 @@ Without indirection, a rebrand from `oyatie` to (hypothetical)
 11. **Update every spec file.** `/specs/platform-architecture.json`,
     `/specs/tenant-model.json`, and dozens more.
 12. **Update every documentation surface.** Runbooks, READMEs, the
-    `tools/agent-skills/CLAUDE.md`, root `CLAUDE.md`, etc.
+    installed runtime skill guidance, root `CLAUDE.md`, etc.
 13. **Update every test fixture.** Test data referencing
     `oyatie.foundry.ci-agent` as a principal must be updated unless
     intentionally retained for historical regression testing.
@@ -882,8 +882,7 @@ updates, certificate transparency log entries (cannot be retracted,
 new entries added for the new domain).
 
 **Stage R-11: Documentation update sweep.** Runbooks, READMEs, the
-root `CLAUDE.md`, the `tools/agent-skills/CLAUDE.md` (the
-informational copy), are updated. ADRs are NOT retroactively
+root `CLAUDE.md` and installed runtime skill guidance are updated. ADRs are NOT retroactively
 rewritten; the historical-slug-intentionally exemption preserves
 ADR text.
 

@@ -2,7 +2,7 @@
 //!
 //! This crate keeps site, cell, and realm placement for an Oyatie-operated IAM
 //! control plane outside the provider-neutral Cloud IAM domain/API crates while
-//! implementing the same identity-provider sync port as hyperscaler adapters.
+//! implementing the provider-neutral identity-provider sync port used by external-cloud adapters.
 //! It emits deterministic request shapes only; live on-prem/colo smoke remains a
 //! separate promotion gate.
 //! ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /

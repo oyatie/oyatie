@@ -5,3 +5,4 @@ dist/
 *.local
 generated/*
 !generated/.gitkeep
+app.config.timestamp_*.js

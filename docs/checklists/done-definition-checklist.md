@@ -6,7 +6,7 @@ date: 2026-05-12
 purpose: |
   Extends `docs/AGENTS.md §Done-Definition checklist` D1-D18 with per-change-class variants. Walked before every PR is declared "ready to merge" and re-walked at the loop-cancellation boundary per `docs/AGENTS.md §Long-running loop rule`.
 enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
-owner_team: axis-foundry + council-architecture
+owner_team: cloud-governance + architecture-governance
 related:
   - docs/AGENTS.md
   - docs/templates/pull-request-template-v2.md
@@ -32,10 +32,10 @@ doc_status: published
 - [ ] **D6** New schemas carry `data_class` per field. *Lane:* `oya-governance-data-class`.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Verification:* CI status check.
 - [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Lane:* `guard-pr-merge-review.mjs`.
-- [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Verification:* output in `## Verification`.
-- [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Verification:* output.
+- [ ] **D9** Buck2/cloud-ci test lane passes for the affected Rust targets. *Verification:* output in `## Verification`.
+- [ ] **D10** Buck2/cloud-ci lint lane passes for the affected Rust targets. *Verification:* output.
 - [ ] **D11** `cargo deny check` passes. *Verification:* output.
-- [ ] **D12** `oya verify --ci-required` passes. *Verification:* output.
+- [ ] **D12** protected PR status `oya-ci-required` is green. *Verification:* CI/status URL; local verifier output is shift-left evidence only.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
 - [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.

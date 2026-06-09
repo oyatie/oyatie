@@ -19,7 +19,7 @@ owner: docs-experience
 estimated_completion_time: "85 minutes"
 ---
 
-Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
+Tenant class model: `tenant_class` is `controlled_evaluation` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels. Tutorial execution remains a guided operator walkthrough until the relevant M03-P04/M03-P08 changeset evidence is green.
 
 # List, Sell, Buy, and Settle a Marketplace Deal
 
@@ -284,18 +284,9 @@ You will list a physical product, publish it to Marketplace, purchase it as a bu
 - Expected output value: `2`.
 - Expected output field: `result_label`.
 - Expected output value: `Marketplace DealSet settled`.
-- CLI equivalent:
-
-```bash
-oya marketplace verify dealset \
-  --deal-set dealset-vintage-jacket-2026-001 \
-  --seller b2c-yejin-choi \
-  --buyer b2c-aiyana-ross
-```
-
-- CLI expected line: `PASS tutorial.marketplace_deal_settlement_status`.
-- CLI expected line: `deal_set_state=settled`.
-- CLI expected line: `payout_released=true`.
+- Governed verifier record expected line: `PASS tutorial.marketplace_deal_settlement_status`.
+- Governed verifier record expected line: `deal_set_state=settled`.
+- Governed verifier record expected line: `payout_released=true`.
 - Audit event to inspect: `DealSetOffered`.
 - Audit event to inspect: `DealSetAccepted`.
 - Audit event to inspect: `DealSetFulfillmentRecorded`.
@@ -409,7 +400,7 @@ This tutorial is complete when the query returns `dealset_settled=true`.
 - [Marketplace deal settlement flow](../architecture/diagrams/marketplace-deal-settlement-flow.md).
 - [Marketplace listing and first sale journey](../user-journeys/j23-marketplace-listing-and-first-sale/README.md).
 - [Marketplace purchase as buyer journey](../user-journeys/j24-marketplace-purchase-as-buyer/README.md).
-- [Marketplace listing takedown runbook](../runbooks/marketplace-listing-takedown.md).
+- [Marketplace listing takedown runbook](../runbooks/saas/marketplace-listing-takedown.md).
 - [Capability Tier Over Product Fragmentation ADR](../decisions/ADR-0316-capability-tier-over-product-fragmentation.md).
 - [Cedar Policy Evaluation Flow](../architecture/diagrams/cedar-policy-evaluation-flow.md).
 - [Documentation Rigor](../standards/documentation-rigor.md).

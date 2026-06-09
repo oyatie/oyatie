@@ -90,8 +90,8 @@ where M: ClusterMutator, R: ReconcilerClient, S: SlsaVerifier, E: ApplyEventEmit
 ```bash
 cargo check --workspace -p oya-cloud-iac-iac-applier-kernel -p oya-cloud-iac-iac-applier-domain -p oya-cloud-iac-iac-applier-usecase -p oya-cloud-iac-iac-applier-api -p oya-cloud-iac-iac-applier-adapter -p oya-cloud-iac-iac-applier-adapter-argocd --all-features
 cargo nextest run --workspace -p oya-cloud-iac-iac-applier-* --all-features
-cargo run -p oya-dev-cli -- gate validate iac-apply-scope --microservice cloud-iac
-cargo run -p oya-dev-cli -- gate validate provenance-slsa-l3 --microservice cloud-iac
+cloud-ci/oya-ci governance gate `iac-apply-scope` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `provenance-slsa-l3` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

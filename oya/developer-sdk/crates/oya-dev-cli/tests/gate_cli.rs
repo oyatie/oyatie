@@ -5454,6 +5454,52 @@ fn planning_closure_gate_rejects_stale_discovery_documents() {
 }
 
 #[test]
+fn planning_closure_gate_rejects_retired_local_durable_discovery_roots() {
+    let temp = TempDirGuard::new("planning-closure-retired-durable-root");
+    fs::create_dir_all(temp.path()).expect("temp dir created");
+    let master_plan = write_planning_closure_masterplan_fixture(temp.path(), false);
+    let root = repo_root();
+    let mut sequencing: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(root.join("specs/master-plan-sequencing.json"))
+            .expect("sequencing readable"),
+    )
+    .expect("sequencing parses");
+    sequencing
+        .pointer_mut("/master_plan_discovery_order")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("discovery order present")
+        .push(serde_json::json!(
+            ".omc/plans/milestones/M01-foundation/INDEX.md"
+        ));
+    let sequencing_path = temp.path().join("master-plan-sequencing.json");
+    fs::write(
+        &sequencing_path,
+        serde_json::to_string_pretty(&sequencing).expect("sequencing serializes"),
+    )
+    .expect("sequencing fixture written");
+
+    let output = run_planning_closure_gate(
+        &root.join("specs/planning-closure-contract.json"),
+        &master_plan,
+        &sequencing_path,
+        &root.join("specs/root-hub-pointers.json"),
+        &root.join("docs/decisions/ADR-0217-vertical-slice-rollout-order.md"),
+    );
+
+    assert!(
+        !output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("retired local durable root"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn planning_closure_gate_accepts_repo_default_paths() {
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .current_dir(repo_root())
@@ -8285,8 +8331,6 @@ fn write_planning_closure_repo_sidecars(dir: &Path) -> (PathBuf, PathBuf) {
     let root = repo_root();
     let specs_dir = dir.join("specs");
     fs::create_dir_all(&specs_dir).expect("specs fixture dir created");
-    let archive_dir = dir.join(".omc/archive/stale-documents/2026-05-19-planning-closure");
-    fs::create_dir_all(&archive_dir).expect("archive fixture dir created");
 
     let root_hub = specs_dir.join("root-hub-pointers.json");
     fs::copy(root.join("specs/root-hub-pointers.json"), &root_hub)
@@ -8297,11 +8341,6 @@ fn write_planning_closure_repo_sidecars(dir: &Path) -> (PathBuf, PathBuf) {
         &status_ledger,
     )
     .expect("status ledger fixture copied");
-    fs::copy(
-        root.join(".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json"),
-        archive_dir.join("manifest.json"),
-    )
-    .expect("archive manifest fixture copied");
 
     (root_hub, status_ledger)
 }
@@ -8367,9 +8406,12 @@ impl Drop for TempDirGuard {
 }
 
 fn repo_root() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
-        .nth(2)
+        .find(|candidate| {
+            candidate.join("specs/masterplan.json").is_file()
+                && candidate.join("HANDOFF.md").is_file()
+        })
         .expect("repo root")
         .to_path_buf()
 }
@@ -8449,11 +8491,7 @@ fn aac_capabilities(
 }
 
 fn active_artifact_contract_repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(4)
-        .expect("repo root")
-        .to_path_buf()
+    repo_root()
 }
 
 fn run_active_artifact_contract_gate(registry: &Path) -> std::process::Output {

@@ -134,7 +134,7 @@ doc_status: published
 
 ## Mitigation
 1. Pause cryptoshred when expired grace is present: `oya flags set oya.cloud_kms.cryptoshred.pause=true --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
-2. Hold new cadence policy deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+2. Hold new cadence policy deploys: incident hold PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
 3. Freeze evidence export: `oya evidence freeze --incident $INCIDENT_ID --paths evidence/incidents/$INCIDENT_ID-drift.json`.
 4. Correct invalid cadence dry-run: `oya kms rotation policy set --tenant $TENANT --cmk $CMK --cadence annual --dry-run`.
 5. Correct invalid cadence confirmed: `oya kms rotation policy set --tenant $TENANT --cmk $CMK --cadence annual --confirm $INCIDENT_ID`.
@@ -165,10 +165,10 @@ doc_status: published
 8. Add regression fixture for exception expiry.
 9. Run domain tests: `cargo test -p oya-cloud-kms-domain rotation -- --nocapture`.
 10. Run API tests: `cargo test -p oya-cloud-kms-api rotation -- --nocapture`.
-11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-kms-rotation --production-snapshot --cell $CELL`.
+11. Verify the branch-protected production-snapshot gate for `cloud-kms-rotation` in `oya-ci-required` / cloud-ci for `$CELL`; do not use local dev-cli output as merge authority.
 12. Verify cadence scan: `oya kms rotation drift scan --tenant $TENANT --cell $CELL --expect none`.
 13. Verify evidence export: `oya kms evidence export --tenant $TENANT --surface rotation --expect complete`.
-14. Unhold promotions: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold promotions: recovery PR against `dev` (normal VCS PR; branch-protected GitHub Actions `oya-ci-required` required; local/Jenkins rehearsals are non-authoritative).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_KMS_ROTATION_DRIFT_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

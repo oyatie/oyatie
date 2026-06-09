@@ -77,8 +77,8 @@ where P: PlanComputer, D: DriftDiffer, C: PolicyEvaluator {
 ```bash
 cargo check -p oya-cloud-iac-iac-validator-kernel -p oya-cloud-iac-iac-validator-domain -p oya-cloud-iac-iac-validator-usecase -p oya-cloud-iac-iac-validator-api -p oya-cloud-iac-iac-validator-adapter --all-features
 cargo nextest run -p oya-cloud-iac-iac-validator-kernel -p oya-cloud-iac-iac-validator-domain -p oya-cloud-iac-iac-validator-usecase -p oya-cloud-iac-iac-validator-api -p oya-cloud-iac-iac-validator-adapter --all-features
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-iac
-cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --microservice cloud-iac
+cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `cedar-fragment-coverage` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

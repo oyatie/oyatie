@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-cloud-iac
-deciders: axis-cloud-iac, council-architecture, ops-sre-reliability
+deciders: axis-cloud-iac, architecture-governance, ops-sre-reliability
 related_adrs: [ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/PRD.md
@@ -34,7 +34,7 @@ When a new µservice onboards (new `microservices/<ms>/iac/...` source paths lan
 1. Receives the `MicroserviceRegistered` event.
 2. Validates IaC source paths conform to the flat-layout convention (per ADR-0131).
 3. Computes the baseline content digest for each declared chart + module + overlay.
-4. Emits a synthetic `RenderCompleted` event tagged with `baseline=true` so consumers (audit-chain, foundry-evidence) can distinguish from real renders.
+4. Emits a synthetic `RenderCompleted` event tagged with `baseline=true` so consumers (audit-chain, cloud-governance-evidence) can distinguish from real renders.
 5. Does NOT trigger an apply; the first apply occurs through the normal `EligibilityChanged → iac-applier` flow.
 6. Records the baseline in iac-state-index with `current_sha=null` (no apply yet) but with the chart/module/overlay records populated.
 
@@ -63,7 +63,7 @@ Replay re-executes a specific apply for a (microservice, sha, pack, environment)
 
 ### Procedure
 
-1. Operator invokes: `cargo run -p oya-dev-cli -- iac replay --microservice <ms> --sha <sha> --pack <pack> --env <env> --dry-run <true|false> --reason "<rfc>"`.
+1. Operator invokes: cloud-native IaC controller/API `replay --microservice` workflow.
 2. CLI requires 2-person rule + ops-security approval (replay can re-execute against current cluster state; must be audit-trail-bounded).
 3. iac-renderer re-renders the manifest set from the source SHA.
 4. iac-validator re-plans against current live state.

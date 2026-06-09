@@ -6,7 +6,7 @@ impl_plan_id: IP-011-csi-storage-driver-per-backend
 status: pending
 execution_unit: ChangeSet
 owner: axis-cloud
-acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-deny, lean-a1, lean-a3, layer-correctness]
+acceptance_lanes: [buck2-check, buck2-build, buck2-lint, buck2-test, supply-chain-deny, lean-a1, lean-a3, layer-correctness, oya-ci-required]
 ---
 
 <!-- Canonical-base: specs/ip/canonical-frontmatter-schema.json + docs/templates/ip-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
@@ -28,7 +28,7 @@ Five new crates: kernel, usecase, adapter-block, adapter-object, adapter-file. C
 | `microservices/cloud-k8s/src/crates/oya-cloud-k8s-csi-storage-driver-kernel/{Cargo.toml,src/*}` | create |
 | `.../oya-cloud-k8s-csi-storage-driver-usecase/{Cargo.toml,src/{lib.rs,provision.rs,attach.rs,snapshot.rs}}` | create |
 | `.../oya-cloud-k8s-csi-storage-driver-adapter-block/{Cargo.toml,src/{lib.rs,oci_block_client.rs,ceph_rbd_client.rs}}` | create |
-| `.../oya-cloud-k8s-csi-storage-driver-adapter-object/{Cargo.toml,src/{lib.rs,oci_object_client.rs,minio_client.rs}}` | create |
+| `.../oya-cloud-k8s-csi-storage-driver-adapter-object/{Cargo.toml,src/{lib.rs,oci_object_client.rs,seaweedfs_client.rs}}` | create |
 | `.../oya-cloud-k8s-csi-storage-driver-adapter-file/{Cargo.toml,src/{lib.rs,oci_file_client.rs,cephfs_client.rs}}` | create |
 | `microservices/cloud-k8s/catalog/oya-cloud-k8s-csi-storage-driver-{kernel,usecase,adapter-block,adapter-object,adapter-file}.yaml` | create |
 
@@ -73,13 +73,12 @@ impl CsiProvisioner for OciBlockVolumeAdapter {
 
 ## Acceptance Gates
 
-```bash
-for crate in csi-storage-driver-{kernel,usecase,adapter-block,adapter-object,adapter-file}; do
-  cargo check -p oya-cloud-k8s-$crate
-  cargo nextest run -p oya-cloud-k8s-$crate
-done
-cargo run -p oya-dev-cli -- gate validate lean-a3 --microservice cloud-k8s  # adapter naming
-```
+- Protected PR merge gate: GitHub Actions required context `oya-ci-required` is green for this ChangeSet until the owned
+  cloud-ci controller has equivalent protected-branch authority.
+- The cloud-ci/oya-ci evidence packet includes Buck2 build, Rust metadata/type validation, lint provider output, test provider
+  output, supply-chain denial checks, `lean-a3` adapter naming, and layer-correctness evidence for each
+  `csi-storage-driver-{kernel,usecase,adapter-block,adapter-object,adapter-file}` crate once the crates land.
+- Local Buck2 commands may be used as contributor feedback only; they do not replace the protected `oya-ci-required` context.
 
 ## Test Plan
 
