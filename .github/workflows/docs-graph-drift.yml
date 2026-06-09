@@ -71,12 +71,12 @@ jobs:
           CARGO_INCREMENTAL: "0"
         run: |
           set -euo pipefail
-          cargo build -p oya-architecture-graph-generator-app
-          cargo test -p oya-architecture-graph-generator-app
+          cargo build --locked -p oya-architecture-graph-generator-app
+          cargo test --locked -p oya-architecture-graph-generator-app
       - name: Regenerate the dashboard
         run: |
           set -euo pipefail
-          cargo run -q -p oya-architecture-graph-generator-app \
+          cargo run --locked -q -p oya-architecture-graph-generator-app \
             --bin oya-architecture-graph-generator -- --write
       - name: Fail on dashboard drift
         run: |
