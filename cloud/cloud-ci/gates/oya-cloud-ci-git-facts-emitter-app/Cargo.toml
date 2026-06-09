@@ -1,0 +1,27 @@
+[package]
+name = "oya-cloud-ci-git-facts-emitter-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# The SINGLE out-of-graph git boundary (OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5, Option C).
+# This rust_binary is the only thing allowed to shell out to git: it snapshots the four
+# ambient git outputs the accounting producer used to derive itself and writes the committed,
+# registry-drift-protected git-facts.generated.json face. Run by the CI git-facts-regen
+# pre-step + the local regen hook — NEVER inside a cacheable buck2 action. The producer + all
+# gates then consume the committed face as a declared input, so no action ever calls git.
+
+[[bin]]
+name = "oya-cloud-ci-git-facts-emitter-app"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+# Reuse the producer's exact canonicalizer (to_string_pretty + trailing newline) so the
+# git-facts face is formatted identically to the other five faces (byte-parity discipline).
+oya-cloud-ci-accounting-registry-app = { path = "../oya-cloud-ci-accounting-registry-app" }
+
+[lints]
+workspace = true

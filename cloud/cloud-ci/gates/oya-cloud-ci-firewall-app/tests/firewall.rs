@@ -43,22 +43,48 @@ fn load_json(path: &Path) -> Value {
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
-/// Regenerate the gate-baseline face from the LIVE tree (in --stdout sandbox mode).
+/// Regenerate the gate-baseline face from the LIVE tree (in --stdout sandbox mode),
+/// HERMETICALLY (no `env!("CARGO")`, the compile-time cargo-only macro that breaks the buck2
+/// build). The producer binary is resolved at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN`
+/// (the `$(exe ...)`-substituted built binary), else under cargo via the runtime `CARGO` env
+/// var. The producer reads the committed git-facts face (a declared input); it never calls git.
 fn regenerate_baseline(root: &Path) -> Value {
-    let output = Command::new(env!("CARGO"))
-        .arg("run")
-        .arg("--quiet")
-        .arg("-p")
-        .arg("oya-cloud-ci-accounting-registry-app")
-        .arg("--")
-        .arg("--repo-root")
-        .arg(root)
-        .arg("--stdout")
-        .arg("--face")
-        .arg("baseline")
-        .current_dir(root)
-        .output()
-        .expect("run oya-cloud-ci-accounting-registry-app --face baseline");
+    let git_facts = faces_dir(root).join("git-facts.generated.json");
+    let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
+        let bin = if Path::new(&bin).is_absolute() {
+            PathBuf::from(bin)
+        } else {
+            root.join(bin)
+        };
+        Command::new(bin)
+            .arg("--repo-root")
+            .arg(root)
+            .arg("--git-facts")
+            .arg(&git_facts)
+            .arg("--stdout")
+            .arg("--face")
+            .arg("baseline")
+            .current_dir(root)
+            .output()
+            .expect("run producer binary")
+    } else {
+        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
+            .arg("run")
+            .arg("--quiet")
+            .arg("-p")
+            .arg("oya-cloud-ci-accounting-registry-app")
+            .arg("--")
+            .arg("--repo-root")
+            .arg(root)
+            .arg("--git-facts")
+            .arg(&git_facts)
+            .arg("--stdout")
+            .arg("--face")
+            .arg("baseline")
+            .current_dir(root)
+            .output()
+            .expect("cargo run oya-cloud-ci-accounting-registry-app --face baseline")
+    };
     assert!(
         output.status.success(),
         "producer failed: {}",

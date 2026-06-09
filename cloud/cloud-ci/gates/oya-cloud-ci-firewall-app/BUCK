@@ -30,10 +30,34 @@ rust_test(
     srcs = glob(["tests/**/*.rs"]),
     crate = "oya_cloud_ci_firewall_app_corpus",
     crate_root = "tests/firewall.rs",
+    # HERMETIC: the test regenerates the gate-baseline by execing the buck2-BUILT producer binary
+    # (no `env!("CARGO")`, no `cargo run`). `$(exe ...)` makes buck2 build the producer and
+    # substitute its sandbox path; the producer reads the committed git-facts face (a declared
+    # input) — no action calls git.
+    env = {
+        "OYA_CI_PRODUCER_BIN": "$(exe //cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin)",
+    },
     visibility = ["PUBLIC"],
     deps = [
         ":oya-cloud-ci-firewall-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
+        "third-party//:serde_json",
+    ],
+)
+
+# gate-registration completeness meta-test (R6; ADR-0515 D2). A buck2 rust_test with its OWN
+# crate_root (the firewall-app-gate target's crate_root is tests/firewall.rs, so this second
+# test file needs its own target to run under buck2). It is a pure filesystem+text gate (reads
+# the gates dir + greps the workflow yaml via the test's repo-root walk — no git, no producer),
+# so it needs no env. Hermetic: reads only committed tracked files.
+rust_test(
+    name = "oya-cloud-ci-firewall-app-gate-registration",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "oya_cloud_ci_firewall_app_gate_registration",
+    crate_root = "tests/gate_registration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-firewall-app",
         "third-party//:serde_json",
     ],
 )

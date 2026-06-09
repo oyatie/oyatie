@@ -1,0 +1,220 @@
+//! git-facts emitter — the SINGLE out-of-graph git boundary (ADR-0515 D3 narrow exception).
+//!
+//! This is the ONE place in the oya-ci pipeline that is allowed to shell out to `git`. It runs
+//! OUTSIDE the buck2 action graph (a CI pre-step + a local regen hook), snapshots the four
+//! ambient git outputs the accounting producer used to derive itself, and writes them as the
+//! committed, content-addressed, registry-drift-protected `git-facts.generated.json` face. The
+//! producer and every gate `rust_test` then consume that committed face as a DECLARED input, so
+//! no buck2 action ever calls git (OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5, Option C).
+//!
+//! The four git calls below are moved VERBATIM out of the producer's old `git_*` helpers so the
+//! facts are bit-for-bit what the live git calls produced — the make-or-break byte-parity
+//! guarantee: a producer reading this face regenerates the six faces byte-identically.
+//!
+//! Usage:
+//!   oya-cloud-ci-git-facts-emitter-app [--repo-root <path>] [--out <path>]
+//!
+//! Default `--repo-root` is discovered up-tree (the dir holding `specs/root-hub-pointers.json`),
+//! default `--out` is `<repo-root>/cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json`.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+#![forbid(unsafe_code)]
+
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+use oya_cloud_ci_accounting_registry_app::to_canonical_json;
+use serde_json::json;
+
+/// The git-facts face schema id — bumped only on a breaking shape change.
+const SCHEMA: &str = "oya-ci/git-facts/v1";
+
+fn main() {
+    if let Err(error) = run() {
+        eprintln!("oya-cloud-ci-git-facts-emitter-app: {error}");
+        std::process::exit(1);
+    }
+}
+
+fn run() -> Result<(), String> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let mut repo_root: Option<PathBuf> = None;
+    let mut out: Option<PathBuf> = None;
+
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--repo-root" => {
+                i += 1;
+                repo_root = args.get(i).map(PathBuf::from);
+            }
+            "--out" => {
+                i += 1;
+                out = args.get(i).map(PathBuf::from);
+            }
+            other => return Err(format!("unknown argument {other}")),
+        }
+        i += 1;
+    }
+
+    let repo_root = match repo_root {
+        Some(root) => root,
+        None => discover_repo_root()?,
+    };
+    let out = out.unwrap_or_else(|| {
+        repo_root
+            .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json")
+    });
+
+    let tracked_paths = git_ls_files(&repo_root)?;
+    let last_touch_commit = git_last_touch(&repo_root)?;
+    let all_commit_ts = git_commit_timestamps(&repo_root)?;
+
+    // CONVERGENCE: git-facts must be a pure function of the COMMITTED TREE STATE, never of which
+    // commit is currently HEAD — otherwise every commit (which advances HEAD and appends a new
+    // commit timestamp) would churn git-facts forever (no fixpoint). So:
+    //   - `commit_author_ts_secs` keeps ONLY the timestamps of the commits that are some path's
+    //     last-touch (the only ones the producer's staleness aging ever looks up). The unused
+    //     ~half of full history is dropped — it served no face and only tracked HEAD growth.
+    //   - `head_time_secs` (the deterministic "now" for aging) is the MAX last-touch timestamp,
+    //     a tree-content function equal to the live HEAD time whenever HEAD is itself a
+    //     last-touch, and STABLE across HEAD-only-advancing commits (e.g. a faces settle that
+    //     touches only generated-class files). This reproduces today's faces byte-for-byte.
+    //   - `head_commit` is dropped: the producer never reads it and it tracks the moving HEAD.
+    // last_touch already excludes generated-class paths (see `git_last_touch`), so the
+    // last-touch set — and thus all of git-facts — is stable: a re-run is byte-identical.
+    let last_touch_shas: std::collections::BTreeSet<&String> = last_touch_commit.values().collect();
+    let commit_author_ts_secs: BTreeMap<String, u64> = all_commit_ts
+        .iter()
+        .filter(|(sha, _)| last_touch_shas.contains(sha))
+        .map(|(sha, ts)| (sha.clone(), *ts))
+        .collect();
+    let head_time_secs = commit_author_ts_secs.values().copied().max().unwrap_or(0);
+
+    // Build the face as a serde_json Value with BTreeMap-backed maps so the on-disk key order
+    // is the canonical sorted order, then serialize through the producer's exact canonicalizer
+    // (to_string_pretty + trailing newline).
+    let value = json!({
+        "schema": SCHEMA,
+        "head_time_secs": head_time_secs,
+        "tracked_paths": tracked_paths,
+        "last_touch_commit": last_touch_commit,
+        "commit_author_ts_secs": commit_author_ts_secs,
+    });
+    let text = to_canonical_json(&value).map_err(|e| format!("serialize: {e}"))?;
+    std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
+    eprintln!(
+        "oya-cloud-ci-git-facts-emitter-app: {} tracked paths -> {}",
+        tracked_paths.len(),
+        out.display()
+    );
+    Ok(())
+}
+
+/// Walk up from cwd to the repo root (the dir holding `specs/root-hub-pointers.json`).
+fn discover_repo_root() -> Result<PathBuf, String> {
+    let mut dir = std::env::current_dir().map_err(|e| e.to_string())?;
+    for _ in 0..16 {
+        if dir.join("specs/root-hub-pointers.json").is_file() {
+            return Ok(dir);
+        }
+        if !dir.pop() {
+            break;
+        }
+    }
+    Err("failed to locate repo root (no specs/root-hub-pointers.json up-tree)".to_owned())
+}
+
+/// One `git log --format` pass builds the commit-sha -> author-timestamp map (epoch secs).
+/// Moved VERBATIM from the producer's old `git_commit_timestamps`. The caller filters this to
+/// the last-touch commits and derives the deterministic "now" (max last-touch ts) from it, so
+/// git-facts never depends on the moving HEAD (the producer's old `git_head_secs` HEAD-time read
+/// is replaced by that tree-content max — it equals the HEAD time whenever HEAD is a last-touch
+/// and stays stable across HEAD-only-advancing commits, preserving the faces byte-for-byte).
+fn git_commit_timestamps(repo_root: &Path) -> Result<BTreeMap<String, u64>, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["log", "--format=%H %ct"])
+        .output()
+        .map_err(|e| format!("log timestamps: {e}"))?;
+    if !output.status.success() {
+        return Err(format!("log timestamps exit {:?}", output.status.code()));
+    }
+    let mut map = BTreeMap::new();
+    for line in String::from_utf8_lossy(&output.stdout).lines() {
+        if let Some((sha, ts)) = line.split_once(' ')
+            && let Ok(ts) = ts.trim().parse::<u64>()
+        {
+            map.insert(sha.to_owned(), ts);
+        }
+    }
+    Ok(map)
+}
+
+/// The tracked-paths universe. Moved VERBATIM from the producer's old `git_ls_files`.
+fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .arg("ls-files")
+        .output()
+        .map_err(|e| format!("ls-files: {e}"))?;
+    if !output.status.success() {
+        return Err(format!("ls-files exit {:?}", output.status.code()));
+    }
+    let mut paths: Vec<String> = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(str::to_owned)
+        .filter(|p| !p.is_empty())
+        .collect();
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
+}
+
+/// True iff `path` is a `generated`-class file under the accounting producer's unit-class
+/// policy (`unit-class-policy.json`: suffix `.generated.json`, suffix `Cargo.lock`, prefix
+/// `docs/machine-readable/`). The producer ALWAYS sets `last_touch_commit = None` for these
+/// (lib.rs: "generated class so the face is invariant to which commit holds it"), so their git
+/// last-touch is dead data the producer never reads. Including it in git-facts would make
+/// git-facts NON-CONVERGENT: every faces settle re-touches the `.generated.json` faces (and a
+/// dependency bump re-touches `Cargo.lock`), churning their last-touch and forcing another
+/// settle ad infinitum. Excluding them here mirrors the producer's null-out EXACTLY (a missing
+/// key reads back as None, identical to the producer's explicit None) — the produced faces are
+/// byte-identical, and git-facts converges in the standard 2-commit settle.
+fn is_generated_class(path: &str) -> bool {
+    path.ends_with(".generated.json")
+        || path.ends_with("Cargo.lock")
+        || path.starts_with("docs/machine-readable/")
+}
+
+/// One `git log --name-only` pass builds the path -> last-touch-commit map for the whole tree.
+/// The git walk is moved VERBATIM from the producer's old `git_last_touch`; the only addition is
+/// skipping `generated`-class paths (see `is_generated_class`) so git-facts is convergent without
+/// altering any produced face.
+fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["log", "--name-only", "--format=commit:%H"])
+        .output()
+        .map_err(|e| format!("log: {e}"))?;
+    if !output.status.success() {
+        return Err(format!("log exit {:?}", output.status.code()));
+    }
+    let mut map: BTreeMap<String, String> = BTreeMap::new();
+    let mut current: Option<String> = None;
+    for line in String::from_utf8_lossy(&output.stdout).lines() {
+        if let Some(sha) = line.strip_prefix("commit:") {
+            current = Some(sha.to_owned());
+        } else if !line.is_empty()
+            && !is_generated_class(line)
+            && let Some(sha) = &current
+        {
+            // first time we see a path (walking newest-first) is its last touch
+            map.entry(line.to_owned()).or_insert_with(|| sha.clone());
+        }
+    }
+    Ok(map)
+}
