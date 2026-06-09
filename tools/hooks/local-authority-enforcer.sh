@@ -3,9 +3,9 @@
 #
 # Blocks retired local authority surfaces before they become muscle memory in
 # agent sessions. The live merge authority is the `oya-ci-required` status
-# produced by the cloud-ci/oya-ci pipeline. Local commands may provide
-# shift-left evidence, but local VCS wrappers must not coordinate work or
-# decide merge readiness.
+# produced by the cloud-ci/oya-ci pipeline. Local source control uses plain
+# git; local oya gate/verify/check wrappers must not coordinate work or decide
+# merge readiness.
 
 set -uo pipefail
 
@@ -23,14 +23,16 @@ if [ -z "$cmd" ]; then
   exit 0
 fi
 
-# Retired VCS wrappers: ADR-0363 moved coordination to plain git + protected PR.
-retired_vcs='(^|[;&|(]|[[:space:]])(\./bin/|bin/)?oya[[:space:]]+(git|vcs)([[:space:]]|$)'
+# Retired authority wrappers: D-CLOUD-NATIVE/D-CICD-AUTHORITY route source
+# control to plain git + protected PR and route gate verdicts to the
+# cloud-ci/oya-ci pipeline's single required context.
+retired_authority='(^|[;&|(]|[[:space:]])(\./bin/|bin/)?oya[[:space:]]+(git|vcs|gate|verify|check|submit)([[:space:]]|$)'
 
-if printf '%s' "$cmd" | grep -Eq "$retired_vcs"; then
+if printf '%s' "$cmd" | grep -Eq "$retired_authority"; then
   {
-    echo "🚫 BLOCKED: retired local VCS authority surface detected: oya git/oya vcs."
-    echo "Use plain git for local source control, then open a PR against dev."
-    echo "Merge readiness is decided by the cloud-ci/oya-ci pipeline status 'oya-ci-required', not by a local wrapper."
+    echo "🚫 BLOCKED: retired local authority surface detected."
+    echo "Use plain git for local source control and Buck2/cloud-ci targets for local confidence."
+    echo "Merge readiness is decided only by the cloud-ci/oya-ci pipeline status 'oya-ci-required', not by local oya wrappers."
   } >&2
   exit 2
 fi
