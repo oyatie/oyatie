@@ -20,3 +20,22 @@ forbidden_brand_tokens:
   - token: foundry
     executable: false
     reason: "D-FOUNDRY-CLARIFY: tracked for the foundry-rename campaign. Not executable yet -- the docs corpus still carries live `foundry` references, so a substring gate would false-fail. Promote to executable once the corpus is cleared."
+
+# Machine-readable doctrine for historical Wave 15-ZB lane labels. These labels are
+# audit-only doctrine aliases; they are NOT live lane-baseline expansion inputs.
+# Active enforcement remains the per-PR brand-residue ratchet plus destination
+# cloud-ci/oya-ci Rust gate contexts.
+historical_wave_15zb_audit_only_labels:
+  status: audit_doctrine_only
+  active_product_enforcement:
+    - brand-residue
+    - cloud-ci-rust-gate-contexts
+    - oya-ci-required
+  prohibited_uses:
+    - live_baseline_expansion
+    - signoff_door_expansion
+    - branch_protection_context_expansion
+  labels:
+    - oya-governance-no-foundry-fitness-residue
+    - oya-governance-lane-prefix-vocabulary
+    - oya-governance-rename-inventory-presence
