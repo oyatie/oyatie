@@ -310,4 +310,4 @@ evidence_hash: <sha256>
 ## Checkpoint Closure Criteria
 - The runbook remains current when `ClosingPackageArchiveFailureCritical`, `ClosingPackageArchiveFailureSloBurn`, `oya_workplace_integration_closing_package_archive_failed_total`, `oya.workplace-integration.closing_package_archive_failure.incident_hold`, and `workplace-integration-closing-package-archive-failure-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya verify --ci-required --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when the branch-protected `oya-ci-required` cloud-ci/oya-ci gate accepts the runbook evidence for the five target scopes; local command output is transition evidence only, not destination authority.

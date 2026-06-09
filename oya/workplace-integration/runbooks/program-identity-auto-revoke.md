@@ -310,4 +310,4 @@ evidence_hash: <sha256>
 ## Checkpoint Closure Criteria
 - The runbook remains current when `ProgramIdentityAutoRevokeCritical`, `ProgramIdentityAutoRevokeSloBurn`, `oya_workplace_integration_program_identity_auto_revoke_total`, `oya.workplace-integration.program_identity_auto_revoke.incident_hold`, and `workplace-integration-program-identity-auto-revoke-circuit-breaker` all resolve to live telemetry, flag, or breaker records.
 - The incident is cleanly halted if required authority is missing for tenant quarantine, policy rollback, or vendor escalation; do not improvise outside the named commands.
-- The checkpoint is complete when `./bin/oya verify --ci-required --agent codex-runbooks-substrate-w3 --evidence 'runbooks_substance:X new_runbooks:Y' ...` accepts the five target scopes.
+- The checkpoint is complete when the branch-protected `oya-ci-required` cloud-ci/oya-ci gate accepts the runbook evidence for the five target scopes; local command output is transition evidence only, not destination authority.
