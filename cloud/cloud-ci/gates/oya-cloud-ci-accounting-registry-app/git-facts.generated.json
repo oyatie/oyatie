@@ -41,6 +41,7 @@
     "15758e88ebb9e61d8b9821c60fc070dd03b06e65": 1780023155,
     "158bab431d561218d253a65a416621e5f0de912b": 1780023173,
     "1613461cca791e0df143a4c34cc5706a9bf28518": 1780107556,
+    "1925f6662016a03964d6a2a128f85a48eb4db6b6": 1780987665,
     "19ace4af4e8fafe40ca89d11e300951289a526dd": 1780082754,
     "1a522ed1b068cbbd0a9fed63a2adf6c89cd20d83": 1779978593,
     "1ab8d5c033c7a8babc83725a39058302350ebedc": 1780014973,
@@ -528,7 +529,7 @@
     "ffa99151b9edbe56e877a25faec7cd78a0b23267": 1779939374,
     "fff4fdfc944958a47ecba240a845a620ea490fac": 1778985046
   },
-  "head_time_secs": 1780987059,
+  "head_time_secs": 1780987665,
   "last_touch_commit": {
     "\"benchmarks/cross-\\302\\265service-call-overhead.md\"": "44bca8b95190fb44914713e07cfe3e7f89c68580",
     "\"microservices/developer-sdk/decisions/ADR-SDK-0003-per-developer-sandbox-tenant-via-tenancy-\\302\\265service's-sandbox-.md\"": "3059cbbc86852353ee7339ac3a3338df173c9c63",
@@ -6528,7 +6529,7 @@
     "docs/architecture/microservices-corpus-line-audit-2026-05-21.md": "3a031988bd831b907a621bbf52cf013d1108a04a",
     "docs/architecture/persona-journey-microservice-cross-coverage-matrix-2026-05-21.md": "3a031988bd831b907a621bbf52cf013d1108a04a",
     "docs/architecture/persona-journey-microservice-integrity-sweep-2026-05-20.md": "3a031988bd831b907a621bbf52cf013d1108a04a",
-    "docs/architecture/product-graph.html": "e38624dc483c425f238c34a4414793742c81f421",
+    "docs/architecture/product-graph.html": "1925f6662016a03964d6a2a128f85a48eb4db6b6",
     "docs/architecture/product-graph.md": "3a031988bd831b907a621bbf52cf013d1108a04a",
     "docs/architecture/product-graph.template.html": "e38624dc483c425f238c34a4414793742c81f421",
     "docs/architecture/six-hops-reachability-audit-2026-05-20.md": "d5a949a875fc20fb2296904ffbdc6226b4711511",
