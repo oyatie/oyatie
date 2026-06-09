@@ -12,7 +12,7 @@ use std::process::Command;
 
 use serde_json::Value;
 
-use oya_cloud_ci_cargo_prefix_app::{evaluate, evaluate_keyed, Verdict};
+use oya_cloud_ci_cargo_prefix_app::{Verdict, evaluate, evaluate_keyed};
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -33,10 +33,14 @@ fn repo_root() -> PathBuf {
 /// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
 /// scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts =
-        root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
+    let scm_facts = root
+        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() { PathBuf::from(bin) } else { root.join(bin) };
+        let bin = if Path::new(&bin).is_absolute() {
+            PathBuf::from(bin)
+        } else {
+            root.join(bin)
+        };
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)

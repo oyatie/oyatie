@@ -8,8 +8,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_cloud_ci_automation_ratchet_app::{evaluate, Verdict};
-use serde_json::{json, Value};
+use oya_cloud_ci_automation_ratchet_app::{Verdict, evaluate};
+use serde_json::{Value, json};
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -30,8 +30,7 @@ fn fixture_dir() -> PathBuf {
 }
 
 fn load_json(path: &PathBuf) -> Value {
-    let text =
-        fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
@@ -179,7 +178,9 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
         "oya-governance crates + governance lanes claim enforcement with no wired buck2 target -> advisory_claiming_enforced must fire"
     );
     assert!(
-        report.violations.contains("blocking_invariant_mapped_to_oya_cli"),
+        report
+            .violations
+            .contains("blocking_invariant_mapped_to_oya_cli"),
         "ADR-0365 oya gate/oya gen verified_by lines -> blocking_invariant_mapped_to_oya_cli must fire"
     );
     assert!(advisory_count > 0, "expected unwired enforcement claims");
@@ -192,10 +193,14 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
 /// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
 /// scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts =
-        root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
+    let scm_facts = root
+        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() { PathBuf::from(bin) } else { root.join(bin) };
+        let bin = if Path::new(&bin).is_absolute() {
+            PathBuf::from(bin)
+        } else {
+            root.join(bin)
+        };
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)

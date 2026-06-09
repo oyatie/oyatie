@@ -7,8 +7,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use serde_json::{json, Value};
-use oya_cloud_ci_staleness_reaper_app::{evaluate, Verdict};
+use oya_cloud_ci_staleness_reaper_app::{Verdict, evaluate};
+use serde_json::{Value, json};
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -28,8 +28,7 @@ fn fixture_dir() -> PathBuf {
 }
 
 fn load_json(path: &PathBuf) -> Value {
-    let text =
-        fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
@@ -241,7 +240,9 @@ fn scm_facts_path(root: &Path) -> PathBuf {
 /// staleness face from. The producer derived this from `git log -1 --format=%ct` via the
 /// out-of-graph emitter; the gate reads the same frozen value so its aging matches the face.
 fn git_now_secs(root: &Path) -> u64 {
-    scm_facts_value(root)["head_time_secs"].as_u64().unwrap_or(0)
+    scm_facts_value(root)["head_time_secs"]
+        .as_u64()
+        .unwrap_or(0)
 }
 
 /// The commit-sha -> author-timestamp map, read from the committed scm-facts face (NOT ambient
@@ -265,5 +266,6 @@ fn scm_facts_value(root: &Path) -> Value {
     let path = scm_facts_path(root);
     let text = fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("read scm-facts {}: {e}", path.display()));
-    serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse scm-facts {}: {e}", path.display()))
+    serde_json::from_str(&text)
+        .unwrap_or_else(|e| panic!("parse scm-facts {}: {e}", path.display()))
 }

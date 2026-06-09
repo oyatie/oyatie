@@ -8,7 +8,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_cloud_ci_cross_artifact_agreement_app::{evaluate, Verdict};
+use oya_cloud_ci_cross_artifact_agreement_app::{Verdict, evaluate};
 use serde_json::Value;
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
@@ -31,8 +31,7 @@ fn fixture_dir() -> PathBuf {
 }
 
 fn load_json(path: &PathBuf) -> Value {
-    let text =
-        fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
@@ -143,7 +142,9 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
 
     // Count the real exhibits for the evidence digest.
     let decisions = crosswalk["decisions"].as_array().expect("decisions");
-    let dup_ids = crosswalk["duplicate_ids"].as_array().expect("duplicate_ids");
+    let dup_ids = crosswalk["duplicate_ids"]
+        .as_array()
+        .expect("duplicate_ids");
     let axes = crosswalk["generated_face_axes"]
         .as_object()
         .expect("generated_face_axes");
@@ -178,10 +179,14 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
 /// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
 /// scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts =
-        root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
+    let scm_facts = root
+        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json");
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
-        let bin = if Path::new(&bin).is_absolute() { PathBuf::from(bin) } else { root.join(bin) };
+        let bin = if Path::new(&bin).is_absolute() {
+            PathBuf::from(bin)
+        } else {
+            root.join(bin)
+        };
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)

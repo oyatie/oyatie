@@ -97,8 +97,8 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
     let gates = gates_dir(&root);
     let wf = workflow_path(&root);
 
-    let workflow = fs::read_to_string(&wf)
-        .unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
     let crates = gate_crate_dirs(&gates);
     assert!(
@@ -153,8 +153,8 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
     let root = repo_root();
     let gates = gates_dir(&root);
     let wf = workflow_path(&root);
-    let workflow = fs::read_to_string(&wf)
-        .unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
     // Isolate the text of the fan-in job (from its `oya-ci-required:` header to EOF). The
     // fan-in is the last job in the file by construction.
