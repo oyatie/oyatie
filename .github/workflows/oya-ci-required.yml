@@ -21,6 +21,8 @@ name: oya-ci-required
 
 on:
   workflow_dispatch:
+  push:
+    branches: [dev]
   pull_request:
     branches: [dev]
   merge_group:
@@ -92,6 +94,7 @@ jobs:
           - { crate: oya-cloud-ci-bnf-layer-suffix-app,         label: "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)" }
           - { crate: oya-cloud-ci-manifest-hygiene-app,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
           - { crate: oya-cloud-ci-cargo-prefix-app,            label: "gate · cargo-prefix (ADR-0017)" }
+          - { crate: oya-cloud-ci-generated-artifact-control-plane-app, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
     steps:
       - uses: actions/checkout@v4
         with:
