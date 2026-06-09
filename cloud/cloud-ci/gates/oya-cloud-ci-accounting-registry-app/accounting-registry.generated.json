@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17647,
-    "source_inputs_digest": "fnv1a64:0dd0676e2e1256ed"
+    "source_inputs_digest": "fnv1a64:34a143dece0478ea"
   },
   "rows": [
     {
@@ -19419,7 +19419,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e6c1fd21321f116877472213408a4562fdb07108",
+      "last_touch_commit": "7786e11947010c553acc76f60a4e8e6a6c066ddf",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",
       "reachable_from": [
@@ -20339,7 +20339,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "c1756925cc304aef8117a18ac852b02b645c064a",
+      "last_touch_commit": "7786e11947010c553acc76f60a4e8e6a6c066ddf",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs",
       "reachable_from": [
