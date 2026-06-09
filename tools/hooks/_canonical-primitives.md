@@ -334,8 +334,7 @@ Enforced by: oya-governance-argocd-application-cosign-verified;
 
 ## Lifecycle Skill Map
 
-Vendored at tools/agent-skills/skills/
-Source: https://github.com/addyosmani/agent-skills (MIT — Addy Osmani and contributors)
+Installed in the active agent runtime, not vendored in this repository. Codex default: `~/.codex/skills` for skills and `~/.codex/agents` for role prompts. Project `.codex/...` overlays require explicit review.
 
 Define phase:
   interview-me                  — extract real requirements before writing code
@@ -371,9 +370,9 @@ Ship phase:
   documentation-and-adrs        — ADR authoring and doc coverage
   shipping-and-launch           — final checklist before merge/release
 
-Persona agents (tools/agent-skills/agents/):
+Runtime roles:
   code-reviewer    — use for review tasks
-  security-auditor — use for security tasks
+  security-auditor — use for security tasks where installed
   test-engineer    — use for testing tasks
 
 Discovery rule: invoke the skill matching the task phase BEFORE producing output.

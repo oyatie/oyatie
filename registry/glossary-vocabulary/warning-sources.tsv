@@ -36,7 +36,6 @@ casing-variant	oyatie	docs/architecture/unified-ecosystem-thesis-2026-05-21.md
 casing-variant	oyatie	docs/architecture/wave-3-g-executive-briefing-2026-05-21.md
 casing-variant	oyatie	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 casing-variant	oyatie	docs/automation/INDEX.md
-casing-variant	oyatie	docs/bootstrap.md
 casing-variant	oyatie	docs/governance-lanes/INDEX.md
 casing-variant	oyatie	docs/governance-lanes/portfolio-citation.md
 casing-variant	oyatie	docs/ideas/agentic-slo-gated-promotion.md
@@ -6758,7 +6757,6 @@ uncited-acronym	PASS	docs/user-journeys/j143-laid-off-imports-work-portfolio-int
 uncited-acronym	PATCH	docs/advanced-cicd/release-versioning/crate-versioning-spec.md
 uncited-acronym	PATCH	docs/standards/api-design.md
 uncited-acronym	PATCH	docs/standards/event-schema-versioning-canonical.md
-uncited-acronym	PATH	docs/bootstrap.md
 uncited-acronym	PATH	docs/user-journeys/j01-emergency-911-dispatch/story.md
 uncited-acronym	PATH	docs/user-journeys/j02-healthcare-code-blue-ehr-break-glass/story.md
 uncited-acronym	PATH	docs/user-journeys/j03-988-crisis-line-minor-self-report/story.md
@@ -8359,7 +8357,6 @@ uncited-acronym	SHA	docs/advanced-cicd/release-versioning/enforcement-lanes.md
 uncited-acronym	SHA	docs/advanced-cicd/release-versioning/release-branch-cut-spec.md
 uncited-acronym	SHA	docs/advanced-cicd/release-versioning/release-cherry-pick-agent-spec.md
 uncited-acronym	SHA	docs/automation/changelog-pipeline.md
-uncited-acronym	SHA	docs/bootstrap.md
 uncited-acronym	SHA	docs/checklists/per-phase-completion-checklist.md
 uncited-acronym	SHA	docs/checklists/pre-merge.md
 uncited-acronym	SHA	docs/ideas/agentic-slo-gated-promotion.md
@@ -9227,7 +9224,6 @@ uncited-acronym	TOCTOU	docs/architecture/wave-3-g-synthesis-adjudication-2026-05
 uncited-acronym	TOMBSTONE	docs/standards/tenant-lifecycle.md
 uncited-acronym	TOML	docs/advanced-cicd/progressive-delivery/feature-flag-architecture.md
 uncited-acronym	TOML	docs/automation/orphan-detection-discipline.md
-uncited-acronym	TOML	docs/bootstrap.md
 uncited-acronym	TOML	docs/products/foundry/supervisor/settings-template-adapter/ARCHITECTURE.md
 uncited-acronym	TOML	docs/products/foundry/supervisor/settings-template-adapter/BENCHMARKS.md
 uncited-acronym	TOML	docs/products/foundry/supervisor/settings-template-adapter/README.md

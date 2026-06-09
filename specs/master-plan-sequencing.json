@@ -1705,7 +1705,7 @@
             "cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions",
             "jq empty specs/root-hub-pointers.json specs/master-plan-sequencing.json"
           ],
-          "skill_binding": "every subagent reads tools/agent-skills/skills/{spec-driven-development,documentation-and-adrs}/SKILL.md + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0349 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21",
+          "skill_binding": "every subagent uses installed runtime skills {spec-driven-development,documentation-and-adrs} + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0349 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21; repo-vendored tools/agent-skills is retired",
           "depends_on": [
             "ADR-0346 Acceptance",
             "ADR-0347 Acceptance",

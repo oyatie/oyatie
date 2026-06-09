@@ -12,11 +12,11 @@ Agent-executable instructions are fenced for the agent-coordination lane. Human 
 
 Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0513 owns cloud-ci/oya-ci Tide admission.
 
-## Skill discovery doctrine (inherited)
+## Skill discovery doctrine (runtime-installed)
 
-Lifecycle skills + agent personas + intent→skill mapping are inherited from `addyosmani/agent-skills` (MIT), vendored at `tools/agent-skills/`. Universal skill catalog (`tools/agent-skills/skills/<name>/SKILL.md`), personas (`tools/agent-skills/agents/<role>.md`), and orchestration doctrine (`tools/agent-skills/AGENTS.md`) are the inherited base. Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + governance pipeline + ADRs 0145+) OVERLAYS and WINS on conflict per `feedback_bominal_inheritance_precedence`. See `tools/agent-skills/INHERITANCE.md` for the full pattern and `tools/hook-bootstrap/install.sh` for the single-command bootstrap.
+Lifecycle skills, role prompts, and intent→skill mapping are provided by the installed agent runtime, not by a repo-vendored copy. Codex uses `~/.codex/skills` and `~/.codex/agents` (or explicitly checked-in `.codex/...` overlays when project scope is intentional). The retired `tools/agent-skills/` vendor tree must not be recreated; duplicated local copies create drift and violate the single-source runtime contract.
 
-`tools/agent-skills/CLAUDE.md` is INFORMATIONAL only — it describes the vendored upstream subtree, not this oyatie repository. This file (root `CLAUDE.md`) remains the authoritative project-rules source.
+Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + governance pipeline + ADRs 0145+) remains the repository authority and overlays runtime skill guidance on conflict per `feedback_bominal_inheritance_precedence`. This file (root `CLAUDE.md`) remains the authoritative project-rules source.
 
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline

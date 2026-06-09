@@ -18,10 +18,10 @@ authority_chain_declaration: |
   system / developer / user instructions
     > /specs/root-hub-pointers.json
     > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
-    > tools/agent-skills/AGENTS.md (inherited base from addyosmani/agent-skills MIT — universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration; oyatie overlays via this file and wins on conflict)
+    > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
     > machine-readable specs and registries under .omc/
     > docs/ authority files during markdown-retirement compatibility
-    > tools/agent-skills/CLAUDE.md (informational; describes vendored subtree, not oyatie)
+    > external/upstream skill documentation (informational only; not vendored into this repo)
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
 purpose: "Human compatibility projection for the machine-readable Oyatie master plan."

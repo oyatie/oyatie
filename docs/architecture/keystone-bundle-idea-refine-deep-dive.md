@@ -92,7 +92,7 @@ issue more pointed Code Review findings than a per-ADR pass would surface.
 ### 1.2 Methodology: Adversarial / Red-Team Posture
 
 The methodology follows the deep-dive standard from
-`tools/agent-skills/skills/doubt-driven-development/` plus the adversarial
+the installed `doubt-driven-development` skill plus the adversarial
 posture from `superpowers:dispatching-parallel-agents` (parallel red-team
 fan-out) plus `multispectrum-review v2.3.0` adherence facets:
 
@@ -1732,7 +1732,7 @@ Placement: **ADR-0296 vulnerability disclosure doctrine**.
 **F-XCUT-11: What's open vs closed undefined.**
 Severity: P1. Reversibility cost: 6.
 
-oyatie inherits MIT-licensed components (per `tools/agent-skills/`).
+oyatie may use MIT-licensed runtime-installed skill components, but the repository no longer vendors `tools/agent-skills/`.
 The bundle does not lock oyatie's own contribution policy.
 
 Recommendation:

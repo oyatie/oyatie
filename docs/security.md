@@ -98,10 +98,9 @@ sandbox_mode = "workspace-write"   # confines writes to the workspace
 approval_policy = "on-request"     # agent asks before shell side-effects
 ```
 
-## Post-install verification
+## Configuration verification
 
-After running `./tools/hook-bootstrap/install.sh` and restarting Claude Code, verify
-the sandbox is active with these manual checks (sandbox only takes effect after restart):
+After changing agent security settings and restarting Claude Code, verify the sandbox is active with these manual checks (sandbox only takes effect after restart):
 
 ```sh
 # 1. .env read works (GitHub token fetch must not be blocked)
@@ -119,5 +118,5 @@ curl https://example.com
 ```
 
 If step 4 succeeds (returns HTTP 200), the sandbox is not active — confirm you restarted
-Claude Code after install and that your macOS version supports Seatbelt for the Claude
+Claude Code after the settings change and that your macOS version supports Seatbelt for the Claude
 Code process.
