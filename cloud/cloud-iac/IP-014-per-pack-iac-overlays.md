@@ -96,8 +96,8 @@ configMapGenerator:
 for pack in pack-kr pack-eu pack-us pack-us-healthcare pack-jp pack-sg pack-au pack-in pack-br pack-ae pack-ksa; do
   kubectl --dry-run=client apply -k microservices/cloud-iac/iac/kustomize/overlays/$pack
 done
-cargo run -p oya-dev-cli -- gate validate pack-routing-conformance --microservice cloud-iac
-cargo run -p oya-dev-cli -- gate validate retention-conformance --microservice cloud-iac
+cloud-ci/oya-ci governance gate `pack-routing-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `retention-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

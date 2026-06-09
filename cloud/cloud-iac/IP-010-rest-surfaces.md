@@ -67,7 +67,7 @@ async fn trigger_render<S: Deps>(
 cargo check --workspace -p oya-cloud-iac-iac-*-rest --all-features
 cargo nextest run --workspace -p oya-cloud-iac-iac-*-rest --all-features
 # OpenAPI conformance: assert handler set matches contracts/openapi/cloud-iac.yaml
-cargo run -p oya-dev-cli -- gate validate openapi-conformance --microservice cloud-iac
+cloud-ci/oya-ci governance gate `openapi-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

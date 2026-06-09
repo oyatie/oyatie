@@ -74,29 +74,29 @@
     {
       "tier": "T1",
       "name": "cloud-iac-module-catalog-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_catalog_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-catalog-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-gitops-evidence-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-evidence-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-cell-topology-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-cell-topology-gate/src/main.rs",
       "risk_class": "high"
     },
     {
-      "file": "crates/oya-dev-cli/src/cloud_iac_opentofu_validation_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-opentofu-validation-gate/src/main.rs",
       "name": "cloud-iac-opentofu-validation-gate",
       "risk_class": "high",
       "tier": "T1"
     },
     {
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-provenance-gate/src/main.rs",
       "name": "cloud-iac-module-provenance-gate",
       "risk_class": "high",
       "tier": "T1"
@@ -104,43 +104,43 @@
     {
       "tier": "T1",
       "name": "cloud-iac-provider-readiness-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_provider_readiness_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-provider-readiness-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-module-provider-requirements-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_provider_requirements_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-provider-requirements-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-provider-lockfile-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_provider_lockfile_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-provider-lockfile-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-provider-signature-review-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_provider_signature_review_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-provider-signature-review-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-module-release-index-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_release_index_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-release-index-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-module-archive-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_archive_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-archive-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-module-registry-protocol-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-registry-protocol-gate/src/main.rs",
       "risk_class": "high"
     },
     {
@@ -236,43 +236,43 @@
     {
       "tier": "T1",
       "name": "cloud-iac-module-release-index-object-pinning-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_release_index_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-release-index-object-pinning-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-module-registry-protocol-object-source-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-registry-protocol-object-source-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-cell-topology-gitops-identity-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-cell-topology-gitops-identity-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-gitops-signed-image-param-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-signed-image-param-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-gitops-helm-param-pair-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-helm-param-pair-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-helm-chart-signed-image-wiring-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_helm_chart_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-helm-chart-signed-image-wiring-gate/src/main.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-iac-kubewarden-admission-policy-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+      "file": "cloud/cloud-ci/gates/cloud-iac-kubewarden-admission-policy-gate/src/main.rs",
       "risk_class": "high"
     }
   ],
@@ -292,27 +292,27 @@
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001",
-      "title": "First-class local Oya gate for Cloud IaC OpenTofu module catalog coherence",
+      "title": "Cloud-ci governance lane for Cloud IaC OpenTofu module catalog coherence",
       "acceptance_status": "implemented-local-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_catalog_gate.rs"
+      "file": "cloud/cloud-ci/gates/oya-ci cloud-iac module catalog gate/src/main.rs"
     },
     {
       "id": "CS-CLOUD-IAC-GITOPS-EVIDENCE-GATE-001",
-      "title": "First-class local Oya gate for Cloud IaC Argo CD Application template evidence",
+      "title": "Cloud-ci governance lane for Cloud IaC Argo CD Application template evidence",
       "acceptance_status": "implemented-local-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs"
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-evidence-gate/src/main.rs"
     },
     {
       "id": "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001",
-      "title": "First-class local Oya gate for Cloud IaC cell topology evidence",
+      "title": "Cloud-ci governance lane for Cloud IaC cell topology evidence",
       "acceptance_status": "implemented-local-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs"
+      "file": "cloud/cloud-ci/gates/cloud-iac-cell-topology-gate/src/main.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001",
-      "title": "First-class local Oya gate for OpenTofu module registry protocol fixtures",
+      "title": "Cloud-ci governance lane for OpenTofu module registry protocol fixtures",
       "acceptance_status": "implemented-local-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs"
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-registry-protocol-gate/src/main.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-API-BOUNDARY-001",
@@ -396,31 +396,31 @@
       "id": "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-OBJECT-PINNING-GATE-001",
       "title": "Cloud IaC release-index gate guard for optional S3/GCS object-source pin metadata",
       "acceptance_status": "implemented-local-release-index-object-source-pin-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_release_index_gate.rs"
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-release-index-gate/src/main.rs"
     },
     {
       "id": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-OBJECT-SOURCE-GATE-001",
       "title": "Cloud IaC module-registry protocol fixture guard for S3/GCS object-source download locations",
       "acceptance_status": "implemented-local-protocol-object-source-location-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs"
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-registry-protocol-gate/src/main.rs"
     },
     {
       "id": "CS-CLOUD-IAC-CELL-TOPOLOGY-GITOPS-IDENTITY-GATE-001",
       "title": "Cloud IaC cell topology to GitOps template identity coherence guard",
       "acceptance_status": "implemented-local-cell-topology-gitops-identity-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs"
+      "file": "cloud/cloud-ci/gates/cloud-iac-cell-topology-gate/src/main.rs"
     },
     {
       "id": "CS-CLOUD-IAC-GITOPS-SIGNED-IMAGE-PARAM-GATE-001",
       "title": "Cloud IaC GitOps signed image Helm parameter coherence guard",
       "acceptance_status": "implemented-local-gitops-signed-image-param-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs"
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-evidence-gate/src/main.rs"
     },
     {
       "id": "CS-CLOUD-IAC-GITOPS-HELM-PARAM-PAIR-GATE-001",
       "title": "Cloud IaC GitOps Helm signed-image parameter pair coherence guard",
       "acceptance_status": "implemented-local-gitops-helm-param-pair-gate",
-      "file": "crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs"
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-evidence-gate/src/main.rs"
     }
   ],
   "regulatory_packs": [
@@ -478,7 +478,7 @@
     },
     {
       "id": "ADR-0346",
-      "title": "Oya Verify Must Run Full Ci Mirror",
+      "title": "Protected Oya-Ci Required Context Must Remain Canonical",
       "scope": "repo",
       "file": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md"
     },
@@ -490,9 +490,9 @@
     },
     {
       "id": "ADR-0349",
-      "title": "Jenkins Argocd Self Hostable Ci Cd Substrate",
+      "title": "GitHub Actions oya-ci Argocd Self Hostable Ci Cd Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+      "file": "docs/decisions/ADR-0349-github-actions-oya-ci-argocd-self-hostable-ci-cd-substrate.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -554,7 +554,7 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-module-catalog",
       "runtime_mode": "local-filesystem-json-gate",
       "types": [
@@ -660,7 +660,7 @@
     "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs",
     "crates/oya-check-iac-tier-discipline/src/lib.rs",
     "microservices/cloud-iac/tofu/modules/catalog.json",
-    "crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs",
+    "crates/cloud-ci/oya-ci controller path/src/cloud_iac_cell_topology_gate.rs",
     "microservices/cloud-iac/cell-topology/foundation.json"
   ],
   "tenant_version_pinning": {
@@ -682,9 +682,9 @@
     "no REST, SDK, worker, provider adapter, OpenTofu CLI runner, Argo CD API adapter, Postgres registry adapter, rollback engine, or drift detector runtime is implemented",
     "no measured SLO, burn-rate, active-active DR, sharding execution, live mesh enforcement, provider lockfile, tofu test/plan/apply, or capacity telemetry evidence exists for Cloud IaC runtime",
     "legacy microservices/cloud-iac/*.md IP files and capability YAMLs may remain historical planning/prose but are not used as implementation-ready evidence by this manifest",
-    "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001 adds a first-class local filesystem/JSON Oya gate for manifest/catalog/main.tofu coherence but does not implement a private module registry, module signing, provider lockfiles, provider-resource-complete modules, or tofu init/validate/plan/apply runtime.",
-    "CS-CLOUD-IAC-GITOPS-EVIDENCE-GATE-001 adds a first-class local filesystem/YAML-template Oya gate for Argo CD Application evidence-template coherence but does not implement ArgoCD API integration, repository credentials, Kubernetes API calls, live sync/diff/health/prune/self-heal execution, cosign verification, provider APIs, or OpenTofu runtime.",
-    "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001 adds a first-class local filesystem/JSON Oya gate for Cloud IaC cell topology evidence but does not implement autosharding, auto-rebalance, dynamic sharding, tenant migration, ArgoCD/Kubernetes API calls, OpenTofu CLI execution, provider APIs, live mesh enforcement, capacity telemetry, SLOs, DR, or cloud provisioning runtime.",
+    "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001 adds a cloud-ci/oya-ci governance lane for manifest/catalog/main.tofu coherence but does not implement a private module registry, module signing, provider lockfiles, provider-resource-complete modules, or tofu init/validate/plan/apply runtime.",
+    "CS-CLOUD-IAC-GITOPS-EVIDENCE-GATE-001 adds a cloud-ci/oya-ci governance lane for Argo CD Application evidence-template coherence but does not implement ArgoCD API integration, repository credentials, Kubernetes API calls, live sync/diff/health/prune/self-heal execution, cosign verification, provider APIs, or OpenTofu runtime.",
+    "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001 adds a cloud-ci/oya-ci governance lane for Cloud IaC cell topology evidence but does not implement autosharding, auto-rebalance, dynamic sharding, tenant migration, ArgoCD/Kubernetes API calls, OpenTofu CLI execution, provider APIs, live mesh enforcement, capacity telemetry, SLOs, DR, or cloud provisioning runtime.",
     "CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001 adds first-class local OpenTofu init -backend=false and validate evidence in temporary module copies, but does not implement tofu test, plan, apply, provider APIs, provider credentials, state backends, provider lock/provenance, provider-resource-complete modules, registry APIs, ArgoCD/Kubernetes APIs, drift detection, rollback, SLO, DR, or capacity telemetry runtime.",
     "CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001 adds a first-class local SHA-256 module provenance gate for catalog module source files, but does not implement cosign/Sigstore signing, SLSA attestation generation, provider dependency lockfiles, provider provenance, provider APIs, provider credentials, private module registry APIs, OpenTofu test/plan/apply, provider-resource-complete modules, or cloud provisioning runtime.",
     "CS-CLOUD-IAC-PROVIDER-READINESS-GATE-001 added a first-class local provider-readiness inventory gate for future provider families and lock/signature/provenance requirements; later CS-CLOUD-IAC-MODULE-PROVIDER-REQUIREMENTS-GATE-001 materializes required_providers HCL only, while provider dependency lockfiles inside modules, provider installation in source, provider configuration, provider APIs, provider credentials, provider resources, provider provenance, module signing, SLSA attestations, tofu test/plan/apply, and cloud provisioning runtime remain non-claims.",
@@ -748,10 +748,10 @@
       "spec.source.helm.parameters.image.cosign.required"
     ],
     "metadata_only_posture": {
-      "repo_url": "placeholder-only: {{repo_url}}",
-      "target_revision": "placeholder-only: {{target_revision}}",
-      "cluster_api_server": "placeholder-only: {{cluster_api_server}}",
-      "tenant_namespace": "placeholder-only: {{tenant_namespace}}",
+      "repo_url": "scaffold-only: {{repo_url}}",
+      "target_revision": "scaffold-only: {{target_revision}}",
+      "cluster_api_server": "scaffold-only: {{cluster_api_server}}",
+      "tenant_namespace": "scaffold-only: {{tenant_namespace}}",
       "credential_storage": "forbidden in templates; repository credentials remain external SecretReference/OpenBao metadata only"
     },
     "non_claims": [
@@ -763,14 +763,14 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-GITOPS-EVIDENCE-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-gitops-evidence",
       "runtime_mode": "local-filesystem-yaml-template-gate",
       "enforced_invariants": [
         "manifest context list and template_count must match repo-local */argocd/apps/template.yaml files",
         "each template must declare an argoproj.io/v1alpha1 Application",
         "ADR-0349, ADR-0181, cosign-required, audit-chain-event, and fail-open=false metadata must be present",
-        "repoURL, targetRevision, cluster server, and tenant namespace must remain placeholders",
+        "repoURL, targetRevision, cluster server, and tenant namespace must remain scaffolds",
         "automated prune/selfHeal and CreateNamespace/ServerSideApply sync options must be present",
         "credential-like material markers are rejected"
       ],
@@ -783,7 +783,7 @@
     },
     "signed_image_param_gate_invariants": [
       "each Argo CD Application template must keep Helm parameter name image.digest",
-      "each Argo CD Application template must keep image.digest value {{signed_image_digest}} as metadata-only signed-image placeholder",
+      "each Argo CD Application template must keep image.digest value {{signed_image_digest}} as metadata-only signed-image scaffold",
       "each Argo CD Application template must keep Helm parameter name image.cosign.required",
       "each Argo CD Application template must keep image.cosign.required value true",
       "signed-image parameter validation is local template text validation only; no cosign, admission-controller, Argo CD, or Kubernetes API call is performed"
@@ -800,9 +800,9 @@
   },
   "helm_chart_signed_image_wiring_scope": {
     "changeset": "CS-CLOUD-IAC-HELM-CHART-SIGNED-IMAGE-WIRING-GATE-001",
-    "crate": "oya-dev-cli",
+    "crate": "cloud-ci/oya-ci controller path",
     "gate": "cloud-iac-helm-chart-signed-image-wiring",
-    "gate_file": "crates/oya-dev-cli/src/cloud_iac_helm_chart_gate.rs",
+    "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_helm_chart_gate.rs",
     "chart_root": "microservices/cloud-iac/iac/k8s/helm",
     "runtime_mode": "local-filesystem-helm-chart-wiring-gate-no-helm-render",
     "chart_files_checked": [
@@ -915,7 +915,7 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-cell-topology",
       "runtime_mode": "local-filesystem-json-cell-topology-gate",
       "enforced_invariants": [
@@ -977,9 +977,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-opentofu-validation",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_opentofu_validation_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_opentofu_validation_gate.rs",
       "runtime_mode": "temp-copy-opentofu-init-backend-false-validate",
       "enforced_invariants": [
         "manifest catalog, modules_root, module_count, and module_names must match the local module catalog",
@@ -1029,9 +1029,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-module-provenance",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_provenance_gate.rs",
       "runtime_mode": "local-filesystem-sha256-module-provenance-gate",
       "enforced_invariants": [
         "manifest provenance, catalog, digest_algorithm, module_count, and module_names must match the local module catalog and provenance file",
@@ -1083,9 +1083,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-PROVIDER-READINESS-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-provider-readiness",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_provider_readiness_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_provider_readiness_gate.rs",
       "runtime_mode": "local-provider-readiness-inventory-gate",
       "enforced_invariants": [
         "manifest catalog, readiness path, status, module count, and module names must match the local module catalog and provider-readiness inventory",
@@ -1153,9 +1153,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-PROVIDER-LOCKFILE-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-provider-lockfile",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_provider_lockfile_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_provider_lockfile_gate.rs",
       "runtime_mode": "local-opentofu-provider-lockfile-gate",
       "enforced_invariants": [
         "manifest lock_root, providers_file, lockfile, platforms, provider sources, selected versions, and minimum constraints must match the readiness inventory and local lock root",
@@ -1226,9 +1226,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-PROVIDER-SIGNATURE-REVIEW-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-provider-signature-review",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_provider_signature_review_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_provider_signature_review_gate.rs",
       "runtime_mode": "local-opentofu-provider-signature-review-gate",
       "enforced_invariants": [
         "manifest provider signature review scope paths, status, runtime mode, provider sources, selected versions, signing key IDs, artifact digests, and official-source references must match provider-signature-review.json",
@@ -1281,9 +1281,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-module-release-index",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_module_release_index_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_release_index_gate.rs",
       "runtime_mode": "local-opentofu-module-release-index-gate",
       "enforced_invariants": [
         "manifest release-index scope paths, status, runtime mode, module count, module names, and official-source references must match release-index.json",
@@ -1348,9 +1348,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-PROVIDER-REQUIREMENTS-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-module-provider-requirements",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_module_provider_requirements_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_provider_requirements_gate.rs",
       "runtime_mode": "local-opentofu-required-providers-materialization-gate",
       "enforced_invariants": [
         "manifest catalog/readiness paths, status, runtime_mode, module count, module names, and provider family summary must match provider-readiness.json and the local module catalog",
@@ -1402,9 +1402,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-ARCHIVE-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-module-archive",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_module_archive_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_archive_gate.rs",
       "runtime_mode": "local-deterministic-zip-module-archive-gate",
       "enforced_invariants": [
         "manifest archive scope paths, status, runtime mode, module count, archive count, module names, and official-source references must match archive-manifest.json",
@@ -1452,9 +1452,9 @@
     ],
     "coherence_guard": {
       "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001",
-      "crate": "oya-dev-cli",
+      "crate": "cloud-ci/oya-ci controller path",
       "gate": "cloud-iac-module-registry-protocol",
-      "gate_file": "crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_registry_protocol_gate.rs",
       "runtime_mode": "local-opentofu-module-registry-protocol-fixture-gate",
       "enforced_invariants": [
         "manifest protocol scope paths, status, runtime mode, module count, module names, and official-source references must match protocol-fixtures.json",
@@ -1998,9 +1998,9 @@
   },
   "kubewarden_admission_policy_scope": {
     "changeset": "CS-CLOUD-IAC-KUBEWARDEN-ADMISSION-POLICY-GATE-001",
-    "crate": "oya-dev-cli",
+    "crate": "cloud-ci/oya-ci controller path",
     "gate": "cloud-iac-kubewarden-admission-policy",
-    "gate_file": "crates/oya-dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+    "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_kubewarden_admission_gate.rs",
     "kubewarden_root": "microservices/cloud-iac/iac/k8s/kubewarden",
     "kyverno_policy": "infra/kyverno/policies/require-signed-images.yaml",
     "runtime_mode": "local-filesystem-admission-policy-source-gate-no-controller-execution",

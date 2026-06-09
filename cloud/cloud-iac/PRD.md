@@ -47,7 +47,7 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 ## Tenant Value
 
 - **Tenant Outcome 1 — Vendor-neutral GitOps without vendor lock.** Tenants' workloads land via the same self-hosted ArgoCD + Flux + OpenTofu + Helm-controller + Kustomize-controller stack used by oyatie's own substrate; no Spacelift / Env0 / Terraform Cloud / Pulumi Cloud subscription required.
-- **Tenant Outcome 2 — Per-µservice render + apply traceability.** Every apply emits a signed `ApplyExecuted` event consumed by `foundry-evidence` + `audit-chain`; tenants and auditors get cryptographic proof of what changed, when, and by whom.
+- **Tenant Outcome 2 — Per-µservice render + apply traceability.** Every apply emits a signed `ApplyExecuted` event consumed by `cloud-governance-evidence` + `audit-chain`; tenants and auditors get cryptographic proof of what changed, when, and by whom.
 - **Tenant Outcome 3 — Drift-free production posture.** Continuous drift detection per cluster ≤1h cycle; reconciler converges on the git-declared state automatically; rollback to last-green state is a first-class primitive (not a "restore from backup" escape hatch).
 - **Internal Outcome 4 — One IaC pipeline across the whole estate.** Eliminates per-team divergence in chart structure, plan-preview gates, secret-reference patterns, and registry conventions. The cloud-iac registry is the single source of truth for "what chart is deployed where at what version."
 
@@ -64,7 +64,7 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 | FR-07 | iac-registry | to maintain a versioned catalog of charts + modules + per-pack overlays | every deployed artifact is provenance-traceable to its git commit + SLSA L3 attestation | iac-registry | Must |
 | FR-08 | GitOps reconciler (ArgoCD or Flux) | to reconcile git → cluster automatically | tenants never edit cluster state directly; git is the only source of truth | iac-applier | Must |
 | FR-09 | tenant operator | to view their µservice's current apply state + drift posture in a per-tenant dashboard | tenants self-detect drift before incidents | iac-registry, iac-validator | Must |
-| FR-10 | Foundry capability consumer (foundry-evidence, audit-chain) | to consume `ApplyStarted / ApplyCompleted / ApplyRolledBack / DriftDetected / RenderRequested / RenderCompleted` events | downstream pipelines have a complete audit trail | (cross-cutting) | Must |
+| FR-10 | governed capability consumer (cloud-governance-evidence, audit-chain) | to consume `ApplyStarted / ApplyCompleted / ApplyRolledBack / DriftDetected / RenderRequested / RenderCompleted` events | downstream pipelines have a complete audit trail | (cross-cutting) | Must |
 | FR-11 | aggregation index | to regenerate per-pack apply manifests + chart-version matrix from per-µservice sources | central indices are never hand-edited; per-µservice folders are source of truth | iac-registry | Must |
 
 ## Non-Functional Requirements
@@ -135,7 +135,7 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 - Public API version model: plan-preview, apply-state, provenance, and chart-signature validation contracts use the YYYY-MM-DD carrier triplet: `Oyatie-Version` header, `/v/<YYYY-MM-DD>/...` URL prefix, and proto3 version field.
 - SDK semver model: cloud-iac SDKs use major.minor.patch, with major bumps only when a supported date-version carrier or generated type contract breaks.
 - Support window: last N=3 public contract versions are supported for at least 180 days.
-- Per-tenant pinning: supported for paid and regulated tenants whose deployment pipeline must remain frozen during audit windows; demo_trial follows the platform default.
+- Per-tenant pinning: supported for paid and regulated tenants whose deployment pipeline must remain frozen during audit windows; non-production sample_trial follows the platform default.
 - Internal-mesh exemption: yes; ArgoCD/Flux/OpenTofu worker mesh traffic keeps ADR-0145 direct gRPC semantics and records the date-version only at external or replay boundaries.
 
 ## Bounded Contexts
@@ -298,13 +298,13 @@ Cross-product rule: `cloud-iac` MUST NOT import any other product µservice crat
 
 CI lanes that must green:
 
-- `oya gate validate lean-a1 --microservice cloud-iac` — dependency-direction
-- `oya gate validate lean-a2 --microservice cloud-iac` — cross-product-refusal
-- `oya gate validate port-location --microservice cloud-iac` — ports in kernel
-- `oya gate validate layer-correctness --microservice cloud-iac` — layer enum match
-- `oya gate validate per-microservice-layout --microservice cloud-iac` — ADR-0131 conformance
-- `oya gate validate statelessness --microservice cloud-iac` — renderer + validator are stateless; applier + rollback delegate to ArgoCD; registry is the only stateful component
-- `oya gate validate shardability --microservice cloud-iac`
+- cloud-ci/oya-ci governance gate `lean-a1` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — dependency-direction
+- cloud-ci/oya-ci governance gate `lean-a2` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — cross-product-refusal
+- cloud-ci/oya-ci governance gate `port-location` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — ports in kernel
+- cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — layer enum match
+- cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — ADR-0131 conformance
+- cloud-ci/oya-ci governance gate `statelessness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — renderer + validator are stateless; applier + rollback delegate to ArgoCD; registry is the only stateful component
+- cloud-ci/oya-ci governance gate `shardability` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 
 ## Integration via Workflow + Ontology
 
@@ -313,9 +313,9 @@ CI lanes that must green:
 | Event type | Trigger | Consumed by | State machine / DAG |
 |---|---|---|---|
 | `RenderRequested` | PR with IaC change opens | `iac-renderer-worker` | render-state-machine |
-| `RenderCompleted` | renderer emits rendered manifest digest | `iac-validator-worker`, `foundry-evidence`, `audit-chain` | render-state-machine |
+| `RenderCompleted` | renderer emits rendered manifest digest | `iac-validator-worker`, `cloud-governance-evidence`, `audit-chain` | render-state-machine |
 | `ApplyStarted` | applier picks up an apply job | `audit-chain`, `observability` (SLO gate metadata) | apply-state-machine |
-| `ApplyCompleted` | applier confirms cluster state matches manifest | `foundry-evidence`, `audit-chain`, `observability` (release-pointer-advance signal) | apply-state-machine |
+| `ApplyCompleted` | applier confirms cluster state matches manifest | `cloud-governance-evidence`, `audit-chain`, `observability` (release-pointer-advance signal) | apply-state-machine |
 | `ApplyRolledBack` | rollback engine reverts to prior apply | `audit-chain`, `observability` (rollback signal), `grafana-oncall` | apply-state-machine |
 | `DriftDetected` | drift-detector finds live ≠ git | `audit-chain`, `grafana-oncall`, `observability` (alerting signal) | — |
 
@@ -423,8 +423,8 @@ Sharding:
 | AC-06 | Drift detector finds a manually-mutated cluster resource within 1h | e2e injection drill |
 | AC-07 | SLSA L3 attestation verified pre-apply | integration test against signed + unsigned chart |
 | AC-08 | All Layer-A IaC components (ArgoCD + OpenTofu + Helm-controller + Kustomize-controller) deploy clean against a kind cluster | CI lane `oya-cloud-iac-iac-smoke` |
-| AC-09 | `cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-iac` exit 0 | ADR-0131 lane |
-| AC-10 | `cargo run -p oya-dev-cli -- gate validate authority-cohesion` exit 0 | ADR-0123 lane; HG-CLOUD-IAC registered |
+| AC-09 | cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context exit 0 | ADR-0131 lane |
+| AC-10 | cloud-ci/oya-ci governance gate `authority-cohesion` is green in the branch-protected `oya-ci-required` context exit 0 | ADR-0123 lane; HG-CLOUD-IAC registered |
 | AC-11 | Apply latency p99 ≤ 5min per µservice (excluding workload-health waits) | load test under `microservices/cloud-iac/tests/load/apply-latency.rs` |
 | AC-12 | Drift-detection cycle per cluster ≤ 1h validated under nominal load | observability self-SLO |
 
@@ -435,7 +435,7 @@ Sharding:
 | 1 | ArgoCD vs Flux as the canonical GitOps reconciler at M01 | axis-cloud-iac + ops-sre-reliability | resolved in IP-001 (ArgoCD chosen; Flux supported for tenant choice via adapter pattern) |
 | 2 | OpenTofu version-pinning cadence (LTS vs trailing-stable) | axis-cloud-iac | resolved in IP-003 (LTS pin per docs/standards/observability-slo.md) |
 | 3 | iac-state-index Postgres: single cluster per pack vs single global cluster | axis-cloud-iac + cloud-secrets | resolved in IP-008 (per-pack pinned per ADR-0117) |
-| 4 | Cross-µservice apply: forbidden by default, or allowed under explicit DAG declaration? | council-architecture | resolved in policy/iac-isolation.md — forbidden by default; explicit cross-µservice DAGs require council-architecture approval + Cedar policy entitlement |
+| 4 | Cross-µservice apply: forbidden by default, or allowed under explicit DAG declaration? | architecture-governance | resolved in policy/iac-isolation.md — forbidden by default; explicit cross-µservice DAGs require architecture-governance approval + Cedar policy entitlement |
 | 5 | Should cloud-iac apply its own IaC (bootstrap paradox)? | axis-cloud-iac | resolved in IP-015 — bootstrap via cloud-k8s + cloud-secrets minimum-viable; then cloud-iac applies itself thereafter (parallel to observability self-observability) |
 
 ## Related ADRs
@@ -472,7 +472,7 @@ Per ADR-0171 (2026-05-18), cloud-iac adopts a three-component multi-cluster fede
   - On-prem sovereign packs → `cluster-api-provider-metal3` (bare-metal) per ADR-0117.
   - EU pack → `cluster-api-provider-openstack` or `cluster-api-provider-azure` per ADR-0049.
   - KR pack → sovereign on-prem; metal3.
-  - Foundry GPU pools → cell-isolated CAPI clusters per ADR-0009.
+  - Cloud governance GPU pools → cell-isolated CAPI clusters per ADR-0009.
 - CAPI provider versions tracked in `registry/cluster-api-providers.json` (new registry entry; M02 deliverable).
 
 ### Component 3 — Federation control plane (cross-region routing)
@@ -494,10 +494,10 @@ This addendum applies from M02 graduation (fleet ≥12 clusters). At M01-foundat
 
 ## Doctrine refs (ADR-0346..0349)
 
-- ADR-0346 — `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, invoking `cargo fmt --all --check`, `cargo check --workspace --all-targets --keep-going`, `cargo clippy --workspace --all-targets --keep-going -- -D warnings`, `cargo nextest run --workspace --no-fail-fast`, and `oya gate run-all --ci-required`; enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
-- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- ADR-0346 is superseded for this surface: branch-protected `oya-ci-required` is the canonical blocking CI authority; retired local Oya CLI verifier output is not production or merge authority.
+- ADR-0347 — every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB); enforced by `oya-governance-no-cloud-governance-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
 - ADR-0348 — cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; every µservice `manifest.json` gains a `sharding_automation` block declaring per-automation-mode configuration, with residency, threshold, audit-chain, and rollback coverage enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 — Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts and ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 — GitHub Actions `oya-ci-required` is the live CI authority until owned oya-ci runner cutover; ArgoCD replaces manual `kubectl apply` and Helm CLI deploys, with parity, cosign, tenant namespace, JCasC, and audit-chain enforcement by `oya-governance-github-actions-oya-ci-required-continuity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-github-actions-oya-ci-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.
 
 ## ADR-0339 adoption
 - Lifecycle: PROPOSED for `cloud-iac` until service wrappers invoke signed shared OpenTofu modules and implementation evidence lands.

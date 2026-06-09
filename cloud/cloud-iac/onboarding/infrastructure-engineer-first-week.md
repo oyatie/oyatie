@@ -10,10 +10,10 @@ Goal: by Friday EOD you can trace a cloud-iac change from declarative source thr
 - `docs/decisions/ADR-0218-cloud-iac-canonical-declarative-infra.md` — binding definition for declarative infrastructure.
 - `docs/decisions/ADR-0247-self-modification.md` — cloud-scm/self-modification substrate; cloud-iac is a control-plane mutator and must preserve auditability.
 - `docs/decisions/ADR-0250-build-ahead-of-certification.md` — modules must be compliance-shaped from first authoring.
-- `docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md` — `oya-ci-required` is the single current blocking CI authority; local CLI output is shift-left evidence only.
+- `docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md` — `oya-ci-required` is the single current blocking CI authority; `oya-ci-required`/controller evidence is shift-left evidence only.
 - `cloud/cloud-iac/PRD.md`, `cloud/cloud-iac/ARCHITECTURE.md`, and `cloud/cloud-iac/threat-model.md` — service-local product, architecture, trust boundaries, and failure-mode anchors.
 
-Work in a plain-git branch/worktree. Do not use retired `oya git` or `oya vcs` wrappers.
+Work in a plain-git branch/worktree. Do not use retired `plain git` or `GitOps change-bundle` wrappers.
 
 ## Day 2 — trace the real declarative surfaces
 
@@ -82,7 +82,7 @@ You should be able to explain:
 2. Why validation and mutation are separate.
 3. Which audit event is emitted before durable mutation is considered complete.
 4. How rollback stays inside declared apply scope.
-5. Why a local CLI transcript cannot prove production drift remediation.
+5. Why a controller/API/GitOps evidence cannot prove production drift remediation.
 
 ## What "done with week 1" means
 
@@ -94,8 +94,8 @@ You should be able to explain:
 
 ## Rookie traps
 
-1. **Treating local CLI output as authority.** Local verifier output is useful evidence, but branch protection keys on `oya-ci-required`.
-2. **Using retired VCS wrappers.** `oya git` and `oya vcs` are blocked; use plain git.
+1. **Treating `oya-ci-required`/controller evidence as authority.** `oya-ci-required`/controller evidence is the blocking authority; retired local verifier output is not accepted.
+2. **Using retired VCS wrappers.** `plain git` and `GitOps change-bundle` are blocked; use plain git.
 3. **Hand-rolling unmanaged IaC roots.** New roots need catalog, provenance, policy, runbook, and CI evidence.
 4. **Mixing tenant classes or packs.** Tenant/account/project, jurisdiction, and compliance-pack fields must be explicit.
 5. **Skipping secret indirection.** Use OpenBao/SecretReference patterns; never commit literal credentials.

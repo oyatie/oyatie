@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-cloud-iac + cloud-k8s + cloud-secrets
-deciders: ops-sre-reliability, axis-cloud-iac, council-architecture, council-privacy
+deciders: ops-sre-reliability, axis-cloud-iac, architecture-governance, privacy-governance
 related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/policy/data-residency.md
@@ -130,7 +130,7 @@ RTO: ≤ 35min.
 
 ### Failback (after primary region recovers)
 
-Failback to primary is **manual** and scheduled (not auto-failback) per industry best-practice; primary region must demonstrate ≥ 6h healthy state before failback initiated. Procedure mirrors DR Failover in reverse.
+Failback to primary is **manual** and scheduled (not auto-failback) per industry best-practice; primary region must non-production samplenstrate ≥ 6h healthy state before failback initiated. Procedure mirrors DR Failover in reverse.
 
 ## BCDR Exercise Cadence
 
@@ -175,7 +175,7 @@ Per-pack BCDR specifics at `regional-packs/<pack>/cloud-iac-multi-region-overlay
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate multi-region-conformance --microservice cloud-iac` — exit 0; deployed topology matches this document for every active pack.
+- cloud-ci/oya-ci governance gate `multi-region-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0; deployed topology matches this document for every active pack.
 - Quarterly DR-failover drill audit log: success vs failure rate trend.
 - Annual third-party BCDR audit: alignment with ISO 22301 / NIST SP 800-34 / DORA.
 

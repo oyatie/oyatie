@@ -6,7 +6,7 @@ Authority boundary:
 
 - PR merge readiness is the cloud-ci/oya-ci `oya-ci-required` status.
 - Runtime mutation is performed by cloud-iac workers and GitOps/Kubernetes controllers with policy and audit-chain handoffs.
-- Local CLI transcripts, loopback commands, and mock-provider output are not production-readiness evidence.
+- controller/API/GitOps evidence, loopback commands, and mock-provider output are not production-readiness evidence.
 
 ## Step 1 — locate the declaration inputs
 

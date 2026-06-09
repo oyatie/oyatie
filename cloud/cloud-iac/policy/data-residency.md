@@ -5,8 +5,8 @@ microservice: cloud-iac
 status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
-owner_team: council-privacy + axis-cloud-iac
-deciders: council-privacy, ops-security, axis-cloud-iac, gtm-customer-success
+owner_team: privacy-governance + axis-cloud-iac
+deciders: privacy-governance, ops-security, axis-cloud-iac, gtm-customer-success
 related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/threat-model.md (T-T-04, T-I-01; cross-pack state replication threats)
@@ -175,9 +175,9 @@ Per-pack overlays at `regional-packs/<pack>/cloud-iac-residency-overlay.md`. Pac
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate retention-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate pack-routing-conformance` — exit 0.
-- `cargo run -p oya-dev-cli -- gate validate cross-pack-state-replication-forbidden` — exit 0.
+- cloud-ci/oya-ci governance gate `retention-conformance` is green in the branch-protected `oya-ci-required` context — exit 0.
+- cloud-ci/oya-ci governance gate `pack-routing-conformance` is green in the branch-protected `oya-ci-required` context — exit 0.
+- cloud-ci/oya-ci governance gate `cross-pack-state-replication-forbidden` is green in the branch-protected `oya-ci-required` context — exit 0.
 - Annual residency audit: confirm each µservice's apply-state location matches its assigned pack.
 - Quarterly chaos drill: induce a cross-pack state-write attempt; verify rejection + alerting.
 

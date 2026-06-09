@@ -12,8 +12,8 @@ exit_gate: |
   All 15 IPs merged; HG-CLOUD-IAC gate in /specs/hyperscaler-gates.json registers green; the
   iac-applier consumes a real EligibilityChanged (eligible) event end-to-end and applies a µservice;
   drift-detector runs continuously across pack-kr cluster; rollback drill verified ≤2min; cargo
-  nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice
-  cloud-iac exits 0; oya gate validate authority-cohesion exits 0.
+  nextest run --workspace exits 0; cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice is green in the branch-protected `oya-ci-required` context
+  cloud-iac exits 0; cloud-ci/oya-ci governance gate `authority-cohesion` for exits 0. is green in the branch-protected `oya-ci-required` context
 depends_on:
   - milestone: M01-foundation
     phase: prior phases per master-plan-sequencing
@@ -78,7 +78,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-012-app-composition-roots.md`](IP-012-app-composition-roots.md) | `*-app` composition-root binaries; one per BC | pending | axis-cloud-iac | IP-011 |
 | [`IP-013-sdk-and-observability-slo.md`](IP-013-sdk-and-observability-slo.md) | `oya-cloud-iac-iac-renderer-sdk` + `-iac-registry-sdk` + OpenSLO manifests at `microservices/cloud-iac/slos/` | pending | axis-cloud-iac | IP-011 |
 | [`IP-014-per-pack-iac-overlays.md`](IP-014-per-pack-iac-overlays.md) | Per-pack Kustomize overlays; pack-kr live; conditional for pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa | pending | axis-cloud-iac | IP-007, IP-008 |
-| [`IP-015-hg-cloud-iac-registration.md`](IP-015-hg-cloud-iac-registration.md) | HG-CLOUD-IAC gate in `/specs/hyperscaler-gates.json`; per ADR-0123 maturity claims gate | pending | axis-foundry + axis-cloud-iac | IP-014 |
+| [`IP-015-hg-cloud-iac-registration.md`](IP-015-hg-cloud-iac-registration.md) | HG-CLOUD-IAC gate in `/specs/hyperscaler-gates.json`; per ADR-0123 maturity claims gate | pending | axis-cloud-governance + axis-cloud-iac | IP-014 |
 
 Coverage check vs. PRD §"Bounded Contexts": all 40 crates across 5 BCs (12 + 8 + 9 + 8 + 10 = 47 with -app + -sdk + backend-qualified; per ADR-0131 only 40 are net new). The `-sdk` crates ship as part of IP-013; if additional bindings (TS / Py / Go / JVM) become priorities they ship in a successor-IP phase. The bootstrap problem (cloud-iac applies its own IaC) is resolved in IP-015 — minimum-viable substrate first bootstraps via cloud-k8s + cloud-secrets; then cloud-iac applies itself thereafter.
 
@@ -99,26 +99,26 @@ cargo doc --workspace --no-deps
 
 ### Fitness lane gates
 
-```bash
-oya gate validate lean-a1 --microservice cloud-iac
-oya gate validate lean-a2 --microservice cloud-iac
-oya gate validate port-location --microservice cloud-iac
-oya gate validate layer-correctness --microservice cloud-iac
-oya gate validate per-microservice-layout --microservice cloud-iac
-oya gate validate statelessness --microservice cloud-iac
-oya gate validate shardability --microservice cloud-iac
-oya gate validate authority-cohesion
-oya gate validate hyperscaler-maturity-claims
+```text
+cloud-ci/oya-ci governance gate `lean-a1` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `lean-a2` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `port-location` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `per-microservice-layout` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `statelessness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `shardability` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `authority-cohesion` is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `hyperscaler-maturity-claims` is green in the branch-protected `oya-ci-required` context
 ```
 
 ### Substrate gates introduced by this phase
 
-```bash
-oya gate validate cloud-iac-iac-smoke --pack pack-kr
-oya gate validate cloud-iac-render-determinism
-oya gate validate cloud-iac-apply-scope-isolation
-oya gate validate cloud-iac-drift-detection-coverage
-oya gate validate cloud-iac-provenance-slsa-l3
+```text
+cloud-ci/oya-ci governance gate `cloud-iac-iac-smoke` for --pack pack-kr is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `cloud-iac-render-determinism` is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `cloud-iac-apply-scope-isolation` is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `cloud-iac-drift-detection-coverage` is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `cloud-iac-provenance-slsa-l3` is green in the branch-protected `oya-ci-required` context
 ```
 
 ### End-to-end drill gates
@@ -133,9 +133,9 @@ oya gate validate cloud-iac-provenance-slsa-l3
 
 ### Workflow + Ontology integration gates
 
-```bash
-oya gate validate workflow-event-registry --microservice cloud-iac
-oya gate validate ontology-type-registry --microservice cloud-iac
+```text
+cloud-ci/oya-ci governance gate `workflow-event-registry` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
+cloud-ci/oya-ci governance gate `ontology-type-registry` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Clean Architecture Compliance
@@ -165,7 +165,7 @@ CI lanes that must green before phase exit gate (same as §"Fitness lane gates" 
 
 ## ChangeSet Contract per IP
 
-Every IP in this phase emits a ChangeSet per ADR-0110. Minimum ChangeSet payload at `microservices/cloud-iac/evidence/multispectrum/<change_id>-<unix_ts>.json` on `oya vcs done`:
+Every IP in this phase emits a ChangeSet per ADR-0110. Minimum ChangeSet payload at `microservices/cloud-iac/evidence/multispectrum/<change_id>-<unix_ts>.json` on controller-recorded GitOps change-bundle finalization:
 
 ```json
 {
@@ -194,25 +194,18 @@ Inherits observability PHASE-01 §"Per-IP Test Coverage Threshold" matrix (kerne
 
 Enforced via `cargo nextest run --workspace --all-features` + `cargo llvm-cov --workspace --fail-under-lines <threshold>`.
 
-## Oya VCS Symbol Locks
+## GitOps Change-Bundle Locks
 
-Per ADR-0116, this phase uses `oya vcs` primitives exclusively.
+Per ADR-0116, this phase uses branch-protected GitOps primitives and controller-managed change bundles.
 
 ```bash
-# Claim before beginning each IP
-cargo run -p oya-dev-cli -- vcs claim \
-  --agent <agent-id> \
-  --intent "<IP-NNN-slug>: <one-line intent>" \
-  --paths "microservices/cloud-iac/src/crates/<crate>/**"
+Claim before beginning each IP: branch-protected GitOps/PR workflow with controller-managed change-bundle evidence scoped to the changed paths and intent.
 
-# Verify
-cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --changeset <id>
+Verify: branch-protected GitOps/PR workflow with controller-managed change-bundle evidence
 
-# Done
-cargo run -p oya-dev-cli -- vcs done --agent <agent-id> --changeset <id>
+Done: branch-protected GitOps/PR workflow with controller-managed change-bundle evidence
 
-# Promote — fast-forward release pointer through the SLO gate
-cargo run -p oya-dev-cli -- vcs promote --changeset <id>
+Promote — fast-forward release pointer through the SLO gate via branch-protected GitOps/PR workflow with controller-managed change-bundle evidence
 ```
 
 Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservices/cloud-iac/evidence/multispectrum/<change_id>-<unix_ts>.json` per `/specs/multispectrum-review.json` v2.4.0.

@@ -113,7 +113,7 @@ MODULE-FUTURE-018: Future primitive additions for `cloud-iac` require manifest a
 ## 5. Per-Context Thin Wrapper Specifications
 CTX-001-001: `aws-guest` wrapper stance for `cloud-iac`: No invocation declared yet; future use requires manifest amendment and a signed module pin.
 CTX-001-002: `aws-guest` wrapper must expose only module blocks, variables, outputs, provider constraints, and backend state references.
-CTX-001-003: `aws-guest` wrapper must pass tenant_class and compliance pack explicitly so demo_trial and paid tenants cannot share accidental defaults.
+CTX-001-003: `aws-guest` wrapper must pass tenant_class and compliance pack explicitly so non-production sample_trial and paid tenants cannot share accidental defaults.
 CTX-001-004: `aws-guest` wrapper must pass `Tier-1` placement intent and must not locally choose node labels outside ADR-0248 and ADR-0338.
 CTX-001-005: `aws-guest` wrapper must pin every source with `?ref=v<major>.<minor>.<patch>` or the accepted major-only pin during the Wave 15Q transition.
 CTX-001-006: `aws-guest` wrapper must include a cosign attestation digest once module releases carry ADR-0181 signatures.
@@ -121,7 +121,7 @@ CTX-001-007: `aws-guest` wrapper must keep state backend references tenant-scope
 CTX-001-008: `aws-guest` wrapper must be reviewed as service substance, not as cloud-iac primitive implementation.
 CTX-002-001: `oci-guest` wrapper stance for `cloud-iac`: No invocation declared yet; future use requires manifest amendment and a signed module pin.
 CTX-002-002: `oci-guest` wrapper must expose only module blocks, variables, outputs, provider constraints, and backend state references.
-CTX-002-003: `oci-guest` wrapper must pass tenant_class and compliance pack explicitly so demo_trial and paid tenants cannot share accidental defaults.
+CTX-002-003: `oci-guest` wrapper must pass tenant_class and compliance pack explicitly so non-production sample_trial and paid tenants cannot share accidental defaults.
 CTX-002-004: `oci-guest` wrapper must pass `Tier-1` placement intent and must not locally choose node labels outside ADR-0248 and ADR-0338.
 CTX-002-005: `oci-guest` wrapper must pin every source with `?ref=v<major>.<minor>.<patch>` or the accepted major-only pin during the Wave 15Q transition.
 CTX-002-006: `oci-guest` wrapper must include a cosign attestation digest once module releases carry ADR-0181 signatures.
@@ -129,7 +129,7 @@ CTX-002-007: `oci-guest` wrapper must keep state backend references tenant-scope
 CTX-002-008: `oci-guest` wrapper must be reviewed as service substance, not as cloud-iac primitive implementation.
 CTX-003-001: `oci-guest/always-free` wrapper stance for `cloud-iac`: No invocation declared yet; future use requires manifest amendment and a signed module pin.
 CTX-003-002: `oci-guest/always-free` wrapper must expose only module blocks, variables, outputs, provider constraints, and backend state references.
-CTX-003-003: `oci-guest/always-free` wrapper must pass tenant_class and compliance pack explicitly so demo_trial and paid tenants cannot share accidental defaults.
+CTX-003-003: `oci-guest/always-free` wrapper must pass tenant_class and compliance pack explicitly so non-production sample_trial and paid tenants cannot share accidental defaults.
 CTX-003-004: `oci-guest/always-free` wrapper must pass `Tier-1` placement intent and must not locally choose node labels outside ADR-0248 and ADR-0338.
 CTX-003-005: `oci-guest/always-free` wrapper must pin every source with `?ref=v<major>.<minor>.<patch>` or the accepted major-only pin during the Wave 15Q transition.
 CTX-003-006: `oci-guest/always-free` wrapper must include a cosign attestation digest once module releases carry ADR-0181 signatures.
@@ -137,7 +137,7 @@ CTX-003-007: `oci-guest/always-free` wrapper must keep state backend references 
 CTX-003-008: `oci-guest/always-free` wrapper must be reviewed as service substance, not as cloud-iac primitive implementation.
 CTX-004-001: `on-prem` wrapper stance for `cloud-iac`: on-prem/kubeadm-cluster@v1[both], on-prem/cilium-cni@v1[both], on-prem/istio-ambient@v1[both]
 CTX-004-002: `on-prem` wrapper must expose only module blocks, variables, outputs, provider constraints, and backend state references.
-CTX-004-003: `on-prem` wrapper must pass tenant_class and compliance pack explicitly so demo_trial and paid tenants cannot share accidental defaults.
+CTX-004-003: `on-prem` wrapper must pass tenant_class and compliance pack explicitly so non-production sample_trial and paid tenants cannot share accidental defaults.
 CTX-004-004: `on-prem` wrapper must pass `Tier-1` placement intent and must not locally choose node labels outside ADR-0248 and ADR-0338.
 CTX-004-005: `on-prem` wrapper must pin every source with `?ref=v<major>.<minor>.<patch>` or the accepted major-only pin during the Wave 15Q transition.
 CTX-004-006: `on-prem` wrapper must include a cosign attestation digest once module releases carry ADR-0181 signatures.
@@ -145,7 +145,7 @@ CTX-004-007: `on-prem` wrapper must keep state backend references tenant-scoped 
 CTX-004-008: `on-prem` wrapper must be reviewed as service substance, not as cloud-iac primitive implementation.
 CTX-005-001: `colo` wrapper stance for `cloud-iac`: No invocation declared yet; future use requires manifest amendment and a signed module pin.
 CTX-005-002: `colo` wrapper must expose only module blocks, variables, outputs, provider constraints, and backend state references.
-CTX-005-003: `colo` wrapper must pass tenant_class and compliance pack explicitly so demo_trial and paid tenants cannot share accidental defaults.
+CTX-005-003: `colo` wrapper must pass tenant_class and compliance pack explicitly so non-production sample_trial and paid tenants cannot share accidental defaults.
 CTX-005-004: `colo` wrapper must pass `Tier-1` placement intent and must not locally choose node labels outside ADR-0248 and ADR-0338.
 CTX-005-005: `colo` wrapper must pin every source with `?ref=v<major>.<minor>.<patch>` or the accepted major-only pin during the Wave 15Q transition.
 CTX-005-006: `colo` wrapper must include a cosign attestation digest once module releases carry ADR-0181 signatures.
@@ -153,7 +153,7 @@ CTX-005-007: `colo` wrapper must keep state backend references tenant-scoped and
 CTX-005-008: `colo` wrapper must be reviewed as service substance, not as cloud-iac primitive implementation.
 CTX-006-001: `oyatie-as-cloud-provider` wrapper stance for `cloud-iac`: oyatie-as-cloud-provider/tenant-namespace@v1[both], oyatie-as-cloud-provider/cell-observability-collector@v1[both], oyatie-as-cloud-provider/cell-audit-chain-bridge@v1[both]
 CTX-006-002: `oyatie-as-cloud-provider` wrapper must expose only module blocks, variables, outputs, provider constraints, and backend state references.
-CTX-006-003: `oyatie-as-cloud-provider` wrapper must pass tenant_class and compliance pack explicitly so demo_trial and paid tenants cannot share accidental defaults.
+CTX-006-003: `oyatie-as-cloud-provider` wrapper must pass tenant_class and compliance pack explicitly so non-production sample_trial and paid tenants cannot share accidental defaults.
 CTX-006-004: `oyatie-as-cloud-provider` wrapper must pass `Tier-1` placement intent and must not locally choose node labels outside ADR-0248 and ADR-0338.
 CTX-006-005: `oyatie-as-cloud-provider` wrapper must pin every source with `?ref=v<major>.<minor>.<patch>` or the accepted major-only pin during the Wave 15Q transition.
 CTX-006-006: `oyatie-as-cloud-provider` wrapper must include a cosign attestation digest once module releases carry ADR-0181 signatures.
@@ -217,7 +217,7 @@ SCALE-005: CPU limit dimension: baseline `0.18` vCPU per tenant becomes 1.80 at 
 SCALE-006: RAM limit dimension: baseline `384` MiB per tenant becomes 3840 MiB at 10 tenants, 38400 MiB at 100, and 384000 MiB at 1000.
 SCALE-007: Storage limit dimension: baseline `3.0` GiB per tenant becomes 30.00 GiB at 10 tenants, 300.00 GiB at 100, and 3000.00 GiB at 1000.
 SCALE-008: Connection count limit dimension: valkey=2, postgres=3, outbound_http=10 per tenant; wrapper modules must size pools from these facts.
-SCALE-009: Cell placement strategy for `cloud-iac` is `Tier-1`; promotion or demotion follows ADR-0341 gate evidence rather than manual placement.
+SCALE-009: Cell placement strategy for `cloud-iac` is `Tier-1`; promotion or non-production sampletion follows ADR-0341 gate evidence rather than manual placement.
 SCALE-010: Per-cell sharding strategy uses autosharding `control_plane_driven`, auto_rebalance enabled=false, dynamic_sharding enabled=false.
 SCALE-011: Hot-split threshold p99 is `50` ms and utilization threshold is `80` percent.
 SCALE-012: Cold-merge threshold is `20` percent after `24` quiet hours.
@@ -247,7 +247,7 @@ COST-003: 100x planning envelope: 18.00 vCPU, 37.50 GiB RAM, 300.00 GiB storage,
 COST-004: 1000x planning envelope: 180.00 vCPU, 375.00 GiB RAM, 3000.00 GiB storage, 1481.25 W steady proxy, 1081.31 kWh/month, 378.46 kgCO2e/month at 0.35 kg/kWh, 198.76 USD/month proxy before managed-service premiums.
 COST-005: Five-year invariant for `cloud-iac`: cost labels carry tenant_id, cell_id, primitive, context, and version_pin so FinOps can attribute drift to the exact module release.
 COST-006: Five-year invariant for `cloud-iac`: carbon accounting follows ADR-0344 and never hides provider-specific electricity mix behind a service-local average.
-COST-007: Five-year invariant for `cloud-iac`: paid tenants can buy larger cells; demo_trial tenants remain bounded by OCI Always Free or equivalent cap modules.
+COST-007: Five-year invariant for `cloud-iac`: paid tenants can buy larger cells; non-production sample_trial tenants remain bounded by OCI Always Free or equivalent cap modules.
 COST-008: Five-year change path for `cloud-iac`: if a primitive becomes less efficient, cloud-iac ships the replacement module and `cloud-iac` re-pins through the sunset path.
 COST-009: Five-year control for `cloud-iac`: wrapper variables include workload class and compliance-pack labels so high-regulation cells are costed separately from generic cells.
 COST-010: Five-year risk for `cloud-iac`: storage growth of `3.0` GiB per tenant can dominate compute if retention is not tied to regulatory pack and DR policy.
@@ -326,9 +326,9 @@ VERIFY-009: Static read confirms `cloud-iac` ARCH has an `ADR-0339 integration` 
 VERIFY-010: Static read confirms no Rust source or crate metadata is changed by this wave.
 VERIFY-011: Static read confirms no OpenTofu module body is authored in this service path.
 VERIFY-012: Static read confirms the IP has at least 300 lines of service-specific content.
-VERIFY-013: `cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions` must pass before commit.
-VERIFY-014: `cargo run -q -p oya-dev-cli -- gate validate cohesion` must pass before commit.
-VERIFY-015: `cargo run -q -p oya-dev-cli -- doc inventory --write` must refresh machine-readable inventory before commit.
+VERIFY-013: cloud-ci/oya-ci governance gate `adr-citation` for --docs-dir docs --decisions-dir docs/decisions is green in the branch-protected `oya-ci-required` context must pass before commit.
+VERIFY-014: cloud-ci/oya-ci governance gate `cohesion` is green in the branch-protected `oya-ci-required` context must pass before commit.
+VERIFY-015: `cargo run -q -p cloud-ci/oya-ci controller path -- doc inventory --write` must refresh machine-readable inventory before commit.
 ACCEPT-016: `cloud-iac` accepts doc-stage ADR-0339 propagation only after the verification commands pass or blockers are explicitly reported.
 ACCEPT-017: `cloud-iac` implementation remains future work under a separate wrapper migration change and is not implied complete by this PROPOSED IP.
 ACCEPT-018: `cloud-iac` module pins remain service-owned review inputs and cloud-iac module releases remain cloud-iac-owned implementation artifacts.
@@ -506,7 +506,7 @@ LIB-019-INPUTS: Required inputs are tenant_id, tenant_class, cell_id, compliance
 LIB-019-OUTPUTS: Required outputs are resource identifiers, audit labels, observability labels, state references, and compliance evidence pointers.
 LIB-019-PINNING: Release starts at v1 once authored, with ADR-0181 cosign attestation and provider lock digest.
 LIB-019-BLAST: Blast radius is the primitive release plus every manifest invocation that pins this context/name pair; wrappers do not fork the body.
-LIB-019-TENANT: Tenant-class posture is demo_trial.
+LIB-019-TENANT: Tenant-class posture is non-production sample_trial.
 LIB-019-ALIAS: This primitive is context-native and does not inherit a body from another context.
 LIB-019-TEST: Module acceptance requires OpenTofu validate, provider lock check, catalog entry check, and signature check before any service wrapper can consume it.
 LIB-020-NAME: `oci-guest/always-free/e2-micro` is a canonical shared primitive for ADR-0339 Wave 15Q.
@@ -515,7 +515,7 @@ LIB-020-INPUTS: Required inputs are tenant_id, tenant_class, cell_id, compliance
 LIB-020-OUTPUTS: Required outputs are resource identifiers, audit labels, observability labels, state references, and compliance evidence pointers.
 LIB-020-PINNING: Release starts at v1 once authored, with ADR-0181 cosign attestation and provider lock digest.
 LIB-020-BLAST: Blast radius is the primitive release plus every manifest invocation that pins this context/name pair; wrappers do not fork the body.
-LIB-020-TENANT: Tenant-class posture is demo_trial.
+LIB-020-TENANT: Tenant-class posture is non-production sample_trial.
 LIB-020-ALIAS: This primitive is context-native and does not inherit a body from another context.
 LIB-020-TEST: Module acceptance requires OpenTofu validate, provider lock check, catalog entry check, and signature check before any service wrapper can consume it.
 LIB-021-NAME: `oci-guest/always-free/atp` is a canonical shared primitive for ADR-0339 Wave 15Q.
@@ -524,7 +524,7 @@ LIB-021-INPUTS: Required inputs are tenant_id, tenant_class, cell_id, compliance
 LIB-021-OUTPUTS: Required outputs are resource identifiers, audit labels, observability labels, state references, and compliance evidence pointers.
 LIB-021-PINNING: Release starts at v1 once authored, with ADR-0181 cosign attestation and provider lock digest.
 LIB-021-BLAST: Blast radius is the primitive release plus every manifest invocation that pins this context/name pair; wrappers do not fork the body.
-LIB-021-TENANT: Tenant-class posture is demo_trial.
+LIB-021-TENANT: Tenant-class posture is non-production sample_trial.
 LIB-021-ALIAS: This primitive is context-native and does not inherit a body from another context.
 LIB-021-TEST: Module acceptance requires OpenTofu validate, provider lock check, catalog entry check, and signature check before any service wrapper can consume it.
 LIB-022-NAME: `oci-guest/always-free/adw` is a canonical shared primitive for ADR-0339 Wave 15Q.
@@ -533,7 +533,7 @@ LIB-022-INPUTS: Required inputs are tenant_id, tenant_class, cell_id, compliance
 LIB-022-OUTPUTS: Required outputs are resource identifiers, audit labels, observability labels, state references, and compliance evidence pointers.
 LIB-022-PINNING: Release starts at v1 once authored, with ADR-0181 cosign attestation and provider lock digest.
 LIB-022-BLAST: Blast radius is the primitive release plus every manifest invocation that pins this context/name pair; wrappers do not fork the body.
-LIB-022-TENANT: Tenant-class posture is demo_trial.
+LIB-022-TENANT: Tenant-class posture is non-production sample_trial.
 LIB-022-ALIAS: This primitive is context-native and does not inherit a body from another context.
 LIB-022-TEST: Module acceptance requires OpenTofu validate, provider lock check, catalog entry check, and signature check before any service wrapper can consume it.
 LIB-023-NAME: `oci-guest/always-free/lb-free` is a canonical shared primitive for ADR-0339 Wave 15Q.
@@ -542,7 +542,7 @@ LIB-023-INPUTS: Required inputs are tenant_id, tenant_class, cell_id, compliance
 LIB-023-OUTPUTS: Required outputs are resource identifiers, audit labels, observability labels, state references, and compliance evidence pointers.
 LIB-023-PINNING: Release starts at v1 once authored, with ADR-0181 cosign attestation and provider lock digest.
 LIB-023-BLAST: Blast radius is the primitive release plus every manifest invocation that pins this context/name pair; wrappers do not fork the body.
-LIB-023-TENANT: Tenant-class posture is demo_trial.
+LIB-023-TENANT: Tenant-class posture is non-production sample_trial.
 LIB-023-ALIAS: This primitive is context-native and does not inherit a body from another context.
 LIB-023-TEST: Module acceptance requires OpenTofu validate, provider lock check, catalog entry check, and signature check before any service wrapper can consume it.
 LIB-024-NAME: `oci-guest/always-free/vault-free` is a canonical shared primitive for ADR-0339 Wave 15Q.
@@ -551,7 +551,7 @@ LIB-024-INPUTS: Required inputs are tenant_id, tenant_class, cell_id, compliance
 LIB-024-OUTPUTS: Required outputs are resource identifiers, audit labels, observability labels, state references, and compliance evidence pointers.
 LIB-024-PINNING: Release starts at v1 once authored, with ADR-0181 cosign attestation and provider lock digest.
 LIB-024-BLAST: Blast radius is the primitive release plus every manifest invocation that pins this context/name pair; wrappers do not fork the body.
-LIB-024-TENANT: Tenant-class posture is demo_trial.
+LIB-024-TENANT: Tenant-class posture is non-production sample_trial.
 LIB-024-ALIAS: This primitive is context-native and does not inherit a body from another context.
 LIB-024-TEST: Module acceptance requires OpenTofu validate, provider lock check, catalog entry check, and signature check before any service wrapper can consume it.
 LIB-ON-PREM-000: Context `on-prem` is owned by cloud-iac as a shared OpenTofu module family.

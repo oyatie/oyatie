@@ -65,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
 ```bash
 cargo build --release --workspace -p oya-cloud-iac-iac-*-app --all-features
 docker build -t cloud-iac-applier:test -f microservices/cloud-iac/src/crates/oya-cloud-iac-iac-applier-app/Dockerfile .
-cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-iac
+cloud-ci/oya-ci governance gate `layer-correctness` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context
 ```
 
 ## Test Plan

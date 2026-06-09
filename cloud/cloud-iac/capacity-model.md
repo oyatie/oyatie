@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-cloud-iac
-deciders: ops-sre-reliability, axis-cloud-iac, council-architecture
+deciders: ops-sre-reliability, axis-cloud-iac, architecture-governance
 related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/cost-budget.md
@@ -198,7 +198,7 @@ Cost projections per scale tier in `cost-budget.md`.
 
 ## Verification
 
-- `cargo run -p oya-dev-cli -- gate validate capacity-conformance --microservice cloud-iac` — exit 0; deployed replica counts ≥ formula minimums.
+- cloud-ci/oya-ci governance gate `capacity-conformance` for --microservice cloud-iac is green in the branch-protected `oya-ci-required` context — exit 0; deployed replica counts ≥ formula minimums.
 - Quarterly capacity review: actual usage vs forecast; recalibrate `C_concurrent_applies` averages.
 - Annual reference-architecture refresh: re-verify against current ArgoCD / Flux / OpenTofu published sizing guides.
 
