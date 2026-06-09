@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17651,
-    "source_inputs_digest": "fnv1a64:8db414d3ef2fa378"
+    "source_inputs_digest": "fnv1a64:aa9d7a7cf3e1f7ab"
   },
   "rows": [
     {
@@ -288,7 +288,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "438a895b1605404289df827ade07a473a6c9c5ee",
+      "last_touch_commit": "f694295a0379b2fe734d5a01d75b3ce58a05e35d",
       "owner": null,
       "path": ".github/workflows/docs-graph-drift.yml",
       "reachable_from": [],
@@ -309,7 +309,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e07d3e998467a8e71eab5dcf429c38010ba3ea0e",
+      "last_touch_commit": "f694295a0379b2fe734d5a01d75b3ce58a05e35d",
       "owner": null,
       "path": ".github/workflows/oya-ci-required.yml",
       "reachable_from": [],

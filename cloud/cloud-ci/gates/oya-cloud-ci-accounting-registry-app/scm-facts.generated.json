@@ -322,6 +322,7 @@
     "f3fbc4ffe9c4a401f5bd34ed8af60d77683b15cf": 1780948575,
     "f40454731323240adbdeb31085cdc34698bd854c": 1780876306,
     "f4fcae179840ba4094211575af41ec38a1ff21b1": 1779040357,
+    "f694295a0379b2fe734d5a01d75b3ce58a05e35d": 1781018284,
     "f699d05bff4fabba7271ba1954b0e4363766dac3": 1779924297,
     "f7021013f4d4e487045e32542bcdc7de702dbad3": 1780023155,
     "f7125a127f31101f8bd1ba9183693ef705a59a0b": 1780023191,
@@ -340,7 +341,7 @@
     "ff9b1ac03805a6db08fbb6f85808d2add1ec446e": 1780229428,
     "fff4fdfc944958a47ecba240a845a620ea490fac": 1778985046
   },
-  "head_time_secs": 1781015915,
+  "head_time_secs": 1781018284,
   "last_touch_commit": {
     "\"oya/developer-sdk/decisions/ADR-SDK-0003-per-developer-sandbox-tenant-via-tenancy-\\302\\265service's-sandbox-.md\"": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
     "\"oya/plugin-app-store/decisions/ADR-PAS-0007-per-plugin-action-audit-trail-seals-via-audit-chain-\\302\\265service.md\"": "2a0d41913d2f47834414aea3fad59bbdfdfeaa27",
@@ -355,8 +356,8 @@
     ".gitattributes": "ea9cdd3f762151cfcfc08e45bd1f359b972def96",
     ".github/CODEOWNERS": "cdc53bf2d80274c33c000bd8cb299fbfb3c3c313",
     ".github/branch-protection.yaml": "5d4d04b386fba3214a61428c81d855bf5f07f919",
-    ".github/workflows/docs-graph-drift.yml": "438a895b1605404289df827ade07a473a6c9c5ee",
-    ".github/workflows/oya-ci-required.yml": "e07d3e998467a8e71eab5dcf429c38010ba3ea0e",
+    ".github/workflows/docs-graph-drift.yml": "f694295a0379b2fe734d5a01d75b3ce58a05e35d",
+    ".github/workflows/oya-ci-required.yml": "f694295a0379b2fe734d5a01d75b3ce58a05e35d",
     ".gitignore": "e3df4c5516a2d566f66d7ca6a8b3336198ae936f",
     ".omc/advanced-cicd/ai-slop-defense/INDEX.md": "8085cbb706fc29d423cf3d4c5adfd7a9ac71ef18",
     ".omc/advanced-cicd/ai-slop-defense/additional-tooling-recommendations.md": "8085cbb706fc29d423cf3d4c5adfd7a9ac71ef18",
