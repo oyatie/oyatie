@@ -1,3 +1,12 @@
+# RETIRED WORKFLOW — NON-EXECUTABLE AUDIT COPY
+#
+# Retired by Task #26 on 2026-06-09. This file was moved out of
+# .github/workflows because backbone-microservices-ci was a legacy,
+# permanently-red, non-required GitHub Actions lane. It is retained only
+# for audit/history. Do not move this file back under .github/workflows
+# and do not add it to branch protection. The required check remains the
+# single canonical `oya-ci-required` context.
+
 name: backbone-microservices-ci
 
 on:
@@ -40,7 +49,8 @@ on:
       - "microservices/messenger/iac/helm/**"
       - "microservices/mail/iac/helm/**"
       - "microservices/social/iac/helm/**"
-      - "microservices/community/iac/helm/**"      - "microservices/messenger/manifest.json"
+      - "microservices/community/iac/helm/**"
+      - "microservices/messenger/manifest.json"
       - "microservices/mail/manifest.json"
       - "microservices/social/manifest.json"
       - "microservices/community/manifest.json"
@@ -86,7 +96,8 @@ on:
       - "microservices/messenger/iac/helm/**"
       - "microservices/mail/iac/helm/**"
       - "microservices/social/iac/helm/**"
-      - "microservices/community/iac/helm/**"      - "microservices/messenger/manifest.json"
+      - "microservices/community/iac/helm/**"
+      - "microservices/messenger/manifest.json"
       - "microservices/mail/manifest.json"
       - "microservices/social/manifest.json"
       - "microservices/community/manifest.json"
