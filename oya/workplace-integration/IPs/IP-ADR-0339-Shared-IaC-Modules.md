@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `workplace-integration` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `workplace-integration` until the service-owned wrapper files under `microservices/workplace-integration/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `workplace-integration` until the service-owned wrapper files under `oya/workplace-integration/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `workplace-integration`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -41,15 +41,15 @@ DOSSIER-010: DR replication shape is `active-active-multi-az-cross-region-warm` 
 DOSSIER-011: Regulatory packs declared: none.
 DOSSIER-012: Data classes processed: manifest-not-populated.
 DOSSIER-BC-001: Bounded context `WorkplaceAgreement` states: None; crate count=0.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/workplace-integration/contracts/openapi-v1.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/workplace-integration/contracts/asyncapi-v1.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/workplace-integration/contracts/workplace-integration-v1.proto.
-DOSSIER-CAPABILITY-001: manifest capability entry `microservices/workplace-integration/capabilities/esign-initiate.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-002: manifest capability entry `microservices/workplace-integration/capabilities/esign-sign.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-003: manifest capability entry `microservices/workplace-integration/capabilities/offer-generate.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-004: manifest capability entry `microservices/workplace-integration/capabilities/roster-bind.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-005: manifest capability entry `microservices/workplace-integration/capabilities/clock-attest.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-006: manifest capability entry `microservices/workplace-integration/capabilities/dlp-trace-seal.yaml` remains unchanged by ADR-0339.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: oya/workplace-integration/contracts/openapi-v1.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: oya/workplace-integration/contracts/asyncapi-v1.yaml.
+DOSSIER-CONTRACT-003: proto3: oya/workplace-integration/contracts/workplace-integration-v1.proto.
+DOSSIER-CAPABILITY-001: manifest capability entry `oya/workplace-integration/capabilities/esign-initiate.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-002: manifest capability entry `oya/workplace-integration/capabilities/esign-sign.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-003: manifest capability entry `oya/workplace-integration/capabilities/offer-generate.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-004: manifest capability entry `oya/workplace-integration/capabilities/roster-bind.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-005: manifest capability entry `oya/workplace-integration/capabilities/clock-attest.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-006: manifest capability entry `oya/workplace-integration/capabilities/dlp-trace-seal.yaml` remains unchanged by ADR-0339.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -271,9 +271,9 @@ LEADER-018: `workplace-integration` leader-scale posture keeps primitive selecti
 
 ## 12. API And Contract Documentation Impact
 API-001: `workplace-integration` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `workplace-integration` remain: OpenAPI 3.2.0: microservices/workplace-integration/contracts/openapi-v1.yaml
-API-003: AsyncAPI 3.1.0 references for `workplace-integration` remain: AsyncAPI 3.1.0: microservices/workplace-integration/contracts/asyncapi-v1.yaml
-API-004: proto3 references for `workplace-integration` remain: proto3: microservices/workplace-integration/contracts/workplace-integration-v1.proto
+API-002: OpenAPI 3.2.0 references for `workplace-integration` remain: OpenAPI 3.2.0: oya/workplace-integration/contracts/openapi-v1.yaml
+API-003: AsyncAPI 3.1.0 references for `workplace-integration` remain: AsyncAPI 3.1.0: oya/workplace-integration/contracts/asyncapi-v1.yaml
+API-004: proto3 references for `workplace-integration` remain: proto3: oya/workplace-integration/contracts/workplace-integration-v1.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -297,7 +297,7 @@ ALT-004: Delay `workplace-integration` manifest declaration until implementation
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/workplace-integration/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `oya/workplace-integration/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

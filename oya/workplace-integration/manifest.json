@@ -58,120 +58,120 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/workplace-integration/contracts/openapi-v1.yaml"
+      "oya/workplace-integration/contracts/openapi-v1.yaml"
     ],
     "asyncapi": [
-      "microservices/workplace-integration/contracts/asyncapi-v1.yaml"
+      "oya/workplace-integration/contracts/asyncapi-v1.yaml"
     ],
     "proto": [
-      "microservices/workplace-integration/contracts/workplace-integration-v1.proto"
+      "oya/workplace-integration/contracts/workplace-integration-v1.proto"
     ]
   },
   "journey_ips": [
     {
       "id": "j109",
       "concept": "Esign Roster Binding",
-      "file": "microservices/workplace-integration/IP-journey-j109-esign-roster-binding.md"
+      "file": "oya/workplace-integration/IP-journey-j109-esign-roster-binding.md"
     },
     {
       "id": "j110",
       "concept": "Esign Roster Binding",
-      "file": "microservices/workplace-integration/IP-journey-j110-esign-roster-binding.md"
+      "file": "oya/workplace-integration/IP-journey-j110-esign-roster-binding.md"
     },
     {
       "id": "j112",
       "concept": "Esign Roster Binding",
-      "file": "microservices/workplace-integration/IP-journey-j112-esign-roster-binding.md"
+      "file": "oya/workplace-integration/IP-journey-j112-esign-roster-binding.md"
     },
     {
       "id": "j113",
       "concept": "Esign Roster Binding",
-      "file": "microservices/workplace-integration/IP-journey-j113-esign-roster-binding.md"
+      "file": "oya/workplace-integration/IP-journey-j113-esign-roster-binding.md"
     },
     {
       "id": "j114",
       "concept": "Esign Roster Binding",
-      "file": "microservices/workplace-integration/IP-journey-j114-esign-roster-binding.md"
+      "file": "oya/workplace-integration/IP-journey-j114-esign-roster-binding.md"
     },
     {
       "id": "j121",
       "concept": "Esign Closing Package",
-      "file": "microservices/workplace-integration/IP-journey-j121-esign-closing-package.md"
+      "file": "oya/workplace-integration/IP-journey-j121-esign-closing-package.md"
     },
     {
       "id": "j132",
       "concept": "Offer Letter Esign Per Jurisdiction",
-      "file": "microservices/workplace-integration/IP-journey-j132-offer-letter-esign-per-jurisdiction.md"
+      "file": "oya/workplace-integration/IP-journey-j132-offer-letter-esign-per-jurisdiction.md"
     },
     {
       "id": "j134",
       "concept": "Engagement Agreement And Staffing Aware Offer",
-      "file": "microservices/workplace-integration/IP-journey-j134-engagement-agreement-and-staffing-aware-offer.md"
+      "file": "oya/workplace-integration/IP-journey-j134-engagement-agreement-and-staffing-aware-offer.md"
     },
     {
       "id": "j140",
       "concept": "Internal Audit Dlp Egress Cross Tenant Trace",
-      "file": "microservices/workplace-integration/IP-journey-j140-internal-audit-dlp-egress-cross-tenant-trace.md"
+      "file": "oya/workplace-integration/IP-journey-j140-internal-audit-dlp-egress-cross-tenant-trace.md"
     },
     {
       "id": "j37",
       "concept": "Clock In Geofence",
-      "file": "microservices/workplace-integration/IP-journey-j37-clock-in-geofence.md"
+      "file": "oya/workplace-integration/IP-journey-j37-clock-in-geofence.md"
     },
     {
       "id": "j38",
       "concept": "E Sign Session",
-      "file": "microservices/workplace-integration/IP-journey-j38-e-sign-session.md"
+      "file": "oya/workplace-integration/IP-journey-j38-e-sign-session.md"
     },
     {
       "id": "j51",
       "concept": "E Sign On Po",
-      "file": "microservices/workplace-integration/IP-journey-j51-e-sign-on-po.md"
+      "file": "oya/workplace-integration/IP-journey-j51-e-sign-on-po.md"
     },
     {
       "id": "j54",
       "concept": "E Signature",
-      "file": "microservices/workplace-integration/IP-journey-j54-e-signature.md"
+      "file": "oya/workplace-integration/IP-journey-j54-e-signature.md"
     },
     {
       "id": "j56",
       "concept": "Offer E Sign",
-      "file": "microservices/workplace-integration/IP-journey-j56-offer-e-sign.md"
+      "file": "oya/workplace-integration/IP-journey-j56-offer-e-sign.md"
     },
     {
       "id": "j63",
       "concept": "Informed Consent",
-      "file": "microservices/workplace-integration/IP-journey-j63-informed-consent.md"
+      "file": "oya/workplace-integration/IP-journey-j63-informed-consent.md"
     },
     {
       "id": "j70",
       "concept": "E Sign",
-      "file": "microservices/workplace-integration/IP-journey-j70-e-sign.md"
+      "file": "oya/workplace-integration/IP-journey-j70-e-sign.md"
     }
   ],
   "capabilities": [
-    "microservices/workplace-integration/capabilities/esign-initiate.yaml",
-    "microservices/workplace-integration/capabilities/esign-sign.yaml",
-    "microservices/workplace-integration/capabilities/offer-generate.yaml",
-    "microservices/workplace-integration/capabilities/roster-bind.yaml",
-    "microservices/workplace-integration/capabilities/clock-attest.yaml",
-    "microservices/workplace-integration/capabilities/dlp-trace-seal.yaml"
+    "oya/workplace-integration/capabilities/esign-initiate.yaml",
+    "oya/workplace-integration/capabilities/esign-sign.yaml",
+    "oya/workplace-integration/capabilities/offer-generate.yaml",
+    "oya/workplace-integration/capabilities/roster-bind.yaml",
+    "oya/workplace-integration/capabilities/clock-attest.yaml",
+    "oya/workplace-integration/capabilities/dlp-trace-seal.yaml"
   ],
   "slos": [
-    "microservices/workplace-integration/slos/esign-initiate-availability.openslo.yaml",
-    "microservices/workplace-integration/slos/signature-capture-latency.openslo.yaml",
-    "microservices/workplace-integration/slos/offer-generation-latency.openslo.yaml",
-    "microservices/workplace-integration/slos/roster-binding-accuracy.openslo.yaml",
-    "microservices/workplace-integration/slos/clock-attestation-availability.openslo.yaml",
-    "microservices/workplace-integration/slos/dlp-trace-seal-fidelity.openslo.yaml"
+    "oya/workplace-integration/slos/esign-initiate-availability.openslo.yaml",
+    "oya/workplace-integration/slos/signature-capture-latency.openslo.yaml",
+    "oya/workplace-integration/slos/offer-generation-latency.openslo.yaml",
+    "oya/workplace-integration/slos/roster-binding-accuracy.openslo.yaml",
+    "oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml",
+    "oya/workplace-integration/slos/dlp-trace-seal-fidelity.openslo.yaml"
   ],
   "policies": [
-    "microservices/workplace-integration/policies/esign-initiate.cedar",
-    "microservices/workplace-integration/policies/esign-sign.cedar",
-    "microservices/workplace-integration/policies/offer-generate.cedar",
-    "microservices/workplace-integration/policies/roster-bind.cedar",
-    "microservices/workplace-integration/policies/clock-attest.cedar",
-    "microservices/workplace-integration/policies/dlp-trace-seal.cedar"
+    "oya/workplace-integration/policies/esign-initiate.cedar",
+    "oya/workplace-integration/policies/esign-sign.cedar",
+    "oya/workplace-integration/policies/offer-generate.cedar",
+    "oya/workplace-integration/policies/roster-bind.cedar",
+    "oya/workplace-integration/policies/clock-attest.cedar",
+    "oya/workplace-integration/policies/dlp-trace-seal.cedar"
   ],
   "capacity_model": {
     "baseline_cpu_per_tenant": 0.09,
@@ -220,9 +220,9 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Workplace integration is a first-party app for workplace agreements, e-sign, roster, consent, and DLP workflows. It handles sensitive tenant records but is not a tenant-code execution host or substrate owner, so Tier 2 is correct.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/workplace-integration/PRD.md",
-    "microservices/workplace-integration/ARCHITECTURE.md",
-    "microservices/workplace-integration/ip/IP-002-esign-session-domain.md"
+    "oya/workplace-integration/PRD.md",
+    "oya/workplace-integration/ARCHITECTURE.md",
+    "oya/workplace-integration/ip/IP-002-esign-session-domain.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -235,13 +235,13 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/workplace-integration/contracts/openapi-v1.yaml"
+        "2026-05-21": "oya/workplace-integration/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/workplace-integration/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "oya/workplace-integration/contracts/asyncapi-v1.yaml"
       },
       "proto": {
-        "2026-05-21": "microservices/workplace-integration/contracts/workplace-integration-v1.proto"
+        "2026-05-21": "oya/workplace-integration/contracts/workplace-integration-v1.proto"
       }
     }
   },

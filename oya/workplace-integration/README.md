@@ -6,7 +6,7 @@ date: 2026-05-20
 owner_team: axis-workplace-integration
 primary_adr: ADR-0320
 related_adrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0263, ADR-0319, ADR-0320]
-companion_docs: [microservices/workplace-integration/README.md, docs/standards/documentation-rigor.md]
+companion_docs: [oya/workplace-integration/README.md, docs/products/workplace-integration/PRD.md, docs/standards/documentation-rigor.md]
 planned_enforcement_ref: oya-governance-workplace-integration-doc-set
 naming_justifications: BNF v4 service_action_resource grammar and 13-layer-enum conformance are declared inline in this document
 ---
@@ -29,31 +29,20 @@ by tenant_class caps, billing_component contract terms, compliance_pack
 activation, or jurisdiction-specific policy.
 
 ## Start here
-- Product requirements: PRD.md
-- Architecture: ARCHITECTURE.md
-- Compliance: compliance.md
+- Product requirements: ../../docs/products/workplace-integration/PRD.md
+- Architecture and compliance model: ../../docs/products/workplace-integration/PRD.md sections 3, 5, 8, 9, 12, and this service manifest/DPIA
 - Contracts: contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/workplace-integration-v1.proto
-- Policies: policies/*.cedar
+- Policies: policies/*.cedar and cedar/policies.cedar
 - Operations: runbooks/*.md, dashboards/*.json, slos/*.openslo.yaml
-- Implementation sequence: ip/IP-001-*.md through ip/IP-025-*.md
+- Implementation anchors present in this doc set: IP-journey-j37-clock-in-geofence.md, IP-journey-j38-e-sign-session.md, and IPs/*.md
 
-## Existing journey IP anchors
-- j109: Esign Roster Binding -> IP-journey-j109-esign-roster-binding.md
-- j110: Esign Roster Binding -> IP-journey-j110-esign-roster-binding.md
-- j112: Esign Roster Binding -> IP-journey-j112-esign-roster-binding.md
-- j113: Esign Roster Binding -> IP-journey-j113-esign-roster-binding.md
-- j114: Esign Roster Binding -> IP-journey-j114-esign-roster-binding.md
-- j121: Esign Closing Package -> IP-journey-j121-esign-closing-package.md
-- j132: Offer Letter Esign Per Jurisdiction -> IP-journey-j132-offer-letter-esign-per-jurisdiction.md
-- j134: Engagement Agreement And Staffing Aware Offer -> IP-journey-j134-engagement-agreement-and-staffing-aware-offer.md
-- j140: Internal Audit Dlp Egress Cross Tenant Trace -> IP-journey-j140-internal-audit-dlp-egress-cross-tenant-trace.md
+## Existing journey and implementation anchors
+
+Implementation IPs present in this doc set:
 - j37: Clock In Geofence -> IP-journey-j37-clock-in-geofence.md
 - j38: E Sign Session -> IP-journey-j38-e-sign-session.md
-- j51: E Sign On Po -> IP-journey-j51-e-sign-on-po.md
-- j54: E Signature -> IP-journey-j54-e-signature.md
-- j56: Offer E Sign -> IP-journey-j56-offer-e-sign.md
-- j63: Informed Consent -> IP-journey-j63-informed-consent.md
-- j70: E Sign -> IP-journey-j70-e-sign.md
+
+Related journey anchors live in ../../docs/user-journeys/ and remain the source for persona/story/UX/test-plan context until a workplace-integration implementation IP exists for that journey. This README does not claim missing IP files as complete.
 
 ## Naming justifications: BNF v4 and 12-layer enum conformance
 

@@ -231,8 +231,8 @@ decision_owner: axis-workplace-integration
 
 ## References
 
-- Internal: microservices/workplace-integration/IP-journey-j37-clock-in-geofence.md
-- Internal: microservices/workplace-integration/policies/clock-attest.cedar
+- Internal: oya/workplace-integration/IP-journey-j37-clock-in-geofence.md
+- Internal: oya/workplace-integration/policies/clock-attest.cedar
 - Internal: docs/decisions/ADR-0243-cedar-as-universal-gate.md
 - Internal: docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
 - Internal: docs/decisions/ADR-0263-observability-emission-contract.md
