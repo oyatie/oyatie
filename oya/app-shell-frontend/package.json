@@ -10,7 +10,7 @@
     "build": "vinxi build",
     "start": "vinxi start",
     "typecheck": "tsc --noEmit",
-    "codegen": "openapi-typescript ./generated/ops-workspace-shell-v1.patched.yaml -o ./generated/ops-workspace-shell.d.ts && openapi-typescript ../../microservices/hr/contracts/openapi-v1.yaml -o ./generated/hr-api.d.ts",
+    "codegen": "openapi-typescript ../../contracts/ops-workspace-shell-v1.openapi.yaml -o ./generated/ops-workspace-shell.d.ts && openapi-typescript ../hr/contracts/openapi-v1.yaml -o ./generated/hr-api.d.ts",
     "codegen:check": "node scripts/codegen-check.mjs"
   },
   "dependencies": {
@@ -28,5 +28,6 @@
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
-  }
+  },
+  "packageManager": "pnpm@11.5.2"
 }

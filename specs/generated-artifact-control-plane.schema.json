@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/schemas/generated-artifact-control-plane.schema.json",
   "title": "GeneratedArtifactControlPlane",
-  "description": "Portable oya-ci manifest for generated artifacts. A hermetic Rust gate consumes this manifest plus an SCM-facts snapshot to prove generated artifacts are declared, owned, and materialized by explicit policy rather than ad-hoc gitignore or merge-driver behavior.",
+  "description": "Portable oya-ci manifest for generated artifacts. A hermetic Rust gate consumes this manifest plus an SCM-facts snapshot to prove generated artifacts are declared, owned, and materialized by explicit policy rather than ad-hoc gitignore or merge-driver behavior. Tracked generated outputs are matched by repo-declared generated_path_rules, so public adopters can encode conventions such as generated/, __generated__/, generated-sources/, .generated.ts, or .pb.go without changing the gate.",
   "type": "object",
   "required": [
     "schema_version",
@@ -10,6 +10,7 @@
     "ci_product_surface",
     "public_product_contract",
     "final_tree_materialization",
+    "generated_path_rules",
     "artifacts",
     "development_lifecycle_enforcement_layers"
   ],
@@ -217,7 +218,7 @@
           "minLength": 1
         },
         "manual_conflict_resolution_policy": {
-          "const": "reject-generated-json-conflict-hunks-regenerate-from-source-tree"
+          "const": "reject-generated-output-conflict-hunks-regenerate-from-source-tree"
         },
         "drift_repair_policy": {
           "enum": [
@@ -231,6 +232,14 @@
         }
       },
       "additionalProperties": false
+    },
+    "generated_path_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/generated_path_rule"
+      },
+      "description": "Repo-declared generated-output match rules. A tracked path matching any rule is a generated output that must either be ignored or declared in artifacts with a non-source merge policy."
     }
   },
   "additionalProperties": false,
@@ -409,6 +418,46 @@
           }
         }
       ]
+    },
+    "generated_path_rule": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "rule_kind",
+        "pattern",
+        "description"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule_kind": {
+          "enum": [
+            "path_component",
+            "path_prefix",
+            "path_suffix",
+            "file_name"
+          ]
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exclude_file_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

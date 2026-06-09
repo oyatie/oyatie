@@ -1,13 +1,21 @@
 #!/usr/bin/env node
-// ADR-0372 D2: Verify that generated client files are up-to-date.
-// Run in CI after `npm run codegen` to enforce "contract change breaks build".
+// ADR-0372 D2: Verify that OpenAPI client generation is deterministic and clean-checkout safe.
+// Run in CI after `pnpm codegen` (or by itself) to enforce "contract change breaks build".
 //
 // Usage:  node scripts/codegen-check.mjs
-// Exit code 0 = generated files exist and are non-empty.
-// Exit code 1 = generated files missing or stale — run `pnpm codegen`.
+// Exit code 0 = sources generate non-empty clients; if ignored in-tree clients exist, they match.
+// Exit code 1 = source missing, generator failed, generated output empty, or in-tree output stale.
 
-import { existsSync, statSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -16,50 +24,66 @@ const root = resolve(__dir, "..");
 /** @type {Array<{generated: string, source: string}>} */
 const pairs = [
   {
-    // Patched copy lives in generated/ because the canonical contract has an
-    // unresolved $ref (CedarDenyResponse) that the backend team will fix in a
-    // future iteration (noted in the contract's comment block). The patch adds
-    // only the missing schema; no behavioural changes.
     generated: "generated/ops-workspace-shell.d.ts",
-    source: "generated/ops-workspace-shell-v1.patched.yaml",
+    source: "../../contracts/ops-workspace-shell-v1.openapi.yaml",
   },
   {
     generated: "generated/hr-api.d.ts",
-    source: "../../microservices/hr/contracts/openapi-v1.yaml",
+    source: "../hr/contracts/openapi-v1.yaml",
   },
 ];
 
+const tempRoot = mkdtempSync(join(tmpdir(), "oyatie-app-shell-codegen-"));
 let failed = false;
 
-for (const { generated, source } of pairs) {
-  const genPath = resolve(root, generated);
-  const srcPath = resolve(root, source);
+try {
+  for (const { generated, source } of pairs) {
+    const genPath = resolve(root, generated);
+    const srcPath = resolve(root, source);
+    const tempPath = join(tempRoot, generated.replaceAll("/", "__"));
 
-  if (!existsSync(genPath)) {
-    console.error(`FAIL: ${generated} does not exist. Run: pnpm codegen`);
-    failed = true;
-    continue;
-  }
-
-  const genStat = statSync(genPath);
-  if (genStat.size < 50) {
-    console.error(`FAIL: ${generated} is suspiciously small (${genStat.size} bytes). Re-run: pnpm codegen`);
-    failed = true;
-    continue;
-  }
-
-  if (existsSync(srcPath)) {
-    const srcStat = statSync(srcPath);
-    if (srcStat.mtimeMs > genStat.mtimeMs) {
-      console.error(
-        `FAIL: ${source} is newer than ${generated}. Contract changed — run: pnpm codegen`,
-      );
+    if (!existsSync(srcPath)) {
+      console.error(`FAIL: ${source} does not exist`);
       failed = true;
       continue;
     }
-  }
 
-  console.log(`OK:   ${generated}`);
+    try {
+      execFileSync("openapi-typescript", [srcPath, "-o", tempPath], {
+        cwd: root,
+        stdio: "pipe",
+      });
+    } catch (error) {
+      console.error(`FAIL: ${source} did not generate ${generated}`);
+      if (error.stderr) {
+        console.error(String(error.stderr));
+      }
+      failed = true;
+      continue;
+    }
+
+    const tempStat = statSync(tempPath);
+    if (tempStat.size < 50) {
+      console.error(`FAIL: ${generated} generated suspiciously small output (${tempStat.size} bytes)`);
+      failed = true;
+      continue;
+    }
+
+    if (existsSync(genPath)) {
+      const current = readFileSync(genPath, "utf8");
+      const regenerated = readFileSync(tempPath, "utf8");
+      if (current !== regenerated) {
+        console.error(`FAIL: ${generated} is stale. Run: pnpm codegen`);
+        failed = true;
+        continue;
+      }
+      console.log(`OK:   ${generated} matches regenerated output`);
+    } else {
+      console.log(`OK:   ${generated} regenerates from ${source} (not committed)`);
+    }
+  }
+} finally {
+  rmSync(tempRoot, { force: true, recursive: true });
 }
 
 if (failed) {
