@@ -138,6 +138,90 @@ jobs:
       - name: cargo test cloud-ci-firewall
         run: cargo test --no-fail-fast -p oya-cloud-ci-firewall-app -- --test-threads=1
 
+  # ── HERMETIC BUCK2 LANE (OYA-CI-HERMETIC-EXECUTION-DESIGN §3 + Stage P1/P2). Runs the SAME
+  #    gate logic as the cargo lanes above, but through buck2: `buck2 build` compiles every
+  #    target (the env!CARGO eradication) and `buck2 test` runs the gate rust_tests fully
+  #    hermetically (no ambient git in any action — the producer reads the committed git-facts
+  #    face; the git-facts emitter is the single out-of-graph boundary, run in the
+  #    `git-facts-regen` step BELOW, never inside a cacheable action). Scoped by the
+  #    affected-set driver (`infra/ci/buck2-affected-gate.sh`: uquery owner -> rdeps closure,
+  #    FAILS CLOSED) for speed. RBE/NativeLink is staged LAST (D4) and NOT required for
+  #    hermeticity — local-on-runner execution via the wired `noop_test_toolchain` is sufficient
+  #    here. This lane runs ALONGSIDE the cargo lanes (both feed the fan-in); the cargo->buck2
+  #    required-context content swap is a separate founder-paired step.
+  buck2:
+    name: buck2 (hermetic build + affected gate tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: the git-facts-regen step below runs the emitter, which derives
+          # last_touch via `git log --name-only`; a shallow checkout collapses it (PM1).
+          fetch-depth: 0
+      # buck2 is the BUILD TOOL (like cargo/rustc), installed as a pinned prebuilt release —
+      # NOT a hermetic artifact of this repo. Pinned by tag for reproducibility (the design's
+      # "actions/cache keyed on the buck2 version" warm-start; bump the tag deliberately).
+      - name: Install buck2 (pinned prebuilt release)
+        env:
+          BUCK2_RELEASE: "2025-05-06"
+        run: |
+          set -euo pipefail
+          curl -sSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-x86_64-unknown-linux-gnu.zst" -o /tmp/buck2.zst
+          zstd -d /tmp/buck2.zst -o /tmp/buck2
+          chmod +x /tmp/buck2
+          sudo mv /tmp/buck2 /usr/local/bin/buck2
+          buck2 --version
+      # Warm buck-out + the buck2 daemon cache across runs so ephemeral runners do not
+      # cold-bootstrap the toolchain (design §3.1 / ADR-0515 D4).
+      - name: Cache buck-out
+        uses: actions/cache@v4
+        with:
+          path: buck-out
+          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}-
+            buck-out-${{ runner.os }}-
+      # git-facts-regen — the SINGLE out-of-graph git boundary. Re-run the emitter against the
+      # PR HEAD and assert the committed git-facts face matches (the byte-validation that, under
+      # buck2, intentionally SKIPS inside the hermetic action graph). OYA_CI_GIT_FACTS_REGEN=1
+      # opts the registry-drift git-facts check into running here. This catches a stale/hand-
+      # edited git-facts face before the hermetic gates consume it.
+      - name: git-facts-regen (out-of-graph git boundary) + byte-validate
+        env:
+          OYA_CI_GIT_FACTS_REGEN: "1"
+        run: |
+          set -euo pipefail
+          buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app
+          EMITTER=$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app --show-output 2>/dev/null | awk '{print $2}')
+          "$EMITTER" --repo-root . --out /tmp/git-facts-regen.json
+          if ! diff -q cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json /tmp/git-facts-regen.json; then
+            echo "GIT-FACTS DRIFT: committed git-facts.generated.json != regenerated. Re-run the emitter and settle." >&2
+            exit 1
+          fi
+          echo "git-facts byte-validated against the emitter (out-of-graph boundary)."
+      # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
+      # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
+      # run green, fully hermetic, with verdicts identical to the cargo lanes). This is the
+      # refactor's scope and is the binding hermetic check for this stage.
+      #
+      # NOTE: the affected-set driver (`infra/ci/buck2-affected-gate.sh`, uquery owner -> rdeps
+      # closure) is the design's speed mechanism (§3.2) and runs below as a best-effort fast path,
+      # but its whole-graph `rdeps(//..., ...)` currently FAILS CLOSED on a PRE-EXISTING stale
+      # git-worktree BUCK package (`.claire/worktrees/.../oya-payroll-run-usecase`) committed at
+      # base — graph pollution unrelated to this refactor. Until that is cleaned, the binding gate
+      # is the scoped `//cloud/cloud-ci/...` build+test above; the affected driver is advisory.
+      - name: buck2 build + test (//cloud/cloud-ci/..., hermetic — binding)
+        run: |
+          set -euo pipefail
+          buck2 build //cloud/cloud-ci/...
+          buck2 test //cloud/cloud-ci/...
+      - name: buck2 affected-set driver (advisory speed path)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          chmod +x infra/ci/buck2-affected-gate.sh
+          BUCK2=buck2 infra/ci/buck2-affected-gate.sh "origin/${{ github.base_ref || 'dev' }}"
+
   # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
   #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
   #    every gate lane above is green. `needs:` lists EVERY gate job; the gate-registration
@@ -150,6 +234,7 @@ jobs:
       - gate                    # the matrix of homogeneous gate lanes (success IFF every leg passed)
       - gate-registry-drift     # bespoke: committed == regenerated byte-parity
       - gate-cloud-ci-firewall  # bespoke: baseline ratchet + gate_registration meta-test
+      - buck2                   # hermetic buck2 build + affected gate tests (alongside cargo)
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
         run: |
@@ -157,11 +242,13 @@ jobs:
           echo "  gate (matrix)     = ${{ needs.gate.result }}"
           echo "  registry-drift    = ${{ needs.gate-registry-drift.result }}"
           echo "  cloud-ci-firewall = ${{ needs.gate-cloud-ci-firewall.result }}"
+          echo "  buck2             = ${{ needs.buck2.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \
             && [ "${{ needs.gate-registry-drift.result }}" = "success" ] \
-            && [ "${{ needs.gate-cloud-ci-firewall.result }}" = "success" ]; then
+            && [ "${{ needs.gate-cloud-ci-firewall.result }}" = "success" ] \
+            && [ "${{ needs.buck2.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0
           fi

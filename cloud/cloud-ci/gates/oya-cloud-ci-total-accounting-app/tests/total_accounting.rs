@@ -196,21 +196,45 @@ fn gate2_is_born_blocking_on_the_live_corpus() {
     assert!(unowned > 1000, "owner gap is systemic, got {unowned}");
 }
 
+/// Run the producer to emit the registry face to stdout, HERMETICALLY (no `env!("CARGO")`, the
+/// compile-time cargo-only macro that breaks the buck2 build). The producer binary is resolved
+/// at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN` (the `$(exe ...)`-substituted built
+/// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
+/// git-facts face (a declared input); it never calls git.
 fn run_producer_stdout(root: &Path) -> Value {
-    // Use the workspace-built producer binary. cargo run keeps this hermetic to the
-    // workspace toolchain; --stdout regenerates the registry without writing files.
-    let output = Command::new(env!("CARGO"))
-        .arg("run")
-        .arg("--quiet")
-        .arg("-p")
-        .arg("oya-cloud-ci-accounting-registry-app")
-        .arg("--")
-        .arg("--repo-root")
-        .arg(root)
-        .arg("--stdout")
-        .current_dir(root)
-        .output()
-        .expect("run oya-cloud-ci-accounting-registry-app");
+    let git_facts = root
+        .join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json");
+    let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
+        let bin = if Path::new(&bin).is_absolute() {
+            PathBuf::from(bin)
+        } else {
+            root.join(bin)
+        };
+        Command::new(bin)
+            .arg("--repo-root")
+            .arg(root)
+            .arg("--git-facts")
+            .arg(&git_facts)
+            .arg("--stdout")
+            .current_dir(root)
+            .output()
+            .expect("run producer binary")
+    } else {
+        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
+            .arg("run")
+            .arg("--quiet")
+            .arg("-p")
+            .arg("oya-cloud-ci-accounting-registry-app")
+            .arg("--")
+            .arg("--repo-root")
+            .arg(root)
+            .arg("--git-facts")
+            .arg(&git_facts)
+            .arg("--stdout")
+            .current_dir(root)
+            .output()
+            .expect("cargo run oya-cloud-ci-accounting-registry-app")
+    };
     assert!(
         output.status.success(),
         "producer failed: {}",

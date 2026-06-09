@@ -18,10 +18,17 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-/// The producer crate is NOT a gate lane — it is the rust_binary that EMITS the accounting
-/// faces (registered in the workflow via `cargo run -p ...`, not `cargo test -p ...`). It is
-/// the single intentional exclusion from the gate-registration invariant.
+/// The crates under `cloud/cloud-ci/gates/` that are NOT gate lanes — they are the rust_binaries
+/// that EMIT the faces (registered in the workflow via a `run` step, not a `cargo test -p ...`
+/// gate lane). These are the intentional exclusions from the gate-registration invariant:
+///   - the accounting producer (emits the five accounting faces);
+///   - the git-facts emitter (the single out-of-graph git boundary that emits
+///     git-facts.generated.json; OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5).
 const PRODUCER_CRATE: &str = "oya-cloud-ci-accounting-registry-app";
+const NON_GATE_CRATES: [&str; 2] = [
+    "oya-cloud-ci-accounting-registry-app",
+    "oya-cloud-ci-git-facts-emitter-app",
+];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
 /// `specs/root-hub-pointers.json`). Mirrors the helper in `firewall.rs` so both meta-gates
@@ -111,7 +118,7 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
     // Surface-all: collect EVERY unregistered gate, then assert the set is empty.
     let mut missing: Vec<String> = Vec::new();
     for crate_dir in &crates {
-        if crate_dir == PRODUCER_CRATE {
+        if NON_GATE_CRATES.contains(&crate_dir.as_str()) {
             continue;
         }
         // A gate is "registered" iff the workflow runs it as a cargo lane — either a bespoke
@@ -167,7 +174,7 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
     let crates = gate_crate_dirs(&gates);
     let mut missing: Vec<String> = Vec::new();
     for crate_dir in &crates {
-        if crate_dir == PRODUCER_CRATE {
+        if NON_GATE_CRATES.contains(&crate_dir.as_str()) {
             continue;
         }
         // A matrix gate runs under the single `gate` job → the fan-in must depend on `gate`.

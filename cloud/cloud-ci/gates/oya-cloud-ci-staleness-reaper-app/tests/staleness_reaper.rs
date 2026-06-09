@@ -181,21 +181,48 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
     );
 }
 
+/// Run the producer to emit a single face to stdout, HERMETICALLY (no `env!("CARGO")`, the
+/// compile-time cargo-only macro that breaks the buck2 build). The producer binary is resolved
+/// at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN` (the `$(exe ...)`-substituted built
+/// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
+/// git-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let output = Command::new(env!("CARGO"))
-        .arg("run")
-        .arg("--quiet")
-        .arg("-p")
-        .arg("oya-cloud-ci-accounting-registry-app")
-        .arg("--")
-        .arg("--repo-root")
-        .arg(root)
-        .arg("--stdout")
-        .arg("--face")
-        .arg(face)
-        .current_dir(root)
-        .output()
-        .expect("run oya-cloud-ci-accounting-registry-app");
+    let git_facts = git_facts_path(root);
+    let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
+        let bin = if Path::new(&bin).is_absolute() {
+            PathBuf::from(bin)
+        } else {
+            root.join(bin)
+        };
+        Command::new(bin)
+            .arg("--repo-root")
+            .arg(root)
+            .arg("--git-facts")
+            .arg(&git_facts)
+            .arg("--stdout")
+            .arg("--face")
+            .arg(face)
+            .current_dir(root)
+            .output()
+            .expect("run producer binary")
+    } else {
+        Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned()))
+            .arg("run")
+            .arg("--quiet")
+            .arg("-p")
+            .arg("oya-cloud-ci-accounting-registry-app")
+            .arg("--")
+            .arg("--repo-root")
+            .arg(root)
+            .arg("--git-facts")
+            .arg(&git_facts)
+            .arg("--stdout")
+            .arg("--face")
+            .arg(face)
+            .current_dir(root)
+            .output()
+            .expect("cargo run oya-cloud-ci-accounting-registry-app")
+    };
     assert!(
         output.status.success(),
         "producer failed: {}",
@@ -204,36 +231,39 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
 }
 
-/// "now" as git sees the HEAD commit time (deterministic per-checkout, avoids wall-clock
-/// flakiness while still aging the corpus realistically).
-fn git_now_secs(root: &Path) -> u64 {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(["log", "-1", "--format=%ct"])
-        .output()
-        .expect("git log HEAD time");
-    String::from_utf8_lossy(&output.stdout)
-        .trim()
-        .parse()
-        .unwrap_or(0)
+/// The committed git-facts face beside the accounting faces (a declared input under buck2).
+fn git_facts_path(root: &Path) -> PathBuf {
+    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json")
 }
 
-/// One `git log --format` pass builds the commit-sha -> author-timestamp map.
+/// "now" = the HEAD commit time, read from the committed git-facts face (NOT ambient git):
+/// deterministic per-checkout, fully hermetic, identical to what the producer aged the
+/// staleness face from. The producer derived this from `git log -1 --format=%ct` via the
+/// out-of-graph emitter; the gate reads the same frozen value so its aging matches the face.
+fn git_now_secs(root: &Path) -> u64 {
+    git_facts_value(root)["head_time_secs"].as_u64().unwrap_or(0)
+}
+
+/// The commit-sha -> author-timestamp map, read from the committed git-facts face (NOT ambient
+/// git). Mirrors the producer's `commit_author_ts_secs`, so the gate ages each row exactly as
+/// the producer did.
 fn git_commit_timestamps(root: &Path) -> BTreeMap<String, u64> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(["log", "--format=%H %ct"])
-        .output()
-        .expect("git log timestamps");
+    let value = git_facts_value(root);
     let mut map = BTreeMap::new();
-    for line in String::from_utf8_lossy(&output.stdout).lines() {
-        if let Some((sha, ts)) = line.split_once(' ')
-            && let Ok(ts) = ts.trim().parse::<u64>()
-        {
-            map.insert(sha.to_owned(), ts);
+    if let Some(obj) = value["commit_author_ts_secs"].as_object() {
+        for (sha, ts) in obj {
+            if let Some(ts) = ts.as_u64() {
+                map.insert(sha.clone(), ts);
+            }
         }
     }
     map
+}
+
+/// Read + parse the committed git-facts face once.
+fn git_facts_value(root: &Path) -> Value {
+    let path = git_facts_path(root);
+    let text = fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("read git-facts {}: {e}", path.display()));
+    serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse git-facts {}: {e}", path.display()))
 }
