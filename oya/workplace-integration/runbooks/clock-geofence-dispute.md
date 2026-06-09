@@ -33,7 +33,7 @@ doc_status: draft_target_non_claim
 - Open sev1 if `oya_workplace_integration_clock_geofence_dispute_total` exceeds the threshold documented in `oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml`.
 - Open sev1 if `oya_workplace_integration_clock_geofence_dispute_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `workplace-integration.clock-geofence-dispute.customer_visible` in Zendesk.
-- Trigger from `oya-ci-required` when the shared Rust gate `workplace-integration-clock-geofence-dispute` fails against the latest production evidence bundle.
+- Trigger from `oya-ci-required` when the workplace-integration `clock-geofence-dispute` production-snapshot Rust gate exits non-zero against the latest production evidence bundle.
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/clock-geofence-dispute?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `oya/workplace-integration/dashboards/audit-evidence.json`.
 - Secondary dashboard: `https://grafana.dev.oyatie.internal/d/workplace-integration-ops/clock-geofence-dispute?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `oya/workplace-integration/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="workplace-integration",runbook="clock-geofence-dispute"}`.
@@ -167,12 +167,12 @@ Clock Geofence Dispute incident decision tree
 4. Patch policy: `edit oya/workplace-integration/policies/esign-initiate.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit oya/workplace-integration/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p WorkplaceAgreement domain clock_geofence_dispute_incident_regression -- --nocapture`.
-7. Attach evidence for shared Rust gate `workplace-integration-clock-geofence-dispute` using fixture `incident-clock-geofence-dispute.json`.
+7. Add gate evidence from the `oya-ci-required` workplace-integration `clock-geofence-dispute` fixture lane for `incident-clock-geofence-dispute.json`.
 8. Add SLO assertion: `update oya/workplace-integration/slos/clock-attestation-availability.openslo.yaml with alert ClockGeofenceDisputeCritical when this was a missing alert`.
 9. Add dashboard panel: `update oya/workplace-integration/dashboards/audit-evidence.json with oya_workplace_integration_clock_geofence_dispute_error_ratio, oya_workplace_integration_clock_geofence_dispute_lag_seconds, and oya_workplace_integration_clock_geofence_dispute_total`.
 10. Rebuild affected crate: `cargo check -p WorkplaceAgreement domain --all-targets`.
 11. Run targeted tests: `cargo test -p WorkplaceAgreement domain --all-features`.
-12. Review the workplace-integration policy gate packet in `oya-ci-required`.
+12. Run the `oya-ci-required` workplace-integration policy validation lane for the `workplace-integration` microservice.
 13. Deploy canary: `oya deploy canary --microservice workplace-integration --component workplace-integration-clock-geofence-dispute-worker --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_workplace_integration_clock_geofence_dispute_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close workplace-integration-clock-geofence-dispute-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.

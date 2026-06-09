@@ -68,6 +68,21 @@ related_adrs:
   - ADR-0251-compliance-pack-cell-certification-levels
   - ADR-0252-workflow-engine-per-step-idempotency
 related_specs:
+  - /specs/products/workplace-integration.json
+  - /specs/microservices/workflow-engine.json
+  - /specs/microservices/workflow-studio.json
+  - /specs/microservices/calendar.json
+  - /specs/microservices/meet.json
+  - /specs/microservices/mail.json
+  - /specs/microservices/messenger.json
+  - /specs/microservices/drive.json
+  - /specs/microservices/intelligence.json
+  - /specs/microservices/policy-engine.json
+  - /specs/microservices/audit-chain.json
+  - /specs/microservices/tenancy.json
+  - /specs/microservices/identity.json
+  - /specs/microservices/ontology.json
+  - /specs/microservices/plugin-app-store.json
   - /specs/per-microservice-flat-layout.json
   - /specs/agentic-slo-gated-promotion.json
 related_memory:
@@ -88,10 +103,10 @@ doc_status: draft_target_non_claim
 # PRD: Workplace Integration — Cross-Cutting Product Layer
 
 > **Status:** published; wave-gated promotion targets remain in §2.4
-> **Owning team:** founder + axis-workflow as primary executor
+> **Owning team:** founder-governed product authority (with axis-workflow as primary executor)
 > **Owning axis:** cross-cutting product layer (NOT a single µservice)
 > **Catalog reference:** `oya/workplace-integration/catalog/oya-workplace-integration-application.yaml` plus layer catalog entries under `oya/workplace-integration/catalog/`
-> **Last updated:** 2026-05-20 by founder/product authority
+> **Last updated:** 2026-05-20 by founder-governed product authority
 > **Path convention:** repo-local service artifacts use `oya/<service>/...`; machine-readable service specs use `specs/microservices/*.json`; legacy `microservices/...` paths are not authoritative in this checkout.
 
 ---
@@ -1180,7 +1195,7 @@ For Workplace Integration to reach M04 stable, workforce dependencies must be ex
 
 - **`oya/hr/`** — repo-local HR service anchor for records of truth (employment, leave-balance, org-chart, compensation-summary). Promotion remains certification-gated: PRD, threat-model, DPIA, manifest tier=product tier_subtype=product-consumer-hr, IaC, SOC 2 Type II employment-data controls, and per-jurisdiction labor-law overlay packs (KR pack-kr-labor, EU pack-eu-working-time, US pack-us-flsa).
 - **`oya/payroll/`** — repo-local payroll service anchor for payroll calculation + paycheck issuance; coordinates with banking via reserved `payments` µservice + Plugin App Store integrations (ADP, Gusto, Justworks, Rippling). Promotion remains gated on per-jurisdiction tax authority registrations (US-IRS, KR-NTS, EU-VAT-MOSS, etc.) and labor-law packs.
-- **`oya/compensation/`** — not present as a repo-local service anchor in this checkout; compensation remains promotion-blocked until a founder-approved service anchor, PRD, threat model, DPIA, manifest, IaC, 409A provider integration, and ASC 718 controls exist.
+- **`oya/compensation/`** — not present as a repo-local service anchor in this checkout; compensation remains promotion-blocked until a founder-/governance-approved service anchor, PRD, threat model, DPIA, manifest, IaC, 409A provider integration, and ASC 718 controls exist.
 
 Until every promotion gate lands, Workplace Integration sagas that need HR/payroll/compensation data use the existing service anchors where present and otherwise integrate via Plugin App Store providers (BambooHR, Rippling, Gusto, ADP) with their respective APIs; they must not silently assume an unavailable record-of-truth service.
 
@@ -2466,3 +2481,8 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 - docs/decisions/ADR-0263-audit-event-registry.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
 - docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
+- `registry/stores/instructions-store.json` D-CICD-AUTHORITY / D-CLOUD-NATIVE current CI authority
+- specs/products/workplace-integration.json
+- specs/oya/workflow-engine.json
+- specs/oya/workflow-studio.json
+- specs/oya/intelligence.json
