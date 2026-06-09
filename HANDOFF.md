@@ -87,8 +87,10 @@ Note: `consolidate/kernel-snapshot-2026-06-08` holds BOTH kernel + OS (`linux/st
 ## 6. OUTSTANDING BACKLOG
 
 ### 6.1 Immediate (verification + wrap-up)
-- [ ] **Confirm `oya-ci-required` is GREEN on `dev` `6e9b46232`** (fresh-checkout authoritative). It was admin-bypass pushed; the run is expected. `gh run list --branch dev`. If RED, diagnose (likely cross-artifact baseline or registry-drift) — do NOT trust warm-tree green.
+- **CI TRIGGER GAP (know this first):** `oya-ci-required` (the SOLE required check on dev) runs on **`workflow_dispatch` (manual)**, NOT on push/PR — so direct pushes leave it "expected/pending". Verify dev with: `gh workflow run oya-ci-required.yml --ref dev` then `gh run list --workflow=oya-ci-required.yml`. Consider adding a `pull_request`/`push` trigger so dev/PRs auto-gate. Last dispatch on `dev e12c33f6c` was dispatched this session (confirm GREEN).
+- **`backbone-microservices-ci.yml` is LEGACY, NON-required, and permanently RED** on every commit (incl. pre-canon `1b1fb3624`, `613796d61`) — it is NOT a regression and NOT a gate. It's the old `oya-dev-cli` CI; **retire it under Task #26**. Do not be alarmed by its red.
 - [ ] **Masterplan-reachability DEVIATION (open):** the 20 new ADRs are NOT wired into `masterplan.json` `authoring_adrs`; instead `cross-artifact/unpropagated_decision +23` were **baselined via the founder signoff door** (same bootstrap pattern as ADR-0515). Decide: actually WIRE them into masterplan (the founder reachability principle) vs accept the baseline exemption.
+- **Remote hygiene DONE (2026-06-08):** github-mirror pruned to **12 protected heads** (dev, main, production, staging, cleanup/whole-tree-2026-06-07, phase0/producer + the 6 `consolidate/*-snapshot-2026-06-08`); 206 stale branches deleted. The `consolidate/*` snapshots are intentionally NOT merged into dev — that is the **future gated Task #20** consolidation (merging raw non-conformant trees now would RED the firewall with ~225 BNF/manifest/prefix violations; the office-pilot rename→conform→workspace→gate-green pattern is required first).
 
 ### 6.2 W1 convergence remainder (Task #74)
 - [ ] **R2 — A-delete sprawl:** per-batch destructive deletion vs recovery anchor `e38624dc4`, AFTER dev CI verified green + checkpoint. Gated.
