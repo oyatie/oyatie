@@ -3,6 +3,8 @@
 **Generated:** 2026-06-08 (session wind-down) · **Owner:** founder · **Author:** Claude (orchestrator)
 **Purpose:** authoritative state + backlog so a brand-new session can resume with zero context loss.
 
+**SELF-CONTAINED.** The source repo on GitHub (`jason931225/oyatie`) is the ONLY artifact that survives into a fresh session. Everything needed to resume is in THIS file plus the committed tree that survives with it: the canon ADRs under `docs/decisions/` (ADR-0516…0535), the 3 SSOT stores under `registry/stores/`, and the firewall under `cloud/cloud-ci/` + `oya-ci.toml`. The local cross-session memory (`~/.claude/...`) and the `linux` repo do **not** survive — do not depend on them. Detailed session-local working plans (migration/productization/CLI-governance/store-schema) are NOT in `dev`; their essence is inlined below, and full copies are preserved on the `consolidate/kernel-snapshot-2026-06-08` branch under `docs/audit/initial-sweep-2026-06-06/` (transient — that branch is deleted once Task #20 consolidation lands).
+
 ---
 
 ## 0. TL;DR — where everything is right now
@@ -105,7 +107,7 @@ Note: `consolidate/kernel-snapshot-2026-06-08` holds BOTH kernel + OS (`linux/st
 - [ ] **Task #52 (AP6)** — migration #6 deltas → WIP commit → #7 PRs.
 
 ### 6.4 CLI-governance + vocab (Tasks #25, #26)
-- [ ] **Task #26** — migrate the 72 `oya-check-*` libs + 11 `oya-dev-cli` gate subcommands into the firewall ratchet; retire `oya-gate`/`oya-cli`/`oya-dev-cli`. Plan: `docs/audit/initial-sweep-2026-06-06/CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN.md` (ralplan, pending-approval).
+- [ ] **Task #26** — migrate the 72 `oya-check-*` libs + 11 `oya-dev-cli` gate subcommands into the firewall ratchet; retire `oya-gate`/`oya-cli`/`oya-dev-cli`. Also retire the legacy `backbone-microservices-ci.yml` (permanently-red, non-required). SUBSTANCE: build one `oya-cloud-ci-<discipline>-app` crate per check (mirror the live gates), baseline existing violations + block-NEW, fold into the producer + `oya-ci-required` matrix; reuse the existing check LOGIC (do not rewrite). Floor already done: bnf-layer-suffix (79), manifest-hygiene (233), cargo-prefix. (Full ralplan preserved on the `consolidate/kernel-snapshot` branch: `docs/audit/.../CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN.md`.)
 - [ ] **Task #25** — finish forbidden-vocab eradication (foundry/forgejo/jenkins/oya-vcs residue, incl. README's old "Foundry" mention if still present).
 
 ### 6.5 Roadmap forward (W2–W6) + product
@@ -116,7 +118,7 @@ Note: `consolidate/kernel-snapshot-2026-06-08` holds BOTH kernel + OS (`linux/st
 - [ ] **Task #18** — vertical-coverage map (incl. net-new defense + power-grid) → ADRs + masterplan.
 - [ ] **Tasks #13/#14** — ADR amendments per dispositions; stale-file audit (>48h, gated).
 
-### 6.6 Kernel (linux/stack — currently LOCAL + snapshotted to source github)
+### 6.6 Kernel (was `linux/stack` locally — now preserved on github as `consolidate/kernel-snapshot-2026-06-08`; destination `cloud/cloud-kernel` + `cloud/cloud-os`)
 - [x] Hermeticity Stage A + B done (reproducible musl-static talos-init/svc carriers; no Docker; external-blob debt closed).
 - [x] S4c cross-CPU TLB shootdown enabled both arches (F-0020 resolved).
 - [ ] WAVE1 conformance test; SMP frontier (S4b work-stealing-deque + reschedule-IPI); P4·SMP.
@@ -138,6 +140,5 @@ Note: `consolidate/kernel-snapshot-2026-06-08` holds BOTH kernel + OS (`linux/st
 - Canon ADRs: `docs/decisions/ADR-0516..0535-*.md`
 - SSOT stores: `registry/stores/{design-store,instructions-store,registry-store,canon-id-crosswalk}.json`
 - Firewall: `cloud/cloud-ci/gates/` · config `oya-ci.toml` + `libs/oya-ci-config/` · producer `oya-cloud-ci-accounting-registry-app` · workflow `.github/workflows/oya-ci-required.yml`
-- Plans: `docs/audit/initial-sweep-2026-06-06/` (CONSOLIDATION-EXECUTION-MAP, CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN, OYA-CI-PRODUCTIZATION-PLAN, STORE-SCHEMA, …)
-- Vision spec: `.omc/specs/deep-interview-agentic-delivery-fabric.md` · canon proposal `.omc/specs/CANON-PROPOSAL-FOR-SIGNOFF.md`
-- Cross-session memory: `~/.claude/projects/-Users-jasonlee-Developer-linux/memory/` (MEMORY.md index)
+- **Survives in source `dev` (depend on these):** canon ADRs `docs/decisions/ADR-0516..0535-*.md` (+ amended 0280/0392/0510); SSOT stores `registry/stores/{design-store,instructions-store,registry-store,canon-id-crosswalk}.json`; firewall `cloud/cloud-ci/gates/` + config `oya-ci.toml` + `libs/oya-ci-config/`; producer `oya-cloud-ci-accounting-registry-app`; required-check workflow `.github/workflows/oya-ci-required.yml`; root-hub `specs/root-hub-pointers.json`; entry points `AGENTS.md` / `CLAUDE.md`.
+- **Session-local — do NOT depend on (does not survive):** the detailed working plans (`CONSOLIDATION-EXECUTION-MAP`, `CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN`, `OYA-CI-PRODUCTIZATION-PLAN`, `OYA-CI-PRODUCT-ARCHITECTURE-PLAN`, `MIGRATION-PLAN-RESYNC`, `STORE-SCHEMA`, the deep-interview spec, the canon proposal) and the cross-session memory. Their **essence is inlined in this file (§1–§7)**; full copies are on the transient `consolidate/kernel-snapshot-2026-06-08` branch under `docs/audit/initial-sweep-2026-06-06/` until Task #20 lands. If you need them long-term, migrate them into `dev` before deleting that branch.
