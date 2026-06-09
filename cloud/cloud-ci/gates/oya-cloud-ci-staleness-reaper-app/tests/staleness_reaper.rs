@@ -7,8 +7,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use serde_json::{json, Value};
-use oya_cloud_ci_staleness_reaper_app::{evaluate, Verdict};
+use oya_cloud_ci_staleness_reaper_app::{Verdict, evaluate};
+use serde_json::{Value, json};
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -28,8 +28,7 @@ fn fixture_dir() -> PathBuf {
 }
 
 fn load_json(path: &PathBuf) -> Value {
-    let text =
-        fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
 }
 
@@ -122,8 +121,8 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
         rows.len()
     );
 
-    let now_secs = git_now_secs(&root);
-    let commit_ts = git_commit_timestamps(&root);
+    let now_secs = scm_now_secs(&root);
+    let commit_ts = scm_commit_author_timestamps(&root);
 
     // Build the gate input by aging each row from its last-touch commit timestamp.
     let mut aged_rows: Vec<Value> = Vec::new();
@@ -185,9 +184,9 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
 /// compile-time cargo-only macro that breaks the buck2 build). The producer binary is resolved
 /// at RUNTIME: under buck2 from `OYA_CI_PRODUCER_BIN` (the `$(exe ...)`-substituted built
 /// binary), else under cargo via the runtime `CARGO` env var. The producer reads the committed
-/// git-facts face (a declared input); it never calls git.
+/// scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let git_facts = git_facts_path(root);
+    let scm_facts = scm_facts_path(root);
     let output = if let Ok(bin) = std::env::var("OYA_CI_PRODUCER_BIN") {
         let bin = if Path::new(&bin).is_absolute() {
             PathBuf::from(bin)
@@ -197,8 +196,8 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
         Command::new(bin)
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .arg("--face")
             .arg(face)
@@ -214,8 +213,8 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
             .arg("--")
             .arg("--repo-root")
             .arg(root)
-            .arg("--git-facts")
-            .arg(&git_facts)
+            .arg("--scm-facts")
+            .arg(&scm_facts)
             .arg("--stdout")
             .arg("--face")
             .arg(face)
@@ -231,24 +230,26 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
 }
 
-/// The committed git-facts face beside the accounting faces (a declared input under buck2).
-fn git_facts_path(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json")
+/// The committed scm-facts face beside the accounting faces (a declared input under buck2).
+fn scm_facts_path(root: &Path) -> PathBuf {
+    root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json")
 }
 
-/// "now" = the HEAD commit time, read from the committed git-facts face (NOT ambient git):
-/// deterministic per-checkout, fully hermetic, identical to what the producer aged the
-/// staleness face from. The producer derived this from `git log -1 --format=%ct` via the
-/// out-of-graph emitter; the gate reads the same frozen value so its aging matches the face.
-fn git_now_secs(root: &Path) -> u64 {
-    git_facts_value(root)["head_time_secs"].as_u64().unwrap_or(0)
+/// "now" = the deterministic aging timestamp read from the committed scm-facts face (NOT
+/// ambient git): fully hermetic, identical to what the producer aged the staleness face from.
+/// The emitter derives it from the max current-tree last-touch timestamp, so generated-face
+/// settle commits do not churn the face forever.
+fn scm_now_secs(root: &Path) -> u64 {
+    scm_facts_value(root)["head_time_secs"]
+        .as_u64()
+        .unwrap_or(0)
 }
 
-/// The commit-sha -> author-timestamp map, read from the committed git-facts face (NOT ambient
-/// git). Mirrors the producer's `commit_author_ts_secs`, so the gate ages each row exactly as
-/// the producer did.
-fn git_commit_timestamps(root: &Path) -> BTreeMap<String, u64> {
-    let value = git_facts_value(root);
+/// The commit-sha -> author-timestamp map, read from the committed scm-facts face (NOT ambient
+/// SCM source). Mirrors the producer's `commit_author_ts_secs`, so the gate ages each row exactly
+/// as the producer did.
+fn scm_commit_author_timestamps(root: &Path) -> BTreeMap<String, u64> {
+    let value = scm_facts_value(root);
     let mut map = BTreeMap::new();
     if let Some(obj) = value["commit_author_ts_secs"].as_object() {
         for (sha, ts) in obj {
@@ -260,10 +261,11 @@ fn git_commit_timestamps(root: &Path) -> BTreeMap<String, u64> {
     map
 }
 
-/// Read + parse the committed git-facts face once.
-fn git_facts_value(root: &Path) -> Value {
-    let path = git_facts_path(root);
+/// Read + parse the committed scm-facts face once.
+fn scm_facts_value(root: &Path) -> Value {
+    let path = scm_facts_path(root);
     let text = fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read git-facts {}: {e}", path.display()));
-    serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse git-facts {}: {e}", path.display()))
+        .unwrap_or_else(|e| panic!("read scm-facts {}: {e}", path.display()));
+    serde_json::from_str(&text)
+        .unwrap_or_else(|e| panic!("parse scm-facts {}: {e}", path.display()))
 }

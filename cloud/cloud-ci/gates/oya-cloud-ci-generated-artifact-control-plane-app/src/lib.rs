@@ -980,10 +980,10 @@ mod tests {
 
     #[test]
     fn scm_facts_boundary_requires_final_tree_controller_materialization() {
-        let mut scm_artifact = artifact("scm-facts", "out/git-facts.generated.json");
+        let mut scm_artifact = artifact("scm-facts", "out/scm-facts.generated.json");
         scm_artifact["artifact_class"] = json!("scm-facts-boundary-snapshot");
         let manifest = manifest(vec![scm_artifact]);
-        let scm_facts = scm(&["out/git-facts.generated.json"]);
+        let scm_facts = scm(&["out/scm-facts.generated.json"]);
         let findings = evaluate_keyed(&manifest, &scm_facts);
         assert!(findings.iter().any(|finding| {
             finding.code == "generated_artifact_scm_facts_not_final_tree_materialized"

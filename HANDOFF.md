@@ -25,7 +25,7 @@
 5. **No blind `git add -A` in source canon work; `git rm` only, never `filter-branch`.** (Exception used this session: sibling *preservation* snapshots used `git add -A` with a build-junk safety rail — justified because the goal was lossless capture and `.gitignore`/`.git/info/exclude` covered `target/`/`buck-out/`.)
 6. **Recovery anchor:** `e38624dc4` (on `cleanup/whole-tree-2026-06-07`). A-delete (R2) batches diff against this.
 7. **PAUSE-AND-PAIR (do not do unilaterally):** live GitHub branch-protection ruleset toggles; canon ratification (door:one-way founder sign-off); prod/access.
-8. **Firewall = CI-product invariant:** keep it canonical/configurable/reusable. Gate predicate `.rs` sources + `oya-ci.toml` + `oya-ci-config` crate + workflow `.yml` must stay byte-unchanged unless deliberately changing the product. Every source content commit needs the **face-regen settle** (regenerate `git-facts.generated.json` + `accounting-registry.generated.json`, commit them) or `registry-drift` goes RED.
+8. **Firewall = CI-product invariant:** keep it canonical/configurable/reusable. Gate predicate `.rs` sources + `oya-ci.toml` + `oya-ci-config` crate + workflow `.yml` must stay byte-unchanged unless deliberately changing the product. Every source content commit needs the **face-regen settle** (regenerate `scm-facts.generated.json` + `accounting-registry.generated.json`, commit them) or `registry-drift` goes RED.
 
 ---
 

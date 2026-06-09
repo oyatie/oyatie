@@ -144,9 +144,9 @@ jobs:
   # ── HERMETIC BUCK2 LANE (OYA-CI-HERMETIC-EXECUTION-DESIGN §3 + Stage P1/P2). Runs the SAME
   #    gate logic as the cargo lanes above, but through buck2: `buck2 build` compiles every
   #    target (the env!CARGO eradication) and `buck2 test` runs the gate rust_tests fully
-  #    hermetically (no ambient git in any action — the producer reads the committed git-facts
-  #    face; the git-facts emitter is the single out-of-graph boundary, run in the
-  #    `git-facts-regen` step BELOW, never inside a cacheable action). Scoped by the
+  #    hermetically (no ambient git in any action — the producer reads the committed scm-facts
+  #    face; the scm-facts emitter is the single out-of-graph boundary, run in the
+  #    `scm-facts-regen` step BELOW, never inside a cacheable action). Scoped by the
   #    affected-set driver (`infra/ci/buck2-affected-gate.sh`: uquery owner -> rdeps closure,
   #    FAILS CLOSED) for speed. RBE/NativeLink is staged LAST (D4) and NOT required for
   #    hermeticity — local-on-runner execution via the wired `noop_test_toolchain` is sufficient
@@ -158,7 +158,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Full history: the git-facts-regen step below runs the emitter, which derives
+          # Full history: the scm-facts-regen step below runs the emitter, which derives
           # last_touch via `git log --name-only`; a shallow checkout collapses it (PM1).
           fetch-depth: 0
       # buck2 is the BUILD TOOL (like cargo/rustc), installed as a pinned prebuilt release —
@@ -202,24 +202,24 @@ jobs:
           restore-keys: |
             buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}-
             buck-out-${{ runner.os }}-
-      # git-facts-regen — the SINGLE out-of-graph git boundary. Re-run the emitter against the
-      # PR HEAD and assert the committed git-facts face matches (the byte-validation that, under
-      # buck2, intentionally SKIPS inside the hermetic action graph). OYA_CI_GIT_FACTS_REGEN=1
-      # opts the registry-drift git-facts check into running here. This catches a stale/hand-
-      # edited git-facts face before the hermetic gates consume it.
-      - name: git-facts-regen (out-of-graph git boundary) + byte-validate
+      # scm-facts-regen — the SINGLE out-of-graph git boundary. Re-run the emitter against the
+      # PR HEAD and assert the committed scm-facts face matches (the byte-validation that, under
+      # buck2, intentionally SKIPS inside the hermetic action graph). OYA_CI_SCM_FACTS_REGEN=1
+      # opts the registry-drift scm-facts check into running here. This catches a stale/hand-
+      # edited scm-facts face before the hermetic gates consume it.
+      - name: scm-facts-regen (out-of-graph git boundary) + byte-validate
         env:
-          OYA_CI_GIT_FACTS_REGEN: "1"
+          OYA_CI_SCM_FACTS_REGEN: "1"
         run: |
           set -euo pipefail
-          buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app
-          EMITTER=$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-git-facts-emitter-app:oya-cloud-ci-git-facts-emitter-app --show-output 2>/dev/null | awk '{print $2}')
-          "$EMITTER" --repo-root . --out /tmp/git-facts-regen.json
-          if ! diff -q cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json /tmp/git-facts-regen.json; then
-            echo "GIT-FACTS DRIFT: committed git-facts.generated.json != regenerated. Re-run the emitter and settle." >&2
+          buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app
+          EMITTER=$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app --show-output 2>/dev/null | awk '{print $2}')
+          "$EMITTER" --repo-root . --out /tmp/scm-facts-regen.json
+          if ! diff -q cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json /tmp/scm-facts-regen.json; then
+            echo "SCM-FACTS DRIFT: committed scm-facts.generated.json != regenerated. Re-run the emitter and settle." >&2
             exit 1
           fi
-          echo "git-facts byte-validated against the emitter (out-of-graph boundary)."
+          echo "scm-facts byte-validated against the emitter (out-of-graph boundary)."
       # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
       # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
       # run green, fully hermetic, with verdicts identical to the cargo lanes). This is the

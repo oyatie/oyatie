@@ -12,15 +12,15 @@ rust_library(
 # A hand-edit to any committed accounting face fails this target.
 # HERMETIC: the producer binary is passed via `$(exe ...)` (buck2 builds it and substitutes its
 # path into the env), so the test execs a pre-built binary — no `env!("CARGO")`, no `cargo run`.
-# The producer reads the committed git-facts face (a declared input via the accounting lib's
+# The producer reads the committed scm-facts face (a declared input via the accounting lib's
 # srcs); no buck2 action calls git.
 #
-# The git-facts face itself is byte-validated by the SAME test file's
-# `committed_git_facts_equal_regenerated`, but that check execs the git-facts EMITTER (the single
+# The scm-facts face itself is byte-validated by the SAME test file's
+# `committed_scm_facts_equal_regenerated`, but that check execs the scm-facts EMITTER (the single
 # out-of-graph git boundary, §1.5) — git must NOT run inside a hermetic buck2 action (an RBE
 # worker has no `.git`). So the emitter is NOT passed here: under buck2 that check SKIPS (git is
 # out of the action graph), and it runs at the git boundary instead — the cargo dev lane and the
-# CI `git-facts-regen` pre-step (which sets OYA_CI_GIT_FACTS_REGEN=1). Same logic, every runner.
+# CI `scm-facts-regen` pre-step (which sets OYA_CI_SCM_FACTS_REGEN=1). Same logic, every runner.
 # (Named -gate to avoid a buck2 in-package collision with the rust_library above; the
 # package //cloud/cloud-ci/gates/registry-drift carries the §5.3 :registry-drift identity.)
 rust_test(

@@ -51,7 +51,7 @@ fn live_generated_artifacts_are_declared_in_the_control_plane() {
     ));
     let scm_facts = read_json(input_path(
         SCM_FACTS_ENV,
-        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/git-facts.generated.json",
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     ));
 
     let findings = evaluate_keyed(&manifest, &scm_facts);
