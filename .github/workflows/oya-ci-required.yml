@@ -172,16 +172,19 @@ jobs:
           # Full history: the scm-facts-regen step below runs the emitter, which derives
           # last_touch via `git log --name-only`; a shallow checkout collapses it (PM1).
           fetch-depth: 0
-      # buck2 is the BUILD TOOL (like cargo/rustc), installed as a pinned prebuilt release —
-      # NOT a hermetic artifact of this repo. Pinned by tag for reproducibility (the design's
-      # "actions/cache keyed on the buck2 version" warm-start; bump the tag deliberately).
-      - name: Install buck2 (pinned prebuilt release)
+      # buck2 is the BUILD TOOL (like cargo/rustc), installed as a prebuilt release.
+      # The adapter edge is immutable at CI time: release tag selects the asset, SHA-256 pins
+      # the bytes, and CI verifies the digest before decompression/execution. Bump together.
+      - name: Install buck2 (digest-pinned prebuilt release)
         env:
           BUCK2_RELEASE: "2026-06-01"
+          BUCK2_ASSET: "buck2-x86_64-unknown-linux-gnu.zst"
+          BUCK2_SHA256: "4dd9ae54c87fdcf795101074f8788232af55523885135d5e3358c77365993555"
         run: |
           set -euo pipefail
-          curl -sSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/buck2-x86_64-unknown-linux-gnu.zst" -o /tmp/buck2.zst
-          zstd -d /tmp/buck2.zst -o /tmp/buck2
+          curl -fsSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/${BUCK2_ASSET}" -o "/tmp/${BUCK2_ASSET}"
+          echo "${BUCK2_SHA256}  /tmp/${BUCK2_ASSET}" | sha256sum -c -
+          zstd -d "/tmp/${BUCK2_ASSET}" -o /tmp/buck2
           chmod +x /tmp/buck2
           sudo mv /tmp/buck2 /usr/local/bin/buck2
           buck2 --version
