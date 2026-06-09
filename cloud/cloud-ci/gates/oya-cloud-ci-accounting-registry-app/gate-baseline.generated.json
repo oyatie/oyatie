@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:0ad7405174ca4a0c",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:0f705c0b3d3e8778"
+    "source_inputs_digest": "fnv1a64:2d3ef729b04cc5d0"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -20818,6 +20818,7 @@
           "plan/hyperscaler-grade-cloud-platform-main-plan-audit.md",
           "plan/hyperscaler-grade-cloud-platform-quality-review.md",
           "platforms/BUCK",
+          "registry/BUCK",
           "registry/accounts/README.md",
           "registry/accounts/claude.example.toml",
           "registry/accounts/codex.example.toml",
@@ -38373,6 +38374,7 @@
           "plan/hyperscaler-grade-cloud-platform-main-plan-audit.md",
           "plan/hyperscaler-grade-cloud-platform-quality-review.md",
           "platforms/BUCK",
+          "registry/BUCK",
           "registry/accounts/README.md",
           "registry/accounts/claude.example.toml",
           "registry/accounts/codex.example.toml",
@@ -52680,6 +52682,7 @@
           "packs/us/localization/state-privacy-laws-comparison.md",
           "packs/us/sovereignty/sovereign-cloud-overlay.yaml",
           "platforms/BUCK",
+          "registry/BUCK",
           "registry/accounts/README.md",
           "registry/accounts/claude.example.toml",
           "registry/accounts/codex.example.toml",
