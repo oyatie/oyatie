@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 17647,
-    "source_inputs_digest": "fnv1a64:396ee9642ed69835"
+    "source_inputs_digest": "fnv1a64:0dd0676e2e1256ed"
   },
   "rows": [
     {
@@ -13223,7 +13223,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "96074c15ca2f88766136f342e4a8f8897ab21e45",
+      "last_touch_commit": "503b2ede6dd3a7869ca84c63645363227c8b3289",
       "owner": null,
       "path": "HANDOFF.md",
       "reachable_from": [
@@ -116688,7 +116688,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e6c1fd21321f116877472213408a4562fdb07108",
+      "last_touch_commit": "503b2ede6dd3a7869ca84c63645363227c8b3289",
       "owner": null,
       "path": "evidence/multispectrum/scm-facts-source-seam-20260609-1780997211.json",
       "reachable_from": [],
