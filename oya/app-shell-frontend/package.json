@@ -6,9 +6,9 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "dev": "PATH=./node_modules/@solidjs/start/node_modules/.bin:$PATH vinxi dev",
-    "build": "PATH=./node_modules/@solidjs/start/node_modules/.bin:$PATH vinxi build",
-    "start": "PATH=./node_modules/@solidjs/start/node_modules/.bin:$PATH vinxi start",
+    "dev": "node scripts/run-vinxi.mjs dev",
+    "build": "node scripts/run-vinxi.mjs build",
+    "start": "node scripts/run-vinxi.mjs start",
     "typecheck": "tsc --noEmit",
     "codegen": "openapi-typescript ../../contracts/ops-workspace-shell-v1.openapi.yaml -o ./generated/ops-workspace-shell.d.ts && openapi-typescript ../hr/contracts/openapi-v1.yaml -o ./generated/hr-api.d.ts",
     "codegen:check": "node scripts/codegen-check.mjs",

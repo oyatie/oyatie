@@ -1,12 +1,13 @@
-// Port of crates/oya-application-shell-frontend-prototype/src/app.rs :: DashboardIsland
-// This is the primary operator-console surface — the first real slice per ADR-0372 D1.
+// Archived SolidJS transition dashboard surface.
+// ADR-0393 keeps Leptos/Rust-WASM canonical; this file remains read-only
+// migration evidence for the operator-console layout and render-envelope contract.
 //
 // Reactive model maps directly from Leptos signals to SolidJS createSignal/createResource:
 //   Leptos: let (active_context, set_active_context) = signal(DemoContext::TenantAdmin)
 //   Solid:  const [activeContext, setActiveContext] = createSignal<DemoContext>("tenant-admin")
 //
-// The render-envelope is fetched from the Leptos prototype server via fetchRenderEnvelope()
-// and displayed in three context views (TenantAdmin / CorporateOffice / HealthcareClinician).
+// The render-envelope is fetched from the canonical Leptos service via fetchRenderEnvelope()
+// and displayed in three role-scoped context views.
 
 import {
   createResource,
@@ -147,16 +148,16 @@ const ContextSwitcher: Component<{
   active: DemoContext;
   onChange: (ctx: DemoContext) => void;
 }> = (props) => (
-  <section class="context-switcher" aria-label="Demo context switcher">
+  <section class="context-switcher" aria-label="Render-envelope context switcher">
     <div>
       <p class="screen-anchor">ROLE CONTEXT</p>
-      <h2>Select demo context</h2>
+      <h2>Select render context</h2>
       <p class="context-switcher-note">
         Server-derived render envelopes shape each context. Healthcare modules are absent
         from non-accredited contexts server-side, not hidden client-side.
       </p>
     </div>
-    <div class="context-grid" role="group" aria-label="Available demo contexts">
+    <div class="context-grid" role="group" aria-label="Available render-envelope contexts">
       <For each={DEMO_CONTEXTS}>
         {(ctx) => (
           <button
@@ -243,11 +244,11 @@ const DashboardIsland: Component = () => {
             <p>
               {envelope.error instanceof Error
                 ? envelope.error.message
-                : "Unknown error — check that the Leptos prototype server is running on port 3000."}
+                : "Unknown error — check that the canonical Leptos render-envelope service is running on port 3000."}
             </p>
-            <p class="demo-notice">
-              The SolidJS shell is functional without the Leptos server. Metrics, workflow
-              canvas, and module cards will populate once the backend is reachable.
+            <p class="shell-notice">
+              This archived transition shell stays non-mutating when the Leptos service is unavailable. Metrics, workflow
+              canvas, and module cards populate only after the render-envelope backend is reachable.
             </p>
           </div>
         </Match>
@@ -263,7 +264,7 @@ const DashboardIsland: Component = () => {
                 <strong>{env().tenant_name}</strong>
                 <p>{env().role_name}</p>
                 <p class="envelope-detail">{env().server_derivation_note}</p>
-                <p class="demo-notice">{env().accreditation.label}</p>
+                <p class="shell-notice">{env().accreditation.label}</p>
               </div>
               <div class="envelope-activity">
                 <p class="screen-anchor">PRODUCT ACTIVITY</p>
