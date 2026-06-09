@@ -4,23 +4,23 @@ doc_status: published
 
 # Oyatie Runbook — Workflow Engine Deadlock
 
-> **Status:** Production procedure authored for the W-SaaS-Preview documentation gate; not evidence that production alerts are already green.
+> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `oya-ci-required` are green.
 > **Owner:** `axis-saas`
 > **Severity scope:** Sev 2 by default; escalate to Sev 1 for cross-cell, regulated-pack, or revenue-impacting workflow stalls.
-> **Authority:** ADR-0035 workflow engine semantics, W-SaaS-Preview functional gate in `docs/PRD.md`, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
-> **Last verified:** 2026-06-09 (legacy scaffold wording removed; procedure grounded in existing docs and ADRs).
+> **Authority:** ADR-0035 workflow engine semantics, the SaaS Platform PRD, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
+> **Last verified:** 2026-06-09 (SSOT chain checked against HANDOFF.md, registry/stores/*, specs/root-hub-pointers.json, specs/masterplan.json, and docs/products/saas-platform/PRD.md).
 
 ## Operator contract
 - **Incident channel:** `#inc-saas-workflow-engine`.
 - **Primary invariant:** never edit or replay a sealed step in place. ADR-0035 requires sealed steps to remain immutable evidence; recovery uses state-vector restore, explicit compensation, or a new workflow-definition version.
 - **Tenant boundary:** every action is scoped by `tenant_id`, `cell_id`, `workflow_id`, and `workflow_version`.
-- **Cloud authority:** runtime mitigation is applied through the cloud control-plane / Kubernetes cell for the affected tenant workload. Local CLI output is diagnostic evidence only and is not merge or production authority.
+- **Cloud authority:** runtime mitigation is applied through the cloud control-plane / Kubernetes cell for the affected tenant workload. Workstation diagnostics are supporting evidence only and are not merge, production, or hyperscaler authority.
 - **Audit event:** every containment, replay, compensation, and release decision emits `EVT-SAAS-WORKFLOW-DEADLOCK-INCIDENT` with `incident_id`, `tenant_id`, `cell_id`, `workflow_id`, `workflow_version`, `operator_id`, `decision_id`, and `evidence_hash`.
 - **Stop condition:** affected workflow backlog is draining, no new stuck instances appear for three evaluator windows, the audit event is sealed, and the post-incident prevention ticket has an owner.
 
 ## Trigger conditions
 - `saas_workflow_stuck_instances{state!="terminal"}` exceeds the per-tenant threshold for two evaluator windows.
-- `saas_workflow_transition_lag_seconds` breaches the W-SaaS-Preview workflow SLO for a tenant, cell, or regulated pack.
+- `saas_workflow_transition_lag_seconds` breaches the SaaS charter workflow SLO for a tenant, cell, or regulated pack.
 - Workflow instances remain in `Waiting`, `Compensating`, or `HumanApproval` beyond their ADR-0035 timer/SLA.
 - Support, tenant admin, or a downstream axis reports tenant-visible workflow stalls.
 - The cross-axis contract fitness lane for SaaS↔Cloud, SaaS↔Search, or SaaS↔Agent-runtime detects a workflow handoff that cannot advance.
@@ -74,7 +74,7 @@ Classify exactly one primary branch before recovery:
 - Do not replay sealed steps.
 - Do not widen from tenant-level to fleet-level mitigation without incident commander approval and current blast-radius evidence.
 - Do not close the incident if audit-chain evidence is delayed or missing.
-- Do not mark local CLI checks as production authority; cloud control-plane / Kubernetes cell status and sealed audit evidence are required.
+- Do not mark workstation checks as production authority; cloud control-plane / Kubernetes cell status and sealed audit evidence are required.
 
 ## Post-incident
 - Author the postmortem within the Sev 2 SLA from `docs/INCIDENT-MANAGEMENT.md`.
@@ -83,4 +83,4 @@ Classify exactly one primary branch before recovery:
 - Reference the M03-P04/M03-P08 implementation-plan IDs when the fix changes workflow runtime or cross-axis contract behavior.
 
 ## Sources
-`docs/PRD.md` W-SaaS-Preview, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.
+`docs/products/saas-platform/PRD.md`, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.

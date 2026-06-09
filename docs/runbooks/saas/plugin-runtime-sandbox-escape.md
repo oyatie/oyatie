@@ -4,17 +4,17 @@ doc_status: published
 
 # Oyatie Runbook — Plugin Runtime Sandbox Escape
 
-> **Status:** Production procedure authored for the W-SaaS-Preview documentation gate; not evidence that production alerts are already green.
+> **Status:** Production procedure authored for the M03-P04/M03-P08 SaaS operator-documentation gate; readiness remains `target_non_claim` until changeset evidence and `oya-ci-required` are green.
 > **Owner:** `axis-saas + cloud-intelligence + central governance + ops-security`
 > **Severity scope:** Sev 1.
-> **Authority:** ADR-0036 plugin substrate trust model, ADR-0534 higher-trust gate marketplace extension, W-SaaS-Preview plugin install gate in `docs/PRD.md`, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
-> **Last verified:** 2026-06-09 (legacy scaffold wording removed; procedure grounded in existing docs and ADRs).
+> **Authority:** ADR-0036 plugin substrate trust model, ADR-0534 higher-trust gate marketplace extension, the SaaS Platform PRD, and M03-P04/M03-P08 planning references in `specs/masterplan.json`.
+> **Last verified:** 2026-06-09 (SSOT chain checked against HANDOFF.md, registry/stores/*, specs/root-hub-pointers.json, specs/masterplan.json, and docs/products/saas-platform/PRD.md).
 
 ## Operator contract
 - **Incident channel:** `#inc-saas-plugin-runtime`.
 - **Primary invariant:** a production plugin cannot access network, filesystem, environment variables, process spawning, or ungranted capabilities outside the ADR-0036 `PluginContext`.
 - **Tenant boundary:** quarantine and revocation are scoped by `tenant_id`, `plugin_id`, `plugin_version`, `installation_id`, `cell_id`, and trust tier.
-- **Cloud authority:** runtime isolation changes are applied through the cloud control-plane / Kubernetes cell that hosts the tenant plugin workload. Local sandbox runs are diagnostic only.
+- **Cloud authority:** runtime isolation changes are applied through the cloud control-plane / Kubernetes cell that hosts the tenant plugin workload. Offline sandbox reproduction is diagnostic only.
 - **Audit event:** every quarantine, trust-tier change, install revoke, capability revoke, and recovery release emits `EVT-SAAS-PLUGIN-SANDBOX-ESCAPE-INCIDENT` with `incident_id`, `tenant_id`, `plugin_id`, `plugin_version`, `installation_id`, `cell_id`, `operator_id`, `decision_id`, and `evidence_hash`.
 - **Stop condition:** the offending artifact cannot load in any production tenant, affected installations are revoked or pinned to a safe version, audit evidence is sealed, and the vetting gate that missed the escape has an owner.
 
@@ -85,4 +85,4 @@ Classify exactly one primary branch before recovery:
 - Update this runbook with any branch, metric, or control that was missing.
 
 ## Sources
-`docs/PRD.md` W-SaaS-Preview, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0036-plugin-substrate-wasm-and-trust.md`, `docs/decisions/ADR-0534-gate-pipeline-step-sdk-and-marketplace.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.
+`docs/products/saas-platform/PRD.md`, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0036-plugin-substrate-wasm-and-trust.md`, `docs/decisions/ADR-0534-gate-pipeline-step-sdk-and-marketplace.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.
