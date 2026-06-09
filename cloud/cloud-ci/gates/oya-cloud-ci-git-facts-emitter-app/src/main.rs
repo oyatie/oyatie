@@ -68,20 +68,16 @@ fn run() -> Result<(), String> {
     });
 
     let source = GitCliScmFactsSource::new(repo_root.clone());
-    let value = emit_git_facts(&source)?;
-    let tracked_paths_len = value
-        .get("tracked_paths")
-        .and_then(serde_json::Value::as_array)
-        .map_or(0, std::vec::Vec::len);
+    let emission = emit_git_facts(&source)?;
 
     // Build the face as a serde_json Value with BTreeMap-backed maps so the on-disk key order
     // is the canonical sorted order, then serialize through the producer's exact canonicalizer
     // (to_string_pretty + trailing newline).
-    let text = to_canonical_json(&value).map_err(|e| format!("serialize: {e}"))?;
+    let text = to_canonical_json(&emission.value).map_err(|e| format!("serialize: {e}"))?;
     std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
     eprintln!(
         "oya-cloud-ci-git-facts-emitter-app: {} tracked paths -> {}",
-        tracked_paths_len,
+        emission.tracked_paths_len,
         out.display()
     );
     Ok(())
@@ -125,8 +121,14 @@ impl ScmFactsSource for GitCliScmFactsSource {
     }
 }
 
-fn emit_git_facts(source: &impl ScmFactsSource) -> Result<serde_json::Value, String> {
+struct GitFactsEmission {
+    value: serde_json::Value,
+    tracked_paths_len: usize,
+}
+
+fn emit_git_facts(source: &impl ScmFactsSource) -> Result<GitFactsEmission, String> {
     let tracked_paths = source.tracked_paths()?;
+    let tracked_paths_len = tracked_paths.len();
     let last_touch_commit = source.last_touch()?;
     let all_commit_ts = source.revision_author_timestamps()?;
 
@@ -151,13 +153,17 @@ fn emit_git_facts(source: &impl ScmFactsSource) -> Result<serde_json::Value, Str
         .collect();
     let head_time_secs = commit_author_ts_secs.values().copied().max().unwrap_or(0);
 
-    Ok(json!({
+    let value = json!({
         "schema": SCHEMA,
         "head_time_secs": head_time_secs,
         "tracked_paths": tracked_paths,
         "last_touch_commit": last_touch_commit,
         "commit_author_ts_secs": commit_author_ts_secs,
-    }))
+    });
+    Ok(GitFactsEmission {
+        value,
+        tracked_paths_len,
+    })
 }
 
 /// Walk up from cwd to the repo root (the dir holding `specs/root-hub-pointers.json`).
@@ -307,16 +313,24 @@ mod tests {
             ]),
         };
 
-        let facts = emit_git_facts(&source).unwrap();
+        let emission = emit_git_facts(&source).unwrap();
 
-        assert_eq!(facts["schema"], SCHEMA);
-        assert_eq!(facts["head_time_secs"], 20);
-        assert_eq!(facts["tracked_paths"], json!(["a.txt", "b.txt"]));
-        assert_eq!(facts["last_touch_commit"]["a.txt"], "rev-a");
-        assert_eq!(facts["last_touch_commit"]["b.txt"], "rev-b");
+        assert_eq!(emission.tracked_paths_len, 2);
         assert_eq!(
-            facts["commit_author_ts_secs"],
-            json!({"rev-a": 10, "rev-b": 20})
+            emission.value,
+            json!({
+                "schema": SCHEMA,
+                "head_time_secs": 20,
+                "tracked_paths": ["a.txt", "b.txt"],
+                "last_touch_commit": {
+                    "a.txt": "rev-a",
+                    "b.txt": "rev-b",
+                },
+                "commit_author_ts_secs": {
+                    "rev-a": 10,
+                    "rev-b": 20,
+                },
+            })
         );
     }
 
