@@ -19,6 +19,7 @@ rust_library(
         "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app:oya-cloud-ci-manifest-hygiene-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -39,6 +40,7 @@ rust_test(
         "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app:oya-cloud-ci-manifest-hygiene-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -59,8 +61,32 @@ rust_binary(
         "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app:oya-cloud-ci-manifest-hygiene-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
         # The binary runs the forbidden-vocab census (cloud-ci-brand-residue gate) over the
         # live corpus and folds the per-(stem,file) keys into the baseline.
+        "//libs/oya-check-brand-residue:oya-check-brand-residue",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-accounting-registry-app-bin-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_cloud_ci_accounting_registry_app_bin_tests",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app:oya-cloud-ci-total-accounting-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:oya-cloud-ci-cross-artifact-agreement-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app:oya-cloud-ci-staleness-reaper-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app:oya-cloud-ci-automation-ratchet-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-bnf-layer-suffix-app:oya-cloud-ci-bnf-layer-suffix-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app:oya-cloud-ci-manifest-hygiene-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "third-party//:serde",

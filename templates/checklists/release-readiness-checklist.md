@@ -43,7 +43,7 @@ related:
 
 ## SRE / observability
 
-- [ ] **RR15** SLOs defined for every milestone-shipped surface (per `docs/SLO-CATALOG.md`). *Lane:* `oya-governance-slo-coverage`.
+- [ ] **RR15** SLOs defined for every milestone-shipped surface (per `docs/SLO-CATALOG.md`). *Lane:* `cloud-ci-slo-coverage`.
 - [ ] **RR16** 4 golden signals (latency, traffic, errors, saturation) dashboards live. *(advisory; observability team)*
 - [ ] **RR17** Runbooks live for every alert resolving to a runbook URL. *Lane:* `oya-governance-runbook-index-resolves`.
 - [ ] **RR18** On-call rotation (primary + secondary) staffed for milestone owner-axis. *(advisory)*

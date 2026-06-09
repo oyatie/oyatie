@@ -57,6 +57,11 @@
       "cargo_prefix_name_path_mismatch": {"mode": "baseline-block-on-new"},
       "cargo_prefix_unresolvable": {"mode": "baseline-block-on-new"}
     },
+    "cloud-ci-slo-coverage": {
+      "slo_missing_or_blank_slo": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "slo_empty_crate_id": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "slo_no_catalog_records": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
     "cloud-ci-brand-residue": {
       "forbidden_foundry": {"mode": "baseline-block-on-new"},
       "forbidden_forgejo": {"mode": "baseline-block-on-new"},

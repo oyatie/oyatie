@@ -12,8 +12,8 @@
 //!   oya-cloud-ci-accounting-registry-app [--repo-root <path>] [--out-dir <path>] [--stdout]
 //!                                        [--scm-facts <path>]
 //!
-//! With `--stdout` the registry is written to stdout (used by the registry-drift gate
-//! to regenerate in a sandbox and byte-diff). Default writes the four faces under
+//! With `--stdout` one generated face is written to stdout (used by the registry-drift gate
+//! to regenerate in a sandbox and byte-diff). Default writes all generated faces under
 //! `<out-dir>` (default `<repo-root>/cloud/cloud-ci/gates`). `--scm-facts` defaults to the
 //! committed `scm-facts.generated.json` beside the faces.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -223,6 +223,10 @@ fn run() -> Result<(), CliError> {
     // package names. The gate's evaluate_keyed reuses
     // oya_intelligence_cargo_prefix_domain::validate_cargo_prefix per crate.
     let cargo_prefix = collect_cargo_prefix(&repo_root, &inputs.tracked_paths, &cfg);
+    // The SLO coverage gate input: the config-declared catalog record globs expanded over the
+    // tracked-path universe. This makes the lane input contract portable DATA instead of an
+    // Oyatie-only hardcoded directory walk.
+    let slo_coverage = collect_slo_coverage(&repo_root, &inputs.tracked_paths, &cfg);
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
@@ -231,6 +235,7 @@ fn run() -> Result<(), CliError> {
         bnf_layer_suffix: &bnf_layer_suffix,
         manifest_hygiene: &manifest_hygiene,
         cargo_prefix: &cargo_prefix,
+        slo_coverage: &slo_coverage,
         brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&cfg, &gate_inputs, &config_digest)?;
@@ -244,6 +249,7 @@ fn run() -> Result<(), CliError> {
             "bnf-layer-suffix" => &bnf_layer_suffix,
             "manifest-hygiene" => &manifest_hygiene,
             "cargo-prefix" => &cargo_prefix,
+            "slo-coverage" => &slo_coverage,
             "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
@@ -514,6 +520,163 @@ fn collect_cargo_prefix(
         })
         .collect();
     json!({ "rows": rows })
+}
+
+/// Enumerate SLO catalog rows from the config-declared `[slo_coverage].catalog_record_globs`.
+/// This replaces the legacy dev-cli's implicit `registry/catalog` walk with a portable, closed-
+/// schema input contract. The current default still mirrors Oyatie's catalog source
+/// (`registry/catalog/*.yaml`), but adopters can point the same gate at their own catalog layout
+/// without forking the producer or evaluator.
+fn collect_slo_coverage(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Value {
+    let mut records: Vec<(String, String, Option<String>)> = Vec::new();
+    for path in tracked_paths {
+        if is_path_excluded(path, cfg) {
+            continue;
+        }
+        if !cfg
+            .slo_coverage
+            .catalog_record_globs
+            .iter()
+            .any(|glob| path_glob_matches(path, glob))
+        {
+            continue;
+        }
+        let Some(crate_id) = file_stem(path) else {
+            continue;
+        };
+        let contents = read_text(&repo_root.join(path));
+        records.push((crate_id, path.clone(), parse_catalog_slo(&contents)));
+    }
+    records.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+
+    let rows: Vec<Value> = records
+        .into_iter()
+        .map(|(crate_id, source_path, slo)| {
+            json!({ "crate_id": crate_id, "source_path": source_path, "slo": slo })
+        })
+        .collect();
+    json!({ "rows": rows })
+}
+
+/// Minimal path-glob matcher for declared gate input contracts. Supports exact paths,
+/// directory-prefix (`dir/**` and `dir/`), recursive extension (`**/*.yaml`), basename extension
+/// (`*.yaml`), and one-level directory extension (`dir/*.yaml`). Unknown shapes fail closed.
+fn path_glob_matches(path: &str, glob: &str) -> bool {
+    let path = path.strip_prefix("./").unwrap_or(path);
+    let glob = glob.strip_prefix("./").unwrap_or(glob);
+    if path == glob {
+        return true;
+    }
+    if let Some(prefix) = glob.strip_suffix("/**") {
+        return path == prefix || path.starts_with(&format!("{prefix}/"));
+    }
+    if glob.ends_with('/') {
+        return path.starts_with(glob);
+    }
+    if let Some(ext) = glob.strip_prefix("**/*.") {
+        return path.ends_with(&format!(".{ext}"));
+    }
+    if let Some(ext) = glob.strip_prefix("*.") {
+        return !path.contains('/') && path.ends_with(&format!(".{ext}"));
+    }
+    if let Some((dir, pattern)) = glob.rsplit_once("/*.")
+        && !dir.is_empty()
+    {
+        let prefix = format!("{dir}/");
+        if let Some(rest) = path.strip_prefix(&prefix) {
+            return !rest.contains('/') && rest.ends_with(&format!(".{pattern}"));
+        }
+    }
+    false
+}
+
+fn file_stem(path: &str) -> Option<String> {
+    let name = path.rsplit('/').next().unwrap_or(path);
+    let (stem, _) = name.rsplit_once('.')?;
+    if stem.is_empty() {
+        None
+    } else {
+        Some(stem.to_owned())
+    }
+}
+
+fn parse_catalog_slo(contents: &str) -> Option<String> {
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let Some((key, value)) = trimmed.split_once(':') else {
+            continue;
+        };
+        if key.trim() == "slo" {
+            return Some(value.trim().to_owned());
+        }
+    }
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn unique_temp_repo() -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock after epoch")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "oya-slo-coverage-duplicate-test-{}-{nanos}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&root).expect("create temp repo");
+        root
+    }
+
+    #[test]
+    fn slo_coverage_preserves_duplicate_basenames_to_prevent_false_green() {
+        let root = unique_temp_repo();
+        let first = root.join("registry/catalog-a/service.yaml");
+        let second = root.join("registry/catalog-b/service.yaml");
+        fs::create_dir_all(first.parent().expect("first parent")).expect("create first parent");
+        fs::create_dir_all(second.parent().expect("second parent")).expect("create second parent");
+        fs::write(&first, "slo: preview-control-plane\n").expect("write first catalog row");
+        fs::write(&second, "# deliberately missing slo\n").expect("write second catalog row");
+
+        let mut cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        cfg.slo_coverage.catalog_record_globs = vec![
+            "registry/catalog-a/*.yaml".to_owned(),
+            "registry/catalog-b/*.yaml".to_owned(),
+        ];
+        let tracked_paths = vec![
+            "registry/catalog-a/service.yaml".to_owned(),
+            "registry/catalog-b/service.yaml".to_owned(),
+        ];
+
+        let face = collect_slo_coverage(&root, &tracked_paths, &cfg);
+        let rows = face["rows"].as_array().expect("rows");
+        assert_eq!(rows.len(), 2, "duplicate stems must not collapse rows");
+        assert_eq!(rows[0]["crate_id"], "service");
+        assert_eq!(rows[0]["source_path"], "registry/catalog-a/service.yaml");
+        assert_eq!(rows[1]["crate_id"], "service");
+        assert_eq!(rows[1]["source_path"], "registry/catalog-b/service.yaml");
+
+        let findings = oya_cloud_ci_slo_coverage_app::evaluate_keyed(&face);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "slo_missing_or_blank_slo" && finding.key == "service"
+            }),
+            "one duplicate row with a valid SLO must not hide the missing-SLO duplicate: {findings:?}"
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
 }
 
 /// Extract `name = "..."` from the `[package]` table of a Cargo.toml. Lightweight line-scan

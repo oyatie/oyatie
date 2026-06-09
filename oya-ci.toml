@@ -97,6 +97,11 @@ file_name = "OWNERS"
 governance_crate_substr = "oya-governance"
 governance_lanes = ["docs/governance-lanes/diataxis-doc-class.md", "docs/governance-lanes/prd-axis-coverage.md"]
 
+# Gate input contracts are DATA so public oya-ci adopters can point gates at their own repo
+# shapes without forking the engine. This default mirrors Oyatie's catalog row source.
+[slo_coverage]
+catalog_record_globs = ["registry/catalog/*.yaml"]
+
 [ttl]
 
 [unit_class]
@@ -135,6 +140,11 @@ face = "manifest_hygiene"
 id = "cloud-ci-cargo-prefix"
 input_kind = "producer-face"
 face = "cargo_prefix"
+
+[[gates.enabled]]
+id = "cloud-ci-slo-coverage"
+input_kind = "producer-face"
+face = "slo_coverage"
 
 [[gates.enabled]]
 id = "cloud-ci-brand-residue"

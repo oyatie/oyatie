@@ -11,7 +11,7 @@ purpose: |
   slow-burn (1hr×6hr). Auto-rollback at fast-burn threshold; auto-pause at slow-burn threshold.
   Provider-agnostic burn-rate kernel.
 planned_enforcement_ref:
-  - oya-governance-slo-coverage
+  - cloud-ci-slo-coverage
   - oya-governance-rollback-evidence
 related_adrs: [ADR-0040, ADR-0042, ADR-0037]
 doc_status: published
@@ -87,7 +87,7 @@ Per-service SLOs are owned by [`docs/SLO-CATALOG.md`](../../../docs/SLO-CATALOG.
 | GA | 99.95% | 30 d | 1.0× |
 | Stable | 99.99% (critical: audit, identity, KMS) | 30 d | 1.0× |
 
-`oya-governance-slo-coverage` (existing) is extended to require burn-rate alert wiring per GA+ service.
+`cloud-ci-slo-coverage` (existing) is extended to require burn-rate alert wiring per GA+ service.
 
 ## 7. Per-cohort burn-rate (regulated cohorts)
 
@@ -111,7 +111,7 @@ We adopt the Google formulation as the canonical math; provider adapters surface
 
 ## 10. Compliance gates
 
-- `oya-governance-slo-coverage` (existing; extended to require burn-rate alerts on GA+ services).
+- `cloud-ci-slo-coverage` (existing; extended to require burn-rate alerts on GA+ services).
 - `oya-governance-rollback-evidence` (NEW; BLOCKER).
 
 ## 11. Lift target

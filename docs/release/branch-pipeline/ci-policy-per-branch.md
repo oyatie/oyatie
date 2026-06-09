@@ -49,7 +49,7 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 | `oya-governance-promotion-gate-staging-to-prod` | BLOCKER (gate-class) | staging → prod | this composer; NEW |
 | `oya-governance-canary-required` | BLOCKER | prod | [`../progressive-delivery/progressive-delivery-strategy.md`](../progressive-delivery/progressive-delivery-strategy.md) |
 | `oya-governance-rollback-evidence` | BLOCKER | prod | [`../progressive-delivery/blue-green-spec.md`](../progressive-delivery/blue-green-spec.md) |
-| `oya-governance-slo-coverage` | HIGH | every service | [ADR-0042](../../decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md) |
+| `cloud-ci-slo-coverage` | HIGH | every service | [ADR-0042](../../decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md) |
 
 
 **CI policy:** none. Private workspace. Agents may run lanes locally via sanctioned tooling for personal confidence; results are not promoted to a shared store.

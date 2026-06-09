@@ -494,12 +494,13 @@ pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-
 // gate is a `oya-ci.toml` DATA edit, not a producer code change. `build_gate_baseline` +
 // `current_keys_per_gate` dispatch on the config-declared `input_kind` (§3.5).
 
-/// The four live gate-input faces the baseline is captured over. Each is the exact
+/// The live producer-face inputs the baseline is captured over. Each is the exact
 /// `Value` shape that the matching gate's `evaluate_keyed` consumes:
 /// - `total_accounting`: the accounting registry (`rows` with path/owner/justification/…)
 /// - `cross_artifact`: the decision crosswalk (`decisions`/`duplicate_ids`/`generated_face_axes`)
 /// - `automation_ratchet`: the automation matrix (`rows`) joined with the enforcement face
 /// - `staleness`: the registry rows aged with `age_days` (the binary supplies the aging)
+/// - `slo_coverage`: the catalog SLO face (`rows` with crate_id/slo)
 pub struct GateInputs<'a> {
     pub total_accounting: &'a Value,
     pub cross_artifact: &'a Value,
@@ -522,6 +523,11 @@ pub struct GateInputs<'a> {
     /// The gate's `evaluate_keyed` reuses `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix`
     /// per crate (surface-all). Empty in unit tests.
     pub cargo_prefix: &'a Value,
+    /// The SLO coverage gate input: `{"rows":[{"crate_id", "slo"}]}`. The producer expands the
+    /// config-declared `[slo_coverage].catalog_record_globs` against tracked paths, derives the
+    /// catalog identity from each file stem, and parses the top-level `slo:` value. The gate's
+    /// `evaluate_keyed` reuses `oya_check_slo_coverage::validate_slo_coverage` per row.
+    pub slo_coverage: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
     /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
     /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
@@ -572,6 +578,11 @@ fn producer_face_keys(
         ),
         GateFace::CargoPrefix => group_findings(
             oya_cloud_ci_cargo_prefix_app::evaluate_keyed(inputs.cargo_prefix)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+        GateFace::SloCoverage => group_findings(
+            oya_cloud_ci_slo_coverage_app::evaluate_keyed(inputs.slo_coverage)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
@@ -857,6 +868,7 @@ mod tests {
             bnf_layer_suffix: &empty_face,
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
+            slo_coverage: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
@@ -901,6 +913,7 @@ mod tests {
             bnf_layer_suffix: &empty_face,
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
+            slo_coverage: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();

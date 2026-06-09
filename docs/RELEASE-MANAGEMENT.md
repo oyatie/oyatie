@@ -36,7 +36,7 @@ Per `docs/standards/ci-lanes.md` (legacy authoritative) + new `oya-governance-*`
 | `oya-governance-data-class` | every PR | yes |
 | `oya-governance-cohesion` (cross-axis drift) | every PR | yes (warn first wave; block at W-Foundation gate) |
 | `oya-governance-doc-catalog` | PRs touching `docs/**` | yes |
-| `oya-governance-slo-coverage` | every PR | yes |
+| `cloud-ci-slo-coverage` | every PR | yes |
 | `oya-governance-blast-radius` | every PR | label-emit |
 | Trivy 4-layer scan (per ADR-0039) | every PR + nightly | yes |
 | Cosign sign + Rekor anchor | release artifact | yes |
