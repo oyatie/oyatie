@@ -13,6 +13,11 @@ use std::fmt;
 
 use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, OperationalDataClass};
 
+const OPENBAO_SECRET_REFERENCE_PREFIX: &str = "openbao:secret/";
+const CONFIG_SECRET_REFERENCE_PREFIX: &str = "${";
+const CONFIG_SECRET_REFERENCE_SUFFIX: &str = "}";
+pub const MAX_SECRET_REFERENCE_CACHE_TTL_SECONDS: u64 = 60;
+
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct SecretRef {
     pub tenant_id: Classified<String>,
@@ -126,6 +131,26 @@ pub enum SecretBootstrapError {
     SecretMaterialInBootstrap,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SecretReferenceUri {
+    provider: SecretProviderKind,
+    path: String,         // data_class: INTERNAL_ONLY
+    version: Option<u64>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SecretReferenceUriError {
+    MissingOpenBaoSecretPrefix,
+    MissingConfigWrapper,
+    EmptyPath,
+    EmptySegment,
+    TraversalSegment,
+    InvalidSegmentCharacter,
+    InvalidVersion,
+    ZeroVersion,
+    SecretMaterialLiteral,
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct SecretVault {
     records: Vec<SecretVersion>,
@@ -218,6 +243,110 @@ impl SecretReference {
 
     pub fn evidence_ref(&self) -> &str {
         &self.evidence_ref
+    }
+}
+
+impl SecretReferenceUri {
+    pub fn parse(input: impl AsRef<str>) -> Result<Self, SecretReferenceUriError> {
+        let input = input.as_ref();
+        if looks_like_secret_material(input) {
+            return Err(SecretReferenceUriError::SecretMaterialLiteral);
+        }
+        let reference = input
+            .strip_prefix(OPENBAO_SECRET_REFERENCE_PREFIX)
+            .ok_or(SecretReferenceUriError::MissingOpenBaoSecretPrefix)?;
+        let (path, version) = parse_reference_path_and_version(reference)?;
+        validate_reference_path(path)?;
+        Ok(Self {
+            provider: SecretProviderKind::OpenBao,
+            path: path.to_string(),
+            version,
+        })
+    }
+
+    pub fn parse_config_reference(
+        input: impl AsRef<str>,
+    ) -> Result<Self, SecretReferenceUriError> {
+        let input = input.as_ref();
+        let Some(without_prefix) = input.strip_prefix(CONFIG_SECRET_REFERENCE_PREFIX) else {
+            return Err(SecretReferenceUriError::MissingConfigWrapper);
+        };
+        let Some(reference) = without_prefix.strip_suffix(CONFIG_SECRET_REFERENCE_SUFFIX) else {
+            return Err(SecretReferenceUriError::MissingConfigWrapper);
+        };
+        Self::parse(reference)
+    }
+
+    pub const fn provider(&self) -> SecretProviderKind {
+        self.provider
+    }
+
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub const fn version(&self) -> Option<u64> {
+        self.version
+    }
+
+    pub fn path_segments(&self) -> impl Iterator<Item = &str> {
+        self.path.split('/')
+    }
+
+    pub fn normalized_uri(&self) -> String {
+        match self.version {
+            Some(version) => {
+                format!(
+                    "{OPENBAO_SECRET_REFERENCE_PREFIX}{}@v{version}",
+                    self.path
+                )
+            }
+            None => format!("{OPENBAO_SECRET_REFERENCE_PREFIX}{}", self.path),
+        }
+    }
+
+    pub fn normalized_config_reference(&self) -> String {
+        format!(
+            "{CONFIG_SECRET_REFERENCE_PREFIX}{}{CONFIG_SECRET_REFERENCE_SUFFIX}",
+            self.normalized_uri()
+        )
+    }
+}
+
+impl fmt::Display for SecretReferenceUriError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let message = match self {
+            Self::MissingOpenBaoSecretPrefix => {
+                "secret reference must start with 'openbao:secret/'"
+            }
+            Self::MissingConfigWrapper => {
+                "config secret reference must be wrapped as '${openbao:secret/<path>}'"
+            }
+            Self::EmptyPath => "secret reference path must not be empty",
+            Self::EmptySegment => "secret reference path segments must not be empty",
+            Self::TraversalSegment => "secret reference path must not contain '..' traversal",
+            Self::InvalidSegmentCharacter => {
+                "secret reference path contains a character outside the contract alphabet"
+            }
+            Self::InvalidVersion => {
+                "secret reference version must use the '@v<positive-integer>' suffix"
+            }
+            Self::ZeroVersion => "secret reference version must be greater than zero",
+            Self::SecretMaterialLiteral => {
+                "secret reference must not contain raw secret material or credential-shaped text"
+            }
+        };
+        formatter.write_str(message)
+    }
+}
+
+impl std::error::Error for SecretReferenceUriError {}
+
+pub const fn clamp_secret_reference_cache_ttl_seconds(requested_seconds: u64) -> u64 {
+    if requested_seconds > MAX_SECRET_REFERENCE_CACHE_TTL_SECONDS {
+        MAX_SECRET_REFERENCE_CACHE_TTL_SECONDS
+    } else {
+        requested_seconds
     }
 }
 
@@ -467,6 +596,55 @@ fn material_fingerprint(bytes: &[u8]) -> String {
         state = state.wrapping_mul(0x100000001b3);
     }
     format!("fnv1a64:{state:016x}")
+}
+
+fn parse_reference_path_and_version(
+    reference: &str,
+) -> Result<(&str, Option<u64>), SecretReferenceUriError> {
+    if reference.is_empty() {
+        return Err(SecretReferenceUriError::EmptyPath);
+    }
+    let Some((path, version_text)) = reference.rsplit_once('@') else {
+        return Ok((reference, None));
+    };
+    if path.is_empty() {
+        return Err(SecretReferenceUriError::EmptyPath);
+    }
+    let Some(digits) = version_text.strip_prefix('v') else {
+        return Err(SecretReferenceUriError::InvalidVersion);
+    };
+    if digits.is_empty() || !digits.chars().all(|character| character.is_ascii_digit()) {
+        return Err(SecretReferenceUriError::InvalidVersion);
+    }
+    let version = digits
+        .parse::<u64>()
+        .map_err(|_| SecretReferenceUriError::InvalidVersion)?;
+    if version == 0 {
+        return Err(SecretReferenceUriError::ZeroVersion);
+    }
+    Ok((path, Some(version)))
+}
+
+fn validate_reference_path(path: &str) -> Result<(), SecretReferenceUriError> {
+    if path.is_empty() {
+        return Err(SecretReferenceUriError::EmptyPath);
+    }
+    for segment in path.split('/') {
+        if segment.is_empty() {
+            return Err(SecretReferenceUriError::EmptySegment);
+        }
+        if segment == ".." {
+            return Err(SecretReferenceUriError::TraversalSegment);
+        }
+        if !segment.chars().all(is_reference_segment_character) {
+            return Err(SecretReferenceUriError::InvalidSegmentCharacter);
+        }
+    }
+    Ok(())
+}
+
+fn is_reference_segment_character(character: char) -> bool {
+    character.is_ascii_alphanumeric() || matches!(character, '_' | '-' | '.' | ':')
 }
 
 fn validate_cloud_secret_boundary(
