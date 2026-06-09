@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:0ad7405174ca4a0c",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:6d6188703cd2a544"
+    "source_inputs_digest": "fnv1a64:1f33df4e0f949f10"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -10345,6 +10345,7 @@
           "evidence/audits/pipeline-maturity-audit-2026-05-15.md",
           "evidence/audits/standards-sprawl-audit-1778812600.json",
           "evidence/board-sync/board-snapshot.example.json",
+          "evidence/ci/dev-git-facts-drift-20260609.json",
           "evidence/ci/slsa/README.md",
           "evidence/ci/slsa/sbom.cdx.json.gz",
           "evidence/ci/slsa/slsa-provenance.predicate.json",
@@ -27877,6 +27878,7 @@
           "evidence/audits/shell-python-replacement-audit-2026-05-15.md",
           "evidence/audits/standards-sprawl-audit-1778812600.json",
           "evidence/board-sync/board-snapshot.example.json",
+          "evidence/ci/dev-git-facts-drift-20260609.json",
           "evidence/ci/slsa/README.md",
           "evidence/ci/slsa/sbom.cdx.json.gz",
           "evidence/ci/slsa/slsa-provenance.predicate.json",
@@ -44790,6 +44792,7 @@
           "evidence/audits/shell-python-replacement-audit-2026-05-15.md",
           "evidence/audits/standards-sprawl-audit-1778812600.json",
           "evidence/board-sync/board-snapshot.example.json",
+          "evidence/ci/dev-git-facts-drift-20260609.json",
           "evidence/ci/slsa/README.md",
           "evidence/ci/slsa/sbom.cdx.json.gz",
           "evidence/ci/slsa/slsa-provenance.predicate.json",
