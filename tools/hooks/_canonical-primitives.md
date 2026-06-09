@@ -268,16 +268,17 @@ ADR-0335: foundry µservice retired (Wave 15I) — AI substrate absorbed into in
 
 See: specs/master-plan-sequencing.json#forbidden_primitives
 Summary: Bash agent commands use plain `git` for ordinary git operations. The
-retired wrappers `oya git` and `oya vcs` must not be used. Governance
-verification is the cloud-ci/oya-ci produced `oya-ci-required` status; local
-`oya verify`/`oya gate` output is optional shift-left evidence only;
+retired local `oya` wrappers must not be used. Governance verification is the
+cloud-ci/oya-ci produced `oya-ci-required` status; local
+`oya verify`/`oya gate`/`oya check`/dev-cli wrappers are retired authority
+mechanisms and must not be used as local substitutes for that required context.
 OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ---
 
 ## Common Pitfalls
 
-1. Using retired `oya git` / `oya vcs` surfaces instead of plain git + PR + GitHub Actions cloud-ci governance gates.
+1. Using retired local `oya` wrapper surfaces instead of plain git + PR + GitHub Actions cloud-ci governance gates.
 2. Writing `openapi: 3.3.0` (no such released version as of 2026-05-18)
 3. Writing `asyncapi: 3.0.0` (use 3.1.0)
 4. Treating microservices/intelligence/ as a live µservice (ADR-0335 absorbed it into microservices/intelligence/)
@@ -292,18 +293,20 @@ OpenAPI must be 3.2.0; AsyncAPI must be 3.1.0.
 
 ## oya-dev-cli Invocation Pattern
 
-Local dev-cli invocation is not merge authority. Prefer Buck2 targets and the
-cloud-ci/oya-ci `oya-ci-required` status for evidence. Do not add new
-`cargo run -p oya-dev-cli` hook or checklist requirements.
+Local dev-cli invocation is retired as an authority mechanism. Prefer Buck2
+targets for local confidence and the cloud-ci/oya-ci `oya-ci-required` status
+for protected-branch evidence. Do not add new dev-cli hook or checklist
+requirements.
 
 ---
 
 ## Wave 15-ZF Doctrine Primitives (ADR-0346..ADR-0349)
 
 ADR-0346 legacy local-verifier wording is superseded for active work by
-ADR-0515: `oya-ci-required` is the one canonical blocking status, produced by
-the cloud-ci/oya-ci pipeline. Local verifier output may be attached as
-shift-left evidence but must not be used as protected-branch authority.
+ADR-0515 and the current canon stores: `oya-ci-required` is the one canonical
+blocking status, produced by the cloud-ci/oya-ci pipeline. Retired local oya
+wrappers must not be used as protected-branch authority or revived as a local
+authority mechanism.
 
 ADR-0347: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in one Wave 15-ZB
   bulk-rename pull request; the deterministic inventory path is .omc/state/oya-governance-rename-inventory-2026-05-21.json.

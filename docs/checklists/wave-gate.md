@@ -6,7 +6,7 @@ doc_status: published
 
 > **When:** When a wave-tactical team believes the wave's exit criteria are met. The gate is BLOCKING; no later wave starts until this passes.
 > **Owner:** Per-wave tactical team (e.g. `tactical-first-vertical-pilot` for W-Vertical-Pilot) + `council-architecture` co-sign.
-> **Validator:** `oya gate validate wave --wave <wave-id>` + per-wave exit-criteria evidence pack
+> **Validator:** protected `oya-ci-required` status + per-wave exit-criteria evidence pack
 
 ---
 
