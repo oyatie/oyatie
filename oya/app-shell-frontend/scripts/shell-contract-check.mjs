@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Static shell-contract check used as the package's dependency-free lint/test gate.
 // It prevents the archived SolidJS transition surface from drifting back to a
-// false ADR-0372/SolidJS-canonical or prototype/demo production story.
+// false ADR-0372/SolidJS-canonical runtime story.
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -29,6 +29,7 @@ const checkedFiles = [
   "app.config.ts",
   "scripts/codegen-check.mjs",
   "src/app.tsx",
+  "src/entry-client.tsx",
   "src/routes/index.tsx",
   "src/components/DashboardIsland.tsx",
   "src/components/ShellHeader.tsx",
@@ -39,6 +40,8 @@ const checkedFiles = [
   "src/styles/tokens.css",
 ];
 
+// Detector-only denylist: the literals below are test inputs, not runtime copy
+// or production-readiness claims. They must not appear in checked UI/source files.
 const bannedPatterns = [
   /Prototype\/demo only/i,
   /superseding the Leptos prototype/i,
