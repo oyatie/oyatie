@@ -3,6 +3,20 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-10 — FRIC-012 enforcement-liveness gate added
+
+- Added `cloud-ci-enforcement-liveness` to make tracked hook scripts mechanically live across
+  Claude and Codex project hook wiring, while preserving marked compatibility stubs.
+- Documented the `enforcement_liveness` producer face and frozen-empty hook liveness codes in the
+  oya-ci gate catalog.
+
+## 2026-06-10 — ADR-0540 target-parity gate authored
+
+- Added ADR-0540 and documented the `cloud-ci-target-parity` gate for Cargo workspace member
+  BUCK-file and `rust_test` target parity.
+- Updated the oya-ci gate catalog with the `target_parity` producer face, frozen-empty
+  `member_missing_buck` code, and baseline-block-on-new test-target debt code.
+
 ## 2026-05-20 — ADR-0320 transient program identity doctrine authored
 
 - Added ADR-0320 for apprentice, intern, resident, fellow, co-op, and extern identities as multi-tenant transient program memberships with time-bound Cedar permits, labor overlays, portfolio survival, and shared-crate implementation footprint.

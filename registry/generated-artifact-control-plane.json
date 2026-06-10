@@ -96,6 +96,36 @@
       }
     },
     {
+      "artifact_id": "cloud-ci-enforcement-liveness-face",
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json",
+      "artifact_class": "main-materialized-aggregate",
+      "materialization_mode": "merge-candidate-regenerated",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "source_inputs": [
+        "tools/hooks/*.sh",
+        ".claude/settings.json",
+        ".codex/hooks.json",
+        "oya-ci.toml"
+      ],
+      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
+      "public_product_contract": "Enforcement liveness is generated hook wiring metadata and must be regenerated rather than hand-merged.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",
+        "operation_id": "emit-accounting-face",
+        "parameters": {
+          "face": "enforcement-liveness"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs",
+          "scm-facts-snapshot"
+        ],
+        "output_mode": "stdout-json"
+      }
+    },
+    {
       "artifact_id": "cloud-ci-gate-baseline-ratchet-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
       "artifact_class": "main-materialized-aggregate",
@@ -252,14 +282,14 @@
     {
       "layer_id": "pre-commit-pre-push",
       "name": "Pre-commit and pre-push",
-      "automation": "Fast checks reject undeclared generated outputs, normal-source merge policies for tracked generated artifacts, and non-deletion generated-output edits before a branch reaches CI.",
-      "enforcement": "Hooks may block local pushes, but the server-side generated-output diff policy and Rust gate repeat the check and remain authoritative."
+      "automation": "Fast checks reject undeclared generated outputs, normal-source merge policies for tracked generated artifacts, and generated-output edits that are not declared materialized artifacts with freshness/parity coverage before a branch reaches CI.",
+      "enforcement": "Hooks may block local pushes, but the server-side generated-output diff policy, freshness gate, and Rust gate repeat the check and remain authoritative."
     },
     {
       "layer_id": "pull-request-presubmit",
       "name": "Pull request presubmit",
-      "automation": "Hermetic Rust gates run over committed manifest plus materialized SCM-facts snapshot; presubmit rejects non-deletion generated-output edits and uploads regenerated evidence without requiring hand conflict resolution.",
-      "enforcement": "The single fan-in context oya-ci-required turns red on undeclared generated artifacts, unsafe merge policies, or generated outputs used as PR merge surfaces."
+      "automation": "Hermetic Rust gates run over committed manifest plus materialized SCM-facts snapshot; presubmit rejects undeclared generated-output edits while allowing declared materialized artifacts whose bytes are freshness-checked against their generators.",
+      "enforcement": "The single fan-in context oya-ci-required turns red on undeclared generated artifacts, unsafe merge policies, stale declared materialized artifacts, or generated outputs used as ordinary source merge surfaces."
     },
     {
       "layer_id": "merge-queue-projected-state",

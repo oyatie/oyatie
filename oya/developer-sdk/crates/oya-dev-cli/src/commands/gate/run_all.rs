@@ -397,6 +397,11 @@ mod tests {
     }
 
     #[test]
+    fn aggregated_lane_catalog_contains_freshness() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"freshness"));
+    }
+
+    #[test]
     fn dependency_seam_dispatch_uses_required_ci_args() {
         let args = dispatch_args_for_lane("dependency-seam");
         assert!(args.contains(&"--online-audit".to_string()));

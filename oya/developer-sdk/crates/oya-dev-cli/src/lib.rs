@@ -78,6 +78,7 @@ mod foundation_audit_gates;
 mod foundation_fixture;
 mod foundry_capability_schema_gates;
 mod foundry_eval_gates;
+mod freshness_gate;
 mod glossary_cross_doc_gates;
 mod governance_advisory_lanes;
 mod governance_gates;
@@ -223,6 +224,7 @@ pub(crate) use foundry_capability_schema_gates::{
     parse_foundry_capability_schema_validate_args, validate_foundry_capability_schema_gate,
 };
 pub(crate) use foundry_eval_gates::{parse_foundry_eval_validate_args, validate_foundry_eval_gate};
+pub(crate) use freshness_gate::{parse_freshness_gate_args, validate_freshness_gate};
 pub(crate) use glossary_cross_doc_gates::{
     parse_glossary_coverage_validate_args, validate_glossary_coverage_gate,
 };
@@ -419,6 +421,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate placeholder-debt [--docs-dir <docs>] [--registry <registry/placeholder-debt/registry.tsv>] [--write-registry <path>] [--write-report <path>]"
         + "\n       oya gate validate loop-recovery-patterns [--agent-durable-goal <specs/agent-durable-goal.json>] [--score-cards <specs/score-cards.json>] [--patterns-dir <registry/loop-recovery-patterns>] [--mistakes-ledger <registry/mistakes-ledger.json>]"
         + "\n       oya gate validate pre-push-contract [--done-definition <docs/checklists/done-definition-checklist.md>] [--cli-dispatch-source <crates/oya-dev-cli/src/lib.rs>] [--hook-script <scripts/hooks/pre-push.sh>]"
+        + "\n       oya gate validate freshness [--repo-root <.>]"
         + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <dev>] [--applied-branch-protection <infra/branch-protection/dev.json>] [--skip-applied-branch-protection] [--live-required-contexts <required_status_checks.json>]"
         + "\n       oya gate validate retired-vocabulary [--registry <registry/vocabulary/retired.yaml>] [--corpus-root <path>] (repeatable) [--exclude-root <path>] (repeatable)"
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"

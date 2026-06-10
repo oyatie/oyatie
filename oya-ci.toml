@@ -152,5 +152,24 @@ input_kind = "producer-face"
 face = "slo_coverage"
 
 [[gates.enabled]]
+id = "cloud-ci-workspace-glob-coverage"
+input_kind = "producer-face"
+face = "workspace_glob_coverage"
+
+[[gates.enabled]]
+id = "cloud-ci-target-parity"
+input_kind = "producer-face"
+face = "target_parity"
+
+[[gates.enabled]]
+id = "cloud-ci-enforcement-liveness"
+input_kind = "producer-face"
+face = "enforcement_liveness"
+
+[[gates.enabled]]
+id = "cloud-ci-freshness"
+input_kind = "frozen-empty-meta"
+
+[[gates.enabled]]
 id = "cloud-ci-brand-residue"
 input_kind = "raw-corpus-collector"

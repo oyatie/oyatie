@@ -10,3 +10,17 @@ rust_library(
         "third-party//:serde_yaml",
     ],
 )
+
+rust_test(
+    name = "oya-check-step-up-auth-coverage-step-up-auth-coverage",
+    srcs = ["tests/step_up_auth_coverage.rs"],
+    crate = "oya_check_step_up_auth_coverage_step_up_auth_coverage",
+    crate_root = "tests/step_up_auth_coverage.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-check-step-up-auth-coverage",
+        "third-party//:serde",
+        "third-party//:serde_yaml",
+        "third-party//:serde_yaml",
+    ],
+)

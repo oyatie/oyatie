@@ -78,7 +78,7 @@ set `inline_json = """{ ... }"""` to override with a full inline JSON document.
 |---|---|
 | `id` | the gate id (matches its crate + its firewall baseline section) |
 | `input_kind` | how the gate's CURRENT keys are sourced — `producer-face`, `raw-corpus-collector`, or `frozen-empty-meta` (see [the gate catalog](./gate-catalog.md) §input KINDs) |
-| `face` | for `producer-face` gates only: which producer face it binds (`total_accounting` / `cross_artifact` / `automation_ratchet` / `staleness` / `bnf_layer_suffix` / `manifest_hygiene`) |
+| `face` | for `producer-face` gates only: which producer face it binds (`total_accounting` / `cross_artifact` / `automation_ratchet` / `staleness` / `bnf_layer_suffix` / `manifest_hygiene` / `cargo_prefix` / `slo_coverage` / `workspace_glob_coverage`) |
 
 `gates.disposition_json` (optional, `inline_json`-style) carries the per-(gate,code)
 `mode` / `infra_prereq` / `frozen_empty` disposition table; absent ⇒ the bundled table. A

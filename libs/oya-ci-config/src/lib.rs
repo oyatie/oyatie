@@ -629,6 +629,9 @@ pub enum GateFace {
     ManifestHygiene,
     CargoPrefix,
     SloCoverage,
+    WorkspaceGlobCoverage,
+    TargetParity,
+    EnforcementLiveness,
 }
 
 /// One enabled gate: its id, its input KIND, and (for `producer-face`) which face it binds.
@@ -711,6 +714,26 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             id: "cloud-ci-slo-coverage".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::SloCoverage),
+        },
+        GateSpec {
+            id: "cloud-ci-workspace-glob-coverage".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::WorkspaceGlobCoverage),
+        },
+        GateSpec {
+            id: "cloud-ci-target-parity".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::TargetParity),
+        },
+        GateSpec {
+            id: "cloud-ci-enforcement-liveness".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::EnforcementLiveness),
+        },
+        GateSpec {
+            id: "cloud-ci-freshness".to_owned(),
+            input_kind: GateInputKind::FrozenEmptyMeta,
+            face: None,
         },
         GateSpec {
             id: "cloud-ci-brand-residue".to_owned(),
@@ -797,9 +820,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_nine_gates_with_input_kinds() {
+    fn bundled_default_enables_all_thirteen_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 9);
+        assert_eq!(cfg.gates.enabled.len(), 13);
         let brand = cfg
             .gates
             .enabled
@@ -832,6 +855,102 @@ mod tests {
             .expect("slo-coverage gate enabled");
         assert_eq!(slo_coverage.input_kind, GateInputKind::ProducerFace);
         assert_eq!(slo_coverage.face, Some(GateFace::SloCoverage));
+        let workspace_glob_coverage = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-workspace-glob-coverage")
+            .expect("workspace-glob-coverage gate enabled");
+        assert_eq!(
+            workspace_glob_coverage.input_kind,
+            GateInputKind::ProducerFace
+        );
+        assert_eq!(
+            workspace_glob_coverage.face,
+            Some(GateFace::WorkspaceGlobCoverage)
+        );
+        let target_parity = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-target-parity")
+            .expect("target-parity gate enabled");
+        assert_eq!(target_parity.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(target_parity.face, Some(GateFace::TargetParity));
+        let enforcement_liveness = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-enforcement-liveness")
+            .expect("enforcement-liveness gate enabled");
+        assert_eq!(
+            enforcement_liveness.input_kind,
+            GateInputKind::ProducerFace
+        );
+        assert_eq!(
+            enforcement_liveness.face,
+            Some(GateFace::EnforcementLiveness)
+        );
+        let freshness = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-freshness")
+            .expect("freshness gate enabled");
+        assert_eq!(freshness.input_kind, GateInputKind::FrozenEmptyMeta);
+        assert!(freshness.face.is_none());
+
+        let disp: serde_json::Value =
+            serde_json::from_str(cfg.gates.disposition_json()).expect("disposition json");
+        let freshness_codes = disp
+            .get("gates")
+            .and_then(|gates| gates.get("cloud-ci-freshness"))
+            .and_then(serde_json::Value::as_object)
+            .expect("freshness disposition");
+        for code in [
+            "lock_missing_member_package",
+            "lock_stale_member_version",
+            "lock_orphan_path_package",
+            "generated_face_stale",
+        ] {
+            let disposition = freshness_codes
+                .get(code)
+                .expect("freshness code disposition");
+            assert_eq!(
+                disposition.get("mode").and_then(serde_json::Value::as_str),
+                Some("baseline-block-on-new")
+            );
+            assert_eq!(
+                disposition
+                    .get("frozen_empty")
+                    .and_then(serde_json::Value::as_bool),
+                Some(true)
+            );
+        }
+        let liveness_codes = disp
+            .get("gates")
+            .and_then(|gates| gates.get("cloud-ci-enforcement-liveness"))
+            .and_then(serde_json::Value::as_object)
+            .expect("enforcement-liveness disposition");
+        for code in [
+            "hook_unwired_without_stub_marker",
+            "hook_wiring_mirror_drift",
+            "wired_hook_missing_file",
+        ] {
+            let disposition = liveness_codes
+                .get(code)
+                .expect("enforcement-liveness code disposition");
+            assert_eq!(
+                disposition.get("mode").and_then(serde_json::Value::as_str),
+                Some("baseline-block-on-new")
+            );
+            assert_eq!(
+                disposition
+                    .get("frozen_empty")
+                    .and_then(serde_json::Value::as_bool),
+                Some(true)
+            );
+        }
     }
 
     #[test]

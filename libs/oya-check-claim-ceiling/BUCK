@@ -8,3 +8,15 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain",
     ],
 )
+
+rust_test(
+    name = "oya-check-claim-ceiling-claim-ceiling",
+    srcs = ["tests/claim_ceiling.rs"],
+    crate = "oya_check_claim_ceiling_claim_ceiling",
+    crate_root = "tests/claim_ceiling.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-check-claim-ceiling",
+        "//oya/intelligence/crates/oya-intelligence-catalog-domain:oya-intelligence-catalog-domain",
+    ],
+)
