@@ -4516,6 +4516,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-intelligence-gemini-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "oya-cloud-intelligence-translation",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "oya-cloud-intelligence-kernel"
 version = "0.1.0"
 dependencies = [
@@ -4559,6 +4574,7 @@ dependencies = [
  "http-body-util",
  "httpmock",
  "oya-cloud-intelligence-codex-adapter",
+ "oya-cloud-intelligence-gemini-adapter",
  "oya-cloud-intelligence-kernel",
  "reqwest 0.13.4",
  "serde",
