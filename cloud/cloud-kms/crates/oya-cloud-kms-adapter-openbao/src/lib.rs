@@ -13,6 +13,8 @@ use oya_cloud_kms_domain::{
     KmsProviderDecryptRequest, KmsProviderEncryptRequest, KmsProviderKind,
 };
 
+pub mod root_custody;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum OpenBaoKmsAdapterConfigError {
     InvalidEndpoint,
