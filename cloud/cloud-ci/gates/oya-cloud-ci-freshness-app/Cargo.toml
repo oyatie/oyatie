@@ -21,6 +21,10 @@ doctest = false
 name = "oya-cloud-ci-freshness-app"
 path = "src/main.rs"
 
+[[bin]]
+name = "oya-cloud-ci-face-settle"
+path = "src/bin/oya-cloud-ci-face-settle.rs"
+
 [dependencies]
 oya-workspace-members-kernel = { path = "../../../../libs/oya-workspace-members-kernel" }
 toml = { workspace = true }

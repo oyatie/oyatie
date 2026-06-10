@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:62acdf586b03a8ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:59faa344b6244919"
+    "source_inputs_digest": "fnv1a64:6121745ba5757a57"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -6076,8 +6076,10 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/Cargo.toml",
+          "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/bin/oya-cloud-ci-face-settle.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/main.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/face_settle.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/freshness.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/Cargo.toml",
@@ -23645,8 +23647,10 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/Cargo.toml",
+          "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/bin/oya-cloud-ci-face-settle.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/main.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/face_settle.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/tests/freshness.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-generated-artifact-control-plane-app/Cargo.toml",
