@@ -565,6 +565,13 @@
       "migration_phase": "complete",
       "purpose": "Multispectrum review bar \u2014 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
     },
+    "multispectrum_evidence_g011_wiring": {
+      "current_path": "evidence/multispectrum/g011-rust-test-wiring-generator-20260610-1781107105.json",
+      "owners_path": "evidence/multispectrum/OWNERS",
+      "kind": "evidence",
+      "migration_phase": "complete",
+      "purpose": "Multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); records CC-3 tooling-feature change class, wired libs, and tool accounting justification."
+    },
     "oyatie_doctrine": {
       "current_path": "/specs/oyatie-doctrine.json",
       "current_version": "1.0.0",
