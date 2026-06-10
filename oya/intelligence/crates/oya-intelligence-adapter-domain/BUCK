@@ -11,3 +11,18 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-adapter-domain-provider-route",
+    srcs = ["tests/provider_route.rs"],
+    crate = "oya_intelligence_adapter_domain_provider_route",
+    crate_root = "tests/provider_route.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-adapter-domain",
+        "//cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain",
+        "//libs/oya-check-cost-budget:oya-check-cost-budget",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+    ],
+)
