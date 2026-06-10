@@ -37,14 +37,14 @@ It is a **multi-provider reverse proxy** that:
 - abstracts each provider behind an **adapter trait** that injects the right auth header and base URL, and **passes SSE bytes straight through** (brief §1 Architecture — Kong `response_streaming` passthrough; re-serialize only the non-stream path);
 - runs a **failure → blacklist → jittered-cooldown → restore key-rotation state machine** (the pure kernel, already implemented at `crates/oya-cloud-intelligence-kernel/src/lib.rs`) as the front-line resilience and **denial-of-wallet** control (brief §10 Operational boundaries; LiteLLM `allowed_fails`→`cooldown_time`→auto-restore; Azure dynamic circuit-breaker honoring `Retry-After`);
 - enforces **per-tenant key pools + concurrent token budgets** as the isolation and FinOps unit (brief §6 Multi-tenant isolation, brief §8 Cost/FinOps; LiteLLM virtual-key budgets, Azure `llm-token-limit`);
-- sources provider keys **only from a vault** (OpenBao / k8s Secrets), in-memory only (brief §5 Threat model, brief §7 Data residency; Bedrock keys vault-only pattern);
+- sources provider keys **only through owned cloud-secrets/cloud-kms handles** (`secret-ref://` / `kms-ref://`), with transient backing adapters (for example OpenBao or Kubernetes Secret projection) hidden behind the secret-provider port, in-memory only (brief §5 Threat model, brief §7 Data residency; Bedrock keys vault-only pattern);
 - emits a **Bedrock-shaped immutable audit record** plus low-PII usage metering, with prompt/completion body logging **default-OFF** (brief §3 Async events, brief §9 Audit evidence).
 
 ### Why a dedicated µservice (boundary clarity)
 
 This µservice is intentionally distinct from:
 
-- **cloud-kms / cloud-secrets** µservices — they own the OpenBao substrate and HSM-backed encryption-at-rest. cloud-intelligence is a *consumer* of resolved secrets, never a secrets store. (`depends_on_microservices: [cloud-kms, cloud-secrets]`.)
+- **cloud-kms / cloud-secrets** µservices — they own the secret-provider/KMS substrate, backing adapters, and HSM-backed encryption-at-rest. cloud-intelligence is a *consumer* of opaque secret handles and resolved short-lived credentials, never a secrets store. (`depends_on_microservices: [cloud-kms, cloud-secrets]`.)
 - The generic **oya-http-router-kernel / oya-http-runtime-hyper-adapter** backbone — those provide the HTTP plumbing (ADR-0090); cloud-intelligence is the LLM-specific application layered on top.
 - A future **model-eval / prompt-registry** surface — cloud-intelligence brokers inference traffic; it does not own prompt templates, eval harnesses, or fine-tune jobs.
 
@@ -70,7 +70,7 @@ The split gives blast-radius isolation (a provider-key storm cannot starve KMS),
 - **State-machine resilience.** A failing provider key is detected, blacklisted, cooled down with jitter, and auto-restored without a background sweeper; the failure ladder is in-key-retry (transient only) → rotate key → provider-fallback → graceful 503 (brief §1, §10).
 - **`Retry-After`-honoring backpressure.** Upstream `Retry-After` is consumed to set cooldown and is echoed to the caller on 429; all-keys-cooling-down fast-fails with `Retry-After` = soonest restore (never a DoS amplifier — brief §10, OWASP LLM10).
 - **Per-tenant key pools + budgets.** Isolation and rate/cost limits keyed on tenant id, not the shared provider key; concurrent budget windows; per-tenant headroom reserved against shared provider TPM (brief §6, §8).
-- **Vault-only secrets.** Provider keys resolved only from OpenBao/k8s, held in memory only, never logged, never written to disk in plaintext (brief §5, §7).
+- **Secret-provider-only secrets.** Provider keys resolve only through owned cloud-secrets/cloud-kms handles, held in memory only, never logged, never written to disk in plaintext (brief §5, §7).
 - **Bedrock-shaped audit + low-PII metering.** Every invocation emits an immutable audit record (hash-chained into `evidence/audit-chain.jsonl`) and a metering record; prompt/completion body logging default-OFF, per-tenant opt-in, residency-pinned (brief §3, §7, §9).
 - **TTFT-headline SLOs.** OpenSLO objects for Availability, TTFT (headline), End-to-end latency, Error-rate, and a streaming-unique Completeness SLI (brief §4).
 
@@ -121,9 +121,9 @@ A key crosses active→blacklisted after `blacklist_threshold` consecutive failu
 
 The **per-tenant key pool is the isolation unit** (Oyatie is a tenant of itself per `oyatie-dogfood-tenancy`). Rate and cost limits are keyed on **tenant id, not the shared provider key**, across multiple scopes (global → tenant → ingress-token) and concurrent budget windows (e.g. `$X/day` AND `$Y/month`, LiteLLM-style). Per-tenant headroom is reserved against the shared provider TPM so that one tenant exhausting its budget fails **that tenant** with 429, not the whole gateway (brief §6). Reusable free/standard/enterprise tiers. Admission uses an estimated token precheck (Azure estimate-prompt-tokens); billing uses **actual returned tokens** (brief §8).
 
-### 4.5 Vault-only secrets, hash-only logging (brief §5, §7)
+### 4.5 Owned secret-provider handles, hash-only logging (brief §5, §7)
 
-Provider keys are read only from OpenBao KV v2 (`secret/data/agent-gateway/<provider>`) at startup and on periodic refresh, held in memory only. The kernel never sees a raw key — only a non-reversible `KeyFingerprint`. Logs identify a key solely by fingerprint; raw keys, `Authorization` headers, prompts, and completions are never logged (brief §5 — hash like Cloudflare). The two auth realms (admin, ingress) compare tokens in **constant time** (`subtle`), documented as a contract guarantee.
+Provider keys are resolved only through owned cloud-secrets/cloud-kms `secret-ref://` or `kms-ref://` handles at startup and on periodic refresh; any concrete backing store is a transient adapter behind that port. The kernel never sees a raw key — only a non-reversible `KeyFingerprint`. Logs identify a key solely by fingerprint; raw keys, `Authorization` headers, prompts, and completions are never logged (brief §5 — hash like Cloudflare). The two auth realms (admin, ingress) compare tokens in **constant time** (`subtle`), documented as a contract guarantee.
 
 ### 4.6 Audit + metering emission (brief §3, §9)
 
@@ -143,7 +143,7 @@ In-scope for the first production increment (the kernel already exists; this PRD
 3. Key-pool state machine wired to the rest layer (kernel done; rest wiring + per-provider circuit breaker).
 4. Failure ladder: in-key-retry (transient) → rotate → provider-fallback → graceful 503 with `Retry-After`.
 5. Two constant-time auth realms (admin + ingress).
-6. OpenBao-sourced key store with periodic refresh; hash-only logging.
+6. Owned cloud-secrets/cloud-kms-backed key store with periodic refresh through secret-provider adapters; hash-only logging.
 7. Per-tenant token budgets (admission estimate + actual-token metering) with 429 + `Retry-After` + budget headers.
 8. `llm.usage.v1` + `llm.audit.v1` emission; audit hash-chained; prompt/completion logging default-OFF.
 9. OTel metrics + the five SLOs (Availability, TTFT, end-to-end-latency, error-rate, completeness).
@@ -180,11 +180,11 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; non-p
 - AC-4.3 An 80%-of-budget soft-warn is surfaced as a response header before the hard 429.
 - AC-4.4 Billing meters on actual returned tokens (including the streamed usage chunk); admission uses an estimate.
 
-### AC-5 — Vault-only secrets + constant-time auth (brief §5, §7)
-- AC-5.1 No provider key is read from a plaintext file or env var; the only env secret is `BAO_TOKEN` (+ realm tokens). (Asserted in `manifest.json` non-claims and enforced by code review.)
+### AC-5 — Secret-provider-only secrets + constant-time auth (brief §5, §7)
+- AC-5.1 No provider key is read from a plaintext file or env var; cloud-intelligence receives only opaque secret-provider/KMS handles plus realm tokens. Backing-store bootstrap credentials belong to cloud-secrets/cloud-kms adapters, not this service contract. (Asserted in `manifest.json` non-claims and enforced by code review.)
 - AC-5.2 Admin and ingress token comparison is constant-time (`subtle`); a wrong-length token does not leak via timing.
 - AC-5.3 No raw key, `Authorization` header, prompt, or completion appears in any log line; keys appear only as fingerprints.
-- AC-5.4 Cedar policies at `policy/cloud-intelligence.cedar` deny cross-realm and cross-tenant access by default.
+- AC-5.4 The owned policy-engine port denies cross-realm and cross-tenant access by default; the current Cedar policy file is a transient adapter fixture for that port.
 
 ### AC-6 — Audit + metering (brief §3, §9)
 - AC-6.1 Every invocation emits one `llm.audit.v1` record with the Bedrock-shaped fields (schema_version, timestamp, tenant_id, request_id, provider, model_id, operation, hashed token/key refs, token counts, status, latency_ms, ttft_ms, cost, residency_region).
@@ -210,7 +210,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; non-p
    agent/tenant  │  oya-cloud-intelligence-rest  (ADR-0105 rest layer)   │
    OpenAI SDK    │                                                │
   ───bearer────▶ │  ingress auth (constant-time)                  │
-                 │     │                                          │     OpenBao
+                 │     │                                          │     cloud-secrets / cloud-kms
                  │     ▼                                          │   (cloud-kms)
                  │  per-tenant budget admission (estimate)        │◀── key refresh
                  │     │                                          │
@@ -232,12 +232,12 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; non-p
 ```
 
 - **oya-cloud-intelligence-kernel** (`kernel` layer, ADR-0105) — pure key-pool state machine, no I/O. Already implemented (`crates/oya-cloud-intelligence-kernel/src/lib.rs`).
-- **oya-cloud-intelligence-rest** (`rest` layer) — hyper adapter: auth realms, budget admission, provider adapters, SSE passthrough, OpenBao key store, metering/audit emission, OTel, admin ops.
+- **oya-cloud-intelligence-rest** (`rest` layer) — hyper adapter: auth realms, budget admission, provider adapters, SSE passthrough, owned secret-provider port consumption, metering/audit emission, OTel, admin ops.
 
 ## 8. Non-Functional Requirements
 
 - **Resilience.** Failure ladder per §4.3; never hang a stream (abort + rotate if first-token exceeds TTFT hard-timeout); all-keys-cooling-down fast-fails with `Retry-After`.
-- **Security.** Vault-only keys, constant-time tokens, hash-only logging, Cedar-gated realms, OWASP LLM Top-10 proxy subset mitigated (`design/threat-model.md`).
+- **Security.** Secret-provider-only keys, constant-time tokens, hash-only logging, owned policy-engine-gated realms, OWASP LLM Top-10 proxy subset mitigated (`design/threat-model.md`).
 - **Data residency.** Prompt/completion logging default-OFF, per-tenant opt-in, residency-pinned bucket, `residency_region` recorded (`design/data-residency.md`).
 - **Cost/FinOps.** Per-tenant hard budget caps across concurrent windows, 80% soft-warn, actual-token metering (`design/cost-finops.md`).
 - **Tenant isolation.** Per-tenant key pools; tenant-keyed limits; reserved headroom vs shared provider TPM (`design/tenant-isolation.md`).
@@ -246,7 +246,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; non-p
 ## 9. Open questions
 
 1. **Provider-fallback semantics across dialects.** When falling back OpenAI→Anthropic mid-failure, do we translate the in-flight canonical request or fail closed? — Default for MVP: fallback only within same-dialect pools; cross-dialect fallback requires request re-translation and is deferred.
-2. **Tenant budget source of truth.** Does the per-tenant budget config live in this µservice's config or in a central billing/tenancy µservice? — Default: gateway reads tenant budget tiers from config/OpenBao for MVP; central tenancy integration is a follow-on.
+2. **Tenant budget source of truth.** Does the per-tenant budget config live in this µservice's config or in a central billing/tenancy µservice? — Default: gateway reads tenant budget tiers from declarative config plus owned secret-provider handles for MVP; central tenancy integration is a follow-on.
 3. **Body-spill retention authority.** Who owns the residency-pinned prompt/completion bucket lifecycle and TTL? — Default: cloud-secrets/cloud-iac owns the bucket; gateway writes with a per-tenant TTL label.
 
 ## 10. Implementation plan

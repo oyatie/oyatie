@@ -4,8 +4,8 @@ This runbook provisions the oyatie-dogfood tenant's first Anthropic OAuth subscr
 into the cloud-intelligence gateway. Every step that requires human credentials is
 flagged **[human-auth]**.
 
-Prereqs: Talos cluster with ArgoCD + OpenBao + ESO + cloud-intelligence deployed and
-running (see `SETUP-RUNBOOK.md` — "Production deploy on Talos" section).
+Prereqs: Talos cluster with ArgoCD + ESO + owned cloud-secrets/cloud-kms adapters +
+cloud-intelligence deployed and running (see `SETUP-RUNBOOK.md` — "Production deploy on Talos" section).
 
 ---
 
@@ -67,21 +67,16 @@ long-lived credential.
 
 ---
 
-## Step 2 — Provision the refresh token into OpenBao  **[human-auth]**
+## Step 2 — Register the refresh-token handle  **[human-auth]**
 
-```sh
-# Authenticate to OpenBao (token scoped to write on secret/oya/cloud-intelligence)
-export VAULT_ADDR=https://openbao.cloud-secrets.svc.cluster.local:8200
-export VAULT_TOKEN=<your-openbao-token>
+Store the refresh token in owned cloud-secrets/cloud-kms and register only an
+opaque handle with cloud-intelligence:
 
-# Write the subscription record
-vault kv put secret/oya/cloud-intelligence \
-  anthropic_refresh_token=<token-from-step-1> \
-  seat_id=seat-dogfood-1 \
-  openbao_token=<token-scoped-to-read-secret-oya-cloud-intelligence> \
-  openai_api_key=<openai-key-or-placeholder> \
-  gemini_api_key=<gemini-key-or-placeholder>
-```
+- `secret_handle`: `secret-ref://cloud-intelligence/oyatie-dogfood/anthropic/seat-dogfood-1`
+- `seat_id`: `seat-dogfood-1`
+- `secret_provider_token`: short-lived token for the secret-provider adapter
+- provider API keys: stored behind their own `secret-ref://` or `kms-ref://`
+  handles; never projected as raw env values
 
 The ESO ExternalSecret `cloud-intelligence-secrets` will sync within the configured
 `refreshInterval` (default: 5 minutes). Verify:
@@ -118,13 +113,14 @@ kubectl -n cloud-intelligence logs deploy/cloud-intelligence | grep seat-dogfood
 
 ## Step 4 — Smoke-test the proxy  **[human-auth]**
 
-Point Claude Code at the gateway using the ingress proxy key obtained from OpenBao:
+Point Claude Code at the gateway using an ingress proxy key resolved from the
+owned secret-provider handle:
 
 ```sh
 # Retrieve an ingress proxy key
 PROXY_KEY=$(kubectl -n cloud-intelligence exec deploy/cloud-intelligence -- \
-  printenv OYA_CLOUD_INTEL_OPENBAO_TOKEN 2>/dev/null || \
-  echo "<retrieve from OpenBao secret/oya/cloud-intelligence openbao_token>")
+  printenv OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN 2>/dev/null || \
+  echo "<resolve secret-ref://cloud-intelligence/ingress-proxy-keys>")
 
 # Health check
 curl -sS \

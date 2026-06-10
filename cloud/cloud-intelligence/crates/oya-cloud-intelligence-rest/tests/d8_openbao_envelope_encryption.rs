@@ -4,7 +4,7 @@
 //! crate is a follow-up PR; here we use in-process mocks that demonstrate the
 //! expected semantics Stage-5 GREEN must preserve.
 
-use oya_cloud_intelligence_rest::{OpenBaoSecretStore, RestAdapterError};
+use oya_cloud_intelligence_rest::{RestAdapterError, SecretProviderStore};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -26,7 +26,7 @@ impl InProcessSecretStore {
     }
 }
 
-impl OpenBaoSecretStore for InProcessSecretStore {
+impl SecretProviderStore for InProcessSecretStore {
     fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
         self.map
             .lock()
@@ -51,7 +51,7 @@ impl OpenBaoSecretStore for InProcessSecretStore {
 /// A store that simulates a vault seal event mid-operation.
 struct SealedVaultStore;
 
-impl OpenBaoSecretStore for SealedVaultStore {
+impl SecretProviderStore for SealedVaultStore {
     fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
         Err(RestAdapterError::SecretStoreUnavailable(
             "ErrVaultSealed".to_string(),

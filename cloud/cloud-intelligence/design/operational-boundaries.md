@@ -30,13 +30,12 @@ Key-exhaustion, provider-outage, and tenant-rate-limit are **separate states / e
 / runbooks** (brief §10). The gateway must never collapse them into a generic 503/500 — operations
 needs to know which one fired to pick the right runbook. See `design/failure-modes.md`.
 
-## Boundary 4 — Vault-only keys, no plaintext fallback
+## Boundary 4 — Secret-provider-only keys, no plaintext fallback
 
-Provider keys come **only** from OpenBao, in-memory only. There is no plaintext file/env key source
-to fail-open to (brief §5). If OpenBao is unreachable, the gateway serves last-good in-memory keys
-and alerts; it never degrades to reading a key from disk. The optional local-fallback encrypted
-store requires an explicit operator passphrase and never operates in plaintext (existing foundation
-non-claim).
+Provider keys come **only** from owned secret-provider/KMS handles, in-memory only.
+There is no plaintext file/env key source to fail-open to (brief §5). If the
+secret-provider adapter is unreachable, the gateway serves last-good in-memory
+keys and alerts; it never degrades to reading a key from disk.
 
 ## Boundary 5 — Audit is a hard requirement; metering is best-effort
 
@@ -87,11 +86,12 @@ Cloudflare caches text/image only). These are the Non-Goals that keep the operat
 ## Capacity / runtime tier
 
 - `pod_runtime_tier: 2` — the gateway brokers pooled provider credentials; Tier-2 isolation.
-- The gateway holds **no durable state** beyond an in-memory key-pool cache sourced from OpenBao, so
-  there is no gateway-owned state to replicate (DR is stateless-restart; the existing manifest DR
-  non-claim stands). Pooled keys re-hydrate from OpenBao on restart.
+- The gateway holds **no durable state** beyond an in-memory key-pool cache resolved
+  through owned secret-provider/KMS handles, so there is no gateway-owned state to
+  replicate (DR is stateless-restart; the existing manifest DR non-claim stands).
+  Pooled keys re-hydrate through the secret-provider port on restart.
 - Scaling dimension: concurrent streams + per-tenant TPM; horizontal replicas share nothing except
-  the (idempotent) OpenBao source and the (append-only) audit chain.
+  the (idempotent) secret-provider source and the (append-only) audit chain.
 
 ## References
 

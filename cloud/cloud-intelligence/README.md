@@ -13,7 +13,7 @@ reverse proxy. **No third-party source was read or copied.**
 | Crate | Layer | Responsibility |
 |-------|-------|----------------|
 | [`oya-cloud-intelligence-kernel`](../../crates/oya-cloud-intelligence-kernel) | `kernel` | **Pure** key-pool state machine. No I/O, no async, no clock, no RNG, no external crate. Round-robin selection (`AtomicUsize`), per-key `failure_count` + blacklist threshold, jittered cooldown timestamps, success-reset / lazy restore-to-active, the `ProviderChannel` enum (OpenAI / Anthropic / Gemini). Time and jitter are injected so every transition is deterministic and unit-tested. |
-| [`oya-cloud-intelligence-rest`](../../crates/oya-cloud-intelligence-rest) | `rest` | The axum reverse-proxy app + binary. SSE streaming passthrough, per-provider channel adapters, OpenBao-sourced key store, failover/retry, two constant-time auth realms, Prometheus `/metrics`, hash-only logging. |
+| [`oya-cloud-intelligence-rest`](../../crates/oya-cloud-intelligence-rest) | `rest` | The axum reverse-proxy app + binary. SSE streaming passthrough, per-provider channel adapters, owned secret-provider/KMS handles, failover/retry, two constant-time auth realms, Prometheus `/metrics`, hash-only logging. |
 
 ## v1 feature checklist
 
@@ -32,10 +32,10 @@ reverse proxy. **No third-party source was read or copied.**
   jittered backoff. Transport errors are always retryable.
 - **Two auth realms** — admin/control and ingress proxy-key, both compared in
   constant time via [`subtle`].
-- **OpenBao key sourcing** — pooled keys are read from OpenBao KV v2 at startup
-  and on a periodic refresh. **No pooled key is ever read from a plaintext file
-  or environment variable.** The only secret read from the environment is the
-  OpenBao token (`BAO_TOKEN`).
+- **Owned secret-provider sourcing** — pooled credentials are resolved from
+  `secret-ref://` / `kms-ref://` handles at startup and on periodic refresh.
+  **No pooled key is ever read from a plaintext file or environment variable.**
+  Concrete stores are transient adapters behind cloud-secrets/cloud-kms.
 - **Prometheus metrics** — `oya_cloud_intelligence_*`: per-key success/failure,
   retries, upstream latency histogram, active-key gauge, request outcomes.
 - **Hash-only logging** — structured logs identify a key only by a
@@ -45,40 +45,39 @@ reverse proxy. **No third-party source was read or copied.**
 ## Key sourcing (load-bearing security)
 
 ```
-secret/agent-gateway/<provider>     (OpenBao KV v2, in the oya-kms OpenBao)
-  └─ { "<label>": "<api-key>", ... }
+secret-ref://cloud-intelligence/<tenant>/<provider>/<seat>
+kms-ref://cloud-intelligence/<tenant>/<provider>/<seat>
 ```
 
-The gateway reads `secret/data/agent-gateway/<provider>` from
-`http://openbao.oya-kms.svc.cluster.local:8200` using the `BAO_TOKEN`
-(injected from a k8s Secret at deploy). Encryption-at-rest is delegated to
-OpenBao. An optional local-fallback store (AES-256-GCM + PBKDF2) exists for
-air-gapped/dev use; it **requires an explicit operator passphrase and never
-no-ops** — there is no plaintext store.
+The gateway receives opaque handles and a short-lived secret-provider adapter
+token from Kubernetes projection. The cloud-secrets/cloud-kms substrate owns
+encryption-at-rest, KMS policy, and any backing-store adapters. There is no
+plaintext file/env key source.
 
 ## Configuration
 
 Non-secret routing config is declarative (a ConfigMap-mounted JSON file at
-`$GATEWAY_CONFIG`). Secrets are sourced only from OpenBao / k8s Secrets.
+`$GATEWAY_CONFIG`). Secrets are sourced only from owned secret-provider/KMS
+handles projected by Kubernetes.
 
 ```json
 {
   "listen_addr": "0.0.0.0:8080",
-  "openbao": { "address": "http://openbao.oya-kms.svc.cluster.local:8200", "kv_mount": "secret" },
+  "secret_provider": { "address": "https://cloud-secrets-adapter.cloud-secrets.svc.cluster.local:8200", "handle_schemes": ["secret-ref://", "kms-ref://"] },
   "key_refresh_secs": 300,
   "groups": [
     {
       "name": "codex",
       "channel": "openai",
       "upstream_base_url": "https://api.openai.com",
-      "bao_key_path": "agent-gateway/openai",
+      "secret_handle": "secret-ref://cloud-intelligence/dogfood/openai/default",
       "retry": { "retry_on_statuses": [429, 500, 502, 503, 504], "max_attempts": 3 }
     },
     {
       "name": "claude",
       "channel": "anthropic",
       "upstream_base_url": "https://api.anthropic.com",
-      "bao_key_path": "agent-gateway/anthropic",
+      "secret_handle": "secret-ref://cloud-intelligence/dogfood/anthropic/default",
       "anthropic_version": "2023-06-01"
     }
   ]
@@ -90,7 +89,7 @@ Environment (all injected from k8s Secrets at deploy; never plaintext files):
 | Var | Purpose |
 |-----|---------|
 | `GATEWAY_CONFIG` | Path to the ConfigMap JSON above (non-secret). |
-| `BAO_TOKEN` | OpenBao token — the **only** secret read directly by the gateway. |
+| `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN` | Short-lived token for the owned secret-provider adapter. |
 | `ADMIN_TOKEN` | Admin/control realm token. |
 | `INGRESS_PROXY_KEYS` | Comma-separated ingress proxy-keys for the agent fleet. |
 
@@ -104,7 +103,7 @@ Environment (all injected from k8s Secrets at deploy; never plaintext files):
 
 ## Live fanout: how parallel agents use this gateway
 
-After the operator-runtime steps in [SETUP-RUNBOOK.md](./SETUP-RUNBOOK.md) are complete (OpenBao secrets minted, image built, Deployment Ready, HPA active), parallel agents (Claude Code / Codex / Anthropic SDK / OpenAI SDK / Gemini SDK callers) can route through the gateway instead of each agent calling provider APIs directly.
+After the operator-runtime steps in [SETUP-RUNBOOK.md](./SETUP-RUNBOOK.md) are complete (secret-provider handles registered, image built, Deployment Ready, HPA active), parallel agents (Claude Code / Codex / Anthropic SDK / OpenAI SDK / Gemini SDK callers) can route through the gateway instead of each agent calling provider APIs directly.
 
 ### Agent-side env vars
 
@@ -113,7 +112,7 @@ Each agent sets these BEFORE invoking its provider SDK:
 ```sh
 # Anthropic SDK (Claude Code, claude-cli)
 export ANTHROPIC_BASE_URL="http://cloud-intelligence.oya-cloud-intelligence.svc.cluster.local:8080/v1/anthropic"
-export ANTHROPIC_API_KEY="$INGRESS_PROXY_KEY"   # one of the ingress proxy keys from sref://openbao/oya/cloud-intelligence/ingress-proxy-keys
+export ANTHROPIC_API_KEY="$INGRESS_PROXY_KEY"   # one of the ingress proxy keys from secret-ref://cloud-intelligence/ingress-proxy-keys
 
 # OpenAI SDK (Codex, openai-cli)
 export OPENAI_BASE_URL="http://cloud-intelligence.oya-cloud-intelligence.svc.cluster.local:8080/v1/openai"

@@ -4,10 +4,11 @@
 //! µservice. It wires:
 //!
 //! - [`oya_cloud_intelligence_kernel`] — pure-Rust pool + trait seams.
-//! - [`oya_cloud_intelligence_authz_cedar_adapter`] — Cedar AuthzGate.
+//! - [`oya_cloud_intelligence_authz_cedar_adapter`] — transient adapter for
+//!   the owned policy-engine [`AuthzGate`] seam.
 //! - [`oya_cloud_intelligence_rest`] — axum REST adapter + AnthropicAdapter.
-//! - [`oya_cloud_intelligence_openbao_adapter::OpenBaoTransitStore`] — real
-//!   OpenBao Transit envelope-encrypted secret store (D8).
+//! - [`oya_cloud_intelligence_openbao_adapter::OpenBaoTransitStore`] —
+//!   transient backing adapter for the owned secret-provider port (D8).
 //! - [`oya_cloud_intelligence_eventsink_clickhouse_adapter::ClickHouseEventSink`] +
 //!   [`oya_cloud_intelligence_eventsink_valkey_adapter::ValkeyEventSink`] — real
 //!   D6 event sinks fanned out via [`EventSinkFanout`].
@@ -33,7 +34,7 @@ use oya_cloud_intelligence_kernel::{
 };
 use oya_cloud_intelligence_openbao_adapter::OpenBaoTransitStore;
 use oya_cloud_intelligence_rest::{
-    AppState, EventSinkFanout, OpenBaoSecretStore, PoolRegistry, RestAdapterError,
+    AppState, EventSinkFanout, PoolRegistry, RestAdapterError, SecretProviderStore,
 };
 use oya_shared_olap_clickhouse_adapter::ClickHouseConfig;
 use tracing::info;
@@ -161,7 +162,7 @@ impl Default for ProviderComplianceConfig {
 pub struct StaticSeatConfig {
     pub seat_id: String,         // data_class: INTERNAL_ONLY
     pub subscription_id: String, // data_class: INTERNAL_ONLY
-    pub secret_handle: String,   // data_class: INTERNAL_ONLY (opaque OpenBao handle)
+    pub secret_handle: String,   // data_class: INTERNAL_ONLY (opaque secret-provider handle)
 }
 
 /// Static boot-time pool config for one `(tenant, provider)` pair.
@@ -211,11 +212,11 @@ pub struct AppConfig {
     /// Format per seat:
     /// `tenant|provider|credential_mode|strategy|seat_id|secret_handle;...`
     pub tenant_provider_pools: Vec<TenantProviderPoolConfig>, // data_class: INTERNAL_ONLY
-    /// OpenBao base URL for Transit envelope-encryption (D8).
-    /// e.g. `https://openbao.infra.svc:8200`
-    pub openbao_url: String, // data_class: INTERNAL_ONLY
-    /// OpenBao vault token. Sourced from `OYA_CLOUD_INTEL_OPENBAO_TOKEN`.
-    pub openbao_token: String, // data_class: SECRET
+    /// Secret-provider adapter base URL for handle resolution (D8).
+    /// e.g. `https://cloud-secrets-adapter.infra.svc:8200`
+    pub secret_provider_url: String, // data_class: INTERNAL_ONLY
+    /// Secret-provider adapter token. Sourced from `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`.
+    pub secret_provider_token: String, // data_class: SECRET
     /// Transit key name used for envelope-encryption of refresh tokens.
     pub transit_key_name: String, // data_class: INTERNAL_ONLY
     /// ClickHouse HTTP URL for OLAP event sink (D6).
@@ -248,8 +249,8 @@ impl AppConfig {
     /// | `OYA_CLOUD_INTEL_ANTHROPIC_URL`      | `https://api.anthropic.com`      |
     /// | `OYA_CLOUD_INTEL_INITIAL_SEATS`      | *(empty)*                        |
     /// | `OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS`| *(empty)*                      |
-    /// | `OYA_CLOUD_INTEL_OPENBAO_URL`        | *(required)*                     |
-    /// | `OYA_CLOUD_INTEL_OPENBAO_TOKEN`      | *(required)*                     |
+    /// | `OYA_CLOUD_INTEL_SECRET_PROVIDER_URL`        | *(required)*                     |
+    /// | `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`      | *(required)*                     |
     /// | `OYA_CLOUD_INTEL_TRANSIT_KEY_NAME`   | `cloud-intelligence-rt`                 |
     /// | `OYA_CLOUD_INTEL_CLICKHOUSE_URL`     | `http://clickhouse.analytics.svc:8123` |
     /// | `OYA_CLOUD_INTEL_CLICKHOUSE_USER`    | `default`                        |
@@ -278,12 +279,16 @@ impl AppConfig {
         let tenant_provider_pools = parse_tenant_provider_pools(
             &std::env::var("OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS").unwrap_or_default(),
         )?;
-        let openbao_url = std::env::var("OYA_CLOUD_INTEL_OPENBAO_URL").map_err(|_| {
-            AppBuildError::Config("OYA_CLOUD_INTEL_OPENBAO_URL is required".to_string())
-        })?;
-        let openbao_token = std::env::var("OYA_CLOUD_INTEL_OPENBAO_TOKEN").map_err(|_| {
-            AppBuildError::Config("OYA_CLOUD_INTEL_OPENBAO_TOKEN is required".to_string())
-        })?;
+        let secret_provider_url =
+            std::env::var("OYA_CLOUD_INTEL_SECRET_PROVIDER_URL").map_err(|_| {
+                AppBuildError::Config("OYA_CLOUD_INTEL_SECRET_PROVIDER_URL is required".to_string())
+            })?;
+        let secret_provider_token = std::env::var("OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN")
+            .map_err(|_| {
+                AppBuildError::Config(
+                    "OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN is required".to_string(),
+                )
+            })?;
         let transit_key_name = std::env::var("OYA_CLOUD_INTEL_TRANSIT_KEY_NAME")
             .unwrap_or_else(|_| "cloud-intelligence-rt".to_string());
         let clickhouse_url = std::env::var("OYA_CLOUD_INTEL_CLICKHOUSE_URL")
@@ -305,8 +310,8 @@ impl AppConfig {
             anthropic_base_url,
             initial_seats,
             tenant_provider_pools,
-            openbao_url,
-            openbao_token,
+            secret_provider_url,
+            secret_provider_token,
             transit_key_name,
             clickhouse_url,
             clickhouse_user,
@@ -552,7 +557,7 @@ impl EventSink for EventSinkFanoutAdapter {
 // ---------------------------------------------------------------------------
 
 /// In-process stub secret store. Holds a plaintext map keyed by handle.
-/// Stage-7: replace with `oya-cloud-intelligence-openbao-adapter`.
+/// Stage-7: replace with a production secret-provider adapter.
 ///
 /// NOTE: plaintext tokens in memory are acceptable for the local-foundation
 /// phase only. See ADR-0384 D8 and the Stage-7 deferral note.
@@ -582,7 +587,7 @@ impl Default for InProcessSecretStore {
     }
 }
 
-impl OpenBaoSecretStore for InProcessSecretStore {
+impl SecretProviderStore for InProcessSecretStore {
     fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
         self.map
             .lock()
@@ -630,7 +635,7 @@ impl EventSink for InProcessEventSink {
 /// shared [`AppState`].
 ///
 /// Uses:
-/// - [`OpenBaoTransitStore`] for D8 envelope-encrypted secret storage.
+/// - [`OpenBaoTransitStore`] as the current transient D8 backing adapter.
 /// - [`ClickHouseEventSink`] + [`ValkeyEventSink`] fanned out via
 ///   [`EventSinkFanout`] for D6 event emission.
 ///
@@ -647,19 +652,19 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
     let tenant_id = TenantId::new(&config.tenant_id)
         .map_err(|_| AppBuildError::Config(format!("invalid tenant_id: {:?}", config.tenant_id)))?;
 
-    // Build shared reqwest::Client used by both AppState and OpenBaoTransitStore.
+    // Build shared reqwest::Client used by both AppState and the secret-provider adapter.
     let http_client = Arc::new(
         reqwest::Client::builder()
             .build()
             .map_err(AppBuildError::HttpClient)?,
     );
 
-    // Real OpenBao Transit secret store (D8).
-    let secret_store: Arc<dyn OpenBaoSecretStore> = Arc::new(OpenBaoTransitStore::new(
+    // Current transient secret-provider backing adapter (D8).
+    let secret_store: Arc<dyn SecretProviderStore> = Arc::new(OpenBaoTransitStore::new(
         Arc::clone(&http_client),
-        &config.openbao_url,
+        &config.secret_provider_url,
         &config.transit_key_name,
-        &config.openbao_token,
+        &config.secret_provider_token,
     ));
 
     // Real D6 event sinks — ClickHouse + Valkey fanned out.
@@ -717,7 +722,7 @@ fn oauth_approved_providers(
 
 /// Wire up all components with **in-process mocks** for unit and integration
 /// tests. This constructor is always available (not gated behind a feature flag)
-/// so the test suite never depends on live OpenBao / ClickHouse / Valkey.
+/// so the test suite never depends on live secret-provider / ClickHouse / Valkey.
 pub fn build_app_for_tests(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
     config.validate_provider_compliance()?;
 
@@ -930,8 +935,8 @@ mod tests {
             anthropic_base_url: "http://127.0.0.1:1".to_string(),
             initial_seats: vec![],
             // These fields are not used by build_app_for_tests (in-process mocks).
-            openbao_url: "http://127.0.0.1:1".to_string(),
-            openbao_token: "test-token".to_string(),
+            secret_provider_url: "http://127.0.0.1:1".to_string(),
+            secret_provider_token: "test-token".to_string(),
             transit_key_name: "cloud-intelligence-rt".to_string(),
             clickhouse_url: "http://127.0.0.1:1".to_string(),
             clickhouse_user: "default".to_string(),
@@ -959,11 +964,11 @@ mod tests {
         config.initial_seats = vec![
             (
                 "seat-a".to_string(),
-                "vault://tenant-a/anthropic/seat-a".to_string(),
+                "secret-ref://tenant-a/anthropic/seat-a".to_string(),
             ),
             (
                 "seat-b".to_string(),
-                "vault://tenant-a/anthropic/seat-b".to_string(),
+                "secret-ref://tenant-a/anthropic/seat-b".to_string(),
             ),
         ];
         let state = build_app_for_tests(config).unwrap();
@@ -993,8 +998,8 @@ mod tests {
             tenant_id: "".to_string(),
             anthropic_base_url: "http://127.0.0.1:1".to_string(),
             initial_seats: vec![],
-            openbao_url: "http://127.0.0.1:1".to_string(),
-            openbao_token: "test-token".to_string(),
+            secret_provider_url: "http://127.0.0.1:1".to_string(),
+            secret_provider_token: "test-token".to_string(),
             transit_key_name: "cloud-intelligence-rt".to_string(),
             clickhouse_url: "http://127.0.0.1:1".to_string(),
             clickhouse_user: "default".to_string(),
@@ -1017,7 +1022,7 @@ mod tests {
     #[test]
     fn parse_initial_seats_parses_correctly() {
         let seats = parse_initial_seats(
-            "seat-a:vault://tenant-a/anthropic/seat-a,seat-b:vault://tenant-a/anthropic/seat-b",
+            "seat-a:secret-ref://tenant-a/anthropic/seat-a,seat-b:secret-ref://tenant-a/anthropic/seat-b",
         )
         .unwrap();
         assert_eq!(seats.len(), 2);
@@ -1025,14 +1030,14 @@ mod tests {
             seats[0],
             (
                 "seat-a".to_string(),
-                "vault://tenant-a/anthropic/seat-a".to_string()
+                "secret-ref://tenant-a/anthropic/seat-a".to_string()
             )
         );
         assert_eq!(
             seats[1],
             (
                 "seat-b".to_string(),
-                "vault://tenant-a/anthropic/seat-b".to_string()
+                "secret-ref://tenant-a/anthropic/seat-b".to_string()
             )
         );
     }
@@ -1056,8 +1061,8 @@ mod tests {
     #[test]
     fn parse_tenant_provider_pools_supports_multiple_tenants_and_providers() {
         let pools = parse_tenant_provider_pools(
-            "tenant-a|anthropic|oauth_subscription|time_normalized_quota_percent|seat-a|vault://tenant-a/anthropic/seat-a;\
-             tenant-b|codex|api_key|round_robin|seat-b|vault://tenant-b/codex/seat-b",
+            "tenant-a|anthropic|oauth_subscription|time_normalized_quota_percent|seat-a|secret-ref://tenant-a/anthropic/seat-a;\
+             tenant-b|codex|api_key|round_robin|seat-b|secret-ref://tenant-b/codex/seat-b",
         )
         .expect("multi-tenant provider config parses");
 
@@ -1071,7 +1076,7 @@ mod tests {
         );
         assert_eq!(
             pools[0].seats[0].secret_handle,
-            "vault://tenant-a/anthropic/seat-a"
+            "secret-ref://tenant-a/anthropic/seat-a"
         );
         assert_eq!(pools[1].tenant_id, "tenant-b");
         assert_eq!(pools[1].provider, Provider::Codex);
@@ -1096,8 +1101,8 @@ mod tests {
         let mut config = test_config();
         config.tenant_id = "tenant-a".to_string();
         config.tenant_provider_pools = parse_tenant_provider_pools(
-            "tenant-a|anthropic|oauth_subscription|time_normalized_quota_percent|seat-a|vault://tenant-a/anthropic/seat-a;\
-             tenant-b|codex|api_key|round_robin|seat-b|vault://tenant-b/codex/seat-b",
+            "tenant-a|anthropic|oauth_subscription|time_normalized_quota_percent|seat-a|secret-ref://tenant-a/anthropic/seat-a;\
+             tenant-b|codex|api_key|round_robin|seat-b|secret-ref://tenant-b/codex/seat-b",
         )
         .unwrap();
 
@@ -1124,10 +1129,13 @@ mod tests {
             ("OYA_CLOUD_INTEL_ANTHROPIC_URL", "http://127.0.0.1:1"),
             (
                 "OYA_CLOUD_INTEL_INITIAL_SEATS",
-                "seat-a:vault://tenant-a/anthropic/seat-a",
+                "seat-a:secret-ref://tenant-a/anthropic/seat-a",
             ),
-            ("OYA_CLOUD_INTEL_OPENBAO_URL", "http://127.0.0.1:8200"),
-            ("OYA_CLOUD_INTEL_OPENBAO_TOKEN", "vault-token"),
+            (
+                "OYA_CLOUD_INTEL_SECRET_PROVIDER_URL",
+                "http://127.0.0.1:8200",
+            ),
+            ("OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN", "vault-token"),
             ("OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD", "clickhouse-password"),
             ("OYA_CLOUD_INTEL_ENVIRONMENT", "production"),
             ("OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE", "oauth_subscription"),
@@ -1167,7 +1175,7 @@ mod tests {
             seats: vec![StaticSeatConfig {
                 seat_id: "seat-a".to_string(),
                 subscription_id: "seat-a-sub".to_string(),
-                secret_handle: "vault://test-tenant/anthropic/seat-a".to_string(),
+                secret_handle: "secret-ref://test-tenant/anthropic/seat-a".to_string(),
             }],
         }];
 
@@ -1194,7 +1202,7 @@ mod tests {
             seats: vec![StaticSeatConfig {
                 seat_id: "seat-a".to_string(),
                 subscription_id: "seat-a-sub".to_string(),
-                secret_handle: "vault://test-tenant/anthropic/seat-a".to_string(),
+                secret_handle: "secret-ref://test-tenant/anthropic/seat-a".to_string(),
             }],
         }];
 
@@ -1217,7 +1225,7 @@ mod tests {
             seats: vec![StaticSeatConfig {
                 seat_id: "seat-a".to_string(),
                 subscription_id: "seat-a-sub".to_string(),
-                secret_handle: "vault://test-tenant/anthropic/seat-a".to_string(),
+                secret_handle: "secret-ref://test-tenant/anthropic/seat-a".to_string(),
             }],
         }];
 
@@ -1236,8 +1244,8 @@ mod tests {
             "OYA_CLOUD_INTEL_ENVIRONMENT",
             "OYA_CLOUD_INTEL_INITIAL_SEATS",
             "OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS",
-            "OYA_CLOUD_INTEL_OPENBAO_URL",
-            "OYA_CLOUD_INTEL_OPENBAO_TOKEN",
+            "OYA_CLOUD_INTEL_SECRET_PROVIDER_URL",
+            "OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN",
             "OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD",
             "OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN",
             "OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE",
@@ -1248,6 +1256,39 @@ mod tests {
             assert!(
                 deployment_template.contains(expected),
                 "deployment template missing env var {expected}"
+            );
+        }
+    }
+
+    #[test]
+    fn core_boundaries_use_owned_secret_provider_port_not_transient_adapter_names() {
+        let app_source =
+            read_repo_file("cloud/cloud-intelligence/crates/oya-cloud-intelligence-app/src/lib.rs");
+        let rest_source = read_repo_file(
+            "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs",
+        );
+        let deployment_template =
+            read_repo_file("cloud/cloud-intelligence/iac/k8s/helm/templates/deployment.yaml");
+
+        assert!(
+            app_source.contains("SecretProvider") && rest_source.contains("SecretProvider"),
+            "core cloud-intelligence Rust boundary should expose the owned secret-provider port"
+        );
+        assert!(
+            deployment_template.contains("SECRET_PROVIDER"),
+            "cloud deployment should expose owned secret-provider env vars"
+        );
+        let forbidden = [
+            ["OpenBao", "SecretStore"].concat(),
+            ["OYA_CLOUD_INTEL_", "OPEN", "BAO", "_URL"].concat(),
+            ["OYA_CLOUD_INTEL_", "OPEN", "BAO", "_TOKEN"].concat(),
+        ];
+        for forbidden in forbidden {
+            assert!(
+                !app_source.contains(&forbidden)
+                    && !rest_source.contains(&forbidden)
+                    && !deployment_template.contains(&forbidden),
+                "core cloud-intelligence boundary leaked transient adapter identifier {forbidden}"
             );
         }
     }
@@ -1333,7 +1374,7 @@ mod tests {
         for expected in [
             "initial_seats",
             "tenant_provider_pools",
-            "openbao_token",
+            "secret_provider_token",
             "clickhouse_password",
             "admin_bearer_token",
         ] {
