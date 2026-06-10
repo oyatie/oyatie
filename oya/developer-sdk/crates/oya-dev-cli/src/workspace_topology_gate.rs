@@ -381,6 +381,9 @@ fn check_r5_orphan_crates(
                 Some(n) => n.to_string(),
                 None => continue,
             };
+            if is_workspace_root_dir(&svc_path) {
+                continue;
+            }
             let crates_dir = svc_path.join("crates");
             if !crates_dir.is_dir() {
                 continue;
@@ -485,6 +488,17 @@ fn is_package_dir(dir: &Path) -> bool {
         return false;
     };
     contents.lines().any(|line| line.trim() == "[package]")
+}
+
+fn is_workspace_root_dir(dir: &Path) -> bool {
+    let toml = dir.join("Cargo.toml");
+    if !toml.is_file() {
+        return false;
+    }
+    let Ok(contents) = fs::read_to_string(&toml) else {
+        return false;
+    };
+    has_workspace_table(&contents)
 }
 
 fn write_report(path: &Path, report: &WorkspaceTopologyReport) -> Result<(), String> {
@@ -896,6 +910,40 @@ mod tests {
             .filter(|f| f.rule == WorkspaceTopologyRule::R5OrphanCrate)
             .collect();
         assert!(!r5.is_empty(), "expected R5 orphan finding for cloud crate, got: {:?}", report.findings);
+        cleanup(&root);
+    }
+
+    #[test]
+    fn excluded_nested_workspace_is_not_reported_as_orphan() {
+        let root = scratch_root("nested-workspace-exclude");
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"cloud/*/crates/oya-*\"]\nexclude = [\"cloud/cloud-kernel\"]\n",
+        )
+        .expect("workspace manifest written");
+        write_member(
+            &root,
+            "cloud/cloud-data/crates/oya-cloud-data-kernel",
+            "oya-cloud-data-kernel",
+        );
+        fs::create_dir_all(root.join("cloud/cloud-kernel")).expect("nested workspace dir");
+        fs::write(
+            root.join("cloud/cloud-kernel/Cargo.toml"),
+            "[workspace]\nmembers = [\"crates/oya-cloud-kernel-frame-kernel\"]\n",
+        )
+        .expect("nested workspace manifest");
+        write_member(
+            &root,
+            "cloud/cloud-kernel/crates/oya-cloud-kernel-frame-kernel",
+            "oya-cloud-kernel-frame-kernel",
+        );
+
+        let report = run(&root, true);
+        assert!(
+            report.findings.is_empty(),
+            "excluded nested workspace crates must not be orphaned: {:?}",
+            report.findings
+        );
         cleanup(&root);
     }
 }

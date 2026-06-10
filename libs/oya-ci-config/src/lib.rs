@@ -629,6 +629,7 @@ pub enum GateFace {
     ManifestHygiene,
     CargoPrefix,
     SloCoverage,
+    WorkspaceGlobCoverage,
 }
 
 /// One enabled gate: its id, its input KIND, and (for `producer-face`) which face it binds.
@@ -711,6 +712,11 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             id: "cloud-ci-slo-coverage".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::SloCoverage),
+        },
+        GateSpec {
+            id: "cloud-ci-workspace-glob-coverage".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::WorkspaceGlobCoverage),
         },
         GateSpec {
             id: "cloud-ci-brand-residue".to_owned(),
@@ -797,9 +803,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_nine_gates_with_input_kinds() {
+    fn bundled_default_enables_all_ten_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 9);
+        assert_eq!(cfg.gates.enabled.len(), 10);
         let brand = cfg
             .gates
             .enabled
@@ -832,6 +838,20 @@ mod tests {
             .expect("slo-coverage gate enabled");
         assert_eq!(slo_coverage.input_kind, GateInputKind::ProducerFace);
         assert_eq!(slo_coverage.face, Some(GateFace::SloCoverage));
+        let workspace_glob_coverage = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-workspace-glob-coverage")
+            .expect("workspace-glob-coverage gate enabled");
+        assert_eq!(
+            workspace_glob_coverage.input_kind,
+            GateInputKind::ProducerFace
+        );
+        assert_eq!(
+            workspace_glob_coverage.face,
+            Some(GateFace::WorkspaceGlobCoverage)
+        );
     }
 
     #[test]

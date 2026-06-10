@@ -19,35 +19,11 @@ pub(crate) fn read_workspace_member_crate_ids(path: &Path) -> Result<Vec<String>
 }
 
 pub(crate) fn read_workspace_member_paths(path: &Path) -> Result<Vec<String>, String> {
-    let manifest = fs::read_to_string(path)
-        .map_err(|error| format!("workspace manifest unreadable: {error}"))?;
-    let members_start = manifest
-        .find("members")
-        .ok_or_else(|| "workspace manifest missing members array".to_string())?;
-    let after_members = &manifest[members_start..];
-    let list_start = after_members
-        .find('[')
-        .ok_or_else(|| "workspace manifest members missing '['".to_string())?;
-    let after_list_start = &after_members[list_start + 1..];
-    let list_end = after_list_start
-        .find(']')
-        .ok_or_else(|| "workspace manifest members missing ']'".to_string())?;
-    let members = &after_list_start[..list_end];
-    let member_paths = members
-        .split(',')
-        .filter_map(|entry| {
-            let trimmed = entry.trim();
-            let first_quote = trimmed.find('"')?;
-            let rest = &trimmed[first_quote + 1..];
-            let second_quote = rest.find('"')?;
-            let path = &rest[..second_quote];
-            if path.is_empty() {
-                None
-            } else {
-                Some(path.to_string())
-            }
-        })
-        .collect::<Vec<_>>();
+    let repo_root = path
+        .parent()
+        .ok_or_else(|| format!("workspace manifest has no parent: {}", path.display()))?;
+    let member_paths = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+        .map_err(|error| format!("workspace manifest members unresolved: {error}"))?;
     if member_paths.is_empty() {
         Err("workspace manifest members array is empty".to_string())
     } else {
@@ -111,8 +87,22 @@ pub(crate) fn read_package_name(path: &Path) -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use std::fs;
+    use std::path::Path;
 
     use super::read_workspace_member_paths;
+
+    fn write_member(root: &Path, relative: &str) {
+        let dir = root.join(relative);
+        fs::create_dir_all(&dir).expect("member dir created");
+        fs::write(
+            dir.join("Cargo.toml"),
+            format!(
+                "[package]\nname = \"{}\"\nedition = \"2024\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n",
+                relative.replace('/', "-")
+            ),
+        )
+        .expect("member manifest written");
+    }
 
     #[test]
     fn workspace_member_parser_ignores_comments_in_members_array() {
@@ -121,6 +111,8 @@ mod tests {
             std::process::id()
         ));
         fs::create_dir_all(&dir).expect("fixture dir created");
+        write_member(&dir, "crates/one");
+        write_member(&dir, "crates/two");
         let manifest = dir.join("Cargo.toml");
         fs::write(
             &manifest,
@@ -137,6 +129,38 @@ members = [
 
         let members = read_workspace_member_paths(&manifest).expect("members parsed");
         assert_eq!(members, vec!["crates/one", "crates/two"]);
+
+        fs::remove_file(manifest).expect("manifest removed");
+        fs::remove_dir_all(dir).expect("fixture dir removed");
+    }
+
+    #[test]
+    fn workspace_member_parser_expands_globs_and_honors_exclude() {
+        let dir = std::env::temp_dir().join(format!(
+            "oya-workspace-manifest-glob-test-{}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&dir).expect("fixture dir created");
+        write_member(&dir, "libs/oya-one");
+        write_member(&dir, "libs/oya-two");
+        write_member(&dir, "cloud/cloud-kernel/crates/oya-excluded-kernel");
+        let manifest = dir.join("Cargo.toml");
+        fs::write(
+            &manifest,
+            r#"[workspace]
+members = [
+  "libs/oya-*",
+  "cloud/*/crates/oya-*",
+]
+exclude = [
+  "cloud/cloud-kernel",
+]
+"#,
+        )
+        .expect("manifest written");
+
+        let members = read_workspace_member_paths(&manifest).expect("members parsed");
+        assert_eq!(members, vec!["libs/oya-one", "libs/oya-two"]);
 
         fs::remove_file(manifest).expect("manifest removed");
         fs::remove_dir_all(dir).expect("fixture dir removed");

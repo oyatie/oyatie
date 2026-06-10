@@ -227,6 +227,10 @@ fn run() -> Result<(), CliError> {
     // tracked-path universe. This makes the lane input contract portable DATA instead of an
     // Oyatie-only hardcoded directory walk.
     let slo_coverage = collect_slo_coverage(&repo_root, &inputs.tracked_paths, &cfg);
+    // The ADR-0538 workspace-glob-coverage gate input: root member entries plus concrete
+    // first-party crate-dir coverage against the canonical glob-aware workspace-member resolver.
+    let workspace_glob_coverage =
+        collect_workspace_glob_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
@@ -236,6 +240,7 @@ fn run() -> Result<(), CliError> {
         manifest_hygiene: &manifest_hygiene,
         cargo_prefix: &cargo_prefix,
         slo_coverage: &slo_coverage,
+        workspace_glob_coverage: &workspace_glob_coverage,
         brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&cfg, &gate_inputs, &config_digest)?;
@@ -250,6 +255,7 @@ fn run() -> Result<(), CliError> {
             "manifest-hygiene" => &manifest_hygiene,
             "cargo-prefix" => &cargo_prefix,
             "slo-coverage" => &slo_coverage,
+            "workspace-glob-coverage" => &workspace_glob_coverage,
             "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
@@ -562,6 +568,114 @@ fn collect_slo_coverage(
     json!({ "rows": rows })
 }
 
+/// Enumerate ADR-0538 workspace-glob-coverage rows. Member-entry rows preserve the raw root
+/// `[workspace].members` entries; crate-dir rows cover tracked first-party package manifests
+/// that are not the root manifest, not repo-policy-excluded, and not inside nested workspaces.
+/// Coverage itself comes only from `oya-workspace-members-kernel`.
+fn collect_workspace_glob_coverage(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Result<Value, CliError> {
+    let entries = oya_workspace_members_kernel::read_workspace_manifest_entries(repo_root)
+        .map_err(|error| {
+            CliError::Io(format!(
+                "workspace-glob-coverage read root workspace entries: {error}"
+            ))
+        })?;
+    let covered_dirs: BTreeSet<String> = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+        .map_err(|error| {
+            CliError::Io(format!(
+                "workspace-glob-coverage resolve member dirs: {error}"
+            ))
+        })?
+        .into_iter()
+        .collect();
+
+    let mut rows: Vec<Value> = entries
+        .members
+        .iter()
+        .map(|member_entry| {
+            json!({
+                "member_entry": member_entry,
+                "is_glob": member_entry.contains('*'),
+            })
+        })
+        .collect();
+
+    let mut crate_dirs: BTreeMap<String, (bool, bool)> = BTreeMap::new();
+    for path in tracked_paths {
+        if path == "Cargo.toml" || !path.ends_with("/Cargo.toml") {
+            continue;
+        }
+        if is_path_excluded(path, cfg) {
+            continue;
+        }
+        let Some(crate_dir) = path.strip_suffix("/Cargo.toml") else {
+            continue;
+        };
+        let contents = read_text(&repo_root.join(path));
+        if parse_package_name(&contents).is_none() {
+            continue;
+        }
+        if is_nested_workspace_package(repo_root, crate_dir, &contents) {
+            continue;
+        }
+        let excluded = workspace_entry_excludes_dir(crate_dir, &entries.exclude);
+        let covered = covered_dirs.contains(crate_dir);
+        crate_dirs.insert(crate_dir.to_owned(), (covered, excluded));
+    }
+
+    rows.extend(
+        crate_dirs
+            .into_iter()
+            .map(|(crate_dir, (covered, excluded))| {
+                json!({
+                    "crate_dir": crate_dir,
+                    "covered": covered,
+                    "excluded": excluded,
+                })
+            }),
+    );
+
+    Ok(json!({ "rows": rows }))
+}
+
+fn workspace_entry_excludes_dir(dir: &str, exclude: &[String]) -> bool {
+    exclude
+        .iter()
+        .any(|entry| dir == entry || dir.starts_with(&format!("{entry}/")))
+}
+
+fn is_nested_workspace_package(repo_root: &Path, crate_dir: &str, contents: &str) -> bool {
+    if has_workspace_table(contents) {
+        return true;
+    }
+    let mut current = Path::new(crate_dir).parent();
+    while let Some(parent) = current {
+        if parent.as_os_str().is_empty() {
+            break;
+        }
+        let manifest = repo_root.join(parent).join("Cargo.toml");
+        if manifest.is_file() && has_workspace_table(&read_text(&manifest)) {
+            return true;
+        }
+        current = parent.parent();
+    }
+    false
+}
+
+fn has_workspace_table(contents: &str) -> bool {
+    contents.lines().any(|line| {
+        let trimmed = line.trim();
+        let Some(rest) = trimmed.strip_prefix('[') else {
+            return false;
+        };
+        let table = rest.split(']').next().unwrap_or("").trim();
+        table == "workspace" || table.starts_with("workspace.")
+    })
+}
+
 /// Minimal path-glob matcher for declared gate input contracts. Supports exact paths,
 /// directory-prefix (`dir/**` and `dir/`), recursive extension (`**/*.yaml`), basename extension
 /// (`*.yaml`), and one-level directory extension (`dir/*.yaml`). Unknown shapes fail closed.
@@ -673,6 +787,75 @@ mod tests {
                 finding.code == "slo_missing_or_blank_slo" && finding.key == "service"
             }),
             "one duplicate row with a valid SLO must not hide the missing-SLO duplicate: {findings:?}"
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn workspace_glob_coverage_reports_explicit_members_and_uncovered_crates() {
+        let root = unique_temp_repo();
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"libs/oya-*\", \"tools/oya-explicit-app\"]\nexclude = [\"cloud/cloud-kernel\"]\n",
+        )
+        .expect("write root manifest");
+
+        for (dir, name) in [
+            ("libs/oya-covered-kernel", "oya-covered-kernel"),
+            ("tools/oya-explicit-app", "oya-explicit-app"),
+            ("tools/oya-orphan-app", "oya-orphan-app"),
+            (
+                "cloud/cloud-kernel/crates/oya-kernel-domain",
+                "oya-kernel-domain",
+            ),
+        ] {
+            let dir = root.join(dir);
+            fs::create_dir_all(&dir).expect("create crate dir");
+            fs::write(
+                dir.join("Cargo.toml"),
+                format!("[package]\nname = \"{name}\"\n"),
+            )
+            .expect("write crate manifest");
+        }
+        fs::create_dir_all(root.join("cloud/cloud-kernel")).expect("create nested workspace");
+        fs::write(
+            root.join("cloud/cloud-kernel/Cargo.toml"),
+            "[workspace]\nmembers = [\"crates/oya-kernel-domain\"]\n",
+        )
+        .expect("write nested workspace manifest");
+
+        let tracked_paths = vec![
+            "Cargo.toml".to_owned(),
+            "libs/oya-covered-kernel/Cargo.toml".to_owned(),
+            "tools/oya-explicit-app/Cargo.toml".to_owned(),
+            "tools/oya-orphan-app/Cargo.toml".to_owned(),
+            "cloud/cloud-kernel/Cargo.toml".to_owned(),
+            "cloud/cloud-kernel/crates/oya-kernel-domain/Cargo.toml".to_owned(),
+        ];
+
+        let face = collect_workspace_glob_coverage(
+            &root,
+            &tracked_paths,
+            &oya_ci_config_kernel::OyaCiConfig::bundled_default(),
+        )
+        .expect("collect workspace glob coverage");
+        let findings = oya_cloud_ci_workspace_glob_coverage_app::evaluate_keyed(&face);
+
+        assert!(findings.iter().any(|finding| {
+            finding.code == "workspace_member_explicit_path"
+                && finding.key == "tools/oya-explicit-app"
+        }));
+        assert!(findings.iter().any(|finding| {
+            finding.code == "crate_dir_not_covered" && finding.key == "tools/oya-orphan-app"
+        }));
+        assert!(
+            !face["rows"]
+                .as_array()
+                .expect("rows")
+                .iter()
+                .any(|row| row["crate_dir"] == "cloud/cloud-kernel/crates/oya-kernel-domain"),
+            "nested workspace package dirs are skipped"
         );
 
         fs::remove_dir_all(root).expect("remove temp repo");
@@ -1182,32 +1365,17 @@ fn resolve_reachability(
 }
 
 /// Member directory prefixes from the workspace Cargo.toml — a path under a member
-/// crate dir is reachable from `cargo-members`.
+/// crate dir is reachable from `cargo-members`. Resolved via the canonical
+/// `oya-workspace-members-kernel` (reuse, not re-derive): the root manifest lists
+/// members as GLOBS (`libs/oya-*`, `cloud/*/crates/oya-*`, ...), so the member set MUST
+/// be expanded against the tree; a textual read of the array would only see the `*`
+/// literals and would mark every crate path unreachable from `cargo-members`.
 fn read_cargo_member_prefixes(repo_root: &Path) -> Vec<String> {
-    let text = read_text(&repo_root.join("Cargo.toml"));
-    let mut prefixes = Vec::new();
-    let mut in_members = false;
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with("members") && trimmed.contains('[') {
-            in_members = true;
-            continue;
-        }
-        if in_members {
-            if trimmed.starts_with(']') {
-                break;
-            }
-            if let Some(start) = trimmed.find('"')
-                && let Some(end) = trimmed[start + 1..].find('"')
-            {
-                let member = &trimmed[start + 1..start + 1 + end];
-                if !member.is_empty() {
-                    prefixes.push(format!("{member}/"));
-                }
-            }
-        }
-    }
-    prefixes
+    oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|dir| format!("{dir}/"))
+        .collect()
 }
 
 /// Justification: a path traces to a decision if an ADR mentions it (front-matter

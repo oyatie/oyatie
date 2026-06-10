@@ -3734,6 +3734,7 @@ version = "0.1.0"
 name = "oya-check-dependency-seam"
 version = "0.1.0"
 dependencies = [
+ "oya-workspace-members-kernel",
  "serde",
  "serde_json",
  "toml 0.8.23",
@@ -4150,6 +4151,8 @@ dependencies = [
  "oya-cloud-ci-slo-coverage-app",
  "oya-cloud-ci-staleness-reaper-app",
  "oya-cloud-ci-total-accounting-app",
+ "oya-cloud-ci-workspace-glob-coverage-app",
+ "oya-workspace-members-kernel",
  "serde",
  "serde_json",
 ]
@@ -4232,6 +4235,13 @@ dependencies = [
 
 [[package]]
 name = "oya-cloud-ci-total-accounting-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-workspace-glob-coverage-app"
 version = "0.1.0"
 dependencies = [
  "serde_json",
@@ -5538,6 +5548,7 @@ dependencies = [
  "oya-intelligence-step-file-adapter",
  "oya-secrets-domain",
  "oya-secrets-file-adapter",
+ "oya-workspace-members-kernel",
  "serde_json",
  "sha2",
 ]
@@ -9640,11 +9651,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-workspace-members-kernel"
+version = "0.1.0"
+dependencies = [
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "oya-xtask-metadata-augment-app"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "oya-workspace-members-kernel",
  "serde_json",
  "tempfile",
  "toml_edit",

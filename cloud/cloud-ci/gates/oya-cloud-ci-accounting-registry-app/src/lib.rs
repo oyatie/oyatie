@@ -528,6 +528,11 @@ pub struct GateInputs<'a> {
     /// catalog identity from each file stem, and parses the top-level `slo:` value. The gate's
     /// `evaluate_keyed` reuses `oya_check_slo_coverage::validate_slo_coverage` per row.
     pub slo_coverage: &'a Value,
+    /// The ADR-0538 workspace-glob-coverage gate input:
+    /// `{"rows":[{"member_entry","is_glob"},{"crate_dir","covered","excluded"}]}`. The
+    /// producer reads the root workspace entries and resolves covered dirs via
+    /// `oya-workspace-members-kernel`; the gate's `evaluate_keyed` is pure boolean policy.
+    pub workspace_glob_coverage: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
     /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
     /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
@@ -585,6 +590,13 @@ fn producer_face_keys(
             oya_cloud_ci_slo_coverage_app::evaluate_keyed(inputs.slo_coverage)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
+        ),
+        GateFace::WorkspaceGlobCoverage => group_findings(
+            oya_cloud_ci_workspace_glob_coverage_app::evaluate_keyed(
+                inputs.workspace_glob_coverage,
+            )
+            .into_iter()
+            .map(|f| (f.code, f.key)),
         ),
     }
 }
@@ -869,6 +881,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
+            workspace_glob_coverage: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
@@ -914,6 +927,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
+            workspace_glob_coverage: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();

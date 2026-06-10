@@ -10,7 +10,7 @@ the gates of the packs it uses.
 Each enabled gate declares HOW its current keys are sourced:
 
 - **`producer-face`** — the producer builds a face (a `Value`), and the gate's pure
-  `evaluate_keyed(&face)` produces the keys. Six gates use this; each binds one `face`.
+  `evaluate_keyed(&face)` produces the keys. Nine gates use this; each binds one `face`.
 - **`raw-corpus-collector`** — the keys arrive ALREADY GROUPED `code -> keys` from a raw-corpus
   census the binary runs over the tracked text files (NOT a face, NOT `evaluate_keyed`).
   `cloud-ci-brand-residue` uses this.
@@ -26,8 +26,12 @@ Each enabled gate declares HOW its current keys are sourced:
   operate on tracked text + the ADR/markdown corpus + git history — no language assumption.
 - **`rust-cargo`:** bnf-layer-suffix + manifest-hygiene (both `producer-face`). Collectors
   enumerate `Cargo.toml`; consume the `[naming]` + `[manifest]` policy.
+- **`rust-cargo-workspace`:** cargo-prefix + workspace-glob-coverage (both `producer-face`).
+  Collectors enumerate workspace members and crate manifest directories.
+- **`catalog`:** slo-coverage (`producer-face`). The collector expands catalog record globs.
 
-A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo`.
+A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo + rust-cargo-workspace +
+catalog`.
 
 ## The gates
 
@@ -40,6 +44,9 @@ A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo`.
 | `cloud-ci-brand-residue` | core | raw-corpus-collector | one `forbidden_<stem>` code per configured `[vocab]` stem |
 | `cloud-ci-bnf-layer-suffix` | rust-cargo | producer-face (`bnf_layer_suffix`) | `bnf_unknown_role`, `bnf_role_mismatch`, `bnf_missing_oya_prefix`, `bnf_empty_after_prefix`, `bnf_undeclared_role`, `bnf_undeclared_context`, `bnf_name_uppercase` |
 | `cloud-ci-manifest-hygiene` | rust-cargo | producer-face (`manifest_hygiene`) | `manifest_missing_version_workspace`, `manifest_missing_rust_version_workspace`, `manifest_missing_publish_false`, `manifest_missing_license`, `manifest_missing_lints_workspace`, `manifest_missing_lib_doctest_false` |
+| `cloud-ci-cargo-prefix` | rust-cargo-workspace | producer-face (`cargo_prefix`) | `cargo_prefix_violation`, `cargo_prefix_name_path_mismatch`, `cargo_prefix_unresolvable` |
+| `cloud-ci-slo-coverage` | catalog | producer-face (`slo_coverage`) | `slo_missing_or_blank_slo`, `slo_empty_crate_id`, `slo_no_catalog_records` |
+| `cloud-ci-workspace-glob-coverage` | rust-cargo-workspace | producer-face (`workspace_glob_coverage`) | `workspace_member_explicit_path`, `crate_dir_not_covered` |
 
 ## Key shapes (what a `key` identifies)
 
@@ -49,6 +56,9 @@ A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo`.
 - brand-residue: the file path containing a stem (per-file, NOT per-line — stable under in-file
   edits; only fully cleaning a file shrinks the set).
 - bnf / manifest: the crate name.
+- cargo-prefix: the workspace member path.
+- slo-coverage: the catalog crate id.
+- workspace-glob-coverage: the raw member entry or crate manifest directory.
 
 ## frozen-empty codes
 
