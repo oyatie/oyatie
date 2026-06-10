@@ -6303,7 +6303,21 @@ dependencies = [
 name = "oya-identity"
 version = "0.1.0"
 dependencies = [
+ "aws-lc-rs",
+ "axum",
+ "base64 0.22.1",
+ "oya-identity-workload-app",
+ "oya-identity-workload-authz-cedar-adapter",
+ "oya-identity-workload-domain",
+ "oya-identity-workload-oidc-adapter",
+ "oya-identity-workload-rest",
+ "reqwest",
+ "serde",
+ "serde_json",
  "tokio",
+ "tonic",
+ "tracing",
+ "tracing-subscriber",
  "uuid",
  "webauthn-rs",
 ]
