@@ -4,7 +4,7 @@
 // microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md.
 // This is the ADMIN/INTERNAL control-plane surface (the data plane is the
 // OpenAI-compatible REST surface in cloud-intelligence.openapi.yaml). It mirrors the
-// admin operations in the OpenAPI `admin` tag: pool status + key refresh.
+// admin operations in the OpenAPI `admin` tag: pool status, key refresh, status, accounts, analytics, and circuit-breaker resume.
 //
 // Authority: ADR-0090 (hyper backbone), ADR-0105 (layered kernel/rest),
 // ADR-0145 inter-µservice communication, ADR-0373 (key-pool resilience).
@@ -26,14 +26,26 @@ option java_multiple_files = true;
 option java_package = "co.oyatie.cloud_intelligence.v1";
 
 // Control-plane service — admin realm only. Authorization is enforced by the
-// adminBearer realm (constant-time token) + Cedar (policy/cloud-intelligence.cedar).
+// adminBearer realm (constant-time token) + owned-policy-engine-port decisions.
 service LlmGatewayAdmin {
   // Report key-pool health across all provider channels.
   rpc PoolStatus(PoolStatusRequest) returns (PoolStatusResponse);
 
-  // Force an out-of-band key-pool refresh from OpenBao for one provider.
+  // Force an out-of-band key-pool refresh from owned-secret-provider-port for one provider.
   // Idempotent. Never reads keys from disk/env (brief §5, §7).
   rpc KeyRefresh(KeyRefreshRequest) returns (KeyRefreshResponse);
+
+  // Report gateway, route-controller, model-inventory, credential-worker, and policy readiness.
+  rpc GatewayStatus(GatewayStatusRequest) returns (GatewayStatusResponse);
+
+  // Return redacted provider account/seat status for tenant operations views.
+  rpc AccountStatus(AccountStatusRequest) returns (AccountStatusResponse);
+
+  // Return aggregated analytics for cloud dashboard/admin API surfaces.
+  rpc AnalyticsSummary(AnalyticsSummaryRequest) returns (AnalyticsSummaryResponse);
+
+  // Resume a circuit breaker or budget guard after policy-authorized operator action.
+  rpc ResumeCircuitBreaker(ResumeCircuitBreakerRequest) returns (ResumeCircuitBreakerResponse);
 }
 
 // === Common ===
@@ -105,7 +117,7 @@ message PoolStatusResponse {
 
 message KeyRefreshRequest {
   RequestMeta meta = 1;
-  // Which provider pool to refresh from OpenBao.
+  // Which provider pool to refresh from owned-secret-provider-port.
   ProviderChannel channel = 2;
 }
 
@@ -113,6 +125,75 @@ message KeyRefreshResponse {
   ProviderChannel channel = 1;
   uint32 keys_loaded = 2;
   google.protobuf.Timestamp refreshed_at = 3;
-  string source = 4; // always "openbao" (brief §5, §7 — never disk/env)
+  string source = 4; // always "owned-secret-provider-port" (brief §5, §7 — never disk/env)
   Error error = 5;   // unset on success
+}
+
+// === GatewayStatus ===
+
+message GatewayStatusRequest {
+  RequestMeta meta = 1;
+}
+
+message GatewayStatusResponse {
+  string status = 1; // ok | degraded | unavailable
+  bool route_controller_ready = 2;
+  bool model_inventory_ready = 3;
+  bool credential_worker_ready = 4; // owned-secret-provider-port reachability + lease readiness
+  bool policy_engine_ready = 5;     // owned-policy-engine-port decision readiness
+  Error error = 6;                  // unset on success
+}
+
+// === AccountStatus ===
+
+message AccountStatusRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;          // empty = caller-authorized tenant set
+  ProviderChannel channel = 3;   // unspecified = all channels
+}
+
+message AccountStatusItem {
+  string tenant_id = 1;
+  ProviderChannel channel = 2;
+  string seat_id = 3;
+  string state = 4; // authorized | active | cooldown | blacklisted
+  google.protobuf.Timestamp cooldown_until = 5;
+  double headroom_percent = 6;
+}
+
+message AccountStatusResponse {
+  repeated AccountStatusItem accounts = 1;
+  Error error = 2; // unset on success
+}
+
+// === AnalyticsSummary ===
+
+message AnalyticsSummaryRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;   // empty = caller-authorized tenant set
+  string window = 3;      // e.g. PT5M, PT1H, P1D
+}
+
+message AnalyticsSummaryResponse {
+  string window = 1;
+  uint64 request_count = 2;
+  uint64 input_tokens = 3;
+  uint64 output_tokens = 4;
+  double rate_limit_utilization_percent = 5;
+  Error error = 6; // unset on success
+}
+
+// === ResumeCircuitBreaker ===
+
+message ResumeCircuitBreakerRequest {
+  RequestMeta meta = 1;
+  string scope = 2;  // tenant/provider/model or GatewayCircuitBreaker resource name
+  string reason = 3;
+}
+
+message ResumeCircuitBreakerResponse {
+  string scope = 1;
+  string status = 2; // resumed | unchanged
+  google.protobuf.Timestamp resumed_at = 3;
+  Error error = 4; // unset on success
 }
