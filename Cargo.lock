@@ -4655,6 +4655,38 @@ name = "oya-cloud-observability-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-os-conditions-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-cosi-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-cloud-os-proto-api"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-resources-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
 name = "oya-cloud-region-api"
 version = "0.1.0"
 dependencies = [
