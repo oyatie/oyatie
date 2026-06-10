@@ -66,7 +66,7 @@ use oya_identity_workload_app::{
 use oya_identity_workload_authz_cedar_adapter::WorkloadAuthorizer;
 use oya_identity_workload_domain::{
     Action, AuthorizationDecision, AuthorizationRequest, ClaimValue, WorkloadId, WorkloadPrincipal,
-    WorkloadState,
+    Resource, WorkloadState,
 };
 use oya_identity_workload_oidc_adapter::{Jwks, ValidationConfig, validate_workload_token};
 
@@ -360,6 +360,43 @@ where
     ) -> Result<std::sync::MutexGuard<'_, D>, std::sync::PoisonError<std::sync::MutexGuard<'_, D>>>
     {
         self.denylist.lock()
+    }
+
+    /// Run the same validate -> repository -> denylist -> policy hot path used
+    /// by `/authorize-with-token` for service-local delivery surfaces that need
+    /// to guard their own routes (for example SCIM). This intentionally does
+    /// not emit an audit record; callers own the route-specific response and
+    /// audit envelope, while this method owns the fail-closed authorization
+    /// decision.
+    #[must_use]
+    pub fn authorize_token_for(
+        &self,
+        token: &str,
+        action: Action,
+        resource: Resource,
+        context: std::collections::BTreeMap<String, ClaimValue>,
+    ) -> AuthorizeOutcome {
+        let now = (self.now_provider)();
+        let repo_guard = match self.repository.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        let denylist_guard = match self.denylist.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        authorize_with_token(
+            &*repo_guard,
+            &*denylist_guard,
+            &self.authorizer,
+            &self.jwks,
+            &self.config,
+            now,
+            token,
+            action,
+            resource,
+            context,
+        )
     }
 }
 

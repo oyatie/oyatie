@@ -19,3 +19,19 @@ pub mod rest;
 pub mod server;
 pub mod storage;
 pub mod users;
+
+use oya_identity_workload_app::{InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository};
+use oya_identity_workload_authz_cedar_adapter::CedarWorkloadAuthorizer;
+use oya_identity_workload_rest::WorkloadAuthzState;
+
+use crate::observability::TracingAuditSink;
+
+/// The composed application state: in-memory bring-up stores behind the
+/// repository/denylist ports (G03 swaps the durable store in behind the same
+/// ports), the embedded Cedar PDP, the static JWKS, and the tracing audit sink.
+pub type AppState = WorkloadAuthzState<
+    InMemoryWorkloadPrincipalRepository,
+    InMemoryRevocationDenylist,
+    CedarWorkloadAuthorizer,
+    TracingAuditSink,
+>;
