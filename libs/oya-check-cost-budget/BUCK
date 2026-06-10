@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-check-cost-budget-cost-budget",
+    srcs = ["tests/cost_budget.rs"],
+    crate = "oya_check_cost_budget_cost_budget",
+    crate_root = "tests/cost_budget.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-check-cost-budget",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

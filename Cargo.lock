@@ -3595,6 +3595,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-buck-test-wiring-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "oya-workspace-members-kernel",
+]
+
+[[package]]
 name = "oya-bus-boundary-kernel"
 version = "0.1.0"
 dependencies = [

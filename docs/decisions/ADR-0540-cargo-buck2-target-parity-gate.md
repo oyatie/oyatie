@@ -98,6 +98,23 @@ infra/ci/materialize-cloud-ci-generated-faces.sh .
 | `libs/oya-ci-config/` and `oya-ci.toml` | register gate face and disposition data | `oya-ci-config-kernel` | kernel |
 | `.github/workflows/oya-ci-required.yml` | add one gate matrix line | - | - |
 | `docs/oya-ci/gate-catalog.md` | document gate, input kind, key shape, and frozen-empty code | - | - |
+| `tools/oya-buck-test-wiring-app/` | local bridge generator (retirement-marked CLI per ADR-0363); adds `rust_test` targets in batch | `oya-buck-test-wiring-app` | app |
+
+The local bridge generator files owned by this ADR are:
+`tools/oya-buck-test-wiring-app/BUCK`,
+`tools/oya-buck-test-wiring-app/Cargo.toml`,
+`tools/oya-buck-test-wiring-app/OWNERS`,
+`tools/oya-buck-test-wiring-app/src/lib.rs`,
+`tools/oya-buck-test-wiring-app/src/main.rs`,
+`tools/oya-buck-test-wiring-app/fixtures/binary_only.input.txt`,
+`tools/oya-buck-test-wiring-app/fixtures/library_append.expected.txt`,
+`tools/oya-buck-test-wiring-app/fixtures/library_append.input.txt`,
+`tools/oya-buck-test-wiring-app/fixtures/library_with_tests.generated.expected.txt`,
+`tools/oya-buck-test-wiring-app/fixtures/library_with_tests.input.txt`.
+The multispectrum evidence bundle for the initial wiring batch is
+`evidence/multispectrum/g011-rust-test-wiring-generator-20260610-1781107105.json`.
+The ownership files added with this ADR are
+`evidence/multispectrum/OWNERS`.
 
 ### Integration via Workflow + Ontology
 
