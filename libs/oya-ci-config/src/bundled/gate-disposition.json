@@ -62,6 +62,10 @@
       "slo_empty_crate_id": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "slo_no_catalog_records": {"mode": "baseline-block-on-new", "frozen_empty": true}
     },
+    "cloud-ci-workspace-glob-coverage": {
+      "workspace_member_explicit_path": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "crate_dir_not_covered": {"mode": "baseline-block-on-new"}
+    },
     "cloud-ci-brand-residue": {
       "forbidden_foundry": {"mode": "baseline-block-on-new"},
       "forbidden_forgejo": {"mode": "baseline-block-on-new"},
