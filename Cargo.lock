@@ -8500,6 +8500,26 @@ name = "oya-shared-outbox-pattern-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-shared-pdp-adapter-cedar"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "oya-shared-pdp-kernel",
+ "oya-shared-platform-contracts-kernel",
+ "oya-shared-ulid-id-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-shared-pdp-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-platform-contracts-kernel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-shared-platform-contracts-kernel"
 version = "0.1.0"
 dependencies = [
