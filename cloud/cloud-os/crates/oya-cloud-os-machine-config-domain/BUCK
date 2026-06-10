@@ -8,3 +8,22 @@ rust_library(
         "//cloud/cloud-os/crates/oya-cloud-os-kernel:oya-cloud-os-kernel",
     ],
 )
+
+filegroup(
+    name = "testdata",
+    srcs = glob(["testdata/**"]),
+)
+
+rust_test(
+    name = "oya-cloud-os-machine-config-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]),
+    crate = "oya_cloud_os_machine_config_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    env = {
+        "OYA_TESTDATA_DIR": "$(location :testdata)/testdata",
+    },
+    deps = [
+        "//cloud/cloud-os/crates/oya-cloud-os-kernel:oya-cloud-os-kernel",
+    ],
+)

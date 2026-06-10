@@ -567,11 +567,18 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
+    /// Root of the corpus fixtures. Under cargo, CARGO_MANIFEST_DIR points at the
+    /// crate dir; under buck2 the rust_test target injects OYA_TESTDATA_DIR via
+    /// `$(location :testdata)` (CARGO_MANIFEST_DIR is not defined there).
+    fn testdata_root() -> PathBuf {
+        if let Ok(dir) = std::env::var("OYA_TESTDATA_DIR") {
+            return PathBuf::from(dir);
+        }
+        PathBuf::from(option_env!("CARGO_MANIFEST_DIR").unwrap_or(".")).join("testdata")
+    }
+
     fn configs_dir() -> PathBuf {
-        // CARGO_MANIFEST_DIR = .../oya-cloud-os-machine-config-domain
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("testdata")
-            .join("configs")
+        testdata_root().join("configs")
     }
 
     fn read(name: &str) -> String {
@@ -784,10 +791,7 @@ mod tests {
     /// `config_fields.tsv` byte-for-byte.
     #[test]
     fn config_fields_match_oracle() {
-        let tsv_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("testdata")
-            .join("vectors")
-            .join("config_fields.tsv");
+        let tsv_path = testdata_root().join("vectors").join("config_fields.tsv");
         let body = fs::read_to_string(&tsv_path)
             .unwrap_or_else(|e| panic!("read {}: {e}", tsv_path.display()));
 
