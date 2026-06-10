@@ -187,6 +187,13 @@
       "purpose": "Canonical shape of the context bundle a ci_fixer role consumes when diagnosing CI lane failures.",
       "target_path_after_md_retirement": "same"
     },
+    "lane_supervisor_bridge": {
+      "current_path": "registry/catalog/oya-lane-supervisor-app.yaml",
+      "kind": "registry",
+      "migration_phase": "local-bridge-until-cloud-ci-lane-state",
+      "purpose": "Retirement-marked local bridge catalog row for the lane-supervisor app. Supporting local-only surfaces are .omc/ultragoal/OWNERS, .omc/ultragoal/TEAMMATE-PREAMBLE.md, .omc/ultragoal/friction-ledger.jsonl, .omc/ultragoal/premise.txt, .omc/ultragoal/review-verdict.txt, registry/catalog/OWNERS, and registry/catalog/oya-lane-supervisor-app.yaml. Merge authority remains in cloud-ci/oya-ci required contexts per ADR-0363.",
+      "target_path_after_md_retirement": "cloud-ci durable lane orchestration state"
+    },
     "cloud_authorization_target": {
       "current_path": "/specs/cloud-authorization-target.json",
       "kind": "spec",
