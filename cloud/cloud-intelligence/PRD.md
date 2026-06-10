@@ -71,7 +71,8 @@ The split gives blast-radius isolation (a provider-key storm cannot starve KMS),
 - **`Retry-After`-honoring backpressure.** Upstream `Retry-After` is consumed to set cooldown and is echoed to the caller on 429; all-keys-cooling-down fast-fails with `Retry-After` = soonest restore (never a DoS amplifier — brief §10, OWASP LLM10).
 - **Per-tenant key pools + budgets.** Isolation and rate/cost limits keyed on tenant id, not the shared provider key; concurrent budget windows; per-tenant headroom reserved against shared provider TPM (brief §6, §8).
 - **Secret-provider-only secrets.** Provider keys resolve only through owned cloud-secrets/cloud-kms handles, held in memory only, never logged, never written to disk in plaintext (brief §5, §7).
-- **Bedrock-shaped audit + low-PII metering.** Every invocation emits an immutable audit record (hash-chained into `evidence/audit-chain.jsonl`) and a metering record; prompt/completion body logging default-OFF, per-tenant opt-in, residency-pinned (brief §3, §7, §9).
+- **Bedrock-shaped audit + low-PII metering.** Every invocation emits an immutable audit record (hash-chained into `evidence/audit-chain.jsonl`) and a metering record; normal-path prompt/completion body storage is forbidden, guardrail-triggered evidence is referenced by encrypted handles with fixed TTL, and reviewers see redacted structured evidence unless audited break-glass is granted (brief §3, §7, §9).
+- **Code-backed safety floor.** Platform policy blocks/quarantines critical prompt-injection, exfiltration, credential, sandbox, harm, privacy, fraud, fault, anomaly, and hostile-pattern signals; every critical block requires a secondary internal agentic review before manual escalation. Tenant policy receives signals/recommendations and may tighten enforcement, never weaken the platform floor.
 - **TTFT-headline SLOs.** OpenSLO objects for Availability, TTFT (headline), End-to-end latency, Error-rate, and a streaming-unique Completeness SLI (brief §4).
 
 ### Non-Goals
@@ -79,9 +80,9 @@ The split gives blast-radius isolation (a provider-key storm cannot starve KMS),
 - **Not a model host.** No inference runs in-process; the gateway never owns weights, GPUs, or a model runtime. (Inference is the upstream provider's.)
 - **Not a prompt/eval registry.** No prompt-template storage, no eval harness, no fine-tune orchestration.
 - **Not a semantic cache (v1).** Exact-match response caching is opt-in and explicitly out of MVP; SSE responses are treated as **non-cacheable** when caching does land (brief §1 — Cloudflare treats text/image only as cacheable). Semantic caching (Azure `llm-semantic-cache-*`, Apigee `SemanticCache*`) is a deferred follow-on.
-- **Not a guardrail engine (v1).** A pluggable input/output guardrail PEP **hook** exists (no-op v1 + optional provider-native passthrough to Bedrock Guardrails / GCP Model Armor); the gateway does not itself implement content classification (brief §5).
+- **Not a replacement for tenant/application safety.** cloud-intelligence enforces the platform safety floor and emits policy signals, but product-specific moderation, workflow-specific business rules, and user-facing remediation live at the product layer.
 - **Not an OLTP/analytics store.** Metering and audit are *emitted* to the event substrate; the gateway holds no durable tenant data beyond an in-memory key-pool cache.
-- **No body inspection by default.** Prompts and completions are streamed byte-for-byte and not parsed except for the explicit, opt-in residency/audit body-spill path and the token-usage chunk needed for metering.
+- **No raw body storage by default.** Prompts and completions are streamed byte-for-byte and not persisted; in-transit redaction/safety classifiers may inspect data only to enforce policy. Raw payload evidence exists only behind a guardrail-triggered encrypted handle with TTL and audited break-glass access.
 
 ## 4. Recommended design (research-grounded)
 
@@ -132,7 +133,17 @@ Two event channels with a shared envelope (correlationId = request id, tenant, t
 - `llm.usage.v1` — lightweight, low-PII metering (tenant, provider, model, token counts, cost, latency, ttft). May be sampled.
 - `llm.audit.v1` — the **immutable** Bedrock-shaped invocation record, 100% emission, hash-chained into `evidence/audit-chain.jsonl`, access-controlled, alert-if-disabled.
 
-Prompt/completion bodies are **never** in these events by default. With per-tenant opt-in, full bodies spill to a residency-pinned object-storage bucket (Bedrock >100KB externalization pattern) and are referenced by `prompt_uri`/`completion_uri`; a redaction pass runs before persistence (brief §7).
+Prompt/completion bodies are **never** in these events by default. Normal-path raw body persistence is not a tenant option. Guardrail-triggered evidence is sealed behind an encrypted `evidence-ref://` handle with data-class-specific TTL; default review surfaces carry redacted structured evidence, and raw access requires audited break-glass (brief §7).
+
+### 4.7 Safety floor, evidence handles, and in-transit redaction
+
+cloud-intelligence owns a reusable platform safety floor for tenants:
+
+- **Deterministic enforcement first.** Critical categories fail closed with block/quarantine before any model call: prompt injection/jailbreak, data exfiltration, credential probing, sandbox escape/destructive action, self-harm, harm to others, privacy violation, tenant/context boundary violation, unsafe delegated/scheduled execution, child-safety/abuse, fraud, fault, anomaly, and hostile-pattern signals.
+- **Mandatory second pass.** Every critical block triggers a secondary internal agentic review. That review may enrich classification and prepare the manual-review packet, but it cannot unblock a platform-critical block.
+- **Tenant policy overlay.** Tenants receive structured safety signals and recommendations through the owned policy-engine port. Tenant overlays can tighten class handling, TTL, routing, and escalation, but cannot downgrade platform-critical classes or expand raw access.
+- **Evidence handle model.** Normal-path audit never stores raw prompt/body/tool payloads. Guardrail-triggered incidents create an encrypted `evidence-ref://` handle with data-class-specific fixed TTL. Default reviewer material is redacted structured evidence. Raw payload access requires audited break-glass with reason, approver, TTL, and SIEM-forwarded access event.
+- **In-transit redaction.** Sensitive personal/security data is blocked; trivial personal data is redacted or tokenized before model/routing-advisor/secondary-review boundaries. Tenant-approved reversible tokens are ephemeral per run/task by default and restored only after model output. Longer-lived token maps require a named workflow policy and TTL.
 
 ## 5. MVP scope
 
@@ -145,11 +156,12 @@ In-scope for the first production increment (the kernel already exists; this PRD
 5. Two constant-time auth realms (admin + ingress).
 6. Owned cloud-secrets/cloud-kms-backed key store with periodic refresh through secret-provider adapters; hash-only logging.
 7. Per-tenant token budgets (admission estimate + actual-token metering) with 429 + `Retry-After` + budget headers.
-8. `llm.usage.v1` + `llm.audit.v1` emission; audit hash-chained; prompt/completion logging default-OFF.
+8. `llm.usage.v1` + `llm.audit.v1` emission; audit hash-chained; prompt/completion raw storage forbidden on normal path.
 9. OTel metrics + the five SLOs (Availability, TTFT, end-to-end-latency, error-rate, completeness).
 10. Admin ops: pool status, key refresh.
+11. Safety resources: guardrail detection profiles, safety signal policies, evidence retention profiles, in-transit redaction profiles, and manual review escalations.
 
-Deferred (Non-Goals / follow-on): exact-match + semantic response caching; non-passthrough guardrail classification; multi-region active-active; tenant self-service budget UI.
+Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi-region active-active; tenant self-service budget UI.
 
 ## 6. Acceptance Criteria
 
@@ -189,7 +201,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; non-p
 ### AC-6 — Audit + metering (brief §3, §9)
 - AC-6.1 Every invocation emits one `llm.audit.v1` record with the Bedrock-shaped fields (schema_version, timestamp, tenant_id, request_id, provider, model_id, operation, hashed token/key refs, token counts, status, latency_ms, ttft_ms, cost, residency_region).
 - AC-6.2 `llm.usage.v1` and `llm.audit.v1` share the envelope (correlationId, tenant, timestamp, schemaVersion) per `contracts/cloud-intelligence.asyncapi.yaml` (AsyncAPI **3.1.0**).
-- AC-6.3 Prompt/completion bodies are absent from both events unless the tenant has opted in; on opt-in they spill to a residency-pinned bucket and are referenced by URI.
+- AC-6.3 Prompt/completion bodies are absent from both events on the normal path. Guardrail-triggered incidents may create encrypted evidence handles with fixed TTL; default reviewer views are redacted, and raw access requires audited break-glass.
 - AC-6.4 The audit record is hash-chained into `evidence/audit-chain.jsonl`; disabling emission raises a tamper alert.
 
 ### AC-7 — SLOs + observability (brief §4)
@@ -238,7 +250,7 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; non-p
 
 - **Resilience.** Failure ladder per §4.3; never hang a stream (abort + rotate if first-token exceeds TTFT hard-timeout); all-keys-cooling-down fast-fails with `Retry-After`.
 - **Security.** Secret-provider-only keys, constant-time tokens, hash-only logging, owned policy-engine-gated realms, OWASP LLM Top-10 proxy subset mitigated (`design/threat-model.md`).
-- **Data residency.** Prompt/completion logging default-OFF, per-tenant opt-in, residency-pinned bucket, `residency_region` recorded (`design/data-residency.md`).
+- **Data residency.** Prompt/completion raw storage is forbidden on the normal path; guardrail-triggered encrypted evidence handles are TTL-bound, region-pinned by data class, and break-glass audited (`design/data-residency.md`).
 - **Cost/FinOps.** Per-tenant hard budget caps across concurrent windows, 80% soft-warn, actual-token metering (`design/cost-finops.md`).
 - **Tenant isolation.** Per-tenant key pools; tenant-keyed limits; reserved headroom vs shared provider TPM (`design/tenant-isolation.md`).
 - **Observability.** TTFT-headline SLOs (`slos/`), OTel metrics, hash-only structured logs.

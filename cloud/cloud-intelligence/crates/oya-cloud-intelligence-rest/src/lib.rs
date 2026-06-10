@@ -1333,6 +1333,19 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/admin/v1/analytics/stream",
             get(handle_admin_analytics_stream),
         )
+        .route("/admin/v1/guardrails", get(handle_admin_guardrails))
+        .route(
+            "/admin/v1/guardrails/escalations",
+            get(handle_admin_guardrail_escalations),
+        )
+        .route(
+            "/admin/v1/evidence/retention",
+            get(handle_admin_evidence_retention),
+        )
+        .route(
+            "/admin/v1/redaction/profiles",
+            get(handle_admin_redaction_profiles),
+        )
         .route("/admin/v1/resume", post(handle_admin_resume))
         .route(
             "/admin/v1/tenants/{tenant_id}/providers/{provider}/pool",
@@ -2440,6 +2453,126 @@ async fn handle_admin_analytics_stream(
         format!("event: analytics\ndata: {payload}\n\n"),
     )
         .into_response()
+}
+
+/// GET /admin/v1/guardrails
+async fn handle_admin_guardrails(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    Json(serde_json::json!({
+        "profiles": [{
+            "kind": "GuardrailDetectionProfile",
+            "name": "platform-critical-safety-floor",
+            "policy_engine_port": "owned-policy-engine-port",
+            "detectors": [
+                "prompt_injection",
+                "data_exfiltration",
+                "credential_probing",
+                "sandbox_escape",
+                "self_harm",
+                "harm_to_others",
+                "privacy_violation",
+                "tenant_boundary_violation",
+                "fraud",
+                "fault",
+                "unsafe",
+                "anomaly",
+                "hostile_pattern"
+            ],
+            "critical_action": "block_and_quarantine",
+            "mandatory_secondary_agentic_review": true,
+            "manual_review_after_secondary_review": true
+        }],
+        "signal_policy": {
+            "kind": "SafetySignalPolicy",
+            "platform_automatic_enforcement": true,
+            "tenant_policy_receives_signals": true,
+            "tenant_policy_receives_recommendations": true,
+            "tenant_can_override_platform_critical_block": false,
+            "tenant_overlay_may_only_tighten": true
+        }
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/guardrails/escalations
+async fn handle_admin_guardrail_escalations(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    Json(serde_json::json!({
+        "escalations": [{
+            "kind": "ManualReviewEscalation",
+            "name": "critical-safety-review",
+            "critical_blocks_require_secondary_review_first": true,
+            "secondary_review_can_enrich_but_not_unblock": true,
+            "manual_review_required_after_secondary_review": true,
+            "default_evidence_visibility": "redacted-structured-evidence",
+            "raw_payload_access": "audited-break-glass-only"
+        }]
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/evidence/retention
+async fn handle_admin_evidence_retention(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    Json(serde_json::json!({
+        "profiles": [{
+            "kind": "EvidenceRetentionProfile",
+            "name": "platform-guardrail-evidence",
+            "secret_provider_port": "owned-secret-provider-port",
+            "stores_payload_on_normal_path": false,
+            "encrypted_handle_on_guardrail_trigger": true,
+            "fixed_ttl_by_data_class": true,
+            "regulatory_classification_required": true,
+            "default_reviewer_visibility": "redacted-structured-evidence",
+            "raw_access_requires_audited_break_glass": true,
+            "ttl_by_data_class": {
+                "TRIVIAL_PERSONAL": "P7D",
+                "SENSITIVE_PERSONAL": "P72H",
+                "HIGH_RISK_SECURITY": "P30D",
+                "REGULATED": "P30D"
+            }
+        }]
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/redaction/profiles
+async fn handle_admin_redaction_profiles(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    Json(serde_json::json!({
+        "profiles": [{
+            "kind": "InTransitRedactionProfile",
+            "name": "platform-model-boundary-redaction",
+            "blocks_sensitive_classes": true,
+            "redacts_trivial_personal_data": true,
+            "reversible_tokens_require_tenant_policy": true,
+            "default_token_lifetime": "ephemeral-run",
+            "restore_only_after_model_output": true,
+            "provider_receives_raw_token_values": false,
+            "routing_advisor_receives_raw_token_values": false
+        }]
+    }))
+    .into_response()
 }
 
 /// POST /admin/v1/resume
