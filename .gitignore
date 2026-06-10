@@ -2,7 +2,14 @@
 **/target/
 # Local agent/runtime state is durable outside git only. Do not commit OMC/OMX
 # plans, sessions, checkpoints, HUD state, logs, or verification scratch.
-/.omc/
+/.omc/*
+!/.omc/ultragoal/
+/.omc/ultragoal/*
+!/.omc/ultragoal/OWNERS
+!/.omc/ultragoal/TEAMMATE-PREAMBLE.md
+!/.omc/ultragoal/friction-ledger.jsonl
+!/.omc/ultragoal/premise.txt
+!/.omc/ultragoal/review-verdict.txt
 /.omx/
 .DS_Store
 **/.DS_Store

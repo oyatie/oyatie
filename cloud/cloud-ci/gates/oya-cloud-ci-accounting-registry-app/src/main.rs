@@ -913,6 +913,29 @@ mod tests {
     }
 
     #[test]
+    fn justifications_preserve_leading_dot_paths() {
+        let root = unique_temp_repo();
+        let decisions = root.join("docs/decisions");
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        fs::write(
+            decisions.join("ADR-9999-dot-path-test.md"),
+            "The tracked bridge surface is `.omc/ultragoal/TEAMMATE-PREAMBLE.md.`\n",
+        )
+        .expect("write ADR");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let paths = vec![".omc/ultragoal/TEAMMATE-PREAMBLE.md".to_owned()];
+        let justifications = resolve_justifications(&root, &paths, &cfg);
+
+        assert_eq!(
+            justifications.get(".omc/ultragoal/TEAMMATE-PREAMBLE.md"),
+            Some(&"ADR-9999".to_owned())
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
     fn slo_coverage_preserves_duplicate_basenames_to_prevent_false_green() {
         let root = unique_temp_repo();
         let first = root.join("registry/catalog-a/service.yaml");
@@ -1578,7 +1601,9 @@ fn resolve_justifications(
         for raw in body.split(|c: char| {
             c.is_whitespace() || matches!(c, '"' | '`' | '(' | ')' | ',' | ';' | '[' | ']')
         }) {
-            let token = raw.trim_matches(|c: char| matches!(c, '.' | ':' | '#' | '*'));
+            let token = raw
+                .trim_matches(|c: char| matches!(c, ':' | '#' | '*'))
+                .trim_end_matches('.');
             if token.len() >= 4 && token.contains('/') && tracked.contains(token) {
                 mentioned
                     .entry(token.to_owned())
