@@ -467,11 +467,90 @@ impl AgentDelegationPolicySpec {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct InternalCodingAgentWorkflowPlan {
+    pub kind: &'static str,
+    pub tenant_id: String,                      // data_class: INTERNAL_ONLY
+    pub name: String,                           // data_class: INTERNAL_ONLY
+    pub runtime_profile_ref: String,            // data_class: INTERNAL_ONLY
+    pub schedule_name: String,                  // data_class: INTERNAL_ONLY
+    pub schedule_ref: String,                   // data_class: INTERNAL_ONLY
+    pub delegation_policy_ref: String,          // data_class: INTERNAL_ONLY
+    pub guardrail_profile_ref: String,          // data_class: INTERNAL_ONLY
+    pub evidence_retention_profile_ref: String, // data_class: INTERNAL_ONLY
+    pub redaction_profile_ref: String,          // data_class: INTERNAL_ONLY
+    pub generation_adapters: Vec<String>,       // data_class: INTERNAL_ONLY
+    pub routing_advisor_scope: &'static str,    // data_class: INTERNAL_ONLY
+    pub policy_engine_port: &'static str,       // data_class: INTERNAL_ONLY
+    pub evidence_visibility: &'static str,      // data_class: INTERNAL_ONLY
+    pub cloud_intelligence_primitive_only: bool,
+    pub requires_policy_engine_decision: bool,
+    pub requires_secondary_review_for_critical_blocks: bool,
+    pub uses_redacted_evidence_handles: bool,
+    pub embeds_product_workflow: bool,
+    pub installs_cli_or_tui_surface: bool,
+    pub stores_raw_prompt_or_completion: bool,
+}
+
+impl InternalCodingAgentWorkflowPlan {
+    #[allow(clippy::too_many_arguments)]
+    pub fn dogfood_default(
+        tenant_id: &str,
+        name: &str,
+        runtime_profile_ref: &str,
+        schedule_name: &str,
+        delegation_policy_ref: &str,
+        guardrail_profile_ref: &str,
+        evidence_retention_profile_ref: &str,
+        redaction_profile_ref: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        for resource_name in [
+            name,
+            runtime_profile_ref,
+            schedule_name,
+            delegation_policy_ref,
+            guardrail_profile_ref,
+            evidence_retention_profile_ref,
+            redaction_profile_ref,
+        ] {
+            validate_resource_name(resource_name)?;
+        }
+
+        Ok(Self {
+            kind: "AgentWorkflowPlan",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            runtime_profile_ref: runtime_profile_ref.to_string(),
+            schedule_name: schedule_name.to_string(),
+            schedule_ref: format!("schedule-ref://{tenant_id}/{schedule_name}"),
+            delegation_policy_ref: delegation_policy_ref.to_string(),
+            guardrail_profile_ref: guardrail_profile_ref.to_string(),
+            evidence_retention_profile_ref: evidence_retention_profile_ref.to_string(),
+            redaction_profile_ref: redaction_profile_ref.to_string(),
+            generation_adapters: vec![
+                "claude".to_string(),
+                "codex".to_string(),
+                "gemini".to_string(),
+            ],
+            routing_advisor_scope: "routing-decision-only",
+            policy_engine_port: "owned-policy-engine-port",
+            evidence_visibility: "redacted-structured-evidence",
+            cloud_intelligence_primitive_only: true,
+            requires_policy_engine_decision: true,
+            requires_secondary_review_for_critical_blocks: true,
+            uses_redacted_evidence_handles: true,
+            embeds_product_workflow: false,
+            installs_cli_or_tui_surface: false,
+            stores_raw_prompt_or_completion: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GuardrailDetectionProfileSpec {
     pub kind: &'static str,
-    pub tenant_id: String, // data_class: INTERNAL_ONLY
-    pub name: String,      // data_class: INTERNAL_ONLY
-    pub policy_engine_port: String, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                // data_class: INTERNAL_ONLY
+    pub name: String,                     // data_class: INTERNAL_ONLY
+    pub policy_engine_port: String,       // data_class: INTERNAL_ONLY
     pub critical_categories: Vec<String>, // data_class: INTERNAL_ONLY
     pub automatic_block_and_quarantine: bool,
     pub mandatory_secondary_agentic_review: bool,
@@ -522,8 +601,8 @@ impl GuardrailDetectionProfileSpec {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EvidenceRetentionProfileSpec {
     pub kind: &'static str,
-    pub tenant_id: String, // data_class: INTERNAL_ONLY
-    pub name: String,      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,            // data_class: INTERNAL_ONLY
+    pub name: String,                 // data_class: INTERNAL_ONLY
     pub secret_provider_port: String, // data_class: INTERNAL_ONLY
     pub stores_raw_payload_on_normal_path: bool,
     pub encrypted_handle_on_guardrail_trigger: bool,
@@ -969,6 +1048,106 @@ impl DriftParityPlan {
             "pool-failover".to_string(),
             "security-redaction".to_string(),
         ]
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ScheduledParityDriftCanaryPlan {
+    pub kind: &'static str,
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub name: String,                        // data_class: INTERNAL_ONLY
+    pub schedule_ref: String,                // data_class: INTERNAL_ONLY
+    pub artifact_family: String,             // data_class: INTERNAL_ONLY
+    pub baseline_commit_sha: String,         // data_class: INTERNAL_ONLY
+    pub probes: Vec<String>,                 // data_class: INTERNAL_ONLY
+    pub compatibility_canaries: Vec<String>, // data_class: INTERNAL_ONLY
+    pub controller_owned: bool,
+    pub opens_pr_or_task_on_delta: bool,
+    pub audit_event_required: bool,
+    pub embeds_local_cron: bool,
+    pub writes_raw_prompts_or_secrets: bool,
+}
+
+impl ScheduledParityDriftCanaryPlan {
+    pub fn for_internal_coding_agent(
+        tenant_id: &str,
+        name: &str,
+        artifact_family: &str,
+        baseline_commit_sha: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        if artifact_family != "external-proxy-reference" || baseline_commit_sha.len() != 40 {
+            return Err(WorkerConfigError::InvalidPolicyValue);
+        }
+        Ok(Self {
+            kind: "ScheduledParityDriftCanaryPlan",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            schedule_ref: format!("schedule-ref://{tenant_id}/{name}"),
+            artifact_family: artifact_family.to_string(),
+            baseline_commit_sha: baseline_commit_sha.to_string(),
+            probes: vec![
+                "capability-parity".to_string(),
+                "wire-profile-drift".to_string(),
+                "adapter-translation-drift".to_string(),
+            ],
+            compatibility_canaries: vec![
+                "route-matrix".to_string(),
+                "streaming-fixtures".to_string(),
+                "security-redaction".to_string(),
+            ],
+            controller_owned: true,
+            opens_pr_or_task_on_delta: true,
+            audit_event_required: true,
+            embeds_local_cron: false,
+            writes_raw_prompts_or_secrets: false,
+        })
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum ParityCanaryStatusState {
+    Passed,
+    Failed,
+    Running,
+    Inconclusive,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ParityCanaryStatusSpec {
+    pub kind: &'static str,
+    pub tenant_id: String,                          // data_class: INTERNAL_ONLY
+    pub plan_ref: String,                           // data_class: INTERNAL_ONLY
+    pub state: ParityCanaryStatusState,             // data_class: INTERNAL_ONLY
+    pub retry_after_seconds: Option<u32>,           // data_class: INTERNAL_ONLY
+    pub evidence_visibility: &'static str,          // data_class: INTERNAL_ONLY
+    pub sealed_evidence_handle_ref: Option<String>, // data_class: SECRET_REFERENCE
+    pub raw_payload_included: bool,
+}
+
+impl ParityCanaryStatusSpec {
+    pub fn from_plan(
+        plan: &ScheduledParityDriftCanaryPlan,
+        state: ParityCanaryStatusState,
+    ) -> Self {
+        Self {
+            kind: "ParityCanaryStatus",
+            tenant_id: plan.tenant_id.clone(),
+            plan_ref: format!("parity-canary-plan-ref://{}/{}", plan.tenant_id, plan.name),
+            state,
+            retry_after_seconds: match state {
+                ParityCanaryStatusState::Passed => None,
+                ParityCanaryStatusState::Failed
+                | ParityCanaryStatusState::Running
+                | ParityCanaryStatusState::Inconclusive => Some(300),
+            },
+            evidence_visibility: "redacted-structured-evidence",
+            sealed_evidence_handle_ref: Some(format!(
+                "sealed-evidence-ref://{}/{}/parity-canary",
+                plan.tenant_id, plan.name
+            )),
+            raw_payload_included: false,
+        }
     }
 }
 
