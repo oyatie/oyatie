@@ -1,13 +1,55 @@
+ADAPTER_ROOT = "cloud/cloud-intelligence/crates/oya-cloud-intelligence-authz-cedar-adapter"
+ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"])
+ADAPTER_MAPPED_SRCS = {src: ADAPTER_ROOT + "/" + src for src in ADAPTER_SRCS}
+ADAPTER_MAPPED_SRCS["//cloud/cloud-intelligence/policy:cloud-intelligence.cedar"] = "cloud/cloud-intelligence/policy/cloud-intelligence.cedar"
+
 rust_library(
     name = "oya-cloud-intelligence-authz-cedar-adapter",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    srcs = [],
     crate = "oya_cloud_intelligence_authz_cedar_adapter",
-    crate_root = "src/lib.rs",
+    crate_root = ADAPTER_ROOT + "/src/lib.rs",
     visibility = ["PUBLIC"],
-    mapped_srcs = {
-        "//cloud/cloud-intelligence/policy:cloud-intelligence.cedar": "policy/cloud-intelligence.cedar",
-    },
+    mapped_srcs = ADAPTER_MAPPED_SRCS,
     deps = [
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "third-party//:cedar-policy",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-intelligence-authz-cedar-adapter-cross-tenant-forbid",
+    srcs = ["tests/cross_tenant_forbid.rs"],
+    crate = "oya_cloud_intelligence_authz_cedar_adapter_cross_tenant_forbid",
+    crate_root = "tests/cross_tenant_forbid.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-authz-cedar-adapter",
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "third-party//:cedar-policy",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-intelligence-authz-cedar-adapter-default-deny-and-load",
+    srcs = ["tests/default_deny_and_load.rs"],
+    crate = "oya_cloud_intelligence_authz_cedar_adapter_default_deny_and_load",
+    crate_root = "tests/default_deny_and_load.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-authz-cedar-adapter",
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "third-party//:cedar-policy",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-intelligence-authz-cedar-adapter-permits-same-tenant",
+    srcs = ["tests/permits_same_tenant.rs"],
+    crate = "oya_cloud_intelligence_authz_cedar_adapter_permits_same_tenant",
+    crate_root = "tests/permits_same_tenant.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-authz-cedar-adapter",
         "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
         "third-party//:cedar-policy",
     ],

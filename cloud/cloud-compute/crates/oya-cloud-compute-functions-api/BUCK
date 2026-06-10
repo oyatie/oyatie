@@ -11,3 +11,18 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-cloud-compute-functions-api-cloud-compute-functions-api",
+    srcs = ["tests/cloud_compute_functions_api.rs"],
+    crate = "oya_cloud_compute_functions_api_cloud_compute_functions_api",
+    crate_root = "tests/cloud_compute_functions_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-compute-functions-api",
+        "//cloud/cloud-compute/crates/oya-cloud-compute-domain:oya-cloud-compute-domain",
+        "//cloud/cloud-compute/crates/oya-cloud-resource-domain:oya-cloud-resource-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

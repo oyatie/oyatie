@@ -9,3 +9,16 @@ rust_library(
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
     ],
 )
+
+rust_test(
+    name = "oya-regional-pack-api-regulatory-pack-bind-api",
+    srcs = ["tests/regulatory_pack_bind_api.rs"],
+    crate = "oya_regional_pack_api_regulatory_pack_bind_api",
+    crate_root = "tests/regulatory_pack_bind_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-regional-pack-api",
+        "//cloud/cloud-cell/crates/oya-regional-pack-domain:oya-regional-pack-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+    ],
+)

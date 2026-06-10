@@ -10,3 +10,17 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-cloud-network-vpc-api-cloud-network-vpc-api",
+    srcs = ["tests/cloud_network_vpc_api.rs"],
+    crate = "oya_cloud_network_vpc_api_cloud_network_vpc_api",
+    crate_root = "tests/cloud_network_vpc_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-network-vpc-api",
+        "//cloud/cloud-network/crates/oya-cloud-network-domain:oya-cloud-network-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
