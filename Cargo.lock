@@ -5245,6 +5245,15 @@ name = "oya-data-boundary-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-data-outbox-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-data-sql-kernel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-data-pipeline-lineage-replay-service"
 version = "0.1.0"
 dependencies = [
