@@ -1,27 +1,16 @@
-Slice-02 review verdict
+VERDICT: APPROVE
+Reviewed code+faces head: e7583769734fbaf989f05e63a06021d64c611ead
+Scope: SLICE-10 target-parity burn-down, 50 workspace members, 66 generated rust_test targets.
 
-Scope: ADR-0540 / FRIC-1781063357 target-parity burn-down for slice-02.
-Verdict: APPROVE
+Findings: none critical/high/medium.
 
-Findings: none after remediation.
+Checks:
+- buck2 test over all 66 newly added rust_test targets: Pass 66, Fail 0, Build failure 0.
+- Generator re-check over slice-10 members: remaining_candidates=0.
+- git diff --check origin/dev...HEAD: clean.
+- cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs: no diff; hardcoded count untouched.
+- Generated-face settle commit is faces-only: accounting-registry.generated.json, gate-baseline.generated.json, scm-facts.generated.json.
 
-Mailbox correction applied:
-- Dropped the local edit to cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs; the hardcoded debt count remains 614 in this PR per leader notice.
-- Target-parity gate pass is not claimed after dropping that hunk. The known hardcoded-count collision is owned by the leader's derived-baseline fix and expected train-time rebase.
-
-Validation evidence:
-- buck2 test over 54 committed slice targets: Pass 54, Fail 0, Build failure 0.
-- infra/ci/materialize-cloud-ci-generated-faces.sh . completed; final generated-face settle is required after this verdict commit.
-- git diff --check origin/dev..HEAD: clean.
-
-Tally:
-- wired-passing: 48 slice members, 54 Buck test targets.
-- deferred-broken: 3 slice members.
-- unsupported: 0 slice members.
-
-Deferred-broken slice members:
-- cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi: generated target failed before tests in third-party ring-0.17 buildscript.
-- cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app: generated unit and acceptance targets failed before tests in third-party ring-0.17 buildscript.
-- libs/oya-check-dependency-seam: generated target failed under Buck2 because env!("CARGO_MANIFEST_DIR") is not defined at compile time.
-
-Subagent skip reason: worker protocol forbids nested subagents; completed focused review in-session.
+Notes:
+- Worker protocol forbids nested subagents in this lane, so the pre-open filter was performed in-session against the Torvalds/hyperscaler rubric instead of spawning the requested Fable review agent.
+- Residual risk: generated-face soft collisions are expected across parallel slices and may require one merge-train rebase plus resettle.

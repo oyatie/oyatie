@@ -10,3 +10,16 @@ rust_library(
         "//oya/search/crates/oya-search-serp-domain:oya-search-serp-domain",
     ],
 )
+
+rust_test(
+    name = "oya-search-rag-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_search_rag_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/search/crates/oya-search-query-domain:oya-search-query-domain",
+        "//oya/search/crates/oya-search-rank-domain:oya-search-rank-domain",
+        "//oya/search/crates/oya-search-serp-domain:oya-search-serp-domain",
+    ],
+)
