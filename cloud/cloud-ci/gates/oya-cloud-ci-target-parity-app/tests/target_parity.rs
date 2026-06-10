@@ -1,6 +1,6 @@
 // cloud-ci-target-parity: born-blocking self-test over TODAY's real corpus. Runs the
 // accounting-registry producer `--face target-parity`, then asserts the measured G011 debt:
-// all workspace members have BUCK files, while 634 members with Rust test code lack rust_test.
+// all workspace members have BUCK files, while 614 members with Rust test code lack rust_test.
 // ADR-0083 Tier-3: integration tests use unwrap/expect to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -106,7 +106,7 @@ fn target_parity_face_reports_live_corpus_debt() {
     );
     assert_eq!(
         unwired_tests.len(),
-        634,
+        614,
         "G011 baseline debt must be exactly the mechanically-derived set"
     );
     assert_eq!(evaluate(&face).verdict, Verdict::Red);
