@@ -278,7 +278,314 @@ spec:
               x-kubernetes-preserve-unknown-fields: true
       subresources:
         status: {}
-
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentruntimeprofiles.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: agentruntimeprofiles
+    singular: agentruntimeprofile
+    kind: AgentRuntimeProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentmemorybindings.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: agentmemorybindings
+    singular: agentmemorybinding
+    kind: AgentMemoryBinding
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentskillbundles.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: agentskillbundles
+    singular: agentskillbundle
+    kind: AgentSkillBundle
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentschedules.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: agentschedules
+    singular: agentschedule
+    kind: AgentSchedule
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentdelegationpolicies.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: agentdelegationpolicies
+    singular: agentdelegationpolicy
+    kind: AgentDelegationPolicy
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentworkspacebindings.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: agentworkspacebindings
+    singular: agentworkspacebinding
+    kind: AgentWorkspaceBinding
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: guardraildetectionprofiles.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: guardraildetectionprofiles
+    singular: guardraildetectionprofile
+    kind: GuardrailDetectionProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: evidenceretentionprofiles.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: evidenceretentionprofiles
+    singular: evidenceretentionprofile
+    kind: EvidenceRetentionProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: intransitredactionprofiles.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: intransitredactionprofiles
+    singular: intransitredactionprofile
+    kind: InTransitRedactionProfile
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: safetysignalpolicies.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: safetysignalpolicies
+    singular: safetysignalpolicy
+    kind: SafetySignalPolicy
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: manualreviewescalations.cloud-intelligence.oya.io
+spec:
+  group: cloud-intelligence.oya.io
+  scope: Namespaced
+  names:
+    plural: manualreviewescalations
+    singular: manualreviewescalation
+    kind: ManualReviewEscalation
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -304,6 +611,17 @@ rules:
       - toolcompatibilityprofiles
       - gatewaycircuitbreakers
       - capabilityparitybaselines
+      - agentruntimeprofiles
+      - agentmemorybindings
+      - agentskillbundles
+      - agentschedules
+      - agentdelegationpolicies
+      - agentworkspacebindings
+      - guardraildetectionprofiles
+      - evidenceretentionprofiles
+      - intransitredactionprofiles
+      - safetysignalpolicies
+      - manualreviewescalations
     verbs: ["get", "list", "watch", "create", "update", "patch"]
   - apiGroups: [""]
     resources: ["events", "configmaps"]
@@ -505,6 +823,162 @@ spec:
         - name: ops-api
           image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
           env: [{ name: OYA_WORKER_KIND, value: ops-api }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-runtime-controller
+  namespace: oya-cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: agent-runtime-controller } }
+  template:
+    metadata: { labels: { app: agent-runtime-controller } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: agent-runtime-controller
+          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYA_WORKER_KIND, value: agent-runtime-controller }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-scheduler-worker
+  namespace: oya-cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: agent-scheduler-worker } }
+  template:
+    metadata: { labels: { app: agent-scheduler-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: agent-scheduler-worker
+          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYA_WORKER_KIND, value: agent-scheduler-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-delegation-worker
+  namespace: oya-cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: agent-delegation-worker } }
+  template:
+    metadata: { labels: { app: agent-delegation-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: agent-delegation-worker
+          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYA_WORKER_KIND, value: agent-delegation-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safety-enforcement-controller
+  namespace: oya-cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: safety-enforcement-controller } }
+  template:
+    metadata: { labels: { app: safety-enforcement-controller } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: safety-enforcement-controller
+          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYA_WORKER_KIND, value: safety-enforcement-controller }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guardrail-detection-worker
+  namespace: oya-cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: guardrail-detection-worker } }
+  template:
+    metadata: { labels: { app: guardrail-detection-worker } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: guardrail-detection-worker
+          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYA_WORKER_KIND, value: guardrail-detection-worker }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+            seccompProfile: { type: RuntimeDefault }
+          readinessProbe: { httpGet: { path: /readyz, port: 8080 } }
+          livenessProbe: { httpGet: { path: /livez, port: 8080 } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evidence-retention-controller
+  namespace: oya-cloud-intelligence
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: evidence-retention-controller } }
+  template:
+    metadata: { labels: { app: evidence-retention-controller } }
+    spec:
+      serviceAccountName: cloud-intelligence-control-plane
+      containers:
+        - name: evidence-retention-controller
+          image: registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev
+          env: [{ name: OYA_WORKER_KIND, value: evidence-retention-controller }]
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532

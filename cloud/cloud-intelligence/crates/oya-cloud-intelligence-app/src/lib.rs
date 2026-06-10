@@ -359,6 +359,7 @@ impl AppConfig {
                     ("anthropic", self.provider_compliance.anthropic_oauth_status)
                 }
                 Provider::Codex => ("codex", self.provider_compliance.codex_oauth_status),
+                Provider::Gemini => ("gemini", ProviderComplianceStatus::Blocked),
             };
             require_oauth_approval(provider_label, pool.credential_mode, status)?;
         }
@@ -469,6 +470,7 @@ fn parse_provider(raw: &str) -> Result<Provider, AppBuildError> {
     match raw.trim().to_ascii_lowercase().as_str() {
         "anthropic" | "claude" => Ok(Provider::Anthropic),
         "codex" | "openai" => Ok(Provider::Codex),
+        "gemini" | "google" => Ok(Provider::Gemini),
         other => Err(AppBuildError::Config(format!(
             "unsupported provider in tenant pool: {other}"
         ))),
@@ -1062,11 +1064,12 @@ mod tests {
     fn parse_tenant_provider_pools_supports_multiple_tenants_and_providers() {
         let pools = parse_tenant_provider_pools(
             "tenant-a|anthropic|oauth_subscription|time_normalized_quota_percent|seat-a|secret-ref://tenant-a/anthropic/seat-a;\
-             tenant-b|codex|api_key|round_robin|seat-b|secret-ref://tenant-b/codex/seat-b",
+             tenant-b|codex|api_key|round_robin|seat-b|secret-ref://tenant-b/codex/seat-b;\
+             tenant-c|gemini|api_key|round_robin|seat-c|secret-ref://tenant-c/gemini/seat-c",
         )
         .expect("multi-tenant provider config parses");
 
-        assert_eq!(pools.len(), 2);
+        assert_eq!(pools.len(), 3);
         assert_eq!(pools[0].tenant_id, "tenant-a");
         assert_eq!(pools[0].provider, Provider::Anthropic);
         assert_eq!(pools[0].credential_mode, CredentialMode::OAuthSubscription);
@@ -1081,6 +1084,9 @@ mod tests {
         assert_eq!(pools[1].tenant_id, "tenant-b");
         assert_eq!(pools[1].provider, Provider::Codex);
         assert_eq!(pools[1].credential_mode, CredentialMode::ApiKey);
+        assert_eq!(pools[2].tenant_id, "tenant-c");
+        assert_eq!(pools[2].provider, Provider::Gemini);
+        assert_eq!(pools[2].credential_mode, CredentialMode::ApiKey);
     }
 
     #[test]

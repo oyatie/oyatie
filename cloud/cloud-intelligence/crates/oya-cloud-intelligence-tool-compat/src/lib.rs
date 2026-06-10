@@ -101,6 +101,11 @@ impl ClientCompatibilityMatrix {
                     canaries: vec!["openai-chat-pass-through".to_string()],
                 },
                 ClientCompatibilityProfile {
+                    name: "gemini-compatible-client".to_string(),
+                    support_state: ClientSupportState::Supported,
+                    canaries: vec!["gemini-generate-content".to_string()],
+                },
+                ClientCompatibilityProfile {
                     name: "continue-dev".to_string(),
                     support_state: ClientSupportState::Inferred,
                     canaries: vec!["tool-schema-registry".to_string()],

@@ -24,6 +24,7 @@ doctest = false
 [dependencies]
 oya-cloud-intelligence-kernel = { path = "../oya-cloud-intelligence-kernel" }
 oya-cloud-intelligence-codex-adapter = { path = "../oya-cloud-intelligence-codex-adapter" }
+oya-cloud-intelligence-gemini-adapter = { path = "../oya-cloud-intelligence-gemini-adapter" }
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true

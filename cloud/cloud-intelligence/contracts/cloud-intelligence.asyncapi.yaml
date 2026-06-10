@@ -74,6 +74,24 @@ channels:
     messages:
       circuitBreakerEvent:
         $ref: '#/components/messages/CircuitBreakerEvent'
+  llm.guardrail.v1:
+    address: persistent://public/default/oya.llm.guardrail.v1
+    description: Redacted guardrail signals emitted when platform policy blocks, quarantines, or recommends tenant action.
+    messages:
+      guardrailSignal:
+        $ref: '#/components/messages/GuardrailSignal'
+  llm.safety_review.v1:
+    address: persistent://public/default/oya.llm.safety_review.v1
+    description: Secondary internal-review requests and outcomes for critical blocks before manual escalation.
+    messages:
+      secondaryReviewRequest:
+        $ref: '#/components/messages/SecondaryReviewRequest'
+  llm.evidence.v1:
+    address: persistent://public/default/oya.llm.evidence.v1
+    description: Evidence-retention events carrying redacted metadata and sealed handle references only.
+    messages:
+      evidenceRetentionEvent:
+        $ref: '#/components/messages/EvidenceRetentionEvent'
 operations:
   publishUsage:
     action: send
@@ -118,6 +136,27 @@ operations:
     summary: Gateway or controller emits circuit-breaker state changes.
     messages:
       - $ref: '#/channels/llm.circuit_breaker.v1/messages/circuitBreakerEvent'
+  publishGuardrailSignal:
+    action: send
+    channel:
+      $ref: '#/channels/llm.guardrail.v1'
+    summary: Guardrail worker emits redacted safety signal.
+    messages:
+      - $ref: '#/channels/llm.guardrail.v1/messages/guardrailSignal'
+  publishSecondaryReviewRequest:
+    action: send
+    channel:
+      $ref: '#/channels/llm.safety_review.v1'
+    summary: Safety controller emits mandatory secondary-review request for critical block.
+    messages:
+      - $ref: '#/channels/llm.safety_review.v1/messages/secondaryReviewRequest'
+  publishEvidenceRetentionEvent:
+    action: send
+    channel:
+      $ref: '#/channels/llm.evidence.v1'
+    summary: Evidence controller emits sealed-handle retention event.
+    messages:
+      - $ref: '#/channels/llm.evidence.v1/messages/evidenceRetentionEvent'
 components:
   messageTraits:
     GatewayEnvelope:
@@ -189,6 +228,31 @@ components:
         - $ref: '#/components/messageTraits/GatewayEnvelope'
       payload:
         $ref: '#/components/schemas/CircuitBreakerPayload'
+
+    GuardrailSignal:
+      name: GuardrailSignal
+      title: Redacted guardrail signal
+      summary: Platform safety signal for automatic enforcement and tenant policy recommendation.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/GuardrailSignalPayload'
+    SecondaryReviewRequest:
+      name: SecondaryReviewRequest
+      title: Mandatory secondary internal review request
+      summary: Secondary review enrichment for a critical block before manual escalation.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/SecondaryReviewPayload'
+    EvidenceRetentionEvent:
+      name: EvidenceRetentionEvent
+      title: Evidence retention event
+      summary: Sealed encrypted evidence handle lifecycle event with redacted metadata.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/EvidenceRetentionPayload'
   schemas:
     UsagePayload:
       type: object
@@ -309,3 +373,36 @@ components:
         state: { type: string, enum: [closed, open, cooldown, resumed] }
         retry_after_seconds: { type: integer, nullable: true }
         reason: { type: string, nullable: true }
+    GuardrailSignalPayload:
+      type: object
+      required: [schema_version, signal_id, category, data_class, action, manual_review_required]
+      properties:
+        schema_version: { type: string, const: '1' }
+        signal_id: { type: string }
+        category: { type: string }
+        data_class: { type: string }
+        action: { type: string, enum: [allow, redact, tokenize, block_quarantine] }
+        secondary_agentic_review_required: { type: boolean }
+        manual_review_required: { type: boolean }
+        tenant_policy_recommendation: { type: string, nullable: true }
+    SecondaryReviewPayload:
+      type: object
+      required: [schema_version, review_id, signal_id, status, raw_payload_included]
+      properties:
+        schema_version: { type: string, const: '1' }
+        review_id: { type: string }
+        signal_id: { type: string }
+        status: { type: string, enum: [requested, unsafe, inconclusive, safe] }
+        raw_payload_included: { type: boolean, const: false }
+        redacted_evidence_ref: { type: string }
+    EvidenceRetentionPayload:
+      type: object
+      required: [schema_version, evidence_id, data_class, encrypted_handle_ref, ttl_seconds, raw_access_requires_audited_break_glass]
+      properties:
+        schema_version: { type: string, const: '1' }
+        evidence_id: { type: string }
+        data_class: { type: string }
+        encrypted_handle_ref: { type: string }
+        ttl_seconds: { type: integer, format: int64 }
+        raw_access_requires_audited_break_glass: { type: boolean, const: true }
+

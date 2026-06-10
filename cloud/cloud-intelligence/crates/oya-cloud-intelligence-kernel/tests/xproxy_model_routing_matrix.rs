@@ -83,16 +83,30 @@ fn xproxy_route_001_model_classifier_cross_routes_protocols() {
     let passthrough = route(ProtocolShape::OpenAiChatCompletions, "o3-mini");
     assert_eq!(passthrough.backend, BackendClass::OpenAiCompatible);
     assert_eq!(passthrough.translation_mode, TranslationMode::PassThrough);
+
+    let openai_to_gemini = route(ProtocolShape::OpenAiChatCompletions, "gemini-2.5-flash");
+    assert_eq!(openai_to_gemini.backend, BackendClass::GeminiNative);
+    assert_eq!(
+        openai_to_gemini.translation_mode,
+        TranslationMode::OpenAiToGemini
+    );
+
+    let anthropic_to_gemini = route(ProtocolShape::AnthropicMessages, "gemini:gemini-2.5-pro");
+    assert_eq!(anthropic_to_gemini.backend, BackendClass::GeminiNative);
+    assert_eq!(
+        anthropic_to_gemini.translation_mode,
+        TranslationMode::AnthropicToGemini
+    );
 }
 
 #[test]
 fn xproxy_route_002_provider_prefix_registry_maps_current_prefixes() {
-    for prefix in ["openai", "groq", "openrouter", "local", "compat"] {
-        let model = format!("{prefix}:llama-3.1-70b");
+    for prefix in ["openai", "codex"] {
+        let model = format!("{prefix}:gpt-4o");
         let decision = route(ProtocolShape::AnthropicMessages, &model);
         assert_eq!(decision.backend, BackendClass::OpenAiCompatible, "{prefix}");
         assert_eq!(decision.provider_prefix.as_deref(), Some(prefix));
-        assert_eq!(decision.upstream_model, "llama-3.1-70b");
+        assert_eq!(decision.upstream_model, "gpt-4o");
     }
 
     for prefix in ["claude", "anthropic"] {
@@ -110,6 +124,15 @@ fn xproxy_route_002_provider_prefix_registry_maps_current_prefixes() {
                 .capabilities
                 .contains(&ModelCapability::OneMillionContext)
         );
+    }
+
+    for prefix in ["gemini", "google"] {
+        let model = format!("{prefix}:gemini-2.5-flash");
+        let decision = route(ProtocolShape::OpenAiChatCompletions, &model);
+        assert_eq!(decision.backend, BackendClass::GeminiNative, "{prefix}");
+        assert_eq!(decision.provider_prefix.as_deref(), Some(prefix));
+        assert_eq!(decision.upstream_model, "gemini-2.5-flash");
+        assert_eq!(decision.translation_mode, TranslationMode::OpenAiToGemini);
     }
 }
 

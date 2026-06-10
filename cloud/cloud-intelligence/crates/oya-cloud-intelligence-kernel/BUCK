@@ -56,3 +56,15 @@ rust_test(
         ":oya-cloud-intelligence-kernel",
     ],
 )
+
+
+rust_test(
+    name = "cloud-intelligence-safety-guardrails-test",
+    srcs = glob(["tests/cloud_intelligence_safety_guardrails.rs"]),
+    crate = "oya_cloud_intelligence_kernel_cloud_intelligence_safety_guardrails_test",
+    crate_root = "tests/cloud_intelligence_safety_guardrails.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-kernel",
+    ],
+)

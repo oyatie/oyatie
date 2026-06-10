@@ -129,7 +129,8 @@
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_prefix_overrides_protocol_and_route_policy",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_policy_overrides_classifier_but_not_prefix",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_model_classifier_cross_routes_protocols"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_model_classifier_cross_routes_protocols",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
       ]
     },
     {
@@ -190,7 +191,8 @@
       "target_capability": "Superset: multiple named backends per tenant/namespace with weighted fallback, health, quotas, and policy.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_004_005_006_model_and_backend_management_are_declarative_resources"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_004_005_006_model_and_backend_management_are_declarative_resources",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
       ]
     },
     {
@@ -233,14 +235,18 @@
         "usage",
         "src/proxy.ts"
       ],
-      "source_behavior_summary": "Anthropic ↔ OpenAI request/response translation, including streaming tool-use deltas and non-streaming usage.",
+      "source_behavior_summary": "Anthropic \u2194 OpenAI request/response translation, including streaming tool-use deltas and non-streaming usage.",
       "target_boundary": "gateway-wire-profile-contract",
       "target_capability": "Implement typed translation layer with golden fixtures for every supported direction; stream chunks without buffering full responses.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::openai_chat_to_anthropic_preserves_messages_and_system_without_raw_logging_fields",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::anthropic_messages_to_openai_chat_preserves_model_messages_and_system_role",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::openai_sse_delta_fixture_translates_without_buffering_full_response"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::openai_sse_delta_fixture_translates_without_buffering_full_response",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::openai_chat_to_gemini_generate_content_maps_messages_and_system_instruction",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::anthropic_messages_to_gemini_generate_content_maps_roles_and_model",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-gemini-adapter/tests/gemini_adapter.rs::xproxy_wire_001_gemini_adapter_translates_openai_chat_request_and_response_at_adapter_boundary",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-gemini-adapter/tests/gemini_adapter.rs::xproxy_wire_001_gemini_adapter_translates_anthropic_messages_request_and_response_at_adapter_boundary"
       ]
     },
     {
@@ -516,7 +522,8 @@
       "target_capability": "Maintain executable compatibility matrix with supported/inferred/blocked states and canaries.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::xproxy_compat_001_matrix_records_supported_inferred_and_blocked_clients"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::xproxy_compat_001_matrix_records_supported_inferred_and_blocked_clients",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::xproxy_compat_001_declares_client_profiles_and_canaries_without_cli_targets"
       ]
     },
     {
@@ -665,7 +672,8 @@
       "target_capability": "Optional ops MCP server with read-only tools backed by admin API, RBAC, and audit.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::xproxy_obs_005_read_only_mcp_toolset_excludes_mutations"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::xproxy_obs_005_read_only_mcp_toolset_excludes_mutations",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::reference_draft_targets_map_source_ideas_to_existing_xproxy_rows"
       ]
     },
     {
@@ -710,7 +718,8 @@
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_003_openai_chat_completions_passes_body_and_safe_headers_to_openai_compatible_backend",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_route_007_openai_embeddings_route_uses_same_openai_compatible_pass_through_contract"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_route_007_openai_embeddings_route_uses_same_openai_compatible_pass_through_contract",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
       ]
     },
     {
@@ -754,7 +763,8 @@
       "target_capability": "Implement pinned-baseline parity worker plus provider drift workers; all drift events produce audit evidence and PR/task output.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_drift_001_002_workers_emit_pinned_parity_and_canary_plans"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_drift_001_002_workers_emit_pinned_parity_and_canary_plans",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::reference_draft_targets_map_source_ideas_to_existing_xproxy_rows"
       ]
     },
     {

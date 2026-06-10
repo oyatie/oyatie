@@ -567,6 +567,120 @@ paths:
           description: Duplicate seat_id already exists in the tenant/provider pool.
 
 
+  /admin/v1/guardrails:
+    get:
+      tags: [admin]
+      summary: List tenant-visible guardrail detection profiles
+      description: Platform floor profiles are automatic, fail-closed, and cannot be weakened by tenant policy overlays.
+      operationId: listGuardrailProfiles
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+      responses:
+        '200':
+          description: Guardrail profiles and signal policy.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [profiles, signal_policy]
+                properties:
+                  profiles:
+                    type: array
+                    items: { $ref: '#/components/schemas/GuardrailDetectionProfile' }
+                  signal_policy:
+                    $ref: '#/components/schemas/SafetySignalPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/v1/guardrails/escalations:
+    get:
+      tags: [admin]
+      summary: List safety escalations requiring manual review
+      description: Critical blocks require secondary internal review before manual escalation. Returned evidence is redacted by default.
+      operationId: listSafetyEscalations
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+      responses:
+        '200':
+          description: Manual-review escalation state.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [escalations]
+                properties:
+                  escalations:
+                    type: array
+                    items: { $ref: '#/components/schemas/ManualReviewEscalation' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/v1/evidence/retention:
+    get:
+      tags: [admin]
+      summary: List evidence-retention profiles
+      description: Normal requests do not store raw payloads. Guardrail-triggered evidence uses sealed encrypted handles with data-class TTLs and audited break-glass raw access only.
+      operationId: listEvidenceRetentionProfiles
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+      responses:
+        '200':
+          description: Evidence retention profiles.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [profiles]
+                properties:
+                  profiles:
+                    type: array
+                    items: { $ref: '#/components/schemas/EvidenceRetentionProfile' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/v1/redaction/profiles:
+    get:
+      tags: [admin]
+      summary: List in-transit redaction profiles
+      description: Sensitive classes block/quarantine. Trivial personal data is redacted or reversibly tokenized only when tenant policy approves restoration after model output.
+      operationId: listRedactionProfiles
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+      responses:
+        '200':
+          description: Redaction profiles.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [profiles]
+                properties:
+                  profiles:
+                    type: array
+                    items: { $ref: '#/components/schemas/InTransitRedactionProfile' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
 
 components:
   securitySchemes:
@@ -1038,3 +1152,77 @@ components:
       properties:
         scope: { type: string }
         status: { type: string, enum: [resumed, unchanged] }
+    EvidenceDataClass:
+      type: string
+      enum:
+        - public_or_operational_metadata
+        - personal_data
+        - regulated_health_data
+        - payment_or_financial_data
+        - credential_or_secret
+        - tenant_boundary_violation
+        - prompt_injection_or_jailbreak
+        - security_exploit_or_breach
+        - self_harm_or_harm_to_others
+        - child_safety_or_abuse
+        - fraud_or_hostile_pattern
+        - fault_or_anomaly
+    GuardrailDetectionProfile:
+      type: object
+      required: [kind, name, critical_categories, automatic_block_and_quarantine, mandatory_secondary_agentic_review, manual_review_required_after_secondary_review, tenant_may_weaken_platform_floor]
+      properties:
+        kind: { type: string, const: GuardrailDetectionProfile }
+        name: { type: string }
+        critical_categories:
+          type: array
+          items: { type: string }
+        automatic_block_and_quarantine: { type: boolean, const: true }
+        mandatory_secondary_agentic_review: { type: boolean, const: true }
+        manual_review_required_after_secondary_review: { type: boolean, const: true }
+        tenant_may_weaken_platform_floor: { type: boolean, const: false }
+        policy_engine_port: { type: string, const: owned-policy-engine-port }
+    SafetySignalPolicy:
+      type: object
+      required: [kind, platform_automatic_enforcement, tenant_policy_receives_signals, tenant_policy_receives_recommendations, tenant_can_override_platform_critical_block]
+      properties:
+        kind: { type: string, const: SafetySignalPolicy }
+        platform_automatic_enforcement: { type: boolean, const: true }
+        tenant_policy_receives_signals: { type: boolean, const: true }
+        tenant_policy_receives_recommendations: { type: boolean, const: true }
+        tenant_can_override_platform_critical_block: { type: boolean, const: false }
+    ManualReviewEscalation:
+      type: object
+      required: [kind, escalation_id, required_for_critical_blocks, secondary_agentic_review_must_run_first, default_evidence_visibility, raw_payload_break_glass_only]
+      properties:
+        kind: { type: string, const: ManualReviewEscalation }
+        escalation_id: { type: string }
+        status: { type: string, enum: [pending_secondary_review, pending_manual_review, closed] }
+        required_for_critical_blocks: { type: boolean, const: true }
+        secondary_agentic_review_must_run_first: { type: boolean, const: true }
+        default_evidence_visibility: { type: string, const: redacted-structured-evidence }
+        raw_payload_break_glass_only: { type: boolean, const: true }
+    EvidenceRetentionProfile:
+      type: object
+      required: [kind, stores_raw_payload_on_normal_path, encrypted_handle_on_guardrail_trigger, fixed_ttl_by_data_class, regulatory_classification_required, default_reviewer_visibility, raw_access_requires_audited_break_glass]
+      properties:
+        kind: { type: string, const: EvidenceRetentionProfile }
+        stores_raw_payload_on_normal_path: { type: boolean, const: false }
+        encrypted_handle_on_guardrail_trigger: { type: boolean, const: true }
+        fixed_ttl_by_data_class: { type: boolean, const: true }
+        regulatory_classification_required: { type: boolean, const: true }
+        default_reviewer_visibility: { type: string, const: redacted-structured-evidence }
+        raw_access_requires_audited_break_glass: { type: boolean, const: true }
+        secret_provider_port: { type: string, const: owned-secret-provider-port }
+    InTransitRedactionProfile:
+      type: object
+      required: [kind, blocks_sensitive_classes, redacts_trivial_personal_data, reversible_tokens_require_tenant_policy, default_token_lifetime, restore_only_after_model_output, provider_receives_raw_token_values, routing_advisor_receives_raw_token_values]
+      properties:
+        kind: { type: string, const: InTransitRedactionProfile }
+        blocks_sensitive_classes: { type: boolean, const: true }
+        redacts_trivial_personal_data: { type: boolean, const: true }
+        reversible_tokens_require_tenant_policy: { type: boolean, const: true }
+        default_token_lifetime: { type: string, const: ephemeral-run }
+        restore_only_after_model_output: { type: boolean, const: true }
+        provider_receives_raw_token_values: { type: boolean, const: false }
+        routing_advisor_receives_raw_token_values: { type: boolean, const: false }
+
