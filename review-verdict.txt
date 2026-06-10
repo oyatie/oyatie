@@ -1,16 +1,17 @@
 VERDICT: APPROVE
-Reviewed code+faces head: e7583769734fbaf989f05e63a06021d64c611ead
-Scope: SLICE-10 target-parity burn-down, 50 workspace members, 66 generated rust_test targets.
+reviewed_content_head: c22a602b1
+review_scope: slice-09 ADR-0540 BUCK rust_test wiring plus generated cloud-ci face settle
+subagent_filter: skipped because OMX worker protocol forbids nested subagents in this worker pane; review performed in-session with code-review-and-quality plus the Torvalds rubric.
 
-Findings: none critical/high/medium.
+Findings:
+- none
 
-Checks:
-- buck2 test over all 66 newly added rust_test targets: Pass 66, Fail 0, Build failure 0.
-- Generator re-check over slice-10 members: remaining_candidates=0.
-- git diff --check origin/dev...HEAD: clean.
-- cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs: no diff; hardcoded count untouched.
-- Generated-face settle commit is faces-only: accounting-registry.generated.json, gate-baseline.generated.json, scm-facts.generated.json.
+Evidence:
+- Premise gate: 50/50 slice-09 members were generator candidates on origin/dev at 3ae4f2ea9; zero non-candidates.
+- Generator burn-down: post-change slice intersection with `oya-buck-test-wiring --list` is 0 remaining candidates.
+- Target verification: 59 generated rust_test targets passed via `buck2 test` with Fail 0, Timeout 0, Fatal 0, Infra Failure 0, Build failure 0.
+- Scope review: `git diff --check origin/dev...HEAD` passed; no Rust source diff; no files outside BUCK plus cloud-ci generated faces.
+- Collision guard: `cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs` was not modified.
 
-Notes:
-- Worker protocol forbids nested subagents in this lane, so the pre-open filter was performed in-session against the Torvalds/hyperscaler rubric instead of spawning the requested Fable review agent.
-- Residual risk: generated-face soft collisions are expected across parallel slices and may require one merge-train rebase plus resettle.
+Residual risk:
+- Generated face files may require a mechanical re-settle after the leader merge train rebases this slice with other concurrent burn-down PRs.

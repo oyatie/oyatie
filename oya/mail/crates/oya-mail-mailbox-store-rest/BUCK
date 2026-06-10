@@ -12,3 +12,18 @@ rust_library(
         "//oya/mail/crates/oya-mail-mailbox-store-usecase:oya-mail-mailbox-store-usecase",
     ],
 )
+
+rust_test(
+    name = "oya-mail-mailbox-store-rest-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_mail_mailbox_store_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//oya/mail/crates/oya-mail-mailbox-store-api:oya-mail-mailbox-store-api",
+        "//oya/mail/crates/oya-mail-mailbox-store-app:oya-mail-mailbox-store-app",
+        "//oya/mail/crates/oya-mail-mailbox-store-usecase:oya-mail-mailbox-store-usecase",
+    ],
+)

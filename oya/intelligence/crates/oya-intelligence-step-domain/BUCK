@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-step-domain-step-ledger",
+    srcs = ["tests/step_ledger.rs"],
+    crate = "oya_intelligence_step_domain_step_ledger",
+    crate_root = "tests/step_ledger.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-step-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

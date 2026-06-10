@@ -9,3 +9,16 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-run-domain-run-ledger",
+    srcs = ["tests/run_ledger.rs"],
+    crate = "oya_intelligence_run_domain_run_ledger",
+    crate_root = "tests/run_ledger.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+    ],
+)

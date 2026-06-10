@@ -9,3 +9,28 @@ rust_library(
         "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
     ],
 )
+
+rust_test(
+    name = "oya-messenger-message-stream-usecase-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_messenger_message_stream_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/messenger/crates/oya-messenger-domain:oya-messenger-domain",
+        "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
+    ],
+)
+
+rust_test(
+    name = "oya-messenger-message-stream-usecase-delivery-receipt-acceptance",
+    srcs = ["tests/delivery_receipt_acceptance.rs"],
+    crate = "oya_messenger_message_stream_usecase_delivery_receipt_acceptance",
+    crate_root = "tests/delivery_receipt_acceptance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-messenger-message-stream-usecase",
+        "//oya/messenger/crates/oya-messenger-domain:oya-messenger-domain",
+        "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
+    ],
+)
