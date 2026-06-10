@@ -246,14 +246,25 @@ jobs:
           cargo --version
       # Warm buck-out + the buck2 daemon cache across runs so ephemeral runners do not
       # cold-bootstrap the toolchain (design §3.1 / ADR-0515 D4).
+      #
+      # Cache key is STABLE per dependency-set (.buckconfig + toolchains/BUCK + Cargo.lock),
+      # NOT per-commit. The previous `-${{ github.sha }}` suffix made the primary key unique
+      # every commit, so actions/cache SAVED a fresh full buck-out (multi-GB) on EVERY run and
+      # never hit the primary key — bloating the 10GB repo cache into constant LRU eviction and
+      # exhausting ephemeral-runner disk at the save step (the "No space left on device" failure).
+      # A stable key saves once per dependency-set and restores it exactly: deterministic warm
+      # start, no per-commit bloat. Changed crates still rebuild (buck2 is content-addressed, so a
+      # restored hit is bit-identical to a cold build); only a Cargo.lock/toolchain/.buckconfig
+      # change mints a new entry. Interim warm-by-default until the shared content-addressed
+      # remote cache (NativeLink/CAS, HANDOFF W3) lands with a cold-canary integrity job proving
+      # cold==warm. See friction-ledger buck2-no-shared-cache.
       - name: Cache buck-out
         # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}-${{ github.sha }}
+          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
           restore-keys: |
-            buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}-
             buck-out-${{ runner.os }}-
       # Generated-face materialization — the SINGLE out-of-graph git boundary. Re-run the emitter
       # and producer against the checked-out candidate tree, then let buck2 consume those files as
