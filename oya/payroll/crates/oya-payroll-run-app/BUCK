@@ -9,3 +9,29 @@ rust_library(
         "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
     ],
 )
+
+rust_test(
+    name = "oya-payroll-run-app-app-envelopes",
+    srcs = ["tests/app_envelopes.rs"],
+    crate = "oya_payroll_run_app_app_envelopes",
+    crate_root = "tests/app_envelopes.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-app",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-app-hr-leave",
+    srcs = ["tests/hr_leave.rs"],
+    crate = "oya_payroll_run_app_hr_leave",
+    crate_root = "tests/hr_leave.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-app",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+    ],
+)

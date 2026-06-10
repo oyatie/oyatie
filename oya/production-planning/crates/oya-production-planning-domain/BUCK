@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-production-planning-domain-production-planning",
+    srcs = ["tests/production_planning.rs"],
+    crate = "oya_production_planning_domain_production_planning",
+    crate_root = "tests/production_planning.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-production-planning-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

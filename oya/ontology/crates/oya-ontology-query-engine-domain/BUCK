@@ -9,3 +9,15 @@ rust_library(
         "//oya/ontology/crates/oya-ontology-kernel:oya-ontology-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-ontology-query-engine-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_ontology_query_engine_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/ontology/crates/oya-ontology-kernel:oya-ontology-kernel",
+    ],
+)
