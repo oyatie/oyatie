@@ -10,3 +10,17 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-cloud-storage-block-api-cloud-storage-block-api",
+    srcs = ["tests/cloud_storage_block_api.rs"],
+    crate = "oya_cloud_storage_block_api_cloud_storage_block_api",
+    crate_root = "tests/cloud_storage_block_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-storage-block-api",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//cloud/cloud-storage/crates/oya-cloud-storage-domain:oya-cloud-storage-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

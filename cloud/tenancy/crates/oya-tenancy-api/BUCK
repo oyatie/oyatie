@@ -9,3 +9,16 @@ rust_library(
         "//cloud/tenancy/crates/oya-tenancy-domain:oya-tenancy-domain",
     ],
 )
+
+rust_test(
+    name = "oya-tenancy-api-tenant-create-api",
+    srcs = ["tests/tenant_create_api.rs"],
+    crate = "oya_tenancy_api_tenant_create_api",
+    crate_root = "tests/tenant_create_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenancy-api",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//cloud/tenancy/crates/oya-tenancy-domain:oya-tenancy-domain",
+    ],
+)

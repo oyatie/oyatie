@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18214,
-    "source_inputs_digest": "fnv1a64:35367c64eca77da5"
+    "source_inputs_digest": "fnv1a64:8fb532665d968e83"
   },
   "rows": [
     {
@@ -33443,7 +33443,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "b28dcc6acab98377b3da036bdab60ea6bfad8012",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/cloud-observability/crates/oya-cloud-observability-kernel/BUCK",
       "reachable_from": [
@@ -48477,7 +48477,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/BUCK",
       "reachable_from": [
@@ -50228,7 +50228,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci/BUCK",
       "reachable_from": [
@@ -50297,7 +50297,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3/BUCK",
       "reachable_from": [
@@ -50366,7 +50366,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/BUCK",
       "reachable_from": [
@@ -50458,7 +50458,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/BUCK",
       "reachable_from": [
@@ -50550,7 +50550,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/BUCK",
       "reachable_from": [
@@ -51314,7 +51314,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-api/BUCK",
       "reachable_from": [
@@ -51383,7 +51383,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-app/BUCK",
       "reachable_from": [
@@ -51475,7 +51475,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/BUCK",
       "reachable_from": [
@@ -52096,7 +52096,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-inmemory/BUCK",
       "reachable_from": [
@@ -52165,7 +52165,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api/BUCK",
       "reachable_from": [
@@ -52349,7 +52349,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel/BUCK",
       "reachable_from": [
@@ -52859,7 +52859,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-adapter-inmemory/BUCK",
       "reachable_from": [
@@ -52928,7 +52928,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api/BUCK",
       "reachable_from": [
@@ -52997,7 +52997,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-app/BUCK",
       "reachable_from": [
@@ -53066,7 +53066,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel/BUCK",
       "reachable_from": [
@@ -53578,7 +53578,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-cedar/BUCK",
       "reachable_from": [
@@ -53647,7 +53647,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-inmemory/BUCK",
       "reachable_from": [
@@ -53716,7 +53716,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api/BUCK",
       "reachable_from": [
@@ -53785,7 +53785,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app/BUCK",
       "reachable_from": [
@@ -53900,7 +53900,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/BUCK",
       "reachable_from": [
@@ -56951,7 +56951,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/tenancy/crates/oya-tenancy-api/BUCK",
       "reachable_from": [
@@ -57181,7 +57181,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/tenancy/crates/oya-tenancy-domain/BUCK",
       "reachable_from": [
@@ -57480,7 +57480,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "cloud/tenancy/crates/oya-tenancy-kernel/BUCK",
       "reachable_from": [
@@ -134447,7 +134447,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-doc-axis/BUCK",
       "reachable_from": [
@@ -134539,7 +134539,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-doc-catalog/BUCK",
       "reachable_from": [
@@ -134608,7 +134608,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-documentation-system/BUCK",
       "reachable_from": [
@@ -134677,7 +134677,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-event-schema-versioning/BUCK",
       "reachable_from": [
@@ -134746,7 +134746,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-glossary-coverage/BUCK",
       "reachable_from": [
@@ -134815,7 +134815,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-glossary-vocabulary/BUCK",
       "reachable_from": [
@@ -134884,7 +134884,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-high-risk-auto-decision-refusal/BUCK",
       "reachable_from": [
@@ -134953,7 +134953,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-honest-claims/BUCK",
       "reachable_from": [
@@ -135022,7 +135022,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-i18n-coverage/BUCK",
       "reachable_from": [
@@ -135114,7 +135114,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-iac-tier-discipline/BUCK",
       "reachable_from": [
@@ -135183,7 +135183,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-id-discipline/BUCK",
       "reachable_from": [
@@ -135252,7 +135252,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-idempotency-key-coverage/BUCK",
       "reachable_from": [
@@ -135321,7 +135321,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-image-signing-discipline/BUCK",
       "reachable_from": [
@@ -135390,7 +135390,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-layered-architecture-discipline/BUCK",
       "reachable_from": [
@@ -135482,7 +135482,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-license-policy/BUCK",
       "reachable_from": [
@@ -135574,7 +135574,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-metric-cardinality/BUCK",
       "reachable_from": [
@@ -135643,7 +135643,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-mobile-native/BUCK",
       "reachable_from": [
@@ -135712,7 +135712,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-no-grouping/BUCK",
       "reachable_from": [
@@ -135781,7 +135781,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-olap-tier-discipline/BUCK",
       "reachable_from": [
@@ -135850,7 +135850,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-ontology-projection-coverage/BUCK",
       "reachable_from": [
@@ -135919,7 +135919,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-openapi-rest-route-parity/BUCK",
       "reachable_from": [
@@ -135988,7 +135988,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-otel-trace-propagation/BUCK",
       "reachable_from": [
@@ -136057,7 +136057,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "libs/oya-check-perf-budget/BUCK",
       "reachable_from": [
@@ -140956,7 +140956,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-orphan-detection-kernel/BUCK",
       "reachable_from": [
@@ -141025,7 +141025,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-pack-overlay-completeness/BUCK",
       "reachable_from": [
@@ -141140,7 +141140,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-portfolio-citation-kernel/BUCK",
       "reachable_from": [
@@ -141209,7 +141209,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-pr-merge-gate-kernel/BUCK",
       "reachable_from": [
@@ -141278,7 +141278,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-pr-traceability-kernel/BUCK",
       "reachable_from": [
@@ -141347,7 +141347,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-pre-push-kernel/BUCK",
       "reachable_from": [
@@ -141416,7 +141416,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-predictable-naming-kernel/BUCK",
       "reachable_from": [
@@ -141485,7 +141485,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-provider-coupling-kernel/BUCK",
       "reachable_from": [
@@ -141554,7 +141554,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-purpose-kernel/BUCK",
       "reachable_from": [
@@ -141623,7 +141623,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-quality-lane-kernel/BUCK",
       "reachable_from": [
@@ -141715,7 +141715,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-substance-bar/BUCK",
       "reachable_from": [
@@ -141922,7 +141922,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-sunset-lifecycle-kernel/BUCK",
       "reachable_from": [
@@ -141991,7 +141991,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-supply-chain-kernel/BUCK",
       "reachable_from": [
@@ -142060,7 +142060,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-tos-policy-kernel/BUCK",
       "reachable_from": [
@@ -142129,7 +142129,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-governance-upstream-api-drift-kernel/BUCK",
       "reachable_from": [
@@ -142198,7 +142198,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-http-latency-budget-middleware-infrastructure/BUCK",
       "reachable_from": [
@@ -142267,7 +142267,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-http-middleware-kernel/BUCK",
       "reachable_from": [
@@ -142336,7 +142336,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-http-router-kernel/BUCK",
       "reachable_from": [
@@ -142405,7 +142405,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-http-runtime-hyper-adapter/BUCK",
       "reachable_from": [
@@ -142474,7 +142474,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-http-sse-kernel/BUCK",
       "reachable_from": [
@@ -142543,7 +142543,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-http-telemetry-middleware-infrastructure/BUCK",
       "reachable_from": [
@@ -142612,7 +142612,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-http-tenant-middleware-infrastructure/BUCK",
       "reachable_from": [
@@ -142750,7 +142750,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-json-kernel/BUCK",
       "reachable_from": [
@@ -143233,7 +143233,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-audit-chain-client-kernel/BUCK",
       "reachable_from": [
@@ -143877,7 +143877,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-backup-kernel/BUCK",
       "reachable_from": [
@@ -144015,7 +144015,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-compliance-evidence-kernel/BUCK",
       "reachable_from": [
@@ -144107,7 +144107,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-connector-kernel/BUCK",
       "reachable_from": [
@@ -144199,7 +144199,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-cursor-pagination-kernel/BUCK",
       "reachable_from": [
@@ -144314,7 +144314,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-email-comms-kernel/BUCK",
       "reachable_from": [
@@ -144383,7 +144383,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-hyperscaler-metrics-adapter-otlp/BUCK",
       "reachable_from": [
@@ -144452,7 +144452,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-hyperscaler-metrics-adapter-prometheus/BUCK",
       "reachable_from": [
@@ -144521,7 +144521,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-hyperscaler-metrics-kernel/BUCK",
       "reachable_from": [
@@ -144590,7 +144590,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-i18n-kernel/BUCK",
       "reachable_from": [
@@ -144682,7 +144682,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-idempotency-key-kernel/BUCK",
       "reachable_from": [
@@ -144751,7 +144751,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-object-store-kernel/BUCK",
       "reachable_from": [
@@ -144820,7 +144820,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-oidc-client-kernel/BUCK",
       "reachable_from": [
@@ -144912,7 +144912,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-olap-clickhouse-adapter/BUCK",
       "reachable_from": [
@@ -144981,7 +144981,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-olap-client-kernel/BUCK",
       "reachable_from": [
@@ -145050,7 +145050,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-outbox-broker-http-adapter/BUCK",
       "reachable_from": [
@@ -145119,7 +145119,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-outbox-pattern-kernel/BUCK",
       "reachable_from": [
@@ -145832,7 +145832,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-postgres-command-kernel/BUCK",
       "reachable_from": [
@@ -145901,7 +145901,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-presence-kernel/BUCK",
       "reachable_from": [
@@ -145993,7 +145993,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-protocol-parity-kernel/BUCK",
       "reachable_from": [
@@ -146062,7 +146062,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-protocol-transport-kernel/BUCK",
       "reachable_from": [
@@ -146131,7 +146131,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-protocol-transport-retry-app/BUCK",
       "reachable_from": [
@@ -146200,7 +146200,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-realtime-transport-kernel/BUCK",
       "reachable_from": [
@@ -146407,7 +146407,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "8257c1e438bd5e1d22c90762bff7c07f80302ac0",
       "owner": null,
       "path": "libs/oya-shared-scim-server-kernel/BUCK",
       "reachable_from": [
@@ -377305,7 +377305,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "1ed2815b3113aa718e0499304d0220d3f3109d08",
+      "last_touch_commit": "c5052888ca27aa1d312d3736a87c1ef4ce3b2b45",
       "owner": null,
       "path": "review-verdict.txt",
       "reachable_from": [],
