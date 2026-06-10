@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18234,
-    "source_inputs_digest": "fnv1a64:5e39857b58a4c50e"
+    "source_inputs_digest": "fnv1a64:58274e75ac5509c0"
   },
   "rows": [
     {
@@ -389493,7 +389493,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "b5133a7f94aace5b4d8fd259d459a2000a92c2cb",
+      "last_touch_commit": "170a27b37e525268fde5e9327ff45569e5a38f4a",
       "owner": null,
       "path": "tools/oya-checkout-guard-app/src/lib.rs",
       "reachable_from": [
