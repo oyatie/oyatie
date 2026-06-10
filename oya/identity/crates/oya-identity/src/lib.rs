@@ -1,7 +1,10 @@
 //! oya-identity — identity service for oyatie.
 //!
 //! Single-crate-per-service pattern per ADR-0509.
-//! Subsystems: auth, oidc, oauth2, webauthn, realms, users, storage, rest, grpc, observability.
+//! Subsystems: auth, oidc, oauth2, realms, users, storage, rest, grpc, observability.
+//! (Passkeys/WebAuthn returns behind a port in its own sub-slice — the
+//! webauthn-rs -> openssl chain is buck2-unbuildable on current runners,
+//! see the friction ledger.)
 
 #![forbid(unsafe_code)]
 
@@ -16,4 +19,3 @@ pub mod rest;
 pub mod server;
 pub mod storage;
 pub mod users;
-pub mod webauthn;

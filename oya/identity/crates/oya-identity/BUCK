@@ -21,8 +21,6 @@ rust_library(
         "third-party//:tonic",
         "third-party//:tracing",
         "third-party//:tracing-subscriber",
-        "third-party//:uuid",
-        "third-party//:webauthn-rs",
     ],
 )
 
@@ -62,8 +60,6 @@ rust_test(
         "third-party//:tower",
         "third-party//:tracing",
         "third-party//:tracing-subscriber",
-        "third-party//:uuid",
-        "third-party//:webauthn-rs",
     ],
 )
 
