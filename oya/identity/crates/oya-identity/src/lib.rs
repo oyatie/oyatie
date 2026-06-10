@@ -13,6 +13,7 @@ pub mod observability;
 pub mod oidc;
 pub mod realms;
 pub mod rest;
+pub mod server;
 pub mod storage;
 pub mod users;
 pub mod webauthn;
