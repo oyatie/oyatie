@@ -17,12 +17,15 @@
         "oya-cloud-os-conditions-domain",
         "oya-cloud-os-config-docs-domain",
         "oya-cloud-os-config-v1alpha1-domain",
+        "oya-cloud-os-controllers-domain",
         "oya-cloud-os-cosi-domain",
+        "oya-cloud-os-difftest-app",
         "oya-cloud-os-etcd-domain",
         "oya-cloud-os-events-logging-domain",
         "oya-cloud-os-extensions-domain",
         "oya-cloud-os-hardware-domain",
         "oya-cloud-os-imager-domain",
+        "oya-cloud-os-init-app",
         "oya-cloud-os-install-domain",
         "oya-cloud-os-k8s-control-domain",
         "oya-cloud-os-kernel",
@@ -33,6 +36,7 @@
         "oya-cloud-os-machined-domain",
         "oya-cloud-os-maintenance-domain",
         "oya-cloud-os-meta-domain",
+        "oya-cloud-os-network-domain",
         "oya-cloud-os-perf-domain",
         "oya-cloud-os-platform-domain",
         "oya-cloud-os-proto-api",
@@ -50,6 +54,7 @@
   ],
   "layers": [
     "api",
+    "app",
     "domain",
     "kernel"
   ],
@@ -203,7 +208,7 @@
     "status": "scaffold-only; no live OS image, installer, Talos schematic migration, runtime deployment, or production node claim"
   },
   "current_slice": {
-    "intent": "G12 LANE-2 consolidation slices 1-3: foundational no_std set, pure single-dependency domain crates, and the multi-dependency service-logic crates (apid, block, config-v1alpha1, k8s-control, kubernetes, machined, runtime-cri) migrated from the kernel-snapshot branch, renamed to BNF-conformant oya-cloud-os-* names, added to the root cargo workspace with build, test, and clippy green.",
+    "intent": "G12 LANE-2 consolidation slices 1-4: full stack/operating-system Rust crate set except CLI-disposition crates (talosctl, talosctl-commands, dashboard), migrated from the kernel-snapshot branch, renamed to BNF-conformant oya-cloud-os-* names, added to the root cargo workspace with buck2-first verification (buck2 build+test primary, cargo supplementary) green.",
     "adds": [
       "machine-readable manifest",
       "oya-cloud-os-apid-domain",
@@ -215,12 +220,15 @@
       "oya-cloud-os-conditions-domain",
       "oya-cloud-os-config-docs-domain",
       "oya-cloud-os-config-v1alpha1-domain",
+      "oya-cloud-os-controllers-domain",
       "oya-cloud-os-cosi-domain",
+      "oya-cloud-os-difftest-app",
       "oya-cloud-os-etcd-domain",
       "oya-cloud-os-events-logging-domain",
       "oya-cloud-os-extensions-domain",
       "oya-cloud-os-hardware-domain",
       "oya-cloud-os-imager-domain",
+      "oya-cloud-os-init-app",
       "oya-cloud-os-install-domain",
       "oya-cloud-os-k8s-control-domain",
       "oya-cloud-os-kernel",
@@ -231,6 +239,7 @@
       "oya-cloud-os-machined-domain",
       "oya-cloud-os-maintenance-domain",
       "oya-cloud-os-meta-domain",
+      "oya-cloud-os-network-domain",
       "oya-cloud-os-perf-domain",
       "oya-cloud-os-platform-domain",
       "oya-cloud-os-proto-api",
@@ -252,8 +261,7 @@
       "installation media",
       "runtime automation",
       "OS image build or publication",
-      "libc/FFI crates (talos-init, talos-network linux surface)",
-      "CLI-surface crates (talosctl, dashboard) pending founder disposition"
+      "CLI-surface crates (talosctl, talosctl-commands, dashboard) pending founder disposition"
     ]
   },
   "future_placement_rules": [

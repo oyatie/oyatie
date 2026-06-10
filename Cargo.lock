@@ -4748,10 +4748,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-os-controllers-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-cosi-domain",
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-machine-config-domain",
+ "oya-cloud-os-network-domain",
+]
+
+[[package]]
 name = "oya-cloud-os-cosi-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-difftest-app"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-controllers-domain",
+ "oya-cloud-os-init-app",
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-kubernetes-domain",
+ "oya-cloud-os-machine-config-domain",
+ "oya-cloud-os-network-domain",
+ "oya-cloud-os-platform-domain",
+ "oya-cloud-os-runtime-cri-domain",
+ "oya-cloud-os-secrets-domain",
 ]
 
 [[package]]
@@ -4787,6 +4812,22 @@ name = "oya-cloud-os-imager-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-init-app"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "oya-cloud-os-block-domain",
+ "oya-cloud-os-controllers-domain",
+ "oya-cloud-os-cosi-domain",
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-machine-config-domain",
+ "oya-cloud-os-machined-domain",
+ "oya-cloud-os-network-domain",
+ "oya-cloud-os-platform-domain",
+ "oya-cloud-os-runtime-cri-domain",
 ]
 
 [[package]]
@@ -4860,6 +4901,14 @@ dependencies = [
 name = "oya-cloud-os-meta-domain"
 version = "0.1.0"
 dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-network-domain"
+version = "0.1.0"
+dependencies = [
+ "libc",
  "oya-cloud-os-kernel",
 ]
 
