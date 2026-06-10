@@ -21,3 +21,10 @@
 # updated variants of the same logical record, exactly the failure mode the
 # codex reviewer flagged on the initial PR.
 evidence/audit-chain.jsonl merge=union
+
+# Cargo.lock is generated, but it is not append-only: package sections can be added, removed,
+# or version-replaced by independent branches. Git's text merge and `merge=union` can silently
+# keep stale package entries, so Cargo.lock uses the structural three-way driver in
+# tools/oya-cargo-lock-merge-driver-app. The driver merges disjoint [[package]] additions and
+# exits 1 on same-package version divergence or removal-vs-edit conflicts.
+Cargo.lock merge=cargo-lock

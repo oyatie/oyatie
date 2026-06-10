@@ -3609,6 +3609,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cargo-lock-merge-driver-app"
+version = "0.1.0"
+dependencies = [
+ "toml_edit",
+]
+
+[[package]]
 name = "oya-cell-domain"
 version = "0.1.0"
 dependencies = [
