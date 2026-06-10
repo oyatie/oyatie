@@ -7217,6 +7217,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-office-api-app"
+version = "0.1.0"
+
+[[package]]
 name = "oya-office-authz-domain"
 version = "0.1.0"
 dependencies = [
@@ -7229,6 +7233,10 @@ version = "0.1.0"
 dependencies = [
  "oya-office-kernel",
 ]
+
+[[package]]
+name = "oya-office-collab-gateway-app"
+version = "0.1.0"
 
 [[package]]
 name = "oya-office-doc-domain"
@@ -7249,6 +7257,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-office-drive-api-app"
+version = "0.1.0"
+dependencies = [
+ "oya-office-drive-api",
+ "oya-office-drive-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
 name = "oya-office-drive-domain"
 version = "0.1.0"
 dependencies = [
@@ -7257,10 +7274,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-office-drive-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-office-drive-api",
+ "oya-office-drive-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
 name = "oya-office-format-domain"
 version = "0.1.0"
 dependencies = [
  "oya-office-drive-domain",
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-format-worker"
+version = "0.1.0"
+dependencies = [
+ "oya-office-drive-domain",
+ "oya-office-format-domain",
  "oya-office-kernel",
 ]
 
@@ -7312,6 +7347,14 @@ dependencies = [
 name = "oya-office-tenant-domain"
 version = "0.1.0"
 dependencies = [
+ "oya-office-kernel",
+]
+
+[[package]]
+name = "oya-office-web-app"
+version = "0.1.0"
+dependencies = [
+ "oya-office-drive-api",
  "oya-office-kernel",
 ]
 
