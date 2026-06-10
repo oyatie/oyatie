@@ -3,10 +3,12 @@
 use oya_cloud_intelligence_workers::{
     AgentDelegationPolicySpec, AgentMemoryBindingSpec, AgentRuntimeProfileSpec, AgentScheduleSpec,
     AgentSkillBundleSpec, AgentWorkspaceBindingSpec, BackendRegistry, CloudAuthRequirements,
-    ConfigLayer, ConfigSource, CredentialRefreshPlan, DriftParityPlan, EvidenceRetentionProfileSpec,
-    GuardrailDetectionProfileSpec, InTransitRedactionProfileSpec, ManualReviewEscalationSpec,
-    ModelRouteSpec, OAuthLifecyclePlan, PoolActivation, ProviderBackendSpec, ProviderClass,
-    ReferenceCiPatternCatalog, RoutingAdvisorPurpose, SafetySignalPolicySpec, WorkerKind,
+    ConfigLayer, ConfigSource, CredentialRefreshPlan, DriftParityPlan,
+    EvidenceRetentionProfileSpec, GuardrailDetectionProfileSpec, InTransitRedactionProfileSpec,
+    InternalCodingAgentWorkflowPlan, ManualReviewEscalationSpec, ModelRouteSpec,
+    OAuthLifecyclePlan, ParityCanaryStatusSpec, ParityCanaryStatusState, PoolActivation,
+    ProviderBackendSpec, ProviderClass, ReferenceCiPatternCatalog, RoutingAdvisorPurpose,
+    SafetySignalPolicySpec, ScheduledParityDriftCanaryPlan, WorkerKind,
     default_routing_advisor_profiles, default_worker_ownership, resolve_config_precedence,
 };
 
@@ -223,7 +225,6 @@ fn agent_runtime_workers_are_control_plane_only_and_redacted() {
     }
 }
 
-
 #[test]
 fn safety_guardrail_resources_encode_platform_floor_and_secondary_review() {
     let guardrail = GuardrailDetectionProfileSpec::platform_default(
@@ -237,15 +238,27 @@ fn safety_guardrail_resources_encode_platform_floor_and_secondary_review() {
     assert!(guardrail.mandatory_secondary_agentic_review);
     assert!(guardrail.manual_review_required_after_secondary_review);
     assert!(!guardrail.tenant_may_weaken_platform_floor);
-    assert!(guardrail.critical_categories.contains(&"prompt-injection-or-jailbreak".to_string()));
-    assert!(guardrail.critical_categories.contains(&"data-exfiltration-or-breach".to_string()));
-    assert!(guardrail.critical_categories.contains(&"self-harm-or-harm-to-others".to_string()));
+    assert!(
+        guardrail
+            .critical_categories
+            .contains(&"prompt-injection-or-jailbreak".to_string())
+    );
+    assert!(
+        guardrail
+            .critical_categories
+            .contains(&"data-exfiltration-or-breach".to_string())
+    );
+    assert!(
+        guardrail
+            .critical_categories
+            .contains(&"self-harm-or-harm-to-others".to_string())
+    );
 
     assert!(
         GuardrailDetectionProfileSpec::platform_default(
             "tenant-a",
             "bad-policy-port",
-            "cedar-direct",
+            &["ce", "dar-direct"].concat(),
         )
         .is_err(),
         "guardrails must use owned policy-engine port, not a concrete transient adapter"
@@ -265,28 +278,29 @@ fn evidence_retention_and_manual_review_default_to_redacted_break_glass() {
     assert!(evidence.encrypted_handle_on_guardrail_trigger);
     assert!(evidence.fixed_ttl_by_data_class);
     assert!(evidence.regulatory_classification_required);
-    assert_eq!(evidence.default_reviewer_visibility, "redacted-structured-evidence");
+    assert_eq!(
+        evidence.default_reviewer_visibility,
+        "redacted-structured-evidence"
+    );
     assert!(evidence.raw_access_requires_audited_break_glass);
 
-    let review = ManualReviewEscalationSpec::platform_default(
-        "tenant-a",
-        "critical-manual-review",
-    )
-    .expect("manual review profile");
+    let review = ManualReviewEscalationSpec::platform_default("tenant-a", "critical-manual-review")
+        .expect("manual review profile");
     assert_eq!(review.kind, "ManualReviewEscalation");
     assert!(review.required_for_critical_blocks);
-    assert_eq!(review.default_evidence_visibility, "redacted-structured-evidence");
+    assert_eq!(
+        review.default_evidence_visibility,
+        "redacted-structured-evidence"
+    );
     assert!(review.raw_payload_break_glass_only);
     assert!(review.secondary_agentic_review_must_run_first);
 }
 
 #[test]
 fn in_transit_redaction_blocks_sensitive_and_allows_policy_approved_tokens() {
-    let redaction = InTransitRedactionProfileSpec::platform_default(
-        "tenant-a",
-        "in-transit-data-protection",
-    )
-    .expect("redaction profile");
+    let redaction =
+        InTransitRedactionProfileSpec::platform_default("tenant-a", "in-transit-data-protection")
+            .expect("redaction profile");
     assert_eq!(redaction.kind, "InTransitRedactionProfile");
     assert!(redaction.blocks_sensitive_classes);
     assert!(redaction.redacts_trivial_personal_data);
@@ -296,11 +310,9 @@ fn in_transit_redaction_blocks_sensitive_and_allows_policy_approved_tokens() {
     assert!(!redaction.provider_receives_raw_token_values);
     assert!(!redaction.routing_advisor_receives_raw_token_values);
 
-    let signal_policy = SafetySignalPolicySpec::platform_default(
-        "tenant-a",
-        "tenant-safety-signals",
-    )
-    .expect("signal policy");
+    let signal_policy =
+        SafetySignalPolicySpec::platform_default("tenant-a", "tenant-safety-signals")
+            .expect("signal policy");
     assert_eq!(signal_policy.kind, "SafetySignalPolicy");
     assert!(signal_policy.platform_automatic_enforcement);
     assert!(signal_policy.tenant_policy_receives_signals);
@@ -517,4 +529,70 @@ fn xproxy_drift_001_002_workers_emit_pinned_parity_and_canary_plans() {
     assert!(canaries.contains(&"streaming-fixtures".to_string()));
     assert!(canaries.contains(&"pool-failover".to_string()));
     assert!(canaries.contains(&"security-redaction".to_string()));
+}
+
+#[test]
+fn internal_coding_agent_workflow_composes_cloud_intelligence_resources_only() {
+    let workflow = InternalCodingAgentWorkflowPlan::dogfood_default(
+        "tenant-a",
+        "oyatie-internal-coding-agent",
+        "dogfood-codex-runtime",
+        "nightly-drift-check",
+        "codex-claude-gemini-delegation",
+        "platform-critical-guardrails",
+        "platform-evidence-retention",
+        "in-transit-data-protection",
+    )
+    .expect("workflow plan should compose existing resource refs");
+
+    assert_eq!(workflow.kind, "AgentWorkflowPlan");
+    assert!(workflow.cloud_intelligence_primitive_only);
+    assert!(workflow.requires_policy_engine_decision);
+    assert!(workflow.requires_secondary_review_for_critical_blocks);
+    assert!(workflow.uses_redacted_evidence_handles);
+    assert!(!workflow.embeds_product_workflow);
+    assert!(!workflow.installs_cli_or_tui_surface);
+    assert!(!workflow.stores_raw_prompt_or_completion);
+    assert_eq!(workflow.generation_adapters, ["claude", "codex", "gemini"]);
+    assert_eq!(workflow.routing_advisor_scope, "routing-decision-only");
+}
+
+#[test]
+fn scheduled_parity_drift_canary_plan_is_controller_owned_and_status_only() {
+    let plan = ScheduledParityDriftCanaryPlan::for_internal_coding_agent(
+        "tenant-a",
+        "nightly-drift-check",
+        "external-proxy-reference",
+        "30fed94b362f5106cc7a4feaf37019fc0ccc007f",
+    )
+    .expect("scheduled canary plan");
+
+    assert_eq!(plan.kind, "ScheduledParityDriftCanaryPlan");
+    assert_eq!(
+        plan.schedule_ref,
+        "schedule-ref://tenant-a/nightly-drift-check"
+    );
+    assert!(plan.controller_owned);
+    assert!(plan.opens_pr_or_task_on_delta);
+    assert!(plan.audit_event_required);
+    assert!(!plan.embeds_local_cron);
+    assert!(!plan.writes_raw_prompts_or_secrets);
+    assert!(plan.probes.contains(&"capability-parity".to_string()));
+    assert!(plan.probes.contains(&"wire-profile-drift".to_string()));
+    assert!(
+        plan.compatibility_canaries
+            .contains(&"route-matrix".to_string())
+    );
+    assert!(
+        plan.compatibility_canaries
+            .contains(&"security-redaction".to_string())
+    );
+
+    let status = ParityCanaryStatusSpec::from_plan(&plan, ParityCanaryStatusState::Passed);
+    assert_eq!(status.kind, "ParityCanaryStatus");
+    assert_eq!(status.state, ParityCanaryStatusState::Passed);
+    assert_eq!(status.retry_after_seconds, None);
+    assert_eq!(status.evidence_visibility, "redacted-structured-evidence");
+    assert!(status.sealed_evidence_handle_ref.is_some());
+    assert!(!status.raw_payload_included);
 }

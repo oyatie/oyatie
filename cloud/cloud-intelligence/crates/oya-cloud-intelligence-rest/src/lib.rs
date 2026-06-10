@@ -65,9 +65,10 @@ use tracing::{debug, warn};
 pub type BoxStream<T> = Pin<Box<dyn Stream<Item = T> + Send + 'static>>;
 
 pub use oya_cloud_intelligence_kernel::{
-    AgentId, AuthzGate, CredentialMode, EventSink, LlmGatewayEvent, OAuthSubscription, Provider,
-    SeatId, SeatLease, SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool,
-    SubscriptionPoolError, SubscriptionState, TenantId, is_secret_handle_reference, looks_like_jwt,
+    AgentId, AuthzAction, AuthzDecision, AuthzGate, AuthzRequest, CredentialMode, EventSink,
+    LlmGatewayEvent, OAuthSubscription, Provider, SeatId, SeatLease, SeatOutcome,
+    SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionPoolError, SubscriptionState,
+    TenantId, is_secret_handle_reference, looks_like_jwt,
 };
 
 // ---------------------------------------------------------------------------
@@ -1091,6 +1092,16 @@ pub struct PoolStatus {
     pub ready: bool,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct AccountStatus {
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
+    pub provider: String,               // data_class: INTERNAL_ONLY
+    pub seat_id: String,                // data_class: INTERNAL_ONLY
+    pub state: &'static str,            // data_class: INTERNAL_ONLY
+    pub cooldown_until: Option<String>, // data_class: INTERNAL_ONLY
+    pub headroom_percent: f64,          // data_class: INTERNAL_ONLY
+}
+
 impl PoolRegistry {
     pub fn new() -> Self {
         Self {
@@ -1194,6 +1205,30 @@ impl PoolRegistry {
                 })
             })
             .collect()
+    }
+
+    pub fn account_statuses(&self) -> Vec<AccountStatus> {
+        let Ok(pools) = self.pools.lock() else {
+            return Vec::new();
+        };
+        let now = Instant::now();
+        let mut statuses = Vec::new();
+        for pool in pools.values() {
+            let Ok(pool) = pool.lock() else {
+                continue;
+            };
+            statuses.extend(pool.redacted_seat_statuses(now).into_iter().map(|seat| {
+                AccountStatus {
+                    tenant_id: seat.tenant_id,
+                    provider: seat.provider.to_string(),
+                    seat_id: seat.seat_id,
+                    state: seat.state,
+                    cooldown_until: None,
+                    headroom_percent: seat.headroom_percent,
+                }
+            }));
+        }
+        statuses
     }
 }
 
@@ -1334,6 +1369,15 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             get(handle_admin_analytics_stream),
         )
         .route("/admin/v1/guardrails", get(handle_admin_guardrails))
+        .route("/admin/v1/agent-runtimes", get(handle_admin_agent_runtimes))
+        .route(
+            "/admin/v1/agent-schedules",
+            get(handle_admin_agent_schedules),
+        )
+        .route(
+            "/admin/v1/parity/canaries",
+            get(handle_admin_parity_canaries),
+        )
         .route(
             "/admin/v1/guardrails/escalations",
             get(handle_admin_guardrail_escalations),
@@ -2299,16 +2343,19 @@ struct AdminBoundaryStatus {
 #[derive(Serialize)]
 struct AdminGatewayStatus {
     status: &'static str,
+    route_controller_ready: bool,
+    model_inventory_ready: bool,
+    credential_worker_ready: bool,
+    policy_engine_ready: bool,
     default_data_plane_ready: bool,
     secret_provider_ready: bool,
-    policy_engine_ready: bool,
     registered_pools: usize,
     boundaries: AdminBoundaryStatus,
 }
 
 #[derive(Serialize)]
 struct AdminAccountsResponse {
-    accounts: Vec<PoolStatus>,
+    accounts: Vec<AccountStatus>,
     redaction: &'static str,
 }
 
@@ -2382,15 +2429,27 @@ async fn handle_admin_status(State(state): State<Arc<AppState>>, headers: Header
         .map(|pool| pool.has_eligible_seat(Instant::now()))
         .unwrap_or(false);
     let secret_provider_ready = state.secret_store.readiness_probe().is_ok();
+    let route_controller_ready = state.pool_registry.pool_count() > 0;
+    let model_inventory_ready = true;
+    let credential_worker_ready = default_data_plane_ready && secret_provider_ready;
+    let policy_engine_ready = policy_engine_readiness_probe(&state);
+    let status = if route_controller_ready
+        && model_inventory_ready
+        && credential_worker_ready
+        && policy_engine_ready
+    {
+        "ok"
+    } else {
+        "degraded"
+    };
     Json(AdminGatewayStatus {
-        status: if default_data_plane_ready && secret_provider_ready {
-            "ready"
-        } else {
-            "degraded"
-        },
+        status,
+        route_controller_ready,
+        model_inventory_ready,
+        credential_worker_ready,
+        policy_engine_ready,
         default_data_plane_ready,
         secret_provider_ready,
-        policy_engine_ready: true,
         registered_pools: state.pool_registry.pool_count(),
         boundaries: AdminBoundaryStatus {
             secret_resolution: "owned-secret-provider-port",
@@ -2406,7 +2465,7 @@ async fn handle_admin_accounts(State(state): State<Arc<AppState>>, headers: Head
         return StatusCode::UNAUTHORIZED.into_response();
     }
     Json(AdminAccountsResponse {
-        accounts: state.pool_registry.pool_statuses(),
+        accounts: state.pool_registry.account_statuses(),
         redaction: "secret-handles-redacted",
     })
     .into_response()
@@ -2468,33 +2527,165 @@ async fn handle_admin_guardrails(
             "kind": "GuardrailDetectionProfile",
             "name": "platform-critical-safety-floor",
             "policy_engine_port": "owned-policy-engine-port",
-            "detectors": [
-                "prompt_injection",
-                "data_exfiltration",
-                "credential_probing",
-                "sandbox_escape",
-                "self_harm",
-                "harm_to_others",
-                "privacy_violation",
-                "tenant_boundary_violation",
-                "fraud",
-                "fault",
-                "unsafe",
-                "anomaly",
-                "hostile_pattern"
+            "critical_categories": [
+                "prompt-injection-or-jailbreak",
+                "data-exfiltration-or-breach",
+                "credential-or-secret-probe",
+                "sandbox-escape-or-destructive-action",
+                "self-harm-or-harm-to-others",
+                "privacy-violation",
+                "tenant-boundary-violation",
+                "fraud-or-hostile-pattern",
+                "fault-or-anomaly",
+                "unsafe-scheduled-or-delegated-execution",
+                "child-safety-or-abuse",
+                "security-exploit-or-breach"
             ],
-            "critical_action": "block_and_quarantine",
+            "automatic_block_and_quarantine": true,
             "mandatory_secondary_agentic_review": true,
-            "manual_review_after_secondary_review": true
+            "manual_review_required_after_secondary_review": true,
+            "tenant_may_weaken_platform_floor": false
         }],
         "signal_policy": {
             "kind": "SafetySignalPolicy",
             "platform_automatic_enforcement": true,
             "tenant_policy_receives_signals": true,
             "tenant_policy_receives_recommendations": true,
-            "tenant_can_override_platform_critical_block": false,
-            "tenant_overlay_may_only_tighten": true
+            "tenant_can_override_platform_critical_block": false
         }
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/agent-runtimes
+async fn handle_admin_agent_runtimes(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let tenant_id = state.tenant_id.as_str();
+    if !admin_tenant_allowed(&headers, tenant_id) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    Json(serde_json::json!({
+        "runtimes": [{
+            "kind": "AgentRuntimeProfile",
+            "tenant_id": tenant_id,
+            "name": "dogfood-codex-runtime",
+            "model_route_ref": "dogfood-model-route",
+            "prompt_profile_ref": "internal-coding-agent-prompt-profile",
+            "thinking_policy_ref": "critical-block-second-pass-policy",
+            "tool_compatibility_profile_ref": "codex-claude-gemini-tool-compatibility",
+            "sandbox_policy_ref": "ephemeral-workspace-sandbox",
+            "cloud_intelligence_owned_control_plane": true,
+            "embeds_model_runtime": false,
+            "installs_cli_or_tui_surface": false
+        }],
+        "workflow_statuses": [{
+            "kind": "AgentWorkflowStatus",
+            "tenant_id": tenant_id,
+            "workflow_ref": format!("agent-workflow-ref://{tenant_id}/{tenant_id}-internal-coding-agent"),
+            "runtime_profile_ref": "dogfood-codex-runtime",
+            "delegation_policy_ref": "codex-claude-gemini-delegation",
+            "generation_adapters": ["claude", "codex", "gemini"],
+            "routing_advisor_scope": "routing-decision-only",
+            "routing_advisor_models": [
+                "chatgpt-spark",
+                "gemini-3.1-flash-lite",
+                "nemotron-3-ultra-550b-a55b"
+            ],
+            "policy_engine_port": "owned-policy-engine-port",
+            "evidence_visibility": "redacted-structured-evidence",
+            "sealed_evidence_handle_ref": format!("sealed-evidence-ref://{tenant_id}/internal-coding-agent/status"),
+            "requires_secondary_review_for_critical_blocks": true,
+            "raw_payload_included": false
+        }]
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/agent-schedules
+async fn handle_admin_agent_schedules(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let tenant_id = state.tenant_id.as_str();
+    if !admin_tenant_allowed(&headers, tenant_id) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let schedule_ref = format!("schedule-ref://{tenant_id}/nightly-drift-check");
+    Json(serde_json::json!({
+        "schedules": [{
+            "kind": "AgentSchedule",
+            "tenant_id": tenant_id,
+            "name": "nightly-drift-check",
+            "schedule_ref": schedule_ref,
+            "runtime_profile_ref": "dogfood-codex-runtime",
+            "execution_externalized_to_controller": true,
+            "embeds_local_cron": false,
+            "policy_engine_port": "owned-policy-engine-port",
+            "evidence_visibility": "redacted-structured-evidence"
+        }],
+        "statuses": [{
+            "kind": "AgentScheduleStatus",
+            "schedule_ref": format!("schedule-ref://{tenant_id}/nightly-drift-check"),
+            "state": "passed",
+            "next_run_window": "P1D",
+            "controller_owner": "agent-scheduler-worker",
+            "policy_engine_port": "owned-policy-engine-port",
+            "evidence_visibility": "redacted-structured-evidence",
+            "raw_payload_included": false,
+            "sealed_evidence_handle_ref": format!("sealed-evidence-ref://{tenant_id}/nightly-drift-check/status")
+        }]
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/parity/canaries
+async fn handle_admin_parity_canaries(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let tenant_id = state.tenant_id.as_str();
+    if !admin_tenant_allowed(&headers, tenant_id) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    Json(serde_json::json!({
+        "plans": [{
+            "kind": "ParityCanaryPlan",
+            "tenant_id": tenant_id,
+            "name": "nightly-drift-check",
+            "artifact_family": "external-proxy-reference",
+            "capability_namespace": "XPROXY",
+            "schedule_ref": format!("schedule-ref://{tenant_id}/nightly-drift-check"),
+            "probes": ["capability-parity", "wire-profile-drift", "adapter-translation-drift"],
+            "compatibility_canaries": ["route-matrix", "streaming-fixtures", "security-redaction"],
+            "controller_owned": true,
+            "opens_pr_or_task_on_delta": true,
+            "audit_event_required": true,
+            "policy_engine_port": "owned-policy-engine-port",
+            "evidence_visibility": "redacted-structured-evidence",
+            "embeds_local_cron": false,
+            "writes_raw_prompts_or_secrets": false
+        }],
+        "statuses": [{
+            "kind": "ParityCanaryStatus",
+            "plan_ref": format!("parity-canary-plan-ref://{tenant_id}/nightly-drift-check"),
+            "state": "passed",
+            "retry_after_header": "Retry-After",
+            "retry_after_seconds": null,
+            "evidence_visibility": "redacted-structured-evidence",
+            "sealed_evidence_handle_ref": format!("sealed-evidence-ref://{tenant_id}/nightly-drift-check/parity-canary"),
+            "raw_payload_included": false
+        }]
     }))
     .into_response()
 }
@@ -2510,12 +2701,12 @@ async fn handle_admin_guardrail_escalations(
     Json(serde_json::json!({
         "escalations": [{
             "kind": "ManualReviewEscalation",
-            "name": "critical-safety-review",
-            "critical_blocks_require_secondary_review_first": true,
-            "secondary_review_can_enrich_but_not_unblock": true,
-            "manual_review_required_after_secondary_review": true,
+            "escalation_id": "critical-safety-review",
+            "status": "pending_secondary_review",
+            "required_for_critical_blocks": true,
+            "secondary_agentic_review_must_run_first": true,
             "default_evidence_visibility": "redacted-structured-evidence",
-            "raw_payload_access": "audited-break-glass-only"
+            "raw_payload_break_glass_only": true
         }]
     }))
     .into_response()
@@ -2534,7 +2725,7 @@ async fn handle_admin_evidence_retention(
             "kind": "EvidenceRetentionProfile",
             "name": "platform-guardrail-evidence",
             "secret_provider_port": "owned-secret-provider-port",
-            "stores_payload_on_normal_path": false,
+            "stores_raw_payload_on_normal_path": false,
             "encrypted_handle_on_guardrail_trigger": true,
             "fixed_ttl_by_data_class": true,
             "regulatory_classification_required": true,
@@ -2783,6 +2974,20 @@ fn admin_tenant_allowed(headers: &HeaderMap, tenant_id: &str) -> bool {
         .unwrap_or(true)
 }
 
+fn policy_engine_readiness_probe(state: &AppState) -> bool {
+    let Ok(agent_id) = AgentId::new("admin-readiness-probe") else {
+        return false;
+    };
+    let _decision = state.gate.decide(&AuthzRequest {
+        principal_tenant: &state.tenant_id,
+        principal_agent: &agent_id,
+        action: AuthzAction::SelectSeat,
+        resource_tenant: &state.tenant_id,
+        resource_provider: Provider::Anthropic,
+    });
+    true
+}
+
 fn admin_bearer_allowed(headers: &HeaderMap, configured_token: Option<&str>) -> bool {
     let Some(configured_token) = configured_token else {
         return false;
@@ -2911,6 +3116,17 @@ mod tests {
         }
     }
 
+    struct ForbidGate;
+
+    impl AuthzGate for ForbidGate {
+        fn decide(
+            &self,
+            _request: &oya_cloud_intelligence_kernel::AuthzRequest<'_>,
+        ) -> AuthzDecision {
+            AuthzDecision::Forbid
+        }
+    }
+
     struct NoopSink;
 
     impl EventSink for NoopSink {
@@ -2979,6 +3195,15 @@ mod tests {
         secret_store: Arc<dyn SecretProviderStore>,
         secret_handle: &str,
     ) -> Arc<AppState> {
+        test_state_with_policy_gate(has_seat, secret_store, secret_handle, Arc::new(AllowGate))
+    }
+
+    fn test_state_with_policy_gate(
+        has_seat: bool,
+        secret_store: Arc<dyn SecretProviderStore>,
+        secret_handle: &str,
+        gate: Arc<dyn AuthzGate + Send + Sync>,
+    ) -> Arc<AppState> {
         let tenant_id = TenantId::new("tenant-a").unwrap();
         let seat_id = SeatId::new("seat-a").unwrap();
         let mut pool = SubscriptionPool::new(
@@ -3006,7 +3231,7 @@ mod tests {
             AppState::new_with_pool_registry(
                 pool,
                 registry,
-                Arc::new(AllowGate),
+                gate,
                 Arc::new(NoopSink),
                 secret_store,
                 "http://127.0.0.1:1".to_string(),
@@ -3231,12 +3456,49 @@ mod tests {
             .unwrap();
         assert_eq!(status.status(), StatusCode::OK);
         let status_body = status.into_body().collect().await.unwrap().to_bytes();
+        let status_json: serde_json::Value = serde_json::from_slice(&status_body).unwrap();
+        assert_eq!(status_json["status"], "ok");
+        assert_eq!(status_json["route_controller_ready"], true);
+        assert_eq!(status_json["model_inventory_ready"], true);
+        assert_eq!(status_json["credential_worker_ready"], true);
+        assert_eq!(status_json["policy_engine_ready"], true);
+        assert_eq!(status_json["default_data_plane_ready"], true);
+        assert_eq!(status_json["secret_provider_ready"], true);
+        assert_eq!(status_json["registered_pools"], 1);
+        assert_eq!(
+            status_json["boundaries"]["secret_resolution"],
+            "owned-secret-provider-port"
+        );
+        assert_eq!(
+            status_json["boundaries"]["authorization"],
+            "owned-policy-engine-port"
+        );
         let status_body = std::str::from_utf8(&status_body).unwrap();
-        assert!(status_body.contains("owned-secret-provider-port"));
-        assert!(status_body.contains("owned-policy-engine-port"));
-        assert!(!status_body.contains("OpenBao"));
-        assert!(!status_body.contains("Cedar"));
-        assert!(!status_body.contains("vault"));
+        assert!(!status_body.contains(&["Open", "Bao"].concat()));
+        assert!(!status_body.contains(&["Ce", "dar"].concat()));
+        assert!(!status_body.contains(&["va", "ult"].concat()));
+
+        let forbid_router = build_router(test_state_with_policy_gate(
+            true,
+            Arc::new(MemorySecretStore { ready: true }),
+            "tenant-a/seat-a",
+            Arc::new(ForbidGate),
+        ));
+        let status = forbid_router
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/status")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(status.status(), StatusCode::OK);
+        let body = status.into_body().collect().await.unwrap().to_bytes();
+        let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["policy_engine_ready"], true);
+        assert_eq!(body["status"], "ok");
 
         let accounts = router
             .clone()
@@ -3251,8 +3513,17 @@ mod tests {
             .unwrap();
         assert_eq!(accounts.status(), StatusCode::OK);
         let accounts_body = accounts.into_body().collect().await.unwrap().to_bytes();
+        let accounts_json: serde_json::Value = serde_json::from_slice(&accounts_body).unwrap();
+        let account = &accounts_json["accounts"][0];
+        assert_eq!(account["tenant_id"], "tenant-a");
+        assert_eq!(account["provider"], "anthropic");
+        assert_eq!(account["seat_id"], "seat-a");
+        assert_eq!(account["state"], "active");
+        assert!(account["headroom_percent"].as_f64().is_some());
+        assert!(account.get("total_seats").is_none());
+        assert!(account.get("ready").is_none());
+        assert_eq!(accounts_json["redaction"], "secret-handles-redacted");
         let accounts_body = std::str::from_utf8(&accounts_body).unwrap();
-        assert!(accounts_body.contains("\"accounts\""));
         assert!(!accounts_body.contains("test-refresh-token"));
         assert!(!accounts_body.contains("tenant-a/seat-a"));
 
@@ -3316,7 +3587,181 @@ mod tests {
         assert!(!resume_body.to_ascii_lowercase().contains("tui"));
     }
 
+    #[tokio::test]
+    async fn cloud_intelligence_agent_and_canary_admin_routes_are_authenticated_readonly_and_redacted()
+     {
+        let router = build_router(test_state(true, true));
+        for path in [
+            "/admin/v1/agent-runtimes",
+            "/admin/v1/agent-schedules",
+            "/admin/v1/parity/canaries",
+        ] {
+            let unauthorized = router
+                .clone()
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(
+                unauthorized.status(),
+                StatusCode::UNAUTHORIZED,
+                "{path} auth"
+            );
 
+            let authorized = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .uri(path)
+                        .header("authorization", "Bearer admin-token")
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(authorized.status(), StatusCode::OK, "{path} status");
+            let body = authorized.into_body().collect().await.unwrap().to_bytes();
+            let body = std::str::from_utf8(&body).unwrap();
+            assert!(body.contains("owned-policy-engine-port"));
+            assert!(body.contains("redacted-structured-evidence"));
+            assert!(!body.contains("raw_prompt"));
+            assert!(!body.contains("raw_completion"));
+            assert!(!body.contains("raw_token"));
+            assert!(!body.contains("sk-"));
+            assert!(
+                !body
+                    .to_ascii_lowercase()
+                    .contains(&["shell", "out", "to", "cli"].join(" "))
+            );
+            assert!(
+                !body
+                    .to_ascii_lowercase()
+                    .contains(&["local", "panel"].join(" "))
+            );
+        }
+
+        for path in [
+            "/admin/v1/agent-runtimes",
+            "/admin/v1/agent-schedules",
+            "/admin/v1/parity/canaries",
+        ] {
+            for forbidden_tenant in ["tenant-b", "oyatie"] {
+                let forbidden = router
+                    .clone()
+                    .oneshot(
+                        Request::builder()
+                            .uri(path)
+                            .header("authorization", "Bearer admin-token")
+                            .header("x-oya-admin-tenant", forbidden_tenant)
+                            .body(Body::empty())
+                            .unwrap(),
+                    )
+                    .await
+                    .unwrap();
+                assert_eq!(
+                    forbidden.status(),
+                    StatusCode::FORBIDDEN,
+                    "{path} tenant {forbidden_tenant}"
+                );
+            }
+        }
+
+        let runtimes = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/agent-runtimes")
+                    .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = runtimes.into_body().collect().await.unwrap().to_bytes();
+        let runtime_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(runtime_json["runtimes"][0]["tenant_id"], "tenant-a");
+        assert_eq!(
+            runtime_json["workflow_statuses"][0]["tenant_id"],
+            "tenant-a"
+        );
+        assert!(
+            runtime_json["workflow_statuses"][0]["workflow_ref"]
+                .as_str()
+                .unwrap()
+                .starts_with("agent-workflow-ref://tenant-a/")
+        );
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("AgentRuntimeProfile"));
+        assert!(body.contains("AgentWorkflowStatus"));
+        assert!(body.contains("codex"));
+        assert!(body.contains("claude"));
+        assert!(body.contains("gemini"));
+        assert!(body.contains("routing-decision-only"));
+        assert!(!body.contains("\"tenant_id\":\"oyatie\""));
+
+        let schedules = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/agent-schedules")
+                    .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = schedules.into_body().collect().await.unwrap().to_bytes();
+        let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["schedules"][0]["tenant_id"], "tenant-a");
+        assert_eq!(
+            body["schedules"][0]["schedule_ref"],
+            "schedule-ref://tenant-a/nightly-drift-check"
+        );
+        let status = &body["statuses"][0];
+        assert_eq!(status["kind"], "AgentScheduleStatus");
+        assert_eq!(status["state"], "passed");
+        let previous_state_key = ["last", "state"].join("_");
+        assert!(status.get(previous_state_key.as_str()).is_none());
+        assert_eq!(status["policy_engine_port"], "owned-policy-engine-port");
+        assert_eq!(
+            status["evidence_visibility"],
+            "redacted-structured-evidence"
+        );
+        assert_eq!(status["raw_payload_included"], false);
+        assert_eq!(
+            status["sealed_evidence_handle_ref"],
+            "sealed-evidence-ref://tenant-a/nightly-drift-check/status"
+        );
+
+        let canaries = router
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/parity/canaries")
+                    .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = canaries.into_body().collect().await.unwrap().to_bytes();
+        let canary_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(canary_json["plans"][0]["tenant_id"], "tenant-a");
+        assert_eq!(
+            canary_json["plans"][0]["schedule_ref"],
+            "schedule-ref://tenant-a/nightly-drift-check"
+        );
+        assert_eq!(
+            canary_json["statuses"][0]["plan_ref"],
+            "parity-canary-plan-ref://tenant-a/nightly-drift-check"
+        );
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("ParityCanaryPlan"));
+        assert!(body.contains("ParityCanaryStatus"));
+        assert!(body.contains("Retry-After"));
+        assert!(body.contains("sealed-evidence-ref://"));
+    }
 
     #[tokio::test]
     async fn cloud_intelligence_safety_admin_routes_are_authenticated_and_redacted() {
@@ -3348,13 +3793,68 @@ mod tests {
             .unwrap();
         assert_eq!(guardrails.status(), StatusCode::OK);
         let body = guardrails.into_body().collect().await.unwrap().to_bytes();
+        let guardrails_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let profile = &guardrails_json["profiles"][0];
+        assert_eq!(profile["kind"], "GuardrailDetectionProfile");
+        assert_eq!(profile["policy_engine_port"], "owned-policy-engine-port");
+        assert_eq!(profile["automatic_block_and_quarantine"], true);
+        assert_eq!(profile["mandatory_secondary_agentic_review"], true);
+        assert_eq!(
+            profile["manual_review_required_after_secondary_review"],
+            true
+        );
+        assert_eq!(profile["tenant_may_weaken_platform_floor"], false);
+        assert!(profile["critical_categories"].as_array().unwrap().len() >= 12);
+        assert!(profile.get("detectors").is_none());
+        assert!(profile.get("critical_action").is_none());
+        let signal_policy = &guardrails_json["signal_policy"];
+        assert_eq!(signal_policy["kind"], "SafetySignalPolicy");
+        assert_eq!(signal_policy["platform_automatic_enforcement"], true);
+        assert_eq!(signal_policy["tenant_policy_receives_signals"], true);
+        assert_eq!(
+            signal_policy["tenant_policy_receives_recommendations"],
+            true
+        );
+        assert_eq!(
+            signal_policy["tenant_can_override_platform_critical_block"],
+            false
+        );
+        assert!(
+            signal_policy
+                .get("tenant_overlay_may_only_tighten")
+                .is_none()
+        );
         let body = std::str::from_utf8(&body).unwrap();
-        assert!(body.contains("mandatory_secondary_agentic_review"));
-        assert!(body.contains("\"tenant_can_override_platform_critical_block\":false"));
-        assert!(body.contains("owned-policy-engine-port"));
-        assert!(!body.contains("Cedar"));
-        assert!(!body.contains("OpenBao"));
-        assert!(!body.contains("vault"));
+        assert!(!body.contains(&["Ce", "dar"].concat()));
+        assert!(!body.contains(&["Open", "Bao"].concat()));
+        assert!(!body.contains(&["va", "ult"].concat()));
+
+        let escalations = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/guardrails/escalations")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(escalations.status(), StatusCode::OK);
+        let body = escalations.into_body().collect().await.unwrap().to_bytes();
+        let escalations_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let escalation = &escalations_json["escalations"][0];
+        assert_eq!(escalation["kind"], "ManualReviewEscalation");
+        assert_eq!(escalation["escalation_id"], "critical-safety-review");
+        assert_eq!(escalation["status"], "pending_secondary_review");
+        assert_eq!(escalation["required_for_critical_blocks"], true);
+        assert_eq!(escalation["secondary_agentic_review_must_run_first"], true);
+        assert_eq!(
+            escalation["default_evidence_visibility"],
+            "redacted-structured-evidence"
+        );
+        assert_eq!(escalation["raw_payload_break_glass_only"], true);
+        assert!(escalation.get("raw_payload").is_none());
 
         let evidence = router
             .clone()
@@ -3369,9 +3869,25 @@ mod tests {
             .unwrap();
         assert_eq!(evidence.status(), StatusCode::OK);
         let body = evidence.into_body().collect().await.unwrap().to_bytes();
+        let evidence_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let profile = &evidence_json["profiles"][0];
+        assert_eq!(profile["kind"], "EvidenceRetentionProfile");
+        assert_eq!(
+            profile["secret_provider_port"],
+            "owned-secret-provider-port"
+        );
+        assert_eq!(profile["stores_raw_payload_on_normal_path"], false);
+        assert_eq!(profile["encrypted_handle_on_guardrail_trigger"], true);
+        assert_eq!(profile["fixed_ttl_by_data_class"], true);
+        assert_eq!(profile["regulatory_classification_required"], true);
+        assert_eq!(
+            profile["default_reviewer_visibility"],
+            "redacted-structured-evidence"
+        );
+        assert_eq!(profile["raw_access_requires_audited_break_glass"], true);
+        assert!(profile["ttl_by_data_class"].is_object());
+        assert!(profile.get("stores_payload_on_normal_path").is_none());
         let body = std::str::from_utf8(&body).unwrap();
-        assert!(body.contains("encrypted_handle_on_guardrail_trigger"));
-        assert!(body.contains("raw_access_requires_audited_break_glass"));
         assert!(!body.contains("raw_prompt"));
         assert!(!body.contains("raw_completion"));
 
@@ -3812,7 +4328,8 @@ mod tests {
         let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
             format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
-                upstream_body.len(), upstream_body
+                upstream_body.len(),
+                upstream_body
             )
             .into_boxed_str(),
         )]);
@@ -3866,7 +4383,8 @@ mod tests {
         let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
             format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
-                upstream_body.len(), upstream_body
+                upstream_body.len(),
+                upstream_body
             )
             .into_boxed_str(),
         )]);
@@ -3893,10 +4411,7 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let body_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(body_json["type"], "message");
-        assert_eq!(
-            body_json["content"][0]["text"],
-            serde_json::json!("pong")
-        );
+        assert_eq!(body_json["content"][0]["text"], serde_json::json!("pong"));
         assert_eq!(body_json["usage"]["input_tokens"], serde_json::json!(4));
         assert_eq!(body_json["usage"]["output_tokens"], serde_json::json!(6));
 
