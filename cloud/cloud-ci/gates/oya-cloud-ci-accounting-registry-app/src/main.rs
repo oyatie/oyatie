@@ -231,6 +231,7 @@ fn run() -> Result<(), CliError> {
     // first-party crate-dir coverage against the canonical glob-aware workspace-member resolver.
     let workspace_glob_coverage =
         collect_workspace_glob_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
+    let target_parity = collect_target_parity(&repo_root, &inputs.tracked_paths, &cfg)?;
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
@@ -241,6 +242,7 @@ fn run() -> Result<(), CliError> {
         cargo_prefix: &cargo_prefix,
         slo_coverage: &slo_coverage,
         workspace_glob_coverage: &workspace_glob_coverage,
+        target_parity: &target_parity,
         brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&cfg, &gate_inputs, &config_digest)?;
@@ -256,6 +258,7 @@ fn run() -> Result<(), CliError> {
             "cargo-prefix" => &cargo_prefix,
             "slo-coverage" => &slo_coverage,
             "workspace-glob-coverage" => &workspace_glob_coverage,
+            "target-parity" => &target_parity,
             "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
@@ -583,14 +586,15 @@ fn collect_workspace_glob_coverage(
                 "workspace-glob-coverage read root workspace entries: {error}"
             ))
         })?;
-    let covered_dirs: BTreeSet<String> = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
-        .map_err(|error| {
-            CliError::Io(format!(
-                "workspace-glob-coverage resolve member dirs: {error}"
-            ))
-        })?
-        .into_iter()
-        .collect();
+    let covered_dirs: BTreeSet<String> =
+        oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+            .map_err(|error| {
+                CliError::Io(format!(
+                    "workspace-glob-coverage resolve member dirs: {error}"
+                ))
+            })?
+            .into_iter()
+            .collect();
 
     let mut rows: Vec<Value> = entries
         .members
@@ -639,6 +643,61 @@ fn collect_workspace_glob_coverage(
     );
 
     Ok(json!({ "rows": rows }))
+}
+
+/// Enumerate ADR-0540 target-parity rows. Member enumeration comes from the canonical
+/// glob-aware workspace resolver, then narrows to members present in the declared SCM tracked
+/// paths face. The booleans are computed only from tracked files: BUCK presence, textual
+/// `rust_test` rule presence, and Rust test-code markers in `tests/` or `src/**/*.rs`.
+fn collect_target_parity(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Result<Value, CliError> {
+    let tracked: BTreeSet<&str> = tracked_paths
+        .iter()
+        .filter(|path| !is_path_excluded(path, cfg))
+        .map(String::as_str)
+        .collect();
+    let member_dirs: BTreeSet<String> =
+        oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+            .map_err(|error| CliError::Io(format!("target-parity resolve member dirs: {error}")))?
+            .into_iter()
+            .filter(|member| tracked.contains(format!("{member}/Cargo.toml").as_str()))
+            .collect();
+
+    let mut rows: Vec<Value> = Vec::with_capacity(member_dirs.len());
+    for member_path in member_dirs {
+        let buck_path = format!("{member_path}/BUCK");
+        let has_buck = tracked.contains(buck_path.as_str());
+        let has_rust_test_target =
+            has_buck && read_text(&repo_root.join(&buck_path)).contains("rust_test(");
+        let has_test_code = member_has_test_code(repo_root, &member_path, &tracked);
+        rows.push(json!({
+            "member_path": member_path,
+            "has_buck": has_buck,
+            "has_rust_test_target": has_rust_test_target,
+            "has_test_code": has_test_code,
+        }));
+    }
+
+    Ok(json!({ "rows": rows }))
+}
+
+fn member_has_test_code(repo_root: &Path, member_path: &str, tracked: &BTreeSet<&str>) -> bool {
+    let tests_prefix = format!("{member_path}/tests/");
+    if tracked.iter().any(|path| path.starts_with(&tests_prefix)) {
+        return true;
+    }
+
+    let src_prefix = format!("{member_path}/src/");
+    tracked
+        .iter()
+        .filter(|path| path.starts_with(&src_prefix) && path.ends_with(".rs"))
+        .any(|path| {
+            let body = read_text(&repo_root.join(path));
+            body.contains("#[cfg(test)]") || body.contains("#[test]")
+        })
 }
 
 fn workspace_entry_excludes_dir(dir: &str, exclude: &[String]) -> bool {

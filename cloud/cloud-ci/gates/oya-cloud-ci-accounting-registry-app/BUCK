@@ -21,6 +21,7 @@ rust_library(
         "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app:oya-cloud-ci-workspace-glob-coverage-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -43,6 +44,7 @@ rust_test(
         "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app:oya-cloud-ci-workspace-glob-coverage-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -65,6 +67,7 @@ rust_binary(
         "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app:oya-cloud-ci-workspace-glob-coverage-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app",
         # The binary runs the forbidden-vocab census (cloud-ci-brand-residue gate) over the
         # live corpus and folds the per-(stem,file) keys into the baseline.
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
@@ -92,6 +95,7 @@ rust_test(
         "//cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app:oya-cloud-ci-cargo-prefix-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app:oya-cloud-ci-workspace-glob-coverage-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app:oya-cloud-ci-target-parity-app",
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
