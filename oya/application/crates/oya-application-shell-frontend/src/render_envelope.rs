@@ -2,13 +2,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum DemoContext {
+pub enum OperatorContext {
     TenantAdmin,
     CorporateOffice,
     HealthcareClinician,
 }
 
-impl DemoContext {
+impl OperatorContext {
     pub const ALL: [Self; 3] = [
         Self::TenantAdmin,
         Self::CorporateOffice,
@@ -46,7 +46,7 @@ impl DemoContext {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TenantRenderEnvelope {
-    pub context: DemoContext,
+    pub context: OperatorContext,
     pub tenant_name: String,
     pub role_name: String,
     pub tenant_class: String,
@@ -182,33 +182,25 @@ pub struct IntelligenceSuggestion {
 }
 
 #[cfg(any(feature = "ssr", test))]
-pub fn server_derived_envelope(context: DemoContext) -> TenantRenderEnvelope {
-    #[cfg(feature = "ssr")]
-    {
-        crate::server_mock_catalog::derive_tenant_render_envelope(context)
-    }
-
-    #[cfg(not(feature = "ssr"))]
-    {
-        permitted_envelope_snapshot(context)
-    }
+pub fn server_derived_envelope(context: OperatorContext) -> TenantRenderEnvelope {
+    permitted_envelope_snapshot(context)
 }
 
 #[cfg(any(feature = "ssr", test))]
-pub fn permitted_envelope_snapshot(context: DemoContext) -> TenantRenderEnvelope {
+pub fn permitted_envelope_snapshot(context: OperatorContext) -> TenantRenderEnvelope {
     match context {
-        DemoContext::TenantAdmin => tenant_admin_envelope(),
-        DemoContext::CorporateOffice => corporate_office_envelope(),
-        DemoContext::HealthcareClinician => healthcare_clinician_envelope(),
+        OperatorContext::TenantAdmin => tenant_admin_envelope(),
+        OperatorContext::CorporateOffice => corporate_office_envelope(),
+        OperatorContext::HealthcareClinician => healthcare_clinician_envelope(),
     }
 }
 
 #[cfg(any(feature = "ssr", test))]
 fn tenant_admin_envelope() -> TenantRenderEnvelope {
     TenantRenderEnvelope {
-        context: DemoContext::TenantAdmin,
+        context: OperatorContext::TenantAdmin,
         tenant_name: s("Northwind Industrial Group"),
-        role_name: s(DemoContext::TenantAdmin.role()),
+        role_name: s(OperatorContext::TenantAdmin.role()),
         tenant_class: s("Enterprise tenant · US/EU/KR packs enabled"),
         accreditation: AccreditationState {
             label: s("Healthcare not accredited for this tenant"),
@@ -220,7 +212,7 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
         server_derivation_note: s(
             "Server-derived envelope: admin can see tenant posture, cloud controls, approvals, service catalog, and workflow governance only.",
         ),
-        product_activity: product_activity_spine(DemoContext::TenantAdmin),
+        product_activity: product_activity_spine(OperatorContext::TenantAdmin),
         metrics: vec![
             metric("Close progress", "73%", "+12 vs Mar · payroll run"),
             metric("Cycle time", "5.4d", "+1.4d vs target"),
@@ -228,44 +220,9 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
             metric("Open approvals", "8", "2 overdue"),
             metric("Compliance", "4/6", "2 review"),
         ],
-        modules: vec![
-            module(
-                "Tenant Admin",
-                "Control",
-                "Users, roles, packs, residency, module enablement",
-                "Review posture",
-            ),
-            module(
-                "Cloud Compute",
-                "Cloud",
-                "VMs, functions, Kubernetes workloads, and runtime tiers",
-                "Open compute",
-            ),
-            module(
-                "Cloud Network",
-                "Cloud",
-                "VPC, DNS, load balancing, ingress posture",
-                "Open network",
-            ),
-            module(
-                "FinOps",
-                "Operations",
-                "Cost allocation, budgets, sustainability views",
-                "Review spend",
-            ),
-            module(
-                "Workflow Studio",
-                "No-code",
-                "Design approvals and operating workflows safely",
-                "Open studio",
-            ),
-            module(
-                "Audit Chain",
-                "Trust",
-                "Sealed evidence and policy event review",
-                "Inspect evidence",
-            ),
-        ],
+        modules: crate::shell_capability_registry::permitted_module_cards(
+            OperatorContext::TenantAdmin,
+        ),
         daily_tasks: vec![
             work(
                 "2026-04 급여 마감 — 박서준 직원 4대보험 변동 확인 필요",
@@ -369,7 +326,7 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
                     "Human",
                     445,
                     82,
-                    "Routes high-risk requests to the tenant admin; this demo never executes the change.",
+                    "Routes high-risk requests to the tenant admin; execution stays disabled until live integration.",
                 ),
                 node(
                     "evidence",
@@ -424,9 +381,9 @@ fn tenant_admin_envelope() -> TenantRenderEnvelope {
 #[cfg(any(feature = "ssr", test))]
 fn corporate_office_envelope() -> TenantRenderEnvelope {
     TenantRenderEnvelope {
-        context: DemoContext::CorporateOffice,
+        context: OperatorContext::CorporateOffice,
         tenant_name: s("Northwind Industrial Group"),
-        role_name: s(DemoContext::CorporateOffice.role()),
+        role_name: s(OperatorContext::CorporateOffice.role()),
         tenant_class: s("Corporate office role · Accounting + HR module scope"),
         accreditation: AccreditationState {
             label: s("Healthcare not available for this role"),
@@ -438,7 +395,7 @@ fn corporate_office_envelope() -> TenantRenderEnvelope {
         server_derivation_note: s(
             "Server-derived envelope: same corporate tenant, but the role receives daily work, approvals, mail, messenger, HR, and accounting modules.",
         ),
-        product_activity: product_activity_spine(DemoContext::CorporateOffice),
+        product_activity: product_activity_spine(OperatorContext::CorporateOffice),
         metrics: vec![
             metric(
                 "Today’s work",
@@ -457,38 +414,9 @@ fn corporate_office_envelope() -> TenantRenderEnvelope {
                 "Calendar protected around payroll close",
             ),
         ],
-        modules: vec![
-            module(
-                "Work Home",
-                "Daily",
-                "Tasks, calendar, mail, messenger, and approvals",
-                "Open home",
-            ),
-            module(
-                "Accounting",
-                "Corporate",
-                "Invoices, close tasks, budgets, and exceptions",
-                "Review close",
-            ),
-            module(
-                "Human Resources",
-                "Corporate",
-                "Onboarding, policy acknowledgements, and payroll workflows",
-                "Open HR",
-            ),
-            module(
-                "Approvals",
-                "Workflow",
-                "Plain-language approvals with policy context",
-                "Review queue",
-            ),
-            module(
-                "Workflow Studio",
-                "No-code",
-                "Draft team workflows from templates",
-                "Draft workflow",
-            ),
-        ],
+        modules: crate::shell_capability_registry::permitted_module_cards(
+            OperatorContext::CorporateOffice,
+        ),
         daily_tasks: vec![
             work(
                 "Approve travel exception",
@@ -648,9 +576,9 @@ fn corporate_office_envelope() -> TenantRenderEnvelope {
 #[cfg(any(feature = "ssr", test))]
 fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
     TenantRenderEnvelope {
-        context: DemoContext::HealthcareClinician,
+        context: OperatorContext::HealthcareClinician,
         tenant_name: s("Harborview Care Network"),
-        role_name: s(DemoContext::HealthcareClinician.role()),
+        role_name: s(OperatorContext::HealthcareClinician.role()),
         tenant_class: s("Accredited healthcare tenant · Clinical role scope"),
         accreditation: AccreditationState {
             label: s("Healthcare accredited"),
@@ -662,7 +590,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
         server_derivation_note: s(
             "Server-derived envelope: clinician receives care schedule, secure messages, patient-safe tasks, and healthcare workflow templates.",
         ),
-        product_activity: product_activity_spine(DemoContext::HealthcareClinician),
+        product_activity: product_activity_spine(OperatorContext::HealthcareClinician),
         metrics: vec![
             metric("Care tasks", "11", "4 due before noon"),
             metric("Patient schedule", "7", "Next visit in 18 minutes"),
@@ -674,45 +602,16 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
             metric(
                 "Compliance posture",
                 "Green",
-                "No PHI is present in this prototype",
+                "No PHI is present in this transitional dataset",
             ),
         ],
-        modules: vec![
-            module(
-                "Clinical Home",
-                "Healthcare",
-                "Care tasks, visits, and secure team messages",
-                "Open home",
-            ),
-            module(
-                "Patient Schedule",
-                "Healthcare",
-                "Visit flow with compliance-safe placeholders",
-                "Review schedule",
-            ),
-            module(
-                "Care Workflows",
-                "Healthcare",
-                "Accredited workflow templates for care coordination",
-                "Open workflows",
-            ),
-            module(
-                "Secure Messenger",
-                "Healthcare",
-                "Team communication with care-context labels",
-                "Open messages",
-            ),
-            module(
-                "Workflow Studio",
-                "No-code",
-                "Draft safe care coordination workflows",
-                "Draft care flow",
-            ),
-        ],
+        modules: crate::shell_capability_registry::permitted_module_cards(
+            OperatorContext::HealthcareClinician,
+        ),
         daily_tasks: vec![
             work(
                 "Prepare visit room 4",
-                "Placeholder patient context; no PHI in prototype",
+                "Placeholder patient context; no PHI in transitional data",
                 "High",
             ),
             work(
@@ -737,7 +636,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
                 "Care team huddle",
                 "Shift priorities and safety notes",
             ),
-            schedule("09:40", "Visit placeholder A", "No PHI/PII in demo"),
+            schedule("09:40", "Visit placeholder A", "No PHI/PII in transitional data"),
             schedule(
                 "11:20",
                 "Discharge planning",
@@ -758,7 +657,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
             message(
                 "Compliance bot",
                 "Notice",
-                "Prototype uses placeholders only; no PHI entered.",
+                "Placeholders only; no PHI entered.",
             ),
         ],
         community: vec![
@@ -792,12 +691,12 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
             approval(
                 "Care-team message",
                 "Secure messenger",
-                "Acknowledge only in mock UI",
+                "Acknowledge locally; not yet wired to a live service",
             ),
         ],
         workflow: workflow(
             "Care coordination handoff",
-            "Accredited healthcare workflow template with human review and no PHI in the prototype.",
+            "Accredited healthcare workflow template with human review and no PHI in transitional data.",
             vec![
                 node(
                     "trigger",
@@ -829,7 +728,7 @@ fn healthcare_clinician_envelope() -> TenantRenderEnvelope {
                     "Message",
                     640,
                     82,
-                    "Creates a secure-message draft; this prototype never sends it.",
+                    "Creates a secure-message draft; sending stays local until live service integration.",
                 ),
             ],
         ),
@@ -893,19 +792,19 @@ fn workflow(name: &str, goal: &str, nodes: Vec<WorkflowNode>) -> WorkflowPreview
 }
 
 #[cfg(any(feature = "ssr", test))]
-fn product_activity_spine(context: DemoContext) -> ProductActivitySpine {
+fn product_activity_spine(context: OperatorContext) -> ProductActivitySpine {
     let (active_context, status_label) = match context {
-        DemoContext::TenantAdmin => (
+        OperatorContext::TenantAdmin => (
             "Tenant admin · Northwind · FD-001 finance close",
             "FD-001 product graph active · Oyatie Cloud cell-us-east-2 · local visual state",
         ),
-        DemoContext::CorporateOffice => (
+        OperatorContext::CorporateOffice => (
             "Corporate office · Accounting + HR · FD-001 daily work",
             "Corporate work queue active · Workflow, Mail, Messenger, Community remain tenant workloads",
         ),
-        DemoContext::HealthcareClinician => (
+        OperatorContext::HealthcareClinician => (
             "Accredited healthcare · Harborview · care workflow preview",
-            "Healthcare-safe workflow lens active · no PHI/PII or chart write in this prototype",
+            "Healthcare-safe workflow lens active · no PHI/PII or chart write before live integration",
         ),
     };
 
@@ -1095,11 +994,11 @@ fn s(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{DemoContext, server_derived_envelope};
+    use super::{OperatorContext, server_derived_envelope};
 
     #[test]
     fn regulated_care_surfaces_are_absent_from_unaccredited_contexts() {
-        for context in [DemoContext::TenantAdmin, DemoContext::CorporateOffice] {
+        for context in [OperatorContext::TenantAdmin, OperatorContext::CorporateOffice] {
             let envelope = server_derived_envelope(context);
             let surface_names = envelope
                 .modules
@@ -1117,7 +1016,7 @@ mod tests {
 
     #[test]
     fn accredited_healthcare_context_receives_care_modules() {
-        let envelope = server_derived_envelope(DemoContext::HealthcareClinician);
+        let envelope = server_derived_envelope(OperatorContext::HealthcareClinician);
         let surface_names = envelope
             .modules
             .iter()
@@ -1133,7 +1032,7 @@ mod tests {
 
     #[test]
     fn every_context_has_daily_dashboard_primitives() {
-        for context in DemoContext::ALL {
+        for context in OperatorContext::ALL {
             let envelope = server_derived_envelope(context);
 
             assert!(!envelope.daily_tasks.is_empty(), "{context:?} tasks");
@@ -1151,10 +1050,10 @@ mod tests {
 
     #[test]
     fn permitted_envelope_snapshot_is_local_and_cloneable_for_island_state() {
-        let envelope = server_derived_envelope(DemoContext::TenantAdmin);
+        let envelope = server_derived_envelope(OperatorContext::TenantAdmin);
         let cloned_for_island = envelope.clone();
 
-        assert_eq!(cloned_for_island.context, DemoContext::TenantAdmin);
+        assert_eq!(cloned_for_island.context, OperatorContext::TenantAdmin);
         assert_eq!(cloned_for_island.modules, envelope.modules);
         assert_eq!(cloned_for_island.workflow.nodes, envelope.workflow.nodes);
     }

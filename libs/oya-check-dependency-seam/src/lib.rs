@@ -658,7 +658,7 @@ mod tests {
     }
 
     #[test]
-    fn live_registry_authorizes_app_shell_mock_render_envelope_boundary() {
+    fn live_registry_authorizes_app_shell_render_envelope_boundary() {
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(Path::parent)
@@ -674,8 +674,8 @@ mod tests {
                 .and_then(allowed_crates_for_rationale)
                 .unwrap_or_default();
             assert!(
-                allowed.contains("oya-application-shell-frontend-prototype"),
-                "{dependency} must explicitly allow only the app-shell prototype render-envelope boundary"
+                allowed.contains("oya-application-shell-frontend"),
+                "{dependency} must explicitly allow only the app-shell render-envelope boundary"
             );
         }
     }

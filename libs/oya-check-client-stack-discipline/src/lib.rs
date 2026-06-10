@@ -30,9 +30,18 @@
 //! `oya-check-client-stack-discipline` follows BNF v4.1:
 //! `oya-<topic:check>-<axis:client-stack-discipline>`.
 //!
+//! # Supersession lint (ADR-0393)
+//!
+//! ADR-0393 makes Leptos the canonical app-shell frontend and retires the
+//! ADR-0372 SolidJS stack in full. A superseded stack must never reappear as
+//! a declared framework: any manifest line that references SolidJS/SolidStart
+//! without marking it retired/rejected/superseded/forbidden is a violation.
+//!
 //! # References
 //!
 //! - ADR-0185 — Workflow Studio client stack.
+//! - ADR-0393 — Leptos canonical app-shell frontend (supersedes ADR-0372
+//!   SolidJS; mandates the superseded-reference lint).
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
@@ -94,6 +103,9 @@ pub enum ViolationKind {
     BannedFrameworkReference,
     /// Manifest does not declare an OpenAPI 3.2.0 codegen recipe.
     OpenApiCodegenMissing,
+    /// Superseded stack reference (ADR-0393): SolidJS/SolidStart appears as a
+    /// declared stack rather than a retired/rejected/forbidden mention.
+    SupersededStackReference,
 }
 
 impl fmt::Display for ClientStackViolation {
@@ -152,6 +164,19 @@ where
                 kind: ViolationKind::BannedFrameworkReference,
                 summary: "manifest references a banned framework (React, Vue, Flutter, \
                           Electron, or Cordova); see ADR-0185 §Alternatives Considered"
+                    .to_string(),
+            });
+        }
+
+        // Supersession lint (ADR-0393): retired stacks must not reappear.
+        if declares_superseded_solidjs(&lower) {
+            violations.push(ClientStackViolation {
+                surface: surface.to_string(),
+                manifest_path: manifest.path.clone(),
+                kind: ViolationKind::SupersededStackReference,
+                summary: "manifest declares SolidJS/SolidStart, which ADR-0393 superseded in \
+                          full (Leptos is the canonical app-shell frontend); a superseded stack \
+                          may only appear marked retired/rejected/superseded/forbidden"
                     .to_string(),
             });
         }
@@ -335,6 +360,20 @@ fn declares_tauri_or_electron_or_qt(lower: &str) -> bool {
 
 fn declares_shared_rust_dep(lower: &str) -> bool {
     lower.contains("oya-client-shared-rust") || lower.contains("oya_client_shared_rust")
+}
+
+fn declares_superseded_solidjs(lower: &str) -> bool {
+    lower.lines().any(|line| {
+        let mentions = line.contains("solidjs")
+            || line.contains("solidstart")
+            || line.contains("solid-js")
+            || line.contains("\"solid\"");
+        let excused = line.contains("retired")
+            || line.contains("rejected")
+            || line.contains("superseded")
+            || line.contains("forbidden");
+        mentions && !excused
+    })
 }
 
 fn declares_kmp_klib_import(lower: &str) -> bool {
@@ -532,6 +571,31 @@ mod tests {
         let err = validate_client_stack(vec![mk("linux", bad)])
             .expect_err("linux without shared-rust dep must fail");
         assert_eq!(err.kind, ViolationKind::LinuxMissingSharedRust);
+    }
+
+    #[test]
+    fn fails_when_solidjs_declared_as_stack() {
+        // RED fixture: ADR-0393 superseded SolidJS in full; declaring it as
+        // the framework must violate on any surface.
+        let manifest = mk(
+            "web-app-shell",
+            r#"{ "surface": "web-app-shell", "framework": "SolidStart", "stack": "solidjs", "codegen": "openapi-typescript" }"#,
+        );
+        let err = validate_client_stack([manifest]).unwrap_err();
+        assert_eq!(err.kind, ViolationKind::SupersededStackReference);
+        assert!(err.summary.contains("ADR-0393"));
+    }
+
+    #[test]
+    fn passes_when_solidjs_only_listed_as_retired_or_forbidden() {
+        // GREEN fixture: the production shell manifest names SolidJS only in
+        // its forbidden_fallbacks list, marked retired — not a declaration.
+        let manifest = mk(
+            "web-app-shell",
+            r#"{ "surface": "web-app-shell", "framework": "leptos = 0.8", "codegen": "progenitor", "forbidden_fallbacks": ["SolidJS (retired by ADR-0393)"] }"#,
+        );
+        let report = validate_client_stack([manifest]).expect("retired mention must pass");
+        assert_eq!(report.manifests_checked, 1);
     }
 
     #[test]

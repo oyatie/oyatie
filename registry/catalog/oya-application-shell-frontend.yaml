@@ -1,8 +1,8 @@
 context: application
 role: app
-capability: shell-frontend-prototype
+capability: shell-frontend
 plane: control
-slo: local-prototype-no-runtime-slo
+slo: pre-promotion-no-runtime-slo
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview
@@ -12,7 +12,7 @@ traceability:
   changeset: CS-ARCH-BOUNDARY-APPLICATION-SHELL-PROTOTYPE-001
   upstream_microservice: microservices/application/manifest.json
 non_claims:
-  - no backend integration
+  - no live backend integration yet (transitional in-process data behind locked shell-BFF contracts)
   - no real authentication or authorization
   - no production tenant data
   - no measured SLO or DR evidence

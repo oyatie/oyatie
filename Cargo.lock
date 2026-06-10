@@ -3453,11 +3453,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-application-shell-frontend-prototype"
+name = "oya-application-shell-frontend"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "leptos",
+ "oya-shared-oidc-client-kernel",
+ "oya-shared-platform-contracts-kernel",
  "serde",
  "serde_json",
  "wasm-bindgen",

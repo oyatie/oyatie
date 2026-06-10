@@ -2,11 +2,13 @@
 
 pub mod app;
 pub mod client_session_state;
+pub mod design_system;
 pub mod render_envelope;
-#[cfg(feature = "ssr")]
-pub mod server_mock_catalog;
+pub mod shell_capability_registry;
+#[cfg(any(feature = "ssr", test))]
+pub mod token_broker;
 
-pub use app::{App, DashboardIsland, prototype_notice_text, shell_landmark_label};
+pub use app::{App, DashboardIsland, shell_landmark_label, shell_scope_notice_text};
 #[cfg(feature = "ssr")]
 pub use app::{render_envelope_json, static_dashboard_html};
 
@@ -51,15 +53,14 @@ pub fn hydrate() {
 
 #[cfg(test)]
 mod tests {
-    use super::{prototype_notice_text, shell_landmark_label};
+    use super::{shell_landmark_label, shell_scope_notice_text};
 
     #[test]
-    fn prototype_notice_names_mock_and_demo_constraints() {
-        let notice = prototype_notice_text();
+    fn scope_notice_names_transitional_integration_constraints_honestly() {
+        let notice = shell_scope_notice_text();
 
-        assert!(notice.contains("Prototype/demo only"));
-        assert!(notice.contains("no backend"));
-        assert!(notice.contains("no real auth"));
+        assert!(notice.contains("transitional in-process data"));
+        assert!(notice.contains("live service integration"));
         assert!(notice.contains("no PHI/PII"));
     }
 
