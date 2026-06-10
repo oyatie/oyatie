@@ -6065,6 +6065,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-http-wide-event-middleware-infrastructure"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "http 1.4.1",
+ "oya-shared-hyperscaler-metrics-kernel",
+ "serde",
+ "serde_json",
+ "tower 0.5.3",
+]
+
+[[package]]
 name = "oya-identity"
 version = "0.1.0"
 dependencies = [
