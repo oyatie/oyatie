@@ -2,6 +2,7 @@
 
 pub mod app;
 pub mod client_session_state;
+pub mod design_system;
 pub mod render_envelope;
 pub mod shell_capability_registry;
 
