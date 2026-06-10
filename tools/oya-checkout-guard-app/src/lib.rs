@@ -379,8 +379,25 @@ fn decide_with_context(
             // so `grep -r git /path` stays ALLOW. ANSI-C numeric escapes and
             // line-continuations are decoded/joined upstream in normalization,
             // so they arrive here as the real verb and hit is_blocked_operation.
+            // An unresolved subcommand expansion (`git $P`, `git "${P[@]}"`,
+            // `git $@` from an eval-/local-/array-hidden binding) could carry
+            // BOTH the mutating verb AND a `-C <canonical>` retarget the guard
+            // cannot see — so it must fail closed on the TARGET as well, not
+            // just the operation (review #685 r12: convergent fail-closed —
+            // an argv-position expansion that can't be proven free of a
+            // canonical -C + mutating verb is denied regardless of cwd). This
+            // is the general rule that subsumes the per-spelling binding
+            // collectors; literal non-verb tokens stay ALLOW (grep -r git /path).
+            let subcommand_unresolved = has_unresolved_expansion(&invocation.subcommand);
+            // Only a `$`/backtick subcommand expansion can carry a HIDDEN
+            // `-C <canonical>` retarget (its text is arbitrary); a brace/glob
+            // subcommand only obfuscates the VERB in place and cannot move the
+            // target (review #685 r12). So the former forces fail-closed on the
+            // target; the latter leaves the explicit/cwd target intact — keeping
+            // `git -C <worktree> {reset,} --hard` an ALLOWED worktree mutation.
+            let subcommand_retargetable = subcommand_carries_value_expansion(&invocation.subcommand);
             let blocked_operation = is_blocked_operation(&invocation.subcommand, &invocation.args)
-                || has_unresolved_expansion(&invocation.subcommand);
+                || subcommand_unresolved;
             let work_tree_blocked = match &invocation.target {
                 CwdState::Known(target) => path_is_within(target, canonical_checkout),
                 CwdState::Unknown => true,
@@ -398,7 +415,10 @@ fn decide_with_context(
                     &invocation.repo_context,
                     CwdState::Known(repo_context) if path_is_within(repo_context, canonical_checkout)
                 );
-            let blocked_target = work_tree_blocked || git_dir_blocked || repo_context_blocked;
+            let blocked_target = subcommand_retargetable
+                || work_tree_blocked
+                || git_dir_blocked
+                || repo_context_blocked;
             if blocked_operation && blocked_target {
                 return Decision::Deny {
                     reason: DENY_REASON.to_owned(),
@@ -1614,6 +1634,19 @@ fn has_unresolved_expansion(token: &str) -> bool {
     false
 }
 
+/// True when a token carries a `$`-parameter / command-substitution / backtick
+/// expansion whose TEXT is arbitrary — it could inject a hidden `-C <canonical>`
+/// retarget, so a git invocation with such a subcommand must fail closed on the
+/// target regardless of the visible cwd/`-C` (review #685 r12). Brace/glob/tilde
+/// are excluded: they obfuscate the verb in place but cannot move the target.
+fn subcommand_carries_value_expansion(token: &str) -> bool {
+    let bytes = token.as_bytes();
+    bytes.iter().enumerate().any(|(i, &b)| {
+        b == b'`'
+            || (b == b'$' && bytes.get(i + 1).is_some_and(|c| !c.is_ascii_whitespace()))
+    })
+}
+
 
 /// Collect prefix `name=value` assignments whose value is a single simple word
 /// (no quotes, spaces, or expansion metacharacters), keyed for later `$name`
@@ -1718,6 +1751,8 @@ fn quoted_split_expansion(
     let body = &inner[..close];
     let consumed = 1 + close + 1; // opening quote + body + closing quote
     let expansion = match body {
+        // Unbound positionals → None (keep quotes → literal → fail closed, r12).
+        "$@" | "$*" | "${@}" | "${*}" if positionals.is_empty() => return None,
         "$@" | "$*" | "${@}" | "${*}" => positionals.join(" "),
         _ => {
             let braced = body.strip_prefix("${").and_then(|b| b.strip_suffix('}'))?;
@@ -1849,7 +1884,15 @@ fn expand_with_bindings(
                     inner.push(c);
                 }
                 if !ifs_unsafe && matches!(inner.as_str(), "@" | "*") {
-                    out.push_str(&positional_join);
+                    // Unbound positionals (no visible set--/read) stay literal so
+                    // an eval-/scope-hidden binding fails closed (review #685 r12).
+                    if positionals.is_empty() {
+                        out.push_str("${");
+                        out.push_str(&inner);
+                        out.push('}');
+                    } else {
+                        out.push_str(&positional_join);
+                    }
                 } else if !ifs_unsafe
                     && !inner.is_empty()
                     && inner.chars().all(|c| c.is_ascii_digit())
@@ -1871,8 +1914,14 @@ fn expand_with_bindings(
                 }
             }
             '$' if !ifs_unsafe && chars.peek().is_some_and(|(_, c)| *c == '@' || *c == '*') => {
-                chars.next();
-                out.push_str(&positional_join);
+                let sigil = chars.next().map(|(_, c)| c).unwrap_or('@');
+                // Unbound positionals stay literal → fail closed (review #685 r12).
+                if positionals.is_empty() {
+                    out.push('$');
+                    out.push(sigil);
+                } else {
+                    out.push_str(&positional_join);
+                }
             }
             '$' if !ifs_unsafe && chars.peek().is_some_and(|(_, c)| c.is_ascii_digit()) => {
                 let mut digits = String::new();
@@ -2817,6 +2866,14 @@ mod tests {
             // r11 ROOT C — multi-hop function chains.
             "a(){ b \"$@\"; }; b(){ git \"$@\"; }; a -C /repo/oyatie reset --hard",
             "a(){ b \"$@\"; }; b(){ c \"$@\"; }; c(){ git \"$@\"; }; a -C /repo/oyatie reset --hard",
+            // r12 — convergent fail-closed: unresolved binding reaches git argv.
+            "P=\"-C /repo/oyatie reset --hard\"; git $P",
+            "P=(-C /repo/oyatie reset --hard); git \"${P[@]}\"",
+            "read -ra P <<< \"-C /repo/oyatie reset --hard\"; n=1; git \"${P[$n]}\" reset --hard",
+            "eval \"set -- -C /repo/oyatie reset --hard\"; git \"$@\"",
+            "g(){ set -- -C /repo/oyatie reset --hard; git \"$@\"; }; g",
+            "r(){ local a=-C; git \"$a\" \"$@\"; }; r /repo/oyatie reset --hard",
+            "git \"$@\"",
         ] {
             assert_denied(command);
         }
