@@ -341,7 +341,12 @@ fn decide_with_context(
             command_position = false;
             continue;
         }
-        if command_basename_is(word, "git") {
+        // A literal `git`, OR a command-name that still carries an unresolved
+        // expansion after static normalization (`$g`, `${x:+…}`, …) which COULD
+        // be git — evaluate the following tokens as a git invocation. The
+        // residual-expansion case fails closed below if it forms a canonical
+        // mutation (review #685 r6 F2 command-name case).
+        if command_basename_is(word, "git") || has_unresolved_expansion(word) {
             let Some(invocation) =
                 parse_git_invocation(&tokens, index, &current_cwd, &pending_git_env)
             else {
@@ -362,7 +367,11 @@ fn decide_with_context(
                     }
                 }
             }
-            let blocked_operation = is_blocked_operation(&invocation.subcommand, &invocation.args);
+            // Fail closed when the subcommand token is itself an unresolved
+            // expansion (`${x:+reset}`, `$r`) — we cannot prove it is not a
+            // mutating verb (review #685 r6 F2 subcommand case).
+            let blocked_operation = is_blocked_operation(&invocation.subcommand, &invocation.args)
+                || has_unresolved_expansion(&invocation.subcommand);
             let work_tree_blocked = match &invocation.target {
                 CwdState::Known(target) => path_is_within(target, canonical_checkout),
                 CwdState::Unknown => true,
@@ -1238,7 +1247,41 @@ fn exec_short_option_cluster(word: &str) -> Option<&str> {
 /// mis-expand (review #685 r5; founder directive 2026-06-10).
 fn normalize_static_expansions(command: &str) -> String {
     let bindings = collect_same_line_bindings(command);
-    expand_with_bindings(command, &bindings)
+    // Iterate to a bounded fixpoint so NESTED substitutions/params resolve
+    // (`$(echo $(echo git … reset))`, `${x:-$(echo reset)}`) — a single pass
+    // only peels one layer (review #685 r6 F1). Capped to bound pathological
+    // input; whatever expansion survives the cap is caught fail-closed by the
+    // residual-expansion check at the git command-name/subcommand decision.
+    let mut current = expand_with_bindings(command, &bindings);
+    for _ in 0..8 {
+        let next = expand_with_bindings(&current, &bindings);
+        if next == current {
+            break;
+        }
+        current = next;
+    }
+    current
+}
+
+/// True when a token still carries an unresolved shell expansion sigil after
+/// static normalization — `` ` ``, `$(`, `${`, or `$` before a name/quote. Such
+/// a token in command-name or git-subcommand position is treated fail-closed:
+/// the guard cannot prove it is NOT a mutating git op (review #685 r6 F2).
+fn has_unresolved_expansion(token: &str) -> bool {
+    let bytes = token.as_bytes();
+    for (i, &b) in bytes.iter().enumerate() {
+        if b == b'`' {
+            return true;
+        }
+        if b == b'$' {
+            match bytes.get(i + 1) {
+                Some(b'(' | b'{' | b'\'') => return true,
+                Some(c) if c.is_ascii_alphanumeric() || *c == b'_' => return true,
+                _ => {}
+            }
+        }
+    }
+    false
 }
 
 /// Collect prefix `name=value` assignments whose value is a single simple word
@@ -2101,6 +2144,20 @@ mod tests {
             "r=reset; git -C /repo/oyatie $r --hard",
             "git -C /repo/oyatie ${x:-reset} --hard",
             "git -C /repo/oyatie \"$(printf 'reset')\" --hard",
+            // Nested substitution must resolve to a fixpoint (r6 F1).
+            "$(echo $(echo git -C /repo/oyatie reset --hard))",
+            "$(echo $(echo git)) -C /repo/oyatie reset --hard",
+            "g=$(echo $(echo git)); $g -C /repo/oyatie reset --hard",
+            "$(echo $(printf 'git -C /repo/oyatie reset --hard'))",
+            // ${} operators beyond :- must resolve or fail closed (r6 F2).
+            "git -C /repo/oyatie ${x:=reset} --hard",
+            "git -C /repo/oyatie ${x:+reset} --hard",
+            "git -C /repo/oyatie ${x+reset} --hard",
+            "git -C /repo/oyatie ${x/a/e} --hard",
+            "git -C /repo/oyatie ${x:0:5} --hard",
+            "git -C /repo/oyatie ${x:-$(echo reset)} --hard",
+            // Unresolved command-name expansion targeting canonical (r6 F2).
+            "$g -C /repo/oyatie reset --hard",
         ] {
             assert_denied(command);
         }

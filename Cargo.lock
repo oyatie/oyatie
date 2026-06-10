@@ -7299,6 +7299,17 @@ name = "oya-json-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-lane-supervisor-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-learning-management-course-progress-service"
 version = "0.1.0"
 dependencies = [
