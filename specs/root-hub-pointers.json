@@ -6,7 +6,7 @@
     "created_at": "2026-05-13T00:00:00Z",
     "doc_class": "Machine-Readable-Spec",
     "last_audited": "2026-06-02",
-    "owner_team": "council-architecture + platform-governance",
+    "owner_team": "founder + platform-governance",
     "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file.",
     "spec_id": "EXE-ROOT-HUB-POINTERS",
     "status": "Accepted",
@@ -66,7 +66,7 @@
       "current_path": "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
       "kind": "decision",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Tenant RBAC view + Tenant RBAC view first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection.",
+      "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Tenant/RBAC-packaged core microservices (FD-001) first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection.",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
     "adr_0346_oya_verify_ci_mirror": {
@@ -547,7 +547,7 @@
       "human_compatibility_projection": "docs/MASTERPLAN.md",
       "kind": "spec",
       "migration_phase": "accelerated-machine-readable-authority-for-planning-closure",
-      "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Tenant RBAC view + Tenant RBAC view with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Canonical service split is {oya,cloud}/<service> with libs/ and ADR-0010/0064 pack roots governed by closed-world inventory; microservices/<ms>/ is legacy and removed only after P0.6 verifies all migration packets. Clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin.",
+      "purpose": "Machine-readable master plan authority for implementation sequencing, vertical delivery order, first-deliverable scope, planning closure, and readiness claims. The first deliverable is Tenant/RBAC-packaged core microservices (FD-001) with core, messenger, mail, community, infra, Ops Dashboard / Control Center, intelligence (replaces Foundry per ADR-0335 Wave 15I), Workflow, Ontology, canonical base, and Korea localization pack. Canonical service split is {oya,cloud}/<service> with libs/ and ADR-0010/0064 pack roots governed by closed-world inventory; microservices/<ms>/ is legacy and removed only after P0.6 verifies all migration packets. Clean architecture, API-first contracts, independent horizontal scaling, and hyperscaler pattern mapping are required before implementation packets begin.",
       "target_path_after_md_retirement": "same (machine-readable authority; docs/MASTERPLAN.md is compatibility projection only)"
     },
     "merge_queue_parked_pr": {
@@ -604,7 +604,7 @@
       "current_path": "/specs/planning-closure-contract.json",
       "kind": "spec",
       "migration_phase": "fd001-planning-closure",
-      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant RBAC view + Tenant RBAC view full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, and no false planning-green claims. Its older CI-governance wording is amended by platform-readiness/cloud-ci authority.",
+      "purpose": "Machine-readable closure contract for FD-001 planning: Tenant/RBAC-packaged core microservices (FD-001) full-depth delivery, canonical base, Korea localization pack, clean architecture, API-first contracts, hyperscaler patterns, portable deployment, and no false planning-green claims. Its older CI-governance wording is amended by platform-readiness/cloud-ci authority.",
       "status_ledger": "/specs/planning-closure-status-closure-ledger.json",
       "target_path_after_md_retirement": "same"
     },

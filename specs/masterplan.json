@@ -7,8 +7,8 @@
     "version": "1.1.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-06-02T00:00:00Z",
-    "owner_team": "council-architecture",
+    "updated_at": "2026-06-09T00:00:00Z",
+    "owner_team": "founder",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
     "target_path_after_markdown_retirement": "same",
@@ -438,6 +438,7 @@
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
     "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
     "authority": {
       "current_path": "/specs/masterplan.json",
       "root_hub_pointer": "/specs/root-hub-pointers.json#entry_points.masterplan",
@@ -618,7 +619,7 @@
     },
     "delivery_order": {
       "mode": "service_packaging_ordering",
-      "first": "Tenant RBAC view + Tenant RBAC view",
+      "first": "Tenant/RBAC-packaged core microservices (FD-001)",
       "sector_fanout_rule": "Later sector-specific distribution bundles may plan ahead, but production-GA claims serialize after FD-001 tenant/RBAC-packaged service exit evidence.",
       "later_distribution_bundles": [
         "sector-specific-compliance-bundles",
