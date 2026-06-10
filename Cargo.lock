@@ -4681,7 +4681,42 @@ name = "oya-cloud-observability-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-os-archiver-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-board-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-cluster-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-cluster-mgmt-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
 name = "oya-cloud-os-conditions-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-config-docs-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
@@ -4695,8 +4730,99 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-os-etcd-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-events-logging-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-extensions-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-hardware-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-imager-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-install-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
 name = "oya-cloud-os-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-cloud-os-kubelet-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-kubespan-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-machine-config-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-maintenance-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-meta-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-perf-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-platform-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
 
 [[package]]
 name = "oya-cloud-os-proto-api"
@@ -4707,6 +4833,55 @@ dependencies = [
 
 [[package]]
 name = "oya-cloud-os-resources-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-secrets-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-security-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-siderolink-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-syslogd-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-time-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-trustd-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-upgrade-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
