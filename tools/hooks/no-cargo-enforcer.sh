@@ -8,8 +8,9 @@ set -uo pipefail
 payload="$(cat)"
 
 # Extract the Bash command from the PreToolUse tool_input JSON without an external
-# interpreter (interpreter-free runtime hook hot path; the Buck2/Prow checker owns
-# manifest/config drift enforcement). Empty extraction simply means no command matched.
+# interpreter (interpreter-free runtime hook hot path; the oya-ci-required gate
+# pipeline (ADR-0515) owns manifest/config drift enforcement). Empty extraction
+# simply means no command matched.
 cmd="$(printf '%s' "$payload" \
   | tr '\n' ' ' \
   | sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p' \
