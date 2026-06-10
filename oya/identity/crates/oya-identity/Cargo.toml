@@ -16,6 +16,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+oya-identity-oidc-issuer-kernel = { path = "../oya-identity-oidc-issuer-kernel" }
 oya-identity-workload-domain = { path = "../oya-identity-workload-domain" }
 oya-identity-workload-app = { path = "../oya-identity-workload-app" }
 oya-identity-workload-authz-cedar-adapter = { path = "../oya-identity-workload-authz-cedar-adapter" }
@@ -23,6 +24,10 @@ oya-identity-workload-oidc-adapter = { path = "../oya-identity-workload-oidc-ada
 oya-identity-workload-rest = { path = "../oya-identity-workload-rest" }
 
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+# aws-lc-rs: canonical Phase-1 crypto backend (ADR-0506) — ES256 issuer
+# signing behind the kernel JwsSigner port (G02 KMS adapter replaces it).
+aws-lc-rs = { workspace = true }
+base64 = "0.22.1"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "signal", "sync"] }
@@ -33,12 +38,10 @@ uuid = { version = "1", features = ["v4"] }
 webauthn-rs = { version = "0.5", features = ["danger-user-presence-only-security-keys"] }
 
 [dev-dependencies]
-# E2E: mint a real ES256 workload JWT (aws-lc-rs is the ADR-0506 blessed
-# crypto), drive the live REST socket with reqwest and the live gRPC socket
-# with the tonic-generated client.
-aws-lc-rs = "1.17.0"
-base64 = "0.22.1"
+# E2E: drive the live REST socket with reqwest and the live gRPC socket with
+# the tonic-generated client; tower for in-process router oneshot tests.
 reqwest = { workspace = true }
+tower = { version = "0.5", default-features = false, features = ["util"] }
 
 [lints]
 workspace = true
