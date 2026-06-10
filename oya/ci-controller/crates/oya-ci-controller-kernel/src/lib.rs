@@ -365,9 +365,9 @@ pub enum PodReason {
     Other(String),
 }
 
-impl PodReason {
+impl From<&str> for PodReason {
     /// Parse from a raw K8s reason string.
-    pub fn from_str(s: &str) -> Self {
+    fn from(s: &str) -> Self {
         match s {
             "ImagePullBackOff" => PodReason::ImagePullBackOff,
             "ErrImagePull" => PodReason::ErrImagePull,
@@ -381,7 +381,9 @@ impl PodReason {
             other => PodReason::Other(other.to_owned()),
         }
     }
+}
 
+impl PodReason {
     /// True if this is a "waiting" reason that may resolve (transient).
     /// Note: `InvalidImageName` is NOT transient — it requires operator intervention;
     /// it is handled as terminal-immediately in `map_job_to_status`.
@@ -497,10 +499,10 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
     }
 
     // If a terminal status is already posted, nothing to do.
-    if let Some(posted) = obs.terminal_status_already_posted {
-        if posted != CommitState::Pending {
-            return ReconcileDecision::AlreadyTerminal;
-        }
+    if let Some(posted) = obs.terminal_status_already_posted
+        && posted != CommitState::Pending
+    {
+        return ReconcileDecision::AlreadyTerminal;
     }
 
     // ---- Job conditions (terminal) ----------------------------------------
@@ -573,23 +575,21 @@ pub fn map_job_to_status(obs: &JobObservation, grace_cycles: u32) -> ReconcileDe
                             .to_owned(),
                 };
             }
-            r if r.is_pull_or_container_error() => {
-                // Apply bounded grace: past grace_cycles, declare terminal.
-                if obs.waiting_cycles >= grace_cycles {
-                    let label = match r {
-                        PodReason::ImagePullBackOff | PodReason::ErrImagePull => {
-                            "image pull failed (rust-ci:dev unavailable)"
-                        }
-                        _ => "container setup failed (CreateContainerError or CrashLoopBackOff)",
-                    };
-                    return ReconcileDecision::PostTerminal {
-                        state: CommitState::Failure,
-                        context: GATE_CONTEXT,
-                        description: format!("oya-ci-required failed: {label}"),
-                    };
-                }
-                // Within grace — fall through to pending / await-change below
+            // Apply bounded grace: past grace_cycles, declare terminal.
+            r if r.is_pull_or_container_error() && obs.waiting_cycles >= grace_cycles => {
+                let label = match r {
+                    PodReason::ImagePullBackOff | PodReason::ErrImagePull => {
+                        "image pull failed (rust-ci:dev unavailable)"
+                    }
+                    _ => "container setup failed (CreateContainerError or CrashLoopBackOff)",
+                };
+                return ReconcileDecision::PostTerminal {
+                    state: CommitState::Failure,
+                    context: GATE_CONTEXT,
+                    description: format!("oya-ci-required failed: {label}"),
+                };
             }
+            // Pull/container errors within grace fall through to pending / await-change below.
             _ => {}
         }
     }
@@ -1177,10 +1177,10 @@ mod phase0_ci_enforcement_baseline_tests {
                 }
             }
 
-            if let Some(id) = row["id"].as_str() {
-                if !ids.insert(id.to_owned()) {
-                    violations.insert("duplicate_row_id".to_owned());
-                }
+            if let Some(id) = row["id"].as_str()
+                && !ids.insert(id.to_owned())
+            {
+                violations.insert("duplicate_row_id".to_owned());
             }
 
             let classification = row["classification"].as_str().unwrap_or_default();
@@ -1201,8 +1201,7 @@ mod phase0_ci_enforcement_baseline_tests {
             if classification == "not_automatable_human_judgment"
                 && row["enforceable_or_automatable"].as_bool() == Some(true)
             {
-                violations
-                    .insert("enforceable_or_automatable_marked_human_judgment".to_owned());
+                violations.insert("enforceable_or_automatable_marked_human_judgment".to_owned());
             }
         }
 
@@ -1279,9 +1278,8 @@ mod phase0_ci_enforcement_baseline_tests {
             if tier == "mechanically_enforced"
                 && (contains_oya_cli_authority(&evidence) || contains_oya_cli_authority(text))
             {
-                violations.insert(
-                    "forbidden_local_or_oya_evidence_for_mechanical_claim".to_owned(),
-                );
+                violations
+                    .insert("forbidden_local_or_oya_evidence_for_mechanical_claim".to_owned());
             }
 
             let terms = claim_row_terms(row);
@@ -1313,11 +1311,12 @@ mod phase0_ci_enforcement_baseline_tests {
     }
 
     fn aggregate_exit_is_green(subconditions: &Value) -> bool {
-        subconditions
-            .as_object()
-            .is_some_and(|conditions| {
-                !conditions.is_empty() && conditions.values().all(|value| value.as_bool() == Some(true))
-            })
+        subconditions.as_object().is_some_and(|conditions| {
+            !conditions.is_empty()
+                && conditions
+                    .values()
+                    .all(|value| value.as_bool() == Some(true))
+        })
     }
 
     fn phase0_policy_input_for_fixture(fixture: &Value) -> Phase0CiPolicyInput {
@@ -1373,12 +1372,12 @@ mod phase0_ci_enforcement_baseline_tests {
     }
 
     #[test]
-    fn phase0_baseline_is_red_gap_packet_and_not_completion_evidence() {
+    fn phase0_baseline_records_cutover_evidence_and_not_completion_evidence() {
         let baseline = load_json("specs/phase0-ci-enforcement-baseline.json");
 
         assert_eq!(
             baseline["_meta"]["status"].as_str(),
-            Some("p0_0_red_gap_packet")
+            Some("p0_0_required_context_cutover_verified")
         );
         assert_eq!(
             baseline["claim_boundary"]["p0_0_green"].as_bool(),
@@ -1390,11 +1389,22 @@ mod phase0_ci_enforcement_baseline_tests {
         );
         assert_eq!(
             baseline["gap_packet"]["overall_verdict"].as_str(),
-            Some("P0.0_RED_blocked_until_cloud_ci_required_context_is_live")
+            Some("P0.0_required_context_live_remaining_gap_rows_open")
+        );
+
+        assert_eq!(
+            baseline["gap_packet"]["required_context"]["status"].as_str(),
+            Some("CLOSED_WITH_EVIDENCE"),
+            "required_context row must carry the verified 2026-06-09 cutover evidence"
+        );
+        assert!(
+            baseline["gap_packet"]["required_context"]["evidence"]["green_post_merge_run_id"]
+                .as_str()
+                .is_some_and(|run_id| !run_id.is_empty()),
+            "required_context closure must cite a concrete green post-merge run"
         );
 
         for gap_key in [
-            "required_context",
             "trusted_producer",
             "candidate_pr_untrusted",
             "no_oya_cli_authority",
@@ -1405,7 +1415,7 @@ mod phase0_ci_enforcement_baseline_tests {
             assert_eq!(
                 baseline["gap_packet"][gap_key]["status"].as_str(),
                 Some("GAP"),
-                "{gap_key} must remain explicit until a trusted cloud-ci context is live"
+                "{gap_key} must remain explicit until it carries live evidence"
             );
         }
 
@@ -1432,10 +1442,11 @@ mod phase0_ci_enforcement_baseline_tests {
             ],
         );
         assert!(
-            !live_contexts
-                .iter()
-                .any(|context| phase0_context_is_required_authority(context)),
-            "baseline must not claim live cloud-ci/oya-ci required status before external protection is changed"
+            live_contexts == vec!["oya-ci-required"]
+                && live_contexts
+                    .iter()
+                    .all(|context| phase0_context_is_required_authority(context)),
+            "baseline must record exactly the single live oya-ci-required protected context"
         );
     }
 
@@ -1705,7 +1716,8 @@ mod phase0_ci_enforcement_baseline_tests {
 
     #[test]
     fn phase0_aggregate_exit_gate_fixtures_prevent_vacuous_green() {
-        let good = load_json("specs/fixtures/phase0-exit-gate/tc-0.12-good-all-subconditions-green.json");
+        let good =
+            load_json("specs/fixtures/phase0-exit-gate/tc-0.12-good-all-subconditions-green.json");
         assert_eq!(good["expected_verdict"].as_str(), Some("GREEN"));
         assert!(
             aggregate_exit_is_green(&good["subconditions"]),
@@ -1775,10 +1787,7 @@ mod phase0_ci_enforcement_baseline_tests {
             "automation matrix seed rows should satisfy the executable row contract, got {row_violations:?}"
         );
 
-        let row_ids: BTreeSet<_> = rows
-            .iter()
-            .filter_map(|row| row["id"].as_str())
-            .collect();
+        let row_ids: BTreeSet<_> = rows.iter().filter_map(|row| row["id"].as_str()).collect();
         for required_id in [
             "AC-0.0-cloud-ci-required-context",
             "AC-0.0-tenant-pipeline-isolation",
@@ -1793,7 +1802,8 @@ mod phase0_ci_enforcement_baseline_tests {
             );
         }
 
-        let fixture_paths = string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
+        let fixture_paths =
+            string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
         assert!(
             fixture_paths
                 .iter()
@@ -1802,8 +1812,12 @@ mod phase0_ci_enforcement_baseline_tests {
         );
         assert!(
             fixture_paths.iter().any(|path| path.contains("good-"))
-                && fixture_paths.iter().any(|path| path.contains("bad-oya-cli"))
-                && fixture_paths.iter().any(|path| path.contains("bad-missing-field")),
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-oya-cli"))
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-missing-field")),
             "automation fixtures must cover GOOD, missing/unknown/duplicate, and oya-CLI BAD cases"
         );
     }
@@ -1813,7 +1827,8 @@ mod phase0_ci_enforcement_baseline_tests {
         let automation_matrix = load_json("specs/phase0-automation-matrix.json");
         let required_fields = string_array_at(&automation_matrix, &["required_row_fields"]);
         let allowed_classifications = required_string_set(&automation_matrix, &["classifications"]);
-        let fixture_paths = string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
+        let fixture_paths =
+            string_array_at(&automation_matrix, &["fixture_set", "all_fixture_paths"]);
 
         let mut seen_green = false;
         let mut seen_red = false;
@@ -1849,12 +1864,16 @@ mod phase0_ci_enforcement_baseline_tests {
             }
         }
 
-        assert!(seen_green && seen_red, "automation fixtures must include RED and GREEN cases");
+        assert!(
+            seen_green && seen_red,
+            "automation fixtures must include RED and GREEN cases"
+        );
     }
 
     #[test]
     fn phase0_claim_evidence_map_rows_are_normalized_and_fixture_backed() {
-        let claim_contract = load_json("specs/hyperscaler-production-readiness-claim-contract.json");
+        let claim_contract =
+            load_json("specs/hyperscaler-production-readiness-claim-contract.json");
         let claim_map = load_json("specs/phase0-claim-evidence-map.json");
         let allowed_tiers: BTreeSet<String> = object_array_at(&claim_contract, &["claim_tiers"])
             .into_iter()
@@ -1914,15 +1933,20 @@ mod phase0_ci_enforcement_baseline_tests {
         );
         assert!(
             fixture_paths.iter().any(|path| path.contains("good-"))
-                && fixture_paths.iter().any(|path| path.contains("bad-ungrounded"))
-                && fixture_paths.iter().any(|path| path.contains("bad-performance")),
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-ungrounded"))
+                && fixture_paths
+                    .iter()
+                    .any(|path| path.contains("bad-performance")),
             "claim fixtures must cover GOOD, ungrounded-claim, and performance-budget BAD cases"
         );
     }
 
     #[test]
     fn phase0_claim_ceiling_fixtures_execute_red_green_cases() {
-        let claim_contract = load_json("specs/hyperscaler-production-readiness-claim-contract.json");
+        let claim_contract =
+            load_json("specs/hyperscaler-production-readiness-claim-contract.json");
         let claim_map = load_json("specs/phase0-claim-evidence-map.json");
         let regulated_vocabulary = required_string_set(&claim_map, &["regulated_vocabulary"]);
         let allowed_tiers: BTreeSet<String> = object_array_at(&claim_contract, &["claim_tiers"])
@@ -1965,6 +1989,9 @@ mod phase0_ci_enforcement_baseline_tests {
             }
         }
 
-        assert!(seen_green && seen_red, "claim fixtures must include RED and GREEN cases");
+        assert!(
+            seen_green && seen_red,
+            "claim fixtures must include RED and GREEN cases"
+        );
     }
 }

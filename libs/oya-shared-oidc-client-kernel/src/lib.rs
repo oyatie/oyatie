@@ -1,7 +1,8 @@
 //! OIDC relying-party client kernel.
 //!
-//! Authority: ADR-0145 (inter-microservice OIDC bearer), ADR-0187 (Zitadel
-//! canonical IdP), ADR-0189 (ACR step-up classes).
+//! Authority: ADR-0145 (inter-microservice OIDC bearer), ADR-0476 (bespoke
+//! oya-identity issuer, founder-locked 2026-05-28; supersedes the ADR-0187
+//! Zitadel decision), ADR-0189 (ACR step-up classes).
 //!
 //! This kernel defines the [`OidcClient`] trait and a reference verifier
 //! (`ReferenceOidcVerifier`) that:
@@ -25,7 +26,8 @@
 //!   plug a [`JwksFetcher`] adapter.
 //! - No clock skew tolerance beyond the configurable [`ClockTolerance`].
 //! - No token revocation cache (caller's responsibility).
-//! - No refresh-token semantics (Zitadel handles it server-side).
+//! - No refresh-token semantics (the ADR-0476 oya-identity issuer handles
+//!   them server-side).
 
 #![forbid(unsafe_code)]
 
@@ -258,7 +260,8 @@ impl<V: JwsVerifier> ReferenceOidcVerifier<V> {
         Self {
             jwks,
             jws_verifier,
-            // Per Zitadel default + RFC 8725 BCP §3.1; RS256 + ES256 only.
+            // Per the ADR-0476 oya-identity issuer default + RFC 8725 BCP §3.1;
+            // RS256 + ES256 only.
             // HS* (symmetric) is forbidden for relying-party verification of
             // third-party-issued tokens.
             allowed_algs: vec!["RS256".to_owned(), "ES256".to_owned()],

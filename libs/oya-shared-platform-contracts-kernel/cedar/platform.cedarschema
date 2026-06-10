@@ -1,0 +1,57 @@
+// FD-001 shared platform contracts — Cedar schema seed.
+// Binding ADRs: ADR-0183 (policy-engine separation: Cedar app-authz),
+// ADR-0243 (Cedar universal gate). Validated against the real cedar-policy
+// engine by tests/cedar_policy_validation.rs in this crate.
+//
+// Entity model mirrors src/{identity,tenancy}.rs: a Tenant is pinned to one
+// cell; Principals join Groups (RBAC); WorkloadIdentities are SPIFFE-shaped;
+// TenantResources carry their owning tenant + cell + data classification.
+
+namespace OyaPlatform {
+
+  entity Tenant = {
+    "tenant_id": String,
+    "cell_id": String,
+    "lifecycle_state": String,
+  };
+
+  entity Group in [Tenant] = {
+    "tenant_id": String,
+  };
+
+  entity Principal in [Group] = {
+    "tenant_id": String,
+    "kind": String,
+    "step_up_class"?: String,
+  };
+
+  entity WorkloadIdentity in [Tenant] = {
+    "tenant_id": String,
+    "spiffe_id": String,
+  };
+
+  entity TenantResource in [Tenant] = {
+    "tenant_id": String,
+    "resource_kind": String,
+    "data_class": String,
+    "cell_id": String,
+  };
+
+  action ReadResource appliesTo {
+    principal: [Principal, WorkloadIdentity],
+    resource: [TenantResource],
+    context: {},
+  };
+
+  action WriteResource appliesTo {
+    principal: [Principal, WorkloadIdentity],
+    resource: [TenantResource],
+    context: {},
+  };
+
+  action AdministerTenant appliesTo {
+    principal: [Principal],
+    resource: [Tenant],
+    context: {},
+  };
+}

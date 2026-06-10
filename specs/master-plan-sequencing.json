@@ -2,7 +2,7 @@
   "_schema": {
     "version": "1.0.0",
     "description": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
-    "owner_team": "council-architecture + axis-foundry",
+    "owner_team": "founder + axis-foundry",
     "validation_check": "json-valid + referenced-paths-exist + retired-agentic-vcs-primitives-absent",
     "authority_note": "Execution overlay only; /specs/masterplan.json, /specs/planning-closure-contract.json, the doctrinal substrate (decision-principles.json + forbidden-operations.json + decision-rights.json + governance-amendment.json), ADRs, and checklist templates remain authoritative. docs/MASTERPLAN.md is compatibility projection only."
   },
@@ -66,6 +66,7 @@
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
     "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
     "master_plan_authority": "/specs/masterplan.json",
     "compatibility_projection": "docs/MASTERPLAN.md",
     "implementation_start_claim_rule": "Implementation may start only after the planning-closure gate proves product scope, architecture/system design, sequencing, acceptance criteria, KR localization, and no-placeholder posture are complete enough to avoid implementation-time invention."
@@ -852,7 +853,7 @@
             "Kyverno admission policy enforce-pod-runtime-tier refuses pod admission on tier-vs-nodepool mismatch",
             "CI lane oya-check-pod-runtime-tier validates declaration + surface-evidence + Helm chart RuntimeClass binding",
             "capacity model implications (kata-pool ~1.5x density-scaled vs runc baseline; bounded to Tier 0 + Tier 1 workloads)",
-            "quarterly tier review process (council-architecture + council-security walks corpus for promotion/demotion candidates)",
+            "quarterly tier review process (founder + council-security walks corpus for promotion/demotion candidates)",
             "default tier for new \u00b5services = Tier 2 (no evidence required); Tier 0 / Tier 1 / Tier 3 require surface-evidence",
             "tier promotion criteria (Tier 2 \u2192 Tier 1 evidence pack at microservices/<name>/IPs/IP-tier-promotion-2-to-1.md)",
             "cellular tier integration (ADR-0248 cellular Tier 0..Tier 4 co-varies with pod runtime Tier 0..Tier 3)",
@@ -1403,7 +1404,7 @@
             "per-microservice manifest.json consumes_upstream_oss field (lists dep_name references; per-\u00b5service authoring)",
             "SBOM cross-reference contract (every direct upstream in SBOM references registry by dep_name)",
             "SOC2 + ISO 27001 audit evidence pipeline (evidence/audit/oss-stewardship/<auditor-pack>/)",
-            "quarterly stewardship review (council-architecture + council-security + ops-supply-chain joint quarterly walk)",
+            "quarterly stewardship review (founder + council-security + ops-supply-chain joint quarterly walk)",
             "CVE-response runbook per class (per-class audit-chain emission per ADR-0263)",
             "Bominal inheritance hook (sibling registry shape in Bominal corpus per feedback_bominal_inheritance_precedence)",
             "future substrate-adoption ADR contract (every new substrate ADR adds a registry entry as required artifact)"

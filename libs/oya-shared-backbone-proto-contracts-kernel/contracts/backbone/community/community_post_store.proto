@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package oya.community.v1;
+
+service PostStoreService {
+  rpc CreatePost (CreatePostRequest) returns (CreatePostResponse);
+}
+
+service VotingEngineService {
+  rpc CastVote (CastVoteRequest) returns (CastVoteResponse);
+}
+
+service ModerationQueueService {
+  rpc ApplyAction (ApplyActionRequest) returns (ApplyActionResponse);
+}
+
+enum CommunityMode {
+  COMMUNITY_MODE_UNSPECIFIED = 0;
+  COMMUNITY_MODE_REDDIT = 1;
+  COMMUNITY_MODE_TEAMBLIND = 2;
+  COMMUNITY_MODE_HANDSHAKE = 3;
+  COMMUNITY_MODE_KNOWLEDGE_BASE = 4;
+}
+
+enum VoteDirection {
+  VOTE_DIRECTION_UNSPECIFIED = 0;
+  VOTE_DIRECTION_UP = 1;
+  VOTE_DIRECTION_DOWN = 2;
+  VOTE_DIRECTION_CLEAR = 3;
+}
+
+enum ModerationVerb {
+  MODERATION_VERB_UNSPECIFIED = 0;
+  MODERATION_VERB_ALLOW = 1;
+  MODERATION_VERB_HIDE = 2;
+  MODERATION_VERB_REMOVE = 3;
+}
+
+message CommunityAuthContext {
+  string tenant_scope_ref = 1;
+  string principal_ref = 2;
+  string idempotency_key = 3;
+  string policy_decision_ref = 4;
+  string audit_correlation_id = 5;
+}
+
+message CreatePostRequest {
+  CommunityAuthContext context = 1;
+  string space_id = 2;
+  string post_id = 3;
+  string thread_id = 4;
+  CommunityMode mode = 5;
+  string routine_display_ref = 6;
+  string audit_author_ref = 7;
+  string disclosure_policy_ref = 8;
+  string body_ref = 9;
+  string retention_policy_id = 10;
+}
+
+message CreatePostResponse {
+  string post_id = 1;
+  string event_type = 2;
+  string audit_correlation_id = 3;
+  string idempotency_key = 4;
+  string policy_decision_ref = 5;
+}
+
+message CastVoteRequest {
+  CommunityAuthContext context = 1;
+  string post_id = 2;
+  string voter_ref = 3;
+  VoteDirection direction = 4;
+}
+
+message CastVoteResponse {
+  string post_id = 1;
+  string vote_id = 2;
+  string event_type = 3;
+  string audit_correlation_id = 4;
+  string idempotency_key = 5;
+  string policy_decision_ref = 6;
+}
+
+message ApplyActionRequest {
+  CommunityAuthContext context = 1;
+  string post_id = 2;
+  string policy_ref = 3;
+  string evidence_ref = 4;
+  ModerationVerb verb = 5;
+}
+
+message ApplyActionResponse {
+  string post_id = 1;
+  string event_type = 2;
+  string evidence_ref = 3;
+  string policy_decision_ref = 4;
+}

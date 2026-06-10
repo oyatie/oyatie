@@ -4185,6 +4185,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-manifest-hygiene-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-ci-scm-facts-emitter-app"
 version = "0.1.0"
 dependencies = [
@@ -4197,13 +4204,6 @@ name = "oya-cloud-ci-slo-coverage-app"
 version = "0.1.0"
 dependencies = [
  "oya-check-slo-coverage",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-manifest-hygiene-app"
-version = "0.1.0"
-dependencies = [
  "serde_json",
 ]
 
@@ -8066,6 +8066,15 @@ name = "oya-shared-outbox-pattern-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-shared-platform-contracts-kernel"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-shared-postgres-command-adapter-sqlx"
 version = "0.1.0"
 dependencies = [
@@ -8104,6 +8113,14 @@ dependencies = [
 [[package]]
 name = "oya-shared-realtime-transport-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-shared-resource-provider-contract-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "oya-shared-scim-server-kernel"

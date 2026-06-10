@@ -319,10 +319,7 @@ pub fn observe_job(
         .unwrap_or_default();
 
     // Parse pod reasons
-    let pod_reasons: Vec<PodReason> = pods
-        .iter()
-        .flat_map(|pod| extract_pod_reasons(pod))
-        .collect();
+    let pod_reasons: Vec<PodReason> = pods.iter().flat_map(extract_pod_reasons).collect();
 
     // Read the status-posted annotation
     let posted_annotation = job
@@ -360,30 +357,28 @@ fn extract_pod_reasons(pod: &k8s_openapi::api::core::v1::Pod) -> Vec<PodReason> 
 
     // Pod-level status.reason (e.g. "Evicted")
     if let Some(status) = &pod.status {
-        if let Some(r) = &status.reason {
-            if !r.is_empty() {
-                reasons.push(PodReason::from_str(r));
-            }
+        if let Some(r) = &status.reason
+            && !r.is_empty()
+        {
+            reasons.push(PodReason::from(r.as_str()));
         }
 
         // Container statuses
         for cs in status.container_statuses.as_deref().unwrap_or_default() {
             if let Some(state) = &cs.state {
                 // Terminated reason (e.g. OOMKilled)
-                if let Some(terminated) = &state.terminated {
-                    if let Some(r) = &terminated.reason {
-                        if !r.is_empty() {
-                            reasons.push(PodReason::from_str(r));
-                        }
-                    }
+                if let Some(terminated) = &state.terminated
+                    && let Some(r) = &terminated.reason
+                    && !r.is_empty()
+                {
+                    reasons.push(PodReason::from(r.as_str()));
                 }
                 // Waiting reason (e.g. ImagePullBackOff, CrashLoopBackOff)
-                if let Some(waiting) = &state.waiting {
-                    if let Some(r) = &waiting.reason {
-                        if !r.is_empty() {
-                            reasons.push(PodReason::from_str(r));
-                        }
-                    }
+                if let Some(waiting) = &state.waiting
+                    && let Some(r) = &waiting.reason
+                    && !r.is_empty()
+                {
+                    reasons.push(PodReason::from(r.as_str()));
                 }
             }
         }
@@ -495,9 +490,8 @@ mod tests {
                 && command.contains(
                     "test \"$resolved_sha\" = \"abcdef1234567890abcdef1234567890abcdef12\""
                 )
-                && command.contains(
-                    "git checkout --detach abcdef1234567890abcdef1234567890abcdef12"
-                ),
+                && command
+                    .contains("git checkout --detach abcdef1234567890abcdef1234567890abcdef12"),
             "gate should verify the fetched PR ref matches the exact candidate SHA before checkout"
         );
         assert!(

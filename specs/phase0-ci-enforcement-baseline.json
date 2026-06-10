@@ -22,18 +22,18 @@
     ],
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-PHASE0-CI-ENFORCEMENT-BASELINE",
-    "status": "p0_0_red_gap_packet",
-    "updated_at": "2026-06-02T15:46:00Z",
-    "version": "0.1.0"
+    "status": "p0_0_required_context_cutover_verified",
+    "updated_at": "2026-06-09T00:00:00Z",
+    "version": "0.2.0"
   },
   "automation_mapping": {
     "automation_matrix_row": "specs/phase0-automation-matrix.json#seed_rows[id=AC-0.0-cloud-ci-required-context]",
-    "classification": "automated_blocking_now_target_with_current_gap",
+    "classification": "automated_blocking_live_required_context_with_remaining_gaps",
     "no_new_oya_cli_surface": true,
     "target_gate_or_controller": "cloud-ci-required / oya-ci-required branch-protection context produced by oya-ci-controller or minimal Rust bridge adapter"
   },
   "claim_boundary": {
-    "allowed_language_now": "gap packet / target / specified fixture contract only",
+    "allowed_language_now": "verified required-context cutover evidence / remaining gap packet / target / specified fixture contract only",
     "forbidden_claims": [
       "Phase 0 complete",
       "P0.0 green",
@@ -44,16 +44,21 @@
     ],
     "p0_0_green": false,
     "phase0_complete": false,
-    "reason": "Checked-in branch-protection target now requires oya-ci-required, but live GitHub protection and live producer evidence do not yet prove oya-ci-required is required and posted from trusted cloud-ci/oya-ci control state on the candidate SHA. Tenant-isolation negative tests are specified as fixtures but not yet run by a live required cloud-ci context."
+    "reason": "Live dev branch protection now requires the single context oya-ci-required and a green post-merge oya-ci-required run is recorded on f93a44f9bcdc236c95c4ef9c13aa8aefc7b9095a (run 27232700111, 2026-06-09) with the legacy backbone workflow retired. The remaining gap-packet rows (trusted-producer isolation proof, candidate-PR trust boundary, oya CLI retirement packet, override kill-switch, structured result output, tenant pipeline isolation) still lack live evidence, so no P0.0-green or Phase-0 completion claim is made."
   },
   "current_state_evidence": {
-    "active_bridge_status_producer": {
-      "classification": "affected_only_bridge_feedback_not_merge_authority",
-      "gate_command": "sh infra/ci/buck2-affected-gate.sh origin/dev",
-      "path": "infra/ci/jenkins/Jenkinsfile-oya-ci-gate",
+    "active_required_context_producer": {
+      "classification": "live_workflow_producer_isolation_proof_pending",
+      "path": ".github/workflows/oya-ci-required.yml",
       "posted_contexts": [
-        "oya-ci-gate"
-      ]
+        "oya-ci-required"
+      ],
+      "retired_predecessor": {
+        "gate_command": "sh infra/ci/buck2-affected-gate.sh origin/dev",
+        "note": "legacy backbone bridge retired; infra/ci/jenkins/ no longer exists in the tree and .github/workflows/ carries only oya-ci-required.yml plus docs-graph-drift.yml as of 2026-06-09",
+        "path": "infra/ci/jenkins/Jenkinsfile-oya-ci-gate",
+        "status": "retired"
+      }
     },
     "checked_in_branch_protection": {
       "classification": "local_shadow_target_not_live_enforcement",
@@ -71,43 +76,32 @@
       ]
     },
     "live_github_branch_protection": {
-      "gap": "no oya-ci-required or cloud-ci-required context required live",
+      "note": "single required context oya-ci-required verified live on dev; legacy cargo-*/oya-pr-review contexts removed from required status checks",
       "required_contexts": [
-        "cargo-fmt",
-        "cargo-check",
-        "cargo-clippy",
-        "cargo-nextest",
-        "oya-pr-review"
+        "oya-ci-required"
       ],
       "source": "gh api repos/jason931225/oyatie/branches/dev/protection --jq .required_status_checks",
       "strict": false
     },
-    "observed_at": "2026-06-02T16:19:36Z",
+    "observed_at": "2026-06-09T00:00:00Z",
     "reported_status_metadata": {
-      "gap": "legacy metadata does not yet declare oya-ci-required as the only trusted cloud-ci/oya-ci producer; legacy CI bridge remains non-authority feedback",
-      "path": "infra/ci/jenkins/reported-status-contexts.json",
-      "reported_contexts": [
-        "cargo-fmt",
-        "cargo-check",
-        "cargo-clippy",
-        "cargo-nextest",
-        "cargo-deny",
-        "oya-verify",
-        "oya-vcs-admission",
-        "oya-vcs-provider-execution",
-        "oya-governance-supply-chain",
-        "oya-governance-cohesion",
-        "oya-governance-api-semver",
-        "oya-governance-honest-claims",
-        "oya-governance-aspirational-enforcement",
-        "oya-governance-banned-primitives",
-        "oya-governance-protection-context-match",
-        "oya-governance-dependency-seam",
-        "oya-pr-review"
-      ]
+      "note": "legacy Jenkins bridge metadata retired with the backbone workflow; the retired file enumerated cargo-* lanes, oya-verify, oya-vcs-*, oya-governance-* lanes, and oya-pr-review, none of which are merge authority",
+      "retired_path": "infra/ci/jenkins/reported-status-contexts.json",
+      "status": "retired"
+    },
+    "verified_cutover_2026_06_09": {
+      "branch_protection_target": "infra/branch-protection/dev.json",
+      "green_post_merge_run": {
+        "commit": "f93a44f9bcdc236c95c4ef9c13aa8aefc7b9095a",
+        "observed_on": "2026-06-09",
+        "run_id": "27232700111",
+        "workflow": ".github/workflows/oya-ci-required.yml"
+      },
+      "legacy_backbone_workflow": "retired",
+      "required_context": "oya-ci-required"
     }
   },
-  "description": "P0.0 baseline and gap packet for Prow/cloud-ci enforcement plus tenant-isolation fixtures. This file is evidence of the current P0.0 state, not a Phase-0 completion claim.",
+  "description": "P0.0 baseline: verified oya-ci-required required-context cutover evidence plus the remaining gap packet for Prow/cloud-ci enforcement and tenant-isolation fixtures. This file is evidence of the current P0.0 state, not a Phase-0 completion claim.",
   "external_best_practice_evidence": [
     {
       "source": "https://docs.prow.k8s.io/docs/components/",
@@ -199,7 +193,7 @@
   },
   "gap_packet": {
     "candidate_pr_untrusted": {
-      "current_risk": "active bridge executes infra/ci/buck2-affected-gate.sh from the candidate checkout",
+      "current_risk": "the live oya-ci-required workflow executes from the candidate checkout; trusted-catalog separation from candidate bytes is unproven",
       "evidence": "RED fixtures include candidate-sourced producer/gate definitions and candidate-deleted trusted-target inventory; live required context evidence is still absent.",
       "fix_path": "controller job clones trusted gate catalog separately and passes candidate SHA/tree as input",
       "required_policy": "candidate PR tree is data under test only; producer/gate definitions come from trusted trunk/controller state",
@@ -211,7 +205,7 @@
       "local_target_status": "infra/branch-protection/dev.json no longer requires oya-verify; remaining oya CLI references are legacy/local inventory only until retired through the packet.",
       "status": "GAP"
     },
-    "overall_verdict": "P0.0_RED_blocked_until_cloud_ci_required_context_is_live",
+    "overall_verdict": "P0.0_required_context_live_remaining_gap_rows_open",
     "override_kill_switch": {
       "fix_path": "add controller-enforced override packet schema and required BAD/GOOD tests",
       "fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0.2-bad-override-without-ttl-audit.json",
@@ -222,19 +216,21 @@
       "checked_in_contexts": [
         "oya-ci-required"
       ],
-      "fix_path": "apply the local target branch-protection rules only after a trusted cloud-ci/oya-ci producer posts oya-ci-required on the candidate SHA",
+      "evidence": {
+        "branch_protection_target": "infra/branch-protection/dev.json",
+        "green_post_merge_run_commit": "f93a44f9bcdc236c95c4ef9c13aa8aefc7b9095a",
+        "green_post_merge_run_id": "27232700111",
+        "legacy_backbone_workflow": "retired",
+        "verified_on": "2026-06-09"
+      },
       "live_github_contexts": [
-        "cargo-fmt",
-        "cargo-check",
-        "cargo-clippy",
-        "cargo-nextest",
-        "oya-pr-review"
+        "oya-ci-required"
       ],
       "required_context_options": [
         "cloud-ci-required",
         "oya-ci-required"
       ],
-      "status": "GAP"
+      "status": "CLOSED_WITH_EVIDENCE"
     },
     "structured_result_output": {
       "current_red_fixture": "specs/fixtures/phase0-ci-enforcement-baseline/tc-0.0-current-red-gap-result.json",
@@ -261,14 +257,14 @@
       "status": "GAP"
     },
     "trusted_producer": {
-      "current_bridge": "Legacy CI oya-ci-gate runs buck2 affected script from candidate checkout",
+      "current_bridge": "GitHub Actions workflow .github/workflows/oya-ci-required.yml posts oya-ci-required; trusted-control-state isolation proof (gate catalog sourced outside candidate bytes) is not yet published",
       "fix_path": "deploy/publish producer evidence showing oya-ci-controller posts oya-ci-required from trusted control state on candidate SHA and candidate bytes cannot alter gate catalog, producer, branch-protection mapping, or runner isolation",
       "local_target_status": "oya-ci-controller kernel/k8s target now uses oya-ci-required metadata; live producer deployment and required-status posting remain unproven.",
       "required_producer": "oya-ci-controller or minimal Rust bridge adapter loading gate definitions from trusted dev/controller state",
       "status": "GAP"
     }
   },
-  "next_required_action": "Deploy a trusted cloud-ci/oya-ci producer that posts oya-ci-required on candidate SHAs, then apply/sync the protected branch ruleset and rerun T0.0 fixtures. Do not start P0.1 enforcement claims from this RED gap packet.",
+  "next_required_action": "Required-context cutover is verified (oya-ci-required live in dev branch protection; green post-merge run 27232700111 on f93a44f9bcdc236c95c4ef9c13aa8aefc7b9095a, 2026-06-09; legacy backbone workflow retired). Next: publish trusted-producer isolation evidence for the live oya-ci-required workflow, land the override kill-switch and structured-result contracts, and run the tenant-isolation negative fixtures through the live required context. Do not claim P0.0 green or start P0.1 enforcement claims until every remaining gap-packet row carries evidence.",
   "p0_0_requirements": [
     "required cloud-ci-required or oya-ci-required protected branch context",
     "trusted trunk/controller-sourced producer (oya-ci-controller or minimal Rust bridge adapter)",

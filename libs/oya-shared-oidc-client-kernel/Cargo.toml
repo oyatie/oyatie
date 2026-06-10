@@ -5,7 +5,7 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "OIDC relying-party client kernel: trait + Zitadel reference impl. Verifies JWT, fetches JWKS, validates audience/expiry/issuer, parses oyatie custom claims (tenant_id, acr, purpose, data_class). Authority: ADR-0145, ADR-0187, ADR-0189."
+description = "OIDC relying-party client kernel: trait + reference verifier impl for the bespoke oya-identity issuer. Verifies JWT, fetches JWKS, validates audience/expiry/issuer, parses oyatie custom claims (tenant_id, acr, purpose, data_class). Authority: ADR-0145, ADR-0476, ADR-0189."
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

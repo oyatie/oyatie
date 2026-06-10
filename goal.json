@@ -7,7 +7,13 @@
     "doc_class": "DurableGoalPrompt",
     "spec_id": "GOAL-OYATIE-MASTERPLAN-COMPLETION",
     "version": "1.0.0",
-    "status": "Accepted",
+    "status": "archived-superseded-2026-06-09",
+    "superseded_by": [
+      "HANDOFF.md",
+      "/specs/masterplan.json#planning_closure.first_deliverable",
+      "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json"
+    ],
+    "staleness_note": "Archived as provenance on 2026-06-09. Dead claims in prompt_markdown: (1) the 8-required-checks dev branch protection (cargo-fmt/check/clippy/nextest + oya-governance-*) is replaced by the single required context oya-ci-required (infra/branch-protection/dev.json); (2) the M01..M12 milestone ladder is replaced by FD-001 first-deliverable planning closure plus the W0..W6 staged fabric roadmap (ADR-0521); (3) the .omc/plans/milestones tree consumed by the slice-selection ledger is absent from the repository; (4) the repo path /Users/jasonlee/oyatie is now /Users/jasonlee/Developer/oyatie.",
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-17T00:40:00Z",
     "supersedes": "evidence/goals/implement-masterplan-goal-prompt.json (2026-05-14; cited retired grit/icm tooling)",
