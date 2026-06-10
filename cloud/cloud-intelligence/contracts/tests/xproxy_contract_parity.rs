@@ -123,3 +123,5 @@ fn xproxy_proto_declares_admin_control_plane_methods_without_direct_engine_owner
     assert_contract_mentions(PROTO, "owned-policy-engine-port");
     assert_contract_omits_direct_transient_engines(PROTO, "proto");
 }
+
+mod transient_adapter_boundary;

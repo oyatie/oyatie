@@ -1,4 +1,4 @@
-//! Fix-6: SeatOutcome::RefreshFailed — kernel handles vault/transient refresh failure.
+//! Fix-6: SeatOutcome::RefreshFailed — kernel handles transient secret-provider refresh failure.
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 
 use std::time::{Duration, Instant};
@@ -23,7 +23,7 @@ fn make_sub(tenant: &str, seat: &str) -> OAuthSubscription {
         SubscriptionId::new(format!("{seat}-sub")).unwrap(),
         Provider::Anthropic,
         SubscriptionState::Active,
-        format!("openbao://{tenant}/{seat}/refresh"),
+        format!("secret-ref://{tenant}/{seat}/refresh"),
         0,
     )
 }

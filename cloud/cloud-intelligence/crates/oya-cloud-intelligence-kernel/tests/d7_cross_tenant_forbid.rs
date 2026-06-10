@@ -1,10 +1,9 @@
-//! D7 — per-tenant Cedar isolation contract (forbid-wins).
+//! D7 — per-tenant owned policy-engine isolation contract (deny-wins).
 //!
-//! These tests use a fake `AuthzGate` that simulates Cedar's forbid-wins
-//! semantics: cross-tenant requests are forbidden no matter how many `permit`
-//! rules apply. The real Cedar policies + adapter live in a separate crate
-//! (`oya-cloud-intelligence-policy-cedar-adapter`) and have their own adversarial
-//! test corpus.
+//! These tests use a fake `AuthzGate` that simulates owned policy-engine
+//! deny-wins semantics: cross-tenant requests are forbidden no matter how many
+//! allow rules apply. Concrete policy engines live behind transient adapter
+//! crates and have their own adversarial test corpus.
 //!
 //! Stage-4 RED: tests fail because `SubscriptionPool::select` returns
 //! `NotYetImplemented` and never even consults the gate.
@@ -20,12 +19,12 @@ use oya_cloud_intelligence_kernel::{
 };
 
 /// A gate that records every request it sees and forbids cross-tenant access.
-/// `forbid_wins` mirrors Cedar's default-deny + forbid-wins semantics.
-struct CedarLikeGate {
+/// `deny_wins` mirrors the owned policy-engine default-deny semantics.
+struct PolicyEngineLikeGate {
     requests: RefCell<Vec<(String, String)>>,
 }
 
-impl CedarLikeGate {
+impl PolicyEngineLikeGate {
     fn new() -> Self {
         Self {
             requests: RefCell::new(Vec::new()),
@@ -37,7 +36,7 @@ impl CedarLikeGate {
     }
 }
 
-impl AuthzGate for CedarLikeGate {
+impl AuthzGate for PolicyEngineLikeGate {
     fn decide(&self, request: &AuthzRequest<'_>) -> AuthzDecision {
         self.requests.borrow_mut().push((
             request.principal_tenant.as_str().to_string(),
@@ -70,7 +69,7 @@ fn make_sub(tenant_str: &str, seat_str: &str) -> OAuthSubscription {
         sub(&format!("{seat_str}-sub-1")),
         Provider::Anthropic,
         SubscriptionState::Active,
-        format!("openbao://{tenant_str}/{seat_str}/refresh"),
+        format!("secret-ref://{tenant_str}/{seat_str}/refresh"),
         0,
     )
 }
@@ -84,7 +83,7 @@ fn same_tenant_select_consults_gate_and_succeeds() {
     );
     pool.add_seat(make_sub("t-acme", "seat-a")).unwrap();
 
-    let gate = CedarLikeGate::new();
+    let gate = PolicyEngineLikeGate::new();
     let now = Instant::now();
 
     let picked = pool.select(&agent("agent-acme-1"), &gate, now).unwrap();
@@ -120,7 +119,7 @@ fn cross_tenant_pool_rejects_select_for_foreign_tenant_principal() {
 }
 
 #[test]
-fn forbid_wins_even_when_pool_has_capacity() {
+fn deny_wins_even_when_pool_has_capacity() {
     let mut pool = SubscriptionPool::new(
         tenant("t-acme"),
         Provider::Anthropic,

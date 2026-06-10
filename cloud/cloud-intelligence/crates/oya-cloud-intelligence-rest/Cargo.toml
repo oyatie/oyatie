@@ -12,7 +12,7 @@ license = "Apache-2.0"
 #   D3 — Anthropic provider adapter + async OAuth refresh (reqwest async, Item 1)
 #         + upstream OAuth singleflight (Item 2)
 #   D6 — EventSink fan-out to ClickHouse + Valkey Stream (trait mock here)
-#   D8 — OpenBao envelope-encrypted refresh-token storage (trait mock here)
+#   D8 — owned secret-provider envelope-encrypted refresh-token storage (trait mock here)
 #
 # Codex provider adapter is deferred to a follow-up PR (see TODO in lib.rs).
 

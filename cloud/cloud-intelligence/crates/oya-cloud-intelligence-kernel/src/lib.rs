@@ -440,7 +440,7 @@ impl fmt::Debug for OAuthSubscription {
 // ---------------------------------------------------------------------------
 
 /// Authorization decision principal: tenant + agent + the resource (target
-/// subscription). Cedar adapter consumes this and returns [`AuthzDecision`].
+/// subscription). The owned policy-engine adapter consumes this and returns [`AuthzDecision`].
 #[derive(Clone, Debug)]
 pub struct AuthzRequest<'a> {
     pub principal_tenant: &'a TenantId, // data_class: INTERNAL_ONLY
@@ -465,9 +465,9 @@ pub enum AuthzDecision {
 
 /// D7 — per-tenant forbid-wins isolation seam.
 ///
-/// The Cedar adapter implements this. Cross-tenant requests MUST receive
-/// [`AuthzDecision::Forbid`] regardless of how many `permit` rules match,
-/// per the forbid-wins semantics of Cedar.
+/// Owned policy-engine adapters implement this. Cross-tenant requests MUST
+/// receive [`AuthzDecision::Forbid`] regardless of how many allow rules match;
+/// deny decisions are authoritative at the service boundary.
 pub trait AuthzGate {
     fn decide(&self, request: &AuthzRequest<'_>) -> AuthzDecision;
 }
