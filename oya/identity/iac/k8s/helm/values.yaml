@@ -1,6 +1,6 @@
 microservice:
   id: identity
-  cargoPackage: oya-identity-api
+  cargoPackage: oya-identity
   tenantClass: contributor
 
 replicaCount: 2
@@ -27,6 +27,18 @@ service:
   type: ClusterIP
   port: 8080
   targetPort: 8080
+  grpcPort: 8081
+  grpcTargetPort: 8081
+
+identity:
+  issuer: https://idp.oyatie.com
+  audience: oya-cloud-kms
+  # Secret holding the RFC 7517 JWKS document (key: jwks.json). Key custody
+  # moves to the G02 KMS port; the mount contract stays the same.
+  jwksSecretName: oya-identity-jwks
+  # Optional bring-up principal seed (key: principals.json). The durable
+  # principal store lands behind the G03 repository port.
+  principalsConfigMapName: ""
 
 config:
   environment: production
