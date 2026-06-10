@@ -803,6 +803,31 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("freshness")) => {
+            match crate::parse_freshness_gate_args(args.collect()) {
+                Ok(args) => match crate::validate_freshness_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "{}",
+                            oya_cloud_ci_freshness_app::render_findings(&report.findings)
+                        );
+                        if report.is_green() {
+                            ExitCode::SUCCESS
+                        } else {
+                            ExitCode::FAILURE
+                        }
+                    }
+                    Err(message) => {
+                        eprintln!("freshness validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("license-policy")) => {
             match crate::parse_license_policy_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_license_policy_gate(args) {

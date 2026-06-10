@@ -53,6 +53,7 @@ rust_library(
         "//libs/oya-check-placeholder-debt:oya-check-placeholder-debt",
         "//libs/oya-check-pr-traceability:oya-check-pr-traceability",
         "//libs/oya-check-pre-push:oya-check-pre-push",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-freshness-app",
         "//libs/oya-check-protection-context-match:oya-check-protection-context-match",
         "//libs/oya-check-quality-lane:oya-check-quality-lane",
         "//libs/oya-check-raci-coverage:oya-check-raci-coverage",

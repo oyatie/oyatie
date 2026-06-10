@@ -157,5 +157,9 @@ input_kind = "producer-face"
 face = "workspace_glob_coverage"
 
 [[gates.enabled]]
+id = "cloud-ci-freshness"
+input_kind = "frozen-empty-meta"
+
+[[gates.enabled]]
 id = "cloud-ci-brand-residue"
 input_kind = "raw-corpus-collector"

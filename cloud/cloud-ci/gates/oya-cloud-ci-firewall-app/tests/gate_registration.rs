@@ -91,6 +91,10 @@ fn is_matrix_gate(workflow: &str, crate_dir: &str) -> bool {
     })
 }
 
+fn is_buck_gate(workflow: &str, crate_dir: &str) -> bool {
+    workflow.contains(&format!("//cloud/cloud-ci/gates/{crate_dir}:"))
+}
+
 #[test]
 fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
     let root = repo_root();
@@ -121,12 +125,12 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
         if NON_GATE_CRATES.contains(&crate_dir.as_str()) {
             continue;
         }
-        // A gate is "registered" iff the workflow runs it as a cargo lane — either a bespoke
-        // `-p <crate>` step (registry-drift, cloud-ci-firewall) OR a `- <crate>` entry in the
-        // `gate` job's `strategy.matrix.crate` list (the homogeneous gates run via
-        // `cargo test -p ${{ matrix.crate }}`). Either binds it to an actual cargo-test lane.
-        let registered =
-            workflow.contains(&format!("-p {crate_dir}")) || is_matrix_gate(&workflow, crate_dir);
+        // A gate is "registered" iff the workflow runs it as a cargo lane, matrix lane, or
+        // dedicated Buck target lane. Freshness is a Buck-built binary because it must use the
+        // same face producer targets as the materialization boundary without mutating the tree.
+        let registered = workflow.contains(&format!("-p {crate_dir}"))
+            || is_matrix_gate(&workflow, crate_dir)
+            || is_buck_gate(&workflow, crate_dir);
         if !registered {
             missing.push(crate_dir.clone());
         }
@@ -135,7 +139,8 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
     assert!(
         missing.is_empty(),
         "gate crate(s) present under {} but NOT registered in {} — add the crate to the `gate` \
-         job's `strategy.matrix.crate` list (homogeneous gates) or give it a bespoke `-p <crate>` \
+         job's `strategy.matrix.crate` list (homogeneous gates), give it a bespoke `-p <crate>` \
+         job, or wire a dedicated `//cloud/cloud-ci/gates/<crate>:` Buck target \
          job: {:?}\n\
          An in-tree-but-unregistered gate is a silent false-green one level below the fan-in.",
         gates.display(),

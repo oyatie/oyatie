@@ -1,0 +1,581 @@
+#![forbid(unsafe_code)]
+
+use std::collections::{BTreeMap, BTreeSet};
+use std::error::Error;
+use std::fmt::{Display, Formatter};
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use oya_workspace_members_kernel::resolve_member_dirs;
+
+pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
+pub const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
+const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app";
+const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+const EMITTER_TARGET: &str =
+    "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
+const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
+const PRODUCER_FACES: [(&str, &str); 5] = [
+    ("accounting-registry.generated.json", "registry"),
+    ("ttl-policy.generated.json", "ttl-policy"),
+    ("decision-crosswalk.generated.json", "decision-crosswalk"),
+    (
+        "enforcement-inventory.generated.json",
+        "enforcement-inventory",
+    ),
+    ("gate-baseline.generated.json", "baseline"),
+];
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum FindingCode {
+    LockMissingMemberPackage,
+    LockStaleMemberVersion,
+    LockOrphanPathPackage,
+    GeneratedFaceStale,
+}
+
+impl FindingCode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            FindingCode::LockMissingMemberPackage => "lock_missing_member_package",
+            FindingCode::LockStaleMemberVersion => "lock_stale_member_version",
+            FindingCode::LockOrphanPathPackage => "lock_orphan_path_package",
+            FindingCode::GeneratedFaceStale => "generated_face_stale",
+        }
+    }
+}
+
+impl Display for FindingCode {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Finding {
+    pub code: FindingCode,
+    pub key: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CheckReport {
+    pub findings: Vec<Finding>,
+}
+
+impl CheckReport {
+    pub fn is_green(&self) -> bool {
+        self.findings.is_empty()
+    }
+}
+
+impl Finding {
+    fn new(code: FindingCode, key: impl Into<String>, detail: impl Into<String>) -> Self {
+        Self {
+            code,
+            key: key.into(),
+            detail: detail.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct MemberPackage {
+    pub member_path: String,
+    pub name: String,
+    pub version: String,
+}
+
+impl MemberPackage {
+    pub fn new(
+        member_path: impl Into<String>,
+        name: impl Into<String>,
+        version: impl Into<String>,
+    ) -> Self {
+        Self {
+            member_path: member_path.into(),
+            name: name.into(),
+            version: version.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct LockPackage {
+    pub name: String,
+    pub version: String,
+    pub is_path_package: bool,
+}
+
+impl LockPackage {
+    pub fn path(name: impl Into<String>, version: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            version: version.into(),
+            is_path_package: true,
+        }
+    }
+
+    pub fn external(name: impl Into<String>, version: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            version: version.into(),
+            is_path_package: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FreshnessError {
+    message: String,
+}
+
+impl FreshnessError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+}
+
+impl Display for FreshnessError {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.message)
+    }
+}
+
+impl Error for FreshnessError {}
+
+pub fn evaluate_lock_freshness(
+    members: &[MemberPackage],
+    lock_packages: &[LockPackage],
+) -> Vec<Finding> {
+    let mut findings = BTreeSet::new();
+    let members_by_name: BTreeMap<&str, &MemberPackage> = members
+        .iter()
+        .map(|member| (member.name.as_str(), member))
+        .collect();
+    let path_lock_packages: BTreeMap<&str, &LockPackage> = lock_packages
+        .iter()
+        .filter(|package| package.is_path_package)
+        .map(|package| (package.name.as_str(), package))
+        .collect();
+
+    for member in members {
+        match path_lock_packages.get(member.name.as_str()) {
+            None => {
+                findings.insert(Finding::new(
+                    FindingCode::LockMissingMemberPackage,
+                    &member.member_path,
+                    format!(
+                        "workspace member `{}` ({}) is absent from Cargo.lock; remediation: {LOCK_REMEDIATION_COMMAND}",
+                        member.name, member.member_path
+                    ),
+                ));
+            }
+            Some(package) if package.version != member.version => {
+                findings.insert(Finding::new(
+                    FindingCode::LockStaleMemberVersion,
+                    &member.member_path,
+                    format!(
+                        "workspace member `{}` version {} does not match Cargo.lock version {}; remediation: {LOCK_REMEDIATION_COMMAND}",
+                        member.name, member.version, package.version
+                    ),
+                ));
+            }
+            Some(_) => {}
+        }
+    }
+
+    for package in lock_packages
+        .iter()
+        .filter(|package| package.is_path_package)
+    {
+        if !members_by_name.contains_key(package.name.as_str()) {
+            findings.insert(Finding::new(
+                FindingCode::LockOrphanPathPackage,
+                &package.name,
+                format!(
+                    "sourceless Cargo.lock package `{}` {} has no workspace member; remediation: {LOCK_REMEDIATION_COMMAND}",
+                    package.name, package.version
+                ),
+            ));
+        }
+    }
+
+    findings.into_iter().collect()
+}
+
+pub fn check_repo(repo_root: &Path) -> Result<CheckReport, FreshnessError> {
+    let regenerated_faces = regenerate_faces_with_buck2(repo_root)?;
+    check_repo_with_regenerated_faces(repo_root, regenerated_faces)
+}
+
+pub fn check_repo_with_regenerated_faces(
+    repo_root: &Path,
+    regenerated_faces: Vec<(String, String)>,
+) -> Result<CheckReport, FreshnessError> {
+    let members = read_member_packages(repo_root)?;
+    let lock_text = read_to_string(&repo_root.join("Cargo.lock"))?;
+    let lock_packages = parse_lock_packages(&lock_text)?;
+    let committed_faces = read_committed_generated_faces(repo_root)?;
+
+    let mut findings = BTreeSet::new();
+    findings.extend(evaluate_lock_freshness(&members, &lock_packages));
+    findings.extend(evaluate_face_freshness(
+        &committed_faces,
+        &regenerated_faces,
+    ));
+
+    Ok(CheckReport {
+        findings: findings.into_iter().collect(),
+    })
+}
+
+pub fn parse_lock_packages(lock_text: &str) -> Result<Vec<LockPackage>, FreshnessError> {
+    let document: toml::Value = toml::from_str(lock_text)
+        .map_err(|error| FreshnessError::new(format!("parse Cargo.lock: {error}")))?;
+    let packages = document
+        .get("package")
+        .and_then(toml::Value::as_array)
+        .ok_or_else(|| FreshnessError::new("Cargo.lock missing [[package]] array"))?;
+
+    let mut parsed = Vec::with_capacity(packages.len());
+    for package in packages {
+        let table = package
+            .as_table()
+            .ok_or_else(|| FreshnessError::new("Cargo.lock package entry is not a table"))?;
+        let name = required_string(table, "name", "Cargo.lock package")?;
+        let version = required_string(table, "version", "Cargo.lock package")?;
+        if table.contains_key("source") {
+            parsed.push(LockPackage::external(name, version));
+        } else {
+            parsed.push(LockPackage::path(name, version));
+        }
+    }
+    Ok(parsed)
+}
+
+pub fn parse_member_package_manifest(
+    member_path: &str,
+    manifest_text: &str,
+    workspace_version: &str,
+) -> Result<MemberPackage, FreshnessError> {
+    let document: toml::Value = toml::from_str(manifest_text)
+        .map_err(|error| FreshnessError::new(format!("parse {member_path}/Cargo.toml: {error}")))?;
+    let package = document
+        .get("package")
+        .and_then(toml::Value::as_table)
+        .ok_or_else(|| {
+            FreshnessError::new(format!("{member_path}/Cargo.toml missing [package]"))
+        })?;
+    let name = required_string(
+        package,
+        "name",
+        &format!("{member_path}/Cargo.toml [package]"),
+    )?;
+    let version = package_version(package, workspace_version, member_path)?;
+    Ok(MemberPackage::new(member_path, name, version))
+}
+
+pub fn evaluate_face_freshness(
+    committed: &[(String, String)],
+    regenerated: &[(String, String)],
+) -> Vec<Finding> {
+    let regenerated_by_name: BTreeMap<&str, &str> = regenerated
+        .iter()
+        .map(|(name, bytes)| (name.as_str(), bytes.as_str()))
+        .collect();
+    let committed_names: BTreeSet<&str> = committed.iter().map(|(name, _)| name.as_str()).collect();
+    let mut findings = BTreeSet::new();
+
+    for (name, committed_bytes) in committed {
+        match regenerated_by_name.get(name.as_str()) {
+            Some(regenerated_bytes) if *regenerated_bytes == committed_bytes => {}
+            Some(_) => {
+                findings.insert(stale_face_finding(
+                    name,
+                    "committed bytes differ from regenerated bytes",
+                ));
+            }
+            None => {
+                findings.insert(stale_face_finding(
+                    name,
+                    "regeneration did not produce this committed face",
+                ));
+            }
+        }
+    }
+
+    for (name, _) in regenerated {
+        if !committed_names.contains(name.as_str()) {
+            findings.insert(stale_face_finding(
+                name,
+                "regeneration produced an uncommitted generated face",
+            ));
+        }
+    }
+
+    findings.into_iter().collect()
+}
+
+pub fn render_remediation() -> String {
+    format!("Remediation:\n  lock: {LOCK_REMEDIATION_COMMAND}\n  faces: {FACE_REMEDIATION_COMMAND}")
+}
+
+pub fn render_findings(findings: &[Finding]) -> String {
+    if findings.is_empty() {
+        return "freshness gate passed".to_owned();
+    }
+
+    let mut output = String::from("freshness gate failed:\n");
+    for finding in findings {
+        output.push_str(&format!(
+            "- {} {}: {}\n",
+            finding.code, finding.key, finding.detail
+        ));
+    }
+    output.push('\n');
+    output.push_str(&render_remediation());
+    output
+}
+
+pub fn read_member_packages(repo_root: &Path) -> Result<Vec<MemberPackage>, FreshnessError> {
+    let workspace_version = read_workspace_version(repo_root)?;
+    let member_dirs = resolve_member_dirs(repo_root)
+        .map_err(|error| FreshnessError::new(format!("resolve workspace members: {error}")))?;
+    let mut members = Vec::with_capacity(member_dirs.len());
+    for member_dir in member_dirs {
+        let manifest = read_to_string(&repo_root.join(&member_dir).join("Cargo.toml"))?;
+        members.push(parse_member_package_manifest(
+            &member_dir,
+            &manifest,
+            &workspace_version,
+        )?);
+    }
+    Ok(members)
+}
+
+pub fn read_committed_generated_faces(
+    repo_root: &Path,
+) -> Result<Vec<(String, String)>, FreshnessError> {
+    let dir = repo_root.join(FACES_DIR);
+    let entries = std::fs::read_dir(&dir)
+        .map_err(|error| FreshnessError::new(format!("read {}: {error}", dir.display())))?;
+    let mut faces = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|error| {
+            FreshnessError::new(format!("read entry in {}: {error}", dir.display()))
+        })?;
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if !name.ends_with(".generated.json") {
+            continue;
+        }
+        faces.push((name.to_owned(), read_to_string(&path)?));
+    }
+    faces.sort_by(|left, right| left.0.cmp(&right.0));
+    Ok(faces)
+}
+
+pub fn regenerate_faces_with_buck2(
+    repo_root: &Path,
+) -> Result<Vec<(String, String)>, FreshnessError> {
+    let tools = build_face_tools(repo_root)?;
+    let scm_facts = temporary_scm_facts_path();
+    let cleanup = TempFileCleanup {
+        path: scm_facts.clone(),
+    };
+    run_status(
+        Command::new(&tools.emitter)
+            .args(["--repo-root"])
+            .arg(repo_root)
+            .args(["--out"])
+            .arg(&scm_facts)
+            .current_dir(repo_root),
+        "run scm-facts emitter",
+    )?;
+
+    let mut regenerated = vec![(SCM_FACTS_FACE.to_owned(), read_to_string(&scm_facts)?)];
+    for (file_name, face_name) in PRODUCER_FACES {
+        let output = run_output(
+            Command::new(&tools.producer)
+                .args(["--repo-root"])
+                .arg(repo_root)
+                .args(["--scm-facts"])
+                .arg(&scm_facts)
+                .args(["--stdout", "--face", face_name])
+                .current_dir(repo_root),
+            &format!("regenerate {file_name}"),
+        )?;
+        regenerated.push((file_name.to_owned(), output));
+    }
+    drop(cleanup);
+    regenerated.sort_by(|left, right| left.0.cmp(&right.0));
+    Ok(regenerated)
+}
+
+struct FaceTools {
+    emitter: PathBuf,
+    producer: PathBuf,
+}
+
+fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
+    let output = run_output(
+        Command::new("buck2")
+            .arg("build")
+            .arg(EMITTER_TARGET)
+            .arg(PRODUCER_TARGET)
+            .arg("--show-output")
+            .current_dir(repo_root),
+        "buck2 build freshness face tools",
+    )?;
+    let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
+    let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
+    Ok(FaceTools { emitter, producer })
+}
+
+fn parse_show_output_path(
+    repo_root: &Path,
+    output: &str,
+    target: &str,
+) -> Result<PathBuf, FreshnessError> {
+    for line in output.lines() {
+        let mut parts = line.split_whitespace();
+        let seen_target = parts.next().unwrap_or_default();
+        let path = parts.next().unwrap_or_default();
+        if seen_target.contains(target) && !path.is_empty() {
+            let path = PathBuf::from(path);
+            return Ok(if path.is_absolute() {
+                path
+            } else {
+                repo_root.join(path)
+            });
+        }
+    }
+    Err(FreshnessError::new(format!(
+        "buck2 --show-output did not include {target}"
+    )))
+}
+
+fn read_workspace_version(repo_root: &Path) -> Result<String, FreshnessError> {
+    let manifest = read_to_string(&repo_root.join("Cargo.toml"))?;
+    let document: toml::Value = toml::from_str(&manifest).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse root Cargo.toml for workspace version: {error}"
+        ))
+    })?;
+    document
+        .get("workspace")
+        .and_then(|workspace| workspace.get("package"))
+        .and_then(|package| package.get("version"))
+        .and_then(toml::Value::as_str)
+        .map(str::to_owned)
+        .ok_or_else(|| FreshnessError::new("root Cargo.toml missing [workspace.package].version"))
+}
+
+fn read_to_string(path: &Path) -> Result<String, FreshnessError> {
+    std::fs::read_to_string(path)
+        .map_err(|error| FreshnessError::new(format!("read {}: {error}", path.display())))
+}
+
+fn run_output(command: &mut Command, context: &str) -> Result<String, FreshnessError> {
+    let output = command
+        .output()
+        .map_err(|error| FreshnessError::new(format!("{context}: {error}")))?;
+    if !output.status.success() {
+        return Err(command_failed(context, &output));
+    }
+    String::from_utf8(output.stdout)
+        .map_err(|error| FreshnessError::new(format!("{context}: stdout was not UTF-8: {error}")))
+}
+
+fn run_status(command: &mut Command, context: &str) -> Result<(), FreshnessError> {
+    let output = command
+        .output()
+        .map_err(|error| FreshnessError::new(format!("{context}: {error}")))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(command_failed(context, &output))
+    }
+}
+
+fn command_failed(context: &str, output: &std::process::Output) -> FreshnessError {
+    FreshnessError::new(format!(
+        "{context} failed with status {}:\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    ))
+}
+
+fn temporary_scm_facts_path() -> PathBuf {
+    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_nanos(),
+        Err(_) => 0,
+    };
+    std::env::temp_dir().join(format!(
+        "oya-ci-freshness-scm-facts-{}-{nanos}.json",
+        std::process::id()
+    ))
+}
+
+struct TempFileCleanup {
+    path: PathBuf,
+}
+
+impl Drop for TempFileCleanup {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.path);
+    }
+}
+
+fn stale_face_finding(name: &str, reason: &str) -> Finding {
+    Finding::new(
+        FindingCode::GeneratedFaceStale,
+        name,
+        format!("{reason}; remediation: {FACE_REMEDIATION_COMMAND}"),
+    )
+}
+
+fn package_version(
+    package: &toml::map::Map<String, toml::Value>,
+    workspace_version: &str,
+    member_path: &str,
+) -> Result<String, FreshnessError> {
+    let Some(version) = package.get("version") else {
+        return Err(FreshnessError::new(format!(
+            "{member_path}/Cargo.toml [package] missing `version`"
+        )));
+    };
+    if let Some(version) = version.as_str() {
+        return Ok(version.to_owned());
+    }
+    let workspace_inherited = version
+        .as_table()
+        .and_then(|table| table.get("workspace"))
+        .and_then(toml::Value::as_bool)
+        == Some(true);
+    if workspace_inherited {
+        return Ok(workspace_version.to_owned());
+    }
+    Err(FreshnessError::new(format!(
+        "{member_path}/Cargo.toml [package].version must be a string or `version.workspace = true`"
+    )))
+}
+
+fn required_string(
+    table: &toml::map::Map<String, toml::Value>,
+    key: &str,
+    context: &str,
+) -> Result<String, FreshnessError> {
+    table
+        .get(key)
+        .and_then(toml::Value::as_str)
+        .map(str::to_owned)
+        .ok_or_else(|| FreshnessError::new(format!("{context} missing string `{key}`")))
+}

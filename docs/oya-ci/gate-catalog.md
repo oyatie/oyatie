@@ -14,10 +14,10 @@ Each enabled gate declares HOW its current keys are sourced:
 - **`raw-corpus-collector`** — the keys arrive ALREADY GROUPED `code -> keys` from a raw-corpus
   census the binary runs over the tracked text files (NOT a face, NOT `evaluate_keyed`).
   `cloud-ci-brand-residue` uses this.
-- **`frozen-empty-meta`** — the gate contributes NO current keys; its codes exist only in the
-  disposition table and are stamped permanently-empty. (Today every such code lives *under* an
-  existing gate via its disposition's `frozen_empty: true` — e.g. the `registry_drift` code under
-  `cloud-ci-total-accounting`. The KIND is reserved for a wholly-meta gate.)
+- **`frozen-empty-meta`** — the gate contributes NO current keys to
+  `gate-baseline.generated.json`; its codes exist only in the disposition table and are stamped
+  permanently-empty. `cloud-ci-freshness` uses this because it is enforced by a dedicated
+  Buck/GitHub job rather than the accounting-registry producer.
 
 ## Packs
 
@@ -27,7 +27,8 @@ Each enabled gate declares HOW its current keys are sourced:
 - **`rust-cargo`:** bnf-layer-suffix + manifest-hygiene (both `producer-face`). Collectors
   enumerate `Cargo.toml`; consume the `[naming]` + `[manifest]` policy.
 - **`rust-cargo-workspace`:** cargo-prefix + workspace-glob-coverage (both `producer-face`).
-  Collectors enumerate workspace members and crate manifest directories.
+  Collectors enumerate workspace members and crate manifest directories. Freshness is the
+  standalone `frozen-empty-meta` job for Cargo.lock member parity and generated-face byte parity.
 - **`catalog`:** slo-coverage (`producer-face`). The collector expands catalog record globs.
 
 A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo + rust-cargo-workspace +
@@ -47,6 +48,7 @@ catalog`.
 | `cloud-ci-cargo-prefix` | rust-cargo-workspace | producer-face (`cargo_prefix`) | `cargo_prefix_violation`, `cargo_prefix_name_path_mismatch`, `cargo_prefix_unresolvable` |
 | `cloud-ci-slo-coverage` | catalog | producer-face (`slo_coverage`) | `slo_missing_or_blank_slo`, `slo_empty_crate_id`, `slo_no_catalog_records` |
 | `cloud-ci-workspace-glob-coverage` | rust-cargo-workspace | producer-face (`workspace_glob_coverage`) | `workspace_member_explicit_path`, `crate_dir_not_covered` |
+| `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
 
 ## Key shapes (what a `key` identifies)
 
@@ -59,11 +61,12 @@ catalog`.
 - cargo-prefix: the workspace member path.
 - slo-coverage: the catalog crate id.
 - workspace-glob-coverage: the raw member entry or crate manifest directory.
+- freshness: the workspace member path, sourceless lock package name, or generated face filename.
 
 ## frozen-empty codes
 
 A `frozen_empty: true` disposition forces a code's baseline to be permanently empty regardless of
 current keys, so ANY occurrence is NEW debt the firewall blocks. `registry_drift` (under
-total-accounting), `ratchet_regression` + `duplicate_row_id` (under automation-ratchet), and
-`reap_without_report` (under staleness) are frozen-empty meta codes — they cannot accumulate a
-baseline.
+total-accounting), `ratchet_regression` + `duplicate_row_id` (under automation-ratchet),
+`reap_without_report` (under staleness), and all `cloud-ci-freshness` codes are frozen-empty meta
+codes — they cannot accumulate a baseline.

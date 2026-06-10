@@ -4197,6 +4197,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-freshness-app"
+version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "oya-cloud-ci-generated-artifact-control-plane-app"
 version = "0.1.0"
 dependencies = [
@@ -5529,6 +5537,7 @@ dependencies = [
  "oya-check-vendor-lockin-discipline",
  "oya-check-vendor-recency",
  "oya-check-wasm-runtime-discipline",
+ "oya-cloud-ci-freshness-app",
  "oya-data-boundary-kernel",
  "oya-eventing-domain",
  "oya-eventing-file-adapter",

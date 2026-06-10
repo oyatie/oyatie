@@ -67,6 +67,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "pr-traceability",
     "cargo-prefix",
     "pre-push-contract",
+    "freshness",
     "quality-lanes",
     "honest-claims",
     "aspirational-enforcement",
@@ -714,6 +715,11 @@ mod tests {
     #[test]
     fn aggregated_validate_lanes_entries_unique() {
         assert_unique(AGGREGATED_VALIDATE_LANES).expect("validate lanes must be unique");
+    }
+
+    #[test]
+    fn aggregated_validate_lanes_contains_freshness_gate() {
+        assert!(AGGREGATED_VALIDATE_LANES.contains(&"freshness"));
     }
 
     #[test]
