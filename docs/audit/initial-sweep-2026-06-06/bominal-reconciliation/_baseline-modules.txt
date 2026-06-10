@@ -1,0 +1,16 @@
+community
+connect
+emergency
+hr
+insurance
+logistics
+mail
+manufacturing
+medical
+messenger
+patient
+payments
+pharmacy
+records
+security
+workflow
