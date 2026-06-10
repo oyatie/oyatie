@@ -20,6 +20,7 @@
 //! - `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD` — ClickHouse password (required)
 //! - `OYA_CLOUD_INTEL_VALKEY_URL`          — Valkey URL (default: redis://valkey.infra.svc:6379)
 //! - `OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN`  — optional admin-route bearer token (unset = fail closed)
+//! - `OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN` — optional data-plane bearer token (unset = fail closed)
 //! - `OYA_CLOUD_INTEL_ENVIRONMENT`         — environment name (production enforces compliance)
 //! - `OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE` — api_key | oauth_subscription
 //! - `OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS` — APPROVED | API_ONLY | BLOCKED | PENDING

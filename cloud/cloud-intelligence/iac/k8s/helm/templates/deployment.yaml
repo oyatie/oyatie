@@ -113,6 +113,12 @@ spec:
                   name: {{ .Values.secret.secretName | quote }}
                   key: admin_bearer_token
                   optional: true
+            - name: OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.secretName | quote }}
+                  key: ingress_bearer_token
+                  optional: true
             - name: OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE
               value: {{ .Values.providerCompliance.anthropic.authMode | quote }}
             - name: OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS

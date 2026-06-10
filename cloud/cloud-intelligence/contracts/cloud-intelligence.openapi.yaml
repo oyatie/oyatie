@@ -99,9 +99,11 @@ paths:
         keys (never past the first streamed token), then falls back to a configured alternate
         provider pool, then fails 503 (brief §1, §10 failure ladder).
 
-        When `stream` is true the response is `text/event-stream`: each chunk is a
-        `data: `-prefixed JSON `ChatCompletionChunk`, and the stream ends with a single
-        `data: [DONE]` line. TTFT (time-to-first-token) is the headline SLI
+        When `stream` is true the response is `text/event-stream`: OpenAI-compatible
+        provider routes emit `data: `-prefixed JSON `ChatCompletionChunk` events and
+        end with a single `data: [DONE]` line. Gemini-routed streaming currently relays
+        provider-native Gemini SSE after request translation until stream chunk
+        normalization lands. TTFT (time-to-first-token) is the headline SLI
         (slos/ttft.openslo.yaml).
       operationId: createChatCompletion
       parameters:
@@ -117,7 +119,8 @@ paths:
         '200':
           description: |
             Completion. Non-stream returns application/json (ChatCompletion).
-            Stream (`"stream": true`) returns text/event-stream terminated by `data: [DONE]`.
+            Stream (`"stream": true`) returns text/event-stream. OpenAI-compatible providers
+            terminate with `data: [DONE]`; Gemini-routed streams relay provider-native SSE.
           headers:
             x-oyatie-tokens-remaining:
               $ref: '#/components/headers/TokensRemaining'
@@ -131,9 +134,9 @@ paths:
               schema:
                 type: string
                 description: |
-                  Server-Sent Events. Each event: `data: {ChatCompletionChunk JSON}\n\n`.
-                  Final line is the literal sentinel `data: [DONE]`. Bytes are passed through
-                  from the provider unmodified.
+                  Server-Sent Events. OpenAI-compatible provider routes emit `data: {ChatCompletionChunk JSON}\n\n`
+                  and terminate with `data: [DONE]`. Gemini-routed streams relay provider-native
+                  Gemini SSE bytes until normalization lands.
               examples:
                 streamSample:
                   summary: SSE chunk stream ending in [DONE]
@@ -510,8 +513,8 @@ paths:
             schema:
               $ref: '#/components/schemas/ResumeCircuitBreakerRequest'
       responses:
-        '200':
-          description: Resume accepted.
+        '501':
+          description: Resume mutation is not implemented yet; the gateway fails closed instead of returning a false success.
           content:
             application/json:
               schema:
@@ -848,8 +851,8 @@ components:
       required: true
       schema:
         type: string
-        enum: [anthropic, codex]
-      description: Provider pool. `anthropic` covers Claude subscriptions; `codex` covers OpenAI/Codex subscriptions.
+        enum: [anthropic, codex, gemini]
+      description: Provider pool. `anthropic` covers Claude subscriptions; `codex` covers OpenAI/Codex subscriptions; `gemini` covers Google Gemini API-key seats.
   headers:
     RetryAfter:
       schema: { type: integer }
@@ -1254,7 +1257,7 @@ components:
       required: [scope, status]
       properties:
         scope: { type: string }
-        status: { type: string, enum: [resumed, unchanged] }
+        status: { type: string, enum: [not_implemented] }
     AgentRuntimeProfile:
       type: object
       required: [kind, tenant_id, name, model_route_ref, prompt_profile_ref, thinking_policy_ref, tool_compatibility_profile_ref, sandbox_policy_ref, cloud_intelligence_owned_control_plane, embeds_model_runtime, installs_cli_or_tui_surface]
