@@ -23,9 +23,17 @@ pub const ENV_CEDAR_POLICY_PATH: &str = "OYA_IDENTITY_CEDAR_POLICY_PATH";
 /// principals for single-node bring-up (the durable store arrives behind the
 /// same repository port via the G03 persistence lane).
 pub const ENV_PRINCIPALS_PATH: &str = "OYA_IDENTITY_PRINCIPALS_PATH";
+/// `OYA_IDENTITY_SIGNING_KEY_PATH` — optional path to a PKCS#8 (DER) ES256
+/// issuer signing key. When set, the OIDC issuer surface (RFC 8414 discovery
+/// + JWKS publication) is served; key custody moves behind the G02 KMS port.
+pub const ENV_SIGNING_KEY_PATH: &str = "OYA_IDENTITY_SIGNING_KEY_PATH";
+/// `OYA_IDENTITY_SIGNING_KID` — key id for the issuer signing key
+/// (default `oya-identity-k1`).
+pub const ENV_SIGNING_KID: &str = "OYA_IDENTITY_SIGNING_KID";
 
 const DEFAULT_REST_ADDR: &str = "0.0.0.0:8080";
 const DEFAULT_GRPC_ADDR: &str = "0.0.0.0:8081";
+const DEFAULT_SIGNING_KID: &str = "oya-identity-k1";
 
 /// Service configuration resolved from the environment.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -44,6 +52,11 @@ pub struct Config {
     pub cedar_policy_path: String,
     /// Optional path to the principal seed JSON (bring-up store).
     pub principals_path: Option<String>,
+    /// Optional path to the PKCS#8 ES256 issuer signing key (issuer surface
+    /// enabled when set).
+    pub signing_key_path: Option<String>,
+    /// Key id for the issuer signing key.
+    pub signing_kid: String,
 }
 
 /// A missing required environment variable.
@@ -83,6 +96,8 @@ impl Config {
             jwks_path: required(ENV_JWKS_PATH)?,
             cedar_policy_path: required(ENV_CEDAR_POLICY_PATH)?,
             principals_path: lookup(ENV_PRINCIPALS_PATH),
+            signing_key_path: lookup(ENV_SIGNING_KEY_PATH),
+            signing_kid: lookup(ENV_SIGNING_KID).unwrap_or_else(|| DEFAULT_SIGNING_KID.into()),
         })
     }
 }

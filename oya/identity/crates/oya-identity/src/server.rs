@@ -15,6 +15,7 @@ use tokio::task::JoinHandle;
 use tonic::transport::server::TcpIncoming;
 use tracing::{error, info};
 
+use oya_identity_oidc_issuer_kernel::{IssuerError, IssuerUrl};
 use oya_identity_workload_app::{
     InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository,
 };
@@ -24,6 +25,7 @@ use oya_identity_workload_rest::WorkloadAuthzState;
 
 use crate::config::Config;
 use crate::observability::TracingAuditSink;
+use crate::oidc::issuer::{Es256FileSigner, IssuerState, build_issuer_router};
 use crate::oidc::{JwksParseError, jwks_from_json};
 use crate::storage::{SeedError, seed_from_json};
 use crate::{grpc, rest};
@@ -50,6 +52,8 @@ pub enum StartError {
     Cedar(CedarAuthzError),
     /// The principal seed was rejected.
     Seed(SeedError),
+    /// The issuer signing key or issuer identity was rejected.
+    Issuer(IssuerError),
     /// A listener could not bind.
     Bind { addr: String, source: std::io::Error },
     /// The gRPC incoming acceptor could not be constructed.
@@ -63,6 +67,7 @@ impl fmt::Display for StartError {
             Self::Jwks(err) => write!(f, "JWKS rejected: {err}"),
             Self::Cedar(err) => write!(f, "Cedar policy set rejected: {err}"),
             Self::Seed(err) => write!(f, "principal seed rejected: {err}"),
+            Self::Issuer(err) => write!(f, "issuer signing setup rejected: {err:?}"),
             Self::Bind { addr, source } => write!(f, "cannot bind {addr}: {source}"),
             Self::GrpcIncoming(detail) => write!(f, "gRPC acceptor failed: {detail}"),
         }
@@ -108,6 +113,42 @@ fn read_file(path: &str) -> Result<String, StartError> {
         path: path.to_string(),
         source,
     })
+}
+
+fn read_bytes(path: &str) -> Result<Vec<u8>, StartError> {
+    std::fs::read(path).map_err(|source| StartError::Io {
+        path: path.to_string(),
+        source,
+    })
+}
+
+/// Compose the optional OIDC issuer state (enabled when a signing key is
+/// configured). The file signer is the transitional custody adapter behind
+/// the kernel's `JwsSigner` port — the G02 KMS adapter replaces it there.
+fn build_issuer_state(config: &Config) -> Result<Option<Arc<IssuerState>>, StartError> {
+    let Some(path) = &config.signing_key_path else {
+        return Ok(None);
+    };
+    let signer = Es256FileSigner::from_pkcs8_der(&config.signing_kid, &read_bytes(path)?)
+        .map_err(StartError::Issuer)?;
+    let mut key = signer.signing_key().map_err(StartError::Issuer)?;
+    key.activate(default_now_epoch_seconds()).map_err(StartError::Issuer)?;
+    let issuer_url = IssuerUrl::new(&config.issuer).map_err(StartError::Issuer)?;
+    Ok(Some(Arc::new(IssuerState::new(
+        issuer_url,
+        vec![key],
+        Arc::new(signer),
+        default_now_epoch_seconds,
+    ))))
+}
+
+/// Wall-clock epoch seconds, saturating (ADR-0083 panic-free).
+fn default_now_epoch_seconds() -> i64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| i64::try_from(d.as_secs()).unwrap_or(i64::MAX))
+        .unwrap_or(0)
 }
 
 /// Compose the application state from configuration (fail-fast).
@@ -171,7 +212,10 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
 
-    let rest_router = rest::build_service_router(Arc::clone(&state));
+    let mut rest_router = rest::build_service_router(Arc::clone(&state));
+    if let Some(issuer_state) = build_issuer_state(config)? {
+        rest_router = rest_router.merge(build_issuer_router(issuer_state));
+    }
     let mut rest_shutdown = shutdown_rx.clone();
     let rest_task = tokio::spawn(async move {
         let shutdown = async move {
