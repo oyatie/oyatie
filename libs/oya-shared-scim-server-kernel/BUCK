@@ -10,3 +10,17 @@ rust_library(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-shared-scim-server-kernel-scim-server-kernel",
+    srcs = ["tests/scim_server_kernel.rs"],
+    crate = "oya_shared_scim_server_kernel_scim_server_kernel",
+    crate_root = "tests/scim_server_kernel.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-shared-scim-server-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+    ],
+)
