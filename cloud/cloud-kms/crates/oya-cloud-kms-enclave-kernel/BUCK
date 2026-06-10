@@ -46,6 +46,17 @@ rust_test(
 )
 
 rust_test(
+    name = "crypto-shred-test",
+    srcs = glob(["tests/crypto_shred.rs"]),
+    crate = "oya_cloud_kms_enclave_kernel_crypto_shred_test",
+    crate_root = "tests/crypto_shred.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-kms-enclave-kernel",
+    ],
+)
+
+rust_test(
     name = "one-way-door-test",
     srcs = glob(["tests/one_way_door.rs"]),
     crate = "oya_cloud_kms_enclave_kernel_one_way_door_test",

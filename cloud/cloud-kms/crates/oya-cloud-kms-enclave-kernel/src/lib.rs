@@ -40,6 +40,7 @@ pub mod chain;
 pub mod dek_cache;
 pub mod material;
 pub mod mlocked;
+pub mod shred;
 pub mod token;
 
 pub use chain::{DecryptOnlyKek, KekVersionChain};
@@ -48,6 +49,11 @@ pub use dek_cache::{
     FetchSource, SystemClockSource,
 };
 pub use material::{DekMaterial, EnclaveRoot, KekMaterial, KekVersion, SealingRootId};
+pub use shred::{
+    PendingDeletionChain, QuorumPolicy, ScheduledKeyDeletion, ShredAction,
+    ShredAuthorizationPort, ShredAuthorizationRequest, ShredDecision, ShredDecisionEvidence,
+    ShredError, ShredProof, MIN_WAITING_WINDOW_SECONDS,
+};
 pub use token::{TokenError, WrappedDek, WrappedKekToken};
 
 // Re-exported so enclave callers name envelope identifiers without a direct
