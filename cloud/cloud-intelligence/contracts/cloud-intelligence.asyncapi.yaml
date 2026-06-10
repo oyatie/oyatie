@@ -49,6 +49,31 @@ channels:
     messages:
       auditRecord:
         $ref: '#/components/messages/AuditRecord'
+
+  llm.parity.v1:
+    address: persistent://public/default/oya.llm.parity.v1
+    description: Capability parity baseline/report snapshots for XPROXY and future reference baselines.
+    messages:
+      paritySnapshot:
+        $ref: '#/components/messages/CapabilityParitySnapshot'
+  llm.drift.v1:
+    address: persistent://public/default/oya.llm.drift.v1
+    description: Drift probe outcomes for pinned baselines, provider wire profiles, and compatibility canaries.
+    messages:
+      driftProbeResult:
+        $ref: '#/components/messages/DriftProbeResult'
+  llm.compatibility.v1:
+    address: persistent://public/default/oya.llm.compatibility.v1
+    description: Client/tool compatibility canary outcomes emitted by workers.
+    messages:
+      compatibilityCanaryResult:
+        $ref: '#/components/messages/CompatibilityCanaryResult'
+  llm.circuit_breaker.v1:
+    address: persistent://public/default/oya.llm.circuit_breaker.v1
+    description: GatewayCircuitBreaker open/resume/cooldown events with Retry-After semantics.
+    messages:
+      circuitBreakerEvent:
+        $ref: '#/components/messages/CircuitBreakerEvent'
 operations:
   publishUsage:
     action: send
@@ -64,6 +89,35 @@ operations:
     summary: Gateway emits an immutable audit record per invocation (100%).
     messages:
       - $ref: '#/channels/llm.audit.v1/messages/auditRecord'
+
+  publishParitySnapshot:
+    action: send
+    channel:
+      $ref: '#/channels/llm.parity.v1'
+    summary: Parity worker emits a capability parity snapshot/report.
+    messages:
+      - $ref: '#/channels/llm.parity.v1/messages/paritySnapshot'
+  publishDriftProbeResult:
+    action: send
+    channel:
+      $ref: '#/channels/llm.drift.v1'
+    summary: Drift worker emits a pinned-baseline or wire-profile probe result.
+    messages:
+      - $ref: '#/channels/llm.drift.v1/messages/driftProbeResult'
+  publishCompatibilityCanaryResult:
+    action: send
+    channel:
+      $ref: '#/channels/llm.compatibility.v1'
+    summary: Compatibility worker emits a client/tool canary result.
+    messages:
+      - $ref: '#/channels/llm.compatibility.v1/messages/compatibilityCanaryResult'
+  publishCircuitBreakerEvent:
+    action: send
+    channel:
+      $ref: '#/channels/llm.circuit_breaker.v1'
+    summary: Gateway or controller emits circuit-breaker state changes.
+    messages:
+      - $ref: '#/channels/llm.circuit_breaker.v1/messages/circuitBreakerEvent'
 components:
   messageTraits:
     GatewayEnvelope:
@@ -102,6 +156,39 @@ components:
         - $ref: '#/components/messageTraits/GatewayEnvelope'
       payload:
         $ref: '#/components/schemas/AuditPayload'
+
+    CapabilityParitySnapshot:
+      name: CapabilityParitySnapshot
+      title: XPROXY capability parity snapshot
+      summary: Machine-readable parity report status for all tracked capabilities.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/CapabilityParityPayload'
+    DriftProbeResult:
+      name: DriftProbeResult
+      title: Drift probe result
+      summary: Outcome from provider wire/profile or pinned-baseline drift worker.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/DriftProbePayload'
+    CompatibilityCanaryResult:
+      name: CompatibilityCanaryResult
+      title: Compatibility canary result
+      summary: Client/tool compatibility matrix canary result.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/CompatibilityCanaryPayload'
+    CircuitBreakerEvent:
+      name: CircuitBreakerEvent
+      title: Gateway circuit breaker event
+      summary: Circuit-breaker open, cooldown, or resume transition.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/CircuitBreakerPayload'
   schemas:
     UsagePayload:
       type: object
@@ -182,3 +269,43 @@ components:
         audit_chain_prev_hash:
           type: string
           description: Hash of the previous audit-chain entry (tamper-evident hash chain into evidence/audit-chain.jsonl, brief §9).
+
+    CapabilityParityPayload:
+      type: object
+      required: [schema_version, artifact_family, capability_namespace, total, statuses]
+      properties:
+        schema_version: { type: string, const: '1' }
+        artifact_family: { type: string, const: external-proxy-reference }
+        capability_namespace: { type: string, const: XPROXY }
+        total: { type: integer, const: 50 }
+        statuses:
+          type: object
+          additionalProperties: { type: integer }
+        report_uri: { type: string, nullable: true }
+    DriftProbePayload:
+      type: object
+      required: [schema_version, probe_id, status, baseline_commit]
+      properties:
+        schema_version: { type: string, const: '1' }
+        probe_id: { type: string }
+        status: { type: string, enum: [passed, failed, inconclusive] }
+        baseline_commit: { type: string }
+        delta_uri: { type: string, nullable: true }
+    CompatibilityCanaryPayload:
+      type: object
+      required: [schema_version, client_profile, status]
+      properties:
+        schema_version: { type: string, const: '1' }
+        client_profile: { type: string }
+        tool_profile: { type: string, nullable: true }
+        status: { type: string, enum: [supported, inferred, blocked, failed] }
+        evidence_uri: { type: string, nullable: true }
+    CircuitBreakerPayload:
+      type: object
+      required: [schema_version, scope, state]
+      properties:
+        schema_version: { type: string, const: '1' }
+        scope: { type: string }
+        state: { type: string, enum: [closed, open, cooldown, resumed] }
+        retry_after_seconds: { type: integer, nullable: true }
+        reason: { type: string, nullable: true }
