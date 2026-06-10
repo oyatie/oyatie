@@ -308,7 +308,7 @@ message ResumeCircuitBreakerRequest {
 
 message ResumeCircuitBreakerResponse {
   string scope = 1;
-  string status = 2; // resumed | unchanged
+  string status = 2; // not_implemented until resume mutation is wired
   google.protobuf.Timestamp resumed_at = 3;
   Error error = 4; // unset on success
 }

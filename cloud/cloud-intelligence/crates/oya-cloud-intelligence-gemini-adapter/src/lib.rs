@@ -158,6 +158,36 @@ impl GeminiApiKeyAdapter {
         self.translate_response(native_response, &model, GeminiResponseShape::OpenAi)
     }
 
+    /// Translate an OpenAI-compatible chat-completions request to Gemini
+    /// generateContent and proxy it through Gemini streamGenerateContent.
+    ///
+    /// The returned stream is provider-native SSE. REST callers use this only
+    /// for Gemini-routed streaming requests so the endpoint no longer advertises
+    /// a stream capability that fails closed before provider dispatch.
+    pub async fn proxy_openai_chat_stream(
+        &self,
+        api_key: &str,
+        body: Vec<u8>,
+        extra_headers: BTreeMap<String, String>,
+    ) -> Result<(u16, BTreeMap<String, String>, GeminiByteStream), GeminiAdapterError> {
+        let payload: serde_json::Value = serde_json::from_slice(&body)
+            .map_err(|e| GeminiAdapterError::InvalidRequest(e.to_string()))?;
+        let translated = openai_chat_to_gemini_generate_content(&payload)
+            .map_err(|e| GeminiAdapterError::InvalidRequest(format!("{e:?}")))?;
+        let model = translated.model.clone();
+        let native_body = serde_json::to_vec(&translated)
+            .map_err(|e| GeminiAdapterError::InvalidRequest(e.to_string()))?;
+        self.proxy_stream_generate_content(
+            api_key,
+            &model,
+            GeminiProxyRequest {
+                body: native_body,
+                extra_headers,
+            },
+        )
+        .await
+    }
+
     /// Translate an Anthropic Messages request to Gemini generateContent, proxy
     /// it, then translate the provider response back to Anthropic Messages
     /// shape. Translation lives at the adapter boundary.
@@ -187,16 +217,44 @@ impl GeminiApiKeyAdapter {
         self.translate_response(native_response, &model, GeminiResponseShape::Anthropic)
     }
 
+    /// Translate an Anthropic Messages request to Gemini generateContent and
+    /// proxy it through Gemini streamGenerateContent.
+    pub async fn proxy_anthropic_messages_stream(
+        &self,
+        api_key: &str,
+        body: Vec<u8>,
+        extra_headers: BTreeMap<String, String>,
+    ) -> Result<(u16, BTreeMap<String, String>, GeminiByteStream), GeminiAdapterError> {
+        let payload: serde_json::Value = serde_json::from_slice(&body)
+            .map_err(|e| GeminiAdapterError::InvalidRequest(e.to_string()))?;
+        let translated = anthropic_messages_to_gemini_generate_content(&payload)
+            .map_err(|e| GeminiAdapterError::InvalidRequest(format!("{e:?}")))?;
+        let model = translated.model.clone();
+        let native_body = serde_json::to_vec(&translated)
+            .map_err(|e| GeminiAdapterError::InvalidRequest(e.to_string()))?;
+        self.proxy_stream_generate_content(
+            api_key,
+            &model,
+            GeminiProxyRequest {
+                body: native_body,
+                extra_headers,
+            },
+        )
+        .await
+    }
+
     fn translate_response(
         &self,
         native_response: GeminiProxyResponse,
         model: &str,
         response_shape: GeminiResponseShape,
     ) -> Result<GeminiProxyResponse, GeminiAdapterError> {
-        let payload: serde_json::Value = serde_json::from_slice(&native_response.body)
-            .map_err(|e| GeminiAdapterError::UpstreamError {
-                status: native_response.status,
-                body: format!("invalid upstream JSON: {e}"),
+        let payload: serde_json::Value =
+            serde_json::from_slice(&native_response.body).map_err(|e| {
+                GeminiAdapterError::UpstreamError {
+                    status: native_response.status,
+                    body: format!("invalid upstream JSON: {e}"),
+                }
             })?;
         let translated = match response_shape {
             GeminiResponseShape::OpenAi => {
@@ -323,7 +381,11 @@ fn filtered_response_headers(headers: &reqwest::header::HeaderMap) -> BTreeMap<S
     let response_connection_tokens: HashSet<String> = headers
         .get("connection")
         .and_then(|v| v.to_str().ok())
-        .map(|v| v.split(',').map(|t| t.trim().to_ascii_lowercase()).collect())
+        .map(|v| {
+            v.split(',')
+                .map(|t| t.trim().to_ascii_lowercase())
+                .collect()
+        })
         .unwrap_or_default();
 
     let mut filtered = BTreeMap::new();

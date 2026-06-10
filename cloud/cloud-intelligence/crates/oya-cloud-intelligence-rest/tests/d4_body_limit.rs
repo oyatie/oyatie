@@ -66,7 +66,10 @@ fn make_state() -> Arc<AppState> {
         sink: Arc::new(NoopSink),
         secret_store: Arc::new(StubStore),
         anthropic_base_url: "http://127.0.0.1:1".to_string(),
+        openai_compatible_base_url: "http://127.0.0.1:1".to_string(),
+        gemini_base_url: "http://127.0.0.1:1".to_string(),
         tenant_id: tenant,
+        ingress_bearer_token: Some("ingress-token".to_string()),
         admin_bearer_token: None,
         environment: "test".to_string(),
         oauth_approved_providers: std::collections::HashSet::new(),
@@ -91,6 +94,7 @@ async fn post_exceeding_1mib_returns_413() {
         .method("POST")
         .uri("/v1/messages")
         .header("content-type", "application/json")
+        .header("authorization", "Bearer ingress-token")
         .header("x-agent-id", "agent-limit-test")
         .body(Body::from(oversized))
         .unwrap();
@@ -115,6 +119,7 @@ async fn post_at_exactly_1mib_does_not_return_413() {
         .method("POST")
         .uri("/v1/messages")
         .header("content-type", "application/json")
+        .header("authorization", "Bearer ingress-token")
         .header("x-agent-id", "agent-limit-test")
         .body(Body::from(at_limit))
         .unwrap();

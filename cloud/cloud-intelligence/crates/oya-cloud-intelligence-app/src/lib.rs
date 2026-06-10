@@ -232,6 +232,9 @@ pub struct AppConfig {
     /// Optional admin bearer token for tenant-scoped pool-management routes.
     /// If unset, admin routes fail closed with 401.
     pub admin_bearer_token: Option<String>, // data_class: SECRET
+    /// Optional data-plane ingress bearer token for `/v1/*` routes. If unset,
+    /// the REST adapter fails all data-plane routes closed with 401.
+    pub ingress_bearer_token: Option<String>, // data_class: SECRET
     /// Runtime environment. Production enforces provider-compliance gates.
     pub environment: String, // data_class: INTERNAL_ONLY
     /// Provider/mode compliance statuses used to fail-close OAuth subscription
@@ -257,6 +260,7 @@ impl AppConfig {
     /// | `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD`| *(required)*                     |
     /// | `OYA_CLOUD_INTEL_VALKEY_URL`         | `redis://valkey.infra.svc:6379`  |
     /// | `OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN` | *(unset: admin routes 401)*      |
+    /// | `OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN` | *(unset: data-plane routes 401)* |
     /// | `OYA_CLOUD_INTEL_ENVIRONMENT`        | `development`                    |
     /// | `OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE`| `oauth_subscription`             |
     /// | `OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS`| `PENDING`                     |
@@ -304,6 +308,9 @@ impl AppConfig {
         let admin_bearer_token = std::env::var("OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN")
             .ok()
             .filter(|token| !token.trim().is_empty());
+        let ingress_bearer_token = std::env::var("OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN")
+            .ok()
+            .filter(|token| !token.trim().is_empty());
         let config = Self {
             listen_addr,
             tenant_id,
@@ -318,6 +325,7 @@ impl AppConfig {
             clickhouse_password,
             valkey_url,
             admin_bearer_token,
+            ingress_bearer_token,
             environment,
             provider_compliance,
         };
@@ -697,6 +705,7 @@ pub fn build_app(config: AppConfig) -> Result<Arc<AppState>, AppBuildError> {
         secret_store,
         config.anthropic_base_url,
         tenant_id,
+        config.ingress_bearer_token,
         config.admin_bearer_token,
         config.environment.clone(),
         oauth_approved_providers(&config.provider_compliance),
@@ -760,6 +769,7 @@ pub fn build_app_for_tests(config: AppConfig) -> Result<Arc<AppState>, AppBuildE
         secret_store,
         config.anthropic_base_url,
         tenant_id,
+        config.ingress_bearer_token,
         config.admin_bearer_token,
         config.environment.clone(),
         oauth_approved_providers(&config.provider_compliance),
@@ -945,6 +955,7 @@ mod tests {
             clickhouse_password: "test".to_string(),
             valkey_url: "redis://127.0.0.1:1".to_string(),
             admin_bearer_token: Some("admin-token".to_string()),
+            ingress_bearer_token: Some("ingress-token".to_string()),
             environment: "test".to_string(),
             provider_compliance: ProviderComplianceConfig::default(),
             tenant_provider_pools: vec![],
@@ -1008,6 +1019,7 @@ mod tests {
             clickhouse_password: "test".to_string(),
             valkey_url: "redis://127.0.0.1:1".to_string(),
             admin_bearer_token: None,
+            ingress_bearer_token: None,
             environment: "test".to_string(),
             provider_compliance: ProviderComplianceConfig::default(),
             tenant_provider_pools: vec![],
@@ -1254,6 +1266,7 @@ mod tests {
             "OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN",
             "OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD",
             "OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN",
+            "OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN",
             "OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE",
             "OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS",
             "OYA_CLOUD_INTEL_CODEX_AUTH_MODE",
@@ -1383,6 +1396,7 @@ mod tests {
             "secret_provider_token",
             "clickhouse_password",
             "admin_bearer_token",
+            "ingress_bearer_token",
         ] {
             assert!(
                 external_secret_template.contains(expected),
