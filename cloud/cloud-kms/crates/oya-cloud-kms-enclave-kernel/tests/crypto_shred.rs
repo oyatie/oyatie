@@ -191,10 +191,10 @@ fn approval_rules_distinct_and_no_self_approval() {
 }
 
 #[test]
-fn cancel_restores_encrypt_capable_custody() {
+fn cancel_restores_encrypt_capable_custody_with_attribution() {
     let (chain, blob, wrapped) = chain_with_history("kek/ten_alpha");
     let pdp = FixedPdp { permit: true };
-    let scheduled = ScheduledKeyDeletion::schedule(
+    let mut scheduled = ScheduledKeyDeletion::schedule(
         chain,
         "ten_alpha".to_owned(),
         "requester@ops".to_owned(),
@@ -204,13 +204,66 @@ fn cancel_restores_encrypt_capable_custody() {
         T0,
     )
     .expect("schedule");
+    scheduled.approve("approver-a@ops".to_owned()).expect("approval before cancel");
 
-    let restored = scheduled
+    let (restored, evidence) = scheduled
         .cancel("operator@ops".to_owned(), &pdp, T0 + 60)
         .expect("permitted cancel");
+
+    // Cancellation is fully attributable: actor, both policy decisions,
+    // accumulated approvals, and the schedule/cancel timeline.
+    assert_eq!(evidence.kek_id.value(), "kek/ten_alpha");
+    assert_eq!(evidence.tenant_id, "ten_alpha");
+    assert_eq!(evidence.cancelled_by, "operator@ops");
+    assert_eq!(evidence.cancel_decision.policy_version, "policy-v7");
+    assert!(evidence.cancel_decision.decision_id.contains("Cancel"));
+    assert!(evidence.schedule_decision.decision_id.contains("Schedule"));
+    assert_eq!(evidence.approvals_at_cancel, vec!["approver-a@ops".to_owned()]);
+    assert_eq!(evidence.scheduled_at_epoch_seconds, T0);
+    assert_eq!(evidence.cancelled_at_epoch_seconds, T0 + 60);
+
     let dek = restored.unwrap_dek(&wrapped).expect("reads restored");
     assert_eq!(dek.open(b"ctx", &blob).expect("open").as_slice(), b"tenant payload");
     assert!(restored.generate_dek(DekId::new("dek/obj_3").unwrap()).is_ok());
+}
+
+#[test]
+fn property_sweep_quorum_arithmetic() {
+    // Property: for every (required M, granted N) pair, execute() succeeds
+    // iff N >= M once the window elapsed — never on any other arithmetic.
+    for required in 1u32..=5 {
+        for granted in 0u32..=6 {
+            let (chain, _, _) = chain_with_history("kek/ten_alpha");
+            let pdp = FixedPdp { permit: true };
+            let mut scheduled = ScheduledKeyDeletion::schedule(
+                chain,
+                "ten_alpha".to_owned(),
+                "requester@ops".to_owned(),
+                &pdp,
+                quorum(required),
+                MIN_WAITING_WINDOW_SECONDS,
+                T0,
+            )
+            .expect("schedule");
+            for approver in 0..granted {
+                scheduled
+                    .approve(format!("approver-{approver}@ops"))
+                    .expect("distinct approver");
+            }
+            let outcome = scheduled.execute(T0 + MIN_WAITING_WINDOW_SECONDS);
+            if granted >= required {
+                let proof = outcome.expect("N >= M must shred");
+                assert_eq!(proof.approvers.len(), granted as usize, "M={required} N={granted}");
+            } else {
+                let (_, err) = outcome.expect_err("N < M must fail closed");
+                assert_eq!(
+                    err,
+                    ShredError::QuorumNotReached { have: granted, need: required },
+                    "M={required} N={granted}"
+                );
+            }
+        }
+    }
 }
 
 #[test]

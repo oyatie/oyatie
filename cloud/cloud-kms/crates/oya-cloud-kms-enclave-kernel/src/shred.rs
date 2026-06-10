@@ -174,6 +174,31 @@ impl std::fmt::Debug for PendingDeletionChain {
     }
 }
 
+/// Evidence that a scheduled crypto-shred was CANCELLED. Cancellation keeps
+/// tenant data alive past a deletion request — the insider-relevant action —
+/// so it is exactly as attributable as execution: who cancelled, under which
+/// policy decision, what the original schedule decision was, and which
+/// approvals existed at cancel time.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CancelEvidence {
+    /// The KEK whose deletion was cancelled.
+    pub kek_id: KekId,
+    /// Tenant whose data remains live.
+    pub tenant_id: String,
+    /// Principal that cancelled the deletion.
+    pub cancelled_by: String,
+    /// Cedar decision that permitted the cancellation.
+    pub cancel_decision: ShredDecisionEvidence,
+    /// Cedar decision that had permitted the original scheduling.
+    pub schedule_decision: ShredDecisionEvidence,
+    /// Approvals that had accumulated before the cancellation.
+    pub approvals_at_cancel: Vec<String>,
+    /// When the deletion had been scheduled.
+    pub scheduled_at_epoch_seconds: u64,
+    /// When the deletion was cancelled.
+    pub cancelled_at_epoch_seconds: u64,
+}
+
 /// Proof that a crypto-shred completed, chaining to the authorizing policy
 /// decision and the quorum that approved it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -289,23 +314,37 @@ impl ScheduledKeyDeletion {
     }
 
     /// Cancel the pending deletion (PDP-gated like scheduling) and return
-    /// full encrypt-capable custody.
+    /// full encrypt-capable custody PLUS the attribution evidence — a
+    /// cancellation keeps tenant data alive past a deletion request, so it
+    /// must chain to its policy decision exactly like execution does.
     #[allow(clippy::result_large_err)] // custody must stay inside on failure
     pub fn cancel(
         self,
         actor: String,
         pdp: &dyn ShredAuthorizationPort,
         now_epoch_seconds: u64,
-    ) -> Result<KekVersionChain, (Self, ShredError)> {
+    ) -> Result<(KekVersionChain, CancelEvidence), (Self, ShredError)> {
         let request = ShredAuthorizationRequest {
             tenant_id: self.tenant_id.clone(),
             kek_id: self.pending.kek_id().clone(),
-            actor,
+            actor: actor.clone(),
             action: ShredAction::Cancel,
             requested_at_epoch_seconds: now_epoch_seconds,
         };
         match pdp.authorize(&request) {
-            ShredDecision::Permit(_) => Ok(self.pending.chain),
+            ShredDecision::Permit(cancel_decision) => {
+                let evidence = CancelEvidence {
+                    kek_id: self.pending.kek_id().clone(),
+                    tenant_id: self.tenant_id,
+                    cancelled_by: actor,
+                    cancel_decision,
+                    schedule_decision: self.schedule_decision,
+                    approvals_at_cancel: self.approvals.into_iter().collect(),
+                    scheduled_at_epoch_seconds: self.scheduled_at_epoch_seconds,
+                    cancelled_at_epoch_seconds: now_epoch_seconds,
+                };
+                Ok((self.pending.chain, evidence))
+            }
             ShredDecision::Deny(evidence) => {
                 Err((self, ShredError::NotPermitted { evidence }))
             }

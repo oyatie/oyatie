@@ -50,7 +50,7 @@ pub use dek_cache::{
 };
 pub use material::{DekMaterial, EnclaveRoot, KekMaterial, KekVersion, SealingRootId};
 pub use shred::{
-    PendingDeletionChain, QuorumPolicy, ScheduledKeyDeletion, ShredAction,
+    CancelEvidence, PendingDeletionChain, QuorumPolicy, ScheduledKeyDeletion, ShredAction,
     ShredAuthorizationPort, ShredAuthorizationRequest, ShredDecision, ShredDecisionEvidence,
     ShredError, ShredProof, MIN_WAITING_WINDOW_SECONDS,
 };
