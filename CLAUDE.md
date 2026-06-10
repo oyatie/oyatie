@@ -10,7 +10,7 @@ Pointers: `/specs/master-plan-sequencing.json`; `/specs/markdown-retirement-poli
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 
-Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0513 owns cloud-ci/oya-ci Tide admission.
+Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/oya-ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
 
 ## Skill discovery doctrine (runtime-installed)
 
@@ -22,7 +22,9 @@ Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + gover
 coordination_surface: governance_pipeline
 retirement_adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
 retired_external_agent_coordination_tooling: true
-observability_substrate: cloud/observability/ (per ADR-0130 agentic SLO-gated promotion + ADR-0131/ADR-0512 pure-split colocation; SLO authoring at {oya,cloud}/<service>/slos/*.openslo.yaml mandatory before any service promotes past dev)
+observability_substrate: cloud/cloud-observability/ (per ADR-0130 agentic SLO-gated promotion + ADR-0131/ADR-0512 pure-split colocation; SLO authoring at {oya,cloud}/<service>/slos/*.openslo.yaml mandatory before any service promotes past dev)
+cli_surface_policy: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09; verification and merge authority live in the cloud-ci gate apps behind the single required context oya-ci-required, operations ride the console + API, and legacy oya-dev-cli/bin/oya invocations are local bridge feedback only, never merge authority
+owned_stack_policy: cloud-native K8s-native operation with the whole stack owned in Rust — kuberos kernel -> cloud-os -> cloud-k8s -> cloud services -> oyatie products (founder directive 2026-06-09); upstream k8s/Talos remain ADR-0510 transitional behind stable interfaces
 microservice_layout_authority: ADR-0131 as amended by ADR-0512/platform-readiness pure split; new services ship under {oya,cloud}/<service>/, shared code under libs/, and legacy microservices/ is removal-candidate after verified migration
 no_grouping_policy: ADR-0132 — no new bundle/grouping µservices; every new µservice is single-concern + flat
 new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-governance-* lanes retained until each is renamed in its own migration IP
@@ -31,14 +33,17 @@ required_workflow:
   - layer_0_isolation: one isolated worktree per agent lane
   - layer_2_entry: pull request against dev enters the governance pipeline
   - admission_gate: validate policy, evidence, and required Prow/cloud-ci status checks
-  - merge_queue: order and admit via ADR-0111 projected merge state owned by ADR-0513 cloud-ci/oya-ci-tide
+  - merge_queue: order and admit via ADR-0111 projected merge state owned by ADR-0515 cloud-ci/oya-ci-tide
   - completion_gate: reviewer-agent APPROVE plus cloud-ci green before auto-merge
 
 current_substrate_adrs:
-  - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # folded into ADR-0513 cloud-ci/oya-ci Tide
+  - docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md # folded into ADR-0515 cloud-ci/oya-ci Tide
   - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
   - docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
-  - docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md
+  - docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
+  - docs/decisions/ADR-0516-agentic-delivery-fabric-apex-vision.md # entry point of the ADR-0516..ADR-0535 fabric cluster
+historical_substrate_adrs:
+  - docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md # status Superseded; superseded_by ADR-0515 (accepted 2026-06-07)
 historical_vcs_ratchet_adrs:
   - docs/decisions/ADR-0110-changeset-state-machine.md
   - docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md
