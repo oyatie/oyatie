@@ -9,6 +9,8 @@
 //! Fail-closed parsing: an unknown `kty`/`crv` or a missing coordinate is an
 //! error, never a silently-skipped key.
 
+pub mod issuer;
+
 use std::fmt;
 
 use serde::Deserialize;

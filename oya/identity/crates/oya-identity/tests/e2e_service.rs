@@ -115,6 +115,14 @@ async fn boot(fixture: &SigningFixture) -> server::ServiceHandle {
     std::fs::write(&cedar_path, CEDAR_POLICIES).expect("write cedar");
     std::fs::write(&seed_path, PRINCIPAL_SEED).expect("write seed");
 
+    // Issuer signing key: fresh ES256 PKCS#8 mounted the same way a K8s
+    // secret would be (custody moves behind the G02 KMS port later).
+    let signing_key_path = dir.join("signing-key.p8");
+    let signing_pkcs8 =
+        EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &SystemRandom::new())
+            .expect("issuer pkcs8");
+    std::fs::write(&signing_key_path, signing_pkcs8.as_ref()).expect("write signing key");
+
     let config = Config {
         rest_addr: "127.0.0.1:0".into(),
         grpc_addr: "127.0.0.1:0".into(),
@@ -123,6 +131,8 @@ async fn boot(fixture: &SigningFixture) -> server::ServiceHandle {
         jwks_path: jwks_path.to_string_lossy().into_owned(),
         cedar_policy_path: cedar_path.to_string_lossy().into_owned(),
         principals_path: Some(seed_path.to_string_lossy().into_owned()),
+        signing_key_path: Some(signing_key_path.to_string_lossy().into_owned()),
+        signing_kid: "oya-identity-e2e-k1".into(),
     };
     server::start(&config).await.expect("service boots")
 }
@@ -212,6 +222,39 @@ async fn rest_validate_authorize_and_fail_closed_contract() {
         .status()
         .as_u16();
     assert_eq!(status, 422);
+
+    handle.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn issuer_discovery_and_jwks_serve_on_the_live_socket() {
+    let fixture = SigningFixture::generate();
+    let handle = boot(&fixture).await;
+    let base = format!("http://{}", handle.rest_addr);
+    let client = reqwest::Client::new();
+
+    let response = client
+        .get(format!("{base}/.well-known/openid-configuration"))
+        .send()
+        .await
+        .expect("discovery responds");
+    assert_eq!(response.status().as_u16(), 200);
+    let document: serde_json::Value = response.json().await.expect("discovery json");
+    assert_eq!(document["issuer"], ISSUER);
+    assert_eq!(document["jwks_uri"], format!("{ISSUER}/oauth/jwks"));
+
+    let response = client
+        .get(format!("{base}/oauth/jwks"))
+        .send()
+        .await
+        .expect("jwks responds");
+    assert_eq!(response.status().as_u16(), 200);
+    let document: serde_json::Value = response.json().await.expect("jwks json");
+    let keys = document["keys"].as_array().expect("keys array");
+    assert_eq!(keys.len(), 1);
+    assert_eq!(keys[0]["kid"], "oya-identity-e2e-k1");
+    assert_eq!(keys[0]["alg"], "ES256");
+    assert_eq!(keys[0]["use"], "sig");
 
     handle.shutdown().await;
 }
