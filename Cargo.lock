@@ -3593,6 +3593,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-bus-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-messaging-substrate-kernel",
+]
+
+[[package]]
 name = "oya-calendar-domain"
 version = "0.1.0"
 dependencies = [
@@ -7349,6 +7356,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-messaging-substrate-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-messenger-app"
 version = "0.1.0"
 dependencies = [
@@ -7986,6 +7997,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-queue-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-messaging-substrate-kernel",
+]
+
+[[package]]
 name = "oya-real-estate-lease-app"
 version = "0.1.0"
 dependencies = [
@@ -8536,6 +8554,13 @@ dependencies = [
  "oya-collab-runtime-domain",
  "oya-data-boundary-kernel",
  "oya-document-format-domain",
+]
+
+[[package]]
+name = "oya-stream-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-messaging-substrate-kernel",
 ]
 
 [[package]]
