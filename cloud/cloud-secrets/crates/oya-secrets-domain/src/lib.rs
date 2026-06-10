@@ -8,8 +8,8 @@ pub mod lease_lifecycle;
 pub mod zeroizing;
 
 pub use lease_lifecycle::{
-    DynamicLease, LeaseError, LeaseId, LeasePolicy, LeaseState, MAX_LEASE_TTL_SECONDS,
-    MIN_LEASE_TTL_SECONDS,
+    DynamicLease, LeaseError, LeaseId, LeasePolicy, LeaseRevocationEvent, LeaseState,
+    RevocationReason, MAX_LEASE_LIFETIME_SECONDS, MAX_LEASE_TTL_SECONDS, MIN_LEASE_TTL_SECONDS,
 };
 pub use zeroizing::{VaultPath, VaultPathError, ZeroizingSecret};
 

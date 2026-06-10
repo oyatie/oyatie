@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "third-party//:zeroize",
     ],
 )
@@ -18,6 +19,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-secrets-domain",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
     ],
 )
 

@@ -8290,6 +8290,7 @@ name = "oya-secrets-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+ "oya-shared-platform-contracts-kernel",
  "zeroize",
 ]
 
