@@ -14,7 +14,7 @@ Take the cloud-intelligence µservice from its current code-backed local foundat
 - provider adapters with byte-passthrough SSE (brief §1),
 - the key-pool resilience state machine wired end-to-end with per-provider circuit breaking + `Retry-After` consumption (brief §1, §10),
 - per-tenant key pools + concurrent token budgets (brief §6, §8),
-- vault-only secrets + constant-time auth + hash-only logging (brief §5, §7),
+- owned secret-provider/KMS handle-only secrets + constant-time auth + hash-only logging (brief §5, §7),
 - Bedrock-shaped audit + low-PII metering with default-off body logging (brief §3, §9),
 - TTFT-headline SLOs + OTel metrics (brief §4).
 
@@ -36,7 +36,7 @@ The pure kernel state machine (`crates/oya-cloud-intelligence-kernel/src/lib.rs`
    - `contracts/cloud-intelligence.asyncapi.yaml` — AsyncAPI **3.1.0**.
    - `contracts/cloud-intelligence.proto` — proto3 admin/internal gRPC.
 3. **Capabilities** — `capabilities/cloud-intelligence.capabilities.yaml`.
-4. **Policy** — `policy/cloud-intelligence.cedar` (ingress + admin realm authz).
+4. **Policy adapter fixture** — `policy/cloud-intelligence.cedar` maps the current transient authorization adapter into the owned policy-engine port; the service contract targets the owned policy-engine abstraction, not a concrete engine.
 5. **SLOs** — `slos/{availability,ttft,end-to-end-latency,error-rate,completeness}.openslo.yaml`.
 6. **Runbooks** — `runbooks/{key-exhaustion,provider-outage}.md`.
 7. **Design dossier** — `design/{threat-model,failure-modes,data-residency,cost-finops,audit-evidence-emission,tenant-isolation,operational-boundaries}.md`.
@@ -90,14 +90,14 @@ Per-provider circuit breaker: consume upstream `Retry-After`; set key cooldown t
 
 **Acceptance:** PRD AC-4.
 
-### T5 — Vault-only secrets, constant-time auth, hash-only logging [brief §5, §7]
+### T5 — Owned secret-provider/KMS handles, constant-time auth, hash-only logging [brief §5, §7]
 
 Already substantially implemented in the foundation; harden + document:
 
-- OpenBao KV v2 source (`secret/data/agent-gateway/<provider>`), periodic refresh, in-memory only.
+- Owned secret-provider/KMS port source (`secret-ref://` / `kms-ref://` handles), periodic refresh, in-memory only; any backing store is a transient adapter behind cloud-secrets/cloud-kms.
 - Two constant-time realms (`subtle`): admin + ingress; documented contract guarantee.
 - Hash-only logging: keys as `KeyFingerprint` only; never log raw key/`Authorization`/prompt/completion.
-- Cedar realm policies at `policy/cloud-intelligence.cedar`.
+- Owned policy-engine default-deny decisions at the service boundary; the bundled policy file is only a transient adapter fixture.
 
 **Acceptance:** PRD AC-5.
 
@@ -156,7 +156,7 @@ Contracts (T1/T2/T6) are authored first as the interface source of truth (api-an
 | Tenant budget exhausted | budget window check | 429 `budget_exceeded` for that tenant only |
 | Upstream `Retry-After` storm | 429 rate + breaker | honor `Retry-After` as cooldown; exclude from error budget |
 | Hung stream (no first token) | TTFT hard-timeout | abort + rotate; never hang |
-| OpenBao unreachable on refresh | refresh error metric | serve last-good in-memory keys; alert; never fail-open to plaintext |
+| Secret-provider/KMS adapter unavailable on refresh | refresh error metric | serve last-good in-memory keys; alert; never fail-open to plaintext |
 
 ## SLO commitment (downstream T7)
 

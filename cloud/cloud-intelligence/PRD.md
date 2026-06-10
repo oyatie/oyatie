@@ -37,7 +37,7 @@ It is a **multi-provider reverse proxy** that:
 - abstracts each provider behind an **adapter trait** that injects the right auth header and base URL, and **passes SSE bytes straight through** (brief §1 Architecture — Kong `response_streaming` passthrough; re-serialize only the non-stream path);
 - runs a **failure → blacklist → jittered-cooldown → restore key-rotation state machine** (the pure kernel, already implemented at `crates/oya-cloud-intelligence-kernel/src/lib.rs`) as the front-line resilience and **denial-of-wallet** control (brief §10 Operational boundaries; LiteLLM `allowed_fails`→`cooldown_time`→auto-restore; Azure dynamic circuit-breaker honoring `Retry-After`);
 - enforces **per-tenant key pools + concurrent token budgets** as the isolation and FinOps unit (brief §6 Multi-tenant isolation, brief §8 Cost/FinOps; LiteLLM virtual-key budgets, Azure `llm-token-limit`);
-- sources provider keys **only through owned cloud-secrets/cloud-kms handles** (`secret-ref://` / `kms-ref://`), with transient backing adapters (for example OpenBao or Kubernetes Secret projection) hidden behind the secret-provider port, in-memory only (brief §5 Threat model, brief §7 Data residency; Bedrock keys vault-only pattern);
+- sources provider keys **only through owned cloud-secrets/cloud-kms handles** (`secret-ref://` / `kms-ref://`), with transient backing adapters hidden behind the secret-provider port, in-memory only (brief §5 Threat model, brief §7 Data residency; Bedrock-style handle-only key pattern);
 - emits a **Bedrock-shaped immutable audit record** plus low-PII usage metering, with prompt/completion body logging **default-OFF** (brief §3 Async events, brief §9 Audit evidence).
 
 ### Why a dedicated µservice (boundary clarity)
