@@ -794,6 +794,7 @@ members = [
   "oya/workplace-integration/crates/oya-workplace-integration-doc-set-scaffold",
   "tools/oya-adapter-substitution-test-app",
   "tools/oya-architecture-graph-generator-app",
+  "tools/oya-cargo-lock-merge-driver-app",
   "tools/oya-governance-adapter-with-no-importer-app",
   "tools/oya-governance-adr-shape-app",
   "tools/oya-governance-adr-status-lifecycle-app",
