@@ -15,3 +15,23 @@ rust_binary(
         "//tools/oya-tooling-agent-read:oya-tooling-agent-read",
     ],
 )
+
+rust_test(
+    name = "oya-tooling-agent-read-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_tooling_agent_read",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "oya-tooling-agent-read-contract",
+    srcs = ["tests/contract.rs"],
+    crate = "oya_tooling_agent_read_contract",
+    crate_root = "tests/contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tooling-agent-read",
+    ],
+)

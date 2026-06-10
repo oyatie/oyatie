@@ -5,3 +5,12 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-workflow-engine-trigger-orchestrator-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_workflow_engine_trigger_orchestrator_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

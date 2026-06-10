@@ -31,3 +31,20 @@ rust_binary(
         "third-party//:tracing-subscriber",
     ],
 )
+
+rust_test(
+    name = "oya-whiteboard-canvas-collaboration-app-integration",
+    srcs = ["tests/integration.rs"],
+    crate = "oya_whiteboard_canvas_collaboration_app_integration",
+    crate_root = "tests/integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-whiteboard-canvas-collaboration-app",
+        "third-party//:clap",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

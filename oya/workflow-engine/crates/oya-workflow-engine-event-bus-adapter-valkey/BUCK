@@ -8,3 +8,14 @@ rust_library(
         "//oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter:oya-workflow-engine-event-bus-adapter",
     ],
 )
+
+rust_test(
+    name = "oya-workflow-engine-event-bus-adapter-valkey-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_workflow_engine_event_bus_adapter_valkey",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter:oya-workflow-engine-event-bus-adapter",
+    ],
+)
