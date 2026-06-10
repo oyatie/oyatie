@@ -9,3 +9,16 @@ rust_library(
         "//oya/audit-chain/crates/oya-audit-chain-domain:oya-audit-chain-domain",
     ],
 )
+
+rust_test(
+    name = "oya-audit-chain-file-adapter-file-ledger",
+    srcs = ["tests/file_ledger.rs"],
+    crate = "oya_audit_chain_file_adapter_file_ledger",
+    crate_root = "tests/file_ledger.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-audit-chain-file-adapter",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/audit-chain/crates/oya-audit-chain-domain:oya-audit-chain-domain",
+    ],
+)

@@ -9,3 +9,15 @@ rust_library(
         "third-party//:serde",
     ],
 )
+
+rust_test(
+    name = "oya-analytics-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_analytics_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "third-party//:serde",
+    ],
+)

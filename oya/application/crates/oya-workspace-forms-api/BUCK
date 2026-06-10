@@ -9,3 +9,16 @@ rust_library(
         "//oya/forms/crates/oya-forms-domain:oya-forms-domain",
     ],
 )
+
+rust_test(
+    name = "oya-workspace-forms-api-workspace-forms-api",
+    srcs = ["tests/workspace_forms_api.rs"],
+    crate = "oya_workspace_forms_api_workspace_forms_api",
+    crate_root = "tests/workspace_forms_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-workspace-forms-api",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/forms/crates/oya-forms-domain:oya-forms-domain",
+    ],
+)

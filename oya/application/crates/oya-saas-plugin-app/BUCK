@@ -8,3 +8,14 @@ rust_library(
         "//cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel:oya-saas-plugin-marketplace-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-saas-plugin-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_saas_plugin_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel:oya-saas-plugin-marketplace-kernel",
+    ],
+)
