@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-governance-eval-domain:oya-governance-eval-domain",
     ],
 )
+
+rust_test(
+    name = "oya-governance-eval-usecase-foundry-eval-run-api",
+    srcs = ["tests/foundry_eval_run_api.rs"],
+    crate = "oya_governance_eval_usecase_foundry_eval_run_api",
+    crate_root = "tests/foundry_eval_run_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-governance-eval-usecase",
+        "//libs/oya-governance-eval-domain:oya-governance-eval-domain",
+    ],
+)
