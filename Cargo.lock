@@ -7437,6 +7437,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-metering-pipeline-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-notes-domain"
 version = "0.1.0"
 dependencies = [

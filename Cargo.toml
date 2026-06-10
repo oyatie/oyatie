@@ -124,6 +124,7 @@ members = [
   "libs/oya-http-tenant-middleware-infrastructure",
   "libs/oya-json-kernel",
   "libs/oya-messaging-substrate-kernel",
+  "libs/oya-metering-pipeline-kernel",
   "libs/oya-queue-boundary-kernel",
   "libs/oya-shared-architecture-check-cli",
   "libs/oya-shared-audit-chain-client-kernel",
