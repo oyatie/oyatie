@@ -75,6 +75,7 @@ members = [
   "libs/oya-check-wasm-runtime-discipline",
   "libs/oya-ci-config",
   "libs/oya-data-boundary-kernel",
+  "libs/oya-data-outbox-kernel",
   "libs/oya-data-sql-adapter-sqlx",
   "libs/oya-data-sql-kernel",
   "libs/oya-gen-microservice-manifests-app",
