@@ -162,6 +162,11 @@ input_kind = "producer-face"
 face = "target_parity"
 
 [[gates.enabled]]
+id = "cloud-ci-enforcement-liveness"
+input_kind = "producer-face"
+face = "enforcement_liveness"
+
+[[gates.enabled]]
 id = "cloud-ci-freshness"
 input_kind = "frozen-empty-meta"
 

@@ -232,6 +232,7 @@ fn run() -> Result<(), CliError> {
     let workspace_glob_coverage =
         collect_workspace_glob_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
     let target_parity = collect_target_parity(&repo_root, &inputs.tracked_paths, &cfg)?;
+    let enforcement_liveness = collect_enforcement_liveness(&repo_root, &inputs.tracked_paths);
     let gate_inputs = GateInputs {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
@@ -243,6 +244,7 @@ fn run() -> Result<(), CliError> {
         slo_coverage: &slo_coverage,
         workspace_glob_coverage: &workspace_glob_coverage,
         target_parity: &target_parity,
+        enforcement_liveness: &enforcement_liveness,
         brand_residue: &brand_residue,
     };
     let baseline = build_gate_baseline(&cfg, &gate_inputs, &config_digest)?;
@@ -259,6 +261,7 @@ fn run() -> Result<(), CliError> {
             "slo-coverage" => &slo_coverage,
             "workspace-glob-coverage" => &workspace_glob_coverage,
             "target-parity" => &target_parity,
+            "enforcement-liveness" => &enforcement_liveness,
             "baseline" => &baseline,
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
         };
@@ -281,6 +284,10 @@ fn run() -> Result<(), CliError> {
     write_face(
         &out_dir.join("enforcement-inventory.generated.json"),
         &enforcement,
+    )?;
+    write_face(
+        &out_dir.join("enforcement-liveness.generated.json"),
+        &enforcement_liveness,
     )?;
     write_face(&out_dir.join("gate-baseline.generated.json"), &baseline)?;
 
@@ -684,6 +691,95 @@ fn collect_target_parity(
     Ok(json!({ "rows": rows }))
 }
 
+fn collect_enforcement_liveness(repo_root: &Path, tracked_paths: &[String]) -> Value {
+    const CLAUDE_WIRING_FILE: &str = ".claude/settings.json";
+    const CODEX_WIRING_FILE: &str = ".codex/hooks.json";
+
+    let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
+    let claude_refs = collect_hook_command_refs(repo_root, CLAUDE_WIRING_FILE);
+    let codex_refs = collect_hook_command_refs(repo_root, CODEX_WIRING_FILE);
+
+    let mut rows: Vec<Value> = Vec::new();
+    for hook_path in tracked_paths
+        .iter()
+        .filter(|path| is_top_level_hook_script(path))
+    {
+        let body = read_text(&repo_root.join(hook_path));
+        rows.push(json!({
+            "row_type": "hook",
+            "hook_path": hook_path,
+            "wired_in_claude": claude_refs.contains(hook_path),
+            "wired_in_codex": codex_refs.contains(hook_path),
+            "stub_marked": body.contains("Compatibility stub only"),
+        }));
+    }
+
+    for (wiring_file, refs) in [
+        (CLAUDE_WIRING_FILE, claude_refs),
+        (CODEX_WIRING_FILE, codex_refs),
+    ] {
+        for command_path in refs {
+            rows.push(json!({
+                "row_type": "command_reference",
+                "wiring_file": wiring_file,
+                "command_path": command_path,
+                "target_exists": tracked.contains(command_path.as_str()),
+            }));
+        }
+    }
+
+    json!({ "rows": rows })
+}
+
+fn is_top_level_hook_script(path: &str) -> bool {
+    let Some(name) = path.strip_prefix("tools/hooks/") else {
+        return false;
+    };
+    !name.contains('/') && name.ends_with(".sh")
+}
+
+fn collect_hook_command_refs(repo_root: &Path, wiring_file: &str) -> BTreeSet<String> {
+    let text = read_text(&repo_root.join(wiring_file));
+    let Ok(value) = serde_json::from_str::<Value>(&text) else {
+        return BTreeSet::new();
+    };
+    let mut refs = BTreeSet::new();
+    collect_command_values(&value, &mut refs);
+    refs
+}
+
+fn collect_command_values(value: &Value, refs: &mut BTreeSet<String>) {
+    match value {
+        Value::Object(map) => {
+            for (key, nested) in map {
+                if key == "command"
+                    && let Some(command) = nested.as_str()
+                    && let Some(path) = normalize_hook_command(command)
+                {
+                    refs.insert(path);
+                }
+                collect_command_values(nested, refs);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                collect_command_values(item, refs);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn normalize_hook_command(command: &str) -> Option<String> {
+    let first = command.trim().split_whitespace().next()?;
+    let path = first.strip_prefix("./").unwrap_or(first);
+    if is_top_level_hook_script(path) {
+        Some(path.to_owned())
+    } else {
+        None
+    }
+}
+
 fn member_has_test_code(repo_root: &Path, member_path: &str, tracked: &BTreeSet<&str>) -> bool {
     let tests_prefix = format!("{member_path}/tests/");
     if tracked.iter().any(|path| path.starts_with(&tests_prefix)) {
@@ -797,15 +893,19 @@ fn parse_catalog_slo(contents: &str) -> Option<String> {
 mod tests {
     use super::*;
     use std::fs;
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    static TEMP_REPO_COUNTER: AtomicU64 = AtomicU64::new(0);
 
     fn unique_temp_repo() -> PathBuf {
         let nanos = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("clock after epoch")
             .as_nanos();
+        let counter = TEMP_REPO_COUNTER.fetch_add(1, Ordering::Relaxed);
         let root = std::env::temp_dir().join(format!(
-            "oya-slo-coverage-duplicate-test-{}-{nanos}",
+            "oya-accounting-registry-test-{}-{nanos}-{counter}",
             std::process::id()
         ));
         fs::create_dir_all(&root).expect("create temp repo");

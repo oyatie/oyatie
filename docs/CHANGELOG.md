@@ -3,6 +3,13 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-10 — FRIC-012 enforcement-liveness gate added
+
+- Added `cloud-ci-enforcement-liveness` to make tracked hook scripts mechanically live across
+  Claude and Codex project hook wiring, while preserving marked compatibility stubs.
+- Documented the `enforcement_liveness` producer face and frozen-empty hook liveness codes in the
+  oya-ci gate catalog.
+
 ## 2026-06-10 — ADR-0540 target-parity gate authored
 
 - Added ADR-0540 and documented the `cloud-ci-target-parity` gate for Cargo workspace member

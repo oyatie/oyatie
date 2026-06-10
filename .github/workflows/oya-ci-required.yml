@@ -100,6 +100,7 @@ jobs:
           - { crate: oya-cloud-ci-slo-coverage-app,            label: "gate · slo-coverage (catalog SLO input contract, born-blocking)" }
           - { crate: oya-cloud-ci-workspace-glob-coverage-app, label: "gate: workspace-glob-coverage (ADR-0538)" }
           - { crate: oya-cloud-ci-target-parity-app,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
+          - { crate: oya-cloud-ci-enforcement-liveness-app,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
           - { crate: oya-cloud-ci-generated-artifact-control-plane-app, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.

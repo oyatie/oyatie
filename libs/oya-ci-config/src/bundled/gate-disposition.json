@@ -70,6 +70,11 @@
       "member_missing_buck": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "member_test_code_without_rust_test_target": {"mode": "baseline-block-on-new"}
     },
+    "cloud-ci-enforcement-liveness": {
+      "hook_unwired_without_stub_marker": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "hook_wiring_mirror_drift": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "wired_hook_missing_file": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
     "cloud-ci-brand-residue": {
       "forbidden_foundry": {"mode": "baseline-block-on-new"},
       "forbidden_forgejo": {"mode": "baseline-block-on-new"},

@@ -17,24 +17,29 @@ pub const FACE_SETTLE_COMMIT_COMMAND: &str =
 const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
 const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
-const GENERATED_FACE_PATHS: [&str; 6] = [
+const GENERATED_FACE_PATHS: [&str; 7] = [
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json",
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
 ];
 const EMITTER_TARGET: &str =
     "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
 const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
-const PRODUCER_FACES: [(&str, &str); 5] = [
+const PRODUCER_FACES: [(&str, &str); 6] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
     ("decision-crosswalk.generated.json", "decision-crosswalk"),
     (
         "enforcement-inventory.generated.json",
         "enforcement-inventory",
+    ),
+    (
+        "enforcement-liveness.generated.json",
+        "enforcement-liveness",
     ),
     ("gate-baseline.generated.json", "baseline"),
 ];

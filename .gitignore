@@ -38,6 +38,9 @@ evidence/oci-readiness/a1-capacity-retry.log
 # .claude/settings.json (project-scoped) and .claude/commands/ remain tracked.
 .claude/worktrees/
 
+# Session-scoped Claude hook overrides are local-only; tracked project wiring stays authoritative.
+.claude/settings.local.json
+
 # Transient test output
 test-results/
 
