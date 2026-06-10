@@ -9,3 +9,15 @@ rust_library(
         "third-party//:serde",
     ],
 )
+
+rust_test(
+    name = "oya-workflow-studio-policy-preview-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_workflow_studio_policy_preview_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain:oya-workflow-studio-dsl-emitter-domain",
+        "third-party//:serde",
+    ],
+)
