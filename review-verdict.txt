@@ -1,0 +1,17 @@
+Pre-open review FILTER verdict — agent/burndown-slice-07
+Reviewer: fresh-context Fable subagent (oh-my-claudecode:code-reviewer) with /using-superpowers /using-agent-skills + ultraqa harness + RUBRIC-torvalds-review.md (Torvalds §1-5, hyperscaler §6, owned-architecture §7)
+Head SHA reviewed (PR content head): 485c4afa669c43d4e1e78482c61384de54c910cc
+
+VERDICT: APPROVE (no CRITICAL/HIGH/MEDIUM/LOW findings; no blockers)
+
+Verified axes:
+1. Diff scope PASS — exactly 48 member BUCK files + 3 cloud-ci generated faces; target_parity.rs (hardcoded 614) untouched per leader directive; no source files touched.
+2. Stanza mechanicality PASS — additions-only in BUCK (zero deletion lines); 5+ stanzas byte-match the PR #670 generator shape; duplicate tokio dep in attribution-app mirrors pre-existing lib deps (generator-verbatim, not a defect).
+3. Cited-test reality PASS — reviewer independently ran 3 wired members via buck2 from the lane worktree:
+   - oya-intelligence-account-kernel-unittest: test result: ok. 8 passed; Tests finished: Pass 1. Fail 0.
+   - oya-intelligence-attribution-app unittest+acceptance: 7 passed / 9 passed; Tests finished: Pass 2. Fail 0.
+   - oya-intelligence-adapter-gemini-api-adapter-unittest: 6 passed; Tests finished: Pass 1. Fail 0.
+4. Faces PASS — single faces-only settle commit last; producer-mechanical churn only; anti-laundering set-algebra check: gate-baseline removed exactly the 48 wired members (diff = EXACT MATCH), added 0; audit-chain untouched.
+5. Reverted members PASS — 3 deferred-broken BUCKs byte-identical to origin/dev ([diff bytes: 0]) and still present in the debt baseline (not laundered).
+
+residual risk (reviewer): gate enumeration — if cloud-ci's target-parity gate does not enumerate-and-run the newly added *-unittest targets the way the local lane does, they'd be defined-but-unexecuted; that surface is outside this diff.
