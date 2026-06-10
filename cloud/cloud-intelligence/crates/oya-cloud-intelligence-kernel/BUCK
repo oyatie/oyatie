@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:tokio",
+        "third-party//:serde",
         # UNRESOLVED: proptest ^1.5
     ],
 )
@@ -18,5 +19,18 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:tokio",
+        "third-party//:serde",
+    ],
+)
+
+rust_test(
+    name = "xproxy-capability-parity-test",
+    srcs = glob(["tests/xproxy_capability_parity.rs"]),
+    crate = "oya_cloud_intelligence_kernel_xproxy_capability_parity_test",
+    crate_root = "tests/xproxy_capability_parity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-kernel",
+        "third-party//:serde_json",
     ],
 )

@@ -4485,6 +4485,8 @@ name = "oya-cloud-intelligence-kernel"
 version = "0.1.0"
 dependencies = [
  "proptest",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 
