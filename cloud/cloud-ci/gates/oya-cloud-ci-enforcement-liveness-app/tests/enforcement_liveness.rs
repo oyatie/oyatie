@@ -225,8 +225,8 @@ fn enforcement_liveness_face_reports_current_tree_green() {
         "ENFORCEMENT-LIVENESS live corpus: hooks={hook_rows} command_refs={command_rows} stubs={stub_rows}"
     );
 
-    assert_eq!(hook_rows, 11, "tracked tools/hooks/*.sh census changed");
-    assert_eq!(command_rows, 18, "Claude+Codex hook command reference census changed");
+    assert_eq!(hook_rows, 12, "tracked tools/hooks/*.sh census changed");
+    assert_eq!(command_rows, 20, "Claude+Codex hook command reference census changed");
     assert_eq!(stub_rows, 2, "compatibility stub count changed");
     assert!(evaluate_keyed(&face).is_empty());
     assert_eq!(evaluate(&face).verdict, Verdict::Green);
