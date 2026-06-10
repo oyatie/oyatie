@@ -141,12 +141,41 @@ fn modified_dependencies_are_structurally_unionable() {
         package("serde", "1.0.0"),
         package("right-crate", "0.1.0")
     ));
+    let wanted = lockfile(&format!(
+        "{}\n{}\n{}\n{}",
+        package_with_deps(
+            "workspace-app",
+            "0.1.0",
+            &["left-crate", "right-crate", "serde"]
+        ),
+        package("serde", "1.0.0"),
+        package("left-crate", "0.1.0"),
+        package("right-crate", "0.1.0")
+    ));
 
     let merged = assert_merge_ok(&base, &ours, &theirs);
 
-    assert!(merged.contains(" \"left-crate\","));
-    assert!(merged.contains(" \"right-crate\","));
-    assert!(merged.contains(" \"serde\","));
+    assert_eq!(merged, wanted);
+}
+
+#[test]
+fn one_sided_dependency_removal_is_not_resurrected() {
+    let base = lockfile(&package_with_deps("workspace-app", "0.1.0", &["a", "x"]));
+    let ours = lockfile(&package_with_deps("workspace-app", "0.1.0", &["a", "b"]));
+    let theirs = lockfile(&package_with_deps(
+        "workspace-app",
+        "0.1.0",
+        &["a", "c", "x"],
+    ));
+    let wanted = lockfile(&package_with_deps(
+        "workspace-app",
+        "0.1.0",
+        &["a", "b", "c"],
+    ));
+
+    let merged = assert_merge_ok(&base, &ours, &theirs);
+
+    assert_eq!(merged, wanted);
 }
 
 #[test]

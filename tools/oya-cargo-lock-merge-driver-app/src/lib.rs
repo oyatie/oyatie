@@ -538,22 +538,19 @@ fn dependency_strings(
 }
 
 fn merge_dependency_lists(base: &[String], ours: &[String], theirs: &[String]) -> Vec<String> {
-    if ours == theirs {
-        return ours.to_vec();
-    }
-    if ours == base {
-        return theirs.to_vec();
-    }
-    if theirs == base {
-        return ours.to_vec();
-    }
-
-    let mut merged = ours.to_vec();
-    for dependency in theirs {
-        if !merged.contains(dependency) {
-            merged.push(dependency.clone());
-        }
-    }
+    let removed: BTreeSet<&str> = base
+        .iter()
+        .filter(|dependency| !ours.contains(dependency) || !theirs.contains(dependency))
+        .map(String::as_str)
+        .collect();
+    let mut merged = ours
+        .iter()
+        .chain(theirs)
+        .filter(|dependency| !removed.contains(dependency.as_str()))
+        .cloned()
+        .collect::<Vec<_>>();
+    merged.sort();
+    merged.dedup();
     merged
 }
 
