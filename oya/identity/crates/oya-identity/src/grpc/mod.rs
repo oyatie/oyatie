@@ -29,8 +29,8 @@ pub async fn serve<R, D, A, S, F>(
     shutdown: F,
 ) -> Result<(), tonic::transport::Error>
 where
-    R: WorkloadPrincipalRepository + Send + 'static,
-    D: RevocationDenylist + Send + 'static,
+    R: WorkloadPrincipalRepository + Send + Sync + 'static,
+    D: RevocationDenylist + Send + Sync + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
     F: Future<Output = ()> + Send + 'static,
