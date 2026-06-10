@@ -1,19 +1,14 @@
-PRE-OPEN REVIEW FILTER VERDICT — agent/burndown-slice-08 (ADR-0540 / FRIC-1781063357 burn-down campaign)
+Pre-open review FILTER verdict — agent/burndown-slice-12
+Reviewer: fresh-context Fable subagent (oh-my-claudecode:code-reviewer) with /using-superpowers /using-agent-skills + ultraqa harness + RUBRIC-torvalds-review.md (Torvalds §1-5, hyperscaler §6, owned-architecture §7)
+Head SHA reviewed (PR content head): 58e65e5204ad247a7fb9b3c61b7b52a15bdb4346
 
-VERDICT: APPROVE
-Reviewed head SHA (content + settled faces): eede7d7ccab37b65b1409df6a84cf8a8c4c7c72a
-Base: origin/dev = 3ae4f2ea9
-Reviewer: fresh-context Fable review subagent (oh-my-claudecode:code-reviewer) loaded with /using-superpowers + /using-agent-skills, /oh-my-claudecode:ultraqa discipline, applied .omc/ultragoal/RUBRIC-torvalds-review.md axes §1–7 in full.
+VERDICT: APPROVE (no findings; no blockers)
 
-Verified by the reviewer running commands (not narration):
-- Diff scope: exactly 48 oya/intelligence/crates/*/BUCK + 3 cloud-ci accounting faces; deferred members absent from diff; tests/target_parity.rs untouched (leader collision constraint honored).
-- Anti-laundering: debt keys removed from gate-baseline face == wired member set, byte-for-byte (comm both directions empty, 48 == 48); 3 deferred members remain in the debt list.
-- Settle protocol: 6 content commits carry zero faces; faces-only settle commit eede7d7cc carries zero content; faces producer-mechanical.
-- buck2 spot-checks: 4 targets re-run → "Tests finished: Pass 4. Fail 0. Timeout 0. Fatal 0. Skip 0. Omit 0. Infra Failure 0. Build failure 0".
-- Commits SSH-signed (git verify-commit HEAD → Good "git" signature with ED25519 key).
+Verified axes:
+1. Diff scope PASS — exactly 49 member BUCK files + 3 cloud-ci generated faces; target_parity.rs (hardcoded 614) untouched per leader directive; no source files touched.
+2. Stanza mechanicality PASS — additions-only (zero deletion lines in BUCK); 5 spot-checked stanzas match the PR #670 generator shape; no existing target/gate/baseline weakened.
+3. Cited-test reality PASS — reviewer independently ran 4 wired targets via buck2 from the lane worktree: whiteboard-canvas-collaboration-app-integration (8 passed), event-bus-kernel-unittest (6 passed), dsl-emitter-domain-graph-integrity (12 passed), execution-engine-app-unittest vacuous-pass probe (7 passed) — all Tests finished: Pass N. Fail 0.
+4. Anti-laundering PASS — gate-baseline keys dev 614 -> branch 565 (614-49); removed set byte-diff EXACT MATCH vs the 49 wired member dirs; 0 added; -50/+1 raw lines = JSON trailing-comma artifact, not semantic. Faces producer-mechanical; content commits first, single faces-only settle commit last.
+5. Reverted member PASS — tools/oya-architecture-graph-generator-app/BUCK byte-identical to origin/dev and still in the debt baseline; deferral corroborated in code (tests/regeneration.rs reads repo-root docs/* at runtime, outside hermetic sandbox srcs — cross-package wiring out of campaign scope).
 
-Findings (no CRITICAL/HIGH):
-1. MEDIUM (confidence HIGH, pre-existing, non-blocking per campaign no-test-edits rule): oya-intelligence-capability-registry-app src/lib.rs:439 test seed_file_publishes_at_least_50_capabilities is non-hermetic — its runtime ancestors() walk escapes the buck srcs sandbox to find repo-root registry/capabilities/foundry-internal.json; green depends on buck-out nesting under the real repo root. Tracked as a friction-ledger row; fix out of campaign scope (stage the seed as a declared test input).
-2. LOW (informational): tally records openapi-domain's proximate compiler error (CARGO_MANIFEST_DIR undefined) while the root cause is include_str! escaping to repo-root contracts/ — same defect, two descriptions.
-
-residual risk: the capability-registry-app seed-loading test's green flips to a hard red the first time it runs under a truly isolated/remote hermetic executor (owned-substrate CAS direction), because the ancestors() walk will no longer reach the undeclared repo-root seed file.
+residual risk (reviewer): a wired crate later adding runtime reads of repo-root paths would flip red post-merge in a cold build; the fail-closed gate catches it but after this slice. Nothing in the current 49 members exhibits that pattern.

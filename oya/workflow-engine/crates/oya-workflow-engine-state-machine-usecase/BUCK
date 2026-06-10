@@ -9,3 +9,15 @@ rust_library(
         "//oya/workflow-engine/crates/oya-workflow-engine-state-machine-kernel:oya-workflow-engine-state-machine-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-workflow-engine-state-machine-usecase-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_workflow_engine_state_machine_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-workflow-engine-state-machine-domain:oya-workflow-engine-state-machine-domain",
+        "//oya/workflow-engine/crates/oya-workflow-engine-state-machine-kernel:oya-workflow-engine-state-machine-kernel",
+    ],
+)
