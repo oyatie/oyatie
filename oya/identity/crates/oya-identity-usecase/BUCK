@@ -9,3 +9,41 @@ rust_library(
         "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
     ],
 )
+
+rust_test(
+    name = "oya-identity-usecase-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_identity_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-identity-usecase-identity-token-issue",
+    srcs = ["tests/identity_token_issue.rs"],
+    crate = "oya_identity_usecase_identity_token_issue",
+    crate_root = "tests/identity_token_issue.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-identity-usecase",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-identity-usecase-observability",
+    srcs = ["tests/observability.rs"],
+    crate = "oya_identity_usecase_observability",
+    crate_root = "tests/observability.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-identity-usecase",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
+    ],
+)

@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-global-trade-compliance-domain-global-trade-compliance",
+    srcs = ["tests/global_trade_compliance.rs"],
+    crate = "oya_global_trade_compliance_domain_global_trade_compliance",
+    crate_root = "tests/global_trade_compliance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-global-trade-compliance-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

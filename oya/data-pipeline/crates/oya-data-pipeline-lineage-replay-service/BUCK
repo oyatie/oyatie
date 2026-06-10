@@ -29,3 +29,20 @@ rust_binary(
         "third-party//:tracing-subscriber",
     ],
 )
+
+rust_test(
+    name = "oya-data-pipeline-lineage-replay-service-integration",
+    srcs = ["tests/integration.rs"],
+    crate = "oya_data_pipeline_lineage_replay_service_integration",
+    crate_root = "tests/integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-data-pipeline-lineage-replay-service",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
