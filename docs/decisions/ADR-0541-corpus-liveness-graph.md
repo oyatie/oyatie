@@ -9,7 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-depends_on: [ADR-0130, ADR-0132, ADR-0515, ADR-0538, ADR-0539, ADR-0540]
+depends_on: [ADR-0139, ADR-0132, ADR-0515, ADR-0538, ADR-0539, ADR-0540]
 amends: []
 related: [ADR-0083, ADR-0111, ADR-0116, ADR-0363, ADR-0516]
 related_specs:
@@ -47,9 +47,9 @@ Rust-native, cite precedent per decision), the decision below is split by eviden
 **Strong production precedent — adopt directly:**
 
 1. **One corpus-scale semantic graph** over a monorepo, unifying build metadata, compiler
-   metadata, and cross-references: Google Kythe (origin: Grok, production at google3 scale),
-   Meta Glean (production across C++/Python/Hack/JS; open-sourced 2021), SCIP/LSIF (commodity
-   cross-repo precise indexing).
+   metadata, and cross-references: Google Kythe (production at google3 scale),
+   Meta Glean (production across C++/Python/PHP/JavaScript and five further languages;
+   open-sourced 2021), SCIP/LSIF (commodity cross-repo precise indexing).
 2. **Typed heterogeneous-asset dependency graph driving automated decay removal**: Meta SCARF —
    one directed graph spanning code symbols AND data assets, 100M+ LOC deleted, 7000+ complex
    subgraph removals; Google Sensenmann — build-target-granularity GC, 1000+ deletion CLs/week,
@@ -125,7 +125,8 @@ Enforcement follows evidence, not uniform fail-closed:
   enforced today; CLG only unifies their substrate.
 - **Liveness/deletion classes:** SCARF posture, never one-shot. Candidacy = continuously
   re-evaluated invariant (static reachability + conservative textual edges + runtime telemetry
-  once cloud-observability supplies it per ADR-0130); staged quarantine (visibility revocation
+  once cloud-observability supplies it per ADR-0139 agentic SLO-gated promotion); staged
+  quarantine (visibility revocation
   before removal) with revert path; human review on the removal PR. CI blocks NEW orphans
   (baseline-block-on-new, the proven G011 ratchet machinery) but never auto-deletes.
 - **Doc/directive classes (the unprecedented part):** staged rollout per class —
@@ -145,8 +146,10 @@ Enforcement follows evidence, not uniform fail-closed:
 One service's crate set + its ADRs/docs: build the graph face, implement TWO invariants
 end-to-end — reference integrity (doc→code hash edges; class with the clearest precedent gap to
 close) and liveness/orphan in report-only — and run the assumption test from the recommendation
-record: classify the session friction ledger (54 rows) as graph-expressible vs needs-judgment.
-Exit criteria: O(fanout) incremental cost measured and acceptable; zero false-red on the attested
+record: classify the friction ledger as of the spike's HEAD (56 rows at this ADR's authoring) as
+graph-expressible vs needs-judgment.
+Exit criteria: O(fanout) incremental cost measured against a threshold the IP declares up front
+(recorded in the IP before the spike runs, council sign-off); zero false-red on the attested
 region; the classification result documented in the IP.
 
 ## Consequences
