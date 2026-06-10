@@ -11,3 +11,32 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-cloud-kms-api-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_cloud_kms_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-kms-api-cloud-kms-api",
+    srcs = ["tests/cloud_kms_api.rs"],
+    crate = "oya_cloud_kms_api_cloud_kms_api",
+    crate_root = "tests/cloud_kms_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-kms-api",
+        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

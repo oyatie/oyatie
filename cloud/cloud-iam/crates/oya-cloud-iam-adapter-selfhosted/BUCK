@@ -8,3 +8,14 @@ rust_library(
         "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
     ],
 )
+
+rust_test(
+    name = "oya-cloud-iam-adapter-selfhosted-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_cloud_iam_adapter_selfhosted",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+    ],
+)
