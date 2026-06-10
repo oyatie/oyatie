@@ -4569,8 +4569,11 @@ dependencies = [
 name = "oya-cloud-kms-adapter-openbao"
 version = "0.1.0"
 dependencies = [
+ "base64 0.21.7",
  "oya-cloud-kms-domain",
+ "oya-cloud-kms-enclave-kernel",
  "oya-data-boundary-kernel",
+ "zeroize",
 ]
 
 [[package]]
@@ -4591,6 +4594,16 @@ dependencies = [
  "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-cloud-kms-enclave-kernel"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "libc",
+ "oya-cloud-kms-domain",
+ "zeroize",
 ]
 
 [[package]]
