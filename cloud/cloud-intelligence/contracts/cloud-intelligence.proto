@@ -46,6 +46,15 @@ service LlmGatewayAdmin {
 
   // Resume a circuit breaker or budget guard after policy-authorized operator action.
   rpc ResumeCircuitBreaker(ResumeCircuitBreakerRequest) returns (ResumeCircuitBreakerResponse);
+
+  // Evaluate platform safety policy and return fail-closed enforcement for critical signals.
+  rpc EvaluateSafety(SafetyEvaluationRequest) returns (SafetyEvaluationResponse);
+
+  // Return redacted escalation status for manual-review queues.
+  rpc SafetyEscalationStatus(SafetyEscalationStatusRequest) returns (SafetyEscalationStatusResponse);
+
+  // Request audited break-glass access to a sealed evidence handle.
+  rpc RequestBreakGlassEvidenceAccess(BreakGlassEvidenceAccessRequest) returns (BreakGlassEvidenceAccessResponse);
 }
 
 // === Common ===
@@ -197,3 +206,72 @@ message ResumeCircuitBreakerResponse {
   google.protobuf.Timestamp resumed_at = 3;
   Error error = 4; // unset on success
 }
+
+// === Safety / guardrail control plane ===
+
+enum EvidenceDataClass {
+  EVIDENCE_DATA_CLASS_UNSPECIFIED = 0;
+  EVIDENCE_DATA_CLASS_PUBLIC_OR_OPERATIONAL_METADATA = 1;
+  EVIDENCE_DATA_CLASS_PERSONAL_DATA = 2;
+  EVIDENCE_DATA_CLASS_REGULATED_HEALTH_DATA = 3;
+  EVIDENCE_DATA_CLASS_PAYMENT_OR_FINANCIAL_DATA = 4;
+  EVIDENCE_DATA_CLASS_CREDENTIAL_OR_SECRET = 5;
+  EVIDENCE_DATA_CLASS_TENANT_BOUNDARY_VIOLATION = 6;
+  EVIDENCE_DATA_CLASS_PROMPT_INJECTION_OR_JAILBREAK = 7;
+  EVIDENCE_DATA_CLASS_SECURITY_EXPLOIT_OR_BREACH = 8;
+  EVIDENCE_DATA_CLASS_SELF_HARM_OR_HARM_TO_OTHERS = 9;
+  EVIDENCE_DATA_CLASS_CHILD_SAFETY_OR_ABUSE = 10;
+  EVIDENCE_DATA_CLASS_FRAUD_OR_HOSTILE_PATTERN = 11;
+  EVIDENCE_DATA_CLASS_FAULT_OR_ANOMALY = 12;
+}
+
+message SafetyEvaluationRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;
+  repeated string critical_categories = 3;
+  EvidenceDataClass data_class = 4;
+  bool raw_payload_included = 5; // must be false on normal evaluation path
+}
+
+message SafetyEvaluationResponse {
+  string signal_id = 1;
+  bool blocked = 2;
+  bool quarantined = 3;
+  bool secondary_agentic_review_required = 4;
+  bool manual_review_required = 5;
+  bool tenant_can_override_platform_critical_block = 6; // always false for critical blocks
+  string policy_engine_port = 7; // always "owned-policy-engine-port"
+  Error error = 8; // unset on success
+}
+
+message SafetyEscalationStatusRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;
+  string escalation_id = 3;
+}
+
+message SafetyEscalationStatusResponse {
+  string escalation_id = 1;
+  string status = 2; // pending_secondary_review | pending_manual_review | closed
+  bool secondary_agentic_review_completed = 3;
+  bool secondary_agentic_review_flagged_unsafe = 4;
+  string default_evidence_visibility = 5; // redacted-structured-evidence
+  Error error = 6;
+}
+
+message BreakGlassEvidenceAccessRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;
+  string evidence_id = 3;
+  string reason = 4;
+}
+
+message BreakGlassEvidenceAccessResponse {
+  string evidence_id = 1;
+  string status = 2; // requested | denied | granted
+  bool audited = 3;
+  bool encrypted_handle_only = 4;
+  string secret_provider_port = 5; // always "owned-secret-provider-port"
+  Error error = 6;
+}
+

@@ -29,6 +29,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 pub mod model_routing;
+pub mod safety;
 pub mod xproxy_parity;
 
 /// Build a stable sticky-affinity key without storing raw prompt content.
@@ -117,12 +118,12 @@ impl SubscriptionId {
     }
 }
 
-/// Provider enum — v1 scope locked to Anthropic + OpenAI Codex per
-/// cloud-intelligence-reference-repo-audit memory. Gemini = v2, Cursor = v3.
+/// Provider enum for cloud-intelligence gateway pools.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Provider {
     Anthropic,
     Codex,
+    Gemini,
 }
 
 impl fmt::Display for Provider {
@@ -130,6 +131,7 @@ impl fmt::Display for Provider {
         match self {
             Provider::Anthropic => f.write_str("anthropic"),
             Provider::Codex => f.write_str("codex"),
+            Provider::Gemini => f.write_str("gemini"),
         }
     }
 }

@@ -2,11 +2,13 @@ use std::collections::BTreeSet;
 
 use oya_cloud_intelligence_kernel::xproxy_parity::{
     CapabilityParityMap, CapabilityStatus, EXTERNAL_PROXY_REFERENCE_BASELINE_JSON,
+    EXTERNAL_PROXY_REFERENCE_DRAFT_TARGETS_JSON, ReferenceDraftParityTargets,
     render_capability_parity_report,
 };
 use serde_json::Value;
 
 const PARITY_MAP_JSON: &str = EXTERNAL_PROXY_REFERENCE_BASELINE_JSON;
+const DRAFT_TARGETS_JSON: &str = EXTERNAL_PROXY_REFERENCE_DRAFT_TARGETS_JSON;
 
 const EXPECTED_XPROXY_IDS: &[&str] = &[
     "XPROXY-API-001",
@@ -63,6 +65,10 @@ const EXPECTED_XPROXY_IDS: &[&str] = &[
 
 fn load_map() -> CapabilityParityMap {
     serde_json::from_str(PARITY_MAP_JSON).expect("parity map must parse")
+}
+
+fn load_draft_targets() -> ReferenceDraftParityTargets {
+    serde_json::from_str(DRAFT_TARGETS_JSON).expect("reference draft targets must parse")
 }
 
 #[test]
@@ -276,4 +282,93 @@ fn parity_report_prints_provenance_all_ids_statuses_and_tests() {
         );
     }
     assert!(report.contains("target_tests="));
+}
+
+#[test]
+fn reference_draft_targets_map_source_ideas_to_existing_xproxy_rows() {
+    let targets = load_draft_targets();
+    let expected_ids: BTreeSet<_> = EXPECTED_XPROXY_IDS.iter().copied().collect();
+
+    assert_eq!(targets.artifact_family, "external-proxy-reference");
+    assert_eq!(targets.capability_namespace, "XPROXY");
+    assert!(targets.scope.translations_owned_by_provider_adapters);
+    assert!(!targets.scope.routing_advisors_may_generate);
+    assert_eq!(
+        targets.scope.generation_providers,
+        ["openai-codex", "anthropic-claude", "google-gemini"]
+    );
+    assert!(
+        targets
+            .scope
+            .routing_advisor_models
+            .iter()
+            .any(|model| model == "nemotron-3-ultra-550b-a55b")
+    );
+
+    let target_ids: BTreeSet<_> = targets
+        .targets
+        .iter()
+        .map(|target| target.capability_id.as_str())
+        .collect();
+    assert!(target_ids.len() >= 8, "expected multiple mapped target rows");
+    for capability_id in target_ids {
+        assert!(
+            expected_ids.contains(capability_id),
+            "draft target used unknown capability id {capability_id}"
+        );
+    }
+
+    for target in &targets.targets {
+        assert!(!target.extracted_feature_groups.is_empty());
+        assert!(
+            target.target_tests.iter().all(|test| test.contains("xproxy")),
+            "{} target tests must remain tied to XPROXY parity",
+            target.capability_id
+        );
+    }
+}
+
+#[test]
+fn reference_draft_targets_keep_source_repo_names_only_in_provenance_urls() {
+    let value: Value = serde_json::from_str(DRAFT_TARGETS_JSON).expect("json");
+    let forbidden = [
+        "llm-router",
+        "nemoclaw",
+        "hermes-agent",
+        "claw-code",
+        "nvidia-ai-blueprints",
+        "nousresearch",
+        "ultraworkers",
+    ];
+
+    fn scan(value: &Value, path: String, forbidden: &[&str], violations: &mut Vec<String>) {
+        match value {
+            Value::String(s) => {
+                let lower = s.to_lowercase();
+                let allowed_source_url = path.starts_with("/source_provenance/")
+                    && path.ends_with("/source_url");
+                if forbidden.iter().any(|term| lower.contains(term)) && !allowed_source_url {
+                    violations.push(format!("{path}: {s}"));
+                }
+            }
+            Value::Array(items) => {
+                for (idx, item) in items.iter().enumerate() {
+                    scan(item, format!("{path}/{idx}"), forbidden, violations);
+                }
+            }
+            Value::Object(object) => {
+                for (key, child) in object {
+                    scan(child, format!("{path}/{key}"), forbidden, violations);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut violations = Vec::new();
+    scan(&value, String::new(), &forbidden, &mut violations);
+    assert!(
+        violations.is_empty(),
+        "reference source name leaked outside source provenance URL fields: {violations:#?}"
+    );
 }

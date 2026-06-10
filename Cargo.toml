@@ -275,6 +275,7 @@ members = [
   "cloud/cloud-intelligence/crates/oya-cloud-intelligence-codex-adapter",
   "cloud/cloud-intelligence/crates/oya-cloud-intelligence-eventsink-clickhouse-adapter",
   "cloud/cloud-intelligence/crates/oya-cloud-intelligence-eventsink-valkey-adapter",
+  "cloud/cloud-intelligence/crates/oya-cloud-intelligence-gemini-adapter",
   "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel",
   "cloud/cloud-intelligence/crates/oya-cloud-intelligence-openbao-adapter",
   "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest",

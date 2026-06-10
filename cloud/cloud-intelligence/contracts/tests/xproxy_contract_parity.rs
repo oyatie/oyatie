@@ -125,3 +125,78 @@ fn xproxy_proto_declares_admin_control_plane_methods_without_direct_engine_owner
 }
 
 mod transient_adapter_boundary;
+
+
+#[test]
+fn cloud_intelligence_safety_contracts_expose_guardrail_evidence_and_review_surfaces() {
+    for path in [
+        "/admin/v1/guardrails",
+        "/admin/v1/guardrails/escalations",
+        "/admin/v1/evidence/retention",
+        "/admin/v1/redaction/profiles",
+    ] {
+        assert_contract_has_path(OPENAPI, path);
+    }
+
+    for operation_id in [
+        "listGuardrailProfiles",
+        "listSafetyEscalations",
+        "listEvidenceRetentionProfiles",
+        "listRedactionProfiles",
+    ] {
+        assert_contract_mentions(OPENAPI, operation_id);
+    }
+
+    for schema in [
+        "GuardrailDetectionProfile",
+        "ManualReviewEscalation",
+        "EvidenceRetentionProfile",
+        "InTransitRedactionProfile",
+        "SafetySignalPolicy",
+    ] {
+        assert_contract_mentions(OPENAPI, schema);
+    }
+}
+
+#[test]
+fn cloud_intelligence_safety_asyncapi_declares_guardrail_review_and_evidence_events() {
+    for channel in [
+        "llm.guardrail.v1",
+        "llm.safety_review.v1",
+        "llm.evidence.v1",
+    ] {
+        assert_contract_mentions(ASYNCAPI, channel);
+    }
+
+    for message in [
+        "GuardrailSignal",
+        "SecondaryReviewRequest",
+        "EvidenceRetentionEvent",
+    ] {
+        assert_contract_mentions(ASYNCAPI, message);
+    }
+}
+
+#[test]
+fn cloud_intelligence_safety_proto_declares_policy_evaluation_and_break_glass() {
+    for rpc in [
+        "rpc EvaluateSafety",
+        "rpc SafetyEscalationStatus",
+        "rpc RequestBreakGlassEvidenceAccess",
+    ] {
+        assert_contract_mentions(PROTO, rpc);
+    }
+
+    for message in [
+        "SafetyEvaluationRequest",
+        "SafetyEvaluationResponse",
+        "SafetyEscalationStatusRequest",
+        "SafetyEscalationStatusResponse",
+        "BreakGlassEvidenceAccessRequest",
+        "BreakGlassEvidenceAccessResponse",
+    ] {
+        assert_contract_mentions(PROTO, message);
+    }
+
+    assert_contract_omits_direct_transient_engines(PROTO, "proto");
+}

@@ -3,6 +3,8 @@ use std::collections::BTreeMap;
 
 pub const EXTERNAL_PROXY_REFERENCE_BASELINE_JSON: &str =
     include_str!("../capability-parity/external-proxy-reference-20260610.json");
+pub const EXTERNAL_PROXY_REFERENCE_DRAFT_TARGETS_JSON: &str =
+    include_str!("../capability-parity/external-proxy-reference-draft-targets-20260610.json");
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct CapabilityParityMap {
@@ -43,6 +45,43 @@ pub struct CapabilityParityRow {
     pub source_evidence: Vec<String>,
     pub source_behavior_summary: String,
     pub target_boundary: String,
+    pub target_capability: String,
+    pub target_tests: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct ReferenceDraftParityTargets {
+    pub schema_version: String,
+    pub kind: String,
+    pub artifact_family: String,
+    pub capability_namespace: String,
+    pub scope: ReferenceDraftScope,
+    pub source_provenance: Vec<ReferenceSourceProvenance>,
+    pub targets: Vec<ReferenceDraftParityTarget>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct ReferenceDraftScope {
+    pub generation_providers: Vec<String>,
+    pub routing_advisor_models: Vec<String>,
+    pub routing_advisors_may_generate: bool,
+    pub translations_owned_by_provider_adapters: bool,
+    pub model_execution_boundary: String,
+    pub advisor_execution_boundary: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct ReferenceSourceProvenance {
+    pub source_url: String,
+    pub source_kind: String,
+    pub retrieved_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+pub struct ReferenceDraftParityTarget {
+    pub capability_id: String,
+    pub status: CapabilityStatus,
+    pub extracted_feature_groups: Vec<String>,
     pub target_capability: String,
     pub target_tests: Vec<String>,
 }

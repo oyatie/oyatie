@@ -1,9 +1,13 @@
 #![allow(clippy::expect_used, clippy::panic)]
 
 use oya_cloud_intelligence_workers::{
-    BackendRegistry, CloudAuthRequirements, ConfigLayer, ConfigSource, CredentialRefreshPlan,
-    DriftParityPlan, ModelRouteSpec, OAuthLifecyclePlan, PoolActivation, ProviderBackendSpec,
-    ProviderClass, WorkerKind, default_worker_ownership, resolve_config_precedence,
+    AgentDelegationPolicySpec, AgentMemoryBindingSpec, AgentRuntimeProfileSpec, AgentScheduleSpec,
+    AgentSkillBundleSpec, AgentWorkspaceBindingSpec, BackendRegistry, CloudAuthRequirements,
+    ConfigLayer, ConfigSource, CredentialRefreshPlan, DriftParityPlan, EvidenceRetentionProfileSpec,
+    GuardrailDetectionProfileSpec, InTransitRedactionProfileSpec, ManualReviewEscalationSpec,
+    ModelRouteSpec, OAuthLifecyclePlan, PoolActivation, ProviderBackendSpec, ProviderClass,
+    ReferenceCiPatternCatalog, RoutingAdvisorPurpose, SafetySignalPolicySpec, WorkerKind,
+    default_routing_advisor_profiles, default_worker_ownership, resolve_config_precedence,
 };
 
 #[test]
@@ -57,6 +61,17 @@ fn k8s_manifest_declares_crds_workers_canaries_and_hardening() {
         "toolcompatibilityprofiles.cloud-intelligence.oya.io",
         "gatewaycircuitbreakers.cloud-intelligence.oya.io",
         "capabilityparitybaselines.cloud-intelligence.oya.io",
+        "agentruntimeprofiles.cloud-intelligence.oya.io",
+        "agentmemorybindings.cloud-intelligence.oya.io",
+        "agentskillbundles.cloud-intelligence.oya.io",
+        "agentschedules.cloud-intelligence.oya.io",
+        "agentdelegationpolicies.cloud-intelligence.oya.io",
+        "agentworkspacebindings.cloud-intelligence.oya.io",
+        "guardraildetectionprofiles.cloud-intelligence.oya.io",
+        "evidenceretentionprofiles.cloud-intelligence.oya.io",
+        "intransitredactionprofiles.cloud-intelligence.oya.io",
+        "safetysignalpolicies.cloud-intelligence.oya.io",
+        "manualreviewescalations.cloud-intelligence.oya.io",
     ] {
         assert_manifest_contains(&manifest, crd);
     }
@@ -69,6 +84,12 @@ fn k8s_manifest_declares_crds_workers_canaries_and_hardening() {
         "name: analytics-metering-worker",
         "name: circuit-breaker-worker",
         "name: ops-api",
+        "name: agent-runtime-controller",
+        "name: agent-scheduler-worker",
+        "name: agent-delegation-worker",
+        "name: safety-enforcement-controller",
+        "name: guardrail-detection-worker",
+        "name: evidence-retention-controller",
     ] {
         assert_manifest_contains(&manifest, deployment);
     }
@@ -88,6 +109,227 @@ fn k8s_manifest_declares_crds_workers_canaries_and_hardening() {
     assert_manifest_contains(&manifest, "path: /livez");
     assert_manifest_contains(&manifest, "path: /readyz");
     assert!(!manifest.contains("value: sk-"));
+}
+
+#[test]
+fn agent_runtime_resources_are_first_class_but_durable_state_uses_refs() {
+    let runtime = AgentRuntimeProfileSpec::new(
+        "tenant-a",
+        "dogfood-codex-runtime",
+        "codex-default-route",
+        "prompt-default",
+        "thinking-default",
+        "tool-compat-default",
+        "sandbox-restricted",
+    )
+    .expect("first-class runtime profile");
+    assert_eq!(runtime.kind, "AgentRuntimeProfile");
+    assert!(runtime.cloud_intelligence_owned_control_plane);
+    assert!(!runtime.embeds_model_runtime);
+    assert!(!runtime.installs_cli_or_tui_surface);
+
+    let memory = AgentMemoryBindingSpec::new(
+        "tenant-a",
+        "dogfood-memory",
+        "memory-ref://tenant-a/agents/codex/default",
+    )
+    .expect("memory binding uses typed ref");
+    assert_eq!(memory.kind, "AgentMemoryBinding");
+    assert!(memory.durable_state_externalized);
+    assert!(!memory.stores_prompt_or_completion_body);
+
+    let workspace = AgentWorkspaceBindingSpec::new(
+        "tenant-a",
+        "dogfood-workspace",
+        "workspace-ref://tenant-a/agents/codex/default",
+    )
+    .expect("workspace binding uses typed ref");
+    assert_eq!(workspace.kind, "AgentWorkspaceBinding");
+    assert!(workspace.durable_state_externalized);
+    assert!(!workspace.mounts_host_paths);
+
+    assert!(
+        AgentMemoryBindingSpec::new("tenant-a", "bad-memory", "postgres://raw").is_err(),
+        "memory bindings must not embed durable storage coordinates"
+    );
+    assert!(
+        AgentWorkspaceBindingSpec::new("tenant-a", "bad-workspace", "/tmp/local-workspace")
+            .is_err(),
+        "workspace bindings must not point at local paths"
+    );
+}
+
+#[test]
+fn agent_skills_schedules_and_delegation_are_policy_gated_cloud_resources() {
+    let skill = AgentSkillBundleSpec::new(
+        "tenant-a",
+        "analysis-skills",
+        "skillbundle-ref://tenant-a/analysis/v1",
+        "tool-compat-default",
+    )
+    .expect("skill bundle resource");
+    assert_eq!(skill.kind, "AgentSkillBundle");
+    assert!(skill.policy_gated);
+    assert!(!skill.installs_local_hooks);
+
+    let schedule = AgentScheduleSpec::new(
+        "tenant-a",
+        "nightly-drift-check",
+        "schedule-ref://tenant-a/nightly-drift-check",
+        "dogfood-codex-runtime",
+    )
+    .expect("schedule resource");
+    assert_eq!(schedule.kind, "AgentSchedule");
+    assert!(schedule.execution_externalized_to_controller);
+    assert!(!schedule.embeds_local_cron);
+
+    let delegation = AgentDelegationPolicySpec::new(
+        "tenant-a",
+        "codex-claude-gemini-delegation",
+        &["codex", "claude", "gemini"],
+        "owned-policy-engine-port",
+    )
+    .expect("delegation policy");
+    assert_eq!(delegation.kind, "AgentDelegationPolicy");
+    assert_eq!(
+        delegation.allowed_generation_adapters,
+        ["claude", "codex", "gemini"]
+    );
+    assert!(delegation.policy_gated);
+    assert!(!delegation.allows_routing_advisor_generation);
+}
+
+#[test]
+fn agent_runtime_workers_are_control_plane_only_and_redacted() {
+    let map = default_worker_ownership();
+    for worker_name in [
+        "agent-runtime-controller",
+        "agent-scheduler-worker",
+        "agent-delegation-worker",
+    ] {
+        let worker = map
+            .iter()
+            .find(|worker| worker.name == worker_name)
+            .unwrap_or_else(|| panic!("missing worker ownership row for {worker_name}"));
+        assert!(!worker.hot_path);
+        assert!(!worker.writes_raw_prompts_or_secrets);
+        assert!(
+            worker
+                .writes
+                .iter()
+                .all(|write| !write.contains("prompt") && !write.contains("secret")),
+            "runtime workers write only redacted/status resources"
+        );
+    }
+}
+
+
+#[test]
+fn safety_guardrail_resources_encode_platform_floor_and_secondary_review() {
+    let guardrail = GuardrailDetectionProfileSpec::platform_default(
+        "tenant-a",
+        "platform-critical-guardrails",
+        "owned-policy-engine-port",
+    )
+    .expect("platform guardrail profile");
+    assert_eq!(guardrail.kind, "GuardrailDetectionProfile");
+    assert!(guardrail.automatic_block_and_quarantine);
+    assert!(guardrail.mandatory_secondary_agentic_review);
+    assert!(guardrail.manual_review_required_after_secondary_review);
+    assert!(!guardrail.tenant_may_weaken_platform_floor);
+    assert!(guardrail.critical_categories.contains(&"prompt-injection-or-jailbreak".to_string()));
+    assert!(guardrail.critical_categories.contains(&"data-exfiltration-or-breach".to_string()));
+    assert!(guardrail.critical_categories.contains(&"self-harm-or-harm-to-others".to_string()));
+
+    assert!(
+        GuardrailDetectionProfileSpec::platform_default(
+            "tenant-a",
+            "bad-policy-port",
+            "cedar-direct",
+        )
+        .is_err(),
+        "guardrails must use owned policy-engine port, not a concrete transient adapter"
+    );
+}
+
+#[test]
+fn evidence_retention_and_manual_review_default_to_redacted_break_glass() {
+    let evidence = EvidenceRetentionProfileSpec::platform_default(
+        "tenant-a",
+        "platform-evidence-retention",
+        "owned-secret-provider-port",
+    )
+    .expect("evidence retention profile");
+    assert_eq!(evidence.kind, "EvidenceRetentionProfile");
+    assert!(!evidence.stores_raw_payload_on_normal_path);
+    assert!(evidence.encrypted_handle_on_guardrail_trigger);
+    assert!(evidence.fixed_ttl_by_data_class);
+    assert!(evidence.regulatory_classification_required);
+    assert_eq!(evidence.default_reviewer_visibility, "redacted-structured-evidence");
+    assert!(evidence.raw_access_requires_audited_break_glass);
+
+    let review = ManualReviewEscalationSpec::platform_default(
+        "tenant-a",
+        "critical-manual-review",
+    )
+    .expect("manual review profile");
+    assert_eq!(review.kind, "ManualReviewEscalation");
+    assert!(review.required_for_critical_blocks);
+    assert_eq!(review.default_evidence_visibility, "redacted-structured-evidence");
+    assert!(review.raw_payload_break_glass_only);
+    assert!(review.secondary_agentic_review_must_run_first);
+}
+
+#[test]
+fn in_transit_redaction_blocks_sensitive_and_allows_policy_approved_tokens() {
+    let redaction = InTransitRedactionProfileSpec::platform_default(
+        "tenant-a",
+        "in-transit-data-protection",
+    )
+    .expect("redaction profile");
+    assert_eq!(redaction.kind, "InTransitRedactionProfile");
+    assert!(redaction.blocks_sensitive_classes);
+    assert!(redaction.redacts_trivial_personal_data);
+    assert!(redaction.reversible_tokens_require_tenant_policy);
+    assert_eq!(redaction.default_token_lifetime, "ephemeral-run");
+    assert!(redaction.restore_only_after_model_output);
+    assert!(!redaction.provider_receives_raw_token_values);
+    assert!(!redaction.routing_advisor_receives_raw_token_values);
+
+    let signal_policy = SafetySignalPolicySpec::platform_default(
+        "tenant-a",
+        "tenant-safety-signals",
+    )
+    .expect("signal policy");
+    assert_eq!(signal_policy.kind, "SafetySignalPolicy");
+    assert!(signal_policy.platform_automatic_enforcement);
+    assert!(signal_policy.tenant_policy_receives_signals);
+    assert!(signal_policy.tenant_policy_receives_recommendations);
+    assert!(!signal_policy.tenant_can_override_platform_critical_block);
+}
+
+#[test]
+fn safety_workers_are_control_plane_only_and_never_write_raw_payloads() {
+    let map = default_worker_ownership();
+    for worker_name in [
+        "safety-enforcement-controller",
+        "guardrail-detection-worker",
+        "evidence-retention-controller",
+    ] {
+        let worker = map
+            .iter()
+            .find(|worker| worker.name == worker_name)
+            .unwrap_or_else(|| panic!("missing worker ownership row for {worker_name}"));
+        assert!(!worker.hot_path);
+        assert!(!worker.writes_raw_prompts_or_secrets);
+        assert!(
+            worker
+                .writes
+                .iter()
+                .all(|write| !write.contains("raw-payload") && !write.contains("secret")),
+            "safety workers write only redacted signals, sealed handles, or status"
+        );
+    }
 }
 
 #[test]
@@ -144,6 +386,37 @@ fn xproxy_route_004_005_006_model_and_backend_management_are_declarative_resourc
 }
 
 #[test]
+fn xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted() {
+    let advisors = default_routing_advisor_profiles();
+    assert!(
+        advisors
+            .iter()
+            .any(|advisor| advisor.model_hint == "chatgpt-spark")
+    );
+    assert!(
+        advisors
+            .iter()
+            .any(|advisor| advisor.model_hint == "gemini-3.1-flash-lite")
+    );
+    assert!(
+        advisors
+            .iter()
+            .any(|advisor| advisor.model_hint == "nemotron-3-ultra-550b-a55b")
+    );
+
+    for advisor in advisors {
+        assert_eq!(advisor.purpose, RoutingAdvisorPurpose::RoutingDecisionOnly);
+        assert!(advisor.adapter_backed);
+        assert!(!advisor.may_execute_generation);
+        assert!(!advisor.receives_raw_prompts_or_secrets);
+        assert!(
+            advisor.receives_redacted_route_metadata,
+            "routing advisors should receive only redacted route metadata"
+        );
+    }
+}
+
+#[test]
 fn xproxy_auth_001_002_006_007_008_lifecycle_auth_and_config_are_cloud_native() {
     let lifecycle = OAuthLifecyclePlan::manual_headless_enrollment(
         "tenant-a",
@@ -196,6 +469,35 @@ fn xproxy_auth_001_002_006_007_008_lifecycle_auth_and_config_are_cloud_native() 
         ConfigLayer::new(ConfigSource::ModelRoute, "provider_key", "sk-raw-value")
             .validate_no_raw_secret()
             .is_err()
+    );
+}
+
+#[test]
+fn reference_test_ci_patterns_are_adopted_as_cloud_native_canaries() {
+    let catalog = ReferenceCiPatternCatalog::cloud_native_adoptions();
+    for pattern in [
+        "path-scoped-compatibility-canaries",
+        "drift-detection-with-artifacted-reports",
+        "watcher-liveness-watchdog",
+        "infra-vs-drift-vs-inconclusive-status-separation",
+        "self-healing-pr-or-task-on-delta",
+        "redaction-and-wire-fixture-regression-matrix",
+    ] {
+        assert!(
+            catalog.adopted_patterns.contains(&pattern.to_string()),
+            "missing adopted pattern {pattern}"
+        );
+    }
+
+    assert!(
+        catalog
+            .rejected_patterns
+            .contains(&"local-cli-smoke-surface".to_string())
+    );
+    assert!(
+        catalog
+            .rejected_patterns
+            .contains(&"local-tui-test-surface".to_string())
     );
 }
 
