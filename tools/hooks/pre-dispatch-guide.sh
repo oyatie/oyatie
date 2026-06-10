@@ -47,7 +47,7 @@ fi
 if ! echo "$PROMPT_TEXT" | grep -qi 'audience\|who.*agent\|agent.*type\|executor\|architect' 2>/dev/null; then
     MISSING_SIGNALS="$MISSING_SIGNALS audience-declaration"
 fi
-if ! echo "$PROMPT_TEXT" | grep -qiE 'evidence/|docs/|specs/|crates/|read.*file|file.*read' 2>/dev/null; then
+if ! echo "$PROMPT_TEXT" | grep -qiE 'evidence/|docs/|specs/|libs/|read.*file|file.*read' 2>/dev/null; then
     MISSING_SIGNALS="$MISSING_SIGNALS evidence-pointers"
 fi
 if ! echo "$PROMPT_TEXT" | grep -qi 'output\|artifact\|deliver\|produce\|create\|write' 2>/dev/null; then
@@ -61,7 +61,6 @@ if [ -n "$MISSING_SIGNALS" ]; then
     echo "ℹ    - Evidence pointers: which files should the agent read first?" >&2
     echo "ℹ    - Output bar: what artifacts should be produced?" >&2
     echo "ℹ    - Version sources: where to verify spec versions (OpenAPI 3.2.0, AsyncAPI 3.1.0)?" >&2
-    echo "ℹ  See evidence/pr-143-hooks-bootstrap-design-amendment-2026-05-18.json for dispatch template." >&2
     echo "ℹ  Continuing dispatch as requested." >&2
 fi
 
