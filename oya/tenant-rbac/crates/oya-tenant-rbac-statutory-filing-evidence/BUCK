@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-statutory-filing-evidence-statutory-filing",
+    srcs = ["tests/statutory_filing.rs"],
+    crate = "oya_tenant_rbac_statutory_filing_evidence_statutory_filing",
+    crate_root = "tests/statutory_filing.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-statutory-filing-evidence",
+    ],
+)

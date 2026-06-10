@@ -9,3 +9,16 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-workflow-adapter-inmemory-workflow",
+    srcs = ["tests/workflow.rs"],
+    crate = "oya_tenant_rbac_workflow_adapter_inmemory_workflow",
+    crate_root = "tests/workflow.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-workflow-adapter-inmemory",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-usecase:oya-tenant-rbac-usecase",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
+    ],
+)
