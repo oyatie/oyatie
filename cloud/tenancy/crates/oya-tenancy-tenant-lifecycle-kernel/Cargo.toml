@@ -11,5 +11,13 @@ name = "oya_tenancy_tenant_lifecycle_kernel"
 path = "src/lib.rs"
 doctest = false
 
+[dependencies]
+oya-shared-platform-contracts-kernel = { path = "../../../../libs/oya-shared-platform-contracts-kernel" }
+oya-shared-resource-provider-contract-kernel = { path = "../../../../libs/oya-shared-resource-provider-contract-kernel" }
+serde = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
 [lints]
 workspace = true

@@ -33,11 +33,11 @@ pub const INSERT_OUTBOX_EVENT_SQL: &str = "INSERT INTO oya_data_outbox.outbox_ev
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct OutboxEvent {
-    pub tenant_id: String,       // data_class: TENANT_SCOPED
-    pub event_id: String,        // data_class: INTERNAL_ONLY
-    pub event_kind: String,      // data_class: INTERNAL_ONLY
-    pub aggregate_id: String,    // data_class: TENANT_SCOPED
-    pub schema_version: String,  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,      // data_class: TENANT_SCOPED
+    pub event_id: String,       // data_class: INTERNAL_ONLY
+    pub event_kind: String,     // data_class: INTERNAL_ONLY
+    pub aggregate_id: String,   // data_class: TENANT_SCOPED
+    pub schema_version: String, // data_class: INTERNAL_ONLY
     /// Producer-supplied idempotency key (client-UUID discipline, AIP-155):
     /// the conflict target that makes write retries effectively-once.
     pub idempotency_key: String, // data_class: INTERNAL_ONLY
@@ -114,8 +114,8 @@ pub struct ChangeRecord {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ChangeBatch {
-    pub records: Vec<ChangeRecord>,  // data_class: TENANT_SCOPED
-    pub resume_from: HlcTimestamp,   // data_class: INTERNAL_ONLY
+    pub records: Vec<ChangeRecord>, // data_class: TENANT_SCOPED
+    pub resume_from: HlcTimestamp,  // data_class: INTERNAL_ONLY
 }
 
 impl ChangeBatch {
@@ -181,9 +181,7 @@ impl ChangeStreamSource for RecordingChangeStream {
         let records: Vec<ChangeRecord> = self
             .records
             .iter()
-            .filter(|record| {
-                record.tenant_id == tenant_id && record.commit_timestamp > checkpoint
-            })
+            .filter(|record| record.tenant_id == tenant_id && record.commit_timestamp > checkpoint)
             .take(limit)
             .cloned()
             .collect();
@@ -265,15 +263,21 @@ mod tests {
         let statement = event().insert_statement().unwrap();
         assert_eq!(statement.params.len(), 7);
         assert!(!statement.sql.contains("acme"), "values never in SQL text");
-        assert!(statement.sql.contains("ON CONFLICT (tenant_id, idempotency_key)"));
+        assert!(
+            statement
+                .sql
+                .contains("ON CONFLICT (tenant_id, idempotency_key)")
+        );
     }
 
     #[test]
     fn with_outbox_event_appends_atomically_to_the_business_batch() {
         let business = WriteBatch::new(vec![
-            Statement::new("insert_tenant", "INSERT INTO tenants VALUES ($1)", vec![
-                SqlValue::Text("acme".to_owned()),
-            ])
+            Statement::new(
+                "insert_tenant",
+                "INSERT INTO tenants VALUES ($1)",
+                vec![SqlValue::Text("acme".to_owned())],
+            )
             .unwrap(),
         ])
         .unwrap();
