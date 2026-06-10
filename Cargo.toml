@@ -126,6 +126,8 @@ members = [
   "libs/oya-json-kernel",
   "libs/oya-shared-architecture-check-cli",
   "libs/oya-shared-audit-chain-client-kernel",
+  "libs/oya-shared-audit-digest-adapter-awslc",
+  "libs/oya-shared-audit-event-kernel",
   "libs/oya-shared-backbone-grpc-generated-adapter",
   "libs/oya-shared-backbone-grpc-transport-adapter",
   "libs/oya-shared-backbone-proto-contracts-kernel",

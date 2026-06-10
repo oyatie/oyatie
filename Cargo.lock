@@ -8313,6 +8313,22 @@ name = "oya-shared-audit-chain-client-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-shared-audit-digest-adapter-awslc"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "oya-shared-audit-event-kernel",
+]
+
+[[package]]
+name = "oya-shared-audit-event-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-shared-backbone-grpc-generated-adapter"
 version = "0.1.0"
 dependencies = [
