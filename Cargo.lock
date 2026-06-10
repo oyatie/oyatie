@@ -4185,6 +4185,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-manifest-hygiene-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-ci-scm-facts-emitter-app"
 version = "0.1.0"
 dependencies = [
@@ -4197,13 +4204,6 @@ name = "oya-cloud-ci-slo-coverage-app"
 version = "0.1.0"
 dependencies = [
  "oya-check-slo-coverage",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-ci-manifest-hygiene-app"
-version = "0.1.0"
-dependencies = [
  "serde_json",
 ]
 
@@ -4507,6 +4507,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-intelligence-ops"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-intelligence-rest"
 version = "0.1.0"
 dependencies = [
@@ -4515,6 +4523,7 @@ dependencies = [
  "futures",
  "http-body-util",
  "httpmock",
+ "oya-cloud-intelligence-codex-adapter",
  "oya-cloud-intelligence-kernel",
  "reqwest",
  "serde",
@@ -4522,6 +4531,38 @@ dependencies = [
  "tokio",
  "tower 0.5.3",
  "tracing",
+]
+
+[[package]]
+name = "oya-cloud-intelligence-tool-compat"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-intelligence-translation"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-intelligence-wire"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-intelligence-workers"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

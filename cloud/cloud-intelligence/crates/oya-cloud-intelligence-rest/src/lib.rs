@@ -47,6 +47,10 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use bytes::Bytes;
 use futures::Stream;
+use futures::StreamExt as _;
+use oya_cloud_intelligence_codex_adapter::{
+    CodexAdapterError, CodexProxyRequest, CodexProxyResponse, OpenAiApiKeyAdapter,
+};
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tracing::{debug, warn};
@@ -250,6 +254,9 @@ const ANTHROPIC_CLIENT_ID: &str = "9d1c250a-e61b-44d9-88ed-5944d1962f5e";
 
 /// Default Anthropic base URL.
 const ANTHROPIC_BASE_URL: &str = "https://api.anthropic.com";
+
+/// Default OpenAI-compatible base URL for API-key provider pools.
+const OPENAI_COMPATIBLE_BASE_URL: &str = "https://api.openai.com";
 
 /// Anthropic API version header value.
 const ANTHROPIC_VERSION: &str = "2023-06-01";
@@ -1196,6 +1203,7 @@ pub struct AppState {
     pub sink: Arc<dyn EventSink + Send + Sync>, // data_class: INTERNAL_ONLY
     pub secret_store: Arc<dyn SecretProviderStore>, // data_class: INTERNAL_ONLY
     pub anthropic_base_url: String,  // data_class: INTERNAL_ONLY
+    pub openai_compatible_base_url: String, // data_class: INTERNAL_ONLY
     pub tenant_id: TenantId,         // data_class: INTERNAL_ONLY
     pub admin_bearer_token: Option<String>, // data_class: SECRET
     /// Runtime environment string (e.g. `production`). Production enforces the
@@ -1265,6 +1273,7 @@ impl AppState {
             sink,
             secret_store,
             anthropic_base_url,
+            openai_compatible_base_url: OPENAI_COMPATIBLE_BASE_URL.to_string(),
             tenant_id,
             admin_bearer_token,
             environment,
@@ -1293,6 +1302,7 @@ const MAX_BODY_BYTES: usize = 1024 * 1024; // 1 MiB
 ///
 /// Routes:
 /// - `POST /v1/messages` — OAuth-gated reverse proxy to Anthropic API.
+/// - `POST /v1/complete` — legacy Anthropic completions deprecation surface.
 /// - `GET  /healthz`     — lightweight health probe.
 /// - `GET  /livez`       — Kubernetes liveness probe.
 /// - `GET  /readyz`      — readiness probe (pool lock is reachable).
@@ -1301,6 +1311,9 @@ pub fn build_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/v1/messages", post(handle_proxy))
         .route("/v1/messages/count_tokens", post(handle_count_tokens))
+        .route("/v1/complete", post(handle_legacy_complete))
+        .route("/v1/chat/completions", post(handle_openai_chat_completions))
+        .route("/v1/embeddings", post(handle_openai_embeddings))
         .route("/v1/models", get(handle_models))
         .route("/admin/v1/status", get(handle_admin_status))
         .route("/admin/v1/accounts", get(handle_admin_accounts))
@@ -1561,6 +1574,386 @@ async fn handle_proxy(
                 let _ = lease.complete(SeatOutcome::ServerError5xx, Instant::now());
                 StatusCode::BAD_GATEWAY.into_response()
             }
+        }
+    }
+}
+
+struct ProviderLeaseContext {
+    lease: SeatLease,                // data_class: INTERNAL_ONLY
+    seat_id: SeatId,                 // data_class: INTERNAL_ONLY
+    credential_handle: String,       // data_class: INTERNAL_ONLY
+    credential_mode: CredentialMode, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy)]
+enum LeaseError {
+    Forbidden,
+    NoEligibleSeat,
+    Internal,
+}
+
+fn headers_to_btree(headers: &HeaderMap) -> BTreeMap<String, String> {
+    let mut proxy_headers = BTreeMap::new();
+    for (k, v) in headers.iter() {
+        if let Ok(val) = v.to_str() {
+            proxy_headers.insert(k.as_str().to_string(), val.to_string());
+        }
+    }
+    proxy_headers
+}
+
+fn acquire_provider_lease(
+    state: &AppState,
+    provider: Provider,
+    agent_id: &AgentId,
+) -> Result<ProviderLeaseContext, LeaseError> {
+    let Some(pool) = state.pool_registry.get_pool(&state.tenant_id, provider) else {
+        return Err(LeaseError::NoEligibleSeat);
+    };
+    let lease = match SubscriptionPool::lease(&pool, agent_id, state.gate.as_ref(), Instant::now())
+    {
+        Ok(lease) => lease,
+        Err(SubscriptionPoolError::ForbiddenByPolicy) => return Err(LeaseError::Forbidden),
+        Err(SubscriptionPoolError::NoEligibleSeat) => return Err(LeaseError::NoEligibleSeat),
+        Err(_) => return Err(LeaseError::Internal),
+    };
+    let seat_id = lease.seat_id().clone();
+    let Some((credential_handle, credential_mode)) = pool.lock().ok().and_then(|pool| {
+        let handle = pool.credential_secret_handle_for_seat(&seat_id)?;
+        let mode = pool.credential_mode_for_seat(&seat_id)?;
+        Some((handle, mode))
+    }) else {
+        let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
+        return Err(LeaseError::Internal);
+    };
+    Ok(ProviderLeaseContext {
+        lease,
+        seat_id,
+        credential_handle,
+        credential_mode,
+    })
+}
+
+#[derive(Serialize)]
+struct OpenAiCompatibleErrorBody {
+    error: OpenAiCompatibleError, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Serialize)]
+struct OpenAiCompatibleError {
+    message: String, // data_class: INTERNAL_ONLY
+    #[serde(rename = "type")]
+    error_type: &'static str, // data_class: INTERNAL_ONLY
+    code: &'static str, // data_class: INTERNAL_ONLY
+}
+
+fn openai_error_response(
+    status: StatusCode,
+    error_type: &'static str,
+    code: &'static str,
+    message: impl Into<String>,
+    retry_after_seconds: Option<u64>,
+) -> Response {
+    let payload = OpenAiCompatibleErrorBody {
+        error: OpenAiCompatibleError {
+            message: message.into(),
+            error_type,
+            code,
+        },
+    };
+    let body = serde_json::to_vec(&payload).unwrap_or_else(|_| b"{\"error\":{}}".to_vec());
+    let mut builder = axum::response::Response::builder()
+        .status(status)
+        .header("content-type", "application/json");
+    if let Some(seconds) = retry_after_seconds {
+        builder = builder.header("retry-after", seconds.to_string());
+    }
+    builder
+        .body(Body::from(body))
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+}
+
+fn codex_proxy_response_to_axum(resp: CodexProxyResponse) -> Response {
+    let mut builder = axum::response::Response::builder().status(resp.status);
+    for (k, v) in &resp.headers {
+        if let (Ok(name), Ok(value)) = (
+            HeaderName::from_bytes(k.as_bytes()),
+            HeaderValue::from_str(v),
+        ) {
+            builder = builder.header(name, value);
+        }
+    }
+    builder
+        .body(Body::from(resp.body))
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+}
+
+fn openai_adapter_error_to_response(error: CodexAdapterError) -> Response {
+    match error {
+        CodexAdapterError::RateLimited { retry_after_secs } => openai_error_response(
+            StatusCode::TOO_MANY_REQUESTS,
+            "rate_limit_error",
+            "upstream_rate_limited",
+            "upstream provider rate limited the request",
+            retry_after_secs,
+        ),
+        CodexAdapterError::UpstreamError { status, body } => openai_error_response(
+            StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY),
+            "upstream_error",
+            "upstream_error",
+            body,
+            None,
+        ),
+        CodexAdapterError::TransportError(_) => openai_error_response(
+            StatusCode::BAD_GATEWAY,
+            "upstream_error",
+            "provider_transport_error",
+            "upstream provider transport failed",
+            None,
+        ),
+        CodexAdapterError::RefreshFailed(_) => openai_error_response(
+            StatusCode::BAD_GATEWAY,
+            "upstream_error",
+            "provider_refresh_failed",
+            "upstream provider credential refresh failed",
+            None,
+        ),
+    }
+}
+
+fn openai_stream_requested(headers: &HeaderMap, body: &[u8]) -> bool {
+    let accept_sse = headers
+        .get("accept")
+        .and_then(|value| value.to_str().ok())
+        .map(|value| value.to_ascii_lowercase().contains("text/event-stream"))
+        .unwrap_or(false);
+    if accept_sse {
+        return true;
+    }
+    serde_json::from_slice::<serde_json::Value>(body)
+        .ok()
+        .and_then(|value| value.get("stream").and_then(serde_json::Value::as_bool))
+        .unwrap_or(false)
+}
+
+fn openai_route_missing_agent_response() -> Response {
+    openai_error_response(
+        StatusCode::BAD_REQUEST,
+        "invalid_request_error",
+        "missing_agent_id",
+        "missing x-agent-id header",
+        None,
+    )
+}
+
+fn parse_agent_header_for_openai(headers: &HeaderMap) -> Result<AgentId, Response> {
+    let Some(agent_id_str) = headers.get("x-agent-id").and_then(|v| v.to_str().ok()) else {
+        return Err(openai_route_missing_agent_response());
+    };
+    AgentId::new(agent_id_str.to_string()).map_err(|_| {
+        openai_error_response(
+            StatusCode::BAD_REQUEST,
+            "invalid_request_error",
+            "invalid_agent_id",
+            "invalid x-agent-id header",
+            None,
+        )
+    })
+}
+
+async fn handle_openai_chat_completions(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> Response {
+    handle_openai_compatible_proxy(state, headers, body, "/v1/chat/completions", true).await
+}
+
+async fn handle_openai_embeddings(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> Response {
+    handle_openai_compatible_proxy(state, headers, body, "/v1/embeddings", false).await
+}
+
+async fn handle_legacy_complete() -> Response {
+    let payload = OpenAiCompatibleErrorBody {
+        error: OpenAiCompatibleError {
+            message: "legacy Anthropic completions are deprecated; use /v1/messages or /v1/chat/completions"
+                .to_string(),
+            error_type: "invalid_request_error",
+            code: "legacy_anthropic_completions_deprecated",
+        },
+    };
+    let body = serde_json::to_vec(&payload).unwrap_or_else(|_| b"{\"error\":{}}".to_vec());
+    axum::response::Response::builder()
+        .status(StatusCode::GONE)
+        .header("content-type", "application/json")
+        .header("x-oya-compatibility", "deprecated-legacy-completions")
+        .body(Body::from(body))
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+}
+
+async fn handle_openai_compatible_proxy(
+    state: Arc<AppState>,
+    headers: HeaderMap,
+    body: Bytes,
+    upstream_path: &'static str,
+    allow_stream: bool,
+) -> Response {
+    let agent_id = match parse_agent_header_for_openai(&headers) {
+        Ok(agent_id) => agent_id,
+        Err(response) => return response,
+    };
+    let lease_context = match acquire_provider_lease(&state, Provider::Codex, &agent_id) {
+        Ok(context) => context,
+        Err(LeaseError::Forbidden) => {
+            return openai_error_response(
+                StatusCode::FORBIDDEN,
+                "policy_error",
+                "forbidden_by_policy",
+                "request was denied by policy",
+                None,
+            );
+        }
+        Err(LeaseError::NoEligibleSeat) => {
+            return openai_error_response(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "unavailable_error",
+                "no_eligible_provider_seat",
+                "no eligible OpenAI-compatible provider seat is available",
+                Some(1),
+            );
+        }
+        Err(LeaseError::Internal) => {
+            return openai_error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "server_error",
+                "provider_pool_error",
+                "provider pool state could not be read",
+                None,
+            );
+        }
+    };
+
+    if lease_context.credential_mode != CredentialMode::ApiKey {
+        let _ = lease_context
+            .lease
+            .complete(SeatOutcome::RefreshFailed, Instant::now());
+        return openai_error_response(
+            StatusCode::BAD_GATEWAY,
+            "upstream_error",
+            "openai_compatible_api_key_required",
+            "OpenAI-compatible routes require an API-key provider seat",
+            None,
+        );
+    }
+
+    let api_key = match state
+        .secret_store
+        .fetch_refresh_token(&lease_context.credential_handle)
+    {
+        Ok(api_key) => api_key,
+        Err(_) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::RefreshFailed, Instant::now());
+            return openai_error_response(
+                StatusCode::BAD_GATEWAY,
+                "upstream_error",
+                "provider_credential_unavailable",
+                "provider credential handle could not be resolved",
+                None,
+            );
+        }
+    };
+
+    let request = CodexProxyRequest {
+        body: body.to_vec(),
+        extra_headers: headers_to_btree(&headers),
+    };
+    let adapter = OpenAiApiKeyAdapter::with_base_url(
+        Arc::clone(&state.http_client),
+        state.openai_compatible_base_url.clone(),
+    );
+
+    if allow_stream && openai_stream_requested(&headers, &body) {
+        match adapter
+            .proxy_openai_compatible_path_stream(&api_key, upstream_path, request)
+            .await
+        {
+            Ok((upstream_status, upstream_headers, byte_stream)) => {
+                let mapped: BoxStream<Result<Bytes, RestAdapterError>> =
+                    Box::pin(byte_stream.map(|chunk| {
+                        chunk.map_err(|e| RestAdapterError::UpstreamError {
+                            status: 502,
+                            body: e.to_string(),
+                        })
+                    }));
+                let lease_stream = SseStreamWithLease::new(mapped, lease_context.lease);
+                let mut builder = axum::response::Response::builder().status(upstream_status);
+                for (k, v) in &upstream_headers {
+                    if let (Ok(name), Ok(value)) = (
+                        HeaderName::from_bytes(k.as_bytes()),
+                        HeaderValue::from_str(v),
+                    ) {
+                        builder = builder.header(name, value);
+                    }
+                }
+                return builder
+                    .header("content-type", "text/event-stream")
+                    .header("cache-control", "no-cache")
+                    .body(Body::from_stream(lease_stream))
+                    .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response());
+            }
+            Err(error) => {
+                let _ = lease_context
+                    .lease
+                    .complete(SeatOutcome::ServerError5xx, Instant::now());
+                return openai_adapter_error_to_response(error);
+            }
+        }
+    }
+
+    match adapter
+        .proxy_openai_compatible_path(&api_key, upstream_path, request)
+        .await
+    {
+        Ok(resp) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::Ok, Instant::now());
+            let now_ms = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as u64;
+            state.sink.emit(LlmGatewayEvent {
+                request_id: format!("req-{now_ms}"),
+                tenant_id: state.tenant_id.clone(),
+                agent_id,
+                seat_id: lease_context.seat_id,
+                provider: Provider::Codex,
+                model: String::new(),
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                ms_latency: 0,
+                status: oya_cloud_intelligence_kernel::EventStatus::Ok,
+                timestamp_unix_ms: now_ms,
+            });
+            codex_proxy_response_to_axum(resp)
+        }
+        Err(CodexAdapterError::RateLimited { retry_after_secs }) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::RateLimited429, Instant::now());
+            openai_adapter_error_to_response(CodexAdapterError::RateLimited { retry_after_secs })
+        }
+        Err(error) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::ServerError5xx, Instant::now());
+            openai_adapter_error_to_response(error)
         }
     }
 }
@@ -2363,7 +2756,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn external_reference_ops_routes_are_admin_guarded_cloud_routes() {
+    async fn xproxy_api_005_external_reference_ops_routes_are_admin_guarded_cloud_routes() {
         let router = build_router(test_state(true, true));
         let cases = [
             ("GET", "/admin/v1/status", Body::empty()),
@@ -2400,7 +2793,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn admin_status_accounts_and_analytics_expose_owned_ports_not_transient_engines() {
+    async fn xproxy_api_005_admin_status_accounts_and_analytics_expose_owned_ports_not_transient_engines()
+     {
         let router = build_router(test_state(true, true));
 
         let status = router
@@ -2502,7 +2896,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn model_inventory_and_count_tokens_routes_are_contract_first_cloud_surfaces() {
+    async fn xproxy_api_004_model_inventory_and_count_tokens_routes_are_contract_first_cloud_surfaces()
+     {
         let router = build_router(test_state(true, true));
 
         let models = router
@@ -2730,6 +3125,223 @@ mod tests {
             )
             .unwrap(),
         )
+    }
+
+    fn openai_proxy_state(base_url: String) -> Arc<AppState> {
+        let tenant_id = TenantId::new("tenant-a").unwrap();
+        let default_pool = Arc::new(Mutex::new(SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        )));
+
+        let mut openai_pool = SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Codex,
+            SelectionStrategy::RoundRobin,
+        );
+        openai_pool
+            .add_seat(
+                OAuthSubscription::new(
+                    tenant_id.clone(),
+                    SeatId::new("openai-seat-a").unwrap(),
+                    SubscriptionId::new("openai-sub-a").unwrap(),
+                    Provider::Codex,
+                    SubscriptionState::Active,
+                    "secret-ref://tenant-a/openai/openai-seat-a",
+                    0,
+                )
+                .with_credential_mode(CredentialMode::ApiKey),
+            )
+            .unwrap();
+
+        let registry = PoolRegistry::new();
+        registry.insert_pool(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            Arc::clone(&default_pool),
+        );
+        registry.insert_pool(
+            tenant_id.clone(),
+            Provider::Codex,
+            Arc::new(Mutex::new(openai_pool)),
+        );
+
+        let mut state = AppState::new_with_pool_registry(
+            default_pool,
+            registry,
+            Arc::new(AllowGate),
+            Arc::new(NoopSink),
+            Arc::new(MemorySecretStore { ready: true }),
+            "http://127.0.0.1:1".to_string(),
+            tenant_id,
+            Some("admin-token".to_string()),
+            "development".to_string(),
+            std::collections::HashSet::new(),
+        )
+        .unwrap();
+        state.openai_compatible_base_url = base_url;
+        Arc::new(state)
+    }
+
+    #[tokio::test]
+    async fn xproxy_api_003_openai_chat_completions_passes_body_and_safe_headers_to_openai_compatible_backend()
+     {
+        let upstream_body = r#"{"id":"chatcmpl-1","object":"chat.completion","choices":[]}"#;
+        let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
+            format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nX-Upstream-Trace: trace-a\r\nContent-Length: {}\r\n\r\n{}",
+                upstream_body.len(), upstream_body
+            )
+            .into_boxed_str(),
+        )]);
+        let state = openai_proxy_state(base_url);
+        let request_body = r#"{"model":"gpt-4o","messages":[{"role":"user","content":"hello"}]}"#;
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/chat/completions")
+                    .header("x-agent-id", "agent-a")
+                    .header("authorization", "Bearer caller-token")
+                    .header("connection", "x-drop-me")
+                    .header("x-drop-me", "must-not-forward")
+                    .header("x-openai-beta", "must-not-forward")
+                    .header("openai-organization", "org-safe")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response
+                .headers()
+                .get("x-upstream-trace")
+                .and_then(|value| value.to_str().ok()),
+            Some("trace-a")
+        );
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(std::str::from_utf8(&body).unwrap(), upstream_body);
+
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(requests.len(), 1);
+        let req = &requests[0];
+        assert!(
+            req.starts_with("POST /v1/chat/completions "),
+            "unexpected upstream path:\n{req}"
+        );
+        assert!(
+            req.contains(request_body),
+            "body was not passed through:\n{req}"
+        );
+        assert_header(req, "authorization", "Bearer test-refresh-token");
+        assert_header(req, "openai-organization", "org-safe");
+        assert!(
+            !req.contains("caller-token"),
+            "caller authorization must not be forwarded:\n{req}"
+        );
+        assert!(
+            !req.contains("must-not-forward"),
+            "provider-control or connection-nominated headers leaked:\n{req}"
+        );
+    }
+
+    #[tokio::test]
+    async fn xproxy_route_007_openai_embeddings_route_uses_same_openai_compatible_pass_through_contract()
+     {
+        let upstream_body = r#"{"object":"list","data":[{"embedding":[0.1]}]}"#;
+        let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
+            format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
+                upstream_body.len(),
+                upstream_body
+            )
+            .into_boxed_str(),
+        )]);
+        let state = openai_proxy_state(base_url);
+        let request_body = r#"{"model":"text-embedding-3-small","input":"hello"}"#;
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/embeddings")
+                    .header("x-agent-id", "agent-a")
+                    .header("authorization", "Bearer caller-token")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(std::str::from_utf8(&body).unwrap(), upstream_body);
+
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(requests.len(), 1);
+        let req = &requests[0];
+        assert!(
+            req.starts_with("POST /v1/embeddings "),
+            "unexpected upstream path:\n{req}"
+        );
+        assert!(
+            req.contains(request_body),
+            "body was not passed through:\n{req}"
+        );
+        assert_header(req, "authorization", "Bearer test-refresh-token");
+        assert!(
+            !req.contains("caller-token"),
+            "caller authorization must not be forwarded:\n{req}"
+        );
+    }
+
+    #[tokio::test]
+    async fn xproxy_api_002_legacy_anthropic_complete_route_is_cloud_api_deprecation_not_cli_flow()
+    {
+        let response = build_router(test_state(true, true))
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/complete")
+                    .header("content-type", "application/json")
+                    .body(Body::from(r#"{"model":"claude-2","prompt":"hello"}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::GONE);
+        assert_eq!(
+            response
+                .headers()
+                .get("x-oya-compatibility")
+                .and_then(|value| value.to_str().ok()),
+            Some("deprecated-legacy-completions")
+        );
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let payload: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(
+            payload["error"]["code"],
+            "legacy_anthropic_completions_deprecated"
+        );
+        assert!(
+            !std::str::from_utf8(&body)
+                .unwrap()
+                .to_ascii_lowercase()
+                .contains("cli")
+        );
+        assert!(
+            !std::str::from_utf8(&body)
+                .unwrap()
+                .to_ascii_lowercase()
+                .contains("tui")
+        );
     }
 
     /// Build an admin-test `AppState` for a given environment + OAuth approval
