@@ -10,3 +10,17 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-policy-domain:oya-intelligence-policy-domain",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-policy-api-foundry-policy-api",
+    srcs = ["tests/foundry_policy_api.rs"],
+    crate = "oya_intelligence_policy_api_foundry_policy_api",
+    crate_root = "tests/foundry_policy_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-policy-api",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+        "//oya/intelligence/crates/oya-intelligence-policy-domain:oya-intelligence-policy-domain",
+    ],
+)

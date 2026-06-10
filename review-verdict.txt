@@ -1,17 +1,19 @@
+PRE-OPEN REVIEW FILTER VERDICT — agent/burndown-slice-08 (ADR-0540 / FRIC-1781063357 burn-down campaign)
+
 VERDICT: APPROVE
-reviewed_content_head: c22a602b1
-review_scope: slice-09 ADR-0540 BUCK rust_test wiring plus generated cloud-ci face settle
-subagent_filter: skipped because OMX worker protocol forbids nested subagents in this worker pane; review performed in-session with code-review-and-quality plus the Torvalds rubric.
+Reviewed head SHA (content + settled faces): eede7d7ccab37b65b1409df6a84cf8a8c4c7c72a
+Base: origin/dev = 3ae4f2ea9
+Reviewer: fresh-context Fable review subagent (oh-my-claudecode:code-reviewer) loaded with /using-superpowers + /using-agent-skills, /oh-my-claudecode:ultraqa discipline, applied .omc/ultragoal/RUBRIC-torvalds-review.md axes §1–7 in full.
 
-Findings:
-- none
+Verified by the reviewer running commands (not narration):
+- Diff scope: exactly 48 oya/intelligence/crates/*/BUCK + 3 cloud-ci accounting faces; deferred members absent from diff; tests/target_parity.rs untouched (leader collision constraint honored).
+- Anti-laundering: debt keys removed from gate-baseline face == wired member set, byte-for-byte (comm both directions empty, 48 == 48); 3 deferred members remain in the debt list.
+- Settle protocol: 6 content commits carry zero faces; faces-only settle commit eede7d7cc carries zero content; faces producer-mechanical.
+- buck2 spot-checks: 4 targets re-run → "Tests finished: Pass 4. Fail 0. Timeout 0. Fatal 0. Skip 0. Omit 0. Infra Failure 0. Build failure 0".
+- Commits SSH-signed (git verify-commit HEAD → Good "git" signature with ED25519 key).
 
-Evidence:
-- Premise gate: 50/50 slice-09 members were generator candidates on origin/dev at 3ae4f2ea9; zero non-candidates.
-- Generator burn-down: post-change slice intersection with `oya-buck-test-wiring --list` is 0 remaining candidates.
-- Target verification: 59 generated rust_test targets passed via `buck2 test` with Fail 0, Timeout 0, Fatal 0, Infra Failure 0, Build failure 0.
-- Scope review: `git diff --check origin/dev...HEAD` passed; no Rust source diff; no files outside BUCK plus cloud-ci generated faces.
-- Collision guard: `cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs` was not modified.
+Findings (no CRITICAL/HIGH):
+1. MEDIUM (confidence HIGH, pre-existing, non-blocking per campaign no-test-edits rule): oya-intelligence-capability-registry-app src/lib.rs:439 test seed_file_publishes_at_least_50_capabilities is non-hermetic — its runtime ancestors() walk escapes the buck srcs sandbox to find repo-root registry/capabilities/foundry-internal.json; green depends on buck-out nesting under the real repo root. Tracked as a friction-ledger row; fix out of campaign scope (stage the seed as a declared test input).
+2. LOW (informational): tally records openapi-domain's proximate compiler error (CARGO_MANIFEST_DIR undefined) while the root cause is include_str! escaping to repo-root contracts/ — same defect, two descriptions.
 
-Residual risk:
-- Generated face files may require a mechanical re-settle after the leader merge train rebases this slice with other concurrent burn-down PRs.
+residual risk: the capability-registry-app seed-loading test's green flips to a hard red the first time it runs under a truly isolated/remote hermetic executor (owned-substrate CAS direction), because the ancestors() walk will no longer reach the undeclared repo-root seed file.

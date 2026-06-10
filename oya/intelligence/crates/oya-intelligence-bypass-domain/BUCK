@@ -9,3 +9,16 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-bypass-domain-foundation-bypass",
+    srcs = ["tests/foundation_bypass.rs"],
+    crate = "oya_intelligence_bypass_domain_foundation_bypass",
+    crate_root = "tests/foundation_bypass.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-bypass-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+    ],
+)
