@@ -684,6 +684,7 @@ members = [
   "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase",
   "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase",
   "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel",
+  "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain",
   "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel",
   "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase",
   "cloud/tenancy/crates/oya-tenant-cli",

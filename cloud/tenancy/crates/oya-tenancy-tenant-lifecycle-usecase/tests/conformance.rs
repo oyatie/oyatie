@@ -323,6 +323,34 @@ fn create_rejects_non_initial_state_and_invalid_tenants() {
 }
 
 #[test]
+fn retired_tombstones_refuse_put_and_create() {
+    let name = TenantFixture.resource_name(1).unwrap();
+    let mut provider = provider_with_tenant(&name);
+    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Retire, 60);
+    assert!(matches!(
+        provider.get(&name),
+        Err(ProviderError::NotFound { .. })
+    ));
+
+    assert!(matches!(
+        provider.put(
+            &name,
+            TenantFixture.resource_payload(1),
+            &TenantFixture.idempotency_key(61).unwrap()
+        ),
+        Err(ProviderError::FailedPrecondition { .. })
+    ));
+    assert!(matches!(
+        provider.create(
+            &name,
+            TenantFixture.resource_payload(1),
+            &TenantFixture.idempotency_key(62).unwrap()
+        ),
+        Err(ProviderError::AlreadyExists { .. })
+    ));
+}
+
+#[test]
 fn put_may_never_change_lifecycle_state() {
     let name = TenantFixture.resource_name(1).unwrap();
     let mut provider = provider_with_tenant(&name);

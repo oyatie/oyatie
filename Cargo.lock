@@ -8756,6 +8756,15 @@ name = "oya-tenancy-sub-scope-registry-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-tenancy-tenant-lifecycle-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-platform-contracts-kernel",
+ "oya-shared-resource-provider-contract-kernel",
+ "serde",
+]
+
+[[package]]
 name = "oya-tenancy-tenant-lifecycle-kernel"
 version = "0.1.0"
 dependencies = [
@@ -8771,6 +8780,7 @@ version = "0.1.0"
 dependencies = [
  "oya-shared-platform-contracts-kernel",
  "oya-shared-resource-provider-contract-kernel",
+ "oya-tenancy-tenant-lifecycle-domain",
  "oya-tenancy-tenant-lifecycle-kernel",
  "serde_json",
 ]

@@ -24,6 +24,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+pub mod reconcile;
+
 use oya_shared_platform_contracts_kernel::tenancy::{
     Tenant, TenantLifecycleOperation, TenantLifecycleState,
 };
@@ -50,6 +52,13 @@ fn shape_error(
     ProviderError::Internal {
         message: error.to_string(),
     }
+}
+
+/// The smallest key strictly greater than `key` (ordered-scan resume point).
+fn next_key_after(key: &str) -> String {
+    let mut next = key.to_owned();
+    next.push('\0');
+    next
 }
 
 fn validate_tenant(tenant: &Tenant) -> Result<(), ProviderError> {
@@ -142,6 +151,15 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
         Ok(pending)
     }
 
+    /// Store-level observation INCLUDING tombstones — the reconciler needs
+    /// to see `Retired` to distinguish "never existed" from "terminally
+    /// retired" (public `get` hides both as not-found).
+    pub fn observe_stored(&self, name: &ResourceName) -> Result<Option<Tenant>, ProviderError> {
+        self.store
+            .get_tenant(&name.to_string())
+            .map_err(store_error)
+    }
+
     /// Complete a pending ledger entry: evaluate the contract transition
     /// against the CURRENT tenant state and persist the outcome. Exactly one
     /// terminal write per operation; terminal entries are never touched.
@@ -175,9 +193,12 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
                 Ok(transitioned) => {
                     if transitioned.state == TenantLifecycleState::Retired {
                         // Retired is terminal and the id is never reused:
-                        // the record leaves the readable surface.
+                        // the record stays as a TOMBSTONE (hidden from the
+                        // readable surface, blocking name reuse forever).
+                        // Physical removal is the crypto-shred offboarding
+                        // path, a separate Cedar-gated G02 flow.
                         self.store
-                            .remove_tenant(&record.target)
+                            .put_tenant(&record.target, &transitioned)
                             .map_err(store_error)?;
                         Operation::succeeded(
                             operation_name.to_owned(),
@@ -303,6 +324,14 @@ impl<S: TenantLifecycleStore> ResourceProvider for TenantLifecycleProvider<S> {
             .map_err(store_error)?;
         let disposition = match &existing {
             Some(current) => {
+                if current.state == TenantLifecycleState::Retired {
+                    return Err(ProviderError::FailedPrecondition {
+                        message: format!(
+                            "{} is retired; tenant ids are never reused",
+                            name
+                        ),
+                    });
+                }
                 if current.state != resource.state {
                     return Err(ProviderError::FailedPrecondition {
                         message: format!(
@@ -344,12 +373,17 @@ impl<S: TenantLifecycleStore> ResourceProvider for TenantLifecycleProvider<S> {
     }
 
     fn get(&self, name: &ResourceName) -> Result<Tenant, ProviderError> {
-        self.store
+        match self
+            .store
             .get_tenant(&name.to_string())
             .map_err(store_error)?
-            .ok_or_else(|| ProviderError::NotFound {
+        {
+            // Tombstones are invisible on the read surface.
+            Some(tenant) if tenant.state != TenantLifecycleState::Retired => Ok(tenant),
+            _ => Err(ProviderError::NotFound {
                 name: name.to_string(),
-            })
+            }),
+        }
     }
 
     fn list(
@@ -358,26 +392,49 @@ impl<S: TenantLifecycleStore> ResourceProvider for TenantLifecycleProvider<S> {
         request: &PageRequest,
     ) -> Result<Page<ListEntry<Tenant>>, ProviderError> {
         let prefix = format!("{collection}/");
-        let entries = self
-            .store
-            .scan_tenants(
-                &prefix,
-                request.page_token.as_ref().map(PageToken::as_str),
-                request.page_size.saturating_add(1),
-            )
-            .map_err(store_error)?;
+        let mut start_at = request
+            .page_token
+            .as_ref()
+            .map(|token| token.as_str().to_owned());
         let mut items = Vec::new();
         let mut next_page_token = None;
-        for (key, tenant) in entries {
-            if items.len() as u32 == request.page_size {
-                next_page_token = Some(PageToken::new(key).map_err(shape_error)?);
-                break;
+        // Scan in key order, skipping tombstones, until the page fills
+        // (plus one look-ahead key for the next cursor) or the store is
+        // exhausted. Each chunk advances strictly, so this terminates.
+        'walk: loop {
+            let chunk = self
+                .store
+                .scan_tenants(
+                    &prefix,
+                    start_at.as_deref(),
+                    request.page_size.saturating_add(1),
+                )
+                .map_err(store_error)?;
+            let chunk_len = chunk.len() as u32;
+            for (key, tenant) in chunk {
+                if items.len() as u32 == request.page_size {
+                    if tenant.state != TenantLifecycleState::Retired {
+                        next_page_token = Some(PageToken::new(key).map_err(shape_error)?);
+                        break 'walk;
+                    }
+                    // A tombstone at the boundary: keep looking for a real
+                    // successor before claiming another page exists.
+                    start_at = Some(next_key_after(&key));
+                    continue;
+                }
+                start_at = Some(next_key_after(&key));
+                if tenant.state == TenantLifecycleState::Retired {
+                    continue;
+                }
+                let name = ResourceName::try_from(key).map_err(shape_error)?;
+                items.push(ListEntry {
+                    name,
+                    resource: tenant,
+                });
             }
-            let name = ResourceName::try_from(key).map_err(shape_error)?;
-            items.push(ListEntry {
-                name,
-                resource: tenant,
-            });
+            if chunk_len < request.page_size.saturating_add(1) {
+                break; // store exhausted
+            }
         }
         Ok(Page {
             items,
