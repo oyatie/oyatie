@@ -5,6 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//libs/oya-shared-oidc-client-kernel:oya-shared-oidc-client-kernel",
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "third-party//:console_error_panic_hook",
         "third-party//:leptos",
@@ -23,6 +24,7 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/application/crates/oya-application-shell-frontend:oya-application-shell-frontend",
+        "//libs/oya-shared-oidc-client-kernel:oya-shared-oidc-client-kernel",
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "third-party//:console_error_panic_hook",
         "third-party//:leptos",
@@ -41,6 +43,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//libs/oya-shared-oidc-client-kernel:oya-shared-oidc-client-kernel",
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "third-party//:console_error_panic_hook",
         "third-party//:leptos",

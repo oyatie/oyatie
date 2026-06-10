@@ -5,6 +5,8 @@ pub mod client_session_state;
 pub mod design_system;
 pub mod render_envelope;
 pub mod shell_capability_registry;
+#[cfg(any(feature = "ssr", test))]
+pub mod token_broker;
 
 pub use app::{App, DashboardIsland, shell_landmark_label, shell_scope_notice_text};
 #[cfg(feature = "ssr")]

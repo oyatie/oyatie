@@ -26,6 +26,7 @@ ssr = ["leptos/ssr"]
 [dependencies]
 console_error_panic_hook = { version = "=0.1.7", optional = true }
 leptos = { version = "=0.8.19", default-features = false }
+oya-shared-oidc-client-kernel = { path = "../../../../libs/oya-shared-oidc-client-kernel" }
 oya-shared-platform-contracts-kernel = { path = "../../../../libs/oya-shared-platform-contracts-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
