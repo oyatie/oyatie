@@ -405,4 +405,3 @@ components:
         encrypted_handle_ref: { type: string }
         ttl_seconds: { type: integer, format: int64 }
         raw_access_requires_audited_break_glass: { type: boolean, const: true }
-

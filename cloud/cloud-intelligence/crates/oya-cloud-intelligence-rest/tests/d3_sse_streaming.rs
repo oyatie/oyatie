@@ -127,7 +127,8 @@ fn make_app_state(
             base_url,
             TenantId::new(tenant).unwrap(),
         )
-        .unwrap(),
+        .unwrap()
+        .with_ingress_bearer_token(Some("ingress-token".to_string())),
     )
 }
 
@@ -257,6 +258,7 @@ async fn sse3_streaming_response_hop_by_hop_not_leaked() {
         .method("POST")
         .uri("/v1/messages")
         .header("content-type", "application/json")
+        .header("authorization", "Bearer ingress-token")
         .header("accept", "text/event-stream")
         .header("x-agent-id", "agent-sse3")
         .body(Body::from(

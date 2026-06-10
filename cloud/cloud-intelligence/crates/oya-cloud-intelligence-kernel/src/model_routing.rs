@@ -188,6 +188,7 @@ fn classify_model(model: &str) -> Option<BackendClass> {
         || lower.starts_with("o3")
         || lower.starts_with("o4")
         || lower.starts_with("codex-")
+        || lower.starts_with("text-embedding-")
     {
         return Some(BackendClass::OpenAiCompatible);
     }

@@ -55,7 +55,8 @@ use oya_cloud_intelligence_gemini_adapter::{
     GeminiAdapterError, GeminiApiKeyAdapter, GeminiProxyResponse,
 };
 use oya_cloud_intelligence_kernel::model_routing::{
-    BackendClass, ModelRouter, ProtocolShape, RoutePolicy, RouteRequest,
+    BackendClass, ModelRouter, ModelRoutingError, ProtocolShape, RoutePolicy, RouteRequest,
+    RoutingDecision,
 };
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
@@ -65,8 +66,8 @@ use tracing::{debug, warn};
 pub type BoxStream<T> = Pin<Box<dyn Stream<Item = T> + Send + 'static>>;
 
 pub use oya_cloud_intelligence_kernel::{
-    AgentId, AuthzGate, CredentialMode, EventSink, LlmGatewayEvent, OAuthSubscription, Provider,
-    SeatId, SeatLease, SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool,
+    AgentId, AuthzGate, CredentialMode, EventSink, EventStatus, LlmGatewayEvent, OAuthSubscription,
+    Provider, SeatId, SeatLease, SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool,
     SubscriptionPoolError, SubscriptionState, TenantId, is_secret_handle_reference, looks_like_jwt,
 };
 
@@ -908,7 +909,7 @@ impl<S: SecretProviderStore> AnthropicAdapter<S> {
 /// stream completes or the client disconnects.
 ///
 /// - When the inner stream signals `Poll::Ready(None)` (clean end), the lease
-///   is completed with [`SeatOutcome::Ok`].
+///   is completed with the outcome derived from the upstream HTTP status.
 /// - When a mid-stream error is observed, the lease is completed with
 ///   [`SeatOutcome::ServerError5xx`].
 /// - When the struct is dropped before `Poll::Ready(None)` (client disconnect
@@ -918,15 +919,27 @@ pub struct SseStreamWithLease {
     inner: BoxStream<Result<Bytes, RestAdapterError>>, // data_class: INTERNAL_ONLY
     lease: Option<SeatLease>,                          // data_class: INTERNAL_ONLY
     errored: bool,                                     // data_class: INTERNAL_ONLY
+    clean_outcome: SeatOutcome,                        // data_class: INTERNAL_ONLY
 }
 
 impl SseStreamWithLease {
     /// Construct with a stream and its associated lease.
     pub fn new(inner: BoxStream<Result<Bytes, RestAdapterError>>, lease: SeatLease) -> Self {
+        Self::new_with_clean_outcome(inner, lease, SeatOutcome::Ok)
+    }
+
+    /// Construct with a stream, lease, and clean-end outcome already derived
+    /// from the upstream HTTP status.
+    pub fn new_with_clean_outcome(
+        inner: BoxStream<Result<Bytes, RestAdapterError>>,
+        lease: SeatLease,
+        clean_outcome: SeatOutcome,
+    ) -> Self {
         Self {
             inner,
             lease: Some(lease),
             errored: false,
+            clean_outcome,
         }
     }
 
@@ -946,9 +959,9 @@ impl Stream for SseStreamWithLease {
         match Pin::new(&mut self.inner).poll_next(cx) {
             Poll::Pending => Poll::Pending,
             Poll::Ready(None) => {
-                // Clean end of stream — complete with Ok.
+                // Clean end of stream — complete with the upstream status outcome.
                 if !self.errored {
-                    self.complete_lease(SeatOutcome::Ok);
+                    self.complete_lease(self.clean_outcome);
                 }
                 Poll::Ready(None)
             }
@@ -1215,6 +1228,10 @@ pub struct AppState {
     pub openai_compatible_base_url: String, // data_class: INTERNAL_ONLY
     pub gemini_base_url: String,     // data_class: INTERNAL_ONLY
     pub tenant_id: TenantId,         // data_class: INTERNAL_ONLY
+    /// Data-plane ingress bearer token. If unset, every `/v1/*` data-plane
+    /// request fails closed with 401 instead of relying on the provider token
+    /// or `x-agent-id` as an authentication boundary.
+    pub ingress_bearer_token: Option<String>, // data_class: SECRET
     pub admin_bearer_token: Option<String>, // data_class: SECRET
     /// Runtime environment string (e.g. `production`). Production enforces the
     /// provider OAuth-compliance fail-closed gate on the dynamic admin path,
@@ -1252,6 +1269,7 @@ impl AppState {
             anthropic_base_url,
             tenant_id,
             None,
+            None,
             "development".to_string(),
             std::collections::HashSet::new(),
         )
@@ -1267,6 +1285,7 @@ impl AppState {
         secret_store: Arc<dyn SecretProviderStore>,
         anthropic_base_url: String,
         tenant_id: TenantId,
+        ingress_bearer_token: Option<String>,
         admin_bearer_token: Option<String>,
         environment: String,
         oauth_approved_providers: std::collections::HashSet<Provider>,
@@ -1286,12 +1305,21 @@ impl AppState {
             openai_compatible_base_url: OPENAI_COMPATIBLE_BASE_URL.to_string(),
             gemini_base_url: GEMINI_BASE_URL.to_string(),
             tenant_id,
+            ingress_bearer_token,
             admin_bearer_token,
             environment,
             oauth_approved_providers,
             token_singleflight: Arc::new(TokenRefreshSingleflight::new()),
             http_client,
         })
+    }
+
+    /// Return a copy of this state with data-plane ingress bearer auth
+    /// configured. Test fixtures and embedding applications use this helper
+    /// instead of mutating the field directly.
+    pub fn with_ingress_bearer_token(mut self, token: Option<String>) -> Self {
+        self.ingress_bearer_token = token;
+        self
     }
 
     /// True when the runtime environment is `production` (case-insensitive).
@@ -1309,6 +1337,254 @@ impl AppState {
 /// HTTP 413 Payload Too Large (enforced by axum [`DefaultBodyLimit`]).
 const MAX_BODY_BYTES: usize = 1024 * 1024; // 1 MiB
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum RouteBodyError {
+    MalformedJson,
+    MissingModel,
+    InvalidModelType,
+    EmptyModel,
+    UnknownModel,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum SafetyBlockClass {
+    CredentialOrSecret,
+    TenantBoundary,
+    PromptInjection,
+}
+
+fn data_plane_bearer_allowed(headers: &HeaderMap, configured_token: Option<&str>) -> bool {
+    let Some(configured_token) = configured_token else {
+        return false;
+    };
+    let configured_token = configured_token.trim();
+    if configured_token.is_empty() {
+        return false;
+    }
+    let Some(presented) = headers
+        .get("authorization")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.strip_prefix("Bearer "))
+    else {
+        return false;
+    };
+
+    constant_time_eq(presented.as_bytes(), configured_token.as_bytes())
+}
+
+fn require_data_plane_bearer(state: &AppState, headers: &HeaderMap) -> Result<(), Response> {
+    if data_plane_bearer_allowed(headers, state.ingress_bearer_token.as_deref()) {
+        Ok(())
+    } else {
+        Err(openai_error_response(
+            StatusCode::UNAUTHORIZED,
+            "authentication_error",
+            "missing_or_invalid_ingress_bearer",
+            "data-plane routes require a valid ingress bearer token",
+            None,
+        ))
+    }
+}
+
+fn guard_in_transit_payload(body: &[u8]) -> Result<(), Response> {
+    let body = String::from_utf8_lossy(body);
+    let lower = body.to_ascii_lowercase();
+    let safety_class = if [
+        "api_key",
+        "api-key",
+        "access_token",
+        "refresh_token",
+        "bearer ",
+        "private key",
+        "password",
+        "secret_access_key",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+    {
+        Some(SafetyBlockClass::CredentialOrSecret)
+    } else if [
+        "tenant_boundary_violation",
+        "cross-tenant",
+        "other tenant",
+        "tenant_id_override",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+    {
+        Some(SafetyBlockClass::TenantBoundary)
+    } else if [
+        "ignore previous instructions",
+        "ignore all previous",
+        "developer message",
+        "system prompt",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+    {
+        Some(SafetyBlockClass::PromptInjection)
+    } else {
+        None
+    };
+
+    match safety_class {
+        Some(safety_class) => Err(safety_guardrail_response(safety_class)),
+        None => Ok(()),
+    }
+}
+
+fn safety_guardrail_response(safety_class: SafetyBlockClass) -> Response {
+    let (class, message) = match safety_class {
+        SafetyBlockClass::CredentialOrSecret => (
+            "credential_or_secret",
+            "request body contains credential-like material that cannot cross the model boundary",
+        ),
+        SafetyBlockClass::TenantBoundary => (
+            "tenant_boundary",
+            "request body contains tenant-boundary override material",
+        ),
+        SafetyBlockClass::PromptInjection => (
+            "prompt_injection",
+            "request body contains prompt-injection control text",
+        ),
+    };
+    (
+        StatusCode::FORBIDDEN,
+        Json(serde_json::json!({
+            "error": {
+                "type": "safety_guardrail",
+                "code": "safety_guardrail_blocked",
+                "safety_class": class,
+                "message": message,
+                "provider_request_dispatched": false
+            }
+        })),
+    )
+        .into_response()
+}
+
+fn route_decision_for_body(
+    protocol: ProtocolShape,
+    body: &[u8],
+) -> Result<RoutingDecision, RouteBodyError> {
+    let payload = serde_json::from_slice::<serde_json::Value>(body)
+        .map_err(|_| RouteBodyError::MalformedJson)?;
+    let Some(model_value) = payload.get("model") else {
+        return Err(RouteBodyError::MissingModel);
+    };
+    let Some(model) = model_value.as_str() else {
+        return Err(RouteBodyError::InvalidModelType);
+    };
+    if model.trim().is_empty() {
+        return Err(RouteBodyError::EmptyModel);
+    }
+    ModelRouter::default()
+        .route(RouteRequest {
+            protocol,
+            model: model.to_string(),
+            route_policy: RoutePolicy::default(),
+            tenant_default_backend: None,
+        })
+        .map_err(|error| match error {
+            ModelRoutingError::EmptyModel => RouteBodyError::EmptyModel,
+            ModelRoutingError::UnknownModel { .. } => RouteBodyError::UnknownModel,
+        })
+}
+
+fn rewrite_body_model(body: Bytes, upstream_model: &str) -> Bytes {
+    let Ok(mut payload) = serde_json::from_slice::<serde_json::Value>(&body) else {
+        return body;
+    };
+    let Some(object) = payload.as_object_mut() else {
+        return body;
+    };
+    if object
+        .get("model")
+        .and_then(serde_json::Value::as_str)
+        .map(|model| model == upstream_model)
+        .unwrap_or(false)
+    {
+        return body;
+    }
+    object.insert(
+        "model".to_string(),
+        serde_json::Value::String(upstream_model.to_string()),
+    );
+    serde_json::to_vec(&payload)
+        .map(Bytes::from)
+        .unwrap_or(body)
+}
+
+fn openai_model_routing_error_response(error: RouteBodyError) -> Response {
+    let (status, code, message) = match error {
+        RouteBodyError::UnknownModel => (
+            StatusCode::NOT_FOUND,
+            "model_not_found",
+            "requested model is not registered for this gateway",
+        ),
+        RouteBodyError::MissingModel => (
+            StatusCode::BAD_REQUEST,
+            "missing_model",
+            "request body must include a model field",
+        ),
+        RouteBodyError::InvalidModelType => (
+            StatusCode::BAD_REQUEST,
+            "invalid_model",
+            "request body model field must be a string",
+        ),
+        RouteBodyError::EmptyModel => (
+            StatusCode::BAD_REQUEST,
+            "empty_model",
+            "request body model field must not be empty",
+        ),
+        RouteBodyError::MalformedJson => (
+            StatusCode::BAD_REQUEST,
+            "malformed_json",
+            "request body must be valid JSON",
+        ),
+    };
+    openai_error_response(status, "invalid_request_error", code, message, None)
+}
+
+fn unsupported_translation_response(
+    from_protocol: &'static str,
+    backend: BackendClass,
+    upstream_model: &str,
+) -> Response {
+    openai_error_response(
+        StatusCode::NOT_IMPLEMENTED,
+        "unsupported_feature",
+        "unsupported_model_translation",
+        format!(
+            "{from_protocol} to {backend:?} translation is not implemented for model {upstream_model}"
+        ),
+        None,
+    )
+}
+
+fn seat_outcome_for_upstream_status(status: u16) -> SeatOutcome {
+    if status == 429 {
+        SeatOutcome::RateLimited429
+    } else if status >= 400 {
+        // The kernel currently exposes one non-rate-limit upstream failure
+        // bucket. Treat every upstream HTTP error as non-success so provider
+        // failures never falsely reset failure counts as SeatOutcome::Ok.
+        SeatOutcome::ServerError5xx
+    } else {
+        SeatOutcome::Ok
+    }
+}
+
+fn event_status_for_upstream_status(status: u16) -> EventStatus {
+    if status == 429 {
+        EventStatus::RateLimited
+    } else if status >= 400 {
+        EventStatus::UpstreamError
+    } else {
+        EventStatus::Ok
+    }
+}
+
 /// Build the axum [`Router`] for the cloud-intelligence REST adapter.
 ///
 /// Routes:
@@ -1317,7 +1593,7 @@ const MAX_BODY_BYTES: usize = 1024 * 1024; // 1 MiB
 /// - `GET  /healthz`     — lightweight health probe.
 /// - `GET  /livez`       — Kubernetes liveness probe.
 /// - `GET  /readyz`      — readiness probe (pool lock is reachable).
-/// - `GET  /metrics`     — placeholder Prometheus text exposition.
+/// - `GET  /metrics`     — Prometheus text exposition from live gateway state.
 pub fn build_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/v1/messages", post(handle_proxy))
@@ -1367,15 +1643,31 @@ pub fn build_router(state: Arc<AppState>) -> Router {
 async fn handle_proxy(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
-    body: Bytes,
+    mut body: Bytes,
 ) -> Response {
-    if route_backend_for_body(
-        ProtocolShape::AnthropicMessages,
-        &body,
-        BackendClass::AnthropicSubscription,
-    ) == Some(BackendClass::GeminiNative)
-    {
-        return handle_gemini_anthropic_messages_proxy(state, headers, body).await;
+    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+        return response;
+    }
+    if let Err(response) = guard_in_transit_payload(&body) {
+        return response;
+    }
+    let route_decision = match route_decision_for_body(ProtocolShape::AnthropicMessages, &body) {
+        Ok(decision) => decision,
+        Err(error) => return openai_model_routing_error_response(error),
+    };
+    body = rewrite_body_model(body, &route_decision.upstream_model);
+    match route_decision.backend {
+        BackendClass::GeminiNative => {
+            return handle_gemini_anthropic_messages_proxy(state, headers, body).await;
+        }
+        BackendClass::AnthropicSubscription => {}
+        BackendClass::OpenAiCompatible => {
+            return unsupported_translation_response(
+                "Anthropic Messages",
+                route_decision.backend,
+                &route_decision.upstream_model,
+            );
+        }
     }
 
     // Extract agent-id from x-agent-id header.
@@ -1499,7 +1791,11 @@ async fn handle_proxy(
             Ok((upstream_status, byte_stream)) => {
                 // Wrap the stream with the lease so the seat is held until the
                 // response body is fully consumed (or client disconnects).
-                let lease_stream = SseStreamWithLease::new(byte_stream, lease);
+                let lease_stream = SseStreamWithLease::new_with_clean_outcome(
+                    byte_stream,
+                    lease,
+                    seat_outcome_for_upstream_status(upstream_status),
+                );
                 let body = Body::from_stream(lease_stream);
                 axum::response::Response::builder()
                     .status(upstream_status)
@@ -1546,8 +1842,11 @@ async fn handle_proxy(
 
         match result {
             Ok(resp) => {
-                // Success — complete lease with Ok outcome.
-                let _ = lease.complete(SeatOutcome::Ok, Instant::now());
+                let upstream_status = resp.status;
+                let _ = lease.complete(
+                    seat_outcome_for_upstream_status(upstream_status),
+                    Instant::now(),
+                );
 
                 // Emit event (non-fatal).
                 let now_ms = SystemTime::now()
@@ -1564,7 +1863,7 @@ async fn handle_proxy(
                     prompt_tokens: 0,
                     completion_tokens: 0,
                     ms_latency: 0,
-                    status: oya_cloud_intelligence_kernel::EventStatus::Ok,
+                    status: event_status_for_upstream_status(upstream_status),
                     timestamp_unix_ms: now_ms,
                 };
                 state.sink.emit(event);
@@ -1859,7 +2158,13 @@ async fn handle_openai_embeddings(
     handle_openai_compatible_proxy(state, headers, body, "/v1/embeddings", false).await
 }
 
-async fn handle_legacy_complete() -> Response {
+async fn handle_legacy_complete(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+        return response;
+    }
     let payload = OpenAiCompatibleErrorBody {
         error: OpenAiCompatibleError {
             message: "legacy Anthropic completions are deprecated; use /v1/messages or /v1/chat/completions"
@@ -1880,18 +2185,41 @@ async fn handle_legacy_complete() -> Response {
 async fn handle_openai_compatible_proxy(
     state: Arc<AppState>,
     headers: HeaderMap,
-    body: Bytes,
+    mut body: Bytes,
     upstream_path: &'static str,
     allow_stream: bool,
 ) -> Response {
-    if upstream_path == "/v1/chat/completions"
-        && route_backend_for_body(
-            ProtocolShape::OpenAiChatCompletions,
-            &body,
-            BackendClass::OpenAiCompatible,
-        ) == Some(BackendClass::GeminiNative)
+    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+        return response;
+    }
+    if let Err(response) = guard_in_transit_payload(&body) {
+        return response;
+    }
+    let route_decision = match route_decision_for_body(ProtocolShape::OpenAiChatCompletions, &body)
     {
-        return handle_gemini_openai_chat_proxy(state, headers, body).await;
+        Ok(decision) => decision,
+        Err(error) => return openai_model_routing_error_response(error),
+    };
+    body = rewrite_body_model(body, &route_decision.upstream_model);
+    match route_decision.backend {
+        BackendClass::GeminiNative if upstream_path == "/v1/chat/completions" => {
+            return handle_gemini_openai_chat_proxy(state, headers, body).await;
+        }
+        BackendClass::GeminiNative => {
+            return unsupported_translation_response(
+                "OpenAI-compatible",
+                route_decision.backend,
+                &route_decision.upstream_model,
+            );
+        }
+        BackendClass::OpenAiCompatible => {}
+        BackendClass::AnthropicSubscription => {
+            return unsupported_translation_response(
+                "OpenAI-compatible",
+                route_decision.backend,
+                &route_decision.upstream_model,
+            );
+        }
     }
 
     let agent_id = match parse_agent_header_for_openai(&headers) {
@@ -1983,7 +2311,11 @@ async fn handle_openai_compatible_proxy(
                             body: e.to_string(),
                         })
                     }));
-                let lease_stream = SseStreamWithLease::new(mapped, lease_context.lease);
+                let lease_stream = SseStreamWithLease::new_with_clean_outcome(
+                    mapped,
+                    lease_context.lease,
+                    seat_outcome_for_upstream_status(upstream_status),
+                );
                 let mut builder = axum::response::Response::builder().status(upstream_status);
                 for (k, v) in &upstream_headers {
                     if let (Ok(name), Ok(value)) = (
@@ -2013,9 +2345,11 @@ async fn handle_openai_compatible_proxy(
         .await
     {
         Ok(resp) => {
-            let _ = lease_context
-                .lease
-                .complete(SeatOutcome::Ok, Instant::now());
+            let upstream_status = resp.status;
+            let _ = lease_context.lease.complete(
+                seat_outcome_for_upstream_status(upstream_status),
+                Instant::now(),
+            );
             let now_ms = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
@@ -2030,7 +2364,7 @@ async fn handle_openai_compatible_proxy(
                 prompt_tokens: 0,
                 completion_tokens: 0,
                 ms_latency: 0,
-                status: oya_cloud_intelligence_kernel::EventStatus::Ok,
+                status: event_status_for_upstream_status(upstream_status),
                 timestamp_unix_ms: now_ms,
             });
             codex_proxy_response_to_axum(resp)
@@ -2048,30 +2382,6 @@ async fn handle_openai_compatible_proxy(
             openai_adapter_error_to_response(error)
         }
     }
-}
-
-fn route_backend_for_body(
-    protocol: ProtocolShape,
-    body: &[u8],
-    tenant_default_backend: BackendClass,
-) -> Option<BackendClass> {
-    let model = serde_json::from_slice::<serde_json::Value>(body)
-        .ok()
-        .and_then(|payload| {
-            payload
-                .get("model")
-                .and_then(serde_json::Value::as_str)
-                .map(str::to_string)
-        })?;
-    ModelRouter::default()
-        .route(RouteRequest {
-            protocol,
-            model,
-            route_policy: RoutePolicy::default(),
-            tenant_default_backend: Some(tenant_default_backend),
-        })
-        .ok()
-        .map(|decision| decision.backend)
 }
 
 async fn handle_gemini_openai_chat_proxy(
@@ -2216,9 +2526,11 @@ async fn handle_gemini_adapter_proxy(
 
     match result {
         Ok(resp) => {
-            let _ = lease_context
-                .lease
-                .complete(SeatOutcome::Ok, Instant::now());
+            let upstream_status = resp.status;
+            let _ = lease_context.lease.complete(
+                seat_outcome_for_upstream_status(upstream_status),
+                Instant::now(),
+            );
             let now_ms = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap_or_default()
@@ -2233,7 +2545,7 @@ async fn handle_gemini_adapter_proxy(
                 prompt_tokens: 0,
                 completion_tokens: 0,
                 ms_latency: 0,
-                status: oya_cloud_intelligence_kernel::EventStatus::Ok,
+                status: event_status_for_upstream_status(upstream_status),
                 timestamp_unix_ms: now_ms,
             });
             gemini_proxy_response_to_axum(resp)
@@ -2336,7 +2648,21 @@ struct AdminResumeResponse {
 }
 
 /// POST /v1/messages/count_tokens
-async fn handle_count_tokens(Json(payload): Json<serde_json::Value>) -> Response {
+async fn handle_count_tokens(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> Response {
+    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+        return response;
+    }
+    if let Err(response) = guard_in_transit_payload(&body) {
+        return response;
+    }
+    let payload = match serde_json::from_slice::<serde_json::Value>(&body) {
+        Ok(payload) => payload,
+        Err(_) => return openai_model_routing_error_response(RouteBodyError::MalformedJson),
+    };
     Json(TokenCountResponse {
         input_tokens: estimate_input_tokens(&payload),
         token_source: "local-estimate-until-provider-accounting",
@@ -2345,7 +2671,10 @@ async fn handle_count_tokens(Json(payload): Json<serde_json::Value>) -> Response
 }
 
 /// GET /v1/models
-async fn handle_models() -> Response {
+async fn handle_models(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
+    if let Err(response) = require_data_plane_bearer(&state, &headers) {
+        return response;
+    }
     Json(ModelInventoryResponse {
         object: "list",
         data: vec![
@@ -2594,13 +2923,16 @@ async fn handle_admin_resume(
     if request.scope.trim().is_empty() || request.reason.trim().is_empty() {
         return (StatusCode::BAD_REQUEST, "scope and reason are required").into_response();
     }
-    Json(AdminResumeResponse {
-        scope: request.scope,
-        status: "resumed",
-        reason_recorded: true,
-        retry_after_seconds: None,
-    })
-    .into_response()
+    (
+        StatusCode::NOT_IMPLEMENTED,
+        Json(AdminResumeResponse {
+            scope: request.scope,
+            status: "not_implemented",
+            reason_recorded: false,
+            retry_after_seconds: None,
+        }),
+    )
+        .into_response()
 }
 
 /// GET /admin/v1/tenants/{tenant_id}/providers/{provider}/pool
@@ -2852,16 +3184,68 @@ async fn handle_readyz(State(state): State<Arc<AppState>>) -> impl IntoResponse 
     StatusCode::OK
 }
 
-/// GET /metrics handler — placeholder Prometheus text exposition.
-async fn handle_metrics() -> impl IntoResponse {
-    const METRICS_BODY: &str = "\
-# HELP oya_cloud_intelligence_up Gateway up\n\
+/// GET /metrics handler — Prometheus text exposition from live gateway state.
+async fn handle_metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let secret_provider_ready = state.secret_store.readiness_probe().is_ok();
+    let default_pool_ready = state
+        .pool
+        .lock()
+        .map(|pool| pool.has_eligible_seat(Instant::now()))
+        .unwrap_or(false);
+    let pool_statuses = state.pool_registry.pool_statuses();
+    let mut body = String::from(
+        "\
+# HELP oya_cloud_intelligence_up Gateway process is up\n\
 # TYPE oya_cloud_intelligence_up gauge\n\
-oya_cloud_intelligence_up 1\n";
+oya_cloud_intelligence_up 1\n\
+# HELP oya_cloud_intelligence_secret_provider_ready Secret-provider readiness probe result\n\
+# TYPE oya_cloud_intelligence_secret_provider_ready gauge\n",
+    );
+    body.push_str(&format!(
+        "oya_cloud_intelligence_secret_provider_ready {}\n",
+        u8::from(secret_provider_ready)
+    ));
+    body.push_str(
+        "# HELP oya_cloud_intelligence_default_pool_ready Default data-plane pool has an eligible seat\n\
+# TYPE oya_cloud_intelligence_default_pool_ready gauge\n",
+    );
+    body.push_str(&format!(
+        "oya_cloud_intelligence_default_pool_ready {}\n",
+        u8::from(default_pool_ready)
+    ));
+    body.push_str(
+        "# HELP oya_cloud_intelligence_registered_provider_pools Registered tenant/provider pools\n\
+# TYPE oya_cloud_intelligence_registered_provider_pools gauge\n",
+    );
+    body.push_str(&format!(
+        "oya_cloud_intelligence_registered_provider_pools {}\n",
+        pool_statuses.len()
+    ));
+    body.push_str(
+        "# HELP oya_cloud_intelligence_provider_pool_ready Provider pool readiness by provider\n\
+# TYPE oya_cloud_intelligence_provider_pool_ready gauge\n",
+    );
+    for status in &pool_statuses {
+        body.push_str(&format!(
+            "oya_cloud_intelligence_provider_pool_ready{{provider=\"{}\"}} {}\n",
+            status.provider,
+            u8::from(status.ready)
+        ));
+    }
+    body.push_str(
+        "# HELP oya_cloud_intelligence_provider_pool_seats Provider pool seat count by provider\n\
+# TYPE oya_cloud_intelligence_provider_pool_seats gauge\n",
+    );
+    for status in &pool_statuses {
+        body.push_str(&format!(
+            "oya_cloud_intelligence_provider_pool_seats{{provider=\"{}\"}} {}\n",
+            status.provider, status.total_seats
+        ));
+    }
     (
         StatusCode::OK,
         [("content-type", "text/plain; version=0.0.4")],
-        METRICS_BODY,
+        body,
     )
 }
 
@@ -3011,6 +3395,7 @@ mod tests {
                 secret_store,
                 "http://127.0.0.1:1".to_string(),
                 tenant_id,
+                Some("ingress-token".to_string()),
                 Some("admin-token".to_string()),
                 "development".to_string(),
                 std::collections::HashSet::new(),
@@ -3214,6 +3599,137 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn data_plane_routes_require_distinct_ingress_bearer() {
+        let router = build_router(test_state(true, true));
+        for (name, request) in [
+            (
+                "missing bearer",
+                Request::builder()
+                    .uri("/v1/models")
+                    .body(Body::empty())
+                    .unwrap(),
+            ),
+            (
+                "admin bearer is not data-plane bearer",
+                Request::builder()
+                    .uri("/v1/models")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            ),
+        ] {
+            let response = router.clone().oneshot(request).await.unwrap();
+            assert_eq!(
+                response.status(),
+                StatusCode::UNAUTHORIZED,
+                "{name} must fail closed"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn safety_guardrail_blocks_secret_like_payload_before_provider_dispatch() {
+        let handles = Arc::new(Mutex::new(Vec::new()));
+        let state = test_state_with_secret_store(
+            true,
+            Arc::new(RecordingSecretStore {
+                handles: Arc::clone(&handles),
+            }),
+            "secret-ref://tenant-a/anthropic/seat-a",
+        );
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/messages")
+                    .header("authorization", "Bearer ingress-token")
+                    .header("x-agent-id", "agent-a")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        r#"{"model":"claude-test","messages":[{"role":"user","content":"api_key = sk-live"}]}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("safety_guardrail_blocked"));
+        assert!(
+            handles.lock().unwrap().is_empty(),
+            "provider credential lookup must not run after a safety block"
+        );
+    }
+
+    #[tokio::test]
+    async fn unknown_model_fails_closed_before_provider_dispatch() {
+        let handles = Arc::new(Mutex::new(Vec::new()));
+        let state = test_state_with_secret_store(
+            true,
+            Arc::new(RecordingSecretStore {
+                handles: Arc::clone(&handles),
+            }),
+            "secret-ref://tenant-a/anthropic/seat-a",
+        );
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/messages")
+                    .header("authorization", "Bearer ingress-token")
+                    .header("x-agent-id", "agent-a")
+                    .header("content-type", "application/json")
+                    .body(Body::from(r#"{"model":"not-a-real-model","messages":[]}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("model_not_found"));
+        assert!(
+            handles.lock().unwrap().is_empty(),
+            "unknown models must fail before leasing or resolving provider credentials"
+        );
+    }
+
+    #[test]
+    fn upstream_http_errors_are_not_recorded_as_successful_seat_outcomes() {
+        assert_eq!(seat_outcome_for_upstream_status(200), SeatOutcome::Ok);
+        assert_eq!(
+            seat_outcome_for_upstream_status(400),
+            SeatOutcome::ServerError5xx
+        );
+        assert_eq!(
+            seat_outcome_for_upstream_status(429),
+            SeatOutcome::RateLimited429
+        );
+        assert_eq!(
+            seat_outcome_for_upstream_status(500),
+            SeatOutcome::ServerError5xx
+        );
+        assert_eq!(event_status_for_upstream_status(200), EventStatus::Ok);
+        assert_eq!(
+            event_status_for_upstream_status(400),
+            EventStatus::UpstreamError
+        );
+        assert_eq!(
+            event_status_for_upstream_status(429),
+            EventStatus::RateLimited
+        );
+        assert_eq!(
+            event_status_for_upstream_status(500),
+            EventStatus::UpstreamError
+        );
+    }
+
+    #[tokio::test]
     async fn xproxy_api_005_admin_status_accounts_and_analytics_expose_owned_ports_not_transient_engines()
      {
         let router = build_router(test_state(true, true));
@@ -3308,15 +3824,13 @@ mod tests {
             )
             .await
             .unwrap();
-        assert_eq!(resume.status(), StatusCode::OK);
+        assert_eq!(resume.status(), StatusCode::NOT_IMPLEMENTED);
         let resume_body = resume.into_body().collect().await.unwrap().to_bytes();
         let resume_body = std::str::from_utf8(&resume_body).unwrap();
-        assert!(resume_body.contains("\"status\":\"resumed\""));
+        assert!(resume_body.contains("\"status\":\"not_implemented\""));
         assert!(!resume_body.to_ascii_lowercase().contains("cli"));
         assert!(!resume_body.to_ascii_lowercase().contains("tui"));
     }
-
-
 
     #[tokio::test]
     async fn cloud_intelligence_safety_admin_routes_are_authenticated_and_redacted() {
@@ -3403,6 +3917,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/v1/models")
+                    .header("authorization", "Bearer ingress-token")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -3422,6 +3937,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri("/v1/messages/count_tokens")
+                    .header("authorization", "Bearer ingress-token")
                     .header("content-type", "application/json")
                     .body(Body::from(
                         r#"{"model":"claude-opus-4-5","messages":[{"role":"user","content":"hello cloud intelligence"}]}"#,
@@ -3503,6 +4019,7 @@ mod tests {
             Arc::new(MemorySecretStore { ready: true }),
             "http://127.0.0.1:1".to_string(),
             tenant_a,
+            Some("ingress-token".to_string()),
             Some("admin-token".to_string()),
             "development".to_string(),
             std::collections::HashSet::new(),
@@ -3537,6 +4054,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri("/v1/messages")
+                    .header("authorization", "Bearer ingress-token")
                     .header("x-agent-id", "agent-a")
                     .body(Body::from(r#"{"model":"claude-test","messages":[]}"#))
                     .unwrap(),
@@ -3618,6 +4136,7 @@ mod tests {
                 Arc::new(MemorySecretStore { ready: true }),
                 base_url,
                 tenant_id,
+                Some("ingress-token".to_string()),
                 Some("admin-token".to_string()),
                 "development".to_string(),
                 std::collections::HashSet::new(),
@@ -3674,6 +4193,7 @@ mod tests {
             Arc::new(MemorySecretStore { ready: true }),
             "http://127.0.0.1:1".to_string(),
             tenant_id,
+            Some("ingress-token".to_string()),
             Some("admin-token".to_string()),
             "development".to_string(),
             std::collections::HashSet::new(),
@@ -3703,7 +4223,7 @@ mod tests {
                     .method("POST")
                     .uri("/v1/chat/completions")
                     .header("x-agent-id", "agent-a")
-                    .header("authorization", "Bearer caller-token")
+                    .header("authorization", "Bearer ingress-token")
                     .header("connection", "x-drop-me")
                     .header("x-drop-me", "must-not-forward")
                     .header("x-openai-beta", "must-not-forward")
@@ -3740,7 +4260,7 @@ mod tests {
         assert_header(req, "authorization", "Bearer test-refresh-token");
         assert_header(req, "openai-organization", "org-safe");
         assert!(
-            !req.contains("caller-token"),
+            !req.contains("ingress-token"),
             "caller authorization must not be forwarded:\n{req}"
         );
         assert!(
@@ -3797,6 +4317,7 @@ mod tests {
             Arc::new(MemorySecretStore { ready: true }),
             "http://127.0.0.1:1".to_string(),
             tenant_id,
+            Some("ingress-token".to_string()),
             Some("admin-token".to_string()),
             "development".to_string(),
             std::collections::HashSet::new(),
@@ -3812,7 +4333,8 @@ mod tests {
         let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
             format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
-                upstream_body.len(), upstream_body
+                upstream_body.len(),
+                upstream_body
             )
             .into_boxed_str(),
         )]);
@@ -3825,7 +4347,7 @@ mod tests {
                     .method("POST")
                     .uri("/v1/chat/completions")
                     .header("x-agent-id", "agent-a")
-                    .header("authorization", "Bearer caller-token")
+                    .header("authorization", "Bearer ingress-token")
                     .header("connection", "x-drop-me")
                     .header("x-drop-me", "must-not-forward")
                     .header("content-type", "application/json")
@@ -3856,7 +4378,7 @@ mod tests {
         assert!(req.contains("\"contents\""));
         assert!(req.contains("\"systemInstruction\""));
         assert!(!req.contains("\"messages\""));
-        assert!(!req.contains("caller-token"));
+        assert!(!req.contains("ingress-token"));
         assert!(!req.contains("must-not-forward"));
     }
 
@@ -3866,7 +4388,8 @@ mod tests {
         let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
             format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
-                upstream_body.len(), upstream_body
+                upstream_body.len(),
+                upstream_body
             )
             .into_boxed_str(),
         )]);
@@ -3879,7 +4402,7 @@ mod tests {
                     .method("POST")
                     .uri("/v1/messages")
                     .header("x-agent-id", "agent-a")
-                    .header("authorization", "Bearer caller-token")
+                    .header("authorization", "Bearer ingress-token")
                     .header("connection", "x-drop-me")
                     .header("x-drop-me", "must-not-forward")
                     .header("content-type", "application/json")
@@ -3893,10 +4416,7 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let body_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(body_json["type"], "message");
-        assert_eq!(
-            body_json["content"][0]["text"],
-            serde_json::json!("pong")
-        );
+        assert_eq!(body_json["content"][0]["text"], serde_json::json!("pong"));
         assert_eq!(body_json["usage"]["input_tokens"], serde_json::json!(4));
         assert_eq!(body_json["usage"]["output_tokens"], serde_json::json!(6));
 
@@ -3911,7 +4431,7 @@ mod tests {
         assert!(req.contains("\"contents\""));
         assert!(req.contains("\"systemInstruction\""));
         assert!(!req.contains("\"messages\""));
-        assert!(!req.contains("caller-token"));
+        assert!(!req.contains("ingress-token"));
         assert!(!req.contains("must-not-forward"));
     }
 
@@ -3936,7 +4456,7 @@ mod tests {
                     .method("POST")
                     .uri("/v1/embeddings")
                     .header("x-agent-id", "agent-a")
-                    .header("authorization", "Bearer caller-token")
+                    .header("authorization", "Bearer ingress-token")
                     .header("content-type", "application/json")
                     .body(Body::from(request_body))
                     .unwrap(),
@@ -3961,7 +4481,7 @@ mod tests {
         );
         assert_header(req, "authorization", "Bearer test-refresh-token");
         assert!(
-            !req.contains("caller-token"),
+            !req.contains("ingress-token"),
             "caller authorization must not be forwarded:\n{req}"
         );
     }
@@ -3974,6 +4494,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri("/v1/complete")
+                    .header("authorization", "Bearer ingress-token")
                     .header("content-type", "application/json")
                     .body(Body::from(r#"{"model":"claude-2","prompt":"hello"}"#))
                     .unwrap(),
@@ -4033,6 +4554,7 @@ mod tests {
                 Arc::new(MemorySecretStore { ready: true }),
                 "http://127.0.0.1:1".to_string(),
                 tenant_id,
+                Some("ingress-token".to_string()),
                 Some("admin-token".to_string()),
                 environment.to_string(),
                 oauth_approved_providers,
@@ -4108,6 +4630,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri("/v1/messages")
+                    .header("authorization", "Bearer ingress-token")
                     .header("x-agent-id", "agent-a")
                     .body(Body::from(r#"{"model":"claude-test","messages":[]}"#))
                     .unwrap(),
@@ -4160,6 +4683,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri("/v1/messages")
+                    .header("authorization", "Bearer ingress-token")
                     .header("x-agent-id", "agent-a")
                     .body(Body::from(r#"{"model":"claude-test","messages":[]}"#))
                     .unwrap(),

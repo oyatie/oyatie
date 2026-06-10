@@ -510,8 +510,8 @@ paths:
             schema:
               $ref: '#/components/schemas/ResumeCircuitBreakerRequest'
       responses:
-        '200':
-          description: Resume accepted.
+        '501':
+          description: Resume mutation is not implemented yet; the gateway fails closed instead of returning a false success.
           content:
             application/json:
               schema:
@@ -755,8 +755,8 @@ components:
       required: true
       schema:
         type: string
-        enum: [anthropic, codex]
-      description: Provider pool. `anthropic` covers Claude subscriptions; `codex` covers OpenAI/Codex subscriptions.
+        enum: [anthropic, codex, gemini]
+      description: Provider pool. `anthropic` covers Claude subscriptions; `codex` covers OpenAI/Codex subscriptions; `gemini` covers Google Gemini API-key seats.
   headers:
     RetryAfter:
       schema: { type: integer }
@@ -1007,7 +1007,7 @@ components:
       required: [tenant_id, provider, total_seats, ready]
       properties:
         tenant_id: { type: string }
-        provider: { type: string, enum: [anthropic, codex] }
+        provider: { type: string, enum: [anthropic, codex, gemini] }
         total_seats: { type: integer, minimum: 0 }
         ready:
           type: boolean
@@ -1031,7 +1031,7 @@ components:
       required: [tenant_id, provider, seat_id, status]
       properties:
         tenant_id: { type: string }
-        provider: { type: string, enum: [anthropic, codex] }
+        provider: { type: string, enum: [anthropic, codex, gemini] }
         seat_id: { type: string }
         status: { type: string, enum: [registered] }
 
@@ -1151,7 +1151,7 @@ components:
       required: [scope, status]
       properties:
         scope: { type: string }
-        status: { type: string, enum: [resumed, unchanged] }
+        status: { type: string, enum: [not_implemented] }
     EvidenceDataClass:
       type: string
       enum:
@@ -1225,4 +1225,3 @@ components:
         restore_only_after_model_output: { type: boolean, const: true }
         provider_receives_raw_token_values: { type: boolean, const: false }
         routing_advisor_receives_raw_token_values: { type: boolean, const: false }
-
