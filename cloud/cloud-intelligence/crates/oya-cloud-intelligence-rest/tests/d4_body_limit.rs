@@ -11,7 +11,7 @@ use oya_cloud_intelligence_kernel::{
     SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
 };
 use oya_cloud_intelligence_rest::{
-    AppState, EventSink, LlmGatewayEvent, OpenBaoSecretStore, PoolRegistry, RestAdapterError,
+    AppState, EventSink, LlmGatewayEvent, PoolRegistry, RestAdapterError, SecretProviderStore,
     TokenRefreshSingleflight, build_router,
 };
 use tower::ServiceExt; // for `oneshot`
@@ -33,7 +33,7 @@ impl EventSink for NoopSink {
 }
 
 struct StubStore;
-impl OpenBaoSecretStore for StubStore {
+impl SecretProviderStore for StubStore {
     fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
         Ok("stub-token".to_string())
     }

@@ -9,7 +9,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_cloud_intelligence_kernel::{SeatId, TenantId};
-use oya_cloud_intelligence_rest::{AnthropicAdapter, OpenBaoSecretStore, RestAdapterError};
+use oya_cloud_intelligence_rest::{AnthropicAdapter, RestAdapterError, SecretProviderStore};
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -36,7 +36,7 @@ impl StubSecretStore {
     }
 }
 
-impl OpenBaoSecretStore for StubSecretStore {
+impl SecretProviderStore for StubSecretStore {
     fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
         self.stored
             .lock()
@@ -60,7 +60,7 @@ impl OpenBaoSecretStore for StubSecretStore {
 
 struct FailingSecretStore;
 
-impl OpenBaoSecretStore for FailingSecretStore {
+impl SecretProviderStore for FailingSecretStore {
     fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
         Err(RestAdapterError::SecretStoreUnavailable(
             "vault sealed".to_string(),

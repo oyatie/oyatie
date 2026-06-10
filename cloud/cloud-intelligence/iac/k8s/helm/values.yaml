@@ -35,8 +35,10 @@ config:
   tenantId: oyatie-dogfood
   imagePromotionPolicy: cosign-required
 
-openbao:
-  url: https://openbao.cloud-secrets.svc.cluster.local:8200
+secretProvider:
+  # Owned cloud-secrets/cloud-kms adapter endpoint. The concrete backing engine
+  # is transient and hidden behind this port.
+  url: https://cloud-secrets-adapter.cloud-secrets.svc.cluster.local:8200
 
 clickhouse:
   url: http://clickhouse.analytics.svc:8123
@@ -53,7 +55,7 @@ providerCompliance:
     oauthStatus: API_ONLY
 
 secret:
-  openbaoPath: secret/oya/cloud-intelligence
+  providerPath: secret/oya/cloud-intelligence
   secretName: cloud-intelligence-secrets
   refreshInterval: 5m
 
@@ -80,7 +82,7 @@ networkPolicy:
   ingressNamespaceSelector:
     matchLabels:
       kubernetes.io/metadata.name: istio-ingress
-  egressOpenbaoNamespaceSelector:
+  egressSecretProviderNamespaceSelector:
     matchLabels:
       kubernetes.io/metadata.name: cloud-secrets
 

@@ -409,47 +409,6 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions:
-    post:
-      tags: [admin]
-      summary: Register a tenant-scoped provider subscription handle
-      description: |
-        Adds an opaque secret handle to a tenant/provider pool. The request accepts
-        OAuth-subscription or API-key credential modes, but the value must be a
-        handle reference to owned secret-provider/KMS-backed storage; raw provider credentials
-        are rejected and are never echoed in the response.
-      operationId: registerTenantProviderSubscription
-      security:
-        - adminBearer: []
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/SubscriptionRegistrationIdempotencyKey'
-        - $ref: '#/components/parameters/AdminTenantHeader'
-        - $ref: '#/components/parameters/TenantIdPath'
-        - $ref: '#/components/parameters/ProviderPath'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TenantProviderSubscriptionRegistrationRequest'
-      responses:
-        '201':
-          description: Subscription handle registered
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TenantProviderSubscriptionRegistrationResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          description: Duplicate seat_id already exists in the tenant/provider pool.
-
-
   /admin/v1/status:
     get:
       tags: [admin]
@@ -565,6 +524,49 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+
+
+  /admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions:
+    post:
+      tags: [admin]
+      summary: Register a tenant-scoped provider subscription handle
+      description: |
+        Adds an opaque secret handle to a tenant/provider pool. The request accepts
+        OAuth-subscription or API-key credential modes, but the value must be a
+        handle reference to owned secret-provider/KMS-backed storage; raw provider credentials
+        are rejected and are never echoed in the response.
+      operationId: registerTenantProviderSubscription
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/SubscriptionRegistrationIdempotencyKey'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+        - $ref: '#/components/parameters/TenantIdPath'
+        - $ref: '#/components/parameters/ProviderPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantProviderSubscriptionRegistrationRequest'
+      responses:
+        '201':
+          description: Subscription handle registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantProviderSubscriptionRegistrationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Duplicate seat_id already exists in the tenant/provider pool.
+
+
 
 components:
   securitySchemes:

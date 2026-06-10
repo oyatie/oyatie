@@ -68,7 +68,7 @@ Reusable budget tiers (brief §6 — free/standard/enterprise), each a budget en
 | enterprise | high / custom | high / custom | large | high |
 | dogfood (Oyatie self-tenant) | provider-cost-priced | provider-cost-priced | large | high |
 
-(Concrete numeric caps are per-deployment config, sourced from config/OpenBao — PRD open-question 2.)
+(Concrete numeric caps are per-deployment config, sourced from config plus owned secret-provider handles — PRD open-question 2.)
 
 ## Sustainability / showback dims
 

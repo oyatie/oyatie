@@ -9,7 +9,7 @@ use oya_cloud_intelligence_kernel::{
     SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
 };
 use oya_cloud_intelligence_rest::{
-    AnthropicAdapter, OpenBaoSecretStore, ProxyRequest, ProxyResponse, RestAdapterError,
+    AnthropicAdapter, ProxyRequest, ProxyResponse, RestAdapterError, SecretProviderStore,
 };
 use std::collections::BTreeMap;
 
@@ -25,7 +25,7 @@ impl oya_cloud_intelligence_kernel::AuthzGate for AlwaysAllowGate {
 }
 
 struct StubSecretStore;
-impl OpenBaoSecretStore for StubSecretStore {
+impl SecretProviderStore for StubSecretStore {
     fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
         Ok("stub-refresh-token".to_string())
     }
