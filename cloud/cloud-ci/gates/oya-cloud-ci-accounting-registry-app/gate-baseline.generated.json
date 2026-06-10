@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:32d2cf269a88c3b7",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:c8362e2ffe86eed9"
+    "source_inputs_digest": "fnv1a64:0fb96bd3ed61c7b7"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4763,7 +4763,6 @@
           "oya-architecture-graph-generator-app",
           "oya-authn-device-firmware",
           "oya-billing",
-          "oya-buck-test-wiring-app",
           "oya-cost",
           "oya-data-pipeline-lineage-replay-service",
           "oya-data-warehouse-tenant-olap-service",
@@ -23234,6 +23233,11 @@
           "tools/oya-architecture-graph-generator-app/tests/regeneration.rs",
           "tools/oya-buck-test-wiring-app/BUCK",
           "tools/oya-buck-test-wiring-app/Cargo.toml",
+          "tools/oya-buck-test-wiring-app/fixtures/binary_only.input.txt",
+          "tools/oya-buck-test-wiring-app/fixtures/library_append.expected.txt",
+          "tools/oya-buck-test-wiring-app/fixtures/library_append.input.txt",
+          "tools/oya-buck-test-wiring-app/fixtures/library_with_tests.generated.expected.txt",
+          "tools/oya-buck-test-wiring-app/fixtures/library_with_tests.input.txt",
           "tools/oya-buck-test-wiring-app/src/lib.rs",
           "tools/oya-buck-test-wiring-app/src/main.rs",
           "tools/oya-cargo-lock-merge-driver-app/BUCK",
@@ -41207,6 +41211,11 @@
           "tools/oya-architecture-graph-generator-app/tests/regeneration.rs",
           "tools/oya-buck-test-wiring-app/BUCK",
           "tools/oya-buck-test-wiring-app/Cargo.toml",
+          "tools/oya-buck-test-wiring-app/fixtures/binary_only.input.txt",
+          "tools/oya-buck-test-wiring-app/fixtures/library_append.expected.txt",
+          "tools/oya-buck-test-wiring-app/fixtures/library_append.input.txt",
+          "tools/oya-buck-test-wiring-app/fixtures/library_with_tests.generated.expected.txt",
+          "tools/oya-buck-test-wiring-app/fixtures/library_with_tests.input.txt",
           "tools/oya-buck-test-wiring-app/src/lib.rs",
           "tools/oya-buck-test-wiring-app/src/main.rs",
           "tools/oya-cargo-lock-merge-driver-app/BUCK",
