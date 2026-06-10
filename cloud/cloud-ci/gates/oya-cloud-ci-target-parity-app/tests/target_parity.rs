@@ -1,6 +1,8 @@
 // cloud-ci-target-parity: born-blocking self-test over TODAY's real corpus. Runs the
-// accounting-registry producer `--face target-parity`, then asserts the measured G011 debt:
-// all workspace members have BUCK files, while 565 members with Rust test code lack rust_test.
+// accounting-registry producer `--face target-parity`, then asserts the measured G011 debt
+// equals the committed gate baseline exactly (set equality, not a hardcoded count): all
+// workspace members have BUCK files, and the unwired-test set matches the frozen baseline
+// face byte-for-byte, so wiring PRs must settle the baseline in the same change (FRIC-1781116000).
 // ADR-0083 Tier-3: integration tests use unwrap/expect to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -104,10 +106,38 @@ fn target_parity_face_reports_live_corpus_debt() {
         missing_buck.is_empty(),
         "member_missing_buck is born-blocking empty today: {missing_buck:?}"
     );
-    assert_eq!(
-        unwired_tests.len(),
-        565,
-        "G011 baseline debt must be exactly the mechanically-derived set"
+    let baseline_path = root.join(
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
     );
+    let baseline: Value = serde_json::from_slice(
+        &std::fs::read(&baseline_path).expect("read committed gate baseline"),
+    )
+    .expect("gate baseline is valid JSON");
+    let baseline_keys: BTreeSet<String> = baseline["gates"]["cloud-ci-target-parity"]
+        ["member_test_code_without_rust_test_target"]["keys"]
+        .as_array()
+        .expect("baseline keys array")
+        .iter()
+        .map(|key| key.as_str().expect("baseline key is a string").to_owned())
+        .collect();
+    assert_eq!(
+        unwired_tests, baseline_keys,
+        "measured G011 debt must equal the committed baseline exactly; wiring changes must \
+         regenerate the baseline face in the same PR (settle protocol)"
+    );
+    // Independent growth tripwire (codex review of PR #676, FRIC-1781112000): the
+    // baseline above is PR-local and therefore launderable until the merge-base
+    // ratchet lands; this ceiling is NOT derived from any generated artifact and
+    // only ever moves DOWN, via an explicitly reviewed edit. Slice PRs never touch it.
+    const DEBT_CEILING: usize = 565;
+    assert!(
+        unwired_tests.len() <= DEBT_CEILING,
+        "G011 debt grew past the reviewed ceiling ({} > {DEBT_CEILING}); new unwired-test \
+         debt is born-blocking — wire the rust_test target instead of regenerating the baseline",
+        unwired_tests.len()
+    );
+    // Unconditionally Red while the campaign runs: flipping to Green is a one-way
+    // transition that must be its own reviewed change, never an emergent side effect
+    // of producer/baseline drift (codex review of PR #676, finding 2).
     assert_eq!(evaluate(&face).verdict, Verdict::Red);
 }
