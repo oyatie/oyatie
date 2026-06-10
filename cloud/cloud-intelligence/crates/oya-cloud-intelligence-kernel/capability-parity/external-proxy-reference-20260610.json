@@ -23,7 +23,7 @@
   "capabilities": [
     {
       "id": "XPROXY-API-001",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "commands docs"
@@ -33,12 +33,13 @@
       "target_capability": "Expose one tenant-scoped Kubernetes gateway Service/Ingress with Anthropic Messages and OpenAI-compatible routes; require cloud authn/authz/mTLS/API-key policy at the edge.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/contracts/tests/xproxy_api_contract.rs::xproxy_api_001"
+        "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::k8s_manifest_declares_crds_workers_canaries_and_hardening"
       ]
     },
     {
       "id": "XPROXY-API-002",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "src/proxy.ts",
         "docs/commands.md"
@@ -48,12 +49,13 @@
       "target_capability": "Implement `/v1/messages`, `/v1/messages/count_tokens`, legacy allowlist policy, and explicit deprecation/compat handling.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/contracts/tests/xproxy_api_contract.rs::xproxy_api_002"
+        "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_002_legacy_anthropic_complete_route_is_cloud_api_deprecation_not_cli_flow"
       ]
     },
     {
       "id": "XPROXY-API-003",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README routing matrix",
         "src/openai-backend.ts"
@@ -63,12 +65,13 @@
       "target_capability": "Implement `/v1/chat/completions` as a first-class OpenAI-compatible API, with no accidental Anthropic-only coupling.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/contracts/tests/xproxy_api_contract.rs::xproxy_api_003"
+        "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_003_openai_chat_completions_passes_body_and_safe_headers_to_openai_compatible_backend"
       ]
     },
     {
       "id": "XPROXY-API-004",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "src/proxy.ts"
@@ -78,12 +81,13 @@
       "target_capability": "Implement provider-aware, tenant-aware model inventory with aliases and capability tags.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/contracts/tests/xproxy_api_contract.rs::xproxy_api_004"
+        "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_004_model_inventory_and_count_tokens_routes_are_contract_first_cloud_surfaces"
       ]
     },
     {
       "id": "XPROXY-API-005",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "docs/commands.md",
         "src/proxy.ts"
@@ -93,12 +97,14 @@
       "target_capability": "Keep existing `/healthz`, `/livez`, `/readyz`, `/metrics`; add stable admin equivalents with OpenAPI contracts and authz.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/contracts/tests/xproxy_api_contract.rs::xproxy_api_005"
+        "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_005_external_reference_ops_routes_are_admin_guarded_cloud_routes",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_005_admin_status_accounts_and_analytics_expose_owned_ports_not_transient_engines"
       ]
     },
     {
       "id": "XPROXY-API-006",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "src/index.ts"
       ],
@@ -107,7 +113,7 @@
       "target_capability": "Provide Rust crate-level APIs and generated gRPC/admin client equivalents, not only a binary.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/contracts/tests/xproxy_api_contract.rs::xproxy_api_006"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::xproxy_api_006_admin_client_surface_is_generated_contract_shape_not_binary_workflow"
       ]
     },
     {
@@ -121,11 +127,9 @@
       "target_capability": "Implement deterministic `ModelRouter`: explicit provider prefix > route policy > protocol/model classifier > tenant default.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_prefix_overrides_protocol_and_route_policy",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_policy_overrides_classifier_but_not_prefix",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_model_classifier_cross_routes_protocols",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_tenant_default_is_last_resort_for_unknown_models"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_model_classifier_cross_routes_protocols"
       ]
     },
     {
@@ -141,7 +145,6 @@
       "target_capability": "Add extensible `ProviderPrefixRegistry` and policy validation; support current external reference prefixes plus Oyatie references (Gemini, Bedrock, Azure OpenAI, vLLM, SGLang, etc.).",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_002",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_002_provider_prefix_registry_maps_current_prefixes"
       ]
     },
@@ -156,13 +159,12 @@
       "target_capability": "Define typed model aliases/capabilities; return canonical model in upstream request and preserve client-visible compatibility behavior.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_003",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_003_claude_aliases_and_context_tags_are_normalized"
       ]
     },
     {
       "id": "XPROXY-ROUTE-004",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "commands docs",
         "config source",
@@ -173,12 +175,12 @@
       "target_capability": "Model override must be declarative, tenant-scoped, audited, and policy-authorized through CRD/config/admin API; effort suffixes/capabilities are normalized before routing.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_004"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_004_005_006_model_and_backend_management_are_declarative_resources"
       ]
     },
     {
       "id": "XPROXY-ROUTE-005",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "src/openai-backend.ts"
@@ -188,12 +190,12 @@
       "target_capability": "Superset: multiple named backends per tenant/namespace with weighted fallback, health, quotas, and policy.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_005"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_004_005_006_model_and_backend_management_are_declarative_resources"
       ]
     },
     {
       "id": "XPROXY-ROUTE-006",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "commands docs",
@@ -205,12 +207,12 @@
       "target_capability": "Superset as authenticated Kubernetes/API ProviderBackend CRUD/admission with owned secret-provider handles, route-controller status, and read-only operator views.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_006"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_004_005_006_model_and_backend_management_are_declarative_resources"
       ]
     },
     {
       "id": "XPROXY-ROUTE-007",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "src/openai-backend.ts"
       ],
@@ -219,28 +221,31 @@
       "target_capability": "Preserve pass-through semantics unless a declared adapter requires transformation; test body/header streaming invariants.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_007"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_003_openai_chat_completions_passes_body_and_safe_headers_to_openai_compatible_backend",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_route_007_openai_embeddings_route_uses_same_openai_compatible_pass_through_contract"
       ]
     },
     {
       "id": "XPROXY-WIRE-001",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "usage",
         "src/proxy.ts"
       ],
-      "source_behavior_summary": "Anthropic \u2194 OpenAI request/response translation, including streaming tool-use deltas and non-streaming usage.",
+      "source_behavior_summary": "Anthropic ↔ OpenAI request/response translation, including streaming tool-use deltas and non-streaming usage.",
       "target_boundary": "gateway-wire-profile-contract",
       "target_capability": "Implement typed translation layer with golden fixtures for every supported direction; stream chunks without buffering full responses.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_001"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::openai_chat_to_anthropic_preserves_messages_and_system_without_raw_logging_fields",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::anthropic_messages_to_openai_chat_preserves_model_messages_and_system_role",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::openai_sse_delta_fixture_translates_without_buffering_full_response"
       ]
     },
     {
       "id": "XPROXY-WIRE-002",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README drift section",
         "proxy source"
@@ -250,12 +255,12 @@
       "target_capability": "Superset with versioned `WireProfile` artifacts, signed captures, and worker-run drift probes per provider.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_002"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::xproxy_wire_002_capture_baseline_is_signed_and_prompt_redacted"
       ]
     },
     {
       "id": "XPROXY-WIRE-003",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "wire fidelity docs",
         "proxy source",
@@ -266,12 +271,12 @@
       "target_capability": "Encode provider-specific wire profiles and test them as contracts; avoid ad-hoc serializer behavior in hot path.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_003"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::wire_profile_strips_provider_control_headers_except_allowlisted_values"
       ]
     },
     {
       "id": "XPROXY-WIRE-004",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "wire fidelity docs",
         "commands docs",
@@ -282,12 +287,12 @@
       "target_capability": "Decide per provider whether transport fingerprinting is allowed/compliant; if allowed, isolate in provider adapter and verify by integration tests.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_004"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::xproxy_wire_004_005_transport_and_pacing_are_explicit_policy_decisions"
       ]
     },
     {
       "id": "XPROXY-WIRE-005",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "commands docs",
         "wire fidelity docs",
@@ -298,12 +303,12 @@
       "target_capability": "Make behavioral pacing explicit route policy, default off unless compliance approves; record latency budget impact.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_005"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::xproxy_wire_004_005_transport_and_pacing_are_explicit_policy_decisions"
       ]
     },
     {
       "id": "XPROXY-WIRE-006",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "wire fidelity docs",
         "src/stream-drain.ts"
@@ -313,12 +318,12 @@
       "target_capability": "Add stream lifecycle policy and tests for disconnect/drain/no-drain cost behavior.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_006"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::xproxy_wire_006_007_stream_and_session_lifecycle_are_route_policies"
       ]
     },
     {
       "id": "XPROXY-WIRE-007",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "commands docs",
         "wire fidelity docs",
@@ -329,12 +334,12 @@
       "target_capability": "Implement tenant-safe session-affinity objects and route-level rotation policies; expose admin metrics.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_007"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::xproxy_wire_006_007_stream_and_session_lifecycle_are_route_policies"
       ]
     },
     {
       "id": "XPROXY-WIRE-008",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "usage docs",
         "commands docs",
@@ -345,12 +350,12 @@
       "target_capability": "Add prompt-cache control headers/fields only through provider adapters and contract tests.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_008"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::xproxy_wire_008_prompt_cache_and_beta_headers_are_allowlisted"
       ]
     },
     {
       "id": "XPROXY-WIRE-009",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "partial"
       ],
@@ -359,12 +364,12 @@
       "target_capability": "aggressive",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_009"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::prompt_profile_uses_named_resources_not_cluster_file_paths"
       ]
     },
     {
       "id": "XPROXY-WIRE-010",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "commands docs",
@@ -376,12 +381,12 @@
       "target_capability": "Add route-level `ThinkingPolicy` with default provider-compatible shaping and explicit opt-in pass-through, plus tests for preserving/removing client thinking blocks.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_streaming_translation.rs::xproxy_wire_010"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::thinking_policy_defaults_to_provider_compatible_shape_unless_explicitly_passthrough"
       ]
     },
     {
       "id": "XPROXY-AUTH-001",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "commands docs",
         "Docker docs",
@@ -392,12 +397,12 @@
       "target_capability": "Implement provider OAuth lifecycle as worker-safe Rust services using the owned secret-provider port for refresh-token handles; no browser automation runs in cluster.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_failover.rs::xproxy_auth_001"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_auth_001_002_006_007_008_lifecycle_auth_and_config_are_cloud_native"
       ]
     },
     {
       "id": "XPROXY-AUTH-002",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "multi-account docs",
         "pool source"
@@ -407,12 +412,12 @@
       "target_capability": "Existing pool foundation must gain external-reference-compatible activation/inspection semantics per tenant/provider.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_failover.rs::xproxy_auth_002"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_auth_001_002_006_007_008_lifecycle_auth_and_config_are_cloud_native"
       ]
     },
     {
       "id": "XPROXY-AUTH-003",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "multi-account docs",
         "pool source"
@@ -422,12 +427,12 @@
       "target_capability": "Implement provider metric parsers and normalized quota/headroom model; support external reference Anthropic headers plus provider-specific variants.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_failover.rs::xproxy_auth_003"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_stickiness.rs::headroom_uses_one_minus_max_five_hour_and_weekly_utilization"
       ]
     },
     {
       "id": "XPROXY-AUTH-004",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "multi-account docs",
         "pool source"
@@ -437,12 +442,12 @@
       "target_capability": "Add configurable sticky key strategy that never stores raw prompt text and preserves privacy.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_failover.rs::xproxy_auth_004"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_stickiness.rs::sticky_key_does_not_store_raw_prompt_and_rebinds_after_429"
       ]
     },
     {
       "id": "XPROXY-AUTH-005",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "multi-account docs",
         "proxy/pool source"
@@ -452,12 +457,12 @@
       "target_capability": "Implement failover state machine with lease release, retry budget, idempotency protection, and observability.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_failover.rs::xproxy_auth_005"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_stickiness.rs::sticky_key_does_not_store_raw_prompt_and_rebinds_after_429"
       ]
     },
     {
       "id": "XPROXY-AUTH-006",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "OAuth/accounts tests/source"
       ],
@@ -466,12 +471,12 @@
       "target_capability": "Implement refresh worker/controller with singleflight locks and reconciliation status.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_failover.rs::xproxy_auth_006"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_auth_001_002_006_007_008_lifecycle_auth_and_config_are_cloud_native"
       ]
     },
     {
       "id": "XPROXY-AUTH-007",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "commands/Docker docs"
       ],
@@ -480,12 +485,12 @@
       "target_capability": "In cloud mode require tenant authn/authz/mTLS or API-key; expose CORS and upstream proxy only through policy-reviewed config.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_failover.rs::xproxy_auth_007"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_auth_001_002_006_007_008_lifecycle_auth_and_config_are_cloud_native"
       ]
     },
     {
       "id": "XPROXY-AUTH-008",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "src/config-file.ts",
         "commands docs",
@@ -496,12 +501,12 @@
       "target_capability": "Implement typed declarative config layering with admission validation; add tests proving precedence, secret-source separation, and conflict diagnostics without adding a CLI layer.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_pool_headroom_failover.rs::xproxy_auth_008"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_auth_001_002_006_007_008_lifecycle_auth_and_config_are_cloud_native"
       ]
     },
     {
       "id": "XPROXY-COMPAT-001",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "compat matrix"
@@ -511,12 +516,12 @@
       "target_capability": "Maintain executable compatibility matrix with supported/inferred/blocked states and canaries.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_tool_compatibility.rs::xproxy_compat_001"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::xproxy_compat_001_matrix_records_supported_inferred_and_blocked_clients"
       ]
     },
     {
       "id": "XPROXY-COMPAT-002",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "agent-compat docs",
@@ -527,12 +532,12 @@
       "target_capability": "Build typed `ToolCompatibilityProfile` registry and golden tests; do not hard-code one-off transforms in handlers.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_tool_compatibility.rs::xproxy_compat_002"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::tool_registry_has_schema_verified_compatibility_entries"
       ]
     },
     {
       "id": "XPROXY-COMPAT-003",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "commands docs",
         "agent-compat docs",
@@ -543,12 +548,12 @@
       "target_capability": "Add explicit tool-mode policy and request classification tests; support preserve/hybrid/merge only when stable and audited.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_tool_compatibility.rs::xproxy_compat_003"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::tool_classifier_detects_text_tool_and_policy_modes"
       ]
     },
     {
       "id": "XPROXY-COMPAT-004",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "proxy source/tests"
       ],
@@ -557,12 +562,12 @@
       "target_capability": "Add sanitizer component with privacy/security tests and tenant-configurable policy.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_tool_compatibility.rs::xproxy_compat_004"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::xproxy_compat_004_sanitizer_strips_orchestration_tags_without_raw_logging"
       ]
     },
     {
       "id": "XPROXY-COMPAT-005",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "agent-compat docs"
       ],
@@ -571,7 +576,7 @@
       "target_capability": "Superset: document/implement cloud-safe external client profiles without recommending insecure tunnel defaults.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_tool_compatibility.rs::xproxy_compat_005"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::xproxy_compat_005_006_client_profiles_are_cloud_safe_and_outside_gateway_hot_path"
       ]
     },
     {
@@ -585,12 +590,12 @@
       "target_capability": "low`.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_tool_compatibility.rs::xproxy_compat_006"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::shim_supersession_is_recorded_as_cloud_gateway_not_child_process_patch"
       ]
     },
     {
       "id": "XPROXY-OBS-001",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "operator-panel tests"
@@ -600,12 +605,13 @@
       "target_capability": "Superset via cloud dashboard/admin API/Kubernetes status only; no CLI/TUI implementation and no hot-path dependency on UI.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_observability_guardrails.rs::xproxy_obs_001"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::ops_surface_is_read_only_and_redacts_sensitive_values",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_005_admin_status_accounts_and_analytics_expose_owned_ports_not_transient_engines"
       ]
     },
     {
       "id": "XPROXY-OBS-002",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "proxy source",
         "tests"
@@ -615,12 +621,12 @@
       "target_capability": "Reuse `llm.usage.v1`/`llm.audit.v1`; add external reference-equivalent route/account/model dimensions and redaction tests.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_observability_guardrails.rs::xproxy_obs_002"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::xproxy_obs_002_usage_events_have_route_account_dimensions_and_redact_payloads"
       ]
     },
     {
       "id": "XPROXY-OBS-003",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "proxy source/tests"
@@ -630,12 +636,12 @@
       "target_capability": "Superset as `GatewayCircuitBreaker`/budget guard per tenant/provider/model with admin resume, events, and Retry-After.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_observability_guardrails.rs::xproxy_obs_003"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::xproxy_obs_003_circuit_breaker_returns_retry_after_and_admin_resume_state"
       ]
     },
     {
       "id": "XPROXY-OBS-004",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "commands docs/tests"
       ],
@@ -644,12 +650,13 @@
       "target_capability": "Superset as admin API, Kubernetes health/diagnostic CR status, events, and cloud dashboard views only.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_observability_guardrails.rs::xproxy_obs_004"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::ops_surface_is_read_only_and_redacts_sensitive_values",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_005_external_reference_ops_routes_are_admin_guarded_cloud_routes"
       ]
     },
     {
       "id": "XPROXY-OBS-005",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "MCP docs"
       ],
@@ -658,12 +665,12 @@
       "target_capability": "Optional ops MCP server with read-only tools backed by admin API, RBAC, and audit.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_observability_guardrails.rs::xproxy_obs_005"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::xproxy_obs_005_read_only_mcp_toolset_excludes_mutations"
       ]
     },
     {
       "id": "XPROXY-OBS-006",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "commands/docs/tests"
       ],
@@ -672,12 +679,12 @@
       "target_capability": "Superset as agent/client profile packaging, but keep installation outside gateway hot path.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/xproxy_observability_guardrails.rs::xproxy_obs_006"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::xproxy_compat_005_006_client_profiles_are_cloud_safe_and_outside_gateway_hot_path"
       ]
     },
     {
       "id": "XPROXY-SEC-001",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "tests"
@@ -687,12 +694,13 @@
       "target_capability": "Maintain stronger cloud defaults: owned secret-provider-only secrets, no prompt/body logging by default, redaction tests, signed SBOM/provenance.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/k8s/tests/xproxy_runtime_hardening.rs::xproxy_sec_001"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::ops_surface_is_read_only_and_redacts_sensitive_values",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::worker_ownership_map_keeps_hot_path_and_control_plane_separate"
       ]
     },
     {
       "id": "XPROXY-SEC-002",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "proxy source/tests"
       ],
@@ -701,12 +709,13 @@
       "target_capability": "Enforce provider/backend allowlists at config admission and request execution.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/k8s/tests/xproxy_runtime_hardening.rs::xproxy_sec_002"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_003_openai_chat_completions_passes_body_and_safe_headers_to_openai_compatible_backend",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_route_007_openai_embeddings_route_uses_same_openai_compatible_pass_through_contract"
       ]
     },
     {
       "id": "XPROXY-SEC-003",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "Docker docs"
       ],
@@ -715,12 +724,12 @@
       "target_capability": "Superset with K8s Deployment/Service/HPA/PDB/NetworkPolicy, secret-provider adapter resources, and worker Deployments/CronJobs/Jobs.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/k8s/tests/xproxy_runtime_hardening.rs::xproxy_sec_003"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::k8s_manifest_declares_crds_workers_canaries_and_hardening"
       ]
     },
     {
       "id": "XPROXY-SEC-004",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README/tests/workflows"
       ],
@@ -729,12 +738,14 @@
       "target_capability": "Add parity CI gate pinned to this baseline plus existing Oyatie governance gates.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/k8s/tests/xproxy_runtime_hardening.rs::xproxy_sec_004"
+        "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces",
+        "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_asyncapi_declares_parity_drift_compatibility_and_circuit_events",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_map_covers_exactly_all_50_xproxy_capabilities"
       ]
     },
     {
       "id": "XPROXY-DRIFT-001",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README drift section"
       ],
@@ -743,12 +754,12 @@
       "target_capability": "Implement pinned-baseline parity worker plus provider drift workers; all drift events produce audit evidence and PR/task output.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/workers/tests/xproxy_parity_drift.rs::xproxy_drift_001"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_drift_001_002_workers_emit_pinned_parity_and_canary_plans"
       ]
     },
     {
       "id": "XPROXY-DRIFT-002",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README/tests"
       ],
@@ -757,12 +768,12 @@
       "target_capability": "CI must require route matrix, client canaries, streaming fixtures, pool/failover, and security regression suites.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/workers/tests/xproxy_parity_drift.rs::xproxy_drift_002"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_drift_001_002_workers_emit_pinned_parity_and_canary_plans"
       ]
     },
     {
       "id": "XPROXY-DRIFT-003",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "User requirement + package/commit evidence"
       ],
@@ -771,7 +782,7 @@
       "target_capability": "Store `.omx/specs/external-proxy-reference-baseline-20260610.json`; future work reads it and emits delta.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/workers/tests/xproxy_parity_drift.rs::xproxy_drift_003"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_report_prints_provenance_all_ids_statuses_and_tests"
       ]
     }
   ]
