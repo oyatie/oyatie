@@ -367,9 +367,14 @@ fn decide_with_context(
                     }
                 }
             }
-            // Fail closed when the subcommand token is itself an unresolved
-            // expansion (`${x:+reset}`, `$r`) — we cannot prove it is not a
-            // mutating verb (review #685 r6 F2 subcommand case).
+            // Fail closed when the subcommand token still carries an unresolved
+            // expansion/transformation after normalization — `$@`/positional
+            // params, `${x:+…}`, `$r`, brace/glob, backtick (review #685 r6/r9).
+            // A literal non-verb token (e.g. a path arg of a phantom `git` match
+            // from a wrapper scan) is NOT flagged — only transformation sigils,
+            // so `grep -r git /path` stays ALLOW. ANSI-C numeric escapes and
+            // line-continuations are decoded/joined upstream in normalization,
+            // so they arrive here as the real verb and hit is_blocked_operation.
             let blocked_operation = is_blocked_operation(&invocation.subcommand, &invocation.args)
                 || has_unresolved_expansion(&invocation.subcommand);
             let work_tree_blocked = match &invocation.target {
@@ -1284,16 +1289,18 @@ fn has_unresolved_expansion(token: &str) -> bool {
         if matches!(b, b'`' | b'*' | b'?' | b'[' | b']' | b'{' | b'}' | b'~') {
             return true;
         }
-        if b == b'$' {
-            match bytes.get(i + 1) {
-                Some(b'(' | b'{' | b'\'') => return true,
-                Some(c) if c.is_ascii_alphanumeric() || *c == b'_' => return true,
-                _ => {}
-            }
+        // A `$` before any non-space follower is an expansion of SOME kind —
+        // parameter (`$name`/`${…}`/`$'…'`), command (`$(…)`), arithmetic
+        // (`$((…))`), or a special/positional param (`$@ $* $# $- $! $? $$ $N`,
+        // review #685 r9 F1). Treat them all as unresolved in command-name
+        // position; a bare trailing `$` is the only literal exception.
+        if b == b'$' && bytes.get(i + 1).is_some_and(|c| !c.is_ascii_whitespace()) {
+            return true;
         }
     }
     false
 }
+
 
 /// Collect prefix `name=value` assignments whose value is a single simple word
 /// (no quotes, spaces, or expansion metacharacters), keyed for later `$name`
@@ -1355,30 +1362,39 @@ fn expand_with_bindings(command: &str, bindings: &[(String, String)], ifs_unsafe
                 out.push(ch);
             }
             '\\' => {
-                out.push(ch);
-                if let Some((_, next)) = chars.next() {
-                    out.push(next);
+                // Backslash line-continuation (`re\<newline>set`) is JOINED by
+                // the shell — drop the `\`+newline so the verb reassembles
+                // (review #685 r9 F3). Any other escaped char is kept literal.
+                match chars.peek() {
+                    Some((_, '\n')) | Some((_, '\r')) => {
+                        chars.next();
+                    }
+                    _ => {
+                        out.push(ch);
+                        if let Some((_, next)) = chars.next() {
+                            out.push(next);
+                        }
+                    }
                 }
             }
             '$' if chars.peek().is_some_and(|(_, c)| *c == '\'') => {
                 chars.next();
-                let mut body = String::new();
+                let mut raw = String::new();
                 while let Some((_, c)) = chars.next() {
                     if c == '\\' {
                         if let Some((_, e)) = chars.next() {
-                            body.push(match e {
-                                'n' => '\n',
-                                't' => '\t',
-                                other => other,
-                            });
+                            raw.push('\\');
+                            raw.push(e);
                         }
                     } else if c == '\'' {
                         break;
                     } else {
-                        body.push(c);
+                        raw.push(c);
                     }
                 }
-                out.push_str(&body);
+                // Decode ANSI-C escapes — incl. \xHH / \NNN octal / \uHHHH that
+                // the shell decodes (review #685 r9 F2: `$'\x72\x65…'`→`reset`).
+                out.push_str(&decode_ansi_c(&raw));
             }
             '$' if chars.peek().is_some_and(|(_, c)| *c == '{') => {
                 chars.next();
@@ -1491,6 +1507,106 @@ fn static_command_output(body: &str) -> Option<String> {
         // for the specifier-free forms an evasion would use.
         "printf" => Some(dequote_simple(rest.trim())),
         _ => None,
+    }
+}
+
+/// Decode the ANSI-C (`$'…'`) escape sequences the shell expands: standard
+/// letter escapes, `\xHH` hex, `\NNN` octal, and `\uHHHH`/`\UHHHHHHHH` unicode.
+/// Unknown escapes keep their literal char. Used so a hex-encoded git verb
+/// (`$'\x72\x65\x73\x65\x74'`→`reset`) reaches the blocked-verb table instead
+/// of slipping through as the literal `x72…` (review #685 r9 F2).
+fn decode_ansi_c(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    let mut chars = raw.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            out.push(c);
+            continue;
+        }
+        let Some(&esc) = chars.peek() else {
+            out.push('\\');
+            break;
+        };
+        match esc {
+            'n' => {
+                out.push('\n');
+                chars.next();
+            }
+            't' => {
+                out.push('\t');
+                chars.next();
+            }
+            'r' => {
+                out.push('\r');
+                chars.next();
+            }
+            'a' => {
+                out.push('\u{07}');
+                chars.next();
+            }
+            'b' => {
+                out.push('\u{08}');
+                chars.next();
+            }
+            'e' | 'E' => {
+                out.push('\u{1b}');
+                chars.next();
+            }
+            'f' => {
+                out.push('\u{0c}');
+                chars.next();
+            }
+            'v' => {
+                out.push('\u{0b}');
+                chars.next();
+            }
+            '\\' | '\'' | '"' | '?' => {
+                out.push(esc);
+                chars.next();
+            }
+            'x' => {
+                chars.next();
+                let mut hex = String::new();
+                while hex.len() < 2 && chars.peek().is_some_and(|c| c.is_ascii_hexdigit()) {
+                    hex.push(chars.next().unwrap_or('\0'));
+                }
+                push_codepoint(&mut out, &hex, 16);
+            }
+            'u' | 'U' => {
+                let width = if esc == 'u' { 4 } else { 8 };
+                chars.next();
+                let mut hex = String::new();
+                while hex.len() < width && chars.peek().is_some_and(|c| c.is_ascii_hexdigit()) {
+                    hex.push(chars.next().unwrap_or('\0'));
+                }
+                push_codepoint(&mut out, &hex, 16);
+            }
+            '0'..='7' => {
+                let mut oct = String::new();
+                while oct.len() < 3 && chars.peek().is_some_and(|c| ('0'..='7').contains(c)) {
+                    oct.push(chars.next().unwrap_or('\0'));
+                }
+                push_codepoint(&mut out, &oct, 8);
+            }
+            other => {
+                out.push('\\');
+                out.push(other);
+                chars.next();
+            }
+        }
+    }
+    out
+}
+
+fn push_codepoint(out: &mut String, digits: &str, radix: u32) {
+    if digits.is_empty() {
+        return;
+    }
+    if let Some(ch) = u32::from_str_radix(digits, radix)
+        .ok()
+        .and_then(char::from_u32)
+    {
+        out.push(ch);
     }
 }
 
@@ -2197,6 +2313,15 @@ mod tests {
             "IFS=x; y=resetx; git -C /repo/oyatie ${y} --hard",
             "bash -c 'IFS=x; y=resetx; git -C /repo/oyatie $y --hard'",
             "IFS=x; p=/repo/oyatiex; git -C $p reset --hard",
+            // Positional params after set -- (r9 F1).
+            "set -- reset --hard; git -C /repo/oyatie $@",
+            "set -- clean -fdx; git -C /repo/oyatie $@",
+            "bash -c 'set -- reset --hard; git -C /repo/oyatie $@'",
+            // ANSI-C hex/octal escapes decode to a real verb (r9 F2).
+            "git -C /repo/oyatie $'\\x72\\x65\\x73\\x65\\x74' --hard",
+            "git -C /repo/oyatie $'\\162\\145\\163\\145\\164' --hard",
+            // Backslash line-continuation reassembles the verb (r9 F3).
+            "git -C /repo/oyatie re\\\nset --hard",
         ] {
             assert_denied(command);
         }
