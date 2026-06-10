@@ -57,39 +57,54 @@ if [ -z "$RUST_REL" ]; then
   exit 0
 fi
 
-# owner() per Rust-relevant file. A uquery ERROR (non-zero exit) is a buck2/graph
-# failure and FAILS the gate — it is NOT 'no owner'. (This was the false-pass bug:
-# 2>/dev/null||true swallowed buck2 errors and passed everything.)
+# owner() resolution — batched to minimise buck2 daemon round-trips.
+#
+# Strategy:
+#   1. BUCK files: no owner() result by design (they ARE the package definition).
+#      Run a small per-file pass to expand each to its package target pattern.
+#      (One buck2 uquery per BUCK file — these are typically 0-1 files per PR.)
+#   2. Non-BUCK Rust/graph files: build ONE "owner('f1') union owner('f2') union ..."
+#      expression and run a single buck2 uquery call for all files at once.
+#      owner() takes file-path strings, not target-set placeholders, so %Ss/@argfile
+#      cannot be used here — the union expression is the correct single-call form.
+#      A uquery ERROR (non-zero exit) FAILS the gate — it is NOT 'no owner'.
+#      (The false-pass bug was: 2>/dev/null||true swallowed buck2 errors.)
+
 OWNERS=""
-for f in $RUST_REL; do
+
+# ── Pass 1: BUCK files → package target pattern (unchanged semantics, separate pass) ──
+BUCK_FILES=$(printf '%s\n' "$RUST_REL" | grep -E '(^|/)BUCK$' || true)
+for f in $BUCK_FILES; do
   [ -e "$f" ] || continue
-  if ! o=$("$BUCK2" uquery "owner('$f')" 2>/tmp/uqerr); then
-    echo "buck2-affected-gate: FATAL buck2 uquery owner('$f') errored:"; sed 's/^/    /' /tmp/uqerr; exit 1
-  fi
-  # A BUCK file is the package DEFINITION, not a target source, so owner() finds
-  # nothing for it. A BUCK change can add/alter/remove any target in that package,
-  # so the affected set is ALL targets in the package -> expand to the package
-  # target pattern (cell-qualified) rather than treating it as a 'no owner' FATAL.
-  if [ -z "$o" ]; then
-    case "$f" in
-      */BUCK|BUCK)
-        d=$(dirname "$f")
-        case "$d" in
-          third-party)   pat="third-party//:" ;;
-          third-party/*) pat="third-party//${d#third-party/}:" ;;
-          toolchains)    pat="toolchains//:" ;;
-          toolchains/*)  pat="toolchains//${d#toolchains/}:" ;;
-          .)             pat="//:" ;;
-          *)             pat="//$d:" ;;
-        esac
-        if ! o=$("$BUCK2" uquery "$pat" 2>/tmp/uqerr); then
-          echo "buck2-affected-gate: FATAL buck2 uquery '$pat' (BUCK pkg for $f) errored:"; sed 's/^/    /' /tmp/uqerr; exit 1
-        fi
-        ;;
-    esac
+  d=$(dirname "$f")
+  case "$d" in
+    third-party)   pat="third-party//:" ;;
+    third-party/*) pat="third-party//${d#third-party/}:" ;;
+    toolchains)    pat="toolchains//:" ;;
+    toolchains/*)  pat="toolchains//${d#toolchains/}:" ;;
+    .)             pat="//:" ;;
+    *)             pat="//$d:" ;;
+  esac
+  if ! o=$("$BUCK2" uquery "$pat" 2>/tmp/uqerr); then
+    echo "buck2-affected-gate: FATAL buck2 uquery '$pat' (BUCK pkg for $f) errored:"; sed 's/^/    /' /tmp/uqerr; exit 1
   fi
   [ -n "$o" ] && OWNERS="$OWNERS $o"
 done
+
+# ── Pass 2: non-BUCK files → ONE batched uquery call via union-of-owner() expression ──
+# Build: owner('f1') union owner('f2') union ... and run as a single buck2 uquery invocation.
+# This replaces N serial daemon round-trips (one per file) with a single round-trip.
+NON_BUCK_FILES=$(printf '%s\n' "$RUST_REL" | grep -vE '(^|/)BUCK$' || true)
+NON_BUCK_EXISTING=$(printf '%s\n' "$NON_BUCK_FILES" | while read -r f; do [ -e "$f" ] && printf '%s\n' "$f"; done)
+if [ -n "$NON_BUCK_EXISTING" ]; then
+  OWNER_EXPR=$(printf '%s\n' "$NON_BUCK_EXISTING" | \
+    awk 'NR==1{printf "owner('"'"'%s'"'"')", $0; next} {printf " union owner('"'"'%s'"'"')", $0}')
+  if ! o=$("$BUCK2" uquery "$OWNER_EXPR" 2>/tmp/uqerr); then
+    echo "buck2-affected-gate: FATAL buck2 uquery owner() errored:"; sed 's/^/    /' /tmp/uqerr; exit 1
+  fi
+  [ -n "$o" ] && OWNERS="$OWNERS $o"
+fi
+
 OWNERS=$(printf '%s\n' $OWNERS | sed '/^$/d' | sort -u)
 if [ -z "$OWNERS" ]; then
   echo "buck2-affected-gate: FATAL Rust/buck files changed but NO owning target found (refusing to false-pass):"
