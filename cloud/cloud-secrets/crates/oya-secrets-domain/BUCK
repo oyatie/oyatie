@@ -11,6 +11,17 @@ rust_library(
 )
 
 rust_test(
+    name = "lease-lifecycle-test",
+    srcs = glob(["tests/lease_lifecycle.rs"]),
+    crate = "oya_secrets_domain_lease_lifecycle_test",
+    crate_root = "tests/lease_lifecycle.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-secrets-domain",
+    ],
+)
+
+rust_test(
     name = "secret-reference-uri-test",
     srcs = glob(["tests/secret_reference_uri.rs"]),
     crate = "oya_secrets_domain_secret_reference_uri_test",
