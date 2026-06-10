@@ -9,3 +9,16 @@ rust_library(
         "//oya/eventing/crates/oya-eventing-domain:oya-eventing-domain",
     ],
 )
+
+rust_test(
+    name = "oya-eventing-file-adapter-file-outbox",
+    srcs = ["tests/file_outbox.rs"],
+    crate = "oya_eventing_file_adapter_file_outbox",
+    crate_root = "tests/file_outbox.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-eventing-file-adapter",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/eventing/crates/oya-eventing-domain:oya-eventing-domain",
+    ],
+)

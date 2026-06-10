@@ -9,3 +9,15 @@ rust_library(
         "//oya/compliance/crates/oya-retention-domain:oya-retention-domain",
     ],
 )
+
+rust_test(
+    name = "oya-retention-dsr-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_retention_dsr_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/compliance/crates/oya-retention-domain:oya-retention-domain",
+    ],
+)
