@@ -288,6 +288,7 @@ members = [
   "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao",
   "cloud/cloud-kms/crates/oya-cloud-kms-api",
   "cloud/cloud-kms/crates/oya-cloud-kms-domain",
+  "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel",
   "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain",
   "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel",
   "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel",

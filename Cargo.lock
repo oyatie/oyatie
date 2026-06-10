@@ -4585,6 +4585,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-kms-enclave-kernel"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "libc",
+ "oya-cloud-kms-domain",
+ "zeroize",
+]
+
+[[package]]
 name = "oya-cloud-marketplace-domain"
 version = "0.1.0"
 dependencies = [
