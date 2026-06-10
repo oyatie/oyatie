@@ -31,3 +31,20 @@ rust_binary(
         "third-party//:tracing-subscriber",
     ],
 )
+
+rust_test(
+    name = "oya-production-planning-mrp-app-integration",
+    srcs = ["tests/integration.rs"],
+    crate = "oya_production_planning_mrp_app_integration",
+    crate_root = "tests/integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-production-planning-mrp-app",
+        "third-party//:clap",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

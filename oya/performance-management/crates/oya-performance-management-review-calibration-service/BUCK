@@ -29,3 +29,20 @@ rust_binary(
         "third-party//:tracing-subscriber",
     ],
 )
+
+rust_test(
+    name = "oya-performance-management-review-calibration-service-integration",
+    srcs = ["tests/integration.rs"],
+    crate = "oya_performance_management_review_calibration_service_integration",
+    crate_root = "tests/integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-performance-management-review-calibration-service",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
