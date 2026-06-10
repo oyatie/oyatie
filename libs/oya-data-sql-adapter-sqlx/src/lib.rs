@@ -159,6 +159,16 @@ pub struct SqlxDataSession<'client> {
     descriptor: SessionDescriptor,
 }
 
+impl std::fmt::Debug for SqlxDataSession<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // The pooled client handle is intentionally opaque; the descriptor is
+        // the identifying state (tenant scope + application) of a session.
+        f.debug_struct("SqlxDataSession")
+            .field("descriptor", &self.descriptor)
+            .finish_non_exhaustive()
+    }
+}
+
 impl SqlxDataSession<'_> {
     #[must_use]
     pub fn descriptor(&self) -> &SessionDescriptor {
