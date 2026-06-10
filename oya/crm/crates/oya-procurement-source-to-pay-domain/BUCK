@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-procurement-source-to-pay-domain-source-to-pay",
+    srcs = ["tests/source_to_pay.rs"],
+    crate = "oya_procurement_source_to_pay_domain_source_to_pay",
+    crate_root = "tests/source_to_pay.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-procurement-source-to-pay-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
