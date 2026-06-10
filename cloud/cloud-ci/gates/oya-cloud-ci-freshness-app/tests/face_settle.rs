@@ -57,6 +57,11 @@ fn init_repo_with_faces() -> PathBuf {
     git(&root, &["init"]);
     git(&root, &["config", "user.name", "Oyatie Test"]);
     git(&root, &["config", "user.email", "oyatie-test@example.com"]);
+    git(&root, &["config", "commit.gpgsign", "false"]);
+    git(
+        &root,
+        &["config", "user.signingkey", "missing-local-test-key"],
+    );
     std::fs::write(root.join("README.md"), "content v1\n").expect("write content");
     for path in generated_face_paths() {
         let path = root.join(path);
@@ -98,6 +103,20 @@ fn dirty_tree_refusal_fixture_reports_settle_protocol() {
 }
 
 #[test]
+fn untracked_file_refusal_fixture_reports_settle_protocol() {
+    let root = init_repo_with_faces();
+    std::fs::write(root.join("new-policy.md"), "content v1\n").expect("write untracked file");
+
+    let error = assert_non_face_tree_clean(&root).expect_err("untracked file must be refused");
+    let message = error.to_string();
+
+    assert!(message.contains("untracked files"));
+    assert!(message.contains("new-policy.md"));
+    assert!(message.contains(FACE_SETTLE_PROTOCOL));
+    assert!(message.contains("faces regenerate from TRACKED paths"));
+}
+
+#[test]
 fn faces_only_staging_fixture_stages_only_generated_faces() {
     let root = init_repo_with_faces();
 
@@ -118,6 +137,39 @@ fn faces_only_staging_fixture_stages_only_generated_faces() {
     assert_eq!(staged, face_paths);
     assert!(
         git_output(&root, &["diff", "--name-only"])
+            .trim()
+            .is_empty()
+    );
+}
+
+#[test]
+fn settle_and_commit_fixture_creates_exactly_one_faces_only_commit() {
+    let root = init_repo_with_faces();
+
+    let report =
+        settle_regenerated_faces(&root, regenerated_faces(), FaceSettleMode::SettleAndCommit)
+            .expect("settle and commit generated faces");
+
+    assert!(report.committed);
+    assert_eq!(
+        git_output(&root, &["rev-list", "--count", "HEAD"]).trim(),
+        "2"
+    );
+    assert_eq!(
+        git_output(&root, &["log", "-1", "--pretty=%s"]).trim(),
+        "chore: settle generated cloud-ci faces"
+    );
+    let committed_paths: BTreeSet<String> = git_output(
+        &root,
+        &["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+    )
+    .lines()
+    .map(str::to_owned)
+    .collect();
+    let face_paths: BTreeSet<String> = generated_face_paths().into_iter().collect();
+    assert_eq!(committed_paths, face_paths);
+    assert!(
+        git_output(&root, &["status", "--porcelain=v1"])
             .trim()
             .is_empty()
     );

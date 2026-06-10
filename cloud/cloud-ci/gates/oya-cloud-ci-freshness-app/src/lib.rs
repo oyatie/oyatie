@@ -373,7 +373,7 @@ pub fn settle_regenerated_faces(
         false
     };
     let commit_line = if committed {
-        "created SSH-signed settle commit".to_owned()
+        "created generated-face settle commit".to_owned()
     } else {
         format!("suggested commit: {FACE_SETTLE_COMMIT_COMMAND}")
     };
@@ -389,13 +389,27 @@ pub fn settle_regenerated_faces(
 }
 
 pub fn assert_non_face_tree_clean(repo_root: &Path) -> Result<(), FreshnessError> {
-    let changes = tracked_non_face_changes(repo_root)?;
-    if changes.is_empty() {
+    let tracked_changes = tracked_non_face_changes(repo_root)?;
+    let untracked_paths = untracked_paths(repo_root)?;
+    if tracked_changes.is_empty() && untracked_paths.is_empty() {
         Ok(())
     } else {
+        let mut sections = Vec::new();
+        if !tracked_changes.is_empty() {
+            sections.push(format!(
+                "tracked non-face changes:\n{}",
+                bullet_list(&tracked_changes)
+            ));
+        }
+        if !untracked_paths.is_empty() {
+            sections.push(format!(
+                "untracked files alter the tracked-paths universe used by generated faces:\n{}",
+                bullet_list(&untracked_paths)
+            ));
+        }
         Err(FreshnessError::new(format!(
-            "tracked non-face changes must be committed before settling generated faces:\n{}\nProtocol: {FACE_SETTLE_PROTOCOL}",
-            bullet_list(&changes)
+            "non-face tree state must be committed before settling generated faces:\n{}\nProtocol: {FACE_SETTLE_PROTOCOL}",
+            sections.join("\n")
         )))
     }
 }
@@ -656,6 +670,22 @@ fn tracked_non_face_changes(repo_root: &Path) -> Result<Vec<String>, FreshnessEr
     Ok(changes)
 }
 
+fn untracked_paths(repo_root: &Path) -> Result<Vec<String>, FreshnessError> {
+    let output = run_output(
+        Command::new("git")
+            .args(["ls-files", "--others", "--exclude-standard"])
+            .current_dir(repo_root),
+        "git list untracked files",
+    )?;
+    let mut paths: Vec<String> = output
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(str::to_owned)
+        .collect();
+    paths.sort();
+    Ok(paths)
+}
+
 fn tracked_face_changes(repo_root: &Path) -> Result<Vec<String>, FreshnessError> {
     let mut command = Command::new("git");
     command
@@ -719,7 +749,7 @@ fn git_add_face_paths(repo_root: &Path) -> Result<(), FreshnessError> {
 fn git_commit_faces(repo_root: &Path) -> Result<(), FreshnessError> {
     run_status(
         Command::new("git")
-            .args(["commit", "-S", "-m", FACE_SETTLE_COMMIT_MESSAGE])
+            .args(["commit", "-m", FACE_SETTLE_COMMIT_MESSAGE])
             .current_dir(repo_root),
         "git commit generated face settle",
     )
