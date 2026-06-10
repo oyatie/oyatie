@@ -110,17 +110,17 @@ impl Policy {
     pub fn from_strs(unit_class_json: &str, ttl_json: &str) -> Result<Self, ProducerError> {
         let unit_value: Value = serde_json::from_str(unit_class_json)
             .map_err(|e| ProducerError::Policy(format!("unit-class-policy.json: {e}")))?;
-        let rules_value = unit_value
-            .get("rules")
-            .ok_or_else(|| ProducerError::Policy("unit-class-policy.json missing 'rules'".into()))?;
+        let rules_value = unit_value.get("rules").ok_or_else(|| {
+            ProducerError::Policy("unit-class-policy.json missing 'rules'".into())
+        })?;
         let rules: Vec<ClassRule> = serde_json::from_value(rules_value.clone())
             .map_err(|e| ProducerError::Policy(format!("rules: {e}")))?;
 
         let ttl_value: Value = serde_json::from_str(ttl_json)
             .map_err(|e| ProducerError::Policy(format!("ttl-policy.json: {e}")))?;
-        let by_class_value = ttl_value
-            .get("by_unit_class")
-            .ok_or_else(|| ProducerError::Policy("ttl-policy.json missing 'by_unit_class'".into()))?;
+        let by_class_value = ttl_value.get("by_unit_class").ok_or_else(|| {
+            ProducerError::Policy("ttl-policy.json missing 'by_unit_class'".into())
+        })?;
         let ttl_by_class: BTreeMap<String, TtlRecord> =
             serde_json::from_value(by_class_value.clone())
                 .map_err(|e| ProducerError::Policy(format!("by_unit_class: {e}")))?;
@@ -423,9 +423,10 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
             "decision_count": decisions.len(),
         }),
     );
-    root.insert("duplicate_ids".into(), Value::Array(
-        duplicate_ids.into_iter().map(Value::String).collect(),
-    ));
+    root.insert(
+        "duplicate_ids".into(),
+        Value::Array(duplicate_ids.into_iter().map(Value::String).collect()),
+    );
     root.insert("generated_face_axes".into(), Value::Object(axes));
     root.insert("decisions".into(), decisions_value);
     Ok(Value::Object(root))
@@ -456,8 +457,8 @@ pub struct EnforcementInputs {
 pub fn build_enforcement_inventory(inputs: &EnforcementInputs) -> Result<Value, ProducerError> {
     let mut rows = inputs.rows.clone();
     rows.sort_by(|a, b| a.id.cmp(&b.id));
-    let rows_value = serde_json::to_value(&rows)
-        .map_err(|e| ProducerError::Serialize(format!("rows: {e}")))?;
+    let rows_value =
+        serde_json::to_value(&rows).map_err(|e| ProducerError::Serialize(format!("rows: {e}")))?;
 
     let mut root = Map::new();
     root.insert(
@@ -533,6 +534,11 @@ pub struct GateInputs<'a> {
     /// producer reads the root workspace entries and resolves covered dirs via
     /// `oya-workspace-members-kernel`; the gate's `evaluate_keyed` is pure boolean policy.
     pub workspace_glob_coverage: &'a Value,
+    /// The ADR-0540 target-parity gate input:
+    /// `{"rows":[{"member_path","has_buck","has_rust_test_target","has_test_code"}]}`. The
+    /// producer resolves workspace members via `oya-workspace-members-kernel` and inspects the
+    /// declared tracked files; the gate is pure policy over those booleans.
+    pub target_parity: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
     /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
     /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
@@ -597,6 +603,11 @@ fn producer_face_keys(
             )
             .into_iter()
             .map(|f| (f.code, f.key)),
+        ),
+        GateFace::TargetParity => group_findings(
+            oya_cloud_ci_target_parity_app::evaluate_keyed(inputs.target_parity)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
         ),
     }
 }
@@ -787,7 +798,10 @@ mod tests {
 
     fn sample_inputs() -> RepoInputs {
         let mut owners = BTreeMap::new();
-        owners.insert("specs/masterplan.json".into(), "council-architecture".into());
+        owners.insert(
+            "specs/masterplan.json".into(),
+            "council-architecture".into(),
+        );
         let mut justifications = BTreeMap::new();
         justifications.insert("specs/masterplan.json".into(), "ADR-0364".into());
         let mut reachability = BTreeMap::new();
@@ -882,6 +896,7 @@ mod tests {
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
             workspace_glob_coverage: &empty_face,
+            target_parity: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
@@ -905,7 +920,10 @@ mod tests {
         // brand-residue freezes the live per-(stem,file) key under its per-stem code.
         let br = &baseline["gates"]["cloud-ci-brand-residue"];
         assert_eq!(br["forbidden_foundry"]["mode"], "baseline-block-on-new");
-        assert_eq!(br["forbidden_foundry"]["keys"][0], "docs/products/foundry/PRD.md");
+        assert_eq!(
+            br["forbidden_foundry"]["keys"][0],
+            "docs/products/foundry/PRD.md"
+        );
         // a stem with zero live residue freezes an empty (but present) key set.
         assert_eq!(br["forbidden_forgejo"]["keys"].as_array().unwrap().len(), 0);
     }
@@ -928,14 +946,20 @@ mod tests {
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
             workspace_glob_coverage: &empty_face,
+            target_parity: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let a = to_canonical_json(&build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("a")).expect("ja");
-        let b = to_canonical_json(&build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("b")).expect("jb");
+        let a = to_canonical_json(&build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("a"))
+            .expect("ja");
+        let b = to_canonical_json(&build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("b"))
+            .expect("jb");
         assert_eq!(a, b, "baseline must be byte-deterministic");
         assert!(a.contains("source_inputs_digest"));
-        assert!(!a.contains("generated_at"), "no wall-clock in the baseline face");
+        assert!(
+            !a.contains("generated_at"),
+            "no wall-clock in the baseline face"
+        );
     }
 
     #[test]
