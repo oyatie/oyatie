@@ -25,6 +25,7 @@ const USER_PRINCIPAL_PREFIX: &str = "usr_";
 const SERVICE_PRINCIPAL_PREFIX: &str = "sp_";
 const EVENT_ID_PREFIX: &str = "kmsuse_";
 const DESTRUCTION_PROOF_PREFIX: &str = "kproof_";
+const SEALING_ROOT_PREFIX: &str = "sealing-root/";
 const MATERIAL_REF_PREFIX: &str = "matref/";
 const CIPHERTEXT_REF_PREFIX: &str = "ct/";
 const KMS_KEY_PREFIX: &str = "kms";
@@ -66,6 +67,11 @@ pub struct KmsUseEventId {
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct DestructionProofRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct SealingRootRef {
     pub value: String, // data_class: INTERNAL_ONLY
 }
 
@@ -224,6 +230,69 @@ pub struct KmsKey {
     pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub updated_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>,     // data_class: PUBLIC
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum KmsKeyVersionLifecycleState {
+    Active,
+    DecryptOnly,
+    Quarantined,
+    Destroyed,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsKeyVersionLifecycle {
+    pub key_id: Classified<KmsKeyId>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub version: Classified<u32>,      // data_class: INTERNAL_ONLY
+    pub state: Classified<KmsKeyVersionLifecycleState>, // data_class: PUBLIC
+    pub reason: Classified<Option<String>>, // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub activated_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub decrypt_only_since_epoch_seconds: Classified<Option<u64>>, // data_class: INTERNAL_ONLY
+    pub quarantined_since_epoch_seconds: Classified<Option<u64>>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsSealingRootCreate {
+    pub root_ref: String,              // data_class: INTERNAL_ONLY
+    pub tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub region: String,                // data_class: PUBLIC
+    pub cell_id: String,               // data_class: PUBLIC
+    pub active_version: u32,           // data_class: INTERNAL_ONLY
+    pub rotate_after_seconds: u64,     // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsSealingRoot {
+    pub root_ref: Classified<SealingRootRef>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,        // data_class: INTERNAL_ONLY
+    pub region: Classified<RegionCode>,       // data_class: PUBLIC
+    pub cell_id: Classified<CellId>,          // data_class: PUBLIC
+    pub active_version: Classified<u32>,      // data_class: INTERNAL_ONLY
+    pub rotate_after_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub updated_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,      // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KeyVersionDemotionRequest {
+    pub key_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub version: u32,                    // data_class: INTERNAL_ONLY
+    pub reason: String,                  // data_class: INTERNAL_ONLY
+    pub effective_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KeyRingQuarantineRequest {
+    pub key_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub reason: String,                  // data_class: INTERNAL_ONLY
+    pub effective_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -458,6 +527,8 @@ struct KmsKeyIdParts {
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct CloudKmsDirectory {
     keys: BTreeMap<KmsKeyId, KmsKey>,
+    key_version_lifecycle: BTreeMap<(KmsKeyId, u32), KmsKeyVersionLifecycle>,
+    sealing_roots: BTreeMap<SealingRootRef, KmsSealingRoot>,
     receipts: BTreeMap<KmsUseEventId, KmsUseReceipt>,
     destruction_receipts: BTreeMap<KmsKeyId, KeyDestructionReceipt>,
 }
@@ -620,6 +691,90 @@ impl DestructionProofRef {
         } else {
             Err(CloudKmsError::InvalidDestructionProofRef)
         }
+    }
+}
+
+impl SealingRootRef {
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudKmsError> {
+        let value = value.into();
+        validate_prefixed_ref(
+            &value,
+            SEALING_ROOT_PREFIX,
+            CloudKmsError::InvalidEvidenceRef,
+        )?;
+        Ok(Self { value })
+    }
+}
+
+impl KmsKeyVersionLifecycle {
+    fn active(key: &KmsKey) -> Self {
+        Self {
+            key_id: internal(key.key_id.value.clone()),
+            tenant_id: internal(key.tenant_id.value.clone()),
+            version: internal(key.current_version.value),
+            state: public(KmsKeyVersionLifecycleState::Active),
+            reason: internal(None),
+            created_at_epoch_seconds: internal(key.updated_at_epoch_seconds.value),
+            activated_at_epoch_seconds: internal(key.updated_at_epoch_seconds.value),
+            decrypt_only_since_epoch_seconds: internal(None),
+            quarantined_since_epoch_seconds: internal(None),
+            schema_version: public(KMS_SCHEMA_VERSION),
+        }
+    }
+
+    fn decrypt_only(
+        &self,
+        reason: impl Into<String>,
+        effective_at_epoch_seconds: u64,
+    ) -> Result<Self, CloudKmsError> {
+        validate_time_order(
+            self.activated_at_epoch_seconds.value,
+            effective_at_epoch_seconds,
+        )?;
+        let mut updated = self.clone();
+        updated.state = public(KmsKeyVersionLifecycleState::DecryptOnly);
+        updated.reason = internal(Some(reason.into()));
+        updated.decrypt_only_since_epoch_seconds = internal(Some(effective_at_epoch_seconds));
+        Ok(updated)
+    }
+
+    fn quarantined(
+        &self,
+        reason: impl Into<String>,
+        effective_at_epoch_seconds: u64,
+    ) -> Result<Self, CloudKmsError> {
+        validate_time_order(
+            self.activated_at_epoch_seconds.value,
+            effective_at_epoch_seconds,
+        )?;
+        let mut updated = self.clone();
+        updated.state = public(KmsKeyVersionLifecycleState::Quarantined);
+        updated.reason = internal(Some(reason.into()));
+        updated.quarantined_since_epoch_seconds = internal(Some(effective_at_epoch_seconds));
+        Ok(updated)
+    }
+}
+
+impl KmsSealingRoot {
+    pub fn new(input: KmsSealingRootCreate) -> Result<Self, CloudKmsError> {
+        validate_tenant_id(&input.tenant_id)?;
+        let region = RegionCode::new(input.region).map_err(|_| CloudKmsError::InvalidResourceId)?;
+        let cell_id = CellId::new(input.cell_id).map_err(|_| CloudKmsError::InvalidCellId)?;
+        validate_cell_region(&cell_id, &region)?;
+        if input.active_version == 0 || input.rotate_after_seconds == 0 {
+            return Err(CloudKmsError::InvalidKeyState);
+        }
+        Ok(Self {
+            root_ref: internal(SealingRootRef::new(input.root_ref)?),
+            tenant_id: internal(input.tenant_id),
+            region: public(region),
+            cell_id: public(cell_id),
+            active_version: internal(input.active_version),
+            rotate_after_seconds: internal(input.rotate_after_seconds),
+            created_at_epoch_seconds: internal(input.created_at_epoch_seconds),
+            updated_at_epoch_seconds: internal(input.created_at_epoch_seconds),
+            schema_version: public(KMS_SCHEMA_VERSION),
+        })
     }
 }
 
@@ -1169,6 +1324,10 @@ impl KmsRepo for CloudKmsDirectory {
             return Err(CloudKmsError::DuplicateKey);
         }
         self.keys.insert(key.key_id.value.clone(), key.clone());
+        self.key_version_lifecycle.insert(
+            (key.key_id.value.clone(), key.current_version.value),
+            KmsKeyVersionLifecycle::active(&key),
+        );
         Ok(key)
     }
 
@@ -1197,9 +1356,29 @@ impl KmsRepo for CloudKmsDirectory {
         key_id: &KmsKeyId,
         updated_at_epoch_seconds: u64,
     ) -> Result<KmsKey, CloudKmsError> {
-        let current = self.keys.get(key_id).ok_or(CloudKmsError::UnknownKey)?;
+        let current = self
+            .keys
+            .get(key_id)
+            .cloned()
+            .ok_or(CloudKmsError::UnknownKey)?;
+        let previous_version = current.current_version.value;
         let updated = current.rotate(updated_at_epoch_seconds)?;
         self.keys.insert(key_id.clone(), updated.clone());
+        if let Some(previous) = self
+            .key_version_lifecycle
+            .get(&(key_id.clone(), previous_version))
+        {
+            let demoted = previous.decrypt_only(
+                format!("rotated to key version {}", updated.current_version.value),
+                updated_at_epoch_seconds,
+            )?;
+            self.key_version_lifecycle
+                .insert((key_id.clone(), previous_version), demoted);
+        }
+        self.key_version_lifecycle.insert(
+            (key_id.clone(), updated.current_version.value),
+            KmsKeyVersionLifecycle::active(&updated),
+        );
         Ok(updated)
     }
 
@@ -1221,6 +1400,14 @@ impl CloudKmsDirectory {
         self.keys.values()
     }
 
+    pub fn key_version_lifecycle(&self) -> impl Iterator<Item = &KmsKeyVersionLifecycle> {
+        self.key_version_lifecycle.values()
+    }
+
+    pub fn sealing_roots(&self) -> impl Iterator<Item = &KmsSealingRoot> {
+        self.sealing_roots.values()
+    }
+
     pub fn receipts(&self) -> impl Iterator<Item = &KmsUseReceipt> {
         self.receipts.values()
     }
@@ -1236,6 +1423,86 @@ impl CloudKmsDirectory {
         self.receipts
             .insert(receipt.event_id.value.clone(), receipt.clone());
         Ok(receipt)
+    }
+
+    pub fn create_sealing_root(
+        &mut self,
+        input: KmsSealingRootCreate,
+    ) -> Result<KmsSealingRoot, CloudKmsError> {
+        let sealing_root = KmsSealingRoot::new(input)?;
+        if self
+            .sealing_roots
+            .contains_key(&sealing_root.root_ref.value)
+        {
+            return Err(CloudKmsError::DuplicateKey);
+        }
+        self.sealing_roots
+            .insert(sealing_root.root_ref.value.clone(), sealing_root.clone());
+        Ok(sealing_root)
+    }
+
+    pub fn demote_key_version(
+        &mut self,
+        input: KeyVersionDemotionRequest,
+    ) -> Result<KmsKeyVersionLifecycle, CloudKmsError> {
+        validate_tenant_id(&input.tenant_id)?;
+        let key_id = KmsKeyId::new(input.key_id)?;
+        self.validate_key_tenant(&key_id, &input.tenant_id)?;
+        let lifecycle_key = (key_id, input.version);
+        let current = self
+            .key_version_lifecycle
+            .get(&lifecycle_key)
+            .ok_or(CloudKmsError::UnknownKey)?;
+        let demoted = current.decrypt_only(input.reason, input.effective_at_epoch_seconds)?;
+        self.key_version_lifecycle
+            .insert(lifecycle_key, demoted.clone());
+        Ok(demoted)
+    }
+
+    pub fn quarantine_key_ring(
+        &mut self,
+        input: KeyRingQuarantineRequest,
+    ) -> Result<Vec<KmsKeyVersionLifecycle>, CloudKmsError> {
+        validate_tenant_id(&input.tenant_id)?;
+        let key_id = KmsKeyId::new(input.key_id)?;
+        self.validate_key_tenant(&key_id, &input.tenant_id)?;
+        if let Some(current) = self.keys.get(&key_id).cloned() {
+            let mut disabled = current;
+            disabled.state = public(KmsKeyState::Disabled);
+            disabled.updated_at_epoch_seconds = internal(input.effective_at_epoch_seconds);
+            self.keys.insert(key_id.clone(), disabled);
+        }
+        let version_keys = self
+            .key_version_lifecycle
+            .keys()
+            .filter(|(candidate, _)| candidate == &key_id)
+            .cloned()
+            .collect::<Vec<_>>();
+        if version_keys.is_empty() {
+            return Err(CloudKmsError::UnknownKey);
+        }
+        let mut quarantined_versions = Vec::with_capacity(version_keys.len());
+        for version_key in version_keys {
+            let current = self
+                .key_version_lifecycle
+                .get(&version_key)
+                .ok_or(CloudKmsError::UnknownKey)?;
+            let quarantined =
+                current.quarantined(input.reason.clone(), input.effective_at_epoch_seconds)?;
+            self.key_version_lifecycle
+                .insert(version_key, quarantined.clone());
+            quarantined_versions.push(quarantined);
+        }
+        Ok(quarantined_versions)
+    }
+
+    fn validate_key_tenant(&self, key_id: &KmsKeyId, tenant_id: &str) -> Result<(), CloudKmsError> {
+        let key = self.keys.get(key_id).ok_or(CloudKmsError::UnknownKey)?;
+        if key.tenant_id.value == tenant_id {
+            Ok(())
+        } else {
+            Err(CloudKmsError::ResourceTenantMismatch)
+        }
     }
 }
 
@@ -2134,5 +2401,64 @@ mod tests {
             })
             .expect_err("destruction proof must meet 24h evidence SLA");
         assert_eq!(error, CloudKmsError::DestructionSlaExceeded);
+    }
+
+    #[test]
+    fn directory_operator_lifecycle_ports_record_sealing_root_demote_and_quarantine() {
+        let mut directory = CloudKmsDirectory::default();
+        let sealing_root = directory
+            .create_sealing_root(KmsSealingRootCreate {
+                root_ref: "sealing-root/tenant-a".to_string(),
+                tenant_id: TENANT.to_string(),
+                region: REGION.to_string(),
+                cell_id: CELL.to_string(),
+                active_version: 1,
+                rotate_after_seconds: 86_400,
+                created_at_epoch_seconds: 1_700_000_000,
+            })
+            .expect("sealing root creation should be a domain mutation");
+        assert_eq!(sealing_root.root_ref.value.value, "sealing-root/tenant-a");
+        assert_eq!(directory.sealing_roots().count(), 1);
+
+        let key = directory
+            .create_key(key_create())
+            .expect("key create should seed lifecycle version state");
+        directory
+            .rotate_key(&key.key_id.value, 1_700_000_100)
+            .expect("rotation should add active version two");
+
+        let demoted = directory
+            .demote_key_version(KeyVersionDemotionRequest {
+                key_id: KEY_ID.to_string(),
+                tenant_id: TENANT.to_string(),
+                version: 1,
+                reason: "newer active key version 2 is present".to_string(),
+                effective_at_epoch_seconds: 1_700_000_110,
+            })
+            .expect("operator should demote old active versions through the domain");
+        assert_eq!(
+            demoted.state.value,
+            KmsKeyVersionLifecycleState::DecryptOnly
+        );
+        assert_eq!(
+            demoted.decrypt_only_since_epoch_seconds.value,
+            Some(1_700_000_110)
+        );
+
+        let quarantined = directory
+            .quarantine_key_ring(KeyRingQuarantineRequest {
+                key_id: KEY_ID.to_string(),
+                tenant_id: TENANT.to_string(),
+                reason: "compromised observation".to_string(),
+                effective_at_epoch_seconds: 1_700_000_120,
+            })
+            .expect("operator should quarantine compromised key rings through the domain");
+        assert!(
+            quarantined
+                .iter()
+                .all(|version| version.state.value == KmsKeyVersionLifecycleState::Quarantined)
+        );
+        let disabled = directory.keys().next().expect("key remains present");
+        assert_eq!(disabled.state.value, KmsKeyState::Disabled);
     }
 }
