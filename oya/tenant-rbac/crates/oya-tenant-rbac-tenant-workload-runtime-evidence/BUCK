@@ -8,3 +8,15 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-tenant-workload-runtime-evidence-tenant-workload-runtime-evidence",
+    srcs = ["tests/tenant_workload_runtime_evidence.rs"],
+    crate = "oya_tenant_rbac_tenant_workload_runtime_evidence_tenant_workload_runtime_evidence",
+    crate_root = "tests/tenant_workload_runtime_evidence.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-tenant-workload-runtime-evidence",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
+    ],
+)

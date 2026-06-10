@@ -11,3 +11,18 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-app:oya-tenant-rbac-app",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-local-runtime-composition-composition",
+    srcs = ["tests/composition.rs"],
+    crate = "oya_tenant_rbac_local_runtime_composition_composition",
+    crate_root = "tests/composition.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-local-runtime-composition",
+        "//oya/accounting/crates/oya-accounting-journal-infrastructure:oya-accounting-journal-infrastructure",
+        "//oya/hr/crates/oya-hr-employment-infrastructure:oya-hr-employment-infrastructure",
+        "//oya/payroll/crates/oya-payroll-run-infrastructure:oya-payroll-run-infrastructure",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-app:oya-tenant-rbac-app",
+    ],
+)

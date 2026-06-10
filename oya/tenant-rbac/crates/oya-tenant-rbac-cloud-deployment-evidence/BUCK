@@ -9,3 +9,16 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-cloud-deployment-evidence-deployment-evidence",
+    srcs = ["tests/deployment_evidence.rs"],
+    crate = "oya_tenant_rbac_cloud_deployment_evidence_deployment_evidence",
+    crate_root = "tests/deployment_evidence.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-cloud-deployment-evidence",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest:oya-tenant-rbac-cloud-deployment-manifest",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
+    ],
+)

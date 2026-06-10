@@ -8,3 +8,15 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract:oya-tenant-rbac-postgres-rls-write-contract",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-postgres-rls-transaction-contract-transaction-contract",
+    srcs = ["tests/transaction_contract.rs"],
+    crate = "oya_tenant_rbac_postgres_rls_transaction_contract_transaction_contract",
+    crate_root = "tests/transaction_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-postgres-rls-transaction-contract",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract:oya-tenant-rbac-postgres-rls-write-contract",
+    ],
+)

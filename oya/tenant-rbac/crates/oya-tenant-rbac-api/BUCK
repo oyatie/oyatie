@@ -12,3 +12,19 @@ rust_library(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-api-contracts",
+    srcs = ["tests/contracts.rs"],
+    crate = "oya_tenant_rbac_api_contracts",
+    crate_root = "tests/contracts.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-api",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-usecase:oya-tenant-rbac-usecase",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

@@ -9,3 +9,16 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-tenant-image-provenance-contract-image-provenance",
+    srcs = ["tests/image_provenance.rs"],
+    crate = "oya_tenant_rbac_tenant_image_provenance_contract_image_provenance",
+    crate_root = "tests/image_provenance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-tenant-image-provenance-contract",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-admission-policy:oya-tenant-rbac-tenant-admission-policy",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
+    ],
+)
