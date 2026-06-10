@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-warehouse-inventory-domain-inventory",
+    srcs = ["tests/inventory.rs"],
+    crate = "oya_warehouse_inventory_domain_inventory",
+    crate_root = "tests/inventory.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-warehouse-inventory-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

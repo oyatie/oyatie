@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-auth-app-auth-runtime",
+    srcs = ["tests/auth_runtime.rs"],
+    crate = "oya_tenant_rbac_auth_app_auth_runtime",
+    crate_root = "tests/auth_runtime.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-auth-app",
+    ],
+)

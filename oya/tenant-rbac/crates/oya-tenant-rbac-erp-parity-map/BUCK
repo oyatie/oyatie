@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-erp-parity-map-parity",
+    srcs = ["tests/parity.rs"],
+    crate = "oya_tenant_rbac_erp_parity_map_parity",
+    crate_root = "tests/parity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-erp-parity-map",
+    ],
+)

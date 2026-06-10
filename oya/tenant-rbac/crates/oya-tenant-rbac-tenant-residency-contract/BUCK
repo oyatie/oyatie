@@ -9,3 +9,16 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-tenant-residency-contract-residency",
+    srcs = ["tests/residency.rs"],
+    crate = "oya_tenant_rbac_tenant_residency_contract_residency",
+    crate_root = "tests/residency.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-tenant-residency-contract",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-admission-policy:oya-tenant-rbac-tenant-admission-policy",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest:oya-tenant-rbac-tenant-workload-manifest",
+    ],
+)

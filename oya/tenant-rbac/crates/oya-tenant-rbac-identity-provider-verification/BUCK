@@ -8,3 +8,15 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-auth-app:oya-tenant-rbac-auth-app",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-identity-provider-verification-identity-provider",
+    srcs = ["tests/identity_provider.rs"],
+    crate = "oya_tenant_rbac_identity_provider_verification_identity_provider",
+    crate_root = "tests/identity_provider.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-identity-provider-verification",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-auth-app:oya-tenant-rbac-auth-app",
+    ],
+)

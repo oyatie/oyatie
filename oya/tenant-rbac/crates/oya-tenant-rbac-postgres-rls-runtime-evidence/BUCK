@@ -8,3 +8,15 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-storage:oya-tenant-rbac-postgres-rls-storage",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-postgres-rls-runtime-evidence-runtime-evidence",
+    srcs = ["tests/runtime_evidence.rs"],
+    crate = "oya_tenant_rbac_postgres_rls_runtime_evidence_runtime_evidence",
+    crate_root = "tests/runtime_evidence.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-postgres-rls-runtime-evidence",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-storage:oya-tenant-rbac-postgres-rls-storage",
+    ],
+)

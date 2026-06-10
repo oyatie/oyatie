@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-postgres-rls-storage-storage-plan",
+    srcs = ["tests/storage_plan.rs"],
+    crate = "oya_tenant_rbac_postgres_rls_storage_storage_plan",
+    crate_root = "tests/storage_plan.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-postgres-rls-storage",
+    ],
+)

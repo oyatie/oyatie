@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-cloud-deployment-manifest-manifest",
+    srcs = ["tests/manifest.rs"],
+    crate = "oya_tenant_rbac_cloud_deployment_manifest_manifest",
+    crate_root = "tests/manifest.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-cloud-deployment-manifest",
+    ],
+)

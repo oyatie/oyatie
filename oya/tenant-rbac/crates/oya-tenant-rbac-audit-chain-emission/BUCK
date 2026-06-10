@@ -9,3 +9,16 @@ rust_library(
         "//oya/audit-chain/crates/oya-audit-chain-emission-kernel:oya-audit-chain-emission-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-audit-chain-emission-audit-chain-emission",
+    srcs = ["tests/audit_chain_emission.rs"],
+    crate = "oya_tenant_rbac_audit_chain_emission_audit_chain_emission",
+    crate_root = "tests/audit_chain_emission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-audit-chain-emission",
+        "//oya/audit-chain/crates/oya-audit-chain-emission-api:oya-audit-chain-emission-api",
+        "//oya/audit-chain/crates/oya-audit-chain-emission-kernel:oya-audit-chain-emission-kernel",
+    ],
+)

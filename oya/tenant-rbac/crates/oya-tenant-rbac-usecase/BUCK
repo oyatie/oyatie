@@ -9,3 +9,42 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-usecase-incident",
+    srcs = ["tests/incident.rs"],
+    crate = "oya_tenant_rbac_usecase_incident",
+    crate_root = "tests/incident.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-usecase",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-tenant-rbac-usecase-ops",
+    srcs = ["tests/ops.rs"],
+    crate = "oya_tenant_rbac_usecase_ops",
+    crate_root = "tests/ops.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-usecase",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-tenant-rbac-usecase-workflow",
+    srcs = ["tests/workflow.rs"],
+    crate = "oya_tenant_rbac_usecase_workflow",
+    crate_root = "tests/workflow.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-usecase",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
+    ],
+)

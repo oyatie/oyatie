@@ -8,3 +8,15 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission:oya-tenant-rbac-audit-chain-emission",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-audit-chain-runtime-evidence-audit-chain-runtime-evidence",
+    srcs = ["tests/audit_chain_runtime_evidence.rs"],
+    crate = "oya_tenant_rbac_audit_chain_runtime_evidence_audit_chain_runtime_evidence",
+    crate_root = "tests/audit_chain_runtime_evidence.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-audit-chain-runtime-evidence",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission:oya-tenant-rbac-audit-chain-emission",
+    ],
+)

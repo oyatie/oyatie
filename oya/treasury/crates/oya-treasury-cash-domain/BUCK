@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-treasury-cash-domain-cash-position",
+    srcs = ["tests/cash_position.rs"],
+    crate = "oya_treasury_cash_domain_cash_position",
+    crate_root = "tests/cash_position.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-treasury-cash-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
