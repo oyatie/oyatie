@@ -9,3 +9,16 @@ rust_library(
         "//oya/accounting/crates/oya-accounting-journal-domain:oya-accounting-journal-domain",
     ],
 )
+
+rust_test(
+    name = "oya-accounting-journal-app-app-envelopes",
+    srcs = ["tests/app_envelopes.rs"],
+    crate = "oya_accounting_journal_app_app_envelopes",
+    crate_root = "tests/app_envelopes.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-accounting-journal-app",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/accounting/crates/oya-accounting-journal-domain:oya-accounting-journal-domain",
+    ],
+)

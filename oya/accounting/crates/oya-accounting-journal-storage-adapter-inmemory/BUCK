@@ -9,3 +9,16 @@ rust_library(
         "//oya/accounting/crates/oya-accounting-journal-domain:oya-accounting-journal-domain",
     ],
 )
+
+rust_test(
+    name = "oya-accounting-journal-storage-adapter-inmemory-storage",
+    srcs = ["tests/storage.rs"],
+    crate = "oya_accounting_journal_storage_adapter_inmemory_storage",
+    crate_root = "tests/storage.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-accounting-journal-storage-adapter-inmemory",
+        "//oya/accounting/crates/oya-accounting-journal-app:oya-accounting-journal-app",
+        "//oya/accounting/crates/oya-accounting-journal-domain:oya-accounting-journal-domain",
+    ],
+)

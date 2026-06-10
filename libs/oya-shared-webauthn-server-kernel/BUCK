@@ -10,3 +10,17 @@ rust_library(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-shared-webauthn-server-kernel-webauthn-server-kernel",
+    srcs = ["tests/webauthn_server_kernel.rs"],
+    crate = "oya_shared_webauthn_server_kernel_webauthn_server_kernel",
+    crate_root = "tests/webauthn_server_kernel.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-shared-webauthn-server-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+    ],
+)
