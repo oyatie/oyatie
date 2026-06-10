@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-check-runbook-index-runbook-index",
+    srcs = ["tests/runbook_index.rs"],
+    crate = "oya_check_runbook_index_runbook_index",
+    crate_root = "tests/runbook_index.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-check-runbook-index",
+    ],
+)

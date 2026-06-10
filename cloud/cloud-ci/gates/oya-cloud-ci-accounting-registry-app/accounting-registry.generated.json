@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18201,
-    "source_inputs_digest": "fnv1a64:d49d20950e89021c"
+    "source_inputs_digest": "fnv1a64:6583068c538d7d64"
   },
   "rows": [
     {
@@ -8191,7 +8191,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "5e51131ad182c65b4e07540f43841b73f9fb2ed1",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs",
       "reachable_from": [
@@ -78574,7 +78574,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "ba6ed1e72391e585ef4854daeee4c6dea58d833b",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "docs/decisions/ADR-0540-cargo-buck2-target-parity-gate.md",
       "reachable_from": [],
@@ -129812,7 +129812,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "ba6ed1e72391e585ef4854daeee4c6dea58d833b",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:evidence/multispectrum",
       "path": "evidence/multispectrum/OWNERS",
       "reachable_from": [
@@ -129898,7 +129898,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:evidence/multispectrum",
       "path": "evidence/multispectrum/g011-rust-test-wiring-generator-20260610-1781107105.json",
       "reachable_from": [
@@ -132452,7 +132452,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-a11y-discipline/BUCK",
       "reachable_from": [
@@ -132544,7 +132544,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-active-artifact-contract/BUCK",
       "reachable_from": [
@@ -132613,7 +132613,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-adr-citation/BUCK",
       "reachable_from": [
@@ -132682,7 +132682,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-adr-index/BUCK",
       "reachable_from": [
@@ -132751,7 +132751,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-adr-placeholders/BUCK",
       "reachable_from": [
@@ -132843,7 +132843,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-aspirational-enforcement/BUCK",
       "reachable_from": [
@@ -132912,7 +132912,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-audit-chain-seal-coverage/BUCK",
       "reachable_from": [
@@ -132981,7 +132981,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-authority-cohesion/BUCK",
       "reachable_from": [
@@ -133073,7 +133073,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-authz-tier-discipline/BUCK",
       "reachable_from": [
@@ -133165,7 +133165,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-backup-retention-discipline/BUCK",
       "reachable_from": [
@@ -133234,7 +133234,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-benchmark/BUCK",
       "reachable_from": [
@@ -133395,7 +133395,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-cedar-fragment-coverage/BUCK",
       "reachable_from": [
@@ -133464,7 +133464,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-claim-ceiling/BUCK",
       "reachable_from": [
@@ -133648,7 +133648,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-codeowners-mirror/BUCK",
       "reachable_from": [
@@ -133717,7 +133717,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-cohesion/BUCK",
       "reachable_from": [
@@ -133786,7 +133786,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-compliance-evidence-coverage/BUCK",
       "reachable_from": [
@@ -133878,7 +133878,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-container-base-image/BUCK",
       "reachable_from": [
@@ -133947,7 +133947,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-cost-budget/BUCK",
       "reachable_from": [
@@ -134039,7 +134039,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-cursor-pagination-coverage/BUCK",
       "reachable_from": [
@@ -134108,7 +134108,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "libs/oya-check-data-class/BUCK",
       "reachable_from": [
@@ -136063,7 +136063,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-placeholder-debt/BUCK",
       "reachable_from": [
@@ -136132,7 +136132,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-pr-traceability/BUCK",
       "reachable_from": [
@@ -136201,7 +136201,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-pre-push/BUCK",
       "reachable_from": [
@@ -136270,7 +136270,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-protection-context-match/BUCK",
       "reachable_from": [
@@ -136339,7 +136339,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-quality-lane/BUCK",
       "reachable_from": [
@@ -136408,7 +136408,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-raci-coverage/BUCK",
       "reachable_from": [
@@ -136477,7 +136477,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-readme-coverage/BUCK",
       "reachable_from": [
@@ -136546,7 +136546,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-realtime-transport-tier/BUCK",
       "reachable_from": [
@@ -136638,7 +136638,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-release-pack/BUCK",
       "reachable_from": [
@@ -136707,7 +136707,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "c355e2cb77144e8a5e6ed4e25d1986f976200c2d",
       "owner": null,
       "path": "libs/oya-check-retired-vocabulary/BUCK",
       "reachable_from": [
@@ -136776,7 +136776,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-rpo-rto-coverage/BUCK",
       "reachable_from": [
@@ -136845,7 +136845,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-runbook-freshness/BUCK",
       "reachable_from": [
@@ -136914,7 +136914,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-runbook-index/BUCK",
       "reachable_from": [
@@ -137006,7 +137006,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-saga-shape/BUCK",
       "reachable_from": [
@@ -137098,7 +137098,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-shardability/BUCK",
       "reachable_from": [
@@ -137167,7 +137167,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-slo-coverage/BUCK",
       "reachable_from": [
@@ -137236,7 +137236,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-slsa-l3-evidence-grounded/BUCK",
       "reachable_from": [
@@ -137305,7 +137305,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-statelessness/BUCK",
       "reachable_from": [
@@ -137374,7 +137374,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-step-up-auth-coverage/BUCK",
       "reachable_from": [
@@ -137466,7 +137466,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "57e9b8155e7d52f585a501b3787523aa1f2ccdc2",
       "owner": null,
       "path": "libs/oya-check-supply-chain/BUCK",
       "reachable_from": [
@@ -137535,7 +137535,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-check-tenant-cost-labels-coverage/BUCK",
       "reachable_from": [
@@ -137604,7 +137604,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-check-typescript-workspace/BUCK",
       "reachable_from": [
@@ -137673,7 +137673,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-check-vector-store-discipline/BUCK",
       "reachable_from": [
@@ -137834,7 +137834,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-check-vendor-recency/BUCK",
       "reachable_from": [
@@ -137903,7 +137903,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-check-wasm-runtime-discipline/BUCK",
       "reachable_from": [
@@ -138110,7 +138110,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-data-boundary-kernel/BUCK",
       "reachable_from": [
@@ -138432,7 +138432,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-gen-microservice-manifests-app/BUCK",
       "reachable_from": [
@@ -138547,7 +138547,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-governance-adapter-with-no-importer-kernel/BUCK",
       "reachable_from": [
@@ -138616,7 +138616,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "9e63e3b69e822f26f55052512b9aa6f00eff7c68",
       "owner": null,
       "path": "libs/oya-governance-adr-shape-kernel/BUCK",
       "reachable_from": [
@@ -138685,7 +138685,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-agentic-navigability-kernel/BUCK",
       "reachable_from": [
@@ -138754,7 +138754,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-architecture-map-freshness-kernel/BUCK",
       "reachable_from": [
@@ -138823,7 +138823,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-audit-event-emission/BUCK",
       "reachable_from": [
@@ -138938,7 +138938,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-authoritative-tracked-kernel/BUCK",
       "reachable_from": [
@@ -139007,7 +139007,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-banned-primitives-kernel/BUCK",
       "reachable_from": [
@@ -139076,7 +139076,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-byok-disambiguation/BUCK",
       "reachable_from": [
@@ -139283,7 +139283,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-bypass-kernel/BUCK",
       "reachable_from": [
@@ -139352,7 +139352,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-capability-tier-coverage/BUCK",
       "reachable_from": [
@@ -139467,7 +139467,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-cedar-coverage/BUCK",
       "reachable_from": [
@@ -139582,7 +139582,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "48d3f99207ea3f24e56cb1c9262febe399260954",
       "owner": null,
       "path": "libs/oya-governance-claim-ceiling-kernel/BUCK",
       "reachable_from": [
@@ -139651,7 +139651,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-cohesion-kernel/BUCK",
       "reachable_from": [
@@ -139720,7 +139720,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-doc-freshness-kernel/BUCK",
       "reachable_from": [
@@ -139789,7 +139789,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-doc-style-kernel/BUCK",
       "reachable_from": [
@@ -139858,7 +139858,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-eval-domain/BUCK",
       "reachable_from": [
@@ -139950,7 +139950,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-eval-usecase/BUCK",
       "reachable_from": [
@@ -140111,7 +140111,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-image-discipline-kernel/BUCK",
       "reachable_from": [
@@ -140180,7 +140180,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-license-policy-kernel/BUCK",
       "reachable_from": [
@@ -140249,7 +140249,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-lifecycle-kernel/BUCK",
       "reachable_from": [
@@ -140318,7 +140318,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-mistakes-ledger-kernel/BUCK",
       "reachable_from": [
@@ -140387,7 +140387,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e5ff960954615bd43a60d8bebec6c44223641827",
+      "last_touch_commit": "aac36b67681ff7c0e54b731cd22311749462fa7d",
       "owner": null,
       "path": "libs/oya-governance-naming-justifications/BUCK",
       "reachable_from": [
@@ -382999,7 +382999,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0115",
-      "last_touch_commit": "ba6ed1e72391e585ef4854daeee4c6dea58d833b",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": null,
       "path": "specs/root-hub-pointers.json",
       "reachable_from": [
@@ -388538,7 +388538,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "f6aae619d6198045070b7c5742d56e1092d71b28",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/BUCK",
       "reachable_from": [
@@ -388561,7 +388561,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "29bd4f83de083c6a333522937c34b477c0162e54",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/Cargo.toml",
       "reachable_from": [
@@ -388584,7 +388584,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "ba6ed1e72391e585ef4854daeee4c6dea58d833b",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/OWNERS",
       "reachable_from": [
@@ -388607,7 +388607,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "29bd4f83de083c6a333522937c34b477c0162e54",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/fixtures/binary_only.input.txt",
       "reachable_from": [
@@ -388630,7 +388630,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "29bd4f83de083c6a333522937c34b477c0162e54",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/fixtures/library_append.expected.txt",
       "reachable_from": [
@@ -388653,7 +388653,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "29bd4f83de083c6a333522937c34b477c0162e54",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/fixtures/library_append.input.txt",
       "reachable_from": [
@@ -388676,7 +388676,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "29bd4f83de083c6a333522937c34b477c0162e54",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/fixtures/library_with_tests.generated.expected.txt",
       "reachable_from": [
@@ -388699,7 +388699,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "29bd4f83de083c6a333522937c34b477c0162e54",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/fixtures/library_with_tests.input.txt",
       "reachable_from": [
@@ -388722,7 +388722,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "29bd4f83de083c6a333522937c34b477c0162e54",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/src/lib.rs",
       "reachable_from": [
@@ -388745,7 +388745,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0540",
-      "last_touch_commit": "29bd4f83de083c6a333522937c34b477c0162e54",
+      "last_touch_commit": "3ae4f2ea90a6fa60317021860e250d23abbaba36",
       "owner": "OWNERS:tools/oya-buck-test-wiring-app",
       "path": "tools/oya-buck-test-wiring-app/src/main.rs",
       "reachable_from": [

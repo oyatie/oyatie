@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-governance-eval-domain-eval-gate",
+    srcs = ["tests/eval_gate.rs"],
+    crate = "oya_governance_eval_domain_eval_gate",
+    crate_root = "tests/eval_gate.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-governance-eval-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
