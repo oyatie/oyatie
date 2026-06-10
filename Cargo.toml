@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "libs/oya-bus-boundary-kernel",
   "libs/oya-check-a11y-discipline",
   "libs/oya-check-active-artifact-contract",
   "libs/oya-check-adr-citation",
@@ -125,6 +126,9 @@ members = [
   "libs/oya-http-tenant-middleware-infrastructure",
   "libs/oya-http-wide-event-middleware-infrastructure",
   "libs/oya-json-kernel",
+  "libs/oya-messaging-substrate-kernel",
+  "libs/oya-metering-pipeline-kernel",
+  "libs/oya-queue-boundary-kernel",
   "libs/oya-shared-architecture-check-cli",
   "libs/oya-shared-audit-chain-client-kernel",
   "libs/oya-shared-audit-digest-adapter-awslc",
@@ -178,6 +182,7 @@ members = [
   "libs/oya-shared-wasm-runtime-kernel",
   "libs/oya-shared-webauthn-server-kernel",
   "libs/oya-shared-webhook-delivery-kernel",
+  "libs/oya-stream-boundary-kernel",
   "oya/accounting/crates/oya-accounting-journal-api",
   "oya/accounting/crates/oya-accounting-journal-app",
   "oya/accounting/crates/oya-accounting-journal-domain",

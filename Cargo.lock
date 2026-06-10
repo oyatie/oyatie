@@ -3595,6 +3595,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-bus-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-messaging-substrate-kernel",
+]
+
+[[package]]
 name = "oya-calendar-domain"
 version = "0.1.0"
 dependencies = [
@@ -7493,6 +7500,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-messaging-substrate-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-messenger-app"
 version = "0.1.0"
 dependencies = [
@@ -7568,6 +7579,10 @@ version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
 ]
+
+[[package]]
+name = "oya-metering-pipeline-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "oya-notes-domain"
@@ -8127,6 +8142,13 @@ dependencies = [
  "toml 0.8.23",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-queue-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-messaging-substrate-kernel",
 ]
 
 [[package]]
@@ -8716,6 +8738,13 @@ dependencies = [
  "oya-collab-runtime-domain",
  "oya-data-boundary-kernel",
  "oya-document-format-domain",
+]
+
+[[package]]
+name = "oya-stream-boundary-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-messaging-substrate-kernel",
 ]
 
 [[package]]
