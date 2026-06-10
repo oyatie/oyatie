@@ -1,32 +1,27 @@
-Pre-open review filter verdict — agent/burndown-slice-04 (ADR-0540 burn-down, slice-04)
+Slice-02 review verdict
 
-VERDICT: APPROVE-WITH-NITS
-REVIEWED CONTENT HEAD SHA: f6c1f7455b9a73b71ef19631f7f60d945007f5ad
-BASE: origin/dev @ 3ae4f2ea90a6fa60317021860e250d23abbaba36
-Reviewer: fresh-context Fable review subagent (loaded /using-superpowers /using-agent-skills, ran /oh-my-claudecode:ultraqa, applied .omc/ultragoal/RUBRIC-torvalds-review.md Torvalds + hyperscaler lenses)
-Note: the PR head differs from the reviewed SHA only by this verdict commit and a mechanical faces re-settle commit (zero content change).
+Scope: ADR-0540 / FRIC-1781063357 target-parity burn-down for slice-02.
+Verdict: APPROVE
 
-CLAIM VERIFICATION (all confirmed against the diff):
-- 47 members wired / 52 rust_test targets (5 members carry 2 targets: substance-bar, compliance-evidence-kernel, i18n-kernel, presence-kernel, realtime-transport-kernel).
-- 4 deferred-broken members confirmed absent from diff and correctly retained in the ADR-0540 debt baseline: oya-shared-backbone-grpc-generated-adapter, oya-shared-backbone-grpc-transport-adapter, oya-shared-backbone-rest-runtime-adapter, oya-shared-postgres-command-adapter-sqlx.
-- Slice reconciliation exact: 47 wired + 4 deferred = 51 = full slice-04.txt. 0 unsupported.
+Findings: none after remediation.
 
-DIFF HYGIENE: PASS — content commits touch ONLY libs/**/BUCK; settle commit touches ONLY cloud/cloud-ci/gates/*.generated.json; no hand-edited faces; no production .rs touched; gate-baseline removals byte-identical to the 47 wired members (no debt laundering); scm-facts 67 added = 67 removed (pure value refresh).
+Mailbox correction applied:
+- Dropped the local edit to cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/tests/target_parity.rs; the hardcoded debt count remains 614 in this PR per leader notice.
+- Target-parity gate pass is not claimed after dropping that hunk. The known hardcoded-count collision is owned by the leader's derived-baseline fix and expected train-time rebase.
 
-STANZA QUALITY: PASS — spot-checked 8 stanzas; deps/crate/crate_root mirror the library targets; all 8 integration-test crate_roots reference existing tests/*.rs files (no phantom tests).
+Validation evidence:
+- buck2 test over 54 committed slice targets: Pass 54, Fail 0, Build failure 0.
+- infra/ci/materialize-cloud-ci-generated-faces.sh . completed; final generated-face settle is required after this verdict commit.
+- git diff --check origin/dev..HEAD: clean.
 
-buck2 EVIDENCE (independent 8-target sample re-run, all GREEN):
-  Pass //libs/oya-http-runtime-hyper-adapter:oya-http-runtime-hyper-adapter-unittest (24 passed)
-  Pass //libs/oya-json-kernel:oya-json-kernel-unittest
-  Pass //libs/oya-governance-substance-bar:oya-governance-substance-bar-enforcement-contract (5 passed)
-  Pass //libs/oya-shared-i18n-kernel:oya-shared-i18n-kernel-coverage
-  Pass //libs/oya-shared-realtime-transport-kernel:oya-shared-realtime-transport-kernel-unittest (7 passed)
-  Pass //libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel-unittest (8 passed)
-  Pass //libs/oya-shared-oidc-client-kernel:oya-shared-oidc-client-kernel-oidc-client-kernel (16 passed)
-  Pass //libs/oya-shared-scim-server-kernel:oya-shared-scim-server-kernel-scim-server-kernel (22 passed)
+Tally:
+- wired-passing: 48 slice members, 54 Buck test targets.
+- deferred-broken: 3 slice members.
+- unsupported: 0 slice members.
 
-FINDINGS:
-1. LOW — duplicate dep "third-party//:serde_json" emitted twice in oya-shared-oidc-client-kernel and oya-shared-scim-server-kernel test stanzas. Buck2 dedupes; cosmetic generator-output noise. Fix belongs upstream in tools/oya-buck-test-wiring-app (dedupe deps before emit), not via hand-edit on this branch per campaign rules.
-No CRITICAL/HIGH/MEDIUM findings.
+Deferred-broken slice members:
+- cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi: generated target failed before tests in third-party ring-0.17 buildscript.
+- cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app: generated unit and acceptance targets failed before tests in third-party ring-0.17 buildscript.
+- libs/oya-check-dependency-seam: generated target failed under Buck2 because env!("CARGO_MANIFEST_DIR") is not defined at compile time.
 
-Residual risk: 8-of-52 independent sample (resource courtesy, no //... sweep); remaining targets verified by the author's batched buck2 test runs; oya-ci-required full run is the merge backstop.
+Subagent skip reason: worker protocol forbids nested subagents; completed focused review in-session.

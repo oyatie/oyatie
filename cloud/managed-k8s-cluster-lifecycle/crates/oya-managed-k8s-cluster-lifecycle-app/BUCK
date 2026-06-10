@@ -43,3 +43,26 @@ rust_binary(
         "third-party//:tracing-subscriber",
     ],
 )
+
+rust_test(
+    name = "oya-managed-k8s-cluster-lifecycle-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_managed_k8s_cluster_lifecycle_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-api:oya-managed-k8s-cluster-lifecycle-api",
+        "//cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel:oya-managed-k8s-cluster-lifecycle-kernel",
+        "//cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-inmemory:oya-managed-k8s-control-plane-host-adapter-inmemory",
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-inmemory:oya-managed-k8s-tenant-quota-adapter-inmemory",
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel:oya-managed-k8s-tenant-quota-kernel",
+        "third-party//:axum",
+        "third-party//:http-body-util",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tower",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

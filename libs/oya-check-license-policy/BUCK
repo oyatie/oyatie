@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-check-license-policy-license-policy",
+    srcs = ["tests/license_policy.rs"],
+    crate = "oya_check_license_policy_license_policy",
+    crate_root = "tests/license_policy.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-check-license-policy",
+    ],
+)
