@@ -9,3 +9,16 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-mcp-gateway-domain-mcp-gateway",
+    srcs = ["tests/mcp_gateway.rs"],
+    crate = "oya_intelligence_mcp_gateway_domain_mcp_gateway",
+    crate_root = "tests/mcp_gateway.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-mcp-gateway-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+    ],
+)

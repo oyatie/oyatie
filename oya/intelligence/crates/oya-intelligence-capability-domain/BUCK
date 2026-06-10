@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-capability-domain-capability-registry",
+    srcs = ["tests/capability_registry.rs"],
+    crate = "oya_intelligence_capability_domain_capability_registry",
+    crate_root = "tests/capability_registry.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-capability-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
