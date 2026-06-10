@@ -22,7 +22,7 @@ Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + gover
 coordination_surface: governance_pipeline
 retirement_adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
 retired_external_agent_coordination_tooling: true
-observability_substrate: cloud/cloud-observability/ (per ADR-0130 agentic SLO-gated promotion + ADR-0131/ADR-0512 pure-split colocation; SLO authoring at {oya,cloud}/<service>/slos/*.openslo.yaml mandatory before any service promotes past dev)
+observability_substrate: cloud/cloud-observability/ (per ADR-0139 agentic SLO-gated promotion + ADR-0131/ADR-0512 pure-split colocation; SLO authoring at {oya,cloud}/<service>/slos/*.openslo.yaml mandatory before any service promotes past dev)
 cli_surface_policy: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09; verification and merge authority live in the cloud-ci gate apps behind the single required context oya-ci-required, operations ride the console + API, and legacy oya-dev-cli/bin/oya invocations are local bridge feedback only, never merge authority
 owned_stack_policy: cloud-native K8s-native operation with the whole stack owned in Rust — kuberos kernel -> cloud-os -> cloud-k8s -> cloud services -> oyatie products (founder directive 2026-06-09); upstream k8s/Talos remain ADR-0510 transitional behind stable interfaces
 microservice_layout_authority: ADR-0131 as amended by ADR-0512/platform-readiness pure split; new services ship under {oya,cloud}/<service>/, shared code under libs/, and legacy microservices/ is removal-candidate after verified migration
