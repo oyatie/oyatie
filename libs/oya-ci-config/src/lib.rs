@@ -630,6 +630,7 @@ pub enum GateFace {
     CargoPrefix,
     SloCoverage,
     WorkspaceGlobCoverage,
+    TargetParity,
 }
 
 /// One enabled gate: its id, its input KIND, and (for `producer-face`) which face it binds.
@@ -717,6 +718,11 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             id: "cloud-ci-workspace-glob-coverage".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::WorkspaceGlobCoverage),
+        },
+        GateSpec {
+            id: "cloud-ci-target-parity".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::TargetParity),
         },
         GateSpec {
             id: "cloud-ci-freshness".to_owned(),
@@ -808,9 +814,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_eleven_gates_with_input_kinds() {
+    fn bundled_default_enables_all_twelve_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 11);
+        assert_eq!(cfg.gates.enabled.len(), 12);
         let brand = cfg
             .gates
             .enabled
@@ -857,6 +863,14 @@ mod tests {
             workspace_glob_coverage.face,
             Some(GateFace::WorkspaceGlobCoverage)
         );
+        let target_parity = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-target-parity")
+            .expect("target-parity gate enabled");
+        assert_eq!(target_parity.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(target_parity.face, Some(GateFace::TargetParity));
         let freshness = cfg
             .gates
             .enabled

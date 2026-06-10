@@ -157,6 +157,11 @@ input_kind = "producer-face"
 face = "workspace_glob_coverage"
 
 [[gates.enabled]]
+id = "cloud-ci-target-parity"
+input_kind = "producer-face"
+face = "target_parity"
+
+[[gates.enabled]]
 id = "cloud-ci-freshness"
 input_kind = "frozen-empty-meta"
 
