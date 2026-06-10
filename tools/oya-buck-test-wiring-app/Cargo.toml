@@ -16,6 +16,7 @@ purpose = "Local bridge generator for ADR-0540 Rust test target wiring; retireme
 [lib]
 name = "oya_buck_test_wiring_app"
 path = "src/lib.rs"
+doctest = false
 
 [[bin]]
 name = "oya-buck-test-wiring"

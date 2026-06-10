@@ -4,7 +4,9 @@ use std::process::ExitCode;
 
 use anyhow::{Result, anyhow, bail};
 use clap::Parser;
-use oya_buck_test_wiring_app::{CommandMode, Options, Outcome, discover_repo_root, run};
+use oya_buck_test_wiring_app::{
+    CommandMode, Options, Outcome, discover_repo_root, render_unsupported_member_diagnostic, run,
+};
 
 #[derive(Debug, Parser)]
 #[command(name = "oya-buck-test-wiring")]
@@ -78,19 +80,26 @@ fn run_main() -> Result<ExitCode> {
             }
             Ok(ExitCode::SUCCESS)
         }
-        Outcome::Checked(candidates) => {
-            if candidates.is_empty() {
+        Outcome::Checked(report) => {
+            for diagnostic in &report.diagnostics {
+                eprintln!("{}", render_unsupported_member_diagnostic(diagnostic));
+            }
+
+            if report.candidates.is_empty() {
                 println!("no rust_test wiring candidates");
                 Ok(ExitCode::SUCCESS)
             } else {
-                for candidate in &candidates {
+                for candidate in &report.candidates {
                     eprintln!(
                         "{}\t{}",
                         candidate.member_path,
                         candidate.target_labels.join(" ")
                     );
                 }
-                eprintln!("{} rust_test wiring candidates remain", candidates.len());
+                eprintln!(
+                    "{} rust_test wiring candidates remain",
+                    report.candidates.len()
+                );
                 Ok(ExitCode::from(1))
             }
         }

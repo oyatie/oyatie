@@ -27,14 +27,28 @@ pub struct Options {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Outcome {
     Listed(Vec<CandidateSummary>),
-    Checked(Vec<CandidateSummary>),
+    Checked(CheckReport),
     Applied(Vec<AppliedMember>),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CheckReport {
+    pub candidates: Vec<CandidateSummary>,
+    pub diagnostics: Vec<UnsupportedMemberDiagnostic>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CandidateSummary {
     pub member_path: String,
     pub target_labels: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnsupportedMemberDiagnostic {
+    pub member_path: String,
+    pub buck_path: String,
+    pub code: String,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -66,6 +80,12 @@ struct GeneratedTarget {
     stanza: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct CandidateCollection {
+    candidates: Vec<Candidate>,
+    diagnostics: Vec<UnsupportedMemberDiagnostic>,
+}
+
 pub fn discover_repo_root(start: &Path) -> Result<PathBuf> {
     let mut cursor = if start.is_file() {
         start
@@ -89,20 +109,29 @@ pub fn discover_repo_root(start: &Path) -> Result<PathBuf> {
 }
 
 pub fn run(repo_root: &Path, options: Options) -> Result<Outcome> {
-    let candidates = collect_candidates(repo_root, options.root_filter.as_deref())?;
+    let collection = collect_candidates(repo_root, options.root_filter.as_deref())?;
     match options.mode {
-        CommandMode::List => Ok(Outcome::Listed(summarize_candidates(&candidates)?)),
-        CommandMode::Check => Ok(Outcome::Checked(summarize_candidates(&candidates)?)),
+        CommandMode::List => Ok(Outcome::Listed(summarize_candidates(
+            &collection.candidates,
+        )?)),
+        CommandMode::Check => check_report_from_collection(collection).map(Outcome::Checked),
         CommandMode::Apply => {
             let limit = options
                 .limit
                 .ok_or_else(|| anyhow!("--apply requires --limit N"))?;
-            apply_candidates(repo_root, candidates, limit).map(Outcome::Applied)
+            apply_candidates(repo_root, collection.candidates, limit).map(Outcome::Applied)
         }
     }
 }
 
-fn collect_candidates(repo_root: &Path, root_filter: Option<&str>) -> Result<Vec<Candidate>> {
+pub fn render_unsupported_member_diagnostic(diagnostic: &UnsupportedMemberDiagnostic) -> String {
+    format!(
+        "diagnostic\tcode={}\tmember={}\tbuck={}\tmessage={}",
+        diagnostic.code, diagnostic.member_path, diagnostic.buck_path, diagnostic.message
+    )
+}
+
+fn collect_candidates(repo_root: &Path, root_filter: Option<&str>) -> Result<CandidateCollection> {
     let members = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
         .map_err(|error| anyhow!("resolve workspace members: {error}"))?;
     let tracked_paths = git_tracked_paths(repo_root)?;
@@ -118,7 +147,7 @@ fn collect_candidates_from_parts<F>(
     tracked_paths: Vec<String>,
     root_filter: Option<&str>,
     mut read_text: F,
-) -> Result<Vec<Candidate>>
+) -> Result<CandidateCollection>
 where
     F: FnMut(&str) -> Result<String>,
 {
@@ -126,6 +155,7 @@ where
     let tracked: BTreeSet<String> = tracked_paths.into_iter().collect();
     let normalized_root = normalize_root_filter(root_filter);
     let mut candidates = Vec::new();
+    let mut diagnostics = Vec::new();
 
     for member_path in members {
         if !matches_root_filter(&member_path, normalized_root.as_deref()) {
@@ -154,6 +184,17 @@ where
             continue;
         }
 
+        if find_call_block(&buck_text, "rust_library").is_none() {
+            diagnostics.push(UnsupportedMemberDiagnostic {
+                member_path: member_path.clone(),
+                buck_path: buck_path.clone(),
+                code: "unsupported_non_library_buck".to_owned(),
+                message: "member has Rust test code but BUCK has no rust_library block; skipped"
+                    .to_owned(),
+            });
+            continue;
+        }
+
         let library = parse_rust_library(&buck_text)
             .with_context(|| format!("parse rust_library in {buck_path}"))?;
         candidates.push(Candidate {
@@ -165,7 +206,11 @@ where
     }
 
     candidates.sort_by(|left, right| left.member_path.cmp(&right.member_path));
-    Ok(candidates)
+    diagnostics.sort_by(|left, right| left.member_path.cmp(&right.member_path));
+    Ok(CandidateCollection {
+        candidates,
+        diagnostics,
+    })
 }
 
 fn git_tracked_paths(repo_root: &Path) -> Result<Vec<String>> {
@@ -249,6 +294,13 @@ fn summarize_candidates(candidates: &[Candidate]) -> Result<Vec<CandidateSummary
             })
         })
         .collect()
+}
+
+fn check_report_from_collection(collection: CandidateCollection) -> Result<CheckReport> {
+    Ok(CheckReport {
+        candidates: summarize_candidates(&collection.candidates)?,
+        diagnostics: collection.diagnostics,
+    })
 }
 
 fn generated_targets(candidate: &Candidate) -> Result<Vec<GeneratedTarget>> {
@@ -605,8 +657,11 @@ fn render_stanzas_for_fixture(candidate: &CandidateFixture) -> Result<String> {
         integration_tests: candidate.integration_tests.clone(),
     };
     let mut rendered = String::new();
-    for target in generated_targets(&candidate)? {
-        rendered.push_str(&target.stanza);
+    for (index, target) in generated_targets(&candidate)?.iter().enumerate() {
+        if index > 0 {
+            rendered.push('\n');
+        }
+        rendered.push_str(target.stanza.trim_end_matches('\n'));
         rendered.push('\n');
     }
     Ok(rendered)
@@ -619,6 +674,28 @@ fn candidates_from_fixture(
     files: Vec<(&str, String)>,
     root_filter: Option<&str>,
 ) -> Result<Vec<Candidate>> {
+    candidate_collection_from_fixture(members, tracked, files, root_filter)
+        .map(|collection| collection.candidates)
+}
+
+#[cfg(test)]
+fn check_report_from_fixture(
+    members: Vec<String>,
+    tracked: Vec<String>,
+    files: Vec<(&str, String)>,
+    root_filter: Option<&str>,
+) -> Result<CheckReport> {
+    let collection = candidate_collection_from_fixture(members, tracked, files, root_filter)?;
+    check_report_from_collection(collection)
+}
+
+#[cfg(test)]
+fn candidate_collection_from_fixture(
+    members: Vec<String>,
+    tracked: Vec<String>,
+    files: Vec<(&str, String)>,
+    root_filter: Option<&str>,
+) -> Result<CandidateCollection> {
     let files: BTreeMap<String, String> = files
         .into_iter()
         .map(|(path, contents)| (path.to_owned(), contents))
@@ -653,7 +730,7 @@ mod tests {
     fn renders_unit_and_integration_stanzas_from_library_shape() {
         let candidate = CandidateFixture {
             member_path: "libs/oya-example-kernel",
-            buck_text: library_buck(),
+            buck_text: include_str!("../fixtures/library_with_tests.input.txt"),
             has_in_crate_tests: true,
             integration_tests: vec!["tests/contract_check.rs".to_owned()],
         };
@@ -662,30 +739,7 @@ mod tests {
 
         assert_eq!(
             rendered,
-            r#"rust_test(
-    name = "oya-example-kernel-unittest",
-    srcs = glob(["src/**/*.rs"]),
-    crate = "oya_example_kernel",
-    crate_root = "src/lib.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        "third-party//:serde",
-    ],
-)
-
-rust_test(
-    name = "oya-example-kernel-contract-check",
-    srcs = ["tests/contract_check.rs"],
-    crate = "oya_example_kernel_contract_check",
-    crate_root = "tests/contract_check.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        ":oya-example-kernel",
-        "third-party//:serde",
-    ],
-)
-
-"#
+            include_str!("../fixtures/library_with_tests.generated.expected.txt")
         );
     }
 
@@ -763,24 +817,125 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [],
 )
-
 "#
         );
     }
 
     #[test]
     fn append_targets_keeps_single_final_newline() {
-        let target = GeneratedTarget {
-            name: "oya-example-kernel-unittest".to_owned(),
-            stanza: "rust_test(\n    name = \"oya-example-kernel-unittest\",\n)\n".to_owned(),
+        let candidate = CandidateFixture {
+            member_path: "libs/oya-example-kernel",
+            buck_text: include_str!("../fixtures/library_append.input.txt"),
+            has_in_crate_tests: true,
+            integration_tests: vec!["tests/contract_check.rs".to_owned()],
         };
+        let library = parse_rust_library(candidate.buck_text).unwrap();
+        let candidate = Candidate {
+            member_path: candidate.member_path.to_owned(),
+            library,
+            has_in_crate_tests: candidate.has_in_crate_tests,
+            integration_tests: candidate.integration_tests.clone(),
+        };
+        let targets = generated_targets(&candidate).unwrap();
         let rendered = append_targets_to_buck_text(
-            "rust_library(\n    name = \"lib\",\n)\n".to_owned(),
-            &[target],
+            include_str!("../fixtures/library_append.input.txt").to_owned(),
+            &targets,
         );
 
-        assert!(rendered.contains(")\n\nrust_test("));
-        assert!(rendered.ends_with(")\n"));
-        assert!(!rendered.ends_with("\n\n"));
+        assert_eq!(
+            rendered,
+            include_str!("../fixtures/library_append.expected.txt")
+        );
+    }
+
+    #[test]
+    fn check_report_skips_test_bearing_buck_without_rust_library() {
+        let tracked = vec![
+            "tools/oya-binary-only-app/BUCK".to_owned(),
+            "tools/oya-binary-only-app/Cargo.toml".to_owned(),
+            "tools/oya-binary-only-app/src/main.rs".to_owned(),
+            "libs/oya-example-kernel/BUCK".to_owned(),
+            "libs/oya-example-kernel/Cargo.toml".to_owned(),
+            "libs/oya-example-kernel/src/lib.rs".to_owned(),
+        ];
+        let members = vec![
+            "tools/oya-binary-only-app".to_owned(),
+            "libs/oya-example-kernel".to_owned(),
+        ];
+        let files = vec![
+            (
+                "tools/oya-binary-only-app/BUCK",
+                include_str!("../fixtures/binary_only.input.txt").to_owned(),
+            ),
+            (
+                "tools/oya-binary-only-app/src/main.rs",
+                "#[cfg(test)] mod tests {}".to_owned(),
+            ),
+            (
+                "libs/oya-example-kernel/BUCK",
+                include_str!("../fixtures/library_with_tests.input.txt").to_owned(),
+            ),
+            (
+                "libs/oya-example-kernel/src/lib.rs",
+                "#[cfg(test)] mod tests {}".to_owned(),
+            ),
+        ];
+
+        let report =
+            check_report_from_fixture(members, tracked, files, None).expect("check report");
+
+        assert_eq!(
+            report.candidates,
+            vec![CandidateSummary {
+                member_path: "libs/oya-example-kernel".to_owned(),
+                target_labels: vec![
+                    "//libs/oya-example-kernel:oya-example-kernel-unittest".to_owned()
+                ],
+            }]
+        );
+        assert_eq!(
+            report.diagnostics,
+            vec![UnsupportedMemberDiagnostic {
+                member_path: "tools/oya-binary-only-app".to_owned(),
+                buck_path: "tools/oya-binary-only-app/BUCK".to_owned(),
+                code: "unsupported_non_library_buck".to_owned(),
+                message: "member has Rust test code but BUCK has no rust_library block; skipped"
+                    .to_owned(),
+            }]
+        );
+    }
+
+    #[test]
+    fn check_report_is_empty_when_member_already_has_rust_test() {
+        let tracked = vec![
+            "libs/oya-example-kernel/BUCK".to_owned(),
+            "libs/oya-example-kernel/Cargo.toml".to_owned(),
+            "libs/oya-example-kernel/src/lib.rs".to_owned(),
+        ];
+        let members = vec!["libs/oya-example-kernel".to_owned()];
+        let files = vec![
+            (
+                "libs/oya-example-kernel/BUCK",
+                format!(
+                    "{}\nrust_test(\n    name = \"oya-example-kernel-unittest\",\n)\n",
+                    include_str!("../fixtures/library_with_tests.input.txt")
+                ),
+            ),
+            (
+                "libs/oya-example-kernel/src/lib.rs",
+                "#[cfg(test)] mod tests {}".to_owned(),
+            ),
+        ];
+
+        let report =
+            check_report_from_fixture(members, tracked, files, None).expect("check report");
+
+        assert_eq!(
+            report,
+            CheckReport {
+                candidates: Vec::new(),
+                diagnostics: Vec::new(),
+            }
+        );
     }
 }
