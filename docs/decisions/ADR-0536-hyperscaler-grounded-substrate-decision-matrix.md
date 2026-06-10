@@ -11,7 +11,7 @@ supersedes: []
 superseded_by: []
 depends_on: [ADR-0328, ADR-0510, ADR-0516]
 amends: []
-related: [ADR-0131, ADR-0132, ADR-0243, ADR-0328, ADR-0341, ADR-0348, ADR-0393, ADR-0476, ADR-0510, ADR-0513, ADR-0516, ADR-0517, ADR-0518, ADR-0519, ADR-0520, ADR-0521, ADR-0522, ADR-0523, ADR-0524, ADR-0525, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0531, ADR-0532, ADR-0533, ADR-0534, ADR-0535, ADR-0537]
+related: [ADR-0131, ADR-0132, ADR-0243, ADR-0328, ADR-0341, ADR-0348, ADR-0393, ADR-0476, ADR-0510, ADR-0513, ADR-0515, ADR-0516, ADR-0517, ADR-0518, ADR-0519, ADR-0520, ADR-0521, ADR-0522, ADR-0523, ADR-0524, ADR-0525, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0531, ADR-0532, ADR-0533, ADR-0534, ADR-0535, ADR-0537]
 related_specs:
   - /specs/masterplan.json
   - /specs/master-plan-sequencing.json
@@ -158,7 +158,7 @@ cardinality; logs-first debugging as the primary signal.
 
 **Decision.** Presubmit carries an explicit latency SLO; postsubmit failures trigger auto-bisect and
 auto-revert. Merge admission starts pessimistic — every PR is tested against projected merge state
-before admission (ADR-0513 cloud-ci/oya-ci Tide) — and relaxes only with measured evidence. Code
+before admission (ADR-0515 cloud-ci/oya-ci Tide) — and relaxes only with measured evidence. Code
 review is the last human gate: everything after approval is automated. New gates roll out
 shadow → warn → enforce.
 
@@ -319,6 +319,14 @@ defaults; a kill-switchable admin stream. Retention posture is Open Question OQ-
   the residual risk is cross-domain contract mismatch, which only a single matrix removes.
 - ADR-0510/ADR-0520 transitional doctrine: proven substrates may serve behind stable owned
   interfaces, so no domain decision blocks another lane's start.
+- Ports-for-owned-stack doctrine (founder directive 2026-06-09): Rust traits model the owned
+  destination stack — oya-data multi-Raft, CAS, KMS domains, bespoke cloud-k8s. Adapters absorb
+  transient infra (CockroachDB, OpenBao, upstream K8s/Talos, Apache Pulsar) behind those traits;
+  the trait shapes must not mirror transient vendor APIs. The mandatory review question for every
+  new port interface: "would this trait change at W5 cutover?" A yes answer means the port is
+  shaped for the transitional implementation, not the owned stack — it must be redesigned.
+  Intelligence SDK adapters (Claude, Codex) route to `cloud/cloud-intelligence`, not
+  `oya/intelligence` (founder override of HANDOFF §4).
 
 ## Alternatives considered
 
