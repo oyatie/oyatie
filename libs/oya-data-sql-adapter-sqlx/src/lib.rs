@@ -159,6 +159,14 @@ pub struct SqlxDataSession<'client> {
     descriptor: SessionDescriptor,
 }
 
+impl core::fmt::Debug for SqlxDataSession<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("SqlxDataSession")
+            .field("descriptor", &self.descriptor)
+            .finish_non_exhaustive()
+    }
+}
+
 impl SqlxDataSession<'_> {
     #[must_use]
     pub fn descriptor(&self) -> &SessionDescriptor {
