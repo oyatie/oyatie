@@ -3,18 +3,18 @@
 **Authority:** owned policy-engine port, ADR-0373 (key-pool resilience + per-tenant isolation), ADR-0373 (audit)
 **Framework:** OWASP Top 10 for LLM Applications **2025** (proxy-relevant subset), plus STRIDE per surface.
 **Research grounding:** `design/hyperscaler-best-practice-brief.md` §5 (threat model — proxy subset + vendor guardrail patterns), §7 (data residency), §9 (audit).
-**Last reviewed:** 2026-05-26
+**Last reviewed:** 2026-06-10
 
 ## Scope
 
-cloud-intelligence is a **reverse proxy**, not a model host, so only the proxy-relevant subset of the
-OWASP LLM Top 10 applies. The brief (§5) identifies that subset: **LLM01** Prompt Injection,
+cloud-intelligence is a **reverse proxy and safety enforcement/control-plane layer**, not a model
+host, so only the proxy-relevant subset of the OWASP LLM Top 10 applies. The brief (§5) identifies that subset: **LLM01** Prompt Injection,
 **LLM02** Sensitive Information Disclosure, **LLM05** Improper Output Handling, **LLM07** System
 Prompt Leakage, **LLM10** Unbounded Consumption (incl. denial-of-wallet + model extraction). The
 remaining categories (LLM03 supply-chain of model weights, LLM04 data/model poisoning, LLM06
-excessive agency, LLM08 vector/embedding weaknesses, LLM09 misinformation) are **out of scope** for
-a proxy that does not train, store weights, host vectors, or act with agency — they belong to the
-upstream provider or to the calling agent.
+excessive agency, LLM08 vector/embedding weaknesses, LLM09 misinformation) are **not model-hosting
+responsibilities** here, but cloud-intelligence still exposes reusable tenant controls for delegated
+agent execution, scheduled tasks, sandbox policy, and safety-signal escalation.
 
 ## Trust boundaries
 
@@ -30,24 +30,32 @@ upstream provider or to the calling agent.
    controlled) + audit-chain.
 5. **Admin/audit ↔ control plane.** A distinct admin bearer realm + a separate audit-read authority
    (owned policy-engine default-deny cross-realm; Cedar is a transient fixture).
+6. **Safety review ↔ evidence store.** Guardrail-triggered incidents create encrypted evidence
+   handles through the owned secret-provider/KMS ports. Default reviewer views are redacted
+   structured evidence. Raw payload access is break-glass only, TTL-bound, SIEM-forwarded, and
+   audited.
 
 ## OWASP LLM Top 10 (2025) — proxy subset
 
 ### LLM01 — Prompt Injection
 - **Threat:** A malicious prompt manipulates the model. As a proxy the gateway does not interpret
   prompts, but it is the natural **central PEP** to screen input.
-- **Mitigation:** A pluggable input-guardrail **hook** at the ingress edge (brief §5 — no-op v1 +
-  optional provider-native passthrough to Bedrock Guardrails / GCP Model Armor, which screen input
-  AND output). The gateway does not itself classify content (Non-Goal); it provides the enforcement
-  point so a guardrail provider can be wired without changing callers.
-- **Residual risk:** Medium until a guardrail provider is wired (v1 hook is no-op).
+- **Mitigation:** Code-backed `GuardrailDetectionProfile` + `SafetySignalPolicy` resources classify
+  prompt-injection/jailbreak and hostile-pattern signals at ingress. Critical signals fail closed
+  with block/quarantine before any provider call, trigger mandatory secondary internal agentic
+  review, then manual escalation. Tenant policy receives signals/recommendations and may tighten
+  handling, never override a platform-critical block.
+- **Residual risk:** Low for gateway-side enforcement; application/product prompts still need
+  product-layer design controls.
 
 ### LLM02 — Sensitive Information Disclosure
 - **Threat:** Prompts/completions carry tenant PII; logs or audit could leak it; one tenant could
   see another's data.
-- **Mitigation:** Prompt/completion body logging **default-OFF** (brief §7); when opted-in, bodies
-  spill to a residency-pinned bucket with a redaction pass, referenced by URI, never inline in
-  events. Hash-only logging — raw key/`Authorization`/prompt/completion never logged (brief §5).
+- **Mitigation:** Normal-path raw body persistence is forbidden; `llm.audit.v1` and `llm.usage.v1`
+  carry redacted metadata only. In-transit redaction blocks sensitive classes and tokenizes trivial
+  personal data before model/routing-advisor/secondary-review boundaries. Guardrail-triggered raw
+  evidence exists only behind encrypted `evidence-ref://` handles with fixed TTL and audited
+  break-glass. Hash-only logging — raw key/`Authorization`/prompt/completion never logged (brief §5).
   Per-tenant key pools + owned policy-engine cross-tenant default-deny prevent cross-tenant disclosure (brief §6).
   Audit-read gated behind a distinct authority + SIEM (brief §7).
 - **Residual risk:** Low.
@@ -55,18 +63,19 @@ upstream provider or to the calling agent.
 ### LLM05 — Improper Output Handling
 - **Threat:** The model's output (which may contain injected markup, scripts, or unsafe content) is
   passed downstream without scrutiny.
-- **Mitigation:** SSE is byte-passthrough by design (the gateway must not corrupt the stream), so
-  output handling is the **caller's** responsibility — documented explicitly. The same guardrail
-  hook (LLM01) can screen output via provider-native passthrough (Bedrock screens output too). The
-  gateway never executes or interprets model output.
-- **Residual risk:** Medium (delegated to caller + optional guardrail).
+- **Mitigation:** SSE remains byte-passthrough for provider compatibility, but safety policy still
+  owns explicit blocking/quarantine for known critical output signals when surfaced by provider
+  metadata, compatibility canaries, or downstream tool/scheduled-task admission. The gateway never
+  executes model output; delegated execution uses first-class sandbox/policy resources.
+- **Residual risk:** Medium for arbitrary downstream rendering; low for cloud-intelligence-owned
+  delegated execution because it is policy gated.
 
 ### LLM07 — System Prompt Leakage
 - **Threat:** A system prompt embedded by a calling agent leaks via the response or logs.
 - **Mitigation:** The gateway never logs request bodies (brief §5), so it cannot leak system
   prompts through its own telemetry. The audit record carries only token counts + hashed refs, not
-  prompt text, unless opt-in body-spill is enabled (and then only to an access-controlled,
-  residency-pinned store).
+  prompt text. Guardrail-triggered evidence handles expose redacted structured evidence by default;
+  raw prompt access requires audited break-glass.
 - **Residual risk:** Low (gateway-side); the calling agent owns its own system-prompt hygiene.
 
 ### LLM10 — Unbounded Consumption (denial-of-wallet + model extraction)
@@ -103,7 +112,8 @@ upstream provider or to the calling agent.
 - **Threat:** Raw provider keys, tokens, or prompts leak via logs, metrics, or admin surfaces.
 - **Mitigation:** Secret-provider/KMS handles only, in-memory only; kernel sees only
   `KeyFingerprint`; admin pool-status returns fingerprints, never raw keys (brief §5);
-  body logging default-OFF (brief §7).
+  normal-path body logging is forbidden, and guardrail-triggered raw evidence requires encrypted
+  handles plus audited break-glass (brief §7).
 
 ### Denial of service
 - **Threat:** A tenant floods the gateway or drains the provider budget.
