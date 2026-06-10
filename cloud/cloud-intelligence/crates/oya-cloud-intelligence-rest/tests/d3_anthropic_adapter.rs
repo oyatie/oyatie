@@ -63,13 +63,13 @@ struct FailingSecretStore;
 impl SecretProviderStore for FailingSecretStore {
     fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
         Err(RestAdapterError::SecretStoreUnavailable(
-            "vault sealed".to_string(),
+            "secret provider unavailable".to_string(),
         ))
     }
 
     fn store_refresh_token(&self, _handle: &str, _plaintext: &str) -> Result<(), RestAdapterError> {
         Err(RestAdapterError::SecretStoreUnavailable(
-            "vault sealed".to_string(),
+            "secret provider unavailable".to_string(),
         ))
     }
 }
