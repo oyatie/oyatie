@@ -442,19 +442,15 @@ fn allowed_crates_for_rationale(rationale: &DependencyRationale) -> Option<BTree
 }
 
 fn read_workspace_members(repo_root: &Path) -> Result<Vec<WorkspaceMember>, String> {
-    let manifest = read_toml_file(&repo_root.join("Cargo.toml"))?;
-    let members = manifest
-        .get("workspace")
-        .and_then(TomlValue::as_table)
-        .and_then(|workspace| workspace.get("members"))
-        .and_then(TomlValue::as_array)
-        .ok_or_else(|| "workspace Cargo.toml lacks workspace.members".to_string())?;
+    // Resolve the concrete member dirs via the canonical glob-aware resolver. The root
+    // manifest lists members as GLOBS (`libs/oya-*`, ...); reading the array textually
+    // here would yield `*` literals whose join()ed Cargo.toml paths never exist, so the
+    // seam check would silently see ZERO members. Reuse, not re-derive.
+    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+        .map_err(|error| error.to_string())?;
     let mut out = Vec::new();
-    for member in members {
-        let Some(relative_path) = member.as_str() else {
-            continue;
-        };
-        let manifest_path = repo_root.join(relative_path).join("Cargo.toml");
+    for relative_path in member_dirs {
+        let manifest_path = repo_root.join(&relative_path).join("Cargo.toml");
         if !manifest_path.is_file() {
             continue;
         }

@@ -49,10 +49,17 @@ oya-cloud-ci-cargo-prefix-app = { path = "../oya-cloud-ci-cargo-prefix-app" }
 # cloud-ci-slo-coverage: the producer expands the config-declared catalog globs into
 # {crate_id,slo} rows; the gate reuses the existing oya-check-slo-coverage kernel.
 oya-cloud-ci-slo-coverage-app = { path = "../oya-cloud-ci-slo-coverage-app" }
+# cloud-ci-workspace-glob-coverage (ADR-0538): the producer emits raw member-entry rows and
+# concrete crate-dir coverage rows; the gate is pure policy over those booleans.
+oya-cloud-ci-workspace-glob-coverage-app = { path = "../oya-cloud-ci-workspace-glob-coverage-app" }
 # The fifth gate (cloud-ci-brand-residue) is the forbidden-vocab shrink-only ratchet. Its
 # census + carve-out DATA + stem catalog are the SSOT in oya-check-brand-residue; the binary
 # runs it over the live corpus and the lib freezes the per-(stem,file) keys into the baseline.
 oya-check-brand-residue = { path = "../../../../libs/oya-check-brand-residue" }
+# Canonical glob-aware workspace-member resolver (FRIC-1781069288 / ADR-0538): the
+# reachability pass resolves `cargo-members` here instead of textually parsing the now-
+# globbed members array.
+oya-workspace-members-kernel = { path = "../../../../libs/oya-workspace-members-kernel" }
 
 [lints]
 workspace = true
