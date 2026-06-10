@@ -40,6 +40,7 @@ pub mod chain;
 pub mod dek_cache;
 pub mod material;
 pub mod mlocked;
+pub mod provenance;
 pub mod shred;
 pub mod token;
 
@@ -49,6 +50,7 @@ pub use dek_cache::{
     FetchSource, SystemClockSource,
 };
 pub use material::{DekMaterial, EnclaveRoot, KekMaterial, KekVersion, SealingRootId};
+pub use provenance::RootProvenance;
 pub use shred::{
     CancelEvidence, PendingDeletionChain, QuorumPolicy, ScheduledKeyDeletion, ShredAction,
     ShredAuthorizationPort, ShredAuthorizationRequest, ShredDecision, ShredDecisionEvidence,

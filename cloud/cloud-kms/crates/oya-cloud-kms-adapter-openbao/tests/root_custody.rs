@@ -8,7 +8,9 @@
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine as _;
 use oya_cloud_kms_adapter_openbao::root_custody::{OpenBaoRootCustody, RootCustodyError};
-use oya_cloud_kms_enclave_kernel::{KekId, KekMaterial, KekVersion, SealingRootId};
+use oya_cloud_kms_enclave_kernel::{
+    KekId, KekMaterial, KekVersion, RootProvenance, SealingRootId,
+};
 
 fn custody() -> OpenBaoRootCustody {
     OpenBaoRootCustody::new("https://bao.cell-1.internal:8200", "transit", "cell-1-sealing-root")
@@ -61,6 +63,8 @@ fn namespace_scoping() {
     assert_eq!(command.namespace.as_deref(), Some("cell-1"));
 }
 
+const CEREMONY_REF: &str = "ceremony://2026-06-10/run-1";
+
 #[test]
 fn ingest_round_trip_restart_survivability() {
     // Boot 1 and boot 2 ingest the SAME custodied export; a KEK wrapped by
@@ -69,10 +73,12 @@ fn ingest_round_trip_restart_survivability() {
     let exported = BASE64_STANDARD.encode(fixture_material());
     let custodian = custody();
 
-    let boot_one_root =
-        custodian.ingest_exported_root(root_id(), exported.clone()).expect("boot 1 ingest");
-    let boot_two_root =
-        custodian.ingest_exported_root(root_id(), exported).expect("boot 2 ingest");
+    let (boot_one_root, _) = custodian
+        .ingest_exported_root(root_id(), exported.clone(), CEREMONY_REF)
+        .expect("boot 1 ingest");
+    let (boot_two_root, _) = custodian
+        .ingest_exported_root(root_id(), exported, CEREMONY_REF)
+        .expect("boot 2 ingest");
 
     let kek = KekMaterial::generate(KekId::new("kek/ten_alpha").expect("id"), KekVersion::INITIAL)
         .expect("kek");
@@ -82,15 +88,46 @@ fn ingest_round_trip_restart_survivability() {
 }
 
 #[test]
+fn ingest_carries_typed_transitional_provenance() {
+    // ADR-0537 step-0 deferral is TYPED: this custodian always reports the
+    // single-custodian transitional posture, which does NOT satisfy the
+    // quorum doctrine — boot paths gate/alarm on exactly this.
+    let exported = BASE64_STANDARD.encode(fixture_material());
+    let (_, provenance) = custody()
+        .ingest_exported_root(root_id(), exported, CEREMONY_REF)
+        .expect("ingest");
+    assert!(matches!(
+        provenance,
+        RootProvenance::OpenBaoTransitionalSingleCustodian { .. }
+    ));
+    assert!(!provenance.satisfies_quorum_doctrine());
+    assert_eq!(provenance.ceremony_evidence_ref(), CEREMONY_REF);
+
+    // The W5-target quorum variant satisfies the doctrine once M>=2, N>=M.
+    let quorum = RootProvenance::ShamirQuorumCeremony {
+        threshold: 3,
+        share_count: 5,
+        ceremony_evidence_ref: CEREMONY_REF.to_owned(),
+    };
+    assert!(quorum.satisfies_quorum_doctrine());
+    let degenerate = RootProvenance::ShamirQuorumCeremony {
+        threshold: 1,
+        share_count: 1,
+        ceremony_evidence_ref: CEREMONY_REF.to_owned(),
+    };
+    assert!(!degenerate.satisfies_quorum_doctrine());
+}
+
+#[test]
 fn ingest_tolerates_surrounding_whitespace() {
     let exported = format!("\n{}\n", BASE64_STANDARD.encode(fixture_material()));
-    assert!(custody().ingest_exported_root(root_id(), exported).is_ok());
+    assert!(custody().ingest_exported_root(root_id(), exported, CEREMONY_REF).is_ok());
 }
 
 #[test]
 fn red_ingest_rejects_non_base64() {
     let err = custody()
-        .ingest_exported_root(root_id(), "not//valid==base64!!".to_owned())
+        .ingest_exported_root(root_id(), "not//valid==base64!!".to_owned(), CEREMONY_REF)
         .expect_err("garbage must be rejected");
     assert!(matches!(err, RootCustodyError::MaterialNotBase64));
 }
@@ -100,7 +137,7 @@ fn red_ingest_rejects_wrong_length() {
     for len in [0usize, 16, 31, 33, 64] {
         let exported = BASE64_STANDARD.encode(vec![0xa5u8; len]);
         let err = custody()
-            .ingest_exported_root(root_id(), exported)
+            .ingest_exported_root(root_id(), exported, CEREMONY_REF)
             .expect_err("non-32-byte material must be rejected");
         assert!(matches!(err, RootCustodyError::MaterialWrongLength { got } if got == len));
     }

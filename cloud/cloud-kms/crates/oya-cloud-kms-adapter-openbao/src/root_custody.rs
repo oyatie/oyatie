@@ -18,7 +18,7 @@ use std::fmt;
 
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine as _;
-use oya_cloud_kms_enclave_kernel::{EnclaveError, EnclaveRoot, SealingRootId};
+use oya_cloud_kms_enclave_kernel::{EnclaveError, EnclaveRoot, RootProvenance, SealingRootId};
 use zeroize::Zeroize;
 
 use crate::{
@@ -152,11 +152,18 @@ impl OpenBaoRootCustody {
     /// Ingest exported root material through the enclave one-way door. The
     /// base64 input and every intermediate buffer are zeroized; on success
     /// the only holder of the root is the returned [`EnclaveRoot`].
+    ///
+    /// Returns the root TOGETHER with its typed [`RootProvenance`] — always
+    /// [`RootProvenance::OpenBaoTransitionalSingleCustodian`] from this
+    /// custodian (single custodian + full-root export; defers the ADR-0537
+    /// step-0 Shamir quorum ceremony, see the provenance type for the risk
+    /// statement and W5 target). Boot paths log/gate on the provenance.
     pub fn ingest_exported_root(
         &self,
         root_id: SealingRootId,
         mut exported_key_base64: String,
-    ) -> Result<EnclaveRoot, RootCustodyError> {
+        ceremony_evidence_ref: &str,
+    ) -> Result<(EnclaveRoot, RootProvenance), RootCustodyError> {
         let decoded = BASE64_STANDARD.decode(exported_key_base64.trim());
         exported_key_base64.zeroize();
         let mut decoded = decoded.map_err(|_| RootCustodyError::MaterialNotBase64)?;
@@ -170,7 +177,11 @@ impl OpenBaoRootCustody {
         decoded.zeroize();
         // `from_key_bytes` zeroizes `bytes`; material now lives only in
         // locked enclave memory.
-        Ok(EnclaveRoot::from_key_bytes(root_id, bytes)?)
+        let root = EnclaveRoot::from_key_bytes(root_id, bytes)?;
+        let provenance = RootProvenance::OpenBaoTransitionalSingleCustodian {
+            ceremony_evidence_ref: ceremony_evidence_ref.to_owned(),
+        };
+        Ok((root, provenance))
     }
 
     fn audit_ref(&self, operation: &str) -> String {
