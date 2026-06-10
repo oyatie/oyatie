@@ -6,6 +6,10 @@ use serde_json::Value;
 
 const DENY_REASON: &str = "worktree policy: mutating git command denied in canonical checkout for FRIC-022/FRIC-1781062867";
 const MAX_NESTED_COMMAND_DEPTH: usize = 32;
+/// Subcommand placeholder used when a `-C`/`--git-dir`/`--work-tree` target is a
+/// dynamic expansion that could swallow the real subcommand (review #685 r10).
+/// Carries a `${…}` sigil so the subcommand fail-closed check denies it.
+const UNRESOLVED_TARGET_SENTINEL: &str = "${unresolved-dynamic-target}";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Decision {
@@ -773,6 +777,22 @@ fn parse_git_invocation(
             let Some(ShellToken::Word(raw_path)) = tokens.get(path_index) else {
                 return None;
             };
+            // A `-C` target that still carries an unresolved expansion could
+            // SWALLOW the subcommand at runtime (`git -C $@`, where `$@` carries
+            // `<canon> reset --hard`) — fail closed instead of returning None →
+            // ALLOW (review #685 r10). Synthesize a sentinel mutating verb so
+            // the caller denies; the target is already dynamic/Unknown.
+            if has_unresolved_expansion(raw_path) {
+                return Some(GitInvocation {
+                    target: CwdState::Unknown,
+                    git_dir: git_dir.map(normalize_cwd_state),
+                    repo_context: CwdState::Unknown,
+                    explicit_work_tree,
+                    subcommand: UNRESOLVED_TARGET_SENTINEL.to_owned(),
+                    args: Vec::new(),
+                    alias_script: None,
+                });
+            }
             option_cwd = resolve_target_path(&option_cwd, raw_path);
             if !explicit_work_tree {
                 target = option_cwd.clone();
@@ -1258,21 +1278,256 @@ fn normalize_static_expansions(command: &str) -> String {
     // single-word substitution model on BOTH verb and path sides (review #685
     // r8 F4). When present, suppress value-producing expansion entirely so the
     // residual-sigil (verb) and dynamic-path (target) fail-closed rules fire.
-    let ifs_unsafe = same_line_ifs_reassigned(command);
     // Iterate to a bounded fixpoint so NESTED substitutions/params resolve
     // (`$(echo $(echo git … reset))`, `${x:-$(echo reset)}`) — a single pass
-    // only peels one layer (review #685 r6 F1). Capped to bound pathological
-    // input; whatever expansion survives the cap is caught fail-closed by the
-    // residual-expansion check at the git command-name/subcommand decision.
-    let mut current = expand_with_bindings(command, &bindings, ifs_unsafe);
+    // only peels one layer (review #685 r6 F1). Each pass also inlines shell
+    // function calls and expands positional params bound by `set --` (review
+    // #685 r10: `g(){ git "$@"; }; g -C <canon> reset`, `set -- … ; git $@`).
+    // Capped to bound pathological input; whatever survives the cap is caught
+    // fail-closed by the residual-expansion check at the git decision.
+    let mut current = command.to_owned();
     for _ in 0..8 {
-        let next = expand_with_bindings(&current, &bindings, ifs_unsafe);
+        let inlined = inline_function_calls(&current);
+        let bindings = collect_same_line_bindings(&inlined);
+        let positionals = collect_positional_params(&inlined);
+        let ifs_unsafe = same_line_ifs_reassigned(&inlined);
+        let next = expand_with_bindings(&inlined, &bindings, &positionals, ifs_unsafe);
         if next == current {
             break;
         }
         current = next;
     }
     current
+}
+
+/// Positional parameters bound by a same-line `set -- <words>` (review #685
+/// r10). The last `set --` before end wins (shell semantics); used to expand
+/// `$@`/`$*`/`$N` so `set -- reset --hard; git -C <canon> $@` resolves to the
+/// real verb. An unbound `$@`/`$N` expands to empty (also shell-faithful).
+fn collect_positional_params(command: &str) -> Vec<String> {
+    let tokens = shell_tokens(command);
+    let mut params = Vec::new();
+    let mut at_command_pos = true;
+    let mut index = 0;
+    while index < tokens.len() {
+        match &tokens[index] {
+            ShellToken::Separator(_) => at_command_pos = true,
+            ShellToken::Word(word) => {
+                if at_command_pos
+                    && word == "set"
+                    && matches!(tokens.get(index + 1), Some(ShellToken::Word(d)) if d == "--")
+                {
+                    let mut captured = Vec::new();
+                    let mut j = index + 2;
+                    while let Some(ShellToken::Word(p)) = tokens.get(j) {
+                        captured.push(p.clone());
+                        j += 1;
+                    }
+                    params = captured;
+                }
+                at_command_pos = false;
+            }
+        }
+        index += 1;
+    }
+    params
+}
+
+/// Inline calls to same-line shell functions (`name(){ body }`,
+/// `function name { body }`) by replacing each call `name <args>` with the
+/// function body, substituting `$@`/`$*`/`$N` in the body with the call args
+/// (review #685 r10: `g(){ git "$@"; }; g -C <canon> reset --hard`). Bodies are
+/// captured with balanced-brace matching; only the simple single-name-call form
+/// is modeled — anything unrecognized is left verbatim (then fail-closed by the
+/// residual checks if it still reaches a git decision).
+fn inline_function_calls(command: &str) -> String {
+    let defs = collect_function_defs(command);
+    if defs.is_empty() {
+        return command.to_owned();
+    }
+    let tokens = shell_tokens(command);
+    let mut out: Vec<String> = Vec::new();
+    let mut at_command_pos = true;
+    let mut index = 0;
+    while index < tokens.len() {
+        match &tokens[index] {
+            ShellToken::Separator(kind) => {
+                out.push(separator_text(*kind));
+                at_command_pos = true;
+                index += 1;
+            }
+            ShellToken::Word(word) => {
+                if at_command_pos
+                    && let Some((_, body)) = defs.iter().find(|(name, _)| name == word)
+                    // Skip the DEFINITION site itself (followed by `(` or `{`).
+                    && !matches!(tokens.get(index + 1), Some(ShellToken::Separator(SeparatorKind::SubshellStart)))
+                    && !next_word_is_brace(&tokens, index + 1)
+                {
+                    let mut call_args = Vec::new();
+                    let mut j = index + 1;
+                    while let Some(ShellToken::Word(a)) = tokens.get(j) {
+                        call_args.push(a.clone());
+                        j += 1;
+                    }
+                    out.push(substitute_positionals(body, &call_args));
+                    index = j;
+                    at_command_pos = false;
+                } else {
+                    out.push(requote_word(word));
+                    at_command_pos = false;
+                    index += 1;
+                }
+            }
+        }
+    }
+    out.join(" ")
+}
+
+fn separator_text(kind: SeparatorKind) -> String {
+    match kind {
+        SeparatorKind::Pipe => "|".to_owned(),
+        SeparatorKind::SubshellStart => "(".to_owned(),
+        SeparatorKind::SubshellEnd => ")".to_owned(),
+        _ => ";".to_owned(),
+    }
+}
+
+fn next_word_is_brace(tokens: &[ShellToken], index: usize) -> bool {
+    matches!(tokens.get(index), Some(ShellToken::Word(w)) if w == "{" || w.starts_with('{'))
+}
+
+/// Capture `name(){ body }` / `name () { body }` / `function name { body }`
+/// definitions from the raw command string with balanced-brace body matching.
+fn collect_function_defs(command: &str) -> Vec<(String, String)> {
+    let mut defs = Vec::new();
+    let bytes = command.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        // Find a `{` that opens a function body and walk back to the name.
+        if bytes[i] == b'{' {
+            if let Some((name, body, end)) = try_capture_function(command, i) {
+                defs.push((name, body));
+                i = end;
+                continue;
+            }
+        }
+        i += 1;
+    }
+    defs
+}
+
+fn try_capture_function(command: &str, brace: usize) -> Option<(String, String, usize)> {
+    // Header preceding `{` must look like `name()` / `name ()` / `function name`.
+    let head = command[..brace].trim_end();
+    let name = if let Some(stripped) = head.strip_suffix(')') {
+        let inner = stripped.trim_end();
+        let inner = inner.strip_suffix('(')?.trim_end();
+        inner.rsplit([' ', '\t', ';', '\n']).next()?.to_owned()
+    } else {
+        // `function name {`
+        let last = head.rsplit([' ', '\t', ';', '\n']).next()?;
+        let before = head[..head.len() - last.len()].trim_end();
+        if !before.ends_with("function") {
+            return None;
+        }
+        last.to_owned()
+    };
+    if name.is_empty()
+        || !name
+            .chars()
+            .all(|c| c == '_' || c == '-' || c.is_ascii_alphanumeric())
+        || name.as_bytes()[0].is_ascii_digit()
+    {
+        return None;
+    }
+    // Balanced-brace body.
+    let body_start = brace + 1;
+    let rest = command.get(body_start..)?;
+    let mut depth = 1usize;
+    for (off, ch) in rest.char_indices() {
+        match ch {
+            '{' => depth += 1,
+            '}' => {
+                depth -= 1;
+                if depth == 0 {
+                    let body = rest[..off].trim().trim_end_matches(';').trim().to_owned();
+                    return Some((name, body, body_start + off + 1));
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Substitute `$@`/`$*`/`$N`/`${@}`/`${N}` in a function body with the call
+/// args (review #685 r10). Conservative: only positional forms are touched.
+fn substitute_positionals(body: &str, args: &[String]) -> String {
+    let joined = args.join(" ");
+    let mut out = String::with_capacity(body.len());
+    let mut chars = body.char_indices().peekable();
+    while let Some((_, ch)) = chars.next() {
+        // Drop double quotes so `"$@"` expands to SEPARATE words (`reset`
+        // `--hard`) on re-tokenisation, not one quoted token (review #685 r10).
+        if ch == '"' {
+            continue;
+        }
+        if ch != '$' {
+            out.push(ch);
+            continue;
+        }
+        match chars.peek().map(|(_, c)| *c) {
+            Some('@') | Some('*') => {
+                out.push_str(&joined);
+                chars.next();
+            }
+            Some('{') => {
+                chars.next();
+                let mut inner = String::new();
+                while let Some((_, c)) = chars.next() {
+                    if c == '}' {
+                        break;
+                    }
+                    inner.push(c);
+                }
+                match inner.as_str() {
+                    "@" | "*" => out.push_str(&joined),
+                    digits if digits.chars().all(|c| c.is_ascii_digit()) => {
+                        out.push_str(positional_at(args, digits));
+                    }
+                    other => {
+                        out.push_str("${");
+                        out.push_str(other);
+                        out.push('}');
+                    }
+                }
+            }
+            Some(c) if c.is_ascii_digit() => {
+                let mut digits = String::new();
+                while let Some((_, d)) = chars.peek() {
+                    if d.is_ascii_digit() {
+                        digits.push(*d);
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+                out.push_str(positional_at(args, &digits));
+            }
+            _ => out.push('$'),
+        }
+    }
+    out
+}
+
+fn positional_at<'a>(args: &'a [String], digits: &str) -> &'a str {
+    digits
+        .parse::<usize>()
+        .ok()
+        .filter(|n| *n >= 1)
+        .and_then(|n| args.get(n - 1))
+        .map(String::as_str)
+        .unwrap_or("")
 }
 
 /// True when a token still carries an unresolved shell expansion sigil after
@@ -1344,7 +1599,13 @@ fn same_line_ifs_reassigned(command: &str) -> bool {
         .any(|word| word == "IFS" || word.starts_with("IFS="))
 }
 
-fn expand_with_bindings(command: &str, bindings: &[(String, String)], ifs_unsafe: bool) -> String {
+fn expand_with_bindings(
+    command: &str,
+    bindings: &[(String, String)],
+    positionals: &[String],
+    ifs_unsafe: bool,
+) -> String {
+    let positional_join = positionals.join(" ");
     let mut out = String::with_capacity(command.len());
     let mut chars = command.char_indices().peekable();
     let mut single_quote = false;
@@ -1405,14 +1666,39 @@ fn expand_with_bindings(command: &str, bindings: &[(String, String)], ifs_unsafe
                     }
                     inner.push(c);
                 }
-                match resolve_param(&inner, bindings).filter(|_| !ifs_unsafe) {
-                    Some(value) => out.push_str(&value),
-                    None => {
-                        out.push_str("${");
-                        out.push_str(&inner);
-                        out.push('}');
+                if !ifs_unsafe && matches!(inner.as_str(), "@" | "*") {
+                    out.push_str(&positional_join);
+                } else if !ifs_unsafe
+                    && !inner.is_empty()
+                    && inner.chars().all(|c| c.is_ascii_digit())
+                {
+                    out.push_str(positional_at(positionals, &inner));
+                } else {
+                    match resolve_param(&inner, bindings).filter(|_| !ifs_unsafe) {
+                        Some(value) => out.push_str(&value),
+                        None => {
+                            out.push_str("${");
+                            out.push_str(&inner);
+                            out.push('}');
+                        }
                     }
                 }
+            }
+            '$' if !ifs_unsafe && chars.peek().is_some_and(|(_, c)| *c == '@' || *c == '*') => {
+                chars.next();
+                out.push_str(&positional_join);
+            }
+            '$' if !ifs_unsafe && chars.peek().is_some_and(|(_, c)| c.is_ascii_digit()) => {
+                let mut digits = String::new();
+                while let Some((_, c)) = chars.peek() {
+                    if c.is_ascii_digit() {
+                        digits.push(*c);
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+                out.push_str(positional_at(positionals, &digits));
             }
             '$' if chars.peek().is_some_and(|(_, c)| *c == '(') => {
                 if let Some((end, body)) = extract_balanced_dollar_command(command, idx + 2) {
@@ -2322,6 +2608,17 @@ mod tests {
             "git -C /repo/oyatie $'\\162\\145\\163\\145\\164' --hard",
             // Backslash line-continuation reassembles the verb (r9 F3).
             "git -C /repo/oyatie re\\\nset --hard",
+            // Positional binding via set -- (r10 F1).
+            "set -- -C /repo/oyatie reset --hard; git $@",
+            "set -- /repo/oyatie reset --hard; git -C $@",
+            "set -- reset --hard; git -C /repo/oyatie $@",
+            "set -- clean -fdx; git -C /repo/oyatie $@",
+            "set -- --hard; git -C /repo/oyatie reset $1",
+            // Shell function argument binding (r10 F1).
+            "g(){ git \"$@\"; }; g -C /repo/oyatie reset --hard",
+            "g(){ git $@; }; g -C /repo/oyatie reset --hard",
+            "g() { git -C /repo/oyatie \"$@\"; }; g reset --hard",
+            "function g { git \"$@\"; }; g -C /repo/oyatie reset --hard",
         ] {
             assert_denied(command);
         }
@@ -3081,3 +3378,4 @@ mod tests {
         );
     }
 }
+
