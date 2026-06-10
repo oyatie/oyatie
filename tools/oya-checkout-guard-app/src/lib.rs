@@ -1270,7 +1270,11 @@ fn normalize_static_expansions(command: &str) -> String {
 fn has_unresolved_expansion(token: &str) -> bool {
     let bytes = token.as_bytes();
     for (i, &b) in bytes.iter().enumerate() {
-        if b == b'`' {
+        // Any shell word-altering metacharacter makes the verb non-determinable
+        // by static parsing — the SAME set the path side uses in
+        // `target_path_is_dynamic` (review #685 r7: brace `{reset,}` / glob /
+        // tilde resolve to a real mutating verb without a `$`/backtick sigil).
+        if matches!(b, b'`' | b'*' | b'?' | b'[' | b']' | b'{' | b'}' | b'~') {
             return true;
         }
         if b == b'$' {
@@ -2158,8 +2162,36 @@ mod tests {
             "git -C /repo/oyatie ${x:-$(echo reset)} --hard",
             // Unresolved command-name expansion targeting canonical (r6 F2).
             "$g -C /repo/oyatie reset --hard",
+            // Brace expansion in verb / command-name position (r7 F3).
+            "git -C /repo/oyatie {reset,} --hard",
+            "git -C /repo/oyatie {,reset} --hard",
+            "git -C /repo/oyatie {switch,} other",
+            "git -C /repo/oyatie {restore,} .",
+            "git -C /repo/oyatie {checkout,} other",
+            "git -C /repo/oyatie {clean,} -fdx",
+            "git -C /repo/oyatie {stash,} pop",
+            "{git,} -C /repo/oyatie {reset,} --hard",
+            "git -C /repo/oyatie r{eset,} --hard",
         ] {
             assert_denied(command);
+        }
+    }
+
+    #[test]
+    fn brace_and_glob_in_argument_position_are_not_false_positives() {
+        // Metacharacters in NON-verb positions (paths, refs, pathspecs of a READ)
+        // must not deny — the fail-closed rule is verb/command-name-position only.
+        for command in [
+            ("git -C /repo/oyatie log {a,b}", CANONICAL),
+            ("git -C /repo/oyatie diff HEAD~{1,2}", CANONICAL),
+            ("git -C /repo/oyatie show *.rs", CANONICAL),
+            // Mutations in a NON-canonical worktree still ALLOW even with braces.
+            (
+                "git -C /repo/oyatie-worktrees/g1 {reset,} --hard",
+                "/repo/oyatie-worktrees/g1",
+            ),
+        ] {
+            assert_allowed(command.0, command.1, Some(CANONICAL));
         }
     }
 
