@@ -22,6 +22,7 @@ oya-identity-workload-app = { path = "../oya-identity-workload-app" }
 oya-identity-workload-authz-cedar-adapter = { path = "../oya-identity-workload-authz-cedar-adapter" }
 oya-identity-workload-oidc-adapter = { path = "../oya-identity-workload-oidc-adapter" }
 oya-identity-workload-rest = { path = "../oya-identity-workload-rest" }
+oya-shared-scim-server-kernel = { path = "../../../../libs/oya-shared-scim-server-kernel" }
 
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 # aws-lc-rs: canonical Phase-1 crypto backend (ADR-0506) — ES256 issuer

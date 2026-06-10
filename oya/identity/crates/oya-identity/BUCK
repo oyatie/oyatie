@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/identity/crates/oya-identity-oidc-issuer-kernel:oya-identity-oidc-issuer-kernel",
+        "//libs/oya-shared-scim-server-kernel:oya-shared-scim-server-kernel",
         "//oya/identity/crates/oya-identity-workload-api:oya-identity-workload-api",
         "//oya/identity/crates/oya-identity-workload-app:oya-identity-workload-app",
         "//oya/identity/crates/oya-identity-workload-authz-cedar-adapter:oya-identity-workload-authz-cedar-adapter",
@@ -44,6 +45,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//oya/identity/crates/oya-identity-oidc-issuer-kernel:oya-identity-oidc-issuer-kernel",
+        "//libs/oya-shared-scim-server-kernel:oya-shared-scim-server-kernel",
         "//oya/identity/crates/oya-identity-workload-api:oya-identity-workload-api",
         "//oya/identity/crates/oya-identity-workload-app:oya-identity-workload-app",
         "//oya/identity/crates/oya-identity-workload-authz-cedar-adapter:oya-identity-workload-authz-cedar-adapter",

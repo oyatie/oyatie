@@ -260,6 +260,50 @@ async fn issuer_discovery_and_jwks_serve_on_the_live_socket() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
+async fn scim_surface_guards_and_provisions_on_the_live_socket() {
+    let fixture = SigningFixture::generate();
+    let handle = boot(&fixture).await;
+    let base = format!("http://{}", handle.rest_addr);
+    let client = reqwest::Client::new();
+    let payload = serde_json::json!({
+        "user_name": "amara@acme.example",
+        "external_id": null,
+        "name": null,
+        "display_name": "Provisioned User",
+        "active": true,
+        "emails": [],
+        "enterprise": null,
+        "oyatie": null,
+    });
+
+    // Unauthenticated provisioning is refused fail-closed.
+    let status = client
+        .post(format!("{base}/scim/v2/ten_acme/Users"))
+        .json(&payload)
+        .send()
+        .await
+        .expect("scim responds")
+        .status()
+        .as_u16();
+    assert_eq!(status, 401);
+
+    // A workload token carrying scim.manage provisions a user.
+    let token = fixture.mint("wl_provisioner", "scim.manage");
+    let response = client
+        .post(format!("{base}/scim/v2/ten_acme/Users"))
+        .bearer_auth(&token)
+        .json(&payload)
+        .send()
+        .await
+        .expect("scim responds");
+    assert_eq!(response.status().as_u16(), 201);
+    let created: serde_json::Value = response.json().await.expect("created json");
+    assert_eq!(created["userName"], "amara@acme.example");
+
+    handle.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread")]
 async fn grpc_surface_returns_identical_decisions() {
     let fixture = SigningFixture::generate();
     let handle = boot(&fixture).await;
