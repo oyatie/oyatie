@@ -145,6 +145,8 @@ members = [
   "libs/oya-shared-olap-client-kernel",
   "libs/oya-shared-outbox-broker-http-adapter",
   "libs/oya-shared-outbox-pattern-kernel",
+  "libs/oya-shared-pdp-adapter-cedar",
+  "libs/oya-shared-pdp-kernel",
   "libs/oya-shared-platform-contracts-kernel",
   "libs/oya-shared-postgres-command-adapter-sqlx",
   "libs/oya-shared-postgres-command-kernel",
