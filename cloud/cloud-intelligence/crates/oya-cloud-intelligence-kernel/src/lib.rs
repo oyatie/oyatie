@@ -26,6 +26,8 @@ use std::fmt;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+pub mod xproxy_parity;
+
 // ---------------------------------------------------------------------------
 // Identity value objects
 // ---------------------------------------------------------------------------
