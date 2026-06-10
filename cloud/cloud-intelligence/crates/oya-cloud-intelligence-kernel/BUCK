@@ -45,3 +45,14 @@ rust_test(
         ":oya-cloud-intelligence-kernel",
     ],
 )
+
+rust_test(
+    name = "xproxy-pool-headroom-stickiness-test",
+    srcs = glob(["tests/xproxy_pool_headroom_stickiness.rs"]),
+    crate = "oya_cloud_intelligence_kernel_xproxy_pool_headroom_stickiness_test",
+    crate_root = "tests/xproxy_pool_headroom_stickiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-kernel",
+    ],
+)

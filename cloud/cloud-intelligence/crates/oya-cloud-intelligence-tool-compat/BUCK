@@ -1,0 +1,24 @@
+rust_library(
+    name = "oya-cloud-intelligence-tool-compat",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "oya_cloud_intelligence_tool_compat",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-intelligence-tool-compat-tests",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "oya_cloud_intelligence_tool_compat_tests",
+    crate_root = "tests/xproxy_tool_compat.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-tool-compat",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

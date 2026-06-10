@@ -21,13 +21,22 @@
 //! envelope encryption (D8) is enforced in the REST/secret adapter, not here.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashSet};
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 pub mod model_routing;
 pub mod xproxy_parity;
+
+/// Build a stable sticky-affinity key without storing raw prompt content.
+pub fn privacy_preserving_sticky_key(first_user_message: &str) -> String {
+    let mut hasher = DefaultHasher::new();
+    first_user_message.hash(&mut hasher);
+    format!("sticky:{:016x}", hasher.finish())
+}
 
 // ---------------------------------------------------------------------------
 // Identity value objects
@@ -253,6 +262,15 @@ impl QuotaWindow {
             .saturating_add(estimated_units)
     }
 
+    fn utilization(&self, now: Instant, inflight_units: u64, estimated_units: u64) -> f64 {
+        if self.capacity_units == 0 {
+            return 1.0;
+        }
+        (self.projected_units(now, inflight_units, estimated_units) as f64
+            / self.capacity_units as f64)
+            .clamp(0.0, 1.0)
+    }
+
     fn record_usage(&mut self, now: Instant, actual_units: u64) {
         if self.has_reset(now) {
             self.reset_at = self.effective_reset_at(now);
@@ -415,6 +433,16 @@ impl OAuthSubscription {
             .map(|window| window.time_normalized_score(now, self.inflight_units, estimated_units))
             .reduce(f64::min)
             .unwrap_or(0.0)
+    }
+
+    fn headroom(&self, now: Instant, estimated_units: u64) -> f64 {
+        let max_utilization = self
+            .quota_windows
+            .iter()
+            .map(|window| window.utilization(now, self.inflight_units, estimated_units))
+            .reduce(f64::max)
+            .unwrap_or(0.0);
+        (1.0 - max_utilization).clamp(0.0, 1.0)
     }
 }
 
@@ -606,6 +634,13 @@ pub struct SubscriptionPool {
     /// Seats currently held by an active [`SeatLease`]. These are excluded
     /// from selection to prevent double-allocation.
     leased_seats: HashSet<SeatId>,
+    sticky_bindings: BTreeMap<String, StickyBinding>,
+}
+
+#[derive(Clone, Debug)]
+struct StickyBinding {
+    seat_id: SeatId,
+    expires_at: Instant,
 }
 
 impl SubscriptionPool {
@@ -618,6 +653,7 @@ impl SubscriptionPool {
             round_robin_cursor: 0,
             cooldown_duration_429: Duration::from_secs(60),
             leased_seats: HashSet::new(),
+            sticky_bindings: BTreeMap::new(),
         }
     }
 
@@ -712,6 +748,53 @@ impl SubscriptionPool {
         })
     }
 
+    pub fn lease_sticky_with_estimate(
+        pool_ref: &Arc<Mutex<SubscriptionPool>>,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+        sticky_key: &str,
+        ttl: Duration,
+        estimated_units: u64,
+    ) -> Result<SeatLease, SubscriptionPoolError> {
+        let seat_id = {
+            let mut pool = pool_ref
+                .lock()
+                .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
+            pool.expire_sticky_bindings(now);
+
+            let sticky_seat = pool
+                .sticky_bindings
+                .get(sticky_key)
+                .filter(|binding| binding.expires_at > now)
+                .map(|binding| binding.seat_id.clone())
+                .filter(|seat_id| {
+                    pool.is_selectable(seat_id, now, estimated_units, true)
+                        && pool.authz_allows(agent_id, gate).is_ok()
+                });
+
+            let sid = match sticky_seat {
+                Some(seat_id) => seat_id,
+                None => pool.select_excluding_leased(agent_id, gate, now, estimated_units)?,
+            };
+            pool.reserve_lease(&sid, estimated_units)?;
+            pool.sticky_bindings.insert(
+                sticky_key.to_string(),
+                StickyBinding {
+                    seat_id: sid.clone(),
+                    expires_at: now + ttl,
+                },
+            );
+            sid
+        };
+        Ok(SeatLease {
+            seat_id,
+            pool: Arc::clone(pool_ref),
+            completed: false,
+            reserved_units: estimated_units,
+        })
+    }
+
     /// Internal: release a seat from the leased set.
     pub(crate) fn release_lease(&mut self, seat_id: &SeatId, reserved_units: u64) {
         self.leased_seats.remove(seat_id);
@@ -736,6 +819,17 @@ impl SubscriptionPool {
             .iter()
             .find(|window| window.kind == kind)
             .map(|window| window.used_units(now))
+    }
+
+    pub fn seat_headroom(
+        &self,
+        seat_id: &SeatId,
+        now: Instant,
+        estimated_units: u64,
+    ) -> Option<f64> {
+        self.seats
+            .get(seat_id)
+            .map(|seat| seat.headroom(now, estimated_units))
     }
 
     /// Select the next eligible seat for an inbound request (D1).
@@ -769,16 +863,7 @@ impl SubscriptionPool {
         estimated_units: u64,
         exclude_leased: bool,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        let request = AuthzRequest {
-            principal_tenant: &self.tenant_id,
-            principal_agent: agent_id,
-            action: AuthzAction::SelectSeat,
-            resource_tenant: &self.tenant_id,
-            resource_provider: self.provider,
-        };
-        if gate.decide(&request) == AuthzDecision::Forbid {
-            return Err(SubscriptionPoolError::ForbiddenByPolicy);
-        }
+        self.authz_allows(agent_id, gate)?;
 
         if self.seats.is_empty() {
             return Err(SubscriptionPoolError::NoEligibleSeat);
@@ -870,6 +955,9 @@ impl SubscriptionPool {
         now: Instant,
     ) -> Result<(), SubscriptionPoolError> {
         let cooldown = self.cooldown_duration_429;
+        if !matches!(outcome, SeatOutcome::Released | SeatOutcome::Ok) {
+            self.remove_sticky_bindings_for_seat(seat_id);
+        }
         let Some(seat) = self.seats.get_mut(seat_id) else {
             return Err(SubscriptionPoolError::NoEligibleSeat);
         };
@@ -963,6 +1051,34 @@ impl SubscriptionPool {
             return false;
         };
         Self::is_eligible(&seat.state, now) && seat.has_quota_capacity(now, estimated_units)
+    }
+
+    fn authz_allows(
+        &self,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+    ) -> Result<(), SubscriptionPoolError> {
+        let request = AuthzRequest {
+            principal_tenant: &self.tenant_id,
+            principal_agent: agent_id,
+            action: AuthzAction::SelectSeat,
+            resource_tenant: &self.tenant_id,
+            resource_provider: self.provider,
+        };
+        if gate.decide(&request) == AuthzDecision::Forbid {
+            return Err(SubscriptionPoolError::ForbiddenByPolicy);
+        }
+        Ok(())
+    }
+
+    fn expire_sticky_bindings(&mut self, now: Instant) {
+        self.sticky_bindings
+            .retain(|_, binding| binding.expires_at > now);
+    }
+
+    fn remove_sticky_bindings_for_seat(&mut self, seat_id: &SeatId) {
+        self.sticky_bindings
+            .retain(|_, binding| binding.seat_id != *seat_id);
     }
 
     fn is_eligible(state: &SubscriptionState, now: Instant) -> bool {
