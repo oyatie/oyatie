@@ -28,6 +28,7 @@ use crate::observability::TracingAuditSink;
 use crate::oidc::issuer::{Es256FileSigner, IssuerState, build_issuer_router};
 use crate::oidc::{JwksParseError, jwks_from_json};
 use crate::storage::{SeedError, seed_from_json};
+use crate::users::{SCIM_BASE, ScimSurfaceState, build_scim_router};
 use crate::{grpc, rest};
 
 /// The composed application state: in-memory bring-up stores behind the
@@ -212,6 +213,15 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
     if let Some(issuer_state) = build_issuer_state(config)? {
         rest_router = rest_router.merge(build_issuer_router(issuer_state));
     }
+    // SCIM provisioning surface: same offline JWKS + issuer/audience material
+    // as the authorize path, scim.manage scope required (fail-closed guard).
+    let scim_state = Arc::new(ScimSurfaceState::new(
+        format!("{}{}", config.issuer.trim_end_matches('/'), SCIM_BASE),
+        jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
+        ValidationConfig::new(&config.issuer, &config.audience),
+        default_now_epoch_seconds,
+    ));
+    rest_router = rest_router.merge(build_scim_router(scim_state));
     let mut rest_shutdown = shutdown_rx.clone();
     let rest_task = tokio::spawn(async move {
         let shutdown = async move {
