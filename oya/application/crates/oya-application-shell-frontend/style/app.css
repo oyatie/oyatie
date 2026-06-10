@@ -22,7 +22,7 @@ button { cursor: pointer; }
   outline-offset: 3px;
 }
 
-.oya-prototype-app { min-height: 100vh; }
+.oya-console-app { min-height: 100vh; }
 
 .skip-link {
   position: absolute;
@@ -149,7 +149,7 @@ h2 { margin-bottom: var(--oya-space-2); font-size: clamp(1.3rem, 2.3vw, 1.7rem);
 h3 { margin-bottom: var(--oya-space-3); font-size: 1.15rem; }
 h4 { margin-bottom: var(--oya-space-2); }
 
-.demo-notice {
+.scope-notice {
   border-left: 4px solid var(--oya-color-notice-border);
   border-radius: var(--oya-radius-sm);
   background: var(--oya-color-notice-bg);
@@ -833,7 +833,7 @@ time { color: var(--oya-color-accent-strong); font-weight: 800; }
 }
 
 /* Bominal integration pass -------------------------------------------------
-   The prototype now follows the supplied Bominal references: left product rail,
+   The shell follows the supplied Bominal references: left product rail,
    top command bar, dense professional cards, workflow-canvas shell, command
    palette affordance, and integrated communications/workflow surfaces. */
 
@@ -856,7 +856,7 @@ textarea {
   font: inherit;
 }
 
-.oya-prototype-app {
+.oya-console-app {
   display: grid;
   grid-template-columns: 14.5rem minmax(0, 1fr);
   grid-template-rows: 3.25rem 1fr;
@@ -1384,7 +1384,7 @@ h3 {
   letter-spacing: -0.005em;
 }
 
-.demo-notice {
+.scope-notice {
   max-width: 62rem;
   border: 0;
   background: transparent;
@@ -5188,7 +5188,7 @@ h3 {
 
 /* Bominal parity repair: command-center density, service graph, and workflow
    feature depth. These overrides keep the UI cohesive instead of presenting
-   disconnected demo cards. */
+   disconnected cards. */
 
 .context-switcher {
   display: flex;
@@ -5287,7 +5287,7 @@ h3 {
 
 /* Bominal parity rescue: keep implementation metadata in the DOM for tests and
    traceability, but remove the badge clutter from the command bar so the shell
-   reads like the supplied Bominal product instead of a framework demo. */
+   reads like the supplied Bominal product instead of a framework sample. */
 .app-header .header-status {
   display: none;
 }
@@ -7904,7 +7904,7 @@ h3 {
 }
 
 @media (max-width: 72rem) {
-  .oya-prototype-app {
+  .oya-console-app {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
   }

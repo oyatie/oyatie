@@ -1,6 +1,6 @@
 #[cfg(target_arch = "wasm32")]
 fn main() {
-    oya_application_shell_frontend_prototype::mount_app();
+    oya_application_shell_frontend::mount_app();
 }
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "ssr"))]
@@ -11,7 +11,7 @@ fn main() -> std::io::Result<()> {
 #[cfg(all(not(target_arch = "wasm32"), not(feature = "ssr")))]
 fn main() {
     println!(
-        "Oyatie Leptos prototype scaffold. Run `cargo leptos watch` from the crate directory for the local dev server, or build the WASM target from the workspace root."
+        "Oyatie console shell. Run `cargo leptos watch` from the crate directory for the local dev server, or build the WASM target from the workspace root."
     );
 }
 
@@ -26,25 +26,25 @@ mod dev_server {
         time::Duration,
     };
 
-    use oya_application_shell_frontend_prototype::{render_envelope_json, static_dashboard_html};
+    use oya_application_shell_frontend::{render_envelope_json, static_dashboard_html};
 
     pub fn run() -> std::io::Result<()> {
         let addr = env::var("LEPTOS_SITE_ADDR")
             .or_else(|_| env::var("SITE_ADDR"))
             .unwrap_or_else(|_| "127.0.0.1:3000".to_string());
         let listener = TcpListener::bind(&addr)?;
-        println!("Oyatie Leptos prototype dev server listening on http://{addr}");
+        println!("Oyatie console shell local dev server listening on http://{addr}");
 
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
                     thread::spawn(move || {
                         if let Err(error) = handle(stream) {
-                            eprintln!("prototype dev server request failed: {error}");
+                            eprintln!("console shell dev server request failed: {error}");
                         }
                     });
                 }
-                Err(error) => eprintln!("prototype dev server connection failed: {error}"),
+                Err(error) => eprintln!("console shell dev server connection failed: {error}"),
             }
         }
 
@@ -84,11 +84,6 @@ mod dev_server {
                 &mut stream,
                 &crate_path("style/app.css"),
                 "text/css; charset=utf-8",
-            ),
-            "/client/prototype-interactions.js" => write_file(
-                &mut stream,
-                &crate_path("static/prototype-interactions.js"),
-                "text/javascript; charset=utf-8",
             ),
             path if path.starts_with("/api/render-envelope/") => {
                 let context_id = path.trim_start_matches("/api/render-envelope/");
@@ -134,39 +129,30 @@ mod dev_server {
     fn root_html() -> String {
         let body = static_dashboard_html();
         let wasm_package_available =
-            Path::new("target/site/pkg/oya_application_shell_frontend_prototype.js").exists();
+            Path::new("target/site/pkg/oya_application_shell_frontend.js").exists();
         format!(
             r#"<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Oyatie Cloud/Tenant Control Center Prototype</title>
+    <title>Oyatie Cloud/Tenant Control Center</title>
     <link rel="stylesheet" href="/style/tokens.css">
     <link rel="stylesheet" href="/style/app.css">
   </head>
   <body>
-    <noscript>This mock Leptos prototype needs WebAssembly enabled for hydration; the accessible shell scaffold remains visible.</noscript>
+    <noscript>The Oyatie console needs WebAssembly enabled for island hydration; the server-rendered shell remains visible.</noscript>
     {body}
     <script type="module">
-      const interactions = import('/client/prototype-interactions.js');
       const wasmPackageAvailable = {wasm_package_available};
-      interactions.then((module) => module.mountShellChrome());
       async function mountDashboardIsland() {{
-        const fallback = await interactions;
-        const pkgUrl = '/pkg/oya_application_shell_frontend_prototype.js';
-        try {{
-          if (wasmPackageAvailable) {{
-            const wasm = await import(pkgUrl);
-            await wasm.default();
-            wasm.mount_dashboard_islands();
-            return;
-          }}
-        }} catch (_error) {{
-          // Fall through to the visual fallback; this prototype remains useful without cargo-leptos pkg assets.
+        if (!wasmPackageAvailable) {{
+          console.info('Oyatie console: WASM island package missing from /pkg; serving the server-rendered shell only.');
+          return;
         }}
-        fallback.mountDashboardFallback();
-        console.info('Oyatie prototype dashboard mounted the visual fallback because the selective WASM island package is not present in /pkg.');
+        const wasm = await import('/pkg/oya_application_shell_frontend.js');
+        await wasm.default();
+        wasm.mount_dashboard_islands();
       }}
       mountDashboardIsland();
     </script>
@@ -229,22 +215,23 @@ mod dev_server {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use oya_application_shell_frontend_prototype::{
-            render_envelope::{DemoContext, TenantRenderEnvelope},
-            server_mock_catalog::SERVER_ONLY_CATALOG_SENTINEL,
+        use oya_application_shell_frontend::render_envelope::{
+            OperatorContext, TenantRenderEnvelope,
         };
 
         #[test]
-        fn render_envelope_endpoint_serializes_one_permitted_context_without_server_catalog() {
+        fn render_envelope_endpoint_serializes_one_permitted_context_deny_by_default() {
             let text =
                 render_envelope_json("tenant-admin").expect("valid render-envelope response");
             let envelope: TenantRenderEnvelope =
                 serde_json::from_str(&text).expect("typed render envelope json");
 
-            assert_eq!(envelope.context, DemoContext::TenantAdmin);
+            assert_eq!(envelope.context, OperatorContext::TenantAdmin);
             assert!(text.contains("\"tenant-admin\""));
-            assert!(!text.contains(SERVER_ONLY_CATALOG_SENTINEL));
-            assert!(!text.contains("Clinical Home"));
+            assert!(
+                !text.contains("Clinical Home"),
+                "unaccredited context must not receive healthcare capabilities"
+            );
         }
 
         #[test]
