@@ -5,9 +5,9 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use oya_cloud_ci_freshness_app::{
-    Finding, FindingCode, LockPackage, MemberPackage, check_repo_with_regenerated_faces,
-    evaluate_face_freshness, evaluate_lock_freshness, parse_lock_packages,
-    parse_member_package_manifest, render_findings, render_remediation,
+    FACE_SETTLE_PROTOCOL, Finding, FindingCode, LockPackage, MemberPackage,
+    check_repo_with_regenerated_faces, evaluate_face_freshness, evaluate_lock_freshness,
+    parse_lock_packages, parse_member_package_manifest, render_findings, render_remediation,
 };
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -146,6 +146,18 @@ fn face_freshness_reports_stale_generated_face() {
         BTreeSet::from([FindingCode::GeneratedFaceStale])
     );
     assert_eq!(findings[0].key, "scm-facts.generated.json");
+    assert!(findings[0].detail.contains("commit content changes first"));
+    assert!(
+        findings[0]
+            .detail
+            .contains("faces regenerate from TRACKED paths")
+    );
+    assert!(
+        findings[0]
+            .detail
+            .contains("never mix content and regenerated faces in one commit")
+    );
+    assert!(findings[0].detail.contains("commit the faces-only diff"));
 }
 
 #[test]
@@ -154,6 +166,11 @@ fn remediation_includes_exact_sanctioned_commands() {
 
     assert!(remediation.contains("cargo metadata >/dev/null"));
     assert!(remediation.contains("infra/ci/materialize-cloud-ci-generated-faces.sh ."));
+    assert!(remediation.contains(FACE_SETTLE_PROTOCOL));
+    assert!(remediation.contains("commit content changes first"));
+    assert!(remediation.contains("faces regenerate from TRACKED paths"));
+    assert!(remediation.contains("never mix content and regenerated faces in one commit"));
+    assert!(remediation.contains("commit the faces-only diff"));
 }
 
 #[test]

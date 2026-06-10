@@ -52,6 +52,9 @@ catalog`.
 | `cloud-ci-target-parity` | rust-cargo-workspace | producer-face (`target_parity`) | `member_missing_buck` (frozen-empty), `member_test_code_without_rust_test_target` |
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
 
+For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
+enforces the content-first, faces-only settle protocol after the content commit lands.
+
 ## Key shapes (what a `key` identifies)
 
 - total-accounting / staleness: the registry row `path`.
