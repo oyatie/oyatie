@@ -9,3 +9,16 @@ rust_library(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-check-authz-tier-discipline-authz-tier-discipline",
+    srcs = ["tests/authz_tier_discipline.rs"],
+    crate = "oya_check_authz_tier_discipline_authz_tier_discipline",
+    crate_root = "tests/authz_tier_discipline.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-check-authz-tier-discipline",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
