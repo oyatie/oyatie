@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:32d2cf269a88c3b7",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:d1323cf10f128c02"
+    "source_inputs_digest": "fnv1a64:c35ad819754ca501"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -18386,6 +18386,7 @@
           "oya/observability/slos/query-latency-prom.openslo.yaml",
           "oya/observability/slos/tail-sample-fidelity.openslo.yaml",
           "oya/observability/slos/trace-ingest-availability.openslo.yaml",
+          "oya/office/competitor-parity-matrix.md",
           "oya/office/oya-office-api-app/BUCK",
           "oya/office/oya-office-api-app/Cargo.toml",
           "oya/office/oya-office-api-app/src/lib.rs",
@@ -36263,6 +36264,7 @@
           "oya/observability/slos/query-latency-prom.openslo.yaml",
           "oya/observability/slos/tail-sample-fidelity.openslo.yaml",
           "oya/observability/slos/trace-ingest-availability.openslo.yaml",
+          "oya/office/competitor-parity-matrix.md",
           "oya/office/oya-office-api-app/BUCK",
           "oya/office/oya-office-api-app/Cargo.toml",
           "oya/office/oya-office-api-app/src/lib.rs",
@@ -51295,6 +51297,7 @@
           "oya/observability/slos/query-latency-prom.openslo.yaml",
           "oya/observability/slos/tail-sample-fidelity.openslo.yaml",
           "oya/observability/slos/trace-ingest-availability.openslo.yaml",
+          "oya/office/competitor-parity-matrix.md",
           "oya/ontology/AUDIT-FINDINGS-2026-05-18.json",
           "oya/ontology/IP-journey-j43-patient-read-path.md",
           "oya/ontology/IPs/IP-ADR-0339-Shared-IaC-Modules.md",
