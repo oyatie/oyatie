@@ -51,6 +51,16 @@ pub struct Es256FileSigner {
     rng: SystemRandom,
 }
 
+// Manual Debug: the key pair must never reach a log line; only the kid is
+// shown (EcdsaKeyPair has no Debug impl either way).
+impl std::fmt::Debug for Es256FileSigner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Es256FileSigner")
+            .field("kid", &self.kid)
+            .finish_non_exhaustive()
+    }
+}
+
 impl Es256FileSigner {
     /// Parse a PKCS#8 DER ES256 private key.
     ///

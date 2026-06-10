@@ -56,8 +56,6 @@ pub enum StartError {
     Issuer(IssuerError),
     /// A listener could not bind.
     Bind { addr: String, source: std::io::Error },
-    /// The gRPC incoming acceptor could not be constructed.
-    GrpcIncoming(String),
 }
 
 impl fmt::Display for StartError {
@@ -69,7 +67,6 @@ impl fmt::Display for StartError {
             Self::Seed(err) => write!(f, "principal seed rejected: {err}"),
             Self::Issuer(err) => write!(f, "issuer signing setup rejected: {err:?}"),
             Self::Bind { addr, source } => write!(f, "cannot bind {addr}: {source}"),
-            Self::GrpcIncoming(detail) => write!(f, "gRPC acceptor failed: {detail}"),
         }
     }
 }
@@ -207,8 +204,7 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
         addr: config.grpc_addr.clone(),
         source,
     })?;
-    let grpc_incoming = TcpIncoming::from_listener(grpc_listener, true, None)
-        .map_err(|err| StartError::GrpcIncoming(err.to_string()))?;
+    let grpc_incoming = TcpIncoming::from(grpc_listener).with_nodelay(Some(true));
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
 
