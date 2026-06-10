@@ -10,3 +10,17 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-registry-api-foundry-capability-publish-api",
+    srcs = ["tests/foundry_capability_publish_api.rs"],
+    crate = "oya_intelligence_registry_api_foundry_capability_publish_api",
+    crate_root = "tests/foundry_capability_publish_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-registry-api",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//libs/oya-governance-eval-domain:oya-governance-eval-domain",
+        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+    ],
+)
