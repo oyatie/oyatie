@@ -23,13 +23,22 @@ if [ -z "$cmd" ]; then
   exit 0
 fi
 
+# Strip quoted string arguments before pattern-matching so that retired tool
+# names appearing inside message text (git commit -m "...oya gate...", gh pr
+# comment --body "...", omc team api send-message --input '{"body":"..."}') do
+# not produce false positives.  Tradeoff: quoted invocations such as
+# bash -c "oya gate" are no longer caught here — acceptable because hooks are
+# the last-stop safety net per enforcement-layering doctrine (AMENDMENT 5); the
+# canonical CI gates remain the authority.
+cmd_stripped="$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+
 # Retired authority wrappers: D-CLOUD-NATIVE/D-CICD-AUTHORITY route source
 # control to plain git + protected PR and route gate verdicts to the single
 # required context `oya-ci-required`, produced by GitHub Actions per ADR-0515
 # (oya-ci is the shadow/future runner).
 retired_authority='(^|[;&|(]|[[:space:]])(\./bin/|bin/)?oya[[:space:]]+(git|vcs|gate|verify|check|submit)([[:space:]]|$)'
 
-if printf '%s' "$cmd" | grep -Eq "$retired_authority"; then
+if printf '%s' "$cmd_stripped" | grep -Eq "$retired_authority"; then
   {
     echo "🚫 BLOCKED: retired local authority surface detected."
     echo "Use plain git for local source control and Buck2/cloud-ci targets for local confidence."

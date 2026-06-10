@@ -17,8 +17,17 @@ cmd="$(printf '%s' "$payload" \
   | head -n 1 \
   | sed -E 's/\\n/ /g; s/\\t/ /g; s/\\r/ /g; s/\\"/"/g; s/\\\\/\\/g')"
 
+# Strip quoted string arguments before pattern-matching so that forbidden tool
+# names appearing inside message text (git commit -m "...cargo build...", gh pr
+# comment --body "...", omc team api send-message --input '{"body":"..."}') do
+# not produce false positives.  Tradeoff: quoted invocations such as
+# bash -c "cargo build" are no longer caught here — acceptable because hooks are
+# the last-stop safety net per enforcement-layering doctrine (AMENDMENT 5); the
+# canonical CI gates remain the authority.
+cmd_stripped="$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+
 # cargo, optional toolchain (+stable), then a build/verify subcommand → blocked.
-if printf '%s' "$cmd" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench)([[:space:]]|$)'; then
+if printf '%s' "$cmd_stripped" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench)([[:space:]]|$)'; then
   {
     echo "🚫 BLOCKED: 'cargo build/check/test/clippy/run/bench' is RETIRED."
     echo "Buck2 is the canonical build & verify tool (founder 2026-05-29: 'stop using cargo'; memory: canonical-monorepo-pattern)."
