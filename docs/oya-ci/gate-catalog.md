@@ -10,7 +10,7 @@ the gates of the packs it uses.
 Each enabled gate declares HOW its current keys are sourced:
 
 - **`producer-face`** — the producer builds a face (a `Value`), and the gate's pure
-  `evaluate_keyed(&face)` produces the keys. Ten gates use this; each binds one `face`.
+  `evaluate_keyed(&face)` produces the keys. Eleven gates use this; each binds one `face`.
 - **`raw-corpus-collector`** — the keys arrive ALREADY GROUPED `code -> keys` from a raw-corpus
   census the binary runs over the tracked text files (NOT a face, NOT `evaluate_keyed`).
   `cloud-ci-brand-residue` uses this.
@@ -30,10 +30,12 @@ Each enabled gate declares HOW its current keys are sourced:
   `producer-face`). Collectors enumerate workspace members, crate manifest directories, and
   Buck target parity. Freshness is the standalone `frozen-empty-meta` job for Cargo.lock member
   parity and generated-face byte parity.
+- **`agent-wiring`:** enforcement-liveness (`producer-face`). The collector compares tracked
+  hook scripts against Claude and Codex project hook wiring.
 - **`catalog`:** slo-coverage (`producer-face`). The collector expands catalog record globs.
 
 A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo + rust-cargo-workspace +
-catalog`.
+agent-wiring + catalog`.
 
 ## The gates
 
@@ -50,6 +52,7 @@ catalog`.
 | `cloud-ci-slo-coverage` | catalog | producer-face (`slo_coverage`) | `slo_missing_or_blank_slo`, `slo_empty_crate_id`, `slo_no_catalog_records` |
 | `cloud-ci-workspace-glob-coverage` | rust-cargo-workspace | producer-face (`workspace_glob_coverage`) | `workspace_member_explicit_path`, `crate_dir_not_covered` |
 | `cloud-ci-target-parity` | rust-cargo-workspace | producer-face (`target_parity`) | `member_missing_buck` (frozen-empty), `member_test_code_without_rust_test_target` |
+| `cloud-ci-enforcement-liveness` | agent-wiring | producer-face (`enforcement_liveness`) | `hook_unwired_without_stub_marker` (frozen-empty), `hook_wiring_mirror_drift` (frozen-empty), `wired_hook_missing_file` (frozen-empty) |
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
 
 For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
@@ -67,6 +70,8 @@ enforces the content-first, faces-only settle protocol after the content commit 
 - slo-coverage: the catalog crate id.
 - workspace-glob-coverage: the raw member entry or crate manifest directory.
 - target-parity: the workspace member path.
+- enforcement-liveness: the hook path, or `<wiring_file>:<command_path>` for missing referenced
+  hook files.
 - freshness: the workspace member path, sourceless lock package name, or generated face filename.
 
 ## frozen-empty codes
@@ -74,5 +79,6 @@ enforces the content-first, faces-only settle protocol after the content commit 
 A `frozen_empty: true` disposition forces a code's baseline to be permanently empty regardless of
 current keys, so ANY occurrence is NEW debt the firewall blocks. `registry_drift` (under
 total-accounting), `ratchet_regression` + `duplicate_row_id` (under automation-ratchet),
-`reap_without_report` (under staleness), `member_missing_buck` (under target-parity), and all
-`cloud-ci-freshness` codes are frozen-empty meta codes — they cannot accumulate a baseline.
+`reap_without_report` (under staleness), `member_missing_buck` (under target-parity), all
+`cloud-ci-enforcement-liveness` codes, and all `cloud-ci-freshness` codes are frozen-empty meta
+codes — they cannot accumulate a baseline.

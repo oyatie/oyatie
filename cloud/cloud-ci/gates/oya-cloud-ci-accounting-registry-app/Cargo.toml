@@ -55,6 +55,9 @@ oya-cloud-ci-workspace-glob-coverage-app = { path = "../oya-cloud-ci-workspace-g
 # cloud-ci-target-parity (ADR-0540): the producer emits per-workspace-member BUCK/test-code
 # parity rows; the gate is pure policy over those booleans.
 oya-cloud-ci-target-parity-app = { path = "../oya-cloud-ci-target-parity-app" }
+# cloud-ci-enforcement-liveness (FRIC-012 / G011): the producer emits tracked project-hook
+# wiring rows; the gate is pure policy over hook liveness and mirror drift.
+oya-cloud-ci-enforcement-liveness-app = { path = "../oya-cloud-ci-enforcement-liveness-app" }
 # The fifth gate (cloud-ci-brand-residue) is the forbidden-vocab shrink-only ratchet. Its
 # census + carve-out DATA + stem catalog are the SSOT in oya-check-brand-residue; the binary
 # runs it over the live corpus and the lib freezes the per-(stem,file) keys into the baseline.
