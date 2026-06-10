@@ -143,7 +143,7 @@ async fn rest_validate_authorize_and_fail_closed_contract() {
     let client = reqwest::Client::new();
 
     // Health surface.
-    for probe in ["/healthz", "/readyz"] {
+    for probe in ["/healthz", "/livez", "/readyz"] {
         let status = client
             .get(format!("{base}{probe}"))
             .send()

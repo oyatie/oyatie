@@ -12,8 +12,10 @@ use oya_identity_workload_app::{RevocationDenylist, WorkloadPrincipalRepository}
 use oya_identity_workload_authz_cedar_adapter::WorkloadAuthorizer;
 use oya_identity_workload_rest::{AuditSink, SharedState, build_router};
 
-/// `GET` — liveness probe.
+/// `GET` — health probe (the Helm chart's readiness target).
 pub const HEALTHZ_ROUTE: &str = "/healthz";
+/// `GET` — liveness probe (the Helm chart's liveness target).
+pub const LIVEZ_ROUTE: &str = "/livez";
 /// `GET` — readiness probe.
 pub const READYZ_ROUTE: &str = "/readyz";
 
@@ -37,5 +39,6 @@ where
 {
     build_router(state)
         .route(HEALTHZ_ROUTE, get(healthz))
+        .route(LIVEZ_ROUTE, get(healthz))
         .route(READYZ_ROUTE, get(readyz))
 }
