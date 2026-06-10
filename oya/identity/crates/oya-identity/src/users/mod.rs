@@ -20,11 +20,10 @@ use std::sync::Arc;
 
 use axum::Json;
 use axum::Router;
-use axum::extract::{Path, Query, State};
-use axum::http::{HeaderMap, StatusCode};
+use axum::extract::{Path, State};
+use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, get, patch, post, put};
-use serde::Deserialize;
 
 use oya_shared_scim_server_kernel::{
     CounterIdGen, Group, InMemoryGroupStore, InMemoryUserStore, ListQuery, NewGroup, NewUser,
@@ -121,24 +120,33 @@ fn scim_error_response(error: ScimError) -> Response {
 // Handlers
 // =====================================================================
 
-/// `startIndex`/`count` per RFC 7644 §3.4.2.4 (1-indexed).
-#[derive(Debug, Deserialize)]
-struct PageParams {
-    #[serde(rename = "startIndex")]
-    start_index: Option<usize>,
-    count: Option<usize>,
-    filter: Option<String>,
-}
-
-impl PageParams {
-    fn into_query(self) -> ListQuery {
-        let default = ListQuery::default();
-        ListQuery {
-            start_index: self.start_index.unwrap_or(default.start_index),
-            items_per_page: self.count.unwrap_or(default.items_per_page),
-            filter: self.filter,
+/// Parse `startIndex`/`count`/`filter` per RFC 7644 §3.4.2.4 (1-indexed)
+/// from the request URI. Hand-rolled key=value split rather than the serde
+/// `Query` extractor: the workspace axum build excludes the `query` feature.
+/// Unparseable values fall back to the kernel defaults (a malformed page
+/// param must not fail provisioning reads).
+fn page_query(uri: &Uri) -> ListQuery {
+    let mut query = ListQuery::default();
+    for pair in uri.query().unwrap_or_default().split('&') {
+        let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
+        match key {
+            "startIndex" => {
+                if let Ok(value) = value.parse() {
+                    query.start_index = value;
+                }
+            }
+            "count" => {
+                if let Ok(value) = value.parse() {
+                    query.items_per_page = value;
+                }
+            }
+            "filter" if !value.is_empty() => {
+                query.filter = Some(value.to_owned());
+            }
+            _ => {}
         }
     }
+    query
 }
 
 macro_rules! guard {
@@ -152,14 +160,11 @@ macro_rules! guard {
 async fn list_users(
     State(state): State<SharedScimState>,
     Path(tenant): Path<String>,
-    Query(page): Query<PageParams>,
+    uri: Uri,
     headers: HeaderMap,
 ) -> Response {
     guard!(state, headers);
-    match state
-        .server
-        .list_users(&TenantId(tenant), &page.into_query())
-    {
+    match state.server.list_users(&TenantId(tenant), &page_query(&uri)) {
         Ok(listing) => Json(listing).into_response(),
         Err(error) => scim_error_response(error),
     }
@@ -242,13 +247,13 @@ async fn delete_user(
 async fn list_groups(
     State(state): State<SharedScimState>,
     Path(tenant): Path<String>,
-    Query(page): Query<PageParams>,
+    uri: Uri,
     headers: HeaderMap,
 ) -> Response {
     guard!(state, headers);
     match state
         .server
-        .list_groups(&TenantId(tenant), &page.into_query())
+        .list_groups(&TenantId(tenant), &page_query(&uri))
     {
         Ok(listing) => Json::<_>(listing).into_response(),
         Err(error) => scim_error_response(error),
