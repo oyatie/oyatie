@@ -1,0 +1,19 @@
+[package]
+name = "oya-cloud-os-trustd-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Rust port of the Talos trustd subsystem: cluster CA, PKI, certificate issuance/signing, the SecurityService API, join-token verification, and node cert rotation."
+
+[lib]
+name = "oya_cloud_os_trustd_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-cloud-os-kernel = { path = "../oya-cloud-os-kernel" }
+
+[lints]
+workspace = true
