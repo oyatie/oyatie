@@ -79,6 +79,7 @@ struct PackageBlock {
 #[derive(Debug, Clone)]
 struct ParsedLockfile {
     preamble: String,
+    lockfile_version: i64,
     packages: Vec<PackageBlock>,
     by_key: BTreeMap<PackageKey, PackageBlock>,
 }
@@ -102,8 +103,8 @@ pub fn merge_lockfiles(base: &str, ours: &str, theirs: &str) -> Result<String, M
     let mut replacement_keys: BTreeSet<PackageKey> = BTreeSet::new();
 
     for base_pkg in &base_doc.packages {
-        let ours_status = side_status(base_pkg, &base_doc, &ours_doc);
-        let theirs_status = side_status(base_pkg, &base_doc, &theirs_doc);
+        let ours_status = side_status(base_pkg, &base_doc, &ours_doc)?;
+        let theirs_status = side_status(base_pkg, &base_doc, &theirs_doc)?;
         let merged_blocks = merge_existing_package(base_pkg, ours_status, theirs_status)?;
         for block in merged_blocks {
             replacement_keys.insert(block.key.clone());
@@ -131,6 +132,7 @@ pub fn merge_lockfiles(base: &str, ours: &str, theirs: &str) -> Result<String, M
 impl ParsedLockfile {
     fn parse(label: &'static str, input: &str) -> Result<Self, MergeError> {
         let (preamble, blocks) = split_package_blocks(input);
+        let lockfile_version = parse_lockfile_version(label, &preamble)?;
         let mut packages = Vec::new();
         let mut by_key = BTreeMap::new();
 
@@ -148,6 +150,7 @@ impl ParsedLockfile {
 
         Ok(Self {
             preamble,
+            lockfile_version,
             packages,
             by_key,
         })
@@ -164,6 +167,23 @@ impl ParsedLockfile {
             .cloned()
             .collect()
     }
+}
+
+fn parse_lockfile_version(label: &'static str, preamble: &str) -> Result<i64, MergeError> {
+    let doc: toml_edit::DocumentMut = preamble.parse().map_err(|err| {
+        MergeError::new(
+            MergeErrorKind::Parse,
+            format!("{label}: Cargo.lock preamble is not valid TOML: {err}"),
+        )
+    })?;
+    doc.get("version")
+        .and_then(|item| item.as_integer())
+        .ok_or_else(|| {
+            MergeError::new(
+                MergeErrorKind::Parse,
+                format!("{label}: Cargo.lock preamble must contain integer version"),
+            )
+        })
 }
 
 fn split_package_blocks(input: &str) -> (String, Vec<String>) {
@@ -257,6 +277,17 @@ fn merge_preamble(
     ours: &ParsedLockfile,
     theirs: &ParsedLockfile,
 ) -> Result<String, MergeError> {
+    if base.lockfile_version != ours.lockfile_version
+        || base.lockfile_version != theirs.lockfile_version
+    {
+        return Err(MergeError::new(
+            MergeErrorKind::Conflict,
+            format!(
+                "lockfile-version: cannot merge Cargo.lock format versions base={} ours={} theirs={}",
+                base.lockfile_version, ours.lockfile_version, theirs.lockfile_version
+            ),
+        ));
+    }
     if ours.preamble == theirs.preamble {
         return Ok(ours.preamble.clone());
     }
@@ -276,19 +307,35 @@ fn side_status(
     base_pkg: &PackageBlock,
     base: &ParsedLockfile,
     side: &ParsedLockfile,
-) -> SideStatus {
+) -> Result<SideStatus, MergeError> {
     if let Some(package) = side.by_key.get(&base_pkg.key) {
         if package.raw == base_pkg.raw {
-            SideStatus::Unchanged
+            Ok(SideStatus::Unchanged)
         } else {
-            SideStatus::Modified(package.clone())
+            Ok(SideStatus::Modified(package.clone()))
         }
     } else {
         let replacements = side.non_base_packages_with_stem(base, &base_pkg.stem);
         if replacements.is_empty() {
-            SideStatus::Removed
+            Ok(SideStatus::Removed)
         } else {
-            SideStatus::Replaced(replacements)
+            let removed_count = base
+                .packages
+                .iter()
+                .filter(|package| {
+                    package.stem == base_pkg.stem && !side.by_key.contains_key(&package.key)
+                })
+                .count();
+            if removed_count == 1 && replacements.len() == 1 {
+                Ok(SideStatus::Replaced(replacements))
+            } else {
+                conflict(format!(
+                    "ambiguous-stem-replacement: package {} has {} removed base versions and {} replacement candidates",
+                    base_pkg.key.label(),
+                    removed_count,
+                    replacements.len()
+                ))
+            }
         }
     }
 }
@@ -309,10 +356,7 @@ fn merge_existing_package(
             if ours_block.raw == theirs_block.raw {
                 Ok(vec![ours_block])
             } else {
-                conflict(format!(
-                    "edit-conflict: package {} changed differently on both sides",
-                    base_pkg.key.label()
-                ))
+                merge_modified_package(base_pkg, ours_block, theirs_block).map(|block| vec![block])
             }
         }
         (SideStatus::Modified(_), SideStatus::Removed)
@@ -340,6 +384,260 @@ fn merge_existing_package(
             base_pkg.key.label()
         )),
     }
+}
+
+#[derive(Debug, Clone)]
+struct PackageShape {
+    non_dependency_doc: String,
+    dependencies: Vec<String>,
+    has_dependencies: bool,
+}
+
+fn merge_modified_package(
+    base_pkg: &PackageBlock,
+    ours_block: PackageBlock,
+    theirs_block: PackageBlock,
+) -> Result<PackageBlock, MergeError> {
+    let base_shape = package_shape("base", &base_pkg.raw)?;
+    let ours_shape = package_shape("ours", &ours_block.raw)?;
+    let theirs_shape = package_shape("theirs", &theirs_block.raw)?;
+
+    let selected_block = if ours_shape.non_dependency_doc == theirs_shape.non_dependency_doc {
+        ours_block
+    } else if ours_shape.non_dependency_doc == base_shape.non_dependency_doc {
+        theirs_block
+    } else if theirs_shape.non_dependency_doc == base_shape.non_dependency_doc {
+        ours_block
+    } else {
+        return conflict(format!(
+            "edit-conflict: package {} changed incompatible non-dependency fields on both sides",
+            base_pkg.key.label()
+        ));
+    };
+
+    let selected_shape = package_shape("selected", &selected_block.raw)?;
+    let merged_dependencies = merge_dependency_lists(
+        &base_shape.dependencies,
+        &ours_shape.dependencies,
+        &theirs_shape.dependencies,
+    );
+    let should_write_dependencies =
+        base_shape.has_dependencies || ours_shape.has_dependencies || theirs_shape.has_dependencies;
+
+    if selected_shape.dependencies == merged_dependencies
+        && selected_shape.has_dependencies == should_write_dependencies
+    {
+        return Ok(selected_block);
+    }
+
+    let raw = rewrite_dependencies(
+        &selected_block.raw,
+        &merged_dependencies,
+        should_write_dependencies,
+    )?;
+    Ok(PackageBlock {
+        key: selected_block.key,
+        stem: selected_block.stem,
+        raw,
+    })
+}
+
+fn package_shape(label: &'static str, raw: &str) -> Result<PackageShape, MergeError> {
+    let mut doc: toml_edit::DocumentMut = raw.parse().map_err(|err| {
+        MergeError::new(
+            MergeErrorKind::Parse,
+            format!("{label}: package block is not valid TOML: {err}"),
+        )
+    })?;
+    let table = single_package_table(label, &doc)?;
+    let dependencies = dependency_strings(label, table)?;
+    let has_dependencies = table.contains_key("dependencies");
+    remove_dependencies_field(label, &mut doc)?;
+    Ok(PackageShape {
+        non_dependency_doc: doc.to_string(),
+        dependencies,
+        has_dependencies,
+    })
+}
+
+fn remove_dependencies_field(
+    label: &'static str,
+    doc: &mut toml_edit::DocumentMut,
+) -> Result<(), MergeError> {
+    let packages = doc
+        .get_mut("package")
+        .and_then(|package| package.as_array_of_tables_mut());
+    let Some(packages) = packages else {
+        return Err(MergeError::new(
+            MergeErrorKind::Parse,
+            format!("{label}: package block is missing [[package]]"),
+        ));
+    };
+    let Some(table) = packages.iter_mut().next() else {
+        return Err(MergeError::new(
+            MergeErrorKind::Parse,
+            format!("{label}: package table is empty"),
+        ));
+    };
+    table.remove("dependencies");
+    Ok(())
+}
+
+fn single_package_table<'a>(
+    label: &'static str,
+    doc: &'a toml_edit::DocumentMut,
+) -> Result<&'a toml_edit::Table, MergeError> {
+    let packages = doc
+        .get("package")
+        .and_then(|package| package.as_array_of_tables());
+    let Some(packages) = packages else {
+        return Err(MergeError::new(
+            MergeErrorKind::Parse,
+            format!("{label}: package block is missing [[package]]"),
+        ));
+    };
+    if packages.len() != 1 {
+        return Err(MergeError::new(
+            MergeErrorKind::Parse,
+            format!("{label}: package block must contain exactly one [[package]]"),
+        ));
+    }
+    match packages.iter().next() {
+        Some(table) => Ok(table),
+        None => Err(MergeError::new(
+            MergeErrorKind::Parse,
+            format!("{label}: package table is empty"),
+        )),
+    }
+}
+
+fn dependency_strings(
+    label: &'static str,
+    table: &toml_edit::Table,
+) -> Result<Vec<String>, MergeError> {
+    let Some(item) = table.get("dependencies") else {
+        return Ok(Vec::new());
+    };
+    let Some(array) = item.as_array() else {
+        return Err(MergeError::new(
+            MergeErrorKind::Parse,
+            format!("{label}: package.dependencies must be an array"),
+        ));
+    };
+    let mut dependencies = Vec::new();
+    for item in array.iter() {
+        let Some(dependency) = item.as_str() else {
+            return Err(MergeError::new(
+                MergeErrorKind::Parse,
+                format!("{label}: package.dependencies entries must be strings"),
+            ));
+        };
+        dependencies.push(dependency.to_owned());
+    }
+    Ok(dependencies)
+}
+
+fn merge_dependency_lists(base: &[String], ours: &[String], theirs: &[String]) -> Vec<String> {
+    if ours == theirs {
+        return ours.to_vec();
+    }
+    if ours == base {
+        return theirs.to_vec();
+    }
+    if theirs == base {
+        return ours.to_vec();
+    }
+
+    let mut merged = ours.to_vec();
+    for dependency in theirs {
+        if !merged.contains(dependency) {
+            merged.push(dependency.clone());
+        }
+    }
+    merged
+}
+
+fn rewrite_dependencies(
+    raw: &str,
+    dependencies: &[String],
+    include_field: bool,
+) -> Result<String, MergeError> {
+    let lines = raw.split_inclusive('\n').collect::<Vec<_>>();
+    let start = lines
+        .iter()
+        .position(|line| line.trim_start().starts_with("dependencies = ["));
+    if !include_field {
+        if let Some(start) = start {
+            let end = dependency_array_end(&lines, start)?;
+            return Ok(remove_line_range(&lines, start, end));
+        }
+        return Ok(raw.to_owned());
+    }
+
+    let formatted = format_dependencies(dependencies);
+    if let Some(start) = start {
+        let end = dependency_array_end(&lines, start)?;
+        return Ok(replace_line_range(&lines, start, end, &formatted));
+    }
+
+    let mut output = raw.to_owned();
+    if !output.ends_with('\n') {
+        output.push('\n');
+    }
+    output.push_str(&formatted);
+    Ok(output)
+}
+
+fn dependency_array_end(lines: &[&str], start: usize) -> Result<usize, MergeError> {
+    for (offset, line) in lines[start..].iter().enumerate() {
+        if line.trim() == "]" {
+            return Ok(start + offset);
+        }
+    }
+    Err(MergeError::new(
+        MergeErrorKind::Parse,
+        "package.dependencies array is missing closing bracket",
+    ))
+}
+
+fn replace_line_range(lines: &[&str], start: usize, end: usize, replacement: &str) -> String {
+    let mut output = String::new();
+    for line in &lines[..start] {
+        output.push_str(line);
+    }
+    output.push_str(replacement);
+    for line in &lines[(end + 1)..] {
+        output.push_str(line);
+    }
+    output
+}
+
+fn remove_line_range(lines: &[&str], start: usize, end: usize) -> String {
+    replace_line_range(lines, start, end, "")
+}
+
+fn format_dependencies(dependencies: &[String]) -> String {
+    let mut output = String::from("dependencies = [\n");
+    for dependency in dependencies {
+        output.push_str(" ");
+        output.push_str(&toml_basic_string(dependency));
+        output.push_str(",\n");
+    }
+    output.push_str("]\n");
+    output
+}
+
+fn toml_basic_string(value: &str) -> String {
+    let mut output = String::from("\"");
+    for character in value.chars() {
+        match character {
+            '\\' => output.push_str("\\\\"),
+            '"' => output.push_str("\\\""),
+            _ => output.push(character),
+        }
+    }
+    output.push('"');
+    output
 }
 
 fn merge_additions(
@@ -473,8 +771,12 @@ fn append_in_order(
 }
 
 fn push_block(output: &mut String, raw: &str) {
-    if !output.is_empty() && !output.ends_with('\n') {
-        output.push('\n');
+    if !output.is_empty() && !output.ends_with("\n\n") {
+        if output.ends_with('\n') {
+            output.push('\n');
+        } else {
+            output.push_str("\n\n");
+        }
     }
     output.push_str(raw);
 }

@@ -32,11 +32,22 @@ rust_test(
 
 rust_test(
     name = "oya-cargo-lock-merge-driver-app-fixtures",
-    srcs = glob(["tests/**/*.rs"]),
+    srcs = ["tests/merge_fixtures.rs"],
     crate = "oya_cargo_lock_merge_driver_app_fixtures",
     crate_root = "tests/merge_fixtures.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":oya-cargo-lock-merge-driver-app",
     ],
+)
+
+rust_test(
+    name = "oya-cargo-lock-merge-driver-app-cli-fixtures",
+    srcs = ["tests/cli_fixtures.rs"],
+    crate = "oya_cargo_lock_merge_driver_app_cli_fixtures",
+    crate_root = "tests/cli_fixtures.rs",
+    env = {
+        "OYA_CARGO_LOCK_MERGE_DRIVER": "$(location :oya-cargo-lock-merge-driver)",
+    },
+    visibility = ["PUBLIC"],
 )
