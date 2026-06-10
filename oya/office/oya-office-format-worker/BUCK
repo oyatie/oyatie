@@ -23,3 +23,16 @@ rust_binary(
         "//oya/office/oya-office-kernel:oya-office-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-office-format-worker-tests",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_office_format_worker",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/office/oya-office-drive-domain:oya-office-drive-domain",
+        "//oya/office/oya-office-format-domain:oya-office-format-domain",
+        "//oya/office/oya-office-kernel:oya-office-kernel",
+    ],
+)
