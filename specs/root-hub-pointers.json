@@ -1162,6 +1162,13 @@
       "migration_phase": "phase0_p0_0_result_schema_not_live_authority",
       "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
       "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
+    },
+    "office_external_reference_matrix": {
+      "current_path": "oya/office/competitor-parity-matrix.md",
+      "owners_path": "oya/office/OWNERS",
+      "kind": "registry",
+      "migration_phase": "complete",
+      "purpose": "External reference & competitor parity matrix for oya/office; commissions provenance-only parity research (founder directive 2026-06-10, Euro-Office org)."
     }
   },
   "specs_directory_audit_2026_05_20": {
