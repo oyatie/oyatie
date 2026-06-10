@@ -1,6 +1,6 @@
 # Cloud Intelligence service — Threat Model
 
-**Authority:** ADR-0007 Cedar, ADR-0373 (key-pool resilience + per-tenant isolation), ADR-0373 (audit)
+**Authority:** owned policy-engine port, ADR-0373 (key-pool resilience + per-tenant isolation), ADR-0373 (audit)
 **Framework:** OWASP Top 10 for LLM Applications **2025** (proxy-relevant subset), plus STRIDE per surface.
 **Research grounding:** `design/hyperscaler-best-practice-brief.md` §5 (threat model — proxy subset + vendor guardrail patterns), §7 (data residency), §9 (audit).
 **Last reviewed:** 2026-05-26
@@ -21,14 +21,15 @@ upstream provider or to the calling agent.
 1. **Agent/tenant ↔ gateway ingress.** Caller presents an ingress bearer token (constant-time
    check, `subtle`). The token maps to a tenant id + budget tier. No raw provider key ever crosses
    this boundary.
-2. **Gateway ↔ OpenBao (cloud-kms).** Provider keys resolved from `secret/data/agent-gateway/<provider>`
-   via `BAO_TOKEN`; in-memory only.
+2. **Gateway ↔ cloud-secrets/cloud-kms.** Provider keys resolved from
+   `secret-ref://` / `kms-ref://` handles through the owned secret-provider port;
+   in-memory only.
 3. **Gateway ↔ upstream provider.** The gateway injects the pooled provider auth header and proxies.
    The provider sees the gateway's egress identity, never the tenant's.
 4. **Gateway ↔ event substrate.** `llm.usage.v1` (low-PII) + `llm.audit.v1` (immutable, access-
    controlled) + audit-chain.
 5. **Admin/audit ↔ control plane.** A distinct admin bearer realm + a separate audit-read authority
-   (Cedar default-deny cross-realm).
+   (owned policy-engine default-deny cross-realm; Cedar is a transient fixture).
 
 ## OWASP LLM Top 10 (2025) — proxy subset
 
@@ -47,7 +48,7 @@ upstream provider or to the calling agent.
 - **Mitigation:** Prompt/completion body logging **default-OFF** (brief §7); when opted-in, bodies
   spill to a residency-pinned bucket with a redaction pass, referenced by URI, never inline in
   events. Hash-only logging — raw key/`Authorization`/prompt/completion never logged (brief §5).
-  Per-tenant key pools + Cedar cross-tenant default-deny prevent cross-tenant disclosure (brief §6).
+  Per-tenant key pools + owned policy-engine cross-tenant default-deny prevent cross-tenant disclosure (brief §6).
   Audit-read gated behind a distinct authority + SIEM (brief §7).
 - **Residual risk:** Low.
 
@@ -85,13 +86,13 @@ upstream provider or to the calling agent.
 - **Threat:** Caller forges a tenant id or presents a stolen token.
 - **Mitigation:** Constant-time bearer check (`subtle`); tenant derived from the token, not from a
   client-supplied header (the `X-Oyatie-Tenant` override is honored only for privileged principals).
-  Cedar `principal.tenant_id == resource.tenant_id`.
+  owned policy-engine rule `principal.tenant_id == resource.tenant_id`.
 
 ### Tampering
 - **Threat:** Attacker tampers with the audit record or the SSE stream in flight.
 - **Mitigation:** Audit records are hash-chained into `evidence/audit-chain.jsonl`
-  (`audit_chain_prev_hash`) — tamper-evident (brief §9). TLS on every hop (ingress, OpenBao,
-  upstream, broker).
+  (`audit_chain_prev_hash`) — tamper-evident (brief §9). TLS on every hop (ingress,
+  secret-provider adapter, upstream, broker).
 
 ### Repudiation
 - **Threat:** A tenant denies making an expensive call.
@@ -100,8 +101,9 @@ upstream provider or to the calling agent.
 
 ### Information disclosure
 - **Threat:** Raw provider keys, tokens, or prompts leak via logs, metrics, or admin surfaces.
-- **Mitigation:** Vault-only keys, in-memory only; kernel sees only `KeyFingerprint`; admin pool-
-  status returns fingerprints, never raw keys (brief §5); body logging default-OFF (brief §7).
+- **Mitigation:** Secret-provider/KMS handles only, in-memory only; kernel sees only
+  `KeyFingerprint`; admin pool-status returns fingerprints, never raw keys (brief §5);
+  body logging default-OFF (brief §7).
 
 ### Denial of service
 - **Threat:** A tenant floods the gateway or drains the provider budget.
@@ -111,20 +113,22 @@ upstream provider or to the calling agent.
 
 ### Elevation of privilege
 - **Threat:** An ingress token performs an admin/audit action.
-- **Mitigation:** Two distinct realms; Cedar default-deny on admin/audit actions unless the
-  principal is in the corresponding realm (`policy/cloud-intelligence.cedar`); constant-time check per realm.
+- **Mitigation:** Two distinct realms; the owned policy-engine port default-denies
+  admin/audit actions unless the principal is in the corresponding realm (the
+  bundled Cedar file is a transient fixture for this port); constant-time check per realm.
 
 ## High-impact incident scenarios
 
 1. **Provider key leak.** Detection: anomalous usage on a fingerprint / provider abuse report.
-   Response: rotate the key in OpenBao, `POST .../refresh`; audit-chain forensic review; the key
-   was never on disk/env (brief §5), narrowing the leak surface to memory/transit.
+   Response: rotate the key behind its `secret-ref://` / `kms-ref://` handle,
+   `POST .../refresh`; audit-chain forensic review; the key was never on disk/env
+   (brief §5), narrowing the leak surface to memory/transit.
 2. **Denial-of-wallet attack.** Detection: budget-burn spike on one tenant; `budget_exceeded` 429s.
    Response: the per-tenant cap already contained it to that tenant; tighten the tenant's budget;
    review max-prompt-size precheck. (Runbook: `runbooks/key-exhaustion.md`.)
 3. **Audit emission disabled (tamper).** Detection: alert-if-disabled fires (brief §9). Response:
    treat as Sev 1 — a gap in the immutable record; restore emission, reconcile the chain, forensic.
-4. **Cross-tenant disclosure via mis-scoped token.** Detection: Cedar denies + audit event; or
+4. **Cross-tenant disclosure via mis-scoped token.** Detection: policy-engine denial + audit event; or
    audit review shows a tenant id mismatch. Response: revoke the token, lock the realm, GDPR/PIPA
    notification path if PII was exposed (see `design/data-residency.md`).
 

@@ -1,6 +1,6 @@
 # Cloud Intelligence service — Tenant Isolation
 
-**Authority:** ADR-0373 (per-tenant key pools + isolation), ADR-0007 Cedar
+**Authority:** ADR-0373 (per-tenant key pools + isolation), owned policy-engine port
 **Research grounding:** `design/hyperscaler-best-practice-brief.md` §6 (multi-tenant isolation + quotas — per-consumer keys, token-aware limits on an arbitrary counter-key, multi-level limits, reserved headroom).
 **Last reviewed:** 2026-05-26
 
@@ -20,7 +20,8 @@ document specs the production posture.
 ### 1. Tenant resolved from the ingress token
 - The ingress bearer token maps to a tenant id (and its budget tier). The tenant is **derived from
   the token**, never trusted from a client-supplied header (the `X-Oyatie-Tenant` override is honored
-  only for privileged dogfood/admin principals). See `policy/cloud-intelligence.cedar`.
+  only for privileged dogfood/admin principals). The current Cedar policy file is
+  a transient fixture for the owned policy-engine port.
 
 ### 2. Limits keyed on tenant id (not the shared provider key)
 - Rate + token + cost limits are evaluated on the **tenant id** as the counter-key (Azure
@@ -47,7 +48,7 @@ document specs the production posture.
 | Layer | Mechanism | Prevents |
 |---|---|---|
 | Identity | tenant derived from ingress token (constant-time) | tenant spoofing |
-| Authorization | Cedar `principal.tenant_id == resource.tenant_id`; cross-tenant default-deny | cross-tenant access |
+| Authorization | owned policy-engine `principal.tenant_id == resource.tenant_id`; cross-tenant default-deny | cross-tenant access |
 | Key pool | per-tenant pool selection | one tenant's key failures tripping another's pool |
 | Budget | tenant-keyed token/cost caps, concurrent windows | denial-of-wallet spillover (OWASP LLM10) |
 | Headroom | reserved per-tenant slice of provider TPM | one tenant starving the shared provider |

@@ -6,7 +6,7 @@
   "bounded_contexts": [
     {
       "name": "cloud-intelligence",
-      "description": "OAuth subscription-pool gateway (ADR-0384 Path B): multiplexes the AI-agent fleet over OAuth-subscription-backed pooled provider credentials. The kernel crate owns the pure seat-pool state machine (round-robin / fill-first selection, RAII SeatLease concurrency guard, per-seat failure-count blacklist threshold, Released / RefreshFailed / RateLimited429 outcomes, Cedar AuthzGate seam). The rest crate owns the axum reverse proxy, async reqwest::Client (shared, TLS-amortised), upstream OAuth singleflight per handle (broadcast-channel coalescer), SSE streaming passthrough with pool-lease lifecycle extended to span the full streamed response (SseStreamWithLease), hop-by-hop header enforcement, 1 MiB body-size limit, EventSink fan-out trait. The authz-cedar-adapter crate wires the bundled cloud-intelligence.cedar policy to the kernel AuthzGate seam. The app crate is the composition root: wires kernel + Cedar adapter + in-process stubs + shared reqwest::Client into build_app() -> Arc<AppState>, and serves the axum router via the cloud-intelligence binary.",
+      "description": "OAuth subscription-pool gateway (ADR-0384 Path B): multiplexes the AI-agent fleet over OAuth-subscription-backed pooled provider credentials. The kernel crate owns the pure seat-pool state machine (round-robin / fill-first selection, RAII SeatLease concurrency guard, per-seat failure-count blacklist threshold, Released / RefreshFailed / RateLimited429 outcomes, owned policy-engine AuthzGate seam). The rest crate owns the axum reverse proxy, async reqwest::Client (shared, TLS-amortised), upstream OAuth singleflight per handle (broadcast-channel coalescer), SSE streaming passthrough with pool-lease lifecycle extended to span the full streamed response (SseStreamWithLease), hop-by-hop header enforcement, 1 MiB body-size limit, EventSink fan-out trait. The authz-cedar-adapter crate is a transient adapter that wires the bundled cloud-intelligence.cedar fixture to the kernel AuthzGate seam until the owned policy-engine service is the default binding. The app crate is the composition root: wires kernel + policy-engine adapter + in-process stubs + shared reqwest::Client into build_app() -> Arc<AppState>, and serves the axum router via the cloud-intelligence binary.",
       "crates": [
         "oya-cloud-intelligence-kernel",
         "oya-cloud-intelligence-rest",
@@ -52,13 +52,13 @@
     },
     {
       "tier": "T2",
-      "name": "cedar-authz-gate-per-tenant-forbid-wins-isolation",
+      "name": "policy-engine-authz-gate-per-tenant-forbid-wins-isolation",
       "file": "microservices/cloud-intelligence/crates/oya-cloud-intelligence-authz-cedar-adapter/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "openbao-envelope-encrypted-refresh-token-storage-seam",
+      "name": "owned-secret-provider-refresh-token-storage-seam",
       "file": "microservices/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs",
       "risk_class": "high"
     },
@@ -104,7 +104,7 @@
   "ips": [
     {
       "id": "IP-001",
-      "title": "Cloud Intelligence production design-spec package and clean-room key-pool reverse-proxy implementation (kernel state machine + axum SSE-passthrough rest adapter + app composition layer, OpenBao-sourced keys, two-realm constant-time auth, OTel-aligned metrics, hash-only logging, OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts, Cedar, OpenSLO, runbooks, threat-model + design dossier)",
+      "title": "Cloud Intelligence production design-spec package and clean-room key-pool reverse-proxy implementation (kernel state machine + axum SSE-passthrough rest adapter + app composition layer, owned secret-provider-sourced keys, two-realm constant-time auth, OTel-aligned metrics, hash-only logging, OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts, policy-engine adapter fixture, OpenSLO, runbooks, threat-model + design dossier)",
       "acceptance_status": "ga",
       "file": "microservices/cloud-intelligence/IP-001-cloud-intelligence-design.md"
     }
@@ -161,8 +161,11 @@
     ]
   },
   "secrets_substrate": {
-    "provider": "openbao",
-    "format": "${openbao:secret/<path>}"
+    "provider": "owned-cloud-secrets-cloud-kms",
+    "format": "secret-ref://<scope>/<name> or kms-ref://<scope>/<name>",
+    "transient_adapters": [
+      "oya-cloud-intelligence-openbao-adapter"
+    ]
   },
   "ontology_projections": [],
   "mesh_layering": {
@@ -193,7 +196,7 @@
     },
     "scaling_dimension": "per_request",
     "cell_placement_class": "Tier-2",
-    "notes": "The gateway is a stateless reverse proxy (pooled keys are ephemeral in-memory cache from OpenBao). Storage is 0 GB (no gateway-owned persistent state). Outbound HTTP connections are the upstream provider connections per active tenant. CPU/RAM are conservative design estimates for the local-foundation phase; measured baselines replace these once the gateway is live."
+    "notes": "The gateway is a stateless reverse proxy (pooled keys are ephemeral in-memory cache resolved through owned secret-provider handles). Storage is 0 GB (no gateway-owned persistent state). Outbound HTTP connections are the upstream provider connections per active tenant. CPU/RAM are conservative design estimates for the local-foundation phase; measured baselines replace these once the gateway is live."
   },
   "tenant_version_pinning": {
     "declared_versions": [

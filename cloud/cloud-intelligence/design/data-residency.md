@@ -40,8 +40,9 @@ Cloudflare DLP).
   non-reversible hash fingerprints (brief §5, §7).
 
 ### 5. Audit-read gated behind a distinct authority + SIEM
-- Reading the audit stream / body store requires the `AuditReader` Cedar role (distinct from admin),
-  and reads are SIEM-forwarded (brief §7). See `policy/cloud-intelligence.cedar`.
+- Reading the audit stream / body store requires the owned policy-engine `AuditReader`
+  role (distinct from admin), and reads are SIEM-forwarded (brief §7). The current
+  Cedar policy file is a transient fixture for that port.
 
 ### 6. Per-tenant region
 - Each tenant has a residency region; the gateway records it on every audit record and pins any
@@ -55,7 +56,7 @@ Cloudflare DLP).
 | Prompt body | `AI_PROMPT` (may contain PII) | default-OFF; opt-in → redacted, region-pinned bucket | `residency_region`, fail-closed on mismatch |
 | Completion body | `AI_COMPLETION` (may contain PII) | default-OFF; opt-in → redacted, region-pinned bucket | same |
 | Token counts / cost | `BILLING` | `llm.usage.v1` (low-PII) | metering stream (not body-pinned) |
-| Provider key | `SECRET_REFERENCE` | never persisted; in-memory only | OpenBao region (cloud-kms) |
+| Provider key | `SECRET_REFERENCE` | never persisted; in-memory only | cloud-secrets/cloud-kms region |
 | Ingress/admin token | `SECRET_REFERENCE` | never persisted; hashed ref only | n/a |
 | Audit record | `AUDIT_INTERNAL` | `evidence/audit-chain.jsonl` (hash-chained) | tenant + `residency_region` recorded |
 

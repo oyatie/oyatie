@@ -19,7 +19,7 @@ use std::sync::Arc;
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use httpmock::prelude::*;
 use oya_cloud_intelligence_openbao_adapter::{
-    OpenBaoSecretStore, OpenBaoTransitStore, RestAdapterError,
+    OpenBaoTransitStore, RestAdapterError, SecretProviderStore,
 };
 
 // ---------------------------------------------------------------------------

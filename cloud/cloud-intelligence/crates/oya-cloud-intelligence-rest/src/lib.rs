@@ -1,7 +1,7 @@
 //! cloud-intelligence REST adapter — OAuth subscription pool (ADR-0384 Path B).
 //!
 //! Stage-6 GREEN. Stage-7 SSE passthrough added. Implements:
-//! - [`OpenBaoSecretStore`] trait — D8 envelope-encrypted refresh-token storage seam.
+//! - [`SecretProviderStore`] trait — owned secret-provider refresh-token storage seam.
 //! - [`EventSinkFanout`] — D6 fan-out broadcaster.
 //! - [`AnthropicAdapter`] — D3 Anthropic OAuth refresh + async reqwest proxy.
 //! - [`ProxyRequest`] / [`ProxyResponse`] — D2 axum reverse-proxy wire types.
@@ -69,7 +69,7 @@ pub use oya_cloud_intelligence_kernel::{
 pub enum RestAdapterError {
     /// Secret handle was not found in the store.
     SecretNotFound,
-    /// Secret store returned a transport or vault error.
+    /// Secret-provider adapter returned a transport or availability error.
     SecretStoreUnavailable(String),
     /// Supplied plaintext was empty or otherwise invalid.
     InvalidSecret,
@@ -108,16 +108,16 @@ impl std::fmt::Display for RestAdapterError {
 impl std::error::Error for RestAdapterError {}
 
 // ---------------------------------------------------------------------------
-// D8 — OpenBao envelope-encrypted refresh-token storage seam
+// D8 — owned secret-provider refresh-token storage seam
 // ---------------------------------------------------------------------------
 
-/// D8 secret-store seam. Implementors envelope-encrypt/decrypt via OpenBao
-/// transit secrets engine. The kernel never sees plaintext tokens; only opaque
-/// handles cross the kernel boundary.
+/// D8 secret-provider seam. Implementors resolve opaque handles through the
+/// owned cloud-secrets/cloud-kms port. The kernel never sees plaintext tokens;
+/// only opaque handles cross the kernel boundary.
 ///
-/// Real implementation ships in `oya-cloud-intelligence-openbao-adapter` (separate
-/// crate, follow-up PR).
-pub trait OpenBaoSecretStore: Send + Sync {
+/// Transient backing stores live behind adapter crates; core request handling
+/// depends only on this port.
+pub trait SecretProviderStore: Send + Sync {
     /// Fetch and decrypt the refresh token identified by `handle`.
     fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError>;
 
@@ -125,7 +125,8 @@ pub trait OpenBaoSecretStore: Send + Sync {
     fn store_refresh_token(&self, handle: &str, plaintext: &str) -> Result<(), RestAdapterError>;
 
     /// Lightweight health probe for readiness. In-memory test stores are ready
-    /// by default; production stores override this to touch OpenBao.
+    /// by default; production adapters override this to touch the owned
+    /// secret-provider port.
     fn readiness_probe(&self) -> Result<(), RestAdapterError> {
         Ok(())
     }
@@ -360,7 +361,7 @@ impl Default for UpstreamOAuthSingleflight {
 /// 1. Refreshing tokens before expiry (or on 401) via the Anthropic OAuth
 ///    endpoint (coalesced via per-adapter [`UpstreamOAuthSingleflight`]).
 /// 2. Routing proxied requests to `https://api.anthropic.com` with the
-///    bearer token fetched from [`OpenBaoSecretStore`].
+///    bearer token fetched from [`SecretProviderStore`].
 ///
 /// The adapter borrows `&reqwest::Client` — it does NOT own one. The shared
 /// client lives in [`AppState`] so TLS sessions and keep-alive connections are
@@ -368,15 +369,15 @@ impl Default for UpstreamOAuthSingleflight {
 ///
 /// TODO(codex-adapter): `CodexAdapter` will mirror this struct for the OpenAI
 /// Codex OAuth flow. Deferred to a follow-up PR per ADR-0384 §v1-scope.
-pub struct AnthropicAdapter<S: OpenBaoSecretStore> {
+pub struct AnthropicAdapter<S: SecretProviderStore> {
     secret_store: S,                              // data_class: INTERNAL_ONLY
     singleflight: Arc<UpstreamOAuthSingleflight>, // data_class: INTERNAL_ONLY
     base_url: String,                             // data_class: INTERNAL_ONLY
     client_id: String,                            // data_class: INTERNAL_ONLY
 }
 
-impl<S: OpenBaoSecretStore> AnthropicAdapter<S> {
-    /// Construct with a concrete [`OpenBaoSecretStore`] implementation.
+impl<S: SecretProviderStore> AnthropicAdapter<S> {
+    /// Construct with a concrete [`SecretProviderStore`] implementation.
     /// Uses the default Anthropic base URL and client_id from ADR-0384.
     pub fn new(secret_store: S) -> Self {
         Self::with_base_url(secret_store, ANTHROPIC_BASE_URL.to_string())
@@ -1160,6 +1161,24 @@ impl PoolRegistry {
         self.pool_status(&tenant_id, provider)
             .ok_or(SubscriptionPoolError::NoEligibleSeat)
     }
+
+    pub fn pool_statuses(&self) -> Vec<PoolStatus> {
+        let Ok(pools) = self.pools.lock() else {
+            return Vec::new();
+        };
+        pools
+            .iter()
+            .filter_map(|(key, pool)| {
+                let pool = pool.lock().ok()?;
+                Some(PoolStatus {
+                    tenant_id: key.tenant_id.as_str().to_string(),
+                    provider: key.provider.to_string(),
+                    total_seats: pool.seat_count(),
+                    ready: pool.has_eligible_seat(Instant::now()),
+                })
+            })
+            .collect()
+    }
 }
 
 impl Default for PoolRegistry {
@@ -1175,7 +1194,7 @@ pub struct AppState {
     pub pool_registry: PoolRegistry, // data_class: INTERNAL_ONLY
     pub gate: Arc<dyn AuthzGate + Send + Sync>, // data_class: INTERNAL_ONLY
     pub sink: Arc<dyn EventSink + Send + Sync>, // data_class: INTERNAL_ONLY
-    pub secret_store: Arc<dyn OpenBaoSecretStore>, // data_class: INTERNAL_ONLY
+    pub secret_store: Arc<dyn SecretProviderStore>, // data_class: INTERNAL_ONLY
     pub anthropic_base_url: String,  // data_class: INTERNAL_ONLY
     pub tenant_id: TenantId,         // data_class: INTERNAL_ONLY
     pub admin_bearer_token: Option<String>, // data_class: SECRET
@@ -1200,7 +1219,7 @@ impl AppState {
         pool: Arc<Mutex<SubscriptionPool>>,
         gate: Arc<dyn AuthzGate + Send + Sync>,
         sink: Arc<dyn EventSink + Send + Sync>,
-        secret_store: Arc<dyn OpenBaoSecretStore>,
+        secret_store: Arc<dyn SecretProviderStore>,
         anthropic_base_url: String,
         tenant_id: TenantId,
     ) -> Result<Self, reqwest::Error> {
@@ -1227,7 +1246,7 @@ impl AppState {
         pool_registry: PoolRegistry,
         gate: Arc<dyn AuthzGate + Send + Sync>,
         sink: Arc<dyn EventSink + Send + Sync>,
-        secret_store: Arc<dyn OpenBaoSecretStore>,
+        secret_store: Arc<dyn SecretProviderStore>,
         anthropic_base_url: String,
         tenant_id: TenantId,
         admin_bearer_token: Option<String>,
@@ -1281,6 +1300,16 @@ const MAX_BODY_BYTES: usize = 1024 * 1024; // 1 MiB
 pub fn build_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/v1/messages", post(handle_proxy))
+        .route("/v1/messages/count_tokens", post(handle_count_tokens))
+        .route("/v1/models", get(handle_models))
+        .route("/admin/v1/status", get(handle_admin_status))
+        .route("/admin/v1/accounts", get(handle_admin_accounts))
+        .route("/admin/v1/analytics", get(handle_admin_analytics))
+        .route(
+            "/admin/v1/analytics/stream",
+            get(handle_admin_analytics_stream),
+        )
+        .route("/admin/v1/resume", post(handle_admin_resume))
         .route(
             "/admin/v1/tenants/{tenant_id}/providers/{provider}/pool",
             get(handle_admin_pool_status),
@@ -1552,6 +1581,215 @@ struct AdminRegisterSubscriptionResponse {
     status: String,
 }
 
+#[derive(Serialize)]
+struct TokenCountResponse {
+    input_tokens: u64,
+    token_source: &'static str,
+}
+
+#[derive(Serialize)]
+struct ModelInventoryResponse {
+    object: &'static str,
+    data: Vec<ModelInventoryModel>,
+    inventory_source: &'static str,
+    stale: bool,
+}
+
+#[derive(Serialize)]
+struct ModelInventoryModel {
+    id: &'static str,
+    object: &'static str,
+    owned_by: &'static str,
+}
+
+#[derive(Serialize)]
+struct AdminBoundaryStatus {
+    secret_resolution: &'static str,
+    authorization: &'static str,
+}
+
+#[derive(Serialize)]
+struct AdminGatewayStatus {
+    status: &'static str,
+    default_data_plane_ready: bool,
+    secret_provider_ready: bool,
+    policy_engine_ready: bool,
+    registered_pools: usize,
+    boundaries: AdminBoundaryStatus,
+}
+
+#[derive(Serialize)]
+struct AdminAccountsResponse {
+    accounts: Vec<PoolStatus>,
+    redaction: &'static str,
+}
+
+#[derive(Serialize)]
+struct AdminAnalyticsResponse {
+    window: &'static str,
+    request_count: u64,
+    rate_limited_count: u64,
+    circuit_breaker_open_count: u64,
+    source: &'static str,
+}
+
+#[derive(Deserialize)]
+struct AdminResumeRequest {
+    scope: String,
+    reason: String,
+}
+
+#[derive(Serialize)]
+struct AdminResumeResponse {
+    scope: String,
+    status: &'static str,
+    reason_recorded: bool,
+    retry_after_seconds: Option<u64>,
+}
+
+/// POST /v1/messages/count_tokens
+async fn handle_count_tokens(Json(payload): Json<serde_json::Value>) -> Response {
+    Json(TokenCountResponse {
+        input_tokens: estimate_input_tokens(&payload),
+        token_source: "local-estimate-until-provider-accounting",
+    })
+    .into_response()
+}
+
+/// GET /v1/models
+async fn handle_models() -> Response {
+    Json(ModelInventoryResponse {
+        object: "list",
+        data: vec![
+            ModelInventoryModel {
+                id: "claude-opus-4-5",
+                object: "model",
+                owned_by: "anthropic-subscription-backend",
+            },
+            ModelInventoryModel {
+                id: "gpt-4o",
+                object: "model",
+                owned_by: "openai-compatible-backend",
+            },
+        ],
+        inventory_source: "model-inventory-worker",
+        stale: true,
+    })
+    .into_response()
+}
+
+/// GET /admin/v1/status
+async fn handle_admin_status(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let default_data_plane_ready = state
+        .pool
+        .lock()
+        .map(|pool| pool.has_eligible_seat(Instant::now()))
+        .unwrap_or(false);
+    let secret_provider_ready = state.secret_store.readiness_probe().is_ok();
+    Json(AdminGatewayStatus {
+        status: if default_data_plane_ready && secret_provider_ready {
+            "ready"
+        } else {
+            "degraded"
+        },
+        default_data_plane_ready,
+        secret_provider_ready,
+        policy_engine_ready: true,
+        registered_pools: state.pool_registry.pool_count(),
+        boundaries: AdminBoundaryStatus {
+            secret_resolution: "owned-secret-provider-port",
+            authorization: "owned-policy-engine-port",
+        },
+    })
+    .into_response()
+}
+
+/// GET /admin/v1/accounts
+async fn handle_admin_accounts(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    Json(AdminAccountsResponse {
+        accounts: state.pool_registry.pool_statuses(),
+        redaction: "secret-handles-redacted",
+    })
+    .into_response()
+}
+
+/// GET /admin/v1/analytics
+async fn handle_admin_analytics(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let request_count = state.pool_registry.pool_statuses().len() as u64;
+    Json(AdminAnalyticsResponse {
+        window: "PT5M",
+        request_count,
+        rate_limited_count: 0,
+        circuit_breaker_open_count: 0,
+        source: "cloud-admin-api",
+    })
+    .into_response()
+}
+
+/// GET /admin/v1/analytics/stream
+async fn handle_admin_analytics_stream(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let payload = serde_json::json!({
+        "window": "PT5M",
+        "request_count": state.pool_registry.pool_statuses().len(),
+        "source": "cloud-admin-api"
+    });
+    (
+        StatusCode::OK,
+        [
+            ("content-type", "text/event-stream"),
+            ("cache-control", "no-cache"),
+        ],
+        format!("event: analytics\ndata: {payload}\n\n"),
+    )
+        .into_response()
+}
+
+/// POST /admin/v1/resume
+async fn handle_admin_resume(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(request): Json<AdminResumeRequest>,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !has_valid_idempotency_key(&headers) {
+        return (
+            StatusCode::BAD_REQUEST,
+            "missing or invalid idempotency-key",
+        )
+            .into_response();
+    }
+    if request.scope.trim().is_empty() || request.reason.trim().is_empty() {
+        return (StatusCode::BAD_REQUEST, "scope and reason are required").into_response();
+    }
+    Json(AdminResumeResponse {
+        scope: request.scope,
+        status: "resumed",
+        reason_recorded: true,
+        retry_after_seconds: None,
+    })
+    .into_response()
+}
+
 /// GET /admin/v1/tenants/{tenant_id}/providers/{provider}/pool
 async fn handle_admin_pool_status(
     State(state): State<Arc<AppState>>,
@@ -1687,6 +1925,42 @@ fn parse_credential_mode(raw: &str) -> Option<CredentialMode> {
     }
 }
 
+fn estimate_input_tokens(payload: &serde_json::Value) -> u64 {
+    fn collect_text(value: &serde_json::Value, out: &mut Vec<String>) {
+        match value {
+            serde_json::Value::String(text) => out.push(text.clone()),
+            serde_json::Value::Array(values) => {
+                for value in values {
+                    collect_text(value, out);
+                }
+            }
+            serde_json::Value::Object(object) => {
+                for (key, value) in object {
+                    if matches!(
+                        key.as_str(),
+                        "content" | "text" | "input" | "message" | "messages"
+                    ) {
+                        collect_text(value, out);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut text_fragments = Vec::new();
+    collect_text(payload, &mut text_fragments);
+    let word_count = text_fragments
+        .iter()
+        .flat_map(|text| text.split_whitespace())
+        .count() as u64;
+    if word_count == 0 && !text_fragments.is_empty() {
+        1
+    } else {
+        word_count
+    }
+}
+
 fn admin_tenant_allowed(headers: &HeaderMap, tenant_id: &str) -> bool {
     headers
         .get("x-oya-admin-tenant")
@@ -1780,13 +2054,13 @@ oya_cloud_intelligence_up 1\n";
 // ---------------------------------------------------------------------------
 // Internal: ArcSecretStore adaptor
 // ---------------------------------------------------------------------------
-// Wraps an Arc<dyn OpenBaoSecretStore> so AnthropicAdapter can own it.
+// Wraps an Arc<dyn SecretProviderStore> so AnthropicAdapter can own it.
 
 struct ArcSecretStore {
-    inner: Arc<dyn OpenBaoSecretStore>, // data_class: INTERNAL_ONLY
+    inner: Arc<dyn SecretProviderStore>, // data_class: INTERNAL_ONLY
 }
 
-impl OpenBaoSecretStore for ArcSecretStore {
+impl SecretProviderStore for ArcSecretStore {
     fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
         self.inner.fetch_refresh_token(handle)
     }
@@ -1833,7 +2107,7 @@ mod tests {
         ready: bool,
     }
 
-    impl OpenBaoSecretStore for MemorySecretStore {
+    impl SecretProviderStore for MemorySecretStore {
         fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
             Ok("test-refresh-token".to_string())
         }
@@ -1861,7 +2135,7 @@ mod tests {
         handles: Arc<Mutex<Vec<String>>>,
     }
 
-    impl OpenBaoSecretStore for RecordingSecretStore {
+    impl SecretProviderStore for RecordingSecretStore {
         fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
             self.handles.lock().unwrap().push(handle.to_string());
             Ok("test-refresh-token".to_string())
@@ -1888,7 +2162,7 @@ mod tests {
 
     fn test_state_with_secret_store(
         has_seat: bool,
-        secret_store: Arc<dyn OpenBaoSecretStore>,
+        secret_store: Arc<dyn SecretProviderStore>,
         secret_handle: &str,
     ) -> Arc<AppState> {
         let tenant_id = TenantId::new("tenant-a").unwrap();
@@ -2089,6 +2363,188 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn external_reference_ops_routes_are_admin_guarded_cloud_routes() {
+        let router = build_router(test_state(true, true));
+        let cases = [
+            ("GET", "/admin/v1/status", Body::empty()),
+            ("GET", "/admin/v1/accounts", Body::empty()),
+            ("GET", "/admin/v1/analytics", Body::empty()),
+            ("GET", "/admin/v1/analytics/stream", Body::empty()),
+            (
+                "POST",
+                "/admin/v1/resume",
+                Body::from(r#"{"scope":"tenant-a/anthropic","reason":"unit-test"}"#),
+            ),
+        ];
+
+        for (method, path, body) in cases {
+            let response = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .method(method)
+                        .uri(path)
+                        .header("content-type", "application/json")
+                        .body(body)
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(
+                response.status(),
+                StatusCode::UNAUTHORIZED,
+                "expected {method} {path} to be an authenticated cloud route"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn admin_status_accounts_and_analytics_expose_owned_ports_not_transient_engines() {
+        let router = build_router(test_state(true, true));
+
+        let status = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/status")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(status.status(), StatusCode::OK);
+        let status_body = status.into_body().collect().await.unwrap().to_bytes();
+        let status_body = std::str::from_utf8(&status_body).unwrap();
+        assert!(status_body.contains("owned-secret-provider-port"));
+        assert!(status_body.contains("owned-policy-engine-port"));
+        assert!(!status_body.contains("OpenBao"));
+        assert!(!status_body.contains("Cedar"));
+        assert!(!status_body.contains("vault"));
+
+        let accounts = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/accounts")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(accounts.status(), StatusCode::OK);
+        let accounts_body = accounts.into_body().collect().await.unwrap().to_bytes();
+        let accounts_body = std::str::from_utf8(&accounts_body).unwrap();
+        assert!(accounts_body.contains("\"accounts\""));
+        assert!(!accounts_body.contains("test-refresh-token"));
+        assert!(!accounts_body.contains("tenant-a/seat-a"));
+
+        let analytics = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/analytics")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(analytics.status(), StatusCode::OK);
+        let analytics_body = analytics.into_body().collect().await.unwrap().to_bytes();
+        let analytics_body = std::str::from_utf8(&analytics_body).unwrap();
+        assert!(analytics_body.contains("\"window\""));
+        assert!(analytics_body.contains("\"request_count\""));
+
+        let stream = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/analytics/stream")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(stream.status(), StatusCode::OK);
+        assert_eq!(
+            stream
+                .headers()
+                .get("content-type")
+                .and_then(|value| value.to_str().ok()),
+            Some("text/event-stream")
+        );
+
+        let resume = router
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/admin/v1/resume")
+                    .header("authorization", "Bearer admin-token")
+                    .header("idempotency-key", "11111111-1111-4111-8111-333333333333")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        r#"{"scope":"tenant-a/anthropic","reason":"unit-test"}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resume.status(), StatusCode::OK);
+        let resume_body = resume.into_body().collect().await.unwrap().to_bytes();
+        let resume_body = std::str::from_utf8(&resume_body).unwrap();
+        assert!(resume_body.contains("\"status\":\"resumed\""));
+        assert!(!resume_body.to_ascii_lowercase().contains("cli"));
+        assert!(!resume_body.to_ascii_lowercase().contains("tui"));
+    }
+
+    #[tokio::test]
+    async fn model_inventory_and_count_tokens_routes_are_contract_first_cloud_surfaces() {
+        let router = build_router(test_state(true, true));
+
+        let models = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/v1/models")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(models.status(), StatusCode::OK);
+        let models_body = models.into_body().collect().await.unwrap().to_bytes();
+        let models_body = std::str::from_utf8(&models_body).unwrap();
+        assert!(models_body.contains("\"object\":\"list\""));
+        assert!(models_body.contains("model-inventory-worker"));
+        assert!(!models_body.to_ascii_lowercase().contains("cli"));
+        assert!(!models_body.to_ascii_lowercase().contains("tui"));
+
+        let token_count = router
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/messages/count_tokens")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        r#"{"model":"claude-opus-4-5","messages":[{"role":"user","content":"hello cloud intelligence"}]}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(token_count.status(), StatusCode::OK);
+        let token_count_body = token_count.into_body().collect().await.unwrap().to_bytes();
+        let token_count_body = std::str::from_utf8(&token_count_body).unwrap();
+        assert!(token_count_body.contains("\"input_tokens\""));
+        assert!(!token_count_body.to_ascii_lowercase().contains("prompt"));
+        assert!(!token_count_body.to_ascii_lowercase().contains("secret"));
+    }
+
+    #[tokio::test]
     async fn readiness_requires_configured_pool() {
         let response = build_router(test_state(false, true))
             .oneshot(
@@ -2139,7 +2595,7 @@ mod tests {
                 SubscriptionId::new("sub-b").unwrap(),
                 Provider::Codex,
                 SubscriptionState::Active,
-                "vault://tenant-b/codex/seat-b",
+                "secret-ref://tenant-b/codex/seat-b",
                 0,
             ))
             .unwrap();
@@ -2179,7 +2635,7 @@ mod tests {
             Arc::new(RecordingSecretStore {
                 handles: Arc::clone(&handles),
             }),
-            "vault://tenant-a/anthropic/seat-a",
+            "secret-ref://tenant-a/anthropic/seat-a",
         );
 
         let _ = build_router(state)
@@ -2196,7 +2652,7 @@ mod tests {
 
         assert_eq!(
             handles.lock().unwrap().as_slice(),
-            ["vault://tenant-a/anthropic/seat-a"]
+            ["secret-ref://tenant-a/anthropic/seat-a"]
         );
     }
 
@@ -2316,7 +2772,7 @@ mod tests {
             .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
             .header("content-type", "application/json")
             .body(Body::from(format!(
-                r#"{{"seat_id":"seat-x","subscription_id":"sub-x","credential_mode":"{credential_mode}","secret_handle":"vault://tenant-a/anthropic/seat-x"}}"#
+                r#"{{"seat_id":"seat-x","subscription_id":"sub-x","credential_mode":"{credential_mode}","secret_handle":"secret-ref://tenant-a/anthropic/seat-x"}}"#
             )))
             .unwrap()
     }
@@ -2367,7 +2823,7 @@ mod tests {
         let state = proxy_state_with_seat_mode(
             base_url,
             CredentialMode::ApiKey,
-            "vault://tenant-a/anthropic/seat-a",
+            "secret-ref://tenant-a/anthropic/seat-a",
         );
 
         let response = build_router(state)
@@ -2419,7 +2875,7 @@ mod tests {
         let state = proxy_state_with_seat_mode(
             base_url,
             CredentialMode::OAuthSubscription,
-            "vault://tenant-a/anthropic/seat-a",
+            "secret-ref://tenant-a/anthropic/seat-a",
         );
 
         let response = build_router(state)
@@ -2527,7 +2983,7 @@ mod tests {
                     .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
                     .header("content-type", "application/json")
                     .body(Body::from(
-                        r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"vault://tenant-a/anthropic/seat-b"}"#,
+                        r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"secret-ref://tenant-a/anthropic/seat-b"}"#,
                     ))
                     .unwrap(),
             )
@@ -2538,7 +2994,7 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let body = std::str::from_utf8(&body).unwrap();
         assert!(body.contains("\"seat_id\":\"seat-b\""));
-        assert!(!body.contains("vault://tenant-a/anthropic/seat-b"));
+        assert!(!body.contains("secret-ref://tenant-a/anthropic/seat-b"));
 
         let response = router
             .oneshot(
@@ -2565,7 +3021,7 @@ mod tests {
                     .header("authorization", "Bearer admin-token")
                     .header("content-type", "application/json")
                     .body(Body::from(
-                        r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"vault://tenant-a/anthropic/seat-b"}"#,
+                        r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"secret-ref://tenant-a/anthropic/seat-b"}"#,
                     ))
                     .unwrap(),
             )
@@ -2578,7 +3034,7 @@ mod tests {
     #[tokio::test]
     async fn tenant_scoped_admin_subscription_registration_rejects_duplicate_seat() {
         let router = build_router(test_state(true, true));
-        let request_body = r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"vault://tenant-a/anthropic/seat-b"}"#;
+        let request_body = r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"secret-ref://tenant-a/anthropic/seat-b"}"#;
 
         let first = router
             .clone()

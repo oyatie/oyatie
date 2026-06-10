@@ -1,7 +1,7 @@
 //! Real OpenBao Transit adapter — envelope-encrypted refresh-token storage
 //! seam (ADR-0384 D8, Stage-7 production seam).
 //!
-//! Implements [`OpenBaoSecretStore`] from `oya-cloud-intelligence-rest`
+//! Implements [`SecretProviderStore`] from `oya-cloud-intelligence-rest`
 //! by calling OpenBao's Transit secrets engine directly over HTTP via a shared
 //! [`reqwest::Client`]. No vault SDK dependency — the Transit REST API surface
 //! is stable and identical to HashiCorp Vault Transit (the two projects share
@@ -28,7 +28,7 @@ use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 
-pub use oya_cloud_intelligence_rest::{OpenBaoSecretStore, RestAdapterError};
+pub use oya_cloud_intelligence_rest::{RestAdapterError, SecretProviderStore};
 
 // ---------------------------------------------------------------------------
 // Redacting vault-token wrapper (no `secrecy` dep required)
@@ -424,10 +424,10 @@ impl OpenBaoTransitStore {
 }
 
 // ---------------------------------------------------------------------------
-// OpenBaoSecretStore trait impl (sync wrapper over async internals)
+// SecretProviderStore trait impl (sync wrapper over async internals)
 // ---------------------------------------------------------------------------
 
-impl OpenBaoSecretStore for OpenBaoTransitStore {
+impl SecretProviderStore for OpenBaoTransitStore {
     /// Fetch and decrypt the refresh token identified by `handle`.
     ///
     /// Uses `tokio::task::block_in_place` so the sync trait method can call the

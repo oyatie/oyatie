@@ -2,8 +2,9 @@
 #
 # Design + research grounding: microservices/cloud-intelligence/PRD.md and
 # microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md.
-# Tiers/risk per the repo capability classification; cedar_action references
-# policy/cloud-intelligence.cedar; slo_anchor references slos/*.openslo.yaml.
+# Tiers/risk per the repo capability classification; cedar_action references the
+# current Cedar fixture mapped by the authz adapter into the owned policy-engine
+# port; slo_anchor references slos/*.openslo.yaml.
 #
 # Note on risk_class: the gateway brokers AI inference traffic and pooled provider
 # credentials, so most data-plane capabilities are `high` (denial-of-wallet / sensitive
@@ -98,14 +99,15 @@ capabilities:
     realm: ingress
     slo_anchor: n/a
 
-  - capability_id: cloud-intelligence.secrets.openbao
-    capability_name: OpenBao-Sourced Key Store (vault-only, periodic refresh)
+  - capability_id: cloud-intelligence.secrets.secret-provider
+    capability_name: Owned Secret-Provider Key Store (handle-only, periodic refresh)
     ip_anchor: IP-001
     tier: T2
     risk_class: high
     rationale: >-
-      Provider keys read ONLY from OpenBao KV v2, in-memory only, never from disk/env, never
-      logged. Kernel sees only a hash fingerprint. Brief §5, §7.
+      Provider keys resolve ONLY through owned secret-provider/KMS handles,
+      in-memory only, never from disk/env, never logged. Kernel sees only a hash
+      fingerprint. Brief §5, §7.
     data_class: [SECRET_REFERENCE]
     cedar_action: RefreshKeyPool
     realm: admin
@@ -120,7 +122,7 @@ capabilities:
     risk_class: high
     rationale: >-
       Admin and ingress bearer tokens compared in constant time (subtle). Cross-realm
-      default-deny via Cedar. Brief §2, §5.
+      default-deny via owned policy-engine port. Brief §2, §5.
     data_class: [SECRET_REFERENCE]
     cedar_action: n/a
     realm: both

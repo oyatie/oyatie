@@ -2,33 +2,19 @@
 
 This runbook lists **exactly what an operator must do** to take the cloud-intelligence from "deployed manifests in dev" to "actively serving parallel agent traffic." Every step that needs human credentials/authority is flagged **[HUMAN-AUTH]**.
 
-Prereqs: a Talos cluster with ArgoCD + OpenBao + ESO + the in-cluster registry up (per the bring-up README).
+Prereqs: a Talos cluster with ArgoCD + ESO + owned cloud-secrets/cloud-kms adapters + the in-cluster registry up (per the bring-up README).
 
-## 1. Mint OpenBao secrets  **[HUMAN-AUTH]**
+## 1. Register cloud-secrets / cloud-kms handles  **[HUMAN-AUTH]**
 
-Three secret paths the gateway consumes:
+The gateway consumes handles and realm tokens only. Register these values in the
+owned cloud-secrets/cloud-kms substrate; any concrete backing store is a
+transient adapter and is not a cloud-intelligence contract:
 
-```sh
-# (a) the BAO_TOKEN itself — a Vault token with read on oya/cloud-intelligence/*
-bao kv put secret/oya/cloud-intelligence/bao-token \
-  value="<BAO_TOKEN scope-limited to read on secret/oya/cloud-intelligence/*>"
-
-# (b) ADMIN_TOKEN — operator token for /admin endpoints (rotate, key-add)
-bao kv put secret/oya/cloud-intelligence/admin-token \
-  value="$(openssl rand -hex 32)"
-
-# (c) INGRESS_PROXY_KEYS — comma-separated keys agents present as their API key
-bao kv put secret/oya/cloud-intelligence/ingress-proxy-keys \
-  value="$(openssl rand -hex 32),$(openssl rand -hex 32)"
-
-# (d) per-provider API keys (one or more per provider)
-bao kv put secret/oya/cloud-intelligence/openai/keys \
-  value="sk-...,sk-...,sk-..."
-bao kv put secret/oya/cloud-intelligence/anthropic/keys \
-  value="sk-ant-...,sk-ant-..."
-bao kv put secret/oya/cloud-intelligence/gemini/keys \
-  value="AIza..."
-```
+- `secret_provider_token` — short-lived token for the secret-provider adapter.
+- `admin_bearer_token` — operator token for admin endpoints.
+- `initial_seats` / `tenant_provider_pools` — opaque `secret-ref://` or
+  `kms-ref://` handles; never raw provider credentials.
+- `ingress_proxy_keys` — keys agents present to the ingress realm.
 
 Then verify the ExternalSecret syncs:
 
@@ -95,13 +81,13 @@ The chart lives at `microservices/cloud-intelligence/iac/k8s/helm/`. It packages
 - `values.yaml` — image pinned by digest, `kata-cloud-hypervisor` runtime class (Tier-2
   isolation), service account `oya-cloud-intelligence`, ClusterIP on port 8080.
 - `templates/deployment.yaml` — injects `OYA_CLOUD_INTEL_LISTEN_ADDR`,
-  `OYA_CLOUD_INTEL_TENANT_ID`, and `OYA_CLOUD_INTEL_OPENBAO_TOKEN` (from the ESO-managed
-  secret).
-- `templates/externalsecret.yaml` — ESO `SecretStore` + `ExternalSecret` pulling from
-  OpenBao at `secret/oya/cloud-intelligence`.
+  `OYA_CLOUD_INTEL_TENANT_ID`, and `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`
+  (from the ESO-managed secret).
+- `templates/externalsecret.yaml` — ESO `SecretStore` + `ExternalSecret`
+  projecting owned cloud-secrets/cloud-kms handles.
 - `templates/networkpolicy.yaml` — cell-boundary policy: inbound from `istio-ingress`
-  only; egress to OpenBao (`cloud-secrets:8200`), upstream AI providers (`:443`), DNS,
-  and the OTel collector.
+  only; egress to the secret-provider adapter (`cloud-secrets:8200`), upstream AI
+  providers (`:443`), DNS, and the OTel collector.
 - `templates/httproute.yaml` — Gateway API `HTTPRoute` matching `/anthropic/*`,
   `/openai/*`, `/gemini/*` to the `cloud-intelligence` Service.
 
@@ -135,8 +121,8 @@ argocd app list | grep cloud-intelligence
 ### Enroll the first subscription
 
 See `microservices/cloud-intelligence/runbooks/enroll-first-subscription.md` for the
-step-by-step OAuth enrollment flow, OpenBao provisioning, ESO sync verification, and
-smoke-test commands.
+step-by-step OAuth enrollment flow, secret-provider handle registration, ESO sync
+verification, and smoke-test commands.
 
 ### What still requires founder action before first traffic
 
@@ -144,8 +130,9 @@ smoke-test commands.
    cosign-signed image to `registry.oyatie.dev/oya-cloud-intelligence:0.1.0` with the
    production digest. Update `image.digest` in `values.yaml` (or via the ApplicationSet
    parameter) to the real digest.
-2. **OpenBao role** — create the `cloud-intelligence-service-role` Kubernetes auth role
-   in OpenBao with a policy granting `read` on `secret/oya/cloud-intelligence`.
+2. **Secret-provider adapter access** — bind the `cloud-intelligence-service-role`
+   to the owned cloud-secrets/cloud-kms policy that grants read access to
+   cloud-intelligence launch handles only.
 3. **Istio Gateway** — confirm `oyatie-ingress-gateway` in namespace `istio-ingress`
    exists and has a TLS listener on `cloud-intelligence.oyatie.com`.
 4. **OAuth callback registration** — register

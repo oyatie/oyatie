@@ -10,15 +10,15 @@
 //! - [`SubscriptionPool`] + [`SelectionStrategy`] (RoundRobin, FillFirst,
 //!   TimeNormalizedQuotaPercent).
 //! - [`SeatLease`] — RAII guard preventing same-seat double-allocation.
-//! - [`AuthzGate`] trait — kernel-level seam for the Cedar adapter
+//! - [`AuthzGate`] trait — kernel-level seam for the owned policy-engine port
 //!   (D7 per-tenant forbid-wins isolation).
 //! - [`EventSink`] trait + [`LlmGatewayEvent`] — D6 event-emission contract;
 //!   ClickHouse + Valkey Stream impls live in separate adapter crates.
 //!
 //! Kernel does NOT take direct dependencies on cedar-policy, valkey, clickhouse,
-//! reqwest, or OpenBao. Those belong to adapter crates per Oyatie's hexagonal
-//! layering. The kernel only sees opaque token handles — OpenBao envelope
-//! encryption (D8) is enforced in the REST/secret adapter, not here.
+//! reqwest, or concrete secret-provider engines. Those belong to adapter crates
+//! per Oyatie's hexagonal layering. The kernel only sees opaque token handles —
+//! envelope encryption (D8) is enforced in the REST/secret adapter, not here.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, HashSet};
@@ -323,8 +323,8 @@ pub struct OAuthSubscription {
     pub provider: Provider,              // data_class: INTERNAL_ONLY
     pub state: SubscriptionState,        // data_class: INTERNAL_ONLY
     pub credential_mode: CredentialMode, // data_class: INTERNAL_ONLY
-    /// Opaque handle. The actual provider credential is stored
-    /// envelope-encrypted in OpenBao (D8) and never enters the kernel.
+    /// Opaque handle. The actual provider credential is stored behind the owned
+    /// secret-provider/KMS port (D8) and never enters the kernel.
     credential_secret_handle: String, // data_class: INTERNAL_ONLY
     quota_windows: Vec<QuotaWindow>,     // data_class: INTERNAL_ONLY
     inflight_units: u64,                 // data_class: INTERNAL_ONLY
@@ -373,8 +373,8 @@ impl OAuthSubscription {
         self.credential_mode
     }
 
-    /// Return the opaque refresh-token handle (non-plaintext; actual token
-    /// lives in OpenBao envelope-encrypted storage).
+    /// Return the opaque refresh-token handle (non-plaintext; actual token is
+    /// resolved through the owned secret-provider/KMS port).
     pub fn refresh_token_handle(&self) -> &str {
         &self.credential_secret_handle
     }
@@ -987,7 +987,7 @@ pub enum SeatOutcome {
     RateLimited429,
     ServerError5xx,
     RefreshTokenRevoked,
-    /// Vault or transient OAuth refresh failure (not a permanent revocation).
+    /// Secret-provider or transient OAuth refresh failure (not a permanent revocation).
     /// Seat enters Cooldown with `RefreshTokenTransientFailure` reason.
     RefreshFailed,
     /// Lease was dropped without an explicit [`SeatLease::complete`] call
@@ -1008,7 +1008,7 @@ pub fn looks_like_jwt(value: &str) -> bool {
 }
 
 /// Validate that `handle` is an opaque secret-store reference rather than a raw
-/// credential. Accepts only `vault://`, `kms://`, or `sref://openbao/` schemes
+/// credential. Accepts only `secret-ref://` or `kms-ref://` schemes
 /// and rejects empty/whitespace/control/path-traversal inputs as well as obvious
 /// raw secrets (`sk-`, `bearer `, `raw-secret`, `refresh-token`, JWTs).
 ///
@@ -1025,9 +1025,8 @@ pub fn is_secret_handle_reference(handle: &str) -> bool {
         return false;
     }
     let lowered = trimmed.to_ascii_lowercase();
-    let has_allowed_scheme = lowered.starts_with("vault://")
-        || lowered.starts_with("kms://")
-        || lowered.starts_with("sref://openbao/");
+    let has_allowed_scheme =
+        lowered.starts_with("secret-ref://") || lowered.starts_with("kms-ref://");
     has_allowed_scheme
         && !trimmed.starts_with("sk-")
         && !lowered.starts_with("bearer ")
@@ -1126,13 +1125,13 @@ mod tests {
             tenant("tenant-b"),
             seat("seat-b"),
             Provider::Anthropic,
-            "vault://tenant-b/anthropic",
+            "secret-ref://tenant-b/anthropic",
         );
         let wrong_provider = active_subscription(
             tenant("tenant-a"),
             seat("seat-codex"),
             Provider::Codex,
-            "vault://tenant-a/codex",
+            "secret-ref://tenant-a/codex",
         );
 
         assert_eq!(
@@ -1160,7 +1159,7 @@ mod tests {
             tenant("tenant-a"),
             seat("seat-z-about-to-reset"),
             Provider::Anthropic,
-            "vault://tenant-a/about-to-reset",
+            "secret-ref://tenant-a/about-to-reset",
         )
         .with_quota_windows([QuotaWindow::new(
             QuotaWindowKind::FiveHour,
@@ -1173,7 +1172,7 @@ mod tests {
             tenant("tenant-a"),
             seat("seat-a-early-window"),
             Provider::Anthropic,
-            "vault://tenant-a/early-window",
+            "secret-ref://tenant-a/early-window",
         )
         .with_quota_windows([QuotaWindow::new(
             QuotaWindowKind::FiveHour,
@@ -1207,7 +1206,7 @@ mod tests {
             tenant("tenant-a"),
             seat("seat-exhausted"),
             Provider::Codex,
-            "vault://tenant-a/codex-exhausted",
+            "secret-ref://tenant-a/codex-exhausted",
         )
         .with_quota_windows([QuotaWindow::new(
             QuotaWindowKind::FiveHour,
@@ -1240,7 +1239,7 @@ mod tests {
                 tenant("tenant-a"),
                 seat(sid),
                 Provider::Anthropic,
-                &format!("vault://tenant-a/{sid}"),
+                &format!("secret-ref://tenant-a/{sid}"),
             )
             .with_quota_windows([QuotaWindow::new(
                 QuotaWindowKind::FiveHour,
@@ -1305,7 +1304,7 @@ mod tests {
             tenant("tenant-a"),
             sid.clone(),
             Provider::Codex,
-            "vault://tenant-a/reset",
+            "secret-ref://tenant-a/reset",
         )
         .with_quota_windows([QuotaWindow::new(
             QuotaWindowKind::FiveHour,
@@ -1351,7 +1350,7 @@ mod tests {
             tenant("tenant-a"),
             sid.clone(),
             Provider::Anthropic,
-            "vault://tenant-a/cooling",
+            "secret-ref://tenant-a/cooling",
         ))
         .expect("seat accepted");
 
