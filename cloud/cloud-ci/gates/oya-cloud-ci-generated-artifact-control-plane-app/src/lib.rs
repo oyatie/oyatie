@@ -495,6 +495,8 @@ pub fn generated_output_diff_policy_violations(
 ) -> (BTreeSet<Finding>, Vec<DiffPolicyViolation>) {
     let mut findings = BTreeSet::new();
     let generated_path_rules = parse_generated_path_rules(manifest, &mut findings);
+    let allowed_generated_edit_paths =
+        diff_policy_allowed_generated_edit_paths(manifest, &mut findings);
     if !findings.is_empty() {
         return (findings, Vec::new());
     }
@@ -507,7 +509,9 @@ pub fn generated_output_diff_policy_violations(
             let status = fields.next()?.to_owned();
             let paths = fields.collect::<Vec<_>>();
             let path = diff_candidate_path(&status, &paths)?;
-            if is_tracked_generated_artifact_path(path, &generated_path_rules) {
+            if is_tracked_generated_artifact_path(path, &generated_path_rules)
+                && !allowed_generated_edit_paths.contains(path)
+            {
                 Some(DiffPolicyViolation {
                     status,
                     path: path.to_owned(),
@@ -519,6 +523,32 @@ pub fn generated_output_diff_policy_violations(
         .collect();
 
     (findings, violations)
+}
+
+fn diff_policy_allowed_generated_edit_paths(
+    manifest: &Value,
+    _findings: &mut BTreeSet<Finding>,
+) -> BTreeSet<String> {
+    let mut ignored_artifact_findings = BTreeSet::new();
+    parse_declared_artifacts(manifest, &mut ignored_artifact_findings)
+        .into_iter()
+        .filter(|artifact| {
+            matches!(
+                (
+                    artifact.materialization_mode.as_str(),
+                    artifact.merge_policy.as_str()
+                ),
+                (
+                    "merge-candidate-regenerated",
+                    "never-manual-merge-regenerate-from-source-tree"
+                ) | (
+                    "main-branch-materialized",
+                    "controller-owned-main-materialization"
+                )
+            )
+        })
+        .map(|artifact| artifact.path)
+        .collect()
 }
 
 fn validate_lifecycle_layers(manifest: &Value, findings: &mut BTreeSet<Finding>) {
@@ -1214,6 +1244,38 @@ mod tests {
                     path: "openapi/client.generated.ts".to_owned(),
                 },
             ]
+        );
+    }
+
+    #[test]
+    fn diff_policy_allows_declared_materialized_generated_artifact_edits() {
+        let mut face = artifact(
+            "cloud-ci-accounting-registry-face",
+            "out/example.generated.json",
+        );
+        face["materialization_mode"] = json!("merge-candidate-regenerated");
+        let mut scm_facts = artifact("cloud-ci-scm-facts", "out/scm-facts.generated.json");
+        scm_facts["artifact_class"] = json!("scm-facts-boundary-snapshot");
+        scm_facts["materialization_mode"] = json!("main-branch-materialized");
+        scm_facts["merge_policy"] = json!("controller-owned-main-materialization");
+        scm_facts["generator"]["operation_id"] = json!("emit-scm-facts-boundary-snapshot");
+        scm_facts["generator"]["input_contract"] = json!(["repo-root", "full-depth-scm"]);
+        let manifest = manifest(vec![face, scm_facts]);
+        let diff = concat!(
+            "M\tout/example.generated.json\n",
+            "M\tout/scm-facts.generated.json\n",
+            "M\tout/untracked.generated.json\n",
+        );
+
+        let (findings, violations) = generated_output_diff_policy_violations(&manifest, diff);
+
+        assert_eq!(findings, BTreeSet::new());
+        assert_eq!(
+            violations,
+            vec![DiffPolicyViolation {
+                status: "M".to_owned(),
+                path: "out/untracked.generated.json".to_owned(),
+            }]
         );
     }
 

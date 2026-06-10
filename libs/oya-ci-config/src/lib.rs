@@ -719,6 +719,11 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             face: Some(GateFace::WorkspaceGlobCoverage),
         },
         GateSpec {
+            id: "cloud-ci-freshness".to_owned(),
+            input_kind: GateInputKind::FrozenEmptyMeta,
+            face: None,
+        },
+        GateSpec {
             id: "cloud-ci-brand-residue".to_owned(),
             input_kind: GateInputKind::RawCorpusCollector,
             face: None,
@@ -803,9 +808,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_ten_gates_with_input_kinds() {
+    fn bundled_default_enables_all_eleven_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 10);
+        assert_eq!(cfg.gates.enabled.len(), 11);
         let brand = cfg
             .gates
             .enabled
@@ -852,6 +857,42 @@ mod tests {
             workspace_glob_coverage.face,
             Some(GateFace::WorkspaceGlobCoverage)
         );
+        let freshness = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-freshness")
+            .expect("freshness gate enabled");
+        assert_eq!(freshness.input_kind, GateInputKind::FrozenEmptyMeta);
+        assert!(freshness.face.is_none());
+
+        let disp: serde_json::Value =
+            serde_json::from_str(cfg.gates.disposition_json()).expect("disposition json");
+        let freshness_codes = disp
+            .get("gates")
+            .and_then(|gates| gates.get("cloud-ci-freshness"))
+            .and_then(serde_json::Value::as_object)
+            .expect("freshness disposition");
+        for code in [
+            "lock_missing_member_package",
+            "lock_stale_member_version",
+            "lock_orphan_path_package",
+            "generated_face_stale",
+        ] {
+            let disposition = freshness_codes
+                .get(code)
+                .expect("freshness code disposition");
+            assert_eq!(
+                disposition.get("mode").and_then(serde_json::Value::as_str),
+                Some("baseline-block-on-new")
+            );
+            assert_eq!(
+                disposition
+                    .get("frozen_empty")
+                    .and_then(serde_json::Value::as_bool),
+                Some(true)
+            );
+        }
     }
 
     #[test]

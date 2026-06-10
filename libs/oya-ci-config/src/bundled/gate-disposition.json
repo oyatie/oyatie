@@ -71,6 +71,12 @@
       "forbidden_forgejo": {"mode": "baseline-block-on-new"},
       "forbidden_jenkins": {"mode": "baseline-block-on-new"},
       "forbidden_oya-vcs": {"mode": "baseline-block-on-new"}
+    },
+    "cloud-ci-freshness": {
+      "lock_missing_member_package": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "lock_stale_member_version": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "lock_orphan_path_package": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "generated_face_stale": {"mode": "baseline-block-on-new", "frozen_empty": true}
     }
   }
 }
