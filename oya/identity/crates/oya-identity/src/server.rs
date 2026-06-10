@@ -16,13 +16,10 @@ use tonic::transport::server::TcpIncoming;
 use tracing::{error, info};
 
 use oya_identity_oidc_issuer_kernel::{IssuerError, IssuerUrl};
-use oya_identity_workload_app::{
-    InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository,
-};
 use oya_identity_workload_authz_cedar_adapter::{CedarAuthzError, CedarWorkloadAuthorizer};
 use oya_identity_workload_oidc_adapter::ValidationConfig;
-use oya_identity_workload_rest::WorkloadAuthzState;
 
+use crate::AppState;
 use crate::config::Config;
 use crate::observability::TracingAuditSink;
 use crate::oidc::issuer::{Es256FileSigner, IssuerState, build_issuer_router};
@@ -31,22 +28,14 @@ use crate::storage::{SeedError, seed_from_json};
 use crate::users::{SCIM_BASE, ScimSurfaceState, build_scim_router};
 use crate::{grpc, rest};
 
-/// The composed application state: in-memory bring-up stores behind the
-/// repository/denylist ports (G03 swaps the durable store in behind the same
-/// ports), the embedded Cedar PDP, the static JWKS, and the tracing audit
-/// sink.
-pub type AppState = WorkloadAuthzState<
-    InMemoryWorkloadPrincipalRepository,
-    InMemoryRevocationDenylist,
-    CedarWorkloadAuthorizer,
-    TracingAuditSink,
->;
-
 /// A failure on the boot path.
 #[derive(Debug)]
 pub enum StartError {
     /// A configured file could not be read.
-    Io { path: String, source: std::io::Error },
+    Io {
+        path: String,
+        source: std::io::Error,
+    },
     /// The JWKS document was rejected.
     Jwks(JwksParseError),
     /// The Cedar policy set was rejected.
@@ -56,7 +45,10 @@ pub enum StartError {
     /// The issuer signing key or issuer identity was rejected.
     Issuer(IssuerError),
     /// A listener could not bind.
-    Bind { addr: String, source: std::io::Error },
+    Bind {
+        addr: String,
+        source: std::io::Error,
+    },
 }
 
 impl fmt::Display for StartError {
@@ -130,7 +122,8 @@ fn build_issuer_state(config: &Config) -> Result<Option<Arc<IssuerState>>, Start
     let signer = Es256FileSigner::from_pkcs8_der(&config.signing_kid, &read_bytes(path)?)
         .map_err(StartError::Issuer)?;
     let mut key = signer.signing_key().map_err(StartError::Issuer)?;
-    key.activate(default_now_epoch_seconds()).map_err(StartError::Issuer)?;
+    key.activate(default_now_epoch_seconds())
+        .map_err(StartError::Issuer)?;
     let issuer_url = IssuerUrl::new(&config.issuer).map_err(StartError::Issuer)?;
     Ok(Some(Arc::new(IssuerState::new(
         issuer_url,
@@ -182,29 +175,31 @@ pub fn build_state(config: &Config) -> Result<Arc<AppState>, StartError> {
 pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
     let state = build_state(config)?;
 
-    let rest_listener =
-        TcpListener::bind(&config.rest_addr)
-            .await
-            .map_err(|source| StartError::Bind {
-                addr: config.rest_addr.clone(),
-                source,
-            })?;
-    let rest_addr = rest_listener.local_addr().map_err(|source| StartError::Bind {
-        addr: config.rest_addr.clone(),
-        source,
-    })?;
+    let rest_listener = TcpListener::bind(&config.rest_addr)
+        .await
+        .map_err(|source| StartError::Bind {
+            addr: config.rest_addr.clone(),
+            source,
+        })?;
+    let rest_addr = rest_listener
+        .local_addr()
+        .map_err(|source| StartError::Bind {
+            addr: config.rest_addr.clone(),
+            source,
+        })?;
 
-    let grpc_listener =
-        TcpListener::bind(&config.grpc_addr)
-            .await
-            .map_err(|source| StartError::Bind {
-                addr: config.grpc_addr.clone(),
-                source,
-            })?;
-    let grpc_addr = grpc_listener.local_addr().map_err(|source| StartError::Bind {
-        addr: config.grpc_addr.clone(),
-        source,
-    })?;
+    let grpc_listener = TcpListener::bind(&config.grpc_addr)
+        .await
+        .map_err(|source| StartError::Bind {
+            addr: config.grpc_addr.clone(),
+            source,
+        })?;
+    let grpc_addr = grpc_listener
+        .local_addr()
+        .map_err(|source| StartError::Bind {
+            addr: config.grpc_addr.clone(),
+            source,
+        })?;
     let grpc_incoming = TcpIncoming::from(grpc_listener).with_nodelay(Some(true));
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
@@ -220,6 +215,7 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
         jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
         ValidationConfig::new(&config.issuer, &config.audience),
         default_now_epoch_seconds,
+        Arc::clone(&state),
     ));
     rest_router = rest_router.merge(build_scim_router(scim_state));
     let mut rest_shutdown = shutdown_rx.clone();

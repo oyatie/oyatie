@@ -87,17 +87,27 @@ impl Config {
     /// # Errors
     /// Returns [`ConfigError`] when a required key resolves to `None`.
     pub fn from_lookup(lookup: impl Fn(&str) -> Option<String>) -> Result<Self, ConfigError> {
-        let required = |key: &'static str| lookup(key).ok_or(ConfigError { missing: key });
+        let required = |key: &'static str| {
+            lookup(key)
+                .map(|value| value.trim().to_owned())
+                .filter(|value| !value.is_empty())
+                .ok_or(ConfigError { missing: key })
+        };
+        let optional = |key: &'static str| {
+            lookup(key)
+                .map(|value| value.trim().to_owned())
+                .filter(|value| !value.is_empty())
+        };
         Ok(Self {
-            rest_addr: lookup(ENV_REST_ADDR).unwrap_or_else(|| DEFAULT_REST_ADDR.into()),
-            grpc_addr: lookup(ENV_GRPC_ADDR).unwrap_or_else(|| DEFAULT_GRPC_ADDR.into()),
+            rest_addr: optional(ENV_REST_ADDR).unwrap_or_else(|| DEFAULT_REST_ADDR.into()),
+            grpc_addr: optional(ENV_GRPC_ADDR).unwrap_or_else(|| DEFAULT_GRPC_ADDR.into()),
             issuer: required(ENV_ISSUER)?,
             audience: required(ENV_AUDIENCE)?,
             jwks_path: required(ENV_JWKS_PATH)?,
             cedar_policy_path: required(ENV_CEDAR_POLICY_PATH)?,
-            principals_path: lookup(ENV_PRINCIPALS_PATH),
-            signing_key_path: lookup(ENV_SIGNING_KEY_PATH),
-            signing_kid: lookup(ENV_SIGNING_KID).unwrap_or_else(|| DEFAULT_SIGNING_KID.into()),
+            principals_path: optional(ENV_PRINCIPALS_PATH),
+            signing_key_path: optional(ENV_SIGNING_KEY_PATH),
+            signing_kid: optional(ENV_SIGNING_KID).unwrap_or_else(|| DEFAULT_SIGNING_KID.into()),
         })
     }
 }
@@ -164,5 +174,27 @@ mod tests {
         })
         .expect_err("must fail");
         assert!(err.to_string().contains(ENV_JWKS_PATH));
+    }
+
+    #[test]
+    fn refuses_blank_required_values_and_ignores_blank_optionals() {
+        let err = Config::from_lookup(|key| match key {
+            ENV_AUDIENCE => Some("   ".into()),
+            other => full_lookup(other),
+        })
+        .expect_err("blank required value must fail");
+        assert!(err.to_string().contains(ENV_AUDIENCE));
+
+        let config = Config::from_lookup(|key| match key {
+            ENV_REST_ADDR => Some("   ".into()),
+            ENV_PRINCIPALS_PATH | ENV_SIGNING_KEY_PATH => Some("   ".into()),
+            ENV_SIGNING_KID => Some("   ".into()),
+            other => full_lookup(other),
+        })
+        .expect("config");
+        assert_eq!(config.rest_addr, DEFAULT_REST_ADDR);
+        assert_eq!(config.principals_path, None);
+        assert_eq!(config.signing_key_path, None);
+        assert_eq!(config.signing_kid, DEFAULT_SIGNING_KID);
     }
 }

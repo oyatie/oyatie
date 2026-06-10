@@ -66,6 +66,10 @@ spec:
               value: /etc/oya-identity/keys/jwks.json
             - name: OYA_IDENTITY_CEDAR_POLICY_PATH
               value: /etc/oya-identity/cedar/policies.cedar
+            {{- if .Values.identity.signingKeySecretName }}
+            - name: OYA_IDENTITY_SIGNING_KEY_PATH
+              value: {{ .Values.identity.signingKeyPath | quote }}
+            {{- end }}
             {{- if .Values.identity.principalsConfigMapName }}
             - name: OYA_IDENTITY_PRINCIPALS_PATH
               value: /etc/oya-identity/principals/principals.json
@@ -77,6 +81,11 @@ spec:
             - name: cedar-policies
               mountPath: /etc/oya-identity/cedar
               readOnly: true
+            {{- if .Values.identity.signingKeySecretName }}
+            - name: signing-key
+              mountPath: /etc/oya-identity/signing
+              readOnly: true
+            {{- end }}
             {{- if .Values.identity.principalsConfigMapName }}
             - name: principals
               mountPath: /etc/oya-identity/principals
@@ -84,7 +93,7 @@ spec:
             {{- end }}
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /readyz
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -109,6 +118,14 @@ spec:
         - name: cedar-policies
           configMap:
             name: {{ .Values.cedar.policyConfigMapName | quote }}
+        {{- if .Values.identity.signingKeySecretName }}
+        - name: signing-key
+          secret:
+            secretName: {{ .Values.identity.signingKeySecretName | quote }}
+            items:
+              - key: {{ .Values.identity.signingKeySecretKey | quote }}
+                path: signing-key.pk8
+        {{- end }}
         {{- if .Values.identity.principalsConfigMapName }}
         - name: principals
           configMap:
