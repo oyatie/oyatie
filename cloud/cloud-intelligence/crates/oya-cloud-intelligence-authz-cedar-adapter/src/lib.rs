@@ -158,6 +158,7 @@ fn provider_label(provider: Provider) -> &'static str {
     match provider {
         Provider::Anthropic => "anthropic",
         Provider::Codex => "codex",
+        Provider::Gemini => "gemini",
     }
 }
 

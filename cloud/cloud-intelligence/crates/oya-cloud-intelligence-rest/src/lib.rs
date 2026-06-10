@@ -51,6 +51,12 @@ use futures::StreamExt as _;
 use oya_cloud_intelligence_codex_adapter::{
     CodexAdapterError, CodexProxyRequest, CodexProxyResponse, OpenAiApiKeyAdapter,
 };
+use oya_cloud_intelligence_gemini_adapter::{
+    GeminiAdapterError, GeminiApiKeyAdapter, GeminiProxyResponse,
+};
+use oya_cloud_intelligence_kernel::model_routing::{
+    BackendClass, ModelRouter, ProtocolShape, RoutePolicy, RouteRequest,
+};
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tracing::{debug, warn};
@@ -257,6 +263,9 @@ const ANTHROPIC_BASE_URL: &str = "https://api.anthropic.com";
 
 /// Default OpenAI-compatible base URL for API-key provider pools.
 const OPENAI_COMPATIBLE_BASE_URL: &str = "https://api.openai.com";
+
+/// Default Gemini API base URL for API-key provider pools.
+const GEMINI_BASE_URL: &str = "https://generativelanguage.googleapis.com/v1beta";
 
 /// Anthropic API version header value.
 const ANTHROPIC_VERSION: &str = "2023-06-01";
@@ -1204,6 +1213,7 @@ pub struct AppState {
     pub secret_store: Arc<dyn SecretProviderStore>, // data_class: INTERNAL_ONLY
     pub anthropic_base_url: String,  // data_class: INTERNAL_ONLY
     pub openai_compatible_base_url: String, // data_class: INTERNAL_ONLY
+    pub gemini_base_url: String,     // data_class: INTERNAL_ONLY
     pub tenant_id: TenantId,         // data_class: INTERNAL_ONLY
     pub admin_bearer_token: Option<String>, // data_class: SECRET
     /// Runtime environment string (e.g. `production`). Production enforces the
@@ -1274,6 +1284,7 @@ impl AppState {
             secret_store,
             anthropic_base_url,
             openai_compatible_base_url: OPENAI_COMPATIBLE_BASE_URL.to_string(),
+            gemini_base_url: GEMINI_BASE_URL.to_string(),
             tenant_id,
             admin_bearer_token,
             environment,
@@ -1345,6 +1356,15 @@ async fn handle_proxy(
     headers: HeaderMap,
     body: Bytes,
 ) -> Response {
+    if route_backend_for_body(
+        ProtocolShape::AnthropicMessages,
+        &body,
+        BackendClass::AnthropicSubscription,
+    ) == Some(BackendClass::GeminiNative)
+    {
+        return handle_gemini_anthropic_messages_proxy(state, headers, body).await;
+    }
+
     // Extract agent-id from x-agent-id header.
     let agent_id_str = match headers.get("x-agent-id").and_then(|v| v.to_str().ok()) {
         Some(s) => s.to_string(),
@@ -1688,6 +1708,22 @@ fn codex_proxy_response_to_axum(resp: CodexProxyResponse) -> Response {
         .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
 }
 
+fn gemini_proxy_response_to_axum(resp: GeminiProxyResponse) -> Response {
+    let mut builder = axum::response::Response::builder().status(resp.status);
+    for (k, v) in &resp.headers {
+        if let (Ok(name), Ok(value)) = (
+            HeaderName::from_bytes(k.as_bytes()),
+            HeaderValue::from_str(v),
+        ) {
+            builder = builder.header(name, value);
+        }
+    }
+    builder
+        .header("content-type", "application/json")
+        .body(Body::from(resp.body))
+        .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
+}
+
 fn openai_adapter_error_to_response(error: CodexAdapterError) -> Response {
     match error {
         CodexAdapterError::RateLimited { retry_after_secs } => openai_error_response(
@@ -1716,6 +1752,39 @@ fn openai_adapter_error_to_response(error: CodexAdapterError) -> Response {
             "upstream_error",
             "provider_refresh_failed",
             "upstream provider credential refresh failed",
+            None,
+        ),
+    }
+}
+
+fn gemini_adapter_error_to_response(error: GeminiAdapterError) -> Response {
+    match error {
+        GeminiAdapterError::InvalidRequest(message) => openai_error_response(
+            StatusCode::BAD_REQUEST,
+            "invalid_request_error",
+            "invalid_gemini_adapter_request",
+            message,
+            None,
+        ),
+        GeminiAdapterError::RateLimited { retry_after_secs } => openai_error_response(
+            StatusCode::TOO_MANY_REQUESTS,
+            "rate_limit_error",
+            "upstream_rate_limited",
+            "upstream provider rate limited the request",
+            retry_after_secs,
+        ),
+        GeminiAdapterError::UpstreamError { status, body } => openai_error_response(
+            StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY),
+            "upstream_error",
+            "upstream_error",
+            body,
+            None,
+        ),
+        GeminiAdapterError::TransportError(_) => openai_error_response(
+            StatusCode::BAD_GATEWAY,
+            "upstream_error",
+            "provider_transport_error",
+            "upstream provider transport failed",
             None,
         ),
     }
@@ -1802,6 +1871,16 @@ async fn handle_openai_compatible_proxy(
     upstream_path: &'static str,
     allow_stream: bool,
 ) -> Response {
+    if upstream_path == "/v1/chat/completions"
+        && route_backend_for_body(
+            ProtocolShape::OpenAiChatCompletions,
+            &body,
+            BackendClass::OpenAiCompatible,
+        ) == Some(BackendClass::GeminiNative)
+    {
+        return handle_gemini_openai_chat_proxy(state, headers, body).await;
+    }
+
     let agent_id = match parse_agent_header_for_openai(&headers) {
         Ok(agent_id) => agent_id,
         Err(response) => return response,
@@ -1958,6 +2037,209 @@ async fn handle_openai_compatible_proxy(
     }
 }
 
+fn route_backend_for_body(
+    protocol: ProtocolShape,
+    body: &[u8],
+    tenant_default_backend: BackendClass,
+) -> Option<BackendClass> {
+    let model = serde_json::from_slice::<serde_json::Value>(body)
+        .ok()
+        .and_then(|payload| {
+            payload
+                .get("model")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_string)
+        })?;
+    ModelRouter::default()
+        .route(RouteRequest {
+            protocol,
+            model,
+            route_policy: RoutePolicy::default(),
+            tenant_default_backend: Some(tenant_default_backend),
+        })
+        .ok()
+        .map(|decision| decision.backend)
+}
+
+async fn handle_gemini_openai_chat_proxy(
+    state: Arc<AppState>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> Response {
+    if openai_stream_requested(&headers, &body) {
+        return openai_error_response(
+            StatusCode::NOT_IMPLEMENTED,
+            "unsupported_feature",
+            "gemini_stream_translation_not_enabled",
+            "Gemini streaming translation is not enabled for this route yet",
+            None,
+        );
+    }
+    let agent_id = match parse_agent_header_for_openai(&headers) {
+        Ok(agent_id) => agent_id,
+        Err(response) => return response,
+    };
+    handle_gemini_adapter_proxy(
+        state,
+        headers,
+        body,
+        agent_id,
+        GeminiRequestShape::OpenAiChat,
+    )
+    .await
+}
+
+async fn handle_gemini_anthropic_messages_proxy(
+    state: Arc<AppState>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> Response {
+    let agent_id_str = match headers.get("x-agent-id").and_then(|v| v.to_str().ok()) {
+        Some(s) => s.to_string(),
+        None => return (StatusCode::BAD_REQUEST, "missing x-agent-id header").into_response(),
+    };
+    let agent_id = match AgentId::new(agent_id_str) {
+        Ok(id) => id,
+        Err(_) => return (StatusCode::BAD_REQUEST, "invalid x-agent-id header").into_response(),
+    };
+    handle_gemini_adapter_proxy(
+        state,
+        headers,
+        body,
+        agent_id,
+        GeminiRequestShape::AnthropicMessages,
+    )
+    .await
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum GeminiRequestShape {
+    OpenAiChat,
+    AnthropicMessages,
+}
+
+async fn handle_gemini_adapter_proxy(
+    state: Arc<AppState>,
+    headers: HeaderMap,
+    body: Bytes,
+    agent_id: AgentId,
+    request_shape: GeminiRequestShape,
+) -> Response {
+    let lease_context = match acquire_provider_lease(&state, Provider::Gemini, &agent_id) {
+        Ok(context) => context,
+        Err(LeaseError::Forbidden) => {
+            return gemini_adapter_error_to_response(GeminiAdapterError::InvalidRequest(
+                "request was denied by policy".to_string(),
+            ));
+        }
+        Err(LeaseError::NoEligibleSeat) => {
+            return openai_error_response(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "unavailable_error",
+                "no_eligible_provider_seat",
+                "no eligible Gemini provider seat is available",
+                Some(1),
+            );
+        }
+        Err(LeaseError::Internal) => {
+            return openai_error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "server_error",
+                "provider_pool_error",
+                "provider pool state could not be read",
+                None,
+            );
+        }
+    };
+
+    if lease_context.credential_mode != CredentialMode::ApiKey {
+        let _ = lease_context
+            .lease
+            .complete(SeatOutcome::RefreshFailed, Instant::now());
+        return openai_error_response(
+            StatusCode::BAD_GATEWAY,
+            "upstream_error",
+            "gemini_api_key_required",
+            "Gemini routes require an API-key provider seat",
+            None,
+        );
+    }
+
+    let api_key = match state
+        .secret_store
+        .fetch_refresh_token(&lease_context.credential_handle)
+    {
+        Ok(api_key) => api_key,
+        Err(_) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::RefreshFailed, Instant::now());
+            return openai_error_response(
+                StatusCode::BAD_GATEWAY,
+                "upstream_error",
+                "provider_credential_unavailable",
+                "provider credential handle could not be resolved",
+                None,
+            );
+        }
+    };
+
+    let adapter = GeminiApiKeyAdapter::with_base_url(
+        Arc::clone(&state.http_client),
+        state.gemini_base_url.clone(),
+    );
+    let result = match request_shape {
+        GeminiRequestShape::OpenAiChat => {
+            adapter
+                .proxy_openai_chat(&api_key, body.to_vec(), headers_to_btree(&headers))
+                .await
+        }
+        GeminiRequestShape::AnthropicMessages => {
+            adapter
+                .proxy_anthropic_messages(&api_key, body.to_vec(), headers_to_btree(&headers))
+                .await
+        }
+    };
+
+    match result {
+        Ok(resp) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::Ok, Instant::now());
+            let now_ms = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as u64;
+            state.sink.emit(LlmGatewayEvent {
+                request_id: format!("req-{now_ms}"),
+                tenant_id: state.tenant_id.clone(),
+                agent_id,
+                seat_id: lease_context.seat_id,
+                provider: Provider::Gemini,
+                model: String::new(),
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                ms_latency: 0,
+                status: oya_cloud_intelligence_kernel::EventStatus::Ok,
+                timestamp_unix_ms: now_ms,
+            });
+            gemini_proxy_response_to_axum(resp)
+        }
+        Err(GeminiAdapterError::RateLimited { retry_after_secs }) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::RateLimited429, Instant::now());
+            gemini_adapter_error_to_response(GeminiAdapterError::RateLimited { retry_after_secs })
+        }
+        Err(error) => {
+            let _ = lease_context
+                .lease
+                .complete(SeatOutcome::ServerError5xx, Instant::now());
+            gemini_adapter_error_to_response(error)
+        }
+    }
+}
+
 #[derive(Deserialize)]
 struct AdminRegisterSubscriptionRequest {
     seat_id: String,
@@ -2063,6 +2345,11 @@ async fn handle_models() -> Response {
                 id: "gpt-4o",
                 object: "model",
                 owned_by: "openai-compatible-backend",
+            },
+            ModelInventoryModel {
+                id: "gemini-2.5-flash",
+                object: "model",
+                owned_by: "gemini-native-backend",
             },
         ],
         inventory_source: "model-inventory-worker",
@@ -2304,6 +2591,7 @@ fn parse_provider(raw: &str) -> Option<Provider> {
     match raw.trim().to_ascii_lowercase().as_str() {
         "anthropic" | "claude" => Some(Provider::Anthropic),
         "codex" | "openai" => Some(Provider::Codex),
+        "gemini" | "google" => Some(Provider::Gemini),
         _ => None,
     }
 }
@@ -2895,6 +3183,83 @@ mod tests {
         assert!(!resume_body.to_ascii_lowercase().contains("tui"));
     }
 
+
+
+    #[tokio::test]
+    async fn cloud_intelligence_safety_admin_routes_are_authenticated_and_redacted() {
+        let router = build_router(test_state(true, true));
+        for path in [
+            "/admin/v1/guardrails",
+            "/admin/v1/guardrails/escalations",
+            "/admin/v1/evidence/retention",
+            "/admin/v1/redaction/profiles",
+        ] {
+            let response = router
+                .clone()
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::UNAUTHORIZED, "{path} auth");
+        }
+
+        let guardrails = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/guardrails")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(guardrails.status(), StatusCode::OK);
+        let body = guardrails.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("mandatory_secondary_agentic_review"));
+        assert!(body.contains("\"tenant_can_override_platform_critical_block\":false"));
+        assert!(body.contains("owned-policy-engine-port"));
+        assert!(!body.contains("Cedar"));
+        assert!(!body.contains("OpenBao"));
+        assert!(!body.contains("vault"));
+
+        let evidence = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/evidence/retention")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(evidence.status(), StatusCode::OK);
+        let body = evidence.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("encrypted_handle_on_guardrail_trigger"));
+        assert!(body.contains("raw_access_requires_audited_break_glass"));
+        assert!(!body.contains("raw_prompt"));
+        assert!(!body.contains("raw_completion"));
+
+        let redaction = router
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/redaction/profiles")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(redaction.status(), StatusCode::OK);
+        let body = redaction.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("reversible_tokens_require_tenant_policy"));
+        assert!(body.contains("ephemeral-run"));
+        assert!(body.contains("restore_only_after_model_output"));
+    }
+
     #[tokio::test]
     async fn xproxy_api_004_model_inventory_and_count_tokens_routes_are_contract_first_cloud_surfaces()
      {
@@ -2915,6 +3280,7 @@ mod tests {
         let models_body = std::str::from_utf8(&models_body).unwrap();
         assert!(models_body.contains("\"object\":\"list\""));
         assert!(models_body.contains("model-inventory-worker"));
+        assert!(models_body.contains("gemini-2.5-flash"));
         assert!(!models_body.to_ascii_lowercase().contains("cli"));
         assert!(!models_body.to_ascii_lowercase().contains("tui"));
 
@@ -3248,6 +3614,172 @@ mod tests {
             !req.contains("must-not-forward"),
             "provider-control or connection-nominated headers leaked:\n{req}"
         );
+    }
+
+    fn gemini_proxy_state(base_url: String) -> Arc<AppState> {
+        let tenant_id = TenantId::new("tenant-a").unwrap();
+        let default_pool = Arc::new(Mutex::new(SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        )));
+
+        let mut gemini_pool = SubscriptionPool::new(
+            tenant_id.clone(),
+            Provider::Gemini,
+            SelectionStrategy::RoundRobin,
+        );
+        gemini_pool
+            .add_seat(
+                OAuthSubscription::new(
+                    tenant_id.clone(),
+                    SeatId::new("gemini-seat-a").unwrap(),
+                    SubscriptionId::new("gemini-sub-a").unwrap(),
+                    Provider::Gemini,
+                    SubscriptionState::Active,
+                    "secret-ref://tenant-a/gemini/gemini-seat-a",
+                    0,
+                )
+                .with_credential_mode(CredentialMode::ApiKey),
+            )
+            .unwrap();
+
+        let registry = PoolRegistry::new();
+        registry.insert_pool(
+            tenant_id.clone(),
+            Provider::Anthropic,
+            Arc::clone(&default_pool),
+        );
+        registry.insert_pool(
+            tenant_id.clone(),
+            Provider::Gemini,
+            Arc::new(Mutex::new(gemini_pool)),
+        );
+
+        let mut state = AppState::new_with_pool_registry(
+            default_pool,
+            registry,
+            Arc::new(AllowGate),
+            Arc::new(NoopSink),
+            Arc::new(MemorySecretStore { ready: true }),
+            "http://127.0.0.1:1".to_string(),
+            tenant_id,
+            Some("admin-token".to_string()),
+            "development".to_string(),
+            std::collections::HashSet::new(),
+        )
+        .unwrap();
+        state.gemini_base_url = format!("{base_url}/v1beta");
+        Arc::new(state)
+    }
+
+    #[tokio::test]
+    async fn xproxy_route_gemini_openai_chat_translates_to_native_generate_content_backend() {
+        let upstream_body = r#"{"candidates":[{"content":{"role":"model","parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":2,"candidatesTokenCount":3}}"#;
+        let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
+            format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
+                upstream_body.len(), upstream_body
+            )
+            .into_boxed_str(),
+        )]);
+        let state = gemini_proxy_state(base_url);
+        let request_body = r#"{"model":"gemini:gemini-2.5-flash","messages":[{"role":"system","content":"Be brief"},{"role":"user","content":"hello"}]}"#;
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/chat/completions")
+                    .header("x-agent-id", "agent-a")
+                    .header("authorization", "Bearer caller-token")
+                    .header("connection", "x-drop-me")
+                    .header("x-drop-me", "must-not-forward")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body_json["object"], "chat.completion");
+        assert_eq!(
+            body_json["choices"][0]["message"]["content"],
+            serde_json::json!("ok")
+        );
+        assert_eq!(body_json["usage"]["total_tokens"], serde_json::json!(5));
+
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(requests.len(), 1);
+        let req = &requests[0];
+        assert!(
+            req.starts_with("POST /v1beta/models/gemini-2.5-flash:generateContent "),
+            "unexpected upstream path:\n{req}"
+        );
+        assert_header(req, "x-goog-api-key", "test-refresh-token");
+        assert!(req.contains("\"contents\""));
+        assert!(req.contains("\"systemInstruction\""));
+        assert!(!req.contains("\"messages\""));
+        assert!(!req.contains("caller-token"));
+        assert!(!req.contains("must-not-forward"));
+    }
+
+    #[tokio::test]
+    async fn xproxy_route_gemini_anthropic_messages_translates_through_adapter_boundary() {
+        let upstream_body = r#"{"candidates":[{"content":{"role":"model","parts":[{"text":"pong"}]}}],"usageMetadata":{"promptTokenCount":4,"candidatesTokenCount":6}}"#;
+        let (base_url, received, _server) = recording_multi_request_server(vec![Box::leak(
+            format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
+                upstream_body.len(), upstream_body
+            )
+            .into_boxed_str(),
+        )]);
+        let state = gemini_proxy_state(base_url);
+        let request_body = r#"{"model":"gemini:gemini-2.5-pro","system":"Be exact","max_tokens":64,"messages":[{"role":"user","content":"ping"}]}"#;
+
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/messages")
+                    .header("x-agent-id", "agent-a")
+                    .header("authorization", "Bearer caller-token")
+                    .header("connection", "x-drop-me")
+                    .header("x-drop-me", "must-not-forward")
+                    .header("content-type", "application/json")
+                    .body(Body::from(request_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body_json["type"], "message");
+        assert_eq!(
+            body_json["content"][0]["text"],
+            serde_json::json!("pong")
+        );
+        assert_eq!(body_json["usage"]["input_tokens"], serde_json::json!(4));
+        assert_eq!(body_json["usage"]["output_tokens"], serde_json::json!(6));
+
+        let requests = received.lock().unwrap().clone();
+        assert_eq!(requests.len(), 1);
+        let req = &requests[0];
+        assert!(
+            req.starts_with("POST /v1beta/models/gemini-2.5-pro:generateContent "),
+            "unexpected upstream path:\n{req}"
+        );
+        assert_header(req, "x-goog-api-key", "test-refresh-token");
+        assert!(req.contains("\"contents\""));
+        assert!(req.contains("\"systemInstruction\""));
+        assert!(!req.contains("\"messages\""));
+        assert!(!req.contains("caller-token"));
+        assert!(!req.contains("must-not-forward"));
     }
 
     #[tokio::test]
@@ -3621,6 +4153,49 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let body = std::str::from_utf8(&body).unwrap();
         assert!(body.contains("\"total_seats\":2"));
+    }
+
+    #[tokio::test]
+    async fn tenant_scoped_admin_subscription_registration_accepts_gemini_api_key_pool() {
+        let router = build_router(test_state(true, true));
+        let response = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/admin/v1/tenants/tenant-a/providers/gemini/subscriptions")
+                    .header("authorization", "Bearer admin-token")
+                    .header("idempotency-key", "33333333-3333-4333-8333-333333333333")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        r#"{"seat_id":"gemini-seat-b","subscription_id":"gemini-sub-b","credential_mode":"api_key","secret_handle":"secret-ref://tenant-a/gemini/seat-b"}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("\"provider\":\"gemini\""));
+        assert!(!body.contains("secret-ref://tenant-a/gemini/seat-b"));
+
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/tenants/tenant-a/providers/gemini/pool")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("\"provider\":\"gemini\""));
+        assert!(body.contains("\"total_seats\":1"));
     }
 
     #[tokio::test]

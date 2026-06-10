@@ -40,12 +40,18 @@ fn tool_classifier_detects_text_tool_and_policy_modes() {
 fn xproxy_compat_001_matrix_records_supported_inferred_and_blocked_clients() {
     let matrix = ClientCompatibilityMatrix::default_profiles();
     assert!(matrix.is_supported("codex-compatible-client"));
+    assert!(matrix.is_supported("gemini-compatible-client"));
     assert!(matrix.is_inferred("continue-dev"));
     assert!(matrix.is_blocked("unsafe-public-tunnel-default"));
     assert!(
         matrix
             .canary_names()
             .contains(&"openai-chat-pass-through".to_string())
+    );
+    assert!(
+        matrix
+            .canary_names()
+            .contains(&"gemini-generate-content".to_string())
     );
 }
 

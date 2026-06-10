@@ -94,6 +94,67 @@ pub fn default_worker_ownership() -> Vec<WorkerOwnership> {
             writes_raw_prompts_or_secrets: false,
         },
         WorkerOwnership {
+            name: "agent-runtime-controller",
+            kind: WorkerKind::ControllerDeployment,
+            reconciles: &[
+                "AgentRuntimeProfile",
+                "AgentMemoryBinding",
+                "AgentSkillBundle",
+                "AgentWorkspaceBinding",
+            ],
+            writes: &["agent-runtime-status", "redacted-runtime-events"],
+            hot_path: false,
+            writes_raw_prompts_or_secrets: false,
+        },
+        WorkerOwnership {
+            name: "agent-scheduler-worker",
+            kind: WorkerKind::WorkerDeployment,
+            reconciles: &["AgentSchedule", "AgentRuntimeProfile"],
+            writes: &["agent-schedule-status", "agent-run-request"],
+            hot_path: false,
+            writes_raw_prompts_or_secrets: false,
+        },
+        WorkerOwnership {
+            name: "agent-delegation-worker",
+            kind: WorkerKind::WorkerDeployment,
+            reconciles: &["AgentDelegationPolicy", "AgentRuntimeProfile", "ModelRoute"],
+            writes: &["delegation-status", "route-advice-event"],
+            hot_path: false,
+            writes_raw_prompts_or_secrets: false,
+        },
+        WorkerOwnership {
+            name: "safety-enforcement-controller",
+            kind: WorkerKind::ControllerDeployment,
+            reconciles: &[
+                "GuardrailDetectionProfile",
+                "SafetySignalPolicy",
+                "ManualReviewEscalation",
+            ],
+            writes: &["safety-enforcement-status", "redacted-safety-signals"],
+            hot_path: false,
+            writes_raw_prompts_or_secrets: false,
+        },
+        WorkerOwnership {
+            name: "guardrail-detection-worker",
+            kind: WorkerKind::WorkerDeployment,
+            reconciles: &[
+                "GuardrailDetectionProfile",
+                "InTransitRedactionProfile",
+                "AgentRuntimeProfile",
+            ],
+            writes: &["guardrail-signal", "redacted-secondary-review-request"],
+            hot_path: false,
+            writes_raw_prompts_or_secrets: false,
+        },
+        WorkerOwnership {
+            name: "evidence-retention-controller",
+            kind: WorkerKind::ControllerDeployment,
+            reconciles: &["EvidenceRetentionProfile", "ManualReviewEscalation"],
+            writes: &["sealed-evidence-handle", "evidence-retention-status"],
+            hot_path: false,
+            writes_raw_prompts_or_secrets: false,
+        },
+        WorkerOwnership {
             name: "ops-api",
             kind: WorkerKind::OpsDeployment,
             reconciles: &["admin-status-cache"],
@@ -108,6 +169,7 @@ pub fn default_worker_ownership() -> Vec<WorkerOwnership> {
 pub enum ProviderClass {
     AnthropicSubscription,
     OpenAiCompatible,
+    GeminiNative,
 }
 
 impl ProviderClass {
@@ -115,6 +177,7 @@ impl ProviderClass {
         match self {
             Self::AnthropicSubscription => "anthropic-subscription",
             Self::OpenAiCompatible => "openai-compatible",
+            Self::GeminiNative => "gemini-native",
         }
     }
 }
@@ -137,6 +200,8 @@ pub enum WorkerConfigError {
     RawSecretValue,
     UnauthorizedRouteMutation,
     InvalidPolicyValue,
+    InvalidTypedReference,
+    InvalidAdapterSet,
 }
 
 impl ProviderBackendSpec {
@@ -159,6 +224,498 @@ impl ProviderBackendSpec {
             weight,
         })
     }
+
+    pub fn new_gemini_native(
+        name: &str,
+        base_url: &str,
+        credential_handle: &str,
+        weight: u16,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        if !(base_url.starts_with("https://") || base_url.starts_with("http://127.0.0.1")) {
+            return Err(WorkerConfigError::InvalidUrl);
+        }
+        validate_secret_reference(credential_handle)?;
+        Ok(Self {
+            name: name.to_string(),
+            provider_class: ProviderClass::GeminiNative,
+            base_url: base_url.to_string(),
+            credential_handle: credential_handle.to_string(),
+            weight,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AgentRuntimeProfileSpec {
+    pub kind: &'static str,
+    pub tenant_id: String,                      // data_class: INTERNAL_ONLY
+    pub name: String,                           // data_class: INTERNAL_ONLY
+    pub model_route_ref: String,                // data_class: INTERNAL_ONLY
+    pub prompt_profile_ref: String,             // data_class: INTERNAL_ONLY
+    pub thinking_policy_ref: String,            // data_class: INTERNAL_ONLY
+    pub tool_compatibility_profile_ref: String, // data_class: INTERNAL_ONLY
+    pub sandbox_policy_ref: String,             // data_class: INTERNAL_ONLY
+    pub cloud_intelligence_owned_control_plane: bool,
+    pub embeds_model_runtime: bool,
+    pub installs_cli_or_tui_surface: bool,
+}
+
+impl AgentRuntimeProfileSpec {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        tenant_id: &str,
+        name: &str,
+        model_route_ref: &str,
+        prompt_profile_ref: &str,
+        thinking_policy_ref: &str,
+        tool_compatibility_profile_ref: &str,
+        sandbox_policy_ref: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        for resource_ref in [
+            model_route_ref,
+            prompt_profile_ref,
+            thinking_policy_ref,
+            tool_compatibility_profile_ref,
+            sandbox_policy_ref,
+        ] {
+            validate_resource_name(resource_ref)?;
+        }
+        Ok(Self {
+            kind: "AgentRuntimeProfile",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            model_route_ref: model_route_ref.to_string(),
+            prompt_profile_ref: prompt_profile_ref.to_string(),
+            thinking_policy_ref: thinking_policy_ref.to_string(),
+            tool_compatibility_profile_ref: tool_compatibility_profile_ref.to_string(),
+            sandbox_policy_ref: sandbox_policy_ref.to_string(),
+            cloud_intelligence_owned_control_plane: true,
+            embeds_model_runtime: false,
+            installs_cli_or_tui_surface: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AgentMemoryBindingSpec {
+    pub kind: &'static str,
+    pub tenant_id: String,  // data_class: INTERNAL_ONLY
+    pub name: String,       // data_class: INTERNAL_ONLY
+    pub memory_ref: String, // data_class: INTERNAL_ONLY (opaque typed ref)
+    pub durable_state_externalized: bool,
+    pub stores_prompt_or_completion_body: bool,
+}
+
+impl AgentMemoryBindingSpec {
+    pub fn new(tenant_id: &str, name: &str, memory_ref: &str) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        validate_typed_reference(memory_ref, "memory-ref://")?;
+        Ok(Self {
+            kind: "AgentMemoryBinding",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            memory_ref: memory_ref.to_string(),
+            durable_state_externalized: true,
+            stores_prompt_or_completion_body: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AgentWorkspaceBindingSpec {
+    pub kind: &'static str,
+    pub tenant_id: String,     // data_class: INTERNAL_ONLY
+    pub name: String,          // data_class: INTERNAL_ONLY
+    pub workspace_ref: String, // data_class: INTERNAL_ONLY (opaque typed ref)
+    pub durable_state_externalized: bool,
+    pub mounts_host_paths: bool,
+}
+
+impl AgentWorkspaceBindingSpec {
+    pub fn new(
+        tenant_id: &str,
+        name: &str,
+        workspace_ref: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        validate_typed_reference(workspace_ref, "workspace-ref://")?;
+        Ok(Self {
+            kind: "AgentWorkspaceBinding",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            workspace_ref: workspace_ref.to_string(),
+            durable_state_externalized: true,
+            mounts_host_paths: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AgentSkillBundleSpec {
+    pub kind: &'static str,
+    pub tenant_id: String,                      // data_class: INTERNAL_ONLY
+    pub name: String,                           // data_class: INTERNAL_ONLY
+    pub skillbundle_ref: String,                // data_class: INTERNAL_ONLY (opaque typed ref)
+    pub tool_compatibility_profile_ref: String, // data_class: INTERNAL_ONLY
+    pub policy_gated: bool,
+    pub installs_local_hooks: bool,
+}
+
+impl AgentSkillBundleSpec {
+    pub fn new(
+        tenant_id: &str,
+        name: &str,
+        skillbundle_ref: &str,
+        tool_compatibility_profile_ref: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        validate_resource_name(tool_compatibility_profile_ref)?;
+        validate_typed_reference(skillbundle_ref, "skillbundle-ref://")?;
+        Ok(Self {
+            kind: "AgentSkillBundle",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            skillbundle_ref: skillbundle_ref.to_string(),
+            tool_compatibility_profile_ref: tool_compatibility_profile_ref.to_string(),
+            policy_gated: true,
+            installs_local_hooks: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AgentScheduleSpec {
+    pub kind: &'static str,
+    pub tenant_id: String,           // data_class: INTERNAL_ONLY
+    pub name: String,                // data_class: INTERNAL_ONLY
+    pub schedule_ref: String,        // data_class: INTERNAL_ONLY (opaque typed ref)
+    pub runtime_profile_ref: String, // data_class: INTERNAL_ONLY
+    pub execution_externalized_to_controller: bool,
+    pub embeds_local_cron: bool,
+}
+
+impl AgentScheduleSpec {
+    pub fn new(
+        tenant_id: &str,
+        name: &str,
+        schedule_ref: &str,
+        runtime_profile_ref: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        validate_resource_name(runtime_profile_ref)?;
+        validate_typed_reference(schedule_ref, "schedule-ref://")?;
+        Ok(Self {
+            kind: "AgentSchedule",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            schedule_ref: schedule_ref.to_string(),
+            runtime_profile_ref: runtime_profile_ref.to_string(),
+            execution_externalized_to_controller: true,
+            embeds_local_cron: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AgentDelegationPolicySpec {
+    pub kind: &'static str,
+    pub tenant_id: String,                        // data_class: INTERNAL_ONLY
+    pub name: String,                             // data_class: INTERNAL_ONLY
+    pub allowed_generation_adapters: Vec<String>, // data_class: INTERNAL_ONLY
+    pub policy_engine_port: String,               // data_class: INTERNAL_ONLY
+    pub policy_gated: bool,
+    pub allows_routing_advisor_generation: bool,
+}
+
+impl AgentDelegationPolicySpec {
+    pub fn new(
+        tenant_id: &str,
+        name: &str,
+        allowed_generation_adapters: &[&str],
+        policy_engine_port: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        if policy_engine_port != "owned-policy-engine-port" {
+            return Err(WorkerConfigError::InvalidPolicyValue);
+        }
+        let mut adapters = allowed_generation_adapters
+            .iter()
+            .copied()
+            .map(str::to_string)
+            .collect::<Vec<_>>();
+        adapters.sort();
+        adapters.dedup();
+        if adapters.is_empty()
+            || adapters
+                .iter()
+                .any(|adapter| !matches!(adapter.as_str(), "claude" | "codex" | "gemini"))
+        {
+            return Err(WorkerConfigError::InvalidAdapterSet);
+        }
+        Ok(Self {
+            kind: "AgentDelegationPolicy",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            allowed_generation_adapters: adapters,
+            policy_engine_port: policy_engine_port.to_string(),
+            policy_gated: true,
+            allows_routing_advisor_generation: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct GuardrailDetectionProfileSpec {
+    pub kind: &'static str,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub name: String,      // data_class: INTERNAL_ONLY
+    pub policy_engine_port: String, // data_class: INTERNAL_ONLY
+    pub critical_categories: Vec<String>, // data_class: INTERNAL_ONLY
+    pub automatic_block_and_quarantine: bool,
+    pub mandatory_secondary_agentic_review: bool,
+    pub manual_review_required_after_secondary_review: bool,
+    pub tenant_may_weaken_platform_floor: bool,
+}
+
+impl GuardrailDetectionProfileSpec {
+    pub fn platform_default(
+        tenant_id: &str,
+        name: &str,
+        policy_engine_port: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        if policy_engine_port != "owned-policy-engine-port" {
+            return Err(WorkerConfigError::InvalidPolicyValue);
+        }
+        Ok(Self {
+            kind: "GuardrailDetectionProfile",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            policy_engine_port: policy_engine_port.to_string(),
+            critical_categories: [
+                "prompt-injection-or-jailbreak",
+                "data-exfiltration-or-breach",
+                "credential-or-secret-probe",
+                "sandbox-escape-or-destructive-action",
+                "self-harm-or-harm-to-others",
+                "privacy-violation",
+                "tenant-boundary-violation",
+                "fraud-or-hostile-pattern",
+                "fault-or-anomaly",
+                "unsafe-scheduled-or-delegated-execution",
+                "child-safety-or-abuse",
+                "security-exploit-or-breach",
+            ]
+            .into_iter()
+            .map(str::to_string)
+            .collect(),
+            automatic_block_and_quarantine: true,
+            mandatory_secondary_agentic_review: true,
+            manual_review_required_after_secondary_review: true,
+            tenant_may_weaken_platform_floor: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct EvidenceRetentionProfileSpec {
+    pub kind: &'static str,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub name: String,      // data_class: INTERNAL_ONLY
+    pub secret_provider_port: String, // data_class: INTERNAL_ONLY
+    pub stores_raw_payload_on_normal_path: bool,
+    pub encrypted_handle_on_guardrail_trigger: bool,
+    pub fixed_ttl_by_data_class: bool,
+    pub regulatory_classification_required: bool,
+    pub default_reviewer_visibility: String, // data_class: INTERNAL_ONLY
+    pub raw_access_requires_audited_break_glass: bool,
+}
+
+impl EvidenceRetentionProfileSpec {
+    pub fn platform_default(
+        tenant_id: &str,
+        name: &str,
+        secret_provider_port: &str,
+    ) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        if secret_provider_port != "owned-secret-provider-port" {
+            return Err(WorkerConfigError::InvalidPolicyValue);
+        }
+        Ok(Self {
+            kind: "EvidenceRetentionProfile",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            secret_provider_port: secret_provider_port.to_string(),
+            stores_raw_payload_on_normal_path: false,
+            encrypted_handle_on_guardrail_trigger: true,
+            fixed_ttl_by_data_class: true,
+            regulatory_classification_required: true,
+            default_reviewer_visibility: "redacted-structured-evidence".to_string(),
+            raw_access_requires_audited_break_glass: true,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct InTransitRedactionProfileSpec {
+    pub kind: &'static str,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub name: String,      // data_class: INTERNAL_ONLY
+    pub blocks_sensitive_classes: bool,
+    pub redacts_trivial_personal_data: bool,
+    pub reversible_tokens_require_tenant_policy: bool,
+    pub default_token_lifetime: String, // data_class: INTERNAL_ONLY
+    pub restore_only_after_model_output: bool,
+    pub provider_receives_raw_token_values: bool,
+    pub routing_advisor_receives_raw_token_values: bool,
+}
+
+impl InTransitRedactionProfileSpec {
+    pub fn platform_default(tenant_id: &str, name: &str) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        Ok(Self {
+            kind: "InTransitRedactionProfile",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            blocks_sensitive_classes: true,
+            redacts_trivial_personal_data: true,
+            reversible_tokens_require_tenant_policy: true,
+            default_token_lifetime: "ephemeral-run".to_string(),
+            restore_only_after_model_output: true,
+            provider_receives_raw_token_values: false,
+            routing_advisor_receives_raw_token_values: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ManualReviewEscalationSpec {
+    pub kind: &'static str,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub name: String,      // data_class: INTERNAL_ONLY
+    pub required_for_critical_blocks: bool,
+    pub secondary_agentic_review_must_run_first: bool,
+    pub default_evidence_visibility: String, // data_class: INTERNAL_ONLY
+    pub raw_payload_break_glass_only: bool,
+}
+
+impl ManualReviewEscalationSpec {
+    pub fn platform_default(tenant_id: &str, name: &str) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        Ok(Self {
+            kind: "ManualReviewEscalation",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            required_for_critical_blocks: true,
+            secondary_agentic_review_must_run_first: true,
+            default_evidence_visibility: "redacted-structured-evidence".to_string(),
+            raw_payload_break_glass_only: true,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SafetySignalPolicySpec {
+    pub kind: &'static str,
+    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub name: String,      // data_class: INTERNAL_ONLY
+    pub platform_automatic_enforcement: bool,
+    pub tenant_policy_receives_signals: bool,
+    pub tenant_policy_receives_recommendations: bool,
+    pub tenant_can_override_platform_critical_block: bool,
+}
+
+impl SafetySignalPolicySpec {
+    pub fn platform_default(tenant_id: &str, name: &str) -> Result<Self, WorkerConfigError> {
+        validate_resource_name(name)?;
+        Ok(Self {
+            kind: "SafetySignalPolicy",
+            tenant_id: tenant_id.to_string(),
+            name: name.to_string(),
+            platform_automatic_enforcement: true,
+            tenant_policy_receives_signals: true,
+            tenant_policy_receives_recommendations: true,
+            tenant_can_override_platform_critical_block: false,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ReferenceCiPatternCatalog {
+    pub adopted_patterns: Vec<String>,
+    pub rejected_patterns: Vec<String>,
+}
+
+impl ReferenceCiPatternCatalog {
+    pub fn cloud_native_adoptions() -> Self {
+        Self {
+            adopted_patterns: [
+                "path-scoped-compatibility-canaries",
+                "drift-detection-with-artifacted-reports",
+                "watcher-liveness-watchdog",
+                "infra-vs-drift-vs-inconclusive-status-separation",
+                "self-healing-pr-or-task-on-delta",
+                "redaction-and-wire-fixture-regression-matrix",
+            ]
+            .into_iter()
+            .map(str::to_string)
+            .collect(),
+            rejected_patterns: ["local-cli-smoke-surface", "local-tui-test-surface"]
+                .into_iter()
+                .map(str::to_string)
+                .collect(),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum RoutingAdvisorPurpose {
+    RoutingDecisionOnly,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RoutingAdvisorProfile {
+    pub provider_label: &'static str,   // data_class: INTERNAL_ONLY
+    pub model_hint: &'static str,       // data_class: INTERNAL_ONLY
+    pub purpose: RoutingAdvisorPurpose, // data_class: INTERNAL_ONLY
+    pub adapter_backed: bool,           // data_class: INTERNAL_ONLY
+    pub may_execute_generation: bool,   // data_class: INTERNAL_ONLY
+    pub receives_redacted_route_metadata: bool, // data_class: INTERNAL_ONLY
+    pub receives_raw_prompts_or_secrets: bool, // data_class: INTERNAL_ONLY
+}
+
+pub fn default_routing_advisor_profiles() -> Vec<RoutingAdvisorProfile> {
+    vec![
+        RoutingAdvisorProfile {
+            provider_label: "openai-compatible",
+            model_hint: "chatgpt-spark",
+            purpose: RoutingAdvisorPurpose::RoutingDecisionOnly,
+            adapter_backed: true,
+            may_execute_generation: false,
+            receives_redacted_route_metadata: true,
+            receives_raw_prompts_or_secrets: false,
+        },
+        RoutingAdvisorProfile {
+            provider_label: "gemini-native",
+            model_hint: "gemini-3.1-flash-lite",
+            purpose: RoutingAdvisorPurpose::RoutingDecisionOnly,
+            adapter_backed: true,
+            may_execute_generation: false,
+            receives_redacted_route_metadata: true,
+            receives_raw_prompts_or_secrets: false,
+        },
+        RoutingAdvisorProfile {
+            provider_label: "external-free-frontier",
+            model_hint: "nemotron-3-ultra-550b-a55b",
+            purpose: RoutingAdvisorPurpose::RoutingDecisionOnly,
+            adapter_backed: true,
+            may_execute_generation: false,
+            receives_redacted_route_metadata: true,
+            receives_raw_prompts_or_secrets: false,
+        },
+    ]
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -427,6 +984,14 @@ fn validate_resource_name(name: &str) -> Result<(), WorkerConfigError> {
         return Err(WorkerConfigError::InvalidName);
     }
     Ok(())
+}
+
+fn validate_typed_reference(value: &str, required_prefix: &str) -> Result<(), WorkerConfigError> {
+    if value.starts_with(required_prefix) && value.len() > required_prefix.len() {
+        Ok(())
+    } else {
+        Err(WorkerConfigError::InvalidTypedReference)
+    }
 }
 
 fn validate_secret_reference(value: &str) -> Result<(), WorkerConfigError> {

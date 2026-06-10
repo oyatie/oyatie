@@ -2,12 +2,14 @@
 pub enum ProtocolShape {
     AnthropicMessages,
     OpenAiChatCompletions,
+    GeminiGenerateContent,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BackendClass {
     AnthropicSubscription,
     OpenAiCompatible,
+    GeminiNative,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -15,6 +17,10 @@ pub enum TranslationMode {
     PassThrough,
     AnthropicToOpenAi,
     OpenAiToAnthropic,
+    AnthropicToGemini,
+    OpenAiToGemini,
+    GeminiToAnthropic,
+    GeminiToOpenAi,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -99,8 +105,9 @@ impl ProviderPrefixRegistry {
     fn classify<'a>(&self, model: &'a str) -> Option<ProviderPrefixMatch<'a>> {
         let (prefix, rest) = model.split_once(':')?;
         let backend = match prefix {
-            "openai" | "groq" | "openrouter" | "local" | "compat" => BackendClass::OpenAiCompatible,
+            "openai" | "codex" => BackendClass::OpenAiCompatible,
             "claude" | "anthropic" => BackendClass::AnthropicSubscription,
+            "gemini" | "google" => BackendClass::GeminiNative,
             _ => return None,
         };
         if rest.trim().is_empty() {
@@ -180,9 +187,12 @@ fn classify_model(model: &str) -> Option<BackendClass> {
         || lower.starts_with("o1")
         || lower.starts_with("o3")
         || lower.starts_with("o4")
-        || lower.starts_with("llama")
+        || lower.starts_with("codex-")
     {
         return Some(BackendClass::OpenAiCompatible);
+    }
+    if lower.starts_with("gemini-") {
+        return Some(BackendClass::GeminiNative);
     }
     None
 }
@@ -190,7 +200,8 @@ fn classify_model(model: &str) -> Option<BackendClass> {
 fn translation_mode(protocol: ProtocolShape, backend: BackendClass) -> TranslationMode {
     match (protocol, backend) {
         (ProtocolShape::AnthropicMessages, BackendClass::AnthropicSubscription)
-        | (ProtocolShape::OpenAiChatCompletions, BackendClass::OpenAiCompatible) => {
+        | (ProtocolShape::OpenAiChatCompletions, BackendClass::OpenAiCompatible)
+        | (ProtocolShape::GeminiGenerateContent, BackendClass::GeminiNative) => {
             TranslationMode::PassThrough
         }
         (ProtocolShape::AnthropicMessages, BackendClass::OpenAiCompatible) => {
@@ -198,6 +209,18 @@ fn translation_mode(protocol: ProtocolShape, backend: BackendClass) -> Translati
         }
         (ProtocolShape::OpenAiChatCompletions, BackendClass::AnthropicSubscription) => {
             TranslationMode::OpenAiToAnthropic
+        }
+        (ProtocolShape::AnthropicMessages, BackendClass::GeminiNative) => {
+            TranslationMode::AnthropicToGemini
+        }
+        (ProtocolShape::OpenAiChatCompletions, BackendClass::GeminiNative) => {
+            TranslationMode::OpenAiToGemini
+        }
+        (ProtocolShape::GeminiGenerateContent, BackendClass::AnthropicSubscription) => {
+            TranslationMode::GeminiToAnthropic
+        }
+        (ProtocolShape::GeminiGenerateContent, BackendClass::OpenAiCompatible) => {
+            TranslationMode::GeminiToOpenAi
         }
     }
 }
