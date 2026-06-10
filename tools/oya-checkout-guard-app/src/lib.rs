@@ -1247,14 +1247,21 @@ fn exec_short_option_cluster(word: &str) -> Option<&str> {
 /// mis-expand (review #685 r5; founder directive 2026-06-10).
 fn normalize_static_expansions(command: &str) -> String {
     let bindings = collect_same_line_bindings(command);
+    // A same-line non-default `IFS=` reassignment makes unquoted expansions
+    // word-SPLIT on attacker-chosen characters (`IFS=x; y=resetx; git … $y`
+    // splits `resetx`→`reset`; `IFS=x; p=<canon>x; git -C $p`), defeating a
+    // single-word substitution model on BOTH verb and path sides (review #685
+    // r8 F4). When present, suppress value-producing expansion entirely so the
+    // residual-sigil (verb) and dynamic-path (target) fail-closed rules fire.
+    let ifs_unsafe = same_line_ifs_reassigned(command);
     // Iterate to a bounded fixpoint so NESTED substitutions/params resolve
     // (`$(echo $(echo git … reset))`, `${x:-$(echo reset)}`) — a single pass
     // only peels one layer (review #685 r6 F1). Capped to bound pathological
     // input; whatever expansion survives the cap is caught fail-closed by the
     // residual-expansion check at the git command-name/subcommand decision.
-    let mut current = expand_with_bindings(command, &bindings);
+    let mut current = expand_with_bindings(command, &bindings, ifs_unsafe);
     for _ in 0..8 {
-        let next = expand_with_bindings(&current, &bindings);
+        let next = expand_with_bindings(&current, &bindings, ifs_unsafe);
         if next == current {
             break;
         }
@@ -1320,7 +1327,17 @@ fn binding_value<'a>(bindings: &'a [(String, String)], name: &str) -> Option<&'a
         .map(|(_, value)| value.as_str())
 }
 
-fn expand_with_bindings(command: &str, bindings: &[(String, String)]) -> String {
+/// Same-line `IFS=…` reassignment that could re-split unquoted expansions.
+/// Any `IFS=` assignment word triggers it — empty/default values only make the
+/// suppression slightly more eager (a read keeps literal `$REF` in arg
+/// position, so no real command is over-denied; review #685 r8 F4).
+fn same_line_ifs_reassigned(command: &str) -> bool {
+    command
+        .split([' ', '\t', ';', '\n', '\r'])
+        .any(|word| word == "IFS" || word.starts_with("IFS="))
+}
+
+fn expand_with_bindings(command: &str, bindings: &[(String, String)], ifs_unsafe: bool) -> String {
     let mut out = String::with_capacity(command.len());
     let mut chars = command.char_indices().peekable();
     let mut single_quote = false;
@@ -1372,7 +1389,7 @@ fn expand_with_bindings(command: &str, bindings: &[(String, String)]) -> String 
                     }
                     inner.push(c);
                 }
-                match resolve_param(&inner, bindings) {
+                match resolve_param(&inner, bindings).filter(|_| !ifs_unsafe) {
                     Some(value) => out.push_str(&value),
                     None => {
                         out.push_str("${");
@@ -1383,7 +1400,7 @@ fn expand_with_bindings(command: &str, bindings: &[(String, String)]) -> String 
             }
             '$' if chars.peek().is_some_and(|(_, c)| *c == '(') => {
                 if let Some((end, body)) = extract_balanced_dollar_command(command, idx + 2) {
-                    match static_command_output(&body) {
+                    match static_command_output(&body).filter(|_| !ifs_unsafe) {
                         Some(produced) => out.push_str(&produced),
                         None => out.push_str(&command[idx..=end]),
                     }
@@ -1407,7 +1424,7 @@ fn expand_with_bindings(command: &str, bindings: &[(String, String)]) -> String 
                         break;
                     }
                 }
-                match binding_value(bindings, &name) {
+                match binding_value(bindings, &name).filter(|_| !ifs_unsafe) {
                     Some(value) => out.push_str(value),
                     None => {
                         out.push('$');
@@ -1419,7 +1436,7 @@ fn expand_with_bindings(command: &str, bindings: &[(String, String)]) -> String 
                 let start = idx + ch.len_utf8();
                 if let Some(end) = find_unescaped_backtick(command, start) {
                     let body = unescape_backtick_body(&command[start..end]);
-                    match static_command_output(&body) {
+                    match static_command_output(&body).filter(|_| !ifs_unsafe) {
                         Some(produced) => out.push_str(&produced),
                         None => out.push_str(&command[idx..=end]),
                     }
@@ -2172,6 +2189,14 @@ mod tests {
             "git -C /repo/oyatie {stash,} pop",
             "{git,} -C /repo/oyatie {reset,} --hard",
             "git -C /repo/oyatie r{eset,} --hard",
+            // IFS word-split resplit, verb side and path side (r8 F4).
+            "IFS=x; y=resetx; git -C /repo/oyatie $y --hard",
+            "IFS=-; y=reset-; git -C /repo/oyatie $y --hard",
+            "IFS=z; c=cleanz; git -C /repo/oyatie $c -fdx",
+            "IFS=w; r=restorew; git -C /repo/oyatie $r .",
+            "IFS=x; y=resetx; git -C /repo/oyatie ${y} --hard",
+            "bash -c 'IFS=x; y=resetx; git -C /repo/oyatie $y --hard'",
+            "IFS=x; p=/repo/oyatiex; git -C $p reset --hard",
         ] {
             assert_denied(command);
         }
