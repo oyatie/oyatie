@@ -266,7 +266,7 @@ The corpus is consistent when:
 
 1. **Field naming is consistent.** Every `tenant_id`, `principal_id`, `audit_event_class`, `byok_enabled`, `provider_credential_mode`, `home_cell`, `dr_cell`, `jurisdiction_code`, `compliance_packs[]`, `audience_type`, `lifecycle_state` field is the same shape across every µservice's schema + Cedar + OpenAPI surface.
 2. **Audit-event-class taxonomy is consistent.** Every µservice's emitted event classes are listed in the central registry per ADR-0263 §D-N; no µservice-private event classes outside the registry.
-3. **OpenAPI is uniformly 3.2.0; AsyncAPI is uniformly 3.1.0; proto3 only.** Per `tools/hooks/_canonical-primitives.md`. Any contract file at a different version is REVISE.
+3. **OpenAPI is uniformly 3.2.0; AsyncAPI is uniformly 3.1.0; proto3 only.** Per `specs/api-contract-ssot-canonical.json` (canonical contract-version source: OpenAPI 3.2.0 + proto3 projections, AsyncAPI 3.1.0 event contracts; the retired `tools/hooks/_canonical-primitives.md` cheat sheet is disposed). Any contract file at a different version is REVISE.
 4. **OpenBao SecretReference path shape is consistent.** `${openbao:secret/<tenant_id>/<scope>/<name>}` across every µservice.
 5. **Cell-tier-conformance is consistent.** Every µservice declaring `cell_eligibility` uses the same enum values from ADR-0248 §D-1 (Tier 0 / Tier 1 / Tier 2 / Tier 3).
 6. **Compliance-pack-id values are consistent.** Every µservice's `compliance.md §pack-overlay-roster` cites pack-ids from the central registry; no ad-hoc pack-ids.

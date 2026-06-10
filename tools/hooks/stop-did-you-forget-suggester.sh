@@ -5,7 +5,7 @@
 # Purpose:  Before session ends, check for common incomplete-work signals and
 #           suggest next steps to the agent. Advisory only — never blocks.
 # Behavior: Runs three fast checks (each with a 5-second budget):
-#           1. Dirty cargo workspace (uncommitted Rust changes)
+#           1. Dirty Rust workspace (uncommitted .rs changes, detected via git status)
 #           2. ADR-NNNN references in recent diff without corresponding files
 #           3. Lane regression markers in registry/quality/lanes.yaml
 #           Prints suggestions to stderr; exits 0 either way.

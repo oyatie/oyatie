@@ -3,7 +3,9 @@
 #
 # Trigger:  Claude Code PreToolUse(Bash)
 # Purpose:  When a Bash command references retired local authority surfaces,
-#           suggest the current plain git + cloud-ci/oya-ci gate path.
+#           suggest the current plain git path + the single required context
+#           'oya-ci-required' (produced by GitHub Actions per ADR-0515;
+#           oya-ci is the shadow/future runner).
 # Behavior: Reads $TOOL_INPUT (JSON with "command" field) from environment or stdin.
 #           Prints a suggestion to stderr with the canonical replacement.
 #           Agent decides whether to rewrite.
@@ -11,7 +13,10 @@
 
 set -uo pipefail
 
-# Try to get command from TOOL_INPUT env var (Claude Code sets this for PreToolUse hooks)
+# TOOL_INPUT env path serves only the CI governance harness
+# (tools/governance/adr-0221-governance-gates.sh); real Claude Code / Codex hooks
+# deliver JSON on stdin (handled by the fallback below). See code.claude.com/docs
+# hooks reference + developers.openai.com/codex/hooks: no env var carries event data.
 COMMAND_TEXT=""
 if [ -n "${TOOL_INPUT:-}" ]; then
     # Extract command field from JSON if jq available
@@ -41,7 +46,7 @@ RETIRED_AUTHORITY_PATTERN='(^|[;&|][;&|]?[[:space:]]*|\([[:space:]]*)(\./bin/|bi
 if printf '%s\n' "$COMMAND_TEXT" | grep -Eq "$RETIRED_AUTHORITY_PATTERN" 2>/dev/null; then
     echo "ℹ [stale-tool-suggester] Retired local authority surface detected." >&2
     echo "ℹ  Use plain git for local VCS work and Buck2/cloud-ci targets for local confidence." >&2
-    echo "ℹ  Merge readiness is the cloud-ci/oya-ci produced 'oya-ci-required' status, not local oya wrappers." >&2
+    echo "ℹ  Merge readiness is the single required context 'oya-ci-required' (produced by GitHub Actions per ADR-0515; oya-ci is the shadow/future runner), not local oya wrappers." >&2
     echo "ℹ  This advisory is paired with local-authority-enforcer, which blocks retired authority commands." >&2
 fi
 

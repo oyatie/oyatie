@@ -2,12 +2,12 @@
 # tools/hooks/vacuous-green-gate-detect.sh
 #
 # Trigger:  Claude Code PostToolUse(Edit|Write) where target is registry/quality/lanes.yaml
-#           or under crates/oya-check-*/
+#           or under libs/oya-check-*/
 # Purpose:  Detect potential vacuous-green test patterns: gates that pass with zero
 #           assertions or trivially true bodies. Advisory measurement, not enforcement.
 # Behavior: Greps the edited file for known vacuous-green heuristics:
 #           assert!(true), Ok(()) as sole body, tests with zero assertions.
-#           Prints a warning citing ADR-0221 mistake M-08. Advisory only.
+#           Prints a warning citing ADR-0221 mistake M-06. Advisory only.
 # Non-blocking guarantee: exits 0 always.
 
 set -uo pipefail
@@ -39,7 +39,7 @@ if [ -z "$FILE_PATH" ]; then
 fi
 
 # Only act on lanes.yaml or oya-check-* crate files
-if ! echo "$FILE_PATH" | grep -qE 'registry/quality/lanes\.yaml|crates/oya-check-' 2>/dev/null; then
+if ! echo "$FILE_PATH" | grep -qE 'registry/quality/lanes\.yaml|libs/oya-check-' 2>/dev/null; then
     exit 0
 fi
 
@@ -72,7 +72,7 @@ fi
 
 if [ -n "$ISSUES" ]; then
     echo "ℹ [vacuous-green-gate-detect] Possible vacuous-green pattern in $FILE_PATH:${ISSUES}." >&2
-    echo "ℹ  Per ADR-0221 mistake M-08, lanes must fail on intended-failure inputs to be honest." >&2
+    echo "ℹ  Per ADR-0221 mistake M-06, lanes must fail on intended-failure inputs to be honest." >&2
     echo "ℹ  Ensure tests exercise actual validator logic and assert on real expected outputs." >&2
 fi
 

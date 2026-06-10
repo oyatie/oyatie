@@ -45,8 +45,8 @@ require_not_contains() {
 
 case "$gate" in
     vacuous-green)
-        fixture_dir="$REPO_ROOT/crates/oya-check-governance-fixture-$$"
-        fixture_rel="crates/oya-check-governance-fixture-$$/src/lib.rs"
+        fixture_dir="$REPO_ROOT/libs/oya-check-governance-fixture-$$"
+        fixture_rel="libs/oya-check-governance-fixture-$$/src/lib.rs"
         trap 'rm -rf "$fixture_dir"' EXIT
         mkdir -p "$fixture_dir/src"
         printf '#[test]\nfn vacuous() {\n    assert!(true);\n}\n' > "$REPO_ROOT/$fixture_rel"

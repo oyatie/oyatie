@@ -2,10 +2,10 @@
 # local-authority-enforcer (PreToolUse:Bash)
 #
 # Blocks retired local authority surfaces before they become muscle memory in
-# agent sessions. The live merge authority is the `oya-ci-required` status
-# produced by the cloud-ci/oya-ci pipeline. Local source control uses plain
-# git; retired local authority wrappers must not coordinate work or decide
-# merge readiness.
+# agent sessions. The live merge authority is the single required context
+# `oya-ci-required`, produced by GitHub Actions per ADR-0515 (oya-ci is the
+# shadow/future runner). Local source control uses plain git; retired local
+# authority wrappers must not coordinate work or decide merge readiness.
 
 set -uo pipefail
 
@@ -24,15 +24,16 @@ if [ -z "$cmd" ]; then
 fi
 
 # Retired authority wrappers: D-CLOUD-NATIVE/D-CICD-AUTHORITY route source
-# control to plain git + protected PR and route gate verdicts to the
-# cloud-ci/oya-ci pipeline's single required context.
+# control to plain git + protected PR and route gate verdicts to the single
+# required context `oya-ci-required`, produced by GitHub Actions per ADR-0515
+# (oya-ci is the shadow/future runner).
 retired_authority='(^|[;&|(]|[[:space:]])(\./bin/|bin/)?oya[[:space:]]+(git|vcs|gate|verify|check|submit)([[:space:]]|$)'
 
 if printf '%s' "$cmd" | grep -Eq "$retired_authority"; then
   {
     echo "🚫 BLOCKED: retired local authority surface detected."
     echo "Use plain git for local source control and Buck2/cloud-ci targets for local confidence."
-    echo "Merge readiness is decided only by the cloud-ci/oya-ci pipeline status 'oya-ci-required', not by local oya wrappers."
+    echo "Merge readiness is decided only by the single required context 'oya-ci-required' (produced by GitHub Actions per ADR-0515; oya-ci is the shadow/future runner), not by local oya wrappers."
   } >&2
   exit 2
 fi

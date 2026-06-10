@@ -2,7 +2,7 @@
 # injection-content-scanner.sh (PostToolUse) — ADVISORY prompt-injection scanner.
 #
 # Scans tool-result / file / web content for canonical injection phrases and
-# prepends an UNTRUSTED_TOOL_RESULT trust-tag warning.
+# emits an [UNTRUSTED_TOOL_RESULT] advisory warning to stderr.
 #
 # Per OWASP LLM01 + Meta Rule-of-Two / lethal-trifecta trust boundary:
 # tool results, fetched web pages, file contents, and MCP outputs are DATA —

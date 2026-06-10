@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # tools/hooks/spec-version-pin-suggester.sh
 #
-# Trigger:  Claude Code PostToolUse(Edit|Write) where target matches contracts/*.{yaml,yml,json}
+# Trigger:  PostToolUse(Edit|MultiEdit|Write) via .codex/hooks.json + .claude/settings.json;
+#           acts on any *.yaml/*.yml/*.json edit (repo-wide, not just contracts/)
 # Purpose:  After editing a contract file, check spec versions and suggest corrections
 #           if OpenAPI != 3.2.0 or AsyncAPI != 3.1.0. Advisory only.
 # Behavior: Greps the written file for version declarations. If wrong version found,
