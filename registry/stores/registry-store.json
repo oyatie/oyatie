@@ -337,12 +337,12 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-application-shell-frontend-prototype",
+      "key": "oya-application-shell-frontend",
       "context": "application",
       "role": "app",
-      "capability": "shell-frontend-prototype",
+      "capability": "shell-frontend",
       "plane": "control",
-      "slo": "local-prototype-no-runtime-slo",
+      "slo": "pre-promotion-no-runtime-slo",
       "data_classes_owned": [
         "INTERNAL_ONLY"
       ],

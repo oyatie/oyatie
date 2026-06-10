@@ -184,7 +184,7 @@ members = [
   "oya/analytics/crates/oya-analytics-tenant-bootstrap-app",
   "oya/analytics/crates/oya-analytics-usecase",
   "oya/application/crates/oya-application-app",
-  "oya/application/crates/oya-application-shell-frontend-prototype",
+  "oya/application/crates/oya-application-shell-frontend",
   "oya/application/crates/oya-cloud-surface-domain",
   "oya/application/crates/oya-saas-plugin-app",
   "oya/application/crates/oya-workspace-chat-api",

@@ -1,20 +1,20 @@
 [package]
-name = "oya-application-shell-frontend-prototype"
+name = "oya-application-shell-frontend"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "Mock-only Leptos prototype scaffold for the Oyatie application shell control center."
+description = "Production Leptos portal-shell for the Oyatie console (ADR-0393): SSR+hydration shell whose module visibility derives from the locked shell-BFF capability-registry contracts."
 
 [lib]
-name = "oya_application_shell_frontend_prototype"
+name = "oya_application_shell_frontend"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 doctest = false
 
 [[bin]]
-name = "oya-application-shell-frontend-prototype"
+name = "oya-application-shell-frontend"
 path = "src/main.rs"
 
 [features]
@@ -26,6 +26,7 @@ ssr = ["leptos/ssr"]
 [dependencies]
 console_error_panic_hook = { version = "=0.1.7", optional = true }
 leptos = { version = "=0.8.19", default-features = false }
+oya-shared-platform-contracts-kernel = { path = "../../../../libs/oya-shared-platform-contracts-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 wasm-bindgen = { version = "=0.2.121", optional = true }
@@ -35,7 +36,7 @@ wasm-bindgen-futures = "=0.4.71"
 web-sys = { version = "=0.3.98", features = ["Document", "Element", "HtmlElement", "Response", "Window"] }
 
 [package.metadata.leptos]
-output-name = "oya_application_shell_frontend_prototype"
+output-name = "oya_application_shell_frontend"
 site-root = "target/site"
 site-pkg-dir = "pkg"
 style-file = "style/app.css"

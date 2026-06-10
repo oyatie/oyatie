@@ -1,10 +1,10 @@
 #[cfg(any(feature = "ssr", test))]
 use crate::render_envelope::server_derived_envelope;
-use crate::render_envelope::{DemoContext, TenantRenderEnvelope};
+use crate::render_envelope::{OperatorContext, TenantRenderEnvelope};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ClientSessionState {
-    pub active_context: DemoContext,
+    pub active_context: OperatorContext,
     pub active_surface: Surface,
     pub selected_workflow_node_id: String,
 }
@@ -51,16 +51,16 @@ impl ClientSessionState {
 #[cfg(test)]
 mod tests {
     use super::{ClientSessionState, Surface};
-    use crate::render_envelope::DemoContext;
+    use crate::render_envelope::OperatorContext;
 
     #[test]
     fn client_state_stores_active_context_not_catalog() {
         let corporate_envelope =
-            crate::render_envelope::server_derived_envelope(DemoContext::CorporateOffice);
+            crate::render_envelope::server_derived_envelope(OperatorContext::CorporateOffice);
         let state = ClientSessionState::hydrated_from_server_envelope(&corporate_envelope);
         let envelope = state.fresh_envelope();
 
-        assert_eq!(state.active_context, DemoContext::CorporateOffice);
+        assert_eq!(state.active_context, OperatorContext::CorporateOffice);
         assert_eq!(state.active_surface, Surface::Home);
         assert!(
             envelope
