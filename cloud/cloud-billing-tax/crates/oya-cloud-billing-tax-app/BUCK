@@ -5,3 +5,14 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-cloud-billing-tax-app-cloud-billing-invoice-api",
+    srcs = ["tests/cloud_billing_invoice_api.rs"],
+    crate = "oya_cloud_billing_tax_app_cloud_billing_invoice_api",
+    crate_root = "tests/cloud_billing_invoice_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-billing-tax-app",
+    ],
+)

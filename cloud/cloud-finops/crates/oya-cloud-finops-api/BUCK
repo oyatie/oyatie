@@ -11,3 +11,18 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-cloud-finops-api-cloud-finops-report-api",
+    srcs = ["tests/cloud_finops_report_api.rs"],
+    crate = "oya_cloud_finops_api_cloud_finops_report_api",
+    crate_root = "tests/cloud_finops_report_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-finops-api",
+        "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
+        "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
+        "//cloud/cloud-finops/crates/oya-cloud-finops-domain:oya-cloud-finops-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

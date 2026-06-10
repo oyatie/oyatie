@@ -10,3 +10,16 @@ rust_library(
         "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
     ],
 )
+
+rust_test(
+    name = "oya-cloud-iam-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_cloud_iam_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
+    ],
+)

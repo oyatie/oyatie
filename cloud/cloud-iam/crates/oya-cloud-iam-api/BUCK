@@ -9,3 +9,16 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-cloud-iam-api-cloud-iam-api",
+    srcs = ["tests/cloud_iam_api.rs"],
+    crate = "oya_cloud_iam_api_cloud_iam_api",
+    crate_root = "tests/cloud_iam_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-iam-api",
+        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
