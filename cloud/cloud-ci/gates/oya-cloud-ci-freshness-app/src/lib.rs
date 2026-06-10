@@ -11,8 +11,20 @@ use oya_workspace_members_kernel::resolve_member_dirs;
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
 pub const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
+pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from TRACKED paths; never mix content and regenerated faces in one commit; then run the materialize command; then commit the faces-only diff";
+pub const FACE_SETTLE_COMMIT_COMMAND: &str =
+    "git commit -S -m \"chore: settle generated cloud-ci faces\"";
+const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
 const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+const GENERATED_FACE_PATHS: [&str; 6] = [
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json",
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+];
 const EMITTER_TARGET: &str =
     "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
 const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
@@ -78,6 +90,33 @@ impl Finding {
             detail: detail.into(),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FaceSettleMode {
+    Check,
+    Settle,
+    SettleAndCommit,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FaceSettleReport {
+    pub message: String,
+    pub stale_faces: Vec<String>,
+    pub staged_faces: Vec<String>,
+    pub committed: bool,
+}
+
+impl FaceSettleReport {
+    pub fn is_success(&self) -> bool {
+        self.stale_faces.is_empty()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FaceSettleArgs {
+    pub repo_root: PathBuf,
+    pub mode: FaceSettleMode,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -212,6 +251,155 @@ pub fn check_repo(repo_root: &Path) -> Result<CheckReport, FreshnessError> {
     check_repo_with_regenerated_faces(repo_root, regenerated_faces)
 }
 
+pub fn generated_face_paths() -> Vec<String> {
+    GENERATED_FACE_PATHS
+        .iter()
+        .map(|path| (*path).to_owned())
+        .collect()
+}
+
+pub fn run_face_settle_with_buck2(
+    repo_root: &Path,
+    mode: FaceSettleMode,
+) -> Result<FaceSettleReport, FreshnessError> {
+    assert_non_face_tree_clean(repo_root)?;
+    let regenerated_faces = regenerate_faces_with_buck2(repo_root)?;
+    match mode {
+        FaceSettleMode::Check => check_regenerated_faces(repo_root, regenerated_faces),
+        FaceSettleMode::Settle | FaceSettleMode::SettleAndCommit => {
+            settle_regenerated_faces(repo_root, regenerated_faces, mode)
+        }
+    }
+}
+
+pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, FreshnessError> {
+    let mut repo_root = PathBuf::from(".");
+    let mut settle = false;
+    let mut commit = false;
+    let mut iter = args.into_iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--repo-root" => {
+                let Some(value) = iter.next() else {
+                    return Err(FreshnessError::new(
+                        "face settle: --repo-root requires a path",
+                    ));
+                };
+                repo_root = PathBuf::from(value);
+            }
+            "--settle" => {
+                settle = true;
+            }
+            "--commit" => {
+                commit = true;
+            }
+            "--help" | "-h" => {
+                return Err(FreshnessError::new(face_settle_usage()));
+            }
+            other => {
+                return Err(FreshnessError::new(format!(
+                    "face settle: unknown argument {other:?}; {}",
+                    face_settle_usage()
+                )));
+            }
+        }
+    }
+    if commit && !settle {
+        return Err(FreshnessError::new(
+            "face settle: --commit requires --settle",
+        ));
+    }
+    let mode = match (settle, commit) {
+        (false, false) => FaceSettleMode::Check,
+        (true, false) => FaceSettleMode::Settle,
+        (true, true) => FaceSettleMode::SettleAndCommit,
+        (false, true) => FaceSettleMode::Check,
+    };
+    Ok(FaceSettleArgs { repo_root, mode })
+}
+
+pub fn face_settle_usage() -> &'static str {
+    "usage: oya-cloud-ci-face-settle [--repo-root <path>] [--settle [--commit]]"
+}
+
+pub fn check_regenerated_faces(
+    repo_root: &Path,
+    regenerated_faces: Vec<(String, String)>,
+) -> Result<FaceSettleReport, FreshnessError> {
+    assert_non_face_tree_clean(repo_root)?;
+    let committed_faces = read_committed_generated_faces(repo_root)?;
+    let findings = evaluate_face_freshness(&committed_faces, &regenerated_faces);
+    let stale_faces: Vec<String> = findings.iter().map(|finding| finding.key.clone()).collect();
+    let message = if stale_faces.is_empty() {
+        "generated cloud-ci faces are settled".to_owned()
+    } else {
+        format!(
+            "generated cloud-ci faces are stale:\n{}\n\nRun: {FACE_REMEDIATION_COMMAND}\nProtocol: {FACE_SETTLE_PROTOCOL}",
+            bullet_list(&stale_faces)
+        )
+    };
+    Ok(FaceSettleReport {
+        message,
+        stale_faces,
+        staged_faces: Vec::new(),
+        committed: false,
+    })
+}
+
+pub fn settle_regenerated_faces(
+    repo_root: &Path,
+    regenerated_faces: Vec<(String, String)>,
+    mode: FaceSettleMode,
+) -> Result<FaceSettleReport, FreshnessError> {
+    assert_non_face_tree_clean(repo_root)?;
+    write_regenerated_faces(repo_root, &regenerated_faces)?;
+    let changed_faces = tracked_face_changes(repo_root)?;
+    if changed_faces.is_empty() {
+        return Ok(FaceSettleReport {
+            message: "generated cloud-ci faces are already settled".to_owned(),
+            stale_faces: Vec::new(),
+            staged_faces: Vec::new(),
+            committed: false,
+        });
+    }
+
+    git_add_face_paths(repo_root)?;
+    let staged_faces = staged_paths(repo_root)?;
+    assert_staged_paths_are_faces(&staged_faces)?;
+    let committed = if mode == FaceSettleMode::SettleAndCommit {
+        git_commit_faces(repo_root)?;
+        true
+    } else {
+        false
+    };
+    let commit_line = if committed {
+        "created SSH-signed settle commit".to_owned()
+    } else {
+        format!("suggested commit: {FACE_SETTLE_COMMIT_COMMAND}")
+    };
+    Ok(FaceSettleReport {
+        message: format!(
+            "staged generated cloud-ci face diffs only:\n{}\n\n{commit_line}\nProtocol: {FACE_SETTLE_PROTOCOL}\nCommand: {FACE_REMEDIATION_COMMAND}",
+            bullet_list(&staged_faces)
+        ),
+        stale_faces: Vec::new(),
+        staged_faces,
+        committed,
+    })
+}
+
+pub fn assert_non_face_tree_clean(repo_root: &Path) -> Result<(), FreshnessError> {
+    let changes = tracked_non_face_changes(repo_root)?;
+    if changes.is_empty() {
+        Ok(())
+    } else {
+        Err(FreshnessError::new(format!(
+            "tracked non-face changes must be committed before settling generated faces:\n{}\nProtocol: {FACE_SETTLE_PROTOCOL}",
+            bullet_list(&changes)
+        )))
+    }
+}
+
 pub fn check_repo_with_regenerated_faces(
     repo_root: &Path,
     regenerated_faces: Vec<(String, String)>,
@@ -321,7 +509,9 @@ pub fn evaluate_face_freshness(
 }
 
 pub fn render_remediation() -> String {
-    format!("Remediation:\n  lock: {LOCK_REMEDIATION_COMMAND}\n  faces: {FACE_REMEDIATION_COMMAND}")
+    format!(
+        "Remediation:\n  lock: {LOCK_REMEDIATION_COMMAND}\n  faces: {FACE_REMEDIATION_COMMAND}\n  face settle protocol: {FACE_SETTLE_PROTOCOL}"
+    )
 }
 
 pub fn render_findings(findings: &[Finding]) -> String {
@@ -416,6 +606,152 @@ pub fn regenerate_faces_with_buck2(
     drop(cleanup);
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
+}
+
+fn write_regenerated_faces(
+    repo_root: &Path,
+    regenerated_faces: &[(String, String)],
+) -> Result<(), FreshnessError> {
+    for (name, bytes) in regenerated_faces {
+        let path = generated_face_path_for_name(name)
+            .ok_or_else(|| FreshnessError::new(format!("unknown generated face {name:?}")))?;
+        let full_path = repo_root.join(path);
+        if let Some(parent) = full_path.parent() {
+            std::fs::create_dir_all(parent).map_err(|error| {
+                FreshnessError::new(format!("create {}: {error}", parent.display()))
+            })?;
+        }
+        std::fs::write(&full_path, bytes)
+            .map_err(|error| FreshnessError::new(format!("write {}: {error}", path)))?;
+    }
+    Ok(())
+}
+
+fn generated_face_path_for_name(name: &str) -> Option<&'static str> {
+    GENERATED_FACE_PATHS.iter().copied().find(|path| {
+        path.rsplit('/')
+            .next()
+            .map(|file_name| file_name == name)
+            .unwrap_or(false)
+    })
+}
+
+fn tracked_non_face_changes(repo_root: &Path) -> Result<Vec<String>, FreshnessError> {
+    let output = run_output(
+        Command::new("git")
+            .args(["status", "--porcelain=v1", "--untracked-files=no"])
+            .current_dir(repo_root),
+        "git status tracked changes",
+    )?;
+    let mut changes = Vec::new();
+    for line in output.lines() {
+        let Some(path) = porcelain_status_path(line) else {
+            continue;
+        };
+        if !is_generated_face_path(&path) {
+            changes.push(path);
+        }
+    }
+    changes.sort();
+    Ok(changes)
+}
+
+fn tracked_face_changes(repo_root: &Path) -> Result<Vec<String>, FreshnessError> {
+    let mut command = Command::new("git");
+    command
+        .args(["status", "--porcelain=v1", "--untracked-files=no", "--"])
+        .args(GENERATED_FACE_PATHS)
+        .current_dir(repo_root);
+    let output = run_output(&mut command, "git status generated face changes")?;
+    let mut changes = Vec::new();
+    for line in output.lines() {
+        if let Some(path) = porcelain_status_path(line) {
+            changes.push(path);
+        }
+    }
+    changes.sort();
+    Ok(changes)
+}
+
+fn staged_paths(repo_root: &Path) -> Result<Vec<String>, FreshnessError> {
+    let output = run_output(
+        Command::new("git")
+            .args(["diff", "--cached", "--name-only"])
+            .current_dir(repo_root),
+        "git diff staged paths",
+    )?;
+    Ok(output
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(str::to_owned)
+        .collect())
+}
+
+fn porcelain_status_path(line: &str) -> Option<String> {
+    let path = line.get(3..)?.trim();
+    let normalized = path
+        .rsplit_once(" -> ")
+        .map(|(_, new_path)| new_path)
+        .unwrap_or(path)
+        .trim_matches('"');
+    if normalized.is_empty() {
+        None
+    } else {
+        Some(normalized.to_owned())
+    }
+}
+
+fn is_generated_face_path(path: &str) -> bool {
+    GENERATED_FACE_PATHS.contains(&path)
+}
+
+fn git_add_face_paths(repo_root: &Path) -> Result<(), FreshnessError> {
+    run_status(
+        Command::new("git")
+            .arg("add")
+            .arg("--")
+            .args(GENERATED_FACE_PATHS)
+            .current_dir(repo_root),
+        "git add generated face paths",
+    )
+}
+
+fn git_commit_faces(repo_root: &Path) -> Result<(), FreshnessError> {
+    run_status(
+        Command::new("git")
+            .args(["commit", "-S", "-m", FACE_SETTLE_COMMIT_MESSAGE])
+            .current_dir(repo_root),
+        "git commit generated face settle",
+    )
+}
+
+fn assert_staged_paths_are_faces(paths: &[String]) -> Result<(), FreshnessError> {
+    if paths.is_empty() {
+        return Err(FreshnessError::new(
+            "no generated face paths are staged for settle commit",
+        ));
+    }
+    let non_face_paths: Vec<String> = paths
+        .iter()
+        .filter(|path| !is_generated_face_path(path))
+        .cloned()
+        .collect();
+    if non_face_paths.is_empty() {
+        Ok(())
+    } else {
+        Err(FreshnessError::new(format!(
+            "settle commit may stage only generated face paths, found:\n{}\nProtocol: {FACE_SETTLE_PROTOCOL}",
+            bullet_list(&non_face_paths)
+        )))
+    }
+}
+
+fn bullet_list(items: &[String]) -> String {
+    items
+        .iter()
+        .map(|item| format!("- {item}"))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 struct FaceTools {
@@ -538,7 +874,9 @@ fn stale_face_finding(name: &str, reason: &str) -> Finding {
     Finding::new(
         FindingCode::GeneratedFaceStale,
         name,
-        format!("{reason}; remediation: {FACE_REMEDIATION_COMMAND}"),
+        format!(
+            "{reason}; remediation: {FACE_REMEDIATION_COMMAND}; settle protocol: {FACE_SETTLE_PROTOCOL}"
+        ),
     )
 }
 
