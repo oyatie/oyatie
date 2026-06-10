@@ -5,7 +5,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use oya_cloud_intelligence_translation::{
+use oya_cloud_intelligence_translation_kernel::{
     anthropic_messages_to_gemini_generate_content,
     gemini_generate_content_response_to_anthropic_message_response,
     gemini_generate_content_response_to_openai_chat_response,

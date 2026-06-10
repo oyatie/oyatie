@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_intelligence_wire::{
+use oya_cloud_intelligence_wire_kernel::{
     DriftProbePlan, PacingPolicy, PromptCachePolicy, PromptProfile, SessionAffinityPolicy,
     ShimSupersession, StreamLifecyclePolicy, ThinkingPolicy, TransportFingerprintPolicy,
     WireCaptureBaseline, WireProfile, apply_prompt_profile, apply_thinking_policy,

@@ -4572,7 +4572,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "oya-cloud-intelligence-translation",
+ "oya-cloud-intelligence-translation-kernel",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
@@ -4607,7 +4607,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-intelligence-ops"
+name = "oya-cloud-intelligence-ops-infrastructure"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -4635,7 +4635,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-intelligence-tool-compat"
+name = "oya-cloud-intelligence-tool-compat-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -4643,7 +4643,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-intelligence-translation"
+name = "oya-cloud-intelligence-translation-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -4651,7 +4651,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-intelligence-wire"
+name = "oya-cloud-intelligence-wire-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -4659,7 +4659,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-intelligence-workers"
+name = "oya-cloud-intelligence-worker"
 version = "0.1.0"
 dependencies = [
  "serde",

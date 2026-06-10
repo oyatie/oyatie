@@ -58,7 +58,7 @@
       "target_capability": "Add an advisory routing plane that can score provider/model candidates using redacted route metadata, while deterministic policy remains authoritative and generation requests stay on approved provider adapters.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_model_classifier_cross_routes_protocols",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
       ]
     },
     {
@@ -72,8 +72,8 @@
       ],
       "target_capability": "Keep generation limited to OpenAI/Codex, Anthropic/Claude, and Gemini adapters, and use cheap or free frontier models only as route advisors over redacted metadata.",
       "target_tests": [
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_004_005_006_model_and_backend_management_are_declarative_resources",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/tests/xproxy_worker_ownership.rs::xproxy_route_004_005_006_model_and_backend_management_are_declarative_resources",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
       ]
     },
     {
@@ -89,7 +89,7 @@
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-gemini-adapter/tests/gemini_adapter.rs::xproxy_wire_001_gemini_adapter_translates_openai_chat_request_and_response_at_adapter_boundary",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-gemini-adapter/tests/gemini_adapter.rs::xproxy_wire_001_gemini_adapter_translates_anthropic_messages_request_and_response_at_adapter_boundary",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation/tests/xproxy_translation_fixtures.rs::openai_chat_to_gemini_generate_content_maps_messages_and_system_instruction"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-translation-kernel/tests/xproxy_translation_fixtures.rs::openai_chat_to_gemini_generate_content_maps_messages_and_system_instruction"
       ]
     },
     {
@@ -102,7 +102,7 @@
       ],
       "target_capability": "Represent each supported client/tool profile as a cloud compatibility profile with canaries and provider adapter mappings, including Gemini-compatible generate-content clients.",
       "target_tests": [
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat/tests/xproxy_tool_compat.rs::xproxy_compat_001_declares_client_profiles_and_canaries_without_cli_targets"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-tool-compat-kernel/tests/xproxy_tool_compat.rs::xproxy_compat_001_declares_client_profiles_and_canaries_without_cli_targets"
       ]
     },
     {
@@ -116,7 +116,7 @@
       ],
       "target_capability": "Map sandbox and network-control ideas to Kubernetes admission, network policy, and worker/controller ownership; keep owned policy-engine and owned secret-provider details behind adapters.",
       "target_tests": [
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::k8s_manifest_declares_crds_workers_canaries_and_hardening",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/tests/xproxy_worker_ownership.rs::k8s_manifest_declares_crds_workers_canaries_and_hardening",
         "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces"
       ]
     },
@@ -131,8 +131,8 @@
       ],
       "target_capability": "Keep prompt bodies, provider credentials, and route-advisor input redacted by default across events, logs, compatibility reports, and workers.",
       "target_tests": [
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::xproxy_obs_002_usage_events_have_route_account_dimensions_and_redact_payloads",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops-infrastructure/tests/xproxy_ops_readonly.rs::xproxy_obs_002_usage_events_have_route_account_dimensions_and_redact_payloads",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/tests/xproxy_worker_ownership.rs::xproxy_route_005_cheaper_model_advisors_are_routing_only_adapter_backed_and_redacted"
       ]
     },
     {
@@ -146,7 +146,7 @@
       ],
       "target_capability": "Run scheduled worker/Job canaries that compare pinned source baselines, provider wire contracts, and client compatibility results before promoting route changes.",
       "target_tests": [
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-workers/tests/xproxy_worker_ownership.rs::xproxy_drift_001_002_workers_emit_pinned_parity_and_canary_plans"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/tests/xproxy_worker_ownership.rs::xproxy_drift_001_002_workers_emit_pinned_parity_and_canary_plans"
       ]
     },
     {
@@ -160,7 +160,7 @@
       ],
       "target_capability": "Surface runtime status through read-only ops APIs, read-only MCP-compatible views, and cloud dashboards; mutations remain audited admin API operations.",
       "target_tests": [
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops/tests/xproxy_ops_readonly.rs::xproxy_obs_005_read_only_mcp_toolset_excludes_mutations",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-ops-infrastructure/tests/xproxy_ops_readonly.rs::xproxy_obs_005_read_only_mcp_toolset_excludes_mutations",
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs::xproxy_api_005_external_reference_ops_routes_are_admin_guarded_cloud_routes"
       ]
     },
@@ -175,7 +175,7 @@
       ],
       "target_capability": "Represent prompt shaping as policy-gated PromptProfile resources, selected by adapters and route policy rather than local files or command flags.",
       "target_tests": [
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::xproxy_wire_009_010_prompt_and_thinking_policies_are_explicit_profiles"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire-kernel/tests/xproxy_wire_policy.rs::xproxy_wire_009_010_prompt_and_thinking_policies_are_explicit_profiles"
       ]
     },
     {
@@ -189,7 +189,7 @@
       ],
       "target_capability": "Represent thinking behavior as adapter-enforced ThinkingPolicy resources with provider-compatible defaults and explicit pass-through approval gates.",
       "target_tests": [
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire/tests/xproxy_wire_policy.rs::xproxy_wire_009_010_prompt_and_thinking_policies_are_explicit_profiles"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-wire-kernel/tests/xproxy_wire_policy.rs::xproxy_wire_009_010_prompt_and_thinking_policies_are_explicit_profiles"
       ]
     }
   ]

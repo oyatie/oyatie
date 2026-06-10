@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::panic)]
 
-use oya_cloud_intelligence_ops::{
+use oya_cloud_intelligence_ops_infrastructure::{
     AdminClientSurface, CircuitBreakerState, DiagnosticSnapshot, ReadOnlyMcpToolset,
     ReadOnlyOpsSurface, UsageEvent,
 };

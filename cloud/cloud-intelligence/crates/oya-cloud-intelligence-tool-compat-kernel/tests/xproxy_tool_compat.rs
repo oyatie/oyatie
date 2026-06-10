@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::panic)]
 
-use oya_cloud_intelligence_tool_compat::{
+use oya_cloud_intelligence_tool_compat_kernel::{
     AgentProfilePackage, ClientCompatibilityMatrix, ExternalClientProfile, ToolMode,
     classify_tool_request, default_tool_registry, sanitize_orchestration_tags,
 };

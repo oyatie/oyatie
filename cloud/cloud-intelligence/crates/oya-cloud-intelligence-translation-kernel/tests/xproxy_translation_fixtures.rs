@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::panic)]
 
-use oya_cloud_intelligence_translation::{
+use oya_cloud_intelligence_translation_kernel::{
     AnthropicMessageRequest, GeminiGenerateContentRequest, OpenAiChatRequest,
     anthropic_messages_to_gemini_generate_content, anthropic_messages_to_openai_chat,
     gemini_generate_content_response_to_anthropic_message_response,

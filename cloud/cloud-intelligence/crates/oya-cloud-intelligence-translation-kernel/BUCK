@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-cloud-intelligence-tool-compat",
+    name = "oya-cloud-intelligence-translation-kernel",
     srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
-    crate = "oya_cloud_intelligence_tool_compat",
+    crate = "oya_cloud_intelligence_translation_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -11,13 +11,13 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-cloud-intelligence-tool-compat-tests",
+    name = "oya-cloud-intelligence-translation-kernel-tests",
     srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
-    crate = "oya_cloud_intelligence_tool_compat_tests",
-    crate_root = "tests/xproxy_tool_compat.rs",
+    crate = "oya_cloud_intelligence_translation_kernel_tests",
+    crate_root = "tests/xproxy_translation_fixtures.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":oya-cloud-intelligence-tool-compat",
+        ":oya-cloud-intelligence-translation-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
     ],

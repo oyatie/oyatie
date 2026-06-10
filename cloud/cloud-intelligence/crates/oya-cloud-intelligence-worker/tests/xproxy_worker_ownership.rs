@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::panic)]
 
-use oya_cloud_intelligence_workers::{
+use oya_cloud_intelligence_worker::{
     AgentDelegationPolicySpec, AgentMemoryBindingSpec, AgentRuntimeProfileSpec, AgentScheduleSpec,
     AgentSkillBundleSpec, AgentWorkspaceBindingSpec, BackendRegistry, CloudAuthRequirements,
     ConfigLayer, ConfigSource, CredentialRefreshPlan, DriftParityPlan, EvidenceRetentionProfileSpec,

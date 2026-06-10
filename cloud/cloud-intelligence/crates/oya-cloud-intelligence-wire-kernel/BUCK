@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-cloud-intelligence-workers",
+    name = "oya-cloud-intelligence-wire-kernel",
     srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
-    crate = "oya_cloud_intelligence_workers",
+    crate = "oya_cloud_intelligence_wire_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -12,13 +12,13 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-cloud-intelligence-workers-tests",
+    name = "oya-cloud-intelligence-wire-kernel-tests",
     srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
-    crate = "oya_cloud_intelligence_workers_tests",
-    crate_root = "tests/xproxy_worker_ownership.rs",
+    crate = "oya_cloud_intelligence_wire_kernel_tests",
+    crate_root = "tests/xproxy_wire_policy.rs",
     visibility = ["PUBLIC"],
     deps = [
-        ":oya-cloud-intelligence-workers",
+        ":oya-cloud-intelligence-wire-kernel",
         "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
