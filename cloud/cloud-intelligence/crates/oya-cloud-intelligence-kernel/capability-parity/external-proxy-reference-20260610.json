@@ -112,7 +112,7 @@
     },
     {
       "id": "XPROXY-ROUTE-001",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README routing matrix"
       ],
@@ -121,12 +121,16 @@
       "target_capability": "Implement deterministic `ModelRouter`: explicit provider prefix > route policy > protocol/model classifier > tenant default.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_prefix_overrides_protocol_and_route_policy",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_policy_overrides_classifier_but_not_prefix",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_model_classifier_cross_routes_protocols",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_001_tenant_default_is_last_resort_for_unknown_models"
       ]
     },
     {
       "id": "XPROXY-ROUTE-002",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "README",
         "usage",
@@ -137,12 +141,13 @@
       "target_capability": "Add extensible `ProviderPrefixRegistry` and policy validation; support current external reference prefixes plus Oyatie references (Gemini, Bedrock, Azure OpenAI, vLLM, SGLang, etc.).",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_002"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_002",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_002_provider_prefix_registry_maps_current_prefixes"
       ]
     },
     {
       "id": "XPROXY-ROUTE-003",
-      "status": "planned",
+      "status": "implemented",
       "source_evidence": [
         "src/proxy.ts"
       ],
@@ -151,7 +156,8 @@
       "target_capability": "Define typed model aliases/capabilities; return canonical model in upstream request and preserve client-visible compatibility behavior.",
       "target_tests": [
         "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_capability_parity.rs::parity_rows_have_allowed_statuses_and_linked_target_tests",
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_003"
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_003",
+        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/xproxy_model_routing_matrix.rs::xproxy_route_003_claude_aliases_and_context_tags_are_normalized"
       ]
     },
     {

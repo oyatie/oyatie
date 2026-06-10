@@ -26,6 +26,7 @@ use std::fmt;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+pub mod model_routing;
 pub mod xproxy_parity;
 
 // ---------------------------------------------------------------------------

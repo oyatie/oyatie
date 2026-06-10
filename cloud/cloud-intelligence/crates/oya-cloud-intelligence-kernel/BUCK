@@ -34,3 +34,14 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "xproxy-model-routing-matrix-test",
+    srcs = glob(["tests/xproxy_model_routing_matrix.rs"]),
+    crate = "oya_cloud_intelligence_kernel_xproxy_model_routing_matrix_test",
+    crate_root = "tests/xproxy_model_routing_matrix.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-kernel",
+    ],
+)
