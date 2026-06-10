@@ -436,7 +436,12 @@ mod tests {
             "quoted.key": "value"
         });
         let object = config.as_object().unwrap();
-        let overrides = serialize_config_overrides(object).unwrap();
+        let mut overrides = serialize_config_overrides(object).unwrap();
+        // Compare order-agnostic: `serde_json::Map` iteration order depends on the
+        // resolved `preserve_order` feature (sorted under cargo's default, insertion
+        // order under the buck2 third-party feature union); the --config override
+        // contract is a SET of key=value pairs, not an ordering.
+        overrides.sort();
         assert_eq!(
             overrides,
             vec![

@@ -12,6 +12,11 @@
 //! - Python generated app-server contract: <https://github.com/openai/codex/blob/main/sdk/python/src/openai_codex/generated/v2_all.py>
 //! - Python SDK runtime packaging note: <https://github.com/openai/codex/tree/main/sdk/python-runtime>
 
+/// SDK version reported to the app-server. A literal (not `env!("CARGO_PKG_VERSION")`)
+/// because hermetic buck2 builds do not inject cargo env vars into first-party
+/// targets; tracks the workspace version.
+pub(crate) const SDK_VERSION: &str = "0.1.0";
+
 mod app_server;
 #[cfg(feature = "async")]
 mod async_app_server;

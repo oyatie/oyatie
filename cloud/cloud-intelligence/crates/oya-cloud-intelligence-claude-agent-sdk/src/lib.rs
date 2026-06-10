@@ -4,6 +4,11 @@
 //! subprocess protocol: `claude --output-format stream-json --input-format stream-json`,
 //! an SDK `initialize` control request, JSONL user input, and streamed typed messages.
 
+/// SDK version reported to the CLI. A literal (not `env!("CARGO_PKG_VERSION")`)
+/// because hermetic buck2 builds do not inject cargo env vars into first-party
+/// targets; tracks the workspace version.
+pub(crate) const SDK_VERSION: &str = "0.1.0";
+
 mod assistant;
 mod bridge;
 mod callbacks;

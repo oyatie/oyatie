@@ -545,7 +545,7 @@ fn process_env(options: &ClaudeAgentOptions) -> BTreeMap<String, String> {
     env.insert("CLAUDE_CODE_ENTRYPOINT".into(), "sdk-rs".into());
     env.insert(
         "CLAUDE_AGENT_SDK_VERSION".into(),
-        env!("CARGO_PKG_VERSION").into(),
+        crate::SDK_VERSION.into(),
     );
     if options.enable_file_checkpointing {
         env.insert(

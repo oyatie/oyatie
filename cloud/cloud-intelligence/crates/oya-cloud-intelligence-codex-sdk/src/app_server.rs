@@ -289,7 +289,7 @@ impl Default for AppServerConfig {
             env: None,
             client_name: "codex_rust_sdk".to_string(),
             client_title: "Codex Rust SDK".to_string(),
-            client_version: env!("CARGO_PKG_VERSION").to_string(),
+            client_version: crate::SDK_VERSION.to_string(),
             experimental_api: true,
             server_request_handler: Arc::new(default_server_request_handler),
         }
