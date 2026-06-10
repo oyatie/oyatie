@@ -34,14 +34,13 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "sig
 tonic = { workspace = true, features = ["router", "transport"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-uuid = { version = "1", features = ["v4"] }
-webauthn-rs = { version = "0.5", features = ["danger-user-presence-only-security-keys"] }
 
 [dev-dependencies]
 # E2E: drive the live REST socket with reqwest and the live gRPC socket with
 # the tonic-generated client; tower for in-process router oneshot tests.
 reqwest = { workspace = true }
 tower = { version = "0.5", default-features = false, features = ["util"] }
+uuid = { version = "1", features = ["v4"] }
 
 [lints]
 workspace = true
