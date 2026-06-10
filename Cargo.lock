@@ -5256,6 +5256,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-data-sql-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-data-warehouse-tenant-olap-service"
 version = "0.1.0"
 dependencies = [
