@@ -1290,8 +1290,9 @@ fn normalize_static_expansions(command: &str) -> String {
         let inlined = inline_function_calls(&current);
         let bindings = collect_same_line_bindings(&inlined);
         let positionals = collect_positional_params(&inlined);
+        let arrays = collect_array_bindings(&inlined);
         let ifs_unsafe = same_line_ifs_reassigned(&inlined);
-        let next = expand_with_bindings(&inlined, &bindings, &positionals, ifs_unsafe);
+        let next = expand_with_bindings(&inlined, &bindings, &positionals, &arrays, ifs_unsafe);
         if next == current {
             break;
         }
@@ -1324,6 +1325,19 @@ fn collect_positional_params(command: &str) -> Vec<String> {
                         j += 1;
                     }
                     params = captured;
+                } else if at_command_pos && word == "shift" {
+                    // `shift [n]` drops the first n positionals (review #685 r11
+                    // ROOT B) so `set -- …; shift; git -C $@` reindexes correctly.
+                    let n = match tokens.get(index + 1) {
+                        Some(ShellToken::Word(w)) => w.parse::<usize>().unwrap_or(1),
+                        _ => 1,
+                    };
+                    for _ in 0..n {
+                        if params.is_empty() {
+                            break;
+                        }
+                        params.remove(0);
+                    }
                 }
                 at_command_pos = false;
             }
@@ -1343,6 +1357,16 @@ fn collect_positional_params(command: &str) -> Vec<String> {
 fn inline_function_calls(command: &str) -> String {
     let defs = collect_function_defs(command);
     if defs.is_empty() {
+        return command.to_owned();
+    }
+    inline_with_defs(command, &defs, 0)
+}
+
+/// Inline body resolution with the def set threaded through, recursing on each
+/// substituted body so a multi-hop chain (`a(){ b "$@"; }; b(){ git "$@"; }`)
+/// resolves in one call (review #685 r11 ROOT C). Bounded by depth.
+fn inline_with_defs(command: &str, defs: &[(String, String)], depth: usize) -> String {
+    if depth >= MAX_NESTED_COMMAND_DEPTH {
         return command.to_owned();
     }
     let tokens = shell_tokens(command);
@@ -1369,7 +1393,16 @@ fn inline_function_calls(command: &str) -> String {
                         call_args.push(a.clone());
                         j += 1;
                     }
-                    out.push(substitute_positionals(body, &call_args));
+                    // `shift` inside the body drops leading call args before the
+                    // body's own `$@`/`$N` are bound (review #685 r11 ROOT B/C).
+                    let (shifts, body) = strip_leading_shift(body);
+                    let effective = if shifts <= call_args.len() {
+                        call_args[shifts..].to_vec()
+                    } else {
+                        Vec::new()
+                    };
+                    let substituted = substitute_positionals(&body, &effective);
+                    out.push(inline_with_defs(&substituted, defs, depth + 1));
                     index = j;
                     at_command_pos = false;
                 } else {
@@ -1381,6 +1414,31 @@ fn inline_function_calls(command: &str) -> String {
         }
     }
     out.join(" ")
+}
+
+/// Count and strip leading `shift [n]` statements from a function body so the
+/// body's positionals bind to the post-shift call args (review #685 r11 ROOT B).
+fn strip_leading_shift(body: &str) -> (usize, String) {
+    let mut shifts = 0usize;
+    let mut rest = body.trim_start();
+    while let Some(after) = rest.strip_prefix("shift") {
+        // Must be `shift` as a whole word (next char is space/`;`/end), not a
+        // longer identifier like `shifty`.
+        let after = match after.chars().next() {
+            None | Some(' ' | '\t' | ';') => after.trim_start(),
+            Some(_) => break,
+        };
+        let digits: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
+        let count = if digits.is_empty() {
+            1
+        } else {
+            digits.parse::<usize>().unwrap_or(1)
+        };
+        let tail = after[digits.len()..].trim_start();
+        rest = tail.strip_prefix(';').unwrap_or(tail).trim_start();
+        shifts += count;
+    }
+    (shifts, rest.to_owned())
 }
 
 fn separator_text(kind: SeparatorKind) -> String {
@@ -1589,6 +1647,112 @@ fn binding_value<'a>(bindings: &'a [(String, String)], name: &str) -> Option<&'a
         .map(|(_, value)| value.as_str())
 }
 
+/// Arrays bound by `read -a/-ra NAME <<< "<words>"` (review #685 r11 ROOT A) so
+/// `${NAME[@]}` re-tokenises into the canonical-mutation words. Only the
+/// here-string (`<<<`) literal form is modeled — a runtime `read` from stdin/a
+/// pipe is genuinely unknowable and left for the fail-closed residual checks.
+fn collect_array_bindings(command: &str) -> Vec<(String, Vec<String>)> {
+    let tokens = shell_tokens(command);
+    let mut arrays = Vec::new();
+    let mut at_command_pos = true;
+    let mut index = 0;
+    while index < tokens.len() {
+        match &tokens[index] {
+            ShellToken::Separator(_) => at_command_pos = true,
+            ShellToken::Word(word) => {
+                if at_command_pos && command_basename(word) == Some("read") {
+                    let mut name = None;
+                    let mut value = None;
+                    let mut j = index + 1;
+                    while let Some(ShellToken::Word(arg)) = tokens.get(j) {
+                        if (arg == "-a" || arg == "-ra" || arg == "-ar")
+                            && let Some(ShellToken::Word(n)) = tokens.get(j + 1)
+                        {
+                            name = Some(n.clone());
+                            j += 1;
+                        } else if arg == "<<<"
+                            && let Some(ShellToken::Word(v)) = tokens.get(j + 1)
+                        {
+                            value = Some(v.clone());
+                            j += 1;
+                        } else if let Some(v) = arg.strip_prefix("<<<") {
+                            if !v.is_empty() {
+                                value = Some(v.to_owned());
+                            }
+                        }
+                        j += 1;
+                    }
+                    if let (Some(n), Some(v)) = (name, value) {
+                        arrays.push((n, v.split_whitespace().map(str::to_owned).collect()));
+                    }
+                }
+                at_command_pos = false;
+            }
+        }
+        index += 1;
+    }
+    arrays
+}
+
+fn array_value<'a>(arrays: &'a [(String, Vec<String>)], name: &str) -> Option<&'a [String]> {
+    arrays
+        .iter()
+        .find(|(key, _)| key == name)
+        .map(|(_, value)| value.as_slice())
+}
+
+/// If `rest` begins with a double-quoted positional/array expansion that bash
+/// would word-SPLIT (`"$@"`, `"$*"`, `"${@}"`, `"${*}"`, `"${NAME[@]}"`,
+/// `"${NAME[*]}"`), return its space-separated expansion and the byte length
+/// consumed (opening quote through closing quote). None for any other quoted
+/// content so command substitutions and literals keep their quotes (review
+/// #685 r11 ROOT A — surgical, not a blanket quote strip).
+fn quoted_split_expansion(
+    rest: &str,
+    positionals: &[String],
+    arrays: &[(String, Vec<String>)],
+) -> Option<(String, usize)> {
+    let inner = rest.strip_prefix('"')?;
+    // The quoted body must be EXACTLY one positional/array expansion then `"`.
+    let close = inner.find('"')?;
+    let body = &inner[..close];
+    let consumed = 1 + close + 1; // opening quote + body + closing quote
+    let expansion = match body {
+        "$@" | "$*" | "${@}" | "${*}" => positionals.join(" "),
+        _ => {
+            let braced = body.strip_prefix("${").and_then(|b| b.strip_suffix('}'))?;
+            expand_array_subscript(braced, arrays)?
+        }
+    };
+    Some((expansion, consumed))
+}
+
+/// Expand a `${NAME[@]}` / `${NAME[*]}` / `${NAME[N]}` array subscript against
+/// the collected array bindings (review #685 r11 ROOT A). Returns None for
+/// non-array `${…}` forms (handled by the parameter path).
+fn expand_array_subscript(inner: &str, arrays: &[(String, Vec<String>)]) -> Option<String> {
+    let open = inner.find('[')?;
+    let close = inner.strip_suffix(']')?.len();
+    if close < open {
+        return None;
+    }
+    let name = &inner[..open];
+    let subscript = &inner[open + 1..inner.len() - 1];
+    let elems = array_value(arrays, name)?;
+    match subscript {
+        "@" | "*" => Some(elems.join(" ")),
+        digits if !digits.is_empty() && digits.chars().all(|c| c.is_ascii_digit()) => Some(
+            digits
+                .parse::<usize>()
+                .ok()
+                .and_then(|n| elems.get(n))
+                .cloned()
+                .unwrap_or_default(),
+        ),
+        _ => None,
+    }
+}
+
 /// Same-line `IFS=…` reassignment that could re-split unquoted expansions.
 /// Any `IFS=` assignment word triggers it — empty/default values only make the
 /// suppression slightly more eager (a read keeps literal `$REF` in arg
@@ -1603,6 +1767,7 @@ fn expand_with_bindings(
     command: &str,
     bindings: &[(String, String)],
     positionals: &[String],
+    arrays: &[(String, Vec<String>)],
     ifs_unsafe: bool,
 ) -> String {
     let positional_join = positionals.join(" ");
@@ -1621,6 +1786,23 @@ fn expand_with_bindings(
             '\'' => {
                 single_quote = true;
                 out.push(ch);
+            }
+            // Drop the quotes ONLY around a positional/array expansion
+            // (`"$@"`, `"${@}"`, `"${P[@]}"`) so it re-tokenises into SEPARATE
+            // words rather than one mega-arg (review #685 r11 ROOT A). Other
+            // double-quoted content keeps its quotes so `bash -c "$(…)"` still
+            // groups the script into one `-c` argument (regression guard).
+            '"' if quoted_split_expansion(&command[idx..], positionals, arrays).is_some() => {
+                let (expansion, consumed) =
+                    quoted_split_expansion(&command[idx..], positionals, arrays)
+                        .unwrap_or_default();
+                out.push_str(&expansion);
+                // Advance past the consumed `"…"` span (consumed counts bytes
+                // from the opening quote through the closing quote inclusive).
+                let target = idx + consumed;
+                while chars.peek().is_some_and(|(i, _)| *i < target) {
+                    chars.next();
+                }
             }
             '\\' => {
                 // Backslash line-continuation (`re\<newline>set`) is JOINED by
@@ -1673,6 +1855,10 @@ fn expand_with_bindings(
                     && inner.chars().all(|c| c.is_ascii_digit())
                 {
                     out.push_str(positional_at(positionals, &inner));
+                } else if let Some(expanded) =
+                    (!ifs_unsafe).then(|| expand_array_subscript(&inner, arrays)).flatten()
+                {
+                    out.push_str(&expanded);
                 } else {
                     match resolve_param(&inner, bindings).filter(|_| !ifs_unsafe) {
                         Some(value) => out.push_str(&value),
@@ -2619,6 +2805,18 @@ mod tests {
             "g(){ git $@; }; g -C /repo/oyatie reset --hard",
             "g() { git -C /repo/oyatie \"$@\"; }; g reset --hard",
             "function g { git \"$@\"; }; g -C /repo/oyatie reset --hard",
+            // r11 ROOT A — quoted top-level positional / array re-split.
+            "set -- -C /repo/oyatie reset --hard; git \"$@\"",
+            "set -- -C /repo/oyatie reset --hard; git \"${@}\"",
+            "read -ra P <<< \"-C /repo/oyatie reset --hard\"; git \"${P[@]}\"",
+            "read -a P <<< '-C /repo/oyatie reset --hard'; git \"${P[@]}\"",
+            // r11 ROOT B — shift reindex.
+            "set -- X -C /repo/oyatie reset --hard; shift; git \"$@\"",
+            "set -- X Y -C /repo/oyatie reset --hard; shift 2; git \"$@\"",
+            "g(){ shift; git \"$@\"; }; g X -C /repo/oyatie reset --hard",
+            // r11 ROOT C — multi-hop function chains.
+            "a(){ b \"$@\"; }; b(){ git \"$@\"; }; a -C /repo/oyatie reset --hard",
+            "a(){ b \"$@\"; }; b(){ c \"$@\"; }; c(){ git \"$@\"; }; a -C /repo/oyatie reset --hard",
         ] {
             assert_denied(command);
         }
