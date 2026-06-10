@@ -8,16 +8,26 @@ set -uo pipefail
 payload="$(cat)"
 
 # Extract the Bash command from the PreToolUse tool_input JSON without an external
-# interpreter (interpreter-free runtime hook hot path; the Buck2/Prow checker owns
-# manifest/config drift enforcement). Empty extraction simply means no command matched.
+# interpreter (interpreter-free runtime hook hot path; the oya-ci-required gate
+# pipeline (ADR-0515) owns manifest/config drift enforcement). Empty extraction
+# simply means no command matched.
 cmd="$(printf '%s' "$payload" \
   | tr '\n' ' ' \
   | sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p' \
   | head -n 1 \
   | sed -E 's/\\n/ /g; s/\\t/ /g; s/\\r/ /g; s/\\"/"/g; s/\\\\/\\/g')"
 
+# Strip quoted string arguments before pattern-matching so that forbidden tool
+# names appearing inside message text (git commit -m "...cargo build...", gh pr
+# comment --body "...", omc team api send-message --input '{"body":"..."}') do
+# not produce false positives.  Tradeoff: quoted invocations such as
+# bash -c "cargo build" are no longer caught here — acceptable because hooks are
+# the last-stop safety net per enforcement-layering doctrine (AMENDMENT 5); the
+# canonical CI gates remain the authority.
+cmd_stripped="$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+
 # cargo, optional toolchain (+stable), then a build/verify subcommand → blocked.
-if printf '%s' "$cmd" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench)([[:space:]]|$)'; then
+if printf '%s' "$cmd_stripped" | grep -Eq '(^|[;&|(]|[[:space:]])cargo[[:space:]]+(\+[^[:space:]]+[[:space:]]+)?(build|check|test|nextest|clippy|run|bench)([[:space:]]|$)'; then
   {
     echo "🚫 BLOCKED: 'cargo build/check/test/clippy/run/bench' is RETIRED."
     echo "Buck2 is the canonical build & verify tool (founder 2026-05-29: 'stop using cargo'; memory: canonical-monorepo-pattern)."

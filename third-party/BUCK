@@ -5816,6 +5816,12 @@ cargo.rust_library(
     deps = [":utf8-width-0.1"],
 )
 
+alias(
+    name = "http",
+    actual = ":http-1",
+    visibility = ["PUBLIC"],
+)
+
 http_archive(
     name = "http-1.4.1.crate",
     sha256 = "8be7462df143984c4598a256ef469b251d7d7f9e271135073e78fc535414f3d0",
@@ -15671,6 +15677,12 @@ buildscript_run(
         "CARGO_PKG_VERSION_PRE": "",
     },
     version = "1.0.69",
+)
+
+alias(
+    name = "thiserror",
+    actual = ":thiserror-2",
+    visibility = ["PUBLIC"],
 )
 
 http_archive(

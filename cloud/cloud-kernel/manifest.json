@@ -6,8 +6,16 @@
   "bounded_contexts": [
     {
       "name": "cloud-kernel",
-      "description": "Scaffold-only landing zone for kernel/framekernel assets. This manifest records boundaries only; it does not move infra/talos runtime files, alter cloud/cloud-k8s control-plane assets, build kernels or modules, publish boot artifacts, or claim live node runtime readiness.",
-      "crates": []
+      "description": "kuberos framekernel source, consolidated from the preserved consolidate/kernel-snapshot-2026-06-08 branch (stack/kernel) per the founder-authoritative HANDOFF \u00a74 destination map (G12 LANE-1). A nested bare-metal cargo workspace (nightly build-std; aarch64-unknown-none-softfloat + x86_64-unknown-none), intentionally not a root-workspace member. This manifest records boundaries; it does not move infra/talos runtime files, alter cloud/cloud-k8s control-plane assets, publish boot artifacts, or claim live node runtime readiness.",
+      "crates": [
+        "oya-cloud-kernel-app",
+        "oya-cloud-kernel-hal-kernel",
+        "oya-cloud-kernel-frame-kernel",
+        "oya-cloud-kernel-ksync-kernel",
+        "oya-cloud-kernel-user-layout-kernel",
+        "oya-cloud-kernel-arch-aarch64-adapter",
+        "oya-cloud-kernel-arch-x86-64-adapter"
+      ]
     }
   ],
   "layers": [
@@ -135,9 +143,9 @@
   "iac_module_invocations": [],
   "implemented_source_files": [],
   "explicit_non_claims": [
-    "No infra/talos file is moved, copied, or retired by this scaffold.",
-    "No cloud/cloud-k8s asset is modified by this scaffold.",
-    "No kernel source, module build, boot artifact, runtime service, or production node readiness is claimed."
+    "No infra/talos file is moved, copied, or retired by this slice.",
+    "No cloud/cloud-k8s asset is modified by this slice.",
+    "No module build, boot artifact publication, runtime service, or production node readiness is claimed; kernel source is present but runtime promotion remains gated (SLO authoring + ADR-0130) before any promotion past dev."
   ],
   "doc_class": "Machine-Readable-Spec",
   "criticality_tier": "T1-intended-future",
@@ -161,18 +169,21 @@
       "Kubernetes control-plane lifecycle under cloud/cloud-k8s/",
       "current Talos runtime files under infra/talos/"
     ],
-    "status": "scaffold-only; no kernel source, module build, boot artifact, runtime deployment, or production node claim"
+    "status": "kernel source landed (G12 LANE-1); no module build, boot artifact publication, runtime deployment, or production node claim"
   },
   "current_slice": {
-    "intent": "Non-breaking landing zone that records ownership and boundaries only.",
+    "intent": "G12 LANE-1 consolidation: import the preserved kernel source tree as a nested bare-metal cargo workspace, renamed to floor-conformant oya-cloud-kernel-* crates.",
     "adds": [
-      "machine-readable manifest"
+      "7 first-party crates (BNF 13-suffix + oya- prefix + manifest-hygiene conformant)",
+      "standalone excluded user-program crates (ring-3/EL0 test fixtures, out of oya-* gate scope by design)",
+      "tracked default-build embedded ELF inputs under out/ (user-hello/user-musl/user-x86_64 precedent)",
+      "machine-readable specs/syscall-coverage-matrix.json and golden serial traces under tests/golden/"
     ],
     "does_not_add": [
-      "crates",
-      "kernel source",
+      "markdown source files (retired per markdown-retirement policy; originals preserved on the snapshot branch)",
+      "shell automation (qemu runner/conformance scripts stay on the snapshot branch pending a Rust-native runner)",
       "module builds",
-      "boot artifacts",
+      "boot artifact publication",
       "OpenTofu modules",
       "Helm charts",
       "runtime automation"

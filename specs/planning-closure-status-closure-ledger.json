@@ -7,12 +7,13 @@
     "version": "1.0.0",
     "status": "accepted",
     "created_at": "2026-05-19",
-    "owner_team": "council-architecture"
+    "owner_team": "founder"
   },
   "closure_scope": {
     "masterplan_path": "/specs/masterplan.json",
     "contract_ref": "/specs/planning-closure-contract.json",
     "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
     "closed_status_field_count": 177,
     "former_blocking_status_classes": [
       "was-seed",

@@ -4,10 +4,12 @@ rust_library(
     crate = "oya_shared_backbone_proto_contracts_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    mapped_srcs = {
-        "//specs/proto/backbone/messenger:message_stream.proto": "specs/proto/backbone/messenger/message_stream.proto",
-        "//specs/proto/backbone/mail:mail.proto": "specs/proto/backbone/mail/mail.proto",
-        "//specs/proto/backbone/social:social_post_composition.proto": "specs/proto/backbone/social/social_post_composition.proto",
-        "//specs/proto/backbone/community:community_post_store.proto": "specs/proto/backbone/community/community_post_store.proto",
-    },
+)
+
+rust_test(
+    name = "oya-shared-backbone-proto-contracts-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_shared_backbone_proto_contracts_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
 )
