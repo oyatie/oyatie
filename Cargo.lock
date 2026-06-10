@@ -4681,10 +4681,27 @@ name = "oya-cloud-observability-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-os-apid-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-proto-api",
+]
+
+[[package]]
 name = "oya-cloud-os-archiver-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-block-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-cosi-domain",
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-machine-config-domain",
 ]
 
 [[package]]
@@ -4720,6 +4737,14 @@ name = "oya-cloud-os-config-docs-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-config-v1alpha1-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-machine-config-domain",
 ]
 
 [[package]]
@@ -4772,6 +4797,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-os-k8s-control-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-kubelet-domain",
+ "oya-cloud-os-runtime-cri-domain",
+]
+
+[[package]]
 name = "oya-cloud-os-kernel"
 version = "0.1.0"
 
@@ -4780,6 +4814,15 @@ name = "oya-cloud-os-kubelet-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-kubernetes-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-runtime-cri-domain",
+ "oya-cloud-os-secrets-domain",
 ]
 
 [[package]]
@@ -4794,6 +4837,16 @@ name = "oya-cloud-os-machine-config-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-machined-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-block-domain",
+ "oya-cloud-os-cosi-domain",
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-runtime-cri-domain",
 ]
 
 [[package]]
@@ -4836,6 +4889,16 @@ name = "oya-cloud-os-resources-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
+]
+
+[[package]]
+name = "oya-cloud-os-runtime-cri-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-block-domain",
+ "oya-cloud-os-cosi-domain",
+ "oya-cloud-os-kernel",
+ "oya-cloud-os-machine-config-domain",
 ]
 
 [[package]]
