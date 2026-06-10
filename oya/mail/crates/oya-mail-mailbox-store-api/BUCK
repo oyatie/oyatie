@@ -8,3 +8,14 @@ rust_library(
         "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-mail-mailbox-store-api-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_mail_mailbox_store_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+    ],
+)

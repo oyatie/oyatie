@@ -12,3 +12,34 @@ rust_library(
         "//oya/messenger/crates/oya-messenger-message-stream-usecase:oya-messenger-message-stream-usecase",
     ],
 )
+
+rust_test(
+    name = "oya-messenger-message-stream-rest-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_messenger_message_stream_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//oya/messenger/crates/oya-messenger-app:oya-messenger-app",
+        "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
+        "//oya/messenger/crates/oya-messenger-message-stream-usecase:oya-messenger-message-stream-usecase",
+    ],
+)
+
+rust_test(
+    name = "oya-messenger-message-stream-rest-list-messages-read-path",
+    srcs = ["tests/list_messages_read_path.rs"],
+    crate = "oya_messenger_message_stream_rest_list_messages_read_path",
+    crate_root = "tests/list_messages_read_path.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-messenger-message-stream-rest",
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//oya/messenger/crates/oya-messenger-app:oya-messenger-app",
+        "//oya/messenger/crates/oya-messenger-message-stream-api:oya-messenger-message-stream-api",
+        "//oya/messenger/crates/oya-messenger-message-stream-usecase:oya-messenger-message-stream-usecase",
+    ],
+)

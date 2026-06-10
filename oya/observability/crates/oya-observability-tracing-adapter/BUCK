@@ -10,3 +10,30 @@ rust_library(
         "third-party//:tracing-subscriber",
     ],
 )
+
+rust_test(
+    name = "oya-observability-tracing-adapter-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_observability_tracing_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/observability/crates/oya-observability-domain:oya-observability-domain",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_test(
+    name = "oya-observability-tracing-adapter-slo-breach-observer",
+    srcs = ["tests/slo_breach_observer.rs"],
+    crate = "oya_observability_tracing_adapter_slo_breach_observer",
+    crate_root = "tests/slo_breach_observer.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-observability-tracing-adapter",
+        "//oya/observability/crates/oya-observability-domain:oya-observability-domain",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

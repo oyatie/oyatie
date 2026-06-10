@@ -9,3 +9,16 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-step-domain:oya-intelligence-step-domain",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-step-file-adapter-file-step-ledger",
+    srcs = ["tests/file_step_ledger.rs"],
+    crate = "oya_intelligence_step_file_adapter_file_step_ledger",
+    crate_root = "tests/file_step_ledger.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-step-file-adapter",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-step-domain:oya-intelligence-step-domain",
+    ],
+)

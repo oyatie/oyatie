@@ -8,3 +8,15 @@ rust_library(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-rag-api-foundry-rag-retrieve-api",
+    srcs = ["tests/foundry_rag_retrieve_api.rs"],
+    crate = "oya_intelligence_rag_api_foundry_rag_retrieve_api",
+    crate_root = "tests/foundry_rag_retrieve_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-rag-api",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
