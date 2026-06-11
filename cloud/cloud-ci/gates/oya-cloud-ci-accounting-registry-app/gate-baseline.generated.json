@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:cdd1cb3fe988258f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:8654103e31166118"
+    "source_inputs_digest": "fnv1a64:fef2755073636718"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -26016,6 +26016,7 @@
           "docs/decisions/ADR-0545-embedded-asset-hermeticity-gate.md",
           "docs/decisions/ADR-0546-canonical-json-determinism-gate.md",
           "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md",
+          "docs/decisions/ADR-0548-pipeline-as-product-paved-road.md",
           "docs/decisions/INDEX.md",
           "docs/decisions/README.md",
           "docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md",
@@ -42187,6 +42188,7 @@
           "docs/decisions/ADR-0545-embedded-asset-hermeticity-gate.md",
           "docs/decisions/ADR-0546-canonical-json-determinism-gate.md",
           "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md",
+          "docs/decisions/ADR-0548-pipeline-as-product-paved-road.md",
           "docs/decisions/INDEX.md",
           "docs/decisions/README.md",
           "docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md",
