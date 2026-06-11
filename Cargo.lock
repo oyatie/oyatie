@@ -4192,6 +4192,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-canonical-json-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-ci-cargo-prefix-app"
 version = "0.1.0"
 dependencies = [
