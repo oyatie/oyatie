@@ -961,7 +961,10 @@ impl Stream for SseStreamWithLease {
             Poll::Ready(None) => {
                 // Clean end of stream — complete with the upstream status outcome.
                 if !self.errored {
-                    self.complete_lease(self.clean_outcome);
+                    // Copy the Copy-field out before the &mut self call (E0502:
+                    // the argument's immutable borrow conflicts with the receiver).
+                    let outcome = self.clean_outcome;
+                    self.complete_lease(outcome);
                 }
                 Poll::Ready(None)
             }
