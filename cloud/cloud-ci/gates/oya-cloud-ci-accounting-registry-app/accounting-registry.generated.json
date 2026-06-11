@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18330,
-    "source_inputs_digest": "fnv1a64:bc652fcecac5b6b7"
+    "source_inputs_digest": "fnv1a64:0e3edc387df6e1d9"
   },
   "rows": [
     {
@@ -288,7 +288,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0538",
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "e95f0753bd10aa8ec835c6a84e2875deeb98b03a",
       "owner": null,
       "path": ".github/workflows/oya-ci-required.yml",
       "reachable_from": [],
@@ -8241,7 +8241,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "e95f0753bd10aa8ec835c6a84e2875deeb98b03a",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/BUCK",
       "reachable_from": [
@@ -8264,7 +8264,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "e95f0753bd10aa8ec835c6a84e2875deeb98b03a",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/Cargo.toml",
       "reachable_from": [
@@ -8287,7 +8287,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "e95f0753bd10aa8ec835c6a84e2875deeb98b03a",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/kernel-purity-policy.json",
       "reachable_from": [
@@ -8310,7 +8310,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "69312e29ecc82d541801ca8e1b6f2c866228fd88",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/src/lib.rs",
       "reachable_from": [
@@ -8333,7 +8333,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "e95f0753bd10aa8ec835c6a84e2875deeb98b03a",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/src/main.rs",
       "reachable_from": [
@@ -8356,7 +8356,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "69312e29ecc82d541801ca8e1b6f2c866228fd88",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/tests/kernel_purity.rs",
       "reachable_from": [
@@ -80761,7 +80761,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0546",
-      "last_touch_commit": "d19f199acbd4e78f6ee5678080230a8727e1493e",
+      "last_touch_commit": "69312e29ecc82d541801ca8e1b6f2c866228fd88",
       "owner": null,
       "path": "docs/decisions/ADR-0546-canonical-json-determinism-gate.md",
       "reachable_from": [],
@@ -80782,7 +80782,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0547",
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "69312e29ecc82d541801ca8e1b6f2c866228fd88",
       "owner": null,
       "path": "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md",
       "reachable_from": [],
@@ -84095,7 +84095,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0539",
-      "last_touch_commit": "bbad70993b74b58104f418fc4c891614d02e3895",
+      "last_touch_commit": "e95f0753bd10aa8ec835c6a84e2875deeb98b03a",
       "owner": null,
       "path": "docs/oya-ci/gate-catalog.md",
       "reachable_from": [],
