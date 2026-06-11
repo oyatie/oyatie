@@ -1,14 +1,73 @@
-Pre-open review FILTER verdict — agent/burndown-slice-12
-Reviewer: fresh-context Fable subagent (oh-my-claudecode:code-reviewer) with /using-superpowers /using-agent-skills + ultraqa harness + RUBRIC-torvalds-review.md (Torvalds §1-5, hyperscaler §6, owned-architecture §7)
-Head SHA reviewed (PR content head): 58e65e5204ad247a7fb9b3c61b7b52a15bdb4346
+Pre-open review FILTER verdict — agent/g11-embedded-asset-gate
+Reviewer: fable-executor inline review (Torvalds discipline + hyperscaler lens)
+Head SHA reviewed (PR content head): 8d6d176847e24b5dcfeded4a14a56c87bb3eabc2
+Date: 2026-06-11
 
-VERDICT: APPROVE (no findings; no blockers)
+VERDICT: PASS (0 CRITICAL, 0 HIGH findings)
 
-Verified axes:
-1. Diff scope PASS — exactly 49 member BUCK files + 3 cloud-ci generated faces; target_parity.rs (hardcoded 614) untouched per leader directive; no source files touched.
-2. Stanza mechanicality PASS — additions-only (zero deletion lines in BUCK); 5 spot-checked stanzas match the PR #670 generator shape; no existing target/gate/baseline weakened.
-3. Cited-test reality PASS — reviewer independently ran 4 wired targets via buck2 from the lane worktree: whiteboard-canvas-collaboration-app-integration (8 passed), event-bus-kernel-unittest (6 passed), dsl-emitter-domain-graph-integrity (12 passed), execution-engine-app-unittest vacuous-pass probe (7 passed) — all Tests finished: Pass N. Fail 0.
-4. Anti-laundering PASS — gate-baseline keys dev 614 -> branch 565 (614-49); removed set byte-diff EXACT MATCH vs the 49 wired member dirs; 0 added; -50/+1 raw lines = JSON trailing-comma artifact, not semantic. Faces producer-mechanical; content commits first, single faces-only settle commit last.
-5. Reverted member PASS — tools/oya-architecture-graph-generator-app/BUCK byte-identical to origin/dev and still in the debt baseline; deferral corroborated in code (tests/regeneration.rs reads repo-root docs/* at runtime, outside hermetic sandbox srcs — cross-package wiring out of campaign scope).
+Verified surfaces:
 
-residual risk (reviewer): a wired crate later adding runtime reads of repo-root paths would flip red post-merge in a cold build; the fail-closed gate catches it but after this slice. Nothing in the current 49 members exhibits that pattern.
+1. ALGORITHM CORRECTNESS
+   glob_match/glob_segments: PASS — src/**/*.rs matches src/lib.rs via zero ** intermediate
+     segments (glob_segments tries pat[1..] vs txt when pat[0]=="**", so zero-advance works).
+   segment_match: PASS — backtracking * matcher, no regex, no alloc, handles *.rs vs lib.rs.
+   extract_include_sites: PASS — UTF-8 safe (b'i' guard + utf8_char_width advance); context-aware
+     mini-lexer skips //-comments, /* */comments (nesting-aware), "..." strings, r#"..."# raw
+     strings, 'x' char literals; no false positives on the gate's own source text.
+   normalize_rel: PASS — leading .. preserved (signals out-of-tree, caught as unmapped); . and
+     empty segments collapsed; no filesystem touch.
+   resolve_include: PASS — joins site_dir (sandbox dest dir) + literal, normalizes; correct for
+     both short-path and deep-path destination forms.
+
+2. VIOLATION vs SKIP DISJOINTNESS
+   VIOLATION_CODES and SKIP_CODES are disjoint literals; from_findings filters by
+   VIOLATION_CODES.contains() membership (NOT skip_ prefix); unit test
+   violation_and_skip_codes_are_disjoint_and_emittable covers this. PASS.
+
+3. ANTI-KEY REGRESSION
+   mapped_dict_values returns the VALUE side of each "k": "v" entry (after the top-level ':').
+   target_destinations inserts normalize_rel(value) for mapped dests. Never inserts keys.
+   The original FRIC-1781131000 defect (wrong key-side mapping) is correctly caught. PASS.
+
+4. PER-TARGET RESOLUTION (load-bearing distinction)
+   file_destination checks dests.contains(&full) (deep/comprehension path) before
+   dests.contains(rs_in_crate) (short/glob path). The short-crate_root escape case is correctly
+   detected as unmapped (full not in dests, short path is in dests but deep path is not mapped
+   to the cedar file). Empirically confirmed by the prerequisite buck2 build failure evidence. PASS.
+
+5. AUTO-REMEDIATOR (automation-default doctrine)
+   derive_remediation: correctly infers MappedEntry vs ComprehensionRewrite from crate_root form.
+   apply_remediation: duplicate-key detection prevents duplicate BUCK entries; ComprehensionRewrite
+     rewrites the whole rust_library to ROOT-prefixed form; refuses binaries (returns Err).
+   FAIL output (report_check) prints exact --fix command at line 142 of main.rs. PASS.
+   RED/GREEN fixture tests cover the FRIC-1781131000 shape. PASS.
+
+6. BASELINE ANTI-LAUNDERING (FRIC-1781112000)
+   live-corpus test asserts measured == frozen (set equality, not subset). A new skip key fails
+   closed. Independent reviewed ceilings are a secondary trip-wire. PASS.
+
+7. REGISTRATION AND DOCUMENTATION
+   oya-ci-required.yml: matrix line for oya-cloud-ci-embedded-asset-hermeticity-app. PASS.
+   gate-catalog.md: table row + prose paragraph added after canonical-json entry. PASS.
+   ADR-0545: authored with empirical evidence section, automation-default section. PASS.
+   FRIC-1781131000 dogfood closure: friction-ledger has status_update "fixed-in-PR" row. PASS.
+
+8. BUILD AND TEST EVIDENCE
+   buck2 test //cloud/cloud-ci/...: 42 passed, 0 failed at HEAD 8d6d17684. PASS.
+   buck2 run ...embedded-asset-hermeticity-fixer -- --check: "0 unmapped includes. Repo is hermetic." PASS.
+   buck2 run ...canonical-json-bin -- --repo-root .: "canonical-json gate passed" (new JSON canonical). PASS.
+   buck2 build ...oya-ci-webhook-gateway-authz-cedar-adapter: BUILD SUCCEEDED. PASS.
+
+9. DEBUG ARTIFACT SCAN
+   No TODO/HACK/dbg!/println! in lib.rs production code. eprintln! in main.rs error paths only
+   (correct CLI pattern). PASS.
+
+MEDIUM findings (non-blocking):
+  - Two settle commits in history after rebase (988dadd5c stale, 8d6d17684 fresh) — HEAD state
+    is correct; both are faces-only; tests pass 42/0. No correctness impact.
+  - globs_via_crate_root uses a heuristic (crate_root dir prefix) to cover files not in
+    explicit srcs_globs — conservative (may miss some, never false-RED); documented in comment.
+
+LOW findings: none.
+
+CONCLUSION: Ready to open PR. All blocking surfaces verified correct.
