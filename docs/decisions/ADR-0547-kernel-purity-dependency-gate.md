@@ -152,13 +152,13 @@ detector + automation-where-derivable + blocking backstop:
 
 - **Derivable + auto-fixed (`--fix`).** A denylisted dep declared in a crate's own manifest that
   is **not referenced anywhere in that crate's `src/**/*.rs` or `build.rs`**, is not a build-dep, is
-  not renamed, and is not a feature-backed optional dep — is a dead transient dep. Removing the
-  manifest line moves no code and is purely mechanical, so the gate binary applies it under `--fix`
-  **for Cargo.toml only** (see BUCK descope note below).
+  not renamed, is not `optional = true`, and is not feature-referenced — is a dead transient dep.
+  Removing the manifest line moves no code and is purely mechanical, so the gate binary applies it
+  under `--fix` **for Cargo.toml only** (see BUCK descope note below).
   Source-usage is detected by a conservative token scan that maps the dep name to its Rust ident
   (`kube-runtime` → `kube_runtime`) and over-approximates "used" (a mention in a comment counts),
   which is the SAFE direction.
-  **Cargo `--fix` safety bounds** — four bounds keep the Cargo remover from corrupting a manifest
+  **Cargo `--fix` safety bounds** — five bounds keep the Cargo remover from corrupting a manifest
   or removing a live dep, each backed by a RED/GREEN regression fixture:
   (i) **build-dependencies are never auto-fixed** (their liveness is hard to attribute per-dep;
   `build.rs` is scanned only to MARK them live, never to remove them);
@@ -172,12 +172,24 @@ detector + automation-where-derivable + blocking backstop:
   ALL `[features]` value strings against ALL dep tables using the full Cargo feature-entry token
   grammar (`dep:X`, `X`, `X/feat`, `X?/feat`), catching sub-feature paths (H1), optional-dep
   activation (H2), bare names (H3), and target-cfg tables (H4); any dep token matched is demoted to
-  design-action so removing the dep line can never leave a dangling feature entry.
+  design-action so removing the dep line can never leave a dangling feature entry;
+  (v) **optional deps are never auto-fixed** (MED-X1, FRIC-1781210000) — `optional = true` exports
+  an **implicit** cargo feature named after the dep even when the owning manifest's `[features]`
+  never mentions it, and a SIBLING workspace member can request that implicit feature
+  (`features = ["kube"]`) on its path dependency; bound (iv) cannot see that request (it scans only
+  the owning manifest) and the layer-2 revalidation below cannot either (no cross-member feature
+  resolution under `--no-deps`), so every `optional = true` dep is demoted to design-action with
+  remediation text explaining the implicit-feature export.
   **CRITICAL-A layer 2 — `cargo metadata` rollback:** after all Cargo.toml edits are written,
   `cargo metadata --no-deps --format-version 1` is run as a semantic revalidation gate (the sole
   sanctioned cargo invocation per the teammate preamble). If it fails, ALL pre-images are restored
-  and the findings are reclassified as design-actions in the returned error, which carries the
-  cargo error text — closing any syntactic-checker gap against corrupt manifests. If the `cargo`
+  (first pre-image per path, so a manifest edited twice rolls back to its ORIGINAL content) and the
+  findings are reclassified as design-actions in the returned error, which carries the cargo error
+  text. Layer 2 validates exactly what `--no-deps` resolves: each workspace member's own manifest
+  still parses and is internally consistent (e.g. a dangling `dep:<x>` feature entry in the edited
+  manifest is caught). It does **not** perform cross-member feature resolution, so a sibling
+  member's `features = [...]` request against another member's dep is invisible to it — which is
+  why bound (v) refuses ALL optional deps up front instead of relying on layer 2. If the `cargo`
   binary itself cannot be spawned (a hermetic environment without cargo on PATH), layer 2 degrades
   explicitly: layer-1 syntactic bounds have already passed and the blocking buck2 `rust_test` gate
   remains the enforcement backstop. The validator is injected (`apply_fixes_with_validator`) so the
@@ -191,9 +203,10 @@ detector + automation-where-derivable + blocking backstop:
   `queued-shared-kernel`). The `remove_buck_dep_line` function is retained as a refusal stub
   (`Ok(false)` without writing) for the detector/test path.
 - **Not safely derivable (printed, never auto-applied).** A denylisted dep that IS used in the
-  kernel's source, is renamed, is a build-dep, or is feature-backed requires a design act (moving
-  code / rewriting feature entries). The gate distinguishes the reason in `next_action` so the
-  contributor sees the right remediation step, never a bare FAIL.
+  kernel's source, is renamed, is a build-dep, is `optional = true`, or is feature-referenced
+  requires a design act (moving code / rewriting feature entries / auditing sibling feature
+  requests). The gate distinguishes the reason in `next_action` so the contributor sees the right
+  remediation step, never a bare FAIL.
 - **Blocking gate = backstop.** The buck2 `rust_test` gate is the enforcement layer that catches
   whatever automation did not (or could not) fix. Default binary invocation detects and reports;
   `--fix` applies the derivable Cargo subset and re-reports the residual design actions.
@@ -202,7 +215,12 @@ Every finding carries `auto_fixable` + `next_action`. The `--fix` class is cover
 fixtures (`fix_removes_dead_transient_dep_and_turns_red_to_green`,
 `fix_leaves_used_transient_dep_in_place`, `dead_transient_dep_is_auto_fixable`,
 `used_transient_dep_is_a_design_action_not_auto_fixable`). The sound-bound fixtures are H1–H4
-(feature-syntax refusal), H5 (comment-blind paren detection), H6 (None=skip removal).
+(feature-syntax refusal), H5 (comment-blind paren detection), H6 (None=skip removal), the
+optional-dep implicit-feature refusal
+(`fix_refuses_optional_dep_whose_implicit_feature_a_sibling_requests`, bound (v)), the
+backslash-escape stripper fixture
+(`backslash_escaped_quote_in_string_does_not_hide_following_dep`), and the two-edits-one-file
+rollback fixture (`rollback_restores_original_when_same_manifest_is_edited_twice`).
 
 ### The denylist (kube/kuberos trap)
 
