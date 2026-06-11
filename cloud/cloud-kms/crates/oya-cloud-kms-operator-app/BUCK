@@ -1,0 +1,41 @@
+rust_library(
+    name = "oya-cloud-kms-operator-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_cloud_kms_operator_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter:oya-cloud-kms-operator-k8s-adapter",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel:oya-cloud-kms-operator-kernel",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-kms-operator",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-kms-operator-app",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter:oya-cloud-kms-operator-k8s-adapter",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel:oya-cloud-kms-operator-kernel",
+        "third-party//:kube",
+        "third-party//:tokio",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-kms-operator-app-tests",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs"]),
+    crate = "oya_cloud_kms_operator_app_tests",
+    crate_root = "tests/app.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-kms-operator-app",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter:oya-cloud-kms-operator-k8s-adapter",
+        "//cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel:oya-cloud-kms-operator-kernel",
+    ],
+)
