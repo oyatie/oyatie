@@ -252,7 +252,7 @@
       "depends_on": [
         "T1"
       ],
-      "deliverable": "oya-scm admission/status fa\u00e7ade, oya-ci controller/tide required contexts, and oya-cd release-ledger/reconciler fa\u00e7ade run for tenant=oyatie-internal and at least one sandbox tenant with hard isolation tests."
+      "deliverable": "oya-scm admission/status façade, oya-ci controller/tide required contexts, and oya-cd release-ledger/reconciler façade run for tenant=oyatie-internal and at least one sandbox tenant with hard isolation tests."
     },
     {
       "id": "T3",
