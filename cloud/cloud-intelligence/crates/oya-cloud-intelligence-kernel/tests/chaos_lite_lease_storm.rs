@@ -54,7 +54,7 @@ fn make_pool(n_seats: usize) -> Arc<Mutex<SubscriptionPool>> {
             SubscriptionId::new(format!("chaos-sub-{i}")).unwrap(),
             Provider::Anthropic,
             SubscriptionState::Active,
-            format!("openbao://t-chaos/chaos-seat-{i}/refresh"),
+            format!("secret-ref://t-chaos/chaos-seat-{i}/refresh"),
             0,
         ))
         .unwrap();

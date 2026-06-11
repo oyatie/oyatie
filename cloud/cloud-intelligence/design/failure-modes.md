@@ -104,18 +104,19 @@ them blinds operations:
 - **Long-term:** Contract tests per adapter against recorded provider fixtures.
 - **Residual:** Low.
 
-### 3. OpenBao key store (rest)
+### 3. Secret-provider key store (rest)
 
-#### 3.1 OpenBao unreachable on refresh
+#### 3.1 Secret-provider adapter unreachable on refresh
 - **Detection:** `oya_cloud_intelligence_key_refresh_failures_total` > 0.
 - **Immediate:** Serve last-good in-memory keys (refresh is best-effort); alert. **Never** fail-open
   to a plaintext key source (brief §5).
-- **Long-term:** OpenBao HA per cell (cloud-kms).
-- **Residual:** Low (in-memory cache survives transient vault blips).
+- **Long-term:** cloud-secrets/cloud-kms adapter HA per cell.
+- **Residual:** Low (in-memory cache survives transient secret-provider adapter blips).
 
-#### 3.2 Key rotated upstream but not in OpenBao
+#### 3.2 Key rotated upstream but not behind the registered handle
 - **Detection:** Keys go 401/403 across the pool → looks like key-exhaustion.
-- **Immediate:** Update OpenBao secret + `POST .../refresh` (see `runbooks/key-exhaustion.md`).
+- **Immediate:** Update the owned secret-provider/KMS handle + `POST .../refresh`
+  (see `runbooks/key-exhaustion.md`).
 - **Residual:** Low.
 
 ### 4. Auth realms (rest)
@@ -166,10 +167,11 @@ them blinds operations:
 - **Mitigation:** 503 `gateway_provider_unavailable` + `Retry-After`; no further amplification.
 - **Residual:** Medium (rare; external).
 
-### C.2 OpenBao down + key rotation needed simultaneously
+### C.2 Secret-provider adapter down + key rotation needed simultaneously
 - **Detection:** Refresh failing AND keys 401/403.
-- **Mitigation:** Cannot refresh until OpenBao returns; serve last-good (may be stale/invalid) →
-  may degrade to key-exhaustion 503. Restore OpenBao first.
+- **Mitigation:** Cannot refresh until the adapter returns; serve last-good (may be
+  stale/invalid) → may degrade to key-exhaustion 503. Restore cloud-secrets/cloud-kms
+  adapter health first.
 - **Residual:** Medium.
 
 ## References

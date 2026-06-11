@@ -21,7 +21,7 @@ use oya_cloud_intelligence_kernel::{
     SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
 };
 use oya_cloud_intelligence_rest::{
-    AnthropicAdapter, OpenBaoSecretStore, ProxyRequest, RestAdapterError,
+    AnthropicAdapter, ProxyRequest, RestAdapterError, SecretProviderStore,
 };
 
 // ---------------------------------------------------------------------------
@@ -32,7 +32,7 @@ struct StubStore {
     token: String,
 }
 
-impl OpenBaoSecretStore for StubStore {
+impl SecretProviderStore for StubStore {
     fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
         Ok(self.token.clone())
     }

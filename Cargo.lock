@@ -4573,10 +4573,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-intelligence-gemini-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "oya-cloud-intelligence-translation-kernel",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "oya-cloud-intelligence-kernel"
 version = "0.1.0"
 dependencies = [
  "proptest",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 
@@ -4597,6 +4614,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-intelligence-ops-infrastructure"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-intelligence-rest"
 version = "0.1.0"
 dependencies = [
@@ -4605,6 +4630,8 @@ dependencies = [
  "futures",
  "http-body-util",
  "httpmock",
+ "oya-cloud-intelligence-codex-adapter",
+ "oya-cloud-intelligence-gemini-adapter",
  "oya-cloud-intelligence-kernel",
  "reqwest 0.13.4",
  "serde",
@@ -4612,6 +4639,38 @@ dependencies = [
  "tokio",
  "tower 0.5.3",
  "tracing",
+]
+
+[[package]]
+name = "oya-cloud-intelligence-tool-compat-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-intelligence-translation-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-intelligence-wire-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-intelligence-worker"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

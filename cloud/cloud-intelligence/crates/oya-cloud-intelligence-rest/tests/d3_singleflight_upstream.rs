@@ -11,7 +11,7 @@
 use std::sync::Arc;
 
 use httpmock::prelude::*;
-use oya_cloud_intelligence_rest::{AnthropicAdapter, OpenBaoSecretStore, RestAdapterError};
+use oya_cloud_intelligence_rest::{AnthropicAdapter, RestAdapterError, SecretProviderStore};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -21,7 +21,7 @@ struct StubStore {
     token: String,
 }
 
-impl OpenBaoSecretStore for StubStore {
+impl SecretProviderStore for StubStore {
     fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
         Ok(self.token.clone())
     }

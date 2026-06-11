@@ -69,8 +69,8 @@ Every invocation emits an **immutable** `llm.audit.v1` record (see
 
 ### 6. CI-verified + access-controlled + SIEM
 - The schema is versioned (`schema_version`) and gated in CI (brief §3). Read access is gated behind
-  the `AuditReader` Cedar authority (distinct from admin) and SIEM-forwarded (brief §7, §9;
-  `policy/cloud-intelligence.cedar`).
+  the owned policy-engine `AuditReader` authority (distinct from admin) and SIEM-forwarded
+  (brief §7, §9; current Cedar file is a transient fixture).
 
 ## Two streams, one envelope
 
@@ -90,7 +90,7 @@ OTel trace.
   "enabled": true,
   "seal_events": [
     "llm_invocation_audit",       // per-invocation immutable record
-    "key_pool_refresh",           // OpenBao key refresh (admin op)
+    "key_pool_refresh",           // secret-provider handle refresh (admin op)
     "key_blacklisted",            // a key tripped to cooldown (denial-of-wallet trail)
     "provider_breaker_open",      // provider-outage breaker opened
     "budget_exceeded"             // a tenant hit a hard budget cap

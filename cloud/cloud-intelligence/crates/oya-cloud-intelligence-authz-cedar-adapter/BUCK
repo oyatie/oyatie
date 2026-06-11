@@ -1,7 +1,11 @@
 ADAPTER_ROOT = "cloud/cloud-intelligence/crates/oya-cloud-intelligence-authz-cedar-adapter"
 ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"])
 ADAPTER_MAPPED_SRCS = {src: ADAPTER_ROOT + "/" + src for src in ADAPTER_SRCS}
-ADAPTER_MAPPED_SRCS["//cloud/cloud-intelligence/policy:cloud-intelligence.cedar"] = "cloud/cloud-intelligence/policy/cloud-intelligence.cedar"
+# Place the shared cedar policy at the path src/lib.rs include_str!("../policy/...")
+# resolves to inside the hermetic sandbox (ADAPTER_ROOT/policy/...), not the repo
+# path of the export_file source — otherwise rustc cannot read it (hermetic-build
+# defect: source present in repo but unmapped to the include-relative location).
+ADAPTER_MAPPED_SRCS["//cloud/cloud-intelligence/policy:cloud-intelligence.cedar"] = ADAPTER_ROOT + "/policy/cloud-intelligence.cedar"
 
 rust_library(
     name = "oya-cloud-intelligence-authz-cedar-adapter",

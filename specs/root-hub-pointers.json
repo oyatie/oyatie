@@ -579,6 +579,13 @@
       "migration_phase": "complete",
       "purpose": "Multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); records CC-3 tooling-feature change class, wired libs, and tool accounting justification."
     },
+    "multispectrum_evidence_cloud_intelligence_xproxy": {
+      "current_path": "evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json",
+      "owners_path": "evidence/multispectrum/OWNERS",
+      "kind": "evidence",
+      "migration_phase": "complete",
+      "purpose": "Multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); records CC-4 new-surface change class, parity capabilities, and BNF/manifest debt fixes."
+    },
     "oyatie_doctrine": {
       "current_path": "/specs/oyatie-doctrine.json",
       "current_version": "1.0.0",

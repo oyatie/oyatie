@@ -10,7 +10,7 @@ use std::collections::BTreeMap;
 use httpmock::prelude::*;
 use oya_cloud_intelligence_kernel::TenantId;
 use oya_cloud_intelligence_rest::{
-    AnthropicAdapter, OpenBaoSecretStore, ProxyRequest, RestAdapterError,
+    AnthropicAdapter, ProxyRequest, RestAdapterError, SecretProviderStore,
 };
 
 // ---------------------------------------------------------------------------
@@ -18,7 +18,7 @@ use oya_cloud_intelligence_rest::{
 // ---------------------------------------------------------------------------
 
 struct StubStore;
-impl OpenBaoSecretStore for StubStore {
+impl SecretProviderStore for StubStore {
     fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
         Ok("stub-rt".to_string())
     }
