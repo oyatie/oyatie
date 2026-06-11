@@ -1737,29 +1737,47 @@ fn subcommand_carries_value_expansion(token: &str) -> bool {
 }
 
 
-/// Collect prefix `name=value` assignments whose value is a single simple word
-/// (no quotes, spaces, or expansion metacharacters), keyed for later `$name`
-/// resolution. Deliberately narrow — an over-collected binding could only ever
-/// matter if `$name` is later referenced into a canonical git mutation, and the
-/// simple-word filter keeps that from misfiring on quoted argument text.
+/// Collect `name=value` and `name+=value` assignments (quote-aware via
+/// shell_tokens, so a quoted multi-word value stays ONE token). Values are kept
+/// FAITHFULLY — a multi-word value is bound whole and word-split only at an
+/// UNQUOTED `$name` use site, matching bash (review #685 r14: `P=reset;
+/// P+=" --hard"; git $P` → `git reset --hard` → deny; `P=log; P+=" --oneline";
+/// git $P` → `git log --oneline` → allow). A value still carrying an
+/// unresolved `$`/backtick expansion is dropped (left unresolved → fail closed).
 fn collect_same_line_bindings(command: &str) -> Vec<(String, String)> {
-    let mut bindings = Vec::new();
-    for word in command.split([' ', '\t', ';', '\n', '\r']) {
-        let Some((name, value)) = word.split_once('=') else {
+    let mut acc: Vec<(String, String)> = Vec::new();
+    for token in shell_tokens(command) {
+        let ShellToken::Word(word) = token else {
             continue;
         };
-        let name_ok = !name.is_empty()
-            && name.chars().all(|c| c == '_' || c.is_ascii_alphanumeric())
-            && !name.as_bytes()[0].is_ascii_digit();
-        let value_ok = !value.is_empty()
-            && value
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '/' | '.'));
-        if name_ok && value_ok {
-            bindings.push((name.to_owned(), value.to_owned()));
+        let name_len = word
+            .chars()
+            .take_while(|c| *c == '_' || c.is_ascii_alphanumeric())
+            .count();
+        let name = &word[..name_len];
+        if name.is_empty() || name.as_bytes()[0].is_ascii_digit() {
+            continue;
+        }
+        let rest = &word[name_len..];
+        if let Some(value) = rest.strip_prefix("+=") {
+            match acc.iter_mut().find(|(n, _)| n == name) {
+                Some(entry) => entry.1.push_str(value),
+                None => acc.push((name.to_owned(), value.to_owned())),
+            }
+        } else if let Some(value) = rest.strip_prefix('=') {
+            match acc.iter_mut().find(|(n, _)| n == name) {
+                Some(entry) => entry.1 = value.to_owned(),
+                None => acc.push((name.to_owned(), value.to_owned())),
+            }
         }
     }
-    bindings
+    // Keep only fully-resolved values; any residual expansion sigil leaves the
+    // var unbound so `$name` fails closed at its use site.
+    acc.into_iter()
+        .filter(|(_, value)| {
+            !value.is_empty() && !value.contains('$') && !value.contains('`')
+        })
+        .collect()
 }
 
 fn binding_value<'a>(bindings: &'a [(String, String)], name: &str) -> Option<&'a str> {
@@ -1845,7 +1863,8 @@ fn emit_substitution_output(out: &mut String, produced: &str) {
 /// preceded by a valid identifier at a word boundary), i.e. the next emitted
 /// token is an assignment value.
 fn out_ends_with_assignment_lhs(out: &str) -> bool {
-    let Some(prefix) = out.strip_suffix('=') else {
+    let prefix = out.strip_suffix('=').map(|p| p.strip_suffix('+').unwrap_or(p));
+    let Some(prefix) = prefix else {
         return false;
     };
     let name_rev: String = prefix
@@ -2104,7 +2123,10 @@ fn expand_with_bindings(
                     }
                 }
                 match binding_value(bindings, &name).filter(|_| !ifs_unsafe) {
-                    Some(value) => out.push_str(value),
+                    // Requote a multi-word value landing as an assignment RHS
+                    // (`B=$A`) so it stays one binding, else word-split at use
+                    // (review #685 r14: chained multi-word vars).
+                    Some(value) => emit_substitution_output(&mut out, value),
                     None => {
                         out.push('$');
                         out.push_str(&name);
@@ -2168,7 +2190,19 @@ fn static_command_output(body: &str) -> Option<String> {
         }
         // printf FMT [ARGS]: the format string (dequoted) is the produced text
         // for the specifier-free forms an evasion would use.
-        "printf" => Some(dequote_simple(rest.trim())),
+        "printf" => {
+            // `printf FMT ARGS`: if the format is a single `%s`/`%b` (optionally
+            // `\n`-terminated), the output is the ARGS (review #685 r14:
+            // `printf '%s' "-C … clean -fdx"`). A specifier-free format is its
+            // own literal output (`printf 'git … reset'`).
+            let text = dequote_simple(rest.trim());
+            let stripped = text
+                .strip_prefix("%s")
+                .or_else(|| text.strip_prefix("%b"))
+                .map(|t| t.trim_start_matches(['\\', 'n', 't', ' ', '\t']))
+                .unwrap_or(&text);
+            Some(stripped.to_owned())
+        }
         _ => None,
     }
 }
@@ -3022,8 +3056,27 @@ mod tests {
             "P=$(printf '%s' \"-C /repo/oyatie clean -fdx\"); git $P",
             "A=$(echo \"-C /repo/oyatie reset --hard\"); B=$A; git $B",
             "set -- $(echo \"-C /repo/oyatie reset --hard\"); git \"$@\"",
+            // r14 — scalar += append assembles the mutation.
+            "P=reset; P+=\" --hard\"; git -C /repo/oyatie $P",
+            "P=clean; P+=\" -fdx\"; git -C /repo/oyatie $P",
+            "A=-C; A+=\" /repo/oyatie\"; A+=\" reset --hard\"; git $A",
+            "P=\"reset --hard\"; git -C /repo/oyatie $P",
+            "P+=$(echo \"-C /repo/oyatie reset --hard\"); git $P",
         ] {
             assert_denied(command);
+        }
+    }
+
+    #[test]
+    fn multiword_binding_reads_are_not_false_positives() {
+        // A multi-word value that forms a READ must ALLOW (review #685 r14):
+        // model the value faithfully, do not blanket-deny `$P`.
+        for command in [
+            ("P=log; P+=\" --oneline\"; git -C /repo/oyatie $P", CANONICAL),
+            ("P=\"log --oneline\"; git -C /repo/oyatie $P", CANONICAL),
+            ("F=status; git -C /repo/oyatie $F", CANONICAL),
+        ] {
+            assert_allowed(command.0, command.1, Some(CANONICAL));
         }
     }
 
