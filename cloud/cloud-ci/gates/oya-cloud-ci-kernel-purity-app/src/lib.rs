@@ -1500,15 +1500,17 @@ fn remove_buck_dep_edges_text(text: &str, dep: &str) -> Option<String> {
                         break;
                     }
                     // The dep may hide in an unmodeled element shape: refuse if the label
-                    // appears in the list's raw span without being a plain element.
-                    if deps_arg.value.span.slice(&current).contains(&label) {
+                    // appears in the list's raw span (token-boundary exact, so a SIBLING dep
+                    // that merely shares the prefix — `kube` vs `kube-runtime` — does not
+                    // false-refuse) without being a plain element.
+                    if contains_dep_token(deps_arg.value.span.slice(&current), &label) {
                         return None;
                     }
                 }
                 // deps is not a list literal (a var, select(), concat): refuse if it carries
-                // the label anywhere in its raw span.
+                // the label anywhere in its raw span (token-boundary exact).
                 _ => {
-                    if deps_arg.value.span.slice(&current).contains(&label) {
+                    if contains_dep_token(deps_arg.value.span.slice(&current), &label) {
                         return None;
                     }
                 }
@@ -1523,6 +1525,26 @@ fn remove_buck_dep_edges_text(text: &str, dep: &str) -> Option<String> {
         }
     }
     if removed_any { Some(current) } else { None }
+}
+
+/// True iff `label` occurs in `text` as an EXACT dep token: the next character (if any) is not
+/// part of a dep name (`[A-Za-z0-9_-]`). `third-party//:kube` must not match inside
+/// `third-party//:kube-runtime` — substring refusal would wrongly block a sound removal of
+/// `kube` whenever a longer-named sibling is present.
+fn contains_dep_token(text: &str, label: &str) -> bool {
+    let mut from = 0usize;
+    while let Some(rel) = text[from..].find(label) {
+        let end = from + rel + label.len();
+        let boundary = text[end..]
+            .chars()
+            .next()
+            .is_none_or(|c| !(c.is_ascii_alphanumeric() || c == '_' || c == '-'));
+        if boundary {
+            return true;
+        }
+        from = end;
+    }
+    false
 }
 
 /// Human-readable render of the findings, automation-default ordered: the auto-fixable subset first
@@ -2505,6 +2527,19 @@ k8s = ["dep:kube"]
         assert_eq!(remove_buck_dep_edges_text(via_select, "kube"), None, "select-carried dep must refuse");
         let absent = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\"],\n)\n";
         assert_eq!(remove_buck_dep_edges_text(absent, "kube"), None, "absent dep is a no-op refusal");
+    }
+
+    #[test]
+    fn buck_remover_is_token_exact_against_prefix_sibling_deps() {
+        // `kube` must be removable even when `kube-runtime` sits in the same list: the residual
+        // check is token-boundary exact, so the longer sibling neither matches nor false-refuses.
+        let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:kube\",\n        \"third-party//:kube-runtime\",\n    ],\n)\n";
+        let out = remove_buck_dep_edges_text(buck, "kube").expect("kube removal must not be blocked by kube-runtime");
+        assert!(!contains_dep_token(&out, "third-party//:kube"), "kube gone: {out}");
+        assert!(out.contains("third-party//:kube-runtime"), "kube-runtime survives: {out}");
+        // And removing a dep that is ONLY present as a longer sibling refuses (absent token).
+        let only_runtime = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube-runtime\"],\n)\n";
+        assert_eq!(remove_buck_dep_edges_text(only_runtime, "kube"), None, "prefix sibling alone is not the dep");
     }
 
     // --------------------------------------------------------------------------
