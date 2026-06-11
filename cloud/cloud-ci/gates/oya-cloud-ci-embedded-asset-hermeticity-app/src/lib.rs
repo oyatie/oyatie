@@ -58,6 +58,11 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use oya_buck_syntax_kernel::{
+    BuckDoc, Env, Expr, PreImageRegistry, Stmt, call_strings, dict_values, eval_string,
+    find_target, guarded_rewrite, insert_dict_entry, insert_kwarg, replace_span, resolve_dict_var,
+};
+pub use oya_buck_syntax_kernel::glob_match;
 use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target + the oya-ci registry id.
@@ -633,48 +638,41 @@ pub struct BuckTarget {
     pub unparseable: bool,
 }
 
-/// Parse the BUCK text of a crate dir into the targets the gate cares about. Pure over text +
-/// (for glob expansion) the on-disk crate tree, which the caller passes via `crate_files`
-/// (crate-relative paths). Best-effort + conservative: a target whose srcs/mapped_srcs cannot be
-/// modelled is marked `unparseable` rather than silently treated as empty.
+/// Parse the BUCK text of a crate dir into the targets the gate cares about, via the shared
+/// sound `oya-buck-syntax-kernel` parser (ADR-0549). Pure over text + (for glob expansion) the
+/// on-disk crate tree, which the caller passes via `crate_files` (crate-relative paths).
+/// Conservative: a target whose srcs/mapped_srcs uses a construct outside the modeled subset is
+/// marked `unparseable` rather than silently treated as empty; a BUCK text that does not parse
+/// soundly yields NO bindable targets (the collector then surfaces a visible skip, never a
+/// silent pass — fail-safe).
 pub fn parse_buck_targets(buck_text: &str, crate_files: &[String]) -> Vec<BuckTarget> {
     const KINDS: [&str; 3] = ["rust_library", "rust_binary", "rust_test"];
-    // Resolve top-level `IDENT = "string"` and `IDENT = glob([...])` variable assignments so
-    // crate_root / srcs / mapped_srcs can reference them (the cedar-adapter ADAPTER_ROOT/ADAPTER_SRCS
-    // shape).
-    let string_vars = top_level_string_vars(buck_text);
-    let glob_vars = top_level_glob_vars(buck_text);
+    let Ok(doc) = oya_buck_syntax_kernel::parse(buck_text) else {
+        return Vec::new();
+    };
+    // Top-level `IDENT = "string"` and `IDENT = glob([...])` assignments, so crate_root / srcs /
+    // mapped_srcs can reference them (the cedar-adapter ADAPTER_ROOT/ADAPTER_SRCS shape).
+    let env = Env::from_doc(&doc);
 
     let mut targets = Vec::new();
+    // Kind-grouped order preserved from the pre-kernel scanner (callers report the first
+    // covering target's resolution; keep that deterministic ordering identical).
     for kind in KINDS {
-        let mut search_from = 0usize;
-        while let Some(rel) = buck_text[search_from..].find(&format!("{kind}(")) {
-            let start = search_from + rel;
-            // Reject `IDENT_rust_test(` style false hits: the char before must not be ident.
-            if start > 0 {
-                let prev = buck_text.as_bytes()[start - 1];
-                if prev == b'_' || prev.is_ascii_alphanumeric() {
-                    search_from = start + kind.len();
-                    continue;
-                }
-            }
-            let Some(block) = call_block(&buck_text[start..]) else {
-                search_from = start + kind.len();
+        for stmt in &doc.stmts {
+            let Stmt::Call(call) = stmt else { continue };
+            if call.func != kind {
                 continue;
-            };
-            search_from = start + block.len();
-            let name = field_value_expr(&block, "name")
-                .and_then(|e| unquote_concat(&e, &string_vars))
+            }
+            let name = call
+                .kwarg("name")
+                .and_then(|arg| eval_string(&arg.value, &env))
                 .unwrap_or_default();
-
-            let crate_root = field_value_expr(&block, "crate_root")
-                .and_then(|e| unquote_concat(&e, &string_vars))
+            let crate_root = call
+                .kwarg("crate_root")
+                .and_then(|arg| eval_string(&arg.value, &env))
                 .map(|p| crate_relative(&p));
-
-            let (explicit_srcs, srcs_globs, srcs_unparseable) =
-                parse_srcs(&block, &glob_vars);
-            let (mapped_dest, mapped_unparseable) =
-                parse_mapped_srcs(&block, &string_vars, &glob_vars, crate_files);
+            let (explicit_srcs, srcs_globs, srcs_unparseable) = parse_srcs(call, &env);
+            let (mapped_dest, mapped_unparseable) = parse_mapped_srcs(call, &env, crate_files);
 
             targets.push(BuckTarget {
                 name,
@@ -733,296 +731,77 @@ fn crate_relative(path: &str) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// BUCK text helpers (balanced, string-aware — mirrors oya-buck-test-wiring-app)
+// BUCK syntax (delegated to the shared sound parser — oya-buck-syntax-kernel, ADR-0549)
 // ---------------------------------------------------------------------------
 
-/// Return the full `name( … )` call block starting at `text[0]`, balancing parens and ignoring
-/// string contents. `text` must start at the call's opening identifier.
-fn call_block(text: &str) -> Option<String> {
-    let open = text.find('(')?;
-    let mut depth: i32 = 0;
-    let mut in_string = false;
-    let mut escaped = false;
-    for (offset, ch) in text[open..].char_indices() {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                in_string = false;
-            }
-            continue;
-        }
-        match ch {
-            '"' => in_string = true,
-            '(' => depth += 1,
-            ')' => {
-                depth -= 1;
-                if depth == 0 {
-                    let end = open + offset + ch.len_utf8();
-                    return Some(text[..end].to_owned());
-                }
-            }
-            _ => {}
-        }
-    }
-    None
-}
-
-/// Extract the raw expression assigned to `field =` inside a call block (balanced, string-aware).
-/// Returns the trimmed expression text up to the top-level comma that ends the argument.
-fn field_value_expr(block: &str, field: &str) -> Option<String> {
-    let key = format!("{field} =");
-    let key_pos = find_top_level(block, &key)?;
-    let rest = &block[key_pos + key.len()..];
-    let mut depth: i32 = 0;
-    let mut in_string = false;
-    let mut escaped = false;
-    let mut end = rest.len();
-    for (offset, ch) in rest.char_indices() {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                in_string = false;
-            }
-            continue;
-        }
-        match ch {
-            '"' => in_string = true,
-            '[' | '(' | '{' => depth += 1,
-            ']' | ')' | '}' => {
-                if depth == 0 {
-                    end = offset;
-                    break;
-                }
-                depth -= 1;
-            }
-            ',' if depth == 0 => {
-                end = offset;
-                break;
-            }
-            _ => {}
-        }
-    }
-    Some(rest[..end].trim().to_owned())
-}
-
-/// Find `needle` at a position that is NOT inside a string literal or nested bracket of `block`.
-/// Used to locate `field =` only at the call's top argument level.
-///
-/// # Panic safety
-/// Uses `char_indices` so the cursor is always at a char boundary; multibyte chars (em-dashes in
-/// comments, Unicode identifiers) never cause a slice-panic. ADR-0083 Tier-3 no-panic contract.
-fn find_top_level(block: &str, needle: &str) -> Option<usize> {
-    let mut depth: i32 = 0;
-    let mut in_string = false;
-    let mut escaped = false;
-    // Start after the first `(` so we are inside the argument list.
-    let open = block.find('(')? + 1;
-    let mut chars = block[open..].char_indices().peekable();
-    while let Some((rel, ch)) = chars.next() {
-        let i = open + rel;
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                in_string = false;
-            }
-            continue;
-        }
-        match ch {
-            '"' => in_string = true,
-            '(' | '[' | '{' => depth += 1,
-            ')' | ']' | '}' => depth -= 1,
-            _ => {
-                // The top argument level sits at depth 0 here: we began scanning just AFTER the
-                // call's opening `(`, so that paren was never counted. Nested `glob([...])` etc.
-                // raise depth above 0, excluding their inner `=`/keys from matching.
-                if depth == 0 && block[i..].starts_with(needle) {
-                    // Ensure the char before is not an identifier char (so `srcs =` doesn't match
-                    // `mapped_srcs =`). Safe: `i > 0` guarantees `block[..i]` is non-empty and we
-                    // use the last byte (needle first chars are ASCII, prior ident chars are ASCII).
-                    let prev_ok = i == 0 || {
-                        let p = block[..i].as_bytes()[i - 1];
-                        !(p == b'_' || (p as char).is_ascii_alphanumeric())
-                    };
-                    if prev_ok {
-                        return Some(i);
-                    }
-                }
-            }
-        }
-    }
-    None
-}
-
-/// Collect every double-quoted string in an expression (escape-aware).
-fn quoted_strings(text: &str) -> Vec<String> {
-    let mut values = Vec::new();
-    let mut start: Option<usize> = None;
-    let mut escaped = false;
-    for (index, ch) in text.char_indices() {
-        if let Some(value_start) = start {
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                values.push(text[value_start..index].to_owned());
-                start = None;
-            }
-        } else if ch == '"' {
-            start = Some(index + ch.len_utf8());
-        }
-    }
-    values
-}
-
-/// Top-level `IDENT = "string"` assignments (single-line). Used to resolve concat operands like
-/// `ADAPTER_ROOT`.
+/// Top-level `IDENT = "string"` assignments. Used to resolve concat operands like `ADAPTER_ROOT`.
 fn top_level_string_vars(buck_text: &str) -> Vec<(String, String)> {
-    let mut vars = Vec::new();
-    for line in buck_text.lines() {
-        let t = line.trim();
-        if t.starts_with('#') {
-            continue;
-        }
-        let Some(eq) = t.find('=') else { continue };
-        let (lhs, rhs) = (t[..eq].trim(), t[eq + 1..].trim());
-        if lhs.is_empty() || !is_ident(lhs) {
-            continue;
-        }
-        let strings = quoted_strings(rhs);
-        // Only treat as a string var if the RHS is exactly one quoted string (no operators).
-        if strings.len() == 1 && rhs.starts_with('"') && rhs.trim_end_matches(',').ends_with('"') {
-            vars.push((lhs.to_owned(), strings[0].clone()));
-        }
-    }
-    vars
+    oya_buck_syntax_kernel::parse(buck_text)
+        .map(|doc| Env::from_doc(&doc).string_vars.into_iter().collect())
+        .unwrap_or_default()
 }
 
-/// Top-level `IDENT = glob([...])` assignments → the glob patterns. Used to resolve a srcs/mapped
-/// comprehension `for src in SRCS`.
+/// Top-level `IDENT = glob([...])` assignments -> the glob patterns. Used to resolve a
+/// srcs/mapped comprehension `for src in SRCS`.
 fn top_level_glob_vars(buck_text: &str) -> Vec<(String, Vec<String>)> {
-    let mut vars = Vec::new();
-    let mut search_from = 0usize;
-    while let Some(rel) = buck_text[search_from..].find('=') {
-        let eq = search_from + rel;
-        // Identify the LHS ident on this line.
-        let line_start = buck_text[..eq].rfind('\n').map(|p| p + 1).unwrap_or(0);
-        let lhs = buck_text[line_start..eq].trim();
-        let after = buck_text[eq + 1..].trim_start();
-        if is_ident(lhs) && after.starts_with("glob(") {
-            if let Some(block) = call_block(&buck_text[eq + 1 + (buck_text[eq + 1..].len() - after.len())..]) {
-                vars.push((lhs.to_owned(), quoted_strings(&block)));
-                search_from = eq + 1;
-                continue;
-            }
-        }
-        search_from = eq + 1;
-    }
-    vars
+    oya_buck_syntax_kernel::parse(buck_text)
+        .map(|doc| Env::from_doc(&doc).glob_vars.into_iter().collect())
+        .unwrap_or_default()
 }
 
-fn is_ident(s: &str) -> bool {
-    !s.is_empty()
-        && s.chars()
-            .all(|c| c == '_' || c.is_ascii_uppercase() || c.is_ascii_digit())
-        && s.chars().next().map(|c| c != '0' && !c.is_ascii_digit()).unwrap_or(false)
-        || (!s.is_empty()
-            && s.chars().all(|c| c == '_' || c.is_ascii_alphanumeric())
-            && s.chars().next().map(|c| c.is_ascii_alphabetic() || c == '_').unwrap_or(false))
-}
-
-/// Resolve a `crate_root`/`name` expression that is a quoted string or a `VAR + "/suffix"` concat
-/// against the known string vars. Returns the concatenated string, or `None` if any operand is
-/// unresolved.
-fn unquote_concat(expr: &str, string_vars: &[(String, String)]) -> Option<String> {
-    let mut out = String::new();
-    for operand in expr.split('+') {
-        let op = operand.trim();
-        if op.starts_with('"') {
-            // a quoted literal
-            let strings = quoted_strings(op);
-            out.push_str(strings.first()?);
-        } else if is_ident(op) {
-            let val = string_vars.iter().find(|(k, _)| k == op).map(|(_, v)| v)?;
-            out.push_str(val);
-        } else {
-            return None;
-        }
-    }
-    Some(out)
-}
-
-/// Parse a target's `srcs` field. Returns (explicit_srcs, glob_patterns, unparseable).
-fn parse_srcs(block: &str, glob_vars: &[(String, Vec<String>)]) -> (Vec<String>, Vec<String>, bool) {
-    let Some(expr) = field_value_expr(block, "srcs") else {
-        // No srcs field (e.g. a target driven purely by crate_root + mapped_srcs): not unparseable;
-        // crate_root alone still yields a destination.
+/// Parse a target's `srcs` kwarg. Returns (explicit_srcs, glob_patterns, unparseable).
+fn parse_srcs(
+    call: &oya_buck_syntax_kernel::CallExpr,
+    env: &Env,
+) -> (Vec<String>, Vec<String>, bool) {
+    let Some(arg) = call.kwarg("srcs") else {
+        // No srcs field (e.g. a target driven purely by crate_root + mapped_srcs): not
+        // unparseable; crate_root alone still yields a destination.
         return (Vec::new(), Vec::new(), false);
     };
-    let trimmed = expr.trim();
-    if trimmed == "[]" {
-        return (Vec::new(), Vec::new(), false);
-    }
-    if trimmed.starts_with("glob(") {
-        return (Vec::new(), quoted_strings(trimmed), false);
-    }
-    if trimmed.starts_with('[') {
-        // Explicit list of quoted paths.
-        return (quoted_strings(trimmed), Vec::new(), false);
-    }
-    if is_ident(trimmed) {
-        // A bare var reference, e.g. `srcs = ADAPTER_SRCS` (a glob var).
-        if let Some((_, patterns)) = glob_vars.iter().find(|(k, _)| k == trimmed) {
-            return (Vec::new(), patterns.clone(), false);
+    match &arg.value.expr {
+        Expr::List(list) if list.elements.is_empty() => (Vec::new(), Vec::new(), false),
+        Expr::List(_) => (
+            oya_buck_syntax_kernel::expr_strings(&arg.value),
+            Vec::new(),
+            false,
+        ),
+        Expr::Call(call) if call.func == "glob" => (Vec::new(), call_strings(call), false),
+        Expr::Ident(name) => {
+            // A bare var reference, e.g. `srcs = ADAPTER_SRCS` (a glob var).
+            match env.glob_vars.get(name) {
+                Some(patterns) => (Vec::new(), patterns.clone(), false),
+                None => (Vec::new(), Vec::new(), true),
+            }
         }
-        return (Vec::new(), Vec::new(), true);
+        // An unmodeled srcs construct.
+        _ => (Vec::new(), Vec::new(), true),
     }
-    // An unmodelled srcs construct.
-    (Vec::new(), Vec::new(), true)
 }
 
-/// Parse a target's `mapped_srcs` field into its destination VALUES. Handles: a bare var reference to
-/// a comprehension/dict assembled at top level is NOT supported here (we parse the in-block dict and
-/// the cedar-adapter comprehension form). Returns (values, unparseable).
+/// Parse a target's `mapped_srcs` kwarg into its destination VALUES. A bare var reference is
+/// resolved at the FILE level (see [`resolve_mapped_var`]) — here it yields empty + parseable,
+/// exactly like the pre-kernel implementation, and the collector augments via the file-level
+/// resolver.
 fn parse_mapped_srcs(
-    block: &str,
-    string_vars: &[(String, String)],
-    glob_vars: &[(String, Vec<String>)],
+    call: &oya_buck_syntax_kernel::CallExpr,
+    env: &Env,
     crate_files: &[String],
 ) -> (Vec<String>, bool) {
-    let Some(expr) = field_value_expr(block, "mapped_srcs") else {
+    let Some(arg) = call.kwarg("mapped_srcs") else {
         return (Vec::new(), false);
     };
-    let trimmed = expr.trim();
-    // The common oyatie shape is `mapped_srcs = SOME_VAR`, where SOME_VAR is assembled at top level
-    // as a comprehension plus explicit `VAR["k"]=v` assignments. We resolve that var from the WHOLE
-    // BUCK text via resolve_mapped_var (the caller passes the block; the var assembly lives at file
-    // scope, so we cannot see it here). Treat a bare-var mapped_srcs as a signal handled by the
-    // file-level resolver: report unparseable here and let the file-level pass fill it.
-    if is_ident(trimmed) {
-        // Resolved at the file level (see resolve_mapped_var); mark unparseable=false but empty —
-        // the file-level resolver augments. To keep this function pure-on-block, we return empty +
-        // false; the collector calls resolve_mapped_var with full text for the bare-var case.
-        return (Vec::new(), false);
+    match &arg.value.expr {
+        Expr::Ident(_) => (Vec::new(), false),
+        Expr::Dict(dict) => (dict_values(dict, env, crate_files), false),
+        _ => (Vec::new(), true),
     }
-    if trimmed.starts_with('{') {
-        return (mapped_dict_values(trimmed, string_vars, glob_vars, crate_files), false);
-    }
-    (Vec::new(), true)
 }
 
 /// Resolve the destination VALUES of a top-level mapped_srcs variable assembled as
 /// `VAR = {src: ROOT + "/" + src for src in SRCS}` plus `VAR["k"] = ROOT + "/path"` assignments.
-/// `var` is the variable name referenced by a target's `mapped_srcs = VAR`. Pure over the BUCK text.
+/// `var` is the variable name referenced by a target's `mapped_srcs = VAR`. Pure over the BUCK
+/// text; the caller-supplied var slices keep the migrated signature behavior-identical.
 pub fn resolve_mapped_var(
     buck_text: &str,
     var: &str,
@@ -1030,335 +809,11 @@ pub fn resolve_mapped_var(
     glob_vars: &[(String, Vec<String>)],
     crate_files: &[String],
 ) -> Vec<String> {
-    let mut values = Vec::new();
-    // 1. The comprehension assignment `VAR = { ... for src in SRCS }`.
-    if let Some(eq) = find_var_assignment(buck_text, var) {
-        let after = buck_text[eq..].trim_start();
-        if after.starts_with('{') {
-            if let Some(dict) = brace_block(after) {
-                values.extend(mapped_dict_values(&dict, string_vars, glob_vars, crate_files));
-            }
-        }
-    }
-    // 2. Explicit `VAR["k"] = expr` value assignments.
-    let needle = format!("{var}[");
-    let mut from = 0usize;
-    while let Some(rel) = buck_text[from..].find(&needle) {
-        let idx = from + rel;
-        from = idx + needle.len();
-        // Find the `] = <expr>` after the key.
-        let after_key = &buck_text[idx + needle.len()..];
-        let Some(close) = after_key.find(']') else { continue };
-        let after_bracket = after_key[close + 1..].trim_start();
-        let Some(rest) = after_bracket.strip_prefix('=') else { continue };
-        // Take the RHS to end of line.
-        let line_end = rest.find('\n').unwrap_or(rest.len());
-        let rhs = rest[..line_end].trim().trim_end_matches(',').trim();
-        if let Some(value) = unquote_concat(rhs, string_vars) {
-            values.push(value);
-        }
-    }
-    values
-}
-
-/// Evaluate a `{ ... }` mapped_srcs dict literal or comprehension into destination VALUES.
-fn mapped_dict_values(
-    dict: &str,
-    string_vars: &[(String, String)],
-    glob_vars: &[(String, Vec<String>)],
-    crate_files: &[String],
-) -> Vec<String> {
-    let inner = dict.trim();
-    let inner = inner
-        .strip_prefix('{')
-        .and_then(|s| s.strip_suffix('}'))
-        .unwrap_or(inner)
-        .trim();
-    // Comprehension form: `KEY_EXPR: VALUE_EXPR for src in SRCS`.
-    if let Some(for_pos) = find_top_level_keyword(inner, " for ") {
-        let head = inner[..for_pos].trim();
-        let tail = inner[for_pos + " for ".len()..].trim();
-        // tail: `src in SRCS`
-        let parts: Vec<&str> = tail.splitn(3, ' ').collect();
-        if parts.len() == 3 && parts[1] == "in" {
-            let loop_var = parts[0].trim();
-            let iter = parts[2].trim().trim_end_matches(',').trim();
-            // Resolve the value expression (after the `:`) for each src.
-            if let Some(colon) = find_top_level_keyword(head, ":") {
-                let value_expr = head[colon + 1..].trim();
-                let srcs = if let Some((_, patterns)) = glob_vars.iter().find(|(k, _)| k == iter) {
-                    expand_globs(patterns, crate_files)
-                } else {
-                    Vec::new()
-                };
-                let mut out = Vec::new();
-                for src in &srcs {
-                    if let Some(v) = eval_value_expr(value_expr, loop_var, src, string_vars) {
-                        out.push(v);
-                    }
-                }
-                return out;
-            }
-        }
+    let Ok(doc) = oya_buck_syntax_kernel::parse(buck_text) else {
         return Vec::new();
-    }
-    // Explicit dict literal `{ "k": "v", ... }`: VALUES are every SECOND quoted string. Be robust:
-    // split on top-level commas, take the substring after the top-level `:` of each entry.
-    let mut out = Vec::new();
-    for entry in split_top_level(inner, ',') {
-        if let Some(colon) = find_top_level_keyword(&entry, ":") {
-            let value_expr = entry[colon + 1..].trim();
-            if let Some(v) = unquote_concat(value_expr, string_vars) {
-                out.push(v);
-            } else {
-                let q = quoted_strings(value_expr);
-                if let Some(first) = q.first() {
-                    out.push(first.clone());
-                }
-            }
-        }
-    }
-    out
-}
-
-/// Evaluate a comprehension value expression like `ROOT + "/" + src` for a concrete `src`.
-fn eval_value_expr(
-    expr: &str,
-    loop_var: &str,
-    src: &str,
-    string_vars: &[(String, String)],
-) -> Option<String> {
-    let mut out = String::new();
-    for operand in expr.split('+') {
-        let op = operand.trim();
-        if op == loop_var {
-            out.push_str(src);
-        } else if op.starts_with('"') {
-            out.push_str(quoted_strings(op).first()?);
-        } else if is_ident(op) {
-            out.push_str(string_vars.iter().find(|(k, _)| k == op).map(|(_, v)| v)?);
-        } else {
-            return None;
-        }
-    }
-    Some(out)
-}
-
-/// Expand glob patterns against a crate's file list (crate-relative paths).
-fn expand_globs(patterns: &[String], crate_files: &[String]) -> Vec<String> {
-    let mut out = Vec::new();
-    for file in crate_files {
-        if patterns.iter().any(|p| glob_match(p, file)) {
-            out.push(file.clone());
-        }
-    }
-    out
-}
-
-/// Find a top-level keyword/substring in `s` (not inside quotes or brackets). Returns byte index.
-///
-/// # Panic safety
-/// Uses `char_indices` so the cursor is always at a char boundary; multibyte chars never cause a
-/// slice-panic. ADR-0083 Tier-3 no-panic contract.
-fn find_top_level_keyword(s: &str, kw: &str) -> Option<usize> {
-    let mut depth: i32 = 0;
-    let mut in_string = false;
-    let mut escaped = false;
-    for (i, ch) in s.char_indices() {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                in_string = false;
-            }
-            continue;
-        }
-        match ch {
-            '"' => in_string = true,
-            '(' | '[' | '{' => depth += 1,
-            ')' | ']' | '}' => depth -= 1,
-            _ => {
-                if depth == 0 && s[i..].starts_with(kw) {
-                    return Some(i);
-                }
-            }
-        }
-    }
-    None
-}
-
-/// Split a string on a delimiter at the top level (not inside quotes/brackets).
-fn split_top_level(s: &str, delim: char) -> Vec<String> {
-    let mut parts = Vec::new();
-    let mut depth: i32 = 0;
-    let mut in_string = false;
-    let mut escaped = false;
-    let mut start = 0usize;
-    for (i, ch) in s.char_indices() {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                in_string = false;
-            }
-            continue;
-        }
-        match ch {
-            '"' => in_string = true,
-            '(' | '[' | '{' => depth += 1,
-            ')' | ']' | '}' => depth -= 1,
-            c if c == delim && depth == 0 => {
-                parts.push(s[start..i].trim().to_owned());
-                start = i + ch.len_utf8();
-            }
-            _ => {}
-        }
-    }
-    let last = s[start..].trim();
-    if !last.is_empty() {
-        parts.push(last.to_owned());
-    }
-    parts
-}
-
-/// Return the index just after `VAR =` for a top-level assignment, or None.
-fn find_var_assignment(buck_text: &str, var: &str) -> Option<usize> {
-    for (line_start, line) in line_offsets(buck_text) {
-        let t = line.trim_start();
-        if t.starts_with('#') {
-            continue;
-        }
-        if let Some(rest) = t.strip_prefix(var) {
-            let rest = rest.trim_start();
-            if let Some(after_eq) = rest.strip_prefix('=') {
-                // Ensure it's `VAR =` not `VAR[...] =` or `VAR_X =`.
-                let after_eq_offset = line.len() - after_eq.len();
-                return Some(line_start + after_eq_offset);
-            }
-        }
-    }
-    None
-}
-
-fn line_offsets(text: &str) -> Vec<(usize, &str)> {
-    let mut out = Vec::new();
-    let mut offset = 0usize;
-    for line in text.split_inclusive('\n') {
-        out.push((offset, line));
-        offset += line.len();
-    }
-    out
-}
-
-/// Return a `{ ... }` brace block starting at `text[0] == '{'`, balanced + string-aware.
-fn brace_block(text: &str) -> Option<String> {
-    if !text.starts_with('{') {
-        return None;
-    }
-    let mut depth: i32 = 0;
-    let mut in_string = false;
-    let mut escaped = false;
-    for (offset, ch) in text.char_indices() {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                in_string = false;
-            }
-            continue;
-        }
-        match ch {
-            '"' => in_string = true,
-            '{' => depth += 1,
-            '}' => {
-                depth -= 1;
-                if depth == 0 {
-                    return Some(text[..offset + ch.len_utf8()].to_owned());
-                }
-            }
-            _ => {}
-        }
-    }
-    None
-}
-
-/// The bare-variable name a target's `mapped_srcs` references, if any (`mapped_srcs = VAR`).
-fn mapped_srcs_var(block: &str) -> Option<String> {
-    let expr = field_value_expr(block, "mapped_srcs")?;
-    let t = expr.trim();
-    if is_ident(t) { Some(t.to_owned()) } else { None }
-}
-
-// ---------------------------------------------------------------------------
-// Minimal glob matcher (supports the buck2 `**` and `*` used in srcs globs)
-// ---------------------------------------------------------------------------
-
-/// Match a buck2-style glob (`**` = any number of path segments incl. zero; `*` = any chars except
-/// `/`) against a crate-relative path. Segment-recursive so `src/**/*.rs` matches BOTH `src/lib.rs`
-/// (zero intermediate segments) and `src/a/b.rs`. Pure; no filesystem. `?` and char classes are not
-/// used by repo srcs globs.
-pub fn glob_match(pattern: &str, path: &str) -> bool {
-    let pat: Vec<&str> = pattern.split('/').collect();
-    let txt: Vec<&str> = path.split('/').collect();
-    glob_segments(&pat, &txt)
-}
-
-/// Match path segments against pattern segments, where a `**` pattern segment matches zero or more
-/// path segments.
-fn glob_segments(pat: &[&str], txt: &[&str]) -> bool {
-    if pat.is_empty() {
-        return txt.is_empty();
-    }
-    if pat[0] == "**" {
-        // `**` matches zero segments (advance the pattern) or one+ segments (consume a path segment).
-        if glob_segments(&pat[1..], txt) {
-            return true;
-        }
-        if !txt.is_empty() {
-            return glob_segments(pat, &txt[1..]);
-        }
-        return false;
-    }
-    if txt.is_empty() {
-        return false;
-    }
-    if !segment_match(pat[0].as_bytes(), txt[0].as_bytes()) {
-        return false;
-    }
-    glob_segments(&pat[1..], &txt[1..])
-}
-
-/// Match a single path segment against a single pattern segment, where `*` matches any run of
-/// characters within the segment (never crossing `/`, which cannot appear in a segment anyway).
-fn segment_match(pat: &[u8], txt: &[u8]) -> bool {
-    let (mut p, mut t) = (0usize, 0usize);
-    let (mut star_p, mut star_t): (Option<usize>, usize) = (None, 0);
-    while t < txt.len() {
-        if p < pat.len() && pat[p] == b'*' {
-            star_p = Some(p);
-            star_t = t;
-            p += 1;
-        } else if p < pat.len() && pat[p] == txt[t] {
-            p += 1;
-            t += 1;
-        } else if let Some(sp) = star_p {
-            p = sp + 1;
-            star_t += 1;
-            t = star_t;
-        } else {
-            return false;
-        }
-    }
-    while p < pat.len() && pat[p] == b'*' {
-        p += 1;
-    }
-    p == pat.len()
+    };
+    let env = Env::from_slices(string_vars, glob_vars);
+    resolve_dict_var(&doc, var, &env, crate_files)
 }
 
 // ---------------------------------------------------------------------------
@@ -1638,21 +1093,17 @@ fn globs_via_crate_root(t: &BuckTarget, rs_in_crate: &str, _crate_files: &[Strin
     false
 }
 
-/// Find the bare-variable mapped_srcs reference for a named target by re-locating its block.
+/// Find the bare-variable mapped_srcs reference for a named target. Sound binding by the actual
+/// `name` kwarg via the shared kernel — never a first-occurrence substring match (the ADR-0545
+/// "first-occurrence name binding" residual the kernel retires).
 fn mapped_srcs_var_for(buck_text: &str, target_name: &str) -> Option<String> {
-    // Locate the target block by its name string, then read mapped_srcs var.
-    let needle = format!("\"{target_name}\"");
-    let name_pos = buck_text.find(&needle)?;
-    // Find the enclosing call's start by scanning backward for the kind identifier before name_pos.
-    let head = &buck_text[..name_pos];
-    let open = head.rfind('(')?;
-    // Walk back to the start of the identifier.
-    let kind_start = head[..open]
-        .rfind(|c: char| c == '\n' || c == ' ')
-        .map(|p| p + 1)
-        .unwrap_or(0);
-    let block = call_block(&buck_text[kind_start..])?;
-    mapped_srcs_var(&block)
+    let doc = oya_buck_syntax_kernel::parse(buck_text).ok()?;
+    let env = Env::from_doc(&doc);
+    let call = find_target(&doc, None, target_name, &env)?;
+    match &call.kwarg("mapped_srcs")?.value.expr {
+        Expr::Ident(var) => Some(var.clone()),
+        _ => None,
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1940,23 +1391,17 @@ fn buck_crate_root_is_root_prefixed(
     crate_dir: &str,
 ) -> Option<bool> {
     let text = std::fs::read_to_string(root.join(buck_path)).ok()?;
-    let needle = format!("\"{target}\"");
-    let name_pos = text.find(&needle)?;
-    let open = text[..name_pos].rfind('(')?;
-    let kind_start = text[..open]
-        .rfind(|c: char| c == '\n' || c == ' ' || c == '\t')
-        .map(|p| p + 1)
-        .unwrap_or(0);
-    let block = call_block(&text[kind_start..])?;
-    let expr = field_value_expr(&block, "crate_root")?;
-    let trimmed = expr.trim();
+    let doc = oya_buck_syntax_kernel::parse(&text).ok()?;
+    let env = Env::from_doc(&doc);
+    let call = find_target(&doc, None, target, &env)?;
+    let crate_root = &call.kwarg("crate_root")?.value;
     // A `ROOT + "..."` concat or a literal already containing the crate dir is deep; a bare short
     // literal (`"src/lib.rs"`) is the escaping short form.
-    if trimmed.contains('+') {
+    if matches!(crate_root.expr, Expr::Plus(_)) {
         return Some(true);
     }
-    let string_vars = top_level_string_vars(&text);
-    let resolved = unquote_concat(trimmed, &string_vars).unwrap_or_else(|| trimmed.trim_matches('"').to_owned());
+    let resolved = eval_string(crate_root, &env)
+        .unwrap_or_else(|| crate_root.span.slice(&text).trim().trim_matches('"').to_owned());
     Some(resolved.starts_with(&format!("{crate_dir}/")) || resolved.starts_with(crate_dir))
 }
 
@@ -1992,136 +1437,94 @@ fn nearest_buck_path_rel(root: &Path, rs_rel: &str) -> Option<String> {
 /// target's `mapped_srcs` with the `mapped_key -> mapped_value` entry, returning the patched text.
 /// Pure over the BUCK text. Returns `Err` describing why it could not edit safely (the caller then
 /// reports it as manual — the backstop). It NEVER edits the include literal (that would break cargo).
+///
+/// ADR-0549 migration: target binding, span computation, and comma placement are delegated to the
+/// shared sound `oya-buck-syntax-kernel`, and the result is routed through its write-through
+/// harness (reparse + the gate's semantic round-trip). Comment-bearing target blocks — which the
+/// pre-kernel implementation REFUSED because its comma heuristic could emit a double comma — are
+/// now edited soundly: the kernel reads comma positions from parsed spans, never trimmed text.
 pub fn apply_remediation(buck_text: &str, rem: &Remediation) -> Result<String, String> {
     if !rem.applicable {
         return Err(rem.note.clone());
     }
-    // Locate the target block.
-    let needle = format!("\"{}\"", rem.target);
-    let name_pos = buck_text
-        .find(&needle)
+    let doc = oya_buck_syntax_kernel::parse(buck_text)
+        .map_err(|e| format!("BUCK text does not parse soundly ({e}); fix by hand"))?;
+    let env = Env::from_doc(&doc);
+    // Sound binding by the actual `name` kwarg (never first-occurrence substring match).
+    let call = find_target(&doc, None, &rem.target, &env)
         .ok_or_else(|| format!("target `{}` not found in BUCK", rem.target))?;
-    // Walk back to the call's opening `(`, then to the start of the call-kind identifier before it,
-    // so `call_block` (which scans from the kind identifier and balances from the first `(`) sees the
-    // whole `rust_library( … )` / `rust_binary( … )` / `rust_test( … )` form.
-    let head = &buck_text[..name_pos];
-    let open_paren = head
-        .rfind('(')
-        .ok_or_else(|| "target name not inside a call".to_owned())?;
-    let kind_start = head[..open_paren]
-        .rfind(|c: char| c == '\n' || c == ' ' || c == '\t')
-        .map(|p| p + 1)
-        .unwrap_or(0);
-    // Find the call-open paren and the matching close.
-    let block = call_block(&buck_text[kind_start..])
-        .ok_or_else(|| "could not delimit the target call block".to_owned())?;
-    let block_start = kind_start;
-    let block_end = kind_start + block.len();
 
-    // ComprehensionRewrite: regenerate the whole rust_library in the deep cedar form so the include
-    // resolves to the mapped VALUE. Only safe for a single rust_library whose existing srcs is a glob
-    // and whose crate_root is the short `src/lib.rs`; anything else falls back to a manual report.
-    if rem.kind == RemediationKind::ComprehensionRewrite {
-        let rewritten = rewrite_to_comprehension(&block, rem)?;
-        let mut out = String::with_capacity(buck_text.len() + rewritten.len());
-        out.push_str(&buck_text[..block_start]);
-        out.push_str(&rewritten);
-        out.push_str(&buck_text[block_end..]);
-        return Ok(out);
-    }
-
-    let entry = format!("        \"{}\": \"{}\",\n", rem.mapped_key, rem.mapped_value);
-
-    let patched_block = if field_value_expr(&block, "mapped_srcs").is_some() {
-        // The target already has a mapped_srcs dict literal. If the KEY is already present (mapped to
-        // the WRONG value — the original FRIC-1781131000 defect shape), REPLACE that entry's value
-        // rather than inserting a duplicate key (which buck2 rejects). Otherwise insert after the `{`.
-        let ms_pos = find_top_level(&block, "mapped_srcs =")
-            .ok_or_else(|| "mapped_srcs present but not at top level".to_owned())?;
-        let brace_rel = block[ms_pos..]
-            .find('{')
-            .ok_or_else(|| "mapped_srcs is not an inline dict (a variable?); add the entry to its definition by hand".to_owned())?;
-        let brace_at = ms_pos + brace_rel;
-        let dict = brace_block(&block[brace_at..])
-            .ok_or_else(|| "mapped_srcs dict is not balanced".to_owned())?;
-        let key_token = format!("\"{}\"", rem.mapped_key);
-        if let Some(key_rel) = dict.find(&key_token) {
-            // Replace the value of the existing key. Find the `:` after the key, then the value
-            // string literal, and rewrite its contents.
-            let after_key_abs = brace_at + key_rel + key_token.len();
-            let colon_rel = block[after_key_abs..]
-                .find(':')
-                .ok_or_else(|| "existing mapped_srcs key has no value".to_owned())?;
-            let val_search_start = after_key_abs + colon_rel + 1;
-            let quote_rel = block[val_search_start..]
-                .find('"')
-                .ok_or_else(|| "existing mapped_srcs value is not a string literal".to_owned())?;
-            let val_open = val_search_start + quote_rel + 1;
-            let val_close_rel = block[val_open..]
-                .find('"')
-                .ok_or_else(|| "existing mapped_srcs value string is unterminated".to_owned())?;
-            let val_close = val_open + val_close_rel;
-            let mut s = String::with_capacity(block.len() + rem.mapped_value.len());
-            s.push_str(&block[..val_open]);
-            s.push_str(&rem.mapped_value);
-            s.push_str(&block[val_close..]);
-            s
-        } else {
-            let insert_at = brace_at + 1;
-            let mut s = String::with_capacity(block.len() + entry.len() + 1);
-            s.push_str(&block[..insert_at]);
-            s.push('\n');
-            s.push_str(&entry);
-            s.push_str(&block[insert_at..]);
-            s
+    // ComprehensionRewrite: regenerate the whole target in the deep cedar form so the include
+    // resolves to the mapped VALUE. Only safe for rust_library/rust_test/rust_binary whose
+    // crate_root is a src/lib.rs|main.rs; anything else falls back to a manual report.
+    let candidate = if rem.kind == RemediationKind::ComprehensionRewrite {
+        let rewritten = rewrite_to_comprehension(buck_text, call, &env, rem)?;
+        replace_span(buck_text, call.span, &rewritten).map_err(|e| e.to_string())?
+    } else if let Some(mapped_arg) = call.kwarg("mapped_srcs") {
+        match &mapped_arg.value.expr {
+            Expr::Dict(dict) if dict.comprehension.is_none() => {
+                // If the KEY is already present (mapped to the WRONG value — the original
+                // FRIC-1781131000 defect shape), REPLACE that entry's value rather than inserting
+                // a duplicate key (which buck2 rejects). Otherwise insert a new entry.
+                let existing = dict.entries.iter().find(
+                    |entry| matches!(&entry.key.expr, Expr::Str(key) if key == &rem.mapped_key),
+                );
+                match existing {
+                    Some(entry) => replace_span(
+                        buck_text,
+                        entry.value.span,
+                        &format!("\"{}\"", rem.mapped_value),
+                    )
+                    .map_err(|e| e.to_string())?,
+                    None => {
+                        insert_dict_entry(buck_text, dict, &rem.mapped_key, &rem.mapped_value)
+                            .map_err(|e| e.to_string())?
+                    }
+                }
+            }
+            Expr::Dict(_) => {
+                return Err(
+                    "mapped_srcs is a dict comprehension; add the entry to its variable assembly site by hand"
+                        .to_owned(),
+                );
+            }
+            Expr::Ident(_) => {
+                return Err(
+                    "mapped_srcs is not an inline dict (a variable?); add the entry to its definition by hand"
+                        .to_owned(),
+                );
+            }
+            _ => {
+                return Err(
+                    "mapped_srcs has a shape the sound parser does not model; add the entry by hand"
+                        .to_owned(),
+                );
+            }
         }
     } else {
-        // No mapped_srcs: add one just before the closing `)`.
-        //
-        // Comment-guard (doctrine: refuse > heuristic): if the target block contains any
-        // out-of-string `#` character the comma-detection heuristic is unreliable (a trailing
-        // comment `deps = [],  # note` looks like no trailing comma after trimming). Rather than
-        // attempt comment-stripping we refuse and report manual — the fixer can't safely edit a
-        // comment-bearing target without risking a double-comma or other parse error.
-        if block_has_out_of_string_comment(&block) {
-            return Err(format!(
-                "target `{}` contains out-of-string '#' comment(s); comma placement is ambiguous — \
-                 add the mapped_srcs entry by hand to avoid emitting unparseable output (see ADR-0545)",
-                rem.target
-            ));
-        }
-        let close_rel = block
-            .rfind(')')
-            .ok_or_else(|| "target block has no closing paren".to_owned())?;
-        // The block has no comments (guard above), so trim_end reliably finds the last field
-        // terminator. Insert a comma if the prior field lacked one.
-        let before_close = block[..close_rel].trim_end();
-        let needs_comma = !before_close.ends_with(',') && !before_close.ends_with('(');
-        let mut s = String::with_capacity(block.len() + entry.len() + 32);
-        s.push_str(&block[..close_rel]);
-        if needs_comma {
-            s.push(',');
-            s.push('\n');
-        }
-        s.push_str("    mapped_srcs = {\n");
-        s.push_str(&entry);
-        s.push_str("    },\n");
-        s.push_str(&block[close_rel..]);
-        s
+        // No mapped_srcs: add one as a new kwarg. The kernel supplies the separating comma from
+        // PARSED spans, so trailing comments can no longer produce a double comma (the
+        // FRIC-1781190000 corruption class this gate previously refused away).
+        insert_kwarg(
+            buck_text,
+            call,
+            &format!(
+                "mapped_srcs = {{\n        \"{}\": \"{}\",\n    }}",
+                rem.mapped_key, rem.mapped_value
+            ),
+        )
+        .map_err(|e| e.to_string())?
     };
 
-    let mut out = String::with_capacity(buck_text.len() + entry.len() + 32);
-    out.push_str(&buck_text[..block_start]);
-    out.push_str(&patched_block);
-    out.push_str(&buck_text[block_end..]);
-
-    // Self-validation: reparse the output and confirm the target is still findable. If the
-    // rewritten content is unparseable (e.g. the target block is gone or malformed), REFUSE and
-    // return Err — never write corrupt output. This closes the whole corruption bug class
-    // structurally (enforcement-layering doctrine: structural impossibility > logic checks).
-    validate_remediation_output(&out, rem)?;
-
-    Ok(out)
+    // Self-validation via the shared write-through harness: reparse the candidate with the
+    // kernel, then run this gate's semantic round-trip (target findable + injected value visible
+    // through the REAL detector parse path). Refuse and return the pre-image on any failure —
+    // never write corrupt output (enforcement-layering doctrine: structural impossibility).
+    let mut registry = PreImageRegistry::new();
+    guarded_rewrite("<buck>", buck_text, &candidate, &mut registry, |_, out| {
+        validate_remediation_output(out, rem)
+    })
+    .map_err(|refusal| refusal.reason)
 }
 
 /// Real-parse validation: run the rewritten BUCK text through `parse_buck_targets` (the same path
@@ -2150,15 +1553,15 @@ fn validate_remediation_output(out: &str, rem: &Remediation) -> Result<(), Strin
         ));
     }
     // For MappedEntry: confirm the injected mapped_srcs destination VALUE is visible in the
-    // reparsed target. This catches a double-comma or other parse error that silently drops the
-    // mapped_srcs block even while the target name remains findable.
+    // reparsed target. This catches any edit that silently drops the mapped_srcs block even
+    // while the target name remains findable.
     if rem.kind == RemediationKind::MappedEntry {
-        let target_entry = targets.iter().find(|t| t.name == rem.target).unwrap();
-        let value_present = target_entry.mapped_dest.iter().any(|v| v == &rem.mapped_value)
-            || target_entry
-                .mapped_dest
-                .iter()
-                .any(|v| normalize_rel(v) == normalize_rel(&rem.mapped_value));
+        let value_present = targets.iter().filter(|t| t.name == rem.target).any(|t| {
+            t.mapped_dest.iter().any(|v| v == &rem.mapped_value)
+                || t.mapped_dest
+                    .iter()
+                    .any(|v| normalize_rel(v) == normalize_rel(&rem.mapped_value))
+        });
         if !value_present {
             return Err(format!(
                 "self-validation: mapped_srcs value `{}` not found in reparsed target `{}` \
@@ -2170,72 +1573,56 @@ fn validate_remediation_output(out: &str, rem: &Remediation) -> Result<(), Strin
     Ok(())
 }
 
-/// True if `text` contains an out-of-string `#` character (a Starlark comment). Used to guard
-/// comment-ambiguous edits: when a `#` appears outside string literals the comma heuristic is
-/// unreliable, so the fixer refuses and reports manual rather than risk a corrupt write.
-fn block_has_out_of_string_comment(text: &str) -> bool {
-    let mut in_string = false;
-    let mut escaped = false;
-    for ch in text.chars() {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                in_string = false;
-            }
-            continue;
-        }
-        match ch {
-            '"' => in_string = true,
-            '#' => return true,
-            _ => {}
-        }
-    }
-    false
-}
-
 /// Rewrite a short-crate_root Rust target block into the deep cedar comprehension form, preserving
 /// name/crate/visibility/deps and the existing srcs glob, so a cross-package `../` include resolves to
 /// the mapped VALUE. Handles `rust_library`, `rust_test`, and `rust_binary` (the three kinds that
 /// appear as covering targets). Returns `Err` (→ manual report) for any other kind. The include
 /// literal is never touched. The emitted form mirrors the proven cloud-intelligence adapter.
-fn rewrite_to_comprehension(block: &str, rem: &Remediation) -> Result<String, String> {
-    let block_trimmed = block.trim_start();
-    let kind = if block_trimmed.starts_with("rust_library") {
-        "rust_library"
-    } else if block_trimmed.starts_with("rust_test") {
-        "rust_test"
-    } else if block_trimmed.starts_with("rust_binary") {
-        "rust_binary"
-    } else {
-        return Err(format!(
-            "comprehension rewrite only supports rust_library/rust_test/rust_binary; \
+fn rewrite_to_comprehension(
+    buck_text: &str,
+    call: &oya_buck_syntax_kernel::CallExpr,
+    env: &Env,
+    rem: &Remediation,
+) -> Result<String, String> {
+    let kind = match call.func.as_str() {
+        kind @ ("rust_library" | "rust_test" | "rust_binary") => kind,
+        _ => {
+            return Err(
+                "comprehension rewrite only supports rust_library/rust_test/rust_binary; \
              got a different kind — fix by hand"
-        ));
+                    .to_owned(),
+            );
+        }
     };
     let crate_dir = rem.buck_path.trim_end_matches("/BUCK").to_owned();
-    let name = field_value_expr(block, "name")
-        .and_then(|e| unquote_concat(&e, &[]))
+    let name = call
+        .kwarg("name")
+        .and_then(|arg| eval_string(&arg.value, env))
         .ok_or_else(|| "could not read target name".to_owned())?;
-    let crate_field = field_value_expr(block, "crate")
-        .and_then(|e| unquote_concat(&e, &[]));
-    let crate_root_expr = field_value_expr(block, "crate_root")
-        .and_then(|e| unquote_concat(&e, &[]))
+    let crate_field = call
+        .kwarg("crate")
+        .and_then(|arg| eval_string(&arg.value, env));
+    let crate_root_expr = call
+        .kwarg("crate_root")
+        .and_then(|arg| eval_string(&arg.value, env))
         .ok_or_else(|| "could not read crate_root".to_owned())?;
     if !(crate_root_expr.ends_with("/lib.rs") || crate_root_expr.ends_with("/main.rs")) {
         return Err("crate_root is not a src/lib.rs|main.rs; rewrite by hand".to_owned());
     }
-    let srcs_expr = field_value_expr(block, "srcs").unwrap_or_else(|| "[]".to_owned());
-    let srcs_glob = if srcs_expr.trim().starts_with("glob(") {
+    // Raw expression text for fields carried through verbatim (span-sliced, comment-safe).
+    let raw = |field: &str| -> Option<String> {
+        call.kwarg(field)
+            .map(|arg| arg.value.span.slice(buck_text).to_owned())
+    };
+    let srcs_expr = raw("srcs").unwrap_or_else(|| "[]".to_owned());
+    let srcs_glob = if srcs_expr.trim_start().starts_with("glob(") {
         srcs_expr.trim().to_owned()
     } else {
         // Default to the standard asset glob if srcs was empty/list — preserves all sources.
         "glob([\"src/**/*.rs\", \"**/*.cedar\", \"**/*.sql\", \"**/*.json\", \"**/*.toml\", \"**/*.yaml\", \"**/*.yml\", \"**/*.proto\", \"**/*.graphql\", \"**/*.html\", \"**/*.css\", \"**/*.txt\"])".to_owned()
     };
-    let visibility = field_value_expr(block, "visibility").unwrap_or_else(|| "[\"PUBLIC\"]".to_owned());
-    let deps = field_value_expr(block, "deps").unwrap_or_else(|| "[]".to_owned());
+    let visibility = raw("visibility").unwrap_or_else(|| "[\"PUBLIC\"]".to_owned());
+    let deps = raw("deps").unwrap_or_else(|| "[]".to_owned());
     let crate_decl = match crate_field {
         Some(c) => format!("    crate = \"{c}\",\n"),
         None => String::new(),
@@ -2263,7 +1650,7 @@ fn rewrite_to_comprehension(block: &str, rem: &Remediation) -> Result<String, St
          \x20   visibility = {visibility},\n\
          \x20   mapped_srcs = {mapped_var},\n\
          \x20   deps = {deps},\n\
-         )\n",
+         )",
         key = rem.mapped_key,
         value = rem.mapped_value,
         root_suffix = crate_root_expr.trim_start_matches(&format!("{crate_dir}/")),
@@ -2752,10 +2139,12 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
     }
 
     #[test]
-    fn apply_remediation_trailing_comment_is_refused_not_corrupted() {
-        // Reviewer probe: `deps = [],  # trailing comment` before `)` — the comment guard must
-        // refuse (Err) rather than emit a double-comma and a corrupt BUCK file. This is the exact
-        // scenario that broke the v1 needs_comma heuristic.
+    fn apply_remediation_trailing_comment_block_is_edited_soundly() {
+        // ADR-0549 gap closure (RED→GREEN): `deps = [],  # trailing comment` before `)` is the
+        // exact probe that broke the v1 needs_comma heuristic and forced the pre-kernel comment
+        // guard to REFUSE every comment-bearing block. The sound kernel reads comma positions
+        // from parsed spans, so this block is now edited correctly — no double comma, comment
+        // preserved, full parser round-trip green.
         let buck = "rust_library(\n    name = \"lib\",\n    srcs = [],\n    crate_root = \"src/lib.rs\",\n    deps = [],  # trailing comment\n)\n";
         let rem = Remediation {
             buck_path: "p/BUCK".to_owned(),
@@ -2766,24 +2155,18 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             applicable: true,
             note: String::new(),
         };
-        let result = apply_remediation(buck, &rem);
-        // Must produce either a correct edit (no double comma) OR a clean refusal — never corrupt.
-        match result {
-            Ok(patched) => {
-                // If it somehow succeeds (future improvement), verify no double comma.
-                assert!(
-                    !patched.contains(",,"),
-                    "no double comma allowed: {patched}"
-                );
-            }
-            Err(msg) => {
-                // Refusal is the expected and safe outcome for the comment-bearing case.
-                assert!(
-                    msg.contains("comment") || msg.contains('#'),
-                    "refusal message must mention comment: {msg}"
-                );
-            }
-        }
+        let patched = apply_remediation(buck, &rem)
+            .expect("comment-bearing block must now be edited soundly, not refused");
+        assert!(!patched.contains(",,"), "no double comma allowed: {patched}");
+        assert!(patched.contains("# trailing comment"), "comment preserved: {patched}");
+        assert!(patched.contains("\"//q:a.cedar\": \"q/a.cedar\""), "entry present: {patched}");
+        // Full round-trip through the real detector parse path.
+        let targets = parse_buck_targets(&patched, &[]);
+        let lib = targets.iter().find(|t| t.name == "lib").expect("target intact");
+        assert!(
+            lib.mapped_dest.iter().any(|v| v == "q/a.cedar"),
+            "injected value visible after reparse: {targets:?}"
+        );
     }
 
     #[test]
@@ -2813,29 +2196,34 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
     // ---- Finding 2 fix: multibyte chars in target block ---------------------
 
     #[test]
-    fn find_top_level_does_not_panic_on_multibyte_chars() {
+    fn multibyte_comment_in_target_block_parses_and_binds_fields() {
         // An em-dash (U+2014, 3 UTF-8 bytes) in a comment inside the target block must not
-        // cause a slice-panic. Before the fix, `bytes[i] as char` + `block[i..]` panicked when
-        // `i` landed inside the multibyte sequence.
+        // cause a slice-panic or shift field binding (the pre-kernel find_top_level fixture,
+        // re-expressed through the sound parser).
         let buck = "rust_library(\n    # house style — em-dash comment\n    name = \"t\",\n    srcs = [],\n)\n";
-        // Must not panic, and must find `name =` correctly.
-        let result = find_top_level(buck, "name =");
-        assert!(result.is_some(), "must find name = despite em-dash: {buck}");
+        let targets = parse_buck_targets(buck, &[]);
+        assert_eq!(targets.len(), 1, "must parse despite em-dash: {targets:?}");
+        assert_eq!(targets[0].name, "t", "name field bound correctly: {targets:?}");
     }
 
     #[test]
-    fn find_top_level_keyword_does_not_panic_on_multibyte_chars() {
-        // Same invariant for find_top_level_keyword used in the comprehension dict parser.
-        let dict = "{ \"k\": \"v\" /* em-dash — here */ }";
-        // Must not panic; returns None (no " for " at top level) or Some — either is fine.
-        let _ = find_top_level_keyword(dict, " for ");
+    fn multibyte_comment_in_comprehension_file_resolves() {
+        // The pre-kernel find_top_level_keyword multibyte fixture, re-expressed: an em-dash
+        // comment near a comprehension must not panic or break resolution.
+        let buck = "ROOT = \"p\"  # em-dash — here\nSRCS = glob([\"src/**/*.rs\"])\nM = {src: ROOT + \"/\" + src for src in SRCS}\n";
+        let sv = top_level_string_vars(buck);
+        let gv = top_level_glob_vars(buck);
+        let files = vec!["src/lib.rs".to_owned()];
+        let values = resolve_mapped_var(buck, "M", &sv, &gv, &files);
+        assert_eq!(values, vec!["p/src/lib.rs".to_owned()], "{values:?}");
     }
 
     #[test]
-    fn apply_remediation_with_comment_block_is_refused_not_panicked() {
-        // A target block containing an out-of-string '#' comment triggers the comment guard
-        // (F1 fix): the fixer must REFUSE (return Err) rather than emit a corrupt double-comma.
-        // The em-dash (multibyte) in the comment also exercises the UTF-8-safe code paths.
+    fn apply_remediation_comment_block_with_missing_comma_is_edited_soundly() {
+        // ADR-0549 gap closure (RED→GREEN): a comment-bearing block whose last field ALSO lacks
+        // a trailing comma — the compound shape the pre-kernel guard refused outright. The
+        // kernel attaches the separating comma to the parsed last-value span (never after the
+        // comment), edits soundly, and the round-trip validates.
         let buck = "rust_library(\n    # em-dash \u{2014} style\n    name = \"lib\",\n    srcs = [],\n    crate_root = \"src/lib.rs\"\n)\n";
         let rem = Remediation {
             buck_path: "p/BUCK".to_owned(),
@@ -2846,13 +2234,15 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             applicable: true,
             note: String::new(),
         };
-        // Must not panic; must return Err with the comment-guard message.
-        let result = apply_remediation(buck, &rem);
-        assert!(result.is_err(), "comment-bearing block must be refused: {result:?}");
-        let msg = result.unwrap_err();
+        let patched = apply_remediation(buck, &rem)
+            .expect("comment + missing-comma block must be edited soundly");
+        assert!(patched.contains("\"src/lib.rs\","), "comma attached to the value: {patched}");
+        assert!(!patched.contains(",,"), "no double comma: {patched}");
+        assert!(patched.contains("# em-dash \u{2014} style"), "comment preserved: {patched}");
+        let targets = parse_buck_targets(&patched, &[]);
         assert!(
-            msg.contains("comment") || msg.contains('#'),
-            "error must mention the comment issue: {msg}"
+            targets.iter().any(|t| t.name == "lib" && t.mapped_dest.iter().any(|v| v == "q/a.cedar")),
+            "round-trip green: {targets:?}"
         );
     }
 
