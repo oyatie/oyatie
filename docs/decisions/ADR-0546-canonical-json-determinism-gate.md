@@ -176,6 +176,10 @@ shrink-only — never a single mass-reformat PR (that churn would itself be the 
   Justified above (the serde feature union is the very drift class being policed); the implementation
   is ~400 lines, fully RED/GREEN tested, with an idempotence property under both `ensure_ascii`
   branches.
+- Residual UNGATED drift classes (explicit): because the gate preserves key order verbatim
+  (`sort_keys=false`) and number lexemes verbatim, a rewrite that reorders object keys or respells a
+  number lexeme (e.g. `1E9` ↔ `1e9`) still passes this gate — those two axes are caught only by
+  diff review, not by this determinism check.
 
 ## Dogfood closure
 
