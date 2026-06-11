@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18317,
-    "source_inputs_digest": "fnv1a64:f464a58581654061"
+    "source_inputs_digest": "fnv1a64:29bd309ca723df42"
   },
   "rows": [
     {
@@ -288,7 +288,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0538",
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "aee1a1b0e8b4d4dca0d70aa7c9dd56c220ddf664",
       "owner": null,
       "path": ".github/workflows/oya-ci-required.yml",
       "reachable_from": [],
@@ -7091,167 +7091,6 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
-      "owner": null,
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/BUCK",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
-      "owner": null,
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/Cargo.toml",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
-      "owner": null,
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/canonical-json-policy.json",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "archive",
-        "budget_days": 14,
-        "protected": false,
-        "ttl_class": "husk"
-      },
-      "unit_class": "husk",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "37797c22a04771cb7df4a855a17438516ca3631e",
-      "owner": null,
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/lib.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
-      "owner": null,
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/main.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "37797c22a04771cb7df4a855a17438516ca3631e",
-      "owner": null,
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/tests.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
-      "owner": null,
-      "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/tests/canonical_json.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
       "last_touch_commit": "e07d3e998467a8e71eab5dcf429c38010ba3ea0e",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app/BUCK",
@@ -7416,6 +7255,167 @@
       "last_touch_commit": "1b57c642b41bcbb578720f772e3f772e0947ff63",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": "ADR-0545",
+      "last_touch_commit": "f82069f4d87429dd5364b60507b2b9bbb7396638",
+      "owner": null,
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/BUCK",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "NEEDS-OWNER"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "f82069f4d87429dd5364b60507b2b9bbb7396638",
+      "owner": null,
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/Cargo.toml",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "f113ddb7cb203f21100d3c6959636d2aa1c4ed9b",
+      "owner": null,
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/embedded-asset-hermeticity-baseline.json",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "archive",
+        "budget_days": 14,
+        "protected": false,
+        "ttl_class": "husk"
+      },
+      "unit_class": "husk",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "882bbeee17f61d890fd9e7626acc9221a93a4751",
+      "owner": null,
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/embedded-asset-hermeticity-policy.json",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "archive",
+        "budget_days": 14,
+        "protected": false,
+        "ttl_class": "husk"
+      },
+      "unit_class": "husk",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "f82069f4d87429dd5364b60507b2b9bbb7396638",
+      "owner": null,
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/src/lib.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "f82069f4d87429dd5364b60507b2b9bbb7396638",
+      "owner": null,
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/src/main.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "last_touch_commit": "f113ddb7cb203f21100d3c6959636d2aa1c4ed9b",
+      "owner": null,
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/tests/embedded_asset_hermeticity.rs",
       "reachable_from": [
         "cargo-members"
       ],
@@ -80440,10 +80440,10 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": "ADR-0546",
-      "last_touch_commit": "37797c22a04771cb7df4a855a17438516ca3631e",
+      "justification_ref": "ADR-0545",
+      "last_touch_commit": "aee1a1b0e8b4d4dca0d70aa7c9dd56c220ddf664",
       "owner": null,
-      "path": "docs/decisions/ADR-0546-canonical-json-determinism-gate.md",
+      "path": "docs/decisions/ADR-0545-embedded-asset-hermeticity-gate.md",
       "reachable_from": [],
       "tracked": true,
       "ttl": {
@@ -83754,7 +83754,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0539",
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "aee1a1b0e8b4d4dca0d70aa7c9dd56c220ddf664",
       "owner": null,
       "path": "docs/oya-ci/gate-catalog.md",
       "reachable_from": [],
@@ -166022,8 +166022,8 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
-      "last_touch_commit": "1d79c8883b85a153760a37404ccf04c547d4dfa8",
+      "justification_ref": "ADR-0545",
+      "last_touch_commit": "f113ddb7cb203f21100d3c6959636d2aa1c4ed9b",
       "owner": null,
       "path": "oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter/BUCK",
       "reachable_from": [
@@ -166037,7 +166037,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "NEEDS-OWNER"
     },
     {
       "_provenance": {
@@ -358950,7 +358950,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "34cf1601e4717bab4576e1247d2b4de3c5b90145",
+      "last_touch_commit": "882bbeee17f61d890fd9e7626acc9221a93a4751",
       "owner": null,
       "path": "premise.txt",
       "reachable_from": [
@@ -380672,7 +380672,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "e3df4c5516a2d566f66d7ca6a8b3336198ae936f",
       "owner": null,
       "path": "specs/bespoke-cloud-toolchain-services.json",
       "reachable_from": [
@@ -381078,7 +381078,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "e77f16eb2de3061b583cb908c409b01b38451863",
       "owner": null,
       "path": "specs/cloud-production-quality-kit-evidence-backlog.json",
       "reachable_from": [],
@@ -383502,7 +383502,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "dda2da14fce9a0aa6d87623de1ea2c374b709203",
       "owner": null,
       "path": "specs/hyperscaler-production-readiness-claim-contract.json",
       "reachable_from": [
@@ -383638,7 +383638,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "8acec8920372f4bbef47552bb3df824bd9939fc9",
       "owner": null,
       "path": "specs/language-discipline-registry.json",
       "reachable_from": [],
@@ -383894,7 +383894,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0119",
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "70736321b4609fab9f82cb1080db66bd5e5198aa",
       "owner": null,
       "path": "specs/master-plan-sequencing.json",
       "reachable_from": [
@@ -383919,7 +383919,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0104",
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "70736321b4609fab9f82cb1080db66bd5e5198aa",
       "owner": null,
       "path": "specs/masterplan.json",
       "reachable_from": [
@@ -385338,7 +385338,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0115",
-      "last_touch_commit": "3fceac50445ac353a3dbe25544ea7a3fdf8faf36",
+      "last_touch_commit": "16a2f1c5548ec6dc8ed88272a66d45abc558a4c2",
       "owner": null,
       "path": "specs/root-hub-pointers.json",
       "reachable_from": [
