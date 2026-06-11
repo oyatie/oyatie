@@ -63,12 +63,24 @@ use serde_json::{Value, json};
 /// The gate id, matching the buck2 target + the oya-ci registry id.
 pub const GATE_ID: &str = "cloud-ci-embedded-asset-hermeticity";
 
-/// The four violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 4] = [
-    "embedded_asset_policy_gate_id_mismatch",
+/// The BLOCKING violation codes — the single source of truth for the verdict. A `Finding` whose code
+/// is in this set flips the verdict to Red; any other code (the `SKIP_CODES`) is surfaced but does
+/// NOT flip the verdict (it is baselined + capped). Per the ralplan consensus: `Report.violations`
+/// filters by membership in `VIOLATION_CODES`, never by the `skip_` name prefix.
+pub const VIOLATION_CODES: [&str; 2] = [
     "embedded_asset_unmapped_include",
-    "embedded_asset_no_target",
-    "embedded_asset_unparseable_skip",
+    "embedded_asset_policy_gate_id_mismatch",
+];
+
+/// The non-blocking SKIP codes the gate can emit. Surfaced (counted, baselined, set-equality
+/// asserted) but never verdict-flipping — a site the gate cannot fully resolve must fail SAFE
+/// (visible) rather than fail OPEN (silent) or fail CLOSED (false RED).
+pub const SKIP_CODES: [&str; 5] = [
+    "skip_non_literal_argument",
+    "skip_absolute_literal",
+    "skip_build_output_path",
+    "skip_no_owning_target",
+    "skip_buck_unparseable",
 ];
 
 /// The sentinel key for codes that are policy-level rather than per-site.
@@ -135,10 +147,15 @@ pub struct Report {
 }
 
 impl Report {
+    /// Build the report from the keyed findings. ONLY codes in [`VIOLATION_CODES`] count toward the
+    /// verdict; skip-class findings are present in the keyed set (so they are reported + baselined)
+    /// but are excluded here, so they never flip the verdict. `VIOLATION_CODES` is the single source
+    /// of truth — the `skip_` name prefix is documentation, never the filter.
     fn from_findings(findings: &BTreeSet<Finding>) -> Self {
         let violations = findings
             .iter()
             .map(|finding| finding.code.clone())
+            .filter(|code| VIOLATION_CODES.contains(&code.as_str()))
             .collect::<BTreeSet<_>>();
         Self {
             verdict: if violations.is_empty() {
@@ -223,18 +240,19 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         if key.is_empty() {
             continue;
         }
+        // The collector emits a `status` that names the outcome class; the evaluator maps it to a
+        // finding code. `resolved` produces no finding. A `status` already equal to a known code
+        // (collector emits skip codes directly) is passed through verbatim, so the taxonomy is shared
+        // between collector and evaluator with no second mapping table.
         match status {
             "resolved" => {}
             "unmapped" => {
                 findings.insert(Finding::new("embedded_asset_unmapped_include", key, detail));
             }
-            "no_target" => {
-                findings.insert(Finding::new("embedded_asset_no_target", key, detail));
+            other if VIOLATION_CODES.contains(&other) || SKIP_CODES.contains(&other) => {
+                findings.insert(Finding::new(other, key, detail));
             }
-            "unparseable" => {
-                findings.insert(Finding::new("embedded_asset_unparseable_skip", key, detail));
-            }
-            // out_of_scope and any unknown status contribute no finding.
+            // Any unknown status contributes no finding (defensive: never silently fabricate one).
             _ => {}
         }
     }
@@ -288,42 +306,227 @@ pub struct IncludeSite {
 
 /// Extract every `include_str!`/`include_bytes!` site from a Rust source text. A site whose single
 /// argument is a string literal yields `literal: Some(..)`; any other argument shape yields
-/// `literal: None` (the gate classifies these as unparseable skips). Pure; no filesystem.
+/// `literal: None` (the gate classifies these as `skip_non_literal_argument`). Pure; no filesystem.
 ///
-/// This is a deliberately minimal text scanner (not a full Rust parser): it finds the macro
-/// invocation, skips whitespace, and reads a `"..."` argument if and only if the first token after
-/// `(` is a string literal whose closing `)` immediately follows the closing quote (optionally with
-/// a trailing comma / whitespace). Raw strings (`r"..."`, `r#"..."#`) and any expression argument are
-/// reported as non-literal (skip) rather than mis-parsed.
+/// Context-aware: a mini-lexer tracks line/block comments, string literals (incl. raw strings
+/// `r"..."` / `r#"..."#`), and char literals, so a macro NAME appearing inside a comment, a string
+/// (e.g. this crate's own `const MACROS = ["include_str!", ..]`), or a doc example is NOT treated as
+/// a real invocation. This is the correctness fix that stops the gate from flagging its own source.
+/// It is not a full Rust parser; it recognizes exactly the lexical contexts needed to avoid false
+/// macro hits, and reads the macro argument only when it is a single plain `"..."` string literal.
 pub fn extract_include_sites(source: &str) -> Vec<IncludeSite> {
-    const MACROS: [&str; 2] = ["include_str!", "include_bytes!"];
+    const MACROS: [(&str, &str); 2] = [
+        ("include_str!", "include_str"),
+        ("include_bytes!", "include_bytes"),
+    ];
     let mut sites = Vec::new();
     let bytes = source.as_bytes();
-    for macro_name in MACROS {
-        let mut from = 0usize;
-        while let Some(rel) = source[from..].find(macro_name) {
-            let start = from + rel;
-            from = start + macro_name.len();
-            // Reject identifiers that merely END with the macro text (e.g. `my_include_str!`): the
-            // char before the match must not be an identifier char.
-            if start > 0 {
-                let prev = bytes[start - 1];
-                if prev == b'_' || prev.is_ascii_alphanumeric() {
-                    continue;
+    let len = source.len();
+    let mut i = 0usize;
+    let mut line = 1usize;
+
+    while i < len {
+        let c = bytes[i];
+        if c == b'\n' {
+            line += 1;
+            i += 1;
+            continue;
+        }
+        // Line comment.
+        if c == b'/' && i + 1 < len && bytes[i + 1] == b'/' {
+            i += 2;
+            while i < len && bytes[i] != b'\n' {
+                i += 1;
+            }
+            continue;
+        }
+        // Block comment (nesting-aware, as Rust allows `/* /* */ */`).
+        if c == b'/' && i + 1 < len && bytes[i + 1] == b'*' {
+            i += 2;
+            let mut depth = 1usize;
+            while i < len && depth > 0 {
+                if bytes[i] == b'\n' {
+                    line += 1;
+                    i += 1;
+                } else if bytes[i] == b'/' && i + 1 < len && bytes[i + 1] == b'*' {
+                    depth += 1;
+                    i += 2;
+                } else if bytes[i] == b'*' && i + 1 < len && bytes[i + 1] == b'/' {
+                    depth -= 1;
+                    i += 2;
+                } else {
+                    i += 1;
                 }
             }
-            let line = source[..start].bytes().filter(|b| *b == b'\n').count() + 1;
-            let after = &source[from..];
-            let literal = parse_macro_string_arg(after);
-            sites.push(IncludeSite {
-                macro_name: macro_name.trim_end_matches('!').to_owned(),
-                literal,
-                line,
-            });
+            continue;
         }
+        // Raw string `r"..."` or `r#"..."#` (any number of `#`).
+        if (c == b'r' || c == b'b')
+            && raw_string_start(bytes, i)
+            && !is_ident_byte(if i > 0 { bytes[i - 1] } else { b' ' })
+        {
+            let (next, newlines) = skip_raw_string(bytes, i);
+            line += newlines;
+            i = next;
+            continue;
+        }
+        // Plain string literal.
+        if c == b'"' {
+            i += 1;
+            while i < len {
+                if bytes[i] == b'\\' {
+                    i += 2;
+                    continue;
+                }
+                if bytes[i] == b'"' {
+                    i += 1;
+                    break;
+                }
+                if bytes[i] == b'\n' {
+                    line += 1;
+                }
+                i += 1;
+            }
+            continue;
+        }
+        // Char literal `'x'` / `'\n'` — distinguish from a lifetime `'a` (no closing quote soon).
+        if c == b'\'' && is_char_literal(bytes, i) {
+            i += 1;
+            while i < len {
+                if bytes[i] == b'\\' {
+                    i += 2;
+                    continue;
+                }
+                if bytes[i] == b'\'' {
+                    i += 1;
+                    break;
+                }
+                i += 1;
+            }
+            continue;
+        }
+        // A potential macro invocation in real code. Only attempt a match when `bytes[i]` is the
+        // ASCII letter the needles begin with (`i` of "include_…"); this both narrows the work and
+        // guarantees `source[i..]` slices at a char boundary (ASCII bytes are always boundaries),
+        // avoiding a panic when the byte cursor is over a multibyte character.
+        let mut matched = false;
+        if c == b'i' && (i == 0 || !is_ident_byte(bytes[i - 1])) {
+            for (needle, base) in MACROS {
+                if source[i..].starts_with(needle) {
+                    let after = &source[i + needle.len()..];
+                    let literal = parse_macro_string_arg(after);
+                    sites.push(IncludeSite {
+                        macro_name: base.to_owned(),
+                        literal,
+                        line,
+                    });
+                    i += needle.len();
+                    matched = true;
+                    break;
+                }
+            }
+        }
+        if matched {
+            continue;
+        }
+        // Advance by the full width of the current UTF-8 character so the cursor never lands inside a
+        // multibyte char (which would make a later `source[i..]` slice panic).
+        i += utf8_char_width(c);
     }
+
     sites.sort_by(|a, b| a.line.cmp(&b.line).then(a.macro_name.cmp(&b.macro_name)));
     sites
+}
+
+fn is_ident_byte(b: u8) -> bool {
+    b == b'_' || b.is_ascii_alphanumeric()
+}
+
+/// UTF-8 encoded width (1–4 bytes) of the character whose first byte is `b`. A continuation byte
+/// (0b10xxxxxx, only reachable if the cursor is already mid-char) returns 1 so the scan still makes
+/// progress without panicking.
+fn utf8_char_width(b: u8) -> usize {
+    if b < 0x80 {
+        1
+    } else if b >= 0xF0 {
+        4
+    } else if b >= 0xE0 {
+        3
+    } else if b >= 0xC0 {
+        2
+    } else {
+        1
+    }
+}
+
+/// True if `bytes[i]` begins a raw string: `r"`, `r#`, `br"`, `br#` (the `b` prefix handled by the
+/// caller passing index at `r`). Accepts the form `r` (`#`*) `"`.
+fn raw_string_start(bytes: &[u8], i: usize) -> bool {
+    let mut j = i;
+    if bytes.get(j) == Some(&b'b') {
+        j += 1;
+    }
+    if bytes.get(j) != Some(&b'r') {
+        return false;
+    }
+    j += 1;
+    while bytes.get(j) == Some(&b'#') {
+        j += 1;
+    }
+    bytes.get(j) == Some(&b'"')
+}
+
+/// Skip a raw string starting at `i`; returns (index past closing quote+hashes, newlines consumed).
+fn skip_raw_string(bytes: &[u8], i: usize) -> (usize, usize) {
+    let mut j = i;
+    if bytes.get(j) == Some(&b'b') {
+        j += 1;
+    }
+    // consume `r`
+    j += 1;
+    let mut hashes = 0usize;
+    while bytes.get(j) == Some(&b'#') {
+        hashes += 1;
+        j += 1;
+    }
+    // consume opening quote
+    j += 1;
+    let mut newlines = 0usize;
+    while j < bytes.len() {
+        if bytes[j] == b'\n' {
+            newlines += 1;
+            j += 1;
+            continue;
+        }
+        if bytes[j] == b'"' {
+            // check for the right number of closing hashes
+            let mut k = j + 1;
+            let mut count = 0usize;
+            while count < hashes && bytes.get(k) == Some(&b'#') {
+                count += 1;
+                k += 1;
+            }
+            if count == hashes {
+                return (k, newlines);
+            }
+        }
+        j += 1;
+    }
+    (j, newlines)
+}
+
+/// Distinguish a char literal `'x'`/`'\n'`/`'\\''` from a lifetime token `'a`. A char literal has a
+/// closing `'` within a few bytes; a lifetime is `'` followed by an identifier and NOT a closing `'`.
+fn is_char_literal(bytes: &[u8], i: usize) -> bool {
+    // `'\...'` escape form is always a char literal.
+    if bytes.get(i + 1) == Some(&b'\\') {
+        return true;
+    }
+    // `'x'` — char then closing quote.
+    if bytes.get(i + 2) == Some(&b'\'') {
+        return true;
+    }
+    false
 }
 
 /// Given the text immediately after a macro name (starting at the `(`), return the single string
@@ -1215,7 +1418,7 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
                 let key = format!("{rs_rel}:{}", site.line);
                 sites_out.push(json!({
                     "key": key, "rs": rs_rel, "macro": site.macro_name,
-                    "literal": site.literal, "status": "no_target",
+                    "literal": site.literal, "status": "skip_no_owning_target",
                     "detail": "no ancestor BUCK file found for this Rust source"
                 }));
             }
@@ -1234,90 +1437,128 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
         let crate_files = list_crate_files(&crate_dir_abs, &crate_dir_rel, root)?;
         let string_vars = top_level_string_vars(&buck_text);
         let glob_vars = top_level_glob_vars(&buck_text);
-        let targets = parse_buck_targets(&buck_text, &crate_files);
+        let mut targets = parse_buck_targets(&buck_text, &crate_files);
+        // Normalize each target's crate_root to crate-relative: a `crate_root = ROOT + "/src/lib.rs"`
+        // concat resolves to a REPO-relative path (e.g. `cloud/.../src/lib.rs`); strip the crate-dir
+        // prefix so it compares cleanly against the crate-relative `.rs` file path. Without this the
+        // cedar-adapter shape (srcs=[] + ROOT-prefixed crate_root) binds to no file and is wrongly
+        // skipped instead of resolved.
+        let crate_prefix = format!("{crate_dir_rel}/");
+        for t in &mut targets {
+            if let Some(root) = &t.crate_root {
+                if let Some(stripped) = root.strip_prefix(&crate_prefix) {
+                    t.crate_root = Some(stripped.to_owned());
+                }
+            }
+        }
 
         // The including file's crate-relative path.
         let rs_in_crate = strip_prefix_slash(&rs_rel, &crate_dir_rel);
 
-        // Pick the owning target: the one whose crate_root == rs_in_crate, else a target whose
-        // srcs/globs cover it; prefer rust_library/rust_binary for src files, rust_test for the
-        // exact test file.
-        let owning = pick_owning_target(&targets, &rs_in_crate, &crate_dir_rel, &crate_files);
+        // Every target that compiles this file (a file is often in a lib + its rust_test + a binary,
+        // each with its own __srcs tree); the include is hermetic if mapped by ANY of them.
+        let covering = covering_targets(&targets, &rs_in_crate, &crate_files);
 
         for site in &sites {
-            let key = format!("{rs_rel}:{}", site.line);
+            // key = T::F::L once the owning target is known; until then F:line for the early skips.
+            let file_line = format!("{rs_rel}:{}", site.line);
             let Some(literal) = &site.literal else {
                 sites_out.push(json!({
-                    "key": key, "rs": rs_rel, "macro": site.macro_name, "literal": Value::Null,
-                    "status": "unparseable",
+                    "key": file_line, "rs": rs_rel, "macro": site.macro_name, "literal": Value::Null,
+                    "status": "skip_non_literal_argument",
                     "detail": "include argument is not a single string literal (concat!/env!/raw string/expression)"
                 }));
                 continue;
             };
 
-            // Out-of-scope build-output paths: a literal whose normalized form starts with an
-            // out-of-scope prefix and whose extension is NOT an embedded asset extension is a
-            // generated build artifact, not a tracked source -> no finding.
+            // Absolute literal: rustc resolves an absolute include against the filesystem, not the
+            // sandbox tree — the hermeticity rule does not apply, so skip (surfaced, not silent).
+            if literal.starts_with('/') {
+                sites_out.push(json!({
+                    "key": file_line, "rs": rs_rel, "macro": site.macro_name, "literal": literal,
+                    "status": "skip_absolute_literal",
+                    "detail": "include path is absolute; sandbox-tree hermeticity does not apply"
+                }));
+                continue;
+            }
+
+            // Out-of-scope build-output paths: a literal under a configured build-output dir whose
+            // extension is NOT an embedded asset extension is a generated buck2 action output, not a
+            // tracked source the BUCK target must map -> skip.
             if is_out_of_scope(literal, &oos_prefixes, &embedded_exts) {
                 sites_out.push(json!({
-                    "key": key, "rs": rs_rel, "macro": site.macro_name, "literal": literal,
-                    "status": "out_of_scope",
+                    "key": file_line, "rs": rs_rel, "macro": site.macro_name, "literal": literal,
+                    "status": "skip_build_output_path",
                     "detail": "literal resolves into an out-of-scope build-output tree (not a tracked embedded asset)"
                 }));
                 continue;
             }
 
-            let Some(target) = &owning else {
+            if covering.is_empty() {
                 sites_out.push(json!({
-                    "key": key, "rs": rs_rel, "macro": site.macro_name, "literal": literal,
-                    "status": "no_target",
+                    "key": file_line, "rs": rs_rel, "macro": site.macro_name, "literal": literal,
+                    "status": "skip_no_owning_target",
                     "detail": format!("no BUCK target in {crate_dir_rel}/BUCK owns {rs_in_crate}")
                 }));
                 continue;
-            };
+            }
 
-            // The including file's sandbox destination = its crate_root dest, OR its crate-relative
-            // path under the crate (glob default). For include resolution we need the dir of the
-            // INCLUDING file's sandbox location, which for in-crate sources is
-            // `<crate_dir>/<rs_in_crate>`.
+            // The including file's sandbox destination dir. For in-crate sources that is
+            // `<crate_dir>/<rs_in_crate>`; the include resolves lexically from its parent dir. (buck2
+            // materializes a glob/plain src at its package-relative short path, so the destination of
+            // the including file is its crate-relative path under the crate dir.)
             let including_dest = join_crate(&crate_dir_rel, &rs_in_crate);
             let site_dir = parent_dir(&including_dest);
             let resolved = resolve_include(&site_dir, literal);
 
-            // Build the destination set, augmenting bare-var mapped_srcs from the file scope.
-            let mut dests = target_destinations(target, &crate_dir_rel, &crate_files);
-            if let Some(var) = mapped_srcs_var_for(&buck_text, &target.name) {
-                for v in resolve_mapped_var(&buck_text, &var, &string_vars, &glob_vars, &crate_files) {
-                    dests.insert(normalize_rel(&v));
+            // Union of every covering target's sandbox destination set, and whether ANY covering
+            // target used a construct the minimal parser could not fully model.
+            let mut union: BTreeSet<String> = BTreeSet::new();
+            let mut any_unparseable = false;
+            let mut target_names: Vec<String> = Vec::new();
+            for target in &covering {
+                target_names.push(target.name.clone());
+                any_unparseable |= target.unparseable;
+                for d in target_destinations(target, &crate_dir_rel, &crate_files) {
+                    union.insert(d);
+                }
+                if let Some(var) = mapped_srcs_var_for(&buck_text, &target.name) {
+                    for v in resolve_mapped_var(&buck_text, &var, &string_vars, &glob_vars, &crate_files) {
+                        union.insert(normalize_rel(&v));
+                    }
                 }
             }
+            target_names.sort();
+            let primary = target_names.first().cloned().unwrap_or_default();
+            let key = format!("{primary}::{rs_in_crate}::{literal}");
+            let member = union.contains(&resolved);
 
-            if target.unparseable && !dests.contains(&resolved) {
+            // If a covering target uses an unmodelled BUCK construct AND we cannot positively confirm
+            // membership, skip rather than risk a false RED (fail-safe over fail-closed).
+            if any_unparseable && !member {
                 sites_out.push(json!({
                     "key": key, "rs": rs_rel, "macro": site.macro_name, "literal": literal,
-                    "resolved": resolved, "target": target.name,
-                    "status": "unparseable",
-                    "detail": "owning BUCK target srcs/mapped_srcs uses a construct the minimal parser cannot fully resolve"
+                    "resolved": resolved, "targets": target_names,
+                    "status": "skip_buck_unparseable",
+                    "detail": "a covering BUCK target srcs/mapped_srcs uses a construct the minimal parser cannot fully resolve"
                 }));
                 continue;
             }
 
-            let status = if dests.contains(&resolved) {
-                "resolved"
-            } else {
-                "unmapped"
-            };
+            // Membership: R ∈ D(any covering T) is hermetic. Non-membership (incl. an escaped `..`
+            // path, which can never be a sandbox tree member) is the blocking unmapped-include defect.
+            let status = if member { "resolved" } else { "unmapped" };
             let detail = if status == "unmapped" {
                 format!(
-                    "include `{literal}` from {rs_in_crate} resolves to sandbox path `{resolved}` which is NOT in target `{}` srcs/mapped_srcs destinations",
-                    target.name
+                    "include `{literal}` from {rs_in_crate} resolves to sandbox path `{resolved}` which is NOT in any covering target's srcs/mapped_srcs destinations (targets: {}); run --fix to derive the mapped_srcs entry",
+                    target_names.join(", ")
                 )
             } else {
                 String::new()
             };
             sites_out.push(json!({
                 "key": key, "rs": rs_rel, "macro": site.macro_name, "literal": literal,
-                "resolved": resolved, "target": target.name,
+                "resolved": resolved, "targets": target_names,
                 "status": status, "detail": detail
             }));
         }
@@ -1326,46 +1567,30 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
     Ok(json!({ "sites": sites_out }))
 }
 
-/// Pick the BUCK target that owns a crate-relative `.rs` path.
-fn pick_owning_target(
+/// Every BUCK target that compiles the crate-relative `.rs` file. A single source file is commonly
+/// compiled by several targets (a `rust_library`, its `rust_test` sibling, and a `rust_binary`),
+/// each with its OWN sandbox `__srcs` tree. The hermeticity check is per-tree, but because the gate
+/// cannot statically resolve `#[cfg(test)]` gating (a `tests/` fixture include lives only in the
+/// `rust_test`'s tree, never the lib's), the collector resolves an include against the UNION of all
+/// covering trees and treats membership in ANY of them as hermetic. This is the no-false-RED posture:
+/// an include that is mapped by the target that actually compiles it passes; only an include mapped
+/// by NO covering target (the FRIC-1781131000 defect) is the blocking unmapped finding.
+fn covering_targets(
     targets: &[BuckTarget],
     rs_in_crate: &str,
-    crate_dir_rel: &str,
     crate_files: &[String],
-) -> Option<BuckTarget> {
-    // 1. Exact crate_root match (covers tests/x.rs and src/lib.rs|main.rs).
-    if let Some(t) = targets.iter().find(|t| t.crate_root.as_deref() == Some(rs_in_crate)) {
-        return Some(t.clone());
+) -> Vec<BuckTarget> {
+    let mut covering: Vec<BuckTarget> = Vec::new();
+    for t in targets {
+        let owns = t.crate_root.as_deref() == Some(rs_in_crate)
+            || t.srcs_globs.iter().any(|p| glob_match(p, rs_in_crate))
+            || t.explicit_srcs.iter().any(|s| s == rs_in_crate)
+            || globs_via_crate_root(t, rs_in_crate, crate_files);
+        if owns {
+            covering.push(t.clone());
+        }
     }
-    // 2. crate_root that is a path-prefix's crate (e.g. a lib at src/lib.rs owns src/**.rs);
-    //    pick a rust_library/rust_binary whose glob covers the file.
-    let mut covering: Vec<&BuckTarget> = targets
-        .iter()
-        .filter(|t| {
-            (t.kind == "rust_library" || t.kind == "rust_binary")
-                && (t.srcs_globs.iter().any(|p| glob_match(p, rs_in_crate))
-                    || t.explicit_srcs.iter().any(|s| s == rs_in_crate)
-                    || globs_via_crate_root(t, rs_in_crate, crate_files))
-        })
-        .collect();
-    if let Some(t) = covering.pop() {
-        return Some(t.clone());
-    }
-    // 3. A rust_test whose explicit srcs / glob covers it.
-    if let Some(t) = targets.iter().find(|t| {
-        t.kind == "rust_test"
-            && (t.srcs_globs.iter().any(|p| glob_match(p, rs_in_crate))
-                || t.explicit_srcs.iter().any(|s| s == rs_in_crate))
-    }) {
-        return Some(t.clone());
-    }
-    // 4. Fallback: the single rust_library, if any, even with empty srcs (mapped_srcs-only crate
-    //    whose crate_root sits at src/lib.rs and the file is under src/).
-    let _ = crate_dir_rel;
-    targets
-        .iter()
-        .find(|t| t.kind == "rust_library" && rs_in_crate.starts_with("src/"))
-        .cloned()
+    covering
 }
 
 fn globs_via_crate_root(t: &BuckTarget, rs_in_crate: &str, _crate_files: &[String]) -> bool {
@@ -1682,46 +1907,156 @@ rust_library(
     }
 
     #[test]
-    fn skip_and_no_target_map_to_their_codes() {
-        let findings = evaluate_keyed(
-            &policy(),
-            &observed(vec![
-                json!({"key":"a.rs:1","status":"unparseable"}),
-                json!({"key":"b.rs:2","status":"no_target"}),
-            ]),
-        );
-        assert!(findings.iter().any(|f| f.code == "embedded_asset_unparseable_skip" && f.key == "a.rs:1"));
-        assert!(findings.iter().any(|f| f.code == "embedded_asset_no_target" && f.key == "b.rs:2"));
+    fn skip_codes_are_surfaced_but_do_not_flip_the_verdict() {
+        // Skips are present in the keyed findings (so they get baselined) but, because they are NOT
+        // in VIOLATION_CODES, the Report verdict stays Green. This is the fail-SAFE posture: a site
+        // the gate cannot resolve is visible, never a silent pass nor a false RED.
+        let input = observed(vec![
+            json!({"key":"a.rs:1","status":"skip_non_literal_argument"}),
+            json!({"key":"b.rs:2","status":"skip_no_owning_target"}),
+            json!({"key":"c.rs:3","status":"skip_build_output_path"}),
+            json!({"key":"d.rs:4","status":"skip_buck_unparseable"}),
+        ]);
+        let findings = evaluate_keyed(&policy(), &input);
+        assert_eq!(findings.len(), 4, "every skip is surfaced: {findings:#?}");
+        for code in ["skip_non_literal_argument", "skip_no_owning_target", "skip_build_output_path", "skip_buck_unparseable"] {
+            assert!(findings.iter().any(|f| f.code == code), "missing {code}");
+        }
+        let report = evaluate(&policy(), &input);
+        assert_eq!(report.verdict, Verdict::Green, "skips must not flip the verdict");
+        assert!(report.violations.is_empty(), "no blocking codes: {:?}", report.violations);
     }
 
     #[test]
-    fn out_of_scope_status_contributes_no_finding() {
-        let findings = evaluate_keyed(
-            &policy(),
-            &observed(vec![json!({"key":"a.rs:1","status":"out_of_scope"})]),
+    fn unmapped_plus_skip_is_red_but_skip_is_not_a_violation() {
+        let input = observed(vec![
+            json!({"key":"T::a.rs::x","status":"unmapped"}),
+            json!({"key":"b.rs:2","status":"skip_non_literal_argument"}),
+        ]);
+        let report = evaluate(&policy(), &input);
+        assert_eq!(report.verdict, Verdict::Red);
+        assert_eq!(
+            report.violations,
+            ["embedded_asset_unmapped_include".to_owned()].into_iter().collect::<BTreeSet<_>>(),
+            "only the blocking code is a violation; the skip is excluded"
         );
-        assert!(findings.is_empty());
     }
 
     #[test]
     fn gate_id_mismatch_fails_closed() {
         let mut bad = policy();
         bad["gate_id"] = json!("wrong");
-        let findings = evaluate_keyed(&bad, &observed(vec![]));
-        assert!(findings.iter().any(|f| f.code == "embedded_asset_policy_gate_id_mismatch"));
+        let report = evaluate(&bad, &observed(vec![]));
+        assert!(report.violations.contains("embedded_asset_policy_gate_id_mismatch"));
+        assert_eq!(report.verdict, Verdict::Red);
     }
 
     #[test]
-    fn evaluate_is_bare_projection_of_evaluate_keyed() {
+    fn evaluate_violations_are_blocking_codes_only() {
         let input = observed(vec![
-            json!({"key":"a.rs:1","status":"unmapped"}),
-            json!({"key":"b.rs:2","status":"unparseable"}),
+            json!({"key":"T::a.rs::x","status":"unmapped"}),
+            json!({"key":"b.rs:2","status":"skip_non_literal_argument"}),
         ]);
-        let projected: BTreeSet<String> = evaluate_keyed(&policy(), &input)
+        let blocking: BTreeSet<String> = evaluate_keyed(&policy(), &input)
             .into_iter()
             .map(|f| f.code)
+            .filter(|c| VIOLATION_CODES.contains(&c.as_str()))
             .collect();
-        assert_eq!(evaluate(&policy(), &input).violations, projected);
+        assert_eq!(evaluate(&policy(), &input).violations, blocking);
+    }
+
+    #[test]
+    fn violation_and_skip_codes_are_disjoint_and_emittable() {
+        // Drift guard: the two code sets must not overlap, and the evaluator must only ever emit
+        // codes declared in one of them (review LOW: keep the const the single source of truth).
+        for v in VIOLATION_CODES {
+            assert!(!SKIP_CODES.contains(&v), "{v} must not be in both sets");
+        }
+        let declared: BTreeSet<&str> = VIOLATION_CODES.into_iter().chain(SKIP_CODES).collect();
+        let input = observed(vec![
+            json!({"key":"T::a::x","status":"unmapped"}),
+            json!({"key":"b:1","status":"skip_non_literal_argument"}),
+            json!({"key":"c:2","status":"skip_build_output_path"}),
+        ]);
+        let mut bad = policy();
+        bad["gate_id"] = json!("wrong");
+        for f in evaluate_keyed(&bad, &input) {
+            assert!(declared.contains(f.code.as_str()), "emitted undeclared code {}", f.code);
+        }
+    }
+
+    // ---- anti-KEY regression + explicit-override-wins (consensus-mandated) -----
+
+    #[test]
+    fn membership_is_against_values_not_keys() {
+        // The refuted alternative: matching mapped_srcs KEYS would PASS the original defect and
+        // false-RED cedar. The destination set must contain the VALUE, and a resolved path equal to
+        // the KEY (a `//path:name` label) must NOT be considered a member.
+        let buck = r#"
+ROOT = "cloud/ci/adapter"
+SRCS = glob(["src/**/*.rs"])
+MAPPED = {src: ROOT + "/" + src for src in SRCS}
+MAPPED["//cloud/ci/policy:x.cedar"] = ROOT + "/policy/x.cedar"
+
+rust_library(
+    name = "adapter",
+    srcs = [],
+    crate_root = ROOT + "/src/lib.rs",
+    mapped_srcs = MAPPED,
+)
+"#;
+        let files = vec!["src/lib.rs".to_owned()];
+        let string_vars = top_level_string_vars(buck);
+        let glob_vars = top_level_glob_vars(buck);
+        let values = resolve_mapped_var(buck, "MAPPED", &string_vars, &glob_vars, &files);
+        assert!(values.iter().any(|v| v == "cloud/ci/adapter/policy/x.cedar"), "VALUE present");
+        assert!(
+            !values.iter().any(|v| v == "//cloud/ci/policy:x.cedar"),
+            "the mapped_srcs KEY must never enter the destination set: {values:?}"
+        );
+    }
+
+    #[test]
+    fn explicit_assignment_value_resolves_independently_of_comprehension() {
+        // explicit MAPPED["k"]=v must produce its own VALUE even though the comprehension also runs.
+        let buck = r#"
+ROOT = "p/q"
+SRCS = glob(["src/**/*.rs"])
+MAPPED = {src: ROOT + "/" + src for src in SRCS}
+MAPPED["//p/policy:y.cedar"] = ROOT + "/policy/y.cedar"
+
+rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_srcs = MAPPED)
+"#;
+        let files = vec!["src/lib.rs".to_owned()];
+        let sv = top_level_string_vars(buck);
+        let gv = top_level_glob_vars(buck);
+        let values = resolve_mapped_var(buck, "MAPPED", &sv, &gv, &files);
+        assert!(values.iter().any(|v| v == "p/q/policy/y.cedar"), "explicit value: {values:?}");
+        assert!(values.iter().any(|v| v == "p/q/src/lib.rs"), "comprehension value: {values:?}");
+    }
+
+    // ---- scanner context-awareness (the self-flag correctness fix) ------------
+
+    #[test]
+    fn macro_text_inside_strings_and_comments_is_not_a_site() {
+        let src = r#"
+            // example: include_str!("../in/comment.json") must be ignored
+            /* block include_bytes!("../in/block.json") ignored too */
+            const MACROS: [&str; 1] = ["include_str!"];
+            let s = "include_bytes!(\"in/string.json\")";
+            const REAL: &str = include_str!("real/asset.json");
+        "#;
+        let sites = extract_include_sites(src);
+        assert_eq!(sites.len(), 1, "only the real code site counts: {sites:#?}");
+        assert_eq!(sites[0].literal.as_deref(), Some("real/asset.json"));
+    }
+
+    #[test]
+    fn raw_string_with_macro_text_is_not_a_site() {
+        let src = "const D: &str = r#\"include_str!(\\\"x\\\")\"#; const R: &str = include_str!(\"y.json\");";
+        let sites = extract_include_sites(src);
+        assert_eq!(sites.len(), 1, "raw string content ignored: {sites:#?}");
+        assert_eq!(sites[0].literal.as_deref(), Some("y.json"));
     }
 
     #[test]
