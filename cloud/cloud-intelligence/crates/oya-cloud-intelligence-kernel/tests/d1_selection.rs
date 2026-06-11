@@ -39,7 +39,7 @@ fn make_sub(tenant_str: &str, seat_str: &str) -> OAuthSubscription {
         sub(&format!("{seat_str}-sub-1")),
         Provider::Anthropic,
         SubscriptionState::Active,
-        format!("openbao://{tenant_str}/{seat_str}/refresh"),
+        format!("secret-ref://{tenant_str}/{seat_str}/refresh"),
         0,
     )
 }

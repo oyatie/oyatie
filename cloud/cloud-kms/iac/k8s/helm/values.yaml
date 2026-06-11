@@ -23,6 +23,46 @@ image:
     required: true
     policy: ADR-0181
 
+operator:
+  enabled: true
+  name: oya-cloud-kms-operator
+  cargoPackage: oya-cloud-kms-operator-app
+  replicaCount: 1
+  watchedNamespace: cloud-kms
+  image:
+    registry: registry.oyatie.dev
+    repository: oya-cloud-kms-operator
+    tag: "0.1.0"
+    digest: ""
+    pullPolicy: IfNotPresent
+    cosign:
+      required: true
+      policy: ADR-0181
+  serviceAccount:
+    name: oya-cloud-kms-operator
+    automountToken: true
+    nonClaim: "operator watches only kms.oyatie.com CRDs and emits reconcile events"
+  mtls:
+    secretName: oya-cloud-kms-operator-mtls
+    mountPath: /var/run/oyatie/mtls
+  state:
+    claimName: oya-cloud-kms-operator-state
+    mountPath: /var/lib/oya-cloud-kms-operator
+    fileName: state.json
+    storageClassName: ""
+    size: 1Gi
+  pdb:
+    # Single-replica operator: maxUnavailable lets node drains proceed (the pod
+    # reschedules) instead of wedging on minAvailable==replicaCount (review #686 F3).
+    maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
 service:
   type: ClusterIP
   port: 8080

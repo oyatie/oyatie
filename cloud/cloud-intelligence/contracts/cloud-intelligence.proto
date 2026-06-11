@@ -4,7 +4,7 @@
 // microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md.
 // This is the ADMIN/INTERNAL control-plane surface (the data plane is the
 // OpenAI-compatible REST surface in cloud-intelligence.openapi.yaml). It mirrors the
-// admin operations in the OpenAPI `admin` tag: pool status + key refresh.
+// admin operations in the OpenAPI `admin` tag: pool status, key refresh, status, accounts, analytics, and circuit-breaker resume.
 //
 // Authority: ADR-0090 (hyper backbone), ADR-0105 (layered kernel/rest),
 // ADR-0145 inter-µservice communication, ADR-0373 (key-pool resilience).
@@ -26,14 +26,35 @@ option java_multiple_files = true;
 option java_package = "co.oyatie.cloud_intelligence.v1";
 
 // Control-plane service — admin realm only. Authorization is enforced by the
-// adminBearer realm (constant-time token) + Cedar (policy/cloud-intelligence.cedar).
+// adminBearer realm (constant-time token) + owned-policy-engine-port decisions.
 service LlmGatewayAdmin {
   // Report key-pool health across all provider channels.
   rpc PoolStatus(PoolStatusRequest) returns (PoolStatusResponse);
 
-  // Force an out-of-band key-pool refresh from OpenBao for one provider.
+  // Force an out-of-band key-pool refresh from owned-secret-provider-port for one provider.
   // Idempotent. Never reads keys from disk/env (brief §5, §7).
   rpc KeyRefresh(KeyRefreshRequest) returns (KeyRefreshResponse);
+
+  // Report gateway, route-controller, model-inventory, credential-worker, and policy readiness.
+  rpc GatewayStatus(GatewayStatusRequest) returns (GatewayStatusResponse);
+
+  // Return redacted provider account/seat status for tenant operations views.
+  rpc AccountStatus(AccountStatusRequest) returns (AccountStatusResponse);
+
+  // Return aggregated analytics for cloud dashboard/admin API surfaces.
+  rpc AnalyticsSummary(AnalyticsSummaryRequest) returns (AnalyticsSummaryResponse);
+
+  // Resume a circuit breaker or budget guard after policy-authorized operator action.
+  rpc ResumeCircuitBreaker(ResumeCircuitBreakerRequest) returns (ResumeCircuitBreakerResponse);
+
+  // Evaluate platform safety policy and return fail-closed enforcement for critical signals.
+  rpc EvaluateSafety(SafetyEvaluationRequest) returns (SafetyEvaluationResponse);
+
+  // Return redacted escalation status for manual-review queues.
+  rpc SafetyEscalationStatus(SafetyEscalationStatusRequest) returns (SafetyEscalationStatusResponse);
+
+  // Request audited break-glass access to a sealed evidence handle.
+  rpc RequestBreakGlassEvidenceAccess(BreakGlassEvidenceAccessRequest) returns (BreakGlassEvidenceAccessResponse);
 }
 
 // === Common ===
@@ -105,7 +126,7 @@ message PoolStatusResponse {
 
 message KeyRefreshRequest {
   RequestMeta meta = 1;
-  // Which provider pool to refresh from OpenBao.
+  // Which provider pool to refresh from owned-secret-provider-port.
   ProviderChannel channel = 2;
 }
 
@@ -113,6 +134,143 @@ message KeyRefreshResponse {
   ProviderChannel channel = 1;
   uint32 keys_loaded = 2;
   google.protobuf.Timestamp refreshed_at = 3;
-  string source = 4; // always "openbao" (brief §5, §7 — never disk/env)
+  string source = 4; // always "owned-secret-provider-port" (brief §5, §7 — never disk/env)
   Error error = 5;   // unset on success
+}
+
+// === GatewayStatus ===
+
+message GatewayStatusRequest {
+  RequestMeta meta = 1;
+}
+
+message GatewayStatusResponse {
+  string status = 1; // ok | degraded | unavailable
+  bool route_controller_ready = 2;
+  bool model_inventory_ready = 3;
+  bool credential_worker_ready = 4; // owned-secret-provider-port reachability + lease readiness
+  bool policy_engine_ready = 5;     // owned-policy-engine-port decision readiness
+  Error error = 6;                  // unset on success
+}
+
+// === AccountStatus ===
+
+message AccountStatusRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;          // empty = caller-authorized tenant set
+  ProviderChannel channel = 3;   // unspecified = all channels
+}
+
+message AccountStatusItem {
+  string tenant_id = 1;
+  ProviderChannel channel = 2;
+  string seat_id = 3;
+  string state = 4; // authorized | active | cooldown | blacklisted
+  google.protobuf.Timestamp cooldown_until = 5;
+  double headroom_percent = 6;
+}
+
+message AccountStatusResponse {
+  repeated AccountStatusItem accounts = 1;
+  Error error = 2; // unset on success
+}
+
+// === AnalyticsSummary ===
+
+message AnalyticsSummaryRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;   // empty = caller-authorized tenant set
+  string window = 3;      // e.g. PT5M, PT1H, P1D
+}
+
+message AnalyticsSummaryResponse {
+  string window = 1;
+  uint64 request_count = 2;
+  uint64 input_tokens = 3;
+  uint64 output_tokens = 4;
+  double rate_limit_utilization_percent = 5;
+  Error error = 6; // unset on success
+}
+
+// === ResumeCircuitBreaker ===
+
+message ResumeCircuitBreakerRequest {
+  RequestMeta meta = 1;
+  string scope = 2;  // tenant/provider/model or GatewayCircuitBreaker resource name
+  string reason = 3;
+}
+
+message ResumeCircuitBreakerResponse {
+  string scope = 1;
+  string status = 2; // not_implemented until resume mutation is wired
+  google.protobuf.Timestamp resumed_at = 3;
+  Error error = 4; // unset on success
+}
+
+// === Safety / guardrail control plane ===
+
+enum EvidenceDataClass {
+  EVIDENCE_DATA_CLASS_UNSPECIFIED = 0;
+  EVIDENCE_DATA_CLASS_PUBLIC_OR_OPERATIONAL_METADATA = 1;
+  EVIDENCE_DATA_CLASS_PERSONAL_DATA = 2;
+  EVIDENCE_DATA_CLASS_REGULATED_HEALTH_DATA = 3;
+  EVIDENCE_DATA_CLASS_PAYMENT_OR_FINANCIAL_DATA = 4;
+  EVIDENCE_DATA_CLASS_CREDENTIAL_OR_SECRET = 5;
+  EVIDENCE_DATA_CLASS_TENANT_BOUNDARY_VIOLATION = 6;
+  EVIDENCE_DATA_CLASS_PROMPT_INJECTION_OR_JAILBREAK = 7;
+  EVIDENCE_DATA_CLASS_SECURITY_EXPLOIT_OR_BREACH = 8;
+  EVIDENCE_DATA_CLASS_SELF_HARM_OR_HARM_TO_OTHERS = 9;
+  EVIDENCE_DATA_CLASS_CHILD_SAFETY_OR_ABUSE = 10;
+  EVIDENCE_DATA_CLASS_FRAUD_OR_HOSTILE_PATTERN = 11;
+  EVIDENCE_DATA_CLASS_FAULT_OR_ANOMALY = 12;
+}
+
+message SafetyEvaluationRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;
+  repeated string critical_categories = 3;
+  EvidenceDataClass data_class = 4;
+  bool raw_payload_included = 5; // must be false on normal evaluation path
+}
+
+message SafetyEvaluationResponse {
+  string signal_id = 1;
+  bool blocked = 2;
+  bool quarantined = 3;
+  bool secondary_agentic_review_required = 4;
+  bool manual_review_required = 5;
+  bool tenant_can_override_platform_critical_block = 6; // always false for critical blocks
+  string policy_engine_port = 7; // always "owned-policy-engine-port"
+  Error error = 8; // unset on success
+}
+
+message SafetyEscalationStatusRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;
+  string escalation_id = 3;
+}
+
+message SafetyEscalationStatusResponse {
+  string escalation_id = 1;
+  string status = 2; // pending_secondary_review | pending_manual_review | closed
+  bool secondary_agentic_review_completed = 3;
+  bool secondary_agentic_review_flagged_unsafe = 4;
+  string default_evidence_visibility = 5; // redacted-structured-evidence
+  Error error = 6;
+}
+
+message BreakGlassEvidenceAccessRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2;
+  string evidence_id = 3;
+  string reason = 4;
+}
+
+message BreakGlassEvidenceAccessResponse {
+  string evidence_id = 1;
+  string status = 2; // requested | denied | granted
+  bool audited = 3;
+  bool encrypted_handle_only = 4;
+  string secret_provider_port = 5; // always "owned-secret-provider-port"
+  Error error = 6;
 }

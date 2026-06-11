@@ -1,10 +1,10 @@
-//! D8 OpenBao envelope-encrypted refresh-token storage contract tests (Stage-4 RED).
+//! D8 owned secret-provider envelope-encrypted refresh-token storage contract tests.
 //!
-//! These tests define the envelope-encryption contract. The real OpenBao adapter
-//! crate is a follow-up PR; here we use in-process mocks that demonstrate the
-//! expected semantics Stage-5 GREEN must preserve.
+//! These tests define the core envelope-encryption contract against the owned
+//! secret-provider/KMS port. Concrete backing engines are transient adapters;
+//! here we use in-process mocks that demonstrate the expected semantics.
 
-use oya_cloud_intelligence_rest::{OpenBaoSecretStore, RestAdapterError};
+use oya_cloud_intelligence_rest::{RestAdapterError, SecretProviderStore};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -13,7 +13,7 @@ use std::sync::Mutex;
 // ---------------------------------------------------------------------------
 
 /// Simple in-process store (no encryption) — satisfies the trait for contract
-/// testing. Stage-5 GREEN replaces this with the real OpenBao transit adapter.
+/// testing. Production uses a transient adapter behind the owned secret-provider/KMS port.
 struct InProcessSecretStore {
     map: Mutex<HashMap<String, String>>,
 }
@@ -26,7 +26,7 @@ impl InProcessSecretStore {
     }
 }
 
-impl OpenBaoSecretStore for InProcessSecretStore {
+impl SecretProviderStore for InProcessSecretStore {
     fn fetch_refresh_token(&self, handle: &str) -> Result<String, RestAdapterError> {
         self.map
             .lock()
@@ -48,19 +48,19 @@ impl OpenBaoSecretStore for InProcessSecretStore {
     }
 }
 
-/// A store that simulates a vault seal event mid-operation.
-struct SealedVaultStore;
+/// A store that simulates a secret-provider unavailable event mid-operation.
+struct UnavailableSecretProviderStore;
 
-impl OpenBaoSecretStore for SealedVaultStore {
+impl SecretProviderStore for UnavailableSecretProviderStore {
     fn fetch_refresh_token(&self, _handle: &str) -> Result<String, RestAdapterError> {
         Err(RestAdapterError::SecretStoreUnavailable(
-            "ErrVaultSealed".to_string(),
+            "ErrSecretProviderUnavailable".to_string(),
         ))
     }
 
     fn store_refresh_token(&self, _handle: &str, _plaintext: &str) -> Result<(), RestAdapterError> {
         Err(RestAdapterError::SecretStoreUnavailable(
-            "ErrVaultSealed".to_string(),
+            "ErrSecretProviderUnavailable".to_string(),
         ))
     }
 }
@@ -133,10 +133,10 @@ fn d8_handles_are_independent() {
     );
 }
 
-/// D8-6: Sealed-vault store returns SecretStoreUnavailable on fetch.
+/// D8-6: Unavailable secret-provider returns SecretStoreUnavailable on fetch.
 #[test]
-fn d8_sealed_vault_fetch_returns_unavailable() {
-    let store = SealedVaultStore;
+fn d8_unavailable_secret_provider_fetch_returns_unavailable() {
+    let store = UnavailableSecretProviderStore;
     let err = store.fetch_refresh_token("any").unwrap_err();
     assert!(
         matches!(err, RestAdapterError::SecretStoreUnavailable(_)),
@@ -144,10 +144,10 @@ fn d8_sealed_vault_fetch_returns_unavailable() {
     );
 }
 
-/// D8-7: Sealed-vault store returns SecretStoreUnavailable on store.
+/// D8-7: Unavailable secret-provider returns SecretStoreUnavailable on store.
 #[test]
-fn d8_sealed_vault_store_returns_unavailable() {
-    let store = SealedVaultStore;
+fn d8_unavailable_secret_provider_store_returns_unavailable() {
+    let store = UnavailableSecretProviderStore;
     let err = store.store_refresh_token("any", "token-value").unwrap_err();
     assert!(
         matches!(err, RestAdapterError::SecretStoreUnavailable(_)),
@@ -156,12 +156,13 @@ fn d8_sealed_vault_store_returns_unavailable() {
 }
 
 /// D8-8: RestAdapterError variants are distinct (critical for caller
-/// error-handling paths in Stage-5 GREEN: vault sealed must not be swallowed
+/// error-handling paths: secret-provider unavailability must not be swallowed
 /// as SecretNotFound).
 #[test]
 fn d8_error_variants_are_distinct() {
     let not_found = RestAdapterError::SecretNotFound;
-    let unavailable = RestAdapterError::SecretStoreUnavailable("vault sealed".to_string());
+    let unavailable =
+        RestAdapterError::SecretStoreUnavailable("secret provider unavailable".to_string());
     let invalid = RestAdapterError::InvalidSecret;
     assert_ne!(not_found, unavailable);
     assert_ne!(not_found, invalid);

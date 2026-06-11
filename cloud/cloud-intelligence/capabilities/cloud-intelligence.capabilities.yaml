@@ -2,8 +2,9 @@
 #
 # Design + research grounding: microservices/cloud-intelligence/PRD.md and
 # microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md.
-# Tiers/risk per the repo capability classification; cedar_action references
-# policy/cloud-intelligence.cedar; slo_anchor references slos/*.openslo.yaml.
+# Tiers/risk per the repo capability classification; policy_action references
+# owned policy-engine actions. The current policy fixture is mapped by a
+# transient authz adapter; slo_anchor references slos/*.openslo.yaml.
 #
 # Note on risk_class: the gateway brokers AI inference traffic and pooled provider
 # credentials, so most data-plane capabilities are `high` (denial-of-wallet / sensitive
@@ -26,7 +27,7 @@ capabilities:
       (data: [DONE] sentinel). AI inference egress path; carries tenant prompt/completion
       content (OWASP LLM02 exposure surface). Brief §1, §2.
     data_class: [TENANT_PRIVATE, AI_PROMPT, AI_COMPLETION]
-    cedar_action: InvokeChatCompletion
+    policy_action: InvokeChatCompletion
     realm: ingress
     slo_anchor: microservices/cloud-intelligence/slos/ttft.openslo.yaml
 
@@ -39,7 +40,7 @@ capabilities:
       Canonical POST /v1/embeddings over the same key-pool + failover ladder. Carries
       tenant input text. Brief §2.
     data_class: [TENANT_PRIVATE, AI_PROMPT]
-    cedar_action: InvokeEmbeddings
+    policy_action: InvokeEmbeddings
     realm: ingress
     slo_anchor: microservices/cloud-intelligence/slos/end-to-end-latency.openslo.yaml
 
@@ -50,7 +51,7 @@ capabilities:
     risk_class: minimal
     rationale: GET /v1/models aggregated across configured provider pools; no tenant content.
     data_class: [INTERNAL_ONLY]
-    cedar_action: ListModels
+    policy_action: ListModels
     realm: ingress
     slo_anchor: n/a
 
@@ -64,7 +65,7 @@ capabilities:
       per-key failure-count blacklist threshold, jittered cooldown, lazy restore. Front-line
       denial-of-wallet / key-exhaustion control (OWASP LLM10). Brief §1, §10.
     data_class: [INTERNAL_ONLY]
-    cedar_action: n/a
+    policy_action: n/a
     realm: internal
     slo_anchor: microservices/cloud-intelligence/slos/availability.openslo.yaml
     surface_evidence:
@@ -80,7 +81,7 @@ capabilities:
       rotation, provider fallback, then OpenAI-shaped 503 + Retry-After. Honors upstream
       Retry-After. Brief §1, §10.
     data_class: [INTERNAL_ONLY]
-    cedar_action: n/a
+    policy_action: n/a
     realm: internal
     slo_anchor: microservices/cloud-intelligence/slos/error-rate.openslo.yaml
 
@@ -94,20 +95,21 @@ capabilities:
       80% soft-warn then 429 budget_exceeded; reserved headroom vs shared provider TPM.
       Brief §6, §8.
     data_class: [TENANT_PRIVATE, BILLING]
-    cedar_action: InvokeChatCompletion
+    policy_action: InvokeChatCompletion
     realm: ingress
     slo_anchor: n/a
 
-  - capability_id: cloud-intelligence.secrets.openbao
-    capability_name: OpenBao-Sourced Key Store (vault-only, periodic refresh)
+  - capability_id: cloud-intelligence.secrets.secret-provider
+    capability_name: Owned Secret-Provider Key Store (handle-only, periodic refresh)
     ip_anchor: IP-001
     tier: T2
     risk_class: high
     rationale: >-
-      Provider keys read ONLY from OpenBao KV v2, in-memory only, never from disk/env, never
-      logged. Kernel sees only a hash fingerprint. Brief §5, §7.
+      Provider keys resolve ONLY through owned secret-provider/KMS handles,
+      in-memory only, never from disk/env, never logged. Kernel sees only a hash
+      fingerprint. Brief §5, §7.
     data_class: [SECRET_REFERENCE]
-    cedar_action: RefreshKeyPool
+    policy_action: RefreshKeyPool
     realm: admin
     slo_anchor: n/a
     surface_evidence:
@@ -120,9 +122,9 @@ capabilities:
     risk_class: high
     rationale: >-
       Admin and ingress bearer tokens compared in constant time (subtle). Cross-realm
-      default-deny via Cedar. Brief §2, §5.
+      default-deny via owned policy-engine port. Brief §2, §5.
     data_class: [SECRET_REFERENCE]
-    cedar_action: n/a
+    policy_action: n/a
     realm: both
     slo_anchor: n/a
     surface_evidence:
@@ -138,7 +140,7 @@ capabilities:
       alert-if-disabled) + llm.usage.v1 (sampleable metering). Prompt/completion bodies
       default-OFF, opt-in body-spill to residency-pinned bucket. Brief §3, §7, §9.
     data_class: [AUDIT_INTERNAL, BILLING]
-    cedar_action: ReadAudit
+    policy_action: ReadAudit
     realm: admin
     slo_anchor: microservices/cloud-intelligence/slos/completeness.openslo.yaml
 
@@ -151,7 +153,7 @@ capabilities:
       GET pool status (hash-only fingerprints, active/blacklisted counts, soonest restore) +
       POST force-refresh. Admin realm only. Brief §10.
     data_class: [INTERNAL_ONLY]
-    cedar_action: ReadPoolStatus
+    policy_action: ReadPoolStatus
     realm: admin
     slo_anchor: n/a
 
@@ -165,7 +167,7 @@ capabilities:
       histogram, ttft histogram, active-key gauge, per-tenant token counters); logs identify
       keys only by fingerprint, never raw key/prompt/completion. Brief §4, §5.
     data_class: [INTERNAL_ONLY]
-    cedar_action: n/a
+    policy_action: n/a
     realm: internal
     slo_anchor: microservices/cloud-intelligence/slos/availability.openslo.yaml
     surface_evidence:

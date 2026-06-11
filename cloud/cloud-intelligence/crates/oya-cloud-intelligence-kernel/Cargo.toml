@@ -16,9 +16,13 @@ name = "oya_cloud_intelligence_kernel"
 path = "src/lib.rs"
 doctest = false
 
+[dependencies]
+serde = { workspace = true }
+
 [dev-dependencies]
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "time"] }
 proptest = "1.5"
+serde_json = { workspace = true }
 
 [lints]
 workspace = true

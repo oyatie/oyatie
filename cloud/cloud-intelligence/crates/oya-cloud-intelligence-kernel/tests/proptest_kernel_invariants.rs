@@ -48,7 +48,7 @@ fn make_sub(tenant: &str, seat: &str) -> OAuthSubscription {
         SubscriptionId::new(format!("{seat}-sub")).unwrap(),
         Provider::Anthropic,
         SubscriptionState::Active,
-        format!("openbao://{tenant}/{seat}/refresh"),
+        format!("secret-ref://{tenant}/{seat}/refresh"),
         0,
     )
 }
@@ -68,7 +68,7 @@ fn arc_pool(n: usize) -> Arc<Mutex<SubscriptionPool>> {
             SubscriptionId::new(format!("prop-sub-{i}")).unwrap(),
             Provider::Anthropic,
             SubscriptionState::Active,
-            format!("openbao://t-prop/prop-seat-{i}/refresh"),
+            format!("secret-ref://t-prop/prop-seat-{i}/refresh"),
             0,
         ))
         .unwrap();
@@ -166,7 +166,7 @@ proptest! {
             SubscriptionId::new("cool-sub").unwrap(),
             Provider::Anthropic,
             SubscriptionState::Active,
-            "openbao://t-prop2/cool-seat/refresh",
+            "secret-ref://t-prop2/cool-seat/refresh",
             0,
         )).unwrap();
 
@@ -216,7 +216,7 @@ proptest! {
             SubscriptionId::new("bl-sub").unwrap(),
             Provider::Anthropic,
             SubscriptionState::Active,
-            "openbao://t-prop3/bl-seat/refresh",
+            "secret-ref://t-prop3/bl-seat/refresh",
             0,
         )).unwrap();
 
@@ -276,7 +276,7 @@ proptest! {
             SubscriptionId::new("mono-sub").unwrap(),
             Provider::Anthropic,
             SubscriptionState::Active,
-            "openbao://t-prop4/mono-seat/refresh",
+            "secret-ref://t-prop4/mono-seat/refresh",
             0,
         )).unwrap();
 
@@ -358,7 +358,7 @@ proptest! {
                     SubscriptionId::new(format!("rr-sub-{i}")).unwrap(),
                     Provider::Anthropic,
                     SubscriptionState::Active,
-                    format!("openbao://t-prop5/rr-seat-{i}/refresh"),
+                    format!("secret-ref://t-prop5/rr-seat-{i}/refresh"),
                     0,
                 )).unwrap();
                 s
@@ -416,7 +416,7 @@ proptest! {
                     SubscriptionId::new(format!("ff-sub-{i}")).unwrap(),
                     Provider::Anthropic,
                     SubscriptionState::Active,
-                    format!("openbao://t-prop6/ff-seat-{i:02}/refresh"),
+                    format!("secret-ref://t-prop6/ff-seat-{i:02}/refresh"),
                     0,
                 )).unwrap();
                 s
