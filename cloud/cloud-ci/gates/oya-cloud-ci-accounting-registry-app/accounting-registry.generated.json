@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18234,
-    "source_inputs_digest": "fnv1a64:23d58ef359b67ce5"
+    "source_inputs_digest": "fnv1a64:1b89815462602225"
   },
   "rows": [
     {
@@ -7894,7 +7894,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "8acec8920372f4bbef47552bb3df824bd9939fc9",
+      "last_touch_commit": "7309683404ad1c419984c05aeec28888bd986063",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json",
       "reachable_from": [],
