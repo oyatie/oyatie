@@ -85,7 +85,8 @@ residue permitted is policy packs + baselines + ledgers. An R0 violation is not 
 The first product surface is a Kubernetes operator with CRDs — `GatePolicy`, `Baseline`,
 `Exception`, `GateRun` — built via the kernel/adapter/app crate pattern proven by the cloud-kms
 operator (ADR-0543; the pure-kernel extraction landed in PR #686: serde-only operator kernel,
-kube/k8s-openapi confined to the k8s adapter, app depends on the kernel). Cloud-native, K8s-native,
+kube/k8s-openapi confined to the k8s adapter and the app composition root, app depends on the
+kernel). Cloud-native, K8s-native,
 owned-stack-first per standing doctrine: port traits model the W5 owned-stack destination; adapters
 absorb transient infra (ADR-0510) and are discarded at cutover.
 
