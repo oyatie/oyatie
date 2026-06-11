@@ -1,0 +1,39 @@
+rust_library(
+    name = "oya-cloud-ci-embedded-asset-hermeticity-app",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "oya_cloud_ci_embedded_asset_hermeticity_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-embedded-asset-hermeticity-app-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "oya_cloud_ci_embedded_asset_hermeticity_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# ADR-0545 embedded-asset hermeticity: Buck2-native, cargo-free live-corpus gate over the real tree.
+# The test collects every Rust include_str!/include_bytes! string-literal site, resolves each against
+# the owning Buck target's sandbox destination set, and asserts the live corpus is born-blocking green
+# on the unmapped-include code (the repo is hermetic today) while skip/no-target legacy debt stays
+# under the reviewed shrink-only ceilings (FRIC-1781112000 anti-laundering). RED fixtures prove an
+# unmapped include FAILS closed without touching the filesystem.
+rust_test(
+    name = "oya-cloud-ci-embedded-asset-hermeticity-app-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "oya_cloud_ci_embedded_asset_hermeticity_app_gate",
+    crate_root = "tests/embedded_asset_hermeticity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-embedded-asset-hermeticity-app",
+        "third-party//:serde_json",
+    ],
+)

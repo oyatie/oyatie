@@ -1,0 +1,30 @@
+[package]
+name = "oya-cloud-ci-embedded-asset-hermeticity-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate asserting every Rust include_str!/include_bytes! string-literal embedded asset is present at its include-relative sandbox location in the owning Buck target's srcs/mapped_srcs destinations."
+
+# cloud-ci-embedded-asset-hermeticity (ADR-0545): pure policy over the collected include sites. The
+# crate owns the read-only filesystem walk (Rust sources + sibling BUCK srcs/mapped_srcs); the pure
+# evaluator resolves each include literal against the owning target's sandbox destination set and
+# rejects unmapped embedded assets before buck2 ever builds them. Born pack-shaped: all repo-specifics
+# live in embedded-asset-hermeticity-policy.json. Motivated by FRIC-1781131000.
+
+[lib]
+name = "oya_cloud_ci_embedded_asset_hermeticity_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
