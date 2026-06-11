@@ -880,12 +880,21 @@ pub fn render_findings(findings: &[Finding]) -> String {
         output.push_str(&format!("- {} {}: {}\n", finding.code, finding.key, finding.detail));
     }
     output.push('\n');
-    output.push_str(
-        "Remediation: run the canonical-json fixer to rewrite the listed files to canonical form:\n  \
-         buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-fix -- --fix\n",
-    );
+    output.push_str(AUTO_FIX_COMMAND);
+    output.push('\n');
     output
 }
+
+/// The exact auto-remediation command the gate prints on failure (founder 2026-06-11: automation is
+/// the default, the blocking gate is the backstop, and its output must print the exact fix command).
+/// `json_not_canonical` drift is mechanically derivable, so the canonical answer is to RUN this, not
+/// to hand-edit bytes. `json_parse_error`/`json_duplicate_key` are the human-judgment residue the
+/// fixer refuses; for those the listed detail is the instruction.
+pub const AUTO_FIX_COMMAND: &str =
+    "Auto-remediation (run this — do NOT hand-edit bytes; canonicalization is mechanically derivable):\n  \
+     buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-bin -- --fix\n\
+     The fixer rewrites every `json_not_canonical` file to canonical form and refuses (never silently \
+     rewrites) `json_parse_error`/`json_duplicate_key` defects — fix those by hand per the listed detail.";
 
 // ───────────────────────────── fixer (write canonical bytes) ─────────────────────────────
 

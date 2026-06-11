@@ -412,6 +412,73 @@ fn collect_applies_suffix_and_path_prefix_exclusions() {
 }
 
 #[test]
+fn non_canonical_fixture_fix_makes_the_gate_green() {
+    // Founder doctrine (2026-06-11): automation is the default path. The exact loop the directive
+    // names: non-canonical fixture -> --fix -> gate GREEN, in one pass, no hand-editing.
+    let dir = std::env::temp_dir().join(format!("canon-auto-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("specs")).unwrap();
+    // Escaped-unicode + 4-space indent + no trailing newline: the full FRIC-1781130000 drift class.
+    std::fs::write(dir.join("specs/x.json"), "{\n    \"s\": \"\\u2192\"\n}").unwrap();
+    let policy = policy_literal();
+
+    let before = collect_observed(&dir, &policy).unwrap();
+    assert_eq!(evaluate(&policy, &before).verdict, Verdict::Red, "gate is RED before fix");
+
+    let fix = fix_observed(&dir, &policy, &before, false).unwrap();
+    assert_eq!(fix.fixed, vec!["specs/x.json".to_owned()]);
+    assert!(fix.is_clean());
+
+    let after = collect_observed(&dir, &policy).unwrap();
+    assert_eq!(evaluate(&policy, &after).verdict, Verdict::Green, "gate is GREEN after --fix");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn settle_style_canonical_file_fix_is_a_no_op() {
+    // The directive's second fixture: a file already in the faces/settle canonical form (literal
+    // UTF-8, 2-space, trailing newline) must be a fixer NO-OP — proving --fix and the settle tool
+    // do not fight each other in a rewrite loop. This is the concrete shared-serializer-consistency
+    // assertion: the byte form the settle tool emits IS this gate's fixed point.
+    let dir = std::env::temp_dir().join(format!("canon-settle-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("specs")).unwrap();
+    // Exactly what accounting-registry::to_canonical_json emits for this content: literal UTF-8,
+    // 2-space, source order, trailing newline.
+    let settle_form = "{\n  \"arrow\": \"→\",\n  \"micro\": \"µ\"\n}\n";
+    std::fs::write(dir.join("specs/face-like.json"), settle_form).unwrap();
+    let policy = policy_literal();
+    let observed = collect_observed(&dir, &policy).unwrap();
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
+    let fix = fix_observed(&dir, &policy, &observed, false).unwrap();
+    assert!(fix.fixed.is_empty(), "settle-canonical file must be a fixer no-op (no rewrite loop)");
+    assert_eq!(
+        std::fs::read_to_string(dir.join("specs/face-like.json")).unwrap(),
+        settle_form,
+        "the settle byte form must be untouched"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn gate_failure_output_prints_the_exact_runnable_fix_command() {
+    // The directive: the blocking gate's failure output must print the EXACT auto-fix command, and
+    // it must reference the real buck2 target (not a typo'd one).
+    let observed = Observed {
+        files: vec![obs("specs/drift.json", Some("{\"a\":1}"))],
+    };
+    let report = evaluate(&policy_literal(), &observed);
+    let rendered = render_findings(&report.findings);
+    assert!(rendered.contains("--fix"), "must print the --fix command: {rendered}");
+    assert!(
+        rendered.contains(
+            "//cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-bin"
+        ),
+        "must reference the REAL buck2 binary target: {rendered}"
+    );
+}
+
+#[test]
 fn fixer_refuses_duplicate_keys_without_rewriting() {
     let dir = std::env::temp_dir().join(format!("canon-refuse-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);

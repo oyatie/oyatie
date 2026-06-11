@@ -122,11 +122,30 @@ drift class; losslessly fixable), `json_parse_error` (invalid JSON, lone surroga
 leading-zero numbers, non-UTF-8), `json_duplicate_key` (canonical form undefined — the fixer refuses
 rather than silently drop a member).
 
-**One-command fixer.** The gate binary's `--fix` mode rewrites every non-canonical governed file to
-canonical form (`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-bin -- --fix`).
-It REFUSES parse/duplicate-key defects (human-judgment, not drift). Per the founder CLI-retirement
-directive, this binary is LOCAL BRIDGE feedback only; merge authority is the gate's buck2 `rust_test`
-behind `oya-ci-required`, never the binary.
+**Automation is the default; enforcement is the backstop (founder directive 2026-06-11).** "Gate
+should prioritize automation where possible; automation should be the default, enforcement is the
+extra layer." Canonicalization is mechanically derivable, so the canonical answer to a
+`json_not_canonical` finding is to RUN the auto-remediator, never to hand-edit bytes. The deliverable
+is therefore *detector + auto-remediator + blocking backstop*, mirroring the face-settle precedent
+(`oya-cloud-ci-face-settle --settle --commit` is the documented default remediation; the freshness
+gate is the backstop). The gate binary's `--fix` mode rewrites every non-canonical governed file to
+canonical form in one pass
+(`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app:oya-cloud-ci-canonical-json-bin -- --fix`).
+It REFUSES parse/duplicate-key defects (human-judgment residue, not drift). The blocking gate's
+failure output prints this EXACT command (the `AUTO_FIX_COMMAND` constant, asserted by a fixture so a
+typo'd target can never ship). Per the founder CLI-retirement directive, the binary is LOCAL BRIDGE
+feedback only; merge authority is the gate's buck2 `rust_test` behind `oya-ci-required`, never the
+binary.
+
+**Shared-serializer consistency (the explicit one-way-door, founder directive 2026-06-11 point 2).**
+`--fix` and the face-settle tool MUST NOT fight each other in a rewrite loop. We guarantee this two
+ways: (a) the `*.generated.json` faces are EXCLUDED from this gate's scope, so `--fix` never touches a
+file the settle tool owns; and (b) where the two forms overlap on non-generated content, this gate's
+canonical form is chosen byte-identical to what `accounting-registry::to_canonical_json` emits —
+literal UTF-8, 2-space indent, source key order, trailing newline. A regression fixture
+(`settle_style_canonical_file_fix_is_a_no_op`) asserts that a file already in the settle byte form is
+a `--fix` no-op: the settle tool's output IS this gate's fixed point. The two are consistent by
+construction, not by coincidence.
 
 **Ratchet (zero baseline, born-blocking).** A dry-run of the fixer over the governed `specs/` root
 (excluding faces + fixtures) found exactly 7 non-canonical files — all escaped-unicode and/or
