@@ -33,7 +33,7 @@ rotating forever — it must not become a denial-of-wallet amplifier.
    `oya_cloud_intelligence_key_failures_total{provider,code}`:
    - `429` dominating → provider rate-limit / quota; the keys are healthy but throttled.
    - `401`/`403` dominating → **key is invalid/revoked/rotated upstream** — refresh will NOT
-     help until the secret is corrected in OpenBao.
+     help until the owned secret-provider handle resolves to corrected material.
    - `5xx` dominating → likely a provider-outage masquerading as key failure → switch to
      `provider-outage.md`.
 3. **Check `soonest_restore`.** If it is seconds away, the pool will self-heal (lazy restore on
@@ -50,17 +50,17 @@ rotating forever — it must not become a denial-of-wallet amplifier.
 - If a fallback provider pool has capacity, confirm the failover ladder is routing to it
   (`oya_cloud_intelligence_fallback_total`); if not, check the fallback config.
 
-### If keys are invalid (401/403): rotate the secret
-- The key material in OpenBao is stale/revoked. Update `secret/data/agent-gateway/<provider>`
-  with valid keys (this is a cloud-secrets / cloud-kms operation — the gateway only reads).
+### If keys are invalid (401/403): rotate the secret-provider handle
+- The key material behind the `secret-ref://` / `kms-ref://` handle is stale/revoked.
+  Update it in cloud-secrets/cloud-kms (the gateway only resolves opaque handles).
 - Force a refresh: `POST /admin/v1/pools/{provider}/refresh` (admin bearer + Idempotency-Key) →
-  re-reads OpenBao and rebuilds the in-memory pool. **Never** edit keys on the pod/disk — there
-  is no plaintext key store (brief §5).
+  re-reads the owned secret-provider port and rebuilds the in-memory pool. **Never** edit keys
+  on the pod/disk — there is no plaintext key store (brief §5).
 - Verify: `GET /admin/v1/pools` shows `active_keys > 0`.
 
 ### If pool is simply too small: add keys
-- Add more keys to the OpenBao path, then `POST .../refresh`. More keys = more rotation
-  headroom before exhaustion.
+- Add more secret-provider handles, then `POST .../refresh`. More keys = more
+  rotation headroom before exhaustion.
 
 ## Recovery verification
 
@@ -74,8 +74,8 @@ rotating forever — it must not become a denial-of-wallet amplifier.
 
 - If 429-driven: revisit per-tenant budgets and reserved headroom vs shared provider TPM
   (brief §6, §8) — exhaustion under normal load means headroom is mis-sized.
-- If 401/403-driven: review the upstream key-rotation calendar and whether OpenBao refresh
-  cadence (`key_refresh_secs`) was too slow to pick up the rotated secret.
+- If 401/403-driven: review the upstream key-rotation calendar and whether the
+  secret-provider refresh cadence (`key_refresh_secs`) was too slow to pick up the rotated secret.
 - Tune `blacklist_threshold` / `cooldown_base_millis` / `cooldown_jitter_millis` if cooldowns
   were too long (slow recovery) or too short (thrash). Jitter must stay non-zero to prevent
   thundering-herd restore (brief §10).

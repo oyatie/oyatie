@@ -20,6 +20,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
+use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
@@ -27,6 +28,10 @@ use serde::Deserialize;
 use tracing::debug;
 
 pub use oya_cloud_intelligence_kernel::{AgentId, Provider, SeatId, TenantId};
+
+/// Heap-allocated OpenAI-compatible response byte stream.
+pub type OpenAiByteStream =
+    Pin<Box<dyn futures_core::Stream<Item = Result<Bytes, reqwest::Error>> + Send + 'static>>;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -50,6 +55,9 @@ const CODEX_RESPONSES_PATH: &str = "/backend-api/codex/responses";
 
 /// Path for OpenAI-compatible chat completions in API-key mode.
 const OPENAI_CHAT_COMPLETIONS_PATH: &str = "/v1/chat/completions";
+
+/// Path for OpenAI-compatible embeddings in API-key mode.
+const OPENAI_EMBEDDINGS_PATH: &str = "/v1/embeddings";
 
 /// X-OpenAI-Beta header value required by the Codex data plane.
 const OPENAI_BETA_CODEX: &str = "codex-runs";
@@ -191,6 +199,14 @@ fn filtered_response_headers(headers: &reqwest::header::HeaderMap) -> BTreeMap<S
     filtered
 }
 
+fn allowed_openai_compatible_path(path: &str) -> Option<&'static str> {
+    match path {
+        OPENAI_CHAT_COMPLETIONS_PATH => Some(OPENAI_CHAT_COMPLETIONS_PATH),
+        OPENAI_EMBEDDINGS_PATH => Some(OPENAI_EMBEDDINGS_PATH),
+        _ => None,
+    }
+}
+
 // ---------------------------------------------------------------------------
 // OpenAiApiKeyAdapter
 // ---------------------------------------------------------------------------
@@ -229,7 +245,26 @@ impl OpenAiApiKeyAdapter {
         api_key: &str,
         request: CodexProxyRequest,
     ) -> Result<CodexProxyResponse, CodexAdapterError> {
-        let url = format!("{}{}", self.base_url, OPENAI_CHAT_COMPLETIONS_PATH);
+        self.proxy_openai_compatible_path(api_key, OPENAI_CHAT_COMPLETIONS_PATH, request)
+            .await
+    }
+
+    /// Forward a non-streaming OpenAI-compatible request using a provider API
+    /// key. The path is exact-match allowlisted to avoid proxying arbitrary
+    /// provider URLs through this adapter.
+    pub async fn proxy_openai_compatible_path(
+        &self,
+        api_key: &str,
+        path: &str,
+        request: CodexProxyRequest,
+    ) -> Result<CodexProxyResponse, CodexAdapterError> {
+        let Some(path) = allowed_openai_compatible_path(path) else {
+            return Err(CodexAdapterError::UpstreamError {
+                status: 400,
+                body: "unsupported OpenAI-compatible path".to_string(),
+            });
+        };
+        let url = format!("{}{}", self.base_url, path);
         debug!(url = %url, "proxying OpenAI-compatible API-key request");
 
         let hop_by_hop = hop_by_hop_set();
@@ -290,14 +325,25 @@ impl OpenAiApiKeyAdapter {
         &self,
         api_key: &str,
         request: CodexProxyRequest,
-    ) -> Result<
-        (
-            u16,
-            BTreeMap<String, String>,
-            impl futures_core::Stream<Item = Result<Bytes, reqwest::Error>>,
-        ),
-        CodexAdapterError,
-    > {
+    ) -> Result<(u16, BTreeMap<String, String>, OpenAiByteStream), CodexAdapterError> {
+        self.proxy_openai_compatible_path_stream(api_key, OPENAI_CHAT_COMPLETIONS_PATH, request)
+            .await
+    }
+
+    /// Forward a streaming OpenAI-compatible request using a provider API key.
+    /// Streaming is currently only allowlisted for chat completions.
+    pub async fn proxy_openai_compatible_path_stream(
+        &self,
+        api_key: &str,
+        path: &str,
+        request: CodexProxyRequest,
+    ) -> Result<(u16, BTreeMap<String, String>, OpenAiByteStream), CodexAdapterError> {
+        if path != OPENAI_CHAT_COMPLETIONS_PATH {
+            return Err(CodexAdapterError::UpstreamError {
+                status: 400,
+                body: "unsupported streaming OpenAI-compatible path".to_string(),
+            });
+        }
         let url = format!("{}{}", self.base_url, OPENAI_CHAT_COMPLETIONS_PATH);
         debug!(url = %url, "opening OpenAI-compatible API-key SSE stream");
 
@@ -341,7 +387,7 @@ impl OpenAiApiKeyAdapter {
             });
         }
         let headers = filtered_response_headers(resp.headers());
-        let byte_stream = resp.bytes_stream();
+        let byte_stream: OpenAiByteStream = Box::pin(resp.bytes_stream());
         Ok((status, headers, byte_stream))
     }
 }

@@ -11,7 +11,7 @@ use oya_cloud_intelligence_kernel::{
     SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
 };
 use oya_cloud_intelligence_rest::{
-    AppState, EventSink, LlmGatewayEvent, OpenBaoSecretStore, PoolRegistry, RestAdapterError,
+    AppState, EventSink, LlmGatewayEvent, PoolRegistry, RestAdapterError, SecretProviderStore,
     TokenRefreshSingleflight, build_router,
 };
 use tower::ServiceExt; // for `oneshot`
@@ -33,7 +33,7 @@ impl EventSink for NoopSink {
 }
 
 struct StubStore;
-impl OpenBaoSecretStore for StubStore {
+impl SecretProviderStore for StubStore {
     fn fetch_refresh_token(&self, _: &str) -> Result<String, RestAdapterError> {
         Ok("stub-token".to_string())
     }
@@ -66,7 +66,10 @@ fn make_state() -> Arc<AppState> {
         sink: Arc::new(NoopSink),
         secret_store: Arc::new(StubStore),
         anthropic_base_url: "http://127.0.0.1:1".to_string(),
+        openai_compatible_base_url: "http://127.0.0.1:1".to_string(),
+        gemini_base_url: "http://127.0.0.1:1".to_string(),
         tenant_id: tenant,
+        ingress_bearer_token: Some("ingress-token".to_string()),
         admin_bearer_token: None,
         environment: "test".to_string(),
         oauth_approved_providers: std::collections::HashSet::new(),
@@ -90,6 +93,7 @@ async fn post_exceeding_1mib_returns_413() {
     let req = Request::builder()
         .method("POST")
         .uri("/v1/messages")
+        .header("authorization", "Bearer ingress-token")
         .header("content-type", "application/json")
         .header("x-agent-id", "agent-limit-test")
         .body(Body::from(oversized))
@@ -114,6 +118,7 @@ async fn post_at_exactly_1mib_does_not_return_413() {
     let req = Request::builder()
         .method("POST")
         .uri("/v1/messages")
+        .header("authorization", "Bearer ingress-token")
         .header("content-type", "application/json")
         .header("x-agent-id", "agent-limit-test")
         .body(Body::from(at_limit))

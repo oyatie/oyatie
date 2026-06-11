@@ -1,7 +1,7 @@
 //! cloud-intelligence binary entry-point (ADR-0384 Path B, Stage-7).
 //!
 //! Reads config from environment variables, calls [`build_app`] to wire all
-//! production components (real OpenBao Transit + ClickHouse + Valkey sinks),
+//! production components (secret-provider adapter + ClickHouse + Valkey sinks),
 //! then serves the axum router. No panics on the start-up path: all errors are
 //! surfaced as non-zero exit codes with a structured log message
 //! (ADR-0083 Tier-3 panic-free).
@@ -12,14 +12,15 @@
 //! - `OYA_CLOUD_INTEL_ANTHROPIC_URL`       — Anthropic base URL (default: production)
 //! - `OYA_CLOUD_INTEL_INITIAL_SEATS`       — comma-separated seat_id:handle pairs
 //! - `OYA_CLOUD_INTEL_TENANT_PROVIDER_POOLS` — semicolon-separated tenant/provider handle pools
-//! - `OYA_CLOUD_INTEL_OPENBAO_URL`         — OpenBao base URL (required)
-//! - `OYA_CLOUD_INTEL_OPENBAO_TOKEN`       — OpenBao vault token (required)
+//! - `OYA_CLOUD_INTEL_SECRET_PROVIDER_URL`         — secret-provider adapter base URL (required)
+//! - `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN`       — secret-provider adapter token (required)
 //! - `OYA_CLOUD_INTEL_TRANSIT_KEY_NAME`    — Transit key name (default: cloud-intelligence-rt)
 //! - `OYA_CLOUD_INTEL_CLICKHOUSE_URL`      — ClickHouse HTTP URL (default: analytics svc)
 //! - `OYA_CLOUD_INTEL_CLICKHOUSE_USER`     — ClickHouse user (default: default)
 //! - `OYA_CLOUD_INTEL_CLICKHOUSE_PASSWORD` — ClickHouse password (required)
 //! - `OYA_CLOUD_INTEL_VALKEY_URL`          — Valkey URL (default: redis://valkey.infra.svc:6379)
 //! - `OYA_CLOUD_INTEL_ADMIN_BEARER_TOKEN`  — optional admin-route bearer token (unset = fail closed)
+//! - `OYA_CLOUD_INTEL_INGRESS_BEARER_TOKEN` — optional data-plane bearer token (unset = fail closed)
 //! - `OYA_CLOUD_INTEL_ENVIRONMENT`         — environment name (production enforces compliance)
 //! - `OYA_CLOUD_INTEL_ANTHROPIC_AUTH_MODE` — api_key | oauth_subscription
 //! - `OYA_CLOUD_INTEL_ANTHROPIC_OAUTH_STATUS` — APPROVED | API_ONLY | BLOCKED | PENDING

@@ -7,7 +7,7 @@ use oya_cloud_intelligence_kernel::{
 
 #[test]
 fn debug_does_not_contain_handle_string() {
-    let secret_handle = "openbao://t-1/seat-a/refresh-VERY-SECRET";
+    let secret_handle = "secret-ref://t-1/seat-a/refresh-VERY-SECRET";
     let sub = OAuthSubscription::new(
         TenantId::new("t-1").unwrap(),
         SeatId::new("seat-a").unwrap(),

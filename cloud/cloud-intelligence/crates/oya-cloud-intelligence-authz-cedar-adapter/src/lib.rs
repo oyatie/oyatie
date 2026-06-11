@@ -33,7 +33,7 @@ use oya_cloud_intelligence_kernel::{
 
 /// Default policy text bundled with the µservice. Compiled into the crate so
 /// the adapter is self-contained at runtime — no file I/O on the request path.
-pub const DEFAULT_POLICY_TEXT: &str = include_str!("../../../policy/cloud-intelligence.cedar");
+pub const DEFAULT_POLICY_TEXT: &str = include_str!("../policy/cloud-intelligence.cedar");
 
 /// Adapter errors raised at construction time. The request path itself is
 /// total: any error during entity/request translation maps to a fail-closed
@@ -158,6 +158,7 @@ fn provider_label(provider: Provider) -> &'static str {
     match provider {
         Provider::Anthropic => "anthropic",
         Provider::Codex => "codex",
+        Provider::Gemini => "gemini",
     }
 }
 

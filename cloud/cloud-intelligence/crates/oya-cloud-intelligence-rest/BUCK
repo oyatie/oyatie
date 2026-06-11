@@ -7,6 +7,8 @@ rust_library(
     deps = [
         "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
         "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-codex-adapter:oya-cloud-intelligence-codex-adapter",
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-gemini-adapter:oya-cloud-intelligence-gemini-adapter",
         "third-party//:axum",
         "third-party//:axum",
         "third-party//:bytes",
@@ -35,6 +37,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel:oya-cloud-intelligence-kernel",
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-codex-adapter:oya-cloud-intelligence-codex-adapter",
+        "//cloud/cloud-intelligence/crates/oya-cloud-intelligence-gemini-adapter:oya-cloud-intelligence-gemini-adapter",
         "third-party//:axum",
         "third-party//:bytes",
         "third-party//:futures",

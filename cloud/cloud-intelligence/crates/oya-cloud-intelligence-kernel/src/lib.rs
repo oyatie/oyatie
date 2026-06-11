@@ -10,21 +10,34 @@
 //! - [`SubscriptionPool`] + [`SelectionStrategy`] (RoundRobin, FillFirst,
 //!   TimeNormalizedQuotaPercent).
 //! - [`SeatLease`] — RAII guard preventing same-seat double-allocation.
-//! - [`AuthzGate`] trait — kernel-level seam for the Cedar adapter
+//! - [`AuthzGate`] trait — kernel-level seam for the owned policy-engine port
 //!   (D7 per-tenant forbid-wins isolation).
 //! - [`EventSink`] trait + [`LlmGatewayEvent`] — D6 event-emission contract;
 //!   ClickHouse + Valkey Stream impls live in separate adapter crates.
 //!
 //! Kernel does NOT take direct dependencies on cedar-policy, valkey, clickhouse,
-//! reqwest, or OpenBao. Those belong to adapter crates per Oyatie's hexagonal
-//! layering. The kernel only sees opaque token handles — OpenBao envelope
-//! encryption (D8) is enforced in the REST/secret adapter, not here.
+//! reqwest, or concrete secret-provider engines. Those belong to adapter crates
+//! per Oyatie's hexagonal layering. The kernel only sees opaque token handles —
+//! envelope encryption (D8) is enforced in the REST/secret adapter, not here.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashSet};
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
+
+pub mod model_routing;
+pub mod safety;
+pub mod xproxy_parity;
+
+/// Build a stable sticky-affinity key without storing raw prompt content.
+pub fn privacy_preserving_sticky_key(first_user_message: &str) -> String {
+    let mut hasher = DefaultHasher::new();
+    first_user_message.hash(&mut hasher);
+    format!("sticky:{:016x}", hasher.finish())
+}
 
 // ---------------------------------------------------------------------------
 // Identity value objects
@@ -105,12 +118,12 @@ impl SubscriptionId {
     }
 }
 
-/// Provider enum — v1 scope locked to Anthropic + OpenAI Codex per
-/// cloud-intelligence-reference-repo-audit memory. Gemini = v2, Cursor = v3.
+/// Provider enum for cloud-intelligence gateway pools.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum Provider {
     Anthropic,
     Codex,
+    Gemini,
 }
 
 impl fmt::Display for Provider {
@@ -118,6 +131,7 @@ impl fmt::Display for Provider {
         match self {
             Provider::Anthropic => f.write_str("anthropic"),
             Provider::Codex => f.write_str("codex"),
+            Provider::Gemini => f.write_str("gemini"),
         }
     }
 }
@@ -250,6 +264,15 @@ impl QuotaWindow {
             .saturating_add(estimated_units)
     }
 
+    fn utilization(&self, now: Instant, inflight_units: u64, estimated_units: u64) -> f64 {
+        if self.capacity_units == 0 {
+            return 1.0;
+        }
+        (self.projected_units(now, inflight_units, estimated_units) as f64
+            / self.capacity_units as f64)
+            .clamp(0.0, 1.0)
+    }
+
     fn record_usage(&mut self, now: Instant, actual_units: u64) {
         if self.has_reset(now) {
             self.reset_at = self.effective_reset_at(now);
@@ -320,8 +343,8 @@ pub struct OAuthSubscription {
     pub provider: Provider,              // data_class: INTERNAL_ONLY
     pub state: SubscriptionState,        // data_class: INTERNAL_ONLY
     pub credential_mode: CredentialMode, // data_class: INTERNAL_ONLY
-    /// Opaque handle. The actual provider credential is stored
-    /// envelope-encrypted in OpenBao (D8) and never enters the kernel.
+    /// Opaque handle. The actual provider credential is stored behind the owned
+    /// secret-provider/KMS port (D8) and never enters the kernel.
     credential_secret_handle: String, // data_class: INTERNAL_ONLY
     quota_windows: Vec<QuotaWindow>,     // data_class: INTERNAL_ONLY
     inflight_units: u64,                 // data_class: INTERNAL_ONLY
@@ -370,8 +393,8 @@ impl OAuthSubscription {
         self.credential_mode
     }
 
-    /// Return the opaque refresh-token handle (non-plaintext; actual token
-    /// lives in OpenBao envelope-encrypted storage).
+    /// Return the opaque refresh-token handle (non-plaintext; actual token is
+    /// resolved through the owned secret-provider/KMS port).
     pub fn refresh_token_handle(&self) -> &str {
         &self.credential_secret_handle
     }
@@ -413,6 +436,16 @@ impl OAuthSubscription {
             .reduce(f64::min)
             .unwrap_or(0.0)
     }
+
+    fn headroom(&self, now: Instant, estimated_units: u64) -> f64 {
+        let max_utilization = self
+            .quota_windows
+            .iter()
+            .map(|window| window.utilization(now, self.inflight_units, estimated_units))
+            .reduce(f64::max)
+            .unwrap_or(0.0);
+        (1.0 - max_utilization).clamp(0.0, 1.0)
+    }
 }
 
 impl fmt::Debug for OAuthSubscription {
@@ -437,7 +470,7 @@ impl fmt::Debug for OAuthSubscription {
 // ---------------------------------------------------------------------------
 
 /// Authorization decision principal: tenant + agent + the resource (target
-/// subscription). Cedar adapter consumes this and returns [`AuthzDecision`].
+/// subscription). The owned policy-engine adapter consumes this and returns [`AuthzDecision`].
 #[derive(Clone, Debug)]
 pub struct AuthzRequest<'a> {
     pub principal_tenant: &'a TenantId, // data_class: INTERNAL_ONLY
@@ -462,9 +495,9 @@ pub enum AuthzDecision {
 
 /// D7 — per-tenant forbid-wins isolation seam.
 ///
-/// The Cedar adapter implements this. Cross-tenant requests MUST receive
-/// [`AuthzDecision::Forbid`] regardless of how many `permit` rules match,
-/// per the forbid-wins semantics of Cedar.
+/// Owned policy-engine adapters implement this. Cross-tenant requests MUST
+/// receive [`AuthzDecision::Forbid`] regardless of how many allow rules match;
+/// deny decisions are authoritative at the service boundary.
 pub trait AuthzGate {
     fn decide(&self, request: &AuthzRequest<'_>) -> AuthzDecision;
 }
@@ -603,6 +636,13 @@ pub struct SubscriptionPool {
     /// Seats currently held by an active [`SeatLease`]. These are excluded
     /// from selection to prevent double-allocation.
     leased_seats: HashSet<SeatId>,
+    sticky_bindings: BTreeMap<String, StickyBinding>,
+}
+
+#[derive(Clone, Debug)]
+struct StickyBinding {
+    seat_id: SeatId,
+    expires_at: Instant,
 }
 
 impl SubscriptionPool {
@@ -615,6 +655,7 @@ impl SubscriptionPool {
             round_robin_cursor: 0,
             cooldown_duration_429: Duration::from_secs(60),
             leased_seats: HashSet::new(),
+            sticky_bindings: BTreeMap::new(),
         }
     }
 
@@ -709,6 +750,53 @@ impl SubscriptionPool {
         })
     }
 
+    pub fn lease_sticky_with_estimate(
+        pool_ref: &Arc<Mutex<SubscriptionPool>>,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+        sticky_key: &str,
+        ttl: Duration,
+        estimated_units: u64,
+    ) -> Result<SeatLease, SubscriptionPoolError> {
+        let seat_id = {
+            let mut pool = pool_ref
+                .lock()
+                .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
+            pool.expire_sticky_bindings(now);
+
+            let sticky_seat = pool
+                .sticky_bindings
+                .get(sticky_key)
+                .filter(|binding| binding.expires_at > now)
+                .map(|binding| binding.seat_id.clone())
+                .filter(|seat_id| {
+                    pool.is_selectable(seat_id, now, estimated_units, true)
+                        && pool.authz_allows(agent_id, gate).is_ok()
+                });
+
+            let sid = match sticky_seat {
+                Some(seat_id) => seat_id,
+                None => pool.select_excluding_leased(agent_id, gate, now, estimated_units)?,
+            };
+            pool.reserve_lease(&sid, estimated_units)?;
+            pool.sticky_bindings.insert(
+                sticky_key.to_string(),
+                StickyBinding {
+                    seat_id: sid.clone(),
+                    expires_at: now + ttl,
+                },
+            );
+            sid
+        };
+        Ok(SeatLease {
+            seat_id,
+            pool: Arc::clone(pool_ref),
+            completed: false,
+            reserved_units: estimated_units,
+        })
+    }
+
     /// Internal: release a seat from the leased set.
     pub(crate) fn release_lease(&mut self, seat_id: &SeatId, reserved_units: u64) {
         self.leased_seats.remove(seat_id);
@@ -733,6 +821,17 @@ impl SubscriptionPool {
             .iter()
             .find(|window| window.kind == kind)
             .map(|window| window.used_units(now))
+    }
+
+    pub fn seat_headroom(
+        &self,
+        seat_id: &SeatId,
+        now: Instant,
+        estimated_units: u64,
+    ) -> Option<f64> {
+        self.seats
+            .get(seat_id)
+            .map(|seat| seat.headroom(now, estimated_units))
     }
 
     /// Select the next eligible seat for an inbound request (D1).
@@ -766,16 +865,7 @@ impl SubscriptionPool {
         estimated_units: u64,
         exclude_leased: bool,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        let request = AuthzRequest {
-            principal_tenant: &self.tenant_id,
-            principal_agent: agent_id,
-            action: AuthzAction::SelectSeat,
-            resource_tenant: &self.tenant_id,
-            resource_provider: self.provider,
-        };
-        if gate.decide(&request) == AuthzDecision::Forbid {
-            return Err(SubscriptionPoolError::ForbiddenByPolicy);
-        }
+        self.authz_allows(agent_id, gate)?;
 
         if self.seats.is_empty() {
             return Err(SubscriptionPoolError::NoEligibleSeat);
@@ -867,6 +957,9 @@ impl SubscriptionPool {
         now: Instant,
     ) -> Result<(), SubscriptionPoolError> {
         let cooldown = self.cooldown_duration_429;
+        if !matches!(outcome, SeatOutcome::Released | SeatOutcome::Ok) {
+            self.remove_sticky_bindings_for_seat(seat_id);
+        }
         let Some(seat) = self.seats.get_mut(seat_id) else {
             return Err(SubscriptionPoolError::NoEligibleSeat);
         };
@@ -962,6 +1055,34 @@ impl SubscriptionPool {
         Self::is_eligible(&seat.state, now) && seat.has_quota_capacity(now, estimated_units)
     }
 
+    fn authz_allows(
+        &self,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+    ) -> Result<(), SubscriptionPoolError> {
+        let request = AuthzRequest {
+            principal_tenant: &self.tenant_id,
+            principal_agent: agent_id,
+            action: AuthzAction::SelectSeat,
+            resource_tenant: &self.tenant_id,
+            resource_provider: self.provider,
+        };
+        if gate.decide(&request) == AuthzDecision::Forbid {
+            return Err(SubscriptionPoolError::ForbiddenByPolicy);
+        }
+        Ok(())
+    }
+
+    fn expire_sticky_bindings(&mut self, now: Instant) {
+        self.sticky_bindings
+            .retain(|_, binding| binding.expires_at > now);
+    }
+
+    fn remove_sticky_bindings_for_seat(&mut self, seat_id: &SeatId) {
+        self.sticky_bindings
+            .retain(|_, binding| binding.seat_id != *seat_id);
+    }
+
     fn is_eligible(state: &SubscriptionState, now: Instant) -> bool {
         match state {
             SubscriptionState::Active => true,
@@ -984,7 +1105,7 @@ pub enum SeatOutcome {
     RateLimited429,
     ServerError5xx,
     RefreshTokenRevoked,
-    /// Vault or transient OAuth refresh failure (not a permanent revocation).
+    /// Secret-provider or transient OAuth refresh failure (not a permanent revocation).
     /// Seat enters Cooldown with `RefreshTokenTransientFailure` reason.
     RefreshFailed,
     /// Lease was dropped without an explicit [`SeatLease::complete`] call
@@ -1005,7 +1126,7 @@ pub fn looks_like_jwt(value: &str) -> bool {
 }
 
 /// Validate that `handle` is an opaque secret-store reference rather than a raw
-/// credential. Accepts only `vault://`, `kms://`, or `sref://openbao/` schemes
+/// credential. Accepts only `secret-ref://` or `kms-ref://` schemes
 /// and rejects empty/whitespace/control/path-traversal inputs as well as obvious
 /// raw secrets (`sk-`, `bearer `, `raw-secret`, `refresh-token`, JWTs).
 ///
@@ -1022,9 +1143,8 @@ pub fn is_secret_handle_reference(handle: &str) -> bool {
         return false;
     }
     let lowered = trimmed.to_ascii_lowercase();
-    let has_allowed_scheme = lowered.starts_with("vault://")
-        || lowered.starts_with("kms://")
-        || lowered.starts_with("sref://openbao/");
+    let has_allowed_scheme =
+        lowered.starts_with("secret-ref://") || lowered.starts_with("kms-ref://");
     has_allowed_scheme
         && !trimmed.starts_with("sk-")
         && !lowered.starts_with("bearer ")
@@ -1123,13 +1243,13 @@ mod tests {
             tenant("tenant-b"),
             seat("seat-b"),
             Provider::Anthropic,
-            "vault://tenant-b/anthropic",
+            "secret-ref://tenant-b/anthropic",
         );
         let wrong_provider = active_subscription(
             tenant("tenant-a"),
             seat("seat-codex"),
             Provider::Codex,
-            "vault://tenant-a/codex",
+            "secret-ref://tenant-a/codex",
         );
 
         assert_eq!(
@@ -1157,7 +1277,7 @@ mod tests {
             tenant("tenant-a"),
             seat("seat-z-about-to-reset"),
             Provider::Anthropic,
-            "vault://tenant-a/about-to-reset",
+            "secret-ref://tenant-a/about-to-reset",
         )
         .with_quota_windows([QuotaWindow::new(
             QuotaWindowKind::FiveHour,
@@ -1170,7 +1290,7 @@ mod tests {
             tenant("tenant-a"),
             seat("seat-a-early-window"),
             Provider::Anthropic,
-            "vault://tenant-a/early-window",
+            "secret-ref://tenant-a/early-window",
         )
         .with_quota_windows([QuotaWindow::new(
             QuotaWindowKind::FiveHour,
@@ -1204,7 +1324,7 @@ mod tests {
             tenant("tenant-a"),
             seat("seat-exhausted"),
             Provider::Codex,
-            "vault://tenant-a/codex-exhausted",
+            "secret-ref://tenant-a/codex-exhausted",
         )
         .with_quota_windows([QuotaWindow::new(
             QuotaWindowKind::FiveHour,
@@ -1237,7 +1357,7 @@ mod tests {
                 tenant("tenant-a"),
                 seat(sid),
                 Provider::Anthropic,
-                &format!("vault://tenant-a/{sid}"),
+                &format!("secret-ref://tenant-a/{sid}"),
             )
             .with_quota_windows([QuotaWindow::new(
                 QuotaWindowKind::FiveHour,
@@ -1302,7 +1422,7 @@ mod tests {
             tenant("tenant-a"),
             sid.clone(),
             Provider::Codex,
-            "vault://tenant-a/reset",
+            "secret-ref://tenant-a/reset",
         )
         .with_quota_windows([QuotaWindow::new(
             QuotaWindowKind::FiveHour,
@@ -1348,7 +1468,7 @@ mod tests {
             tenant("tenant-a"),
             sid.clone(),
             Provider::Anthropic,
-            "vault://tenant-a/cooling",
+            "secret-ref://tenant-a/cooling",
         ))
         .expect("seat accepted");
 

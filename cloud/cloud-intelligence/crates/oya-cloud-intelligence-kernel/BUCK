@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:tokio",
+        "third-party//:serde",
         # UNRESOLVED: proptest ^1.5
     ],
 )
@@ -18,5 +19,52 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "third-party//:tokio",
+        "third-party//:serde",
+    ],
+)
+
+rust_test(
+    name = "xproxy-capability-parity-test",
+    srcs = glob(["tests/xproxy_capability_parity.rs"]),
+    crate = "oya_cloud_intelligence_kernel_xproxy_capability_parity_test",
+    crate_root = "tests/xproxy_capability_parity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "xproxy-model-routing-matrix-test",
+    srcs = glob(["tests/xproxy_model_routing_matrix.rs"]),
+    crate = "oya_cloud_intelligence_kernel_xproxy_model_routing_matrix_test",
+    crate_root = "tests/xproxy_model_routing_matrix.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "xproxy-pool-headroom-stickiness-test",
+    srcs = glob(["tests/xproxy_pool_headroom_stickiness.rs"]),
+    crate = "oya_cloud_intelligence_kernel_xproxy_pool_headroom_stickiness_test",
+    crate_root = "tests/xproxy_pool_headroom_stickiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-kernel",
+    ],
+)
+
+
+rust_test(
+    name = "cloud-intelligence-safety-guardrails-test",
+    srcs = glob(["tests/cloud_intelligence_safety_guardrails.rs"]),
+    crate = "oya_cloud_intelligence_kernel_cloud_intelligence_safety_guardrails_test",
+    crate_root = "tests/cloud_intelligence_safety_guardrails.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-intelligence-kernel",
     ],
 )
