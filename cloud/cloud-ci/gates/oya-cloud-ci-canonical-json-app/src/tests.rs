@@ -320,6 +320,28 @@ fn truncated_or_non_ascii_hex_escape_is_parse_error_not_a_panic() {
 }
 
 #[test]
+fn signed_or_spaced_hex_escape_is_parse_error_not_drift() {
+    // Review MED on PR #689: `u32::from_str_radix` alone accepts a leading sign, so the
+    // strictly-invalid escape `\u+12f` (rejected by RFC 8259 §7, serde_json, Python) decoded as
+    // U+012F and the file was misclassified as fixable `json_not_canonical` drift — `--fix` would
+    // silently rewrite it to `į` instead of refusing. A `\u` escape is EXACTLY 4 ASCII hex digits;
+    // anything else is a parse error, never canonicalizable drift.
+    for evil in [
+        "{\"k\":\"\\u+12f\"}",
+        "{\"k\":\"\\u-123\"}",
+        "{\"k\":\"\\u-000\"}", // from_str_radix would even accept this as Ok(0) -> NUL
+        "{\"k\":\"\\u 123\"}",
+        "{\"k\":\"\\u12\"}", // short: only 2 hex digits before the closing quote
+    ] {
+        assert_eq!(
+            canonicalize(evil, &literal_form()).unwrap_err().code(),
+            "json_parse_error",
+            "{evil} must be a parse error"
+        );
+    }
+}
+
+#[test]
 fn unescaped_control_char_in_string_is_parse_error() {
     let err = canonicalize("[\"a\nb\"]", &literal_form()).unwrap_err();
     assert_eq!(err.code(), "json_parse_error");
@@ -566,5 +588,36 @@ fn fixer_refuses_duplicate_keys_without_rewriting() {
     assert_eq!(fix.refused[0].0, "specs/dup.json");
     // The file is untouched — the fixer never silently dropped a member.
     assert_eq!(std::fs::read_to_string(dir.join("specs/dup.json")).unwrap(), original);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn fixer_refuses_signed_hex_escape_without_rewriting() {
+    // Review MED regression fixture (PR #689): a file containing the strictly-invalid escape
+    // `"\u+12f"` must classify as `json_parse_error` — NOT `json_not_canonical` — and `--fix`
+    // must REFUSE it byte-unchanged instead of silently rewriting it to `"į"`. Refuse-defects
+    // contract: parse errors are human-judgment residue, never drift.
+    let dir = std::env::temp_dir().join(format!("canon-hexsign-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("specs")).unwrap();
+    let original = "{\"k\":\"\\u+12f\"}";
+    std::fs::write(dir.join("specs/sign.json"), original).unwrap();
+    let observed = collect_observed(&dir, &policy_literal()).unwrap();
+    let findings = evaluate_keyed(&policy_literal(), &observed);
+    assert!(
+        findings.iter().any(|f| f.code == "json_parse_error" && f.key == "specs/sign.json"),
+        "signed hex escape must be a parse error: {findings:#?}"
+    );
+    assert!(
+        !findings.iter().any(|f| f.code == "json_not_canonical" && f.key == "specs/sign.json"),
+        "a strictly-invalid escape must never classify as fixable drift: {findings:#?}"
+    );
+    let fix = fix_observed(&dir, &policy_literal(), &observed, false).unwrap();
+    assert!(fix.fixed.is_empty(), "the fixer must not rewrite an invalid escape");
+    assert!(!fix.is_clean());
+    assert_eq!(fix.refused.len(), 1);
+    assert_eq!(fix.refused[0].0, "specs/sign.json");
+    // The file is byte-unchanged — the fixer never laundered invalid JSON into valid JSON.
+    assert_eq!(std::fs::read_to_string(dir.join("specs/sign.json")).unwrap(), original);
     let _ = std::fs::remove_dir_all(&dir);
 }

@@ -505,6 +505,12 @@ impl<'a> Parser<'a> {
             .src
             .get(self.pos..self.pos + 4)
             .ok_or_else(|| CanonError::Parse("truncated \\u escape".to_owned()))?;
+        // RFC 8259 §7: EXACTLY 4 hex digits. `u32::from_str_radix` alone is too lenient (it accepts
+        // a leading sign, so `\u+12f` would decode as U+012F and misclassify a strictly-invalid
+        // escape as fixable drift instead of a parse error).
+        if !slice.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            return Err(CanonError::Parse(format!("invalid \\u escape `{slice}`")));
+        }
         let value = u32::from_str_radix(slice, 16)
             .map_err(|_| CanonError::Parse(format!("invalid \\u escape `{slice}`")))?;
         self.pos += 4;
