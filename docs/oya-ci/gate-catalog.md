@@ -55,6 +55,7 @@ agent-wiring + catalog`.
 | `cloud-ci-enforcement-liveness` | agent-wiring | producer-face (`enforcement_liveness`) | `hook_unwired_without_stub_marker` (frozen-empty), `hook_wiring_mirror_drift` (frozen-empty), `wired_hook_missing_file` (frozen-empty) |
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
 | `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition` (born-blocking-clean), `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty), `friction_orphan_update_row` |
+| `cloud-ci-canonical-json` | governance | standalone self-test (zero baseline) | `json_not_canonical` (born-blocking-empty), `json_parse_error` (born-blocking-empty), `json_duplicate_key` (born-blocking-empty) |
 
 For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
 enforces the content-first, faces-only settle protocol after the content commit lands.
@@ -68,6 +69,24 @@ reviewed shrink-only `friction-accounting-baseline.json` + ceilings (FRIC-178111
 rather than the central baseline. Same firewall *semantics* (frozen-empty + shrink-only legacy debt),
 local enforcement. All policy — the ledger path, the free-text status taxonomy, the evidence rules —
 is DATA in `friction-accounting-policy.json`, so the gate runs on any repo by repointing the policy.
+
+`cloud-ci-canonical-json` (ADR-0546) is a standalone born-blocking self-test, NOT a producer-face
+gate. It walks every tracked `*.json` under the policy's `governed_roots` (read-only filesystem),
+canonicalizes each committed file with a **self-contained lexical canonicalizer** (a hand-written
+lexer → CST → formatter, NOT `serde_json::to_string_pretty`, so the gate's output is independent of
+the `serde_json` `preserve_order`/`arbitrary_precision` feature union reindeer applies workspace-wide),
+and flags any file whose committed bytes differ from the canonical re-serialization. It runs as its
+`oya-cloud-ci-canonical-json-app-gate` buck2 `rust_test` under the binding `buck2 test
+//cloud/cloud-ci/...` CI job (and a labeled per-crate matrix check). The live corpus is GREEN at a
+**zero baseline** (all three codes born-blocking-empty), so any NEW non-canonical governed json fails
+closed; the `--fix` mode of the gate binary is the one-command fixer (local bridge feedback only — the
+gate test is the merge authority). The canonical form (`ensure_ascii=false` literal UTF-8, 2-space
+indent, source key order, trailing newline) is chosen consistent with the faces serializer
+(`accounting-registry::to_canonical_json`); the `*.generated.json` faces and `specs/fixtures/` are
+excluded (single-owner: faces are owned byte-verbatim by freshness, fixtures by their consuming gates).
+All policy — governed roots, canonical-form params, exclusions — is DATA in `canonical-json-policy.json`,
+so the gate runs on any repo by repointing the policy. Converts FRIC-1781130000 (escaped↔literal
+serialization churn).
 
 ## Key shapes (what a `key` identifies)
 
@@ -86,6 +105,7 @@ is DATA in `friction-accounting-policy.json`, so the gate runs on any repo by re
 - freshness: the workspace member path, sourceless lock package name, or generated face filename.
 - friction-accounting: the friction `id` (per-friction, folded across its event-sourced append rows);
   `<policy>` for the gate-id-mismatch sentinel.
+- canonical-json: the repo-relative tracked json file path (per-file).
 
 ## frozen-empty codes
 

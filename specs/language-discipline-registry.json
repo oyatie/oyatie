@@ -17,22 +17,22 @@
     "source_request": "Founder directive 2026-06-03: maintain modern Rust standards; use Buck2-native LLVM source-based coverage instead of Tarpaulin; preserve dual Cargo.toml + Buck2/Reindeer setup for local Cargo mutation testing; keep the language-discipline gate hyperscaler-oriented and suitable.",
     "official_references": [
       {
-        "name": "Rustc Book \u2014 Instrumentation-based Code Coverage",
+        "name": "Rustc Book — Instrumentation-based Code Coverage",
         "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
         "used_for": "Records the Rust coverage standard as rustc/LLVM source-based coverage with rustc -C instrument-coverage."
       },
       {
-        "name": "LLVM \u2014 Source-based Code Coverage",
+        "name": "LLVM — Source-based Code Coverage",
         "url": "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
         "used_for": "Records llvm-profdata/llvm-cov as the source-based coverage reporting path."
       },
       {
-        "name": "Buck2 \u2014 Commands",
+        "name": "Buck2 — Commands",
         "url": "https://buck2.build/docs/users/commands/",
         "used_for": "Records Buck2 target execution as local/static evidence and Build ID source."
       },
       {
-        "name": "Buck2 \u2014 Bootstrapping",
+        "name": "Buck2 — Bootstrapping",
         "url": "https://buck2.build/docs/about/bootstrapping/",
         "used_for": "Records dual Cargo+Buck2 ergonomics and reindeer-generated BUCK graph context."
       },
