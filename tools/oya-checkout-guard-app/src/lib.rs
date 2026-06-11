@@ -9,7 +9,7 @@ const MAX_NESTED_COMMAND_DEPTH: usize = 32;
 /// Subcommand placeholder used when a `-C`/`--git-dir`/`--work-tree` target is a
 /// dynamic expansion that could swallow the real subcommand (review #685 r10).
 /// Carries a `${…}` sigil so the subcommand fail-closed check denies it.
-const UNRESOLVED_TARGET_SENTINEL: &str = "${unresolved-dynamic-target}";
+const UNRESOLVED_TARGET_SENTINEL: &str = "${__unresolved__}";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Decision {
@@ -1953,6 +1953,7 @@ fn expand_with_bindings(
     ifs_unsafe: bool,
 ) -> String {
     let positional_join = positionals.join(" ");
+    let xpg_echo = command.contains("xpg_echo");
     let mut out = String::with_capacity(command.len());
     let mut chars = command.char_indices().peekable();
     let mut single_quote = false;
@@ -2019,10 +2020,15 @@ fn expand_with_bindings(
                 }
                 // Decode ANSI-C escapes — incl. \xHH / \NNN octal / \uHHHH that
                 // the shell decodes (review #685 r9 F2: `$'\x72\x65…'`→`reset`).
-                // Decode ANSI-C escapes to real chars; re-quote when it lands as
-                // an assignment RHS so `P+=$'\t--hard'` keeps the whitespace
-                // grouped, then word-splits at the unquoted use (review #685 r15).
-                emit_substitution_output(&mut out, &normalize_split_ws(&decode_ansi_c(&raw)));
+                // ANSI-C `$'…'` is a QUOTING construct → its decoded value is
+                // ALWAYS one word. Single-quote it unconditionally so adjacent
+                // segments concatenate into one word (`$'reset'$'\t--hard'` →
+                // 'reset'' --hard' → reset --hard one binding) and it never
+                // splits at the ANSI-C site itself (review #685 r15/r16 F3).
+                let decoded = normalize_split_ws(&decode_ansi_c(&raw));
+                out.push('\'');
+                out.push_str(&decoded.replace('\'', "'\\''"));
+                out.push('\'');
             }
             '$' if chars.peek().is_some_and(|(_, c)| *c == '{') => {
                 chars.next();
@@ -2101,8 +2107,17 @@ fn expand_with_bindings(
             }
             '$' if chars.peek().is_some_and(|(_, c)| *c == '(') => {
                 if let Some((end, body)) = extract_balanced_dollar_command(command, idx + 2) {
-                    match static_command_output(&body).filter(|_| !ifs_unsafe) {
+                    match static_command_output(&body, xpg_echo).filter(|_| !ifs_unsafe) {
                         Some(produced) => emit_substitution_output(&mut out, &produced),
+                        // An unmodeled VALUE-PRODUCER (printf/echo whose exact
+                        // output we cannot reproduce) → emit a sigil token so it
+                        // fails closed in git position; a real command body
+                        // (`$(git …)`, `$(curl)`) keeps its raw text so the
+                        // separate substitution-recursion still evaluates it
+                        // (review #685 r16 fail-closed allowlist).
+                        None if is_value_producer(&body) => {
+                            out.push_str(UNRESOLVED_TARGET_SENTINEL)
+                        }
                         None => out.push_str(&command[idx..=end]),
                     }
                     while chars.peek().is_some_and(|(i, _)| *i <= end) {
@@ -2140,8 +2155,17 @@ fn expand_with_bindings(
                 let start = idx + ch.len_utf8();
                 if let Some(end) = find_unescaped_backtick(command, start) {
                     let body = unescape_backtick_body(&command[start..end]);
-                    match static_command_output(&body).filter(|_| !ifs_unsafe) {
+                    match static_command_output(&body, xpg_echo).filter(|_| !ifs_unsafe) {
                         Some(produced) => emit_substitution_output(&mut out, &produced),
+                        // An unmodeled VALUE-PRODUCER (printf/echo whose exact
+                        // output we cannot reproduce) → emit a sigil token so it
+                        // fails closed in git position; a real command body
+                        // (`$(git …)`, `$(curl)`) keeps its raw text so the
+                        // separate substitution-recursion still evaluates it
+                        // (review #685 r16 fail-closed allowlist).
+                        None if is_value_producer(&body) => {
+                            out.push_str(UNRESOLVED_TARGET_SENTINEL)
+                        }
                         None => out.push_str(&command[idx..=end]),
                     }
                     while chars.peek().is_some_and(|(i, _)| *i <= end) {
@@ -2157,17 +2181,41 @@ fn expand_with_bindings(
     out
 }
 
-/// Resolve `${name}` / `${name:-default}` / `${name-default}` against the
-/// same-line bindings. Returns None for forms we cannot statically resolve.
+/// Resolve EXACTLY the modeled `${…}` parameter forms — `${name}`,
+/// `${name:-default}`, `${name-default}`, `${name:=default}`. Returns None for
+/// every other operator (`${P/x/y}`, `${P^^}`, `${P,,}`, `${P:off:len}`,
+/// `${#P}`, `${!P}`, …) so it stays unresolved → fail closed, rather than an
+/// under-approximation that drops an injected mutation (review #685 r16:
+/// fail-closed allowlist of exactly-modeled shapes, not best-effort output).
 fn resolve_param(inner: &str, bindings: &[(String, String)]) -> Option<String> {
-    if let Some((name, default)) = inner.split_once(":-").or_else(|| inner.split_once('-')) {
-        return Some(
-            binding_value(bindings, name)
-                .map(str::to_owned)
-                .unwrap_or_else(|| default.to_owned()),
-        );
+    let is_ident =
+        |s: &str| !s.is_empty() && s.chars().all(|c| c == '_' || c.is_ascii_alphanumeric());
+    // `${name:-default}` / `${name:=default}` (default when unset/empty).
+    for sep in [":-", ":="] {
+        if let Some((name, default)) = inner.split_once(sep) {
+            if is_ident(name) {
+                return Some(
+                    binding_value(bindings, name)
+                        .map(str::to_owned)
+                        .unwrap_or_else(|| default.to_owned()),
+                );
+            }
+            return None;
+        }
     }
-    if !inner.is_empty() && inner.chars().all(|c| c == '_' || c.is_ascii_alphanumeric()) {
+    // `${name-default}` (default only when UNSET) — the `name` must be a clean
+    // identifier; reject `${P/ZZ/ --}` where the part before `-` is not one.
+    if let Some((name, default)) = inner.split_once('-') {
+        if is_ident(name) {
+            return Some(
+                binding_value(bindings, name)
+                    .map(str::to_owned)
+                    .unwrap_or_else(|| default.to_owned()),
+            );
+        }
+        return None;
+    }
+    if is_ident(inner) {
         return binding_value(bindings, inner).map(str::to_owned);
     }
     None
@@ -2177,7 +2225,15 @@ fn resolve_param(inner: &str, bindings: &[(String, String)]) -> Option<String> {
 /// or `printf …` — the only forms whose output we can determine without
 /// executing them. Anything else returns None (kept verbatim, so a real
 /// `$(prog)` is never silently treated as producing a command).
-fn static_command_output(body: &str) -> Option<String> {
+/// True when a substitution body's command is a value-producer (echo/printf)
+/// whose output we attempt to model — so an unmodeled one fails closed rather
+/// than passing through (review #685 r16).
+fn is_value_producer(body: &str) -> bool {
+    let cmd = body.trim().split_once(char::is_whitespace).map_or(body.trim(), |(c, _)| c);
+    matches!(command_basename(cmd), Some("echo" | "printf"))
+}
+
+fn static_command_output(body: &str, xpg_echo: bool) -> Option<String> {
     let body = body.trim();
     let (cmd, rest) = body
         .split_once(char::is_whitespace)
@@ -2187,7 +2243,7 @@ fn static_command_output(body: &str) -> Option<String> {
             let rest = rest.trim_start();
             // `echo -e` decodes backslash escapes (\t/\n/\xNN) into REAL
             // whitespace bash then word-splits on (review #685 r15).
-            let decode = rest.starts_with("-e ") || rest.starts_with("-ne ");
+            let decode = xpg_echo || rest.starts_with("-e ") || rest.starts_with("-ne ");
             let rest = rest
                 .strip_prefix("-n ")
                 .or_else(|| rest.strip_prefix("-e "))
@@ -2212,15 +2268,37 @@ fn static_command_output(body: &str) -> Option<String> {
             // backslash escapes in the format, so `printf "reset\t--hard"` →
             // real TAB → word-splits (review #685 r15).
             // Keep escapes (strip quote chars only) so printf's \t/\n/\xNN decode
-            // to real whitespace (review #685 r15).
-            let text = strip_quote_chars(rest.trim());
-            let stripped = text
+            // to real whitespace. FAIL-CLOSED ALLOWLIST (review #685 r16): model
+            // ONLY (a) a specifier-free format, or (b) a single leading `%s`/`%b`
+            // then args. Any other format (`%-10s` width, `%s%s` multi-spec,
+            // `%c`, precision, format-reuse over N args) → None → unresolved →
+            // fail closed, never a best-effort under-approximation.
+            let mut rest = rest.trim();
+            if rest.starts_with("--") {
+                rest = rest[2..].trim_start();
+            }
+            let text = strip_quote_chars(rest);
+            let modeled = if let Some(args) = text
                 .strip_prefix("%s")
                 .or_else(|| text.strip_prefix("%b"))
-                .map(|t| t.strip_prefix("\\n").or_else(|| t.strip_prefix("\\t")).unwrap_or(t))
-                .map(str::trim_start)
-                .unwrap_or(&text);
-            Some(normalize_split_ws(&decode_ansi_c(stripped)))
+            {
+                let args = args
+                    .strip_prefix("\\n")
+                    .or_else(|| args.strip_prefix("\\t"))
+                    .unwrap_or(args)
+                    .trim_start();
+                // Reject any further specifier in the remaining format/args.
+                if args.contains('%') {
+                    None
+                } else {
+                    Some(args.to_owned())
+                }
+            } else if text.contains('%') {
+                None // unmodeled specifier in the format
+            } else {
+                Some(text.clone())
+            };
+            modeled.map(|m| normalize_split_ws(&decode_ansi_c(&m)))
         }
         _ => None,
     }
@@ -3103,6 +3181,12 @@ mod tests {
             "P=reset; P+=$'\\t--hard'; git -C /repo/oyatie $P",
             "P=$(printf \"reset\\t--hard\"); git -C /repo/oyatie $P",
             "git -C /repo/oyatie $(echo -e \"reset\\t--hard\")",
+            // r16 — fail-closed value-model allowlist.
+            "git -C /repo/oyatie $(printf \"%-10s--hard\" reset)",
+            "git -C /repo/oyatie $(printf -- \"%s\\n\" reset --hard)",
+            "P=$'reset'$'\\t--hard'; git -C /repo/oyatie $P",
+            "P=resetZZhard; git -C /repo/oyatie ${P/ZZ/ --}",
+            "shopt -s xpg_echo; git -C /repo/oyatie $(echo \"reset\\t--hard\")",
         ] {
             assert_denied(command);
         }
