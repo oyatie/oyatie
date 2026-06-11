@@ -3416,6 +3416,15 @@
       "status": "Proposed",
       "superseded_by": [],
       "supersedes": []
+    },
+    {
+      "id": "ADR-0547",
+      "in_masterplan": false,
+      "in_roadmap": false,
+      "in_spec": true,
+      "status": "Proposed",
+      "superseded_by": [],
+      "supersedes": []
     }
   ],
   "duplicate_ids": [
