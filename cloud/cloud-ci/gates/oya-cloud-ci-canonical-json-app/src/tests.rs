@@ -246,6 +246,22 @@ fn bare_fraction_number_is_parse_error() {
 }
 
 #[test]
+fn truncated_or_non_ascii_hex_escape_is_parse_error_not_a_panic() {
+    // \u followed by a multibyte scalar: parse_hex4 slices src[pos..pos+4]; if that splits a UTF-8
+    // boundary `.get` returns None -> clean parse error, never a slicing panic. The no-panic
+    // doctrine must hold on hostile input.
+    let evil = "{\"k\":\"\\u\u{1f680}\"}"; // \u then a 4-byte ROCKET
+    let err = canonicalize(evil, &literal_form()).unwrap_err();
+    assert_eq!(err.code(), "json_parse_error");
+    // truncated \u at end of input
+    let truncated = "{\"k\":\"\\u12\"}";
+    assert_eq!(
+        canonicalize(truncated, &literal_form()).unwrap_err().code(),
+        "json_parse_error"
+    );
+}
+
+#[test]
 fn unescaped_control_char_in_string_is_parse_error() {
     let err = canonicalize("[\"a\nb\"]", &literal_form()).unwrap_err();
     assert_eq!(err.code(), "json_parse_error");
