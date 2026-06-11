@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18323,
-    "source_inputs_digest": "fnv1a64:f9baa384a6ffbbba"
+    "source_inputs_digest": "fnv1a64:7068aacc3cf1849c"
   },
   "rows": [
     {
@@ -7528,7 +7528,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "8957df033cc2e55fe45b43b1ebb33e5e72d32c13",
+      "last_touch_commit": "3bcb55d2f762f82ba1d378ecca986fecbd970d6e",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/src/lib.rs",
       "reachable_from": [
