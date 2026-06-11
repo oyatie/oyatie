@@ -57,6 +57,7 @@ agent-wiring + catalog`.
 | `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition` (born-blocking-clean), `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty), `friction_orphan_update_row` |
 | `cloud-ci-canonical-json` | governance | standalone self-test (zero baseline) | `json_not_canonical` (born-blocking-empty), `json_parse_error` (born-blocking-empty), `json_duplicate_key` (born-blocking-empty) |
 | `cloud-ci-embedded-asset-hermeticity` | hermeticity | standalone self-test (own committed baseline) | `embedded_asset_unmapped_include` (born-blocking frozen-empty), `embedded_asset_policy_gate_id_mismatch` (frozen-empty); non-blocking skips: `skip_non_literal_argument`, `skip_absolute_literal`, `skip_build_output_path`, `skip_no_owning_target`, `skip_buck_unparseable` |
+| `cloud-ci-kernel-purity` | rust-cargo-workspace | standalone self-test (born-blocking, no baseline) | `KP-TRANSIENT-DEP-CARGO` (born-blocking-clean), `KP-TRANSIENT-DEP-BUCK` (born-blocking-clean), `KP-UNRESOLVED-PATH-DEP` (born-blocking-clean), `KP-STALE-EXCEPTION`, `KP-EMPTY-SCAN`, `KP-POLICY-GATE-ID-MISMATCH` |
 
 For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
 enforces the content-first, faces-only settle protocol after the content commit lands.
@@ -108,6 +109,31 @@ extension sets, build-output dirs) is DATA in `embedded-asset-hermeticity-policy
 runs on any repo by repointing the policy. Key shape: `embedded-asset-hermeticity` keys are
 `<target>::<crate-relative .rs>::<include literal>` for bound sites, or `<file>:<line>` for early
 skips (non-literal / build-output / no-owning-target); `<policy>` for the gate-id-mismatch sentinel.
+`cloud-ci-kernel-purity` (ADR-0547) is likewise a standalone born-blocking self-test, NOT a
+producer-face gate. It enforces the clean-architecture cutover seam: a crate named `*-kernel` or
+`*-core` (the cutover-stable interface seam) — and every workspace-internal crate reachable through
+its path-dependency closure — must carry zero ADR-0510 transient-tech dependencies (kube, sqlx,
+rustls, the AWS SDKs, etcd). It runs as its `oya-cloud-ci-kernel-purity-app-gate` buck2 `rust_test`
+(plus a labeled per-crate matrix check). All kernel/core crates are pure today, so it ships
+born-blocking with NO baseline file: any new kernel-with-transient-dep fails closed on arrival.
+The kernel globs, the transient denylist, the per-crate exceptions, and the liveness floor are all
+DATA in `kernel-purity-policy.json` (R0), so the gate runs on any repo by repointing the policy.
+The denylist targets transient infra adapters only — legitimate cutover-stable kernel primitives
+(`aws-lc-rs`, `libc`, `zeroize`, `tokio`) are absent from it, and `kube` exact + `kube-` hyphen
+prefix denies the kube-* family without matching the owned `kuberos`/`oya-cloud-kernel-*` crates.
+Automation-default (founder directive 2026-06-11): the `oya-cloud-ci-kernel-purity-app-bin` binary
+detects and reports by default and auto-fixes the derivable subset under `--fix` (**Cargo.toml
+only** — BUCK `--fix` is descoped to refusal-only pending the `oya-buck-syntax-kernel` fixer
+harness, FRIC-1781200001). A dead transient *normal* dep declared but unreferenced in src/build.rs
+is removed from Cargo.toml mechanically. Four safety bounds keep the Cargo fixer from corrupting a
+manifest: (i) build-deps are never auto-fixed; (ii) the remover is table-aware (never touches
+`[dev-dependencies]`/`[features]`); (iii) renamed deps are never auto-fixed; (iv) deps referenced
+in `[features]` in any syntax (`dep:X`, `X`, `X/feat`, `X?/feat`, across all dep tables) are never
+auto-fixed — `collect_features_referenced_deps` enforces this. After every Cargo edit, `cargo
+metadata` is run as a semantic revalidation gate; on failure all pre-images are restored (CRITICAL-A
+layer 2 rollback). A dep that IS used in source, is renamed, is a build-dep, or is feature-backed
+is a design action, printed with a reason-specific next step but never auto-applied. The buck2
+`rust_test` gate is the blocking backstop.
 
 ## Key shapes (what a `key` identifies)
 
@@ -127,6 +153,9 @@ skips (non-literal / build-output / no-owning-target); `<policy>` for the gate-i
 - friction-accounting: the friction `id` (per-friction, folded across its event-sourced append rows);
   `<policy>` for the gate-id-mismatch sentinel.
 - canonical-json: the repo-relative tracked json file path (per-file).
+- kernel-purity: `<kernel>:<closure-node>:<dep>` for a transient dependency (naming the kernel, the
+  closure crate that carries the dep, and the dep); `<crate>:<dep>` for a stale exception; `<policy>`
+  for the empty-scan and gate-id-mismatch sentinels.
 
 ## frozen-empty codes
 
