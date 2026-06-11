@@ -8,3 +8,15 @@ rust_library(
         "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
     ],
 )
+
+rust_test(
+    name = "oya-identity-api-identity-user-upsert-api",
+    srcs = ["tests/identity_user_upsert_api.rs"],
+    crate = "oya_identity_api_identity_user_upsert_api",
+    crate_root = "tests/identity_user_upsert_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-identity-api",
+        "//oya/identity/crates/oya-identity-domain:oya-identity-domain",
+    ],
+)

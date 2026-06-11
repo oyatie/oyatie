@@ -9,3 +9,15 @@ rust_library(
         "//oya/workflow-engine/crates/oya-saas-workflow-kernel:oya-saas-workflow-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-saas-workflow-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_saas_workflow_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//oya/workflow-engine/crates/oya-saas-workflow-domain:oya-saas-workflow-domain",
+        "//oya/workflow-engine/crates/oya-saas-workflow-kernel:oya-saas-workflow-kernel",
+    ],
+)

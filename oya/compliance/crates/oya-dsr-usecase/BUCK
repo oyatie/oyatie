@@ -9,3 +9,16 @@ rust_library(
         "//oya/compliance/crates/oya-dsr-domain:oya-dsr-domain",
     ],
 )
+
+rust_test(
+    name = "oya-dsr-usecase-dsr-cascade-execute-api",
+    srcs = ["tests/dsr_cascade_execute_api.rs"],
+    crate = "oya_dsr_usecase_dsr_cascade_execute_api",
+    crate_root = "tests/dsr_cascade_execute_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-dsr-usecase",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/compliance/crates/oya-dsr-domain:oya-dsr-domain",
+    ],
+)

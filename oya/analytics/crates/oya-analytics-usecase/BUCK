@@ -10,3 +10,16 @@ rust_library(
         "third-party//:serde",
     ],
 )
+
+rust_test(
+    name = "oya-analytics-usecase-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_analytics_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "//oya/analytics/crates/oya-analytics-domain:oya-analytics-domain",
+        "third-party//:serde",
+    ],
+)

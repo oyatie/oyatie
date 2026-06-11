@@ -10,3 +10,16 @@ rust_library(
         "third-party//:serde",
     ],
 )
+
+rust_test(
+    name = "oya-managed-k8s-tenant-quota-adapter-inmemory-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_managed_k8s_tenant_quota_adapter_inmemory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api:oya-managed-k8s-tenant-quota-api",
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel:oya-managed-k8s-tenant-quota-kernel",
+        "third-party//:serde",
+    ],
+)

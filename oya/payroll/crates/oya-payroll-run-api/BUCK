@@ -11,3 +11,18 @@ rust_library(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-payroll-run-api-contracts",
+    srcs = ["tests/contracts.rs"],
+    crate = "oya_payroll_run_api_contracts",
+    crate_root = "tests/contracts.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-api",
+        "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

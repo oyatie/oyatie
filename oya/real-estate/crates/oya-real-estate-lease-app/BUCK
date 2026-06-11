@@ -31,3 +31,20 @@ rust_binary(
         "third-party//:tracing-subscriber",
     ],
 )
+
+rust_test(
+    name = "oya-real-estate-lease-app-integration",
+    srcs = ["tests/integration.rs"],
+    crate = "oya_real_estate_lease_app_integration",
+    crate_root = "tests/integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-real-estate-lease-app",
+        "third-party//:clap",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:toml",
+        "third-party//:tracing",
+        "third-party//:tracing-subscriber",
+    ],
+)

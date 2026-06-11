@@ -9,3 +9,54 @@ rust_library(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-workflow-studio-dsl-emitter-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_workflow_studio_dsl_emitter_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-workflow-studio-dsl-emitter-domain-graph-integrity",
+    srcs = ["tests/graph_integrity.rs"],
+    crate = "oya_workflow_studio_dsl_emitter_domain_graph_integrity",
+    crate_root = "tests/graph_integrity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-workflow-studio-dsl-emitter-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-workflow-studio-dsl-emitter-domain-node-typology",
+    srcs = ["tests/node_typology.rs"],
+    crate = "oya_workflow_studio_dsl_emitter_domain_node_typology",
+    crate_root = "tests/node_typology.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-workflow-studio-dsl-emitter-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-workflow-studio-dsl-emitter-domain-structural-validation",
+    srcs = ["tests/structural_validation.rs"],
+    crate = "oya_workflow_studio_dsl_emitter_domain_structural_validation",
+    crate_root = "tests/structural_validation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-workflow-studio-dsl-emitter-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

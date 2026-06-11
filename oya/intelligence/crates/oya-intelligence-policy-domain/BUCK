@@ -9,3 +9,16 @@ rust_library(
         "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
     ],
 )
+
+rust_test(
+    name = "oya-intelligence-policy-domain-autonomy-decision",
+    srcs = ["tests/autonomy_decision.rs"],
+    crate = "oya_intelligence_policy_domain_autonomy_decision",
+    crate_root = "tests/autonomy_decision.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-intelligence-policy-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//oya/intelligence/crates/oya-intelligence-capability-domain:oya-intelligence-capability-domain",
+    ],
+)

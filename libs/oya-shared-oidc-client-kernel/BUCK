@@ -10,3 +10,17 @@ rust_library(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "oya-shared-oidc-client-kernel-oidc-client-kernel",
+    srcs = ["tests/oidc_client_kernel.rs"],
+    crate = "oya_shared_oidc_client_kernel_oidc_client_kernel",
+    crate_root = "tests/oidc_client_kernel.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-shared-oidc-client-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+    ],
+)

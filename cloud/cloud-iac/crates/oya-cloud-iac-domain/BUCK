@@ -5,3 +5,56 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
+
+rust_test(
+    name = "oya-cloud-iac-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_cloud_iac_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "oya-cloud-iac-domain-cloud-iac-foundation",
+    srcs = ["tests/cloud_iac_foundation.rs"],
+    crate = "oya_cloud_iac_domain_cloud_iac_foundation",
+    crate_root = "tests/cloud_iac_foundation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-iac-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-iac-domain-gitops-drift-reconciliation",
+    srcs = ["tests/gitops_drift_reconciliation.rs"],
+    crate = "oya_cloud_iac_domain_gitops_drift_reconciliation",
+    crate_root = "tests/gitops_drift_reconciliation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-iac-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-iac-domain-iac-plan-diff",
+    srcs = ["tests/iac_plan_diff.rs"],
+    crate = "oya_cloud_iac_domain_iac_plan_diff",
+    crate_root = "tests/iac_plan_diff.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-iac-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-iac-domain-opentofu-plan-changeset",
+    srcs = ["tests/opentofu_plan_changeset.rs"],
+    crate = "oya_cloud_iac_domain_opentofu_plan_changeset",
+    crate_root = "tests/opentofu_plan_changeset.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-iac-domain",
+    ],
+)

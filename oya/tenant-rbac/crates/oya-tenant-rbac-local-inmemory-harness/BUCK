@@ -20,3 +20,27 @@ rust_library(
         "//oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory:oya-tenant-rbac-workflow-adapter-inmemory",
     ],
 )
+
+rust_test(
+    name = "oya-tenant-rbac-local-inmemory-harness-harness",
+    srcs = ["tests/harness.rs"],
+    crate = "oya_tenant_rbac_local_inmemory_harness_harness",
+    crate_root = "tests/harness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-tenant-rbac-local-inmemory-harness",
+        "//oya/accounting/crates/oya-accounting-journal-app:oya-accounting-journal-app",
+        "//oya/accounting/crates/oya-accounting-journal-domain:oya-accounting-journal-domain",
+        "//oya/accounting/crates/oya-accounting-journal-storage-adapter-inmemory:oya-accounting-journal-storage-adapter-inmemory",
+        "//oya/hr/crates/oya-hr-employment-app:oya-hr-employment-app",
+        "//oya/hr/crates/oya-hr-employment-domain:oya-hr-employment-domain",
+        "//oya/hr/crates/oya-hr-employment-storage-adapter-inmemory:oya-hr-employment-storage-adapter-inmemory",
+        "//oya/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "//oya/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+        "//oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory:oya-payroll-run-storage-adapter-inmemory",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-usecase:oya-tenant-rbac-usecase",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-domain:oya-tenant-rbac-domain",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory:oya-tenant-rbac-storage-adapter-inmemory",
+        "//oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory:oya-tenant-rbac-workflow-adapter-inmemory",
+    ],
+)

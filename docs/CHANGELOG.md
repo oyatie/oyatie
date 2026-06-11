@@ -3,6 +3,12 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-10 — G011 main-checkout guard Rust hook pattern added
+
+- Added the Rust-owned main-checkout guard hook pattern for FRIC-022 / FRIC-1781062867.
+- Updated ADR-0523 with the constrained agent-hook exec shim row: shell may only locate and exec
+  the Rust hook binary, with fail-open behavior when the local binary is absent.
+
 ## 2026-06-10 — FRIC-012 enforcement-liveness gate added
 
 - Added `cloud-ci-enforcement-liveness` to make tracked hook scripts mechanically live across
