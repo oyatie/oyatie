@@ -4664,6 +4664,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-kms-operator-app"
+version = "0.1.0"
+dependencies = [
+ "kube",
+ "oya-cloud-kms-domain",
+ "oya-cloud-kms-operator-k8s-adapter",
+ "oya-cloud-kms-operator-kernel",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-cloud-kms-operator-k8s-adapter"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "oya-cloud-kms-domain",
+ "oya-cloud-kms-operator-kernel",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "oya-cloud-kms-operator-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "oya-cloud-marketplace-domain"
 version = "0.1.0"
 dependencies = [

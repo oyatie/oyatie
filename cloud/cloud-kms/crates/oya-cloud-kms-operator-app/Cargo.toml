@@ -1,0 +1,28 @@
+[package]
+name = "oya-cloud-kms-operator-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_cloud_kms_operator_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-cloud-kms-operator"
+path = "src/main.rs"
+
+[dependencies]
+oya-cloud-kms-domain = { path = "../oya-cloud-kms-domain" }
+oya-cloud-kms-operator-k8s-adapter = { path = "../oya-cloud-kms-operator-k8s-adapter" }
+oya-cloud-kms-operator-kernel = { path = "../oya-cloud-kms-operator-kernel" }
+kube = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true
