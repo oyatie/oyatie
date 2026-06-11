@@ -1763,34 +1763,26 @@ fn collect_same_line_bindings(command: &str) -> Vec<(String, String)> {
             continue;
         }
         let rest = &word[name_len..];
+        // Bash expands an assignment's RHS at the assignment's EXECUTION point,
+        // so `$ref` sees only the bindings to its LEFT — never a later
+        // reassignment (`A=reset; B=$A; A=log` binds B=reset). Resolving
+        // against the final last-wins map diverged from bash and ALLOWed
+        // `git -C <canonical> $B --hard` (review #685 r19 F1). The left-fold
+        // also removes the r18 fixpoint: left-only references cannot cycle,
+        // and a still-unresolved ref propagates its sigil into the referencing
+        // value, which the filter below drops → fail closed at the use site.
         if let Some(value) = rest.strip_prefix("+=") {
+            let value = resolve_binding_refs(value, &acc);
             match acc.iter_mut().find(|(n, _)| n == name) {
-                Some(entry) => entry.1.push_str(value),
-                None => acc.push((name.to_owned(), value.to_owned())),
+                Some(entry) => entry.1.push_str(&value),
+                None => acc.push((name.to_owned(), value)),
             }
         } else if let Some(value) = rest.strip_prefix('=') {
+            let value = resolve_binding_refs(value, &acc);
             match acc.iter_mut().find(|(n, _)| n == name) {
-                Some(entry) => entry.1 = value.to_owned(),
-                None => acc.push((name.to_owned(), value.to_owned())),
+                Some(entry) => entry.1 = value,
+                None => acc.push((name.to_owned(), value)),
             }
-        }
-    }
-    // Transitively resolve `$name`/`${name}` references between bindings
-    // (`V=reset; W=$V` → `W=reset`) to a bounded fixpoint (review #685 r18 F2).
-    for _ in 0..8 {
-        let snapshot = acc.clone();
-        let mut changed = false;
-        for (_, value) in acc.iter_mut() {
-            if value.contains('$') {
-                let resolved = resolve_binding_refs(value, &snapshot);
-                if resolved != *value {
-                    *value = resolved;
-                    changed = true;
-                }
-            }
-        }
-        if !changed {
-            break;
         }
     }
     // Keep only fully-resolved values; any residual expansion sigil leaves the
@@ -3353,8 +3345,28 @@ mod tests {
             "git -C /repo/oyatie $(printf \"$(echo reset) --hard\")",
             "V=reset; W=$V; git -C /repo/oyatie ${W:-x} --hard",
             "set -- reset; git -C /repo/oyatie ${1:-x} --hard",
+            // r19 F1 — RHS expands at the assignment's execution point: a later
+            // reassignment must NOT retro-rewrite an earlier capture (bash binds
+            // B=reset here; resolving against the final last-wins map modeled
+            // B=log and ALLOWed the wipe).
+            "A=reset; B=$A; A=log; git -C /repo/oyatie $B --hard",
+            "A=/repo/oyatie; B=$A; A=/tmp/elsewhere; git -C $B reset --hard",
+            "A=reset; A+=\" --hard\"; B=$A; A=log; git -C /repo/oyatie $B",
         ] {
             assert_denied(command);
+        }
+    }
+
+    #[test]
+    fn binding_capture_order_is_not_a_false_positive() {
+        // The left-fold must keep modeling values faithfully: a capture-then-
+        // reassign chain whose CAPTURED value is a read must still ALLOW
+        // (review #685 r19 — the inverse of the stale-overwrite bypass).
+        for command in [
+            ("A=log; B=$A; A=reset; git -C /repo/oyatie $B", CANONICAL),
+            ("A=sta; B=${A}tus; A=reset; git -C /repo/oyatie $B", CANONICAL),
+        ] {
+            assert_allowed(command.0, command.1, Some(CANONICAL));
         }
     }
 
