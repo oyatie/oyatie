@@ -3963,6 +3963,13 @@ name = "oya-check-wasm-runtime-discipline"
 version = "0.1.0"
 
 [[package]]
+name = "oya-checkout-guard-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "oya-ci-config-kernel"
 version = "0.1.0"
 dependencies = [
