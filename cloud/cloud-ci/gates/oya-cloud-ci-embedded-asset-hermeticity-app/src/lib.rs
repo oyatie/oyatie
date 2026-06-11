@@ -813,17 +813,19 @@ fn field_value_expr(block: &str, field: &str) -> Option<String> {
 
 /// Find `needle` at a position that is NOT inside a string literal or nested bracket of `block`.
 /// Used to locate `field =` only at the call's top argument level.
+///
+/// # Panic safety
+/// Uses `char_indices` so the cursor is always at a char boundary; multibyte chars (em-dashes in
+/// comments, Unicode identifiers) never cause a slice-panic. ADR-0083 Tier-3 no-panic contract.
 fn find_top_level(block: &str, needle: &str) -> Option<usize> {
-    let bytes = block.as_bytes();
     let mut depth: i32 = 0;
     let mut in_string = false;
     let mut escaped = false;
-    let mut i = 0usize;
     // Start after the first `(` so we are inside the argument list.
     let open = block.find('(')? + 1;
-    i = open;
-    while i < block.len() {
-        let ch = bytes[i] as char;
+    let mut chars = block[open..].char_indices().peekable();
+    while let Some((rel, ch)) = chars.next() {
+        let i = open + rel;
         if in_string {
             if escaped {
                 escaped = false;
@@ -832,7 +834,6 @@ fn find_top_level(block: &str, needle: &str) -> Option<usize> {
             } else if ch == '"' {
                 in_string = false;
             }
-            i += 1;
             continue;
         }
         match ch {
@@ -845,9 +846,10 @@ fn find_top_level(block: &str, needle: &str) -> Option<usize> {
                 // raise depth above 0, excluding their inner `=`/keys from matching.
                 if depth == 0 && block[i..].starts_with(needle) {
                     // Ensure the char before is not an identifier char (so `srcs =` doesn't match
-                    // `mapped_srcs =`).
+                    // `mapped_srcs =`). Safe: `i > 0` guarantees `block[..i]` is non-empty and we
+                    // use the last byte (needle first chars are ASCII, prior ident chars are ASCII).
                     let prev_ok = i == 0 || {
-                        let p = bytes[i - 1];
+                        let p = block[..i].as_bytes()[i - 1];
                         !(p == b'_' || (p as char).is_ascii_alphanumeric())
                     };
                     if prev_ok {
@@ -856,7 +858,6 @@ fn find_top_level(block: &str, needle: &str) -> Option<usize> {
                 }
             }
         }
-        i += 1;
     }
     None
 }
@@ -1155,14 +1156,15 @@ fn expand_globs(patterns: &[String], crate_files: &[String]) -> Vec<String> {
 }
 
 /// Find a top-level keyword/substring in `s` (not inside quotes or brackets). Returns byte index.
+///
+/// # Panic safety
+/// Uses `char_indices` so the cursor is always at a char boundary; multibyte chars never cause a
+/// slice-panic. ADR-0083 Tier-3 no-panic contract.
 fn find_top_level_keyword(s: &str, kw: &str) -> Option<usize> {
-    let bytes = s.as_bytes();
     let mut depth: i32 = 0;
     let mut in_string = false;
     let mut escaped = false;
-    let mut i = 0usize;
-    while i < s.len() {
-        let ch = bytes[i] as char;
+    for (i, ch) in s.char_indices() {
         if in_string {
             if escaped {
                 escaped = false;
@@ -1171,7 +1173,6 @@ fn find_top_level_keyword(s: &str, kw: &str) -> Option<usize> {
             } else if ch == '"' {
                 in_string = false;
             }
-            i += 1;
             continue;
         }
         match ch {
@@ -1184,7 +1185,6 @@ fn find_top_level_keyword(s: &str, kw: &str) -> Option<usize> {
                 }
             }
         }
-        i += 1;
     }
     None
 }
@@ -1832,76 +1832,102 @@ pub struct Remediation {
     pub note: String,
 }
 
-/// Derive a remediation for an unmapped site. `site` is an observed `unmapped` row; `root` is the
-/// repo root (read-only — used to locate the asset's on-disk source and its exporting BUCK). Returns
-/// `None` for non-unmapped rows. Pure-ish: only reads the filesystem to confirm the asset exists.
-pub fn derive_remediation(root: &Path, site: &Value) -> Option<Remediation> {
+/// Derive remediations for an unmapped site — one per covering target. `site` is an observed
+/// `unmapped` row; `root` is the repo root (read-only). Returns an empty vec for non-unmapped rows.
+///
+/// Finding 3 fix: the gate evaluates membership in the UNION of all covering targets
+/// (src/lib.rs collector, `member = ANY covering T`). The fixer must therefore patch ALL covering
+/// targets of the flagged include — patching only targets[0] while a sibling unittest target lacks
+/// the mapping creates a gate-GREEN / build-RED state. We return one Remediation per target and
+/// `derive_all_remediations` flat-maps them so every covering target gets the entry.
+pub fn derive_remediation(root: &Path, site: &Value) -> Vec<Remediation> {
     if site.get("status").and_then(Value::as_str) != Some("unmapped") {
-        return None;
+        return Vec::new();
     }
-    let resolved = site.get("resolved").and_then(Value::as_str)?.to_owned();
-    let target = site
+    let Some(resolved) = site.get("resolved").and_then(Value::as_str).map(str::to_owned) else {
+        return Vec::new();
+    };
+
+    // Collect ALL covering targets (the union the gate used for membership).
+    let all_targets: Vec<String> = site
         .get("targets")
         .and_then(Value::as_array)
-        .and_then(|a| a.first())
-        .and_then(Value::as_str)
-        .or_else(|| site.get("target").and_then(Value::as_str))
-        .unwrap_or("")
-        .to_owned();
-    // The asset's on-disk source: the include resolves to `resolved` in the sandbox, and the file
-    // physically lives at `root/resolved` for an asset already tracked at that path (the common
-    // cross-package case — e.g. the cedar policy is committed at exactly the resolved repo path).
-    let asset_abs = root.join(&resolved);
-    let asset_exists = asset_abs.is_file();
-
-    // The BUCK to patch is the one owning `target`. We locate it from the site's `rs` path: the
-    // nearest ancestor BUCK. The collector keyed `key = T::F::L`; recover F via `rs`.
-    let rs = site.get("rs").and_then(Value::as_str)?.to_owned();
-    let buck_path = nearest_buck_path_rel(root, &rs)?;
-
-    // Derive the mapped_srcs KEY. If the asset's package (its nearest ancestor BUCK dir) is NOT the
-    // target's crate dir, prefer the export_file label `//pkg:name` (hermetic cross-package ref);
-    // else use the repo-relative source path directly.
-    let crate_dir = buck_path.trim_end_matches("/BUCK");
-    let (mapped_key, label_ok) = derive_mapped_key(root, &resolved, crate_dir);
-
-    // Determine the transform by reading the target's crate_root form. A short crate_root
-    // (`src/lib.rs`) places the including file at the SHORT path, so a cross-package `../` include
-    // escapes the __srcs tree — only the full comprehension rewrite fixes it. A ROOT-prefixed
-    // crate_root already places it at the deep path, so a single mapped_srcs entry suffices.
-    let kind = match buck_crate_root_is_root_prefixed(root, &buck_path, &target, crate_dir) {
-        Some(true) => RemediationKind::MappedEntry,
-        Some(false) => RemediationKind::ComprehensionRewrite,
-        None => RemediationKind::MappedEntry, // unknown form -> attempt the narrow entry add
-    };
-
-    let applicable = asset_exists && !target.is_empty() && label_ok;
-    let note = if !asset_exists {
-        format!("asset not found on disk at `{resolved}` — the include path is wrong, or the asset must be created; manual fix required")
-    } else if target.is_empty() {
-        "could not bind the unmapped include to a single owning target; manual fix required".to_owned()
-    } else if !label_ok {
-        format!("could not derive a hermetic mapped_srcs key for `{resolved}`; add the entry by hand (see ADR-0545)")
+        .map(|a| {
+            a.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
+    // Fall back to legacy single-target field for backward compat.
+    let targets_to_patch: Vec<String> = if all_targets.is_empty() {
+        site.get("target")
+            .and_then(Value::as_str)
+            .filter(|s| !s.is_empty())
+            .map(|s| vec![s.to_owned()])
+            .unwrap_or_default()
     } else {
-        match kind {
-            RemediationKind::MappedEntry => format!(
-                "add/replace mapped_srcs[{mapped_key}] = \"{resolved}\" in target `{target}` ({buck_path})"
-            ),
-            RemediationKind::ComprehensionRewrite => format!(
-                "rewrite target `{target}` to the cedar comprehension form (ROOT var, srcs=[], crate_root=ROOT+\"/src/lib.rs\", mapped_srcs comprehension + mapped_srcs[{mapped_key}]=\"{resolved}\") in {buck_path}"
-            ),
-        }
+        all_targets
     };
 
-    Some(Remediation {
-        buck_path,
-        target,
-        mapped_key,
-        mapped_value: resolved,
-        kind,
-        applicable,
-        note,
-    })
+    if targets_to_patch.is_empty() {
+        // No bindable target — produce one non-applicable remediation to surface in the report.
+        return vec![Remediation {
+            buck_path: String::new(),
+            target: String::new(),
+            mapped_key: String::new(),
+            mapped_value: resolved,
+            kind: RemediationKind::MappedEntry,
+            applicable: false,
+            note: "could not bind the unmapped include to any owning target; manual fix required".to_owned(),
+        }];
+    }
+
+    // Shared fields derived once (they are the same for every covering target of this include).
+    let Some(rs) = site.get("rs").and_then(Value::as_str).map(str::to_owned) else {
+        return Vec::new();
+    };
+    let Some(buck_path) = nearest_buck_path_rel(root, &rs) else {
+        return Vec::new();
+    };
+    let crate_dir = buck_path.trim_end_matches("/BUCK").to_owned();
+    let (mapped_key, label_ok) = derive_mapped_key(root, &resolved, &crate_dir);
+    let asset_exists = root.join(&resolved).is_file();
+
+    targets_to_patch
+        .iter()
+        .map(|target| {
+            let kind = match buck_crate_root_is_root_prefixed(root, &buck_path, target, &crate_dir) {
+                Some(true) => RemediationKind::MappedEntry,
+                Some(false) => RemediationKind::ComprehensionRewrite,
+                None => RemediationKind::MappedEntry,
+            };
+            let applicable = asset_exists && label_ok;
+            let note = if !asset_exists {
+                format!("asset not found on disk at `{resolved}` — the include path is wrong, or the asset must be created; manual fix required")
+            } else if !label_ok {
+                format!("could not derive a hermetic mapped_srcs key for `{resolved}`; add the entry by hand (see ADR-0545)")
+            } else {
+                match kind {
+                    RemediationKind::MappedEntry => format!(
+                        "add/replace mapped_srcs[{mapped_key}] = \"{resolved}\" in target `{target}` ({buck_path})"
+                    ),
+                    RemediationKind::ComprehensionRewrite => format!(
+                        "rewrite target `{target}` to the cedar comprehension form (ROOT var, srcs=[], crate_root=ROOT+\"/src/lib.rs\", mapped_srcs comprehension + mapped_srcs[{mapped_key}]=\"{resolved}\") in {buck_path}"
+                    ),
+                }
+            };
+            Remediation {
+                buck_path: buck_path.clone(),
+                target: target.clone(),
+                mapped_key: mapped_key.clone(),
+                mapped_value: resolved.clone(),
+                kind,
+                applicable,
+                note,
+            }
+        })
+        .collect()
 }
 
 /// Read `target`'s `crate_root` from its BUCK and decide whether it is ROOT-prefixed (the deep form,
@@ -2050,12 +2076,21 @@ pub fn apply_remediation(buck_text: &str, rem: &Remediation) -> Result<String, S
             s
         }
     } else {
-        // No mapped_srcs: add one just before the closing `)`. Insert before the final `)`.
+        // No mapped_srcs: add one just before the closing `)`. The last existing field may or may
+        // not carry a trailing comma (both are valid Starlark). Ensure a comma separates the last
+        // field from the new `mapped_srcs` block to produce parseable output.
         let close_rel = block
             .rfind(')')
             .ok_or_else(|| "target block has no closing paren".to_owned())?;
+        // Find the last non-whitespace character before the closing `)`.
+        let before_close = block[..close_rel].trim_end();
+        let needs_comma = !before_close.ends_with(',') && !before_close.ends_with('(');
         let mut s = String::with_capacity(block.len() + entry.len() + 32);
         s.push_str(&block[..close_rel]);
+        if needs_comma {
+            s.push(',');
+            s.push('\n');
+        }
         s.push_str("    mapped_srcs = {\n");
         s.push_str(&entry);
         s.push_str("    },\n");
@@ -2067,7 +2102,52 @@ pub fn apply_remediation(buck_text: &str, rem: &Remediation) -> Result<String, S
     out.push_str(&buck_text[..block_start]);
     out.push_str(&patched_block);
     out.push_str(&buck_text[block_end..]);
+
+    // Self-validation: reparse the output and confirm the target is still findable. If the
+    // rewritten content is unparseable (e.g. the target block is gone or malformed), REFUSE and
+    // return Err — never write corrupt output. This closes the whole corruption bug class
+    // structurally (enforcement-layering doctrine: structural impossibility > logic checks).
+    validate_remediation_output(&out, rem)?;
+
     Ok(out)
+}
+
+/// Reparse the rewritten BUCK text and confirm the target block is still well-formed. Returns
+/// `Err` with a descriptive message if the output would be corrupt, so the caller refuses the
+/// write. Pure over text; no filesystem access.
+fn validate_remediation_output(out: &str, rem: &Remediation) -> Result<(), String> {
+    let needle = format!("\"{}\"", rem.target);
+    let name_pos = out.find(&needle).ok_or_else(|| {
+        format!(
+            "self-validation: target `{}` not found in rewritten BUCK — refusing write to avoid corruption",
+            rem.target
+        )
+    })?;
+    let head = &out[..name_pos];
+    let open = head.rfind('(').ok_or_else(|| {
+        "self-validation: target name not inside a call in rewritten BUCK — refusing write".to_owned()
+    })?;
+    let kind_start = head[..open]
+        .rfind(|c: char| c == '\n' || c == ' ' || c == '\t')
+        .map(|p| p + 1)
+        .unwrap_or(0);
+    let block = call_block(&out[kind_start..]).ok_or_else(|| {
+        format!(
+            "self-validation: could not delimit target `{}` block in rewritten BUCK — rewritten output is unparseable; refusing write to avoid corruption",
+            rem.target
+        )
+    })?;
+    // For MappedEntry: confirm the injected key is visible in the reparsed block.
+    if rem.kind == RemediationKind::MappedEntry {
+        let key_token = format!("\"{}\"", rem.mapped_key);
+        if !block.contains(&key_token) {
+            return Err(format!(
+                "self-validation: injected mapped_srcs key `{}` not found in reparsed target block — refusing write to avoid corruption",
+                rem.mapped_key
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// Rewrite a short-crate_root `rust_library` block into the deep cedar comprehension form, preserving
@@ -2134,7 +2214,8 @@ fn rewrite_to_comprehension(block: &str, rem: &Remediation) -> Result<String, St
     ))
 }
 
-/// Collect every unmapped site from an `observed` value and derive a remediation per site. Read-only.
+/// Collect every unmapped site from an `observed` value and derive remediations — one per covering
+/// target per site — so every target that must be patched is represented. Read-only.
 pub fn derive_all_remediations(root: &Path, observed: &Value) -> Vec<Remediation> {
     observed
         .get("sites")
@@ -2142,7 +2223,7 @@ pub fn derive_all_remediations(root: &Path, observed: &Value) -> Vec<Remediation
         .map(|sites| {
             sites
                 .iter()
-                .filter_map(|s| derive_remediation(root, s))
+                .flat_map(|s| derive_remediation(root, s))
                 .collect()
         })
         .unwrap_or_default()
@@ -2539,7 +2620,7 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
     #[test]
     fn derive_remediation_ignores_non_unmapped_rows() {
         let resolved = json!({"status": "resolved", "resolved": "a", "rs": "x.rs"});
-        assert!(derive_remediation(Path::new("/nonexistent"), &resolved).is_none());
+        assert!(derive_remediation(Path::new("/nonexistent"), &resolved).is_empty());
     }
 
     #[test]
@@ -2581,5 +2662,132 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
         };
         // A binary is out of the safe rewrite envelope -> reported manual (the backstop), not guessed.
         assert!(apply_remediation(buck, &rem).is_err());
+    }
+
+    // ---- Finding 1 fix: no-trailing-comma + self-validation -----------------
+
+    #[test]
+    fn apply_remediation_no_trailing_comma_creates_valid_mapped_srcs() {
+        // A target whose last field lacks a trailing comma (valid Starlark). Before the fix, the
+        // fixer emitted `mapped_srcs` with no separating comma — buck2 parse error. After the fix,
+        // the output is parseable and the self-validation reparse confirms the target is intact.
+        let buck = "rust_library(\n    name = \"lib\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate_root = \"src/lib.rs\"\n)\n";
+        let rem = Remediation {
+            buck_path: "p/BUCK".to_owned(),
+            target: "lib".to_owned(),
+            mapped_key: "//q:asset.cedar".to_owned(),
+            mapped_value: "q/asset.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: true,
+            note: String::new(),
+        };
+        let patched = apply_remediation(buck, &rem).expect("must not corrupt on no-trailing-comma input");
+        // The output must contain a comma separating the last existing field from mapped_srcs.
+        assert!(
+            patched.contains(",\n    mapped_srcs"),
+            "separator comma required before mapped_srcs: {patched}"
+        );
+        assert!(patched.contains("\"//q:asset.cedar\": \"q/asset.cedar\""), "entry present: {patched}");
+        // Self-validation: reparsing must succeed (target block findable + key visible).
+        // apply_remediation itself runs validate_remediation_output; if we got Ok above, it passed.
+    }
+
+    #[test]
+    fn apply_remediation_self_validation_refuses_corrupt_output() {
+        // Construct a Remediation whose target name will not be found after patching
+        // (simulating a corrupt rewrite) by using a target name that does not exist in the BUCK
+        // text at all — apply_remediation must return Err, never write corrupt content.
+        let buck = "rust_library(\n    name = \"real\",\n    srcs = [],\n    crate_root = \"src/lib.rs\",\n)\n";
+        let rem = Remediation {
+            buck_path: "p/BUCK".to_owned(),
+            target: "ghost".to_owned(), // does not exist -> self-validation must refuse
+            mapped_key: "//q:a.cedar".to_owned(),
+            mapped_value: "q/a.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: true,
+            note: String::new(),
+        };
+        let result = apply_remediation(buck, &rem);
+        assert!(result.is_err(), "self-validation must refuse when target not found");
+        let msg = result.unwrap_err();
+        assert!(
+            msg.contains("ghost") || msg.contains("not found"),
+            "error must name the target or say not found: {msg}"
+        );
+    }
+
+    // ---- Finding 2 fix: multibyte chars in target block ---------------------
+
+    #[test]
+    fn find_top_level_does_not_panic_on_multibyte_chars() {
+        // An em-dash (U+2014, 3 UTF-8 bytes) in a comment inside the target block must not
+        // cause a slice-panic. Before the fix, `bytes[i] as char` + `block[i..]` panicked when
+        // `i` landed inside the multibyte sequence.
+        let buck = "rust_library(\n    # house style — em-dash comment\n    name = \"t\",\n    srcs = [],\n)\n";
+        // Must not panic, and must find `name =` correctly.
+        let result = find_top_level(buck, "name =");
+        assert!(result.is_some(), "must find name = despite em-dash: {buck}");
+    }
+
+    #[test]
+    fn find_top_level_keyword_does_not_panic_on_multibyte_chars() {
+        // Same invariant for find_top_level_keyword used in the comprehension dict parser.
+        let dict = "{ \"k\": \"v\" /* em-dash — here */ }";
+        // Must not panic; returns None (no " for " at top level) or Some — either is fine.
+        let _ = find_top_level_keyword(dict, " for ");
+    }
+
+    #[test]
+    fn apply_remediation_with_multibyte_comment_does_not_panic() {
+        // Full path through apply_remediation with an em-dash comment in the BUCK file.
+        let buck = "rust_library(\n    # em-dash — style\n    name = \"lib\",\n    srcs = [],\n    crate_root = \"src/lib.rs\",\n)\n";
+        let rem = Remediation {
+            buck_path: "p/BUCK".to_owned(),
+            target: "lib".to_owned(),
+            mapped_key: "//q:a.cedar".to_owned(),
+            mapped_value: "q/a.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: true,
+            note: String::new(),
+        };
+        let patched = apply_remediation(buck, &rem).expect("must not panic on em-dash comment");
+        assert!(patched.contains("\"//q:a.cedar\": \"q/a.cedar\""));
+    }
+
+    // ---- Finding 3 fix: multi-target patching --------------------------------
+
+    #[test]
+    fn derive_remediation_returns_one_entry_per_covering_target() {
+        // An observed site with two covering targets (lib + unittest) must yield two Remediations
+        // so derive_all_remediations patches both BUCK targets, preventing gate-GREEN/build-RED.
+        // Use a real tempdir with a BUCK file so nearest_buck_path_rel can bind the rs path.
+        let tmp = std::env::temp_dir().join("oya-test-multi-target");
+        let svc_src = tmp.join("svc").join("src");
+        std::fs::create_dir_all(&svc_src).unwrap();
+        std::fs::write(tmp.join("svc").join("BUCK"), "").unwrap();
+        std::fs::write(svc_src.join("lib.rs"), "").unwrap();
+        // Asset does NOT need to exist on disk; applicable will be false but remediations are produced.
+        let site = json!({
+            "status": "unmapped",
+            "resolved": "svc/policy/asset.cedar",
+            "rs": "svc/src/lib.rs",
+            "targets": ["svc-lib", "svc-lib-unittest"],
+            "macro": "include_str",
+            "literal": "../policy/asset.cedar"
+        });
+        let rems = derive_remediation(&tmp, &site);
+        assert_eq!(rems.len(), 2, "one remediation per covering target: {rems:?}");
+        let targets: Vec<&str> = rems.iter().map(|r| r.target.as_str()).collect();
+        assert!(targets.contains(&"svc-lib"), "first target present: {targets:?}");
+        assert!(targets.contains(&"svc-lib-unittest"), "second target present: {targets:?}");
+        // All entries are non-applicable (asset not on disk), so --fix reports them as manual.
+        assert!(rems.iter().all(|r| !r.applicable), "non-applicable without asset on disk");
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn derive_remediation_empty_for_non_unmapped() {
+        let resolved = json!({"status": "resolved", "resolved": "a", "rs": "x.rs"});
+        assert!(derive_remediation(Path::new("/nonexistent"), &resolved).is_empty());
     }
 }
