@@ -1308,11 +1308,18 @@ fn normalize_static_expansions(command: &str) -> String {
     let mut current = command.to_owned();
     for _ in 0..8 {
         let inlined = inline_function_calls(&current);
-        let bindings = collect_same_line_bindings(&inlined);
-        let positionals = collect_positional_params(&inlined);
-        let arrays = collect_array_bindings(&inlined);
         let ifs_unsafe = same_line_ifs_reassigned(&inlined);
-        let next = expand_with_bindings(&inlined, &bindings, &positionals, &arrays, ifs_unsafe);
+        // Pre-resolve command substitutions / ANSI-C / line-continuation FIRST
+        // (empty bindings → `$var`/`$@`/arrays stay literal) so `set -- $(echo
+        // …)` and `read … <<< "$(…)"` reassemble before positionals/bindings
+        // are collected — otherwise the `$(` subshell tokens corrupt capture
+        // (review #685 r13). Assignment-RHS substitutions are re-quoted here so
+        // a multi-word value fails closed at its use site.
+        let resolved = expand_with_bindings(&inlined, &[], &[], &[], ifs_unsafe);
+        let bindings = collect_same_line_bindings(&resolved);
+        let positionals = collect_positional_params(&resolved);
+        let arrays = collect_array_bindings(&resolved);
+        let next = expand_with_bindings(&resolved, &bindings, &positionals, &arrays, ifs_unsafe);
         if next == current {
             break;
         }
@@ -1379,7 +1386,59 @@ fn inline_function_calls(command: &str) -> String {
     if defs.is_empty() {
         return command.to_owned();
     }
-    inline_with_defs(command, &defs, 0)
+    // Strip the definition text so the body (`git "$@"`) is NOT evaluated as a
+    // live command at the def site — only the inlined CALLS carry the args
+    // (review #685 r13 F2: a leftover `g(){ git "$@"; }` def made worktree
+    // calls over-deny). The call sites are inlined from the stripped string.
+    let stripped = strip_function_defs(command);
+    inline_with_defs(&stripped, &defs, 0)
+}
+
+/// Remove `name(){…}` / `function name {…}` definition spans (replacing each
+/// with `;`) so only their inlined call sites remain (review #685 r13 F2).
+fn strip_function_defs(command: &str) -> String {
+    let mut spans = function_def_spans(command);
+    spans.sort_by_key(|(start, _)| *start);
+    let mut out = String::with_capacity(command.len());
+    let mut cursor = 0;
+    for (start, end) in spans {
+        if start < cursor || end > command.len() {
+            continue;
+        }
+        out.push_str(&command[cursor..start]);
+        out.push(';');
+        cursor = end;
+    }
+    out.push_str(&command[cursor..]);
+    out
+}
+
+/// Byte spans of every function definition (name start .. after closing `}`).
+fn function_def_spans(command: &str) -> Vec<(usize, usize)> {
+    let bytes = command.as_bytes();
+    let mut spans = Vec::new();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'{'
+            && let Some((_, _, end)) = try_capture_function(command, i)
+        {
+            // Def start = first non-separator after the previous separator.
+            let header = command[..i].trim_end();
+            let start = header
+                .rfind([';', '\n', '\r', '&', '|', '('])
+                .map(|p| p + 1)
+                .unwrap_or(0);
+            let start = start
+                + command[start..i]
+                    .find(|c: char| !c.is_whitespace())
+                    .unwrap_or(0);
+            spans.push((start, end));
+            i = end;
+            continue;
+        }
+        i += 1;
+    }
+    spans
 }
 
 /// Inline body resolution with the def set threaded through, recursing on each
@@ -1421,7 +1480,15 @@ fn inline_with_defs(command: &str, defs: &[(String, String)], depth: usize) -> S
                     } else {
                         Vec::new()
                     };
-                    let substituted = substitute_positionals(&body, &effective);
+                    // A body with its OWN `set --` rebinds `$@`; emit it verbatim
+                    // so the normalize fixpoint's positional collector governs it
+                    // rather than clobbering `$@` with the call args (review #685
+                    // r13: g(){ set -- …; git "$@"; }).
+                    let substituted = if body_rebinds_positionals(&body) {
+                        body.clone()
+                    } else {
+                        substitute_positionals(&body, &effective)
+                    };
                     out.push(inline_with_defs(&substituted, defs, depth + 1));
                     index = j;
                     at_command_pos = false;
@@ -1434,6 +1501,28 @@ fn inline_with_defs(command: &str, defs: &[(String, String)], depth: usize) -> S
         }
     }
     out.join(" ")
+}
+
+/// True when a function body contains its own `set --` (rebinding positionals),
+/// so the call args must NOT be substituted into its `$@` (review #685 r13).
+fn body_rebinds_positionals(body: &str) -> bool {
+    let tokens = shell_tokens(body);
+    let mut at_command_pos = true;
+    for (i, token) in tokens.iter().enumerate() {
+        match token {
+            ShellToken::Separator(_) => at_command_pos = true,
+            ShellToken::Word(word) => {
+                if at_command_pos
+                    && word == "set"
+                    && matches!(tokens.get(i + 1), Some(ShellToken::Word(d)) if d == "--")
+                {
+                    return true;
+                }
+                at_command_pos = false;
+            }
+        }
+    }
+    false
 }
 
 /// Count and strip leading `shift [n]` statements from a function body so the
@@ -1734,6 +1823,45 @@ fn array_value<'a>(arrays: &'a [(String, Vec<String>)], name: &str) -> Option<&'
         .map(|(_, value)| value.as_slice())
 }
 
+/// Emit a decoded command-substitution result, single-quoting it when it is the
+/// RHS of an assignment AND contains whitespace (review #685 r13 F1). In bash,
+/// `P=$(echo "reset --hard")` assigns the WHOLE multi-word output to P without
+/// word-splitting; emitting it bare would let the binding collector capture only
+/// the first word (`P=reset`, dropping `--hard`). Re-quoting keeps it one value
+/// so the collector rejects it (spaces) → `$P` stays unresolved → fail closed,
+/// matching the literal `P="reset --hard"` handling. In command position the
+/// output is emitted bare so it parses as a command (`$(echo git … reset)`).
+fn emit_substitution_output(out: &mut String, produced: &str) {
+    if produced.chars().any(char::is_whitespace) && out_ends_with_assignment_lhs(out) {
+        out.push('\'');
+        out.push_str(&produced.replace('\'', "'\\''"));
+        out.push('\'');
+    } else {
+        out.push_str(produced);
+    }
+}
+
+/// True when `out` currently ends with a shell assignment LHS `NAME=` (the `=`
+/// preceded by a valid identifier at a word boundary), i.e. the next emitted
+/// token is an assignment value.
+fn out_ends_with_assignment_lhs(out: &str) -> bool {
+    let Some(prefix) = out.strip_suffix('=') else {
+        return false;
+    };
+    let name_rev: String = prefix
+        .chars()
+        .rev()
+        .take_while(|c| *c == '_' || c.is_ascii_alphanumeric())
+        .collect();
+    // `name_rev` holds the identifier reversed; its LAST char is the real first
+    // char (an identifier must not start with a digit).
+    if name_rev.is_empty() || name_rev.chars().last().is_some_and(|c| c.is_ascii_digit()) {
+        return false;
+    }
+    let before = &prefix[..prefix.len() - name_rev.len()];
+    before.is_empty() || before.ends_with([' ', '\t', ';', '\n', '\r'])
+}
+
 /// If `rest` begins with a double-quoted positional/array expansion that bash
 /// would word-SPLIT (`"$@"`, `"$*"`, `"${@}"`, `"${*}"`, `"${NAME[@]}"`,
 /// `"${NAME[*]}"`), return its space-separated expansion and the byte length
@@ -1897,7 +2025,15 @@ fn expand_with_bindings(
                     && !inner.is_empty()
                     && inner.chars().all(|c| c.is_ascii_digit())
                 {
-                    out.push_str(positional_at(positionals, &inner));
+                    // Unbound positionals stay literal so a later set-- pass can
+                    // bind them (review #685 r13 two-phase normalization).
+                    if positionals.is_empty() {
+                        out.push_str("${");
+                        out.push_str(&inner);
+                        out.push('}');
+                    } else {
+                        out.push_str(positional_at(positionals, &inner));
+                    }
                 } else if let Some(expanded) =
                     (!ifs_unsafe).then(|| expand_array_subscript(&inner, arrays)).flatten()
                 {
@@ -1933,12 +2069,18 @@ fn expand_with_bindings(
                         break;
                     }
                 }
-                out.push_str(positional_at(positionals, &digits));
+                // Unbound positionals stay literal (review #685 r13).
+                if positionals.is_empty() {
+                    out.push('$');
+                    out.push_str(&digits);
+                } else {
+                    out.push_str(positional_at(positionals, &digits));
+                }
             }
             '$' if chars.peek().is_some_and(|(_, c)| *c == '(') => {
                 if let Some((end, body)) = extract_balanced_dollar_command(command, idx + 2) {
                     match static_command_output(&body).filter(|_| !ifs_unsafe) {
-                        Some(produced) => out.push_str(&produced),
+                        Some(produced) => emit_substitution_output(&mut out, &produced),
                         None => out.push_str(&command[idx..=end]),
                     }
                     while chars.peek().is_some_and(|(i, _)| *i <= end) {
@@ -1974,7 +2116,7 @@ fn expand_with_bindings(
                 if let Some(end) = find_unescaped_backtick(command, start) {
                     let body = unescape_backtick_body(&command[start..end]);
                     match static_command_output(&body).filter(|_| !ifs_unsafe) {
-                        Some(produced) => out.push_str(&produced),
+                        Some(produced) => emit_substitution_output(&mut out, &produced),
                         None => out.push_str(&command[idx..=end]),
                     }
                     while chars.peek().is_some_and(|(i, _)| *i <= end) {
@@ -2874,6 +3016,12 @@ mod tests {
             "g(){ set -- -C /repo/oyatie reset --hard; git \"$@\"; }; g",
             "r(){ local a=-C; git \"$a\" \"$@\"; }; r /repo/oyatie reset --hard",
             "git \"$@\"",
+            // r13 — static substitution into an assignment RHS, then unquoted use.
+            "P=$(echo \"reset --hard\"); git -C /repo/oyatie $P",
+            "P=$(echo \"-C /repo/oyatie reset --hard\"); git $P",
+            "P=$(printf '%s' \"-C /repo/oyatie clean -fdx\"); git $P",
+            "A=$(echo \"-C /repo/oyatie reset --hard\"); B=$A; git $B",
+            "set -- $(echo \"-C /repo/oyatie reset --hard\"); git \"$@\"",
         ] {
             assert_denied(command);
         }
