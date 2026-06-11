@@ -1775,6 +1775,24 @@ fn collect_same_line_bindings(command: &str) -> Vec<(String, String)> {
             }
         }
     }
+    // Transitively resolve `$name`/`${name}` references between bindings
+    // (`V=reset; W=$V` → `W=reset`) to a bounded fixpoint (review #685 r18 F2).
+    for _ in 0..8 {
+        let snapshot = acc.clone();
+        let mut changed = false;
+        for (_, value) in acc.iter_mut() {
+            if value.contains('$') {
+                let resolved = resolve_binding_refs(value, &snapshot);
+                if resolved != *value {
+                    *value = resolved;
+                    changed = true;
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
     // Keep only fully-resolved values; any residual expansion sigil leaves the
     // var unbound so `$name` fails closed at its use site.
     acc.into_iter()
@@ -1782,6 +1800,73 @@ fn collect_same_line_bindings(command: &str) -> Vec<(String, String)> {
             !value.is_empty() && !value.contains('$') && !value.contains('`')
         })
         .collect()
+}
+
+/// Resolve `${N:-default}` / `${N-default}` / `${N:=default}` (N a positional
+/// index) against the set-- positionals (review #685 r18 F3). Returns None when
+/// `inner` is not a digit-indexed default form, or positionals are unbound
+/// (then the literal `${…}` survives → fail closed).
+fn resolve_positional_default(inner: &str, positionals: &[String]) -> Option<String> {
+    if positionals.is_empty() {
+        return None;
+    }
+    let (digits, default) = inner
+        .split_once(":-")
+        .or_else(|| inner.split_once(":="))
+        .or_else(|| inner.split_once('-'))?;
+    if digits.is_empty() || !digits.chars().all(|c| c.is_ascii_digit()) {
+        return None;
+    }
+    let value = positional_at(positionals, digits);
+    Some(if value.is_empty() {
+        default.to_owned()
+    } else {
+        value.to_owned()
+    })
+}
+
+/// Substitute `$name` / `${name}` references in a binding value with other
+/// bindings' values (review #685 r18 F2). Unknown names are left literal (still
+/// carry `$` → dropped by the caller's resolved-only filter → fail closed).
+fn resolve_binding_refs(value: &str, bindings: &[(String, String)]) -> String {
+    let mut out = String::with_capacity(value.len());
+    let mut chars = value.char_indices().peekable();
+    while let Some((_, ch)) = chars.next() {
+        if ch != '$' {
+            out.push(ch);
+            continue;
+        }
+        let braced = chars.peek().map(|(_, c)| *c) == Some('{');
+        if braced {
+            chars.next();
+        }
+        let mut name = String::new();
+        while let Some((_, c)) = chars.peek() {
+            if *c == '_' || c.is_ascii_alphanumeric() {
+                name.push(*c);
+                chars.next();
+            } else {
+                break;
+            }
+        }
+        if braced && chars.peek().map(|(_, c)| *c) == Some('}') {
+            chars.next();
+        }
+        match binding_value(bindings, &name) {
+            Some(v) if !name.is_empty() => out.push_str(v),
+            _ => {
+                out.push('$');
+                if braced {
+                    out.push('{');
+                }
+                out.push_str(&name);
+                if braced {
+                    out.push('}');
+                }
+            }
+        }
+    }
+    out
 }
 
 fn binding_value<'a>(bindings: &'a [(String, String)], name: &str) -> Option<&'a str> {
@@ -2073,6 +2158,13 @@ fn expand_with_bindings(
                     } else {
                         out.push_str(positional_at(positionals, &inner));
                     }
+                } else if let Some(expanded) = (!ifs_unsafe)
+                    .then(|| resolve_positional_default(&inner, positionals))
+                    .flatten()
+                {
+                    // `${N:-default}` / `${N-default}` / `${N:=default}` against
+                    // the set-- positionals (review #685 r18 F3).
+                    out.push_str(&expanded);
                 } else if let Some(expanded) =
                     (!ifs_unsafe).then(|| expand_array_subscript(&inner, arrays)).flatten()
                 {
@@ -2261,8 +2353,13 @@ fn static_command_output(body: &str, xpg_echo: bool) -> Option<String> {
     // mis-model it. Return the args with the substitution PRESERVED so the
     // normalize fixpoint resolves the inner, then this re-runs (review #685 r17:
     // `$(echo $(printf 'git … reset'))`, nested backticks).
+    // Only ECHO passes a nested substitution through verbatim (its dequote
+    // would strip the inner quotes). printf must NOT preserve — keeping the
+    // outer quotes would group its split output into one arg (review #685 r18
+    // F1 regression); it falls through to the format/args model, which leaves
+    // the inner `$(…)` for the fixpoint and word-splits the result.
     if (rest.contains("$(") || rest.contains('`'))
-        && matches!(command_basename(cmd), Some("echo" | "printf"))
+        && command_basename(cmd) == Some("echo")
     {
         return Some(rest.trim().to_owned());
     }
@@ -3252,6 +3349,10 @@ mod tests {
             "V=reset; git -C /repo/oyatie ${V:-x} --hard",
             "V=reset; git -C /repo/oyatie ${V-x} --hard",
             "W=--hard; git -C /repo/oyatie reset ${W:-x}",
+            // r18 — printf with nested sub, chained binding, positional default.
+            "git -C /repo/oyatie $(printf \"$(echo reset) --hard\")",
+            "V=reset; W=$V; git -C /repo/oyatie ${W:-x} --hard",
+            "set -- reset; git -C /repo/oyatie ${1:-x} --hard",
         ] {
             assert_denied(command);
         }
