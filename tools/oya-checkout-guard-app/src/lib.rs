@@ -2019,7 +2019,10 @@ fn expand_with_bindings(
                 }
                 // Decode ANSI-C escapes — incl. \xHH / \NNN octal / \uHHHH that
                 // the shell decodes (review #685 r9 F2: `$'\x72\x65…'`→`reset`).
-                out.push_str(&decode_ansi_c(&raw));
+                // Decode ANSI-C escapes to real chars; re-quote when it lands as
+                // an assignment RHS so `P+=$'\t--hard'` keeps the whitespace
+                // grouped, then word-splits at the unquoted use (review #685 r15).
+                emit_substitution_output(&mut out, &normalize_split_ws(&decode_ansi_c(&raw)));
             }
             '$' if chars.peek().is_some_and(|(_, c)| *c == '{') => {
                 chars.next();
@@ -2182,11 +2185,22 @@ fn static_command_output(body: &str) -> Option<String> {
     match command_basename(cmd)? {
         "echo" => {
             let rest = rest.trim_start();
+            // `echo -e` decodes backslash escapes (\t/\n/\xNN) into REAL
+            // whitespace bash then word-splits on (review #685 r15).
+            let decode = rest.starts_with("-e ") || rest.starts_with("-ne ");
             let rest = rest
                 .strip_prefix("-n ")
                 .or_else(|| rest.strip_prefix("-e "))
+                .or_else(|| rest.strip_prefix("-ne "))
+                .or_else(|| rest.strip_prefix("-en "))
                 .unwrap_or(rest);
-            Some(dequote_simple(rest))
+            // `echo -e` keeps escapes for decode (strip quote chars only); plain
+            // echo dequotes normally (review #685 r15).
+            Some(if decode {
+                normalize_split_ws(&decode_ansi_c(&strip_quote_chars(rest)))
+            } else {
+                dequote_simple(rest)
+            })
         }
         // printf FMT [ARGS]: the format string (dequoted) is the produced text
         // for the specifier-free forms an evasion would use.
@@ -2194,14 +2208,19 @@ fn static_command_output(body: &str) -> Option<String> {
             // `printf FMT ARGS`: if the format is a single `%s`/`%b` (optionally
             // `\n`-terminated), the output is the ARGS (review #685 r14:
             // `printf '%s' "-C … clean -fdx"`). A specifier-free format is its
-            // own literal output (`printf 'git … reset'`).
-            let text = dequote_simple(rest.trim());
+            // own literal output (`printf 'git … reset'`). printf ALWAYS decodes
+            // backslash escapes in the format, so `printf "reset\t--hard"` →
+            // real TAB → word-splits (review #685 r15).
+            // Keep escapes (strip quote chars only) so printf's \t/\n/\xNN decode
+            // to real whitespace (review #685 r15).
+            let text = strip_quote_chars(rest.trim());
             let stripped = text
                 .strip_prefix("%s")
                 .or_else(|| text.strip_prefix("%b"))
-                .map(|t| t.trim_start_matches(['\\', 'n', 't', ' ', '\t']))
+                .map(|t| t.strip_prefix("\\n").or_else(|| t.strip_prefix("\\t")).unwrap_or(t))
+                .map(str::trim_start)
                 .unwrap_or(&text);
-            Some(stripped.to_owned())
+            Some(normalize_split_ws(&decode_ansi_c(stripped)))
         }
         _ => None,
     }
@@ -2305,6 +2324,23 @@ fn push_codepoint(out: &mut String, digits: &str, radix: u32) {
     {
         out.push(ch);
     }
+}
+
+/// Collapse internal tab/newline/CR to spaces: in an UNQUOTED command
+/// substitution (and decoded ANSI-C value) bash word-SPLITS on IFS whitespace,
+/// so these are argument boundaries, not command separators (review #685 r15:
+/// `$(printf "clean\n-fdx")` → `clean -fdx`, not two commands).
+fn normalize_split_ws(s: &str) -> String {
+    s.chars()
+        .map(|c| if matches!(c, '\t' | '\n' | '\r') { ' ' } else { c })
+        .collect()
+}
+
+/// Remove shell quote characters (`'` `"`) while PRESERVING backslash escapes,
+/// so a following `decode_ansi_c` can turn `\t`/`\n`/`\xNN` into the real
+/// whitespace bash word-splits on (review #685 r15: printf / `echo -e`).
+fn strip_quote_chars(s: &str) -> String {
+    s.chars().filter(|c| *c != '"' && *c != '\'').collect()
 }
 
 /// Remove one level of shell quoting/escaping from a static string.
@@ -3062,6 +3098,11 @@ mod tests {
             "A=-C; A+=\" /repo/oyatie\"; A+=\" reset --hard\"; git $A",
             "P=\"reset --hard\"; git -C /repo/oyatie $P",
             "P+=$(echo \"-C /repo/oyatie reset --hard\"); git $P",
+            // r15 — escape-decode assembles whitespace bash word-splits on.
+            "git -C /repo/oyatie $(printf \"reset\\t--hard\")",
+            "P=reset; P+=$'\\t--hard'; git -C /repo/oyatie $P",
+            "P=$(printf \"reset\\t--hard\"); git -C /repo/oyatie $P",
+            "git -C /repo/oyatie $(echo -e \"reset\\t--hard\")",
         ] {
             assert_denied(command);
         }
