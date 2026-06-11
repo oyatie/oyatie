@@ -27,9 +27,10 @@
 //! - `handle_proxy` branches on `Accept: text/event-stream` and returns a chunked
 //!   HTTP/1.1 `text/event-stream` response instead of a buffered JSON body.
 //!
-//! TODO(codex-adapter): add `CodexAdapter` mirroring `AnthropicAdapter` once
-//! the Codex OAuth refresh flow is documented. Tracked as a separate follow-up
-//! PR per ADR-0384 §v1-scope.
+//! Deferred (governed): a `CodexAdapter` mirroring `AnthropicAdapter` is a
+//! separate follow-up PR, pending documentation of the Codex OAuth refresh flow.
+//! Scope boundary per ADR-0384 §v1-scope; tracked to closure as FRIC-1781133000
+//! in the friction ledger (the closed-loop home for deferred work).
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, HashMap};
@@ -384,8 +385,9 @@ impl Default for UpstreamOAuthSingleflight {
 /// client lives in [`AppState`] so TLS sessions and keep-alive connections are
 /// amortized across the full request lifetime of the process.
 ///
-/// TODO(codex-adapter): `CodexAdapter` will mirror this struct for the OpenAI
-/// Codex OAuth flow. Deferred to a follow-up PR per ADR-0384 §v1-scope.
+/// Deferred (governed): a `CodexAdapter` will mirror this struct for the OpenAI
+/// Codex OAuth flow in a follow-up PR. Scope boundary per ADR-0384 §v1-scope;
+/// tracked to closure as FRIC-1781133000 in the friction ledger.
 pub struct AnthropicAdapter<S: SecretProviderStore> {
     secret_store: S,                              // data_class: INTERNAL_ONLY
     singleflight: Arc<UpstreamOAuthSingleflight>, // data_class: INTERNAL_ONLY
