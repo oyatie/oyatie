@@ -1,3 +1,0 @@
-Slice-10 members are ADR-0540 target-parity debt: Rust test code exists without Buck rust_test targets.
-Verified on current origin/dev base 3ae4f2ea9 by `buck2 run //tools/oya-buck-test-wiring-app:oya-buck-test-wiring -- --check --root oya/office/oya-office-doc-domain`, which reported `//oya/office/oya-office-doc-domain:oya-office-doc-domain-unittest` as a remaining candidate.
-Invalidating fact: the generator reports no candidates for these slice members or their generated rust_test targets cannot pass without production/test-code fixes outside this campaign.

@@ -103,6 +103,7 @@ jobs:
           - { crate: oya-cloud-ci-enforcement-liveness-app,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
           - { crate: oya-cloud-ci-friction-accounting-app,     label: "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)" }
           - { crate: oya-cloud-ci-canonical-json-app,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
+          - { crate: oya-cloud-ci-embedded-asset-hermeticity-app, label: "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)" }
           - { crate: oya-cloud-ci-generated-artifact-control-plane-app, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
