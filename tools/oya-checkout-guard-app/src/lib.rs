@@ -1315,11 +1315,15 @@ fn normalize_static_expansions(command: &str) -> String {
         // are collected — otherwise the `$(` subshell tokens corrupt capture
         // (review #685 r13). Assignment-RHS substitutions are re-quoted here so
         // a multi-word value fails closed at its use site.
-        let resolved = expand_with_bindings(&inlined, &[], &[], &[], ifs_unsafe);
+        // Pre-pass resolves ONLY substitutions/ANSI-C (`substitutions_only`);
+        // `${…}`/`$var`/`$@` stay literal so a `${V:-x}` default is NOT eaten
+        // before `V=…` is collected (review #685 r17 F2).
+        let resolved = expand_with_bindings(&inlined, &[], &[], &[], ifs_unsafe, true);
         let bindings = collect_same_line_bindings(&resolved);
         let positionals = collect_positional_params(&resolved);
         let arrays = collect_array_bindings(&resolved);
-        let next = expand_with_bindings(&resolved, &bindings, &positionals, &arrays, ifs_unsafe);
+        let next =
+            expand_with_bindings(&resolved, &bindings, &positionals, &arrays, ifs_unsafe, false);
         if next == current {
             break;
         }
@@ -1951,6 +1955,7 @@ fn expand_with_bindings(
     positionals: &[String],
     arrays: &[(String, Vec<String>)],
     ifs_unsafe: bool,
+    substitutions_only: bool,
 ) -> String {
     let positional_join = positionals.join(" ");
     let xpg_echo = command.contains("xpg_echo");
@@ -2039,6 +2044,12 @@ fn expand_with_bindings(
                     }
                     inner.push(c);
                 }
+                if substitutions_only {
+                    out.push_str("${");
+                    out.push_str(&inner);
+                    out.push('}');
+                    continue;
+                }
                 if !ifs_unsafe && matches!(inner.as_str(), "@" | "*") {
                     // Unbound positionals (no visible set--/read) stay literal so
                     // an eval-/scope-hidden binding fails closed (review #685 r12).
@@ -2077,7 +2088,10 @@ fn expand_with_bindings(
                     }
                 }
             }
-            '$' if !ifs_unsafe && chars.peek().is_some_and(|(_, c)| *c == '@' || *c == '*') => {
+            '$' if !ifs_unsafe
+                && !substitutions_only
+                && chars.peek().is_some_and(|(_, c)| *c == '@' || *c == '*') =>
+            {
                 let sigil = chars.next().map(|(_, c)| c).unwrap_or('@');
                 // Unbound positionals stay literal → fail closed (review #685 r12).
                 if positionals.is_empty() {
@@ -2087,7 +2101,10 @@ fn expand_with_bindings(
                     out.push_str(&positional_join);
                 }
             }
-            '$' if !ifs_unsafe && chars.peek().is_some_and(|(_, c)| c.is_ascii_digit()) => {
+            '$' if !ifs_unsafe
+                && !substitutions_only
+                && chars.peek().is_some_and(|(_, c)| c.is_ascii_digit()) =>
+            {
                 let mut digits = String::new();
                 while let Some((_, c)) = chars.peek() {
                     if c.is_ascii_digit() {
@@ -2127,9 +2144,10 @@ fn expand_with_bindings(
                     out.push(ch);
                 }
             }
-            '$' if chars
-                .peek()
-                .is_some_and(|(_, c)| c.is_ascii_alphabetic() || *c == '_') =>
+            '$' if !substitutions_only
+                && chars
+                    .peek()
+                    .is_some_and(|(_, c)| c.is_ascii_alphabetic() || *c == '_') =>
             {
                 let mut name = String::new();
                 while let Some((_, c)) = chars.peek() {
@@ -2238,6 +2256,16 @@ fn static_command_output(body: &str, xpg_echo: bool) -> Option<String> {
     let (cmd, rest) = body
         .split_once(char::is_whitespace)
         .unwrap_or((body, ""));
+    // A nested unresolved substitution in a value-producer's args must be
+    // resolved INNER-FIRST; our naive dequote would strip the inner quotes and
+    // mis-model it. Return the args with the substitution PRESERVED so the
+    // normalize fixpoint resolves the inner, then this re-runs (review #685 r17:
+    // `$(echo $(printf 'git … reset'))`, nested backticks).
+    if (rest.contains("$(") || rest.contains('`'))
+        && matches!(command_basename(cmd), Some("echo" | "printf"))
+    {
+        return Some(rest.trim().to_owned());
+    }
     match command_basename(cmd)? {
         "echo" => {
             let rest = rest.trim_start();
@@ -2273,30 +2301,34 @@ fn static_command_output(body: &str, xpg_echo: bool) -> Option<String> {
             // then args. Any other format (`%-10s` width, `%s%s` multi-spec,
             // `%c`, precision, format-reuse over N args) → None → unresolved →
             // fail closed, never a best-effort under-approximation.
-            let mut rest = rest.trim();
-            if rest.starts_with("--") {
-                rest = rest[2..].trim_start();
+            let mut r = rest.trim();
+            if r.starts_with("--") {
+                r = r[2..].trim_start();
             }
-            let text = strip_quote_chars(rest);
-            let modeled = if let Some(args) = text
-                .strip_prefix("%s")
-                .or_else(|| text.strip_prefix("%b"))
-            {
-                let args = args
-                    .strip_prefix("\\n")
-                    .or_else(|| args.strip_prefix("\\t"))
-                    .unwrap_or(args)
-                    .trim_start();
-                // Reject any further specifier in the remaining format/args.
-                if args.contains('%') {
-                    None
+            // Split FORMAT (first token) from ARGS via shell_tokens so a quoted
+            // multi-word format (`"%s --hard"`) is one unit — the strip_quote
+            // approach lost that boundary and mis-ordered the tail (review #685
+            // r17 F1). Model ONLY: a specifier-free literal format → itself, or
+            // a BARE single `%s`/`%b` (optionally `\n`/`\t`) → the args. Any
+            // format with a trailing literal or extra specifier → None → sigil.
+            // Split FORMAT (first quote-aware word, backslashes PRESERVED for
+            // decode) from ARGS (review #685 r17 F1). shell_tokens would eat the
+            // `\t` backslash in double quotes before decode, so use a custom
+            // quote-aware split that keeps escapes.
+            let (fmt_raw, args_raw) = split_first_shell_word(r);
+            let fmt = strip_quote_chars(&fmt_raw);
+            let modeled = if fmt.contains('%') {
+                let bare = matches!(
+                    fmt.as_str(),
+                    "%s" | "%b" | "%s\\n" | "%b\\n" | "%s\\t" | "%b\\t"
+                );
+                if bare {
+                    Some(strip_quote_chars(args_raw.trim()))
                 } else {
-                    Some(args.to_owned())
+                    None
                 }
-            } else if text.contains('%') {
-                None // unmodeled specifier in the format
             } else {
-                Some(text.clone())
+                Some(fmt)
             };
             modeled.map(|m| normalize_split_ws(&decode_ansi_c(&m)))
         }
@@ -2412,6 +2444,32 @@ fn normalize_split_ws(s: &str) -> String {
     s.chars()
         .map(|c| if matches!(c, '\t' | '\n' | '\r') { ' ' } else { c })
         .collect()
+}
+
+/// Split off the first quote-aware shell word, PRESERVING backslash escapes
+/// (unlike shell_tokens, which processes them). Returns (first_word_raw, rest).
+fn split_first_shell_word(s: &str) -> (String, String) {
+    let s = s.trim_start();
+    let mut quote = None;
+    let mut end = s.len();
+    for (i, ch) in s.char_indices() {
+        match quote {
+            Some(q) => {
+                if ch == q {
+                    quote = None;
+                }
+            }
+            None => match ch {
+                '\'' | '"' => quote = Some(ch),
+                c if c.is_whitespace() => {
+                    end = i;
+                    break;
+                }
+                _ => {}
+            },
+        }
+    }
+    (s[..end].to_owned(), s[end..].trim_start().to_owned())
 }
 
 /// Remove shell quote characters (`'` `"`) while PRESERVING backslash escapes,
@@ -3187,6 +3245,13 @@ mod tests {
             "P=$'reset'$'\\t--hard'; git -C /repo/oyatie $P",
             "P=resetZZhard; git -C /repo/oyatie ${P/ZZ/ --}",
             "shopt -s xpg_echo; git -C /repo/oyatie $(echo \"reset\\t--hard\")",
+            // r17 — printf %s with trailing format text + ${V:-default} pre-pass.
+            "git -C /repo/oyatie $(printf \"%s --hard\" reset)",
+            "git -C /repo/oyatie $(printf \"%s -fdx\" clean)",
+            "P=$(printf \"%s --hard\" reset); git -C /repo/oyatie $P",
+            "V=reset; git -C /repo/oyatie ${V:-x} --hard",
+            "V=reset; git -C /repo/oyatie ${V-x} --hard",
+            "W=--hard; git -C /repo/oyatie reset ${W:-x}",
         ] {
             assert_denied(command);
         }
