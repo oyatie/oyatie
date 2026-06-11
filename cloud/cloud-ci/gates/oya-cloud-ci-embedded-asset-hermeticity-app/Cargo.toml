@@ -23,6 +23,13 @@ name = "oya_cloud_ci_embedded_asset_hermeticity_app"
 path = "src/lib.rs"
 doctest = false
 
+# Automation-default surface (ADR-0545 --fix auto-remediator). The blocking *-gate rust_test is the
+# enforcement backstop; this binary is the default developer/agent path to derive + apply the
+# corrected mapped_srcs entry for an unmapped embedded asset.
+[[bin]]
+name = "oya-cloud-ci-embedded-asset-hermeticity-fixer"
+path = "src/main.rs"
+
 [dependencies]
 serde_json = { workspace = true }
 

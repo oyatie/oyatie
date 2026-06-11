@@ -56,7 +56,7 @@
 
 use std::collections::BTreeSet;
 use std::fs;
-use std::path::{Component, Path, PathBuf};
+use std::path::{Path, PathBuf};
 
 use serde_json::{Value, json};
 
@@ -1503,35 +1503,47 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
                 continue;
             }
 
-            // The including file's sandbox destination dir. For in-crate sources that is
-            // `<crate_dir>/<rs_in_crate>`; the include resolves lexically from its parent dir. (buck2
-            // materializes a glob/plain src at its package-relative short path, so the destination of
-            // the including file is its crate-relative path under the crate dir.)
-            let including_dest = join_crate(&crate_dir_rel, &rs_in_crate);
-            let site_dir = parent_dir(&including_dest);
-            let resolved = resolve_include(&site_dir, literal);
-
-            // Union of every covering target's sandbox destination set, and whether ANY covering
-            // target used a construct the minimal parser could not fully model.
-            let mut union: BTreeSet<String> = BTreeSet::new();
-            let mut any_unparseable = false;
+            // Resolve PER COVERING TARGET. The include resolves lexically from the dir of the
+            // including file's destination IN THAT TARGET's `__srcs` tree: `dest_T(F)` is F's mapped
+            // VALUE if F is itself a mapped source of T (the comprehension shape places `src/lib.rs`
+            // at `ROOT/src/lib.rs`), else F's package-relative SHORT path (`src/lib.rs`). This is the
+            // load-bearing distinction the buck2 build proved: with a short crate_root the include
+            // base is `src/`, so `../../../policy` ESCAPES the tree (RED); with a ROOT-prefixed
+            // crate_root the base is `ROOT/src/`, so it resolves to the mapped VALUE (GREEN). A site
+            // is hermetic iff SOME covering target resolves it within its own destination set.
             let mut target_names: Vec<String> = Vec::new();
+            let mut any_unparseable = false;
+            let mut member = false;
+            let mut representative_resolved = String::new();
             for target in &covering {
                 target_names.push(target.name.clone());
                 any_unparseable |= target.unparseable;
-                for d in target_destinations(target, &crate_dir_rel, &crate_files) {
-                    union.insert(d);
-                }
+                // D(T): short-path srcs ∪ mapped VALUES (inline + bare-var comprehension).
+                let mut dests = target_destinations(target, &crate_dir_rel, &crate_files);
                 if let Some(var) = mapped_srcs_var_for(&buck_text, &target.name) {
                     for v in resolve_mapped_var(&buck_text, &var, &string_vars, &glob_vars, &crate_files) {
-                        union.insert(normalize_rel(&v));
+                        dests.insert(normalize_rel(&v));
                     }
+                }
+                // dest_T(F): F's mapped VALUE in T if mapped here, else F's short path. The short
+                // path is `rs_in_crate` UNLESS T's crate_root is ROOT-prefixed, in which case T maps
+                // every src to `ROOT/<short>` and F's destination is the crate-prefixed path.
+                let dest_f = file_destination(target, &rs_in_crate, &crate_dir_rel, &dests);
+                let site_dir = parent_dir(&dest_f);
+                let resolved = resolve_include(&site_dir, literal);
+                if representative_resolved.is_empty() {
+                    representative_resolved = resolved.clone();
+                }
+                if dests.contains(&resolved) {
+                    member = true;
+                    representative_resolved = resolved;
+                    break;
                 }
             }
             target_names.sort();
             let primary = target_names.first().cloned().unwrap_or_default();
             let key = format!("{primary}::{rs_in_crate}::{literal}");
-            let member = union.contains(&resolved);
+            let resolved = representative_resolved;
 
             // If a covering target uses an unmodelled BUCK construct AND we cannot positively confirm
             // membership, skip rather than risk a false RED (fail-safe over fail-closed).
@@ -1545,7 +1557,7 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
                 continue;
             }
 
-            // Membership: R ∈ D(any covering T) is hermetic. Non-membership (incl. an escaped `..`
+            // Membership: R ∈ D(some covering T) is hermetic. Non-membership (incl. an escaped `..`
             // path, which can never be a sandbox tree member) is the blocking unmapped-include defect.
             let status = if member { "resolved" } else { "unmapped" };
             let detail = if status == "unmapped" {
@@ -1565,6 +1577,29 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
     }
 
     Ok(json!({ "sites": sites_out }))
+}
+
+/// The sandbox destination of the including file `F` inside target `T`'s `__srcs` tree. buck2 places
+/// each src at its declared destination: a plain/glob src lands at its package-relative SHORT path
+/// (`src/lib.rs`); a `mapped_srcs` comprehension `{src: ROOT + "/" + src for ...}` lands it at the
+/// crate-prefixed path (`crate_dir/src/lib.rs`). We pick whichever candidate is actually a member of
+/// `T`'s destination set `dests` — that is exactly where buck2 will materialize F. If neither is a
+/// member (F not in this target's srcs at all, or an unmodelled construct), fall back to the short
+/// path, the buck2 default for a plain src.
+fn file_destination(
+    _target: &BuckTarget,
+    rs_in_crate: &str,
+    crate_dir_rel: &str,
+    dests: &BTreeSet<String>,
+) -> String {
+    let full = join_crate(crate_dir_rel, rs_in_crate);
+    if dests.contains(&full) {
+        return full;
+    }
+    if dests.contains(rs_in_crate) {
+        return rs_in_crate.to_owned();
+    }
+    rs_in_crate.to_owned()
 }
 
 /// Every BUCK target that compiles the crate-relative `.rs` file. A single source file is commonly
@@ -1753,10 +1788,365 @@ fn is_out_of_scope(literal: &str, oos_prefixes: &[String], embedded_exts: &BTree
     !embedded_exts.contains(&ext)
 }
 
-// Re-export Component to keep the import used even if the path API evolves; the lexical normalizer
-// does not need it but std::path::Component documents intent.
-#[allow(dead_code)]
-fn _component_marker(_c: Component<'_>) {}
+// ---------------------------------------------------------------------------
+// Auto-remediation (`--fix`) — automation-default layer (founder directive 2026-06-11:
+// "automation should be the default; enforcement is the extra layer"). The gate DETECTS, the fixer
+// DERIVES+APPLIES the corrected BUCK mapping, and the blocking `*-gate` rust_test is the backstop for
+// what cannot be safely auto-derived. Precedent: the cloud-ci face-settle tool (`--settle --commit`
+// is the default path; the freshness gate is the backstop).
+// ---------------------------------------------------------------------------
+
+/// How the unmapped include is to be remediated.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RemediationKind {
+    /// The target already places the including file at the deep crate-prefixed path (a comprehension
+    /// / `ROOT + "/..."` crate_root): a single `mapped_srcs[key] = value` add/replace is the fix.
+    MappedEntry,
+    /// The target uses a SHORT `crate_root` (`src/lib.rs`) + glob srcs, so a cross-package `../`
+    /// include escapes its `__srcs` tree. The fix is the proven cedar comprehension rewrite of the
+    /// whole target: `ROOT` var, `srcs = []`, `crate_root = ROOT + "/src/lib.rs"`, and
+    /// `mapped_srcs = {comprehension}` + the explicit asset entry — placing every src at the deep
+    /// path so the include resolves to the mapped VALUE.
+    ComprehensionRewrite,
+}
+
+/// A derived remediation for one unmapped include site. `applicable` is the safe-to-auto-apply case
+/// (a cross-package or in-tree asset whose file exists on disk at a derivable source); otherwise the
+/// fixer reports it for manual handling (the backstop), never guessing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Remediation {
+    /// Repo-relative BUCK file to patch.
+    pub buck_path: String,
+    /// The target name whose mapped_srcs must gain the entry.
+    pub target: String,
+    /// The mapped_srcs KEY to add — an `//pkg:name` export_file label if the asset lives in another
+    /// package (the file's own BUCK exports it), else the asset's repo-relative source path.
+    pub mapped_key: String,
+    /// The mapped_srcs VALUE — the include-relative sandbox destination the asset must land at.
+    pub mapped_value: String,
+    /// The transform required to make the target hermetic.
+    pub kind: RemediationKind,
+    /// True if the fixer can apply this automatically; false = report-only (manual, the backstop).
+    pub applicable: bool,
+    /// Human-readable rationale / manual instruction when `!applicable`.
+    pub note: String,
+}
+
+/// Derive a remediation for an unmapped site. `site` is an observed `unmapped` row; `root` is the
+/// repo root (read-only — used to locate the asset's on-disk source and its exporting BUCK). Returns
+/// `None` for non-unmapped rows. Pure-ish: only reads the filesystem to confirm the asset exists.
+pub fn derive_remediation(root: &Path, site: &Value) -> Option<Remediation> {
+    if site.get("status").and_then(Value::as_str) != Some("unmapped") {
+        return None;
+    }
+    let resolved = site.get("resolved").and_then(Value::as_str)?.to_owned();
+    let target = site
+        .get("targets")
+        .and_then(Value::as_array)
+        .and_then(|a| a.first())
+        .and_then(Value::as_str)
+        .or_else(|| site.get("target").and_then(Value::as_str))
+        .unwrap_or("")
+        .to_owned();
+    // The asset's on-disk source: the include resolves to `resolved` in the sandbox, and the file
+    // physically lives at `root/resolved` for an asset already tracked at that path (the common
+    // cross-package case — e.g. the cedar policy is committed at exactly the resolved repo path).
+    let asset_abs = root.join(&resolved);
+    let asset_exists = asset_abs.is_file();
+
+    // The BUCK to patch is the one owning `target`. We locate it from the site's `rs` path: the
+    // nearest ancestor BUCK. The collector keyed `key = T::F::L`; recover F via `rs`.
+    let rs = site.get("rs").and_then(Value::as_str)?.to_owned();
+    let buck_path = nearest_buck_path_rel(root, &rs)?;
+
+    // Derive the mapped_srcs KEY. If the asset's package (its nearest ancestor BUCK dir) is NOT the
+    // target's crate dir, prefer the export_file label `//pkg:name` (hermetic cross-package ref);
+    // else use the repo-relative source path directly.
+    let crate_dir = buck_path.trim_end_matches("/BUCK");
+    let (mapped_key, label_ok) = derive_mapped_key(root, &resolved, crate_dir);
+
+    // Determine the transform by reading the target's crate_root form. A short crate_root
+    // (`src/lib.rs`) places the including file at the SHORT path, so a cross-package `../` include
+    // escapes the __srcs tree — only the full comprehension rewrite fixes it. A ROOT-prefixed
+    // crate_root already places it at the deep path, so a single mapped_srcs entry suffices.
+    let kind = match buck_crate_root_is_root_prefixed(root, &buck_path, &target, crate_dir) {
+        Some(true) => RemediationKind::MappedEntry,
+        Some(false) => RemediationKind::ComprehensionRewrite,
+        None => RemediationKind::MappedEntry, // unknown form -> attempt the narrow entry add
+    };
+
+    let applicable = asset_exists && !target.is_empty() && label_ok;
+    let note = if !asset_exists {
+        format!("asset not found on disk at `{resolved}` — the include path is wrong, or the asset must be created; manual fix required")
+    } else if target.is_empty() {
+        "could not bind the unmapped include to a single owning target; manual fix required".to_owned()
+    } else if !label_ok {
+        format!("could not derive a hermetic mapped_srcs key for `{resolved}`; add the entry by hand (see ADR-0545)")
+    } else {
+        match kind {
+            RemediationKind::MappedEntry => format!(
+                "add/replace mapped_srcs[{mapped_key}] = \"{resolved}\" in target `{target}` ({buck_path})"
+            ),
+            RemediationKind::ComprehensionRewrite => format!(
+                "rewrite target `{target}` to the cedar comprehension form (ROOT var, srcs=[], crate_root=ROOT+\"/src/lib.rs\", mapped_srcs comprehension + mapped_srcs[{mapped_key}]=\"{resolved}\") in {buck_path}"
+            ),
+        }
+    };
+
+    Some(Remediation {
+        buck_path,
+        target,
+        mapped_key,
+        mapped_value: resolved,
+        kind,
+        applicable,
+        note,
+    })
+}
+
+/// Read `target`'s `crate_root` from its BUCK and decide whether it is ROOT-prefixed (the deep form,
+/// e.g. `ROOT + "/src/lib.rs"` or a literal containing the crate dir) vs a short package-relative
+/// path (`src/lib.rs`). Returns None if the target or crate_root cannot be read.
+fn buck_crate_root_is_root_prefixed(
+    root: &Path,
+    buck_path: &str,
+    target: &str,
+    crate_dir: &str,
+) -> Option<bool> {
+    let text = std::fs::read_to_string(root.join(buck_path)).ok()?;
+    let needle = format!("\"{target}\"");
+    let name_pos = text.find(&needle)?;
+    let open = text[..name_pos].rfind('(')?;
+    let kind_start = text[..open]
+        .rfind(|c: char| c == '\n' || c == ' ' || c == '\t')
+        .map(|p| p + 1)
+        .unwrap_or(0);
+    let block = call_block(&text[kind_start..])?;
+    let expr = field_value_expr(&block, "crate_root")?;
+    let trimmed = expr.trim();
+    // A `ROOT + "..."` concat or a literal already containing the crate dir is deep; a bare short
+    // literal (`"src/lib.rs"`) is the escaping short form.
+    if trimmed.contains('+') {
+        return Some(true);
+    }
+    let string_vars = top_level_string_vars(&text);
+    let resolved = unquote_concat(trimmed, &string_vars).unwrap_or_else(|| trimmed.trim_matches('"').to_owned());
+    Some(resolved.starts_with(&format!("{crate_dir}/")) || resolved.starts_with(crate_dir))
+}
+
+/// Derive the mapped_srcs KEY for an asset at repo-relative `resolved`, given the consuming crate
+/// dir. Returns (key, derivable). If the asset lives in a different package that exports it via an
+/// `export_file`, the key is the `//pkg:name` label; else (same package) the crate-relative source.
+fn derive_mapped_key(root: &Path, resolved: &str, crate_dir: &str) -> (String, bool) {
+    // Find the asset's owning package = nearest ancestor dir (of the asset) holding a BUCK file.
+    let asset_abs = root.join(resolved);
+    let pkg_dir = match nearest_buck_dir(root, &asset_abs) {
+        Some(d) => rel_to(root, &d),
+        None => return (resolved.to_owned(), false),
+    };
+    let name = resolved.rsplit('/').next().unwrap_or(resolved);
+    if pkg_dir == crate_dir {
+        // Same package: map the source short path to itself (rare; usually glob already covers it).
+        let short = resolved.strip_prefix(&format!("{crate_dir}/")).unwrap_or(resolved);
+        (short.to_owned(), true)
+    } else {
+        // Cross-package: reference the sibling package's export_file label.
+        (format!("//{pkg_dir}:{name}"), true)
+    }
+}
+
+/// The repo-relative path of the nearest ancestor `BUCK` for a repo-relative `.rs` file.
+fn nearest_buck_path_rel(root: &Path, rs_rel: &str) -> Option<String> {
+    let abs = root.join(rs_rel);
+    let dir = nearest_buck_dir(root, &abs)?;
+    Some(format!("{}/BUCK", rel_to(root, &dir)))
+}
+
+/// Apply a derived, applicable [`Remediation`] to a BUCK text by inserting (or augmenting) the
+/// target's `mapped_srcs` with the `mapped_key -> mapped_value` entry, returning the patched text.
+/// Pure over the BUCK text. Returns `Err` describing why it could not edit safely (the caller then
+/// reports it as manual — the backstop). It NEVER edits the include literal (that would break cargo).
+pub fn apply_remediation(buck_text: &str, rem: &Remediation) -> Result<String, String> {
+    if !rem.applicable {
+        return Err(rem.note.clone());
+    }
+    // Locate the target block.
+    let needle = format!("\"{}\"", rem.target);
+    let name_pos = buck_text
+        .find(&needle)
+        .ok_or_else(|| format!("target `{}` not found in BUCK", rem.target))?;
+    // Walk back to the call's opening `(`, then to the start of the call-kind identifier before it,
+    // so `call_block` (which scans from the kind identifier and balances from the first `(`) sees the
+    // whole `rust_library( … )` / `rust_binary( … )` / `rust_test( … )` form.
+    let head = &buck_text[..name_pos];
+    let open_paren = head
+        .rfind('(')
+        .ok_or_else(|| "target name not inside a call".to_owned())?;
+    let kind_start = head[..open_paren]
+        .rfind(|c: char| c == '\n' || c == ' ' || c == '\t')
+        .map(|p| p + 1)
+        .unwrap_or(0);
+    // Find the call-open paren and the matching close.
+    let block = call_block(&buck_text[kind_start..])
+        .ok_or_else(|| "could not delimit the target call block".to_owned())?;
+    let block_start = kind_start;
+    let block_end = kind_start + block.len();
+
+    // ComprehensionRewrite: regenerate the whole rust_library in the deep cedar form so the include
+    // resolves to the mapped VALUE. Only safe for a single rust_library whose existing srcs is a glob
+    // and whose crate_root is the short `src/lib.rs`; anything else falls back to a manual report.
+    if rem.kind == RemediationKind::ComprehensionRewrite {
+        let rewritten = rewrite_to_comprehension(&block, rem)?;
+        let mut out = String::with_capacity(buck_text.len() + rewritten.len());
+        out.push_str(&buck_text[..block_start]);
+        out.push_str(&rewritten);
+        out.push_str(&buck_text[block_end..]);
+        return Ok(out);
+    }
+
+    let entry = format!("        \"{}\": \"{}\",\n", rem.mapped_key, rem.mapped_value);
+
+    let patched_block = if field_value_expr(&block, "mapped_srcs").is_some() {
+        // The target already has a mapped_srcs dict literal. If the KEY is already present (mapped to
+        // the WRONG value — the original FRIC-1781131000 defect shape), REPLACE that entry's value
+        // rather than inserting a duplicate key (which buck2 rejects). Otherwise insert after the `{`.
+        let ms_pos = find_top_level(&block, "mapped_srcs =")
+            .ok_or_else(|| "mapped_srcs present but not at top level".to_owned())?;
+        let brace_rel = block[ms_pos..]
+            .find('{')
+            .ok_or_else(|| "mapped_srcs is not an inline dict (a variable?); add the entry to its definition by hand".to_owned())?;
+        let brace_at = ms_pos + brace_rel;
+        let dict = brace_block(&block[brace_at..])
+            .ok_or_else(|| "mapped_srcs dict is not balanced".to_owned())?;
+        let key_token = format!("\"{}\"", rem.mapped_key);
+        if let Some(key_rel) = dict.find(&key_token) {
+            // Replace the value of the existing key. Find the `:` after the key, then the value
+            // string literal, and rewrite its contents.
+            let after_key_abs = brace_at + key_rel + key_token.len();
+            let colon_rel = block[after_key_abs..]
+                .find(':')
+                .ok_or_else(|| "existing mapped_srcs key has no value".to_owned())?;
+            let val_search_start = after_key_abs + colon_rel + 1;
+            let quote_rel = block[val_search_start..]
+                .find('"')
+                .ok_or_else(|| "existing mapped_srcs value is not a string literal".to_owned())?;
+            let val_open = val_search_start + quote_rel + 1;
+            let val_close_rel = block[val_open..]
+                .find('"')
+                .ok_or_else(|| "existing mapped_srcs value string is unterminated".to_owned())?;
+            let val_close = val_open + val_close_rel;
+            let mut s = String::with_capacity(block.len() + rem.mapped_value.len());
+            s.push_str(&block[..val_open]);
+            s.push_str(&rem.mapped_value);
+            s.push_str(&block[val_close..]);
+            s
+        } else {
+            let insert_at = brace_at + 1;
+            let mut s = String::with_capacity(block.len() + entry.len() + 1);
+            s.push_str(&block[..insert_at]);
+            s.push('\n');
+            s.push_str(&entry);
+            s.push_str(&block[insert_at..]);
+            s
+        }
+    } else {
+        // No mapped_srcs: add one just before the closing `)`. Insert before the final `)`.
+        let close_rel = block
+            .rfind(')')
+            .ok_or_else(|| "target block has no closing paren".to_owned())?;
+        let mut s = String::with_capacity(block.len() + entry.len() + 32);
+        s.push_str(&block[..close_rel]);
+        s.push_str("    mapped_srcs = {\n");
+        s.push_str(&entry);
+        s.push_str("    },\n");
+        s.push_str(&block[close_rel..]);
+        s
+    };
+
+    let mut out = String::with_capacity(buck_text.len() + entry.len() + 32);
+    out.push_str(&buck_text[..block_start]);
+    out.push_str(&patched_block);
+    out.push_str(&buck_text[block_end..]);
+    Ok(out)
+}
+
+/// Rewrite a short-crate_root `rust_library` block into the deep cedar comprehension form, preserving
+/// name/crate/visibility/deps and the existing srcs glob, so a cross-package `../` include resolves to
+/// the mapped VALUE. Conservative: only handles a single `rust_library` with a `glob([...])` srcs and
+/// a short `crate_root` ending in `/lib.rs`/`/main.rs`; returns `Err` (→ manual report) otherwise. The
+/// include literal is never touched. The emitted form mirrors the proven cloud-intelligence adapter.
+fn rewrite_to_comprehension(block: &str, rem: &Remediation) -> Result<String, String> {
+    if !block.trim_start().starts_with("rust_library") {
+        return Err("comprehension rewrite only supports a rust_library target; fix by hand".to_owned());
+    }
+    let crate_dir = rem.buck_path.trim_end_matches("/BUCK").to_owned();
+    let name = field_value_expr(block, "name")
+        .and_then(|e| unquote_concat(&e, &[]))
+        .ok_or_else(|| "could not read target name".to_owned())?;
+    let crate_field = field_value_expr(block, "crate")
+        .and_then(|e| unquote_concat(&e, &[]));
+    let crate_root_expr = field_value_expr(block, "crate_root")
+        .and_then(|e| unquote_concat(&e, &[]))
+        .ok_or_else(|| "could not read crate_root".to_owned())?;
+    if !(crate_root_expr.ends_with("/lib.rs") || crate_root_expr.ends_with("/main.rs")) {
+        return Err("crate_root is not a src/lib.rs|main.rs; rewrite by hand".to_owned());
+    }
+    let srcs_expr = field_value_expr(block, "srcs").unwrap_or_else(|| "[]".to_owned());
+    let srcs_glob = if srcs_expr.trim().starts_with("glob(") {
+        srcs_expr.trim().to_owned()
+    } else {
+        // Default to the standard asset glob if srcs was empty/list — preserves all sources.
+        "glob([\"src/**/*.rs\", \"**/*.cedar\", \"**/*.sql\", \"**/*.json\", \"**/*.toml\", \"**/*.yaml\", \"**/*.yml\", \"**/*.proto\", \"**/*.graphql\", \"**/*.html\", \"**/*.css\", \"**/*.txt\"])".to_owned()
+    };
+    let visibility = field_value_expr(block, "visibility").unwrap_or_else(|| "[\"PUBLIC\"]".to_owned());
+    let deps = field_value_expr(block, "deps").unwrap_or_else(|| "[]".to_owned());
+    let crate_decl = match crate_field {
+        Some(c) => format!("    crate = \"{c}\",\n"),
+        None => String::new(),
+    };
+
+    // ROOT var = crate dir; comprehension maps every src to ROOT/<src>; explicit entry maps the
+    // cross-package asset to its include-relative deep destination (rem.mapped_value).
+    let root_var = "ASSET_ROOT";
+    let srcs_var = "ASSET_SRCS";
+    let mapped_var = "ASSET_MAPPED_SRCS";
+    Ok(format!(
+        "# ADR-0545 embedded-asset hermeticity --fix: rewritten to the cedar comprehension form so the\n\
+         # cross-package include resolves to its include-relative sandbox destination. Include literal\n\
+         # unchanged (editing it would break cargo).\n\
+         {root_var} = \"{crate_dir}\"\n\
+         {srcs_var} = {srcs_glob}\n\
+         {mapped_var} = {{src: {root_var} + \"/\" + src for src in {srcs_var}}}\n\
+         {mapped_var}[\"{key}\"] = \"{value}\"\n\
+         \n\
+         rust_library(\n\
+         \x20   name = \"{name}\",\n\
+         \x20   srcs = [],\n\
+         {crate_decl}\
+         \x20   crate_root = {root_var} + \"/{root_suffix}\",\n\
+         \x20   visibility = {visibility},\n\
+         \x20   mapped_srcs = {mapped_var},\n\
+         \x20   deps = {deps},\n\
+         )\n",
+        key = rem.mapped_key,
+        value = rem.mapped_value,
+        root_suffix = crate_root_expr.trim_start_matches(&format!("{crate_dir}/")),
+    ))
+}
+
+/// Collect every unmapped site from an `observed` value and derive a remediation per site. Read-only.
+pub fn derive_all_remediations(root: &Path, observed: &Value) -> Vec<Remediation> {
+    observed
+        .get("sites")
+        .and_then(Value::as_array)
+        .map(|sites| {
+            sites
+                .iter()
+                .filter_map(|s| derive_remediation(root, s))
+                .collect()
+        })
+        .unwrap_or_default()
+}
 
 #[cfg(test)]
 mod tests {
@@ -2065,5 +2455,131 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
         assert!(is_out_of_scope("../../../out/svc.elf", &["../../../out/".to_owned()], &exts));
         // a .cedar under out/ is still an embedded asset -> NOT out of scope.
         assert!(!is_out_of_scope("../../../out/policy.cedar", &["../../../out/".to_owned()], &exts));
+    }
+
+    // ---- auto-remediation (`--fix`) -------------------------------------------
+
+    #[test]
+    fn apply_remediation_adds_entry_to_existing_inline_dict() {
+        // A target with an inline mapped_srcs dict gains the derived entry; the include literal is
+        // never touched. This is the FRIC-1781131000 broken-mapping -> --fix -> mapped shape.
+        let buck = "rust_library(\n    name = \"adapter\",\n    srcs = [],\n    crate_root = \"x/src/lib.rs\",\n    mapped_srcs = {\n        \"//x/policy:wrong.cedar\": \"x/policy/wrong.cedar\",\n    },\n)\n";
+        let rem = Remediation {
+            buck_path: "x/BUCK".to_owned(),
+            target: "adapter".to_owned(),
+            mapped_key: "//y/policy:right.cedar".to_owned(),
+            mapped_value: "y/policy/right.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: true,
+            note: String::new(),
+        };
+        let patched = apply_remediation(buck, &rem).expect("apply");
+        assert!(
+            patched.contains("\"//y/policy:right.cedar\": \"y/policy/right.cedar\""),
+            "patched dict must contain the new entry: {patched}"
+        );
+        // The original entry and the include-free structure remain intact.
+        assert!(patched.contains("\"//x/policy:wrong.cedar\""));
+        assert!(patched.contains("name = \"adapter\""));
+    }
+
+    #[test]
+    fn apply_remediation_replaces_wrong_value_for_existing_key() {
+        // The FRIC-1781131000 defect shape: the KEY exists but is mapped to the WRONG sandbox path.
+        // --fix must REPLACE the value, never insert a duplicate key (buck2 rejects duplicate keys).
+        let buck = "rust_library(\n    name = \"adapter\",\n    crate_root = \"x/src/lib.rs\",\n    mapped_srcs = {\n        \"//y/policy:p.cedar\": \"policy/p.cedar\",\n    },\n)\n";
+        let rem = Remediation {
+            buck_path: "x/BUCK".to_owned(),
+            target: "adapter".to_owned(),
+            mapped_key: "//y/policy:p.cedar".to_owned(),
+            mapped_value: "y/policy/p.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: true,
+            note: String::new(),
+        };
+        let patched = apply_remediation(buck, &rem).expect("apply");
+        assert!(patched.contains("\"//y/policy:p.cedar\": \"y/policy/p.cedar\""), "value replaced: {patched}");
+        assert!(!patched.contains("\"policy/p.cedar\""), "old wrong value must be gone: {patched}");
+        // Exactly one occurrence of the key (no duplicate).
+        assert_eq!(patched.matches("//y/policy:p.cedar").count(), 1, "no duplicate key: {patched}");
+    }
+
+    #[test]
+    fn apply_remediation_creates_mapped_srcs_when_absent() {
+        let buck = "rust_library(\n    name = \"t\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate_root = \"src/lib.rs\",\n)\n";
+        let rem = Remediation {
+            buck_path: "p/BUCK".to_owned(),
+            target: "t".to_owned(),
+            mapped_key: "//q:a.cedar".to_owned(),
+            mapped_value: "q/a.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: true,
+            note: String::new(),
+        };
+        let patched = apply_remediation(buck, &rem).expect("apply");
+        assert!(patched.contains("mapped_srcs = {"), "must add a mapped_srcs dict: {patched}");
+        assert!(patched.contains("\"//q:a.cedar\": \"q/a.cedar\""));
+    }
+
+    #[test]
+    fn non_applicable_remediation_is_reported_not_applied() {
+        let rem = Remediation {
+            buck_path: "p/BUCK".to_owned(),
+            target: "t".to_owned(),
+            mapped_key: String::new(),
+            mapped_value: "q/a.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: false,
+            note: "asset not found on disk; manual fix required".to_owned(),
+        };
+        let err = apply_remediation("rust_library(name = \"t\")", &rem).unwrap_err();
+        assert!(err.contains("manual fix required"), "must surface the manual note: {err}");
+    }
+
+    #[test]
+    fn derive_remediation_ignores_non_unmapped_rows() {
+        let resolved = json!({"status": "resolved", "resolved": "a", "rs": "x.rs"});
+        assert!(derive_remediation(Path::new("/nonexistent"), &resolved).is_none());
+    }
+
+    #[test]
+    fn comprehension_rewrite_produces_deep_cedar_form() {
+        // The escaping short-crate_root shape (FRIC-1781131000): --fix rewrites the whole rust_library
+        // to the deep comprehension form so the cross-package `../` include resolves to the VALUE.
+        let buck = "rust_library(\n    name = \"adapter\",\n    srcs = glob([\"src/**/*.rs\", \"**/*.cedar\"]),\n    crate = \"adapter_crate\",\n    crate_root = \"src/lib.rs\",\n    visibility = [\"PUBLIC\"],\n    mapped_srcs = {\n        \"//svc/policy:p.cedar\": \"policy/p.cedar\",\n    },\n    deps = [\n        \"third-party//:cedar-policy\",\n    ],\n)\n";
+        let rem = Remediation {
+            buck_path: "svc/crates/adapter/BUCK".to_owned(),
+            target: "adapter".to_owned(),
+            mapped_key: "//svc/policy:p.cedar".to_owned(),
+            mapped_value: "svc/policy/p.cedar".to_owned(),
+            kind: RemediationKind::ComprehensionRewrite,
+            applicable: true,
+            note: String::new(),
+        };
+        let patched = apply_remediation(buck, &rem).expect("rewrite");
+        assert!(patched.contains("ASSET_ROOT = \"svc/crates/adapter\""), "ROOT var: {patched}");
+        assert!(patched.contains("crate_root = ASSET_ROOT + \"/src/lib.rs\""), "deep crate_root: {patched}");
+        assert!(patched.contains("{src: ASSET_ROOT + \"/\" + src for src in ASSET_SRCS}"), "comprehension: {patched}");
+        assert!(patched.contains("ASSET_MAPPED_SRCS[\"//svc/policy:p.cedar\"] = \"svc/policy/p.cedar\""), "explicit deep value: {patched}");
+        assert!(patched.contains("srcs = [],"), "srcs emptied: {patched}");
+        assert!(patched.contains("crate = \"adapter_crate\""), "crate preserved: {patched}");
+        assert!(!patched.contains("crate_root = \"src/lib.rs\""), "short crate_root removed: {patched}");
+        assert!(!patched.contains("\"policy/p.cedar\""), "wrong crate-local value removed: {patched}");
+    }
+
+    #[test]
+    fn comprehension_rewrite_refuses_non_library_targets() {
+        let buck = "rust_binary(\n    name = \"b\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate_root = \"src/main.rs\",\n)\n";
+        let rem = Remediation {
+            buck_path: "p/BUCK".to_owned(),
+            target: "b".to_owned(),
+            mapped_key: "//q:a".to_owned(),
+            mapped_value: "q/a".to_owned(),
+            kind: RemediationKind::ComprehensionRewrite,
+            applicable: true,
+            note: String::new(),
+        };
+        // A binary is out of the safe rewrite envelope -> reported manual (the backstop), not guessed.
+        assert!(apply_remediation(buck, &rem).is_err());
     }
 }

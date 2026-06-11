@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-cloud-ci-embedded-asset-hermeticity-app",
-    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    srcs = glob(["src/lib.rs", "**/*.json"]),
     crate = "oya_cloud_ci_embedded_asset_hermeticity_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -9,9 +9,24 @@ rust_library(
     ],
 )
 
+# Automation-default surface (founder directive 2026-06-11): --fix derives + applies the corrected
+# mapped_srcs entry for an unmapped embedded asset; --check reports without writing. The blocking
+# `*-gate` rust_test below is the backstop for what --fix cannot safely auto-derive.
+rust_binary(
+    name = "oya-cloud-ci-embedded-asset-hermeticity-fixer",
+    srcs = ["src/main.rs"],
+    crate = "oya_cloud_ci_embedded_asset_hermeticity_fixer",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-embedded-asset-hermeticity-app",
+        "third-party//:serde_json",
+    ],
+)
+
 rust_test(
     name = "oya-cloud-ci-embedded-asset-hermeticity-app-unittest",
-    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    srcs = glob(["src/lib.rs", "**/*.json"]),
     crate = "oya_cloud_ci_embedded_asset_hermeticity_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
