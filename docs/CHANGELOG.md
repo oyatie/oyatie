@@ -3,6 +3,17 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-06-10 — ADR-0544 friction-ledger closed-loop accounting gate authored
+
+- Added ADR-0544 and the `cloud-ci-friction-accounting` meta-gate: every friction-ledger row must
+  terminate in a gate, an automation, or an explicit accepted-risk entry, enforced so unconverted,
+  undisposed, or unevidenced frictions block merges like code debt (Google SRE postmortem
+  action-item model, Rust-native).
+- The gate is born pack-shaped: ledger path, free-text status taxonomy, and evidence rules are DATA
+  in `friction-accounting-policy.json`; the Rust kernel is neutral and runs on any repo. It is a
+  standalone born-blocking buck2 self-test with its own reviewed shrink-only baseline + ceilings
+  (FRIC-1781112000 anti-laundering), documented in the oya-ci gate catalog.
+
 ## 2026-06-10 — FRIC-012 enforcement-liveness gate added
 
 - Added `cloud-ci-enforcement-liveness` to make tracked hook scripts mechanically live across
