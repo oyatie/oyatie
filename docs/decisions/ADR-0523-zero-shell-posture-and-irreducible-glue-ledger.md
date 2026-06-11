@@ -38,7 +38,7 @@ a retirement target; this ADR closes the set of what may legitimately remain.
 
 The lifecycle target is ZERO shell/CLI glue that does real work — every `build.sh` / `cargo` / Makefile
 orchestrator is a defect to retire into a buck2 target — EXCEPT a closed, authoritative
-**IRREDUCIBLE-GLUE LEDGER** of five items that genuinely cannot be a pure in-graph buck2 action:
+**IRREDUCIBLE-GLUE LEDGER** of six items that genuinely cannot be a pure in-graph buck2 action:
 
 1. **Toolchain bootstrap** — the buck2 binary itself + the first rustc/QEMU/musl downloads (a build
    tool cannot build itself in-graph). Pin buck2 by release tag; move the CI `curl` into a
@@ -55,6 +55,11 @@ orchestrator is a defect to retire into a buck2 target — EXCEPT a closed, auth
 5. **reindeer buckify** — the standard out-of-graph third-party BUCK generator; pin reindeer, fold the
    `*.patch` hand-edits into reindeer fixups or a checked-in `select()` overlay, wrap as
    `buck2 run //tools:buckify`.
+6. **Agent-hook exec shims** — Claude/Codex project hook APIs execute configured commands, so a hook
+   may retain a minimal shell shim only to locate and `exec` a repo-local Rust binary under
+   `tools/hooks/bin/`, with no policy logic and fail-open warning behavior when the binary is absent.
+   First authorized row: `tools/hooks/main-checkout-guard.sh` for FRIC-022 / FRIC-1781062867; the
+   policy implementation is `tools/oya-checkout-guard-app`.
 
 RULE: everything NOT in this ledger is a retirement target; any PR that touches a ledger item is a
 one-way door requiring re-justification.

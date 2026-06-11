@@ -359,6 +359,7 @@
         "oya-check-authz-tier-discipline",
         "oya-check-dependency-seam",
         "oya-check-ontology-projection-coverage",
+        "oya-checkout-guard-app",
         "oya-ci-webhook-gateway-app",
         "oya-ci-webhook-gateway-github-adapter",
         "oya-ci-webhook-gateway-kernel",

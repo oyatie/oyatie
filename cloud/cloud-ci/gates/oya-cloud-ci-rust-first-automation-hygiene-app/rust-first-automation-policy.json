@@ -361,6 +361,12 @@
       "status": "temporary_legacy_bridge"
     },
     {
+      "path": "tools/hooks/main-checkout-guard.sh",
+      "reason": "ADR-0523 irreducible-glue class 6 exec shim: locates and execs the Rust guard binary (tools/oya-checkout-guard-app) for the PreToolUse hook; zero policy logic in shell.",
+      "replacement": "Hook configuration invokes the Rust guard binary directly (Buck2 target //tools/oya-checkout-guard-app) once hook-binary provisioning is automated; ADR-0523 class 6 shrinks to zero.",
+      "status": "temporary_legacy_bridge"
+    },
+    {
       "path": "tools/hooks/no-cargo-enforcer.sh",
       "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
       "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",

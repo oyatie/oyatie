@@ -22,6 +22,13 @@
       "wired_in_codex": true
     },
     {
+      "hook_path": "tools/hooks/main-checkout-guard.sh",
+      "row_type": "hook",
+      "stub_marked": false,
+      "wired_in_claude": true,
+      "wired_in_codex": true
+    },
+    {
       "hook_path": "tools/hooks/no-cargo-enforcer.sh",
       "row_type": "hook",
       "stub_marked": false,
@@ -96,6 +103,12 @@
       "wiring_file": ".claude/settings.json"
     },
     {
+      "command_path": "tools/hooks/main-checkout-guard.sh",
+      "row_type": "command_reference",
+      "target_exists": true,
+      "wiring_file": ".claude/settings.json"
+    },
+    {
       "command_path": "tools/hooks/no-cargo-enforcer.sh",
       "row_type": "command_reference",
       "target_exists": true,
@@ -145,6 +158,12 @@
     },
     {
       "command_path": "tools/hooks/local-authority-enforcer.sh",
+      "row_type": "command_reference",
+      "target_exists": true,
+      "wiring_file": ".codex/hooks.json"
+    },
+    {
+      "command_path": "tools/hooks/main-checkout-guard.sh",
       "row_type": "command_reference",
       "target_exists": true,
       "wiring_file": ".codex/hooks.json"
