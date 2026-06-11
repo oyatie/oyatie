@@ -56,6 +56,7 @@ agent-wiring + catalog`.
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
 | `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition` (born-blocking-clean), `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty), `friction_orphan_update_row` |
 | `cloud-ci-canonical-json` | governance | standalone self-test (zero baseline) | `json_not_canonical` (born-blocking-empty), `json_parse_error` (born-blocking-empty), `json_duplicate_key` (born-blocking-empty) |
+| `cloud-ci-embedded-asset-hermeticity` | hermeticity | standalone self-test (own committed baseline) | `embedded_asset_unmapped_include` (born-blocking frozen-empty), `embedded_asset_policy_gate_id_mismatch` (frozen-empty); non-blocking skips: `skip_non_literal_argument`, `skip_absolute_literal`, `skip_build_output_path`, `skip_no_owning_target`, `skip_buck_unparseable` |
 
 For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
 enforces the content-first, faces-only settle protocol after the content commit lands.
@@ -87,6 +88,26 @@ excluded (single-owner: faces are owned byte-verbatim by freshness, fixtures by 
 All policy — governed roots, canonical-form params, exclusions — is DATA in `canonical-json-policy.json`,
 so the gate runs on any repo by repointing the policy. Converts FRIC-1781130000 (escaped↔literal
 serialization churn).
+
+`cloud-ci-embedded-asset-hermeticity` (ADR-0545) is a standalone born-blocking self-test that
+statically asserts every Rust `include_str!`/`include_bytes!` string-literal path resolves, inside the
+owning Buck target's `__srcs` tree, to a member of {srcs short-paths ∪ `mapped_srcs` VALUES} — so an
+embedded asset mapped to the wrong sandbox location (FRIC-1781131000: `couldn't read …`, masked as
+`missing rmeta`) cannot reach the merge queue. It reimplements Bazel/Buck hermetic-action
+missing-input detection Rust-native. The blocking `embedded_asset_unmapped_include` code is
+born-frozen-empty (the live corpus is hermetic after the webhook cedar-adapter prerequisite fix);
+sites the conservative lexical parser cannot fully resolve are surfaced as non-blocking `skip_*`
+codes, baselined shrink-only with reviewed ceilings in `embedded-asset-hermeticity-baseline.json`
+(FRIC-1781112000 anti-laundering) — never silent, never verdict-flipping. Per the founder
+automation-default directive (2026-06-11), the gate ships an auto-remediator: `buck2 run
+//cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app:oya-cloud-ci-embedded-asset-hermeticity-fixer
+-- --fix` DERIVES and APPLIES the corrected `mapped_srcs` entry (or the cedar comprehension rewrite)
+for an unmapped asset — the default developer/agent path — while the `*-gate` rust_test is the
+enforcement backstop whose failure detail prints the exact `--fix` command. All policy (scan roots,
+extension sets, build-output dirs) is DATA in `embedded-asset-hermeticity-policy.json`, so the gate
+runs on any repo by repointing the policy. Key shape: `embedded-asset-hermeticity` keys are
+`<target>::<crate-relative .rs>::<include literal>` for bound sites, or `<file>:<line>` for early
+skips (non-literal / build-output / no-owning-target); `<policy>` for the gate-id-mismatch sentinel.
 
 ## Key shapes (what a `key` identifies)
 
