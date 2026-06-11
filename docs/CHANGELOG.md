@@ -10,9 +10,11 @@ doc_status: published
   undisposed, or unevidenced frictions block merges like code debt (Google SRE postmortem
   action-item model, Rust-native).
 - The gate is born pack-shaped: ledger path, free-text status taxonomy, and evidence rules are DATA
-  in `friction-accounting-policy.json`; the Rust kernel is neutral and runs on any repo. It is a
-  standalone born-blocking buck2 self-test with its own reviewed shrink-only baseline + ceilings
-  (FRIC-1781112000 anti-laundering), documented in the oya-ci gate catalog.
+  in `friction-accounting-policy.json` (the row field-name schema is the engine's contract); the Rust
+  kernel is neutral and runs on any repo. It is a standalone born-blocking buck2 self-test with its
+  own reviewed (review-visible, shrink-only) baseline + ceilings, documented in the oya-ci gate
+  catalog. A merge-base shrink-only meta-check (FRIC-1781112000) and per-row owner/aging enforcement
+  are named follow-ups.
 
 ## 2026-06-10 — FRIC-012 enforcement-liveness gate added
 

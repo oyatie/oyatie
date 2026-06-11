@@ -54,7 +54,7 @@ agent-wiring + catalog`.
 | `cloud-ci-target-parity` | rust-cargo-workspace | producer-face (`target_parity`) | `member_missing_buck` (frozen-empty), `member_test_code_without_rust_test_target` |
 | `cloud-ci-enforcement-liveness` | agent-wiring | producer-face (`enforcement_liveness`) | `hook_unwired_without_stub_marker` (frozen-empty), `hook_wiring_mirror_drift` (frozen-empty), `wired_hook_missing_file` (frozen-empty) |
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
-| `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition`, `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty) |
+| `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition` (born-blocking-clean), `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty), `friction_orphan_update_row` |
 
 For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
 enforces the content-first, faces-only settle protocol after the content commit lands.

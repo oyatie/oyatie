@@ -39,6 +39,11 @@
 //! - `friction_closed_without_evidence`        — a terminal-class friction cites no evidence.
 //! - `friction_accepted_risk_without_evidence` — an accepted-risk friction cites no evidence.
 //! - `friction_duplicate_primary_row`          — two PRIMARY rows share one `id` (appends are legitimate).
+//! - `friction_orphan_update_row`              — a friction id has ONLY update-shaped rows and no
+//!                                               anchoring PRIMARY record. Without a primary the
+//!                                               schema/required-field/disposition checks cannot
+//!                                               bind, so an update-only row would otherwise evade
+//!                                               every check and be silently unaccounted.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -53,8 +58,8 @@ use serde_json::{Value, json};
 /// The gate id, matching the buck2 target + the oya-ci registry id.
 pub const GATE_ID: &str = "cloud-ci-friction-accounting";
 
-/// The seven blocking violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 7] = [
+/// The eight blocking violation codes, in canonical order.
+pub const VIOLATION_CODES: [&str; 8] = [
     "friction_policy_gate_id_mismatch",
     "friction_missing_required_field",
     "friction_unknown_status",
@@ -62,6 +67,7 @@ pub const VIOLATION_CODES: [&str; 7] = [
     "friction_closed_without_evidence",
     "friction_accepted_risk_without_evidence",
     "friction_duplicate_primary_row",
+    "friction_orphan_update_row",
 ];
 
 /// The sentinel key for codes that are policy-level rather than per-friction.
@@ -332,6 +338,23 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     }
 
     for (id, state) in &states {
+        if state.primary_count == 0 {
+            // ONLY update-shaped rows exist for this id: there is no anchoring PRIMARY record, so the
+            // required-field/disposition/duplicate/class checks cannot bind. An update-only row is the
+            // cheapest way to evade the born-blocking schema check (status_update=RESOLVED + evidence
+            // would otherwise fold to a clean terminal state and pass), so the missing primary is
+            // itself the violation — and the ONLY one we emit for this id, so a fixed orphan drops a
+            // single baseline key rather than churning several. This is baseline-block-on-new: the
+            // live ledger's pre-existing orphan ids are frozen as shrinkable legacy debt, and any NEW
+            // orphan-update id fails closed.
+            findings.insert(Finding::new(
+                "friction_orphan_update_row",
+                id,
+                "friction has only update-shaped rows and no anchoring primary record; \
+                 log a primary row (id/seen_at/friction/enforcement_fix/status) for this id",
+            ));
+            continue;
+        }
         if state.primary_count > 1 {
             findings.insert(Finding::new(
                 "friction_duplicate_primary_row",
@@ -541,6 +564,42 @@ mod tests {
         assert!(
             !folded.iter().any(|f| f.code == "friction_duplicate_primary_row"),
             "an append must not count as a duplicate primary: {folded:#?}"
+        );
+    }
+
+    #[test]
+    fn orphan_update_only_friction_fails_closed_as_sole_finding() {
+        // A friction with ONLY update rows (no primary) must fail closed: it would otherwise fold to
+        // a clean terminal-with-evidence state and evade every schema/disposition/closure check.
+        let orphan = json!({
+            "id": "FRIC-ORPHAN",
+            "seen_at": "2026-06-10",
+            "status_update": "RESOLVED",
+            "enforcement_fix": "looks disposed",
+            "evidence": "looks closed"
+        });
+        let findings = evaluate_keyed(&policy(), &observed(vec![orphan]));
+        let mine: Vec<_> = findings.iter().filter(|f| f.key == "FRIC-ORPHAN").collect();
+        assert_eq!(mine.len(), 1, "orphan emits exactly one finding: {findings:#?}");
+        assert_eq!(mine[0].code, "friction_orphan_update_row");
+    }
+
+    #[test]
+    fn primary_plus_updates_is_not_an_orphan() {
+        // A real friction (primary + later update rows) must NOT be flagged as an orphan.
+        let append = json!({
+            "id": "FRIC-REAL",
+            "seen_at": "2026-06-10",
+            "status_update": "RESOLVED",
+            "evidence": "PR #700 merged @ deadbeef"
+        });
+        let findings = evaluate_keyed(
+            &policy(),
+            &observed(vec![primary("FRIC-REAL", "open"), append]),
+        );
+        assert!(
+            !findings.iter().any(|f| f.code == "friction_orphan_update_row"),
+            "primary+updates must not be an orphan: {findings:#?}"
         );
     }
 

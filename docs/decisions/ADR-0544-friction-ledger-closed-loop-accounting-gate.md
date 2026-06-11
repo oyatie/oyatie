@@ -65,11 +65,14 @@ JUSTIFICATION:
 - layer = app: the crate is an executable CI gate surface with a pure evaluator kernel.
 - exemptions claimed: none.
 
-**Born pack-shaped (founder R0).** Every repo-specific value — the ledger path, the free-text status
-taxonomy (`status -> {open | terminal | accepted-risk}`), the required-field set, the
-evidence-on-closure rules — is DATA in `friction-accounting-policy.json`. The Rust kernel hardcodes no
-repo path nor any oyatie string; another repo adopts the gate by repointing the policy at its own
-ledger. The engine is neutral; the policy is the pack.
+**Born pack-shaped (founder R0).** The ledger path, the free-text status taxonomy
+(`status -> {open | terminal | accepted-risk}`), the required-field set, and the evidence-on-closure
+rules are DATA in `friction-accounting-policy.json`. The Rust kernel hardcodes no repo path nor any
+oyatie string; another repo adopts the gate by repointing the policy at its own ledger. The kernel
+DOES fix the ledger ROW SCHEMA — the field names (`id`, `seen_at`, `status`, `status_update`,
+`friction`, `enforcement_fix`, `evidence`) and the primary-vs-update shape are the engine's contract,
+not per-repo pack values; an adopting repo maps its ledger columns onto these names. The engine is
+neutral on policy; the row schema is the contract.
 
 **Kernel contract.** `collect_observed_frictions(root, policy) -> {rows:[..]}` performs the only I/O
 (read-only ledger read, no temp files). `evaluate_keyed(policy, observed) -> BTreeSet<Finding>` is
@@ -93,14 +96,27 @@ the gate-id sentinel):
   (escalated/founder-held) friction cites no evidence for the holder/decision.
 - `friction_duplicate_primary_row` (frozen-empty): two PRIMARY rows share one `id` (appends are
   legitimate event-sourcing and never count as duplicates).
+- `friction_orphan_update_row` (baseline-block-on-new): a friction id has ONLY update-shaped rows and
+  no anchoring PRIMARY record. Without a primary the schema/disposition checks cannot bind, so an
+  update-only row would otherwise fold to a clean terminal-with-evidence state and evade every check;
+  the missing primary is itself the (sole) violation for that id. Three pre-existing orphan ids are
+  baselined as shrinkable legacy debt; `friction_no_disposition` is consequently born-blocking-clean.
 
 **Ratchet semantics that never discourage logging.** Appending a friction row never fails the gate by
-itself. Schema/disposition/taxonomy codes baseline today's legacy debt in a reviewed, NON-regenerated
+itself. Schema/orphan/closure codes baseline today's legacy debt in a reviewed, NON-regenerated
 `friction-accounting-baseline.json` (set-equality, shrink-only) plus independent reviewed ceilings —
 a NEW friction triggering any of these adds a key not in the baseline and fails closed, while frozen
 legacy debt ages out as rows are fixed. The closure-integrity codes ship born-blocking frozen-empty
-(the live ledger satisfies them today). The baseline is frozen against a non-regenerable reference
-(FRIC-1781112000): a baseline edited in the same PR cannot launder new debt past the ratchet.
+(the live ledger satisfies them today).
+
+The anti-laundering property is **review-visible, not yet structural** (FRIC-1781112000). The good
+parts are real: the live-repo test asserts set-equality on `BTreeSet`s (not counts), the ceilings are
+hand-fixed constants in test source (not derived from any generated artifact), and the baseline is
+not producer-materialized. But the baseline, ceilings, and test are all same-PR-editable; nothing yet
+mechanically compares the baseline against `origin/dev`. So laundering new debt requires a
+review-visible edit to a frozen file that a reviewer must approve — it is not structurally impossible.
+A baseline-shrink-only meta-check that diffs against the merge-base is the named follow-up
+(FRIC-1781112000's full fix); until it lands this gate matches the ADR-0540 target-parity posture.
 
 **Escalated / founder-held rows (D2).** Statuses such as `interim-accepted`,
 `awaiting-founder-pairing`, and `escalated-to-leader-*` map to the **accepted-risk** class: they are
@@ -156,11 +172,30 @@ consume Workflow events, or write Ontology objects.
 
 - The status taxonomy must be maintained as the ledger's vocabulary evolves; a genuinely new status
   fails closed (`friction_unknown_status`) until classified — a deliberate forcing function, but it
-  requires a one-line policy edit to admit a new disposition vocabulary.
-- Existing schema/closure debt (4 missing-field, 3 no-disposition, 2 closed-without-evidence, 7
+  requires a one-line policy edit to admit a new disposition vocabulary. Because the taxonomy edit is
+  neither ratcheted nor reviewed by a meta-check, the policy file is the unguarded pressure valve: the
+  fastest unblock for a novel status is a same-PR taxonomy edit, which can quietly reclassify around
+  the forcing function. A taxonomy-change review discipline (or meta-gate) is a follow-up.
+- `status_match=prefix` trades the fail-closed unknown-status property for tolerance of the ledger's
+  verbose vocabulary: a new status sharing a registered prefix classifies silently. Prefixes are kept
+  deliberately narrow; this is an explicit, documented trade, not an oversight.
+- Existing schema/closure debt (4 missing-field, 3 orphan-update, 2 closed-without-evidence, 7
   accepted-risk-without-evidence keys) remains visible in the baseline until each friction is fixed.
 - The gate enforces its own baseline locally rather than through the central firewall until the
   producer's raw-corpus dispatch is generalized.
+- **SRE precedent half-applied:** this gate enforces the CLOSURE half of the postmortem action-item
+  model (verifiable evidence) but not the OWNER half (no per-row owner field is required or checked)
+  nor TIME-BOUND termination (an open friction with a declared `enforcement_fix` is green forever; the
+  founder language "every row must *terminate*" is enforced as "must *declare a disposition*"). Adding
+  an owner field and an aging dimension (the in-tree GATE-3 staleness precedent) is deferred.
+- **Undeclared buck2 input:** the live-repo test walks up to the real repo root to read the ledger
+  (the established convention across the gate-test family), so the ledger is not a declared buck2
+  input and a warm-cache `buck2 test //cloud/cloud-ci/...` can serve a stale verdict after a ledger
+  edit. Merge authority is unaffected — the `oya-ci-required` matrix leg runs
+  `cargo test --locked -p oya-cloud-ci-friction-accounting-app` on a fresh runner that re-reads the
+  ledger every run — but this gate is the worst case for the convention (its input changes on nearly
+  every lane), so a repo-wide friction for declared-input gate tests is warranted (and this gate would
+  then account it).
 
 ### Operational
 

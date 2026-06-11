@@ -79,16 +79,20 @@ fn live_friction_ledger_meets_the_closed_loop_contract() {
 
     let findings = evaluate_keyed(&policy, &observed);
 
-    // 1. Frozen-empty closure-integrity codes: NO key allowed on the live corpus (born-blocking).
+    // 1. Born-blocking-empty codes: NO key allowed on the live corpus. Two frozen-empty closure
+    //    codes plus friction_no_disposition, which the orphan-update refactor made clean today (every
+    //    surviving friction either declares an enforcement_fix, is accepted-risk, or is an orphan
+    //    accounted under friction_orphan_update_row). Any new occurrence of any of these fails closed.
     for code in [
         "friction_policy_gate_id_mismatch",
         "friction_unknown_status",
         "friction_duplicate_primary_row",
+        "friction_no_disposition",
     ] {
         let keys = keys_for(&findings, code);
         assert!(
             keys.is_empty(),
-            "{code} is born-blocking frozen-empty; live ledger must carry zero, got {keys:?}"
+            "{code} is born-blocking empty on the live corpus; got {keys:?}"
         );
     }
 
@@ -98,7 +102,7 @@ fn live_friction_ledger_meets_the_closed_loop_contract() {
     //    shrink in the SAME PR (settle discipline). The baseline is reviewed, not regenerated.
     const SHRINK_ONLY_CODES: [&str; 4] = [
         "friction_missing_required_field",
-        "friction_no_disposition",
+        "friction_orphan_update_row",
         "friction_closed_without_evidence",
         "friction_accepted_risk_without_evidence",
     ];
@@ -107,7 +111,7 @@ fn live_friction_ledger_meets_the_closed_loop_contract() {
     // PR tried to grow the baseline to absorb new debt, breaching a ceiling fails closed.
     const CEILINGS: [(&str, usize); 4] = [
         ("friction_missing_required_field", 4),
-        ("friction_no_disposition", 3),
+        ("friction_orphan_update_row", 3),
         ("friction_closed_without_evidence", 2),
         ("friction_accepted_risk_without_evidence", 7),
     ];
@@ -132,10 +136,10 @@ fn live_friction_ledger_meets_the_closed_loop_contract() {
     }
 
     eprintln!(
-        "FRICTION-ACCOUNTING live corpus: rows={row_count} missing_field={} no_disposition={} \
+        "FRICTION-ACCOUNTING live corpus: rows={row_count} missing_field={} orphan_update={} \
          closed_without_evidence={} accepted_risk_without_evidence={}",
         keys_for(&findings, "friction_missing_required_field").len(),
-        keys_for(&findings, "friction_no_disposition").len(),
+        keys_for(&findings, "friction_orphan_update_row").len(),
         keys_for(&findings, "friction_closed_without_evidence").len(),
         keys_for(&findings, "friction_accepted_risk_without_evidence").len(),
     );
@@ -223,20 +227,95 @@ fn red_accepted_risk_without_evidence_fails_closed() {
 }
 
 #[test]
-fn red_baseline_is_shrink_only_a_grown_set_breaks_equality() {
-    // Simulate the anti-laundering check directly: a measured set with an extra key not in the
-    // frozen baseline must break set-equality (the live test's core assertion).
-    let baseline: BTreeSet<String> = ["FRIC-A".to_owned(), "FRIC-B".to_owned()].into_iter().collect();
-    let measured_grown: BTreeSet<String> =
-        ["FRIC-A".to_owned(), "FRIC-B".to_owned(), "FRIC-NEW-DEBT".to_owned()]
-            .into_iter()
-            .collect();
-    assert_ne!(
-        measured_grown, baseline,
-        "a measured set that grew past the frozen baseline must fail the set-equality ratchet"
+fn red_orphan_update_only_friction_fails_closed() {
+    // The evasion the CRITICAL review caught: a friction logged ONLY as update-shaped rows (no
+    // anchoring primary) would otherwise fold to a clean terminal-with-evidence state and pass every
+    // check. The orphan code makes the missing primary itself the (sole) violation for that id.
+    let orphan = json!({
+        "id": "FRIC-ORPHAN",
+        "seen_at": "2026-06-10",
+        "status_update": "RESOLVED",
+        "enforcement_fix": "looks disposed",
+        "evidence": "looks closed"
+    });
+    let findings = evaluate_keyed(&fixture_policy(), &json!({ "rows": [orphan] }));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "friction_orphan_update_row" && f.key == "FRIC-ORPHAN"),
+        "an update-only friction must fail closed as an orphan: {findings:#?}"
     );
-    // Shrinking (a fixed friction) is the only sanctioned divergence and is also caught by equality,
-    // forcing the baseline edit into the same PR.
-    let measured_shrunk: BTreeSet<String> = ["FRIC-A".to_owned()].into_iter().collect();
-    assert_ne!(measured_shrunk, baseline);
+    // It is the ONLY finding for that id (the orphan supersedes the downstream class checks).
+    assert_eq!(
+        findings.iter().filter(|f| f.key == "FRIC-ORPHAN").count(),
+        1,
+        "orphan should emit exactly one finding for the id: {findings:#?}"
+    );
+}
+
+#[test]
+fn red_baseline_is_shrink_only_new_debt_breaks_set_equality() {
+    // Drive the REAL evaluator (not hand-built sets): a fixture ledger carrying a frozen legacy debt
+    // key PLUS a new debt key must produce a measured set that is NOT equal to a baseline containing
+    // only the legacy key — the exact set-equality the live-repo test enforces. This proves the
+    // anti-laundering check rejects new debt rather than asserting std-lib set inequality.
+    let legacy = good_open("FRIC-LEGACY"); // measured open+disposed -> green; stand-in anchor
+    let mut legacy_debt = good_open("FRIC-LEGACY-DEBT");
+    legacy_debt["status"] = json!("RESOLVED"); // terminal, no evidence -> closed_without_evidence
+    let mut new_debt = good_open("FRIC-NEW-DEBT");
+    new_debt["status"] = json!("RESOLVED"); // terminal, no evidence -> closed_without_evidence (NEW)
+
+    let findings = evaluate_keyed(
+        &fixture_policy(),
+        &json!({ "rows": [legacy, legacy_debt, new_debt] }),
+    );
+    let measured: BTreeSet<String> = findings
+        .iter()
+        .filter(|f| f.code == "friction_closed_without_evidence")
+        .map(|f| f.key.clone())
+        .collect();
+    // The "committed baseline" froze only the legacy debt key.
+    let frozen: BTreeSet<String> =
+        ["FRIC-LEGACY-DEBT".to_owned()].into_iter().collect();
+    assert_ne!(
+        measured, frozen,
+        "a NEW closed-without-evidence key must break baseline set-equality, not be absorbed"
+    );
+    assert!(
+        measured.contains("FRIC-NEW-DEBT"),
+        "the evaluator must surface the new debt key: {measured:?}"
+    );
+}
+
+#[test]
+fn violation_codes_const_covers_every_emitted_code() {
+    // Guard against VIOLATION_CODES drifting from what the evaluator actually emits (review LOW-7):
+    // exercise every code at least once and assert each emitted code is declared in the const.
+    let declared: BTreeSet<&str> =
+        oya_cloud_ci_friction_accounting_app::VIOLATION_CODES.into_iter().collect();
+    let mut bad_policy = fixture_policy();
+    bad_policy["gate_id"] = json!("cloud-ci-wrong");
+    let mut missing = good_open("FRIC-M");
+    missing["seen_at"] = json!("");
+    let mut closed = good_open("FRIC-C");
+    closed["status"] = json!("RESOLVED");
+    let mut held = good_open("FRIC-H");
+    held["status"] = json!("escalated-to-leader");
+    let mut unknown = good_open("FRIC-UK");
+    unknown["status"] = json!("never-seen-status");
+    let orphan = json!({"id": "FRIC-O", "seen_at": "2026-06-10", "status_update": "RESOLVED"});
+    let rows = json!({ "rows": [
+        missing, closed, held, unknown, orphan,
+        good_open("FRIC-DD"), good_open("FRIC-DD"),
+    ]});
+    let findings = evaluate_keyed(&bad_policy, &rows);
+    let emitted: BTreeSet<&str> = findings.iter().map(|f| f.code.as_str()).collect();
+    for code in &emitted {
+        assert!(
+            declared.contains(code),
+            "evaluator emitted `{code}` which is not in VIOLATION_CODES"
+        );
+    }
+    // And confirm this fixture actually exercised most of the surface (no silent under-coverage).
+    assert!(emitted.len() >= 6, "expected broad code coverage, got {emitted:?}");
 }
