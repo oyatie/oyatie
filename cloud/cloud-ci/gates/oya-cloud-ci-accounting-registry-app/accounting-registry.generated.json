@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18317,
-    "source_inputs_digest": "fnv1a64:4ecc0e80bd924940"
+    "source_inputs_digest": "fnv1a64:45d8b48ce27f8a87"
   },
   "rows": [
     {
@@ -7137,7 +7137,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e3c4513fd0aca971fa4849e574cf7be1b05b9092",
+      "last_touch_commit": "7657d12bbc4671df770596bcac054a3695ff1189",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/canonical-json-policy.json",
       "reachable_from": [
@@ -7160,7 +7160,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "23961f3c672fe69261af9c56828baba6e1a2829f",
+      "last_touch_commit": "7657d12bbc4671df770596bcac054a3695ff1189",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/lib.rs",
       "reachable_from": [
@@ -7183,7 +7183,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "e3c4513fd0aca971fa4849e574cf7be1b05b9092",
+      "last_touch_commit": "7657d12bbc4671df770596bcac054a3695ff1189",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/main.rs",
       "reachable_from": [
@@ -7206,7 +7206,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "23961f3c672fe69261af9c56828baba6e1a2829f",
+      "last_touch_commit": "7657d12bbc4671df770596bcac054a3695ff1189",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-canonical-json-app/src/tests.rs",
       "reachable_from": [
@@ -80441,7 +80441,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0546",
-      "last_touch_commit": "23961f3c672fe69261af9c56828baba6e1a2829f",
+      "last_touch_commit": "7657d12bbc4671df770596bcac054a3695ff1189",
       "owner": null,
       "path": "docs/decisions/ADR-0546-canonical-json-determinism-gate.md",
       "reachable_from": [],
