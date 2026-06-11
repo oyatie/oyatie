@@ -29,8 +29,10 @@
 //! Automation is the default path; the blocking gate is the backstop layer (face-settle precedent).
 //! - **Derivable + auto-fixable**: a denylisted dep declared in a crate's OWN manifest that is NOT
 //!   referenced anywhere in that crate's `src/**/*.rs` is a dead transient dep — removing the
-//!   manifest line is purely mechanical and safe (no code moves). [`plan_fixes`] produces the exact
-//!   edits and the gate binary applies them under `--fix`.
+//!   manifest line is purely mechanical and safe (no code moves), subject to the five sound bounds
+//!   of ADR-0547 D6 (never a build-dep, renamed dep, feature-referenced dep, or `optional = true`
+//!   dep — optional deps export an implicit feature a sibling member can request). [`plan_fixes`]
+//!   produces the exact edits and the gate binary applies them under `--fix`.
 //! - **Not safely derivable**: a denylisted dep that IS used in the kernel's source requires moving
 //!   the using code into a sibling `*-adapter` crate — a design act, never auto-applied. The gate
 //!   still prints the best next action (which adapter to move to, when inferable), never a bare FAIL.
@@ -141,6 +143,13 @@ struct CrateManifest {
     /// dangling (cargo error: "feature includes dep:X but X is not a dep"), so these are NEVER
     /// auto-fixed — they are demoted to design-action. CRITICAL-1 fix.
     feature_backed_optional_deps: BTreeSet<String>,
+    /// Real names + dep keys of ALL deps declared `optional = true`, regardless of any [features]
+    /// mention. MED-X1 sound bound: every optional dep exports an IMPLICIT cargo feature named
+    /// after itself even when the owning manifest's [features] never references it; a SIBLING
+    /// workspace member can request that feature (`features = ["kube"]`) on its path dep, which
+    /// neither the own-manifest [features] scan (layer 1) nor `cargo metadata --no-deps` (layer 2,
+    /// no cross-member feature resolution) can see. Optional deps are therefore NEVER auto-fixed.
+    optional_dep_names: BTreeSet<String>,
 }
 
 /// Collect the kernel-purity dep graph described by the policy.
@@ -250,6 +259,13 @@ fn build_closure(
             .iter()
             .map(|s| Value::from(s.clone()))
             .collect();
+        // Emit ALL optional dep names so the evaluator can refuse auto-fix for every optional dep
+        // (MED-X1: the implicit-feature export is invisible to both guard layers).
+        let optional_json: Vec<Value> = manifest
+            .optional_dep_names
+            .iter()
+            .map(|s| Value::from(s.clone()))
+            .collect();
         out.push(json!({
             "name": manifest.name,
             "member_path": manifest.member_path,
@@ -260,6 +276,7 @@ fn build_closure(
             "build_dep_names": manifest.build_dep_names.iter().cloned().collect::<Vec<_>>(),
             "cargo_dep_rename_keys": rename_keys_json,
             "feature_backed_optional_deps": feature_backed_json,
+            "optional_dep_names": optional_json,
             "unresolved_path_deps": unresolved_path_deps,
         }));
     }
@@ -298,6 +315,7 @@ fn parse_member_manifest(root: &Path, member_dir: &str) -> Result<CrateManifest,
     let mut build_dep_names = BTreeSet::new();
     let mut cargo_dep_rename_keys = BTreeMap::new();
     let mut feature_backed_optional_deps = BTreeSet::new();
+    let mut optional_dep_names = BTreeSet::new();
     collect_cargo_deps(
         &document,
         member_dir,
@@ -306,6 +324,7 @@ fn parse_member_manifest(root: &Path, member_dir: &str) -> Result<CrateManifest,
         &mut build_dep_names,
         &mut cargo_dep_rename_keys,
         &mut feature_backed_optional_deps,
+        &mut optional_dep_names,
     );
 
     let buck_external_deps = parse_buck_external_deps(root, member_dir)?;
@@ -321,6 +340,7 @@ fn parse_member_manifest(root: &Path, member_dir: &str) -> Result<CrateManifest,
         build_dep_names,
         cargo_dep_rename_keys,
         feature_backed_optional_deps,
+        optional_dep_names,
     })
 }
 
@@ -394,6 +414,7 @@ fn dep_used_in_src(dep: &str, src_idents: &BTreeSet<String>) -> bool {
 /// an internal path dep (recorded as a directory for closure resolution); every other dep is an
 /// external crate (recorded by its dependency key, which is the crate name unless renamed — and a
 /// rename still carries `package = "<real>"`, handled below).
+#[allow(clippy::too_many_arguments)]
 fn collect_cargo_deps(
     document: &toml::Value,
     member_dir: &str,
@@ -402,21 +423,22 @@ fn collect_cargo_deps(
     build_dep_names: &mut BTreeSet<String>,
     rename_keys: &mut BTreeMap<String, String>,
     feature_backed: &mut BTreeSet<String>,
+    optional_names: &mut BTreeSet<String>,
 ) {
     if let Some(table) = document.get("dependencies").and_then(toml::Value::as_table) {
-        collect_dep_table(table, member_dir, external, path_dirs, rename_keys);
+        collect_dep_table(table, member_dir, external, path_dirs, rename_keys, optional_names);
     }
     if let Some(table) = document
         .get("build-dependencies")
         .and_then(toml::Value::as_table)
     {
-        collect_dep_table(table, member_dir, external, path_dirs, rename_keys);
+        collect_dep_table(table, member_dir, external, path_dirs, rename_keys, optional_names);
         record_build_dep_names(table, build_dep_names);
     }
     if let Some(targets) = document.get("target").and_then(toml::Value::as_table) {
         for target_cfg in targets.values() {
             if let Some(table) = target_cfg.get("dependencies").and_then(toml::Value::as_table) {
-                collect_dep_table(table, member_dir, external, path_dirs, rename_keys);
+                collect_dep_table(table, member_dir, external, path_dirs, rename_keys, optional_names);
             }
             // `[target.'cfg(..)'.build-dependencies]` — a legal, rare placement that must also be
             // scanned so a transient build-dep behind a cfg cannot false-green.
@@ -424,7 +446,7 @@ fn collect_cargo_deps(
                 .get("build-dependencies")
                 .and_then(toml::Value::as_table)
             {
-                collect_dep_table(table, member_dir, external, path_dirs, rename_keys);
+                collect_dep_table(table, member_dir, external, path_dirs, rename_keys, optional_names);
                 record_build_dep_names(table, build_dep_names);
             }
         }
@@ -587,6 +609,7 @@ fn collect_dep_table(
     external: &mut BTreeSet<String>,
     path_dirs: &mut Vec<String>,
     rename_keys: &mut BTreeMap<String, String>,
+    optional_names: &mut BTreeSet<String>,
 ) {
     for (dep_key, spec) in table {
         if let Some(spec_table) = spec.as_table() {
@@ -604,6 +627,13 @@ fn collect_dep_table(
             if real != dep_key.as_str() {
                 // real_name -> local dep_key (e.g. "kube" -> "k8s")
                 rename_keys.insert(real.to_owned(), dep_key.clone());
+            }
+            // MED-X1: record EVERY `optional = true` dep (real name + dep key), independent of any
+            // [features] mention — the implicit feature it exports can be requested by a sibling
+            // workspace member, which no local scan or `--no-deps` validation can see.
+            if spec_table.get("optional").and_then(toml::Value::as_bool) == Some(true) {
+                optional_names.insert(real.to_owned());
+                optional_names.insert(dep_key.clone());
             }
         } else {
             // Bare `dep = "x.y"` form — external by the dependency key (the crate name).
@@ -697,10 +727,13 @@ fn find_block_end(block: &str) -> Option<usize> {
 /// Strip Starlark comment (`# ...` to end of LINE) and string literal contents from a (possibly
 /// multi-line) text for the purpose of paren-depth counting. Comment and string state is
 /// line-bounded: a `\n` always resets it (BUCK string literals in dep lists are single-line; an
-/// unterminated quote therefore cannot swallow subsequent lines). Every blanked char is replaced
-/// by `ch.len_utf8()` spaces and every kept char (including `\n`) is emitted verbatim, so the
-/// result has EXACTLY the same byte length as the input and byte-offset arithmetic in
-/// `find_block_end` remains valid even for multi-byte UTF-8 input (e.g. an em dash in a comment).
+/// unterminated quote therefore cannot swallow subsequent lines). Inside string state a backslash
+/// escapes the next character (LOW-X2): `"weird\")label"` does NOT end at the `\"`, so the stray
+/// `)` stays inside the string and cannot false-terminate the block span (which would hide every
+/// dep below it from the detect lane). Every blanked char is replaced by `ch.len_utf8()` spaces
+/// and every kept char (including `\n`) is emitted verbatim, so the result has EXACTLY the same
+/// byte length as the input and byte-offset arithmetic in `find_block_end` remains valid even for
+/// multi-byte UTF-8 input (e.g. an em dash in a comment).
 fn strip_starlark_comment_and_strings(text: &str) -> String {
     fn blank(out: &mut String, ch: char) {
         for _ in 0..ch.len_utf8() {
@@ -711,23 +744,35 @@ fn strip_starlark_comment_and_strings(text: &str) -> String {
     let mut in_single = false;
     let mut in_double = false;
     let mut in_comment = false;
+    // LOW-X2: true iff the previous char inside a string was an unconsumed backslash — the
+    // current char is escaped and must not toggle string state (`\"` stays inside the string).
+    let mut escaped = false;
     for ch in text.chars() {
         if ch == '\n' {
-            // Line boundary: reset comment + (line-bounded) string state, keep the newline.
+            // Line boundary: reset comment + (line-bounded) string + escape state, keep the newline.
             in_single = false;
             in_double = false;
             in_comment = false;
+            escaped = false;
             out.push('\n');
         } else if in_comment {
             blank(&mut out, ch);
         } else if in_single {
             blank(&mut out, ch);
-            if ch == '\'' {
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '\'' {
                 in_single = false;
             }
         } else if in_double {
             blank(&mut out, ch);
-            if ch == '"' {
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
                 in_double = false;
             }
         } else {
@@ -1119,6 +1164,10 @@ fn evaluate_dep_list(
         //     leave orphaned `rename.workspace = true` lines (HIGH-2).
         //  4. NOT a feature-backed optional dep — removing it would leave a dangling `dep:X`
         //     feature entry that cargo rejects (CRITICAL-1).
+        //  5. NOT `optional = true` AT ALL — even with zero [features] mentions in the owning
+        //     manifest, an optional dep exports an implicit cargo feature a SIBLING member can
+        //     request via `features = ["x"]` on its path dep; neither the own-manifest scan nor
+        //     `cargo metadata --no-deps` resolves cross-member features (MED-X1).
         let used_in_src = node
             .get("cargo_dep_used_in_src")
             .and_then(Value::as_object)
@@ -1143,11 +1192,20 @@ fn evaluate_dep_list(
             .and_then(Value::as_array)
             .map(|arr| arr.iter().any(|v| v.as_str() == Some(dep)))
             .unwrap_or(false);
+        // MED-X1 sound bound: ANY `optional = true` dep is never auto-fixable. The implicit
+        // feature it exports can be requested by a sibling workspace member, invisible to both
+        // guard layers (own-manifest [features] scan; `cargo metadata --no-deps`).
+        let is_optional = node
+            .get("optional_dep_names")
+            .and_then(Value::as_array)
+            .map(|arr| arr.iter().any(|v| v.as_str() == Some(dep)))
+            .unwrap_or(false);
         // ADR-0547 D6 round-3 descope (FRIC-1781200001): BUCK --fix is refusal-only, so a BUCK
         // finding is NEVER auto-fixable even when the dep edge is mechanically dead — it is
         // reported as a design-action pointing at the oya-buck-syntax-kernel fixer harness.
         let is_buck = code == "KP-TRANSIENT-DEP-BUCK";
-        let mechanically_dead = !used_in_src && !is_build_dep && !is_renamed && !is_feature_backed;
+        let mechanically_dead =
+            !used_in_src && !is_build_dep && !is_renamed && !is_feature_backed && !is_optional;
         let auto_fixable = mechanically_dead && !is_buck;
 
         let key = format!("{kernel_name}:{node_name}:{dep}");
@@ -1160,6 +1218,10 @@ fn evaluate_dep_list(
         } else if is_feature_backed {
             format!(
                 "`{dep}` is referenced in [features] of {member_path} — removing the dep line alone would leave a dangling feature entry (cargo error: feature includes dep:{dep} but {dep} is not listed as a dependency); remove the dep AND rewrite the [features] entry together, or move both into a sibling adapter"
+            )
+        } else if is_optional {
+            format!(
+                "`{dep}` is `optional = true` in {member_path} — an optional dep exports an implicit cargo feature named `{dep}` even when this manifest's [features] never mentions it, and a sibling workspace member can request that implicit feature via `features = [\"{dep}\"]` on its path dependency (invisible to both this gate's own-manifest [features] scan and the `cargo metadata --no-deps` revalidation, which does no cross-member feature resolution); remove the dep AND any sibling `features = [\"{dep}\"]` requests together, or move the optional wiring into a sibling adapter"
             )
         } else if is_renamed {
             format!(
@@ -1333,7 +1395,10 @@ where
     }
 
     // --- Phase 1: collect pre-images and perform Cargo.toml edits ---
-    let mut pre_images: Vec<(std::path::PathBuf, String)> = Vec::new();
+    // LOW-X3: keyed by path, FIRST pre-image wins — a manifest edited twice (two dead deps in the
+    // same Cargo.toml) must roll back to its ORIGINAL content, not the intermediate one-edit state
+    // that an insertion-order restore would leave behind.
+    let mut pre_images: BTreeMap<std::path::PathBuf, String> = BTreeMap::new();
     let mut applied = Vec::new();
     for fix in fixes {
         let cargo_path = root.join(&fix.member_path).join("Cargo.toml");
@@ -1344,7 +1409,7 @@ where
             Err(e) => return Err(CollectError::Io(format!("read {}: {e}", cargo_path.display()))),
         };
         if remove_cargo_dep_line(&cargo_path, &fix.dep)? {
-            pre_images.push((cargo_path.clone(), pre));
+            pre_images.entry(cargo_path.clone()).or_insert(pre);
             applied.push(format!("{}/Cargo.toml: removed `{}`", fix.member_path, fix.dep));
         }
     }
@@ -2054,6 +2119,82 @@ rust_test(
         assert!(!f.auto_fixable, "feature-backed optional dep must NOT be auto-fixable: {f:?}");
         assert!(f.next_action.contains("DESIGN ACTION"), "must be a design action: {f:?}");
         assert!(plan_fixes(&policy(), &obs).is_empty(), "plan_fixes must produce nothing for feature-backed dep");
+    }
+
+    // --------------------------------------------------------------------------
+    // MED-X1: ANY optional dep is never auto-fixable (implicit-feature export)
+    // --------------------------------------------------------------------------
+
+    #[test]
+    fn optional_dep_without_own_features_mention_is_not_auto_fixable() {
+        // MED-X1 (reviewer-reproduced vector): an `optional = true` dep exports an IMPLICIT cargo
+        // feature named after itself even when its OWN manifest's [features] never mentions it.
+        // A sibling workspace member can request that feature (`features = ["kube"]`) on its path
+        // dep; the own-manifest [features] scan (layer 1) cannot see the sibling, and
+        // `cargo metadata --no-deps` (layer 2) does not do cross-member feature resolution. The
+        // only sound bound: optional deps are NEVER auto-fixable.
+        let obs = json!({
+            "kernel_crates_found": 1,
+            "crates": [{
+                "kernel": "oya-bad-kernel",
+                "member_path": "crates/oya-bad-kernel",
+                "closure": [{
+                    "name": "oya-bad-kernel",
+                    "member_path": "crates/oya-bad-kernel",
+                    "via": ["oya-bad-kernel"],
+                    "cargo_deps": ["kube"],
+                    "buck_deps": [],
+                    "cargo_dep_used_in_src": {"kube": false},
+                    "build_dep_names": [],
+                    "cargo_dep_rename_keys": {},
+                    "feature_backed_optional_deps": [],
+                    "optional_dep_names": ["kube"]
+                }]
+            }]
+        });
+        let findings = evaluate_keyed(&policy(), &obs);
+        let f = findings.iter().find(|f| f.key.ends_with(":kube")).expect("kube finding");
+        assert!(
+            !f.auto_fixable,
+            "an optional dep must NEVER be auto-fixable even with zero own-manifest [features] mentions: {f:?}"
+        );
+        assert!(f.next_action.contains("DESIGN ACTION"), "must be a design action: {f:?}");
+        assert!(
+            f.next_action.contains("implicit"),
+            "remediation must explain the implicit-feature export: {f:?}"
+        );
+        assert!(
+            plan_fixes(&policy(), &obs).is_empty(),
+            "plan_fixes must schedule nothing for an optional dep"
+        );
+    }
+
+    // --------------------------------------------------------------------------
+    // LOW-X2: backslash escapes inside Starlark strings
+    // --------------------------------------------------------------------------
+
+    #[test]
+    fn backslash_escaped_quote_in_string_does_not_hide_following_dep() {
+        // LOW-X2: `labels = ["weird\")label"]` — the `\"` is an ESCAPED quote INSIDE the string.
+        // An escape-blind stripper ends string state at the `\"`, leaks the following `)` as live
+        // text, terminates the block span early, and hides the dep below from the detect lane.
+        let buck = concat!(
+            "rust_library(\n",
+            "    name = \"x\",\n",
+            "    labels = [\"weird\\\")label\"],\n",
+            "    deps = [\n",
+            "        \"third-party//:kube\",\n",
+            "    ],\n",
+            ")\n",
+        );
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(
+            deps.contains("kube"),
+            "the dep after a backslash-escaped quote must still be detected: {deps:?}"
+        );
+        // The stripped copy must keep byte length identical (offset arithmetic invariant).
+        let stripped = strip_starlark_comment_and_strings(buck);
+        assert_eq!(stripped.len(), buck.len(), "stripped copy must be byte-length identical");
     }
 
     // --------------------------------------------------------------------------

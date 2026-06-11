@@ -189,7 +189,8 @@ FRIC-1781130000 is dispositioned terminal (`fixed-in-PR`) with evidence citing t
 
 ## Verification
 
-buck2-only. `oya-cloud-ci-canonical-json-app-unittest` (47 RED/GREEN canonicalizer fixtures:
+buck2-only. `oya-cloud-ci-canonical-json-app-unittest` (the RED/GREEN canonicalizer fixture suite
+— the test target owns the count, not this prose:
 escaped↔literal, indent/minify/CRLF/BOM drift, parse errors, duplicate keys, lone surrogates,
 truncated/non-ASCII `\u` boundary safety, NaN/Infinity, leading-zero numbers, depth bound,
 number-lexeme verbatim, idempotence under both `ensure_ascii` forms, `newline`/`utf8_bom` live-DATA

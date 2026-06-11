@@ -568,6 +568,123 @@ fn fix_refuses_every_feature_reference_syntax_h1_h4_manifest_byte_identical() {
 }
 
 #[test]
+fn fix_refuses_optional_dep_whose_implicit_feature_a_sibling_requests() {
+    // MED-X1 (reviewer-reproduced vector): an `optional = true` dep with ZERO src references and
+    // NO mention in its own [features] still exports an IMPLICIT cargo feature named after the
+    // dep. A sibling workspace member requests it via `features = ["kube"]` on its path dep.
+    // Layer 1 (collect_features_referenced_deps) misses it — the OWNING manifest never references
+    // it; layer 2 (`cargo metadata --no-deps`) misses it — no cross-member feature resolution.
+    // The sound bound: optional deps are NEVER auto-fixable. End state must be REFUSAL: nothing
+    // planned, every manifest byte-identical, and the gate never reports "passed" on this tree.
+    use oya_cloud_ci_kernel_purity_app::{apply_fixes_with_validator, plan_fixes, render_findings};
+
+    let repo = new_temp_repo();
+    let root = &repo.root;
+    write_root_manifest(root);
+
+    // The kernel: optional kube, NO [features] table at all, src never mentions kube.
+    write_file(
+        root,
+        "crates/fake-implicit-kernel/Cargo.toml",
+        "[package]\nname = \"fake-implicit-kernel\"\nversion = \"0.0.0\"\n\n\
+         [dependencies]\nserde = \"1\"\nkube = { version = \"0.99\", optional = true }\n",
+    );
+    write_file(root, "crates/fake-implicit-kernel/src/lib.rs", "pub fn noop() {}\n");
+
+    // The sibling: requests the kernel's IMPLICIT `kube` feature on its path dep.
+    write_file(
+        root,
+        "crates/fake-sibling-adapter/Cargo.toml",
+        "[package]\nname = \"fake-sibling-adapter\"\nversion = \"0.0.0\"\n\n\
+         [dependencies]\nfake-implicit-kernel = { path = \"../fake-implicit-kernel\", features = [\"kube\"] }\n",
+    );
+    write_file(root, "crates/fake-sibling-adapter/src/lib.rs", "pub fn noop() {}\n");
+
+    let policy = fixture_policy();
+    let observed = collect_kernel_deps(root, &policy).expect("collect");
+    let findings = evaluate_keyed(&policy, &observed);
+    let f = findings
+        .iter()
+        .find(|f| {
+            f.code == "KP-TRANSIENT-DEP-CARGO"
+                && f.key == "fake-implicit-kernel:fake-implicit-kernel:kube"
+        })
+        .unwrap_or_else(|| panic!("kube finding expected: {findings:#?}"));
+    assert!(
+        !f.auto_fixable,
+        "optional dep must NOT be auto-fixable even with no own-manifest [features] mention: {f:?}"
+    );
+    assert!(
+        f.next_action.contains("implicit"),
+        "remediation must explain the implicit-feature export: {f:?}"
+    );
+
+    // Refusal end-state. The injected Ok validator models exactly what `cargo metadata --no-deps`
+    // reports for this tree: cross-member feature requests are NOT resolved, so layer 2 is blind
+    // here — if classification were unsound the fix would be applied and the manifests would
+    // diverge below.
+    let fixes = plan_fixes(&policy, &observed);
+    assert!(fixes.is_empty(), "no fix may be planned for an optional dep: {fixes:?}");
+    let kernel_path = root.join("crates/fake-implicit-kernel/Cargo.toml");
+    let sibling_path = root.join("crates/fake-sibling-adapter/Cargo.toml");
+    let pre_kernel = std::fs::read(&kernel_path).unwrap();
+    let pre_sibling = std::fs::read(&sibling_path).unwrap();
+    let applied = apply_fixes_with_validator(root, &fixes, |_| Ok(())).expect("apply (no-op)");
+    assert!(applied.is_empty(), "apply must be a no-op: {applied:?}");
+    assert_eq!(pre_kernel, std::fs::read(&kernel_path).unwrap(), "kernel manifest byte-identical");
+    assert_eq!(pre_sibling, std::fs::read(&sibling_path).unwrap(), "sibling manifest byte-identical");
+
+    // Never "passed": the tree stays RED with a design-action, not a false-green.
+    let after = collect_kernel_deps(root, &policy).expect("re-collect");
+    assert_eq!(evaluate(&policy, &after).verdict, Verdict::Red);
+    let rendered = render_findings(&evaluate_keyed(&policy, &after));
+    assert!(
+        !rendered.contains("passed"),
+        "the gate must never print 'passed' for this tree: {rendered}"
+    );
+    assert!(rendered.contains("DESIGN ACTIONS"), "design action must be reported: {rendered}");
+}
+
+#[test]
+fn rollback_restores_original_when_same_manifest_is_edited_twice() {
+    // LOW-X3: TWO dead transient deps in ONE manifest produce two fixes against the SAME file.
+    // On semantic-revalidation failure the rollback must restore the ORIGINAL pre-image — an
+    // insertion-order restore would leave the file at the intermediate one-edit state.
+    use oya_cloud_ci_kernel_purity_app::{apply_fixes_with_validator, plan_fixes};
+
+    let repo = new_temp_repo();
+    let root = &repo.root;
+    write_root_manifest(root);
+    write_file(
+        root,
+        "crates/fake-twice-kernel/Cargo.toml",
+        "[package]\nname = \"fake-twice-kernel\"\nversion = \"0.0.0\"\n\n\
+         [dependencies]\nserde = \"1\"\nkube = \"0.99\"\nsqlx = \"0.8\"\n",
+    );
+    write_file(root, "crates/fake-twice-kernel/src/lib.rs", "pub fn noop() {}\n");
+
+    let policy = fixture_policy();
+    let observed = collect_kernel_deps(root, &policy).expect("collect");
+    let fixes = plan_fixes(&policy, &observed);
+    assert_eq!(fixes.len(), 2, "both dead deps planned against the same manifest: {fixes:?}");
+    assert!(
+        fixes.iter().all(|f| f.member_path == "crates/fake-twice-kernel"),
+        "both fixes target the same member: {fixes:?}"
+    );
+
+    let manifest_path = root.join("crates/fake-twice-kernel/Cargo.toml");
+    let pre = std::fs::read(&manifest_path).unwrap();
+    let result = apply_fixes_with_validator(root, &fixes, |_| Err("injected failure".to_owned()));
+    assert!(result.is_err(), "semantic failure must surface as an error: {result:?}");
+    let post = std::fs::read(&manifest_path).unwrap();
+    assert_eq!(
+        String::from_utf8_lossy(&pre),
+        String::from_utf8_lossy(&post),
+        "rollback must restore the ORIGINAL manifest (both kube and sqlx lines), not the intermediate one-edit state"
+    );
+}
+
+#[test]
 fn fix_rolls_back_all_preimages_when_semantic_revalidation_fails() {
     // CRITICAL-A layer 2, end-to-end: when the post-edit semantic revalidation fails, ALL edited
     // manifests are restored byte-identically from their pre-images and the error instructs the
