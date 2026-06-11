@@ -24,7 +24,12 @@ const USAGE: &str = "usage: oya-cloud-ci-canonical-json [--repo-root <path>] [--
 
 fn main() -> ExitCode {
     let args = match parse_args(std::env::args().skip(1).collect()) {
-        Ok(args) => args,
+        // `--help` is a successful request, not a usage error: print to stdout and exit 0.
+        Ok(None) => {
+            println!("{USAGE}");
+            return ExitCode::SUCCESS;
+        }
+        Ok(Some(args)) => args,
         Err(message) => {
             eprintln!("{message}");
             return ExitCode::from(2);
@@ -83,7 +88,9 @@ fn main() -> ExitCode {
     }
 }
 
-fn parse_args(args: Vec<String>) -> Result<Args, String> {
+/// Parse argv. `Ok(None)` means `--help` was requested (print usage, exit 0); `Ok(Some(_))` is a
+/// runnable invocation; `Err` is a usage error (exit 2).
+fn parse_args(args: Vec<String>) -> Result<Option<Args>, String> {
     let mut repo_root = PathBuf::from(".");
     let mut policy_path = POLICY_PATH.to_owned();
     let mut fix = false;
@@ -104,17 +111,17 @@ fn parse_args(args: Vec<String>) -> Result<Args, String> {
             }
             "--fix" => fix = true,
             "--dry-run" => dry_run = true,
-            "--help" | "-h" => return Err(USAGE.to_owned()),
+            "--help" | "-h" => return Ok(None),
             other => return Err(format!("unknown argument {other:?}; {USAGE}")),
         }
     }
     if dry_run && !fix {
         return Err(format!("--dry-run requires --fix; {USAGE}"));
     }
-    Ok(Args {
+    Ok(Some(Args {
         repo_root,
         policy_path,
         fix,
         dry_run,
-    })
+    }))
 }

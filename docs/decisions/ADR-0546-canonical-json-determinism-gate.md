@@ -140,12 +140,16 @@ binary.
 **Shared-serializer consistency (the explicit one-way-door, founder directive 2026-06-11 point 2).**
 `--fix` and the face-settle tool MUST NOT fight each other in a rewrite loop. We guarantee this two
 ways: (a) the `*.generated.json` faces are EXCLUDED from this gate's scope, so `--fix` never touches a
-file the settle tool owns; and (b) where the two forms overlap on non-generated content, this gate's
-canonical form is chosen byte-identical to what `accounting-registry::to_canonical_json` emits —
-literal UTF-8, 2-space indent, source key order, trailing newline. A regression fixture
-(`settle_style_canonical_file_fix_is_a_no_op`) asserts that a file already in the settle byte form is
-a `--fix` no-op: the settle tool's output IS this gate's fixed point. The two are consistent by
-construction, not by coincidence.
+file the settle tool owns; and (b) the two forms agree on the FORMATTING axes they share — literal
+UTF-8 (`ensure_ascii=false`), 2-space indent, trailing newline — so neither rewrites the other's
+whitespace/encoding. The one axis they differ on is key order: `accounting-registry::to_canonical_json`
+SORTS keys (recursive `BTreeMap`), while this gate preserves source order (`sort_keys=false`). That is
+*not* a conflict, because sorted output is itself a fixed point of an order-preserving canonicalizer:
+re-running this gate over an already-sorted file leaves the (already-sorted) order untouched. The
+correct framing is therefore the fixed-point property, not byte-identity of the two forms: the settle
+tool's output is a FIXED POINT of this gate's `--fix`. A regression fixture
+(`settle_style_canonical_file_fix_is_a_no_op`) asserts exactly this — a file already in the settle byte
+form is a `--fix` no-op — so the no-rewrite-loop guarantee is tested, not assumed.
 
 **Ratchet (zero baseline, born-blocking).** A dry-run of the fixer over the governed `specs/` root
 (excluding faces + fixtures) found exactly 7 non-canonical files — all escaped-unicode and/or
@@ -181,9 +185,13 @@ FRIC-1781130000 is dispositioned terminal (`fixed-in-PR`) with evidence citing t
 
 ## Verification
 
-buck2-only. `oya-cloud-ci-canonical-json-app-unittest` (39 RED/GREEN canonicalizer fixtures:
+buck2-only. `oya-cloud-ci-canonical-json-app-unittest` (47 RED/GREEN canonicalizer fixtures:
 escaped↔literal, indent/minify/CRLF/BOM drift, parse errors, duplicate keys, lone surrogates,
-NaN/Infinity, leading-zero numbers, depth bound, number-lexeme verbatim, idempotence under both
-forms, fixer fixed-point + duplicate-key refusal, exclusions). `oya-cloud-ci-canonical-json-app-gate`
-(live-corpus born-blocking GREEN at zero baseline over the real `specs/` corpus). The firewall
-`gate_registration` meta-test confirms the gate is registered in `oya-ci-required.yml`.
+truncated/non-ASCII `\u` boundary safety, NaN/Infinity, leading-zero numbers, depth bound,
+number-lexeme verbatim, idempotence under both `ensure_ascii` forms, `newline`/`utf8_bom` live-DATA
+honoring, case-insensitive `.json` matching, fixer fixed-point + duplicate-key refusal + RED→fix→GREEN
+auto-remediation + settle-style no-op, exclusions). `oya-cloud-ci-canonical-json-app-gate` (4 tests:
+live-corpus born-blocking GREEN at zero baseline over the real `specs/` corpus + exclusions +
+gate-id + FRIC exemplar). The firewall `gate_registration` meta-test confirms the gate is registered
+in `oya-ci-required.yml`. Full `buck2 test //cloud/cloud-ci/...` is GREEN (40 targets) after the
+faces settle.

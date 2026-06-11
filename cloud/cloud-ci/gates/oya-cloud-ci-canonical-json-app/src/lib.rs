@@ -82,22 +82,55 @@ pub struct CanonicalForm {
     pub ensure_ascii: bool,
     /// Spaces per indent level (pretty-print width).
     pub indent_width: usize,
-    /// `true` => object keys emitted in sorted (lexicographic by UTF-16 code unit) order; `false` =>
-    /// source order preserved.
+    /// `true` => object keys emitted in sorted order (Unicode-scalar / UTF-8-byte collation, via
+    /// `BTreeMap<&str,_>`); `false` => source order preserved.
     pub sort_keys: bool,
-    /// `true` => exactly one trailing `\n` at end of file.
+    /// `true` => exactly one trailing line terminator at end of file.
     pub trailing_newline: bool,
+    /// The line terminator the canonical form emits (every `\n` the formatter produces). DATA so an
+    /// adopting repo can choose CRLF; oyatie pins LF.
+    pub newline: Newline,
+    /// `true` => the canonical form begins with a UTF-8 BOM; `false` => no BOM (a committed BOM is
+    /// drift). DATA so an adopting repo can require a BOM; oyatie pins false.
+    pub utf8_bom: bool,
+}
+
+/// The line terminator a canonical file uses. Pack DATA via `canonical_form.newline` ("lf"|"crlf").
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Newline {
+    Lf,
+    Crlf,
+}
+
+impl Newline {
+    fn as_str(self) -> &'static str {
+        match self {
+            Newline::Lf => "\n",
+            Newline::Crlf => "\r\n",
+        }
+    }
+
+    fn from_policy_str(value: &str) -> Option<Self> {
+        match value {
+            "lf" => Some(Newline::Lf),
+            "crlf" => Some(Newline::Crlf),
+            _ => None,
+        }
+    }
 }
 
 impl Default for CanonicalForm {
-    /// The repo's settled dialect (ADR-0546): literal UTF-8, 2-space, source-order, trailing newline —
-    /// consistent with the faces serializer. Used only as a fallback; the live gate reads policy DATA.
+    /// The repo's settled dialect (ADR-0546): literal UTF-8, 2-space, source-order, LF, trailing
+    /// newline, no BOM — consistent with the faces serializer. Used only as a fallback; the live gate
+    /// reads policy DATA.
     fn default() -> Self {
         Self {
             ensure_ascii: false,
             indent_width: 2,
             sort_keys: false,
             trailing_newline: true,
+            newline: Newline::Lf,
+            utf8_bom: false,
         }
     }
 }
@@ -119,11 +152,18 @@ impl CanonicalForm {
                 .unwrap_or(fallback)
         };
         let d = CanonicalForm::default();
+        let newline = form
+            .and_then(|f| f.get("newline"))
+            .and_then(Value::as_str)
+            .and_then(Newline::from_policy_str)
+            .unwrap_or(d.newline);
         CanonicalForm {
             ensure_ascii: read_bool("ensure_ascii", d.ensure_ascii),
             indent_width: read_usize("indent_width", d.indent_width),
             sort_keys: read_bool("sort_keys", d.sort_keys),
             trailing_newline: read_bool("trailing_newline", d.trailing_newline),
+            newline,
+            utf8_bom: read_bool("utf8_bom", d.utf8_bom),
         }
     }
 }
@@ -190,11 +230,22 @@ enum Node {
 /// `canonicalize(canonicalize(x)) == canonicalize(x)`.
 pub fn canonicalize(bytes: &str, form: &CanonicalForm) -> Result<String, CanonError> {
     let node = Parser::new(bytes).parse_document()?;
-    let mut out = String::with_capacity(bytes.len());
-    write_node(&mut out, &node, form, 0);
+    // The formatter emits LF (`\n`) internally; a single final pass applies the policy newline and
+    // BOM so those two DATA knobs are honored at exactly one site (no `\n` scattered through the form).
+    let mut body = String::with_capacity(bytes.len());
+    write_node(&mut body, &node, form, 0);
     if form.trailing_newline {
-        out.push('\n');
+        body.push('\n');
     }
+    let body = match form.newline {
+        Newline::Lf => body,
+        Newline::Crlf => body.replace('\n', "\r\n"),
+    };
+    let mut out = String::with_capacity(body.len() + 3);
+    if form.utf8_bom {
+        out.push('\u{feff}');
+    }
+    out.push_str(&body);
     Ok(out)
 }
 
@@ -807,14 +858,27 @@ fn walk_json(
         let entry =
             entry.map_err(|error| CollectError::Io(format!("dir entry in {}: {error}", dir.display())))?;
         let path = entry.path();
+        // `file_type()` does NOT follow symlinks — recurse only into real directories (so a symlinked
+        // directory can never cause a walk loop). `metadata()` DOES follow symlinks, so a symlinked
+        // `*.json` resolving to a regular file is still governed (a symlink is not an escape hatch).
         let file_type = entry
             .file_type()
             .map_err(|error| CollectError::Io(format!("file type {}: {error}", path.display())))?;
         if file_type.is_dir() {
             walk_json(&path, repo_root, out)?;
-        } else if file_type.is_file()
-            && path.extension().and_then(|ext| ext.to_str()) == Some("json")
-        {
+            continue;
+        }
+        let is_regular_file = if file_type.is_symlink() {
+            fs::metadata(&path).map(|m| m.is_file()).unwrap_or(false)
+        } else {
+            file_type.is_file()
+        };
+        // Match `.json` case-insensitively so an uppercase `.JSON` cannot evade governance.
+        let is_json = path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("json"));
+        if is_regular_file && is_json {
             if let Ok(rel) = path.strip_prefix(repo_root) {
                 if let Some(rel_str) = rel.to_str() {
                     out.insert(rel_str.replace('\\', "/"));

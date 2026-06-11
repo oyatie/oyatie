@@ -3,7 +3,7 @@
   "gate_id": "cloud-ci-canonical-json",
   "schema_version": "1.0.0",
   "canonical_form": {
-    "_comment": "The settled one-way-door dialect (ADR-0546). ensure_ascii=false (literal UTF-8) matches the faces serializer accounting-registry::to_canonical_json (18310 literal-non-ASCII lines, 0 escaped) and RFC 8785 JCS minimal-escaping; sort_keys=false because the defect is rewrite nondeterminism, not key-order ambiguity, and sorting would churn 1452 repo files and destroy intentional order on the agent entry surface (gofmt/prettier preserve semantic order). indent_width=2 + trailing_newline=true match the faces serializer and gofmt/prettier conventions.",
+    "_comment": "The settled one-way-door dialect (ADR-0546). ALL six fields are live DATA read by CanonicalForm::from_policy and honored by the formatter (an adopting repo may set newline=crlf or utf8_bom=true). ensure_ascii=false (literal UTF-8) matches the faces serializer accounting-registry::to_canonical_json (18310 literal-non-ASCII lines, 0 escaped) and RFC 8785 JCS minimal-escaping; sort_keys=false because the defect is rewrite nondeterminism, not key-order ambiguity, and sorting would churn 1452 repo files and destroy intentional order on the agent entry surface (gofmt/prettier preserve semantic order). indent_width=2 + trailing_newline=true + newline=lf + utf8_bom=false match the faces serializer and gofmt/prettier conventions.",
     "ensure_ascii": false,
     "indent_width": 2,
     "sort_keys": false,

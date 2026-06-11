@@ -6,12 +6,8 @@ use super::*;
 use serde_json::json;
 
 fn literal_form() -> CanonicalForm {
-    CanonicalForm {
-        ensure_ascii: false,
-        indent_width: 2,
-        sort_keys: false,
-        trailing_newline: true,
-    }
+    // The settled ADR-0546 dialect (literal UTF-8, 2-space, source order, LF, trailing newline, no BOM).
+    CanonicalForm::default()
 }
 
 fn escaped_form() -> CanonicalForm {
@@ -135,6 +131,68 @@ fn trailing_newline_is_policy_controlled() {
     };
     assert_eq!(canonicalize("{}", &no_nl).unwrap(), "{}");
     assert_eq!(canonicalize("{}", &literal_form()).unwrap(), "{}\n");
+}
+
+#[test]
+fn newline_is_live_policy_data() {
+    // Honoring `newline` is not cosmetic: a crlf policy emits CRLF everywhere, and LF input is then
+    // non-canonical under it (proving the DATA knob is read, not hardcoded).
+    let crlf = CanonicalForm {
+        newline: Newline::Crlf,
+        ..literal_form()
+    };
+    let input = "{\n  \"a\": [\n    1\n  ]\n}\n";
+    assert_eq!(
+        canonicalize(input, &crlf).unwrap(),
+        "{\r\n  \"a\": [\r\n    1\r\n  ]\r\n}\r\n"
+    );
+    assert!(!is_canonical(input, &crlf).unwrap(), "LF input is non-canonical under a crlf policy");
+    // Idempotent under crlf too.
+    let once = canonicalize(input, &crlf).unwrap();
+    assert_eq!(canonicalize(&once, &crlf).unwrap(), once);
+}
+
+#[test]
+fn utf8_bom_is_live_policy_data() {
+    // utf8_bom=true => canonical output BEGINS with a BOM; the parser strips a leading BOM, so the
+    // round-trip is consistent (parse strips, format re-adds). Proves the knob is read.
+    let bom = CanonicalForm {
+        utf8_bom: true,
+        ..literal_form()
+    };
+    let no_bom_input = "{\n  \"a\": 1\n}\n";
+    let out = canonicalize(no_bom_input, &bom).unwrap();
+    assert!(out.starts_with('\u{feff}'), "utf8_bom policy must prepend a BOM");
+    assert!(!is_canonical(no_bom_input, &bom).unwrap(), "BOM-less file is non-canonical under a bom policy");
+    // And it is a fixed point: feeding the BOM'd output back yields the same bytes.
+    assert_eq!(canonicalize(&out, &bom).unwrap(), out);
+}
+
+#[test]
+fn from_policy_reads_newline_and_utf8_bom() {
+    let policy = json!({
+        "canonical_form": {
+            "ensure_ascii": false, "indent_width": 2, "sort_keys": false,
+            "trailing_newline": true, "newline": "crlf", "utf8_bom": true
+        }
+    });
+    let form = CanonicalForm::from_policy(&policy);
+    assert_eq!(form.newline, Newline::Crlf);
+    assert!(form.utf8_bom);
+}
+
+#[test]
+fn collect_matches_json_extension_case_insensitively() {
+    let dir = std::env::temp_dir().join(format!("canon-case-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("specs")).unwrap();
+    std::fs::write(dir.join("specs/lower.json"), "{}\n").unwrap();
+    std::fs::write(dir.join("specs/UPPER.JSON"), "{}\n").unwrap();
+    let observed = collect_observed(&dir, &policy_literal()).unwrap();
+    let paths: Vec<&str> = observed.files.iter().map(|f| f.path.as_str()).collect();
+    assert!(paths.contains(&"specs/lower.json"));
+    assert!(paths.contains(&"specs/UPPER.JSON"), "uppercase .JSON must not evade governance");
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 // ───────────────────────────── RED: drift is flagged, defects refused ─────────────────────────────
