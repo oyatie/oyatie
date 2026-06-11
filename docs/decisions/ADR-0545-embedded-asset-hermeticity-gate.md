@@ -238,10 +238,60 @@ Workflow events nor write Ontology objects.
 - `buck2 build //oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter:oya-ci-webhook-gateway-authz-cedar-adapter` (prerequisite fix; was failing, now `BUILD SUCCEEDED`)
 - E2E auto-remediation: break the webhook BUCK, `buck2 run …:oya-cloud-ci-embedded-asset-hermeticity-fixer -- --fix`, then `buck2 build` the adapter → `BUILD SUCCEEDED` + `--check` clean.
 
+## Known Limitations and Destination
+
+This ADR records the in-crate implementation's known scope boundaries honestly. The destination for
+all of them is `oya-buck-syntax-kernel` (FRIC-1781131000-buck-syntax-kernel, task #10): a shared,
+Starlark-aware BUCK parser that makes these limitations impossible by construction.
+
+### --fix: comment-bearing target blocks reported manual
+
+`apply_remediation` refuses to edit any target block that contains an out-of-string `#` character.
+A comment before `)` such as `deps = [],  # note` makes the comma-placement heuristic unreliable;
+rather than risk emitting a double-comma (corrupt BUCK, buck2 parse error), the fixer classifies
+the block as manual. The reviewer-cited probe (`deps = [],  # trailing comment`) is correctly
+refused with an actionable message. **Destination**: the shared parser handles comments natively,
+removing this exception entirely.
+
+### --fix: first-occurrence target binding
+
+`apply_remediation` locates the target block by `out.find("\"<name>\"")` — the first occurrence.
+A BUCK file with two targets sharing a name prefix (e.g. `"svc"` and `"svc-ffi"`) could mis-bind
+if the shorter name appears as a substring of the longer one before it. In practice buck2 requires
+unique names within a file, so duplicates are impossible; substring prefix collisions are the
+residual risk. The same pattern is replicated in `validate_remediation_output`. **Destination**:
+shared parser provides unambiguous target location by parse-tree position.
+
+### --fix: bare-var `mapped_srcs` (IDENT form) reported manual
+
+When `mapped_srcs = SOME_VAR` references a top-level variable, `apply_remediation` cannot inject
+an entry into the variable's assembly site (which may be spread across multiple assignment lines).
+These sites are surfaced as `[manual]` with an actionable message. **Destination**: the shared
+parser models variable assignment sites and can inject at the correct location.
+
+### --fix: `POLICY_REL` is hardcoded in the binary
+
+`main.rs` hardcodes `POLICY_REL` to the crate's path within the oyatie repo. A different repo
+adopting the gate would need to pass `--policy`. This is a CLI surface limitation, not a kernel
+limitation (the kernel is fully pack-shaped). **Destination**: the binary should default to
+`--policy` auto-discovery via the policy filename in the same directory as the binary.
+
+### Fixer self-validation: `validate_remediation_output` parse scope
+
+The round-trip validation calls `parse_buck_targets` with an empty `crate_files` slice (no glob
+expansion). This is sufficient to verify structural parse success and mapped_dest value presence
+for inline dict entries. It does not validate comprehension-form mapped_srcs (glob expansion
+requires the filesystem). ComprehensionRewrite output is validated by `validate_remediation_output`
+via the target-findable check only; the mapped value is verified structurally by `rewrite_to_comprehension`'s own format correctness. **Destination**: shared parser with filesystem-backed
+glob expansion for full round-trip fidelity.
+
 ## References
 
 - FRIC-1781131000: cedar-adapter include mapped to the wrong sandbox path → non-hermetic build masked
   as missing-rmeta.
+- FRIC-1781190000: auto-remediator corruption class; guard v1 (findability-only) was shallow; guard
+  v2 (this PR) uses parse_buck_targets round-trip + comment-guard refusal. Correction event:
+  FRIC-1781190000-guard-v2 in the friction ledger.
 - Founder directive 2026-06-11: automation should be the default; enforcement is the extra layer.
 - Founder pipeline-as-product R0 directive: anti-patterns must be structurally unshippable.
 - Bazel sandbox strict-deps / missing-input detection; Buck2 hermetic action inputs (the production

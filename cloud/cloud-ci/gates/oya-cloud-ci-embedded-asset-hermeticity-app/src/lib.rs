@@ -2076,13 +2076,25 @@ pub fn apply_remediation(buck_text: &str, rem: &Remediation) -> Result<String, S
             s
         }
     } else {
-        // No mapped_srcs: add one just before the closing `)`. The last existing field may or may
-        // not carry a trailing comma (both are valid Starlark). Ensure a comma separates the last
-        // field from the new `mapped_srcs` block to produce parseable output.
+        // No mapped_srcs: add one just before the closing `)`.
+        //
+        // Comment-guard (doctrine: refuse > heuristic): if the target block contains any
+        // out-of-string `#` character the comma-detection heuristic is unreliable (a trailing
+        // comment `deps = [],  # note` looks like no trailing comma after trimming). Rather than
+        // attempt comment-stripping we refuse and report manual — the fixer can't safely edit a
+        // comment-bearing target without risking a double-comma or other parse error.
+        if block_has_out_of_string_comment(&block) {
+            return Err(format!(
+                "target `{}` contains out-of-string '#' comment(s); comma placement is ambiguous — \
+                 add the mapped_srcs entry by hand to avoid emitting unparseable output (see ADR-0545)",
+                rem.target
+            ));
+        }
         let close_rel = block
             .rfind(')')
             .ok_or_else(|| "target block has no closing paren".to_owned())?;
-        // Find the last non-whitespace character before the closing `)`.
+        // The block has no comments (guard above), so trim_end reliably finds the last field
+        // terminator. Insert a comma if the prior field lacked one.
         let before_close = block[..close_rel].trim_end();
         let needs_comma = !before_close.ends_with(',') && !before_close.ends_with('(');
         let mut s = String::with_capacity(block.len() + entry.len() + 32);
@@ -2112,53 +2124,97 @@ pub fn apply_remediation(buck_text: &str, rem: &Remediation) -> Result<String, S
     Ok(out)
 }
 
-/// Reparse the rewritten BUCK text and confirm the target block is still well-formed. Returns
-/// `Err` with a descriptive message if the output would be corrupt, so the caller refuses the
-/// write. Pure over text; no filesystem access.
+/// Real-parse validation: run the rewritten BUCK text through `parse_buck_targets` (the same path
+/// the detector uses) and confirm the target is still present and well-formed. A shallow
+/// findability check is not sufficient — the validator must confirm the full parser round-trip
+/// succeeds, not just that a string token exists. Returns `Err` if the round-trip fails or the
+/// target disappears; the caller then refuses the write. Pure over text; no filesystem access.
 fn validate_remediation_output(out: &str, rem: &Remediation) -> Result<(), String> {
-    let needle = format!("\"{}\"", rem.target);
-    let name_pos = out.find(&needle).ok_or_else(|| {
-        format!(
-            "self-validation: target `{}` not found in rewritten BUCK — refusing write to avoid corruption",
+    // parse_buck_targets needs a crate_files slice for glob expansion; pass empty — we only need
+    // the structural parse to succeed, not full glob expansion.
+    let targets = parse_buck_targets(out, &[]);
+    if targets.is_empty() {
+        return Err(format!(
+            "self-validation: parse_buck_targets returned no targets from rewritten BUCK — \
+             output is structurally unparseable; refusing write to avoid corruption \
+             (target: `{}`)",
             rem.target
-        )
-    })?;
-    let head = &out[..name_pos];
-    let open = head.rfind('(').ok_or_else(|| {
-        "self-validation: target name not inside a call in rewritten BUCK — refusing write".to_owned()
-    })?;
-    let kind_start = head[..open]
-        .rfind(|c: char| c == '\n' || c == ' ' || c == '\t')
-        .map(|p| p + 1)
-        .unwrap_or(0);
-    let block = call_block(&out[kind_start..]).ok_or_else(|| {
-        format!(
-            "self-validation: could not delimit target `{}` block in rewritten BUCK — rewritten output is unparseable; refusing write to avoid corruption",
+        ));
+    }
+    let found = targets.iter().any(|t| t.name == rem.target);
+    if !found {
+        return Err(format!(
+            "self-validation: target `{}` not found in parse_buck_targets output after rewrite \
+             — rewritten BUCK is corrupt; refusing write",
             rem.target
-        )
-    })?;
-    // For MappedEntry: confirm the injected key is visible in the reparsed block.
+        ));
+    }
+    // For MappedEntry: confirm the injected mapped_srcs destination VALUE is visible in the
+    // reparsed target. This catches a double-comma or other parse error that silently drops the
+    // mapped_srcs block even while the target name remains findable.
     if rem.kind == RemediationKind::MappedEntry {
-        let key_token = format!("\"{}\"", rem.mapped_key);
-        if !block.contains(&key_token) {
+        let target_entry = targets.iter().find(|t| t.name == rem.target).unwrap();
+        let value_present = target_entry.mapped_dest.iter().any(|v| v == &rem.mapped_value)
+            || target_entry
+                .mapped_dest
+                .iter()
+                .any(|v| normalize_rel(v) == normalize_rel(&rem.mapped_value));
+        if !value_present {
             return Err(format!(
-                "self-validation: injected mapped_srcs key `{}` not found in reparsed target block — refusing write to avoid corruption",
-                rem.mapped_key
+                "self-validation: mapped_srcs value `{}` not found in reparsed target `{}` \
+                 — rewritten output dropped the injected entry; refusing write to avoid corruption",
+                rem.mapped_value, rem.target
             ));
         }
     }
     Ok(())
 }
 
-/// Rewrite a short-crate_root `rust_library` block into the deep cedar comprehension form, preserving
-/// name/crate/visibility/deps and the existing srcs glob, so a cross-package `../` include resolves to
-/// the mapped VALUE. Conservative: only handles a single `rust_library` with a `glob([...])` srcs and
-/// a short `crate_root` ending in `/lib.rs`/`/main.rs`; returns `Err` (→ manual report) otherwise. The
-/// include literal is never touched. The emitted form mirrors the proven cloud-intelligence adapter.
-fn rewrite_to_comprehension(block: &str, rem: &Remediation) -> Result<String, String> {
-    if !block.trim_start().starts_with("rust_library") {
-        return Err("comprehension rewrite only supports a rust_library target; fix by hand".to_owned());
+/// True if `text` contains an out-of-string `#` character (a Starlark comment). Used to guard
+/// comment-ambiguous edits: when a `#` appears outside string literals the comma heuristic is
+/// unreliable, so the fixer refuses and reports manual rather than risk a corrupt write.
+fn block_has_out_of_string_comment(text: &str) -> bool {
+    let mut in_string = false;
+    let mut escaped = false;
+    for ch in text.chars() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
+                in_string = false;
+            }
+            continue;
+        }
+        match ch {
+            '"' => in_string = true,
+            '#' => return true,
+            _ => {}
+        }
     }
+    false
+}
+
+/// Rewrite a short-crate_root Rust target block into the deep cedar comprehension form, preserving
+/// name/crate/visibility/deps and the existing srcs glob, so a cross-package `../` include resolves to
+/// the mapped VALUE. Handles `rust_library`, `rust_test`, and `rust_binary` (the three kinds that
+/// appear as covering targets). Returns `Err` (→ manual report) for any other kind. The include
+/// literal is never touched. The emitted form mirrors the proven cloud-intelligence adapter.
+fn rewrite_to_comprehension(block: &str, rem: &Remediation) -> Result<String, String> {
+    let block_trimmed = block.trim_start();
+    let kind = if block_trimmed.starts_with("rust_library") {
+        "rust_library"
+    } else if block_trimmed.starts_with("rust_test") {
+        "rust_test"
+    } else if block_trimmed.starts_with("rust_binary") {
+        "rust_binary"
+    } else {
+        return Err(format!(
+            "comprehension rewrite only supports rust_library/rust_test/rust_binary; \
+             got a different kind — fix by hand"
+        ));
+    };
     let crate_dir = rem.buck_path.trim_end_matches("/BUCK").to_owned();
     let name = field_value_expr(block, "name")
         .and_then(|e| unquote_concat(&e, &[]))
@@ -2199,7 +2255,7 @@ fn rewrite_to_comprehension(block: &str, rem: &Remediation) -> Result<String, St
          {mapped_var} = {{src: {root_var} + \"/\" + src for src in {srcs_var}}}\n\
          {mapped_var}[\"{key}\"] = \"{value}\"\n\
          \n\
-         rust_library(\n\
+         {kind}(\n\
          \x20   name = \"{name}\",\n\
          \x20   srcs = [],\n\
          {crate_decl}\
@@ -2660,8 +2716,11 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             applicable: true,
             note: String::new(),
         };
-        // A binary is out of the safe rewrite envelope -> reported manual (the backstop), not guessed.
-        assert!(apply_remediation(buck, &rem).is_err());
+        // rust_binary is now supported by ComprehensionRewrite; use an unsupported kind (rust_proc_macro)
+        // to confirm the guard still refuses unknown kinds. We test rust_binary support separately.
+        // Re-purpose this fixture: pass a proc-macro-shaped block (unsupported kind).
+        let buck_proc = "rust_proc_macro(\n    name = \"b\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate_root = \"src/main.rs\",\n)\n";
+        assert!(apply_remediation(buck_proc, &rem).is_err(), "proc_macro must be refused");
     }
 
     // ---- Finding 1 fix: no-trailing-comma + self-validation -----------------
@@ -2690,6 +2749,41 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
         assert!(patched.contains("\"//q:asset.cedar\": \"q/asset.cedar\""), "entry present: {patched}");
         // Self-validation: reparsing must succeed (target block findable + key visible).
         // apply_remediation itself runs validate_remediation_output; if we got Ok above, it passed.
+    }
+
+    #[test]
+    fn apply_remediation_trailing_comment_is_refused_not_corrupted() {
+        // Reviewer probe: `deps = [],  # trailing comment` before `)` — the comment guard must
+        // refuse (Err) rather than emit a double-comma and a corrupt BUCK file. This is the exact
+        // scenario that broke the v1 needs_comma heuristic.
+        let buck = "rust_library(\n    name = \"lib\",\n    srcs = [],\n    crate_root = \"src/lib.rs\",\n    deps = [],  # trailing comment\n)\n";
+        let rem = Remediation {
+            buck_path: "p/BUCK".to_owned(),
+            target: "lib".to_owned(),
+            mapped_key: "//q:a.cedar".to_owned(),
+            mapped_value: "q/a.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: true,
+            note: String::new(),
+        };
+        let result = apply_remediation(buck, &rem);
+        // Must produce either a correct edit (no double comma) OR a clean refusal — never corrupt.
+        match result {
+            Ok(patched) => {
+                // If it somehow succeeds (future improvement), verify no double comma.
+                assert!(
+                    !patched.contains(",,"),
+                    "no double comma allowed: {patched}"
+                );
+            }
+            Err(msg) => {
+                // Refusal is the expected and safe outcome for the comment-bearing case.
+                assert!(
+                    msg.contains("comment") || msg.contains('#'),
+                    "refusal message must mention comment: {msg}"
+                );
+            }
+        }
     }
 
     #[test]
@@ -2738,9 +2832,11 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
     }
 
     #[test]
-    fn apply_remediation_with_multibyte_comment_does_not_panic() {
-        // Full path through apply_remediation with an em-dash comment in the BUCK file.
-        let buck = "rust_library(\n    # em-dash — style\n    name = \"lib\",\n    srcs = [],\n    crate_root = \"src/lib.rs\",\n)\n";
+    fn apply_remediation_with_comment_block_is_refused_not_panicked() {
+        // A target block containing an out-of-string '#' comment triggers the comment guard
+        // (F1 fix): the fixer must REFUSE (return Err) rather than emit a corrupt double-comma.
+        // The em-dash (multibyte) in the comment also exercises the UTF-8-safe code paths.
+        let buck = "rust_library(\n    # em-dash \u{2014} style\n    name = \"lib\",\n    srcs = [],\n    crate_root = \"src/lib.rs\"\n)\n";
         let rem = Remediation {
             buck_path: "p/BUCK".to_owned(),
             target: "lib".to_owned(),
@@ -2750,8 +2846,32 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
             applicable: true,
             note: String::new(),
         };
-        let patched = apply_remediation(buck, &rem).expect("must not panic on em-dash comment");
-        assert!(patched.contains("\"//q:a.cedar\": \"q/a.cedar\""));
+        // Must not panic; must return Err with the comment-guard message.
+        let result = apply_remediation(buck, &rem);
+        assert!(result.is_err(), "comment-bearing block must be refused: {result:?}");
+        let msg = result.unwrap_err();
+        assert!(
+            msg.contains("comment") || msg.contains('#'),
+            "error must mention the comment issue: {msg}"
+        );
+    }
+
+    #[test]
+    fn apply_remediation_multibyte_without_comment_succeeds() {
+        // A target block with a multibyte char in a string value (not a comment) must still
+        // be patched correctly — the comment guard must not trigger for in-string multibyte.
+        let buck = "rust_library(\n    name = \"lib\",\n    srcs = [],\n    crate_root = \"src/lib.rs\",\n    mapped_srcs = {\n        \"//q:caf\u{00e9}.cedar\": \"q/caf\u{00e9}.cedar\",\n    },\n)\n";
+        let rem = Remediation {
+            buck_path: "p/BUCK".to_owned(),
+            target: "lib".to_owned(),
+            mapped_key: "//r:new.cedar".to_owned(),
+            mapped_value: "r/new.cedar".to_owned(),
+            kind: RemediationKind::MappedEntry,
+            applicable: true,
+            note: String::new(),
+        };
+        let patched = apply_remediation(buck, &rem).expect("no comment — must succeed");
+        assert!(patched.contains("\"//r:new.cedar\": \"r/new.cedar\""), "entry injected: {patched}");
     }
 
     // ---- Finding 3 fix: multi-target patching --------------------------------

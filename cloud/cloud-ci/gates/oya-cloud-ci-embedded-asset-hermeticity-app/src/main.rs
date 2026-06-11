@@ -113,7 +113,44 @@ fn main() -> ExitCode {
     let remediations = derive_all_remediations(&root, &observed);
     match mode {
         Mode::Check => report_check(&unmapped, &remediations),
-        Mode::Fix => apply_fixes(&root, &remediations),
+        Mode::Fix => {
+            let patch_exit = apply_fixes(&root, &remediations);
+            // After patching, re-collect and re-check. Any covering target that --fix could not
+            // patch (refused, manual, comment-bearing) must appear as a persistent warning — the
+            // state must never be silently hermetic when a covering target remains unmapped.
+            // This closes the gate-GREEN/build-RED gap for the lib+unittest+bin shape (F3/F2).
+            let observed2 = match collect_observed(&root, &policy) {
+                Ok(o) => o,
+                Err(e) => {
+                    eprintln!("error: re-collect after --fix: {e}");
+                    return patch_exit;
+                }
+            };
+            let still_unmapped: Vec<&Value> = observed2["sites"]
+                .as_array()
+                .map(|sites| {
+                    sites
+                        .iter()
+                        .filter(|s| s["status"] == "unmapped")
+                        .collect()
+                })
+                .unwrap_or_default();
+            if still_unmapped.is_empty() {
+                println!("embedded-asset --fix: repo is now hermetic (all unmapped includes resolved).");
+                ExitCode::SUCCESS
+            } else {
+                println!(
+                    "\n[WARNING] {} unmapped include(s) remain after --fix (covering target(s) not patched — \
+                     see [manual] lines above; these targets will fail to build hermetically):",
+                    still_unmapped.len()
+                );
+                for s in &still_unmapped {
+                    println!("  - {} :: {}", s["key"], s["detail"]);
+                }
+                println!("Re-run --check to see the full report, or fix the remaining targets by hand.");
+                ExitCode::FAILURE
+            }
+        }
     }
 }
 
