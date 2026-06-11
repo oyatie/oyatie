@@ -41,9 +41,9 @@
     "verification_plan": [
         "cargo metadata --format-version=1 >/dev/null -- PASS (Cargo.lock refreshed with the new package; sole sanctioned cargo exception)",
         "buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/... -- PASS BUILD SUCCEEDED",
-        "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app:oya-cloud-ci-friction-accounting-app-unittest -- PASS 14 tests",
-        "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app:oya-cloud-ci-friction-accounting-app-gate -- PASS 8 tests (live-repo green + RED fixtures)",
-        "buck2 test //cloud/cloud-ci/... -- full cloud-ci suite (registration + no-regression check) before push",
+        "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app:oya-cloud-ci-friction-accounting-app-unittest -- PASS 16 tests (post adversarial-review orphan-evasion fix)",
+        "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app:oya-cloud-ci-friction-accounting-app-gate -- PASS 10 tests (live-repo green + RED fixtures incl. orphan-update + real anti-laundering)",
+        "buck2 test //cloud/cloud-ci/... -- PASS 38, Fail 0 (faces byte-equal; registration + no-regression) before push",
         "infra/ci/materialize-cloud-ci-generated-faces.sh . -- settle generated faces (decision-crosswalk picks up ADR-0544)"
     ],
     "known_gaps": [

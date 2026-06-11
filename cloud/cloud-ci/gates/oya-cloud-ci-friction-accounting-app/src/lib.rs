@@ -290,8 +290,9 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         .cloned()
         .unwrap_or_default();
 
-    // Fold physical rows onto their friction id (the event-sourced append model). `states` preserves
-    // first-seen id order so per-friction findings are deterministic; BTreeSet output is sorted anyway.
+    // Fold physical rows onto their friction id (the event-sourced append model). `states` is a
+    // BTreeMap (key-sorted, deterministic) so per-friction findings are order-independent; the
+    // BTreeSet output is sorted anyway.
     let mut states: BTreeMap<String, FrictionState> = BTreeMap::new();
     for row in &rows {
         let id = non_blank_str(row, "id").unwrap_or("");
