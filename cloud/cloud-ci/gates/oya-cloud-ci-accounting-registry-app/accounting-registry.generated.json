@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18385,
-    "source_inputs_digest": "fnv1a64:939508c788380cf4"
+    "source_inputs_digest": "fnv1a64:e589dae109a911c8"
   },
   "rows": [
     {
@@ -367008,7 +367008,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0397",
       "owner": "OWNERS:specs",
       "path": "specs/fixtures/cross-artifact-agreement/tc-XA-bad-phantom-citation.json",
       "reachable_from": [
@@ -367022,7 +367022,7 @@
         "ttl_class": "registry"
       },
       "unit_class": "registry",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {

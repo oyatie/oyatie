@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:8d6fb26e8e6cc98f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:50359ffbf728a65b"
+    "source_inputs_digest": "fnv1a64:bf95bdb75a86c50a"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -22320,7 +22320,6 @@
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-axes-count-drift.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-dup-adr-number.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-half-supersession.json",
-          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-phantom-citation.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-good-decision-all-four-agree.json",
           "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json",
           "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-operator-checklist-for-automatable-rule.json",
