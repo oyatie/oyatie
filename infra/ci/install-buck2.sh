@@ -22,9 +22,26 @@ case "$(uname -s)-$(uname -m)" in
 esac
 
 mkdir -p "${BUCK2_INSTALL_DIR}"
-curl -fsSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/${BUCK2_ASSET}" -o "${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}"
-echo "${BUCK2_SHA256}  ${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}" | sha256sum -c -
-zstd -d -f "${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}" -o "${BUCK2_INSTALL_DIR}/buck2"
+
+# Cache-hit fast path (ADR-0556 D5 QW-4: the tool binary is a digest-pinned INPUT, not a build
+# output — warm-eligible velocity). If the compressed release asset is already present (e.g.
+# restored by actions/cache) and its bytes match the pinned SHA-256, skip the network download.
+# A present-but-mismatching asset is discarded and re-downloaded.
+asset_path="${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}"
+if [ -f "${asset_path}" ] \
+  && echo "${BUCK2_SHA256}  ${asset_path}" | sha256sum -c - >/dev/null 2>&1; then
+  echo "buck2 release asset cache hit (SHA-256 verified): ${asset_path} — skipping download." >&2
+else
+  rm -f "${asset_path}"
+  curl -fsSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/${BUCK2_ASSET}" -o "${asset_path}"
+fi
+
+# Integrity is non-negotiable (ADR-0556: the SHA check is the integrity anchor that makes the
+# warm path admissible). The pinned-digest verification ALWAYS runs on the exact bytes about to
+# be decompressed and executed — cached and fresh paths alike — and the executable is ALWAYS
+# re-derived from those verified bytes (never trusted as a loose cached binary).
+echo "${BUCK2_SHA256}  ${asset_path}" | sha256sum -c -
+zstd -d -f "${asset_path}" -o "${BUCK2_INSTALL_DIR}/buck2"
 chmod +x "${BUCK2_INSTALL_DIR}/buck2"
 
 if [ -n "${GITHUB_PATH:-}" ]; then
