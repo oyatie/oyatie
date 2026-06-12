@@ -115,6 +115,10 @@ impl Report {
 ///     }
 ///   ],
 ///   "duplicate_ids": ["ADR-0377"],     // ids carried by >1 decision file (DATA signal)
+///   "id_mismatches": [                 // filename id != front-matter id (the collision mask)
+///     "ADR-0552-x.md:ADR-0552!=ADR-0553"
+///   ],
+///   "next_free_id": "ADR-0554",        // allocator output (producer --next-adr)
 ///   "generated_face_axes": {           // shared values two generated faces must agree on
 ///     "catalog.json": 6,
 ///     "contracts.json": 7
@@ -192,6 +196,15 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     // dual_decision_collision: an id carried by more than one decision file. Keyed by id.
     for id in str_array(fixture, "duplicate_ids") {
         findings.insert(Finding::new("dual_decision_collision", &id));
+    }
+
+    // decision_id_mismatch: a decision file whose front-matter id disagrees with its
+    // filename number. The producer keys its dup map by the front-matter id, so a
+    // mismatch silently re-keys the file and can MASK a dual_decision_collision
+    // (FRIC-1781320000); it is therefore a violation in its own right. Keyed by the
+    // producer's `<file>:<filename-id>!=<front-matter-id>` entry.
+    for entry in str_array(fixture, "id_mismatches") {
+        findings.insert(Finding::new("decision_id_mismatch", &entry));
     }
 
     // generated_face_drift: two generated faces disagree on a shared value. Keyed by
@@ -328,6 +341,19 @@ mod tests {
             .contains("dual_decision_collision"));
     }
 
+    /// RED fixture (FRIC-1781320000): a filename/front-matter id disagreement — the
+    /// re-keying vector that can mask a duplicate-numbered ADR pair — must go RED.
+    #[test]
+    fn id_mismatch_fires_decision_id_mismatch() {
+        let fixture = json!({
+            "decisions": [],
+            "id_mismatches": ["ADR-0552-x.md:ADR-0552!=ADR-0553"]
+        });
+        let report = evaluate(&fixture);
+        assert_eq!(report.verdict, Verdict::Red);
+        assert!(report.violations.contains("decision_id_mismatch"));
+    }
+
     #[test]
     fn half_supersession_fires_half_edge() {
         // ADR-0511 supersedes ADR-0359, but ADR-0359.superseded_by omits ADR-0511.
@@ -365,11 +391,16 @@ mod tests {
                 "supersedes": [], "superseded_by": []
             }],
             "duplicate_ids": ["ADR-0377"],
+            "id_mismatches": ["ADR-0552-x.md:ADR-0552!=ADR-0553"],
             "generated_face_axes": {"catalog.json": 6, "contracts.json": 7}
         });
         let findings = evaluate_keyed(&fixture);
         assert!(findings.contains(&Finding::new("supersession_half_edge", "ADR-0511->ADR-0359")));
         assert!(findings.contains(&Finding::new("dual_decision_collision", "ADR-0377")));
+        assert!(findings.contains(&Finding::new(
+            "decision_id_mismatch",
+            "ADR-0552-x.md:ADR-0552!=ADR-0553"
+        )));
         assert!(findings.contains(&Finding::new(
             "generated_face_drift",
             "axes_count@{catalog.json,contracts.json}"
