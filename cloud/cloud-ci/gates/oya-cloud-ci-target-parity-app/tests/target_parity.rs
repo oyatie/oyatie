@@ -126,9 +126,12 @@ fn target_parity_face_reports_live_corpus_debt() {
          regenerate the baseline face in the same PR (settle protocol)"
     );
     // Independent growth tripwire (codex review of PR #676, FRIC-1781112000): the
-    // baseline above is PR-local and therefore launderable until the merge-base
-    // ratchet lands; this ceiling is NOT derived from any generated artifact and
-    // only ever moves DOWN, via an explicitly reviewed edit. Slice PRs never touch it.
+    // merge-base ratchet now provides the structural comparison — the cloud-ci-firewall
+    // gate evaluates this code's keys against the gate-baseline face frozen at
+    // `git merge-base <base_ref> HEAD` (ADR-0551), so a same-PR baseline regen can no
+    // longer launder new unwired-test debt. This ceiling stays as defense-in-depth: it is
+    // NOT derived from any generated artifact and only ever moves DOWN, via an explicitly
+    // reviewed edit. Slice PRs never touch it.
     const DEBT_CEILING: usize = 565;
     assert!(
         unwired_tests.len() <= DEBT_CEILING,

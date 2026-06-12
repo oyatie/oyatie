@@ -71,3 +71,9 @@ test-results/
 
 # buck2 build output
 /buck-out/
+
+# Merge-base frozen-baseline snapshot (ADR-0551, FRIC-1781112000): a per-checkout derived
+# reference materialized by the scm-facts emitter from `git merge-base <base_ref> HEAD`.
+# It varies with the base branch position, so it can never be a committed face; CI
+# rematerializes it before gates consume it.
+cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json

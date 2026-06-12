@@ -4,7 +4,7 @@
   "expected_failing_codes": [],
   "expected_ratchet_growth": 0,
   "description": "The SAME baseline growth as tc-FW-bad-baseline-grew, but the grown key is listed in the founder-signed _sign_off_additions allowlist (the one-way door). It is exempted from the GROWTH check for this one regen, so the ratchet shows zero growth. Growing tolerated debt requires an explicit signed decision — never a silent regen.",
-  "committed_baseline": {
+  "merge_base_baseline": {
     "gates": {
       "cloud-ci-total-accounting": {
         "unjustified": {"mode": "baseline-block-on-new", "keys": ["oya/foundry-residue/a.rs", "oya/foundry-residue/b.rs"]}
