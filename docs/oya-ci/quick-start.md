@@ -27,19 +27,15 @@ This writes the generated faces under
 Commit the faces. (Generated faces carry no wall-clock, so `committed == regenerated` holds
 byte-for-byte and registry-drift can byte-diff them.)
 
-### The new-file settle (two commits)
+### The new-file settle
 
 When you first add tracked files (the config crate, the `oya-ci.toml`, new source), the producer
-accounts them, so the baseline grows by their accounting keys. The registry also records each
-non-generated file's `last_touch_commit`. Because a brand-new file has no commit yet at the moment
-you regenerate, freeze it in **two commits**:
-
-1. commit the source + the regenerated faces;
-2. re-run the producer (now the files have a commit) and commit the regenerated
-   `accounting-registry.generated.json` only.
-
-A third regen then yields zero face delta — convergence. (The `gate-baseline.generated.json` face
-carries no `last_touch`, so it is stable across the settle.)
+accounts them, so the baseline grows by their accounting keys. Committed faces carry no
+history-derived data (ADR-0552: per-path `last_touch_commit` and commit timestamps live in the
+untracked `scm-volatile-facts.generated.json` snapshot, materialized at evaluation time), so the
+settle is the ordinary two-step: commit the content, then regenerate and commit the faces-only
+diff. A further regen yields zero face delta — convergence — regardless of which commit ids
+history assigns.
 
 ## 3. Wire the CI lanes
 

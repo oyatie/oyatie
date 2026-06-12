@@ -150,7 +150,7 @@ fn face_freshness_reports_stale_generated_face() {
     assert!(
         findings[0]
             .detail
-            .contains("faces regenerate from TRACKED paths")
+            .contains("faces regenerate from the TRACKED TREE STATE")
     );
     assert!(
         findings[0]
@@ -168,7 +168,7 @@ fn remediation_includes_exact_sanctioned_commands() {
     assert!(remediation.contains("infra/ci/materialize-cloud-ci-generated-faces.sh ."));
     assert!(remediation.contains(FACE_SETTLE_PROTOCOL));
     assert!(remediation.contains("commit content changes first"));
-    assert!(remediation.contains("faces regenerate from TRACKED paths"));
+    assert!(remediation.contains("faces regenerate from the TRACKED TREE STATE"));
     assert!(remediation.contains("never mix content and regenerated faces in one commit"));
     assert!(remediation.contains("commit the faces-only diff"));
 }

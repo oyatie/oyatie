@@ -54,17 +54,17 @@ impl std::fmt::Display for CliError {
     }
 }
 
-/// The committed snapshot of SCM boundary facts (emitted by `oya-cloud-ci-scm-facts-emitter-app`).
-/// The producer is a pure function of {this face + oya-ci.toml + the declared tracked tree}.
+/// The committed snapshot of STABLE SCM boundary facts (emitted by
+/// `oya-cloud-ci-scm-facts-emitter-app`, schema v2 — ADR-0552). The producer is a pure
+/// function of {this face + oya-ci.toml + the declared tracked tree}: every field is
+/// TREE-derived, so the committed faces are invariant under history rewriting
+/// (squash-merge) and under faces-only settle commits. History-derived volatile facts
+/// (last-touch revision ids, timestamps, the aging anchor) are NOT here — they live in the
+/// untracked scm-volatile-facts snapshot, consumed at evaluation time by the staleness
+/// gate, never by this producer (FRIC-1781234047).
 struct ScmFacts {
-    /// Deterministic aging timestamp in epoch seconds (max last-touch timestamp, no wall-clock).
-    head_time_secs: u64,
     /// The tracked-paths universe (sorted+deduped), exactly as `git ls-files` produced it.
     tracked_paths: Vec<String>,
-    /// path -> last-touch commit sha.
-    last_touch: BTreeMap<String, String>,
-    /// commit sha -> author-timestamp (epoch secs), for staleness aging.
-    commit_author_ts_secs: BTreeMap<String, u64>,
 }
 
 /// Read + parse the scm-facts face. A missing/malformed face is a hard error (it must be
@@ -80,10 +80,6 @@ fn load_scm_facts(path: &Path) -> Result<ScmFacts, CliError> {
     let value: Value = serde_json::from_str(&text)
         .map_err(|e| CliError::Io(format!("{}: parse scm-facts: {e}", path.display())))?;
 
-    let head_time_secs = value["head_time_secs"]
-        .as_u64()
-        .ok_or_else(|| CliError::Io(format!("{}: missing head_time_secs", path.display())))?;
-
     let tracked_paths: Vec<String> = value["tracked_paths"]
         .as_array()
         .map(|a| {
@@ -94,32 +90,7 @@ fn load_scm_facts(path: &Path) -> Result<ScmFacts, CliError> {
         })
         .ok_or_else(|| CliError::Io(format!("{}: missing tracked_paths", path.display())))?;
 
-    let last_touch: BTreeMap<String, String> = value["last_touch_commit"]
-        .as_object()
-        .map(|o| {
-            o.iter()
-                .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_owned())))
-                .collect()
-        })
-        .ok_or_else(|| CliError::Io(format!("{}: missing last_touch_commit", path.display())))?;
-
-    let commit_author_ts_secs: BTreeMap<String, u64> = value["commit_author_ts_secs"]
-        .as_object()
-        .map(|o| {
-            o.iter()
-                .filter_map(|(k, v)| v.as_u64().map(|ts| (k.clone(), ts)))
-                .collect()
-        })
-        .ok_or_else(|| {
-            CliError::Io(format!("{}: missing commit_author_ts_secs", path.display()))
-        })?;
-
-    Ok(ScmFacts {
-        head_time_secs,
-        tracked_paths,
-        last_touch,
-        commit_author_ts_secs,
-    })
+    Ok(ScmFacts { tracked_paths })
 }
 
 impl From<ProducerError> for CliError {
@@ -204,11 +175,12 @@ fn run() -> Result<(), CliError> {
         build_enforcement_inventory(&collect_enforcement_inputs(&repo_root, &cfg, &scm_facts))?;
 
     // The fifth face freezes TODAY's accepted-violation KEYS per (gate, code). It runs each
-    // gate's pure evaluate_keyed over the four live faces. Two faces need a light per-gate
-    // adaptation to the shape the gate evaluator consumes (identical to each gate's
-    // born-blocking self-test): the staleness rows are aged from git commit timestamps, and
-    // the automation matrix is derived from the enforcement-inventory face.
-    let staleness_input = build_staleness_input(&scm_facts, &registry);
+    // gate's pure evaluate_keyed over the live faces. The automation matrix is derived from
+    // the enforcement-inventory face. Staleness keys are deliberately ABSENT from the
+    // committed baseline (ADR-0552): they derive from HISTORY-volatile aging data, so
+    // freezing them in a committed face would re-create the squash-merge un-settle defect
+    // through the back door. The staleness gate ages rows from the untracked volatile
+    // snapshot at evaluation time; its blocking authority is its own gate lane.
     let automation_matrix = build_automation_matrix(&enforcement);
     // The fifth gate (cloud-ci-brand-residue) scans the raw tracked corpus for the forbidden
     // vocab stems and freezes the per-(stem,file) residue as the shrink-only-ratchet baseline.
@@ -237,7 +209,6 @@ fn run() -> Result<(), CliError> {
         total_accounting: &registry,
         cross_artifact: &crosswalk,
         automation_ratchet: &automation_matrix,
-        staleness: &staleness_input,
         bnf_layer_suffix: &bnf_layer_suffix,
         manifest_hygiene: &manifest_hygiene,
         cargo_prefix: &cargo_prefix,
@@ -337,31 +308,6 @@ fn discover_repo_root(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<PathBuf
 fn write_face(path: &Path, value: &Value) -> Result<(), CliError> {
     let text = to_canonical_json(value)?;
     std::fs::write(path, text).map_err(|e| CliError::Io(format!("{}: {e}", path.display())))
-}
-
-/// Build the GATE-3 staleness-reaper input from the registry by aging each row from its
-/// `last_touch_commit` against the deterministic scm-facts aging timestamp (no wall-clock).
-/// Reads aging time + commit timestamps from the declared scm-facts face (no ambient git).
-/// Mirrors the gate's born-blocking self-test exactly so the baseline freezes the same keys
-/// the gate would flag today.
-fn build_staleness_input(scm_facts: &ScmFacts, registry: &Value) -> Value {
-    let now_secs = scm_facts.head_time_secs;
-    let commit_ts = &scm_facts.commit_author_ts_secs;
-    let rows = registry["rows"].as_array().cloned().unwrap_or_default();
-    let mut aged_rows: Vec<Value> = Vec::with_capacity(rows.len());
-    for row in rows {
-        let sha = row["last_touch_commit"].as_str().unwrap_or("");
-        let age_days = commit_ts
-            .get(sha)
-            .map(|ts| (now_secs.saturating_sub(*ts)) / 86_400)
-            .unwrap_or(0);
-        let mut aged = row.clone();
-        if let Value::Object(map) = &mut aged {
-            map.insert("age_days".into(), json!(age_days));
-        }
-        aged_rows.push(aged);
-    }
-    json!({ "rows": aged_rows })
 }
 
 /// Build the GATE-4 automation-ratchet matrix input by adapting the enforcement-inventory
@@ -1442,23 +1388,21 @@ fn front_matter_lines(body: &str) -> Vec<&str> {
     out
 }
 
-/// Collect the real repo facts. The tracked-paths + last-touch maps come from the declared
-/// scm-facts face (no ambient git); the owner/justification/reachability maps are derived from
-/// the declared repo sources.
+/// Collect the real repo facts. The tracked-paths universe comes from the declared stable
+/// scm-facts face (no ambient git, no history-derived data — ADR-0552); the
+/// owner/justification/reachability maps are derived from the declared repo sources.
 fn collect_repo_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
     scm_facts: &ScmFacts,
 ) -> RepoInputs {
     let tracked_paths = scm_facts.tracked_paths.clone();
-    let last_touch = scm_facts.last_touch.clone();
     let owners = resolve_owners(repo_root, &tracked_paths, cfg);
     let reachability = resolve_reachability(repo_root, &tracked_paths, cfg);
     let justifications = resolve_justifications(repo_root, &tracked_paths, cfg);
 
     RepoInputs {
         tracked_paths,
-        last_touch,
         owners,
         justifications,
         reachability,

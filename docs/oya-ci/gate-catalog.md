@@ -64,13 +64,15 @@ agent-wiring + catalog`.
 For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
 enforces the content-first, faces-only settle protocol after the content commit lands.
 
-This paragraph is the CANONICAL settle+verify protocol statement (FRIC-1781250000; other documents
-point here instead of restating it). Because `scm-facts.generated.json` records per-path
-`last_touch_commit` metadata, ANY commit that lands after the settle commit and touches any
-non-generated-class path — docs-only changes included (the generated class, excluded from
-last-touch by the emitter: `*.generated.json`, `Cargo.lock`, `docs/machine-readable/`) —
-un-settles the faces, so local "faces look byte-identical" self-assessment provably fails. The
-settle commit must therefore be the FINAL commit before push, and
+This paragraph is the CANONICAL settle+verify protocol statement (FRIC-1781250000,
+FRIC-1781234047/ADR-0552; other documents point here instead of restating it). The committed
+faces are a pure function of the tracked TREE state: history-derived volatile facts (per-path
+`last_touch_commit`, commit timestamps, the aging anchor) live in the UNTRACKED
+`scm-volatile-facts.generated.json` snapshot beside the emitter, never in a committed face —
+so neither a later commit, nor a squash-merge to the base branch (which rewrites every lane
+commit id), can un-settle settled faces. Commits that change face-relevant tree content
+(tracked-path set, ownership/justification/reachability sources, gate inputs) still un-settle
+them. The settle commit should therefore be the FINAL commit before push, and
 `oya-cloud-ci-face-settle --verify` is the REQUIRED last step before EVERY push, explicitly
 including pushes the worker believes are content-only. `--verify` is read-only (it never writes
 to the repository): against a working tree asserted byte-identical to the committed tree (HEAD),

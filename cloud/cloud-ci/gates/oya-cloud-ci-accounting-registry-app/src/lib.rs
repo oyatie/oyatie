@@ -75,8 +75,6 @@ pub struct TtlRecord {
 pub struct RepoInputs {
     /// Every `git ls-files` path, repo-relative.
     pub tracked_paths: Vec<String>,
-    /// path -> last commit SHA touching it (`git log`).
-    pub last_touch: BTreeMap<String, String>,
     /// path -> nearest up-tree OWNERS-resolved owner. Absent ⇒ unowned (RED).
     pub owners: BTreeMap<String, String>,
     /// path -> justification ref (ADR-####/spec $id/need:<ticket>). Absent ⇒ unjustified.
@@ -186,7 +184,6 @@ pub struct AccountingRecord {
     pub justification_ref: Option<String>,
     pub reachable_from: Vec<String>,
     pub ttl: TtlRecord,
-    pub last_touch_commit: Option<String>,
     pub tracked: bool,
     pub verdict: String,
     pub dup_of: Option<String>,
@@ -261,17 +258,11 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
         let owner = inputs.owners.get(path).cloned();
         let justification_ref = inputs.justifications.get(path).cloned();
         let reachable_from = inputs.reachability.get(path).cloned().unwrap_or_default();
-        // A `generated` artifact has no meaningful last-touch: it is rewritten by THIS
-        // producer, so recording `git log -1` of a generated face is self-referential —
-        // committing the regenerated face changes its own last-touch, which no single
-        // regen+commit can converge (registry-drift fixed-point). Emit None for the
-        // generated class so the face is invariant to which commit holds it; the row is
-        // still present (total-accounting stays whole). Non-generated last-touch unchanged.
-        let last_touch_commit = if unit_class == "generated" {
-            None
-        } else {
-            inputs.last_touch.get(path).cloned()
-        };
+        // No last-touch column (ADR-0552, FRIC-1781234047): per-path last-touch revision ids
+        // are HISTORY-derived volatile facts — a squash-merge rewrites them for every path
+        // the PR touched, so embedding them here made the committed face un-settle on every
+        // merge to the base branch. They live in the untracked scm-volatile-facts snapshot;
+        // the staleness gate joins rows to ages at evaluation time.
         let dup_of = inputs.dup_of.get(path).cloned();
 
         let verdict = derive_verdict(&owner, &justification_ref, &reachable_from, &ttl, &dup_of);
@@ -283,7 +274,6 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
             justification_ref,
             reachable_from,
             ttl,
-            last_touch_commit,
             tracked: true,
             verdict,
             dup_of,
@@ -500,14 +490,12 @@ pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-
 /// - `total_accounting`: the accounting registry (`rows` with path/owner/justification/…)
 /// - `cross_artifact`: the decision crosswalk (`decisions`/`duplicate_ids`/`generated_face_axes`)
 /// - `automation_ratchet`: the automation matrix (`rows`) joined with the enforcement face
-/// - `staleness`: the registry rows aged with `age_days` (the binary supplies the aging)
 /// - `slo_coverage`: the catalog SLO face (`rows` with crate_id/slo)
 /// - `enforcement_liveness`: tracked hook/wiring rows for the FRIC-012 liveness gate
 pub struct GateInputs<'a> {
     pub total_accounting: &'a Value,
     pub cross_artifact: &'a Value,
     pub automation_ratchet: &'a Value,
-    pub staleness: &'a Value,
     /// The §2.5#4 BNF layer-suffix gate input: `{"rows":[{"crate_name": "oya-..."}]}` —
     /// the first-party `oya-*` crate names the binary enumerates from the tracked Cargo.toml
     /// manifests. The gate's `evaluate_keyed` resolves the role carve-out-aware and reuses
@@ -579,11 +567,14 @@ fn producer_face_keys(
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
-        GateFace::Staleness => group_findings(
-            oya_cloud_ci_staleness_reaper_app::evaluate_keyed(inputs.staleness)
-                .into_iter()
-                .map(|f| (f.code, f.key)),
-        ),
+        // Staleness keys are deliberately EMPTY in the committed baseline (ADR-0552,
+        // FRIC-1781234047): they derive from history-volatile aging data (last-touch
+        // timestamps), so freezing them in a committed face would re-create the
+        // squash-merge un-settle defect. The staleness gate ages registry rows from the
+        // untracked scm-volatile-facts snapshot at evaluation time; its blocking authority
+        // is its own gate lane, not the firewall ratchet. The disposition rows (modes)
+        // remain declared so a future flip is still a reviewed DATA edit.
+        GateFace::Staleness => BTreeMap::new(),
         GateFace::BnfLayerSuffix => group_findings(
             oya_cloud_ci_bnf_layer_suffix_app::evaluate_keyed(inputs.bnf_layer_suffix)
                 .into_iter()
@@ -821,15 +812,12 @@ mod tests {
             "specs/masterplan.json".into(),
             vec!["root-hub".into(), "masterplan".into()],
         );
-        let mut last_touch = BTreeMap::new();
-        last_touch.insert("specs/masterplan.json".into(), "abc123".into());
         RepoInputs {
             tracked_paths: vec![
                 "specs/masterplan.json".into(),
                 ".omc/state/run.jsonl".into(),
                 "oya/orphan/lib.rs".into(),
             ],
-            last_touch,
             owners,
             justifications,
             reachability,
@@ -891,7 +879,6 @@ mod tests {
         ]});
         let crosswalk = serde_json::json!({"decisions": [], "duplicate_ids": ["ADR-0377"]});
         let automation = serde_json::json!({"rows": []});
-        let staleness = serde_json::json!({"rows": []});
         let empty_face = serde_json::json!({"rows": []});
         let mut brand_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         brand_residue
@@ -902,7 +889,6 @@ mod tests {
             total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
-            staleness: &staleness,
             bnf_layer_suffix: &empty_face,
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
@@ -946,14 +932,12 @@ mod tests {
         let registry = serde_json::json!({"rows": []});
         let crosswalk = serde_json::json!({"decisions": []});
         let automation = serde_json::json!({"rows": []});
-        let staleness = serde_json::json!({"rows": []});
         let empty_face = serde_json::json!({"rows": []});
         let brand_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let inputs = GateInputs {
             total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
-            staleness: &staleness,
             bnf_layer_suffix: &empty_face,
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,

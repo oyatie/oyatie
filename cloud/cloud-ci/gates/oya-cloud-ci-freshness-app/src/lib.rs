@@ -11,7 +11,7 @@ use oya_workspace_members_kernel::resolve_member_dirs;
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
 pub const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
-pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from TRACKED paths; never mix content and regenerated faces in one commit; then run the materialize command; then commit the faces-only diff; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push — ANY commit after the settle commit touching a non-generated-class path (even docs-only) un-settles scm-facts";
+pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from the TRACKED TREE STATE (ADR-0552: committed faces carry no history-derived data, so commit ids never enter them); never mix content and regenerated faces in one commit; then run the materialize command; then commit the faces-only diff; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push";
 pub const FACE_VERIFY_REMEDIATION_COMMAND: &str = "oya-cloud-ci-face-settle --settle --commit";
 pub const FACE_SETTLE_COMMIT_COMMAND: &str =
     "git commit -S -m \"chore: settle generated cloud-ci faces\"";
@@ -389,10 +389,12 @@ pub fn check_regenerated_faces(
 /// the exact remediation command. This function NEVER writes: it only runs read-only git
 /// queries and filesystem reads.
 ///
-/// FRIC-1781250000: scm-facts encodes per-path `last_touch_commit`, so ANY commit landing
-/// after the settle commit that touches a non-generated-class path (even docs-only)
-/// un-settles the faces; local "faces look byte-identical" self-assessment provably
-/// fails. This is the required LAST step before EVERY push; the ADR-0539 freshness gate
+/// FRIC-1781250000 (historical) + FRIC-1781234047/ADR-0552 (the structural fix): committed
+/// scm-facts USED to encode per-path `last_touch_commit`, so any later commit touching a
+/// non-generated-class path — and every squash-merge to the base branch — un-settled the
+/// faces. Under the v2 stable/volatile split the committed faces are a pure function of the
+/// tracked TREE, so only changes that actually alter face-relevant tree content un-settle
+/// them. This remains the required LAST step before EVERY push; the ADR-0539 freshness gate
 /// remains the canonical backstop.
 pub fn verify_committed_tree(
     repo_root: &Path,
@@ -730,12 +732,21 @@ pub fn regenerate_faces_with_buck2(
     let cleanup = TempFileCleanup {
         path: scm_facts.clone(),
     };
+    // The volatile snapshot is routed to its own temp path too: this regeneration exists
+    // only to byte-compare the COMMITTED faces, and `--verify` is contractually read-only —
+    // it must not rewrite the checkout's materialized scm-volatile-facts snapshot.
+    let volatile_facts = temporary_volatile_facts_path();
+    let volatile_cleanup = TempFileCleanup {
+        path: volatile_facts.clone(),
+    };
     run_status(
         Command::new(&tools.emitter)
             .args(["--repo-root"])
             .arg(repo_root)
             .args(["--out"])
             .arg(&scm_facts)
+            .args(["--volatile-out"])
+            .arg(&volatile_facts)
             .current_dir(repo_root),
         "run scm-facts emitter",
     )?;
@@ -755,6 +766,7 @@ pub fn regenerate_faces_with_buck2(
         regenerated.push((file_name.to_owned(), output));
     }
     drop(cleanup);
+    drop(volatile_cleanup);
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(regenerated)
 }
@@ -1023,6 +1035,17 @@ fn temporary_scm_facts_path() -> PathBuf {
     };
     std::env::temp_dir().join(format!(
         "oya-ci-freshness-scm-facts-{}-{nanos}.json",
+        std::process::id()
+    ))
+}
+
+fn temporary_volatile_facts_path() -> PathBuf {
+    let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(duration) => duration.as_nanos(),
+        Err(_) => 0,
+    };
+    std::env::temp_dir().join(format!(
+        "oya-ci-freshness-scm-volatile-facts-{}-{nanos}.json",
         std::process::id()
     ))
 }
