@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:8d6fb26e8e6cc98f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:5818388a10d00a05"
+    "source_inputs_digest": "fnv1a64:bf23e366f3e6e3be"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -8468,7 +8468,6 @@
           "docs/ideas/cloud-intelligence-best-of-both.md",
           "docs/ideas/cloud-intelligence-oauth-subscription-pool.md",
           "docs/ideas/hyperscaler-gap-closure-plan.md",
-          "docs/ideas/nativelink-remote-cache-first.md",
           "docs/ideas/oya-ci-bespoke-prow.md",
           "docs/ideas/planning-ssot-consolidation.md",
           "docs/ideas/planning-ssot-drift-prevention.md",
