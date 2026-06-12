@@ -11,6 +11,8 @@ supersedes:
   - ADR-0509
 amends:
   - ADR-0131
+amended_by:
+  - ADR-0550
 relates:
   - ADR-0392
   - ADR-0408
@@ -25,6 +27,14 @@ Accepted — 2026-05-29 (founder-locked). Supersedes ADR-0357 (vertical-slice ne
 `microservices/<ms>/`. Canonical service homes are `{oya,cloud}/<service>/` with shared cross-cutting libraries under
 `libs/<lib>/`. `microservices/` is legacy only and must be removed after P0.1/P0.6 prove all migration packets are
 complete. The colocation/crate/workspace/Buck2 rules below remain binding with the updated root.
+
+**Amendment — 2026-06-11 (ADR-0550 layout doctrine):** clauses 3/4 are narrowed. Crate =
+bounded-context remains the sizing default and module-level layering remains the rule *inside* a
+crate, but two boundaries are crate boundaries by mandate, never modules: the ADR-0510
+transient-tech seam (kernel vs adapter) and the composition root (app) — per the founder
+structure directive of 2026-06-10 (ADR-0543, PR #686) and the kernel-purity gate (ADR-0547),
+which enforces the seam on the crate dependency graph where a module seam is invisible. The
+"no layer-per-crate" rejection stands everywhere except these two mandated seams. See ADR-0550 D1.
 
 ## Date
 
