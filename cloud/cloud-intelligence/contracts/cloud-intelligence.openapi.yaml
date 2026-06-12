@@ -567,6 +567,99 @@ paths:
           description: Duplicate seat_id already exists in the tenant/provider pool.
 
 
+  /admin/v1/agent-runtimes:
+    get:
+      tags: [admin]
+      summary: List internal agent runtime profiles and redacted workflow status
+      description: Cloud-intelligence primitive status surface for tenant-controlled agent runtimes. Returns resource refs, policy-port readiness, adapter names, and sealed evidence handles only.
+      operationId: listAgentRuntimeProfiles
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+      responses:
+        '200':
+          description: Agent runtime profiles and workflow status.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [runtimes, workflow_statuses]
+                properties:
+                  runtimes:
+                    type: array
+                    items: { $ref: '#/components/schemas/AgentRuntimeProfile' }
+                  workflow_statuses:
+                    type: array
+                    items: { $ref: '#/components/schemas/AgentWorkflowStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/v1/agent-schedules:
+    get:
+      tags: [admin]
+      summary: List controller-owned agent schedules and redacted status
+      description: Schedules are reconciled by workers/controllers and expose status refs only; no embedded cron runner or local task surface is part of this API.
+      operationId: listAgentSchedules
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+      responses:
+        '200':
+          description: Agent schedules and status.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [schedules, statuses]
+                properties:
+                  schedules:
+                    type: array
+                    items: { $ref: '#/components/schemas/AgentSchedule' }
+                  statuses:
+                    type: array
+                    items: { $ref: '#/components/schemas/AgentScheduleStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/v1/parity/canaries:
+    get:
+      tags: [admin]
+      summary: List scheduled parity/drift canary plans and redacted status
+      description: Read-only status for parity and drift canaries. Deltas open governed work items; evidence is represented by sealed handles and Retry-After semantics.
+      operationId: listParityCanaries
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/AdminTenantHeader'
+      responses:
+        '200':
+          description: Parity/drift canary plans and status.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [plans, statuses]
+                properties:
+                  plans:
+                    type: array
+                    items: { $ref: '#/components/schemas/ParityCanaryPlan' }
+                  statuses:
+                    type: array
+                    items: { $ref: '#/components/schemas/ParityCanaryStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /admin/v1/guardrails:
     get:
       tags: [admin]
@@ -1107,26 +1200,36 @@ components:
         model: { type: string }
     GatewayStatusResponse:
       type: object
-      required: [status, route_controller_ready, model_inventory_ready, credential_worker_ready]
+      required: [status, route_controller_ready, model_inventory_ready, credential_worker_ready, policy_engine_ready, boundaries]
       properties:
         status: { type: string, enum: [ok, degraded, unavailable] }
         route_controller_ready: { type: boolean }
         model_inventory_ready: { type: boolean }
         credential_worker_ready: { type: boolean, description: owned-secret-provider-port reachability and lease readiness. }
         policy_engine_ready: { type: boolean, description: owned-policy-engine-port decision readiness. }
+        default_data_plane_ready: { type: boolean }
+        secret_provider_ready: { type: boolean }
+        registered_pools: { type: integer, minimum: 0 }
+        boundaries:
+          type: object
+          required: [secret_resolution, authorization]
+          properties:
+            secret_resolution: { type: string, const: owned-secret-provider-port }
+            authorization: { type: string, const: owned-policy-engine-port }
     AccountStatusResponse:
       type: object
-      required: [accounts]
+      required: [accounts, redaction]
       properties:
         accounts:
           type: array
           items: { $ref: '#/components/schemas/AccountStatus' }
+        redaction: { type: string, const: secret-handles-redacted }
     AccountStatus:
       type: object
       required: [tenant_id, provider, seat_id, state]
       properties:
         tenant_id: { type: string }
-        provider: { type: string, enum: [anthropic, codex] }
+        provider: { type: string, enum: [anthropic, codex, gemini] }
         seat_id: { type: string }
         state: { type: string, enum: [authorized, active, cooldown, blacklisted] }
         cooldown_until: { type: string, format: date-time, nullable: true }
@@ -1152,6 +1255,113 @@ components:
       properties:
         scope: { type: string }
         status: { type: string, enum: [not_implemented] }
+    AgentRuntimeProfile:
+      type: object
+      required: [kind, tenant_id, name, model_route_ref, prompt_profile_ref, thinking_policy_ref, tool_compatibility_profile_ref, sandbox_policy_ref, cloud_intelligence_owned_control_plane, embeds_model_runtime, installs_cli_or_tui_surface]
+      properties:
+        kind: { type: string, const: AgentRuntimeProfile }
+        tenant_id: { type: string }
+        name: { type: string }
+        model_route_ref: { type: string }
+        prompt_profile_ref: { type: string }
+        thinking_policy_ref: { type: string }
+        tool_compatibility_profile_ref: { type: string }
+        sandbox_policy_ref: { type: string }
+        cloud_intelligence_owned_control_plane: { type: boolean, const: true }
+        embeds_model_runtime: { type: boolean, const: false }
+        installs_cli_or_tui_surface: { type: boolean, const: false }
+    AgentSchedule:
+      type: object
+      required: [kind, tenant_id, name, schedule_ref, runtime_profile_ref, execution_externalized_to_controller, embeds_local_cron]
+      properties:
+        kind: { type: string, const: AgentSchedule }
+        tenant_id: { type: string }
+        name: { type: string }
+        schedule_ref: { type: string }
+        runtime_profile_ref: { type: string }
+        execution_externalized_to_controller: { type: boolean, const: true }
+        embeds_local_cron: { type: boolean, const: false }
+        policy_engine_port: { type: string, const: owned-policy-engine-port }
+        evidence_visibility: { type: string, const: redacted-structured-evidence }
+    AgentDelegationPolicy:
+      type: object
+      required: [kind, allowed_generation_adapters, policy_engine_port, policy_gated, allows_routing_advisor_generation]
+      properties:
+        kind: { type: string, const: AgentDelegationPolicy }
+        allowed_generation_adapters:
+          type: array
+          items: { type: string, enum: [claude, codex, gemini] }
+        policy_engine_port: { type: string, const: owned-policy-engine-port }
+        policy_gated: { type: boolean, const: true }
+        allows_routing_advisor_generation: { type: boolean, const: false }
+    AgentWorkflowStatus:
+      type: object
+      required: [kind, workflow_ref, runtime_profile_ref, delegation_policy_ref, generation_adapters, routing_advisor_scope, policy_engine_port, evidence_visibility, requires_secondary_review_for_critical_blocks, raw_payload_included]
+      properties:
+        kind: { type: string, const: AgentWorkflowStatus }
+        workflow_ref: { type: string }
+        runtime_profile_ref: { type: string }
+        delegation_policy_ref: { type: string }
+        generation_adapters:
+          type: array
+          items: { type: string, enum: [claude, codex, gemini] }
+        routing_advisor_scope: { type: string, const: routing-decision-only }
+        routing_advisor_models:
+          type: array
+          items: { type: string }
+        policy_engine_port: { type: string, const: owned-policy-engine-port }
+        evidence_visibility: { type: string, const: redacted-structured-evidence }
+        sealed_evidence_handle_ref: { type: string, nullable: true }
+        requires_secondary_review_for_critical_blocks: { type: boolean, const: true }
+        raw_payload_included: { type: boolean, const: false }
+    AgentScheduleStatus:
+      type: object
+      required: [kind, schedule_ref, state, controller_owner, policy_engine_port, evidence_visibility, raw_payload_included]
+      properties:
+        kind: { type: string, const: AgentScheduleStatus }
+        schedule_ref: { type: string }
+        state: { type: string, enum: [queued, running, passed, failed, blocked] }
+        next_run_window: { type: string, nullable: true }
+        controller_owner: { type: string }
+        policy_engine_port: { type: string, const: owned-policy-engine-port }
+        evidence_visibility: { type: string, const: redacted-structured-evidence }
+        sealed_evidence_handle_ref: { type: string, nullable: true }
+        raw_payload_included: { type: boolean, const: false }
+    ParityCanaryPlan:
+      type: object
+      required: [kind, tenant_id, name, artifact_family, capability_namespace, schedule_ref, probes, compatibility_canaries, controller_owned, opens_pr_or_task_on_delta, audit_event_required, embeds_local_cron, writes_raw_prompts_or_secrets]
+      properties:
+        kind: { type: string, const: ParityCanaryPlan }
+        tenant_id: { type: string }
+        name: { type: string }
+        artifact_family: { type: string, const: external-proxy-reference }
+        capability_namespace: { type: string, const: XPROXY }
+        schedule_ref: { type: string }
+        probes:
+          type: array
+          items: { type: string }
+        compatibility_canaries:
+          type: array
+          items: { type: string }
+        controller_owned: { type: boolean, const: true }
+        opens_pr_or_task_on_delta: { type: boolean, const: true }
+        audit_event_required: { type: boolean, const: true }
+        policy_engine_port: { type: string, const: owned-policy-engine-port }
+        evidence_visibility: { type: string, const: redacted-structured-evidence }
+        embeds_local_cron: { type: boolean, const: false }
+        writes_raw_prompts_or_secrets: { type: boolean, const: false }
+    ParityCanaryStatus:
+      type: object
+      required: [kind, plan_ref, state, evidence_visibility, raw_payload_included]
+      properties:
+        kind: { type: string, const: ParityCanaryStatus }
+        plan_ref: { type: string }
+        state: { type: string, enum: [passed, failed, running, inconclusive] }
+        retry_after_seconds: { type: integer, nullable: true }
+        retry_after_header: { type: string, const: Retry-After }
+        evidence_visibility: { type: string, const: redacted-structured-evidence }
+        sealed_evidence_handle_ref: { type: string, nullable: true }
+        raw_payload_included: { type: boolean, const: false }
     EvidenceDataClass:
       type: string
       enum:

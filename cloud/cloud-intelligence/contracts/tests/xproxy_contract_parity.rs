@@ -61,6 +61,18 @@ fn xproxy_openapi_declares_reference_protocol_and_admin_surfaces() {
         assert_contract_mentions(OPENAPI, operation_id);
     }
 
+    for field in [
+        "policy_engine_ready",
+        "default_data_plane_ready",
+        "secret_provider_ready",
+        "registered_pools",
+        "boundaries",
+        "secret-handles-redacted",
+        "gemini",
+    ] {
+        assert_contract_mentions(OPENAPI, field);
+    }
+
     assert_contract_mentions(OPENAPI, "owned-secret-provider-port");
     assert_contract_mentions(OPENAPI, "owned-policy-engine-port");
     assert_contract_omits_direct_transient_engines(OPENAPI, "OpenAPI");
@@ -117,6 +129,18 @@ fn xproxy_proto_declares_admin_control_plane_methods_without_direct_engine_owner
         "ResumeCircuitBreakerResponse",
     ] {
         assert_contract_mentions(PROTO, message);
+    }
+
+    for field in [
+        "GatewayBoundaryStatus",
+        "default_data_plane_ready",
+        "secret_provider_ready",
+        "registered_pools",
+        "boundaries",
+        "redaction",
+        "PROVIDER_CHANNEL_GEMINI",
+    ] {
+        assert_contract_mentions(PROTO, field);
     }
 
     assert_contract_mentions(PROTO, "owned-secret-provider-port");
@@ -199,4 +223,99 @@ fn cloud_intelligence_safety_proto_declares_policy_evaluation_and_break_glass() 
     }
 
     assert_contract_omits_direct_transient_engines(PROTO, "proto");
+}
+
+#[test]
+fn cloud_intelligence_agent_runtime_and_canary_contracts_are_first_class_status_surfaces() {
+    for path in [
+        "/admin/v1/agent-runtimes",
+        "/admin/v1/agent-schedules",
+        "/admin/v1/parity/canaries",
+    ] {
+        assert_contract_has_path(OPENAPI, path);
+    }
+
+    for operation_id in [
+        "listAgentRuntimeProfiles",
+        "listAgentSchedules",
+        "listParityCanaries",
+    ] {
+        assert_contract_mentions(OPENAPI, operation_id);
+    }
+
+    for schema in [
+        "AgentRuntimeProfile",
+        "AgentSchedule",
+        "AgentDelegationPolicy",
+        "AgentWorkflowStatus",
+        "ParityCanaryPlan",
+        "ParityCanaryStatus",
+    ] {
+        assert_contract_mentions(OPENAPI, schema);
+    }
+
+    for rpc in [
+        "rpc AgentRuntimeStatus",
+        "rpc AgentScheduleStatus",
+        "rpc ParityCanaryStatus",
+    ] {
+        assert_contract_mentions(PROTO, rpc);
+    }
+
+    for message in [
+        "AgentRuntimeStatusRequest",
+        "AgentRuntimeStatusResponse",
+        "AgentScheduleStatusRequest",
+        "AgentScheduleStatusResponse",
+        "ParityCanaryStatusRequest",
+        "ParityCanaryStatusResponse",
+    ] {
+        assert_contract_mentions(PROTO, message);
+    }
+}
+
+#[test]
+fn cloud_intelligence_agent_and_canary_asyncapi_events_are_redacted_status_only() {
+    for channel in [
+        "llm.agent_runtime.v1",
+        "llm.agent_schedule.v1",
+        "llm.parity_canary.v1",
+    ] {
+        assert_contract_mentions(ASYNCAPI, channel);
+    }
+
+    for message in [
+        "AgentWorkflowStatusEvent",
+        "AgentScheduleStatusEvent",
+        "ParityCanaryStatusEvent",
+    ] {
+        assert_contract_mentions(ASYNCAPI, message);
+    }
+
+    for forbidden_positive_surface in [
+        ["local", "panel"].join(" "),
+        ["local", "panel"].join("-"),
+        ["shell", "out", "to", "cli"].join(" "),
+        ["shells", "out", "to", "cli"].join(" "),
+        ["local", "tui", "workflow"].join(" "),
+    ] {
+        assert!(
+            !OPENAPI
+                .to_ascii_lowercase()
+                .contains(forbidden_positive_surface.as_str()),
+            "OpenAPI must not expose positive local control-plane surface: {forbidden_positive_surface}"
+        );
+        assert!(
+            !ASYNCAPI
+                .to_ascii_lowercase()
+                .contains(forbidden_positive_surface.as_str()),
+            "AsyncAPI must not expose positive local control-plane surface: {forbidden_positive_surface}"
+        );
+        assert!(
+            !PROTO
+                .to_ascii_lowercase()
+                .contains(forbidden_positive_surface.as_str()),
+            "proto must not expose positive local control-plane surface: {forbidden_positive_surface}"
+        );
+    }
 }
