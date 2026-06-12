@@ -940,6 +940,30 @@ mod tests {
                 Some(true)
             );
         }
+        // The phantom-citation lane (FRIC-1781430000) is born-blocking frozen-empty: the
+        // pre-existing inventory is producer-side shrink-only DATA, never a baseline.
+        let phantom = disp
+            .get("gates")
+            .and_then(|gates| gates.get("cloud-ci-cross-artifact-agreement"))
+            .and_then(|codes| codes.get("phantom_decision_citation"))
+            .expect("phantom_decision_citation disposition");
+        assert_eq!(
+            phantom.get("mode").and_then(serde_json::Value::as_str),
+            Some("baseline-block-on-new")
+        );
+        assert_eq!(
+            phantom
+                .get("frozen_empty")
+                .and_then(serde_json::Value::as_bool),
+            Some(true)
+        );
+        assert!(
+            phantom
+                .get("remediation")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|text| text.contains("--next-adr")),
+            "the phantom remediation must name the allocator"
+        );
         let liveness_codes = disp
             .get("gates")
             .and_then(|gates| gates.get("cloud-ci-enforcement-liveness"))

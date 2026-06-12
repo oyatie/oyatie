@@ -257,6 +257,36 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         "next_free_id must be an ADR-NNNN allocator output, got {next_free_id:?}"
     );
 
+    // phantom_decision_citation is frozen-empty (born-blocking, FRIC-1781430000): the
+    // phantom-0397 exhibit (seven governed surfaces citing "ADR-0397 Pulsar 4.x + Oxia
+    // canonical event-bus" with no file at the number — audit register H-19) was healed
+    // 2026-06-12 by MINTING docs/decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md,
+    // and the pre-existing phantom inventory is grandfathered shrink-only DATA in the
+    // producer (each id ledgered with its citation sites). Any edge here is NEW debt.
+    let phantom_citations = crosswalk["phantom_citations"]
+        .as_array()
+        .expect("phantom_citations");
+    assert!(
+        phantom_citations.is_empty(),
+        "phantom_decision_citation must stay frozen-empty: {phantom_citations:?} — mint the \
+         record at the cited number (status Proposed, reconstruction banner; allocate NEW \
+         numbers via the accounting-registry producer's --next-adr) or retarget the citation"
+    );
+    assert!(
+        !report.violations.contains("phantom_decision_citation"),
+        "the live corpus must carry no phantom decision citation"
+    );
+    // The healed exhibit resolves: the minted ADR-0397 carries a crosswalk row, so every
+    // pre-existing "ADR-0397" citation now reaches a real decision with zero retargeting.
+    assert!(
+        crosswalk["decisions"]
+            .as_array()
+            .expect("decisions")
+            .iter()
+            .any(|d| d["id"] == "ADR-0397"),
+        "the minted ADR-0397 must appear as a decision-crosswalk row"
+    );
+
     // Count the real exhibits for the evidence digest.
     let decisions = crosswalk["decisions"].as_array().expect("decisions");
     let dup_ids = crosswalk["duplicate_ids"]
@@ -281,10 +311,11 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         .count();
 
     eprintln!(
-        "BORN-BLOCKING live-corpus counts: decisions={} duplicate_ids={:?} id_mismatches={:?} next_free_id={next_free_id} axes={:?} unpropagated_decision={} violations={:?}",
+        "BORN-BLOCKING live-corpus counts: decisions={} duplicate_ids={:?} id_mismatches={:?} phantom_citations={} next_free_id={next_free_id} axes={:?} unpropagated_decision={} violations={:?}",
         decisions.len(),
         dup_ids,
         id_mismatches,
+        phantom_citations.len(),
         axes,
         unpropagated,
         report.violations
