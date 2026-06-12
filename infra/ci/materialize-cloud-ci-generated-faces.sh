@@ -25,9 +25,13 @@ emitter="$(printf '%s\n' "$show_out" | awk '/oya-cloud-ci-scm-facts-emitter-app:
 producer="$(printf '%s\n' "$show_out" | awk '/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin/ {print $2}')"
 
 # --merge-base-baseline (ADR-0551, FRIC-1781112000): the emitter also materializes the
-# firewall's FROZEN reference — the gate-baseline face at `git merge-base <base_ref> HEAD`
-# (paths + base_ref are DATA in the firewall app's ratchet-policy.json). Untracked +
-# gitignored; the firewall gate consumes it instead of the PR-local face, so a same-PR
-# baseline regen can no longer launder new debt past the ratchet.
+# firewall's FROZEN reference — the gate-baseline face at `git merge-base <bootstrap> HEAD`.
+# FROZEN-POLICY-WINS (FRIC-1781280000): the policy facts selecting that reference
+# (base_ref, face_path) are read from ratchet-policy.json AS COMMITTED AT THE MERGE-BASE,
+# located via the emitter's out-of-band bootstrap ref (--frozen-base-ref, default
+# origin/dev) — never the candidate tree, so a same-PR base_ref repoint cannot select this
+# PR's own frozen reference. Untracked + gitignored; the firewall gate consumes it instead
+# of the PR-local face, so a same-PR baseline regen can no longer launder new debt past
+# the ratchet.
 "$emitter" --repo-root "$repo_root" --out "$scm_facts" --merge-base-baseline
 "$producer" --repo-root "$repo_root" --scm-facts "$scm_facts"

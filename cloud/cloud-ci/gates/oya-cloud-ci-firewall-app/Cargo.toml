@@ -21,6 +21,14 @@ name = "oya_cloud_ci_firewall_app"
 path = "src/lib.rs"
 doctest = false
 
+# Automation-default surface (founder directive 2026-06-12): the inert-door fixer derives
+# and applies the mechanical retirement of sign-off entries that exempt nothing
+# (FRIC-1781280001); the firewall gate's inert-door RED is the enforcement backstop and
+# prints exactly this command.
+[[bin]]
+name = "oya-cloud-ci-firewall-signoff-fixer"
+path = "src/main.rs"
+
 [dependencies]
 serde_json = { workspace = true }
 
