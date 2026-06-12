@@ -34,6 +34,16 @@ permit (
   principal.tenant_id == "ten_acme" &&
   principal.scopes.contains("cloud.kms.decrypt")
 };
+
+@id("permit-acme-scim-manage")
+permit (
+  principal is Workload,
+  action == Action::"identity.scim.Manage",
+  resource is ScimTenant
+) when {
+  principal.tenant_id == "ten_acme" &&
+  principal.scopes.contains("scim.manage")
+};
 "#;
 
 const PRINCIPAL_SEED: &str = r#"[
@@ -43,7 +53,9 @@ const PRINCIPAL_SEED: &str = r#"[
      "owning_capability":"cap.cloud.kms","scopes":["cloud.kms.encrypt"]},
     {"tenant_id":"ten_acme","workload_id":"wl_suspended",
      "owning_capability":"cap.cloud.kms","scopes":["cloud.kms.decrypt"],
-     "state":"suspended"}
+     "state":"suspended"},
+    {"tenant_id":"ten_acme","workload_id":"wl_provisioner",
+     "owning_capability":"cap.identity.scim","scopes":["scim.manage"]}
 ]"#;
 
 fn b64url(bytes: &[u8]) -> String {

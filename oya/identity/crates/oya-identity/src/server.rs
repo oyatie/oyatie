@@ -16,8 +16,10 @@ use tonic::transport::server::TcpIncoming;
 use tracing::{error, info};
 
 use oya_identity_oidc_issuer_kernel::{IssuerError, IssuerUrl};
+use oya_identity_workload_app::{InMemoryRevocationDenylist, InMemoryWorkloadPrincipalRepository};
 use oya_identity_workload_authz_cedar_adapter::{CedarAuthzError, CedarWorkloadAuthorizer};
 use oya_identity_workload_oidc_adapter::ValidationConfig;
+use oya_identity_workload_rest::WorkloadAuthzState;
 
 use crate::AppState;
 use crate::config::Config;
