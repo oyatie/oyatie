@@ -54,18 +54,18 @@ data:
     {
       "stores": [
         {
-          "name": "CAS_FAST_SLOW",
-          "fast_slow": {
-            "fast": {
-              "filesystem": {
-                "content_path": "/cache/cas-content",
-                "temp_path": "/cache/cas-tmp",
-                "eviction_policy": { "max_bytes": 8000000000 }
-              }
-            },
-            "slow": {
-              "verify": {
-                "backend": {
+          "name": "CAS_MAIN_STORE",
+          "verify": {
+            "backend": {
+              "fast_slow": {
+                "fast": {
+                  "filesystem": {
+                    "content_path": "/cache/cas-content",
+                    "temp_path": "/cache/cas-tmp",
+                    "eviction_policy": { "max_bytes": 8000000000 }
+                  }
+                },
+                "slow": {
                   "experimental_cloud_object_store": {
                     "provider": "aws",
                     "region": "oya-storage",
@@ -73,11 +73,11 @@ data:
                     "key_prefix": "cas/",
                     "retry": { "max_retries": 6, "delay": 0.3, "jitter": 0.5 }
                   }
-                },
-                "verify_size": true,
-                "verify_hash": true
+                }
               }
-            }
+            },
+            "verify_size": true,
+            "verify_hash": true
           }
         },
         {
@@ -116,10 +116,10 @@ data:
             }
           },
           "services": {
-            "cas": [{ "instance_name": "main", "cas_store": "CAS_FAST_SLOW" }],
+            "cas": [{ "instance_name": "main", "cas_store": "CAS_MAIN_STORE" }],
             "ac": [{ "instance_name": "main", "ac_store": "AC_MAIN_STORE", "read_only": false }],
             "capabilities": [{ "instance_name": "main" }],
-            "bytestream": [{ "instance_name": "main", "cas_store": "CAS_FAST_SLOW" }]
+            "bytestream": [{ "instance_name": "main", "cas_store": "CAS_MAIN_STORE" }]
           }
         },
         {
@@ -135,10 +135,10 @@ data:
             }
           },
           "services": {
-            "cas": [{ "instance_name": "main", "cas_store": "CAS_FAST_SLOW" }],
+            "cas": [{ "instance_name": "main", "cas_store": "CAS_MAIN_STORE" }],
             "ac": [{ "instance_name": "main", "ac_store": "AC_MAIN_STORE", "read_only": true }],
             "capabilities": [{ "instance_name": "main" }],
-            "bytestream": [{ "instance_name": "main", "cas_store": "CAS_FAST_SLOW" }]
+            "bytestream": [{ "instance_name": "main", "cas_store": "CAS_MAIN_STORE" }]
           }
         },
         {

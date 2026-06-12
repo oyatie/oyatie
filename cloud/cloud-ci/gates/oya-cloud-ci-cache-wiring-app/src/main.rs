@@ -162,6 +162,27 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                 Some(path) => Some(app::manifest_from_json(&read_json(&path)?)?),
                 None => None,
             };
+            // FAIL-CLOSED coupling to the kill-switch: while warm reads are
+            // LICENSED, a verdict without a warm manifest is a misconfigured
+            // canary (e.g. the probe step was dropped), not an INACTIVE state —
+            // emitting INACTIVE (exit 0) there would let warm reads continue
+            // without their trust anchor.
+            if warm.is_none() {
+                let root = repo_root()?;
+                let license = app::load_license(&root)?;
+                if license
+                    .get("warm_reads_licensed")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false)
+                {
+                    return Err(
+                        "canary-verdict: warm reads are LICENSED but no --warm manifest was \
+                         supplied — the warm-probe step is missing or failed silently; refusing \
+                         to emit INACTIVE while warmth is live (ADR-0556 D2)"
+                            .to_string(),
+                    );
+                }
+            }
             let (status, verdict) = app::canary_verdict(&cold, warm.as_ref());
             let payload = serde_json::to_string_pretty(&verdict)
                 .map_err(|e| format!("serialize verdict: {e}"))?;

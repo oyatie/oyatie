@@ -281,6 +281,11 @@ pub fn cache_hit_report(record: &Value, build_class: &str, mode: &str) -> Value 
 
 /// Assert a build had ZERO cache participation (the canary's from-empty proof):
 /// no action-cache hits, no remote executions, no upload attempts.
+///
+/// FAIL-CLOSED on shape drift: a counter that is MISSING from the record is a
+/// finding, not a zero — otherwise a buck2 upgrade that renames a field would
+/// silently turn the cold proof vacuous (assert-everything-absent == assert
+/// nothing).
 pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
     let mut findings = Vec::new();
     for key in [
@@ -288,21 +293,30 @@ pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
         "run_remote_count",
         "cache_upload_attempt_count",
     ] {
-        let v = record_u64(record, key);
-        if v != 0 {
-            findings.push(format!(
+        match record.get(key).and_then(Value::as_u64) {
+            Some(0) => {}
+            Some(v) => findings.push(format!(
                 "cold violation: {key}={v} (expected 0 — the canary build must not touch any cache)"
-            ));
+            )),
+            None => findings.push(format!(
+                "record-shape violation: counter `{key}` missing from the invocation record — \
+                 cannot prove coldness from an unrecognized record shape (fail closed)"
+            )),
         }
     }
-    let started = record
+    match record
         .pointer("/last_snapshot/re_action_cache_started")
         .and_then(Value::as_u64)
-        .unwrap_or(0);
-    if started != 0 {
-        findings.push(format!(
+    {
+        Some(0) => {}
+        Some(started) => findings.push(format!(
             "cold violation: last_snapshot.re_action_cache_started={started} (expected 0)"
-        ));
+        )),
+        None => findings.push(
+            "record-shape violation: last_snapshot.re_action_cache_started missing — \
+             cannot prove coldness from an unrecognized record shape (fail closed)"
+                .to_string(),
+        ),
     }
     if findings.is_empty() { Ok(()) } else { Err(findings) }
 }
@@ -684,6 +698,19 @@ mod tests {
             let findings = assert_cold(invocation_record(&doc).unwrap()).unwrap_err();
             assert!(!findings.is_empty());
         }
+    }
+
+    #[test]
+    fn assert_cold_fails_closed_on_an_unrecognized_record_shape() {
+        // A record with the counters RENAMED/missing must not pass: absence is a
+        // shape violation, never an implicit zero.
+        let doc = json!({
+            "data": { "Record": { "data": { "InvocationRecord": {
+                "exit_result_name": "SUCCESS"
+            } } } }
+        });
+        let findings = assert_cold(invocation_record(&doc).unwrap()).unwrap_err();
+        assert!(findings.iter().any(|f| f.contains("record-shape violation")));
     }
 
     fn manifest(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
