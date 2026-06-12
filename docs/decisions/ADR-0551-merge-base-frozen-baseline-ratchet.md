@@ -124,7 +124,7 @@ executable FOIL (PR-local reference stays green on laundering; the frozen refere
 red), and `frozen_snapshot_provenance_matches_ratchet_policy` audits WHICH frozen point the
 firewall compared against.
 
-Hardening (2026-06-11, FRIC-1781280000 + FRIC-1781280001 — closes the two acknowledged
+Hardening (2026-06-12, FRIC-1781280000 + FRIC-1781280001 — closes the two acknowledged
 trust gaps from the PR #698 independent review):
 
 - **Frozen-policy-wins.** The policy facts that SELECT the frozen reference (`base_ref`,
