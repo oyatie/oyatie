@@ -18,6 +18,10 @@
       "prefix": "specs/OWNERS"
     },
     {
+      "anchor": "ADR-0556 D1: the cache-warmth classification policy-as-data — reached by its named consumers (interim CI quick-wins, the W3 NativeLink CAS vertical, the future cache-policy-conformance gate) and by ADR-0556 related_specs",
+      "prefix": "specs/cache-warmth-policy.json"
+    },
+    {
       "anchor": "ADR-0555 D3: the gates' data-under-test corpus — fixture dirs are loaded wholesale by each gate's fixture-driven test (read_dir over tc-*.json), so the consuming test IS the live pointer",
       "prefix": "specs/fixtures/"
     },
