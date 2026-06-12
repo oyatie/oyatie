@@ -54,18 +54,16 @@ fn header<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
     headers.get(name).and_then(|v| v.to_str().ok())
 }
 
-/// First present event header across GitHub / Gitea / GitHub spellings.
+/// First present event header across GitHub / Gitea spellings.
 fn event_name(headers: &HeaderMap) -> Option<&str> {
     header(headers, event::EVENT_HEADER_GITHUB)
         .or_else(|| header(headers, event::EVENT_HEADER_GITEA))
-        .or_else(|| header(headers, event::EVENT_HEADER_GITHUB))
 }
 
 /// First present delivery-id header (for dedup / log correlation).
 fn delivery_id(headers: &HeaderMap) -> Option<&str> {
     header(headers, event::DELIVERY_HEADER_GITHUB)
         .or_else(|| header(headers, event::DELIVERY_HEADER_GITEA))
-        .or_else(|| header(headers, event::DELIVERY_HEADER_GITHUB))
 }
 
 /// The webhook handler. Pure-ish: all effects go through the injected

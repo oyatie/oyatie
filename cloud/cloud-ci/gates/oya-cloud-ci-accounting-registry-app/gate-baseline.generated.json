@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:8d6fb26e8e6cc98f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:ee615a95cbb827f4"
+    "source_inputs_digest": "fnv1a64:5818388a10d00a05"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -10768,7 +10768,6 @@
           "infra/ci/argocd/git-server.Dockerfile",
           "infra/ci/argocd/git-server.yaml",
           "infra/ci/argocd/rollouts-demo.yaml",
-          "infra/ci/install-buck2.sh",
           "infra/cilium/cell-boundaries/oya-ci-ingress.netpol.yaml",
           "infra/cilium/cell-boundaries/oya-cloud-intelligence-ingress.netpol.yaml",
           "infra/cilium/cell-boundaries/oya-forge-ingress.netpol.yaml",

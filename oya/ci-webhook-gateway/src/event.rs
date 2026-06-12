@@ -28,14 +28,12 @@ use sha2::{Digest, Sha256};
 use crate::error::{GatewayError, Result};
 
 /// The webhook event class, taken from GitHub's `X-GitHub-Event` /
-/// `X-Gitea-Event` / GitHub's `X-GitHub-Event` header.
+/// Gitea's `X-Gitea-Event` header.
 pub const EVENT_HEADER_GITHUB: &str = "x-github-event";
 pub const EVENT_HEADER_GITEA: &str = "x-gitea-event";
-pub const EVENT_HEADER_GITHUB: &str = "x-github-event";
 /// Delivery-id header used for idempotent dedup (UUID, stable across redelivery).
 pub const DELIVERY_HEADER_GITHUB: &str = "x-github-delivery";
 pub const DELIVERY_HEADER_GITEA: &str = "x-gitea-delivery";
-pub const DELIVERY_HEADER_GITHUB: &str = "x-github-delivery";
 
 /// The closed set of PR actions the gateway routes to the gated pipeline.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
