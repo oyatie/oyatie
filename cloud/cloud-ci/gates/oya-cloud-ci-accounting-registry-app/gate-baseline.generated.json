@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:cdd1cb3fe988258f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:826ef7cef73954b4"
+    "source_inputs_digest": "fnv1a64:6e61513cc7cb097c"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5077,6 +5077,7 @@
           "infra/cloudflare/outputs.tf",
           "infra/cloudflare/variables.tf",
           "infra/gitops/Chart.yaml",
+          "infra/gitops/templates/applications.yaml",
           "infra/kms/openbao.k8s.yaml",
           "infra/kyverno/policies/require-signed-images.yaml",
           "infra/observability/observability.k8s.yaml",
