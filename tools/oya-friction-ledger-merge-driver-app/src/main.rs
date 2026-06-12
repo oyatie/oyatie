@@ -51,7 +51,9 @@ fn run() -> Result<(), MergeError> {
 
 /// Replace `%A` atomically: write a sibling temp file, then rename over the target. A crash
 /// mid-merge therefore leaves `%A` byte-untouched — the incident-2 class (partial/garbage bytes
-/// standing in the working tree) is structurally impossible, not merely unlikely.
+/// standing in the working tree) is structurally impossible, not merely unlikely. (A SIGKILL
+/// between write and rename can strand the hidden pid-suffixed temp; cosmetic only — git's
+/// `%A`/`%O`/`%B` temp files live outside the tree and the guarantee on `%A` still holds.)
 fn write_atomic(path: &str, contents: &str) -> Result<(), MergeError> {
     let target = std::path::Path::new(path);
     let file_name = target
