@@ -137,3 +137,9 @@ firewall compared against.
   the failure message names the exact materialization command. CI lanes already run it.
 - A future bespoke SCM source implements the same merge-base/file-at-revision primitives
   behind the emitter seam without changing the snapshot shape or any consumer (ADR-0526).
+- Trust model, stated honestly: `ratchet-policy.json` and `gate-baseline.signoff.json`
+  remain PR-editable tracked files — re-pointing `base_ref` (or adding a signoff entry) in
+  the same PR is a REVIEW-VISIBLE policy edit, the same class as editing the workflow or
+  the gate code itself. This decision closes the structurally INVISIBLE laundering channel
+  (the mandated regen); a frozen-policy-wins ratchet (reading the policy itself from the
+  merge-base, with a declared bootstrap path) is a candidate follow-up hardening.
