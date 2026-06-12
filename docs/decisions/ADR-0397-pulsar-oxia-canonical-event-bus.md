@@ -247,7 +247,11 @@ ADR-0397 citation uses) and leaves minor-version pinning to founder ratification
 - The phantom-citation defect class becomes mechanically detectable: the
   `phantom_decision_citation` lane of GATE-1 (cloud-ci-cross-artifact-agreement) is
   born-blocking frozen-empty for NEW phantom citations (FRIC-1781430000), with the
-  pre-existing phantom inventory carried as explicit, ledgered, shrink-only DATA.
+  pre-existing phantom inventory carried as explicit, ledgered, shrink-only DATA
+  (emitted into the decision-crosswalk face as `grandfathered_phantom_ids`; the live
+  gate test enforces anti-padding — a healed id must leave the inventory — and a
+  decrease-only size ceiling). RED fixture:
+  `specs/fixtures/cross-artifact-agreement/tc-XA-bad-phantom-citation.json`.
 - Founder ratification (one-way door) either flips this record to Accepted — possibly
   amending the open points above — or retargets the citers; until then the record is the
   honest, minimal closure of the citation graph.

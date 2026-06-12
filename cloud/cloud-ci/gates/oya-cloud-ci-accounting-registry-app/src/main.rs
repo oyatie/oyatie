@@ -1730,6 +1730,10 @@ fn collect_crosswalk_inputs(
         duplicate_ids,
         id_mismatches,
         phantom_citations,
+        grandfathered_phantom_ids: GRANDFATHERED_PHANTOM_DECISION_IDS
+            .iter()
+            .map(|id| (*id).to_owned())
+            .collect(),
         next_free_id,
         generated_face_axes,
     }

@@ -387,6 +387,13 @@ pub struct CrosswalkInputs {
     /// exhibit was healed by MINTING the record at the cited number, so any entry here
     /// is NEW debt and born-blocking.
     pub phantom_citations: Vec<String>,
+    /// The grandfathered historical phantom inventory itself (the binary's reviewed
+    /// shrink-only carve-out DATA), emitted into the face as `grandfathered_phantom_ids`
+    /// so the carve-out is AUDIT-VISIBLE and mechanically guarded: the live gate test
+    /// asserts anti-padding (every listed id must still resolve to NO decision file — a
+    /// healed id must leave the list) and a decrease-only size ceiling (anti-growth:
+    /// laundering a NEW phantom by same-PR list addition forces a loud ceiling edit).
+    pub grandfathered_phantom_ids: Vec<String>,
     /// The next unallocated decision number derived from the whole tree
     /// (max over filename AND front-matter ids, plus one). The allocator output:
     /// lanes allocate by reading this (or `--next-adr`), never by convention.
@@ -416,6 +423,10 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
     let mut phantom_citations = inputs.phantom_citations.clone();
     phantom_citations.sort();
     phantom_citations.dedup();
+
+    let mut grandfathered_phantom_ids = inputs.grandfathered_phantom_ids.clone();
+    grandfathered_phantom_ids.sort();
+    grandfathered_phantom_ids.dedup();
 
     let mut axes = Map::new();
     for (face, value) in &inputs.generated_face_axes {
@@ -450,6 +461,15 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
     root.insert(
         "phantom_citations".into(),
         Value::Array(phantom_citations.into_iter().map(Value::String).collect()),
+    );
+    root.insert(
+        "grandfathered_phantom_ids".into(),
+        Value::Array(
+            grandfathered_phantom_ids
+                .into_iter()
+                .map(Value::String)
+                .collect(),
+        ),
     );
     root.insert(
         "next_free_id".into(),
