@@ -4,8 +4,20 @@ Each gate is a thin, pure projection: the producer builds an input, the gate's `
 turns it into a set of `Finding{code, key}`, and the firewall ratchets the per-(gate,code) keys
 against the FROZEN merge-base baseline — the `gate-baseline.generated.json` face as committed at
 `git merge-base <base_ref> HEAD` (ADR-0551; never the PR-local copy, which the settle protocol
-itself regenerates). Gates are config-declared in `[[gates.enabled]]`; a repo enables the gates
-of the packs it uses.
+itself regenerates). FROZEN-POLICY-WINS (FRIC-1781280000): the policy facts that select that
+frozen reference (`base_ref`, `face_path`) are themselves read from the merge-base tree against
+an out-of-band bootstrap ref, so a same-PR `ratchet-policy.json` repoint cannot affect the PR's
+own frozen reference; and a sign-off door entry whose key exists nowhere (frozen face, current,
+proposed) is flagged inert and must be retired (FRIC-1781280001). Per the founder
+automation-default directive (2026-06-12), the inert retirement ships as an auto-remediator:
+`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer
+-- --fix` derives and applies the retirement (reparse-and-refuse self-validation; audit record
+appended to `_sign_off_retirements`), while the firewall gate's inert-door RED is the
+enforcement backstop whose failure detail prints that exact command. A NEW code class with live
+violations defaults to blocking in compare-mode (a code absent at the merge-base uses its
+proposed stamp), so advisory-first onboarding of a new code requires the sign-off door for the
+initial key set — the reviewed disposition flip later freezes it. Gates are config-declared in
+`[[gates.enabled]]`; a repo enables the gates of the packs it uses.
 
 ## Input KINDs (the §3.5 INPUT-BINDING abstraction)
 

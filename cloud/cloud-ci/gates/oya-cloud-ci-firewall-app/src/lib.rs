@@ -21,6 +21,20 @@
 //! ([`FrozenBaseline::from_value`]). Standard ratchet semantics: Betterer / eslint-ratchet
 //! compare against the merge-base; Bazel target determination anchors on the merge-base.
 //!
+//! FROZEN-POLICY-WINS (FRIC-1781280000, ADR-0551 hardening): the policy facts that SELECT
+//! the frozen reference (`base_ref`, `face_path`) are themselves read from the MERGE-BASE
+//! tree by the emitter, never from the candidate tree — a same-PR `"base_ref": "HEAD"`
+//! repoint (merge-base(HEAD, HEAD) = HEAD ⇒ frozen == proposed ⇒ total self-laundering)
+//! cannot affect the PR's own frozen reference; it can only change FUTURE behavior after
+//! merge. The snapshot declares `frozen_policy_source` and this parser rejects an
+//! undeclared source fail-closed. Prow precedent: OWNERS files are read from the base
+//! branch, never the PR head, for exactly this reason.
+//!
+//! INERT-DOOR DETECTOR (FRIC-1781280001): a sign-off entry whose key exists nowhere
+//! (frozen face, current, proposed) is a standing re-introduction ticket and FAILS the
+//! firewall until retired — the mechanical expiry of the "exempt for one regen" door
+//! ([`inert_signoff_entries`]).
+//!
 //! COMPARE-MODE — for each `(gate, code)` it computes `regressions = current_keys \
 //! frozen_keys \ signed_off` (NEW debt), `signed_off = (current_keys \ frozen_keys) ∩
 //! sign-off-door` (founder-admitted growth in flight — reported, no fail), `tolerated =
@@ -62,11 +76,44 @@ pub const RATCHET_REGRESSION: &str = "ratchet_regression";
 
 /// The schema id of the merge-base frozen-baseline snapshot the scm-facts emitter
 /// materializes (`gate-baseline.merge-base.generated.json`). Bumped only on a breaking
-/// shape change.
-pub const FROZEN_BASELINE_SCHEMA: &str = "oya-ci/merge-base-baseline/v1";
+/// shape change. v2 (FRIC-1781280000 frozen-policy-wins): the snapshot must declare
+/// `frozen_policy_source` — WHERE the policy facts that selected the frozen reference were
+/// read from. A stale v1 snapshot is rejected fail-closed (re-run
+/// `infra/ci/materialize-cloud-ci-generated-faces.sh`).
+pub const FROZEN_BASELINE_SCHEMA: &str = "oya-ci/merge-base-baseline/v2";
+
+/// `frozen_policy_source` value: the ratchet policy was read from the MERGE-BASE tree (the
+/// frozen-policy-wins normal path — a same-PR candidate policy edit cannot select the
+/// frozen reference).
+pub const FROZEN_POLICY_SOURCE_MERGE_BASE: &str = "merge-base";
+
+/// `frozen_policy_source` value: the policy did not exist at the merge-base (the PR that
+/// introduces the ratchet itself), so the candidate policy was used — the DECLARED
+/// bootstrap path, review-visible in the provenance.
+pub const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap";
 
 /// The compare-mode that blocks NEW debt; the only mode whose baseline is growth-protected.
 pub const MODE_BASELINE_BLOCK_ON_NEW: &str = "baseline-block-on-new";
+
+/// Repo-relative path of the sign-off door file — the SINGLE owner of this path: the gate
+/// test and the signoff fixer both consume it from here.
+pub const SIGNOFF_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json";
+
+/// Repo-relative path of the committed ratchet policy (candidate copy; the FROZEN copy at
+/// the merge-base is what selects the frozen reference — FRIC-1781280000).
+pub const RATCHET_POLICY_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json";
+
+/// Repo-relative path of the untracked merge-base frozen-baseline snapshot.
+pub const FROZEN_SNAPSHOT_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json";
+
+/// The exact remediation command the gate prints when the inert-door detector fires
+/// (automation-default, founder directive 2026-06-12: red-gating alone is not enough — a
+/// mechanically-derivable retirement ships as a fixer, the gate is the backstop).
+pub const SIGNOFF_FIXER_COMMAND: &str = "buck2 run \
+//cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer -- --fix";
 
 /// A baseline: `gate -> code -> (mode, frozen_empty, keys)`. Parsed from the merge-base
 /// frozen snapshot (the reference) or from a freshly-regenerated face (proposed).
@@ -125,10 +172,18 @@ impl Baseline {
 /// empty reference.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FrozenBaseline {
-    /// The policy base ref the merge-base was computed against (e.g. `origin/dev`).
+    /// The FROZEN policy base ref the merge-base was computed against (e.g. `origin/dev`).
+    /// FROZEN-POLICY-WINS (FRIC-1781280000): this comes from the ratchet policy as
+    /// committed at the merge-base (or the out-of-band bootstrap it must agree with), never
+    /// from the candidate tree — a same-PR `base_ref` repoint cannot select the PR's own
+    /// frozen reference.
     pub base_ref: String,
     /// The merge-base revision id the face was extracted from (full hex sha).
     pub merge_base: String,
+    /// WHERE the frozen-side policy facts were read from: [`FROZEN_POLICY_SOURCE_MERGE_BASE`]
+    /// (normal) or [`FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP`] (policy absent at the
+    /// merge-base — the declared bootstrap path). Any other value is rejected fail-closed.
+    pub frozen_policy_source: String,
     /// True iff the face did not exist at the merge-base (repo bootstrap): the frozen
     /// reference is then EMPTY, so every proposed key is growth until signed off.
     pub missing_at_merge_base: bool,
@@ -142,7 +197,9 @@ impl FrozenBaseline {
         let schema = value.get("schema").and_then(Value::as_str).unwrap_or("");
         if schema != FROZEN_BASELINE_SCHEMA {
             return Err(format!(
-                "frozen baseline schema mismatch: expected {FROZEN_BASELINE_SCHEMA:?}, got {schema:?}"
+                "frozen baseline schema mismatch: expected {FROZEN_BASELINE_SCHEMA:?}, got \
+                 {schema:?} — re-materialize the snapshot: \
+                 infra/ci/materialize-cloud-ci-generated-faces.sh ."
             ));
         }
         let base_ref = value
@@ -161,6 +218,22 @@ impl FrozenBaseline {
         if merge_base.len() < 40 || !merge_base.chars().all(|c| c.is_ascii_hexdigit()) {
             return Err(format!(
                 "frozen baseline merge_base is not a full hex revision id: {merge_base:?}"
+            ));
+        }
+        let frozen_policy_source = value
+            .get("frozen_policy_source")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned();
+        if frozen_policy_source != FROZEN_POLICY_SOURCE_MERGE_BASE
+            && frozen_policy_source != FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP
+        {
+            return Err(format!(
+                "frozen baseline frozen_policy_source must be \
+                 {FROZEN_POLICY_SOURCE_MERGE_BASE:?} or \
+                 {FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP:?}, got {frozen_policy_source:?} \
+                 — the snapshot must DECLARE where the frozen-side policy facts came from \
+                 (FRIC-1781280000 frozen-policy-wins; fail-closed)"
             ));
         }
         let missing_at_merge_base = value
@@ -186,6 +259,7 @@ impl FrozenBaseline {
         Ok(Self {
             base_ref,
             merge_base,
+            frozen_policy_source,
             missing_at_merge_base,
             baseline,
         })
@@ -228,6 +302,20 @@ impl SignOff {
             .and_then(|codes| codes.get(code))
             .is_some_and(|keys| keys.contains(key))
     }
+
+    /// Every `(gate, code, key)` entry in the door, in deterministic order — the input to
+    /// the inert-entry detector ([`inert_signoff_entries`]).
+    pub fn entries(&self) -> Vec<(String, String, String)> {
+        let mut out: Vec<(String, String, String)> = Vec::new();
+        for (gate, codes) in &self.additions {
+            for (code, keys) in codes {
+                for key in keys {
+                    out.push((gate.clone(), code.clone(), key.clone()));
+                }
+            }
+        }
+        out
+    }
 }
 
 /// The per-code compare-mode report. `current`/`baseline` are counts; the key sets are
@@ -256,7 +344,7 @@ impl CodeReport {
 }
 
 /// The full firewall report: the compare-mode per-code reports + the ratchet-invariant
-/// growth findings.
+/// growth findings + the inert sign-off-door findings.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct FirewallReport {
     pub codes: Vec<CodeReport>,
@@ -265,12 +353,19 @@ pub struct FirewallReport {
     /// `ratchet_regression` (debt cannot be laundered into the baseline by regen — not
     /// even by the same-PR regen the settle protocol mandates).
     pub ratchet_growth: Vec<(String, String, String)>,
+    /// `(gate, code, key)` sign-off-door entries that exempt NOTHING (key absent from the
+    /// frozen face AND from current AND from proposed): each is a standing re-introduction
+    /// ticket and a failure — remediation: retire the entry (see [`inert_signoff_entries`]).
+    pub inert_signoff: Vec<(String, String, String)>,
 }
 
 impl FirewallReport {
-    /// GREEN iff no code FAILs (compare-mode) AND no un-signed-off baseline growth (ratchet).
+    /// GREEN iff no code FAILs (compare-mode), no un-signed-off baseline growth (ratchet),
+    /// AND no inert sign-off-door entry (mechanical door expiry).
     pub fn is_green(&self) -> bool {
-        !self.codes.iter().any(CodeReport::fails) && self.ratchet_growth.is_empty()
+        !self.codes.iter().any(CodeReport::fails)
+            && self.ratchet_growth.is_empty()
+            && self.inert_signoff.is_empty()
     }
 }
 
@@ -379,8 +474,45 @@ pub fn ratchet_growth(
     growth
 }
 
-/// Run BOTH predicates and assemble the full firewall report. `frozen` is the merge-base
-/// reference baseline (see [`FrozenBaseline`]).
+/// INERT-DOOR detector (FRIC-1781280001 / ADR-0551 hardening): door entries never
+/// mechanically expired — "exempt for one regen" was unenforced prose, so a lingering entry
+/// for a since-fixed (or never-introduced) key was a STANDING re-introduction ticket: that
+/// exact debt key could come back at any time and the stale entry would launder it past
+/// both predicates. An entry is INERT iff its key is absent from the FROZEN face AND from
+/// `current` AND from `proposed` — it exempts nothing in flight and nothing frozen.
+/// Remediation: retire the entry (move it to `_sign_off_retirements`). The LIVE case (key
+/// absent from frozen but present in current/proposed — the one-regen admission in flight)
+/// is tolerated; a key present in the frozen face makes the entry a harmless no-op (frozen
+/// keys are tolerated/not-growth regardless of sign-off) that turns inert — and is forced
+/// retired — the moment the debt is fixed.
+pub fn inert_signoff_entries(
+    frozen: &Baseline,
+    proposed: &Baseline,
+    current: &BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
+    signoff: &SignOff,
+) -> Vec<(String, String, String)> {
+    let in_baseline = |b: &Baseline, gate: &str, code: &str, key: &str| -> bool {
+        b.gates
+            .get(gate)
+            .and_then(|codes| codes.get(code))
+            .is_some_and(|cb| cb.keys.contains(key))
+    };
+    signoff
+        .entries()
+        .into_iter()
+        .filter(|(gate, code, key)| {
+            !in_baseline(frozen, gate, code, key)
+                && !in_baseline(proposed, gate, code, key)
+                && !current
+                    .get(gate)
+                    .and_then(|codes| codes.get(code))
+                    .is_some_and(|keys| keys.contains(key))
+        })
+        .collect()
+}
+
+/// Run BOTH predicates + the inert-door detector and assemble the full firewall report.
+/// `frozen` is the merge-base reference baseline (see [`FrozenBaseline`]).
 pub fn evaluate_firewall(
     frozen: &Baseline,
     proposed: &Baseline,
@@ -390,6 +522,7 @@ pub fn evaluate_firewall(
     FirewallReport {
         codes: compare(frozen, current, signoff),
         ratchet_growth: ratchet_growth(frozen, proposed, signoff),
+        inert_signoff: inert_signoff_entries(frozen, proposed, current, signoff),
     }
 }
 
@@ -618,11 +751,88 @@ mod tests {
         assert!(report.is_green(), "frozen-at-today corpus must be GREEN with the baseline");
     }
 
+    #[test]
+    fn live_signoff_entry_in_flight_is_not_inert() {
+        // The one-regen admission window: the key is absent from the frozen (merge-base)
+        // face but PRESENT in current + proposed — the entry is doing its job (LIVE).
+        let frozen = baseline_fixture();
+        let proposed = Baseline::from_value(&json!({
+            "gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs", "d-ADMITTED.rs"]}
+            }}
+        }));
+        let cur = baseline_keys_map(&proposed);
+        let signoff = SignOff::from_value(&json!({
+            "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["d-ADMITTED.rs"]}}
+        }));
+        let report = evaluate_firewall(&frozen, &proposed, &cur, &signoff);
+        assert!(report.inert_signoff.is_empty(), "a LIVE in-flight admission must be tolerated");
+        assert!(report.is_green(), "the admitting PR itself must stay GREEN");
+    }
+
+    #[test]
+    fn inert_signoff_entry_is_flagged_red() {
+        // The standing-ticket shape: the entry's key exists NOWHERE (not frozen, not
+        // current, not proposed) — the debt it admitted is gone or was never there. Left
+        // in place it would silently launder a future re-introduction of that exact key.
+        let frozen = baseline_fixture();
+        let cur = baseline_keys_map(&frozen);
+        let signoff = SignOff::from_value(&json!({
+            "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["d-GONE.rs"]}}
+        }));
+        let report = evaluate_firewall(&frozen, &frozen, &cur, &signoff);
+        assert_eq!(
+            report.inert_signoff,
+            vec![(
+                "cloud-ci-total-accounting".to_owned(),
+                "unjustified".to_owned(),
+                "d-GONE.rs".to_owned()
+            )],
+            "an entry exempting nothing must be flagged inert (remediation: retire it)"
+        );
+        assert!(!report.is_green(), "an inert door entry must be RED");
+    }
+
+    #[test]
+    fn signoff_entry_for_frozen_key_is_not_inert_until_the_debt_is_fixed() {
+        // Post-merge redundancy: the admitted key landed in the merge-base face. The entry
+        // is a harmless no-op (frozen keys are tolerated/not-growth regardless of sign-off)
+        // and must NOT fail innocent PRs; it turns inert — forcing retirement — only when
+        // the debt is fixed and the key leaves the face.
+        let frozen = baseline_fixture();
+        let cur = baseline_keys_map(&frozen);
+        let signoff = SignOff::from_value(&json!({
+            "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["a.rs"]}}
+        }));
+        let report = evaluate_firewall(&frozen, &frozen, &cur, &signoff);
+        assert!(report.inert_signoff.is_empty());
+        assert!(report.is_green());
+
+        // The fix lands: a.rs leaves current + proposed (frozen still carries it until the
+        // fix merges) — the entry is STILL not inert (key in frozen face), so the fixing PR
+        // is not forced to bundle the retirement...
+        let fixed = Baseline::from_value(&json!({
+            "gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "baseline-block-on-new", "keys": ["b.rs"]}
+            }}
+        }));
+        let cur_fixed = baseline_keys_map(&fixed);
+        let report = evaluate_firewall(&frozen, &fixed, &cur_fixed, &signoff);
+        assert!(report.inert_signoff.is_empty());
+
+        // ...but once the fix is in the merge-base face too, the lingering entry is a pure
+        // standing ticket and goes RED everywhere until retired.
+        let report = evaluate_firewall(&fixed, &fixed, &cur_fixed, &signoff);
+        assert_eq!(report.inert_signoff.len(), 1);
+        assert!(!report.is_green());
+    }
+
     fn frozen_value() -> Value {
         json!({
             "schema": FROZEN_BASELINE_SCHEMA,
             "base_ref": "origin/dev",
             "merge_base": "d5d8be5d4121e91655d7ba361f63271c98c57a68",
+            "frozen_policy_source": FROZEN_POLICY_SOURCE_MERGE_BASE,
             "missing_at_merge_base": false,
             "baseline": {
                 "gates": {
@@ -639,6 +849,7 @@ mod tests {
         let frozen = FrozenBaseline::from_value(&frozen_value()).unwrap();
         assert_eq!(frozen.base_ref, "origin/dev");
         assert_eq!(frozen.merge_base, "d5d8be5d4121e91655d7ba361f63271c98c57a68");
+        assert_eq!(frozen.frozen_policy_source, FROZEN_POLICY_SOURCE_MERGE_BASE);
         assert!(!frozen.missing_at_merge_base);
         assert!(frozen.baseline.gates.contains_key("cloud-ci-total-accounting"));
     }
@@ -648,6 +859,42 @@ mod tests {
         let mut value = frozen_value();
         value["schema"] = json!("oya-ci/scm-facts/v1");
         assert!(FrozenBaseline::from_value(&value).is_err());
+    }
+
+    #[test]
+    fn frozen_baseline_rejects_stale_v1_schema() {
+        // A v1 snapshot predates frozen-policy-wins: its frozen reference may have been
+        // selected by a candidate-tree policy edit, so it must be rejected fail-closed.
+        let mut value = frozen_value();
+        value["schema"] = json!("oya-ci/merge-base-baseline/v1");
+        let err = FrozenBaseline::from_value(&value).unwrap_err();
+        assert!(err.contains("schema mismatch"), "{err}");
+    }
+
+    #[test]
+    fn frozen_baseline_rejects_missing_or_unknown_policy_source() {
+        // The snapshot must DECLARE where the frozen-side policy facts came from — an
+        // undeclared source could hide a candidate-policy-selected reference.
+        let mut value = frozen_value();
+        value
+            .as_object_mut()
+            .unwrap()
+            .remove("frozen_policy_source");
+        assert!(FrozenBaseline::from_value(&value).is_err());
+        let mut value = frozen_value();
+        value["frozen_policy_source"] = json!("working-tree");
+        assert!(FrozenBaseline::from_value(&value).is_err());
+    }
+
+    #[test]
+    fn frozen_baseline_accepts_declared_candidate_bootstrap_source() {
+        let mut value = frozen_value();
+        value["frozen_policy_source"] = json!(FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP);
+        let frozen = FrozenBaseline::from_value(&value).unwrap();
+        assert_eq!(
+            frozen.frozen_policy_source,
+            FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP
+        );
     }
 
     #[test]

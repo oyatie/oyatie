@@ -25,6 +25,9 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
+        # dev-only: the frozen-policy-wins RED pin (FRIC-1781280000) runs the firewall
+        # predicates end-to-end over the resolved snapshot (#698 repoint attack goes RED).
+        "//cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app",
         "third-party//:serde_json",
     ],
 )
