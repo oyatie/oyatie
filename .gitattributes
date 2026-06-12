@@ -28,3 +28,17 @@ evidence/audit-chain.jsonl merge=union
 # tools/oya-cargo-lock-merge-driver-app. The driver merges disjoint [[package]] additions and
 # exits 1 on same-package version divergence or removal-vs-edit conflicts.
 Cargo.lock merge=cargo-lock
+
+# The friction ledger is an append-only, event-sourced JSONL surface with id-aware semantics
+# (PRIMARY rows anchor a friction id; UPDATE rows append transitions; the ADR-0544
+# friction-accounting gate folds them per id). Plain `merge=union` is WRONG here: it keeps both
+# sides of two lanes' PRIMARY rows for one id (friction_duplicate_primary_row, FRIC-1781370000
+# incident 1) and duplicates byte-divergent serializations of one logical row (incident 3). The
+# structural driver in tools/oya-friction-ledger-merge-driver-app performs an id-aware union with
+# second-author primary->update conversion, parsed-JSON logical dedup, and canonical output; it
+# exits nonzero on any unparseable/unmodeled side so git falls back to a normal conflict
+# (incident 2 — never write garbage). Same deletion trade-off as audit-chain above: base rows are
+# preserved, a legitimate redact must be a single linearised commit on `dev`.
+# Registration is per-clone (see the crate README): actors without the `merge.friction-ledger`
+# git config get a normal conflict; cloud-ci gates remain the canonical backstop.
+/.omc/ultragoal/friction-ledger.jsonl merge=friction-ledger
