@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:8d6fb26e8e6cc98f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:4c3fddf85225cbf2"
+    "source_inputs_digest": "fnv1a64:bf23e366f3e6e3be"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -22665,13 +22665,6 @@
           "tools/oya-checkout-guard-app/Cargo.toml",
           "tools/oya-checkout-guard-app/src/lib.rs",
           "tools/oya-checkout-guard-app/src/main.rs",
-          "tools/oya-friction-ledger-merge-driver-app/BUCK",
-          "tools/oya-friction-ledger-merge-driver-app/Cargo.toml",
-          "tools/oya-friction-ledger-merge-driver-app/README.md",
-          "tools/oya-friction-ledger-merge-driver-app/src/lib.rs",
-          "tools/oya-friction-ledger-merge-driver-app/src/main.rs",
-          "tools/oya-friction-ledger-merge-driver-app/tests/cli_fixtures.rs",
-          "tools/oya-friction-ledger-merge-driver-app/tests/merge_fixtures.rs",
           "tools/oya-governance-adapter-with-no-importer-app/BUCK",
           "tools/oya-governance-adapter-with-no-importer-app/Cargo.toml",
           "tools/oya-governance-adapter-with-no-importer-app/src/main.rs",
@@ -38665,13 +38658,6 @@
           "tools/oya-checkout-guard-app/Cargo.toml",
           "tools/oya-checkout-guard-app/src/lib.rs",
           "tools/oya-checkout-guard-app/src/main.rs",
-          "tools/oya-friction-ledger-merge-driver-app/BUCK",
-          "tools/oya-friction-ledger-merge-driver-app/Cargo.toml",
-          "tools/oya-friction-ledger-merge-driver-app/README.md",
-          "tools/oya-friction-ledger-merge-driver-app/src/lib.rs",
-          "tools/oya-friction-ledger-merge-driver-app/src/main.rs",
-          "tools/oya-friction-ledger-merge-driver-app/tests/cli_fixtures.rs",
-          "tools/oya-friction-ledger-merge-driver-app/tests/merge_fixtures.rs",
           "tools/oya-governance-adapter-with-no-importer-app/BUCK",
           "tools/oya-governance-adapter-with-no-importer-app/Cargo.toml",
           "tools/oya-governance-adapter-with-no-importer-app/src/main.rs",
