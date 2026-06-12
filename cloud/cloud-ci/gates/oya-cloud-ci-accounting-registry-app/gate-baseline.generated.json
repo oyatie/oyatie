@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:8d6fb26e8e6cc98f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:91dbb0a9ceae1f90"
+    "source_inputs_digest": "fnv1a64:50359ffbf728a65b"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4545,6 +4545,12 @@
         "keys": [],
         "mode": "baseline-block-on-new"
       },
+      "phantom_decision_citation": {
+        "frozen_empty": true,
+        "keys": [],
+        "mode": "baseline-block-on-new",
+        "remediation": "a governed surface cites a decision id with NO decision file on disk (the phantom-0397 shape, FRIC-1781430000): mint the record at the cited number (reconstruction, status Proposed, founder-ratification banner) or retarget the citation to the real decision; allocate NEW numbers only via the accounting-registry producer --next-adr; the pre-2026-06-12 phantom inventory is grandfathered shrink-only DATA in the producer (each id ledgered with its citation sites) and may never grow."
+      },
       "status_disagreement": {
         "keys": [],
         "mode": "baseline-block-on-new"
@@ -8075,7 +8081,6 @@
           "docs/architecture/wave-3-final-scorecard-2026-05-20.md",
           "docs/architecture/wave-3-g-executive-briefing-2026-05-21.md",
           "docs/architecture/wave-3-retrospective-2026-05-20.md",
-          "docs/audit/initial-sweep-2026-06-06/00-MASTER-CONTRADICTION-REGISTER.md",
           "docs/audit/initial-sweep-2026-06-06/00-PERSONAL-ADR-VERIFICATION.md",
           "docs/audit/initial-sweep-2026-06-06/ADR-SLUG-RENAME-MAP.md",
           "docs/audit/initial-sweep-2026-06-06/AMENDMENT-PLAN.md",
@@ -22315,6 +22320,7 @@
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-axes-count-drift.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-dup-adr-number.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-bad-half-supersession.json",
+          "specs/fixtures/cross-artifact-agreement/tc-XA-bad-phantom-citation.json",
           "specs/fixtures/cross-artifact-agreement/tc-XA-good-decision-all-four-agree.json",
           "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-missing-field-unknown-classifier-duplicate.json",
           "specs/fixtures/phase0-automation-ratchet/tc-0.16-bad-operator-checklist-for-automatable-rule.json",
