@@ -1638,6 +1638,11 @@ cargo.rust_library(
             deps = [":blake3-1-blake3_neon"],
         ),
         "linux-x86_64": dict(
+            rustc_flags = [
+                "--cfg=blake3_avx2_rust",
+                "--cfg=blake3_sse2_rust",
+                "--cfg=blake3_sse41_rust",
+            ],
             deps = [":cpufeatures-0.3"],
         ),
         "macos-arm64": dict(
@@ -1645,12 +1650,27 @@ cargo.rust_library(
             deps = [":blake3-1-blake3_neon"],
         ),
         "macos-x86_64": dict(
+            rustc_flags = [
+                "--cfg=blake3_avx2_rust",
+                "--cfg=blake3_sse2_rust",
+                "--cfg=blake3_sse41_rust",
+            ],
             deps = [":cpufeatures-0.3"],
         ),
         "windows-gnu": dict(
+            rustc_flags = [
+                "--cfg=blake3_avx2_rust",
+                "--cfg=blake3_sse2_rust",
+                "--cfg=blake3_sse41_rust",
+            ],
             deps = [":cpufeatures-0.3"],
         ),
         "windows-msvc": dict(
+            rustc_flags = [
+                "--cfg=blake3_avx2_rust",
+                "--cfg=blake3_sse2_rust",
+                "--cfg=blake3_sse41_rust",
+            ],
             deps = [":cpufeatures-0.3"],
         ),
     },
@@ -12649,6 +12669,8 @@ buildscript_run(
         "default",
         "dev_urandom_fallback",
     ],
+    rustc_link_lib = True,
+    rustc_link_search = True,
     version = "0.17.14",
 )
 

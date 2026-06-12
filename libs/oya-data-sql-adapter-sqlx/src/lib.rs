@@ -562,8 +562,11 @@ mod tests {
         assert_eq!(highest_placeholder("SELECT 1"), 0);
     }
 
-    #[test]
-    fn session_open_enforces_kernel_descriptor_invariants() {
+    // tokio::test (not plain #[test]): PgPool::connect_lazy spawns pool
+    // maintenance via sqlx's runtime shim, which panics ("requires a Tokio
+    // context") outside a tokio runtime — the assertions themselves are sync.
+    #[tokio::test]
+    async fn session_open_enforces_kernel_descriptor_invariants() {
         let client = SqlxDataClient::from_pool(PgPool::connect_lazy("postgres://localhost/x").unwrap());
         let invalid = SessionDescriptor {
             store: DataStore::BootstrapMetastore,
@@ -584,8 +587,9 @@ mod tests {
         );
     }
 
-    #[test]
-    fn commit_stamps_strictly_increase() {
+    // tokio::test for the same connect_lazy runtime requirement as above.
+    #[tokio::test]
+    async fn commit_stamps_strictly_increase() {
         let client = SqlxDataClient::from_pool(PgPool::connect_lazy("postgres://localhost/x").unwrap());
         let first = client.stamp_commit().unwrap();
         let second = client.stamp_commit().unwrap();
