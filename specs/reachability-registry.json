@@ -32,6 +32,30 @@
     {
       "anchor": "ADR-0555 D3: reindeer-vendored third-party tree — a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions",
       "prefix": "third-party/"
+    },
+    {
+      "anchor": "ADR-0560 D1: NativeLink CAS deployable artifacts — the warm-substrate manifests consumed at cluster bring-up (GitOps apply); keyed mTLS boundary + SeaweedFS S3 backing per the ADR; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
+      "prefix": "infra/nativelink/"
+    },
+    {
+      "anchor": "ADR-0560 D3: opt-in buck2 cache overlays — selected ONLY by the oya-cloud-ci-cache-wiring-app resolver under the specs/cache-warm-license.json kill-switch; conformance-gated (overlay posture + dark-wiring guarantee); ownership seed infra/ci/buckconfig/OWNERS (cloud-ci-platform)",
+      "prefix": "infra/ci/buckconfig/"
+    },
+    {
+      "anchor": "ADR-0560 D3: the cache-only execution platform (toolchains//cache:cache-platform) the overlays select; mirrors prelude//platforms:default with [oya_cache] knobs; ownership seed toolchains/cache/OWNERS (cloud-ci-platform)",
+      "prefix": "toolchains/cache/"
+    },
+    {
+      "anchor": "ADR-0560 D2 (executing ADR-0556 D2): the warm-license kill-switch DATA read by the cache-wiring resolver and pinned by its conformance gate; ships warm_reads_licensed=false until the first GREEN canary against a live substrate",
+      "prefix": "specs/cache-warm-license.json"
+    },
+    {
+      "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): the scheduled cold integrity-canary workflow — from-empty pinned build + assert-cold + digest manifests + verdict artifact; shape pinned by the oya-cloud-ci-cache-wiring-app conformance gate",
+      "prefix": ".github/workflows/cache-integrity-canary.yml"
+    },
+    {
+      "anchor": "ADR-0555 ownership seed: the workflows tree's OWNERS marker (cloud-ci-platform) — added with ADR-0560's canary workflow so new workflow files are born owned",
+      "prefix": ".github/workflows/OWNERS"
     }
   ]
 }
