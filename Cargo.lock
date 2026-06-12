@@ -5677,6 +5677,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-friction-ledger-merge-driver-app"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-ci-canonical-json-app",
+ "oya-cloud-ci-friction-accounting-app",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-gen-microservice-manifests-app"
 version = "0.1.0"
 dependencies = [
