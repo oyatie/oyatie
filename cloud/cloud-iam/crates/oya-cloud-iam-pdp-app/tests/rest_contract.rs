@@ -257,9 +257,8 @@ async fn stale_zookie_pin_is_conflict_never_a_stale_answer() {
         "resource.read",
         entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
     );
-    pinned.min_policy_version = Some(
-        oya_shared_platform_contracts_kernel::pdp::PolicyVersion::new("psv-000099").unwrap(),
-    );
+    pinned.min_policy_version =
+        Some(oya_shared_platform_contracts_kernel::pdp::PolicyVersion::new("psv-000099").unwrap());
     let body = authorize_body(&pinned);
     let (status, json) = post_authorize(router, &body).await;
     assert_eq!(status, StatusCode::CONFLICT);

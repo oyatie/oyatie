@@ -116,7 +116,6 @@ async fn unknown_route() -> Response {
 }
 
 /// Build the REST router over the shared state.
-#[must_use]
 pub fn build_router(state: Arc<PdpState>) -> Router {
     Router::new()
         .route("/v1/authorize", post(authorize))

@@ -20,10 +20,8 @@ use std::collections::HashMap;
 
 use tonic::{Code, Request};
 
-use oya_cloud_iam_pdp_app::grpc::proto::{
-    self, cloud_iam_pdp_server::CloudIamPdp as _,
-};
 use oya_cloud_iam_pdp_app::grpc::CloudIamPdpService;
+use oya_cloud_iam_pdp_app::grpc::proto::{self, cloud_iam_pdp_server::CloudIamPdp as _};
 
 use common::{bob_read_link, seeded_state};
 
@@ -36,9 +34,7 @@ fn proto_entity_ref(entity_type: &str, entity_id: &str) -> proto::EntityRef {
 
 fn string_attr(value: &str) -> proto::AttributeValue {
     proto::AttributeValue {
-        value: Some(proto::attribute_value::Value::StringValue(
-            value.to_owned(),
-        )),
+        value: Some(proto::attribute_value::Value::StringValue(value.to_owned())),
     }
 }
 
@@ -206,10 +202,9 @@ async fn unset_attribute_oneof_fails_closed() {
     let (state, _sink) = seeded_state(vec![]);
     let service = CloudIamPdpService::new(state);
     let mut request = authorize_request("req-grpc-unset-attr", "alice", "resource.read");
-    request.context.insert(
-        "channel".to_owned(),
-        proto::AttributeValue { value: None },
-    );
+    request
+        .context
+        .insert("channel".to_owned(), proto::AttributeValue { value: None });
     let status = service
         .authorize(Request::new(request))
         .await

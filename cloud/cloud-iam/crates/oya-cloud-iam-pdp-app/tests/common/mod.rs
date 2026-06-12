@@ -23,9 +23,7 @@ use oya_cloud_iam_pdp_app::PdpState;
 use oya_cloud_iam_pdp_kernel::InMemoryDecisionAuditSink;
 use oya_shared_pdp_adapter_cedar::CedarPdp;
 use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyBundle, TemplateLink, TemplateSrc};
-use oya_shared_platform_contracts_kernel::pdp::{
-    AuthorizationRequest, EntityRef, PolicyVersion,
-};
+use oya_shared_platform_contracts_kernel::pdp::{AuthorizationRequest, EntityRef, PolicyVersion};
 use oya_shared_ulid_id_kernel::SeededIdGenerator;
 
 pub const SCHEMA_SRC: &str = include_str!("../../cedar/platform.cedarschema");
@@ -178,9 +176,7 @@ pub fn request(
 /// Build the shared service state over the seed bundle with an inspectable
 /// in-memory audit sink (deterministic ids; tests never depend on wall-clock
 /// entropy).
-pub fn seeded_state(
-    links: Vec<TemplateLink>,
-) -> (Arc<PdpState>, Arc<InMemoryDecisionAuditSink>) {
+pub fn seeded_state(links: Vec<TemplateLink>) -> (Arc<PdpState>, Arc<InMemoryDecisionAuditSink>) {
     let pdp = CedarPdp::load(
         &seed_bundle(SEED_VERSION, links),
         Arc::new(SeededIdGenerator::default()),
