@@ -62,6 +62,20 @@ agent-wiring + catalog`.
 For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
 enforces the content-first, faces-only settle protocol after the content commit lands.
 
+This paragraph is the CANONICAL settle+verify protocol statement (FRIC-1781250000; other documents
+point here instead of restating it). Because `scm-facts.generated.json` records per-path
+`last_touch_commit` metadata, ANY commit that lands after the settle commit — even a docs-only
+change — un-settles the faces, so local "faces look byte-identical" self-assessment provably
+fails. The settle commit must therefore be the FINAL commit before push, and
+`oya-cloud-ci-face-settle --verify` is the REQUIRED last step before EVERY push, explicitly
+including pushes the worker believes are content-only. `--verify` is read-only (it never writes
+to the repository): it regenerates the faces in memory/tempdir against the committed tree (HEAD),
+byte-compares them with the same comparison the freshness gate makes, and on staleness exits
+nonzero with the per-face stale list and the exact remediation command
+(`oya-cloud-ci-face-settle --settle --commit`). The cloud-ci freshness gate (ADR-0539) remains
+the canonical enforcement backstop per the enforcement-layering doctrine; `--verify` is the
+automation-default local check (ADR-0548 D6) in front of it, never a substitute for it.
+
 `cloud-ci-friction-accounting` (ADR-0544) is a standalone born-blocking self-test, NOT a
 producer-face/raw-corpus gate routed through the central `gate-baseline.generated.json` firewall (the
 producer's `RawCorpusCollector` dispatch is hardwired to the single brand-residue collector). It runs
