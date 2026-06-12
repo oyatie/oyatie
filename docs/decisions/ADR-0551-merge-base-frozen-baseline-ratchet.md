@@ -156,6 +156,7 @@ trust gaps from the PR #698 independent review):
   extended `tc-FW-good-signed-off-key-in-current.json` (LIVE entry tolerated). Per the
   founder automation-default directive (2026-06-12: red-gating alone is not enough), the
   PROVABLY-dead retirement is automated: `oya-cloud-ci-firewall-signoff-fixer --fix`
+  (`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/main.rs`)
   derives and applies it through the one existing door parser/detector, with
   reparse-and-refuse self-validation and a grouped audit record appended to
   `_sign_off_retirements`; the gate failure prints exactly that command
