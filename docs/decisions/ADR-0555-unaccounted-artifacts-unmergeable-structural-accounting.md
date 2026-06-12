@@ -152,7 +152,16 @@ hardening a same-cycle decision):
   resolution at its directory** (no fall-through to a broader valid ancestor), so invalid
   content can never yield owned rows and corrupting an existing OWNERS surfaces as NEW
   unowned keys (firewall RED) instead of being silently absorbed by a parent
-  registration. RED/GREEN data-under-test corpus: `specs/fixtures/owners-schema/`.
+  registration. RED/GREEN data-under-test corpus (dir-loaded by the producer's
+  `owners_schema_fixtures_execute_red_green_cases`):
+  `specs/fixtures/owners-schema/tc-OWN-bad-empty-file.json`,
+  `specs/fixtures/owners-schema/tc-OWN-bad-comment-only.json`,
+  `specs/fixtures/owners-schema/tc-OWN-bad-garbage-content.json`,
+  `specs/fixtures/owners-schema/tc-OWN-bad-invalid-poisons-no-fall-through.json`,
+  `specs/fixtures/owners-schema/tc-OWN-bad-over-broad-excess-unowned.json` (the
+  breadth-bound RED exhibit),
+  `specs/fixtures/owners-schema/tc-OWN-good-single-principal.json`, and
+  `specs/fixtures/owners-schema/tc-OWN-good-comments-and-multiple-principals.json`.
 - **Breadth bound (registrations were BREADTH-UNLIMITED).** A single OWNERS file's
   nearest-ancestor coverage is capped by the policy-as-data bound
   `[owners] max_paths_per_owners_file` (`oya-ci.toml`, reviewed TOML — the ratchet-policy
