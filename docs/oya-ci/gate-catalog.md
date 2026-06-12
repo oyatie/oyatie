@@ -64,17 +64,21 @@ enforces the content-first, faces-only settle protocol after the content commit 
 
 This paragraph is the CANONICAL settle+verify protocol statement (FRIC-1781250000; other documents
 point here instead of restating it). Because `scm-facts.generated.json` records per-path
-`last_touch_commit` metadata, ANY commit that lands after the settle commit — even a docs-only
-change — un-settles the faces, so local "faces look byte-identical" self-assessment provably
-fails. The settle commit must therefore be the FINAL commit before push, and
+`last_touch_commit` metadata, ANY commit that lands after the settle commit and touches any
+non-generated-class path — docs-only changes included (the generated class, excluded from
+last-touch by the emitter: `*.generated.json`, `Cargo.lock`, `docs/machine-readable/`) —
+un-settles the faces, so local "faces look byte-identical" self-assessment provably fails. The
+settle commit must therefore be the FINAL commit before push, and
 `oya-cloud-ci-face-settle --verify` is the REQUIRED last step before EVERY push, explicitly
 including pushes the worker believes are content-only. `--verify` is read-only (it never writes
-to the repository): it regenerates the faces in memory/tempdir against the committed tree (HEAD),
-byte-compares them with the same comparison the freshness gate makes, and on staleness exits
-nonzero with the per-face stale list and the exact remediation command
-(`oya-cloud-ci-face-settle --settle --commit`). The cloud-ci freshness gate (ADR-0539) remains
-the canonical enforcement backstop per the enforcement-layering doctrine; `--verify` is the
-automation-default local check (ADR-0548 D6) in front of it, never a substitute for it.
+to the repository): against a working tree asserted byte-identical to the committed tree (HEAD),
+it regenerates the faces in memory/tempdir and runs the freshness gate's OWN full check —
+generated-face byte parity AND `Cargo.lock` member parity — and on any finding exits nonzero
+with the per-face stale list / lock findings and the exact remediation commands
+(`oya-cloud-ci-face-settle --settle --commit` for faces, `cargo metadata >/dev/null` plus a
+content commit for the lock). The cloud-ci freshness gate (ADR-0539) remains the canonical
+enforcement backstop per the enforcement-layering doctrine; `--verify` is the automation-default
+local check (ADR-0548 D6) in front of it, never a substitute for it.
 
 `cloud-ci-friction-accounting` (ADR-0544) is a standalone born-blocking self-test, NOT a
 producer-face/raw-corpus gate routed through the central `gate-baseline.generated.json` firewall (the
