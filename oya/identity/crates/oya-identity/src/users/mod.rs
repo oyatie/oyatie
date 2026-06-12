@@ -121,7 +121,10 @@ const SCIM_TENANT_RESOURCE_TYPE: &str = "ScimTenant";
 /// Emit the single deny-class audit record for a guard refusal that occurred
 /// BEFORE the PEP hot path ran (invalid credential / missing scope / tenant
 /// mismatch). Same record shape + vocabulary as the authorize surfaces; the
-/// raw token never reaches the record.
+/// raw token never reaches the record. The `detail` carries the refusal
+/// stage (`scim-guard` for a rejected credential, `scope-missing`,
+/// `tenant-mismatch`) — deliberately richer than the PEP's `token-rejected`
+/// record (`detail: None`) so forensics can tell WHICH surface refused.
 fn audit_guard_refusal<R, D, A, S>(
     state: &ScimSurfaceState<R, D, A, S>,
     workload_id: Option<String>,

@@ -569,11 +569,13 @@ fn respond_to_outcome<S: AuditSink>(
     }
 }
 
-/// The single audit `(outcome label, detail)` mapping for an authorize
-/// decision, shared by every single-decision authorize surface (the REST
-/// handlers above and the service-local guard path in
-/// [`WorkloadAuthzState::authorize_token_for`]). One mapping, one shape —
-/// a new surface cannot fork the audit vocabulary.
+/// The single audit `(outcome label, detail)` mapping for a single-decision
+/// authorize: shared by the REST handlers above (via [`respond_to_outcome`])
+/// and the service-local guard path in
+/// [`WorkloadAuthzState::authorize_token_for`], so a new surface cannot fork
+/// the audit vocabulary. The batch handler and the gRPC module retain their
+/// own pre-existing label mappings (same outcome words, `detail: None`) —
+/// unifying those is a separate change; their tests pin today's shape.
 fn authorize_audit_parts(outcome: &AuthorizeOutcome) -> (&'static str, Option<String>) {
     match outcome {
         AuthorizeOutcome::Decided(decision) if decision.is_allow() => {

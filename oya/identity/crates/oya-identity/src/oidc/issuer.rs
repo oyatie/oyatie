@@ -236,9 +236,15 @@ pub type SharedIssuerState = Arc<IssuerState>;
 /// actually mounts are advertised: the kernel metadata also carries
 /// `authorization_endpoint`/`token_endpoint`/`userinfo_endpoint`, but no such
 /// routes exist here (plane-3 workload identity publishes keys; it hosts no
-/// human authorization code flow), and advertising endpoints that 404 breaks
-/// RFC 8414 §2 ("Claims that return … endpoints … MUST be present only when
-/// the corresponding capability is supported").
+/// human authorization code flow), and advertising endpoints that 404 is
+/// worse than omitting them — RFC 8414 §2 scopes metadata claims to
+/// supported capabilities. Known tension: OIDC Discovery 1.0 (the
+/// `/.well-known/openid-configuration` path this router serves) marks
+/// `authorization_endpoint` REQUIRED for a full OP, so a strict OIDC RP
+/// validator would reject this document — acceptable here because no RP
+/// consumes this surface as an OP (it is a JWKS-publication endpoint), and
+/// the endgame is either the RFC 8414 `oauth-authorization-server` suffix or
+/// mounting a real authorization surface, never re-advertising 404s.
 async fn discovery_handler(State(state): State<SharedIssuerState>) -> Response {
     let algorithms: Vec<Algorithm> = state.keys.iter().map(SigningKey::algorithm).collect();
     match build_issuer_metadata(state.issuer_url.clone(), &algorithms) {
