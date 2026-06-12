@@ -31,7 +31,10 @@
 //! Every authorize call and every token-validation emits exactly one immutable
 //! [`AuditRecord`] through the [`AuditSink`] port before the response is
 //! returned, so the decision (and the stage a deny fail-closed at) is on the
-//! audit chain regardless of outcome.
+//! audit chain regardless of outcome. Service-local guards that authorize
+//! through [`WorkloadAuthzState::authorize_token_for`] (e.g. the SCIM
+//! provisioning surface) get the same per-decision emission structurally —
+//! the choke point emits, so a delivery surface cannot forget to.
 //!
 //! ## Layering invariant (ADR-0131 / architecture-boundaries gate)
 //!
@@ -121,6 +124,8 @@ impl AuditEvent {
 
 /// One immutable decision-log record. Construction-only (no setters) so a
 /// record cannot be mutated after the fact — it is sealed at emission time.
+/// Records carry decision METADATA only: never token material, signatures,
+/// or claim payloads (the bearer credential must not reach the audit chain).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AuditRecord {
     event: AuditEvent,
@@ -132,6 +137,12 @@ pub struct AuditRecord {
     outcome: String, // data_class: INTERNAL_ONLY
     /// Optional decision detail (policy id / deny stage / error class).
     detail: Option<String>, // data_class: INTERNAL_ONLY
+    /// Authorization target, when the emitting surface scopes the decision to
+    /// one action/resource (mirrors the optional `action`/`resource_type`/
+    /// `resource_id` members of the `WorkloadDecisionPayload` AsyncAPI schema).
+    action: Option<String>, // data_class: INTERNAL_ONLY
+    resource_type: Option<String>, // data_class: INTERNAL_ONLY
+    resource_id: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl AuditRecord {
@@ -148,7 +159,25 @@ impl AuditRecord {
             workload_id,
             outcome: outcome.into(),
             detail,
+            action: None,
+            resource_type: None,
+            resource_id: None,
         }
+    }
+
+    /// Attach the authorization target (action + resource) before sealing.
+    /// Builder-style so existing emit sites stay construction-only.
+    #[must_use]
+    pub fn with_authorization_target(
+        mut self,
+        action: impl Into<String>,
+        resource_type: impl Into<String>,
+        resource_id: impl Into<String>,
+    ) -> Self {
+        self.action = Some(action.into());
+        self.resource_type = Some(resource_type.into());
+        self.resource_id = Some(resource_id.into());
+        self
     }
 
     /// The event kind.
@@ -173,6 +202,24 @@ impl AuditRecord {
     #[must_use]
     pub fn detail(&self) -> Option<&str> {
         self.detail.as_deref()
+    }
+
+    /// The authorized action, when the surface attached a target.
+    #[must_use]
+    pub fn action(&self) -> Option<&str> {
+        self.action.as_deref()
+    }
+
+    /// The resource type of the authorization target, when attached.
+    #[must_use]
+    pub fn resource_type(&self) -> Option<&str> {
+        self.resource_type.as_deref()
+    }
+
+    /// The resource id of the authorization target, when attached.
+    #[must_use]
+    pub fn resource_id(&self) -> Option<&str> {
+        self.resource_id.as_deref()
     }
 }
 
@@ -364,10 +411,14 @@ where
 
     /// Run the same validate -> repository -> denylist -> policy hot path used
     /// by `/authorize-with-token` for service-local delivery surfaces that need
-    /// to guard their own routes (for example SCIM). This intentionally does
-    /// not emit an audit record; callers own the route-specific response and
-    /// audit envelope, while this method owns the fail-closed authorization
-    /// decision.
+    /// to guard their own routes (for example SCIM). Emits exactly one
+    /// immutable [`AuditRecord`] per call (PRD §3.3 / AC-W-13) with the
+    /// authorization target attached, using the SAME outcome vocabulary as the
+    /// REST authorize handlers. Emission cannot fail the decision: the outcome
+    /// is computed first and returned regardless, and the [`AuditSink`]
+    /// contract swallows sink errors after best-effort (a sink failure is the
+    /// sink's own loud signal, never a fail-open). Callers own only the
+    /// route-specific response envelope.
     #[must_use]
     pub fn authorize_token_for(
         &self,
@@ -377,26 +428,44 @@ where
         context: std::collections::BTreeMap<String, ClaimValue>,
     ) -> AuthorizeOutcome {
         let now = (self.now_provider)();
-        let repo_guard = match self.repository.lock() {
-            Ok(guard) => guard,
-            Err(poisoned) => poisoned.into_inner(),
+        // Best-effort audit subject; a token that does not validate has no
+        // trustworthy subject (mirrors `workload_id_from_token`).
+        let workload_id = validate_workload_token(token, &self.jwks, &self.config, now)
+            .ok()
+            .map(|principal| principal.workload_id().as_str().to_owned());
+        let target = (
+            action.as_str().to_owned(),
+            resource.resource_type().to_owned(),
+            resource.resource_id().to_owned(),
+        );
+        let outcome = {
+            let repo_guard = match self.repository.lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => poisoned.into_inner(),
+            };
+            let denylist_guard = match self.denylist.lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => poisoned.into_inner(),
+            };
+            authorize_with_token(
+                &*repo_guard,
+                &*denylist_guard,
+                &self.authorizer,
+                &self.jwks,
+                &self.config,
+                now,
+                token,
+                action,
+                resource,
+                context,
+            )
         };
-        let denylist_guard = match self.denylist.lock() {
-            Ok(guard) => guard,
-            Err(poisoned) => poisoned.into_inner(),
-        };
-        authorize_with_token(
-            &*repo_guard,
-            &*denylist_guard,
-            &self.authorizer,
-            &self.jwks,
-            &self.config,
-            now,
-            token,
-            action,
-            resource,
-            context,
-        )
+        let (label, detail) = authorize_audit_parts(&outcome);
+        self.audit.record(
+            AuditRecord::new(AuditEvent::Authorize, workload_id, label, detail)
+                .with_authorization_target(target.0, target.1, target.2),
+        );
+        outcome
     }
 }
 
@@ -463,86 +532,58 @@ fn respond_to_outcome<S: AuditSink>(
     workload_id: Option<String>,
     outcome: &AuthorizeOutcome,
 ) -> Response {
+    let (label, detail) = authorize_audit_parts(outcome);
+    audit.record(AuditRecord::new(
+        AuditEvent::Authorize,
+        workload_id,
+        label,
+        detail,
+    ));
     match outcome {
         AuthorizeOutcome::Decided(decision) if decision.is_allow() => {
-            audit.record(AuditRecord::new(
-                AuditEvent::Authorize,
-                workload_id,
-                "allow",
-                decision_detail(decision),
-            ));
             (StatusCode::OK, Json(AuthorizeResponse::from(decision))).into_response()
         }
-        AuthorizeOutcome::Decided(decision) => {
-            audit.record(AuditRecord::new(
-                AuditEvent::Authorize,
-                workload_id,
-                "deny",
-                decision_detail(decision),
-            ));
-            (
-                StatusCode::FORBIDDEN,
-                Json(AuthorizeResponse::from(decision)),
-            )
-                .into_response()
+        AuthorizeOutcome::Decided(decision) => (
+            StatusCode::FORBIDDEN,
+            Json(AuthorizeResponse::from(decision)),
+        )
+            .into_response(),
+        AuthorizeOutcome::TokenRejected => (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(ApiErrorEnvelope::token_invalid(None)),
+        )
+            .into_response(),
+        AuthorizeOutcome::StoreUnavailable => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(ApiErrorEnvelope::dependency_unavailable(None)),
+        )
+            .into_response(),
+        // A deny — NOT a 404. An unknown/revoked subject is denied like any other.
+        AuthorizeOutcome::PrincipalUnknown | AuthorizeOutcome::Revoked => (
+            StatusCode::FORBIDDEN,
+            Json(AuthorizeResponse::from(
+                &AuthorizationDecision::default_deny(),
+            )),
+        )
+            .into_response(),
+    }
+}
+
+/// The single audit `(outcome label, detail)` mapping for an authorize
+/// decision, shared by every single-decision authorize surface (the REST
+/// handlers above and the service-local guard path in
+/// [`WorkloadAuthzState::authorize_token_for`]). One mapping, one shape —
+/// a new surface cannot fork the audit vocabulary.
+fn authorize_audit_parts(outcome: &AuthorizeOutcome) -> (&'static str, Option<String>) {
+    match outcome {
+        AuthorizeOutcome::Decided(decision) if decision.is_allow() => {
+            ("allow", decision_detail(decision))
         }
-        AuthorizeOutcome::TokenRejected => {
-            audit.record(AuditRecord::new(
-                AuditEvent::Authorize,
-                workload_id,
-                "token-rejected",
-                None,
-            ));
-            (
-                StatusCode::UNPROCESSABLE_ENTITY,
-                Json(ApiErrorEnvelope::token_invalid(None)),
-            )
-                .into_response()
-        }
-        AuthorizeOutcome::StoreUnavailable => {
-            audit.record(AuditRecord::new(
-                AuditEvent::Authorize,
-                workload_id,
-                "store-unavailable",
-                None,
-            ));
-            (
-                StatusCode::SERVICE_UNAVAILABLE,
-                Json(ApiErrorEnvelope::dependency_unavailable(None)),
-            )
-                .into_response()
-        }
-        AuthorizeOutcome::PrincipalUnknown => {
-            audit.record(AuditRecord::new(
-                AuditEvent::Authorize,
-                workload_id,
-                "deny",
-                Some("principal-unknown".to_owned()),
-            ));
-            // A deny — NOT a 404. An unknown subject is denied like any other.
-            (
-                StatusCode::FORBIDDEN,
-                Json(AuthorizeResponse::from(
-                    &AuthorizationDecision::default_deny(),
-                )),
-            )
-                .into_response()
-        }
-        AuthorizeOutcome::Revoked => {
-            audit.record(AuditRecord::new(
-                AuditEvent::Authorize,
-                workload_id,
-                "deny",
-                Some("revoked".to_owned()),
-            ));
-            (
-                StatusCode::FORBIDDEN,
-                Json(AuthorizeResponse::from(
-                    &AuthorizationDecision::default_deny(),
-                )),
-            )
-                .into_response()
-        }
+        AuthorizeOutcome::Decided(decision) => ("deny", decision_detail(decision)),
+        AuthorizeOutcome::TokenRejected => ("token-rejected", None),
+        AuthorizeOutcome::StoreUnavailable => ("store-unavailable", None),
+        AuthorizeOutcome::PrincipalUnknown => ("deny", Some("principal-unknown".to_owned())),
+        AuthorizeOutcome::Revoked => ("deny", Some("revoked".to_owned())),
     }
 }
 

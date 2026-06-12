@@ -13,6 +13,17 @@
 //! `403`. The guard then binds the verified token tenant to the path tenant and
 //! runs the normal workload-identity PEP path (repository lookup, denylist, and
 //! Cedar action `identity.scim.Manage`) before any SCIM store mutation/read.
+//!
+//! ## Audit emission (PRD §3.3 / AC-W-13)
+//! Every guard run that carries a credential emits exactly one immutable
+//! `AuditRecord` through the workload [`AuditSink`] port: the PEP hot path
+//! (`authorize_token_for`) emits the decision record itself, and the guard's
+//! own pre-authorize refusals (invalid credential, missing scope, tenant
+//! mismatch) each emit one deny-class record here. A request with no
+//! `Authorization` header carries no credential and renders no decision, so —
+//! like a body that fails to parse on the `/authorize` surfaces — it emits no
+//! record. Audit emission never fails the request path (the sink contract
+//! swallows sink errors); a refusal stands regardless of sink health.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -29,11 +40,13 @@ use oya_shared_scim_server_kernel::{
     ReferenceScimServer, ScimError, ScimId, ScimServer, TenantId,
 };
 
-use oya_identity_workload_app::AuthorizeOutcome;
+use oya_identity_workload_app::{
+    AuthorizeOutcome, RevocationDenylist, WorkloadPrincipalRepository,
+};
+use oya_identity_workload_authz_cedar_adapter::WorkloadAuthorizer;
 use oya_identity_workload_domain::{Action, ClaimValue, Resource};
 use oya_identity_workload_oidc_adapter::{Jwks, ValidationConfig, validate_workload_token};
-
-use crate::AppState;
+use oya_identity_workload_rest::{AuditEvent, AuditRecord, AuditSink, WorkloadAuthzState};
 
 /// The SCIM scope a caller's workload token must carry.
 pub const SCIM_MANAGE_SCOPE: &str = "scim.manage";
@@ -42,16 +55,31 @@ pub const SCIM_MANAGE_SCOPE: &str = "scim.manage";
 pub const SCIM_BASE: &str = "/scim/v2";
 
 /// The composed SCIM surface state: the kernel reference server over the
-/// in-memory store ports + the offline token-validation material.
-pub struct ScimSurfaceState {
+/// in-memory store ports + the offline token-validation material. Generic over
+/// the same four workload-identity ports as [`WorkloadAuthzState`] (mirroring
+/// the REST router) so tests drive an inspectable audit sink and the durable
+/// G03 stores swap in behind the same traits.
+pub struct ScimSurfaceState<R, D, A, S>
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     server: ReferenceScimServer<InMemoryUserStore, InMemoryGroupStore, CounterIdGen>,
     jwks: Jwks,
     validation: ValidationConfig,
     now_provider: fn() -> i64,
-    authz: Arc<AppState>,
+    authz: Arc<WorkloadAuthzState<R, D, A, S>>,
 }
 
-impl ScimSurfaceState {
+impl<R, D, A, S> ScimSurfaceState<R, D, A, S>
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     /// Assemble the surface. `base_url` is the externally visible SCIM base
     /// (issuer + `/scim/v2`), used for `meta.location` URLs.
     #[must_use]
@@ -60,7 +88,7 @@ impl ScimSurfaceState {
         jwks: Jwks,
         validation: ValidationConfig,
         now_provider: fn() -> i64,
-        authz: Arc<AppState>,
+        authz: Arc<WorkloadAuthzState<R, D, A, S>>,
     ) -> Self {
         Self {
             server: ReferenceScimServer::new(
@@ -78,23 +106,66 @@ impl ScimSurfaceState {
 }
 
 /// Shared handle for the SCIM routes.
-pub type SharedScimState = Arc<ScimSurfaceState>;
+pub type SharedScimState<R, D, A, S> = Arc<ScimSurfaceState<R, D, A, S>>;
 
 // =====================================================================
 // Fail-closed Bearer guard
 // =====================================================================
 
+/// The Cedar action every SCIM guard decision authorizes.
+const SCIM_MANAGE_ACTION: &str = "identity.scim.Manage";
+
+/// The Cedar resource type the guard scopes decisions to.
+const SCIM_TENANT_RESOURCE_TYPE: &str = "ScimTenant";
+
+/// Emit the single deny-class audit record for a guard refusal that occurred
+/// BEFORE the PEP hot path ran (invalid credential / missing scope / tenant
+/// mismatch). Same record shape + vocabulary as the authorize surfaces; the
+/// raw token never reaches the record.
+fn audit_guard_refusal<R, D, A, S>(
+    state: &ScimSurfaceState<R, D, A, S>,
+    workload_id: Option<String>,
+    outcome: &'static str,
+    detail: &str,
+    tenant: &str,
+) where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
+    state.authz.audit().record(
+        AuditRecord::new(
+            AuditEvent::Authorize,
+            workload_id,
+            outcome,
+            Some(detail.to_owned()),
+        )
+        .with_authorization_target(SCIM_MANAGE_ACTION, SCIM_TENANT_RESOURCE_TYPE, tenant),
+    );
+}
+
 /// Validate the Bearer credential and require [`SCIM_MANAGE_SCOPE`].
 /// `Err` is the ready-to-return refusal response (401/403) — never a pass.
-fn authorize_scim(
-    state: &ScimSurfaceState,
+/// Exactly one audit record is emitted per credential-bearing guard run:
+/// pre-authorize refusals emit here, the PEP decision emits inside
+/// `authorize_token_for` (see the module-level audit section).
+fn authorize_scim<R, D, A, S>(
+    state: &ScimSurfaceState<R, D, A, S>,
     headers: &HeaderMap,
     tenant: &str,
-) -> Result<(), Response> {
+) -> Result<(), Response>
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     let token = headers
         .get(axum::http::header::AUTHORIZATION)
         .and_then(|value| value.to_str().ok())
         .and_then(|value| value.strip_prefix("Bearer "))
+        // No credential -> no decision rendered -> no audit record (module doc).
         .ok_or_else(|| scim_refusal(StatusCode::UNAUTHORIZED, "missing bearer credential"))?;
     let principal = validate_workload_token(
         token,
@@ -102,14 +173,31 @@ fn authorize_scim(
         &state.validation,
         (state.now_provider)(),
     )
-    .map_err(|_| scim_refusal(StatusCode::UNAUTHORIZED, "invalid bearer credential"))?;
+    .map_err(|_| {
+        audit_guard_refusal(state, None, "token-rejected", "scim-guard", tenant);
+        scim_refusal(StatusCode::UNAUTHORIZED, "invalid bearer credential")
+    })?;
     if !principal.has_scope(SCIM_MANAGE_SCOPE) {
+        audit_guard_refusal(
+            state,
+            Some(principal.workload_id().as_str().to_owned()),
+            "deny",
+            "scope-missing",
+            tenant,
+        );
         return Err(scim_refusal(
             StatusCode::FORBIDDEN,
             "credential lacks the scim.manage scope",
         ));
     }
     if principal.tenant_id().as_str() != tenant {
+        audit_guard_refusal(
+            state,
+            Some(principal.workload_id().as_str().to_owned()),
+            "deny",
+            "tenant-mismatch",
+            tenant,
+        );
         return Err(scim_refusal(
             StatusCode::FORBIDDEN,
             "credential tenant does not match the SCIM tenant",
@@ -122,8 +210,8 @@ fn authorize_scim(
     );
     match state.authz.authorize_token_for(
         token,
-        Action::new("identity.scim.Manage"),
-        Resource::new("ScimTenant", tenant.to_owned()),
+        Action::new(SCIM_MANAGE_ACTION),
+        Resource::new(SCIM_TENANT_RESOURCE_TYPE, tenant.to_owned()),
         context,
     ) {
         AuthorizeOutcome::Decided(decision) if decision.is_allow() => Ok(()),
@@ -200,12 +288,18 @@ macro_rules! guard {
     };
 }
 
-async fn list_users(
-    State(state): State<SharedScimState>,
+async fn list_users<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path(tenant): Path<String>,
     uri: Uri,
     headers: HeaderMap,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state
         .server
@@ -216,12 +310,18 @@ async fn list_users(
     }
 }
 
-async fn create_user(
-    State(state): State<SharedScimState>,
+async fn create_user<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path(tenant): Path<String>,
     headers: HeaderMap,
     Json(input): Json<NewUser>,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state
         .server
@@ -232,11 +332,17 @@ async fn create_user(
     }
 }
 
-async fn get_user(
-    State(state): State<SharedScimState>,
+async fn get_user<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state.server.get_user(&TenantId(tenant), &ScimId(id)) {
         Ok(user) => Json(user).into_response(),
@@ -244,12 +350,18 @@ async fn get_user(
     }
 }
 
-async fn replace_user(
-    State(state): State<SharedScimState>,
+async fn replace_user<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
     Json(input): Json<NewUser>,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state.server.replace_user(
         &TenantId(tenant),
@@ -262,12 +374,18 @@ async fn replace_user(
     }
 }
 
-async fn patch_user(
-    State(state): State<SharedScimState>,
+async fn patch_user<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
     Json(op): Json<PatchOp>,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state
         .server
@@ -278,11 +396,17 @@ async fn patch_user(
     }
 }
 
-async fn delete_user(
-    State(state): State<SharedScimState>,
+async fn delete_user<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state.server.delete_user(&TenantId(tenant), &ScimId(id)) {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
@@ -290,12 +414,18 @@ async fn delete_user(
     }
 }
 
-async fn list_groups(
-    State(state): State<SharedScimState>,
+async fn list_groups<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path(tenant): Path<String>,
     uri: Uri,
     headers: HeaderMap,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state
         .server
@@ -306,12 +436,18 @@ async fn list_groups(
     }
 }
 
-async fn create_group(
-    State(state): State<SharedScimState>,
+async fn create_group<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path(tenant): Path<String>,
     headers: HeaderMap,
     Json(input): Json<NewGroup>,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state
         .server
@@ -322,11 +458,17 @@ async fn create_group(
     }
 }
 
-async fn get_group(
-    State(state): State<SharedScimState>,
+async fn get_group<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state.server.get_group(&TenantId(tenant), &ScimId(id)) {
         Ok(group) => Json(group).into_response(),
@@ -334,12 +476,18 @@ async fn get_group(
     }
 }
 
-async fn patch_group(
-    State(state): State<SharedScimState>,
+async fn patch_group<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
     Json(op): Json<PatchOp>,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state
         .server
@@ -350,11 +498,17 @@ async fn patch_group(
     }
 }
 
-async fn delete_group(
-    State(state): State<SharedScimState>,
+async fn delete_group<R, D, A, S>(
+    State(state): State<SharedScimState<R, D, A, S>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
-) -> Response {
+) -> Response
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     guard!(state, headers, tenant);
     match state.server.delete_group(&TenantId(tenant), &ScimId(id)) {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
@@ -364,42 +518,48 @@ async fn delete_group(
 
 /// Build the SCIM router (mounted at the service root; paths carry
 /// [`SCIM_BASE`]).
-pub fn build_scim_router(state: SharedScimState) -> Router {
+pub fn build_scim_router<R, D, A, S>(state: SharedScimState<R, D, A, S>) -> Router
+where
+    R: WorkloadPrincipalRepository + Send + 'static,
+    D: RevocationDenylist + Send + 'static,
+    A: WorkloadAuthorizer + Send + Sync + 'static,
+    S: AuditSink + 'static,
+{
     Router::new()
-        .route(&format!("{SCIM_BASE}/{{tenant}}/Users"), get(list_users))
-        .route(&format!("{SCIM_BASE}/{{tenant}}/Users"), post(create_user))
+        .route(&format!("{SCIM_BASE}/{{tenant}}/Users"), get(list_users::<R, D, A, S>))
+        .route(&format!("{SCIM_BASE}/{{tenant}}/Users"), post(create_user::<R, D, A, S>))
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            get(get_user),
+            get(get_user::<R, D, A, S>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            put(replace_user),
+            put(replace_user::<R, D, A, S>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            patch(patch_user),
+            patch(patch_user::<R, D, A, S>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            delete(delete_user),
+            delete(delete_user::<R, D, A, S>),
         )
-        .route(&format!("{SCIM_BASE}/{{tenant}}/Groups"), get(list_groups))
+        .route(&format!("{SCIM_BASE}/{{tenant}}/Groups"), get(list_groups::<R, D, A, S>))
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups"),
-            post(create_group),
+            post(create_group::<R, D, A, S>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            get(get_group),
+            get(get_group::<R, D, A, S>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            patch(patch_group),
+            patch(patch_group::<R, D, A, S>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            delete(delete_group),
+            delete(delete_group::<R, D, A, S>),
         )
         .with_state(state)
 }
@@ -421,9 +581,7 @@ mod tests {
     use oya_identity_workload_authz_cedar_adapter::CedarWorkloadAuthorizer;
     use oya_identity_workload_domain::{WorkloadPrincipal, WorkloadState};
     use oya_identity_workload_oidc_adapter::Jwk;
-    use oya_identity_workload_rest::WorkloadAuthzState;
-
-    use crate::observability::TracingAuditSink;
+    use oya_identity_workload_rest::{InMemoryAuditSink, WorkloadAuthzState};
 
     const ISSUER: &str = "https://idp.oyatie.com";
     const AUDIENCE: &str = "oya-identity-scim";
@@ -435,6 +593,13 @@ mod tests {
         token: String,
         wrong_scope_token: String,
         unknown_principal_token: String,
+        /// Registered + scoped principal in `ten_other` — passes every guard
+        /// pre-check, then Cedar default-denies (the policy permits `ten_acme`
+        /// only): the pure policy-deny path.
+        cedar_denied_token: String,
+        /// Inspection handle onto the SAME audit log the state emits to
+        /// (clones share the underlying append-only store).
+        audit: InMemoryAuditSink,
     }
 
     fn b64(bytes: &[u8]) -> String {
@@ -468,13 +633,18 @@ mod tests {
         let jwks =
             Jwks::new().add_key(Jwk::ec_p256(KID, b64(&public[1..33]), b64(&public[33..65])));
         let mut repository = InMemoryWorkloadPrincipalRepository::new();
-        let mut provisioner =
-            WorkloadPrincipal::provision("ten_acme", "wl_provisioner", "cap.identity.scim")
-                .expect("principal");
-        provisioner
-            .transition_to(WorkloadState::Active)
-            .expect("activate");
-        repository.save(&provisioner).expect("seed principal");
+        for (tenant, workload) in [
+            ("ten_acme", "wl_provisioner"),
+            ("ten_other", "wl_other_provisioner"),
+        ] {
+            let mut provisioner =
+                WorkloadPrincipal::provision(tenant, workload, "cap.identity.scim")
+                    .expect("principal");
+            provisioner
+                .transition_to(WorkloadState::Active)
+                .expect("activate");
+            repository.save(&provisioner).expect("seed principal");
+        }
         let authorizer = CedarWorkloadAuthorizer::from_cedar_policies(
             r#"
             @id("permit-scim-manage")
@@ -482,17 +652,20 @@ mod tests {
               principal,
               action == Action::"identity.scim.Manage",
               resource is ScimTenant
-            );
+            ) when {
+              principal.tenant_id == "ten_acme"
+            };
             "#,
         )
         .expect("policy");
+        let audit = InMemoryAuditSink::new();
         let authz = Arc::new(WorkloadAuthzState::with_clock(
             repository,
             InMemoryRevocationDenylist::new(),
             authorizer,
             jwks.clone(),
             ValidationConfig::new(ISSUER, AUDIENCE),
-            TracingAuditSink::new(),
+            audit.clone(),
             || NOW,
         ));
         let state = Arc::new(ScimSurfaceState::new(
@@ -525,6 +698,14 @@ mod tests {
                 "wl_not_seeded",
                 SCIM_MANAGE_SCOPE,
             ),
+            cedar_denied_token: mint(
+                &key_pair,
+                &rng,
+                "ten_other",
+                "wl_other_provisioner",
+                SCIM_MANAGE_SCOPE,
+            ),
+            audit,
         }
     }
 
@@ -559,16 +740,15 @@ mod tests {
         (status, value)
     }
 
+    /// RFC 7644 camelCase wire shape, absent members omitted — what a real
+    /// SCIM client (Okta/Entra) sends. The legacy snake_case alias shape is
+    /// covered by the kernel tests and the service E2E.
     fn new_user_payload(user_name: &str) -> serde_json::Value {
         serde_json::json!({
-            "user_name": user_name,
-            "external_id": null,
-            "name": null,
-            "display_name": "Provisioned User",
+            "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+            "userName": user_name,
+            "displayName": "Provisioned User",
             "active": true,
-            "emails": [],
-            "enterprise": null,
-            "oyatie": null,
         })
     }
 
@@ -585,6 +765,8 @@ mod tests {
         .await;
         assert_eq!(status, StatusCode::UNAUTHORIZED);
         assert_eq!(body["schemas"][0], ScimError::SCHEMA);
+        // No credential presented -> no decision rendered -> no audit record.
+        assert!(fixture.audit.is_empty());
 
         let (status, _) = send(
             &fixture.router,
@@ -595,6 +777,15 @@ mod tests {
         )
         .await;
         assert_eq!(status, StatusCode::UNAUTHORIZED);
+        // An invalid credential IS audited: one token-rejected record.
+        assert_eq!(fixture.audit.len(), 1);
+        let record = &fixture.audit.records()[0];
+        assert_eq!(record.event(), AuditEvent::Authorize);
+        assert_eq!(record.workload_id(), None);
+        assert_eq!(record.outcome(), "token-rejected");
+        assert_eq!(record.action(), Some(SCIM_MANAGE_ACTION));
+        assert_eq!(record.resource_type(), Some(SCIM_TENANT_RESOURCE_TYPE));
+        assert_eq!(record.resource_id(), Some("ten_acme"));
     }
 
     #[tokio::test]
@@ -609,6 +800,12 @@ mod tests {
         )
         .await;
         assert_eq!(status, StatusCode::FORBIDDEN);
+        // Exactly one deny record for the scope refusal.
+        assert_eq!(fixture.audit.len(), 1);
+        let record = &fixture.audit.records()[0];
+        assert_eq!(record.outcome(), "deny");
+        assert_eq!(record.detail(), Some("scope-missing"));
+        assert_eq!(record.workload_id(), Some("wl_provisioner"));
     }
 
     #[tokio::test]
@@ -623,6 +820,13 @@ mod tests {
         )
         .await;
         assert_eq!(status, StatusCode::FORBIDDEN);
+        // The PEP hot path audited the fail-closed unknown-principal deny.
+        assert_eq!(fixture.audit.len(), 1);
+        assert_eq!(fixture.audit.records()[0].outcome(), "deny");
+        assert_eq!(
+            fixture.audit.records()[0].detail(),
+            Some("principal-unknown")
+        );
 
         let (status, _) = send(
             &fixture.router,
@@ -633,6 +837,82 @@ mod tests {
         )
         .await;
         assert_eq!(status, StatusCode::FORBIDDEN);
+        // One additional deny record for the tenant-bind refusal.
+        assert_eq!(fixture.audit.len(), 2);
+        let record = &fixture.audit.records()[1];
+        assert_eq!(record.outcome(), "deny");
+        assert_eq!(record.detail(), Some("tenant-mismatch"));
+        assert_eq!(record.workload_id(), Some("wl_provisioner"));
+        assert_eq!(record.resource_id(), Some("ten_other"));
+    }
+
+    /// AC-W-13 on the SCIM surface: a SCIM ALLOW emits exactly one audit
+    /// record carrying the right principal/action/resource/outcome — and no
+    /// token material.
+    #[tokio::test]
+    async fn scim_allow_emits_exactly_one_audit_record_with_target() {
+        let fixture = fixture();
+        let (status, _) = send(
+            &fixture.router,
+            "GET",
+            "/scim/v2/ten_acme/Users",
+            Some(&fixture.token),
+            None,
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(fixture.audit.len(), 1);
+        let record = &fixture.audit.records()[0];
+        assert_eq!(record.event(), AuditEvent::Authorize);
+        assert_eq!(record.workload_id(), Some("wl_provisioner"));
+        assert_eq!(record.outcome(), "allow");
+        assert_eq!(record.detail(), Some("permit-scim-manage"));
+        assert_eq!(record.action(), Some(SCIM_MANAGE_ACTION));
+        assert_eq!(record.resource_type(), Some(SCIM_TENANT_RESOURCE_TYPE));
+        assert_eq!(record.resource_id(), Some("ten_acme"));
+        // The bearer credential must never reach the audit chain: no segment
+        // of the JWT may appear anywhere in the sealed record.
+        let rendered = format!("{record:?}");
+        assert!(!rendered.contains(&fixture.token));
+        for segment in fixture.token.split('.') {
+            assert!(
+                !rendered.contains(segment),
+                "audit record leaked token material"
+            );
+        }
+    }
+
+    /// AC-W-13 on the SCIM surface: a SCIM policy DENY (registered, scoped,
+    /// tenant-bound principal that Cedar default-denies) emits exactly one
+    /// audit record carrying the right principal/action/resource/outcome.
+    #[tokio::test]
+    async fn scim_cedar_deny_emits_exactly_one_audit_record_with_target() {
+        let fixture = fixture();
+        let (status, _) = send(
+            &fixture.router,
+            "GET",
+            "/scim/v2/ten_other/Users",
+            Some(&fixture.cedar_denied_token),
+            None,
+        )
+        .await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        assert_eq!(fixture.audit.len(), 1);
+        let record = &fixture.audit.records()[0];
+        assert_eq!(record.event(), AuditEvent::Authorize);
+        assert_eq!(record.workload_id(), Some("wl_other_provisioner"));
+        assert_eq!(record.outcome(), "deny");
+        assert_eq!(record.detail(), Some("default-deny"));
+        assert_eq!(record.action(), Some(SCIM_MANAGE_ACTION));
+        assert_eq!(record.resource_type(), Some(SCIM_TENANT_RESOURCE_TYPE));
+        assert_eq!(record.resource_id(), Some("ten_other"));
+        let rendered = format!("{record:?}");
+        for segment in fixture.cedar_denied_token.split('.') {
+            assert!(
+                !rendered.contains(segment),
+                "audit record leaked token material"
+            );
+        }
     }
 
     #[tokio::test]
@@ -706,6 +986,17 @@ mod tests {
         )
         .await;
         assert_eq!(status, StatusCode::NOT_FOUND);
+
+        // Exactly one audit record per credential-bearing guard run across the
+        // whole mixed flow: 5 allows (the post-delete 404 still authorized at
+        // the guard) + 1 tenant-mismatch deny.
+        assert_eq!(fixture.audit.len(), 6);
+        let records = fixture.audit.records();
+        let outcomes: Vec<&str> = records.iter().map(AuditRecord::outcome).collect();
+        assert_eq!(
+            outcomes,
+            ["allow", "allow", "allow", "deny", "allow", "allow"]
+        );
     }
 
     #[tokio::test]
@@ -717,7 +1008,7 @@ mod tests {
             "POST",
             "/scim/v2/ten_acme/Groups",
             Some(token),
-            Some(serde_json::json!({"display_name": "platform-admins", "members": []})),
+            Some(serde_json::json!({"displayName": "platform-admins"})),
         )
         .await;
         assert_eq!(status, StatusCode::CREATED);
