@@ -23,5 +23,10 @@ serde_json = { workspace = true }
 # scm-facts face is formatted identically to the other five faces (byte-parity discipline).
 oya-cloud-ci-accounting-registry-app = { path = "../oya-cloud-ci-accounting-registry-app" }
 
+[dev-dependencies]
+# The frozen-policy-wins RED pin (FRIC-1781280000) runs the firewall predicates end-to-end
+# over the snapshot the emitter resolves, proving the #698 repoint attack goes RED.
+oya-cloud-ci-firewall-app = { path = "../oya-cloud-ci-firewall-app" }
+
 [lints]
 workspace = true

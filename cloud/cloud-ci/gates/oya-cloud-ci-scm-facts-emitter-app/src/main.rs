@@ -24,22 +24,35 @@
 //!
 //! Usage:
 //!   oya-cloud-ci-scm-facts-emitter-app [--repo-root <path>] [--out <path>]
-//!       [--volatile-out <path>] [--merge-base-baseline]
+//!       [--volatile-out <path>] [--merge-base-baseline] [--frozen-base-ref <ref>]
 //!
 //! Default `--repo-root` is discovered up-tree (the dir holding `specs/root-hub-pointers.json`),
 //! default `--out` is `<repo-root>/cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json`,
 //! default `--volatile-out` is `<repo-root>/`[`VOLATILE_FACTS_PATH`].
 //!
 //! With `--merge-base-baseline` the emitter ALSO materializes the firewall's frozen
-//! reference (ADR-0551, fixes FRIC-1781112000): it reads `ratchet-policy.json` (DATA: the
-//! configurable `base_ref` + face/out paths), computes `git merge-base <base_ref> HEAD`,
-//! extracts the gate-baseline face as committed at that revision, and writes the
-//! provenance-wrapped snapshot to the policy `out_path` (untracked + gitignored). This
-//! lives HERE because the emitter is the single out-of-graph git boundary — the firewall
-//! gate itself never calls git. FAIL-CLOSED: an unresolvable base_ref or merge-base is a
-//! hard error; only a face genuinely absent at the merge-base (repo bootstrap) produces a
-//! `missing_at_merge_base` snapshot with an EMPTY frozen reference (everything is growth
-//! until signed off).
+//! reference (ADR-0551, fixes FRIC-1781112000): it computes `git merge-base <bootstrap> HEAD`,
+//! reads `ratchet-policy.json` AS COMMITTED AT THAT MERGE-BASE (frozen-policy-wins,
+//! FRIC-1781280000), extracts the gate-baseline face at the same revision, and writes the
+//! provenance-wrapped snapshot to the candidate policy's `out_path` (untracked + gitignored).
+//! This lives HERE because the emitter is the single out-of-graph git boundary — the
+//! firewall gate itself never calls git.
+//!
+//! FROZEN-POLICY-WINS (FRIC-1781280000): every policy fact that SELECTS the frozen
+//! reference (`base_ref`, `face_path`) is read from the merge-base tree, never the
+//! candidate tree. The bootstrap ref that locates the merge-base is OUT-OF-BAND
+//! (`--frozen-base-ref` from the CI invocation, default [`DEFAULT_FROZEN_BOOTSTRAP_REF`]) —
+//! it must NOT come from the candidate tree, because any candidate-supplied hint converges
+//! to an attacker-chosen fixpoint: a same-PR `"base_ref": "HEAD"` edit makes
+//! merge-base(HEAD, HEAD) = HEAD, the "frozen" policy/face become the PR's own settled
+//! copies, and frozen == proposed (complete self-laundering — the PR #698 review MED
+//! finding). The merge-base policy's `base_ref` must AGREE with the bootstrap (fail-closed
+//! cross-check); repointing therefore changes only FUTURE behavior post-merge and requires
+//! touching the out-of-band invocation too. Prow precedent: OWNERS are read from the base
+//! branch, never the PR head. FAIL-CLOSED: an unresolvable bootstrap ref or merge-base is a
+//! hard error; only a policy/face genuinely absent at the merge-base (repo bootstrap — the
+//! PR introducing the ratchet) falls back to DECLARED candidate facts
+//! (`frozen_policy_source: "candidate-bootstrap"` / `missing_at_merge_base: true`).
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -70,8 +83,17 @@ fn main() {
     }
 }
 
-/// The committed merge-base ratchet policy (DATA) the `--merge-base-baseline` mode reads.
+/// The committed merge-base ratchet policy (DATA) the `--merge-base-baseline` mode reads —
+/// the FROZEN copy at the merge-base selects the frozen reference (frozen-policy-wins,
+/// FRIC-1781280000); the candidate copy supplies only the local `out_path`.
 const RATCHET_POLICY_PATH: &str = "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json";
+
+/// The OUT-OF-BAND bootstrap ref that locates the merge-base (overridable per invocation
+/// via `--frozen-base-ref`, the adopter's CI-config surface). Deliberately a compiled-in
+/// constant, NEVER read from the candidate tree: a candidate-supplied hint converges to an
+/// attacker-chosen fixpoint (`base_ref: "HEAD"` ⇒ merge-base = HEAD ⇒ frozen == proposed).
+/// Changing it is a code/invocation edit — the same review class as editing the workflow.
+const DEFAULT_FROZEN_BOOTSTRAP_REF: &str = "origin/dev";
 
 fn run() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -79,6 +101,7 @@ fn run() -> Result<(), String> {
     let mut out: Option<PathBuf> = None;
     let mut volatile_out: Option<PathBuf> = None;
     let mut merge_base_baseline = false;
+    let mut frozen_base_ref: Option<String> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -97,6 +120,13 @@ fn run() -> Result<(), String> {
             }
             "--merge-base-baseline" => {
                 merge_base_baseline = true;
+            }
+            "--frozen-base-ref" => {
+                i += 1;
+                frozen_base_ref = args.get(i).cloned();
+                if frozen_base_ref.as_deref().is_none_or(str::is_empty) {
+                    return Err("--frozen-base-ref requires a ref".to_owned());
+                }
             }
             other => return Err(format!("unknown argument {other}")),
         }
@@ -135,7 +165,9 @@ fn run() -> Result<(), String> {
     );
 
     if merge_base_baseline {
-        emit_merge_base_baseline(&repo_root)?;
+        let bootstrap_ref =
+            frozen_base_ref.unwrap_or_else(|| DEFAULT_FROZEN_BOOTSTRAP_REF.to_owned());
+        emit_merge_base_baseline(&repo_root, &bootstrap_ref)?;
     }
     Ok(())
 }
@@ -145,6 +177,7 @@ fn run() -> Result<(), String> {
 // ---------------------------------------------------------------------------
 
 /// The parsed `ratchet-policy.json` (the configurable comparison root, R0 policy-as-data).
+#[derive(Clone)]
 struct RatchetPolicy {
     base_ref: String,
     face_path: String,
@@ -178,53 +211,149 @@ fn parse_ratchet_policy(text: &str) -> Result<RatchetPolicy, String> {
     })
 }
 
+/// The narrow git seam the frozen-reference resolution needs. Implemented by the live git
+/// CLI ([`GitCliFrozenRefSource`]) and by a fake in tests — so the frozen-policy-wins
+/// property (a candidate-tree policy edit can never select the PR's own frozen reference)
+/// is pinned by an executable reproduction of the PR #698 review attack recipe.
+trait FrozenRefSource {
+    /// `git merge-base <base_ref> HEAD` (full hex revision id; hard error on failure).
+    fn merge_base(&self, base_ref: &str) -> Result<String, String>;
+    /// File content at `<revision>:<path>`; `Ok(None)` iff the path is absent there.
+    fn show_file(&self, revision: &str, path: &str) -> Result<Option<String>, String>;
+}
+
+struct GitCliFrozenRefSource<'a> {
+    repo_root: &'a Path,
+}
+
+impl FrozenRefSource for GitCliFrozenRefSource<'_> {
+    fn merge_base(&self, base_ref: &str) -> Result<String, String> {
+        git_merge_base(self.repo_root, base_ref)
+    }
+
+    fn show_file(&self, revision: &str, path: &str) -> Result<Option<String>, String> {
+        git_show_file(self.repo_root, revision, path)
+    }
+}
+
+/// `frozen_policy_source` value: policy facts read from the merge-base tree (normal path).
+const FROZEN_POLICY_SOURCE_MERGE_BASE: &str = "merge-base";
+/// `frozen_policy_source` value: policy absent at the merge-base (the PR introducing the
+/// ratchet) — candidate facts used, DECLARED in the provenance.
+const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap";
+
 /// Assemble the provenance-wrapped snapshot the firewall parses (`FrozenBaseline`).
 /// `face` is the gate-baseline face content at the merge-base, or `None` when the face
 /// does not exist there (repo bootstrap): the frozen reference is then EMPTY and declared
 /// as such, so every proposed key is growth until signed off — fail-closed, never
 /// fail-open.
 fn build_merge_base_baseline_snapshot(
-    policy: &RatchetPolicy,
+    frozen_policy: &RatchetPolicy,
+    frozen_policy_source: &str,
     merge_base: &str,
     face: Option<serde_json::Value>,
 ) -> serde_json::Value {
     let missing = face.is_none();
     json!({
-        "schema": "oya-ci/merge-base-baseline/v1",
-        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0551). The firewall's FROZEN reference: the gate-baseline face exactly as committed at `git merge-base <base_ref> HEAD`. Untracked + gitignored — it varies with the base branch position and is rematerialized by CI before gates consume it; it is NEVER a merge surface.",
-        "base_ref": policy.base_ref,
+        "schema": "oya-ci/merge-base-baseline/v2",
+        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app --merge-base-baseline (ADR-0551). The firewall's FROZEN reference: the gate-baseline face exactly as committed at `git merge-base <bootstrap> HEAD`, selected by the ratchet policy AS COMMITTED AT THAT MERGE-BASE (frozen-policy-wins, FRIC-1781280000 — a same-PR base_ref repoint cannot select this PR's own frozen reference). Untracked + gitignored — it varies with the base branch position and is rematerialized by CI before gates consume it; it is NEVER a merge surface.",
+        "base_ref": frozen_policy.base_ref,
         "merge_base": merge_base,
-        "face_path": policy.face_path,
+        "face_path": frozen_policy.face_path,
+        "frozen_policy_source": frozen_policy_source,
         "missing_at_merge_base": missing,
         "baseline": face.unwrap_or_else(|| json!({"gates": {}})),
     })
 }
 
-/// Materialize the frozen reference: policy -> merge-base -> face-at-revision -> snapshot.
-fn emit_merge_base_baseline(repo_root: &Path) -> Result<(), String> {
-    let policy_path = repo_root.join(RATCHET_POLICY_PATH);
-    let policy_text = std::fs::read_to_string(&policy_path)
-        .map_err(|e| format!("{}: {e}", policy_path.display()))?;
-    let policy = parse_ratchet_policy(&policy_text)?;
+/// Resolve the FROZEN reference under frozen-policy-wins (FRIC-1781280000):
+///
+/// 1. `merge_base = git merge-base <bootstrap_ref> HEAD` — the bootstrap is OUT-OF-BAND
+///    (CLI flag / compiled default), never a candidate-tree fact.
+/// 2. The ratchet policy is read AT the merge-base; the candidate copy is used only when
+///    the policy does not exist there (the PR introducing the ratchet — declared as
+///    `frozen_policy_source: "candidate-bootstrap"`).
+/// 3. The frozen policy's `base_ref` must AGREE with the bootstrap (fail-closed): a
+///    divergence means the merged policy and the CI invocation no longer name the same
+///    comparison root — repointing requires changing both, visibly.
+/// 4. The frozen face is `face_path`-at-merge-base, with `face_path` taken from the FROZEN
+///    policy.
+fn resolve_merge_base_baseline_snapshot(
+    source: &impl FrozenRefSource,
+    candidate_policy: &RatchetPolicy,
+    bootstrap_ref: &str,
+) -> Result<serde_json::Value, String> {
+    let merge_base = source.merge_base(bootstrap_ref)?;
 
-    let merge_base = git_merge_base(repo_root, &policy.base_ref)?;
-    let face = match git_show_file(repo_root, &merge_base, &policy.face_path)? {
+    let (frozen_policy, frozen_policy_source) =
+        match source.show_file(&merge_base, RATCHET_POLICY_PATH)? {
+            Some(text) => {
+                let policy = parse_ratchet_policy(&text)
+                    .map_err(|e| format!("{RATCHET_POLICY_PATH}@{merge_base}: {e}"))?;
+                (policy, FROZEN_POLICY_SOURCE_MERGE_BASE)
+            }
+            // Declared bootstrap path: the ratchet policy does not exist at the merge-base
+            // (the PR that introduces the ratchet). The candidate policy is all there is;
+            // the provenance DECLARES the fallback so it is auditable, and the bootstrap
+            // cross-check below still binds the comparison root out-of-band.
+            None => (
+                candidate_policy.clone(),
+                FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP,
+            ),
+        };
+
+    if frozen_policy.base_ref != bootstrap_ref {
+        return Err(format!(
+            "frozen ratchet policy base_ref {:?} (source: {frozen_policy_source}) disagrees \
+             with the out-of-band bootstrap ref {bootstrap_ref:?} — fail-closed. Repointing \
+             the comparison root requires updating BOTH the merged ratchet-policy.json and \
+             the CI invocation (--frozen-base-ref / DEFAULT_FROZEN_BOOTSTRAP_REF), never a \
+             same-PR policy edit (FRIC-1781280000 frozen-policy-wins).",
+            frozen_policy.base_ref
+        ));
+    }
+
+    let face = match source.show_file(&merge_base, &frozen_policy.face_path)? {
         Some(text) => Some(
             serde_json::from_str(&text)
-                .map_err(|e| format!("{}@{merge_base} parse: {e}", policy.face_path))?,
+                .map_err(|e| format!("{}@{merge_base} parse: {e}", frozen_policy.face_path))?,
         ),
         None => None,
     };
-    let missing = face.is_none();
-    let snapshot = build_merge_base_baseline_snapshot(&policy, &merge_base, face);
+    Ok(build_merge_base_baseline_snapshot(
+        &frozen_policy,
+        frozen_policy_source,
+        &merge_base,
+        face,
+    ))
+}
 
-    let out = repo_root.join(&policy.out_path);
+/// Materialize the frozen reference: bootstrap -> merge-base -> frozen policy -> frozen
+/// face -> snapshot. The CANDIDATE policy contributes only the local `out_path` (where the
+/// untracked snapshot is written) — never any fact that selects the frozen reference.
+fn emit_merge_base_baseline(repo_root: &Path, bootstrap_ref: &str) -> Result<(), String> {
+    let policy_path = repo_root.join(RATCHET_POLICY_PATH);
+    let policy_text = std::fs::read_to_string(&policy_path)
+        .map_err(|e| format!("{}: {e}", policy_path.display()))?;
+    let candidate_policy = parse_ratchet_policy(&policy_text)?;
+
+    let source = GitCliFrozenRefSource { repo_root };
+    let snapshot =
+        resolve_merge_base_baseline_snapshot(&source, &candidate_policy, bootstrap_ref)?;
+
+    let out = repo_root.join(&candidate_policy.out_path);
     let text = to_canonical_json(&snapshot).map_err(|e| format!("serialize snapshot: {e}"))?;
     std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
     eprintln!(
-        "oya-cloud-ci-scm-facts-emitter-app: frozen baseline {} @ merge-base {merge_base}{} -> {}",
-        policy.base_ref,
-        if missing { " (face missing at merge-base: EMPTY frozen reference)" } else { "" },
+        "oya-cloud-ci-scm-facts-emitter-app: frozen baseline {} @ merge-base {} (policy: {}{}) -> {}",
+        snapshot["base_ref"].as_str().unwrap_or("?"),
+        snapshot["merge_base"].as_str().unwrap_or("?"),
+        snapshot["frozen_policy_source"].as_str().unwrap_or("?"),
+        if snapshot["missing_at_merge_base"] == json!(true) {
+            "; face missing at merge-base: EMPTY frozen reference"
+        } else {
+            ""
+        },
         out.display()
     );
     Ok(())
@@ -651,15 +780,17 @@ mod tests {
         let face = json!({"gates": {"g": {"c": {"mode": "baseline-block-on-new", "keys": ["k"]}}}});
         let snapshot = build_merge_base_baseline_snapshot(
             &policy,
+            FROZEN_POLICY_SOURCE_MERGE_BASE,
             "d5d8be5d4121e91655d7ba361f63271c98c57a68",
             Some(face.clone()),
         );
-        assert_eq!(snapshot["schema"], "oya-ci/merge-base-baseline/v1");
+        assert_eq!(snapshot["schema"], "oya-ci/merge-base-baseline/v2");
         assert_eq!(snapshot["base_ref"], "origin/dev");
         assert_eq!(
             snapshot["merge_base"],
             "d5d8be5d4121e91655d7ba361f63271c98c57a68"
         );
+        assert_eq!(snapshot["frozen_policy_source"], "merge-base");
         assert_eq!(snapshot["missing_at_merge_base"], false);
         assert_eq!(snapshot["baseline"], face);
     }
@@ -671,10 +802,216 @@ mod tests {
         let policy = parse_ratchet_policy(POLICY_TEXT).unwrap();
         let snapshot = build_merge_base_baseline_snapshot(
             &policy,
+            FROZEN_POLICY_SOURCE_MERGE_BASE,
             "d5d8be5d4121e91655d7ba361f63271c98c57a68",
             None,
         );
         assert_eq!(snapshot["missing_at_merge_base"], true);
         assert_eq!(snapshot["baseline"], json!({"gates": {}}));
+    }
+
+    // -----------------------------------------------------------------------
+    // Frozen-policy-wins (FRIC-1781280000): the PR #698 review attack recipe,
+    // reproduced over the git seam.
+    // -----------------------------------------------------------------------
+
+    const BASE_SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const HEAD_SHA: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    const FACE_PATH: &str =
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json";
+
+    /// The repoint-attack repository shape: the base branch carries the honest policy +
+    /// face; HEAD carries the SAME-PR attack — `base_ref` repointed to `"HEAD"` AND the
+    /// settled (regenerated) face that absorbed a planted blocking-debt key.
+    struct RepointAttackRepo;
+
+    impl RepointAttackRepo {
+        fn base_policy() -> String {
+            POLICY_TEXT.to_owned()
+        }
+
+        fn attacker_policy() -> String {
+            POLICY_TEXT.replace("origin/dev", "HEAD")
+        }
+
+        fn base_face() -> serde_json::Value {
+            json!({"gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "baseline-block-on-new", "keys": ["pre-existing.rs"]}
+            }}})
+        }
+
+        fn attacked_face() -> serde_json::Value {
+            json!({"gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "baseline-block-on-new",
+                                 "keys": ["PLANTED-debt.rs", "pre-existing.rs"]}
+            }}})
+        }
+    }
+
+    impl FrozenRefSource for RepointAttackRepo {
+        fn merge_base(&self, base_ref: &str) -> Result<String, String> {
+            match base_ref {
+                "origin/dev" => Ok(BASE_SHA.to_owned()),
+                // merge-base(HEAD, HEAD) = HEAD — the attacker's fixpoint.
+                "HEAD" => Ok(HEAD_SHA.to_owned()),
+                other => Err(format!("unknown ref {other}")),
+            }
+        }
+
+        fn show_file(&self, revision: &str, path: &str) -> Result<Option<String>, String> {
+            let value = match (revision, path) {
+                (BASE_SHA, RATCHET_POLICY_PATH) => Some(Self::base_policy()),
+                (BASE_SHA, FACE_PATH) => Some(Self::base_face().to_string()),
+                (HEAD_SHA, RATCHET_POLICY_PATH) => Some(Self::attacker_policy()),
+                (HEAD_SHA, FACE_PATH) => Some(Self::attacked_face().to_string()),
+                _ => None,
+            };
+            Ok(value)
+        }
+    }
+
+    /// THE F1 RED PIN — the exact #698 review recipe: a same-PR `"base_ref": "HEAD"`
+    /// repoint + a planted blocking-debt key + the mandated settle regen. Under
+    /// frozen-policy-wins the candidate policy CANNOT select the frozen reference: the
+    /// out-of-band bootstrap locates the merge-base, the policy + face are read THERE, and
+    /// the firewall goes RED on both predicates.
+    #[test]
+    fn frozen_policy_wins_defeats_same_pr_base_ref_repoint() {
+        let candidate = parse_ratchet_policy(&RepointAttackRepo::attacker_policy()).unwrap();
+        assert_eq!(candidate.base_ref, "HEAD", "the attack edit is in the candidate tree");
+
+        let snapshot = resolve_merge_base_baseline_snapshot(
+            &RepointAttackRepo,
+            &candidate,
+            DEFAULT_FROZEN_BOOTSTRAP_REF,
+        )
+        .unwrap();
+
+        // The frozen point is the REAL merge-base, selected by the FROZEN policy — the
+        // candidate repoint changed nothing about this PR's own reference.
+        assert_eq!(snapshot["merge_base"], BASE_SHA);
+        assert_eq!(snapshot["base_ref"], "origin/dev");
+        assert_eq!(snapshot["frozen_policy_source"], "merge-base");
+        assert_eq!(snapshot["baseline"], RepointAttackRepo::base_face());
+
+        // End-to-end: the firewall over (frozen snapshot, attacked proposed/current) is
+        // RED on BOTH predicates — the planted key is growth AND a compare regression.
+        let frozen =
+            oya_cloud_ci_firewall_app::FrozenBaseline::from_value(&snapshot).unwrap();
+        let proposed = oya_cloud_ci_firewall_app::Baseline::from_value(
+            &RepointAttackRepo::attacked_face(),
+        );
+        let current = oya_cloud_ci_firewall_app::baseline_keys_map(&proposed);
+        let report = oya_cloud_ci_firewall_app::evaluate_firewall(
+            &frozen.baseline,
+            &proposed,
+            &current,
+            &oya_cloud_ci_firewall_app::SignOff::default(),
+        );
+        assert!(
+            report
+                .ratchet_growth
+                .iter()
+                .any(|(_, code, key)| code == "unjustified" && key == "PLANTED-debt.rs"),
+            "the planted key must be ratchet growth vs the frozen merge-base: {:?}",
+            report.ratchet_growth
+        );
+        assert!(
+            report.codes.iter().any(|r| r.code == "unjustified"
+                && r.regressions.contains("PLANTED-debt.rs")
+                && r.fails()),
+            "the planted key must be a failing compare-mode regression"
+        );
+        assert!(!report.is_green(), "the repoint attack must go RED at head");
+
+        // THE FOIL — why the bootstrap must be OUT-OF-BAND: trusting the candidate
+        // policy's base_ref (the pre-hardening behavior) converges to the attacker's
+        // fixpoint (merge-base(HEAD, HEAD) = HEAD), the "frozen" face is the PR's own
+        // settled copy, and the laundering is structurally invisible (GREEN).
+        let foil_snapshot =
+            resolve_merge_base_baseline_snapshot(&RepointAttackRepo, &candidate, "HEAD")
+                .unwrap();
+        assert_eq!(foil_snapshot["merge_base"], HEAD_SHA);
+        assert_eq!(foil_snapshot["baseline"], RepointAttackRepo::attacked_face());
+        let foil_frozen =
+            oya_cloud_ci_firewall_app::FrozenBaseline::from_value(&foil_snapshot).unwrap();
+        let foil_report = oya_cloud_ci_firewall_app::evaluate_firewall(
+            &foil_frozen.baseline,
+            &proposed,
+            &current,
+            &oya_cloud_ci_firewall_app::SignOff::default(),
+        );
+        assert!(
+            foil_report.is_green(),
+            "FOIL: a candidate-selected reference cannot see its own laundering — if this \
+             fails, the foil no longer demonstrates the hole and the pin needs re-derivation"
+        );
+    }
+
+    /// A FRESH attack variant: the policy at the merge-base is honest, but the bootstrap
+    /// invocation and the merged policy disagree (e.g. a half-landed repoint, or an
+    /// attacker-controlled invocation naming a ref whose merge-base policy says
+    /// otherwise). Fail-closed: never proceed with an ambiguous comparison root.
+    #[test]
+    fn frozen_policy_base_ref_must_agree_with_bootstrap() {
+        struct DivergentRepo;
+        impl FrozenRefSource for DivergentRepo {
+            fn merge_base(&self, _base_ref: &str) -> Result<String, String> {
+                Ok(BASE_SHA.to_owned())
+            }
+            fn show_file(&self, _revision: &str, path: &str) -> Result<Option<String>, String> {
+                Ok((path == RATCHET_POLICY_PATH).then(RepointAttackRepo::base_policy))
+            }
+        }
+        let candidate = parse_ratchet_policy(POLICY_TEXT).unwrap();
+        let err =
+            resolve_merge_base_baseline_snapshot(&DivergentRepo, &candidate, "origin/main")
+                .unwrap_err();
+        assert!(err.contains("disagrees"), "{err}");
+        assert!(err.contains("FRIC-1781280000"), "{err}");
+    }
+
+    /// The DECLARED bootstrap path: the policy does not exist at the merge-base (the PR
+    /// introducing the ratchet). The candidate policy is used, the provenance declares it,
+    /// and the bootstrap cross-check still binds the comparison root out-of-band.
+    #[test]
+    fn policy_missing_at_merge_base_falls_back_to_declared_candidate_bootstrap() {
+        struct PreRatchetRepo;
+        impl FrozenRefSource for PreRatchetRepo {
+            fn merge_base(&self, base_ref: &str) -> Result<String, String> {
+                if base_ref == "origin/dev" {
+                    Ok(BASE_SHA.to_owned())
+                } else {
+                    Err(format!("unknown ref {base_ref}"))
+                }
+            }
+            fn show_file(&self, _revision: &str, _path: &str) -> Result<Option<String>, String> {
+                Ok(None) // neither the policy nor the face exists at the merge-base
+            }
+        }
+        let candidate = parse_ratchet_policy(POLICY_TEXT).unwrap();
+        let snapshot = resolve_merge_base_baseline_snapshot(
+            &PreRatchetRepo,
+            &candidate,
+            DEFAULT_FROZEN_BOOTSTRAP_REF,
+        )
+        .unwrap();
+        assert_eq!(snapshot["frozen_policy_source"], "candidate-bootstrap");
+        assert_eq!(snapshot["missing_at_merge_base"], true);
+        assert_eq!(snapshot["baseline"], json!({"gates": {}}));
+
+        // The fallback still refuses a candidate policy that disagrees with the bootstrap:
+        // an attacker cannot combine "delete the policy from history" with a repointed
+        // candidate copy.
+        let attacker = parse_ratchet_policy(&RepointAttackRepo::attacker_policy()).unwrap();
+        assert!(
+            resolve_merge_base_baseline_snapshot(
+                &PreRatchetRepo,
+                &attacker,
+                DEFAULT_FROZEN_BOOTSTRAP_REF,
+            )
+            .is_err(),
+            "candidate-bootstrap fallback must still bind base_ref to the bootstrap"
+        );
     }
 }

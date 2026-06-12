@@ -209,6 +209,14 @@ fn firewall_fixtures_execute_red_green_cases() {
             report.ratchet_growth
         );
 
+        let expected_inert = fixture["expected_inert_signoff"].as_u64().unwrap_or(0) as usize;
+        assert_eq!(
+            report.inert_signoff.len(),
+            expected_inert,
+            "{label}: inert_signoff count mismatch (inert = {:?})",
+            report.inert_signoff
+        );
+
         let expected_failing: BTreeSet<String> = fixture["expected_failing_codes"]
             .as_array()
             .map(|a| {
@@ -299,6 +307,10 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         "  ratchet_growth (un-signed-off blocking baseline additions vs merge-base): {}",
         report.ratchet_growth.len()
     );
+    eprintln!(
+        "  inert_signoff (door entries exempting nothing — retire them): {}",
+        report.inert_signoff.len()
+    );
 
     let failing: Vec<&str> = report
         .codes
@@ -330,6 +342,14 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         report.ratchet_growth
     );
     assert!(
+        report.inert_signoff.is_empty(),
+        "GO-LIVE: every sign-off door entry must exempt something that exists (frozen, \
+         current, or proposed) — an inert entry is a standing re-introduction ticket. \
+         Remediation: retire the entry (move it to _sign_off_retirements in \
+         gate-baseline.signoff.json). Inert: {:?}",
+        report.inert_signoff
+    );
+    assert!(
         report.is_green(),
         "firewall must be GREEN with the merge-base frozen reference"
     );
@@ -344,7 +364,10 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
 
 /// The frozen snapshot's provenance must agree with the committed ratchet policy: same
 /// configurable base_ref (R0 policy-as-data), a full revision id, and the exact face path —
-/// the audit trail naming WHICH frozen point the firewall compared against.
+/// the audit trail naming WHICH frozen point the firewall compared against. Under
+/// frozen-policy-wins (FRIC-1781280000) the snapshot's facts come from the MERGE-BASE
+/// policy, so this doubles as the live pin that the candidate and frozen policies agree —
+/// any divergence (e.g. a same-PR repoint) goes RED here.
 #[test]
 fn frozen_snapshot_provenance_matches_ratchet_policy() {
     let root = repo_root();
@@ -353,19 +376,45 @@ fn frozen_snapshot_provenance_matches_ratchet_policy() {
     assert_eq!(
         frozen.base_ref,
         policy["base_ref"].as_str().expect("policy base_ref"),
-        "snapshot base_ref must come from ratchet-policy.json"
+        "snapshot base_ref (the FROZEN merge-base policy's) must agree with the candidate \
+         ratchet-policy.json"
     );
     assert_eq!(frozen.merge_base.len(), 40, "full hex revision id");
+    assert_eq!(
+        frozen.frozen_policy_source, "merge-base",
+        "this repo's ratchet policy exists at the merge-base (merged in PR #698): the \
+         frozen-policy-wins path must be the one actually exercised, never the \
+         candidate-bootstrap fallback"
+    );
     let snapshot = load_json(&frozen_snapshot_path(&root));
     assert_eq!(
         snapshot["face_path"],
         policy["frozen_reference"]["face_path"],
-        "snapshot must record the policy face path"
+        "snapshot must record the (frozen) policy face path"
     );
     assert!(
         !frozen.missing_at_merge_base,
         "this repo's gate-baseline face exists at the merge-base; a missing-face snapshot \
          here means the emitter extracted the wrong path"
+    );
+}
+
+/// THE F1 PIN (defense-in-depth on top of frozen-policy-wins, never instead of it): the
+/// committed comparison root is `origin/dev`. A same-PR `base_ref` repoint can no longer
+/// select the PR's own frozen reference (the emitter reads the frozen-side policy from the
+/// merge-base tree), but it could still change post-merge behavior silently — this pin
+/// makes any repoint require a visible edit to THIS test as well.
+#[test]
+fn ratchet_policy_base_ref_is_pinned_to_origin_dev() {
+    let root = repo_root();
+    let policy = load_json(&ratchet_policy_path(&root));
+    assert_eq!(
+        policy["base_ref"], "origin/dev",
+        "ratchet-policy.json base_ref repointed: the frozen comparison root for this \
+         repository is origin/dev (ADR-0551). If this repoint is intentional it requires \
+         founder sign-off, an update to the out-of-band bootstrap (--frozen-base-ref / \
+         DEFAULT_FROZEN_BOOTSTRAP_REF in the scm-facts emitter), and an edit to this pin \
+         (FRIC-1781280000)."
     );
 }
 

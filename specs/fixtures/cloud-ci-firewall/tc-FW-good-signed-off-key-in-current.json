@@ -3,7 +3,8 @@
   "expected_firewall": "GREEN",
   "expected_failing_codes": [],
   "expected_ratchet_growth": 0,
-  "description": "The one-regen admission window: a founder-signed addition exists in the LIVE tree (current) and in the regenerated baseline (proposed) while the merge-base frozen reference predates it. The sign-off door must exempt the key on BOTH predicates — it is reported as signed_off (not a compare-mode regression) and exempt from ratchet growth. Once the admitting PR merges, the key lands in the merge-base reference and the door entry becomes inert/retirable.",
+  "expected_inert_signoff": 0,
+  "description": "The one-regen admission window: a founder-signed addition exists in the LIVE tree (current) and in the regenerated baseline (proposed) while the merge-base frozen reference predates it. The sign-off door must exempt the key on BOTH predicates — it is reported as signed_off (not a compare-mode regression) and exempt from ratchet growth. Once the admitting PR merges, the key lands in the merge-base reference and the door entry becomes retirable; the inert-entry detector (FRIC-1781280001) must TOLERATE this LIVE in-flight entry (expected_inert_signoff 0) — it fires only on entries whose key exists nowhere.",
   "merge_base_baseline": {
     "gates": {
       "cloud-ci-total-accounting": {

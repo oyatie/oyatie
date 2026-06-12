@@ -27,7 +27,6 @@
   "_sign_off_additions": {
     "cloud-ci-total-accounting": {
       "unjustified": [
-        ".github/workflows/oya-ci-required.yml",
         "HANDOFF.md",
         "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
         "docs/standards/image-discipline.md",
@@ -161,6 +160,16 @@
         "ADR-0533",
         "ADR-0534",
         "ADR-0535"
+      ]
+    },
+    {
+      "date": "2026-06-11",
+      "retired_by": "agent/firewall-policy-hardening",
+      "rationale": "Inert entry flagged by the FRIC-1781280001 inert-door detector (ADR-0551 hardening): the key is absent from the merge-base frozen face and from the live corpus (the workflow became ADR-justified after the go-live bootstrap admission), so the lingering entry was a standing re-introduction ticket for an unjustified oya-ci-required.yml. The unowned/unreachable admissions for the same path remain LIVE (their keys are still in the frozen face).",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unjustified",
+      "keys": [
+        ".github/workflows/oya-ci-required.yml"
       ]
     }
   ]

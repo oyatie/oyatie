@@ -124,6 +124,40 @@ executable FOIL (PR-local reference stays green on laundering; the frozen refere
 red), and `frozen_snapshot_provenance_matches_ratchet_policy` audits WHICH frozen point the
 firewall compared against.
 
+Hardening (2026-06-11, FRIC-1781280000 + FRIC-1781280001 — closes the two acknowledged
+trust gaps from the PR #698 independent review):
+
+- **Frozen-policy-wins.** The policy facts that SELECT the frozen reference (`base_ref`,
+  `face_path`) are read from the merge-base tree by the emitter, located via an
+  OUT-OF-BAND bootstrap ref (`--frozen-base-ref`, default the compiled
+  `DEFAULT_FROZEN_BOOTSTRAP_REF = origin/dev`) — never from the candidate tree, because any
+  candidate-supplied hint converges to an attacker-chosen fixpoint (`"base_ref": "HEAD"` ⇒
+  merge-base(HEAD, HEAD) = HEAD ⇒ frozen == proposed ⇒ complete self-laundering). The
+  merge-base policy's `base_ref` must agree with the bootstrap (fail-closed); a policy
+  absent at the merge-base is the DECLARED `candidate-bootstrap` path. The snapshot schema
+  is `oya-ci/merge-base-baseline/v2` and must declare `frozen_policy_source`; the firewall
+  parser rejects undeclared sources. Prow precedent: OWNERS files are read from the base
+  branch, never the PR head. RED pin: `frozen_policy_wins_defeats_same_pr_base_ref_repoint`
+  (emitter unit corpus) reproduces the reviewer's exact recipe — same-PR base_ref repoint +
+  planted blocking debt + settle — end-to-end through both firewall predicates, with the
+  pre-hardening behavior kept as the executable FOIL; the divergence and bootstrap-fallback
+  seams are pinned by `frozen_policy_base_ref_must_agree_with_bootstrap` and
+  `policy_missing_at_merge_base_falls_back_to_declared_candidate_bootstrap`. Defense in
+  depth: `ratchet_policy_base_ref_is_pinned_to_origin_dev` (firewall gate test) makes any
+  repoint of the committed policy require a visible test edit as well.
+- **Inert-door detector.** "Exempt for one regen" is now mechanical: a sign-off entry whose
+  key is absent from the merge-base frozen face AND from current AND from proposed exempts
+  nothing — it is a standing re-introduction ticket for that exact debt key — and FAILS the
+  firewall with the remediation "retire the entry" (`inert_signoff_entries`,
+  `FirewallReport::inert_signoff`). The in-flight admission (key absent from frozen,
+  present in current/proposed) stays tolerated; a key present in the frozen face is a
+  harmless no-op that is forced retired the moment the debt is fixed. Fixtures both ways:
+  `specs/fixtures/cloud-ci-firewall/tc-FW-bad-inert-signoff-entry.json` (RED) and the
+  extended `tc-FW-good-signed-off-key-in-current.json` (LIVE entry tolerated). First live
+  catch: the lingering go-live `unjustified` admission for
+  `.github/workflows/oya-ci-required.yml` was inert (the workflow became ADR-justified) and
+  is retired in the same change.
+
 ## Consequences
 
 - The settle protocol is unchanged for honest changes: a settled PR only ever shrinks the
@@ -141,5 +175,9 @@ firewall compared against.
   remain PR-editable tracked files — re-pointing `base_ref` (or adding a signoff entry) in
   the same PR is a REVIEW-VISIBLE policy edit, the same class as editing the workflow or
   the gate code itself. This decision closes the structurally INVISIBLE laundering channel
-  (the mandated regen); a frozen-policy-wins ratchet (reading the policy itself from the
-  merge-base, with a declared bootstrap path) is a candidate follow-up hardening.
+  (the mandated regen). The frozen-policy-wins follow-up named here is now IMPLEMENTED
+  (see Verification → Hardening): a candidate policy edit can change only FUTURE behavior
+  post-merge, never the PR's own frozen reference, and stale signoff entries mechanically
+  expire via the inert-door detector. The residual review-visible surfaces are the emitter
+  code, the gate code, the CI invocation (the out-of-band bootstrap), and the committed
+  pin test — all workflow-class edits.
