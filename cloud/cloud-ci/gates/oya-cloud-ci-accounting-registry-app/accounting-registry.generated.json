@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18340,
-    "source_inputs_digest": "fnv1a64:e90bd4a7cfa3e52e"
+    "source_inputs_digest": "fnv1a64:972013e11f832ba5"
   },
   "rows": [
     {
@@ -8310,7 +8310,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "c5a508a68d550131858f104d42f5bbd0e99c16d1",
+      "last_touch_commit": "4f46b1e77f55dab99fc0572f34a648af03b16c6b",
       "owner": null,
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app/src/lib.rs",
       "reachable_from": [
@@ -80740,7 +80740,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0545",
-      "last_touch_commit": "e3da49722e835d502b96568271e38dc428b58d17",
+      "last_touch_commit": "4f46b1e77f55dab99fc0572f34a648af03b16c6b",
       "owner": null,
       "path": "docs/decisions/ADR-0545-embedded-asset-hermeticity-gate.md",
       "reachable_from": [],
@@ -80782,7 +80782,7 @@
       },
       "dup_of": null,
       "justification_ref": "ADR-0547",
-      "last_touch_commit": "c18da6e085c9e7a5ac4a53e954af09a4b42e7519",
+      "last_touch_commit": "4f46b1e77f55dab99fc0572f34a648af03b16c6b",
       "owner": null,
       "path": "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md",
       "reachable_from": [],
@@ -134918,7 +134918,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "2210f36f459fba6c1532017ebd9d2fc192498b79",
+      "last_touch_commit": "4f46b1e77f55dab99fc0572f34a648af03b16c6b",
       "owner": null,
       "path": "libs/oya-buck-syntax-kernel/src/lexer.rs",
       "reachable_from": [
@@ -134941,7 +134941,7 @@
       },
       "dup_of": null,
       "justification_ref": null,
-      "last_touch_commit": "8972563e5bca1496bbf93f20a66746695a91ad98",
+      "last_touch_commit": "4f46b1e77f55dab99fc0572f34a648af03b16c6b",
       "owner": null,
       "path": "libs/oya-buck-syntax-kernel/src/lib.rs",
       "reachable_from": [
