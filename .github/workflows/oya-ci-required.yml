@@ -331,6 +331,110 @@ jobs:
           chmod +x infra/ci/buck2-affected-gate.sh
           BUCK2=buck2 infra/ci/buck2-affected-gate.sh "origin/${{ github.base_ref || 'dev' }}"
 
+  # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
+  #    channel: the buck2 lane above is scoped to //cloud/cloud-ci/..., so code anywhere else
+  #    (oya/*, libs/*, cloud/* services) could merge broken — proven live by PR #651 head
+  #    cf16525 (E0433 x3 in oya/identity, buck2 lane green, run 27288019517) and by
+  #    //oya/ci-webhook-gateway carrying an E0428 on dev itself. This lane is the BINDING
+  #    Rust successor of the advisory infra/ci/buck2-affected-gate.sh step (G011): on
+  #    pull_request it derives the merge-base diff's owner()/rdeps() cone and builds+tests it;
+  #    any derivation uncertainty or escape-trigger path class (BUCK macros, toolchains,
+  #    third-party, .buckconfig) escalates FAIL-CLOSED to the full workspace — never skips.
+  #    On merge_group/push/dispatch it runs the full workspace (ADR-0515 Tide admission tier).
+  #    On a PR, the FULL tier is a BUILD-HEALTH RATCHET (ADR-0554 round-3; ADR-0551 merge-base
+  #    frozen pattern): it grandfathers targets already failing at the merge-base and blocks only
+  #    REGRESSIONS, so a BUCK-touching PR is not held hostage to pre-existing dev build debt (no
+  #    flag-day requirement). Pack-shaped per ADR-0548 R0: all repo facts live in affected-set-policy.json.
+  gate-affected-set:
+    name: "gate · affected-set (ADR-0554, binding workspace coverage)"
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+          # Full history: the merge-base diff anchor + the materialization boundary both
+          # derive from git history; a shallow checkout collapses them (PM1).
+          fetch-depth: 0
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
+      # racing a cold rustup install collide on shared download state.
+      - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
+        run: |
+          set -euo pipefail
+          rustup show active-toolchain || rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
+          rustup component add rustfmt clippy --toolchain 1.95.0
+          rustc --version
+          cargo --version
+      # Same stable per-dependency-set cache key as the buck2 lane (shared restore, no
+      # per-commit bloat; see the cache rationale comment above).
+      - name: Cache buck-out
+        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: buck-out
+          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          restore-keys: |
+            buck-out-${{ runner.os }}-
+      - name: Materialize cloud-ci generated faces (out-of-graph boundary)
+        run: infra/ci/materialize-cloud-ci-generated-faces.sh .
+      - name: Fetch base ref for the merge-base anchor
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+        run: git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+      # ── BUILD-HEALTH BASELINE (ADR-0554 round-3; ADR-0551 merge-base frozen pattern). On a
+      #    pull_request, materialize the MERGE-BASE build-health baseline OUT-OF-BAND: check the
+      #    merge-base commit out into a SEPARATE git worktree (never the candidate tree — the
+      #    #698 F1 laundering lesson) and run the full keep-going build there, capturing each
+      #    target's pass/fail into a build-report. The affected-set FULL tier then grandfathers
+      #    targets already failing at the merge-base and blocks only REGRESSIONS. Skipped for
+      #    push/merge_group/dispatch (the admission tier is a hard full build — no grandfathering).
+      - name: Materialize merge-base build-health baseline (out-of-band)
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+        run: |
+          set -euo pipefail
+          merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
+          echo "build-health baseline: merge-base=${merge_base}"
+          # Separate worktree at the merge-base — the baseline is computed from the merge-base
+          # COMMITTED tree, structurally not the PR candidate tree, so a PR cannot grow its own
+          # baseline to launder a regression.
+          base_wt="${RUNNER_TEMP}/oya-build-health-merge-base"
+          rm -rf "${base_wt}"
+          git worktree add --detach "${base_wt}" "${merge_base}"
+          # Build the whole merge-base workspace keep-going; record per-target status. The build
+          # is EXPECTED to be non-zero (dev carries pre-existing breakage) — that is the baseline,
+          # not a failure, so we never propagate its exit code.
+          ( cd "${base_wt}" && buck2 build //... --keep-going \
+              --build-report "${RUNNER_TEMP}/build-health-baseline.json" ) || true
+          git worktree remove --force "${base_wt}"
+          test -s "${RUNNER_TEMP}/build-health-baseline.json" \
+            || { echo "build-health: FATAL empty merge-base baseline report"; exit 1; }
+      - name: Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+        run: |
+          set -euo pipefail
+          gate_bin="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
+            # escalation runs the build-health ratchet against the merge-base baseline.
+            "${gate_bin}" \
+              --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
+              --base "origin/${BASE_REF}" --mode auto \
+              --baseline-report "${RUNNER_TEMP}/build-health-baseline.json"
+          else
+            # Admission/integration tier (merge_group/push/dispatch): hard full build+test — the
+            # integration tip MUST be green, no grandfathering.
+            "${gate_bin}" \
+              --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
+              --base "origin/${BASE_REF}" --mode full
+          fi
+
   # ── APP-SHELL GENERATED CLIENT LANE. Generated TypeScript clients are intentionally ignored
   #    in git, so clean checkout CI must prove they regenerate from canonical OpenAPI sources
   #    before the single required fan-in can go green. This is a bridge lane until the native
@@ -373,6 +477,7 @@ jobs:
       - gate-cloud-ci-firewall  # bespoke: baseline ratchet + gate_registration meta-test
       - generated-output-diff-policy # generated outputs are never PR merge surfaces
       - buck2                   # hermetic buck2 build + affected gate tests (alongside cargo)
+      - gate-affected-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
       - app-shell-codegen       # ignored generated app-shell clients regenerate from canonical contracts
     steps:
       - name: Fan-in verdict (green IFF every gate lane is green)
@@ -384,6 +489,7 @@ jobs:
           echo "  cloud-ci-firewall = ${{ needs.gate-cloud-ci-firewall.result }}"
           echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
           echo "  buck2             = ${{ needs.buck2.result }}"
+          echo "  affected-set      = ${{ needs.gate-affected-set.result }}"
           echo "  app-shell-codegen = ${{ needs.app-shell-codegen.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
@@ -393,6 +499,7 @@ jobs:
             && [ "${{ needs.gate-cloud-ci-firewall.result }}" = "success" ] \
             && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
             && [ "${{ needs.buck2.result }}" = "success" ] \
+            && [ "${{ needs.gate-affected-set.result }}" = "success" ] \
             && [ "${{ needs.app-shell-codegen.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0
