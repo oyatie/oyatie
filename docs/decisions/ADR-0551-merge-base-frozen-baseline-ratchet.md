@@ -72,8 +72,9 @@ Two in-tree comments already named this hole as the "merge-base ratchet" follow-
    sanctioned out-of-graph git boundary (ADR-0515 D3, ADR-0526); with
    `--merge-base-baseline` it computes the merge-base, extracts the face at that revision,
    and writes the provenance-wrapped snapshot
-   (`schema oya-ci/merge-base-baseline/v1`: base_ref, merge_base, face_path,
-   missing_at_merge_base, baseline) to
+   (`schema oya-ci/merge-base-baseline/v2`: base_ref, merge_base, face_path,
+   frozen_policy_source, missing_at_merge_base, baseline — see Verification → Hardening for
+   the v2 frozen-policy-wins fields) to
    `cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json`.
    The snapshot is untracked and gitignored: it varies with the base branch position, so it
    can never be a committed face; its `.generated.json` suffix makes any force-add a
