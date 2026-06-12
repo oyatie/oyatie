@@ -107,12 +107,21 @@ fn regenerate_scm_facts(root: &Path) -> String {
         "oya-ci-scm-facts-regen-{}.json",
         std::process::id()
     ));
+    // Route the volatile snapshot to a temp path too (ADR-0552): this regeneration exists
+    // only to byte-diff the COMMITTED stable face — a test action must never write the
+    // checkout's materialized scm-volatile-facts snapshot.
+    let volatile_out = std::env::temp_dir().join(format!(
+        "oya-ci-scm-volatile-facts-regen-{}.json",
+        std::process::id()
+    ));
     let status = if let Ok(bin) = std::env::var("OYA_CI_EMITTER_BIN") {
         Command::new(resolve_bin(root, &bin))
             .args(["--repo-root"])
             .arg(root)
             .args(["--out"])
             .arg(&out)
+            .args(["--volatile-out"])
+            .arg(&volatile_out)
             .current_dir(root)
             .status()
             .expect("run emitter binary")
@@ -129,6 +138,8 @@ fn regenerate_scm_facts(root: &Path) -> String {
             .arg(root)
             .args(["--out"])
             .arg(&out)
+            .args(["--volatile-out"])
+            .arg(&volatile_out)
             .current_dir(root)
             .status()
             .expect("cargo run emitter")
@@ -136,6 +147,7 @@ fn regenerate_scm_facts(root: &Path) -> String {
     assert!(status.success(), "scm-facts emitter failed");
     let bytes = fs::read_to_string(&out).expect("read regenerated scm-facts");
     let _ = fs::remove_file(&out);
+    let _ = fs::remove_file(&volatile_out);
     bytes
 }
 

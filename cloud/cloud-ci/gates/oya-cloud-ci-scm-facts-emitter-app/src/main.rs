@@ -7,15 +7,28 @@
 //! producer and every gate `rust_test` then consume that committed face as a DECLARED input, so
 //! no buck2 action ever calls git (OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5, Option C).
 //!
-//! The four git calls below are moved VERBATIM out of the producer's old `git_*` helpers so the
+//! The git calls below are moved VERBATIM out of the producer's old `git_*` helpers so the
 //! facts are bit-for-bit what the live git calls produced — the make-or-break byte-parity
 //! guarantee: a producer reading this face regenerates the six faces byte-identically.
 //!
+//! STABLE vs VOLATILE facts (ADR-0552, fixes FRIC-1781234047). The COMMITTED face
+//! (`scm-facts.generated.json`, schema v2) carries ONLY tree-derived stable facts
+//! (`tracked_paths`): a pure function of the committed TREE, so a squash-merge (which
+//! rewrites commit ids but preserves the tree) can never un-settle it. The HISTORY-derived
+//! volatile facts (per-path `last_touch_commit`, `commit_author_ts_secs`, the deterministic
+//! `head_time_secs` aging anchor) move to the UNTRACKED, gitignored, CI-rematerialized
+//! `scm-volatile-facts.generated.json` beside this crate — the same materialized-snapshot
+//! pattern as the ADR-0551 merge-base baseline. Precedent: Bazel splits
+//! `volatile-status.txt` from `stable-status.txt` so stamp data never invalidates hermetic
+//! action keys. Volatile facts are NEVER a merge surface and NEVER byte-compared.
+//!
 //! Usage:
-//!   oya-cloud-ci-scm-facts-emitter-app [--repo-root <path>] [--out <path>] [--merge-base-baseline]
+//!   oya-cloud-ci-scm-facts-emitter-app [--repo-root <path>] [--out <path>]
+//!       [--volatile-out <path>] [--merge-base-baseline]
 //!
 //! Default `--repo-root` is discovered up-tree (the dir holding `specs/root-hub-pointers.json`),
-//! default `--out` is `<repo-root>/cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json`.
+//! default `--out` is `<repo-root>/cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json`,
+//! default `--volatile-out` is `<repo-root>/`[`VOLATILE_FACTS_PATH`].
 //!
 //! With `--merge-base-baseline` the emitter ALSO materializes the firewall's frozen
 //! reference (ADR-0551, fixes FRIC-1781112000): it reads `ratchet-policy.json` (DATA: the
@@ -38,7 +51,17 @@ use oya_cloud_ci_accounting_registry_app::to_canonical_json;
 use serde_json::json;
 
 /// The scm-facts face schema id — bumped only on a breaking shape change.
-const SCHEMA: &str = "oya-ci/scm-facts/v1";
+/// v2 (ADR-0552): history-volatile fields (`last_touch_commit`, `commit_author_ts_secs`,
+/// `head_time_secs`) left the committed face for the volatile-facts snapshot.
+const SCHEMA: &str = "oya-ci/scm-facts/v2";
+
+/// The volatile-facts snapshot schema id (history-derived facts; never committed).
+const VOLATILE_SCHEMA: &str = "oya-ci/scm-volatile-facts/v1";
+
+/// The canonical repo-relative path of the UNTRACKED, gitignored volatile-facts snapshot.
+/// Consumers (the staleness gate) read it from here; CI rematerializes it before gates run.
+const VOLATILE_FACTS_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/scm-volatile-facts.generated.json";
 
 fn main() {
     if let Err(error) = run() {
@@ -54,6 +77,7 @@ fn run() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let mut repo_root: Option<PathBuf> = None;
     let mut out: Option<PathBuf> = None;
+    let mut volatile_out: Option<PathBuf> = None;
     let mut merge_base_baseline = false;
 
     let mut i = 0;
@@ -66,6 +90,10 @@ fn run() -> Result<(), String> {
             "--out" => {
                 i += 1;
                 out = args.get(i).map(PathBuf::from);
+            }
+            "--volatile-out" => {
+                i += 1;
+                volatile_out = args.get(i).map(PathBuf::from);
             }
             "--merge-base-baseline" => {
                 merge_base_baseline = true;
@@ -84,19 +112,26 @@ fn run() -> Result<(), String> {
             "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
         )
     });
+    let volatile_out = volatile_out.unwrap_or_else(|| repo_root.join(VOLATILE_FACTS_PATH));
 
     let source = GitCliScmFactsSource::new(repo_root.clone());
     let emission = emit_scm_facts(&source)?;
 
-    // Build the face as a serde_json Value with BTreeMap-backed maps so the on-disk key order
+    // Build the faces as serde_json Values with BTreeMap-backed maps so the on-disk key order
     // is the canonical sorted order, then serialize through the producer's exact canonicalizer
-    // (to_string_pretty + trailing newline).
+    // (to_string_pretty + trailing newline). The stable face is the committed merge surface;
+    // the volatile snapshot is untracked + gitignored (ADR-0552) and never byte-compared.
     let text = to_canonical_json(&emission.value).map_err(|e| format!("serialize: {e}"))?;
     std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
+    let volatile_text =
+        to_canonical_json(&emission.volatile).map_err(|e| format!("serialize volatile: {e}"))?;
+    std::fs::write(&volatile_out, &volatile_text)
+        .map_err(|e| format!("{}: {e}", volatile_out.display()))?;
     eprintln!(
-        "oya-cloud-ci-scm-facts-emitter-app: {} tracked paths -> {}",
+        "oya-cloud-ci-scm-facts-emitter-app: {} tracked paths -> {} (volatile facts -> {})",
         emission.tracked_paths_len,
-        out.display()
+        out.display(),
+        volatile_out.display()
     );
 
     if merge_base_baseline {
@@ -294,6 +329,7 @@ impl ScmFactsSource for GitCliScmFactsSource {
 
 struct ScmFactsEmission {
     value: serde_json::Value,
+    volatile: serde_json::Value,
     tracked_paths_len: usize,
 }
 
@@ -301,27 +337,29 @@ fn emit_scm_facts(source: &impl ScmFactsSource) -> Result<ScmFactsEmission, Stri
     let tracked_paths = source.tracked_paths()?;
     let tracked_paths_len = tracked_paths.len();
     let tracked_path_set: std::collections::BTreeSet<&String> = tracked_paths.iter().collect();
+    // CONVERGENCE PIN (FRIC-1781234047 charter): generated-class paths are excluded from
+    // last_touch AT THE EMISSION SEAM, regardless of which ScmFactsSource implementation
+    // supplied the map (the git walk already filters; this makes the invariant hold for any
+    // future bespoke SCM source too). A generated face's "last touch" is self-referential —
+    // the settle commit that writes it — so admitting it would make the volatile snapshot
+    // churn on every settle and the faces-only settle commit would never be a fixpoint.
     let last_touch_commit: BTreeMap<String, String> = source
         .last_touch()?
         .into_iter()
-        .filter(|(path, _)| tracked_path_set.contains(path))
+        .filter(|(path, _)| tracked_path_set.contains(path) && !is_generated_class(path))
         .collect();
     let all_commit_ts = source.revision_author_timestamps()?;
 
-    // CONVERGENCE: scm-facts must be a pure function of the COMMITTED TREE STATE, never of which
-    // commit is currently HEAD — otherwise every commit (which advances HEAD and appends a new
-    // commit timestamp) would churn scm-facts forever (no fixpoint). So:
-    //   - `commit_author_ts_secs` keeps ONLY the timestamps of the commits that are some path's
-    //     last-touch (the only ones the producer's staleness aging ever looks up). The unused
-    //     ~half of full history is dropped — it served no face and only tracked HEAD growth.
-    //   - `head_time_secs` (the deterministic "now" for aging) is the MAX last-touch timestamp,
-    //     a tree-content function equal to the live HEAD time whenever HEAD is itself a
-    //     last-touch, and STABLE across HEAD-only-advancing commits (e.g. a faces settle that
-    //     touches only generated-class files). This reproduces today's faces byte-for-byte.
-    //   - `head_commit` is dropped: the producer never reads it and it tracks the moving HEAD.
-    // last_touch is constrained to the current tracked-path universe and excludes generated-class
-    // paths (see `git_last_touch`), so deleted/renamed historical paths cannot leak through the
-    // stable scm-facts contract and the re-run is byte-identical.
+    // STABLE vs VOLATILE (ADR-0552). The COMMITTED face is a pure function of the committed
+    // TREE STATE — `tracked_paths` only — so neither HEAD advancement, nor a faces-only
+    // settle commit, nor a squash-merge (which rewrites every lane commit id but preserves
+    // the tree) can change its bytes. Everything HISTORY-derived lives in the volatile
+    // snapshot instead:
+    //   - `last_touch_commit` — per-path last-touch revision ids (rewritten by squash-merge);
+    //   - `commit_author_ts_secs` — ONLY the timestamps of commits that are some path's
+    //     last-touch (the only ones staleness aging ever looks up);
+    //   - `head_time_secs` — the deterministic "now" for aging: the MAX last-touch timestamp,
+    //     never a wall clock, so aging is reproducible at a given history.
     let last_touch_shas: std::collections::BTreeSet<&String> = last_touch_commit.values().collect();
     let commit_author_ts_secs: BTreeMap<String, u64> = all_commit_ts
         .iter()
@@ -332,13 +370,18 @@ fn emit_scm_facts(source: &impl ScmFactsSource) -> Result<ScmFactsEmission, Stri
 
     let value = json!({
         "schema": SCHEMA,
-        "head_time_secs": head_time_secs,
         "tracked_paths": tracked_paths,
+    });
+    let volatile = json!({
+        "schema": VOLATILE_SCHEMA,
+        "_comment": "GENERATED out-of-graph by oya-cloud-ci-scm-facts-emitter-app (ADR-0552, FRIC-1781234047). HISTORY-derived volatile facts: rewritten by squash-merges, so NEVER a committed merge surface and NEVER byte-compared. Untracked + gitignored; CI rematerializes it before gates consume it (infra/ci/materialize-cloud-ci-generated-faces.sh).",
+        "head_time_secs": head_time_secs,
         "last_touch_commit": last_touch_commit,
         "commit_author_ts_secs": commit_author_ts_secs,
     });
     Ok(ScmFactsEmission {
         value,
+        volatile,
         tracked_paths_len,
     })
 }
@@ -497,20 +540,72 @@ mod tests {
         let emission = emit_scm_facts(&source).unwrap();
 
         assert_eq!(emission.tracked_paths_len, 2);
+        // The COMMITTED face carries ONLY tree-derived stable facts (ADR-0552): no
+        // last_touch, no timestamps, no aging anchor — nothing a squash-merge can rewrite.
         assert_eq!(
             emission.value,
             json!({
                 "schema": SCHEMA,
-                "head_time_secs": 20,
                 "tracked_paths": ["a.txt", "b.txt"],
-                "last_touch_commit": {
-                    "a.txt": "rev-a",
-                    "b.txt": "rev-b",
-                },
-                "commit_author_ts_secs": {
-                    "rev-a": 10,
-                    "rev-b": 20,
-                },
+            })
+        );
+        // The history-derived facts live in the volatile snapshot, dropped paths excluded.
+        assert_eq!(emission.volatile["schema"], VOLATILE_SCHEMA);
+        assert_eq!(emission.volatile["head_time_secs"], 20);
+        assert_eq!(
+            emission.volatile["last_touch_commit"],
+            json!({"a.txt": "rev-a", "b.txt": "rev-b"})
+        );
+        assert_eq!(
+            emission.volatile["commit_author_ts_secs"],
+            json!({"rev-a": 10, "rev-b": 20})
+        );
+    }
+
+    #[test]
+    fn generated_class_paths_never_enter_volatile_last_touch() {
+        // CONVERGENCE PIN (FRIC-1781234047): a generated-class path's last-touch is the
+        // settle commit that wrote it — self-referential. The emission seam must exclude it
+        // for ANY ScmFactsSource implementation (not just the git walk), so a faces-only
+        // settle commit is a fixpoint: it can never re-grow the volatile snapshot.
+        let source = FakeScmFactsSource {
+            tracked_paths: vec![
+                "Cargo.lock".to_owned(),
+                "a/face.generated.json".to_owned(),
+                "src/real.rs".to_owned(),
+            ],
+            last_touch: BTreeMap::from([
+                ("Cargo.lock".to_owned(), "rev-lock".to_owned()),
+                ("a/face.generated.json".to_owned(), "rev-face".to_owned()),
+                ("src/real.rs".to_owned(), "rev-src".to_owned()),
+            ]),
+            revision_author_timestamps: BTreeMap::from([
+                ("rev-lock".to_owned(), 50),
+                ("rev-face".to_owned(), 60),
+                ("rev-src".to_owned(), 40),
+            ]),
+        };
+
+        let emission = emit_scm_facts(&source).unwrap();
+
+        assert_eq!(
+            emission.volatile["last_touch_commit"],
+            json!({"src/real.rs": "rev-src"}),
+            "generated-class paths (settle-commit-touched) must be excluded at the seam"
+        );
+        // The aging anchor follows: only non-generated last-touch timestamps survive, so a
+        // settle commit cannot advance head_time_secs either.
+        assert_eq!(emission.volatile["head_time_secs"], 40);
+        assert_eq!(
+            emission.volatile["commit_author_ts_secs"],
+            json!({"rev-src": 40})
+        );
+        // And the committed face is untouched by any of it.
+        assert_eq!(
+            emission.value,
+            json!({
+                "schema": SCHEMA,
+                "tracked_paths": ["Cargo.lock", "a/face.generated.json", "src/real.rs"],
             })
         );
     }
