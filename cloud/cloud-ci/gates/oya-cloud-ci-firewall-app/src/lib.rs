@@ -2,30 +2,51 @@
 //!
 //! The single required status check for the Phase-0 firewall (PHASE-0-FIREWALL-PLAN
 //! go-live readiness; register #20). The four born-blocking gates each prove they DETECT
-//! the live exhibit (they go RED on today's corpus). This crate layers the committed
-//! `gate-baseline.generated.json` as the SECOND predicate so the firewall blocks only NEW
-//! debt, not the frozen pre-existing corpus debt.
+//! the live exhibit (they go RED on today's corpus). This crate layers the gate-baseline
+//! face as the SECOND predicate so the firewall blocks only NEW debt, not the frozen
+//! pre-existing corpus debt.
 //!
 //! Two PURE, DATA-over-DATA predicates (no per-code special cases — the per-code behaviour
 //! differences live entirely in the baseline DATA: the `mode` + `frozen_empty` fields).
 //!
-//! COMPARE-MODE — for each `(gate, code)` it computes `regressions = current_keys \
-//! baseline_keys` (NEW debt), `tolerated = current_keys ∩ baseline_keys` (accepted
-//! pre-existing debt — no fail), and `fixed = baseline_keys \ current_keys` (repaired —
-//! informational, drives shrink). `FAIL_for_code` is `!regressions.is_empty()` for
-//! `baseline-block-on-new`, and always `false` for `advisory-until-infra`. The gate FAILs
-//! iff any code FAILs. Advisory codes still EMIT their counts (the burn-down dashboard) but
-//! never flip the verdict until the disposition is flipped to `baseline-block-on-new` (a
-//! DATA edit, not a code change).
+//! THE FROZEN REFERENCE IS THE MERGE-BASE BASELINE (FRIC-1781112000 / ADR-0551). Both
+//! predicates compare against the gate-baseline face as committed at
+//! `git merge-base <base_ref> HEAD` (base_ref is policy DATA in `ratchet-policy.json`,
+//! default `origin/dev`), NEVER against the working-tree copy: the settle protocol mandates
+//! producer regeneration and registry-drift mandates committed==regenerated, so the
+//! PR-local face always equals the proposed face and a PR-local reference can be grown by
+//! the very regen the protocol requires (the PR #670 laundering exhibit). The merge-base
+//! snapshot is materialized out-of-graph by the scm-facts emitter (the single sanctioned
+//! git boundary) into `gate-baseline.merge-base.generated.json`; this crate only parses it
+//! ([`FrozenBaseline::from_value`]). Standard ratchet semantics: Betterer / eslint-ratchet
+//! compare against the merge-base; Bazel target determination anchors on the merge-base.
 //!
-//! RATCHET-INVARIANT — the baseline may only ever SHRINK on regen. For each `(gate, code)`,
-//! `growth = proposed_keys \ committed_keys` (keys a regen would ADD to the baseline). Empty
-//! growth is an allowed regen (auto-shrinks to `committed ∩ proposed`). Non-empty growth is
-//! a `ratchet_regression` FAILURE unless every grown key is in the founder-signed
-//! `_sign_off_additions` allowlist (`gate-baseline.signoff.json`, the ONE-WAY DOOR — a
-//! human-edited, NOT producer-generated file). `frozen_empty` codes have a permanently-empty
-//! committed baseline, so ANY proposed key is growth — they can never accumulate a baseline.
-//! Same predicate, no special case.
+//! COMPARE-MODE — for each `(gate, code)` it computes `regressions = current_keys \
+//! frozen_keys \ signed_off` (NEW debt), `signed_off = (current_keys \ frozen_keys) ∩
+//! sign-off-door` (founder-admitted growth in flight — reported, no fail), `tolerated =
+//! current_keys ∩ frozen_keys` (accepted pre-existing debt — no fail), and `fixed =
+//! frozen_keys \ current_keys` (repaired — informational, drives shrink). `FAIL_for_code`
+//! is `!regressions.is_empty()` for `baseline-block-on-new`, and always `false` for
+//! `advisory-until-infra`. The gate FAILs iff any code FAILs. Advisory codes still EMIT
+//! their counts (the burn-down dashboard) but never flip the verdict until the disposition
+//! is flipped to `baseline-block-on-new` (a DATA edit, not a code change). The per-code
+//! `mode` is read from the FROZEN baseline (merge-base DATA a PR cannot rewrite); only a
+//! code absent at the merge-base falls back to the default blocking mode.
+//!
+//! RATCHET-INVARIANT — a `baseline-block-on-new` baseline may only ever SHRINK on regen.
+//! For each blocking `(gate, code)`, `growth = proposed_keys \ frozen_keys` (keys a regen
+//! would ADD relative to the merge-base). Empty growth is an allowed regen (auto-shrinks to
+//! `frozen ∩ proposed`). Non-empty growth is a `ratchet_regression` FAILURE unless every
+//! grown key is in the founder-signed `_sign_off_additions` allowlist
+//! (`gate-baseline.signoff.json`, the ONE-WAY DOOR — a human-edited, NOT
+//! producer-generated file). `frozen_empty` codes have a permanently-empty frozen baseline,
+//! so ANY proposed key is growth — they can never accumulate a baseline. Same predicate,
+//! no special case. `advisory-until-infra` codes (mode read from the FROZEN baseline; a
+//! code absent at the merge-base uses its proposed stamp) are exempt from the growth check:
+//! their keys exist only for the burn-down dashboard, every PR adding any file legitimately
+//! grows them (born-unowned/unreachable), and their baseline is frozen by the reviewed DATA
+//! edit that flips the disposition — growth-blocking them would turn every PR into a
+//! signoff.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -39,8 +60,16 @@ use serde_json::Value;
 /// a baseline-growth at regen mean "the ratchet went backwards").
 pub const RATCHET_REGRESSION: &str = "ratchet_regression";
 
-/// A baseline: `gate -> code -> (mode, frozen_empty, keys)`. Parsed from
-/// `gate-baseline.generated.json` (committed) or from a freshly-regenerated face (proposed).
+/// The schema id of the merge-base frozen-baseline snapshot the scm-facts emitter
+/// materializes (`gate-baseline.merge-base.generated.json`). Bumped only on a breaking
+/// shape change.
+pub const FROZEN_BASELINE_SCHEMA: &str = "oya-ci/merge-base-baseline/v1";
+
+/// The compare-mode that blocks NEW debt; the only mode whose baseline is growth-protected.
+pub const MODE_BASELINE_BLOCK_ON_NEW: &str = "baseline-block-on-new";
+
+/// A baseline: `gate -> code -> (mode, frozen_empty, keys)`. Parsed from the merge-base
+/// frozen snapshot (the reference) or from a freshly-regenerated face (proposed).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Baseline {
     pub gates: BTreeMap<String, BTreeMap<String, CodeBaseline>>,
@@ -69,7 +98,7 @@ impl Baseline {
                                 mode: entry
                                     .get("mode")
                                     .and_then(Value::as_str)
-                                    .unwrap_or("baseline-block-on-new")
+                                    .unwrap_or(MODE_BASELINE_BLOCK_ON_NEW)
                                     .to_owned(),
                                 frozen_empty: entry
                                     .get("frozen_empty")
@@ -87,9 +116,87 @@ impl Baseline {
     }
 }
 
+/// The parsed merge-base frozen-baseline snapshot: the gate-baseline face exactly as
+/// committed at `git merge-base <base_ref> HEAD`, wrapped with the provenance needed to
+/// audit WHICH frozen point the firewall compared against. Materialized out-of-graph by
+/// the scm-facts emitter (the single sanctioned git boundary); this parser is pure and
+/// FAILS CLOSED: a missing/foreign schema, a malformed merge-base id, or an empty
+/// baseline that does not declare `missing_at_merge_base` is an error, never a silent
+/// empty reference.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FrozenBaseline {
+    /// The policy base ref the merge-base was computed against (e.g. `origin/dev`).
+    pub base_ref: String,
+    /// The merge-base revision id the face was extracted from (full hex sha).
+    pub merge_base: String,
+    /// True iff the face did not exist at the merge-base (repo bootstrap): the frozen
+    /// reference is then EMPTY, so every proposed key is growth until signed off.
+    pub missing_at_merge_base: bool,
+    /// The frozen reference baseline (empty when `missing_at_merge_base`).
+    pub baseline: Baseline,
+}
+
+impl FrozenBaseline {
+    /// Parse + validate the snapshot. Every rejection names the defect (fail-closed).
+    pub fn from_value(value: &Value) -> Result<Self, String> {
+        let schema = value.get("schema").and_then(Value::as_str).unwrap_or("");
+        if schema != FROZEN_BASELINE_SCHEMA {
+            return Err(format!(
+                "frozen baseline schema mismatch: expected {FROZEN_BASELINE_SCHEMA:?}, got {schema:?}"
+            ));
+        }
+        let base_ref = value
+            .get("base_ref")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned();
+        if base_ref.is_empty() {
+            return Err("frozen baseline missing base_ref".to_owned());
+        }
+        let merge_base = value
+            .get("merge_base")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned();
+        if merge_base.len() < 40 || !merge_base.chars().all(|c| c.is_ascii_hexdigit()) {
+            return Err(format!(
+                "frozen baseline merge_base is not a full hex revision id: {merge_base:?}"
+            ));
+        }
+        let missing_at_merge_base = value
+            .get("missing_at_merge_base")
+            .and_then(Value::as_bool)
+            == Some(true);
+        let baseline = value
+            .get("baseline")
+            .map(Baseline::from_value)
+            .unwrap_or_default();
+        if !missing_at_merge_base && baseline.gates.is_empty() {
+            return Err(
+                "frozen baseline carries no gates yet does not declare missing_at_merge_base \
+                 — refusing the empty reference (fail-closed)"
+                    .to_owned(),
+            );
+        }
+        if missing_at_merge_base && !baseline.gates.is_empty() {
+            return Err(
+                "frozen baseline declares missing_at_merge_base but carries gates".to_owned(),
+            );
+        }
+        Ok(Self {
+            base_ref,
+            merge_base,
+            missing_at_merge_base,
+            baseline,
+        })
+    }
+}
+
 /// The sign-off allowlist (`gate-baseline.signoff.json`): the ONE-WAY DOOR. A key listed
-/// under `_sign_off_additions[gate][code]` is exempted from the GROWTH check for one regen.
-/// This file is human-edited + founder-signed, NOT producer-generated.
+/// under `_sign_off_additions[gate][code]` is exempted from the GROWTH check (and reported
+/// as `signed_off`, not a regression, in compare-mode) for one regen — once the admitted
+/// key lands in the merge-base baseline the entry is inert and retirable. This file is
+/// human-edited + founder-signed, NOT producer-generated.
 #[derive(Debug, Clone, Default)]
 pub struct SignOff {
     additions: BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
@@ -135,13 +242,16 @@ pub struct CodeReport {
     pub regressions: BTreeSet<String>,
     pub fixed: BTreeSet<String>,
     pub tolerated: BTreeSet<String>,
+    /// Keys new relative to the frozen reference but founder-admitted through the one-way
+    /// sign-off door: reported for the audit trail, never a failure.
+    pub signed_off: BTreeSet<String>,
 }
 
 impl CodeReport {
     /// A code FAILs iff its mode is baseline-block-on-new AND it has NEW (regression) keys.
     /// advisory-until-infra reports its counts but never fails (until the disposition flips).
     pub fn fails(&self) -> bool {
-        self.mode == "baseline-block-on-new" && !self.regressions.is_empty()
+        self.mode == MODE_BASELINE_BLOCK_ON_NEW && !self.regressions.is_empty()
     }
 }
 
@@ -150,8 +260,10 @@ impl CodeReport {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct FirewallReport {
     pub codes: Vec<CodeReport>,
-    /// `(gate, code, key)` triples a regen would ADD to a baseline that are NOT signed off:
-    /// each is a `ratchet_regression` (debt cannot be laundered into the baseline by regen).
+    /// `(gate, code, key)` triples a regen would ADD to a blocking baseline, relative to
+    /// the merge-base frozen reference, that are NOT signed off: each is a
+    /// `ratchet_regression` (debt cannot be laundered into the baseline by regen — not
+    /// even by the same-PR regen the settle protocol mandates).
     pub ratchet_growth: Vec<(String, String, String)>,
 }
 
@@ -162,18 +274,20 @@ impl FirewallReport {
     }
 }
 
-/// COMPARE-MODE predicate: compare the current keyed violations against the committed
-/// baseline, per `(gate, code)`. `current` is `gate -> code -> keys` (from running each
-/// gate's `evaluate_keyed` over the live faces).
+/// COMPARE-MODE predicate: compare the current keyed violations against the FROZEN
+/// (merge-base) baseline, per `(gate, code)`. `current` is `gate -> code -> keys` (from
+/// running each gate's `evaluate_keyed` over the live faces). Keys new relative to the
+/// frozen reference but listed in the sign-off door are `signed_off`, not regressions.
 pub fn compare(
-    committed: &Baseline,
+    frozen: &Baseline,
     current: &BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
+    signoff: &SignOff,
 ) -> Vec<CodeReport> {
     let mut reports: Vec<CodeReport> = Vec::new();
     // Union of gate/code keys present in either the baseline or the current set, so a code
     // that exists only in one side is still reported.
-    for gate in union_keys(committed.gates.keys(), current.keys()) {
-        let base_codes = committed.gates.get(&gate);
+    for gate in union_keys(frozen.gates.keys(), current.keys()) {
+        let base_codes = frozen.gates.get(&gate);
         let cur_codes = current.get(&gate);
         let codes = union_keys(
             base_codes.into_iter().flat_map(BTreeMap::keys),
@@ -183,16 +297,25 @@ pub fn compare(
             let base = base_codes.and_then(|c| c.get(&code));
             let baseline_keys: BTreeSet<String> =
                 base.map(|b| b.keys.clone()).unwrap_or_default();
+            // The mode comes from the FROZEN reference (merge-base DATA a PR cannot
+            // rewrite); a code absent at the merge-base defaults to blocking.
             let mode = base
                 .map(|b| b.mode.clone())
-                .unwrap_or_else(|| "baseline-block-on-new".to_owned());
+                .unwrap_or_else(|| MODE_BASELINE_BLOCK_ON_NEW.to_owned());
             let current_keys: BTreeSet<String> = cur_codes
                 .and_then(|c| c.get(&code))
                 .cloned()
                 .unwrap_or_default();
 
-            let regressions: BTreeSet<String> =
-                current_keys.difference(&baseline_keys).cloned().collect();
+            let mut regressions: BTreeSet<String> = BTreeSet::new();
+            let mut signed_off: BTreeSet<String> = BTreeSet::new();
+            for key in current_keys.difference(&baseline_keys) {
+                if signoff.is_signed_off(&gate, &code, key) {
+                    signed_off.insert(key.clone());
+                } else {
+                    regressions.insert(key.clone());
+                }
+            }
             let fixed: BTreeSet<String> =
                 baseline_keys.difference(&current_keys).cloned().collect();
             let tolerated: BTreeSet<String> = current_keys
@@ -209,34 +332,45 @@ pub fn compare(
                 regressions,
                 fixed,
                 tolerated,
+                signed_off,
             });
         }
     }
     reports
 }
 
-/// RATCHET-INVARIANT predicate: the baseline may only SHRINK on regen. `proposed` is what
-/// today's corpus WOULD freeze (the regenerated baseline keys); `committed` is the prior
-/// frozen set. Any key the regen would ADD (growth) that is not signed off is a
-/// `ratchet_regression`. `frozen_empty` codes have an empty committed set, so any proposed
-/// key is growth — the same predicate enforces "never accumulate a baseline" for them.
+/// RATCHET-INVARIANT predicate: a blocking baseline may only SHRINK relative to the FROZEN
+/// (merge-base) reference. `proposed` is what today's corpus WOULD freeze (the regenerated
+/// baseline keys); `frozen` is the merge-base set — NEVER the PR-local face, which the
+/// settle protocol itself regenerates (FRIC-1781112000). Any key the regen would ADD
+/// (growth) that is not signed off is a `ratchet_regression`. `frozen_empty` codes have an
+/// empty frozen set, so any proposed key is growth — the same predicate enforces "never
+/// accumulate a baseline" for them. `advisory-until-infra` codes (mode from the frozen
+/// reference; proposed stamp only for codes new at the merge-base) are exempt: their
+/// dashboards grow with every added file and their freeze happens at the reviewed
+/// disposition flip.
 pub fn ratchet_growth(
-    committed: &Baseline,
+    frozen: &Baseline,
     proposed: &Baseline,
     signoff: &SignOff,
 ) -> Vec<(String, String, String)> {
     let mut growth: Vec<(String, String, String)> = Vec::new();
     for (gate, proposed_codes) in &proposed.gates {
         for (code, proposed_code) in proposed_codes {
-            let committed_keys = committed
-                .gates
-                .get(gate)
-                .and_then(|c| c.get(code))
-                .map(|c| &c.keys);
+            let frozen_code = frozen.gates.get(gate).and_then(|c| c.get(code));
+            // The FROZEN mode wins (a PR cannot retro-flip an existing blocking code to
+            // advisory in the same change); only a code absent at the merge-base uses its
+            // proposed stamp.
+            let mode = frozen_code
+                .map(|c| c.mode.as_str())
+                .unwrap_or(proposed_code.mode.as_str());
+            if mode != MODE_BASELINE_BLOCK_ON_NEW {
+                continue;
+            }
+            let frozen_keys = frozen_code.map(|c| &c.keys);
             for key in &proposed_code.keys {
-                let in_committed =
-                    committed_keys.is_some_and(|keys| keys.contains(key));
-                if !in_committed && !signoff.is_signed_off(gate, code, key) {
+                let in_frozen = frozen_keys.is_some_and(|keys| keys.contains(key));
+                if !in_frozen && !signoff.is_signed_off(gate, code, key) {
                     growth.push((gate.clone(), code.clone(), key.clone()));
                 }
             }
@@ -245,16 +379,17 @@ pub fn ratchet_growth(
     growth
 }
 
-/// Run BOTH predicates and assemble the full firewall report.
+/// Run BOTH predicates and assemble the full firewall report. `frozen` is the merge-base
+/// reference baseline (see [`FrozenBaseline`]).
 pub fn evaluate_firewall(
-    committed: &Baseline,
+    frozen: &Baseline,
     proposed: &Baseline,
     current: &BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
     signoff: &SignOff,
 ) -> FirewallReport {
     FirewallReport {
-        codes: compare(committed, current),
-        ratchet_growth: ratchet_growth(committed, proposed, signoff),
+        codes: compare(frozen, current, signoff),
+        ratchet_growth: ratchet_growth(frozen, proposed, signoff),
     }
 }
 
@@ -329,7 +464,7 @@ mod tests {
     fn tolerated_baselined_debt_does_not_fail() {
         // current == baseline => all tolerated, no regressions, GREEN.
         let cur = current(&[("cloud-ci-total-accounting", "unjustified", &["a.rs", "b.rs"])]);
-        let reports = compare(&baseline_fixture(), &cur);
+        let reports = compare(&baseline_fixture(), &cur, &SignOff::default());
         let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
         assert_eq!(unjust.regressions.len(), 0);
         assert_eq!(unjust.tolerated.len(), 2);
@@ -343,7 +478,7 @@ mod tests {
             "unjustified",
             &["a.rs", "b.rs", "c-NEW.rs"],
         )]);
-        let reports = compare(&baseline_fixture(), &cur);
+        let reports = compare(&baseline_fixture(), &cur, &SignOff::default());
         let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
         assert!(unjust.regressions.contains("c-NEW.rs"));
         assert!(unjust.fails(), "a NEW unjustified file must FAIL");
@@ -358,7 +493,7 @@ mod tests {
             "unowned",
             &["a.rs", "z-NEW.rs"],
         )]);
-        let reports = compare(&baseline_fixture(), &cur);
+        let reports = compare(&baseline_fixture(), &cur, &SignOff::default());
         let unowned = reports.iter().find(|r| r.code == "unowned").unwrap();
         assert!(unowned.regressions.contains("z-NEW.rs"));
         assert!(!unowned.fails(), "advisory-until-infra must NOT fail the verdict");
@@ -368,7 +503,7 @@ mod tests {
     fn fixed_keys_shrink_and_do_not_fail() {
         // current drops b.rs (fixed). No regression; informational only.
         let cur = current(&[("cloud-ci-total-accounting", "unjustified", &["a.rs"])]);
-        let reports = compare(&baseline_fixture(), &cur);
+        let reports = compare(&baseline_fixture(), &cur, &SignOff::default());
         let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
         assert!(unjust.fixed.contains("b.rs"));
         assert_eq!(unjust.regressions.len(), 0);
@@ -376,21 +511,41 @@ mod tests {
     }
 
     #[test]
+    fn signed_off_key_in_current_is_not_a_regression() {
+        // The one-regen window: the frozen (merge-base) reference predates the admitted
+        // key, the live tree already carries it, and the sign-off door lists it. It must
+        // land in signed_off, not regressions, and the code must not fail.
+        let cur = current(&[(
+            "cloud-ci-total-accounting",
+            "unjustified",
+            &["a.rs", "b.rs", "d-SIGNED.rs"],
+        )]);
+        let signoff = SignOff::from_value(&json!({
+            "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["d-SIGNED.rs"]}}
+        }));
+        let reports = compare(&baseline_fixture(), &cur, &signoff);
+        let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
+        assert!(unjust.signed_off.contains("d-SIGNED.rs"));
+        assert!(unjust.regressions.is_empty());
+        assert!(!unjust.fails(), "a founder-admitted key must not fail compare-mode");
+    }
+
+    #[test]
     fn baseline_growth_without_signoff_is_ratchet_regression() {
-        let committed = baseline_fixture();
+        let frozen = baseline_fixture();
         // A regen proposes a baseline that ADDS d-NEW.rs to unjustified.
         let proposed = Baseline::from_value(&json!({
             "gates": {"cloud-ci-total-accounting": {
                 "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs", "d-NEW.rs"]}
             }}
         }));
-        let growth = ratchet_growth(&committed, &proposed, &SignOff::default());
+        let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
         assert!(growth.iter().any(|(_, c, k)| c == "unjustified" && k == "d-NEW.rs"));
     }
 
     #[test]
     fn signed_off_growth_is_exempt() {
-        let committed = baseline_fixture();
+        let frozen = baseline_fixture();
         let proposed = Baseline::from_value(&json!({
             "gates": {"cloud-ci-total-accounting": {
                 "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs", "d-NEW.rs"]}
@@ -399,20 +554,20 @@ mod tests {
         let signoff = SignOff::from_value(&json!({
             "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["d-NEW.rs"]}}
         }));
-        let growth = ratchet_growth(&committed, &proposed, &signoff);
+        let growth = ratchet_growth(&frozen, &proposed, &signoff);
         assert!(growth.is_empty(), "a signed-off addition is exempt from the GROWTH check");
     }
 
     #[test]
     fn frozen_empty_code_growth_always_fails() {
-        let committed = baseline_fixture();
+        let frozen = baseline_fixture();
         // A regen proposes a key for the frozen_empty registry_drift code.
         let proposed = Baseline::from_value(&json!({
             "gates": {"cloud-ci-total-accounting": {
                 "registry_drift": {"mode": "baseline-block-on-new", "keys": ["<gate>"], "frozen_empty": true}
             }}
         }));
-        let growth = ratchet_growth(&committed, &proposed, &SignOff::default());
+        let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
         assert!(
             growth.iter().any(|(_, c, _)| c == "registry_drift"),
             "frozen_empty codes can never accumulate a baseline"
@@ -420,12 +575,104 @@ mod tests {
     }
 
     #[test]
+    fn advisory_code_growth_is_not_ratchet_regression() {
+        let frozen = baseline_fixture();
+        // Every PR adding a file legitimately grows the advisory dashboards
+        // (born-unowned); the growth check must not turn each PR into a signoff.
+        let proposed = Baseline::from_value(&json!({
+            "gates": {"cloud-ci-total-accounting": {
+                "unowned": {"mode": "advisory-until-infra", "keys": ["a.rs", "new-file.rs"]}
+            }}
+        }));
+        let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
+        assert!(
+            growth.is_empty(),
+            "advisory-until-infra baselines may grow without signoff: {growth:?}"
+        );
+    }
+
+    #[test]
+    fn frozen_mode_wins_over_proposed_stamp() {
+        let frozen = baseline_fixture();
+        // An attack regen re-stamps the blocking unjustified code as advisory AND grows
+        // it. The frozen (merge-base) mode is the authority: growth must still fire.
+        let proposed = Baseline::from_value(&json!({
+            "gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "advisory-until-infra", "keys": ["a.rs", "b.rs", "d-FLIPPED.rs"]}
+            }}
+        }));
+        let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
+        assert!(
+            growth.iter().any(|(_, c, k)| c == "unjustified" && k == "d-FLIPPED.rs"),
+            "a same-PR mode flip must not disarm the growth check"
+        );
+    }
+
+    #[test]
     fn green_corpus_with_baseline_is_green() {
-        let committed = baseline_fixture();
-        // current == committed baseline keys, proposed == committed => no regression, no growth.
-        let cur = baseline_keys_map(&committed);
+        let frozen = baseline_fixture();
+        // current == frozen baseline keys, proposed == frozen => no regression, no growth.
+        let cur = baseline_keys_map(&frozen);
         let report =
-            evaluate_firewall(&committed, &committed, &cur, &SignOff::default());
+            evaluate_firewall(&frozen, &frozen, &cur, &SignOff::default());
         assert!(report.is_green(), "frozen-at-today corpus must be GREEN with the baseline");
+    }
+
+    fn frozen_value() -> Value {
+        json!({
+            "schema": FROZEN_BASELINE_SCHEMA,
+            "base_ref": "origin/dev",
+            "merge_base": "d5d8be5d4121e91655d7ba361f63271c98c57a68",
+            "missing_at_merge_base": false,
+            "baseline": {
+                "gates": {
+                    "cloud-ci-total-accounting": {
+                        "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs"]}
+                    }
+                }
+            }
+        })
+    }
+
+    #[test]
+    fn frozen_baseline_parses_happy_path() {
+        let frozen = FrozenBaseline::from_value(&frozen_value()).unwrap();
+        assert_eq!(frozen.base_ref, "origin/dev");
+        assert_eq!(frozen.merge_base, "d5d8be5d4121e91655d7ba361f63271c98c57a68");
+        assert!(!frozen.missing_at_merge_base);
+        assert!(frozen.baseline.gates.contains_key("cloud-ci-total-accounting"));
+    }
+
+    #[test]
+    fn frozen_baseline_rejects_foreign_schema() {
+        let mut value = frozen_value();
+        value["schema"] = json!("oya-ci/scm-facts/v1");
+        assert!(FrozenBaseline::from_value(&value).is_err());
+    }
+
+    #[test]
+    fn frozen_baseline_rejects_malformed_merge_base() {
+        let mut value = frozen_value();
+        value["merge_base"] = json!("not-a-sha");
+        assert!(FrozenBaseline::from_value(&value).is_err());
+    }
+
+    #[test]
+    fn frozen_baseline_rejects_undeclared_empty_reference() {
+        // An empty reference that does not declare missing_at_merge_base is a tampered or
+        // broken snapshot — fail closed, never silently compare against nothing.
+        let mut value = frozen_value();
+        value["baseline"] = json!({"gates": {}});
+        assert!(FrozenBaseline::from_value(&value).is_err());
+    }
+
+    #[test]
+    fn frozen_baseline_missing_at_merge_base_is_empty_reference() {
+        let mut value = frozen_value();
+        value["missing_at_merge_base"] = json!(true);
+        value["baseline"] = json!({"gates": {}});
+        let frozen = FrozenBaseline::from_value(&value).unwrap();
+        assert!(frozen.missing_at_merge_base);
+        assert!(frozen.baseline.gates.is_empty());
     }
 }

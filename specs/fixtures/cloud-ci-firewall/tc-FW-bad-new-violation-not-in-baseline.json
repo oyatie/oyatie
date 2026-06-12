@@ -4,7 +4,7 @@
   "expected_failing_codes": ["unjustified"],
   "expected_ratchet_growth": 0,
   "description": "A NEW unjustified file (not in the frozen baseline) is current\\baseline = NEW debt. unjustified is baseline-block-on-new so the firewall FAILs. This is the RED-on-new proof: the baseline converts 'detect everything' into 'block only NEW'.",
-  "committed_baseline": {
+  "merge_base_baseline": {
     "gates": {
       "cloud-ci-total-accounting": {
         "unjustified": {"mode": "baseline-block-on-new", "keys": ["oya/foundry-residue/a.rs", "oya/foundry-residue/b.rs"]}

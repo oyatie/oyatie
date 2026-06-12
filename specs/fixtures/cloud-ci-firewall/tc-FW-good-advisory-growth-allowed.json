@@ -1,0 +1,28 @@
+{
+  "fixture_id": "TC-FW-GOOD-advisory-growth-allowed",
+  "expected_firewall": "GREEN",
+  "expected_failing_codes": [],
+  "expected_ratchet_growth": 0,
+  "description": "Mode-aware ratchet: every PR adding any file legitimately grows the advisory-until-infra dashboards (born-unowned/unreachable), so advisory baseline growth at regen is NOT a ratchet_regression — growth-blocking it would turn every PR into a founder signoff. The advisory baseline is frozen by the reviewed DATA edit that flips the disposition to baseline-block-on-new, not by the growth check.",
+  "merge_base_baseline": {
+    "gates": {
+      "cloud-ci-total-accounting": {
+        "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["oya/frozen-debt/a.rs"]}
+      }
+    }
+  },
+  "current": {
+    "cloud-ci-total-accounting": {
+      "unowned": ["oya/frozen-debt/a.rs", "oya/new-file/born-unowned.rs"]
+    }
+  },
+  "proposed_baseline": {
+    "gates": {
+      "cloud-ci-total-accounting": {
+        "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["oya/frozen-debt/a.rs", "oya/new-file/born-unowned.rs"]}
+      }
+    }
+  },
+  "signoff": {"_sign_off_additions": {}},
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs"
+}

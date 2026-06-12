@@ -1,8 +1,13 @@
 // cloud-ci-firewall — the single required GO-LIVE status check. Regenerates the gate
-// baseline over the LIVE tree, loads the committed baseline + the sign-off door, and runs
-// both pure predicates (compare-mode + ratchet-invariant). This is the proof that, with the
-// baseline frozen at today, the firewall is GREEN on the current corpus (no NEW debt) yet
-// the per-code RED/GREEN unit fixtures prove it still blocks any NEW finite violation.
+// baseline over the LIVE tree, loads the FROZEN merge-base reference (the gate-baseline
+// face at `git merge-base <base_ref> HEAD`, materialized out-of-graph by the scm-facts
+// emitter — ADR-0551, fixes FRIC-1781112000) + the sign-off door, and runs both pure
+// predicates (compare-mode + ratchet-invariant). The reference is NEVER the PR-local face:
+// the settle protocol mandates regeneration and registry-drift mandates
+// committed==regenerated, so a PR-local reference is grown by the very regen the protocol
+// requires (the PR #670 laundering exhibit — pinned below as a foil). This is the proof
+// that, with the baseline frozen at the merge-base, the firewall is GREEN on the current
+// corpus (no NEW debt) yet still blocks any NEW finite violation.
 // ADR-0083 Tier-3: integration tests use unwrap/expect to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -11,7 +16,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_cloud_ci_firewall_app::{Baseline, SignOff, baseline_keys_map, evaluate_firewall};
+use oya_cloud_ci_firewall_app::{
+    Baseline, FrozenBaseline, SignOff, baseline_keys_map, evaluate_firewall,
+};
 use serde_json::Value;
 
 fn repo_root() -> PathBuf {
@@ -33,6 +40,37 @@ fn faces_dir(root: &Path) -> PathBuf {
 
 fn signoff_path(root: &Path) -> PathBuf {
     root.join("cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json")
+}
+
+fn frozen_snapshot_path(root: &Path) -> PathBuf {
+    root.join(
+        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json",
+    )
+}
+
+fn ratchet_policy_path(root: &Path) -> PathBuf {
+    root.join("cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json")
+}
+
+/// Load the FROZEN merge-base reference. FAIL-CLOSED: a missing or invalid snapshot is a
+/// hard failure with the exact remediation, never a silent fall-back to the PR-local face
+/// (the FRIC-1781112000 laundering hole this gate exists to close).
+fn load_frozen_baseline(root: &Path) -> FrozenBaseline {
+    let path = frozen_snapshot_path(root);
+    let text = fs::read_to_string(&path).unwrap_or_else(|e| {
+        panic!(
+            "FAIL-CLOSED: merge-base frozen baseline snapshot missing at {} ({e}). The \
+             firewall compares against the gate-baseline face at `git merge-base <base_ref> \
+             HEAD` (ADR-0551, FRIC-1781112000), never the PR-local copy. Materialize it: \
+             infra/ci/materialize-cloud-ci-generated-faces.sh . (CI runs this before every \
+             gate lane).",
+            path.display()
+        )
+    });
+    let value: Value =
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
+    FrozenBaseline::from_value(&value)
+        .unwrap_or_else(|e| panic!("invalid frozen baseline snapshot {}: {e}", path.display()))
 }
 
 fn load_json(path: &Path) -> Value {
@@ -119,11 +157,12 @@ fn current_from_value(value: &Value) -> BTreeMap<String, BTreeMap<String, BTreeS
     out
 }
 
-/// Fixture-driven RED/GREEN corpus: each tc-*.json carries a committed_baseline + current +
-/// proposed_baseline + signoff and the expected firewall verdict / failing codes / ratchet
-/// growth count. The compare-mode + ratchet-invariant predicates are pure, so the fixtures
-/// drive them with zero scanner special-cases (the per-code behaviour is DATA: mode +
-/// frozen_empty). This is the data-under-test contract, mirroring the four gate corpora.
+/// Fixture-driven RED/GREEN corpus: each tc-*.json carries a merge_base_baseline (the
+/// FROZEN reference) + current + proposed_baseline + signoff and the expected firewall
+/// verdict / failing codes / ratchet growth count. The compare-mode + ratchet-invariant
+/// predicates are pure, so the fixtures drive them with zero scanner special-cases (the
+/// per-code behaviour is DATA: mode + frozen_empty). This is the data-under-test contract,
+/// mirroring the four gate corpora.
 #[test]
 fn firewall_fixtures_execute_red_green_cases() {
     let dir = fixture_dir(&repo_root());
@@ -150,12 +189,17 @@ fn firewall_fixtures_execute_red_green_cases() {
         let fixture = load_json(path);
         let label = path.file_name().unwrap().to_string_lossy().to_string();
 
-        let committed = Baseline::from_value(&fixture["committed_baseline"]);
+        assert!(
+            fixture.get("committed_baseline").is_none(),
+            "{label}: stale fixture field committed_baseline — the frozen reference is the \
+             merge-base baseline (merge_base_baseline) per ADR-0551/FRIC-1781112000"
+        );
+        let frozen = Baseline::from_value(&fixture["merge_base_baseline"]);
         let proposed = Baseline::from_value(&fixture["proposed_baseline"]);
         let signoff = SignOff::from_value(&fixture["signoff"]);
         let current = current_from_value(&fixture["current"]);
 
-        let report = evaluate_firewall(&committed, &proposed, &current, &signoff);
+        let report = evaluate_firewall(&frozen, &proposed, &current, &signoff);
 
         let expected_growth = fixture["expected_ratchet_growth"].as_u64().unwrap_or(0) as usize;
         assert_eq!(
@@ -204,19 +248,19 @@ fn firewall_fixtures_execute_red_green_cases() {
     );
 }
 
-/// THE GO-LIVE PROOF: with the baseline frozen at today, the firewall is GREEN on the live
-/// corpus. The committed baseline == the regenerated (proposed) baseline (registry-drift
-/// also enforces this byte-exact), so:
-///   - compare-mode: current == baseline => zero regressions => no baseline-block-on-new
-///     code fails (advisory codes report their counts but never fail);
-///   - ratchet-invariant: proposed == committed => zero growth => no ratchet_regression.
+/// THE GO-LIVE PROOF: with the FROZEN merge-base reference, the firewall is GREEN on the
+/// live corpus. A settled change only ever SHRINKS the baseline relative to the merge-base
+/// (or grows it through the sign-off door), so:
+///   - compare-mode: current keys ⊆ frozen ∪ signed-off => zero regressions => no
+///     baseline-block-on-new code fails (advisory codes report their counts but never fail);
+///   - ratchet-invariant: blocking proposed keys ⊆ frozen ∪ signed-off => zero growth.
 #[test]
 fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
     let root = repo_root();
 
-    // The committed baseline (byte-diff-protected by registry-drift).
-    let committed_value = load_json(&faces_dir(&root).join("gate-baseline.generated.json"));
-    let committed = Baseline::from_value(&committed_value);
+    // The FROZEN reference: the gate-baseline face at `git merge-base <base_ref> HEAD`,
+    // materialized out-of-graph by the scm-facts emitter. NEVER the PR-local face.
+    let frozen = load_frozen_baseline(&root);
 
     // The proposed baseline = what TODAY's corpus would freeze.
     let proposed_value = regenerate_baseline(&root);
@@ -229,13 +273,16 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
     // captured them via evaluate_keyed over the live faces).
     let current = baseline_keys_map(&proposed);
 
-    let report = evaluate_firewall(&committed, &proposed, &current, &signoff);
+    let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &signoff);
 
-    // Evidence digest: per-code current/baseline/regressions/fixed/tolerated.
-    eprintln!("FIREWALL GO-LIVE report (live corpus, baseline frozen at today):");
+    // Evidence digest: per-code current/baseline/regressions/fixed/tolerated/signed-off.
+    eprintln!(
+        "FIREWALL GO-LIVE report (live corpus vs frozen {} @ merge-base {}):",
+        frozen.base_ref, frozen.merge_base
+    );
     for r in &report.codes {
         eprintln!(
-            "  [{}] {:48} mode={:22} current={:6} baseline={:6} regressions={:4} fixed={:4} tolerated={:6}{}",
+            "  [{}] {:48} mode={:22} current={:6} baseline={:6} regressions={:4} fixed={:4} tolerated={:6} signed_off={:4}{}",
             r.gate,
             r.code,
             r.mode,
@@ -244,11 +291,12 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
             r.regressions.len(),
             r.fixed.len(),
             r.tolerated.len(),
+            r.signed_off.len(),
             if r.fails() { "  <-- FAIL" } else { "" }
         );
     }
     eprintln!(
-        "  ratchet_growth (un-signed-off baseline additions): {}",
+        "  ratchet_growth (un-signed-off blocking baseline additions vs merge-base): {}",
         report.ratchet_growth.len()
     );
 
@@ -258,18 +306,32 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         .filter(|r| r.fails())
         .map(|r| r.code.as_str())
         .collect();
+    let regression_detail: Vec<(&str, &str, Vec<&str>)> = report
+        .codes
+        .iter()
+        .filter(|r| r.fails())
+        .map(|r| {
+            (
+                r.gate.as_str(),
+                r.code.as_str(),
+                r.regressions.iter().map(String::as_str).collect(),
+            )
+        })
+        .collect();
     assert!(
         failing.is_empty(),
-        "GO-LIVE: firewall must be GREEN on today's corpus (no NEW debt), but these codes FAIL: {failing:?}"
+        "GO-LIVE: firewall must be GREEN on today's corpus (no NEW debt vs the merge-base), \
+         but these codes FAIL: {failing:?}; regressions: {regression_detail:?}"
     );
     assert!(
         report.ratchet_growth.is_empty(),
-        "GO-LIVE: committed baseline == regenerated, so the ratchet must show zero growth, got {:?}",
+        "GO-LIVE: blocking baseline keys must shrink (or pass the sign-off door) relative \
+         to the merge-base, got growth {:?}",
         report.ratchet_growth
     );
     assert!(
         report.is_green(),
-        "firewall must be GREEN with the baseline frozen at today"
+        "firewall must be GREEN with the merge-base frozen reference"
     );
 
     // Sanity: the baseline is NON-trivial (the frozen pre-existing corpus debt is real).
@@ -280,19 +342,105 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
     );
 }
 
+/// The frozen snapshot's provenance must agree with the committed ratchet policy: same
+/// configurable base_ref (R0 policy-as-data), a full revision id, and the exact face path —
+/// the audit trail naming WHICH frozen point the firewall compared against.
+#[test]
+fn frozen_snapshot_provenance_matches_ratchet_policy() {
+    let root = repo_root();
+    let frozen = load_frozen_baseline(&root);
+    let policy = load_json(&ratchet_policy_path(&root));
+    assert_eq!(
+        frozen.base_ref,
+        policy["base_ref"].as_str().expect("policy base_ref"),
+        "snapshot base_ref must come from ratchet-policy.json"
+    );
+    assert_eq!(frozen.merge_base.len(), 40, "full hex revision id");
+    let snapshot = load_json(&frozen_snapshot_path(&root));
+    assert_eq!(
+        snapshot["face_path"],
+        policy["frozen_reference"]["face_path"],
+        "snapshot must record the policy face path"
+    );
+    assert!(
+        !frozen.missing_at_merge_base,
+        "this repo's gate-baseline face exists at the merge-base; a missing-face snapshot \
+         here means the emitter extracted the wrong path"
+    );
+}
+
+/// THE FRIC-1781112000 PIN. A PR adds new debt AND regenerates the baseline face in the
+/// same change — exactly what the settle protocol mandates and registry-drift enforces, so
+/// the PR-local face always equals the regenerated face. FOIL: against the PR-local
+/// reference the laundering is structurally invisible (GREEN). GATE: against the FROZEN
+/// merge-base reference the same state is RED — both as compare-mode regressions and as
+/// ratchet growth. This is the misattribution shape from PR #670 (a new
+/// manifest-hygiene debt key absorbed by a same-PR baseline regen, 21/21 checks green).
+#[test]
+fn firewall_blocks_same_pr_baseline_regen_laundering() {
+    let root = repo_root();
+    let frozen = load_frozen_baseline(&root);
+    let signoff = SignOff::from_value(&load_json(&signoff_path(&root)));
+
+    // The laundering PR: new debt appears in the regenerated (and therefore committed)
+    // baseline face and in the live current set simultaneously.
+    let mut proposed_value = regenerate_baseline(&root);
+    if let Some(keys) = proposed_value
+        .get_mut("gates")
+        .and_then(|g| g.get_mut("cloud-ci-total-accounting"))
+        .and_then(|g| g.get_mut("unjustified"))
+        .and_then(|c| c.get_mut("keys"))
+        .and_then(Value::as_array_mut)
+    {
+        keys.push(Value::String("SYNTHETIC/laundered-in-same-pr.rs".to_owned()));
+    }
+    let proposed = Baseline::from_value(&proposed_value);
+    let pr_local_reference = proposed.clone(); // settle protocol: committed == regenerated
+    let current = baseline_keys_map(&proposed);
+
+    // FOIL — the historical hole: the PR-local reference cannot see its own laundering.
+    let laundered = evaluate_firewall(&pr_local_reference, &proposed, &current, &signoff);
+    assert!(
+        laundered.is_green(),
+        "FOIL: against the PR-local reference the laundering must be invisible — if this \
+         fails, the foil no longer demonstrates the hole and the pin needs re-derivation"
+    );
+
+    // THE GATE: the frozen merge-base reference blocks it, on BOTH predicates.
+    let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &signoff);
+    assert!(
+        report.ratchet_growth.iter().any(|(_, code, key)| {
+            code == "unjustified" && key == "SYNTHETIC/laundered-in-same-pr.rs"
+        }),
+        "same-PR baseline regen must be ratchet growth vs the merge-base: {:?}",
+        report.ratchet_growth
+    );
+    let unjust = report
+        .codes
+        .iter()
+        .find(|r| r.gate == "cloud-ci-total-accounting" && r.code == "unjustified")
+        .expect("unjustified code present");
+    assert!(
+        unjust
+            .regressions
+            .contains("SYNTHETIC/laundered-in-same-pr.rs"),
+        "the laundered key must also be a compare-mode regression vs the merge-base"
+    );
+    assert!(!report.is_green(), "firewall must be RED on same-PR laundering");
+}
+
 /// RED-on-NEW proof against the LIVE corpus: inject ONE synthetic NEW key into the live
 /// "current" set for a baseline-block-on-new code and assert the firewall FAILS — proving
 /// the gate still blocks any new finite violation that is not in the frozen baseline.
 #[test]
 fn firewall_goes_red_on_a_synthetic_new_violation() {
     let root = repo_root();
-    let committed_value = load_json(&faces_dir(&root).join("gate-baseline.generated.json"));
-    let committed = Baseline::from_value(&committed_value);
+    let frozen = load_frozen_baseline(&root);
     let proposed = Baseline::from_value(&regenerate_baseline(&root));
     let signoff = SignOff::from_value(&load_json(&signoff_path(&root)));
 
     let mut current = baseline_keys_map(&proposed);
-    // Add a NEW unjustified path that is NOT in the committed baseline.
+    // Add a NEW unjustified path that is NOT in the frozen merge-base baseline.
     current
         .entry("cloud-ci-total-accounting".to_owned())
         .or_default()
@@ -300,7 +448,7 @@ fn firewall_goes_red_on_a_synthetic_new_violation() {
         .or_default()
         .insert("SYNTHETIC/new-unjustified-file.rs".to_owned());
 
-    let report = evaluate_firewall(&committed, &proposed, &current, &signoff);
+    let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &signoff);
     let unjust = report
         .codes
         .iter()
@@ -323,15 +471,13 @@ fn firewall_goes_red_on_a_synthetic_new_violation() {
 }
 
 /// RATCHET proof against the LIVE corpus: a regen that GROWS the baseline (without sign-off)
-/// is a ratchet_regression — debt cannot be laundered into the baseline by re-running the
-/// producer.
+/// relative to the FROZEN merge-base reference is a ratchet_regression — debt cannot be
+/// laundered into the baseline by re-running the producer.
 #[test]
 fn firewall_blocks_baseline_growth_without_signoff() {
     let root = repo_root();
-    let committed = Baseline::from_value(&load_json(
-        &faces_dir(&root).join("gate-baseline.generated.json"),
-    ));
-    // A proposed baseline that ADDS a key beyond the committed set.
+    let frozen = load_frozen_baseline(&root);
+    // A proposed baseline that ADDS a key beyond the frozen set.
     let mut proposed_value = regenerate_baseline(&root);
     if let Some(keys) = proposed_value
         .get_mut("gates")
@@ -346,7 +492,7 @@ fn firewall_blocks_baseline_growth_without_signoff() {
     let current: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
 
     // Empty sign-off => the grown key is NOT exempt.
-    let report = evaluate_firewall(&committed, &proposed, &current, &SignOff::default());
+    let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &SignOff::default());
     assert!(
         report
             .ratchet_growth

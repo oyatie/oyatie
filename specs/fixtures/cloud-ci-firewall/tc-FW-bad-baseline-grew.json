@@ -4,7 +4,7 @@
   "expected_failing_codes": [],
   "expected_ratchet_growth": 1,
   "description": "A regen PROPOSES a baseline that ADDS a key beyond the committed frozen set (growth = proposed\\committed). With an empty sign-off door this is a ratchet_regression: debt cannot be laundered into the baseline by re-running the producer. The ONLY way to grow a baseline is the explicit one-way sign-off door.",
-  "committed_baseline": {
+  "merge_base_baseline": {
     "gates": {
       "cloud-ci-total-accounting": {
         "unjustified": {"mode": "baseline-block-on-new", "keys": ["oya/foundry-residue/a.rs", "oya/foundry-residue/b.rs"]}
