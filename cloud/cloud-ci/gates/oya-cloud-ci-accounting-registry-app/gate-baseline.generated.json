@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:cdd1cb3fe988258f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:6e61513cc7cb097c"
+    "source_inputs_digest": "fnv1a64:0dca99a7823827be"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -26027,6 +26027,7 @@
           "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md",
           "docs/decisions/ADR-0548-pipeline-as-product-paved-road.md",
           "docs/decisions/ADR-0549-buck-syntax-kernel.md",
+          "docs/decisions/ADR-0550-repository-layout-doctrine.md",
           "docs/decisions/INDEX.md",
           "docs/decisions/README.md",
           "docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md",
@@ -42208,6 +42209,7 @@
           "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md",
           "docs/decisions/ADR-0548-pipeline-as-product-paved-road.md",
           "docs/decisions/ADR-0549-buck-syntax-kernel.md",
+          "docs/decisions/ADR-0550-repository-layout-doctrine.md",
           "docs/decisions/INDEX.md",
           "docs/decisions/README.md",
           "docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md",
