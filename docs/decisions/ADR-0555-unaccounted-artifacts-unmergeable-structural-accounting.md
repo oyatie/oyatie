@@ -137,6 +137,45 @@ the BUCK-fixer refusal precedent). Therefore:
    must register in their own PR — the paved road is one OWNERS file + (where
    applicable) one registry line, both printed verbatim by the failing gate.
 
+Hardening (2026-06-12, FRIC-1781400000 — closes the two acknowledged weaknesses from
+the PR #704 independent review, MED-2; amended in place per the ADR-0551 precedent for
+hardening a same-cycle decision):
+
+- **OWNERS content schema (ownership was EXISTENCE-ONLY).** Ownership now requires
+  existence AND valid content. The minimal schema codifies what the live corpus already
+  does (all 15 OWNERS files at codification): each line, after trimming, is empty
+  (ignored), a `#` comment (ignored), or an **owner principal** — a lowercase
+  DNS-1123-label-shaped team identifier (`[a-z0-9]` plus interior `-`, 1..=63 chars; the
+  K8s name shape, e.g. `cloud-ci-platform`). A valid file carries **at least one
+  principal** and zero unparseable lines. Fail-closed: an empty, comment-only, garbage,
+  non-UTF-8, or unreadable OWNERS file is NOT ownership — and it still **poisons
+  resolution at its directory** (no fall-through to a broader valid ancestor), so invalid
+  content can never yield owned rows and corrupting an existing OWNERS surfaces as NEW
+  unowned keys (firewall RED) instead of being silently absorbed by a parent
+  registration. RED/GREEN data-under-test corpus: `specs/fixtures/owners-schema/`.
+- **Breadth bound (registrations were BREADTH-UNLIMITED).** A single OWNERS file's
+  nearest-ancestor coverage is capped by the policy-as-data bound
+  `[owners] max_paths_per_owners_file` (`oya-ci.toml`, reviewed TOML — the ratchet-policy
+  trust class; a zero bound is structurally rejected by the closed-schema loader).
+  Default **2000**, sized from the measured live distribution (2026-06-12: max legitimate
+  coverage 886 paths = `registry/catalog/OWNERS`, next 387 = `docs/decisions/OWNERS`, of
+  18,400 tracked) — >2x headroom for legitimate growth while a root/`cloud/`-level bulk
+  OWNERS claiming thousands is caught. Exceeding the bound leaves the **excess paths
+  unowned** (the first `<bound>` covered paths, path-sorted for deterministic
+  regeneration, keep ownership) with the remediation *split the registration into
+  narrower subtree OWNERS files* — a subtree OWNERS + ADR mention + registry line can no
+  longer bulk-neuter a tree's unowned leg.
+- **Automation (flag-isn't-enough).** `--fix-owners` validates the principal against the
+  schema before writing (it can only EMIT valid OWNERS content), self-validates through
+  the now content-aware derivation, and refuses an over-broad registration with no
+  residue. The producer prints an `owners integrity:` line naming the exact fix for every
+  invalid or over-broad OWNERS file, and the `unowned` remediation DATA
+  (gate-disposition table → stamped into `gate-baseline.generated.json` → printed by the
+  firewall) carries the schema and the split fix verbatim.
+- **Zero live-corpus regression.** All live OWNERS files parse valid and sit under the
+  bound (pinned by `live_owners_corpus_is_schema_valid_and_under_breadth_bound`), so the
+  conversion's grandfathered baseline does not grow from this hardening.
+
 ### D3 — The structural model: every artifact class is SOURCE-OF-TRUTH or DERIVED
 
 Every repo artifact class is exactly one of:
