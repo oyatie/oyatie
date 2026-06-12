@@ -40,6 +40,11 @@
 //!   shape — same id means same friction by ledger contract.
 //! - **Updates never dedup against primaries** (their field shapes are disjoint by the row model),
 //!   and distinct update rows for one id all survive: appends are the point of the ledger.
+//! - **Known property:** concurrent DIVERGENT `status_update` rows for one id have no total
+//!   order across merge orientations — `merge(a,b)` and `merge(b,a)` carry the same row set, but
+//!   the ADR-0544 fold takes the physically LAST update as effective status, which then depends
+//!   on which side was ours. Inherent to physical-order folding of parallel appends, and no
+//!   worse than the text union this replaces; the duplicate-primary guarantee is unaffected.
 //!
 //! ## Canonical serialization (single-owner coupling, ADR-0546)
 //! Output rows are canonically serialized: the ADR-0546 canonical-json kernel
@@ -235,6 +240,9 @@ pub fn parse_ledger(label: &str, text: &str) -> Result<Vec<Row>, MergeError> {
                 format!("{label}: line {line_no}: {err}"),
             )
         })?;
+        // serde parses the ORIGINAL line (not `canon`): both parsers must accept the same bytes
+        // or the merge refuses. Keep it that way — e.g. the kernel tolerates a leading BOM that
+        // serde rejects; parsing the original keeps the stricter union of the two fail-closed.
         let value: Value = serde_json::from_str(line).map_err(|err| {
             MergeError::new(
                 MergeErrorKind::Parse,
