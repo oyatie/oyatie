@@ -1,0 +1,27 @@
+rust_library(
+    name = "oya-cloud-iam-pdp-bundle-file-adapter",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_iam_pdp_bundle_file_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-iam/crates/oya-cloud-iam-pdp-kernel:oya-cloud-iam-pdp-kernel",
+        "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-iam-pdp-bundle-file-adapter-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_iam_pdp_bundle_file_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-iam/crates/oya-cloud-iam-pdp-kernel:oya-cloud-iam-pdp-kernel",
+        "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "third-party//:serde_json",
+    ],
+)
