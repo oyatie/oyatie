@@ -9,6 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0549]
 depends_on: [ADR-0083, ADR-0131, ADR-0132, ADR-0363, ADR-0510, ADR-0515, ADR-0538, ADR-0540, ADR-0544]
 amends: []
 related: [ADR-0017, ADR-0131, ADR-0132, ADR-0512, ADR-0539, ADR-0540, ADR-0544]
@@ -194,7 +195,12 @@ detector + automation-where-derivable + blocking backstop:
   explicitly: layer-1 syntactic bounds have already passed and the blocking buck2 `rust_test` gate
   remains the enforcement backstop. The validator is injected (`apply_fixes_with_validator`) so the
   rollback path is pinned by a deterministic fixture rather than the test host's cargo availability.
-- **BUCK `--fix` descoped to refusal-only (round-3 revision, FRIC-1781200001).** The Starlark
+- **BUCK `--fix` descoped to refusal-only (round-3 revision, FRIC-1781200001).**
+  *Amended by ADR-0549 (2026-06-11): this descope is CLOSED — BUCK `--fix` is re-enabled on the
+  `oya-buck-syntax-kernel` sound parser + write-through fixer harness (span-exact element
+  removal, reparse + no-collateral validation, first-pre-image rollback); unsound shapes still
+  refuse with the file byte-identical. The paragraph below is the historical pre-kernel
+  rationale.* The Starlark
   block parser (paren-depth + comment/string stripping) is not yet sound enough to guarantee safe
   rewrites against all BUCK syntaxes (multi-rule files, macro-generated blocks, unusual indentation).
   Rather than ship a fixer that could corrupt BUCK files, BUCK findings that would otherwise be

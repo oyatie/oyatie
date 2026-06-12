@@ -122,18 +122,25 @@ The denylist targets transient infra adapters only — legitimate cutover-stable
 (`aws-lc-rs`, `libc`, `zeroize`, `tokio`) are absent from it, and `kube` exact + `kube-` hyphen
 prefix denies the kube-* family without matching the owned `kuberos`/`oya-cloud-kernel-*` crates.
 Automation-default (founder directive 2026-06-11): the `oya-cloud-ci-kernel-purity-app-bin` binary
-detects and reports by default and auto-fixes the derivable subset under `--fix` (**Cargo.toml
-only** — BUCK `--fix` is descoped to refusal-only pending the `oya-buck-syntax-kernel` fixer
-harness, FRIC-1781200001). A dead transient *normal* dep declared but unreferenced in src/build.rs
-is removed from Cargo.toml mechanically. Four safety bounds keep the Cargo fixer from corrupting a
-manifest: (i) build-deps are never auto-fixed; (ii) the remover is table-aware (never touches
-`[dev-dependencies]`/`[features]`); (iii) renamed deps are never auto-fixed; (iv) deps referenced
-in `[features]` in any syntax (`dep:X`, `X`, `X/feat`, `X?/feat`, across all dep tables) are never
-auto-fixed — `collect_features_referenced_deps` enforces this. After every Cargo edit, `cargo
-metadata` is run as a semantic revalidation gate; on failure all pre-images are restored (CRITICAL-A
-layer 2 rollback). A dep that IS used in source, is renamed, is a build-dep, or is feature-backed
-is a design action, printed with a reason-specific next step but never auto-applied. The buck2
-`rust_test` gate is the blocking backstop.
+detects and reports by default and auto-fixes the derivable subset under `--fix` — the Cargo.toml
+dep line plus its dead `third-party//:<dep>` rust_library BUCK edge, the latter via the shared
+`oya-buck-syntax-kernel` sound parser + write-through fixer harness (ADR-0549 closed the
+FRIC-1781200001 refusal-only descope; unsound BUCK shapes still refuse with the file
+byte-identical). A dead transient *normal* dep declared but unreferenced in src/build.rs is
+removed mechanically. Five safety bounds (ADR-0547 D6) keep the fixer from corrupting a manifest
+or removing a live dep: (i) build-deps are never auto-fixed; (ii) the remover is table-aware
+(never touches `[dev-dependencies]`/`[features]`); (iii) renamed deps are never auto-fixed;
+(iv) deps referenced in `[features]` in any syntax (`dep:X`, `X`, `X/feat`, `X?/feat`, across all
+dep tables) are never auto-fixed — `collect_features_referenced_deps` enforces this; (v) deps
+declared `optional = true` are never auto-fixed even with zero own-manifest `[features]` mentions
+— an optional dep exports an implicit cargo feature a SIBLING workspace member can request, which
+neither the own-manifest scan nor `cargo metadata --no-deps` can see (FRIC-1781210000). After the
+edits, `cargo metadata` is run as a semantic revalidation gate; on failure ALL pre-images are
+restored — keyed by path with the FIRST pre-image winning, so a manifest edited twice rolls back
+to its ORIGINAL content (CRITICAL-A layer 2 rollback). A dep that IS used in source, is renamed,
+is a build-dep, is optional, or is feature-backed is a design action, printed with a
+reason-specific next step but never auto-applied. The buck2 `rust_test` gate is the blocking
+backstop.
 
 ## Key shapes (what a `key` identifies)
 
