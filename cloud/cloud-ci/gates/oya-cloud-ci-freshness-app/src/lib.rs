@@ -11,7 +11,8 @@ use oya_workspace_members_kernel::resolve_member_dirs;
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
 pub const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
-pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from TRACKED paths; never mix content and regenerated faces in one commit; then run the materialize command; then commit the faces-only diff";
+pub const FACE_SETTLE_PROTOCOL: &str = "commit content changes first; faces regenerate from TRACKED paths; never mix content and regenerated faces in one commit; then run the materialize command; then commit the faces-only diff; then run oya-cloud-ci-face-settle --verify as the LAST step before EVERY push — ANY commit after the settle commit touching a non-generated-class path (even docs-only) un-settles scm-facts";
+pub const FACE_VERIFY_REMEDIATION_COMMAND: &str = "oya-cloud-ci-face-settle --settle --commit";
 pub const FACE_SETTLE_COMMIT_COMMAND: &str =
     "git commit -S -m \"chore: settle generated cloud-ci faces\"";
 const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces";
@@ -100,6 +101,7 @@ impl Finding {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FaceSettleMode {
     Check,
+    Verify,
     Settle,
     SettleAndCommit,
 }
@@ -108,13 +110,17 @@ pub enum FaceSettleMode {
 pub struct FaceSettleReport {
     pub message: String,
     pub stale_faces: Vec<String>,
+    /// Rendered non-face freshness-gate findings (Cargo.lock staleness). Populated by
+    /// the Verify mode only, which runs the gate's FULL check; always empty for the
+    /// face-scoped Check/Settle modes.
+    pub lock_findings: Vec<String>,
     pub staged_faces: Vec<String>,
     pub committed: bool,
 }
 
 impl FaceSettleReport {
     pub fn is_success(&self) -> bool {
-        self.stale_faces.is_empty()
+        self.stale_faces.is_empty() && self.lock_findings.is_empty()
     }
 }
 
@@ -267,10 +273,20 @@ pub fn run_face_settle_with_buck2(
     repo_root: &Path,
     mode: FaceSettleMode,
 ) -> Result<FaceSettleReport, FreshnessError> {
-    assert_non_face_tree_clean(repo_root)?;
+    // Assert tree preconditions BEFORE the buck2 regeneration so a dirty tree fails in
+    // milliseconds instead of after a build. Verify certifies the COMMITTED tree (HEAD),
+    // so it requires the FULL tracked tree clean (faces included); the other modes keep
+    // the existing non-face cleanliness contract.
+    match mode {
+        FaceSettleMode::Verify => assert_committed_tree_clean(repo_root)?,
+        FaceSettleMode::Check | FaceSettleMode::Settle | FaceSettleMode::SettleAndCommit => {
+            assert_non_face_tree_clean(repo_root)?;
+        }
+    }
     let regenerated_faces = regenerate_faces_with_buck2(repo_root)?;
     match mode {
         FaceSettleMode::Check => check_regenerated_faces(repo_root, regenerated_faces),
+        FaceSettleMode::Verify => verify_committed_tree(repo_root, regenerated_faces),
         FaceSettleMode::Settle | FaceSettleMode::SettleAndCommit => {
             settle_regenerated_faces(repo_root, regenerated_faces, mode)
         }
@@ -281,6 +297,7 @@ pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, Fresh
     let mut repo_root = PathBuf::from(".");
     let mut settle = false;
     let mut commit = false;
+    let mut verify = false;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -298,6 +315,9 @@ pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, Fresh
             "--commit" => {
                 commit = true;
             }
+            "--verify" => {
+                verify = true;
+            }
             "--help" | "-h" => {
                 return Err(FreshnessError::new(face_settle_usage()));
             }
@@ -309,22 +329,31 @@ pub fn parse_face_settle_args(args: Vec<String>) -> Result<FaceSettleArgs, Fresh
             }
         }
     }
+    if verify && (settle || commit) {
+        return Err(FreshnessError::new(
+            "face settle: --verify is read-only and cannot be combined with --settle/--commit",
+        ));
+    }
     if commit && !settle {
         return Err(FreshnessError::new(
             "face settle: --commit requires --settle",
         ));
     }
-    let mode = match (settle, commit) {
-        (false, false) => FaceSettleMode::Check,
-        (true, false) => FaceSettleMode::Settle,
-        (true, true) => FaceSettleMode::SettleAndCommit,
-        (false, true) => FaceSettleMode::Check,
+    let mode = if verify {
+        FaceSettleMode::Verify
+    } else {
+        match (settle, commit) {
+            (false, false) => FaceSettleMode::Check,
+            (true, false) => FaceSettleMode::Settle,
+            (true, true) => FaceSettleMode::SettleAndCommit,
+            (false, true) => FaceSettleMode::Check,
+        }
     };
     Ok(FaceSettleArgs { repo_root, mode })
 }
 
 pub fn face_settle_usage() -> &'static str {
-    "usage: oya-cloud-ci-face-settle [--repo-root <path>] [--settle [--commit]]"
+    "usage: oya-cloud-ci-face-settle [--repo-root <path>] [--settle [--commit] | --verify]"
 }
 
 pub fn check_regenerated_faces(
@@ -346,6 +375,71 @@ pub fn check_regenerated_faces(
     Ok(FaceSettleReport {
         message,
         stale_faces,
+        lock_findings: Vec::new(),
+        staged_faces: Vec::new(),
+        committed: false,
+    })
+}
+
+/// Read-only certification that the COMMITTED tree (HEAD) passes the cloud-ci freshness
+/// gate: it runs the gate's OWN full check (`check_repo_with_regenerated_faces`, single
+/// owner — generated-face byte parity AND Cargo.lock member parity) against a tree that
+/// is asserted byte-identical to HEAD. Exit contract: success only when the gate itself
+/// would be green; otherwise the report names each stale face / lock finding and prints
+/// the exact remediation command. This function NEVER writes: it only runs read-only git
+/// queries and filesystem reads.
+///
+/// FRIC-1781250000: scm-facts encodes per-path `last_touch_commit`, so ANY commit landing
+/// after the settle commit that touches a non-generated-class path (even docs-only)
+/// un-settles the faces; local "faces look byte-identical" self-assessment provably
+/// fails. This is the required LAST step before EVERY push; the ADR-0539 freshness gate
+/// remains the canonical backstop.
+pub fn verify_committed_tree(
+    repo_root: &Path,
+    regenerated_faces: Vec<(String, String)>,
+) -> Result<FaceSettleReport, FreshnessError> {
+    assert_committed_tree_clean(repo_root)?;
+    // With the FULL tracked tree clean and no untracked files (asserted above), every
+    // tracked path in the working tree is byte-identical to HEAD, so this check IS the
+    // freshness-gate check performed on a clean CI checkout of this commit.
+    let report = check_repo_with_regenerated_faces(repo_root, regenerated_faces)?;
+    let stale_faces: Vec<String> = report
+        .findings
+        .iter()
+        .filter(|finding| finding.code == FindingCode::GeneratedFaceStale)
+        .map(|finding| finding.key.clone())
+        .collect();
+    let lock_findings: Vec<String> = report
+        .findings
+        .iter()
+        .filter(|finding| finding.code != FindingCode::GeneratedFaceStale)
+        .map(|finding| format!("{} {}: {}", finding.code, finding.key, finding.detail))
+        .collect();
+    let message = if stale_faces.is_empty() && lock_findings.is_empty() {
+        "face-settle --verify: committed tree is settled at HEAD — generated faces byte-identical and Cargo.lock member-fresh (the cloud-ci freshness gate's own checks)".to_owned()
+    } else {
+        let mut sections = Vec::new();
+        if !stale_faces.is_empty() {
+            sections.push(format!(
+                "stale generated faces:\n{}\nRemediation: {FACE_VERIFY_REMEDIATION_COMMAND}",
+                bullet_list(&stale_faces)
+            ));
+        }
+        if !lock_findings.is_empty() {
+            sections.push(format!(
+                "stale Cargo.lock state:\n{}\nRemediation: {LOCK_REMEDIATION_COMMAND} (then commit the refreshed Cargo.lock as a content commit)",
+                bullet_list(&lock_findings)
+            ));
+        }
+        format!(
+            "face-settle --verify: committed tree is STALE at HEAD — pushing now fails the cloud-ci freshness gate:\n{}\n\nProtocol: {FACE_SETTLE_PROTOCOL}",
+            sections.join("\n")
+        )
+    };
+    Ok(FaceSettleReport {
+        message,
+        stale_faces,
+        lock_findings,
         staged_faces: Vec::new(),
         committed: false,
     })
@@ -363,6 +457,7 @@ pub fn settle_regenerated_faces(
         return Ok(FaceSettleReport {
             message: "generated cloud-ci faces are already settled".to_owned(),
             stale_faces: Vec::new(),
+            lock_findings: Vec::new(),
             staged_faces: Vec::new(),
             committed: false,
         });
@@ -388,6 +483,7 @@ pub fn settle_regenerated_faces(
             bullet_list(&staged_faces)
         ),
         stale_faces: Vec::new(),
+        lock_findings: Vec::new(),
         staged_faces,
         committed,
     })
@@ -417,6 +513,42 @@ pub fn assert_non_face_tree_clean(repo_root: &Path) -> Result<(), FreshnessError
             sections.join("\n")
         )))
     }
+}
+
+/// Verify-mode precondition: the FULL tracked tree (faces included) must match HEAD and no
+/// untracked files may exist. Unlike `assert_non_face_tree_clean`, dirty FACE paths also
+/// refuse — an uncommitted face edit means the committed state cannot be certified (the
+/// classic shape: `--settle` ran but the settle commit was forgotten).
+pub fn assert_committed_tree_clean(repo_root: &Path) -> Result<(), FreshnessError> {
+    let tracked_changes = tracked_non_face_changes(repo_root)?;
+    let face_changes = tracked_face_changes(repo_root)?;
+    let untracked_paths = untracked_paths(repo_root)?;
+    if tracked_changes.is_empty() && face_changes.is_empty() && untracked_paths.is_empty() {
+        return Ok(());
+    }
+    let mut sections = Vec::new();
+    if !tracked_changes.is_empty() {
+        sections.push(format!(
+            "tracked non-face changes:\n{}",
+            bullet_list(&tracked_changes)
+        ));
+    }
+    if !face_changes.is_empty() {
+        sections.push(format!(
+            "uncommitted generated-face changes (did you run --settle without --commit?):\n{}",
+            bullet_list(&face_changes)
+        ));
+    }
+    if !untracked_paths.is_empty() {
+        sections.push(format!(
+            "untracked files:\n{}",
+            bullet_list(&untracked_paths)
+        ));
+    }
+    Err(FreshnessError::new(format!(
+        "face-settle --verify certifies the COMMITTED tree (HEAD) only; commit or remove these changes first:\n{}\nProtocol: {FACE_SETTLE_PROTOCOL}",
+        sections.join("\n")
+    )))
 }
 
 pub fn check_repo_with_regenerated_faces(
