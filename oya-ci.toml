@@ -95,6 +95,7 @@ required_flags = ["version_workspace", "rust_version_workspace", "publish_false"
 masterplan = "specs/masterplan.json"
 root_hub = "specs/root-hub-pointers.json"
 doc_catalog = "docs/DOC-CATALOG.md"
+registry = "specs/reachability-registry.json"
 
 [justification]
 adr_dir = "docs/decisions"

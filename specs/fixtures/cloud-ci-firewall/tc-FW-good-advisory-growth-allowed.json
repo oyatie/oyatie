@@ -3,23 +3,23 @@
   "expected_firewall": "GREEN",
   "expected_failing_codes": [],
   "expected_ratchet_growth": 0,
-  "description": "Mode-aware ratchet: every PR adding any file legitimately grows the advisory-until-infra dashboards (born-unowned/unreachable), so advisory baseline growth at regen is NOT a ratchet_regression — growth-blocking it would turn every PR into a founder signoff. The advisory baseline is frozen by the reviewed DATA edit that flips the disposition to baseline-block-on-new, not by the growth check.",
+  "description": "Mode-aware ratchet: an advisory-until-infra dashboard may grow at regen without a signoff. The surviving advisory exemplar is stale_over_budget_unreachable (ADR-0555: time-driven decay — keys enter by aging, every merge advances the clock for everyone, so growth-blocking it would turn unrelated PRs into signoffs). The advisory baseline is frozen by the reviewed DATA edit that flips a disposition to baseline-block-on-new, not by the growth check — exactly how the ADR-0555 conversion armed unowned/unreachable.",
   "merge_base_baseline": {
     "gates": {
-      "cloud-ci-total-accounting": {
-        "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["oya/frozen-debt/a.rs"]}
+      "cloud-ci-staleness-reaper": {
+        "stale_over_budget_unreachable": {"mode": "advisory-until-infra", "infra_prereq": "staleness-reaper-archival-reconciler", "keys": ["docs/old/frozen-debt.md"]}
       }
     }
   },
   "current": {
-    "cloud-ci-total-accounting": {
-      "unowned": ["oya/frozen-debt/a.rs", "oya/new-file/born-unowned.rs"]
+    "cloud-ci-staleness-reaper": {
+      "stale_over_budget_unreachable": ["docs/old/frozen-debt.md", "docs/old/newly-aged.md"]
     }
   },
   "proposed_baseline": {
     "gates": {
-      "cloud-ci-total-accounting": {
-        "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["oya/frozen-debt/a.rs", "oya/new-file/born-unowned.rs"]}
+      "cloud-ci-staleness-reaper": {
+        "stale_over_budget_unreachable": {"mode": "advisory-until-infra", "infra_prereq": "staleness-reaper-archival-reconciler", "keys": ["docs/old/frozen-debt.md", "docs/old/newly-aged.md"]}
       }
     }
   },

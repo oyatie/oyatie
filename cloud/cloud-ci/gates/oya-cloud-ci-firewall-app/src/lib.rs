@@ -128,6 +128,10 @@ pub struct CodeBaseline {
     pub mode: String,
     pub frozen_empty: bool,
     pub keys: BTreeSet<String>,
+    /// The exact registration edit (or the precise design decision needed) printed when
+    /// this code FAILs — stamped from the disposition DATA by the producer (ADR-0555: an
+    /// unaccounted artifact is never a bare flag). Optional: older faces lack it.
+    pub remediation: Option<String>,
 }
 
 impl Baseline {
@@ -152,6 +156,10 @@ impl Baseline {
                                     .and_then(Value::as_bool)
                                     == Some(true),
                                 keys: str_set(entry.get("keys")),
+                                remediation: entry
+                                    .get("remediation")
+                                    .and_then(Value::as_str)
+                                    .map(str::to_owned),
                             },
                         );
                     }
@@ -333,6 +341,10 @@ pub struct CodeReport {
     /// Keys new relative to the frozen reference but founder-admitted through the one-way
     /// sign-off door: reported for the audit trail, never a failure.
     pub signed_off: BTreeSet<String>,
+    /// The exact registration edit (or the precise design decision needed) for this code's
+    /// regressions — carried from the PROPOSED face (freshest disposition DATA), falling
+    /// back to the frozen reference (ADR-0555: a FAIL is never a bare flag).
+    pub remediation: Option<String>,
 }
 
 impl CodeReport {
@@ -428,6 +440,7 @@ pub fn compare(
                 fixed,
                 tolerated,
                 signed_off,
+                remediation: base.and_then(|b| b.remediation.clone()),
             });
         }
     }
@@ -512,15 +525,29 @@ pub fn inert_signoff_entries(
 }
 
 /// Run BOTH predicates + the inert-door detector and assemble the full firewall report.
-/// `frozen` is the merge-base reference baseline (see [`FrozenBaseline`]).
+/// `frozen` is the merge-base reference baseline (see [`FrozenBaseline`]). Per-code
+/// remediation text is enriched from the PROPOSED face when present (ADR-0555: the freshest
+/// disposition DATA — a pre-flip frozen snapshot has none), falling back to the frozen entry
+/// from `compare`, so a FAIL prints the exact registration edit rather than a bare flag.
 pub fn evaluate_firewall(
     frozen: &Baseline,
     proposed: &Baseline,
     current: &BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
     signoff: &SignOff,
 ) -> FirewallReport {
+    let mut codes = compare(frozen, current, signoff);
+    for report in &mut codes {
+        if let Some(text) = proposed
+            .gates
+            .get(&report.gate)
+            .and_then(|c| c.get(&report.code))
+            .and_then(|cb| cb.remediation.clone())
+        {
+            report.remediation = Some(text);
+        }
+    }
     FirewallReport {
-        codes: compare(frozen, current, signoff),
+        codes,
         ratchet_growth: ratchet_growth(frozen, proposed, signoff),
         inert_signoff: inert_signoff_entries(frozen, proposed, current, signoff),
     }
@@ -721,6 +748,36 @@ mod tests {
         assert!(
             growth.is_empty(),
             "advisory-until-infra baselines may grow without signoff: {growth:?}"
+        );
+    }
+
+    #[test]
+    fn remediation_is_carried_from_proposed_face_to_failing_report() {
+        // ADR-0555: a FAIL is never a bare flag — the report carries the exact
+        // registration edit, enriched from the PROPOSED face (freshest disposition DATA).
+        let frozen = baseline_fixture();
+        let proposed = Baseline::from_value(&json!({
+            "gates": {"cloud-ci-total-accounting": {
+                "unjustified": {"mode": "baseline-block-on-new", "keys": ["a.rs", "b.rs"],
+                                 "remediation": "register it: the exact edit"}
+            }}
+        }));
+        let cur = current(&[(
+            "cloud-ci-total-accounting",
+            "unjustified",
+            &["a.rs", "b.rs", "c-NEW.rs"],
+        )]);
+        let report = evaluate_firewall(&frozen, &proposed, &cur, &SignOff::default());
+        let unjust = report
+            .codes
+            .iter()
+            .find(|r| r.code == "unjustified")
+            .unwrap();
+        assert!(unjust.fails());
+        assert_eq!(
+            unjust.remediation.as_deref(),
+            Some("register it: the exact edit"),
+            "the failing report must carry the registration remediation"
         );
     }
 

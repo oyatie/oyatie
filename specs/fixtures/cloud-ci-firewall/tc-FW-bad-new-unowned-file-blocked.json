@@ -1,0 +1,28 @@
+{
+  "fixture_id": "TC-FW-BAD-new-unowned-file-blocked",
+  "expected_firewall": "RED",
+  "expected_failing_codes": ["unowned"],
+  "expected_ratchet_growth": 1,
+  "description": "ADR-0555 conversion pin (FRIC-1781330000): unowned is baseline-block-on-new in the armed (post-merge-base-advance) configuration. A PR adds a NEW file with no OWNERS-resolvable owner and the settle regen carries it into both current and proposed. Against the frozen merge-base reference the new key is a compare-mode regression (FAIL — with the remediation naming the exact registration edit) AND un-signed-off ratchet growth. The pre-existing unowned debt (the grandfathered key set) stays tolerated; only the NEW unaccounted artifact is unmergeable.",
+  "merge_base_baseline": {
+    "gates": {
+      "cloud-ci-total-accounting": {
+        "unowned": {"mode": "baseline-block-on-new", "remediation": "add an OWNERS file in the artifact's directory (or nearest ancestor) naming the owning team", "keys": ["oya/grandfathered/a.rs", "oya/grandfathered/b.rs"]}
+      }
+    }
+  },
+  "current": {
+    "cloud-ci-total-accounting": {
+      "unowned": ["oya/grandfathered/a.rs", "oya/grandfathered/b.rs", "oya/new-service/born-unowned.rs"]
+    }
+  },
+  "proposed_baseline": {
+    "gates": {
+      "cloud-ci-total-accounting": {
+        "unowned": {"mode": "baseline-block-on-new", "remediation": "add an OWNERS file in the artifact's directory (or nearest ancestor) naming the owning team", "keys": ["oya/grandfathered/a.rs", "oya/grandfathered/b.rs", "oya/new-service/born-unowned.rs"]}
+      }
+    }
+  },
+  "signoff": {"_sign_off_additions": {}},
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs"
+}

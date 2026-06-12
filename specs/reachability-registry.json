@@ -1,0 +1,33 @@
+{
+  "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act — the ADR-0551 trust class (same as ratchet-policy.json) — never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
+  "registered": [
+    {
+      "anchor": "ADR-0555 ownership seed: the cloud-ci gate tree's OWNERS marker (cloud-ci-platform)",
+      "prefix": "cloud/cloud-ci/gates/OWNERS"
+    },
+    {
+      "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
+      "prefix": "docs/decisions/"
+    },
+    {
+      "anchor": "ADR-0555 D3: gate/agent evidence corpus — TTL-accounted decay (staleness-reaper budgets); evidence is reached by the gate runs that produced it",
+      "prefix": "evidence/"
+    },
+    {
+      "anchor": "ADR-0555 ownership seed: the specs tree's OWNERS marker (council-architecture)",
+      "prefix": "specs/OWNERS"
+    },
+    {
+      "anchor": "ADR-0555 D3: the gates' data-under-test corpus — fixture dirs are loaded wholesale by each gate's fixture-driven test (read_dir over tc-*.json), so the consuming test IS the live pointer",
+      "prefix": "specs/fixtures/"
+    },
+    {
+      "anchor": "ADR-0555: this registry registers itself — a reviewed root registration surface pointed at by oya-ci.toml [reachability].registry",
+      "prefix": "specs/reachability-registry.json"
+    },
+    {
+      "anchor": "ADR-0555 D3: reindeer-vendored third-party tree — a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions",
+      "prefix": "third-party/"
+    }
+  ]
+}

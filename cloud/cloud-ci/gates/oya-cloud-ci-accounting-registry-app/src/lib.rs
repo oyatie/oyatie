@@ -729,6 +729,10 @@ pub fn build_gate_baseline(
                 .unwrap_or("baseline-block-on-new");
             let frozen_empty = disp.get("frozen_empty").and_then(Value::as_bool) == Some(true);
             let infra_prereq = disp.get("infra_prereq").and_then(Value::as_str);
+            // The exact registration edit (or the precise design decision needed) the
+            // firewall prints when this code FAILs — DATA from the disposition table
+            // (ADR-0555: an unaccounted artifact is never a bare flag).
+            let remediation = disp.get("remediation").and_then(Value::as_str);
 
             // frozen_empty codes never accumulate a baseline — their keys are forced empty
             // (the emptiness is DATA; any occurrence is NEW debt for the runner to block).
@@ -751,6 +755,9 @@ pub fn build_gate_baseline(
             entry.insert("mode".into(), Value::String(mode.to_owned()));
             if let Some(prereq) = infra_prereq {
                 entry.insert("infra_prereq".into(), Value::String(prereq.to_owned()));
+            }
+            if let Some(text) = remediation {
+                entry.insert("remediation".into(), Value::String(text.to_owned()));
             }
             entry.insert("keys".into(), Value::Array(keys));
             if frozen_empty {
@@ -926,10 +933,31 @@ mod tests {
         // unjustified is baseline-block-on-new and freezes the live key (the row path).
         assert_eq!(ta["unjustified"]["mode"], "baseline-block-on-new");
         assert_eq!(ta["unjustified"]["keys"][0], "oya/x/lib.rs");
-        // unowned is advisory-until-infra and STILL freezes the key (advisory reports, the
-        // runner just never fails on it until the disposition flips).
-        assert_eq!(ta["unowned"]["mode"], "advisory-until-infra");
-        assert_eq!(ta["unowned"]["infra_prereq"], "owners-files-tree-wide");
+        // ADR-0555 conversion: the exists-but-unaccounted codes are BLOCKING and still
+        // freeze the live keys (the pre-existing debt is grandfathered by the ADR-0551
+        // merge-base frozen baseline, not by an advisory mode). Each carries the exact
+        // registration remediation as DATA — never a bare flag.
+        assert_eq!(ta["unowned"]["mode"], "baseline-block-on-new");
+        assert_eq!(ta["unowned"]["keys"][0], "oya/x/lib.rs");
+        assert!(
+            ta["unowned"]["remediation"]
+                .as_str()
+                .is_some_and(|t| t.contains("OWNERS") && t.contains("design act")),
+            "unowned must stamp the exact ownership-registration remediation"
+        );
+        assert_eq!(ta["unreachable"]["mode"], "baseline-block-on-new");
+        assert!(
+            ta["unreachable"]["remediation"]
+                .as_str()
+                .is_some_and(|t| t.contains("specs/reachability-registry.json")),
+            "unreachable must stamp the exact reachability-registration remediation"
+        );
+        assert_eq!(ta["no_ttl_class"]["mode"], "baseline-block-on-new");
+        // stale_over_budget_unreachable stays advisory BY DESIGN (time-driven decay —
+        // its convergence surface is the reaper reconciler, not admission).
+        let sr = &baseline["gates"]["cloud-ci-staleness-reaper"];
+        assert_eq!(sr["stale_over_budget_unreachable"]["mode"], "advisory-until-infra");
+        assert_eq!(sr["untyped_staleness"]["mode"], "baseline-block-on-new");
         // registry_drift is frozen_empty: never accumulates a key even if one were present.
         assert_eq!(ta["registry_drift"]["frozen_empty"], true);
         assert_eq!(ta["registry_drift"]["keys"].as_array().unwrap().len(), 0);

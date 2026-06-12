@@ -3,26 +3,23 @@
   "expected_firewall": "GREEN",
   "expected_failing_codes": [],
   "expected_ratchet_growth": 0,
-  "description": "A NEW unowned + unreachable file appears (current\\baseline regression) but both codes are advisory-until-infra (OWNERS / reachability infra not yet landed). The firewall REPORTS the regression count but does NOT fail the verdict — the pervasive-structural classes burn down on the dashboard until their infra_prereq lands and the disposition flips to baseline-block-on-new (a DATA edit).",
+  "description": "A file ages past its TTL budget while unreachable (a NEW stale_over_budget_unreachable key, current\\baseline regression) but the code is advisory-until-infra BY DESIGN (ADR-0555): its keys enter by TIME passing, not by PR action, so admission-blocking would blame PRs for age accrued on other clocks. The firewall REPORTS the regression count but does NOT fail the verdict — the convergence surface is the staleness-reaper reconciler (report -> git mv -> _archive/). NOTE: the exists-but-unaccounted classes (unowned/unreachable/no_ttl_class/untyped_staleness) were converted to baseline-block-on-new by ADR-0555 and are pinned RED by tc-FW-bad-new-unowned-file-blocked / tc-FW-bad-new-unreachable-file-blocked.",
   "merge_base_baseline": {
     "gates": {
-      "cloud-ci-total-accounting": {
-        "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["a.rs"]},
-        "unreachable": {"mode": "advisory-until-infra", "infra_prereq": "masterplan-reachability-wiring", "keys": ["a.rs"]}
+      "cloud-ci-staleness-reaper": {
+        "stale_over_budget_unreachable": {"mode": "advisory-until-infra", "infra_prereq": "staleness-reaper-archival-reconciler", "keys": ["docs/old/a.md"]}
       }
     }
   },
   "current": {
-    "cloud-ci-total-accounting": {
-      "unowned": ["a.rs", "z-brand-new.rs"],
-      "unreachable": ["a.rs", "z-brand-new.rs"]
+    "cloud-ci-staleness-reaper": {
+      "stale_over_budget_unreachable": ["docs/old/a.md", "docs/old/z-just-aged-past-budget.md"]
     }
   },
   "proposed_baseline": {
     "gates": {
-      "cloud-ci-total-accounting": {
-        "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["a.rs"]},
-        "unreachable": {"mode": "advisory-until-infra", "infra_prereq": "masterplan-reachability-wiring", "keys": ["a.rs"]}
+      "cloud-ci-staleness-reaper": {
+        "stale_over_budget_unreachable": {"mode": "advisory-until-infra", "infra_prereq": "staleness-reaper-archival-reconciler", "keys": ["docs/old/a.md"]}
       }
     }
   },
