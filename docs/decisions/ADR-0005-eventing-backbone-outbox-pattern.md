@@ -2,13 +2,14 @@
 id: ADR-0005
 status: proposed
 doc_status: published
+superseded_by: [ADR-0557]
 ---
 
 # ADR-0005: Eventing backbone on Apache Kafka with outbox pattern, CloudEvents envelope, and per-tenant per-cell partitioning
 
 > **Status:** Proposed
 > **Supersedes:** -
-> **Superseded-by:** -
+> **Superseded-by:** ADR-0557 (supersedes-in-part: the Kafka-as-canonical-substrate clause; streaming-semantics decisions carry forward under Pulsar + KoP)
 > **Owner:** `foundry` (eventing kernel) + `council-architecture`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0009, ADR-0011, ADR-0013

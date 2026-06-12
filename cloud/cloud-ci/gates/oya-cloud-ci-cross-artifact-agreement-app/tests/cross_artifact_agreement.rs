@@ -197,11 +197,15 @@ fn planning_closure_architecture_rules_agree_across_authority_artifacts() {
 /// the producer's decision-crosswalk face over the live tree and asserts the gate flags the
 /// real defects:
 /// - `generated_face_drift` — catalog.json axes_count:6 vs contracts.json axes_count:7
-/// - `dual_decision_collision` — the two ADR-0377 files
 /// - `supersession_half_edge` — ADR-0511 supersedes ADR-0359 while ADR-0359 omits it
 ///
-/// Plus the frozen-empty `decision_id_mismatch` lane: zero filename/front-matter id
-/// disagreements today, asserted with the renumber remediation in the FAIL output.
+/// Plus two lanes that must stay CLEAN on the live corpus:
+/// - `dual_decision_collision` — the historical two-ADR-0377-files exhibit was resolved
+///   2026-06-12 by renumbering the newer file to ADR-0557 (FRIC-1781390000); the live
+///   corpus must stay duplicate-free (the RED shape stays pinned by the frozen
+///   tc-XA-bad-dup-adr-number fixture).
+/// - the frozen-empty `decision_id_mismatch` lane: zero filename/front-matter id
+///   disagreements today, asserted with the renumber remediation in the FAIL output.
 ///
 /// Counts are MEASURED, not hardcoded.
 #[test]
@@ -221,8 +225,11 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         "catalog.json axes_count:6 vs contracts.json axes_count:7 -> generated_face_drift must fire"
     );
     assert!(
-        report.violations.contains("dual_decision_collision"),
-        "two ADR-0377 files -> dual_decision_collision must fire"
+        !report.violations.contains("dual_decision_collision"),
+        "duplicate decision ids must stay resolved (the ADR-0377 pair was renumbered to \
+         ADR-0557 per FRIC-1781390000; allocate via the accounting-registry producer's \
+         --next-adr): {:?}",
+        crosswalk["duplicate_ids"]
     );
     assert!(
         report.violations.contains("supersession_half_edge"),

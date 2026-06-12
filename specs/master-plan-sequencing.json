@@ -693,7 +693,8 @@
         "15-ZB-foundry-fitness-to-governance-rename",
         "15-ZD-autosharding-doctrine",
         "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
-        "15-ZF-doctrine-propagation-adr-0346-0349"
+        "15-ZF-doctrine-propagation-adr-0346-0349",
+        "15-ZG-kafka-standalone-retirement-pulsar-kop"
       ],
       "doctrine_propagation_adrs": {
         "ADR-0346": {
@@ -1713,6 +1714,17 @@
             "ADR-0348 Acceptance",
             "ADR-0349 Acceptance",
             "Wave 15-ZA + 15-ZB + 15-ZD + 15-ZE implementation PRs preferable but not blocking"
+          ]
+        },
+        "15-ZG-kafka-standalone-retirement-pulsar-kop": {
+          "status": "queued",
+          "queued_at": "2026-06-12",
+          "adr": "ADR-0557",
+          "scope": "retire standalone Kafka as a cluster substrate per ADR-0557 (Accepted 2026-05-28; supersedes-in-part ADR-0005): Pulsar 4.x + Oxia is the sole canonical event-bus/log-broker, KoP proxy fronts Pulsar for all Kafka-wire clients (zero client-code changes in Phase 1), Phase 2 mirrors topics + cuts over ClickHouse/Flink connectors, Phase 3 decommissions standalone Kafka broker pods/Helm/ArgoCD manifests; outbox pattern, CloudEvents envelope, Protobuf payload, and per-tenant/per-cell partitioning carry forward broker-agnostic",
+          "provenance": "ADR-0557 was originally filed 2026-05-28 as a duplicate ADR-0377 (id already held by docs/decisions/ADR-0377-github-board-git-ref-cas-fallback.md) and renumbered via the accounting-registry allocator on 2026-06-12 (FRIC-1781390000); the duplicate id had masked this Accepted decision from the propagation faces, and this landing closes that gap",
+          "depends_on": [
+            "ADR-0195 Pulsar log-broker substrate (KoP introduced)",
+            "ADR-0397 Pulsar 4.x + Oxia canonical event-bus"
           ]
         }
       },

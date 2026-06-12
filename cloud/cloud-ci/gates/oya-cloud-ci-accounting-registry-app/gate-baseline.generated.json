@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:8d6fb26e8e6cc98f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:bf23e366f3e6e3be"
+    "source_inputs_digest": "fnv1a64:91dbb0a9ceae1f90"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4532,9 +4532,7 @@
         "mode": "baseline-block-on-new"
       },
       "dual_decision_collision": {
-        "keys": [
-          "ADR-0377"
-        ],
+        "keys": [],
         "mode": "baseline-block-on-new"
       },
       "generated_face_drift": {
