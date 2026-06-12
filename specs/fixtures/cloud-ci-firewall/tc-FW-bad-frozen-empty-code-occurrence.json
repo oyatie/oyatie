@@ -4,7 +4,7 @@
   "expected_failing_codes": ["registry_drift"],
   "expected_ratchet_growth": 1,
   "description": "registry_drift is frozen_empty: its committed baseline is permanently []. ANY occurrence is current\\baseline = NEW (compare-mode FAIL) AND proposed\\committed = growth (ratchet FAIL). Same predicate, no special case — the emptiness is DATA. A frozen committed face that drifts is a hand-edit and must always block.",
-  "committed_baseline": {
+  "merge_base_baseline": {
     "gates": {
       "cloud-ci-total-accounting": {
         "registry_drift": {"mode": "baseline-block-on-new", "keys": [], "frozen_empty": true}

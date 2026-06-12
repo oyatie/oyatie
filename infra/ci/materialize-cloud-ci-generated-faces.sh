@@ -24,5 +24,10 @@ show_out="$(buck2 build \
 emitter="$(printf '%s\n' "$show_out" | awk '/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app/ {print $2}')"
 producer="$(printf '%s\n' "$show_out" | awk '/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin/ {print $2}')"
 
-"$emitter" --repo-root "$repo_root" --out "$scm_facts"
+# --merge-base-baseline (ADR-0551, FRIC-1781112000): the emitter also materializes the
+# firewall's FROZEN reference — the gate-baseline face at `git merge-base <base_ref> HEAD`
+# (paths + base_ref are DATA in the firewall app's ratchet-policy.json). Untracked +
+# gitignored; the firewall gate consumes it instead of the PR-local face, so a same-PR
+# baseline regen can no longer launder new debt past the ratchet.
+"$emitter" --repo-root "$repo_root" --out "$scm_facts" --merge-base-baseline
 "$producer" --repo-root "$repo_root" --scm-facts "$scm_facts"

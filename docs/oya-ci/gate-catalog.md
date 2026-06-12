@@ -2,8 +2,10 @@
 
 Each gate is a thin, pure projection: the producer builds an input, the gate's `evaluate_keyed`
 turns it into a set of `Finding{code, key}`, and the firewall ratchets the per-(gate,code) keys
-against the committed baseline. Gates are config-declared in `[[gates.enabled]]`; a repo enables
-the gates of the packs it uses.
+against the FROZEN merge-base baseline — the `gate-baseline.generated.json` face as committed at
+`git merge-base <base_ref> HEAD` (ADR-0551; never the PR-local copy, which the settle protocol
+itself regenerates). Gates are config-declared in `[[gates.enabled]]`; a repo enables the gates
+of the packs it uses.
 
 ## Input KINDs (the §3.5 INPUT-BINDING abstraction)
 

@@ -4,7 +4,7 @@
   "expected_failing_codes": [],
   "expected_ratchet_growth": 0,
   "description": "current == baseline: every violation is accepted pre-existing debt (tolerated = current ∩ baseline), zero regressions. The firewall is GREEN even though the corpus carries real debt — that is the whole point of the frozen baseline.",
-  "committed_baseline": {
+  "merge_base_baseline": {
     "gates": {
       "cloud-ci-total-accounting": {
         "unjustified": {"mode": "baseline-block-on-new", "keys": ["oya/foundry-residue/a.rs", "oya/foundry-residue/b.rs"]}

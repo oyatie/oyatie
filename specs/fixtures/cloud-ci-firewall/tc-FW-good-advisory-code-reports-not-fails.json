@@ -4,7 +4,7 @@
   "expected_failing_codes": [],
   "expected_ratchet_growth": 0,
   "description": "A NEW unowned + unreachable file appears (current\\baseline regression) but both codes are advisory-until-infra (OWNERS / reachability infra not yet landed). The firewall REPORTS the regression count but does NOT fail the verdict — the pervasive-structural classes burn down on the dashboard until their infra_prereq lands and the disposition flips to baseline-block-on-new (a DATA edit).",
-  "committed_baseline": {
+  "merge_base_baseline": {
     "gates": {
       "cloud-ci-total-accounting": {
         "unowned": {"mode": "advisory-until-infra", "infra_prereq": "owners-files-tree-wide", "keys": ["a.rs"]},

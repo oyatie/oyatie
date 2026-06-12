@@ -4,7 +4,7 @@
   "expected_failing_codes": ["member_missing_buck"],
   "expected_ratchet_growth": 1,
   "description": "member_missing_buck is frozen_empty for target-parity, so any workspace member without a tracked BUCK file fails immediately and also appears as forbidden ratchet growth.",
-  "committed_baseline": {
+  "merge_base_baseline": {
     "gates": {
       "cloud-ci-target-parity": {
         "member_missing_buck": {"mode": "baseline-block-on-new", "keys": [], "frozen_empty": true}

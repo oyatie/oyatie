@@ -4,7 +4,7 @@
   "expected_failing_codes": ["member_test_code_without_rust_test_target"],
   "expected_ratchet_growth": 0,
   "description": "A member with Rust test code that is not in the frozen target-parity baseline and lacks a rust_test target is NEW debt and must fail.",
-  "committed_baseline": {
+  "merge_base_baseline": {
     "gates": {
       "cloud-ci-target-parity": {
         "member_test_code_without_rust_test_target": {"mode": "baseline-block-on-new", "keys": ["libs/oya-existing-domain"]}
