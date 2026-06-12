@@ -683,6 +683,33 @@ pub fn extract_buck_library_thirdparty_deps(text: &str) -> BTreeSet<String> {
         collect_thirdparty_tokens(text, &mut deps);
         return deps;
     };
+    // Review F2 (value-indirection evasion): two shapes route a target's deps AROUND any
+    // span-local scan — a kwargs splat (`KW = {"deps": [...]}; rust_library(**KW)`, where the
+    // deps live in a CLEAN dict assignment far from the opaque call) and a load-aliased rule
+    // name (`load(":d.bzl", my_lib = "rust_library")` + `my_lib(deps = [...])`, where the call
+    // never bears the rust_library name). NO SILENT MISS: when either trigger is present the
+    // WHOLE FILE is raw-scanned (a detector over-scan can only ADD findings; macro-wrapped
+    // invocations defined in .bzl bodies remain the ledgered residual class).
+    let mut widen_to_whole_file = false;
+    doc.visit_calls(&mut |call| {
+        if call.has_opaque() {
+            // Any opaque-args call (incl. `**KW` splats): the unmodeled content may REFERENCE
+            // values assembled anywhere in the file.
+            widen_to_whole_file = true;
+        }
+        if call.func == "load"
+            && call
+                .args
+                .iter()
+                .any(|arg| matches!(&arg.value.expr, Expr::Str(s) if s == "rust_library"))
+        {
+            // A load() binding (aliasing) of rust_library: later calls may carry any name.
+            widen_to_whole_file = true;
+        }
+    });
+    if widen_to_whole_file {
+        collect_thirdparty_tokens(text, &mut deps);
+    }
     // Enumerate EVERY rust_library call in the document — top-level statements AND calls
     // wrapped in assignments or nested in expressions (`X = rust_library(...)`), so a one-token
     // wrapper can never be a dep-hiding device (reviewer BLOCKER on the statement-position-only
@@ -1316,7 +1343,15 @@ fn cargo_metadata_validator(root: &Path) -> Result<(), String> {
     {
         Ok(output) if output.status.success() => Ok(()),
         Ok(output) => Err(String::from_utf8_lossy(&output.stderr).trim().to_owned()),
-        Err(_) => Ok(()), // cargo unavailable — degraded mode, buck2 gate is the backstop
+        Err(spawn_error) => {
+            // Degraded mode (review F5: surface it, never degrade silently): the layer-1
+            // syntactic bounds have already passed and the blocking buck2 rust_test gate is
+            // the enforcement backstop (ADR-0547 D6).
+            eprintln!(
+                "kernel-purity --fix: WARNING — `cargo metadata` revalidation skipped (cargo                  could not be spawned: {spawn_error}); layer-2 semantic validation degraded,                  the blocking buck2 gate remains the backstop"
+            );
+            Ok(())
+        }
     }
 }
 
@@ -2345,6 +2380,80 @@ rust_test(
             extract_buck_library_thirdparty_deps(wrapped_arg).contains("kube"),
             "opaque argument of a non-rust_library call must be detected"
         );
+    }
+
+    #[test]
+    fn escape_spelled_dep_is_detected_under_its_cooked_name() {
+        // Review F1 (HIGH, RED fixture): buck2 evaluates `"third-party//:k\x75be"` to
+        // `third-party//:kube` (proven via buck2 uquery). The detect lane must key the dep as
+        // `kube` — an escape spelling must not hide a denylisted transient dep.
+        let hex = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\x75be\"],\n)\n";
+        let deps = extract_buck_library_thirdparty_deps(hex);
+        assert!(deps.contains("kube"), "\\x75 spelling must cook to kube: {deps:?}");
+        assert!(!deps.contains("k"), "the truncated raw token must not be reported: {deps:?}");
+        let octal = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\165be\"],\n)\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(octal).contains("kube"),
+            "octal spelling must cook to kube"
+        );
+        let uni = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\u0075be\"],\n)\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(uni).contains("kube"),
+            "\\u spelling must cook to kube"
+        );
+    }
+
+    #[test]
+    fn unimplemented_escape_fails_closed_to_raw_scan() {
+        // An escape class the lexer refuses (hard LexError) drops the file to the full-text
+        // raw scan — the detector still over-approximates rather than passing silently.
+        // (buck2 itself rejects such a file, so this is a defensive posture, not a live shape.)
+        let bad = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\\q\"],\n)\n";
+        let deps = extract_buck_library_thirdparty_deps(bad);
+        assert!(deps.contains("serde"), "raw-scan fallback must still surface the dep: {deps:?}");
+    }
+
+    #[test]
+    fn escape_spelled_dep_removal_is_sound_or_refused_never_corrupt() {
+        // Review F1 fixer direction: with correct cooking the parsed element equals the label,
+        // so removal targets exactly the escape-spelled element's ORIGINAL span; the harness
+        // round-trip validates no collateral. Never a mis-cooked edit.
+        let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:k\\x75be\",\n        \"third-party//:serde\",\n    ],\n)\n";
+        match remove_buck_dep_edges_text(buck, "kube") {
+            Some(out) => {
+                assert!(!out.contains("k\\x75be"), "escape-spelled element removed: {out}");
+                assert!(out.contains("third-party//:serde"), "no collateral: {out}");
+                let after = extract_buck_library_thirdparty_deps(&out);
+                assert!(!after.contains("kube"), "kube edge gone after reparse: {after:?}");
+                assert!(after.contains("serde"), "serde survives reparse: {after:?}");
+            }
+            None => {
+                // Refusal is also sound (file untouched) — but silent corruption never is.
+            }
+        }
+    }
+
+    #[test]
+    fn kwargs_splat_widens_to_whole_file_scan() {
+        // Review F2: deps routed through a **KW splat live in a CLEAN dict assignment the
+        // call-span scan never covers. The opaque-args trigger must widen to the whole file.
+        let buck = concat!(
+            "KW = {\"name\": \"x\", \"deps\": [\"third-party//:kube\"]}\n",
+            "rust_library(**KW)\n",
+        );
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(deps.contains("kube"), "splat-routed dep must surface: {deps:?}");
+    }
+
+    #[test]
+    fn load_aliased_rule_name_widens_to_whole_file_scan() {
+        // Review F2: a load() alias takes the rust_library name off the call site entirely.
+        let buck = concat!(
+            "load(\":defs.bzl\", my_lib = \"rust_library\")\n",
+            "my_lib(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n",
+        );
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(deps.contains("kube"), "load-aliased target's dep must surface: {deps:?}");
     }
 
     #[test]

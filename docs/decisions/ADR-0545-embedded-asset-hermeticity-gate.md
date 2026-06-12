@@ -9,6 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0549]
 depends_on: [ADR-0083, ADR-0132, ADR-0363, ADR-0515, ADR-0540, ADR-0544]
 amends: []
 related: [ADR-0017, ADR-0131, ADR-0132, ADR-0363, ADR-0510, ADR-0515, ADR-0538, ADR-0539, ADR-0540, ADR-0544]
@@ -239,6 +240,13 @@ Workflow events nor write Ontology objects.
 - E2E auto-remediation: break the webhook BUCK, `buck2 run …:oya-cloud-ci-embedded-asset-hermeticity-fixer -- --fix`, then `buck2 build` the adapter → `BUILD SUCCEEDED` + `--check` clean.
 
 ## Known Limitations and Destination
+
+> **Amended by ADR-0549 (2026-06-11):** the destination shipped. `libs/oya-buck-syntax-kernel`
+> is the shared sound parser + fixer self-validation harness, and this gate's detect and `--fix`
+> lanes now ride it: the comment-guard refusal, the first-occurrence name binding, and the
+> bare-var/`POLICY_REL` notes below are RETIRED as current behavior (see ADR-0549 D4 for the
+> migration table). The text below is preserved as the historical record of the pre-kernel
+> scope boundaries.
 
 This ADR records the in-crate implementation's known scope boundaries honestly. The destination for
 all of them is `oya-buck-syntax-kernel` (FRIC-1781131000-buck-syntax-kernel, task #10): a shared,

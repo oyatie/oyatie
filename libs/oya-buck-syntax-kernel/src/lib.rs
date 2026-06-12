@@ -74,6 +74,10 @@ mod tests {
             .collect()
     }
 
+    fn expr_strings_of(node: &ExprNode) -> Vec<String> {
+        expr_strings(node)
+    }
+
     /// `third-party//:<name>` tokens from a call's string values (the kernel-purity detect shape).
     fn thirdparty_tokens(call: &CallExpr) -> Vec<String> {
         let mut out = Vec::new();
@@ -223,6 +227,60 @@ mod tests {
         assert!(parse(corrupt).is_err(), "double comma must fail to parse");
         let corrupt2 = "rust_library(\n    name = \"x\",\n    deps = [\"a\",, \"b\"],\n)\n";
         assert!(parse(corrupt2).is_err(), "list double comma must fail to parse");
+    }
+
+    #[test]
+    fn starlark_escape_sequences_cook_to_buck2_semantics() {
+        // Review F1 (HIGH): buck2 evaluates `"third-party//:k\x75be"` to `third-party//:kube`
+        // (proven via buck2 uquery). The lexer must cook \xXX, \uXXXX, \UXXXXXXXX, and octal
+        // \NNN to the same value so a denylisted dep cannot hide by escape spelling.
+        let hex = "deps = [\"third-party//:k\\x75be\"]\n";
+        let doc_hex = must_parse(hex);
+        let Stmt::Assign { value, .. } = &doc_hex.stmts[0] else { panic!("assign") };
+        assert_eq!(
+            expr_strings_of(value),
+            vec!["third-party//:kube".to_owned()],
+            "\\x75 must cook to `u`"
+        );
+        let uni = "deps = [\"third-party//:k\\u0075be\"]\n";
+        let doc_uni = must_parse(uni);
+        let Stmt::Assign { value, .. } = &doc_uni.stmts[0] else { panic!("assign") };
+        assert_eq!(expr_strings_of(value), vec!["third-party//:kube".to_owned()]);
+        let big = "deps = [\"third-party//:k\\U00000075be\"]\n";
+        let doc_big = must_parse(big);
+        let Stmt::Assign { value, .. } = &doc_big.stmts[0] else { panic!("assign") };
+        assert_eq!(expr_strings_of(value), vec!["third-party//:kube".to_owned()]);
+        let octal = "deps = [\"third-party//:k\\165be\"]\n";
+        let doc_octal = must_parse(octal);
+        let Stmt::Assign { value, .. } = &doc_octal.stmts[0] else { panic!("assign") };
+        assert_eq!(expr_strings_of(value), vec!["third-party//:kube".to_owned()], "octal \\165 is `u`");
+        // Standard single-char escapes cook to their control characters.
+        let std_esc = "X = \"a\\ab\\bf\\fv\\v\"\n";
+        let doc_std = must_parse(std_esc);
+        let env = Env::from_doc(&doc_std);
+        assert_eq!(
+            env.string_vars.get("X").map(String::as_str),
+            Some("a\x07b\x08f\x0Cv\x0B")
+        );
+        // \0 (the one-digit octal case) still cooks to NUL.
+        let nul = "X = \"a\\0b\"\n";
+        let doc_nul = must_parse(nul);
+        let env_nul = Env::from_doc(&doc_nul);
+        assert_eq!(env_nul.string_vars.get("X").map(String::as_str), Some("a\0b"));
+    }
+
+    #[test]
+    fn unimplemented_escape_classes_are_hard_lex_errors() {
+        // Fail-closed: any escape class the lexer does not implement must refuse, never keep
+        // the character verbatim (the silent mis-cook the review F1 proved against buck2).
+        for bad in ["X = \"a\\qb\"\n", "X = \"a\\x7\"\n", "X = \"a\\u12\"\n", "X = \"\\ud800\"\n"] {
+            assert!(parse(bad).is_err(), "must refuse to guess: {bad}");
+        }
+        // Raw strings still keep backslashes verbatim (no cooking, no refusal).
+        let raw = "PAT = r\"a\\qb\"\n";
+        let doc = must_parse(raw);
+        let env = Env::from_doc(&doc);
+        assert_eq!(env.string_vars.get("PAT").map(String::as_str), Some("a\\qb"));
     }
 
     #[test]

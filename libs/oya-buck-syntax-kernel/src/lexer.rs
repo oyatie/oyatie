@@ -278,23 +278,80 @@ fn lex_string(text: &str, start: usize) -> Result<(String, usize), LexError> {
                 i += 1 + ch_len;
                 continue;
             }
+            // Cooked-string escapes per the Starlark spec buck2 implements (verified against
+            // buck2 uquery semantics — review F1: `"k\x75be"` IS `kube` to buck2, so keeping
+            // the escape verbatim let a denylisted dep hide by formatting). Any escape class
+            // NOT implemented here is a hard LexError — fail-closed, never a guess
+            // (ADR-0548 D7 / ADR-0549 D1).
             match next {
                 b'\n' => { /* backslash-newline continuation: emit nothing */ }
                 b'n' => value.push('\n'),
                 b't' => value.push('\t'),
                 b'r' => value.push('\r'),
-                b'0' => value.push('\0'),
+                b'a' => value.push('\x07'),
+                b'b' => value.push('\x08'),
+                b'f' => value.push('\x0C'),
+                b'v' => value.push('\x0B'),
                 b'\\' => value.push('\\'),
                 b'"' => value.push('"'),
                 b'\'' => value.push('\''),
-                other => {
-                    // Unknown escape: keep the escaped character verbatim (prior-parser parity).
-                    let ch_len = utf8_len(other);
-                    if let Some(s) = text.get(i + 1..i + 1 + ch_len) {
-                        value.push_str(s);
-                    }
-                    i += 1 + ch_len;
+                // \xXX — exactly two hex digits.
+                b'x' => {
+                    let code = read_hex(bytes, i + 2, 2).ok_or_else(|| LexError {
+                        offset: i,
+                        message: "\\x escape requires exactly two hex digits".to_owned(),
+                    })?;
+                    value.push(char_for_code(code, i)?);
+                    i += 4;
                     continue;
+                }
+                // \uXXXX — exactly four hex digits.
+                b'u' => {
+                    let code = read_hex(bytes, i + 2, 4).ok_or_else(|| LexError {
+                        offset: i,
+                        message: "\\u escape requires exactly four hex digits".to_owned(),
+                    })?;
+                    value.push(char_for_code(code, i)?);
+                    i += 6;
+                    continue;
+                }
+                // \UXXXXXXXX — exactly eight hex digits.
+                b'U' => {
+                    let code = read_hex(bytes, i + 2, 8).ok_or_else(|| LexError {
+                        offset: i,
+                        message: "\\U escape requires exactly eight hex digits".to_owned(),
+                    })?;
+                    value.push(char_for_code(code, i)?);
+                    i += 10;
+                    continue;
+                }
+                // \NNN — one to three octal digits (\0 is the one-digit case).
+                b'0'..=b'7' => {
+                    let mut code: u32 = 0;
+                    let mut digits = 0usize;
+                    while digits < 3 {
+                        match bytes.get(i + 1 + digits) {
+                            Some(d @ b'0'..=b'7') => {
+                                code = code * 8 + u32::from(d - b'0');
+                                digits += 1;
+                            }
+                            _ => break,
+                        }
+                    }
+                    value.push(char_for_code(code, i)?);
+                    i += 1 + digits;
+                    continue;
+                }
+                other => {
+                    // Unimplemented escape class: refuse outright. Verbatim pass-through (the
+                    // prior parsers' behavior) silently mis-cooks against buck2 semantics.
+                    return Err(LexError {
+                        offset: i,
+                        message: format!(
+                            "unsupported escape sequence `\\{}` — refusing to guess its Starlark semantics (fail-closed)",
+                            (other as char).escape_default()
+                        ),
+                    });
                 }
             }
             i += 2;
@@ -328,6 +385,30 @@ fn lex_string(text: &str, start: usize) -> Result<(String, usize), LexError> {
     Err(LexError {
         offset: start,
         message: "unterminated string literal".to_owned(),
+    })
+}
+
+/// Read EXACTLY `n` hex digits starting at `bytes[start]`; `None` if any is missing/invalid.
+fn read_hex(bytes: &[u8], start: usize, n: usize) -> Option<u32> {
+    let mut code: u32 = 0;
+    for offset in 0..n {
+        let digit = match bytes.get(start + offset)? {
+            d @ b'0'..=b'9' => u32::from(d - b'0'),
+            d @ b'a'..=b'f' => u32::from(d - b'a') + 10,
+            d @ b'A'..=b'F' => u32::from(d - b'A') + 10,
+            _ => return None,
+        };
+        code = code * 16 + digit;
+    }
+    Some(code)
+}
+
+/// Convert an escape code point to a char, failing closed on invalid scalar values
+/// (surrogates, out-of-range) instead of substituting.
+fn char_for_code(code: u32, offset: usize) -> Result<char, LexError> {
+    char::from_u32(code).ok_or_else(|| LexError {
+        offset,
+        message: format!("escape code point U+{code:04X} is not a valid Unicode scalar value"),
     })
 }
 
