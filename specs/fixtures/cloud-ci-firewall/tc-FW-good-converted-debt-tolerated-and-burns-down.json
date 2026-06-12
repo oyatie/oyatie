@@ -1,0 +1,31 @@
+{
+  "fixture_id": "TC-FW-GOOD-converted-debt-tolerated-and-burns-down",
+  "expected_firewall": "GREEN",
+  "expected_failing_codes": [],
+  "expected_ratchet_growth": 0,
+  "description": "ADR-0555 conversion pin: the grandfathered pre-existing unowned/unreachable debt is TOLERATED under the blocking mode (current ∩ frozen never fails), and burn-down WORKS — a PR registers oya/grandfathered/b.rs (adds an OWNERS file), the key leaves current and the regen auto-shrinks the proposed baseline (fixed, informational); the frozen reference shrinks at the next merge-base advance. Shrink-only: zero growth, zero regressions, GREEN.",
+  "merge_base_baseline": {
+    "gates": {
+      "cloud-ci-total-accounting": {
+        "unowned": {"mode": "baseline-block-on-new", "keys": ["oya/grandfathered/a.rs", "oya/grandfathered/b.rs"]},
+        "unreachable": {"mode": "baseline-block-on-new", "keys": ["docs/grandfathered/orphan.md"]}
+      }
+    }
+  },
+  "current": {
+    "cloud-ci-total-accounting": {
+      "unowned": ["oya/grandfathered/a.rs"],
+      "unreachable": ["docs/grandfathered/orphan.md"]
+    }
+  },
+  "proposed_baseline": {
+    "gates": {
+      "cloud-ci-total-accounting": {
+        "unowned": {"mode": "baseline-block-on-new", "keys": ["oya/grandfathered/a.rs"]},
+        "unreachable": {"mode": "baseline-block-on-new", "keys": ["docs/grandfathered/orphan.md"]}
+      }
+    }
+  },
+  "signoff": {"_sign_off_additions": {}},
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs"
+}

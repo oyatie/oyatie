@@ -213,3 +213,22 @@ total-accounting), `ratchet_regression` + `duplicate_row_id` (under automation-r
 `cloud-ci-enforcement-liveness` codes, all `cloud-ci-freshness` codes, and
 `friction_policy_gate_id_mismatch` + `friction_unknown_status` + `friction_duplicate_primary_row`
 (under friction-accounting) are frozen-empty meta codes — they cannot accumulate a baseline.
+
+## exists-but-unaccounted codes (ADR-0555 conversion)
+
+`unowned`, `unreachable`, `no_ttl_class` (total-accounting) and `untyped_staleness`
+(staleness-reaper) are `baseline-block-on-new`: a NEW artifact that is not ownership-registered
+(nearest-ancestor `OWNERS`) and reachability-registered (workspace-member containment, an exact
+mention in masterplan/root-hub/DOC-CATALOG, or a reviewed `specs/reachability-registry.json`
+prefix) is **unmergeable** — the pre-conversion corpus debt is grandfathered mechanically by the
+ADR-0551 merge-base frozen baseline (shrink-only burn-down; zero growth without the sign-off
+door). A FAIL is never a bare flag: each code's disposition carries `remediation` DATA — the
+exact registration edit, or the precise design decision needed (who owns this? what points at
+this?) — stamped into `gate-baseline.generated.json` and printed by the firewall next to the
+offending keys. The producer's `--fix-owners <dir>=<owner>` / `--fix-reachability
+<prefix>=<anchor>` bridges apply a decided registration and self-validate (transitional local
+bridges per `cli_surface_policy` — the gate test is the merge authority; their successors are the
+ADR-0548 D3 reconcilers). The ONE deliberately-advisory survivor is
+`stale_over_budget_unreachable`: its keys enter by TIME passing, not by PR action, so
+admission-blocking would blame PRs for age accrued on other clocks — its convergence surface is
+the staleness-reaper archival reconciler, and `unreachable`-at-creation now starves its growth.

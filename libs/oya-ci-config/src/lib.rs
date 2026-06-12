@@ -439,6 +439,14 @@ pub struct ReachabilityConfig {
     pub root_hub: String,
     #[serde(default = "default_doc_catalog")]
     pub doc_catalog: String,
+    /// The reviewed prefix-registration registry (ADR-0555): explicit `{prefix, anchor}`
+    /// entries that register whole trees (dir prefixes ending `/`) or exact paths as
+    /// reached, each naming WHY. Registration is a review-visible design act (the
+    /// ADR-0551 trust class — same as ratchet-policy.json), NOT an exemption table.
+    /// Absent file ⇒ empty registry (zero-config); malformed file ⇒ hard producer error
+    /// (fail-loud).
+    #[serde(default = "default_reachability_registry")]
+    pub registry: String,
 }
 
 fn default_masterplan() -> String {
@@ -453,12 +461,17 @@ fn default_doc_catalog() -> String {
     "docs/DOC-CATALOG.md".to_owned()
 }
 
+fn default_reachability_registry() -> String {
+    "specs/reachability-registry.json".to_owned()
+}
+
 impl Default for ReachabilityConfig {
     fn default() -> Self {
         Self {
             masterplan: default_masterplan(),
             root_hub: default_root_hub(),
             doc_catalog: default_doc_catalog(),
+            registry: default_reachability_registry(),
         }
     }
 }
