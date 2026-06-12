@@ -200,6 +200,9 @@ fn planning_closure_architecture_rules_agree_across_authority_artifacts() {
 /// - `dual_decision_collision` — the two ADR-0377 files
 /// - `supersession_half_edge` — ADR-0511 supersedes ADR-0359 while ADR-0359 omits it
 ///
+/// Plus the frozen-empty `decision_id_mismatch` lane: zero filename/front-matter id
+/// disagreements today, asserted with the renumber remediation in the FAIL output.
+///
 /// Counts are MEASURED, not hardcoded.
 #[test]
 fn gate1_is_born_blocking_on_the_live_corpus() {
@@ -226,6 +229,27 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         "a non-reciprocal supersession edge -> supersession_half_edge must fire"
     );
 
+    // decision_id_mismatch is frozen-empty (born-blocking): the live corpus carries no
+    // filename/front-matter id disagreement today, and any future occurrence is the
+    // mask vector for a duplicate-numbered ADR pair (FRIC-1781320000). The remediation
+    // is named here so the FAIL output alone is actionable.
+    let id_mismatches = crosswalk["id_mismatches"]
+        .as_array()
+        .expect("id_mismatches");
+    let next_free_id = crosswalk["next_free_id"].as_str().expect("next_free_id");
+    assert!(
+        id_mismatches.is_empty(),
+        "decision_id_mismatch must stay frozen-empty: {id_mismatches:?} — renumber the newer \
+         decision (filename AND front-matter id) to the next free number {next_free_id} \
+         (allocate via the accounting-registry producer's --next-adr)"
+    );
+    assert!(
+        next_free_id
+            .strip_prefix("ADR-")
+            .is_some_and(|digits| digits.len() == 4 && digits.chars().all(|c| c.is_ascii_digit())),
+        "next_free_id must be an ADR-NNNN allocator output, got {next_free_id:?}"
+    );
+
     // Count the real exhibits for the evidence digest.
     let decisions = crosswalk["decisions"].as_array().expect("decisions");
     let dup_ids = crosswalk["duplicate_ids"]
@@ -250,9 +274,10 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         .count();
 
     eprintln!(
-        "BORN-BLOCKING live-corpus counts: decisions={} duplicate_ids={:?} axes={:?} unpropagated_decision={} violations={:?}",
+        "BORN-BLOCKING live-corpus counts: decisions={} duplicate_ids={:?} id_mismatches={:?} next_free_id={next_free_id} axes={:?} unpropagated_decision={} violations={:?}",
         decisions.len(),
         dup_ids,
+        id_mismatches,
         axes,
         unpropagated,
         report.violations

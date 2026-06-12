@@ -373,6 +373,15 @@ pub struct CrosswalkInputs {
     pub decisions: Vec<DecisionCrosswalkRow>,
     /// Decision ids carried by more than one decision file (the dup-0377 exhibit).
     pub duplicate_ids: Vec<String>,
+    /// Decision files whose front-matter id disagrees with their filename number
+    /// (`<file>:<filename-id>!=<front-matter-id>`). A mismatched front-matter id silently
+    /// re-keys the file in the dup map, so this is the mask vector for
+    /// `dual_decision_collision` (FRIC-1781320000) and a violation in its own right.
+    pub id_mismatches: Vec<String>,
+    /// The next unallocated decision number derived from the whole tree
+    /// (max over filename AND front-matter ids, plus one). The allocator output:
+    /// lanes allocate by reading this (or `--next-adr`), never by convention.
+    pub next_free_id: String,
     /// Shared values two generated faces must agree on (the catalog/contracts axes_count
     /// drift exhibit), face-name -> value.
     pub generated_face_axes: BTreeMap<String, i64>,
@@ -390,6 +399,10 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
     let mut duplicate_ids = inputs.duplicate_ids.clone();
     duplicate_ids.sort();
     duplicate_ids.dedup();
+
+    let mut id_mismatches = inputs.id_mismatches.clone();
+    id_mismatches.sort();
+    id_mismatches.dedup();
 
     let mut axes = Map::new();
     for (face, value) in &inputs.generated_face_axes {
@@ -416,6 +429,14 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
     root.insert(
         "duplicate_ids".into(),
         Value::Array(duplicate_ids.into_iter().map(Value::String).collect()),
+    );
+    root.insert(
+        "id_mismatches".into(),
+        Value::Array(id_mismatches.into_iter().map(Value::String).collect()),
+    );
+    root.insert(
+        "next_free_id".into(),
+        Value::String(inputs.next_free_id.clone()),
     );
     root.insert("generated_face_axes".into(), Value::Object(axes));
     root.insert("decisions".into(), decisions_value);

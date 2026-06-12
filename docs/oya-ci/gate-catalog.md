@@ -56,7 +56,7 @@ agent-wiring + catalog`.
 | Gate id | Pack | Input KIND (face) | Violation codes |
 |---|---|---|---|
 | `cloud-ci-total-accounting` | core | producer-face (`total_accounting`) | `unaccounted`, `unowned`, `unjustified`, `unreachable`, `no_ttl_class`, `registry_drift` (frozen-empty) |
-| `cloud-ci-cross-artifact-agreement` | core | producer-face (`cross_artifact`) | `generated_face_drift`, `dual_decision_collision`, `supersession_half_edge`, `unpropagated_decision`, `orphan_decision`, `status_disagreement` |
+| `cloud-ci-cross-artifact-agreement` | core | producer-face (`cross_artifact`) | `generated_face_drift`, `dual_decision_collision`, `decision_id_mismatch` (frozen-empty), `supersession_half_edge`, `unpropagated_decision`, `orphan_decision`, `status_disagreement` |
 | `cloud-ci-automation-ratchet` | core | producer-face (`automation_ratchet`) | `advisory_claiming_enforced`, `blocking_invariant_mapped_to_oya_cli`, `ratchet_regression` (frozen-empty), `enforceable_or_automatable_marked_human_judgment`, `duplicate_row_id` (frozen-empty), `unknown_classification`, `missing_or_empty_required_field` |
 | `cloud-ci-staleness-reaper` | core | producer-face (`staleness`) | `stale_over_budget_unreachable`, `untyped_staleness`, `reap_without_report` (frozen-empty) |
 | `cloud-ci-brand-residue` | core | raw-corpus-collector | one `forbidden_<stem>` code per configured `[vocab]` stem |
@@ -179,7 +179,13 @@ backstop.
 ## Key shapes (what a `key` identifies)
 
 - total-accounting / staleness: the registry row `path`.
-- cross-artifact: a decision id.
+- cross-artifact: a decision id; for `decision_id_mismatch`, the producer's
+  `<file>:<filename-id>!=<front-matter-id>` entry. Decision NUMBER ALLOCATION is mechanical
+  (FRIC-1781320000): the accounting-registry producer's `--next-adr` mode prints the next free
+  `ADR-NNNN` derived from the tree (max over filename AND front-matter ids, plus one) — lanes
+  allocate by running it, never by convention or leader memory; the crosswalk face carries the
+  same value as `next_free_id`. Durable destination: content-addressed decision identity
+  (ADR-0541 corpus direction), where numbering races vanish by construction.
 - automation-ratchet: a surface/row id.
 - brand-residue: the file path containing a stem (per-file, NOT per-line — stable under in-file
   edits; only fully cleaning a file shrinks the set).

@@ -105,6 +105,10 @@ fn run() -> Result<(), CliError> {
     let mut out_dir: Option<PathBuf> = None;
     let mut scm_facts_path: Option<PathBuf> = None;
     let mut to_stdout = false;
+    // Allocator mode (FRIC-1781320000): print the next unallocated decision number derived
+    // from the tree and exit. Lanes allocate ADR numbers by running this, never by
+    // convention or leader memory.
+    let mut next_adr_mode = false;
     // Which face to emit to stdout: default registry. The gate self-tests + registry-drift
     // regenerate a single face in a sandbox via `--stdout --face <name>`.
     let mut face = "registry".to_owned();
@@ -131,6 +135,7 @@ fn run() -> Result<(), CliError> {
                 }
             }
             "--stdout" => to_stdout = true,
+            "--next-adr" => next_adr_mode = true,
             other => return Err(CliError::Io(format!("unknown argument {other}"))),
         }
         i += 1;
@@ -148,6 +153,16 @@ fn run() -> Result<(), CliError> {
     let out_dir = out_dir.unwrap_or_else(|| {
         repo_root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
     });
+
+    // Allocator mode: derive the next free decision number from the tree and exit.
+    // Single-owner with the uniqueness signals — same config, same directory scan, no
+    // second ADR-parsing implementation anywhere.
+    if next_adr_mode {
+        let cfg = load_config(&repo_root)?;
+        let inputs = collect_crosswalk_inputs(&repo_root, &cfg);
+        println!("{}", inputs.next_free_id);
+        return Ok(());
+    }
 
     // The committed scm-facts face (the declared input that replaces ambient git). Defaults to
     // the face beside the accounting faces; CI / the local regen hook re-run the emitter to keep
@@ -170,7 +185,20 @@ fn run() -> Result<(), CliError> {
     let policy = Policy::from_config(&cfg)?;
     let inputs = collect_repo_inputs(&repo_root, &cfg, &scm_facts);
     let registry = build_registry(&inputs, &policy)?;
-    let crosswalk = build_decision_crosswalk(&collect_crosswalk_inputs(&repo_root, &cfg))?;
+    let crosswalk_inputs = collect_crosswalk_inputs(&repo_root, &cfg);
+    if !crosswalk_inputs.duplicate_ids.is_empty() || !crosswalk_inputs.id_mismatches.is_empty() {
+        // Decision-id integrity remediation (FRIC-1781320000): name the exact renumber
+        // target so a collision/mismatch is fixable from this output alone.
+        eprintln!(
+            "decision-id integrity: duplicate ids {:?}; filename/front-matter mismatches {:?}; \
+             remediation: renumber the newer decision (filename AND front-matter id) to the next \
+             free number {} (allocate via --next-adr)",
+            crosswalk_inputs.duplicate_ids,
+            crosswalk_inputs.id_mismatches,
+            crosswalk_inputs.next_free_id
+        );
+    }
+    let crosswalk = build_decision_crosswalk(&crosswalk_inputs)?;
     let enforcement =
         build_enforcement_inventory(&collect_enforcement_inputs(&repo_root, &cfg, &scm_facts))?;
 
@@ -881,6 +909,73 @@ mod tests {
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    /// RED fixture for FRIC-1781320000: a duplicate-numbered ADR pair (the parallel-lane
+    /// collision shape) must surface in `duplicate_ids`; a filename/front-matter id
+    /// mismatch (the re-keying vector that can MASK such a collision) must surface in
+    /// `id_mismatches`; and the allocator must derive the next free number past BOTH the
+    /// filename and the front-matter id space.
+    #[test]
+    fn crosswalk_flags_duplicate_numbers_id_mismatches_and_allocates_next_free() {
+        let root = unique_temp_repo();
+        let decisions = root.join("docs/decisions");
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        fs::write(
+            decisions.join("ADR-0001-first-lane.md"),
+            "---\nid: ADR-0001\nstatus: Accepted\n---\n",
+        )
+        .expect("write first ADR");
+        fs::write(
+            decisions.join("ADR-0001-second-lane.md"),
+            "---\nid: ADR-0001\nstatus: Proposed\n---\n",
+        )
+        .expect("write colliding ADR");
+        fs::write(
+            decisions.join("ADR-0002-mismatch.md"),
+            "---\nid: ADR-0009\nstatus: Proposed\n---\n",
+        )
+        .expect("write mismatched ADR");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let inputs = collect_crosswalk_inputs(&root, &cfg);
+
+        assert!(
+            inputs.duplicate_ids.contains(&"ADR-0001".to_owned()),
+            "a duplicate-numbered ADR pair must be detected: {:?}",
+            inputs.duplicate_ids
+        );
+        assert_eq!(
+            inputs.id_mismatches,
+            vec!["ADR-0002-mismatch.md:ADR-0002!=ADR-0009".to_owned()],
+            "a filename/front-matter id disagreement must be detected"
+        );
+        // max(filename ids 1,1,2; front-matter ids 1,1,9) + 1 = 10.
+        assert_eq!(inputs.next_free_id, "ADR-0010");
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// A clean corpus carries no mismatch signal and allocates max+1 from the filename ids.
+    #[test]
+    fn crosswalk_is_quiet_and_allocates_on_a_clean_corpus() {
+        let root = unique_temp_repo();
+        let decisions = root.join("docs/decisions");
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        fs::write(
+            decisions.join("ADR-0007-clean.md"),
+            "---\nid: ADR-0007\nstatus: Accepted\n---\n",
+        )
+        .expect("write clean ADR");
+
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let inputs = collect_crosswalk_inputs(&root, &cfg);
+
+        assert!(inputs.duplicate_ids.is_empty());
+        assert!(inputs.id_mismatches.is_empty());
+        assert_eq!(inputs.next_free_id, "ADR-0008");
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     #[test]
     fn slo_coverage_preserves_duplicate_basenames_to_prevent_false_green() {
         let root = unique_temp_repo();
@@ -1157,17 +1252,38 @@ fn collect_crosswalk_inputs(
 
     // id -> the decision files carrying it (dup detection is files-per-id > 1).
     let mut files_by_id: BTreeMap<String, Vec<PathBuf>> = BTreeMap::new();
+    // Filename-vs-front-matter id disagreements. Because the dup map keys by the
+    // front-matter id when present, a mismatched front-matter id silently re-keys the
+    // file and can MASK a filename-number collision (the FRIC-1781320000 parallel-lane
+    // shape); each mismatch is therefore surfaced as its own crosswalk signal.
+    let mut id_mismatches: Vec<String> = Vec::new();
+    // The allocator input: the highest decision number seen across BOTH the filename
+    // and the front-matter id of every decision file.
+    let mut max_decision_number: u32 = 0;
     if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
-            if adr_id_from_filename(&name).is_some() {
+            if let Some(filename_id) = adr_id_from_filename(&name) {
                 let path = entry.path();
-                let id = front_matter_field(&read_text(&path), "id")
-                    .unwrap_or_else(|| adr_id_from_filename(&name).unwrap_or_default());
+                let front_id = front_matter_field(&read_text(&path), "id");
+                if let Some(number) = adr_number(&filename_id) {
+                    max_decision_number = max_decision_number.max(number);
+                }
+                if let Some(front_id) = &front_id {
+                    if front_id != &filename_id {
+                        id_mismatches.push(format!("{name}:{filename_id}!={front_id}"));
+                    }
+                    if let Some(number) = adr_number(front_id) {
+                        max_decision_number = max_decision_number.max(number);
+                    }
+                }
+                let id = front_id.unwrap_or(filename_id);
                 files_by_id.entry(id).or_default().push(path);
             }
         }
     }
+    id_mismatches.sort();
+    let next_free_id = format!("ADR-{:04}", max_decision_number + 1);
 
     let mut decisions: Vec<DecisionCrosswalkRow> = Vec::new();
     let mut duplicate_ids: Vec<String> = Vec::new();
@@ -1214,6 +1330,8 @@ fn collect_crosswalk_inputs(
     CrosswalkInputs {
         decisions,
         duplicate_ids,
+        id_mismatches,
+        next_free_id,
         generated_face_axes,
     }
 }
@@ -1579,6 +1697,18 @@ fn adr_id_from_filename(name: &str) -> Option<String> {
     let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
     if digits.len() == 4 {
         Some(format!("ADR-{digits}"))
+    } else {
+        None
+    }
+}
+
+/// The numeric component of an `ADR-NNNN` decision id (allocator input). Ids in any
+/// other shape contribute nothing to the next-free-number derivation.
+fn adr_number(id: &str) -> Option<u32> {
+    let rest = id.strip_prefix("ADR-")?;
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.len() == 4 && digits.len() == rest.len() {
+        digits.parse().ok()
     } else {
         None
     }

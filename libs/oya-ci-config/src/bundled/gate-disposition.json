@@ -16,6 +16,7 @@
     "cloud-ci-cross-artifact-agreement": {
       "generated_face_drift": {"mode": "baseline-block-on-new"},
       "dual_decision_collision": {"mode": "baseline-block-on-new"},
+      "decision_id_mismatch": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "supersession_half_edge": {"mode": "baseline-block-on-new"},
       "unpropagated_decision": {"mode": "baseline-block-on-new"},
       "orphan_decision": {"mode": "baseline-block-on-new"},

@@ -4530,6 +4530,11 @@
       }
     },
     "cloud-ci-cross-artifact-agreement": {
+      "decision_id_mismatch": {
+        "frozen_empty": true,
+        "keys": [],
+        "mode": "baseline-block-on-new"
+      },
       "dual_decision_collision": {
         "keys": [
           "ADR-0377"

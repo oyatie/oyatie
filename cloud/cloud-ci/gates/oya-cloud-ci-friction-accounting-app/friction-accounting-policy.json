@@ -50,6 +50,7 @@
     "logged-webauthn-dep-parked": "open",
     "logged-escalated-to-leader": "accepted-risk",
     "escalated-to-leader": "accepted-risk",
+    "accepted-risk": "accepted-risk",
     "escalated-founder-decision": "accepted-risk",
     "awaiting-founder-pairing": "accepted-risk",
     "interim-accepted": "accepted-risk",
