@@ -36,8 +36,9 @@
 //!   `merge(a,b)` and `merge(b,a)` agree on which row stays primary. Every losing primary is
 //!   auto-converted to the event-sourced update row the second-author rule prescribes:
 //!   `{id, seen_at, status_update: <its status>, evidence: <its evidence + enforcement_fix>,
-//!   story/goal carried}`. Its `friction`/`pipeline_defect` narrative is dropped by that pinned
-//!   shape — same id means same friction by ledger contract.
+//!   story/goal carried}`. ALL loser fields outside that pinned shape are dropped —
+//!   `friction`, `pipeline_defect`, and any other extras — same id means same friction by
+//!   ledger contract.
 //! - **Updates never dedup against primaries** (their field shapes are disjoint by the row model),
 //!   and distinct update rows for one id all survive: appends are the point of the ledger.
 //! - **Known property:** concurrent DIVERGENT `status_update` rows for one id have no total

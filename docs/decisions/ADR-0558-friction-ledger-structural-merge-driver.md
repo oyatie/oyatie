@@ -1,5 +1,5 @@
 ---
-id: ADR-0557
+id: ADR-0558
 title: "Friction-ledger structural merge driver: id-aware union + second-author conversion"
 status: Proposed
 planning_impact: false
@@ -16,7 +16,7 @@ related_specs: []
 milestone: W0
 ---
 
-# ADR-0557: Friction-ledger structural merge driver — id-aware union + second-author conversion
+# ADR-0558: Friction-ledger structural merge driver — id-aware union + second-author conversion
 
 ## Status
 
@@ -111,5 +111,15 @@ consume Workflow events, or write Ontology objects.
 - Concurrent divergent `status_update` rows for one id have no total order across merge
   orientations; the gate's latest-update fold can differ by which side merged first — inherent
   to physical-order folding of parallel appends, and no worse than the text union it replaces.
+- **Committed-history logical-duplicate collapse (disclosed):** dedup is logical-set union over
+  the whole document, committed history included — canonically-identical update rows for one id
+  collapse to one on any merge even when non-adjacent, so an `A,B,A` update interleave collapses
+  to `A,B` and silently rewrites the ADR-0544 latest-update fold (effective status `A` becomes
+  `B`; e.g. a re-logged `fix-in-flight` after a `RESOLVED` flips the fold to `RESOLVED`). The
+  live corpus carries zero such duplicates and the red direction fails closed; this
+  green-to-green rewrite is accepted together with the **authoring rule**: a re-logged
+  transition (a reopen after a terminal status, or any repeat of an earlier status for the same
+  id) must differ in content — a fresh `seen_at` or `evidence` — so it is a distinct logical
+  event rather than a dedup target.
 - The first driver-mediated merge rewrites the whole file once (canonical normalization churn);
   subsequent merges are byte-stable.
