@@ -129,6 +129,11 @@ behind it.
 
 ### D6 — Adoption path (follow-up slices, not this one)
 
+0. **PDP-API caller authentication** (workload-identity mTLS/SPIFFE via oya/identity) lands
+   BEFORE any consumer pointing: in slice 1 the decision API trusts its network boundary
+   (cluster-internal, no consumer pointed at it yet), and the PEP-supplied entity slice is
+   only as trustworthy as the caller — the standard embedded-PDP/AVP trust model, which is
+   exactly why callers must be authenticated workloads before adoption.
 1. Policy-bundle CRD + operator distribution (D3 destination) + bundle signing/verification.
 2. Point oya/identity's `WorkloadAuthorizer` adapter at the shared PDP port/bundle fabric;
    retire its per-service policy file.

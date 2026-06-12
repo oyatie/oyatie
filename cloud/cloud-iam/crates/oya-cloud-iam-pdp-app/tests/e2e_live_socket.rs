@@ -133,7 +133,10 @@ async fn missing_bundle_file_refuses_boot() {
     let config = config_for(std::path::Path::new(
         "/nonexistent/oya-cloud-iam-pdp/bundle.json",
     ));
-    let err = server::start(&config).await.err().expect("boot must refuse");
+    let err = server::start(&config)
+        .await
+        .err()
+        .expect("boot must refuse");
     assert!(matches!(err, StartError::Bundle(_)), "{err}");
 }
 

@@ -170,9 +170,9 @@ fn proto_response_from_contract(response: AuthorizationResponse) -> proto::Autho
 
 fn status_from_refusal(error: &PdpError) -> Status {
     match error {
-        PdpError::InvalidRequest(_) | PdpError::UnknownAction { .. } | PdpError::Evaluation { .. } => {
-            Status::invalid_argument(error.to_string())
-        }
+        PdpError::InvalidRequest(_)
+        | PdpError::UnknownAction { .. }
+        | PdpError::Evaluation { .. } => Status::invalid_argument(error.to_string()),
         PdpError::StalePolicyVersion { .. } => Status::failed_precondition(error.to_string()),
         PdpError::BundleRejected { .. } => Status::unavailable(error.to_string()),
         PdpError::DecisionIdUnavailable { .. } => Status::internal(error.to_string()),

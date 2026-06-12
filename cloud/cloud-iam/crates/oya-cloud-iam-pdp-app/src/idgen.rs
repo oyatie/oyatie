@@ -53,7 +53,7 @@ impl IdGenerator for SystemUlidIdGenerator {
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_millis())
             .unwrap_or(0); // pre-epoch clock: encode as the epoch, never panic
-        let timestamp = (millis as u128) & ((1u128 << 48) - 1);
+        let timestamp = millis & ((1u128 << 48) - 1);
         let mut entropy = [0u8; 10];
         self.rng.fill(&mut entropy).map_err(|_| {
             // The kernel error enum has no entropy variant; the detail string

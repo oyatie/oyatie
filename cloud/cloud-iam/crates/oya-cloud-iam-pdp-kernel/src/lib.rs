@@ -264,7 +264,10 @@ mod tests {
 
     fn full_vars() -> BTreeMap<String, String> {
         BTreeMap::from([
-            (ENV_BUNDLE_PATH.to_owned(), "/etc/pdp/bundle.json".to_owned()),
+            (
+                ENV_BUNDLE_PATH.to_owned(),
+                "/etc/pdp/bundle.json".to_owned(),
+            ),
             (ENV_REST_ADDR.to_owned(), "127.0.0.1:9090".to_owned()),
             (ENV_GRPC_ADDR.to_owned(), "127.0.0.1:9091".to_owned()),
             (ENV_DECISION_CACHE_CAPACITY.to_owned(), "128".to_owned()),
@@ -294,7 +297,10 @@ mod tests {
         let config = PdpConfig::from_lookup(&vars).unwrap();
         assert_eq!(config.rest_addr, DEFAULT_REST_ADDR);
         assert_eq!(config.grpc_addr, DEFAULT_GRPC_ADDR);
-        assert_eq!(config.decision_cache_capacity, DEFAULT_DECISION_CACHE_CAPACITY);
+        assert_eq!(
+            config.decision_cache_capacity,
+            DEFAULT_DECISION_CACHE_CAPACITY
+        );
     }
 
     #[test]

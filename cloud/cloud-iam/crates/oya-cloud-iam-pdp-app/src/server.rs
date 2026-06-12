@@ -121,13 +121,12 @@ pub fn build_state(config: &PdpConfig) -> Result<Arc<PdpState>, StartError> {
 pub async fn start(config: &PdpConfig) -> Result<ServiceHandle, StartError> {
     let state = build_state(config)?;
 
-    let rest_listener =
-        TcpListener::bind(&config.rest_addr)
-            .await
-            .map_err(|source| StartError::Bind {
-                addr: config.rest_addr.clone(),
-                source,
-            })?;
+    let rest_listener = TcpListener::bind(&config.rest_addr)
+        .await
+        .map_err(|source| StartError::Bind {
+            addr: config.rest_addr.clone(),
+            source,
+        })?;
     let rest_addr = rest_listener
         .local_addr()
         .map_err(|source| StartError::Bind {
@@ -135,13 +134,12 @@ pub async fn start(config: &PdpConfig) -> Result<ServiceHandle, StartError> {
             source,
         })?;
 
-    let grpc_listener =
-        TcpListener::bind(&config.grpc_addr)
-            .await
-            .map_err(|source| StartError::Bind {
-                addr: config.grpc_addr.clone(),
-                source,
-            })?;
+    let grpc_listener = TcpListener::bind(&config.grpc_addr)
+        .await
+        .map_err(|source| StartError::Bind {
+            addr: config.grpc_addr.clone(),
+            source,
+        })?;
     let grpc_addr = grpc_listener
         .local_addr()
         .map_err(|source| StartError::Bind {
