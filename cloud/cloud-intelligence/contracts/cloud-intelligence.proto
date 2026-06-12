@@ -44,6 +44,15 @@ service LlmGatewayAdmin {
   // Return aggregated analytics for cloud dashboard/admin API surfaces.
   rpc AnalyticsSummary(AnalyticsSummaryRequest) returns (AnalyticsSummaryResponse);
 
+  // Return redacted status for cloud-intelligence agent runtime profiles and workflows.
+  rpc AgentRuntimeStatus(AgentRuntimeStatusRequest) returns (AgentRuntimeStatusResponse);
+
+  // Return redacted status for controller-owned tenant agent schedules.
+  rpc AgentScheduleStatus(AgentScheduleStatusRequest) returns (AgentScheduleStatusResponse);
+
+  // Return redacted scheduled parity/drift canary status with Retry-After hints.
+  rpc ParityCanaryStatus(ParityCanaryStatusRequest) returns (ParityCanaryStatusResponse);
+
   // Resume a circuit breaker or budget guard after policy-authorized operator action.
   rpc ResumeCircuitBreaker(ResumeCircuitBreakerRequest) returns (ResumeCircuitBreakerResponse);
 
@@ -144,6 +153,11 @@ message GatewayStatusRequest {
   RequestMeta meta = 1;
 }
 
+message GatewayBoundaryStatus {
+  string secret_resolution = 1; // owned-secret-provider-port
+  string authorization = 2;     // owned-policy-engine-port
+}
+
 message GatewayStatusResponse {
   string status = 1; // ok | degraded | unavailable
   bool route_controller_ready = 2;
@@ -151,6 +165,10 @@ message GatewayStatusResponse {
   bool credential_worker_ready = 4; // owned-secret-provider-port reachability + lease readiness
   bool policy_engine_ready = 5;     // owned-policy-engine-port decision readiness
   Error error = 6;                  // unset on success
+  bool default_data_plane_ready = 7;
+  bool secret_provider_ready = 8;
+  uint32 registered_pools = 9;
+  GatewayBoundaryStatus boundaries = 10;
 }
 
 // === AccountStatus ===
@@ -173,6 +191,7 @@ message AccountStatusItem {
 message AccountStatusResponse {
   repeated AccountStatusItem accounts = 1;
   Error error = 2; // unset on success
+  string redaction = 3; // secret-handles-redacted
 }
 
 // === AnalyticsSummary ===
@@ -190,6 +209,93 @@ message AnalyticsSummaryResponse {
   uint64 output_tokens = 4;
   double rate_limit_utilization_percent = 5;
   Error error = 6; // unset on success
+}
+
+// === Agent runtime / schedule / parity canary status ===
+
+message AgentRuntimeStatusRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2; // empty = caller-authorized tenant set
+  string runtime_profile_ref = 3;
+}
+
+message AgentRuntimeProfileStatus {
+  string kind = 1; // AgentRuntimeProfile
+  string tenant_id = 2;
+  string name = 3;
+  string model_route_ref = 4;
+  string prompt_profile_ref = 5;
+  string thinking_policy_ref = 6;
+  string tool_compatibility_profile_ref = 7;
+  string sandbox_policy_ref = 8;
+  bool cloud_intelligence_owned_control_plane = 9;
+  bool embeds_model_runtime = 10;
+  bool installs_cli_or_tui_surface = 11;
+}
+
+message AgentWorkflowStatus {
+  string kind = 1; // AgentWorkflowStatus
+  string workflow_ref = 2;
+  string runtime_profile_ref = 3;
+  string delegation_policy_ref = 4;
+  repeated string generation_adapters = 5; // claude | codex | gemini
+  string routing_advisor_scope = 6;        // routing-decision-only
+  string policy_engine_port = 7;           // owned-policy-engine-port
+  string evidence_visibility = 8;          // redacted-structured-evidence
+  string sealed_evidence_handle_ref = 9;
+  bool requires_secondary_review_for_critical_blocks = 10;
+  bool raw_payload_included = 11;           // false on normal status path
+}
+
+message AgentRuntimeStatusResponse {
+  repeated AgentRuntimeProfileStatus runtimes = 1;
+  repeated AgentWorkflowStatus workflow_statuses = 2;
+  Error error = 3; // unset on success
+}
+
+message AgentScheduleStatusRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2; // empty = caller-authorized tenant set
+  string schedule_ref = 3;
+}
+
+message AgentScheduleStatusItem {
+  string kind = 1; // AgentScheduleStatus
+  string schedule_ref = 2;
+  string state = 3; // queued | running | passed | failed | blocked
+  string controller_owner = 4;
+  string policy_engine_port = 5;   // owned-policy-engine-port
+  string evidence_visibility = 6;  // redacted-structured-evidence
+  string sealed_evidence_handle_ref = 7;
+  bool raw_payload_included = 8;   // false on normal status path
+}
+
+message AgentScheduleStatusResponse {
+  repeated AgentScheduleStatusItem statuses = 1;
+  Error error = 2; // unset on success
+}
+
+message ParityCanaryStatusRequest {
+  RequestMeta meta = 1;
+  string tenant_id = 2; // empty = caller-authorized tenant set
+  string plan_ref = 3;
+}
+
+message ParityCanaryStatusItem {
+  string kind = 1; // ParityCanaryStatus
+  string artifact_family = 2; // external-proxy-reference
+  string capability_namespace = 3; // XPROXY
+  string plan_ref = 4;
+  string state = 5; // passed | failed | running | inconclusive
+  uint32 retry_after_seconds = 6; // emit as Retry-After when non-zero
+  string evidence_visibility = 7; // redacted-structured-evidence
+  string sealed_evidence_handle_ref = 8;
+  bool raw_payload_included = 9; // false on normal status path
+}
+
+message ParityCanaryStatusResponse {
+  repeated ParityCanaryStatusItem statuses = 1;
+  Error error = 2; // unset on success
 }
 
 // === ResumeCircuitBreaker ===

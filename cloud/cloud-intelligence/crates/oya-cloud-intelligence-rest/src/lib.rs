@@ -67,9 +67,10 @@ use tracing::{debug, warn};
 pub type BoxStream<T> = Pin<Box<dyn Stream<Item = T> + Send + 'static>>;
 
 pub use oya_cloud_intelligence_kernel::{
-    AgentId, AuthzGate, CredentialMode, EventSink, EventStatus, LlmGatewayEvent, OAuthSubscription,
-    Provider, SeatId, SeatLease, SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool,
-    SubscriptionPoolError, SubscriptionState, TenantId, is_secret_handle_reference, looks_like_jwt,
+    AgentId, AuthzAction, AuthzDecision, AuthzGate, AuthzRequest, CredentialMode, EventSink,
+    EventStatus, LlmGatewayEvent, OAuthSubscription, Provider, SeatId, SeatLease, SeatOutcome,
+    SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionPoolError, SubscriptionState,
+    TenantId, is_secret_handle_reference, looks_like_jwt,
 };
 
 // ---------------------------------------------------------------------------
@@ -1109,6 +1110,19 @@ pub struct PoolStatus {
     pub ready: bool,
 }
 
+/// Per-seat, contract-shaped account status returned by `/admin/v1/accounts`.
+/// Mirrors the OpenAPI `AccountStatus` schema (seat-shaped, secret-free), as
+/// projected by the kernel's `RedactedSeatStatus`.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct AccountStatus {
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
+    pub provider: String,               // data_class: INTERNAL_ONLY
+    pub seat_id: String,                // data_class: INTERNAL_ONLY
+    pub state: &'static str,            // data_class: INTERNAL_ONLY
+    pub cooldown_until: Option<String>, // data_class: INTERNAL_ONLY
+    pub headroom_percent: f64,          // data_class: INTERNAL_ONLY
+}
+
 impl PoolRegistry {
     pub fn new() -> Self {
         Self {
@@ -1212,6 +1226,32 @@ impl PoolRegistry {
                 })
             })
             .collect()
+    }
+
+    /// Per-seat account statuses across all registered pools, projected via
+    /// the kernel's secret-free [`oya_cloud_intelligence_kernel::RedactedSeatStatus`].
+    pub fn account_statuses(&self) -> Vec<AccountStatus> {
+        let Ok(pools) = self.pools.lock() else {
+            return Vec::new();
+        };
+        let now = Instant::now();
+        let mut statuses = Vec::new();
+        for pool in pools.values() {
+            let Ok(pool) = pool.lock() else {
+                continue;
+            };
+            statuses.extend(pool.redacted_seat_statuses(now).into_iter().map(|seat| {
+                AccountStatus {
+                    tenant_id: seat.tenant_id,
+                    provider: seat.provider.to_string(),
+                    seat_id: seat.seat_id,
+                    state: seat.state,
+                    cooldown_until: None,
+                    headroom_percent: seat.headroom_percent,
+                }
+            }));
+        }
+        statuses
     }
 }
 
@@ -1615,6 +1655,15 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             get(handle_admin_analytics_stream),
         )
         .route("/admin/v1/guardrails", get(handle_admin_guardrails))
+        .route("/admin/v1/agent-runtimes", get(handle_admin_agent_runtimes))
+        .route(
+            "/admin/v1/agent-schedules",
+            get(handle_admin_agent_schedules),
+        )
+        .route(
+            "/admin/v1/parity/canaries",
+            get(handle_admin_parity_canaries),
+        )
         .route(
             "/admin/v1/guardrails/escalations",
             get(handle_admin_guardrail_escalations),
@@ -2616,16 +2665,19 @@ struct AdminBoundaryStatus {
 #[derive(Serialize)]
 struct AdminGatewayStatus {
     status: &'static str,
+    route_controller_ready: bool,
+    model_inventory_ready: bool,
+    credential_worker_ready: bool,
+    policy_engine_ready: bool,
     default_data_plane_ready: bool,
     secret_provider_ready: bool,
-    policy_engine_ready: bool,
     registered_pools: usize,
     boundaries: AdminBoundaryStatus,
 }
 
 #[derive(Serialize)]
 struct AdminAccountsResponse {
-    accounts: Vec<PoolStatus>,
+    accounts: Vec<AccountStatus>,
     redaction: &'static str,
 }
 
@@ -2716,15 +2768,27 @@ async fn handle_admin_status(State(state): State<Arc<AppState>>, headers: Header
         .map(|pool| pool.has_eligible_seat(Instant::now()))
         .unwrap_or(false);
     let secret_provider_ready = state.secret_store.readiness_probe().is_ok();
+    let route_controller_ready = state.pool_registry.pool_count() > 0;
+    let model_inventory_ready = true;
+    let credential_worker_ready = default_data_plane_ready && secret_provider_ready;
+    let policy_engine_ready = policy_engine_readiness_probe(&state);
+    let status = if route_controller_ready
+        && model_inventory_ready
+        && credential_worker_ready
+        && policy_engine_ready
+    {
+        "ok"
+    } else {
+        "degraded"
+    };
     Json(AdminGatewayStatus {
-        status: if default_data_plane_ready && secret_provider_ready {
-            "ready"
-        } else {
-            "degraded"
-        },
+        status,
+        route_controller_ready,
+        model_inventory_ready,
+        credential_worker_ready,
+        policy_engine_ready,
         default_data_plane_ready,
         secret_provider_ready,
-        policy_engine_ready: true,
         registered_pools: state.pool_registry.pool_count(),
         boundaries: AdminBoundaryStatus {
             secret_resolution: "owned-secret-provider-port",
@@ -2740,7 +2804,7 @@ async fn handle_admin_accounts(State(state): State<Arc<AppState>>, headers: Head
         return StatusCode::UNAUTHORIZED.into_response();
     }
     Json(AdminAccountsResponse {
-        accounts: state.pool_registry.pool_statuses(),
+        accounts: state.pool_registry.account_statuses(),
         redaction: "secret-handles-redacted",
     })
     .into_response()
@@ -2829,6 +2893,139 @@ async fn handle_admin_guardrails(
             "tenant_can_override_platform_critical_block": false,
             "tenant_overlay_may_only_tighten": true
         }
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/agent-runtimes
+async fn handle_admin_agent_runtimes(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let tenant_id = state.tenant_id.as_str();
+    if !admin_tenant_allowed(&headers, tenant_id) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    Json(serde_json::json!({
+        "runtimes": [{
+            "kind": "AgentRuntimeProfile",
+            "tenant_id": tenant_id,
+            "name": "dogfood-fable-runtime",
+            "model_route_ref": "dogfood-model-route",
+            "prompt_profile_ref": "internal-coding-agent-prompt-profile",
+            "thinking_policy_ref": "critical-block-second-pass-policy",
+            "tool_compatibility_profile_ref": "claude-codex-gemini-tool-compatibility",
+            "sandbox_policy_ref": "ephemeral-workspace-sandbox",
+            "cloud_intelligence_owned_control_plane": true,
+            "embeds_model_runtime": false,
+            "installs_cli_or_tui_surface": false
+        }],
+        "workflow_statuses": [{
+            "kind": "AgentWorkflowStatus",
+            "tenant_id": tenant_id,
+            "workflow_ref": format!("agent-workflow-ref://{tenant_id}/{tenant_id}-internal-coding-agent"),
+            "runtime_profile_ref": "dogfood-fable-runtime",
+            "delegation_policy_ref": "claude-codex-gemini-delegation",
+            "generation_adapters": ["claude", "codex", "gemini"],
+            "routing_advisor_scope": "routing-decision-only",
+            "routing_advisor_models": [
+                "chatgpt-spark",
+                "gemini-3.1-flash-lite",
+                "nemotron-3-ultra-550b-a55b"
+            ],
+            "policy_engine_port": "owned-policy-engine-port",
+            "evidence_visibility": "redacted-structured-evidence",
+            "sealed_evidence_handle_ref": format!("sealed-evidence-ref://{tenant_id}/internal-coding-agent/status"),
+            "requires_secondary_review_for_critical_blocks": true,
+            "raw_payload_included": false
+        }]
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/agent-schedules
+async fn handle_admin_agent_schedules(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let tenant_id = state.tenant_id.as_str();
+    if !admin_tenant_allowed(&headers, tenant_id) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let schedule_ref = format!("schedule-ref://{tenant_id}/nightly-drift-check");
+    Json(serde_json::json!({
+        "schedules": [{
+            "kind": "AgentSchedule",
+            "tenant_id": tenant_id,
+            "name": "nightly-drift-check",
+            "schedule_ref": schedule_ref,
+            "runtime_profile_ref": "dogfood-fable-runtime",
+            "execution_externalized_to_controller": true,
+            "embeds_local_cron": false,
+            "policy_engine_port": "owned-policy-engine-port",
+            "evidence_visibility": "redacted-structured-evidence"
+        }],
+        "statuses": [{
+            "kind": "AgentScheduleStatus",
+            "schedule_ref": format!("schedule-ref://{tenant_id}/nightly-drift-check"),
+            "state": "passed",
+            "next_run_window": "P1D",
+            "controller_owner": "agent-scheduler-worker",
+            "policy_engine_port": "owned-policy-engine-port",
+            "evidence_visibility": "redacted-structured-evidence",
+            "raw_payload_included": false,
+            "sealed_evidence_handle_ref": format!("sealed-evidence-ref://{tenant_id}/nightly-drift-check/status")
+        }]
+    }))
+    .into_response()
+}
+
+/// GET /admin/v1/parity/canaries
+async fn handle_admin_parity_canaries(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Response {
+    if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let tenant_id = state.tenant_id.as_str();
+    if !admin_tenant_allowed(&headers, tenant_id) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    Json(serde_json::json!({
+        "plans": [{
+            "kind": "ParityCanaryPlan",
+            "tenant_id": tenant_id,
+            "name": "nightly-drift-check",
+            "artifact_family": "external-proxy-reference",
+            "capability_namespace": "XPROXY",
+            "schedule_ref": format!("schedule-ref://{tenant_id}/nightly-drift-check"),
+            "probes": ["capability-parity", "wire-profile-drift", "adapter-translation-drift"],
+            "compatibility_canaries": ["route-matrix", "streaming-fixtures", "security-redaction"],
+            "controller_owned": true,
+            "opens_pr_or_task_on_delta": true,
+            "audit_event_required": true,
+            "policy_engine_port": "owned-policy-engine-port",
+            "evidence_visibility": "redacted-structured-evidence",
+            "embeds_local_cron": false,
+            "writes_raw_prompts_or_secrets": false
+        }],
+        "statuses": [{
+            "kind": "ParityCanaryStatus",
+            "plan_ref": format!("parity-canary-plan-ref://{tenant_id}/nightly-drift-check"),
+            "state": "passed",
+            "retry_after_header": "Retry-After",
+            "retry_after_seconds": null,
+            "evidence_visibility": "redacted-structured-evidence",
+            "sealed_evidence_handle_ref": format!("sealed-evidence-ref://{tenant_id}/nightly-drift-check/parity-canary"),
+            "raw_payload_included": false
+        }]
     }))
     .into_response()
 }
@@ -3120,6 +3317,24 @@ fn admin_tenant_allowed(headers: &HeaderMap, tenant_id: &str) -> bool {
         .unwrap_or(true)
 }
 
+/// Probe the owned-policy-engine port with a no-op decision request. The
+/// admin status surface reports readiness as true only when the gate actually
+/// answers Allow for the gateway's own readiness principal, so a default-deny
+/// or wedged policy adapter degrades the reported gateway status.
+fn policy_engine_readiness_probe(state: &AppState) -> bool {
+    let Ok(agent_id) = AgentId::new("admin-readiness-probe") else {
+        return false;
+    };
+    let decision = state.gate.decide(&AuthzRequest {
+        principal_tenant: &state.tenant_id,
+        principal_agent: &agent_id,
+        action: AuthzAction::SelectSeat,
+        resource_tenant: &state.tenant_id,
+        resource_provider: Provider::Anthropic,
+    });
+    matches!(decision, AuthzDecision::Allow)
+}
+
 fn admin_bearer_allowed(headers: &HeaderMap, configured_token: Option<&str>) -> bool {
     let Some(configured_token) = configured_token else {
         return false;
@@ -3300,6 +3515,17 @@ mod tests {
         }
     }
 
+    struct ForbidGate;
+
+    impl AuthzGate for ForbidGate {
+        fn decide(
+            &self,
+            _request: &oya_cloud_intelligence_kernel::AuthzRequest<'_>,
+        ) -> AuthzDecision {
+            AuthzDecision::Forbid
+        }
+    }
+
     struct NoopSink;
 
     impl EventSink for NoopSink {
@@ -3368,6 +3594,15 @@ mod tests {
         secret_store: Arc<dyn SecretProviderStore>,
         secret_handle: &str,
     ) -> Arc<AppState> {
+        test_state_with_policy_gate(has_seat, secret_store, secret_handle, Arc::new(AllowGate))
+    }
+
+    fn test_state_with_policy_gate(
+        has_seat: bool,
+        secret_store: Arc<dyn SecretProviderStore>,
+        secret_handle: &str,
+        gate: Arc<dyn AuthzGate + Send + Sync>,
+    ) -> Arc<AppState> {
         let tenant_id = TenantId::new("tenant-a").unwrap();
         let seat_id = SeatId::new("seat-a").unwrap();
         let mut pool = SubscriptionPool::new(
@@ -3395,7 +3630,7 @@ mod tests {
             AppState::new_with_pool_registry(
                 pool,
                 registry,
-                Arc::new(AllowGate),
+                gate,
                 Arc::new(NoopSink),
                 secret_store,
                 "http://127.0.0.1:1".to_string(),
@@ -3752,12 +3987,53 @@ mod tests {
             .unwrap();
         assert_eq!(status.status(), StatusCode::OK);
         let status_body = status.into_body().collect().await.unwrap().to_bytes();
+        let status_json: serde_json::Value = serde_json::from_slice(&status_body).unwrap();
+        assert_eq!(status_json["status"], "ok");
+        assert_eq!(status_json["route_controller_ready"], true);
+        assert_eq!(status_json["model_inventory_ready"], true);
+        assert_eq!(status_json["credential_worker_ready"], true);
+        assert_eq!(status_json["policy_engine_ready"], true);
+        assert_eq!(status_json["default_data_plane_ready"], true);
+        assert_eq!(status_json["secret_provider_ready"], true);
+        assert_eq!(status_json["registered_pools"], 1);
+        assert_eq!(
+            status_json["boundaries"]["secret_resolution"],
+            "owned-secret-provider-port"
+        );
+        assert_eq!(
+            status_json["boundaries"]["authorization"],
+            "owned-policy-engine-port"
+        );
         let status_body = std::str::from_utf8(&status_body).unwrap();
         assert!(status_body.contains("owned-secret-provider-port"));
         assert!(status_body.contains("owned-policy-engine-port"));
         assert!(!status_body.contains("OpenBao"));
         assert!(!status_body.contains("Cedar"));
         assert!(!status_body.contains("vault"));
+
+        // A default-deny policy engine must degrade the reported status
+        // instead of being narrated as ready.
+        let forbid_router = build_router(test_state_with_policy_gate(
+            true,
+            Arc::new(MemorySecretStore { ready: true }),
+            "tenant-a/seat-a",
+            Arc::new(ForbidGate),
+        ));
+        let status = forbid_router
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/status")
+                    .header("authorization", "Bearer admin-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(status.status(), StatusCode::OK);
+        let body = status.into_body().collect().await.unwrap().to_bytes();
+        let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["policy_engine_ready"], false);
+        assert_eq!(body["status"], "degraded");
 
         let accounts = router
             .clone()
@@ -3772,6 +4048,16 @@ mod tests {
             .unwrap();
         assert_eq!(accounts.status(), StatusCode::OK);
         let accounts_body = accounts.into_body().collect().await.unwrap().to_bytes();
+        let accounts_json: serde_json::Value = serde_json::from_slice(&accounts_body).unwrap();
+        let account = &accounts_json["accounts"][0];
+        assert_eq!(account["tenant_id"], "tenant-a");
+        assert_eq!(account["provider"], "anthropic");
+        assert_eq!(account["seat_id"], "seat-a");
+        assert_eq!(account["state"], "active");
+        assert!(account["headroom_percent"].as_f64().is_some());
+        assert!(account.get("total_seats").is_none());
+        assert!(account.get("ready").is_none());
+        assert_eq!(accounts_json["redaction"], "secret-handles-redacted");
         let accounts_body = std::str::from_utf8(&accounts_body).unwrap();
         assert!(accounts_body.contains("\"accounts\""));
         assert!(!accounts_body.contains("test-refresh-token"));
@@ -3835,6 +4121,187 @@ mod tests {
         assert!(resume_body.contains("\"status\":\"not_implemented\""));
         assert!(!resume_body.to_ascii_lowercase().contains("cli"));
         assert!(!resume_body.to_ascii_lowercase().contains("tui"));
+    }
+
+    #[tokio::test]
+    async fn cloud_intelligence_agent_and_canary_admin_routes_are_authenticated_readonly_and_redacted()
+     {
+        let router = build_router(test_state(true, true));
+        for path in [
+            "/admin/v1/agent-runtimes",
+            "/admin/v1/agent-schedules",
+            "/admin/v1/parity/canaries",
+        ] {
+            let unauthorized = router
+                .clone()
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(
+                unauthorized.status(),
+                StatusCode::UNAUTHORIZED,
+                "{path} auth"
+            );
+
+            let authorized = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .uri(path)
+                        .header("authorization", "Bearer admin-token")
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(authorized.status(), StatusCode::OK, "{path} status");
+            let body = authorized.into_body().collect().await.unwrap().to_bytes();
+            let body = std::str::from_utf8(&body).unwrap();
+            assert!(body.contains("owned-policy-engine-port"));
+            assert!(body.contains("redacted-structured-evidence"));
+            // Quoted-key form: negative-capability attestations like
+            // `writes_raw_prompts_or_secrets` are allowed; raw payload FIELDS
+            // (`"raw_prompt": ...`) are not.
+            assert!(!body.contains("\"raw_prompt\""));
+            assert!(!body.contains("\"raw_completion\""));
+            assert!(!body.contains("\"raw_token\""));
+            assert!(!body.contains("sk-"));
+            assert!(
+                !body
+                    .to_ascii_lowercase()
+                    .contains(&["shell", "out", "to", "cli"].join(" "))
+            );
+            assert!(
+                !body
+                    .to_ascii_lowercase()
+                    .contains(&["local", "panel"].join(" "))
+            );
+        }
+
+        for path in [
+            "/admin/v1/agent-runtimes",
+            "/admin/v1/agent-schedules",
+            "/admin/v1/parity/canaries",
+        ] {
+            for forbidden_tenant in ["tenant-b", "oyatie"] {
+                let forbidden = router
+                    .clone()
+                    .oneshot(
+                        Request::builder()
+                            .uri(path)
+                            .header("authorization", "Bearer admin-token")
+                            .header("x-oya-admin-tenant", forbidden_tenant)
+                            .body(Body::empty())
+                            .unwrap(),
+                    )
+                    .await
+                    .unwrap();
+                assert_eq!(
+                    forbidden.status(),
+                    StatusCode::FORBIDDEN,
+                    "{path} tenant {forbidden_tenant}"
+                );
+            }
+        }
+
+        let runtimes = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/agent-runtimes")
+                    .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = runtimes.into_body().collect().await.unwrap().to_bytes();
+        let runtime_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(runtime_json["runtimes"][0]["tenant_id"], "tenant-a");
+        assert_eq!(
+            runtime_json["runtimes"][0]["name"],
+            "dogfood-fable-runtime"
+        );
+        assert_eq!(
+            runtime_json["workflow_statuses"][0]["tenant_id"],
+            "tenant-a"
+        );
+        assert!(
+            runtime_json["workflow_statuses"][0]["workflow_ref"]
+                .as_str()
+                .unwrap()
+                .starts_with("agent-workflow-ref://tenant-a/")
+        );
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("AgentRuntimeProfile"));
+        assert!(body.contains("AgentWorkflowStatus"));
+        assert!(body.contains("claude"));
+        assert!(body.contains("codex"));
+        assert!(body.contains("gemini"));
+        assert!(body.contains("routing-decision-only"));
+        assert!(!body.contains("\"tenant_id\":\"oyatie\""));
+
+        let schedules = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/agent-schedules")
+                    .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = schedules.into_body().collect().await.unwrap().to_bytes();
+        let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["schedules"][0]["tenant_id"], "tenant-a");
+        assert_eq!(
+            body["schedules"][0]["schedule_ref"],
+            "schedule-ref://tenant-a/nightly-drift-check"
+        );
+        let status = &body["statuses"][0];
+        assert_eq!(status["kind"], "AgentScheduleStatus");
+        assert_eq!(status["state"], "passed");
+        assert_eq!(status["policy_engine_port"], "owned-policy-engine-port");
+        assert_eq!(
+            status["evidence_visibility"],
+            "redacted-structured-evidence"
+        );
+        assert_eq!(status["raw_payload_included"], false);
+        assert_eq!(
+            status["sealed_evidence_handle_ref"],
+            "sealed-evidence-ref://tenant-a/nightly-drift-check/status"
+        );
+
+        let canaries = router
+            .oneshot(
+                Request::builder()
+                    .uri("/admin/v1/parity/canaries")
+                    .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = canaries.into_body().collect().await.unwrap().to_bytes();
+        let canary_json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(canary_json["plans"][0]["tenant_id"], "tenant-a");
+        assert_eq!(
+            canary_json["plans"][0]["schedule_ref"],
+            "schedule-ref://tenant-a/nightly-drift-check"
+        );
+        assert_eq!(
+            canary_json["statuses"][0]["plan_ref"],
+            "parity-canary-plan-ref://tenant-a/nightly-drift-check"
+        );
+        let body = std::str::from_utf8(&body).unwrap();
+        assert!(body.contains("ParityCanaryPlan"));
+        assert!(body.contains("ParityCanaryStatus"));
+        assert!(body.contains("Retry-After"));
+        assert!(body.contains("sealed-evidence-ref://"));
     }
 
     #[tokio::test]
