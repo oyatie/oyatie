@@ -526,8 +526,14 @@ where
     S: AuditSink + 'static,
 {
     Router::new()
-        .route(&format!("{SCIM_BASE}/{{tenant}}/Users"), get(list_users::<R, D, A, S>))
-        .route(&format!("{SCIM_BASE}/{{tenant}}/Users"), post(create_user::<R, D, A, S>))
+        .route(
+            &format!("{SCIM_BASE}/{{tenant}}/Users"),
+            get(list_users::<R, D, A, S>),
+        )
+        .route(
+            &format!("{SCIM_BASE}/{{tenant}}/Users"),
+            post(create_user::<R, D, A, S>),
+        )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
             get(get_user::<R, D, A, S>),
@@ -544,7 +550,10 @@ where
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
             delete(delete_user::<R, D, A, S>),
         )
-        .route(&format!("{SCIM_BASE}/{{tenant}}/Groups"), get(list_groups::<R, D, A, S>))
+        .route(
+            &format!("{SCIM_BASE}/{{tenant}}/Groups"),
+            get(list_groups::<R, D, A, S>),
+        )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups"),
             post(create_group::<R, D, A, S>),

@@ -142,7 +142,7 @@ pub struct AuditRecord {
     /// `resource_id` members of the `WorkloadDecisionPayload` AsyncAPI schema).
     action: Option<String>, // data_class: INTERNAL_ONLY
     resource_type: Option<String>, // data_class: INTERNAL_ONLY
-    resource_id: Option<String>, // data_class: INTERNAL_ONLY
+    resource_id: Option<String>,   // data_class: INTERNAL_ONLY
 }
 
 impl AuditRecord {
