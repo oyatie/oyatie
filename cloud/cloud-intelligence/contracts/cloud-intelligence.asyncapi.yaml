@@ -92,6 +92,24 @@ channels:
     messages:
       evidenceRetentionEvent:
         $ref: '#/components/messages/EvidenceRetentionEvent'
+  llm.agent_runtime.v1:
+    address: persistent://public/default/oya.llm.agent_runtime.v1
+    description: Redacted cloud-intelligence agent runtime and workflow status events emitted by controllers.
+    messages:
+      agentWorkflowStatus:
+        $ref: '#/components/messages/AgentWorkflowStatusEvent'
+  llm.agent_schedule.v1:
+    address: persistent://public/default/oya.llm.agent_schedule.v1
+    description: Controller-owned agent schedule status events with resource refs and sealed evidence handles only.
+    messages:
+      agentScheduleStatus:
+        $ref: '#/components/messages/AgentScheduleStatusEvent'
+  llm.parity_canary.v1:
+    address: persistent://public/default/oya.llm.parity_canary.v1
+    description: Scheduled parity and drift canary status events with Retry-After hints and redacted evidence refs.
+    messages:
+      parityCanaryStatus:
+        $ref: '#/components/messages/ParityCanaryStatusEvent'
 operations:
   publishUsage:
     action: send
@@ -157,6 +175,27 @@ operations:
     summary: Evidence controller emits sealed-handle retention event.
     messages:
       - $ref: '#/channels/llm.evidence.v1/messages/evidenceRetentionEvent'
+  publishAgentWorkflowStatus:
+    action: send
+    channel:
+      $ref: '#/channels/llm.agent_runtime.v1'
+    summary: Agent runtime controller emits redacted workflow status.
+    messages:
+      - $ref: '#/channels/llm.agent_runtime.v1/messages/agentWorkflowStatus'
+  publishAgentScheduleStatus:
+    action: send
+    channel:
+      $ref: '#/channels/llm.agent_schedule.v1'
+    summary: Agent scheduler emits redacted schedule status.
+    messages:
+      - $ref: '#/channels/llm.agent_schedule.v1/messages/agentScheduleStatus'
+  publishParityCanaryStatus:
+    action: send
+    channel:
+      $ref: '#/channels/llm.parity_canary.v1'
+    summary: Drift/parity worker emits redacted canary status.
+    messages:
+      - $ref: '#/channels/llm.parity_canary.v1/messages/parityCanaryStatus'
 components:
   messageTraits:
     GatewayEnvelope:
@@ -253,7 +292,73 @@ components:
         - $ref: '#/components/messageTraits/GatewayEnvelope'
       payload:
         $ref: '#/components/schemas/EvidenceRetentionPayload'
+    AgentWorkflowStatusEvent:
+      name: AgentWorkflowStatusEvent
+      title: Agent workflow status event
+      summary: Redacted status for an internal coding-agent workflow composed from cloud-intelligence resources.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/AgentWorkflowStatusPayload'
+    AgentScheduleStatusEvent:
+      name: AgentScheduleStatusEvent
+      title: Agent schedule status event
+      summary: Redacted controller-owned schedule status for tenant agent workflows.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/AgentScheduleStatusPayload'
+    ParityCanaryStatusEvent:
+      name: ParityCanaryStatusEvent
+      title: Parity canary status event
+      summary: Redacted status for scheduled parity and drift canaries.
+      traits:
+        - $ref: '#/components/messageTraits/GatewayEnvelope'
+      payload:
+        $ref: '#/components/schemas/ParityCanaryStatusPayload'
   schemas:
+    AgentWorkflowStatusPayload:
+      type: object
+      required: [schema_version, workflow_ref, runtime_profile_ref, generation_adapters, routing_advisor_scope, policy_engine_port, evidence_visibility, requires_secondary_review_for_critical_blocks, raw_payload_included]
+      properties:
+        schema_version: { type: string, const: '1' }
+        workflow_ref: { type: string }
+        runtime_profile_ref: { type: string }
+        delegation_policy_ref: { type: string }
+        generation_adapters:
+          type: array
+          items: { type: string, enum: [claude, codex, gemini] }
+        routing_advisor_scope: { type: string, const: routing-decision-only }
+        policy_engine_port: { type: string, const: owned-policy-engine-port }
+        evidence_visibility: { type: string, const: redacted-structured-evidence }
+        sealed_evidence_handle_ref: { type: string, nullable: true }
+        requires_secondary_review_for_critical_blocks: { type: boolean, const: true }
+        raw_payload_included: { type: boolean, const: false }
+    AgentScheduleStatusPayload:
+      type: object
+      required: [schema_version, schedule_ref, state, controller_owner, policy_engine_port, evidence_visibility, raw_payload_included]
+      properties:
+        schema_version: { type: string, const: '1' }
+        schedule_ref: { type: string }
+        state: { type: string, enum: [queued, running, passed, failed, blocked] }
+        controller_owner: { type: string }
+        policy_engine_port: { type: string, const: owned-policy-engine-port }
+        evidence_visibility: { type: string, const: redacted-structured-evidence }
+        sealed_evidence_handle_ref: { type: string, nullable: true }
+        raw_payload_included: { type: boolean, const: false }
+    ParityCanaryStatusPayload:
+      type: object
+      required: [schema_version, artifact_family, capability_namespace, plan_ref, state, evidence_visibility, raw_payload_included]
+      properties:
+        schema_version: { type: string, const: '1' }
+        artifact_family: { type: string, const: external-proxy-reference }
+        capability_namespace: { type: string, const: XPROXY }
+        plan_ref: { type: string }
+        state: { type: string, enum: [passed, failed, running, inconclusive] }
+        retry_after_seconds: { type: integer, nullable: true }
+        evidence_visibility: { type: string, const: redacted-structured-evidence }
+        sealed_evidence_handle_ref: { type: string, nullable: true }
+        raw_payload_included: { type: boolean, const: false }
     UsagePayload:
       type: object
       description: |

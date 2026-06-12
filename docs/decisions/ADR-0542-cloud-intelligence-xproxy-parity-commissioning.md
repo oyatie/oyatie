@@ -119,7 +119,23 @@ cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/Cargo.toml
 cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/src/lib.rs
 cloud/cloud-intelligence/crates/oya-cloud-intelligence-worker/tests/xproxy_worker_ownership.rs
 evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json
+evidence/multispectrum/cloud-intelligence-canary-status-salvage-20260612-1781239694.json
 ```
+
+### Addendum 2026-06-12 — #663 status-surface salvage continuation
+
+The XPROXY lane ran as two parallel branches (#644 merged; #663 went stale) sharing the
+emission ID `cloud-intelligence-xproxy-20260610` and the same evidence path with divergent
+content — an evidence-artifact collision (friction ledger row FRIC-1781300000). The
+genuinely-unmerged subset of #663 (agent-runtime/agent-schedule/parity-canary read-only
+status surfaces across OpenAPI/proto/AsyncAPI, kernel `RedactedSeatStatus`, REST admin read
+routes, and worker status-ownership types) is re-derived from current dev as a single-concern
+salvage PR under the fresh emission ID above
+(`evidence/multispectrum/cloud-intelligence-canary-status-salvage-20260612-1781239694.json`,
+change_id `cloud-intelligence-canary-status-salvage-20260612`). That evidence artifact is a
+governed surface of this lane and this ADR is its justification reference; all source files it
+touches were already governed by this ADR's list above. Per-lane unique emission IDs close the
+collision class.
 
 ## Consequences
 

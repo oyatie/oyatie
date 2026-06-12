@@ -351,6 +351,18 @@ pub struct OAuthSubscription {
     pub failure_count: u32,              // data_class: INTERNAL_ONLY
 }
 
+/// Account-shaped, secret-free seat status projection for admin read surfaces.
+/// Carries resource identity and coarse state only — never the credential
+/// secret handle, so REST/proto status responses cannot leak it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RedactedSeatStatus {
+    pub tenant_id: String,     // data_class: INTERNAL_ONLY
+    pub provider: Provider,    // data_class: INTERNAL_ONLY
+    pub seat_id: String,       // data_class: INTERNAL_ONLY
+    pub state: &'static str,   // data_class: INTERNAL_ONLY
+    pub headroom_percent: f64, // data_class: INTERNAL_ONLY
+}
+
 impl OAuthSubscription {
     /// Construct a new [`OAuthSubscription`].
     pub fn new(
@@ -687,6 +699,28 @@ impl SubscriptionPool {
 
     pub fn seat_count(&self) -> usize {
         self.seats.len()
+    }
+
+    /// Project every seat into an account-shaped [`RedactedSeatStatus`] for
+    /// admin status read surfaces. Secret handles never cross this boundary.
+    pub fn redacted_seat_statuses(&self, now: Instant) -> Vec<RedactedSeatStatus> {
+        self.seats
+            .values()
+            .map(|seat| RedactedSeatStatus {
+                tenant_id: self.tenant_id.as_str().to_string(),
+                provider: self.provider,
+                seat_id: seat.seat_id.as_str().to_string(),
+                state: match seat.state {
+                    SubscriptionState::Authorized => "authorized",
+                    SubscriptionState::ActiveUntilExpiry { .. }
+                    | SubscriptionState::RefreshingToken { .. }
+                    | SubscriptionState::Active => "active",
+                    SubscriptionState::Cooldown { .. } => "cooldown",
+                    SubscriptionState::Blacklisted { .. } => "blacklisted",
+                },
+                headroom_percent: (seat.headroom(now, 1) * 100.0).clamp(0.0, 100.0),
+            })
+            .collect()
     }
 
     pub fn credential_secret_handle_for_seat(&self, seat_id: &SeatId) -> Option<String> {
@@ -1229,6 +1263,33 @@ mod tests {
         assert!(oauth_debug.contains("<REDACTED>"));
         assert!(!api_debug.contains("sk-ant-api03-really-secret"));
         assert!(!oauth_debug.contains("refresh-token-really-secret"));
+    }
+
+    #[test]
+    fn redacted_seat_statuses_are_account_shaped_without_secret_handles() {
+        let mut pool = SubscriptionPool::new(
+            tenant("tenant-a"),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        );
+        pool.add_seat(active_subscription(
+            tenant("tenant-a"),
+            seat("seat-a"),
+            Provider::Anthropic,
+            "secret-ref://tenant-a/anthropic",
+        ))
+        .expect("seat inserted");
+
+        let statuses = pool.redacted_seat_statuses(Instant::now());
+        assert_eq!(statuses.len(), 1);
+        assert_eq!(statuses[0].tenant_id, "tenant-a");
+        assert_eq!(statuses[0].provider, Provider::Anthropic);
+        assert_eq!(statuses[0].seat_id, "seat-a");
+        assert_eq!(statuses[0].state, "active");
+        assert!(statuses[0].headroom_percent >= 0.0);
+        assert!(statuses[0].headroom_percent <= 100.0);
+        let debug = format!("{statuses:?}");
+        assert!(!debug.contains("secret-ref://tenant-a/anthropic"));
     }
 
     #[test]
