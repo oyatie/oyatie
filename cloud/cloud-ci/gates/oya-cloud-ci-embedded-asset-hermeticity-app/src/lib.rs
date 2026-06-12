@@ -673,6 +673,15 @@ pub fn parse_buck_targets(buck_text: &str, crate_files: &[String]) -> Vec<BuckTa
                 .map(|p| crate_relative(&p));
             let (explicit_srcs, srcs_globs, srcs_unparseable) = parse_srcs(call, &env);
             let (mapped_dest, mapped_unparseable) = parse_mapped_srcs(call, &env, crate_files);
+            // A positional opaque tail argument means an expression the subset could not model
+            // sat NEXT TO a modeled kwarg value (e.g. `srcs = [...] if c else [...]` parses the
+            // first list plus an opaque tail). The narrowed value must not be trusted as the
+            // whole truth — demote the target to unparseable (fail-safe: the collector surfaces
+            // a visible skip, never a silent narrow).
+            let opaque_tail = call
+                .args
+                .iter()
+                .any(|arg| arg.name.is_none() && arg.value.has_opaque());
 
             targets.push(BuckTarget {
                 name,
@@ -681,7 +690,7 @@ pub fn parse_buck_targets(buck_text: &str, crate_files: &[String]) -> Vec<BuckTa
                 explicit_srcs,
                 srcs_globs,
                 mapped_dest,
-                unparseable: srcs_unparseable || mapped_unparseable,
+                unparseable: srcs_unparseable || mapped_unparseable || opaque_tail,
             });
         }
     }
@@ -1768,6 +1777,20 @@ rust_library(
         let dests = target_destinations(&targets[0], "crate/c", &files);
         assert!(dests.contains("crate/c/src/lib.rs"));
         assert!(dests.contains("crate/c/bundled/x.json"));
+    }
+
+    #[test]
+    fn ternary_srcs_demotes_target_to_unparseable_not_a_silent_narrow() {
+        // Reviewer LOW closure: `srcs = [...] if c else [...]` parses the first list plus an
+        // opaque tail. The target must be UNPARSEABLE (visible skip), never silently narrowed
+        // to the first branch.
+        let buck = "rust_library(\n    name = \"c\",\n    srcs = [\"a.rs\"] if c else [\"b.rs\"],\n    crate_root = \"src/lib.rs\",\n)\n";
+        let targets = parse_buck_targets(buck, &[]);
+        assert_eq!(targets.len(), 1, "{targets:?}");
+        assert!(
+            targets[0].unparseable,
+            "a ternary srcs must demote the target to unparseable: {targets:?}"
+        );
     }
 
     #[test]

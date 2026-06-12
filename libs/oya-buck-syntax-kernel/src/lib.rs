@@ -599,6 +599,53 @@ mod tests {
     }
 
     // =====================================================================
+    // Reviewer BLOCKER/MED closure: wrapped calls + trailing-token honesty
+    // =====================================================================
+
+    #[test]
+    fn trailing_tokens_after_a_modeled_statement_demote_it_to_opaque() {
+        // `X = 1 if c else f(...)` — parse_expr models the `1`; the tail would previously be
+        // consumed silently (reviewer MED: violated "never silently dropped"). The whole
+        // statement must demote to Stmt::Opaque with a span covering the tail.
+        let buck = "X = 1 if c else rust_library(name = \"x\")\nY = \"clean\"\n";
+        let doc = must_parse(buck);
+        assert!(
+            matches!(&doc.stmts[0], Stmt::Opaque { span } if span.slice(buck).contains("rust_library")),
+            "trailing-token statement must be opaque with the tail visible: {:?}",
+            doc.stmts[0]
+        );
+        assert!(
+            matches!(&doc.stmts[1], Stmt::Assign { name, .. } if name == "Y"),
+            "the clean following statement still parses: {:?}",
+            doc.stmts[1]
+        );
+    }
+
+    #[test]
+    fn visit_calls_reaches_assign_wrapped_and_nested_calls() {
+        // Reviewer BLOCKER class: a call wrapped in an assignment or nested in an expression
+        // must be enumerable — `X = rust_library(...)` can never hide from visit_calls.
+        let buck = concat!(
+            "X = rust_library(\n    name = \"wrapped\",\n    deps = [\"third-party//:kube\"],\n)\n",
+            "M = {\"k\": helper(rust_library(name = \"nested\"))}\n",
+            "rust_library(\n    name = \"plain\",\n)\n",
+        );
+        let doc = must_parse(buck);
+        let mut seen: Vec<String> = Vec::new();
+        doc.visit_calls(&mut |call| {
+            if call.func == "rust_library" {
+                if let Some(arg) = call.kwarg("name") {
+                    if let Expr::Str(name) = &arg.value.expr {
+                        seen.push(name.clone());
+                    }
+                }
+            }
+        });
+        seen.sort();
+        assert_eq!(seen, vec!["nested", "plain", "wrapped"], "every wrapping shape enumerated");
+    }
+
+    // =====================================================================
     // Span fidelity
     // =====================================================================
 

@@ -116,25 +116,96 @@ impl CallExpr {
     pub fn has_opaque(&self) -> bool {
         self.args.iter().any(|arg| expr_has_opaque(&arg.value))
     }
+
+    /// Depth-first visit of this call and every call nested in its arguments.
+    pub fn visit_nested<'a>(&'a self, visit: &mut dyn FnMut(&'a CallExpr)) {
+        visit(self);
+        for arg in &self.args {
+            arg.value.visit_calls(visit);
+        }
+    }
+}
+
+impl BuckDoc {
+    /// Depth-first visit of EVERY call expression in the document: top-level call statements,
+    /// calls wrapped in assignments (`X = rust_library(...)`), index-assignment values, and
+    /// calls nested inside any expression. [`Stmt::Opaque`] statements carry no parsed calls —
+    /// detect-lane consumers must raw-scan their spans separately (fail-closed).
+    pub fn visit_calls<'a>(&'a self, visit: &mut dyn FnMut(&'a CallExpr)) {
+        for stmt in &self.stmts {
+            match stmt {
+                Stmt::Call(call) => call.visit_nested(visit),
+                Stmt::Assign { value, .. } => value.visit_calls(visit),
+                Stmt::IndexAssign { key, value, .. } => {
+                    key.visit_calls(visit);
+                    value.visit_calls(visit);
+                }
+                Stmt::Opaque { .. } => {}
+            }
+        }
+    }
 }
 
 fn expr_has_opaque(node: &ExprNode) -> bool {
-    match &node.expr {
-        Expr::Opaque => true,
-        Expr::Str(_) | Expr::Int(_) | Expr::Ident(_) => false,
-        Expr::Plus(operands) => operands.iter().any(expr_has_opaque),
-        Expr::List(list) => list.elements.iter().any(|e| expr_has_opaque(&e.value)),
-        Expr::Dict(dict) => {
-            dict.entries
-                .iter()
-                .any(|entry| expr_has_opaque(&entry.key) || expr_has_opaque(&entry.value))
-                || dict.comprehension.as_ref().is_some_and(|comp| {
-                    expr_has_opaque(&comp.key)
-                        || expr_has_opaque(&comp.value)
-                        || comp.iter.is_none()
-                })
+    node.has_opaque()
+}
+
+impl ExprNode {
+    /// True if this expression (transitively) contains an [`Expr::Opaque`] node — content the
+    /// modeled subset could not interpret. Detect-lane consumers over-approximate on it;
+    /// fixers/parsers-of-record refuse or demote to unparseable (fail-honest).
+    pub fn has_opaque(&self) -> bool {
+        match &self.expr {
+            Expr::Opaque => true,
+            Expr::Str(_) | Expr::Int(_) | Expr::Ident(_) => false,
+            Expr::Plus(operands) => operands.iter().any(|node| node.has_opaque()),
+            Expr::List(list) => list.elements.iter().any(|e| e.value.has_opaque()),
+            Expr::Dict(dict) => {
+                dict.entries
+                    .iter()
+                    .any(|entry| entry.key.has_opaque() || entry.value.has_opaque())
+                    || dict.comprehension.as_ref().is_some_and(|comp| {
+                        comp.key.has_opaque() || comp.value.has_opaque() || comp.iter.is_none()
+                    })
+            }
+            Expr::Call(call) => call.has_opaque(),
         }
-        Expr::Call(call) => call.has_opaque(),
+    }
+
+    /// Depth-first visit of every [`CallExpr`] nested anywhere in this expression (including
+    /// calls inside list/dict/plus operands and other calls' arguments). Detect-lane consumers
+    /// use this so a target call WRAPPED in an expression (`X = rust_library(...)`) can never
+    /// hide from enumeration (the statement-position-only blind spot).
+    pub fn visit_calls<'a>(&'a self, visit: &mut dyn FnMut(&'a CallExpr)) {
+        match &self.expr {
+            Expr::Call(call) => {
+                visit(call);
+                for arg in &call.args {
+                    arg.value.visit_calls(visit);
+                }
+            }
+            Expr::Plus(operands) => {
+                for operand in operands {
+                    operand.visit_calls(visit);
+                }
+            }
+            Expr::List(list) => {
+                for element in &list.elements {
+                    element.value.visit_calls(visit);
+                }
+            }
+            Expr::Dict(dict) => {
+                for entry in &dict.entries {
+                    entry.key.visit_calls(visit);
+                    entry.value.visit_calls(visit);
+                }
+                if let Some(comp) = &dict.comprehension {
+                    comp.key.visit_calls(visit);
+                    comp.value.visit_calls(visit);
+                }
+            }
+            Expr::Str(_) | Expr::Int(_) | Expr::Ident(_) | Expr::Opaque => {}
+        }
     }
 }
 
@@ -319,7 +390,12 @@ impl<'t> Parser<'t> {
                     self.pos += 2;
                     let value = self.parse_expr()?;
                     let span = Span::new(start, value.span.end);
-                    self.finish_stmt_line();
+                    if let Some(tail_end) = self.finish_stmt_line() {
+                        // Trailing unmodeled tokens: the WHOLE statement is opaque.
+                        return Ok(Stmt::Opaque {
+                            span: Span::new(start, tail_end),
+                        });
+                    }
                     return Ok(Stmt::Assign {
                         name,
                         name_span,
@@ -338,7 +414,11 @@ impl<'t> Parser<'t> {
                         self.pos += 2; // ] =
                         let value = self.parse_expr()?;
                         let span = Span::new(start, value.span.end);
-                        self.finish_stmt_line();
+                        if let Some(tail_end) = self.finish_stmt_line() {
+                            return Ok(Stmt::Opaque {
+                                span: Span::new(start, tail_end),
+                            });
+                        }
                         return Ok(Stmt::IndexAssign {
                             base: name,
                             key,
@@ -353,7 +433,11 @@ impl<'t> Parser<'t> {
                 // NAME ( args )
                 Some(TokenKind::Punct('(')) => {
                     let call = self.parse_call(name, name_span)?;
-                    self.finish_stmt_line();
+                    if let Some(tail_end) = self.finish_stmt_line() {
+                        return Ok(Stmt::Opaque {
+                            span: Span::new(start, tail_end),
+                        });
+                    }
                     return Ok(Stmt::Call(call));
                 }
                 _ => return self.opaque_stmt(start),
@@ -364,14 +448,21 @@ impl<'t> Parser<'t> {
 
     /// Consume the rest of the logical line (anything before the next depth-0 newline) so a
     /// trailing construct the subset does not model cannot desynchronize statement parsing.
-    fn finish_stmt_line(&mut self) {
+    /// Returns the byte end of the last consumed NON-newline token, if any were consumed —
+    /// the caller MUST then demote the whole statement to [`Stmt::Opaque`] (fail-honest:
+    /// trailing unmodeled content is never silently dropped; a `X = 1 if c else target(...)`
+    /// tail stays visible to detect-lane over-approximation).
+    fn finish_stmt_line(&mut self) -> Option<usize> {
+        let mut consumed_end: Option<usize> = None;
         while let Some(token) = self.peek() {
             if matches!(token.kind, TokenKind::Newline) {
                 self.pos += 1;
-                return;
+                return consumed_end;
             }
+            consumed_end = Some(token.span.end);
             self.pos += 1;
         }
+        consumed_end
     }
 
     /// Record an unmodeled statement: consume to the next depth-0 newline (the lexer already

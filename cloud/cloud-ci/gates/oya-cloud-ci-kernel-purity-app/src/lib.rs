@@ -683,16 +683,29 @@ pub fn extract_buck_library_thirdparty_deps(text: &str) -> BTreeSet<String> {
         collect_thirdparty_tokens(text, &mut deps);
         return deps;
     };
-    for stmt in &doc.stmts {
-        let Stmt::Call(call) = stmt else { continue };
+    // Enumerate EVERY rust_library call in the document — top-level statements AND calls
+    // wrapped in assignments or nested in expressions (`X = rust_library(...)`), so a one-token
+    // wrapper can never be a dep-hiding device (reviewer BLOCKER on the statement-position-only
+    // enumeration).
+    doc.visit_calls(&mut |call| {
         if call.func != "rust_library" {
-            continue;
+            return;
         }
         for value in call_strings(call) {
             collect_thirdparty_tokens(&value, &mut deps);
         }
         if call.has_opaque() {
             collect_thirdparty_tokens(call.span.slice(text), &mut deps);
+        }
+    });
+    // Statements the subset could not model carry no parsed calls; if such a span mentions a
+    // rust_library call at all, raw-scan it from that point (the same over-approximation the
+    // pre-kernel scanner applied to ALL text) — a detector over-scan can only ADD findings.
+    for stmt in &doc.stmts {
+        let Stmt::Opaque { span } = stmt else { continue };
+        let raw = span.slice(text);
+        if let Some(at) = raw.find("rust_library(") {
+            collect_thirdparty_tokens(&raw[at..], &mut deps);
         }
     }
     deps
@@ -2244,6 +2257,32 @@ rust_test(
         assert!(
             !deps.contains("k"),
             "the truncated pre-continuation token must not be reported: {deps:?}"
+        );
+    }
+
+    #[test]
+    fn wrapped_rust_library_calls_cannot_hide_deps() {
+        // Reviewer BLOCKER closure: buck2-valid wrappers that take the target call out of
+        // statement position must not hide its deps from the detect lane.
+        // (a) assignment-wrapped: X = rust_library(...)
+        let assigned = "X = rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(assigned).contains("kube"),
+            "assignment-wrapped target must be detected"
+        );
+        // (b) expression-statement wrapped: [rust_library(...)] — an opaque statement whose
+        // span mentions rust_library( is raw-scanned (over-approximation).
+        let listed = "[rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)]\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(listed).contains("kube"),
+            "expression-statement-wrapped target must be detected"
+        );
+        // (c) trailing-ternary tail: X = 1 if c else rust_library(...) — the statement demotes
+        // to opaque in the kernel and the raw scan sees the call.
+        let ternary = "X = 1 if c else rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(ternary).contains("kube"),
+            "ternary-tail target must be detected"
         );
     }
 

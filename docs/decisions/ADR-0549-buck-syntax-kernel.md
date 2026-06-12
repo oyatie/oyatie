@@ -119,11 +119,19 @@ Where the prior gates' detect lanes were comment-blind in the OVER-reporting dir
 mention in a comment counted), the kernel fixes that too; the live corpus carries no such shape
 (differential-probe proven), so reported findings are identical before/after.
 
-**Fail-closed posture for unmodeled content**: a `rust_library` call containing an `Opaque`
-argument is additionally raw-scanned over its exact span, and an unparseable BUCK file is
-raw-scanned in full — for the born-blocking DETECTOR an over-approximation can only ADD
-findings, never hide one (the same posture the pre-kernel EOF fallback took). The REMOVER and
-all edit paths are independently guarded and refuse unsound input outright.
+**Fail-closed posture for unmodeled content**: target enumeration walks EVERY call expression
+in the document (top-level statements, assignment-wrapped `X = rust_library(...)`,
+index-assignment values, calls nested in any expression) via `BuckDoc::visit_calls`, so a
+wrapper token can never take a target out of the detect lane's sight; a `rust_library` call
+containing an `Opaque` argument is additionally raw-scanned over its exact span; a statement
+the subset cannot model — including a modeled statement with TRAILING unmodeled tokens, which
+the parser demotes to `Stmt::Opaque` rather than silently truncating — is raw-scanned from any
+`rust_library(` occurrence in its span; and an unparseable BUCK file is raw-scanned in full.
+For the born-blocking DETECTOR an over-approximation can only ADD findings, never hide one
+(the same posture the pre-kernel EOF fallback took). On the hermeticity side, a target call
+carrying a positional opaque tail (the ternary `srcs = [...] if c else [...]` shape) is demoted
+to `unparseable` — a visible skip, never a silent narrowing to one branch. The REMOVER and all
+edit paths are independently guarded and refuse unsound input outright.
 
 ### D5 — Deferred consumers (audited honestly)
 
