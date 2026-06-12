@@ -688,21 +688,49 @@ pub fn extract_buck_library_thirdparty_deps(text: &str) -> BTreeSet<String> {
     // wrapper can never be a dep-hiding device (reviewer BLOCKER on the statement-position-only
     // enumeration).
     doc.visit_calls(&mut |call| {
-        if call.func != "rust_library" {
-            return;
+        if call.func == "rust_library" {
+            for value in call_strings(call) {
+                collect_thirdparty_tokens(&value, &mut deps);
+            }
         }
-        for value in call_strings(call) {
-            collect_thirdparty_tokens(&value, &mut deps);
-        }
+        // ANY call carrying opaque content gets its span raw-scanned from a `rust_library(`
+        // occurrence — a rust_library call discarded into an opaque ARGUMENT of some other
+        // call (`helper([rust_library(...)][0])`) must not escape just because the WRAPPING
+        // call has a different name. Together with the statement-level arms below this makes
+        // the dichotomy total: opaque content always sits inside some visited call's span or
+        // a flagged statement span.
         if call.has_opaque() {
-            collect_thirdparty_tokens(call.span.slice(text), &mut deps);
+            let raw = call.span.slice(text);
+            if call.func == "rust_library" {
+                collect_thirdparty_tokens(raw, &mut deps);
+            } else if let Some(at) = raw.find("rust_library(") {
+                collect_thirdparty_tokens(&raw[at..], &mut deps);
+            }
         }
     });
-    // Statements the subset could not model carry no parsed calls; if such a span mentions a
-    // rust_library call at all, raw-scan it from that point (the same over-approximation the
-    // pre-kernel scanner applied to ALL text) — a detector over-scan can only ADD findings.
+    // Spans the subset could not (fully) model carry calls visit_calls cannot reach; if such a
+    // span mentions a rust_library call at all, raw-scan it from that point (the same
+    // over-approximation the pre-kernel scanner applied to ALL text) — a detector over-scan can
+    // only ADD findings. Covered shapes:
+    // - Stmt::Opaque (unmodeled statements, incl. trailing-token demotions);
+    // - Assign/IndexAssign whose value (or key) contains expression-level Opaque content — the
+    //   re-review BLOCKER class: a postfix-index wrapper (`X = [rust_library(...)][0]`), an
+    //   unmodeled-primary ternary (`X = -1 if c else rust_library(...)`), or a discarded
+    //   comprehension iter (`{k: v for k in [rust_library(...)]}`) all collapse to Opaque
+    //   inside a still-modeled statement, invisible to both visit_calls and the opaque-stmt
+    //   scan without this arm.
     for stmt in &doc.stmts {
-        let Stmt::Opaque { span } = stmt else { continue };
+        let opaque_span = match stmt {
+            Stmt::Opaque { span } => Some(*span),
+            Stmt::Assign { value, span, .. } if value.has_opaque() => Some(*span),
+            Stmt::IndexAssign { key, value, span, .. }
+                if key.has_opaque() || value.has_opaque() =>
+            {
+                Some(*span)
+            }
+            _ => None,
+        };
+        let Some(span) = opaque_span else { continue };
         let raw = span.slice(text);
         if let Some(at) = raw.find("rust_library(") {
             collect_thirdparty_tokens(&raw[at..], &mut deps);
@@ -2283,6 +2311,39 @@ rust_test(
         assert!(
             extract_buck_library_thirdparty_deps(ternary).contains("kube"),
             "ternary-tail target must be detected"
+        );
+    }
+
+    #[test]
+    fn expression_level_opaque_wrappers_cannot_hide_deps() {
+        // Re-review BLOCKER closure: expression-level Opaque content inside a still-modeled
+        // Assign must be raw-scanned — visit_calls cannot reach a call the widen arm discarded.
+        // (a) postfix-index wrapper: the parsed list+call is discarded into one Expr::Opaque.
+        let indexed = "X = [rust_library(name = \"x\", deps = [\"third-party//:kube\"])][0]\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(indexed).contains("kube"),
+            "postfix-index wrapper must be detected"
+        );
+        // (b) unmodeled-primary ternary: `-1` consumes the whole line as expression-level Opaque,
+        // so the trailing-token demotion never fires.
+        let neg_ternary = "X = -1 if c else rust_library(name = \"x\", deps = [\"third-party//:kube\"])\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(neg_ternary).contains("kube"),
+            "unmodeled-primary ternary must be detected"
+        );
+        // (c) discarded comprehension iter: the non-ident iter is dropped with no node
+        // (comp.iter == None => has_opaque).
+        let comp_iter = "M = {k: \"v\" for k in [rust_library(name = \"x\", deps = [\"third-party//:kube\"])]}\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(comp_iter).contains("kube"),
+            "discarded comprehension iter must be detected"
+        );
+        // (d) opaque argument of a DIFFERENT call at statement position: the wrapping call's
+        // name must not exempt its opaque content from the raw scan.
+        let wrapped_arg = "helper([rust_library(name = \"x\", deps = [\"third-party//:kube\"])][0])\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(wrapped_arg).contains("kube"),
+            "opaque argument of a non-rust_library call must be detected"
         );
     }
 

@@ -119,14 +119,17 @@ Where the prior gates' detect lanes were comment-blind in the OVER-reporting dir
 mention in a comment counted), the kernel fixes that too; the live corpus carries no such shape
 (differential-probe proven), so reported findings are identical before/after.
 
-**Fail-closed posture for unmodeled content**: target enumeration walks EVERY call expression
-in the document (top-level statements, assignment-wrapped `X = rust_library(...)`,
-index-assignment values, calls nested in any expression) via `BuckDoc::visit_calls`, so a
-wrapper token can never take a target out of the detect lane's sight; a `rust_library` call
-containing an `Opaque` argument is additionally raw-scanned over its exact span; a statement
-the subset cannot model — including a modeled statement with TRAILING unmodeled tokens, which
-the parser demotes to `Stmt::Opaque` rather than silently truncating — is raw-scanned from any
-`rust_library(` occurrence in its span; and an unparseable BUCK file is raw-scanned in full.
+**Fail-closed posture for unmodeled content**: target enumeration walks EVERY parsed call
+expression in the document (top-level statements, assignment-wrapped `X = rust_library(...)`,
+index-assignment values, calls nested in any expression) via `BuckDoc::visit_calls`; every span
+the parser could NOT fully model is raw-scanned from any `rust_library(` occurrence — a
+`rust_library` call with an `Opaque` argument (its exact span), a `Stmt::Opaque` statement
+(including modeled statements with TRAILING unmodeled tokens, which the parser demotes to
+`Stmt::Opaque` rather than silently truncating), an `Assign`/`IndexAssign` whose value or key
+contains expression-level `Opaque` content (the postfix-index / unmodeled-primary-ternary /
+discarded-comprehension-iter wrappers the hostile re-review produced), and an unparseable BUCK
+file in full. A wrapper therefore lands in exactly one of two buckets: parsed (enumerated) or
+unmodeled (raw-scanned) — never silently outside both.
 For the born-blocking DETECTOR an over-approximation can only ADD findings, never hide one
 (the same posture the pre-kernel EOF fallback took). On the hermeticity side, a target call
 carrying a positional opaque tail (the ternary `srcs = [...] if c else [...]` shape) is demoted
