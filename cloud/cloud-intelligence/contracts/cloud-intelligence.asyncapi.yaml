@@ -341,6 +341,7 @@ components:
         schema_version: { type: string, const: '1' }
         schedule_ref: { type: string }
         state: { type: string, enum: [queued, running, passed, failed, blocked] }
+        next_run_window: { type: string, nullable: true }
         controller_owner: { type: string }
         policy_engine_port: { type: string, const: owned-policy-engine-port }
         evidence_visibility: { type: string, const: redacted-structured-evidence }

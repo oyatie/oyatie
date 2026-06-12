@@ -831,9 +831,13 @@ components:
     AdminTenantHeader:
       name: X-Oya-Admin-Tenant
       in: header
+      required: true
       schema:
         type: string
-      description: Optional admin tenant assertion. When supplied, it must match the tenant_id path segment.
+      description: |
+        Required admin tenant assertion (fail-closed, default-deny). It must match the
+        administered tenant — the tenant_id path segment on tenant-scoped routes, else the
+        gateway tenant. Requests without it are rejected 403.
     TenantIdPath:
       name: tenant_id
       in: path
@@ -1299,6 +1303,7 @@ components:
       required: [kind, workflow_ref, runtime_profile_ref, delegation_policy_ref, generation_adapters, routing_advisor_scope, policy_engine_port, evidence_visibility, requires_secondary_review_for_critical_blocks, raw_payload_included]
       properties:
         kind: { type: string, const: AgentWorkflowStatus }
+        tenant_id: { type: string }
         workflow_ref: { type: string }
         runtime_profile_ref: { type: string }
         delegation_policy_ref: { type: string }
