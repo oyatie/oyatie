@@ -1,5 +1,5 @@
 ---
-id: ADR-0377
+id: ADR-0557
 title: "Migrate Kafka to Pulsar via KoP wire-compat"
 status: Accepted
 date: 2026-05-28
@@ -11,7 +11,7 @@ superseded_by: []
 related: [ADR-0005, ADR-0195, ADR-0397, ADR-0436]
 ---
 
-# ADR-0377 — Migrate Kafka to Pulsar via KoP wire-compat
+# ADR-0557 — Migrate Kafka to Pulsar via KoP wire-compat
 
 ## Status
 

@@ -19,7 +19,8 @@
 //!   disagree (the frozen live exhibit: `catalog.json axes_count:6` vs
 //!   `contracts.json axes_count:7`).
 //! - `dual_decision_collision`— two distinct decision FILES share one decision id (the
-//!   two ADR-0377 files).
+//!   historical live exhibit: the two ADR-0377 files, resolved 2026-06-12 by renumbering
+//!   the newer one to ADR-0557 per FRIC-1781390000; frozen as tc-XA-bad-dup-adr-number).
 //! - `supersession_half_edge` — a supersession edge that is not reciprocal (A `supersedes`
 //!   B while B's `superseded_by` omits A, or the reverse): a half-built edge.
 //!
