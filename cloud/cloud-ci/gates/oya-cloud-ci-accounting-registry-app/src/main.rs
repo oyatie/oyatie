@@ -11,11 +11,20 @@
 //! Usage:
 //!   oya-cloud-ci-accounting-registry-app [--repo-root <path>] [--out-dir <path>] [--stdout]
 //!                                        [--scm-facts <path>]
+//!                                        [--fix-owners <dir>=<owner>]
+//!                                        [--fix-reachability <prefix>=<anchor>]
 //!
 //! With `--stdout` one generated face is written to stdout (used by the registry-drift gate
 //! to regenerate in a sandbox and byte-diff). Default writes all generated faces under
 //! `<out-dir>` (default `<repo-root>/cloud/cloud-ci/gates`). `--scm-facts` defaults to the
 //! committed `scm-facts.generated.json` beside the faces.
+//!
+//! `--fix-owners` / `--fix-reachability` are TRANSITIONAL local registration bridges
+//! (ADR-0555; cli_surface_policy: retirement-marked local bridges, NEVER merge authority —
+//! their successors are the GatePolicy/Baseline/Exception/GateRun reconcilers of ADR-0548
+//! D3). Each takes the human DESIGN DECISION as input (who owns / why reached), applies the
+//! exact registration edit, and SELF-VALIDATES by re-running the derivation before
+//! reporting — automation applies edits, it never invents decisions.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -112,6 +121,9 @@ fn run() -> Result<(), CliError> {
     // Which face to emit to stdout: default registry. The gate self-tests + registry-drift
     // regenerate a single face in a sandbox via `--stdout --face <name>`.
     let mut face = "registry".to_owned();
+    // The TRANSITIONAL registration bridges (ADR-0555; cli_surface_policy local bridge).
+    let mut fix_owners: Option<String> = None;
+    let mut fix_reachability: Option<String> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -133,6 +145,14 @@ fn run() -> Result<(), CliError> {
                 if let Some(value) = args.get(i) {
                     face = value.clone();
                 }
+            }
+            "--fix-owners" => {
+                i += 1;
+                fix_owners = args.get(i).cloned();
+            }
+            "--fix-reachability" => {
+                i += 1;
+                fix_reachability = args.get(i).cloned();
             }
             "--stdout" => to_stdout = true,
             "--next-adr" => next_adr_mode = true,
@@ -182,8 +202,19 @@ fn run() -> Result<(), CliError> {
     let cfg = load_config(&repo_root)?;
     let config_digest = cfg.digest();
 
+    // The TRANSITIONAL registration bridges run INSTEAD of face generation: apply the
+    // human-decided registration edit, self-validate the derivation, report, exit.
+    if let Some(spec) = fix_owners {
+        println!("{}", apply_fix_owners(&repo_root, &cfg, &scm_facts, &spec)?);
+        return Ok(());
+    }
+    if let Some(spec) = fix_reachability {
+        println!("{}", apply_fix_reachability(&repo_root, &cfg, &scm_facts, &spec)?);
+        return Ok(());
+    }
+
     let policy = Policy::from_config(&cfg)?;
-    let inputs = collect_repo_inputs(&repo_root, &cfg, &scm_facts);
+    let inputs = collect_repo_inputs(&repo_root, &cfg, &scm_facts)?;
     let registry = build_registry(&inputs, &policy)?;
     let crosswalk_inputs = collect_crosswalk_inputs(&repo_root, &cfg);
     if !crosswalk_inputs.duplicate_ids.is_empty() || !crosswalk_inputs.id_mismatches.is_empty() {
@@ -1083,6 +1114,132 @@ mod tests {
 
         fs::remove_dir_all(root).expect("remove temp repo");
     }
+
+    fn scm_facts_with(tracked: &[&str]) -> ScmFacts {
+        // ADR-0552: the committed scm-facts face is now pure-tree (only tracked_paths;
+        // the history-volatile fields moved to the untracked volatile snapshot).
+        ScmFacts {
+            tracked_paths: tracked.iter().map(|p| (*p).to_owned()).collect(),
+        }
+    }
+
+    #[test]
+    fn reachability_registry_matches_prefixes_exactly_and_fails_loud() {
+        let root = unique_temp_repo();
+        let reg = root.join("specs/reachability-registry.json");
+        fs::create_dir_all(reg.parent().expect("parent")).expect("create specs");
+        fs::write(
+            &reg,
+            r#"{"registered":[{"prefix":"docs/decisions/","anchor":"decision corpus"},{"prefix":"specs/OWNERS","anchor":"ownership seed"}]}"#,
+        )
+        .expect("write registry");
+        let entries = load_reachability_registry(&reg).expect("valid registry parses");
+        assert_eq!(entries.len(), 2);
+        // dir prefixes cover the subtree; the trailing '/' prevents sibling-dir bleed.
+        assert!(registration_matches(
+            "docs/decisions/ADR-0001-x.md",
+            "docs/decisions/"
+        ));
+        assert!(!registration_matches(
+            "docs/decisions-evil/x.md",
+            "docs/decisions/"
+        ));
+        // non-'/' entries are EXACT path matches.
+        assert!(registration_matches("specs/OWNERS", "specs/OWNERS"));
+        assert!(!registration_matches("specs/OWNERS-extra", "specs/OWNERS"));
+
+        // fail-loud: an empty anchor is a rejected registration (never a bare exemption).
+        fs::write(&reg, r#"{"registered":[{"prefix":"docs/","anchor":""}]}"#).expect("write");
+        assert!(load_reachability_registry(&reg).is_err());
+        // fail-loud: a registry without the declared 'registered' array is rejected.
+        fs::write(&reg, "{}").expect("write");
+        assert!(load_reachability_registry(&reg).is_err());
+        // a MISSING file is the declared zero-config default (empty registry).
+        fs::remove_file(&reg).expect("remove");
+        assert!(
+            load_reachability_registry(&reg)
+                .expect("missing file is empty")
+                .is_empty()
+        );
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn resolve_reachability_reports_registry_source() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("specs")).expect("create specs");
+        fs::write(
+            root.join("specs/reachability-registry.json"),
+            r#"{"registered":[{"prefix":"evidence/","anchor":"gate evidence corpus"}]}"#,
+        )
+        .expect("write registry");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let paths = vec![
+            "evidence/run.json".to_owned(),
+            "oya/unregistered.rs".to_owned(),
+        ];
+        let map = resolve_reachability(&root, &paths, &cfg).expect("resolve");
+        assert_eq!(
+            map.get("evidence/run.json"),
+            Some(&vec!["reachability-registry".to_owned()])
+        );
+        assert!(!map.contains_key("oya/unregistered.rs"));
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn fix_owners_applies_the_decided_edit_and_self_validates() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let scm = scm_facts_with(&["docs/decisions/ADR-0001-x.md"]);
+        let message =
+            apply_fix_owners(&root, &cfg, &scm, "docs/decisions=council-architecture")
+                .expect("fix applies");
+        assert!(message.contains("1 tracked path(s)"), "{message}");
+        assert_eq!(
+            fs::read_to_string(root.join("docs/decisions/OWNERS")).expect("read"),
+            "council-architecture\n"
+        );
+        // re-application refuses: an existing registration is extended by hand (reviewed).
+        assert!(
+            apply_fix_owners(&root, &cfg, &scm, "docs/decisions=council-architecture").is_err()
+        );
+        // the owner is a required DESIGN DECISION — a bare dir is refused.
+        assert!(apply_fix_owners(&root, &cfg, &scm, "docs/decisions=").is_err());
+        // path traversal / absolute dirs are refused (the bridge cannot escape the repo).
+        assert!(apply_fix_owners(&root, &cfg, &scm, "/etc=evil").is_err());
+        assert!(apply_fix_owners(&root, &cfg, &scm, "../outside=evil").is_err());
+        // a self-validation failure (no tracked path under the dir) leaves no OWNERS residue.
+        fs::create_dir_all(root.join("empty-dir")).expect("create empty dir");
+        assert!(apply_fix_owners(&root, &cfg, &scm, "empty-dir=team").is_err());
+        assert!(
+            !root.join("empty-dir/OWNERS").exists(),
+            "failed self-validation must remove the written OWNERS file"
+        );
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn fix_reachability_appends_registers_and_round_trips() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("specs")).expect("create specs");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let scm = scm_facts_with(&["specs/fixtures/x/tc-1.json"]);
+        let message = apply_fix_reachability(
+            &root,
+            &cfg,
+            &scm,
+            "specs/fixtures/=gates' data-under-test, dir-loaded by gate tests",
+        )
+        .expect("fix applies");
+        assert!(message.contains("1 tracked path(s)"), "{message}");
+        // duplicate registration refused.
+        assert!(apply_fix_reachability(&root, &cfg, &scm, "specs/fixtures/=again").is_err());
+        // the anchor is a required DESIGN DECISION — a bare prefix is refused.
+        assert!(apply_fix_reachability(&root, &cfg, &scm, "third-party/=").is_err());
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
 }
 
 /// Extract `name = "..."` from the `[package]` table of a Cargo.toml. Lightweight line-scan
@@ -1509,23 +1666,26 @@ fn front_matter_lines(body: &str) -> Vec<&str> {
 /// Collect the real repo facts. The tracked-paths universe comes from the declared stable
 /// scm-facts face (no ambient git, no history-derived data — ADR-0552); the
 /// owner/justification/reachability maps are derived from the declared repo sources.
+/// Fallible because the reachability registry is fail-loud (ADR-0555): a malformed
+/// registration file must never silently degrade to "everything unreachable" nor "nothing
+/// registered".
 fn collect_repo_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
     scm_facts: &ScmFacts,
-) -> RepoInputs {
+) -> Result<RepoInputs, CliError> {
     let tracked_paths = scm_facts.tracked_paths.clone();
     let owners = resolve_owners(repo_root, &tracked_paths, cfg);
-    let reachability = resolve_reachability(repo_root, &tracked_paths, cfg);
+    let reachability = resolve_reachability(repo_root, &tracked_paths, cfg)?;
     let justifications = resolve_justifications(repo_root, &tracked_paths, cfg);
 
-    RepoInputs {
+    Ok(RepoInputs {
         tracked_paths,
         owners,
         justifications,
         reachability,
         dup_of: BTreeMap::new(),
-    }
+    })
 }
 
 /// Resolve the nearest up-tree `OWNERS` file for each path. With zero OWNERS files
@@ -1575,16 +1735,19 @@ fn nearest_ancestor(path: &str, dirs: &BTreeSet<String>) -> Option<String> {
 
 /// Reachability: a path is reachable if a live registry points at it. We resolve the
 /// real registries (masterplan.json / root-hub-pointers.json / Cargo.toml members /
-/// DOC-CATALOG) and mark each tracked path with the registries that mention it.
+/// DOC-CATALOG / the reviewed reachability registry) and mark each tracked path with the
+/// registries that mention it.
 fn resolve_reachability(
     repo_root: &Path,
     paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
-) -> BTreeMap<String, Vec<String>> {
+) -> Result<BTreeMap<String, Vec<String>>, CliError> {
     let masterplan = read_text(&repo_root.join(&cfg.reachability.masterplan));
     let root_hub = read_text(&repo_root.join(&cfg.reachability.root_hub));
     let doc_catalog = read_text(&repo_root.join(&cfg.reachability.doc_catalog));
     let cargo_members = read_cargo_member_prefixes(repo_root);
+    let registrations =
+        load_reachability_registry(&repo_root.join(&cfg.reachability.registry))?;
 
     let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for path in paths {
@@ -1601,11 +1764,243 @@ fn resolve_reachability(
         if cargo_members.iter().any(|m| path.starts_with(m.as_str())) {
             reach.push("cargo-members".into());
         }
+        if registrations
+            .iter()
+            .any(|entry| registration_matches(path, &entry.prefix))
+        {
+            reach.push("reachability-registry".into());
+        }
         if !reach.is_empty() {
             map.insert(path.clone(), reach);
         }
     }
-    map
+    Ok(map)
+}
+
+/// One reviewed reachability registration (ADR-0555): a dir prefix (MUST end with `/`) or
+/// an exact path, plus the non-empty `anchor` naming WHY the tree is reached. Registration
+/// is a review-visible design act recorded as DATA — the ADR-0551 trust class (same as
+/// ratchet-policy.json / gate-baseline.signoff.json) — never a silent exemption.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ReachabilityRegistration {
+    prefix: String,
+    anchor: String,
+}
+
+/// Load + validate `specs/reachability-registry.json`. Fail-loud: a malformed file or an
+/// invalid entry (empty prefix, empty anchor) is a hard error naming the defect — never a
+/// silent empty registry. A MISSING file is the declared zero-config default (empty).
+fn load_reachability_registry(path: &Path) -> Result<Vec<ReachabilityRegistration>, CliError> {
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(CliError::Io(format!("{}: {e}", path.display()))),
+    };
+    let value: Value = serde_json::from_str(&text)
+        .map_err(|e| CliError::Io(format!("{}: parse: {e}", path.display())))?;
+    let entries = value
+        .get("registered")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            CliError::Io(format!(
+                "{}: missing 'registered' array (fail-loud: the reachability registry must \
+                 declare its entries explicitly)",
+                path.display()
+            ))
+        })?;
+    let mut out: Vec<ReachabilityRegistration> = Vec::with_capacity(entries.len());
+    for (index, entry) in entries.iter().enumerate() {
+        let prefix = entry
+            .get("prefix")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned();
+        let anchor = entry
+            .get("anchor")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned();
+        if prefix.is_empty() || anchor.trim().is_empty() {
+            return Err(CliError::Io(format!(
+                "{}: registered[{index}] must carry a non-empty prefix AND a non-empty \
+                 anchor naming WHY the tree is reached (registration is a reviewed design \
+                 act, never a bare exemption)",
+                path.display()
+            )));
+        }
+        out.push(ReachabilityRegistration { prefix, anchor });
+    }
+    Ok(out)
+}
+
+/// Whether a tracked path is covered by a registration entry: dir prefixes (ending `/`)
+/// cover the subtree; any other entry is an EXACT path match. The trailing-`/` requirement
+/// prevents `docs/dec` from silently covering `docs/decisions-evil/...`.
+fn registration_matches(path: &str, prefix: &str) -> bool {
+    if prefix.ends_with('/') {
+        path.starts_with(prefix)
+    } else {
+        path == prefix
+    }
+}
+
+/// `--fix-owners <dir>=<owner>` — the TRANSITIONAL ownership-registration bridge
+/// (ADR-0555; cli_surface_policy: local bridge only, never merge authority; successor =
+/// the ADR-0548 D3 reconcilers). The OWNER is the human design decision supplied as input;
+/// the bridge applies the exact edit (write `<dir>/OWNERS`) and SELF-VALIDATES by
+/// re-running the ownership derivation over the tracked universe plus the new file.
+fn apply_fix_owners(
+    repo_root: &Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    scm_facts: &ScmFacts,
+    spec: &str,
+) -> Result<String, CliError> {
+    let (dir, owner) = spec.split_once('=').ok_or_else(|| {
+        CliError::Io(format!(
+            "--fix-owners expects <dir>=<owner> (the owner is YOUR design decision — \
+             this bridge applies it, it never invents one), got {spec:?}"
+        ))
+    })?;
+    let dir = dir.trim_end_matches('/');
+    let owner = owner.trim();
+    if dir.is_empty() || owner.is_empty() {
+        return Err(CliError::Io(
+            "--fix-owners: both <dir> and <owner> must be non-empty".to_owned(),
+        ));
+    }
+    // <dir> must be a repo-relative path; reject absolute paths and `..` traversal so the
+    // local bridge cannot write an OWNERS file outside the repo (defence-in-depth — this is
+    // a local feedback bridge, never merge authority).
+    if dir.starts_with('/') || dir.split('/').any(|seg| seg == "..") {
+        return Err(CliError::Io(format!(
+            "--fix-owners: <dir> must be a repo-relative path (no leading '/' or '..'): {dir:?}"
+        )));
+    }
+    if !repo_root.join(dir).is_dir() {
+        return Err(CliError::Io(format!(
+            "--fix-owners: {dir} is not a directory under the repo root"
+        )));
+    }
+    let owners_file = cfg.owners.file_name.as_str();
+    let owners_rel = format!("{dir}/{owners_file}");
+    let owners_abs = repo_root.join(&owners_rel);
+    if owners_abs.exists() {
+        return Err(CliError::Io(format!(
+            "--fix-owners: {owners_rel} already exists — extend it by hand (a reviewed \
+             edit), this bridge only seeds missing registrations"
+        )));
+    }
+    std::fs::write(&owners_abs, format!("{owner}\n"))
+        .map_err(|e| CliError::Io(format!("{owners_rel}: {e}")))?;
+
+    // SELF-VALIDATION: re-run the derivation over tracked ∪ {the new OWNERS file} and
+    // count the tracked paths that now ownership-resolve to this registration.
+    let mut universe = scm_facts.tracked_paths.clone();
+    if !universe.contains(&owners_rel) {
+        universe.push(owners_rel.clone());
+    }
+    let owners = resolve_owners(repo_root, &universe, cfg);
+    // Count only the PRE-EXISTING tracked paths the registration now covers (the new
+    // OWNERS file covering itself is not evidence of coverage).
+    let covered = owners
+        .iter()
+        .filter(|(path, resolved)| {
+            *path != &owners_rel
+                && path.starts_with(&format!("{dir}/"))
+                && *resolved == &format!("OWNERS:{dir}")
+        })
+        .count();
+    if covered == 0 {
+        // Self-validating-bridge contract: a registration that does not take leaves NO
+        // residue. Remove the file we just wrote before failing (best-effort; the error
+        // names the defect regardless).
+        let _ = std::fs::remove_file(&owners_abs);
+        return Err(CliError::Io(format!(
+            "--fix-owners: self-validation FAILED — no tracked path under {dir}/ resolves \
+             to OWNERS:{dir} after the edit (the registration did not take; reverted the \
+             written {owners_rel})"
+        )));
+    }
+    Ok(format!(
+        "fix-owners: wrote {owners_rel} (owner: {owner}); self-validation: {covered} tracked \
+         path(s) under {dir}/ now ownership-resolve to OWNERS:{dir}. Next: git add \
+         {owners_rel}, then re-run infra/ci/materialize-cloud-ci-generated-faces.sh . and \
+         settle the regenerated faces (the settle protocol)."
+    ))
+}
+
+/// `--fix-reachability <prefix>=<anchor>` — the TRANSITIONAL reachability-registration
+/// bridge (ADR-0555; cli_surface_policy: local bridge only, never merge authority;
+/// successor = the ADR-0548 D3 reconcilers). The ANCHOR (why this tree is reached) is the
+/// human design decision supplied as input; the bridge appends the reviewed registry entry
+/// and SELF-VALIDATES by re-loading the registry fail-loud and re-running the match.
+fn apply_fix_reachability(
+    repo_root: &Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    scm_facts: &ScmFacts,
+    spec: &str,
+) -> Result<String, CliError> {
+    let (prefix, anchor) = spec.split_once('=').ok_or_else(|| {
+        CliError::Io(format!(
+            "--fix-reachability expects <prefix>=<anchor> (the anchor names WHY the tree \
+             is reached — YOUR design decision; this bridge applies it), got {spec:?}"
+        ))
+    })?;
+    let prefix = prefix.trim();
+    let anchor = anchor.trim();
+    if prefix.is_empty() || anchor.is_empty() {
+        return Err(CliError::Io(
+            "--fix-reachability: both <prefix> and <anchor> must be non-empty".to_owned(),
+        ));
+    }
+    let registry_rel = cfg.reachability.registry.as_str();
+    let registry_abs = repo_root.join(registry_rel);
+    let mut entries = load_reachability_registry(&registry_abs)?;
+    if entries.iter().any(|entry| entry.prefix == prefix) {
+        return Err(CliError::Io(format!(
+            "--fix-reachability: {prefix} is already registered in {registry_rel}"
+        )));
+    }
+    entries.push(ReachabilityRegistration {
+        prefix: prefix.to_owned(),
+        anchor: anchor.to_owned(),
+    });
+    entries.sort_by(|a, b| a.prefix.cmp(&b.prefix));
+
+    let registered: Vec<Value> = entries
+        .iter()
+        .map(|entry| json!({ "prefix": entry.prefix, "anchor": entry.anchor }))
+        .collect();
+    let body = json!({
+        "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act — the ADR-0551 trust class (same as ratchet-policy.json) — never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
+        "registered": registered,
+    });
+    let text = to_canonical_json(&body)?;
+    std::fs::write(&registry_abs, text)
+        .map_err(|e| CliError::Io(format!("{registry_rel}: {e}")))?;
+
+    // SELF-VALIDATION: the written registry must round-trip the fail-loud loader, and the
+    // new prefix is reported with its tracked coverage (0 is legal for a not-yet-committed
+    // artifact — the registration covers it the moment it is tracked).
+    let reloaded = load_reachability_registry(&registry_abs)?;
+    if !reloaded.iter().any(|entry| entry.prefix == prefix) {
+        return Err(CliError::Io(format!(
+            "--fix-reachability: self-validation FAILED — {prefix} did not round-trip \
+             {registry_rel} (do not commit)"
+        )));
+    }
+    let covered = scm_facts
+        .tracked_paths
+        .iter()
+        .filter(|path| registration_matches(path, prefix))
+        .count();
+    Ok(format!(
+        "fix-reachability: registered {prefix} in {registry_rel} (anchor: {anchor}); \
+         self-validation: round-trip OK, {covered} tracked path(s) currently covered. \
+         Next: git add {registry_rel}, then re-run \
+         infra/ci/materialize-cloud-ci-generated-faces.sh . and settle the regenerated \
+         faces (the settle protocol)."
+    ))
 }
 
 /// Member directory prefixes from the workspace Cargo.toml — a path under a member

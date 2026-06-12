@@ -319,28 +319,49 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         .filter(|r| r.fails())
         .map(|r| r.code.as_str())
         .collect();
-    let regression_detail: Vec<(&str, &str, Vec<&str>)> = report
+    // ADR-0555: a FAIL is never a bare flag — print, per failing code, the offending keys
+    // AND the exact registration edit (or the precise design decision needed) from the
+    // disposition DATA.
+    let regression_detail: Vec<String> = report
         .codes
         .iter()
         .filter(|r| r.fails())
         .map(|r| {
-            (
-                r.gate.as_str(),
-                r.code.as_str(),
-                r.regressions.iter().map(String::as_str).collect(),
+            format!(
+                "[{}] {} regressions {:?}\n  REGISTRATION REQUIRED: {}",
+                r.gate,
+                r.code,
+                r.regressions,
+                r.remediation
+                    .as_deref()
+                    .unwrap_or("(no remediation stamped — fix the disposition DATA)")
             )
         })
         .collect();
     assert!(
         failing.is_empty(),
         "GO-LIVE: firewall must be GREEN on today's corpus (no NEW debt vs the merge-base), \
-         but these codes FAIL: {failing:?}; regressions: {regression_detail:?}"
+         but these codes FAIL: {failing:?};\n{}",
+        regression_detail.join("\n")
     );
+    let growth_detail: Vec<String> = report
+        .ratchet_growth
+        .iter()
+        .map(|(gate, code, key)| {
+            let remediation = proposed
+                .gates
+                .get(gate)
+                .and_then(|codes| codes.get(code))
+                .and_then(|cb| cb.remediation.as_deref())
+                .unwrap_or("(no remediation stamped — fix the disposition DATA)");
+            format!("[{gate}] {code} grew {key}\n  REGISTRATION REQUIRED: {remediation}")
+        })
+        .collect();
     assert!(
         report.ratchet_growth.is_empty(),
         "GO-LIVE: blocking baseline keys must shrink (or pass the sign-off door) relative \
-         to the merge-base, got growth {:?}",
-        report.ratchet_growth
+         to the merge-base, got growth:\n{}",
+        growth_detail.join("\n")
     );
     assert!(
         report.inert_signoff.is_empty(),
@@ -361,6 +382,144 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         total_baselined > 0,
         "the baseline must freeze the real pre-existing corpus debt"
     );
+}
+
+/// THE ADR-0555 CONVERSION PROOF (FRIC-1781330000), against the LIVE corpus + LIVE
+/// producer: the exists-but-unaccounted codes (unowned, unreachable, no_ttl_class,
+/// untyped_staleness) are stamped baseline-block-on-new by the disposition DATA, and in
+/// the ARMED configuration — the frozen reference a PR sees at the first merge-base
+/// advance after the flip merges (frozen := today's regenerated face) — a NEW unowned
+/// file and a NEW unreachable file EACH make the firewall fail, while the grandfathered
+/// pre-existing key sets stay tolerated. In-flight window stated honestly: at THIS PR's
+/// own merge-base the frozen modes are still advisory (frozen-mode-wins, ADR-0551 §6),
+/// so the flip cannot brick the PR that carries it; it arms one merge later.
+#[test]
+fn converted_accounting_codes_block_new_keys_when_armed() {
+    let root = repo_root();
+    let proposed_value = regenerate_baseline(&root);
+
+    // (1) The disposition flip is LIVE in the producer DATA (not just in fixtures).
+    let ta = &proposed_value["gates"]["cloud-ci-total-accounting"];
+    for code in ["unowned", "unreachable", "no_ttl_class"] {
+        assert_eq!(
+            ta[code]["mode"], "baseline-block-on-new",
+            "ADR-0555: {code} must be stamped blocking by the live disposition table"
+        );
+    }
+    let sr = &proposed_value["gates"]["cloud-ci-staleness-reaper"];
+    assert_eq!(
+        sr["untyped_staleness"]["mode"], "baseline-block-on-new",
+        "ADR-0555: untyped_staleness must be stamped blocking"
+    );
+    assert_eq!(
+        sr["stale_over_budget_unreachable"]["mode"], "advisory-until-infra",
+        "ADR-0555: time-driven decay stays advisory BY DESIGN (reaper reconciler surface)"
+    );
+    // A FAIL is never a bare flag: the converted codes carry the registration remediation.
+    for code in ["unowned", "unreachable"] {
+        assert!(
+            ta[code]["remediation"].as_str().is_some_and(|t| !t.is_empty()),
+            "ADR-0555: {code} must stamp its registration remediation as DATA"
+        );
+    }
+
+    // (2) ARMED configuration: frozen := today's face (what the merge-base holds one
+    // merge after the flip lands). The grandfathered debt is the frozen key set. This test
+    // isolates the ADR-0555 accounting-code conversion, so it uses an EMPTY sign-off door:
+    // the live committed door (gate-baseline.signoff.json) carries founder-admitted go-live
+    // keys that are not present in this synthetic frozen/proposed pair, which #701's
+    // inert-door detector (FRIC-1781280001) would correctly flag — that is the inert-door
+    // gate's concern, exercised by its own pins, not the conversion's. An empty door keeps
+    // is_green() a faithful read of the conversion predicates alone.
+    let proposed = Baseline::from_value(&proposed_value);
+    let frozen = proposed.clone();
+    let signoff = SignOff::default();
+
+    // Clean tree: everything tolerated, GREEN (the grandfather works).
+    let clean = baseline_keys_map(&proposed);
+    let report = evaluate_firewall(&frozen, &proposed, &clean, &signoff);
+    assert!(
+        report.is_green(),
+        "armed frozen reference must tolerate the grandfathered debt"
+    );
+
+    // A NEW unowned file is UNMERGEABLE.
+    let mut with_unowned = clean.clone();
+    with_unowned
+        .entry("cloud-ci-total-accounting".to_owned())
+        .or_default()
+        .entry("unowned".to_owned())
+        .or_default()
+        .insert("SYNTHETIC/new-service/born-unowned.rs".to_owned());
+    let report = evaluate_firewall(&frozen, &proposed, &with_unowned, &signoff);
+    let unowned = report
+        .codes
+        .iter()
+        .find(|r| r.gate == "cloud-ci-total-accounting" && r.code == "unowned")
+        .expect("unowned code present");
+    assert!(
+        unowned.regressions.contains("SYNTHETIC/new-service/born-unowned.rs")
+            && unowned.fails(),
+        "a NEW unowned file must FAIL the armed firewall"
+    );
+    assert!(
+        unowned.remediation.as_deref().is_some_and(|t| t.contains("OWNERS")),
+        "the unowned FAIL must carry the exact registration edit, never a bare flag"
+    );
+    assert!(!report.is_green());
+
+    // A NEW unreachable file is UNMERGEABLE.
+    let mut with_unreachable = clean.clone();
+    with_unreachable
+        .entry("cloud-ci-total-accounting".to_owned())
+        .or_default()
+        .entry("unreachable".to_owned())
+        .or_default()
+        .insert("SYNTHETIC/docs/born-unreachable.md".to_owned());
+    let report = evaluate_firewall(&frozen, &proposed, &with_unreachable, &signoff);
+    let unreachable = report
+        .codes
+        .iter()
+        .find(|r| r.gate == "cloud-ci-total-accounting" && r.code == "unreachable")
+        .expect("unreachable code present");
+    assert!(
+        unreachable.regressions.contains("SYNTHETIC/docs/born-unreachable.md")
+            && unreachable.fails(),
+        "a NEW unreachable file must FAIL the armed firewall"
+    );
+    assert!(
+        unreachable
+            .remediation
+            .as_deref()
+            .is_some_and(|t| t.contains("reachability-registry")),
+        "the unreachable FAIL must carry the exact registration edit, never a bare flag"
+    );
+    assert!(!report.is_green());
+
+    // (3) Laundering via regen is still closed in the armed configuration: the same-PR
+    // settle regen carries the new key into proposed too — that is ratchet growth.
+    let mut laundered_value = regenerate_baseline(&root);
+    if let Some(keys) = laundered_value
+        .get_mut("gates")
+        .and_then(|g| g.get_mut("cloud-ci-total-accounting"))
+        .and_then(|g| g.get_mut("unowned"))
+        .and_then(|c| c.get_mut("keys"))
+        .and_then(Value::as_array_mut)
+    {
+        keys.push(Value::String(
+            "SYNTHETIC/new-service/born-unowned.rs".to_owned(),
+        ));
+    }
+    let laundered = Baseline::from_value(&laundered_value);
+    let report =
+        evaluate_firewall(&frozen, &laundered, &baseline_keys_map(&laundered), &signoff);
+    assert!(
+        report.ratchet_growth.iter().any(|(_, code, key)| {
+            code == "unowned" && key == "SYNTHETIC/new-service/born-unowned.rs"
+        }),
+        "the armed conversion must catch same-PR regen laundering as ratchet growth"
+    );
+    assert!(!report.is_green());
 }
 
 /// The frozen snapshot's provenance must agree with the committed ratchet policy: same
@@ -430,7 +589,6 @@ fn ratchet_policy_base_ref_is_pinned_to_origin_dev() {
 fn firewall_blocks_same_pr_baseline_regen_laundering() {
     let root = repo_root();
     let frozen = load_frozen_baseline(&root);
-    let signoff = SignOff::from_value(&load_json(&signoff_path(&root)));
 
     // The laundering PR: new debt appears in the regenerated (and therefore committed)
     // baseline face and in the live current set simultaneously.
@@ -449,7 +607,17 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
     let current = baseline_keys_map(&proposed);
 
     // FOIL — the historical hole: the PR-local reference cannot see its own laundering.
-    let laundered = evaluate_firewall(&pr_local_reference, &proposed, &current, &signoff);
+    // This leg isolates the COMPARE-MODE + RATCHET laundering predicates, so it uses an
+    // EMPTY sign-off door: the live committed door (gate-baseline.signoff.json) exempts
+    // go-live keys against the FROZEN merge-base reference, but here the reference is the
+    // synthetic PR-LOCAL `proposed` (== regenerated). After the ADR-0555 registration
+    // retires some unowned/unreachable debt, those door keys are absent from `proposed`,
+    // which #701's inert-door detector (FRIC-1781280001) would correctly flag against this
+    // synthetic reference — that is the inert-door gate's concern (the LIVE door is verified
+    // clean against the merge-base by the signoff fixer), not this laundering foil's. An
+    // empty door keeps the foil a faithful read of the laundering predicates alone.
+    let empty_door = SignOff::default();
+    let laundered = evaluate_firewall(&pr_local_reference, &proposed, &current, &empty_door);
     assert!(
         laundered.is_green(),
         "FOIL: against the PR-local reference the laundering must be invisible — if this \
@@ -457,7 +625,7 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
     );
 
     // THE GATE: the frozen merge-base reference blocks it, on BOTH predicates.
-    let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &signoff);
+    let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &empty_door);
     assert!(
         report.ratchet_growth.iter().any(|(_, code, key)| {
             code == "unjustified" && key == "SYNTHETIC/laundered-in-same-pr.rs"
