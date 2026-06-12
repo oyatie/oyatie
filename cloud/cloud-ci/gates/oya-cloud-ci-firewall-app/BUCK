@@ -20,6 +20,36 @@ rust_test(
     ],
 )
 
+# Automation-default surface (founder directive 2026-06-12: red-gating alone is not enough):
+# --fix derives + applies the mechanical retirement of INERT sign-off door entries (key
+# absent from the merge-base frozen face AND from current AND from proposed —
+# FRIC-1781280001), with reparse-and-refuse self-validation; without --fix it reports and
+# exits non-zero. The blocking firewall gate below is the enforcement backstop whose
+# failure detail prints exactly this command.
+rust_binary(
+    name = "oya-cloud-ci-firewall-signoff-fixer",
+    srcs = ["src/main.rs"],
+    crate = "oya_cloud_ci_firewall_signoff_fixer",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-firewall-app",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-firewall-signoff-fixer-unittest",
+    srcs = ["src/main.rs"],
+    crate = "oya_cloud_ci_firewall_signoff_fixer",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-firewall-app",
+        "third-party//:serde_json",
+    ],
+)
+
 # cloud-ci-firewall :oya-cloud-ci-firewall-app-gate — the single required GO-LIVE status check.
 # Regenerates the gate-baseline over the live tree, byte-diffs nothing (registry-drift owns
 # that), and runs the compare-mode + ratchet-invariant predicates: GREEN on today's frozen

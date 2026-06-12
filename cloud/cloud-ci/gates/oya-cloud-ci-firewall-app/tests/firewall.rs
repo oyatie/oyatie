@@ -18,6 +18,7 @@ use std::process::Command;
 
 use oya_cloud_ci_firewall_app::{
     Baseline, FrozenBaseline, SignOff, baseline_keys_map, evaluate_firewall,
+    FROZEN_SNAPSHOT_PATH, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND, SIGNOFF_PATH,
 };
 use serde_json::Value;
 
@@ -38,18 +39,18 @@ fn faces_dir(root: &Path) -> PathBuf {
     root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
 }
 
+// The firewall-side file paths are lib constants (single owner) shared with the signoff
+// fixer — gate and fixer can never disagree about which files they police.
 fn signoff_path(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json")
+    root.join(SIGNOFF_PATH)
 }
 
 fn frozen_snapshot_path(root: &Path) -> PathBuf {
-    root.join(
-        "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json",
-    )
+    root.join(FROZEN_SNAPSHOT_PATH)
 }
 
 fn ratchet_policy_path(root: &Path) -> PathBuf {
-    root.join("cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json")
+    root.join(RATCHET_POLICY_PATH)
 }
 
 /// Load the FROZEN merge-base reference. FAIL-CLOSED: a missing or invalid snapshot is a
@@ -345,8 +346,8 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
         report.inert_signoff.is_empty(),
         "GO-LIVE: every sign-off door entry must exempt something that exists (frozen, \
          current, or proposed) — an inert entry is a standing re-introduction ticket. \
-         Remediation: retire the entry (move it to _sign_off_retirements in \
-         gate-baseline.signoff.json). Inert: {:?}",
+         Remediation (auto-derives + applies the retirement): {SIGNOFF_FIXER_COMMAND} \
+         Inert: {:?}",
         report.inert_signoff
     );
     assert!(

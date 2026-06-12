@@ -95,6 +95,26 @@ pub const FROZEN_POLICY_SOURCE_CANDIDATE_BOOTSTRAP: &str = "candidate-bootstrap"
 /// The compare-mode that blocks NEW debt; the only mode whose baseline is growth-protected.
 pub const MODE_BASELINE_BLOCK_ON_NEW: &str = "baseline-block-on-new";
 
+/// Repo-relative path of the sign-off door file — the SINGLE owner of this path: the gate
+/// test and the signoff fixer both consume it from here.
+pub const SIGNOFF_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json";
+
+/// Repo-relative path of the committed ratchet policy (candidate copy; the FROZEN copy at
+/// the merge-base is what selects the frozen reference — FRIC-1781280000).
+pub const RATCHET_POLICY_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json";
+
+/// Repo-relative path of the untracked merge-base frozen-baseline snapshot.
+pub const FROZEN_SNAPSHOT_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.merge-base.generated.json";
+
+/// The exact remediation command the gate prints when the inert-door detector fires
+/// (automation-default, founder directive 2026-06-12: red-gating alone is not enough — a
+/// mechanically-derivable retirement ships as a fixer, the gate is the backstop).
+pub const SIGNOFF_FIXER_COMMAND: &str = "buck2 run \
+//cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer -- --fix";
+
 /// A baseline: `gate -> code -> (mode, frozen_empty, keys)`. Parsed from the merge-base
 /// frozen snapshot (the reference) or from a freshly-regenerated face (proposed).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]

@@ -153,10 +153,15 @@ trust gaps from the PR #698 independent review):
   present in current/proposed) stays tolerated; a key present in the frozen face is a
   harmless no-op that is forced retired the moment the debt is fixed. Fixtures both ways:
   `specs/fixtures/cloud-ci-firewall/tc-FW-bad-inert-signoff-entry.json` (RED) and the
-  extended `tc-FW-good-signed-off-key-in-current.json` (LIVE entry tolerated). First live
-  catch: the lingering go-live `unjustified` admission for
-  `.github/workflows/oya-ci-required.yml` was inert (the workflow became ADR-justified) and
-  is retired in the same change.
+  extended `tc-FW-good-signed-off-key-in-current.json` (LIVE entry tolerated). Per the
+  founder automation-default directive (2026-06-12: red-gating alone is not enough), the
+  PROVABLY-dead retirement is automated: `oya-cloud-ci-firewall-signoff-fixer --fix`
+  derives and applies it through the one existing door parser/detector, with
+  reparse-and-refuse self-validation and a grouped audit record appended to
+  `_sign_off_retirements`; the gate failure prints exactly that command
+  (`SIGNOFF_FIXER_COMMAND`). First live catch: the lingering go-live `unjustified`
+  admission for `.github/workflows/oya-ci-required.yml` was inert (the workflow became
+  ADR-justified) and is retired by the fixer in the same change.
 
 ## Consequences
 

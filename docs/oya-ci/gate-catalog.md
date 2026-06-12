@@ -8,7 +8,12 @@ itself regenerates). FROZEN-POLICY-WINS (FRIC-1781280000): the policy facts that
 frozen reference (`base_ref`, `face_path`) are themselves read from the merge-base tree against
 an out-of-band bootstrap ref, so a same-PR `ratchet-policy.json` repoint cannot affect the PR's
 own frozen reference; and a sign-off door entry whose key exists nowhere (frozen face, current,
-proposed) is flagged inert and must be retired (FRIC-1781280001). A NEW code class with live
+proposed) is flagged inert and must be retired (FRIC-1781280001). Per the founder
+automation-default directive (2026-06-12), the inert retirement ships as an auto-remediator:
+`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer
+-- --fix` derives and applies the retirement (reparse-and-refuse self-validation; audit record
+appended to `_sign_off_retirements`), while the firewall gate's inert-door RED is the
+enforcement backstop whose failure detail prints that exact command. A NEW code class with live
 violations defaults to blocking in compare-mode (a code absent at the merge-base uses its
 proposed stamp), so advisory-first onboarding of a new code requires the sign-off door for the
 initial key set — the reviewed disposition flip later freezes it. Gates are config-declared in
