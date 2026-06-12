@@ -6206,25 +6206,6 @@
       "door": "two-way"
     },
     {
-      "key": "ADR-0377",
-      "doc_axis": "DECISIONS",
-      "kind": "adr",
-      "title": "Kafka-to-Pulsar eventing migration (superseded-in-direction by D-EVENT: Pulsar from day-0, no Kafka interim)",
-      "lifecycle": "accepted",
-      "owner": "council-architecture",
-      "date": "2026-05-26",
-      "body_ref": "obsidian://decisions/ADR-0377-kafka-to-pulsar.md",
-      "edges": {
-        "supersedes": [],
-        "depends_on": [],
-        "related": [
-          "D-EVENT",
-          "D4-DATA-TIER"
-        ]
-      },
-      "door": "two-way"
-    },
-    {
       "key": "ADR-0378",
       "doc_axis": "DECISIONS",
       "kind": "adr",
@@ -7303,6 +7284,25 @@
         ]
       },
       "door": "one-way"
+    },
+    {
+      "key": "ADR-0557",
+      "doc_axis": "DECISIONS",
+      "kind": "adr",
+      "title": "Kafka-to-Pulsar eventing migration (superseded-in-direction by D-EVENT: Pulsar from day-0, no Kafka interim)",
+      "lifecycle": "accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-26",
+      "body_ref": "obsidian://decisions/ADR-0557-kafka-to-pulsar.md",
+      "edges": {
+        "supersedes": [],
+        "depends_on": [],
+        "related": [
+          "D-EVENT",
+          "D4-DATA-TIER"
+        ]
+      },
+      "door": "two-way"
     }
   ]
 }
