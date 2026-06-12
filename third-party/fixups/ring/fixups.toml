@@ -6,3 +6,12 @@
 # CC/CXX/AR from the cxx toolchain (now absolute clang). OPT_LEVEL etc. are still
 # needed by cc-rs (the prelude does not set them). Cross-platform: no darwin triple.
 env = { OPT_LEVEL = "3", DEBUG = "false", PROFILE = "release" }
+# ring's build.rs archives the cc-built C/asm objects into libring_core_0_17_14_.a in
+# OUT_DIR and emits cargo:rustc-link-lib=static=ring_core_0_17_14_ +
+# cargo:rustc-link-search=native=OUT_DIR. The prelude's buildscript runner DROPS both
+# directive classes unless these opt-ins are set, so the rlib compiled without them is
+# missing every ring_core_0_17_14_* symbol at final binary link (FRIC-1781310100).
+# With them, the -l/-L flags ride the [rustc_flags] subtarget into the ring rlib compile,
+# where rustc bundles the static archive (default +bundle modifier for -l static).
+rustc_link_lib = true
+rustc_link_search = true
