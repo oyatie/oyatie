@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:cdd1cb3fe988258f",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:7a388cdb5bd70ee3"
+    "source_inputs_digest": "fnv1a64:79db9f80448b09e7"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -23097,6 +23097,7 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/lib.rs",
+          "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/main.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/BUCK",
@@ -39183,6 +39184,7 @@
           "specs/finops-dimensional-model.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-baseline-grew.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-frozen-empty-code-occurrence.json",
+          "specs/fixtures/cloud-ci-firewall/tc-FW-bad-inert-signoff-entry.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-mode-flip-does-not-disarm.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-new-violation-not-in-baseline.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-same-pr-regen-launders-new-debt.json",
@@ -53472,6 +53474,7 @@
           "specs/finops-dimensional-model.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-baseline-grew.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-frozen-empty-code-occurrence.json",
+          "specs/fixtures/cloud-ci-firewall/tc-FW-bad-inert-signoff-entry.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-mode-flip-does-not-disarm.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-new-violation-not-in-baseline.json",
           "specs/fixtures/cloud-ci-firewall/tc-FW-bad-same-pr-regen-launders-new-debt.json",
