@@ -105,9 +105,11 @@ fn staleness_reaper_fixtures_execute_red_green_cases() {
 
 /// Born-blocking self-test: GATE-3 must REPORT over-budget AND unreachable archive
 /// candidates on TODAY's real corpus. Per the firewall doctrine, "a firewall that doesn't
-/// block today is the facade we're killing." This ages the live registry (via git commit
-/// timestamps) against the ttl-policy budgets and asserts the gate flags real candidates as
-/// `stale_over_budget_unreachable` — REPORTED, never reaped in-gate.
+/// block today is the facade we're killing." This ages the live registry rows from the
+/// UNTRACKED scm-volatile-facts snapshot (ADR-0552: history-derived aging data is
+/// materialized at evaluation time, never committed) against the ttl-policy budgets and
+/// asserts the gate flags real candidates as `stale_over_budget_unreachable` — REPORTED,
+/// never reaped in-gate.
 ///
 /// Counts are MEASURED, not hardcoded.
 #[test]
@@ -121,14 +123,20 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
         rows.len()
     );
 
-    let now_secs = scm_now_secs(&root);
-    let commit_ts = scm_commit_author_timestamps(&root);
+    let volatile = volatile_facts_value(&root);
+    let now_secs = volatile["head_time_secs"].as_u64().unwrap_or(0);
+    let commit_ts = volatile_commit_author_timestamps(&volatile);
+    let last_touch = volatile["last_touch_commit"]
+        .as_object()
+        .expect("volatile last_touch_commit");
 
-    // Build the gate input by aging each row from its last-touch commit timestamp.
+    // Build the gate input by aging each row from its last-touch commit timestamp (the
+    // path -> sha join lives in the volatile snapshot; registry rows are history-free).
     let mut aged_rows: Vec<Value> = Vec::new();
     let mut candidate_count = 0u64;
     for row in rows {
-        let sha = row["last_touch_commit"].as_str().unwrap_or("");
+        let path = row["path"].as_str().unwrap_or("");
+        let sha = last_touch.get(path).and_then(Value::as_str).unwrap_or("");
         let age_days = commit_ts
             .get(sha)
             .map(|ts| (now_secs.saturating_sub(*ts)) / 86_400)
@@ -235,23 +243,11 @@ fn scm_facts_path(root: &Path) -> PathBuf {
     root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json")
 }
 
-/// "now" = the deterministic aging timestamp read from the committed scm-facts face (NOT
-/// ambient git): fully hermetic, identical to what the producer aged the staleness face from.
-/// The emitter derives it from the max current-tree last-touch timestamp, so generated-face
-/// settle commits do not churn the face forever.
-fn scm_now_secs(root: &Path) -> u64 {
-    scm_facts_value(root)["head_time_secs"]
-        .as_u64()
-        .unwrap_or(0)
-}
-
-/// The commit-sha -> author-timestamp map, read from the committed scm-facts face (NOT ambient
-/// SCM source). Mirrors the producer's `commit_author_ts_secs`, so the gate ages each row exactly
-/// as the producer did.
-fn scm_commit_author_timestamps(root: &Path) -> BTreeMap<String, u64> {
-    let value = scm_facts_value(root);
+/// The commit-sha -> author-timestamp map from the volatile snapshot. Mirrors the aging the
+/// emitter froze (`commit_author_ts_secs`), so the gate ages each row deterministically.
+fn volatile_commit_author_timestamps(volatile: &Value) -> BTreeMap<String, u64> {
     let mut map = BTreeMap::new();
-    if let Some(obj) = value["commit_author_ts_secs"].as_object() {
+    if let Some(obj) = volatile["commit_author_ts_secs"].as_object() {
         for (sha, ts) in obj {
             if let Some(ts) = ts.as_u64() {
                 map.insert(sha.clone(), ts);
@@ -261,11 +257,22 @@ fn scm_commit_author_timestamps(root: &Path) -> BTreeMap<String, u64> {
     map
 }
 
-/// Read + parse the committed scm-facts face once.
-fn scm_facts_value(root: &Path) -> Value {
-    let path = scm_facts_path(root);
-    let text = fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read scm-facts {}: {e}", path.display()));
+/// Read + parse the UNTRACKED scm-volatile-facts snapshot (ADR-0552, FRIC-1781234047).
+/// FAIL-CLOSED: a missing snapshot is a hard failure naming the exact materialization
+/// command — the gate must never silently age rows from nothing.
+fn volatile_facts_value(root: &Path) -> Value {
+    let path = root.join(
+        "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/scm-volatile-facts.generated.json",
+    );
+    let text = fs::read_to_string(&path).unwrap_or_else(|e| {
+        panic!(
+            "FAIL-CLOSED: scm-volatile-facts snapshot missing at {} ({e}). History-derived \
+             aging facts are materialized, never committed (ADR-0552). Materialize them: \
+             infra/ci/materialize-cloud-ci-generated-faces.sh . (CI runs this before every \
+             gate lane).",
+            path.display()
+        )
+    });
     serde_json::from_str(&text)
-        .unwrap_or_else(|e| panic!("parse scm-facts {}: {e}", path.display()))
+        .unwrap_or_else(|e| panic!("parse scm-volatile-facts {}: {e}", path.display()))
 }
