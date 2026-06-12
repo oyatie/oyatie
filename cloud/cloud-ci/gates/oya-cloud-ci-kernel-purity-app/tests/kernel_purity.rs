@@ -299,9 +299,9 @@ fn target_cfg_build_dependencies_are_scanned_from_disk() {
 fn fix_removes_dead_transient_dep_and_turns_red_to_green() {
     // Automation-default end-to-end: a kernel declares a transient dep (kube) in Cargo.toml but
     // never references it in src -> the dep is dead -> plan_fixes + apply_fixes remove it
-    // mechanically and the re-collected tree is GREEN. BUCK --fix is refusal-only (ADR-0547 D6,
-    // FRIC-1781200001): the BUCK file must be byte-identical after --fix and no BUCK edit may be
-    // reported.
+    // mechanically and the re-collected tree is GREEN. The BUCK file here carries NO kube edge,
+    // so the ADR-0549 BUCK lane has nothing to do: it must stay byte-identical and report no
+    // BUCK edit (no-op soundness).
     use oya_cloud_ci_kernel_purity_app::{apply_fixes, plan_fixes};
 
     let repo = new_temp_repo();
@@ -345,7 +345,7 @@ fn fix_removes_dead_transient_dep_and_turns_red_to_green() {
     );
     assert!(
         !applied.iter().any(|line| line.contains("BUCK")),
-        "BUCK --fix is refusal-only — no BUCK edit may ever be reported: {applied:?}"
+        "the BUCK file carries no kube edge — no BUCK edit may be reported: {applied:?}"
     );
 
     // After the fix the kernel is pure.
@@ -360,21 +360,21 @@ fn fix_removes_dead_transient_dep_and_turns_red_to_green() {
     let cargo = std::fs::read_to_string(root.join("crates/fake-dead-kernel/Cargo.toml")).unwrap();
     assert!(!cargo.contains("kube ="), "kube line removed: {cargo}");
     assert!(cargo.contains("serde ="), "serde line preserved: {cargo}");
-    // The BUCK file is byte-identical (refusal-only remover never writes).
+    // The BUCK file is byte-identical (no kube edge to remove — the remover is a no-op here).
     let buck_after = std::fs::read(root.join("crates/fake-dead-kernel/BUCK")).unwrap();
-    assert_eq!(buck_before, buck_after, "BUCK file must be byte-identical after --fix");
+    assert_eq!(buck_before, buck_after, "BUCK file must be byte-identical after a no-op --fix");
 }
 
 #[test]
 fn fix_is_table_aware_and_does_not_corrupt_manifest() {
-    // BLOCKER-2 + CRITICAL-1 regression: --fix must:
+    // BLOCKER-2 + CRITICAL-1 regression (amended by ADR-0549): --fix must:
     //   (a) remove a plain [dependencies] dead dep;
     //   (b) NOT remove a same-named [dev-dependencies] line;
     //   (c) NOT remove a dep that is `optional = true` and wired via `dep:X` in [features]
     //       (CRITICAL-1: doing so would leave a dangling feature entry cargo rejects);
-    //   (d) NOT touch the BUCK file at all — BUCK --fix is refusal-only (ADR-0547 D6,
-    //       FRIC-1781200001): the dead rust_library kube edge is reported as a design-action
-    //       citing the oya-buck-syntax-kernel fixer harness, never auto-removed.
+    //   (d) remove the dead rust_library kube edge from BUCK via the oya-buck-syntax-kernel
+    //       sound parser + fixer harness (ADR-0549 closes the FRIC-1781200001 refusal-only
+    //       descope) while the rust_test kube edge — out of detect scope — SURVIVES.
     //
     // This fixture uses TWO separate kernels:
     //   fake-plain-kernel: plain dead kube dep (no optional, no features) — IS auto-fixed.
@@ -429,22 +429,21 @@ fn fix_is_table_aware_and_does_not_corrupt_manifest() {
 
     let policy = fixture_policy();
     let observed = collect_kernel_deps(root, &policy).expect("collect");
-    let buck_before = std::fs::read(root.join("crates/fake-plain-kernel/BUCK")).unwrap();
 
-    // The dead rust_library kube edge in BUCK is a DESIGN ACTION citing the fixer harness — it
-    // never enters the auto-fix plan (refusal-only descope).
+    // ADR-0549: the dead rust_library kube edge in BUCK is now AUTO-FIXABLE — the sound parser +
+    // fixer harness make the removal mechanical, citing the shared kernel in the next action.
     let findings = evaluate_keyed(&policy, &observed);
     let buck_finding = findings
         .iter()
         .find(|f| f.code == "KP-TRANSIENT-DEP-BUCK" && f.key.ends_with(":kube"))
         .expect("BUCK kube finding");
     assert!(
-        !buck_finding.auto_fixable,
-        "BUCK finding must never be auto-fixable (refusal-only): {buck_finding:?}"
+        buck_finding.auto_fixable,
+        "a mechanically dead BUCK edge is auto-fixable under ADR-0549: {buck_finding:?}"
     );
     assert!(
         buck_finding.next_action.contains("oya-buck-syntax-kernel"),
-        "BUCK design-action must cite the fixer harness destination: {buck_finding:?}"
+        "the BUCK auto-fix action must cite the fixer harness: {buck_finding:?}"
     );
 
     let fixes = plan_fixes(&policy, &observed);
@@ -463,15 +462,17 @@ fn fix_is_table_aware_and_does_not_corrupt_manifest() {
     );
     assert!(plain_cargo.contains("[dev-dependencies]\nkube = \"0.99\""), "dev-dep kube preserved: {plain_cargo}");
 
-    // fake-plain-kernel BUCK: byte-identical — refusal-only never writes, so BOTH kube edges
-    // (rust_library and rust_test) survive untouched.
-    let plain_buck_after = std::fs::read(root.join("crates/fake-plain-kernel/BUCK")).unwrap();
-    assert_eq!(buck_before, plain_buck_after, "BUCK file must be byte-identical after --fix");
-    let plain_buck = String::from_utf8(plain_buck_after).unwrap();
+    // fake-plain-kernel BUCK: the rust_library kube edge is REMOVED (sound parser + harness);
+    // the rust_test kube edge is out of detect scope and survives untouched.
+    let plain_buck = std::fs::read_to_string(root.join("crates/fake-plain-kernel/BUCK")).unwrap();
     assert_eq!(
         plain_buck.matches("third-party//:kube").count(),
-        2,
-        "both BUCK kube edges survive (refusal-only): {plain_buck}"
+        1,
+        "exactly the rust_test kube edge survives: {plain_buck}"
+    );
+    assert!(
+        plain_buck.contains("rust_test"),
+        "the rust_test block must be structurally intact: {plain_buck}"
     );
 
     // fake-feat-kernel: manifest UNCHANGED — feature-backed optional dep must not be touched.
@@ -703,6 +704,12 @@ fn fix_rolls_back_all_preimages_when_semantic_revalidation_fails() {
          [dependencies]\nserde = \"1\"\nkube = \"0.99\"\n",
     );
     write_file(root, "crates/fake-rollback-kernel/src/lib.rs", "pub fn noop() {}\n");
+    // ADR-0549: the BUCK lane is active too — its edit must also roll back to the pre-image.
+    write_file(
+        root,
+        "crates/fake-rollback-kernel/BUCK",
+        "rust_library(\n    name = \"fake-rollback-kernel\",\n    deps = [\n        \"third-party//:serde\",\n        \"third-party//:kube\",\n    ],\n)\n",
+    );
 
     let policy = fixture_policy();
     let observed = collect_kernel_deps(root, &policy).expect("collect");
@@ -710,7 +717,9 @@ fn fix_rolls_back_all_preimages_when_semantic_revalidation_fails() {
     assert_eq!(fixes.len(), 1, "the dead kube dep is planned for removal: {fixes:?}");
 
     let manifest_path = root.join("crates/fake-rollback-kernel/Cargo.toml");
+    let buck_path = root.join("crates/fake-rollback-kernel/BUCK");
     let pre = std::fs::read(&manifest_path).unwrap();
+    let pre_buck = std::fs::read(&buck_path).unwrap();
     let result = apply_fixes_with_validator(root, &fixes, |_| {
         Err("error: feature `k8s` includes `dep:kube`, but `kube` is not a dependency (injected)".to_owned())
     });
@@ -721,6 +730,8 @@ fn fix_rolls_back_all_preimages_when_semantic_revalidation_fails() {
     assert!(message.contains("injected"), "error must carry the cargo error text: {message}");
     let post = std::fs::read(&manifest_path).unwrap();
     assert_eq!(pre, post, "manifest must be restored byte-identically after rollback");
+    let post_buck = std::fs::read(&buck_path).unwrap();
+    assert_eq!(pre_buck, post_buck, "BUCK must be restored byte-identically after rollback (ADR-0549)");
 }
 
 #[test]

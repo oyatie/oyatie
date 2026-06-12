@@ -1,8 +1,9 @@
 //! cloud-ci-kernel-purity gate binary (ADR-0547). Automation-default doctrine: the default
 //! invocation DETECTS and reports (with the best next action per finding); `--fix` APPLIES the
-//! derivable subset (dead transient deps removed from Cargo.toml ONLY — BUCK --fix is
-//! refusal-only pending the oya-buck-syntax-kernel fixer harness, FRIC-1781200001) and reports
-//! what is left for a human design decision. The blocking buck2 `rust_test` gate is the backstop.
+//! derivable subset (dead transient deps removed from Cargo.toml AND their rust_library BUCK
+//! edges, the latter via the oya-buck-syntax-kernel fixer harness — ADR-0549 closes the
+//! FRIC-1781200001 refusal-only descope) and reports what is left for a human design decision.
+//! The blocking buck2 `rust_test` gate is the backstop.
 //!
 //! Usage:
 //!   oya-cloud-ci-kernel-purity-app-bin [--repo-root <path>] [--policy <path>] [--fix]

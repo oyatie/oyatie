@@ -3595,6 +3595,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-buck-syntax-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-buck-test-wiring-app"
 version = "0.1.0"
 dependencies = [
@@ -4218,6 +4222,7 @@ dependencies = [
 name = "oya-cloud-ci-embedded-asset-hermeticity-app"
 version = "0.1.0"
 dependencies = [
+ "oya-buck-syntax-kernel",
  "serde_json",
 ]
 
@@ -4261,6 +4266,7 @@ dependencies = [
 name = "oya-cloud-ci-kernel-purity-app"
 version = "0.1.0"
 dependencies = [
+ "oya-buck-syntax-kernel",
  "oya-workspace-members-kernel",
  "serde_json",
  "toml 0.8.23",

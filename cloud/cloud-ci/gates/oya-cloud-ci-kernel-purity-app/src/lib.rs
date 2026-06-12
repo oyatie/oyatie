@@ -32,7 +32,9 @@
 //!   manifest line is purely mechanical and safe (no code moves), subject to the five sound bounds
 //!   of ADR-0547 D6 (never a build-dep, renamed dep, feature-referenced dep, or `optional = true`
 //!   dep — optional deps export an implicit feature a sibling member can request). [`plan_fixes`]
-//!   produces the exact edits and the gate binary applies them under `--fix`.
+//!   produces the exact edits and the gate binary applies them under `--fix` — Cargo.toml line
+//!   removal plus the dead `third-party//:<dep>` rust_library BUCK edge, the latter via the shared
+//!   oya-buck-syntax-kernel sound parser + write-through fixer harness (ADR-0549).
 //! - **Not safely derivable**: a denylisted dep that IS used in the kernel's source requires moving
 //!   the using code into a sibling `*-adapter` crate — a design act, never auto-applied. The gate
 //!   still prints the best next action (which adapter to move to, when inferable), never a bare FAIL.
@@ -64,6 +66,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
+use oya_buck_syntax_kernel::{Env, Expr, PreImageRegistry, Stmt, call_strings, guarded_rewrite, remove_list_element};
 use oya_workspace_members_kernel::resolve_member_dirs;
 use serde_json::{Value, json};
 
@@ -659,160 +662,125 @@ fn parse_buck_external_deps(
     Ok(extract_buck_library_thirdparty_deps(&text))
 }
 
-/// Pure text extraction: find each `rust_library(` block, and within it the `deps = [ .. ]` list,
-/// and collect every `third-party//:<name>` token. `rust_test`/`rust_binary` blocks are skipped.
-/// This is intentionally a conservative line scanner (no Starlark eval): the deps lists in this
-/// repo are flat string literals, one per line.
+/// Pure extraction via the shared sound `oya-buck-syntax-kernel` parser (ADR-0549): parse the
+/// BUCK text, and for each top-level `rust_library(...)` call collect every
+/// `third-party//:<name>` token from its STRING VALUES. `rust_test`/`rust_binary` blocks are
+/// skipped. Sound by construction against the historical detect-gap classes:
+/// - a stray paren in a comment or string cannot end the block early (#691 H5 / #693 LOW-X2);
+/// - a backslash-newline continuation inside a string cooks to the JOINED value, so
+///   `"third-party//:k\` + newline + `ube"` is detected as `kube` (#693 LOW-2,
+///   FRIC-1781230000);
+/// - a `third-party//:` mention in a COMMENT is trivia, never a dep (comment-blind class).
+///
+/// Fail-closed posture for what the subset cannot model: a call containing an opaque
+/// (unmodeled) argument shape is ALSO raw-scanned over its exact span, and a BUCK text that
+/// does not parse soundly is raw-scanned in full — an over-approximation that can only ADD
+/// findings for this born-blocking detector, never hide one (the same posture the pre-kernel
+/// EOF fallback took; the REMOVER path is independently guarded and refuses unsound input).
 pub fn extract_buck_library_thirdparty_deps(text: &str) -> BTreeSet<String> {
     let mut deps = BTreeSet::new();
-    let bytes = text.as_bytes();
-    let mut search_from = 0usize;
-    while let Some(rel) = text[search_from..].find("rust_library(") {
-        let block_start = search_from + rel;
-        // The block ends just past the `)` that balances `rust_library(`, found by paren-depth
-        // counting on a comment/string-stripped copy. `None` (unterminated block) falls back to
-        // end-of-text: an over-scan that can only ADD findings — fail-closed for the detector
-        // (MED-C: the refusal-only remover never writes, so over-scan cannot corrupt anything).
-        let block_end = find_block_end(&text[block_start..])
-            .map(|offset| block_start + offset)
-            .unwrap_or(bytes.len());
-        let block = &text[block_start..block_end];
-        for token in extract_thirdparty_tokens(block) {
-            deps.insert(token);
+    let Ok(doc) = oya_buck_syntax_kernel::parse(text) else {
+        collect_thirdparty_tokens(text, &mut deps);
+        return deps;
+    };
+    // Review F2 (value-indirection evasion): two shapes route a target's deps AROUND any
+    // span-local scan — a kwargs splat (`KW = {"deps": [...]}; rust_library(**KW)`, where the
+    // deps live in a CLEAN dict assignment far from the opaque call) and a load-aliased rule
+    // name (`load(":d.bzl", my_lib = "rust_library")` + `my_lib(deps = [...])`, where the call
+    // never bears the rust_library name). NO SILENT MISS: when either trigger is present the
+    // WHOLE FILE is raw-scanned (a detector over-scan can only ADD findings; macro-wrapped
+    // invocations defined in .bzl bodies remain the ledgered residual class).
+    let mut widen_to_whole_file = false;
+    doc.visit_calls(&mut |call| {
+        if call.has_opaque() {
+            // Any opaque-args call (incl. `**KW` splats): the unmodeled content may REFERENCE
+            // values assembled anywhere in the file.
+            widen_to_whole_file = true;
         }
-        search_from = block_end;
+        if call.func == "load"
+            && call
+                .args
+                .iter()
+                .any(|arg| matches!(&arg.value.expr, Expr::Str(s) if s == "rust_library"))
+        {
+            // A load() binding (aliasing) of rust_library: later calls may carry any name.
+            widen_to_whole_file = true;
+        }
+    });
+    if widen_to_whole_file {
+        collect_thirdparty_tokens(text, &mut deps);
+    }
+    // Enumerate EVERY rust_library call in the document — top-level statements AND calls
+    // wrapped in assignments or nested in expressions (`X = rust_library(...)`), so a one-token
+    // wrapper can never be a dep-hiding device (reviewer BLOCKER on the statement-position-only
+    // enumeration).
+    doc.visit_calls(&mut |call| {
+        if call.func == "rust_library" {
+            for value in call_strings(call) {
+                collect_thirdparty_tokens(&value, &mut deps);
+            }
+        }
+        // ANY call carrying opaque content gets its span raw-scanned from a `rust_library(`
+        // occurrence — a rust_library call discarded into an opaque ARGUMENT of some other
+        // call (`helper([rust_library(...)][0])`) must not escape just because the WRAPPING
+        // call has a different name. Together with the statement-level arms below this makes
+        // the dichotomy total: opaque content always sits inside some visited call's span or
+        // a flagged statement span.
+        if call.has_opaque() {
+            let raw = call.span.slice(text);
+            if call.func == "rust_library" {
+                collect_thirdparty_tokens(raw, &mut deps);
+            } else if let Some(at) = raw.find("rust_library(") {
+                collect_thirdparty_tokens(&raw[at..], &mut deps);
+            }
+        }
+    });
+    // Spans the subset could not (fully) model carry calls visit_calls cannot reach; if such a
+    // span mentions a rust_library call at all, raw-scan it from that point (the same
+    // over-approximation the pre-kernel scanner applied to ALL text) — a detector over-scan can
+    // only ADD findings. Covered shapes:
+    // - Stmt::Opaque (unmodeled statements, incl. trailing-token demotions);
+    // - Assign/IndexAssign whose value (or key) contains expression-level Opaque content — the
+    //   re-review BLOCKER class: a postfix-index wrapper (`X = [rust_library(...)][0]`), an
+    //   unmodeled-primary ternary (`X = -1 if c else rust_library(...)`), or a discarded
+    //   comprehension iter (`{k: v for k in [rust_library(...)]}`) all collapse to Opaque
+    //   inside a still-modeled statement, invisible to both visit_calls and the opaque-stmt
+    //   scan without this arm.
+    for stmt in &doc.stmts {
+        let opaque_span = match stmt {
+            Stmt::Opaque { span } => Some(*span),
+            Stmt::Assign { value, span, .. } if value.has_opaque() => Some(*span),
+            Stmt::IndexAssign { key, value, span, .. }
+                if key.has_opaque() || value.has_opaque() =>
+            {
+                Some(*span)
+            }
+            _ => None,
+        };
+        let Some(span) = opaque_span else { continue };
+        let raw = span.slice(text);
+        if let Some(at) = raw.find("rust_library(") {
+            collect_thirdparty_tokens(&raw[at..], &mut deps);
+        }
     }
     deps
 }
 
-/// The end of a `rust_library( ... )` block: the offset just past the closing `)` that balances
-/// the opening `(` of `rust_library(`. Uses paren-depth counting on a **comment/string-stripped**
-/// copy of the text so a stray `)` inside a Starlark comment (`# 1) serde 2) kube`) or string
-/// literal does not end the span early and let a dep below go undetected (HIGH-B fix). The function
-/// produces a stripped copy with the same byte length as the input (each stripped char replaced by
-/// a space), preserving byte offsets. Returning `None` signals an unterminated block: the
-/// **detector** falls back to EOF (fail-closed, correct for born-blocking); the **remover** treats
-/// `None` as "skip removal entirely" (MED-C fix — never write when the block boundary is ambiguous).
-fn find_block_end(block: &str) -> Option<usize> {
-    // Build a stripped copy first: replace comment contents and string literal contents with
-    // spaces so parens inside comments/strings are invisible both to the opening-paren locator
-    // and to the depth counter. The stripped copy is byte-length-identical to the input.
-    let stripped = strip_starlark_comment_and_strings(block);
-    // Locate the opening `(` of `rust_library(` (on the stripped copy) to start depth counting.
-    let open_paren = stripped.find('(')?;
-    let mut depth = 1usize;
-    // Walk the stripped bytes from after the opening paren.
-    let search = &stripped[open_paren + 1..];
-    let mut rel = 0usize;
-    for ch in search.chars() {
-        match ch {
-            '(' => depth += 1,
-            ')' => {
-                depth -= 1;
-                if depth == 0 {
-                    // `rel` is the byte offset within `search` of the matching ')'.
-                    let abs = open_paren + 1 + rel + 1; // just past the ')'
-                    // Consume trailing newline so span ends at the line boundary.
-                    let abs = if block[abs..].starts_with('\n') { abs + 1 } else { abs };
-                    return Some(abs);
-                }
-            }
-            _ => {}
-        }
-        rel += ch.len_utf8();
-    }
-    None
-}
-
-/// Strip Starlark comment (`# ...` to end of LINE) and string literal contents from a (possibly
-/// multi-line) text for the purpose of paren-depth counting. Comment and string state is
-/// line-bounded: a `\n` always resets it (BUCK string literals in dep lists are single-line; an
-/// unterminated quote therefore cannot swallow subsequent lines). Inside string state a backslash
-/// escapes the next character (LOW-X2): `"weird\")label"` does NOT end at the `\"`, so the stray
-/// `)` stays inside the string and cannot false-terminate the block span (which would hide every
-/// dep below it from the detect lane). Every blanked char is replaced by `ch.len_utf8()` spaces
-/// and every kept char (including `\n`) is emitted verbatim, so the result has EXACTLY the same
-/// byte length as the input and byte-offset arithmetic in `find_block_end` remains valid even for
-/// multi-byte UTF-8 input (e.g. an em dash in a comment).
-fn strip_starlark_comment_and_strings(text: &str) -> String {
-    fn blank(out: &mut String, ch: char) {
-        for _ in 0..ch.len_utf8() {
-            out.push(' ');
-        }
-    }
-    let mut out = String::with_capacity(text.len());
-    let mut in_single = false;
-    let mut in_double = false;
-    let mut in_comment = false;
-    // LOW-X2: true iff the previous char inside a string was an unconsumed backslash — the
-    // current char is escaped and must not toggle string state (`\"` stays inside the string).
-    let mut escaped = false;
-    for ch in text.chars() {
-        if ch == '\n' {
-            // Line boundary: reset comment + (line-bounded) string + escape state, keep the newline.
-            in_single = false;
-            in_double = false;
-            in_comment = false;
-            escaped = false;
-            out.push('\n');
-        } else if in_comment {
-            blank(&mut out, ch);
-        } else if in_single {
-            blank(&mut out, ch);
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '\'' {
-                in_single = false;
-            }
-        } else if in_double {
-            blank(&mut out, ch);
-            if escaped {
-                escaped = false;
-            } else if ch == '\\' {
-                escaped = true;
-            } else if ch == '"' {
-                in_double = false;
-            }
-        } else {
-            match ch {
-                '#' => {
-                    in_comment = true;
-                    blank(&mut out, ch);
-                }
-                '\'' => {
-                    in_single = true;
-                    blank(&mut out, ch);
-                }
-                '"' => {
-                    in_double = true;
-                    blank(&mut out, ch);
-                }
-                other => out.push(other),
-            }
-        }
-    }
-    out
-}
-
-fn extract_thirdparty_tokens(block: &str) -> Vec<String> {
-    let mut out = Vec::new();
+/// Collect every `third-party//:<name>` token in `text` into `deps`.
+fn collect_thirdparty_tokens(text: &str, deps: &mut BTreeSet<String>) {
     let marker = "third-party//:";
     let mut from = 0usize;
-    while let Some(rel) = block[from..].find(marker) {
+    while let Some(rel) = text[from..].find(marker) {
         let start = from + rel + marker.len();
-        let rest = &block[start..];
-        let name: String = rest
+        let name: String = text[start..]
             .chars()
             .take_while(|c| c.is_ascii_alphanumeric() || *c == '_' || *c == '-')
             .collect();
         if !name.is_empty() {
-            out.push(name);
+            deps.insert(name);
         }
         from = start;
     }
-    out
 }
 
 // ---------------------------------------------------------------------------
@@ -1200,22 +1168,19 @@ fn evaluate_dep_list(
             .and_then(Value::as_array)
             .map(|arr| arr.iter().any(|v| v.as_str() == Some(dep)))
             .unwrap_or(false);
-        // ADR-0547 D6 round-3 descope (FRIC-1781200001): BUCK --fix is refusal-only, so a BUCK
-        // finding is NEVER auto-fixable even when the dep edge is mechanically dead — it is
-        // reported as a design-action pointing at the oya-buck-syntax-kernel fixer harness.
+        // ADR-0549: BUCK --fix rides the shared oya-buck-syntax-kernel sound parser + fixer
+        // harness, so a mechanically dead dep is auto-fixable in BOTH manifests (the ADR-0547
+        // D6 round-3 refusal-only descope is closed — FRIC-1781200001). The five Cargo sound
+        // bounds gate BOTH lanes: a dep edge is removed only when it is wholly dead.
         let is_buck = code == "KP-TRANSIENT-DEP-BUCK";
         let mechanically_dead =
             !used_in_src && !is_build_dep && !is_renamed && !is_feature_backed && !is_optional;
-        let auto_fixable = mechanically_dead && !is_buck;
+        let auto_fixable = mechanically_dead;
 
         let key = format!("{kernel_name}:{node_name}:{dep}");
         // LOW-F: remediation text distinguishes the actual reason a dep is not auto-fixable so the
         // contributor sees the right next step, not a generic "used in src" for every blocked case.
-        let design_reason = if is_buck && mechanically_dead {
-            format!(
-                "`{dep}` is a dead BUCK dep edge (`third-party//:{dep}`) in {member_path}/BUCK — BUCK --fix is refusal-only pending the oya-buck-syntax-kernel fixer harness (ADR-0547 D6, FRIC-1781200001); delete the line from the rust_library deps list manually"
-            )
-        } else if is_feature_backed {
+        let design_reason = if is_feature_backed {
             format!(
                 "`{dep}` is referenced in [features] of {member_path} — removing the dep line alone would leave a dangling feature entry (cargo error: feature includes dep:{dep} but {dep} is not listed as a dependency); remove the dep AND rewrite the [features] entry together, or move both into a sibling adapter"
             )
@@ -1243,8 +1208,9 @@ fn evaluate_dep_list(
                 "kernel `{kernel_name}` depends on transient `{dep}` in {source_label}; the {dep} adapter is discarded at owned-stack cutover (ADR-0510) — the kernel must stay cutover-stable (ADR-0547)"
             );
             let action = if auto_fixable {
+                let manifest = if is_buck { "BUCK (rust_library deps)" } else { "Cargo.toml" };
                 format!(
-                    "AUTO-FIXABLE: `{dep}` is declared in {member_path} but unreferenced in its src — run the gate with --fix to remove the dead dependency edge from Cargo.toml, or delete the `{dep}` line manually"
+                    "AUTO-FIXABLE: `{dep}` is declared in {member_path} but unreferenced in its src — run the gate with --fix to remove the dead dependency edge from {manifest} (BUCK edits ride the oya-buck-syntax-kernel fixer harness, ADR-0549), or delete the `{dep}` line manually"
                 )
             } else {
                 format!("DESIGN ACTION (not auto-applied): {design_reason}")
@@ -1255,8 +1221,9 @@ fn evaluate_dep_list(
                 "kernel `{kernel_name}` reaches transient `{dep}` in {source_label} via {via} (node `{node_name}`); a kernel must not absorb a transient-carrying crate into its path-dep closure (ADR-0547)"
             );
             let action = if auto_fixable {
+                let manifest = if is_buck { "BUCK (rust_library deps)" } else { "Cargo.toml" };
                 format!(
-                    "AUTO-FIXABLE: `{dep}` is declared in {member_path} (closure node `{node_name}`) but unreferenced in its src — run --fix to remove the dead dependency edge, or delete the `{dep}` line manually"
+                    "AUTO-FIXABLE: `{dep}` is declared in {member_path} (closure node `{node_name}`) but unreferenced in its src — run --fix to remove the dead dependency edge from {manifest}, or delete the `{dep}` line manually"
                 )
             } else {
                 format!(
@@ -1290,8 +1257,9 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
 // ---------------------------------------------------------------------------
 
 /// One mechanically-applicable fix: remove a dead transient dependency declared in `member_path`'s
-/// Cargo.toml (the dep is unreferenced in that crate's src, so removal moves no code). BUCK edges
-/// are never planned — BUCK --fix is refusal-only (ADR-0547 D6, FRIC-1781200001).
+/// Cargo.toml AND its `third-party//:<dep>` rust_library edge in the sibling BUCK file (the dep is
+/// unreferenced in that crate's src, so removal moves no code). BUCK edits ride the shared
+/// oya-buck-syntax-kernel sound parser + fixer harness (ADR-0549; closes FRIC-1781200001).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Fix {
     pub member_path: String,
@@ -1349,9 +1317,9 @@ pub fn plan_fixes(policy: &Value, observed: &Value) -> Vec<Fix> {
 }
 
 /// Apply the planned fixes to disk: remove the dep's declaration line from `<member>/Cargo.toml`
-/// only (BUCK --fix is descoped to refusal-only per ADR-0547 D6 round-3 revision — the Starlark
-/// parser is not yet sound enough to guarantee safe writes; that work is queued to the
-/// oya-buck-syntax-kernel fixer harness).
+/// and its dead `third-party//:<dep>` rust_library edge from `<member>/BUCK` (the BUCK lane rides
+/// the oya-buck-syntax-kernel sound parser + write-through fixer harness per ADR-0549, closing the
+/// ADR-0547 D6 round-3 refusal-only descope).
 ///
 /// CRITICAL-A layer 2: after ALL Cargo.toml edits are written, run `cargo metadata` (the sole
 /// sanctioned cargo invocation per the teammate preamble) to semantically revalidate. If it fails,
@@ -1375,7 +1343,15 @@ fn cargo_metadata_validator(root: &Path) -> Result<(), String> {
     {
         Ok(output) if output.status.success() => Ok(()),
         Ok(output) => Err(String::from_utf8_lossy(&output.stderr).trim().to_owned()),
-        Err(_) => Ok(()), // cargo unavailable — degraded mode, buck2 gate is the backstop
+        Err(spawn_error) => {
+            // Degraded mode (review F5: surface it, never degrade silently): the layer-1
+            // syntactic bounds have already passed and the blocking buck2 rust_test gate is
+            // the enforcement backstop (ADR-0547 D6).
+            eprintln!(
+                "kernel-purity --fix: WARNING — `cargo metadata` revalidation skipped (cargo                  could not be spawned: {spawn_error}); layer-2 semantic validation degraded,                  the blocking buck2 gate remains the backstop"
+            );
+            Ok(())
+        }
     }
 }
 
@@ -1394,23 +1370,38 @@ where
         return Ok(Vec::new());
     }
 
-    // --- Phase 1: collect pre-images and perform Cargo.toml edits ---
-    // LOW-X3: keyed by path, FIRST pre-image wins — a manifest edited twice (two dead deps in the
-    // same Cargo.toml) must roll back to its ORIGINAL content, not the intermediate one-edit state
-    // that an insertion-order restore would leave behind.
-    let mut pre_images: BTreeMap<std::path::PathBuf, String> = BTreeMap::new();
+    // --- Phase 1: collect pre-images and perform the Cargo.toml + BUCK edits ---
+    // LOW-X3: the shared kernel PreImageRegistry keys by path with FIRST pre-image wins — a
+    // manifest edited twice (two dead deps in the same file) must roll back to its ORIGINAL
+    // content, not the intermediate one-edit state an insertion-order restore would leave.
+    let mut registry = PreImageRegistry::new();
     let mut applied = Vec::new();
     for fix in fixes {
         let cargo_path = root.join(&fix.member_path).join("Cargo.toml");
         // Save pre-image before any write.
-        let pre = match fs::read_to_string(&cargo_path) {
-            Ok(text) => text,
-            Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+        match fs::read_to_string(&cargo_path) {
+            Ok(pre) => {
+                if remove_cargo_dep_line(&cargo_path, &fix.dep)? {
+                    registry.record(&cargo_path.to_string_lossy(), &pre);
+                    applied.push(format!("{}/Cargo.toml: removed `{}`", fix.member_path, fix.dep));
+                }
+            }
+            Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {}
             Err(e) => return Err(CollectError::Io(format!("read {}: {e}", cargo_path.display()))),
-        };
-        if remove_cargo_dep_line(&cargo_path, &fix.dep)? {
-            pre_images.entry(cargo_path.clone()).or_insert(pre);
-            applied.push(format!("{}/Cargo.toml: removed `{}`", fix.member_path, fix.dep));
+        }
+        // BUCK lane (ADR-0549): remove the dead `third-party//:<dep>` rust_library edge via the
+        // sound parser + write-through harness. The remover refuses (no write) on any shape it
+        // cannot prove sound; a refusal leaves the finding red for the next report.
+        let buck_path = root.join(&fix.member_path).join("BUCK");
+        match fs::read_to_string(&buck_path) {
+            Ok(pre) => {
+                if remove_buck_dep_line(&buck_path, &fix.dep)? {
+                    registry.record(&buck_path.to_string_lossy(), &pre);
+                    applied.push(format!("{}/BUCK: removed `{}`", fix.member_path, fix.dep));
+                }
+            }
+            Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(CollectError::Io(format!("read {}: {e}", buck_path.display()))),
         }
     }
 
@@ -1423,13 +1414,13 @@ where
     // feature-entry dangling references or other dependency-graph errors that the layer-1
     // syntactic bounds could not prevent.
     if let Err(cargo_error) = validator(root) {
-        // Rollback ALL edits to pre-images.
-        for (path, pre) in &pre_images {
+        // Rollback ALL edits to pre-images (deterministic path order; first image per path).
+        for (path, pre) in registry.images() {
             let _ = fs::write(path, pre); // best-effort; failure leaves a partial state the gate will re-report
         }
         return Err(CollectError::Io(format!(
-            "cargo metadata failed after Cargo.toml edits — ALL changes rolled back; treat these \
-             findings as DESIGN ACTIONS (manual removal with coordinated [features]/workspace \
+            "cargo metadata failed after Cargo.toml/BUCK edits — ALL changes rolled back; treat \
+             these findings as DESIGN ACTIONS (manual removal with coordinated [features]/workspace \
              cleanup), not mechanical line removals. cargo error: {cargo_error}"
         )));
     }
@@ -1506,16 +1497,130 @@ fn is_dep_decl_line(line: &str, dep: &str) -> bool {
     rest.starts_with('=')
 }
 
-/// BUCK --fix is descoped to refusal-only (ADR-0547 D6 round-3 revision).
-/// The paren-depth BUCK block parser is not yet sound enough to guarantee safe rewrites
-/// (comments/strings with stray parens, indented closers, multi-rule files). Rather than ship a
-/// corrupting fixer, BUCK findings that would be auto-fixable in Cargo are reported as design-
-/// actions with an actionable remediation note pointing to the oya-buck-syntax-kernel fixer harness
-/// (FRIC-1781200001). This function is retained for the refusal path — it always returns Ok(false)
-/// without writing.
-fn remove_buck_dep_line(_path: &Path, _dep: &str) -> Result<bool, CollectError> {
-    // Refusal-only: BUCK writes are not safe until oya-buck-syntax-kernel fixer harness lands.
-    Ok(false)
+/// Remove the `third-party//:<dep>` edge from every `rust_library` deps list in the BUCK file,
+/// via the shared sound parser + write-through harness (ADR-0549; closes FRIC-1781200001 and
+/// re-enables the BUCK `--fix` lane that ADR-0547 D6 round-3 had descoped to refusal-only).
+///
+/// Sound bounds — the remover REFUSES (returns Ok(false), file byte-identical) when:
+/// - the BUCK text does not parse soundly (unterminated block, unbalanced delimiters — H6);
+/// - the dep edge is not a plain string element of a `deps = [...]` list literal (a var
+///   reference, `select(...)`, or any unmodeled shape);
+/// - the post-edit harness validation fails (reparse, dep gone from every rust_library,
+///   NO collateral dep removed, top-level statement count unchanged).
+/// `rust_test`/`rust_binary` deps are never touched (test edges are out of detect scope).
+fn remove_buck_dep_line(path: &Path, dep: &str) -> Result<bool, CollectError> {
+    let text = match fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(e) => return Err(CollectError::Io(format!("read {}: {e}", path.display()))),
+    };
+    let Some(candidate) = remove_buck_dep_edges_text(&text, dep) else {
+        return Ok(false);
+    };
+    // Write-through harness: reparse + semantic hook; refusal keeps the file byte-identical.
+    let mut registry = PreImageRegistry::new();
+    let path_key = path.to_string_lossy().to_string();
+    let label = format!("third-party//:{dep}");
+    // Every OTHER rust_library third-party dep present before the edit must survive it.
+    let pre_others: BTreeSet<String> = {
+        let mut all = extract_buck_library_thirdparty_deps(&text);
+        all.remove(dep);
+        all
+    };
+    let guarded = guarded_rewrite(&path_key, &text, &candidate, &mut registry, |_, out| {
+        let after = extract_buck_library_thirdparty_deps(out);
+        if after.contains(dep) {
+            return Err(format!("`{label}` still present after removal"));
+        }
+        if !pre_others.is_subset(&after) {
+            return Err("collateral dep removal detected".to_owned());
+        }
+        Ok(())
+    });
+    match guarded {
+        Ok(validated) => {
+            fs::write(path, validated)
+                .map_err(|e| CollectError::Io(format!("write {}: {e}", path.display())))?;
+            Ok(true)
+        }
+        Err(_refusal) => Ok(false),
+    }
+}
+
+/// Pure rewrite: remove every plain-string `third-party//:<dep>` element from `rust_library`
+/// deps list literals. Returns `None` (refuse) when the dep edge is absent or any carrying
+/// shape is not a modeled list element. Re-parses between removals so spans stay exact.
+fn remove_buck_dep_edges_text(text: &str, dep: &str) -> Option<String> {
+    let label = format!("third-party//:{dep}");
+    let mut current = text.to_owned();
+    let mut removed_any = false;
+    loop {
+        let doc = oya_buck_syntax_kernel::parse(&current).ok()?;
+        let mut found: Option<String> = None;
+        for stmt in &doc.stmts {
+            let Stmt::Call(call) = stmt else { continue };
+            if call.func != "rust_library" {
+                continue;
+            }
+            let Some(deps_arg) = call.kwarg("deps") else { continue };
+            match &deps_arg.value.expr {
+                Expr::List(list) => {
+                    let index = list.elements.iter().position(
+                        |element| matches!(&element.value.expr, Expr::Str(s) if s == &label),
+                    );
+                    if let Some(index) = index {
+                        found = remove_list_element(&current, list, index).ok();
+                        if found.is_none() {
+                            return None;
+                        }
+                        break;
+                    }
+                    // The dep may hide in an unmodeled element shape: refuse if the label
+                    // appears in the list's raw span (token-boundary exact, so a SIBLING dep
+                    // that merely shares the prefix — `kube` vs `kube-runtime` — does not
+                    // false-refuse) without being a plain element.
+                    if contains_dep_token(deps_arg.value.span.slice(&current), &label) {
+                        return None;
+                    }
+                }
+                // deps is not a list literal (a var, select(), concat): refuse if it carries
+                // the label anywhere in its raw span (token-boundary exact).
+                _ => {
+                    if contains_dep_token(deps_arg.value.span.slice(&current), &label) {
+                        return None;
+                    }
+                }
+            }
+        }
+        match found {
+            Some(next) => {
+                current = next;
+                removed_any = true;
+            }
+            None => break,
+        }
+    }
+    if removed_any { Some(current) } else { None }
+}
+
+/// True iff `label` occurs in `text` as an EXACT dep token: the next character (if any) is not
+/// part of a dep name (`[A-Za-z0-9_-]`). `third-party//:kube` must not match inside
+/// `third-party//:kube-runtime` — substring refusal would wrongly block a sound removal of
+/// `kube` whenever a longer-named sibling is present.
+fn contains_dep_token(text: &str, label: &str) -> bool {
+    let mut from = 0usize;
+    while let Some(rel) = text[from..].find(label) {
+        let end = from + rel + label.len();
+        let boundary = text[end..]
+            .chars()
+            .next()
+            .is_none_or(|c| !(c.is_ascii_alphanumeric() || c == '_' || c == '-'));
+        if boundary {
+            return true;
+        }
+        from = end;
+    }
+    false
 }
 
 /// Human-readable render of the findings, automation-default ordered: the auto-fixable subset first
@@ -2176,8 +2281,9 @@ rust_test(
     #[test]
     fn backslash_escaped_quote_in_string_does_not_hide_following_dep() {
         // LOW-X2: `labels = ["weird\")label"]` — the `\"` is an ESCAPED quote INSIDE the string.
-        // An escape-blind stripper ends string state at the `\"`, leaks the following `)` as live
+        // An escape-blind scanner ends string state at the `\"`, leaks the following `)` as live
         // text, terminates the block span early, and hides the dep below from the detect lane.
+        // The shared kernel lexes escapes exactly, so the dep stays visible.
         let buck = concat!(
             "rust_library(\n",
             "    name = \"x\",\n",
@@ -2192,9 +2298,172 @@ rust_test(
             deps.contains("kube"),
             "the dep after a backslash-escaped quote must still be detected: {deps:?}"
         );
-        // The stripped copy must keep byte length identical (offset arithmetic invariant).
-        let stripped = strip_starlark_comment_and_strings(buck);
-        assert_eq!(stripped.len(), buck.len(), "stripped copy must be byte-length identical");
+    }
+
+    // --------------------------------------------------------------------------
+    // FRIC-1781230000 (#693 LOW-2): backslash-newline continuation must not hide a dep
+    // --------------------------------------------------------------------------
+
+    #[test]
+    fn backslash_newline_continuation_does_not_hide_dep() {
+        // RED fixture for the pre-kernel gap: a Starlark string may continue across a
+        // backslash-newline, so `"third-party//:k\` + newline + `ube"` is the SINGLE cooked
+        // value `third-party//:kube`. The line-bounded stripper of the pre-kernel scanner reset
+        // string state at the newline and saw only the truncated token `k` — the dep `kube` was
+        // invisible to the detect lane. The shared kernel cooks the continuation, closing the gap.
+        let buck = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\\nube\"],\n)\n";
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(
+            deps.contains("kube"),
+            "a continuation-split dep must be detected as its JOINED value: {deps:?}"
+        );
+        assert!(
+            !deps.contains("k"),
+            "the truncated pre-continuation token must not be reported: {deps:?}"
+        );
+    }
+
+    #[test]
+    fn wrapped_rust_library_calls_cannot_hide_deps() {
+        // Reviewer BLOCKER closure: buck2-valid wrappers that take the target call out of
+        // statement position must not hide its deps from the detect lane.
+        // (a) assignment-wrapped: X = rust_library(...)
+        let assigned = "X = rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(assigned).contains("kube"),
+            "assignment-wrapped target must be detected"
+        );
+        // (b) expression-statement wrapped: [rust_library(...)] — an opaque statement whose
+        // span mentions rust_library( is raw-scanned (over-approximation).
+        let listed = "[rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)]\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(listed).contains("kube"),
+            "expression-statement-wrapped target must be detected"
+        );
+        // (c) trailing-ternary tail: X = 1 if c else rust_library(...) — the statement demotes
+        // to opaque in the kernel and the raw scan sees the call.
+        let ternary = "X = 1 if c else rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(ternary).contains("kube"),
+            "ternary-tail target must be detected"
+        );
+    }
+
+    #[test]
+    fn expression_level_opaque_wrappers_cannot_hide_deps() {
+        // Re-review BLOCKER closure: expression-level Opaque content inside a still-modeled
+        // Assign must be raw-scanned — visit_calls cannot reach a call the widen arm discarded.
+        // (a) postfix-index wrapper: the parsed list+call is discarded into one Expr::Opaque.
+        let indexed = "X = [rust_library(name = \"x\", deps = [\"third-party//:kube\"])][0]\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(indexed).contains("kube"),
+            "postfix-index wrapper must be detected"
+        );
+        // (b) unmodeled-primary ternary: `-1` consumes the whole line as expression-level Opaque,
+        // so the trailing-token demotion never fires.
+        let neg_ternary = "X = -1 if c else rust_library(name = \"x\", deps = [\"third-party//:kube\"])\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(neg_ternary).contains("kube"),
+            "unmodeled-primary ternary must be detected"
+        );
+        // (c) discarded comprehension iter: the non-ident iter is dropped with no node
+        // (comp.iter == None => has_opaque).
+        let comp_iter = "M = {k: \"v\" for k in [rust_library(name = \"x\", deps = [\"third-party//:kube\"])]}\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(comp_iter).contains("kube"),
+            "discarded comprehension iter must be detected"
+        );
+        // (d) opaque argument of a DIFFERENT call at statement position: the wrapping call's
+        // name must not exempt its opaque content from the raw scan.
+        let wrapped_arg = "helper([rust_library(name = \"x\", deps = [\"third-party//:kube\"])][0])\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(wrapped_arg).contains("kube"),
+            "opaque argument of a non-rust_library call must be detected"
+        );
+    }
+
+    #[test]
+    fn escape_spelled_dep_is_detected_under_its_cooked_name() {
+        // Review F1 (HIGH, RED fixture): buck2 evaluates `"third-party//:k\x75be"` to
+        // `third-party//:kube` (proven via buck2 uquery). The detect lane must key the dep as
+        // `kube` — an escape spelling must not hide a denylisted transient dep.
+        let hex = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\x75be\"],\n)\n";
+        let deps = extract_buck_library_thirdparty_deps(hex);
+        assert!(deps.contains("kube"), "\\x75 spelling must cook to kube: {deps:?}");
+        assert!(!deps.contains("k"), "the truncated raw token must not be reported: {deps:?}");
+        let octal = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\165be\"],\n)\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(octal).contains("kube"),
+            "octal spelling must cook to kube"
+        );
+        let uni = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\u0075be\"],\n)\n";
+        assert!(
+            extract_buck_library_thirdparty_deps(uni).contains("kube"),
+            "\\u spelling must cook to kube"
+        );
+    }
+
+    #[test]
+    fn unimplemented_escape_fails_closed_to_raw_scan() {
+        // An escape class the lexer refuses (hard LexError) drops the file to the full-text
+        // raw scan — the detector still over-approximates rather than passing silently.
+        // (buck2 itself rejects such a file, so this is a defensive posture, not a live shape.)
+        let bad = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\\q\"],\n)\n";
+        let deps = extract_buck_library_thirdparty_deps(bad);
+        assert!(deps.contains("serde"), "raw-scan fallback must still surface the dep: {deps:?}");
+    }
+
+    #[test]
+    fn escape_spelled_dep_removal_is_sound_or_refused_never_corrupt() {
+        // Review F1 fixer direction: with correct cooking the parsed element equals the label,
+        // so removal targets exactly the escape-spelled element's ORIGINAL span; the harness
+        // round-trip validates no collateral. Never a mis-cooked edit.
+        let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:k\\x75be\",\n        \"third-party//:serde\",\n    ],\n)\n";
+        match remove_buck_dep_edges_text(buck, "kube") {
+            Some(out) => {
+                assert!(!out.contains("k\\x75be"), "escape-spelled element removed: {out}");
+                assert!(out.contains("third-party//:serde"), "no collateral: {out}");
+                let after = extract_buck_library_thirdparty_deps(&out);
+                assert!(!after.contains("kube"), "kube edge gone after reparse: {after:?}");
+                assert!(after.contains("serde"), "serde survives reparse: {after:?}");
+            }
+            None => {
+                // Refusal is also sound (file untouched) — but silent corruption never is.
+            }
+        }
+    }
+
+    #[test]
+    fn kwargs_splat_widens_to_whole_file_scan() {
+        // Review F2: deps routed through a **KW splat live in a CLEAN dict assignment the
+        // call-span scan never covers. The opaque-args trigger must widen to the whole file.
+        let buck = concat!(
+            "KW = {\"name\": \"x\", \"deps\": [\"third-party//:kube\"]}\n",
+            "rust_library(**KW)\n",
+        );
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(deps.contains("kube"), "splat-routed dep must surface: {deps:?}");
+    }
+
+    #[test]
+    fn load_aliased_rule_name_widens_to_whole_file_scan() {
+        // Review F2: a load() alias takes the rust_library name off the call site entirely.
+        let buck = concat!(
+            "load(\":defs.bzl\", my_lib = \"rust_library\")\n",
+            "my_lib(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n",
+        );
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(deps.contains("kube"), "load-aliased target's dep must surface: {deps:?}");
+    }
+
+    #[test]
+    fn comment_mention_of_a_dep_is_not_a_dep() {
+        // Comment-blind class closure: a `third-party//:` mention in a COMMENT inside the block
+        // must not be extracted (the pre-kernel scanner raw-scanned comments too).
+        let buck = "rust_library(\n    name = \"x\",\n    # TODO: maybe add third-party//:kube one day\n    deps = [\"third-party//:serde\"],\n)\n";
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(deps.contains("serde"), "{deps:?}");
+        assert!(!deps.contains("kube"), "a comment mention must not be a dep: {deps:?}");
     }
 
     // --------------------------------------------------------------------------
@@ -2367,7 +2636,7 @@ k8s = ["dep:kube"]
     // --------------------------------------------------------------------------
 
     /// H5: a BUCK file whose comment line contains a stray `)` must still detect kube below it.
-    /// strip_starlark_comment_and_strings must neutralise the comment paren before depth counting.
+    /// The shared kernel treats comments as trivia, so the paren cannot end the block early.
     #[test]
     fn h5_stray_paren_in_comment_still_detects_dep() {
         let buck = concat!(
@@ -2379,20 +2648,10 @@ k8s = ["dep:kube"]
             "    ],\n",
             ")\n",
         );
-        let tokens = extract_thirdparty_tokens(buck);
+        let deps = extract_buck_library_thirdparty_deps(buck);
         assert!(
-            tokens.contains(&"kube".to_owned()),
-            "H5: kube dep must be extracted even when comment has a stray ')': {tokens:?}"
-        );
-        // Also verify find_block_end does NOT terminate early at the comment's ')'.
-        let end = find_block_end(buck);
-        assert!(end.is_some(), "H5: find_block_end must find real end despite comment ')': {end:?}");
-        // The real end should be past the kube dep line (which is after the comment).
-        let end_pos = end.unwrap();
-        let kube_pos = buck.find("kube").unwrap();
-        assert!(
-            end_pos > kube_pos,
-            "H5: block end ({end_pos}) must be past the kube dep pos ({kube_pos})"
+            deps.contains("kube"),
+            "H5: kube dep must be extracted even when comment has a stray ')': {deps:?}"
         );
     }
 
@@ -2400,12 +2659,12 @@ k8s = ["dep:kube"]
     // MED-C / H6: find_block_end None = skip removal (manifest byte-identical)
     // --------------------------------------------------------------------------
 
-    /// H6: a BUCK file with a stray `(` in a comment makes the block unterminated.
-    /// find_block_end must return None (not EOF fallback for the remover path).
-    /// remove_buck_dep_line is descoped to refusal-only — it returns Ok(false) without writing,
-    /// so the file is always byte-identical (MED-C).
+    /// H6: an unterminated rust_library block (no matching close). The DETECTOR must stay
+    /// fail-closed (the dep is still reported via the raw over-approximating scan) while the
+    /// REMOVER refuses (Ok(false)) and leaves the file byte-identical (MED-C posture, now
+    /// enforced by the kernel parse error + harness refusal instead of a None sentinel).
     #[test]
-    fn h6_unterminated_block_none_skip_removal() {
+    fn h6_unterminated_block_detect_fail_closed_removal_refused() {
         let buck = concat!(
             "rust_library(\n",
             "    # opening paren in comment: (this breaks naive counters\n",
@@ -2413,46 +2672,103 @@ k8s = ["dep:kube"]
             "    deps = [\"third-party//:kube\"],\n",
             "    # no matching close — block is intentionally unterminated\n",
         );
-        // find_block_end must return None for an unterminated block.
-        let end = find_block_end(buck);
-        assert!(
-            end.is_none(),
-            "H6: unterminated BUCK block (stray '(' in comment with no real close) must return None: {end:?}"
-        );
-        // remove_buck_dep_line is refusal-only — always Ok(false), file unchanged.
-        // Use a temp file in std::env::temp_dir() (no tempfile crate needed).
+        // Detector: fail-closed — the unparseable text is raw-scanned, kube still surfaces.
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(deps.contains("kube"), "H6: detector must over-approximate, never hide: {deps:?}");
+        // Remover: refusal — Ok(false), file byte-identical.
         let tmp_path = std::env::temp_dir().join("h6_test_buck_file.BUCK");
         std::fs::write(&tmp_path, buck).unwrap();
         let original = std::fs::read(&tmp_path).unwrap();
         let result = remove_buck_dep_line(&tmp_path, "kube");
         assert!(result.is_ok(), "H6: remove_buck_dep_line must not error: {result:?}");
-        assert!(!result.unwrap(), "H6: remove_buck_dep_line must return false (refusal-only)");
+        assert!(!result.unwrap(), "H6: remove_buck_dep_line must refuse unsound input");
         let after = std::fs::read(&tmp_path).unwrap();
-        assert_eq!(original, after, "H6: file must be byte-identical after refusal-only remove_buck_dep_line");
+        assert_eq!(original, after, "H6: file must be byte-identical after refusal");
         let _ = std::fs::remove_file(&tmp_path);
     }
 
     // --------------------------------------------------------------------------
-    // MED-4: find_block_end handles indented closing parens
+    // ADR-0549: the sound BUCK remover (closes FRIC-1781200001)
     // --------------------------------------------------------------------------
 
     #[test]
-    fn find_block_end_handles_indented_closing_paren() {
-        // A rust_library block whose `)` is indented (not at column 0) must still be found by the
-        // depth-counting implementation. The old column-0 assumption would have returned None here.
-        let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:serde\",\n    ],\n    )\n";
-        // find_block_end works on the whole block starting from "rust_library(".
-        let end = find_block_end(buck);
-        assert!(end.is_some(), "depth-counting must find the end even with indented ')': {end:?}");
-        assert!(end.unwrap() <= buck.len());
-        // The span must not swallow subsequent blocks: pinned through the PRODUCTION extractor —
-        // an indented-close rust_library followed by a rust_test must yield only the library dep.
-        let buck2 = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\"],\n    )\nrust_test(\n    name = \"y\",\n    deps = [\"third-party//:kube\"],\n)\n";
-        let deps = extract_buck_library_thirdparty_deps(buck2);
-        assert!(deps.contains("serde"), "library dep extracted: {deps:?}");
+    fn buck_remover_removes_dead_edge_soundly_even_with_comments() {
+        // The shape ADR-0547 D6 refused: a comment-bearing deps list. The kernel-backed remover
+        // deletes exactly the kube element, preserves every sibling dep + the rust_test block,
+        // and the result reparses green.
+        let buck = concat!(
+            "rust_library(\n",
+            "    name = \"fake-kernel\",\n",
+            "    # transient deps below — 1) kube must go\n",
+            "    deps = [\n",
+            "        \"third-party//:kube\",\n",
+            "        \"third-party//:serde\",\n",
+            "    ],\n",
+            ")\n",
+            "\n",
+            "rust_test(\n",
+            "    name = \"fake-kernel-unittest\",\n",
+            "    deps = [\"third-party//:kube\"],\n",
+            ")\n",
+        );
+        let tmp_path = std::env::temp_dir().join("oya-kp-buck-remover-sound.BUCK");
+        std::fs::write(&tmp_path, buck).unwrap();
+        let result = remove_buck_dep_line(&tmp_path, "kube");
+        assert_eq!(result, Ok(true), "sound removal must apply");
+        let after = std::fs::read_to_string(&tmp_path).unwrap();
+        let lib_deps = extract_buck_library_thirdparty_deps(&after);
+        assert!(!lib_deps.contains("kube"), "kube edge removed: {after}");
+        assert!(lib_deps.contains("serde"), "serde survives: {after}");
         assert!(
-            !deps.contains("kube"),
-            "rust_test dep must NOT be swallowed by the indented-close library span: {deps:?}"
+            after.contains("rust_test") && after.matches("third-party//:kube").count() == 1,
+            "the rust_test kube edge is out of scope and must survive: {after}"
+        );
+        let _ = std::fs::remove_file(&tmp_path);
+    }
+
+    #[test]
+    fn buck_remover_refuses_unmodeled_deps_shapes() {
+        // deps via a variable / select(): the label is present but not a plain list element —
+        // the remover must refuse rather than guess.
+        let via_var = "DEPS = [\"third-party//:kube\"]\nrust_library(\n    name = \"x\",\n    deps = DEPS,\n)\n";
+        assert_eq!(remove_buck_dep_edges_text(via_var, "kube"), None, "var-carried dep must refuse");
+        let via_select = "rust_library(\n    name = \"x\",\n    deps = select({\"cfg\": [\"third-party//:kube\"]}),\n)\n";
+        assert_eq!(remove_buck_dep_edges_text(via_select, "kube"), None, "select-carried dep must refuse");
+        let absent = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\"],\n)\n";
+        assert_eq!(remove_buck_dep_edges_text(absent, "kube"), None, "absent dep is a no-op refusal");
+    }
+
+    #[test]
+    fn buck_remover_is_token_exact_against_prefix_sibling_deps() {
+        // `kube` must be removable even when `kube-runtime` sits in the same list: the residual
+        // check is token-boundary exact, so the longer sibling neither matches nor false-refuses.
+        let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:kube\",\n        \"third-party//:kube-runtime\",\n    ],\n)\n";
+        let out = remove_buck_dep_edges_text(buck, "kube").expect("kube removal must not be blocked by kube-runtime");
+        assert!(!contains_dep_token(&out, "third-party//:kube"), "kube gone: {out}");
+        assert!(out.contains("third-party//:kube-runtime"), "kube-runtime survives: {out}");
+        // And removing a dep that is ONLY present as a longer sibling refuses (absent token).
+        let only_runtime = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube-runtime\"],\n)\n";
+        assert_eq!(remove_buck_dep_edges_text(only_runtime, "kube"), None, "prefix sibling alone is not the dep");
+    }
+
+    // --------------------------------------------------------------------------
+    // MED-4: indented closing parens do not swallow subsequent blocks
+    // --------------------------------------------------------------------------
+
+    #[test]
+    fn indented_closing_paren_does_not_swallow_following_block() {
+        // A rust_library block whose `)` is indented (not at column 0) must end exactly there.
+        // Pinned through the PRODUCTION extractor — an indented-close rust_library followed by a
+        // rust_test must yield only the library dep.
+        let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:serde\",\n    ],\n    )\n";
+        let deps = extract_buck_library_thirdparty_deps(buck);
+        assert!(deps.contains("serde"), "indented-close block parses: {deps:?}");
+        let buck2 = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\"],\n    )\nrust_test(\n    name = \"y\",\n    deps = [\"third-party//:kube\"],\n)\n";
+        let deps2 = extract_buck_library_thirdparty_deps(buck2);
+        assert!(deps2.contains("serde"), "library dep extracted: {deps2:?}");
+        assert!(
+            !deps2.contains("kube"),
+            "rust_test dep must NOT be swallowed by the indented-close library span: {deps2:?}"
         );
     }
 }
