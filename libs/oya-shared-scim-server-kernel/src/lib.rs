@@ -146,7 +146,12 @@ pub struct User {
     pub user_name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<UserName>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "displayName",
+        alias = "display_name",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub display_name: Option<String>,
     #[serde(default)]
     pub active: bool,
@@ -341,21 +346,46 @@ impl Default for ListQuery {
     }
 }
 
+/// Inbound create/replace User payload. Wire shape is RFC 7644 camelCase —
+/// real SCIM clients (Okta, Entra, Workspace) send `userName`/`externalId`/
+/// `displayName` and the extension URNs, matching what [`User`] responses
+/// serialize. The snake_case `alias`es keep pre-RFC-shape callers working
+/// (backward compatibility only; new clients must send camelCase).
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NewUser {
+    #[serde(rename = "userName", alias = "user_name")]
     pub user_name: String,
+    #[serde(rename = "externalId", alias = "external_id", default)]
     pub external_id: Option<String>,
+    #[serde(default)]
     pub name: Option<UserName>,
+    #[serde(rename = "displayName", alias = "display_name", default)]
     pub display_name: Option<String>,
+    #[serde(default)]
     pub active: bool,
+    #[serde(default)]
     pub emails: Vec<Email>,
+    #[serde(
+        rename = "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
+        alias = "enterprise",
+        default
+    )]
     pub enterprise: Option<EnterpriseExtension>,
+    #[serde(
+        rename = "urn:oyatie:scim:extension:2.0:User",
+        alias = "oyatie",
+        default
+    )]
     pub oyatie: Option<OyatieExtension>,
 }
 
+/// Inbound create Group payload (RFC 7644 camelCase, snake_case alias kept
+/// for backward compatibility — see [`NewUser`]).
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NewGroup {
+    #[serde(rename = "displayName", alias = "display_name")]
     pub display_name: String,
+    #[serde(default)]
     pub members: Vec<GroupMembership>,
 }
 
