@@ -264,7 +264,19 @@ indefinitely (cold-rebuild runaway/exhaustion). The rail bounds it at **≈4x** 
 warm full run (4m35s cold / 5m45s incl. tests, lines 56-58) — it fires only on a genuine runaway,
 never on a healthy cold build.
 
-### D8 — Cross-run baseline consumption (DEFERRED, design-of-record, superseded-on-arrival by warm-CAS)
+### D8 — Cross-run baseline consumption (SUPERSEDED BY D9; was DEFERRED design-of-record)
+
+> **SUPERSEDED BY D9 (round-5, 2026-06-13).** D8's cross-run report-artifact CONSUMER is **not to
+> be built.** D9 makes the same-root merge-base baseline build SHARE the warm `./buck-out`, so the
+> baseline build is itself near-fully a buck2 cache hit — there is no cold out-of-band rebuild left
+> to amortize by downloading a prior report. Warming the BUILD directly is more fundamental than
+> reusing its REPORT: the report consumer only avoided recomputing the verdict, whereas D9 avoids
+> the recompute COST while keeping the verdict computed fresh from the merge-base tree (so no
+> provenance-trust machinery — the 3-clause filter, job-scoped `actions: read`, conformance gate —
+> is needed at all). D8's only surviving role is historical: if D9's warm `./buck-out` proves
+> insufficient AND warm-CAS (ADR-0560) slips, the hardened recipe below is the fallback. The cutover
+> note (e) still holds: warm-CAS deletes any interim cross-run apparatus. The text below is retained
+> as design-of-record for that contingency only.
 
 The D7 producer emits the trusted baseline; a future PR FULL tier could **download** the
 merge-base's dev-pushed baseline cross-run instead of recomputing it in the cold out-of-band
@@ -311,3 +323,85 @@ reworked**, at warm-CAS bring-up: a content-addressed shared cache (ADR-0560) ma
 build a cache hit, so there is no artifact to download. D8 is therefore marked
 **superseded-on-arrival by the warm-CAS consumer** — implement it only if warm-CAS slips and the
 cross-run baseline is needed in the interim.
+
+### D9 — Warm the build-health baseline via same-root merge-base build + dev-push-sole-writer cache split (round-5)
+
+**This SUPERSEDES D8** (the cross-run report-artifact CONSUMER — do **not** build it). Two changes
+ship together; both warm the buck2 CI cache without touching what the gates DECIDE.
+
+**The `~/.buck2`-warms-nothing evidence (do not cargo-cult global-state caching).** 100% of buck2's
+cross-run warmth lives in `./buck-out`: `buck-out/v2/cache/{materializer_state,incremental_state}/db.sqlite`
+(the materializer + dep-file/incremental state) plus `buck-out/v2/art` (the materialized action
+outputs). `buck-out` is **path-relocatable** — it stores relative paths, the build uses
+`--remap-cwd-prefix=.`, and no absolute project root is baked in, so a restored hit is keyed only on
+`buck2_revision + os + arch` and is sound to drop into any runner checkout. `~/.buck2` and `~/.buck`
+hold **only** daemon pid/endpoint/log scratch — **zero action results** — so caching them warms
+nothing. The cache step therefore caches `path: buck-out` and DELIBERATELY does not cache
+`~/.buck2`/`~/.buck`. (The earlier workflow comment claiming the cache step "warms … the buck2
+daemon cache" was FALSE and is corrected in-PR.)
+
+**1. Same-root merge-base baseline build (Option A — the hotspot win).** Before D9, the PR FULL
+tier's build-health baseline (D6) was built in a SEPARATE `${RUNNER_TEMP}` git worktree. A separate
+worktree is a **different project root → a different `buck-out` → a cold full-graph rebuild on every
+FULL-tier PR** — the measured hotspot. D9 builds the merge-base baseline **in the main working root**
+so it shares the `./buck-out` restored at the top of the job (and the merge-base IS a dev commit, so
+the dev-keyed `buck-out` is near-fully warm for it). Mechanically, in one workflow `run:` step:
+
+1. `merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"` — `BASE_REF` as before; git object
+   history is candidate-uncontrollable.
+2. `orig_ref="$(git rev-parse HEAD)"` — record the candidate.
+3. A TRAP that ALWAYS restores the candidate:
+   `trap 'git checkout --quiet --detach "${orig_ref}" 2>/dev/null || git checkout --quiet "${orig_ref}"' EXIT`
+   — a failed baseline build can NEVER strand CI on the merge-base tree (GitHub runs each step in a
+   fresh shell, so EXIT fires at the END of THIS step, guaranteeing the candidate tree is intact
+   before the Binding affected-set step starts).
+4. `git checkout --quiet --detach "${merge_base}"` — materializes the merge-base COMMITTED tree-ish
+   in the main root; the candidate working tree leaves disk for the build. (Verified safe: the
+   `materialize` boundary step regenerates the tracked `*.generated.json` faces byte-identical to
+   the candidate's committed bytes — the registry-drift invariant — so there are no uncommitted
+   tracked changes for the checkout to conflict on.)
+5. `buck2 build //... --keep-going --build-report "${RUNNER_TEMP}/build-health-baseline.json" || true`
+   — shares `./buck-out`, near-fully warm; the non-zero exit (dev carries pre-existing breakage) is
+   the baseline, never propagated.
+6. The fail-closed guard is kept VERBATIM: `test -s "${RUNNER_TEMP}/build-health-baseline.json" || { … exit 1; }`
+   — an empty baseline would grandfather every head failure, so the lane fails rather than false-green.
+7. The trap restores the candidate on EXIT; the unchanged Binding affected-set step consumes
+   `--baseline-report "${RUNNER_TEMP}/build-health-baseline.json"` on the candidate tree.
+
+The `${RUNNER_TEMP}` worktree machinery (`git worktree add/remove`, `base_wt`) is **deleted
+entirely**. Requires `fetch-depth: 0` on `gate-affected-set` (already present).
+
+**Anti-laundering proof (D6 preserved; only wall-clock changes).** The baseline failure-set comes
+ENTIRELY from the merge-base COMMITTED tree (git object history — candidate-uncontrollable). During
+the baseline build the candidate working tree is GONE from disk (detached to the merge-base), so it
+cannot feed the baseline. The report reaches the verdict ONLY via `--baseline-report`. Warmth changes
+only the **content-addressed cache substrate** — a buck2 hit is **bit-identical** to a cold build
+(ADR-0556 D1/D2) — never the baseline SOURCE. So the #698 F1 laundering defense and the D6 soundness
+argument hold unchanged; only the wall-clock cost of computing the baseline drops. Warm-eligible
+under ADR-0556 **without a policy change**: trusted-author, content-addressed input; this is NOT the
+integrity-canary or the release cold floor.
+
+**2. Save/restore split — dev-push is the SOLE canonical writer.** Both `Cache buck-out` steps (the
+`buck2` lane and the `gate-affected-set` lane) split the symmetric `actions/cache@<pin>` into:
+- `actions/cache/restore@<pin>` on EVERY leg (same `path: buck-out`, same stable key
+  `buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig','toolchains/BUCK','Cargo.lock') }}`, same
+  `restore-keys`), and
+- `actions/cache/save@<pin>` at the END of the `buck2` job's build steps, GUARDED
+  `if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}`.
+
+`save` and `restore` are subpaths of the SAME pinned release commit
+`27d5ce7f107fe9357f9df03efb73ab90386fccae` (verified: `save/action.yml` and `restore/action.yml`
+both resolve at the pin; actions/cache v4+/v5 ship them). The **stable per-dependency-set key is
+kept** — NO `github.sha` suffix (that suffix was the FRIC-017 multi-GB bloat/eviction: a unique key
+every commit forced a fresh full-`buck-out` SAVE on every run and never a primary-key hit, exhausting
+runner disk with "No space left on device"). This maps onto `specs/cache-warmth-policy.json`: the
+push-to-dev SAVE is the **`postmerge-dev-trunk`** class (the canonical trusted populator,
+Bazel/Google post-merge-fills-the-cache pattern — trunk content is admitted by definition), and every
+PR RESTORE is the **`presubmit-trusted-affected-cone`** class (read-only: only genuinely changed
+actions miss). dev-push as sole writer, PRs read-only, cuts the multi-GB write-churn/eviction.
+
+**Cutover.** NativeLink CAS (ADR-0560) deletes this entire interim at bring-up: a content-addressed
+shared cache makes the merge-base build a remote cache hit with no per-runner `buck-out` to save or
+restore, so the save/restore split and the same-root baseline warming both collapse into the CAS
+fetch (cutover-litmus: the trait/port shape does not change — this is a transient runner-local
+substrate, absorbed by the adapter at cutover). Tracked under FRIC-1781070457 (buck2-no-shared-cache).
