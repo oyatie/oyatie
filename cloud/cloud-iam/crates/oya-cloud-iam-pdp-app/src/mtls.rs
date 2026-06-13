@@ -238,53 +238,64 @@ mod tests {
     use super::*;
     use oya_cloud_os_trustd_domain::ca::{CertificateAuthority, CertificateSigningRequest};
     use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
+    use oya_cloud_os_trustd_domain::der;
     use oya_cloud_os_trustd_domain::service::{CertificateRequest, SecurityService};
-    use oya_cloud_os_trustd_domain::signer::InMemorySigner;
+    use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
     use oya_cloud_os_trustd_domain::x509::KeyPair;
     use oya_cloud_os_trustd_domain::JoinToken;
-    use oya_identity_workload_svid_trustd_adapter::leaf_codec;
 
     const JOIN_TOKEN: &str = "clusterid.clustersecret";
 
-    fn ca(seed: &str, name: &str) -> CertificateAuthority<InMemorySigner> {
-        CertificateAuthority::bootstrap(
-            name,
-            KeyPair::from_seed(seed.as_bytes()),
-            InMemorySigner::from_seed(seed),
-            1_000,
-            10_000_000,
-        )
-        .unwrap()
+    /// A REAL-crypto trustd CA: an `EcdsaP256Signer` plus a trustd `Certificate`
+    /// whose `public_key_der` is the CA's real SubjectPublicKeyInfo (so the bundle
+    /// anchor verifies real leaf signatures, slice-1b-i).
+    fn ca(name: &str) -> (CertificateAuthority<EcdsaP256Signer>, EcdsaP256Signer) {
+        let signer = EcdsaP256Signer::generate().unwrap();
+        let key = KeyPair::new(signer.private_key_der(), signer.public_key_spki_der());
+        let ca = CertificateAuthority::bootstrap(name, key, signer.clone(), 1_000, 10_000_000)
+            .unwrap();
+        (ca, signer)
     }
 
-    fn service() -> SecurityService<InMemorySigner> {
-        SecurityService::new(JoinToken::new(JOIN_TOKEN).unwrap(), ca("ca-seed", "oyatie-cell-7-ca"))
+    /// A trustd service backed by the real CA, plus the CA signer for minting.
+    fn service() -> (SecurityService<EcdsaP256Signer>, EcdsaP256Signer) {
+        let (ca, signer) = ca("oyatie-cell-7-ca");
+        (SecurityService::new(JoinToken::new(JOIN_TOKEN).unwrap(), ca), signer)
     }
 
-    fn trusted_bundle(svc: &SecurityService<InMemorySigner>) -> TrustBundle<InMemorySigner> {
+    fn trusted_bundle(
+        svc: &SecurityService<EcdsaP256Signer>,
+        ca_signer: &EcdsaP256Signer,
+    ) -> TrustBundle<EcdsaP256Signer> {
         let mut bundle = TrustBundle::new();
         bundle
-            .add_anchor(svc.ca_certificate().clone(), InMemorySigner::from_seed("ca-seed"))
+            .add_anchor(svc.ca_certificate().clone(), ca_signer.clone())
             .unwrap();
         bundle
     }
 
-    /// Issue a real (trusted) workload SVID leaf with the given SPIFFE uri.
-    fn issue_leaf(svc: &mut SecurityService<InMemorySigner>, uri: &str) -> Vec<u8> {
-        let key = KeyPair::from_seed(uri.as_bytes());
+    /// Issue a real (trusted) workload SVID leaf — REAL X.509 DER — for `uri`.
+    fn issue_leaf(
+        svc: &mut SecurityService<EcdsaP256Signer>,
+        ca_signer: &EcdsaP256Signer,
+        uri: &str,
+    ) -> Vec<u8> {
+        let wl = EcdsaP256Signer::generate().unwrap();
+        let key = KeyPair::new(wl.private_key_der(), wl.public_key_spki_der());
         let csr = CertificateSigningRequest::for_workload("wl", uri, &key, 3_600);
         let req = CertificateRequest {
             join_token: JOIN_TOKEN.to_string(),
             csr,
         };
         let resp = svc.handle_certificate(&req, &key, 2_000).unwrap();
-        leaf_codec::encode(&resp.identity.certificate)
+        der::encode_leaf_der(&resp.identity.certificate, &wl, svc.ca_certificate(), ca_signer)
+            .unwrap()
     }
 
     // RED-fixture: boot_refuses_without_trust_bundle.
     #[test]
     fn boot_refuses_without_trust_bundle() {
-        let empty: TrustBundle<InMemorySigner> = TrustBundle::new();
+        let empty: TrustBundle<EcdsaP256Signer> = TrustBundle::new();
         assert_eq!(
             SpiffeCallerAuth::new(&empty).map(|_| ()).unwrap_err(),
             MtlsBootError::TrustBundleEmpty
@@ -294,8 +305,8 @@ mod tests {
     // RED-fixture: no_client_cert_denied.
     #[test]
     fn no_client_cert_denied() {
-        let svc = service();
-        let bundle = trusted_bundle(&svc);
+        let (svc, ca_signer) = service();
+        let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep.authenticate_caller(None, "ten_acme", 2_500).unwrap_err();
         assert_eq!(rej, CallerAuthRejection::NoClientCert);
@@ -306,19 +317,23 @@ mod tests {
     // RED-fixture: forged_svid_rejected (untrusted-issuer leaf → PermissionDenied).
     #[test]
     fn forged_svid_rejected() {
-        let svc = service();
-        let bundle = trusted_bundle(&svc);
+        let (svc, ca_signer) = service();
+        let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
-        // Mint from a ROGUE CA that the bundle does not trust.
-        let mut rogue = ca("rogue", "rogue-ca");
-        let key = KeyPair::from_seed(b"evil");
+        // Mint a REAL leaf from a ROGUE real CA the bundle does not trust; the
+        // verifier rejects it on real SIGNATURE verification, not a name check.
+        let (mut rogue, rogue_signer) = ca("rogue-ca");
+        let wl = EcdsaP256Signer::generate().unwrap();
+        let key = KeyPair::new(wl.private_key_der(), wl.public_key_spki_der());
         let csr = CertificateSigningRequest::for_workload(
             "evil",
             "spiffe://oyatie.cell-7/tenant/ten_acme/evil",
             &key,
             3_600,
         );
-        let forged = leaf_codec::encode(&rogue.sign_csr(&csr, 2_000).unwrap());
+        let leaf = rogue.sign_csr(&csr, 2_000).unwrap();
+        let forged =
+            der::encode_leaf_der(&leaf, &wl, rogue.certificate(), &rogue_signer).unwrap();
         let rej = pep
             .authenticate_caller(Some(&forged), "ten_acme", 2_500)
             .unwrap_err();
@@ -329,9 +344,9 @@ mod tests {
     // RED-fixture: expired_svid_denied.
     #[test]
     fn expired_svid_denied() {
-        let mut svc = service();
-        let leaf = issue_leaf(&mut svc, "spiffe://oyatie.cell-7/tenant/ten_acme/wl"); // [2000,5600)
-        let bundle = trusted_bundle(&svc);
+        let (mut svc, ca_signer) = service();
+        let leaf = issue_leaf(&mut svc, &ca_signer, "spiffe://oyatie.cell-7/tenant/ten_acme/wl"); // [2000,5600)
+        let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
             .authenticate_caller(Some(&leaf), "ten_acme", 6_000)
@@ -343,10 +358,14 @@ mod tests {
     // RED-fixture: tenant_binding_enforced (THE #717 closure).
     #[test]
     fn tenant_binding_enforced() {
-        let mut svc = service();
+        let (mut svc, ca_signer) = service();
         // SVID authorizes ten_acme.
-        let leaf = issue_leaf(&mut svc, "spiffe://oyatie.cell-7/tenant/ten_acme/secrets-sync");
-        let bundle = trusted_bundle(&svc);
+        let leaf = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-7/tenant/ten_acme/secrets-sync",
+        );
+        let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
 
         // Matching tenant → ALLOW, and the bound tenant is the SVID's.
@@ -373,8 +392,9 @@ mod tests {
     // CA-capable leaf is never minted as a workload SVID (ca.rs approve()).
     #[test]
     fn issuance_policy_rejects_ca_leaf() {
-        let mut svc = service();
-        let key = KeyPair::from_seed(b"evil-ca");
+        let (mut svc, _ca_signer) = service();
+        let wl = EcdsaP256Signer::generate().unwrap();
+        let key = KeyPair::new(wl.private_key_der(), wl.public_key_spki_der());
         let mut csr = CertificateSigningRequest::for_workload(
             "evil",
             "spiffe://oyatie.cell-7/platform/evil",
@@ -395,9 +415,9 @@ mod tests {
     // A platform SVID is rejected when it tries to act as a tenant.
     #[test]
     fn platform_svid_cannot_act_as_tenant() {
-        let mut svc = service();
-        let leaf = issue_leaf(&mut svc, "spiffe://oyatie.cell-7/platform/cloud-iam-pdp");
-        let bundle = trusted_bundle(&svc);
+        let (mut svc, ca_signer) = service();
+        let leaf = issue_leaf(&mut svc, &ca_signer, "spiffe://oyatie.cell-7/platform/cloud-iam-pdp");
+        let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
             .authenticate_caller(Some(&leaf), "ten_acme", 2_500)
@@ -409,9 +429,9 @@ mod tests {
     // A malformed request-body tenant is rejected (never reaches the SVID body).
     #[test]
     fn malformed_request_tenant_denied() {
-        let mut svc = service();
-        let leaf = issue_leaf(&mut svc, "spiffe://oyatie.cell-7/tenant/ten_acme/wl");
-        let bundle = trusted_bundle(&svc);
+        let (mut svc, ca_signer) = service();
+        let leaf = issue_leaf(&mut svc, &ca_signer, "spiffe://oyatie.cell-7/tenant/ten_acme/wl");
+        let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
             .authenticate_caller(Some(&leaf), "not-a-tenant", 2_500)
@@ -422,30 +442,33 @@ mod tests {
     // An undecodable leaf is an untrusted DENY, never a panic or fall-through.
     #[test]
     fn garbage_leaf_is_untrusted_deny() {
-        let svc = service();
-        let bundle = trusted_bundle(&svc);
+        let (svc, ca_signer) = service();
+        let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
-            .authenticate_caller(Some(b"garbage-not-a-leaf"), "ten_acme", 2_500)
+            .authenticate_caller(Some(b"garbage-not-a-real-der-leaf"), "ten_acme", 2_500)
             .unwrap_err();
         assert!(matches!(rej, CallerAuthRejection::UntrustedSvid { .. }));
     }
 
-    // Belt-and-suspenders: a node cert (no URI SAN) from the TRUSTED CA is still
-    // rejected — chain-valid is necessary but not sufficient; a SPIFFE identity
-    // must be present.
+    // Belt-and-suspenders: a node cert (no URI SAN) from the TRUSTED CA, minted as
+    // REAL DER, is still rejected — chain-valid is necessary but not sufficient; a
+    // SPIFFE identity must be present.
     #[test]
     fn trusted_but_non_svid_leaf_denied() {
-        let mut svc = service();
-        let key = KeyPair::from_seed(b"node");
+        let (mut svc, ca_signer) = service();
+        let node = EcdsaP256Signer::generate().unwrap();
+        let key = KeyPair::new(node.private_key_der(), node.public_key_spki_der());
         let csr = CertificateSigningRequest::for_node("node-1", &key, CertUsage::ClientAuth, 3_600);
         let req = CertificateRequest {
             join_token: JOIN_TOKEN.to_string(),
             csr,
         };
         let resp = svc.handle_certificate(&req, &key, 2_000).unwrap();
-        let leaf: Vec<u8> = leaf_codec::encode(&resp.identity.certificate);
-        let bundle = trusted_bundle(&svc);
+        let leaf =
+            der::encode_leaf_der(&resp.identity.certificate, &node, svc.ca_certificate(), &ca_signer)
+                .unwrap();
+        let bundle = trusted_bundle(&svc, &ca_signer);
         let pep = SpiffeCallerAuth::new(&bundle).unwrap();
         let rej = pep
             .authenticate_caller(Some(&leaf), "ten_acme", 2_500)
@@ -456,7 +479,7 @@ mod tests {
     // Compile-time-ish guard: a verified Certificate value is reachable through
     // the typed verifier core too (used by future in-process PEP wiring).
     #[allow(dead_code)]
-    fn _typed_core_is_reachable(cert: &Certificate, bundle: &TrustBundle<InMemorySigner>) {
+    fn _typed_core_is_reachable(cert: &Certificate, bundle: &TrustBundle<EcdsaP256Signer>) {
         let v = TrustdSvidVerifier::new(bundle);
         let _ = v.verify_certificate(cert, 0);
     }

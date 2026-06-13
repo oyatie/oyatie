@@ -426,6 +426,24 @@ hmac = "0.12"
 sha2 = "0.10"
 subtle = "2.6"
 
+# Real X.509 issuance (rcgen) + parsing (x509-parser) for the workload-identity
+# X.509-SVID trust substrate (G002 slice-1b-i; ADR-0561, ADR-0506). BOTH are
+# pinned onto the aws-lc-rs crypto backend and FORBIDDEN from pulling ring:
+#   - rcgen default-features pull ring, so default-features=false + the aws_lc_rs
+#     feature selects AWS-LC (ADR-0506). pem = base64 PEM serialization;
+#     x509-parser = Issuer::from_ca_cert_pem support (unused here but feature-gated
+#     off the default path stays ring-free).
+#   - x509-parser's `verify` feature uses ring; `verify-aws` uses aws-lc-rs. We
+#     enable ONLY verify-aws so signature verification stays on AWS-LC with NO ring.
+# The kernel-purity gate + the no-ring dep-tree check both reject a ring edge.
+rcgen = { version = "0.14", default-features = false, features = ["aws_lc_rs", "pem"] }
+x509-parser = { version = "0.18", default-features = false, features = ["verify-aws"] }
+# `time` is rcgen's validity-window type (CertificateParams::not_before/not_after
+# are time::OffsetDateTime); rcgen does not re-export it, so the trustd domain
+# pins it at the workspace seam to convert its unix-seconds Validity. No default
+# features (no std formatting machinery beyond what we use).
+time = { version = "0.3", default-features = false }
+
 # Dedup baseline added 2026-05-15 (audit item #6: "workspace.dependencies has
 # 7 entries total; the dedup table you wrote a workspace for is empty for all
 # the deps that need deduping"). Versions chosen to satisfy the highest pin

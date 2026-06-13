@@ -150,6 +150,40 @@ testable without K8s. The following are explicitly deferred and design-of-record
 - **Per-cell sealing-root CA rooting**, **SPIRE node-attestation depth**, **mesh-wide rollout**, and
   the **cloud-kms signer swap**.
 
+### D5-bis — Slice-1b split: 1b-i (trustd REAL X.509) landed; 1b-ii (PDP rustls) still deferred
+
+The original D5 bundled "real crypto" with the rustls transport cutover. Implementation experience
+split the deferral into two independently-shippable slices, and **slice-1b-i is now delivered**
+(FRIC-1781510000) while **slice-1b-ii remains deferred** (FRIC-1781490000 stays `queued`):
+
+- **Slice-1b-i — trustd REAL X.509 (DELIVERED):** the trustd CA now mints **real** X.509 — a real
+  ECDSA-P256 key pair (`rcgen` on the `aws-lc-rs` backend, ADR-0506; **ring FORBIDDEN** — `rcgen`'s
+  default features pull ring, so it is configured `default-features = false` + the `aws_lc_rs`
+  feature, and `x509-parser` is on `verify-aws`, NOT the ring-backed `verify`; the dep tree carries
+  **no ring**) and a real ASN.1 DER `TBSCertificate` built from the existing `Certificate` fields,
+  including the SPIFFE id as a real `uniformResourceIdentifier` `GeneralName`. The **`SigningBackend`
+  trait is unchanged** — a new `EcdsaP256Signer` implements it, the in-memory keyed-hash signer is
+  retained only for the shape-model unit tests, and issuance output is now real DER. The
+  **URI-SAN-signature-bound invariant** is preserved by construction: `rcgen` signs the whole
+  `TBSCertificate`, so the SPIFFE URI is inside the real signature exactly as it was inside the
+  shape-model `tbs_bytes` — a post-issuance URI tamper breaks a **real signature**, not a MAC. The
+  **SVID adapter** swaps its TSV1 `leaf_codec` stand-in for **real leaf-DER parsing via
+  `x509-parser`** (parse the leaf, extract the single URI SAN → `SpiffeId`, verify the real signature
+  against the trust-bundle CA's `SubjectPublicKeyInfo`, check validity). The **SVID kernel ports and
+  `bind_caller_tenant` are byte-unchanged** (cutover litmus: only the trustd signer + the adapter
+  codec gained real crypto; the kernel/port shapes that model the W5 destination did not move).
+
+- **Slice-1b-ii — PDP rustls mTLS wiring (STILL DEFERRED):** the live transport — a rustls
+  `ServerConfig` requiring + verifying a client cert on the PDP listeners, a custom
+  `ClientCertVerifier`, and the `server.rs`/`grpc.rs` wiring invoking `SpiffeCallerAuth` in place of
+  the verbatim `request.tenant_id` — plus the cloud-kms signer swap, remain deferred. The live PDP is
+  **still plain-TCP**, so **FRIC-1781490000 is NOT closed by slice-1b-i** and stays `queued`; a
+  consumer must not treat the PDP as cryptographically tenant-authenticated until 1b-ii lands.
+
+The `SigningBackend` cutover seam (D4) is now exercised by a real asymmetric backend, confirming the
+seam shape was already correct: the CA, `TrustBundle`, `SecurityService`, and the kernel ports did
+not change when `InMemorySigner` was replaced by `EcdsaP256Signer` for production issuance.
+
 ## Threat model (all fail-closed)
 
 - **Spoofing (tenant impersonation, the #717 root)**: a caller asserts `tenant_id` it does not own.
@@ -205,6 +239,20 @@ membership (cargo-members). The trustd X.509 extension
 (cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/x509.rs,
 .../src/certificate.rs, .../src/ca.rs) amends already-accounted files in place
 and carries no new accounting rows.
+
+Slice-1b-i (FRIC-1781510000) adds two new source files, both inside
+already-accounted crate directories (owned + reachable via cargo-members, so they
+inherit their crate's OWNERS and need no new owner row):
+
+- cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/der.rs — real ASN.1 DER
+  issuance (rcgen on the aws-lc-rs backend).
+- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/leaf_der.rs —
+  real leaf-DER parsing + signature verification (x509-parser, verify-aws).
+
+The retired oya-identity-workload-svid-trustd-adapter/src/leaf_codec.rs (the TSV1
+shape-model stand-in) is removed in the same change; its accounting row is
+retired with it. The new third-party deps (rcgen, x509-parser, time) ride the
+reindeer-generated third-party/BUCK and the workspace Cargo.toml/Cargo.lock.
 
 ## Consequences
 
