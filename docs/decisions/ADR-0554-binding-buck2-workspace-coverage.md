@@ -381,24 +381,32 @@ argument hold unchanged; only the wall-clock cost of computing the baseline drop
 under ADR-0556 **without a policy change**: trusted-author, content-addressed input; this is NOT the
 integrity-canary or the release cold floor.
 
-**2. Save/restore split — dev-push is the SOLE canonical writer.** Both `Cache buck-out` steps (the
-`buck2` lane and the `gate-affected-set` lane) split the symmetric `actions/cache@<pin>` into:
-- `actions/cache/restore@<pin>` on EVERY leg (same `path: buck-out`, same stable key
-  `buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig','toolchains/BUCK','Cargo.lock') }}`, same
-  `restore-keys`), and
-- `actions/cache/save@<pin>` at the END of the `buck2` job's build steps, GUARDED
-  `if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}`.
+**2. Save/restore split — `gate-affected-set` dev-push is the SOLE canonical FULL-GRAPH writer.**
+Both `Cache buck-out` steps (the `buck2` lane and the `gate-affected-set` lane) split the symmetric
+`actions/cache@<pin>` into `actions/cache/restore@<pin>` on EVERY leg (same `path: buck-out`, same
+stable key, same `restore-keys`). The single `actions/cache/save@<pin>` lives in the
+`gate-affected-set` job, placed AFTER the "Binding affected-set" step, GUARDED
+`if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}`.
+
+**Why `gate-affected-set`, not `buck2`.** On dev-push the `gate-affected-set` job runs `--mode full`
+(`buck2 build //... + buck2 test //...`), so its `buck-out` is populated with the **full workspace
+graph** after that step completes. The `buck2` lane builds only `//cloud/cloud-ci/...` (a subset).
+Saving the full-graph `buck-out` means every subsequent PR's `gate-affected-set` restore gets a
+full-graph superset — so the same-root merge-base baseline build is **near-fully-warm** (the
+merge-base IS a recent dev commit whose full-graph `buck-out` was just saved). The `buck2` PR lane
+restores the same key and is a subset hit — no warmth lost, no two-writer race. The `buck2` job is
+read-only on every trigger.
 
 `save` and `restore` are subpaths of the SAME pinned release commit
-`27d5ce7f107fe9357f9df03efb73ab90386fccae` (verified: `save/action.yml` and `restore/action.yml`
-both resolve at the pin; actions/cache v4+/v5 ship them). The **stable per-dependency-set key is
-kept** — NO `github.sha` suffix (that suffix was the FRIC-017 multi-GB bloat/eviction: a unique key
-every commit forced a fresh full-`buck-out` SAVE on every run and never a primary-key hit, exhausting
-runner disk with "No space left on device"). This maps onto `specs/cache-warmth-policy.json`: the
-push-to-dev SAVE is the **`postmerge-dev-trunk`** class (the canonical trusted populator,
-Bazel/Google post-merge-fills-the-cache pattern — trunk content is admitted by definition), and every
-PR RESTORE is the **`presubmit-trusted-affected-cone`** class (read-only: only genuinely changed
-actions miss). dev-push as sole writer, PRs read-only, cuts the multi-GB write-churn/eviction.
+`27d5ce7f107fe9357f9df03efb73ab90386fccae` (verified: both `save/action.yml` and `restore/action.yml`
+resolve at the pin; actions/cache v4+/v5 ship them). The **stable per-dependency-set key is kept** —
+NO `github.sha` suffix (that suffix was the FRIC-017 multi-GB bloat/eviction: a unique key every
+commit forced a fresh full-`buck-out` SAVE on every run and never a primary-key hit, exhausting runner
+disk with "No space left on device"). This maps onto `specs/cache-warmth-policy.json`: the push-to-dev
+SAVE is the **`postmerge-dev-trunk`** class (the canonical trusted populator, Bazel/Google
+post-merge-fills-the-cache pattern — trunk content is admitted by definition), and every PR RESTORE is
+the **`presubmit-trusted-affected-cone`** class (read-only: only genuinely changed actions miss).
+Full-graph sole writer, PRs read-only, cuts the multi-GB write-churn/eviction and warms the hotspot.
 
 **Cutover.** NativeLink CAS (ADR-0560) deletes this entire interim at bring-up: a content-addressed
 shared cache makes the merge-base build a remote cache hit with no per-runner `buck-out` to save or

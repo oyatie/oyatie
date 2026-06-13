@@ -373,10 +373,12 @@ jobs:
       # NOT cached (caching daemon scratch warms nothing; do not cargo-cult global-state caching).
       #
       # SAVE/RESTORE SPLIT (ADR-0554 D9; specs/cache-warmth-policy.json postmerge-dev-trunk = sole
-      # writer, presubmit-trusted-affected-cone = reader). dev-push is the SOLE canonical writer:
-      # PRs RESTORE read-only here, and only the push-to-dev SAVE step at the end of this job's
-      # build writes — so PRs no longer churn multi-GB writes/evictions (the Bazel/Google
-      # post-merge-fills-the-cache pattern).
+      # writer, presubmit-trusted-affected-cone = reader). dev-push is the SOLE canonical writer via
+      # the gate-affected-set job's SAVE step (see below): that job builds the FULL //... graph on
+      # push, so the saved buck-out is the full-graph superset. This buck2 job is READ-ONLY on every
+      # trigger — it restores the full-graph buck-out and its //cloud/cloud-ci/... build is a subset
+      # hit. PRs never write, eliminating the per-commit multi-GB write-churn/eviction (the
+      # Bazel/Google post-merge-fills-the-cache pattern).
       #
       # Cache key is STABLE per dependency-set (.buckconfig + toolchains/BUCK + Cargo.lock),
       # NOT per-commit. The previous `-${{ github.sha }}` suffix made the primary key unique
@@ -455,19 +457,6 @@ jobs:
           set -euo pipefail
           chmod +x infra/ci/buck2-affected-gate.sh
           BUCK2=buck2 infra/ci/buck2-affected-gate.sh "origin/${{ github.base_ref || 'dev' }}"
-      # SAVE buck-out — dev-push is the SOLE canonical writer (ADR-0554 D9;
-      # specs/cache-warmth-policy.json postmerge-dev-trunk). Runs at the END of this job's build
-      # steps so the saved buck-out reflects the completed warm build. Guarded to push-to-dev so
-      # PRs never write (read-only via the restore step above): the stable per-dependency-set key
-      # is written once per dependency-set by the trusted post-merge populator, eliminating the
-      # FRIC-017 per-commit multi-GB write-churn/eviction. Same path + key as the restore step.
-      - name: Save buck-out (dev-push only; sole canonical writer)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-        # actions/cache/save@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae
-        with:
-          path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
 
   # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
   #    channel: the buck2 lane above is scoped to //cloud/cloud-ci/..., so code anywhere else
@@ -574,6 +563,9 @@ jobs:
           echo "build-health baseline: merge-base=${merge_base} candidate=${orig_ref}"
           # ALWAYS restore the candidate tree on EXIT — a failed baseline build can never strand CI
           # on the merge-base tree (the subsequent Binding affected-set step runs on the candidate).
+          # NOTE: if the timeout-minutes:45 rail SIGKILLs this build, the bash EXIT trap does NOT
+          # fire (tree left detached at merge-base) — but a timeout fails the whole job RED → fan-in
+          # RED, so it is fail-closed and never produces a wrong-baseline verdict.
           trap 'git checkout --quiet --detach "${orig_ref}" 2>/dev/null || git checkout --quiet "${orig_ref}"' EXIT
           # Detach the MAIN working tree to the merge-base COMMITTED tree-ish: the baseline is
           # computed from git object history (candidate-uncontrollable), and the candidate working
@@ -612,6 +604,24 @@ jobs:
               --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode full
           fi
+      # ── FULL-GRAPH CACHE SAVE (ADR-0554 D9; sole canonical writer). On dev-push this job runs
+      #    --mode full (buck2 build + test //...), so buck-out is populated with the FULL workspace
+      #    graph — not just //cloud/cloud-ci/... as in the buck2 lane. Saving here means PR
+      #    gate-affected-set restores a full-graph buck-out, so the same-root merge-base baseline
+      #    build is near-fully-warm (the merge-base IS a recent dev commit whose full-graph buck-out
+      #    was just saved). The buck2 lane restores the same key and is a subset hit. One save step,
+      #    one job, one key — no two-writer race. Runs AFTER the Binding step (buck-out fully
+      #    populated). Guarded push-to-dev so PRs remain read-only (restore-only via the step above).
+      #    Size note: the full-graph buck-out is one blob per stable key (overwrites, non-accumulating
+      #    due to dev-push-sole-writer), bounded by the dependency-set change cadence — worth watching
+      #    against the GitHub 10GB cache limit; NativeLink CAS (ADR-0560) removes this at cutover.
+      - name: Save buck-out (dev-push only; sole canonical full-graph writer)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        # actions/cache/save@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: buck-out
+          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
       # ── BUILD-HEALTH BASELINE PRODUCER (ADR-0554 D7; ADR-0556 D5 QW-1 trusted-producer +
       #    postmerge-dev-trunk warmth class). ONLY a trusted push-to-dev publishes the admission
       #    build-report as the merge-base-to-be baseline artifact — NOT merge_group, NOT
