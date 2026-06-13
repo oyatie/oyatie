@@ -397,12 +397,18 @@ fn print_classification(plan: &Plan, owners: &BTreeMap<String, Vec<String>>) {
     }
 }
 
-/// The FULL-tier runner (ADR-0554 round-3). Two modes:
+/// The FULL-tier runner (ADR-0554 round-3; D7 round-4 producer). Two modes:
 ///
 /// - WITHOUT a baseline report (`--mode full` at admission, or any caller that does not pass
-///   `--baseline-report`): a hard `buck2 build //...` + `buck2 test //...` — every failure blocks.
-///   This is the original behavior, retained for the merge-queue admission tier where the whole
-///   integration tip MUST be green.
+///   `--baseline-report`): a hard `buck2 build //... --keep-going --build-report` + `buck2 test
+///   //...` — EVERY build failure blocks (non-empty failure set = hard fail; no grandfathering:
+///   the integration tip MUST be green). D7 (round-4): the admission build now captures a
+///   `--build-report` as a PURE BYPRODUCT and derives the same hard verdict from the report's
+///   failure set being EMPTY. The report is written to a stable path (`admission_report_path`)
+///   so the trusted push-to-dev workflow can publish it as the `build-health-baseline-<sha>`
+///   artifact (the merge-base-to-be baseline for the DEFERRED D8 cross-run consumer + ADR-0560
+///   warm-CAS). Merge authority is UNCHANGED — the verdict is identical to the prior hard build,
+///   nothing consumes the artifact yet, so there is zero laundering surface.
 /// - WITH a baseline report (the PR `pull_request` FULL tier): the BUILD-HEALTH RATCHET. It builds
 ///   `//... --keep-going --build-report` at HEAD and tests them, then compares the HEAD build
 ///   FAILURE set against the merge-base baseline failure set: only REGRESSIONS (targets that build
@@ -413,8 +419,9 @@ fn print_classification(plan: &Plan, owners: &BTreeMap<String, Vec<String>>) {
 ///   BUILD failures; a build that succeeds then test-fails is a normal hard failure).
 fn run_full(buck2: &str, policy: &Policy, baseline_report: Option<&str>) -> ExitCode {
     let Some(baseline_path) = baseline_report else {
-        // Admission/integration tier: hard full build+test, every failure blocks.
-        return run_buck(buck2, &policy.full_run_targets, None);
+        // Admission/integration tier: hard full build+test, every failure blocks. D7: emit the
+        // build-report as a byproduct and derive the hard verdict from an EMPTY failure set.
+        return run_full_admission_producer(buck2, policy);
     };
 
     // PR FULL tier: build-health ratchet. Build the whole workspace with --keep-going so every
@@ -540,6 +547,98 @@ fn run_full(buck2: &str, policy: &Policy, baseline_report: Option<&str>) -> Exit
         verdict.grandfathered.len()
     );
     ExitCode::SUCCESS
+}
+
+/// The stable path the admission build-report is written to (D7). GitHub Actions sets
+/// `RUNNER_TEMP`; we anchor the report there so the workflow's upload step references the SAME
+/// path without guessing a PID. Off-CI (or if `RUNNER_TEMP` is unset) it falls back to the OS
+/// temp dir with the identical basename — deterministic either way.
+fn admission_report_path() -> PathBuf {
+    let dir = std::env::var_os("RUNNER_TEMP")
+        .map(PathBuf::from)
+        .unwrap_or_else(std::env::temp_dir);
+    dir.join("build-health-admission-report.json")
+}
+
+/// The admission/integration FULL tier (D7 producer). Runs `buck2 build //... --keep-going
+/// --build-report <stable path>` so the WHOLE workspace builds and every target's status is
+/// captured into a report (a pure byproduct the trusted push-to-dev workflow publishes), then
+/// derives the HARD verdict from the report's FAILURE SET being EMPTY — non-empty = hard fail,
+/// NO grandfathering (the integration tip MUST be green, preserving `run_buck`'s admission
+/// semantics). Finally runs `buck2 test //...` exactly as before. The verdict is identical to the
+/// prior hard `buck2 build //...`; emitting the report does not change merge authority.
+fn run_full_admission_producer(buck2: &str, policy: &Policy) -> ExitCode {
+    let report_path = admission_report_path();
+    let report_str = report_path.display().to_string();
+    println!(
+        "{LOG}: admission FULL tier (D7 producer): {buck2} build //... --keep-going \
+         --build-report {report_str}"
+    );
+    // --keep-going still exits non-zero if ANY target failed; we do NOT read that exit code as the
+    // verdict — the verdict comes from the build-report failure set below, so the report (the
+    // published byproduct) and the pass/fail decision are derived from the SAME source of truth. A
+    // genuine infra failure (buck2 could not run, no report) surfaces as an unparseable/empty
+    // report, which is refused fail-closed.
+    let _ = Command::new(buck2)
+        .args([
+            "build",
+            "//...",
+            "--keep-going",
+            "--build-report",
+            &report_str,
+        ])
+        .stdin(Stdio::null())
+        .status();
+
+    let report_json = match fs::read_to_string(&report_path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — cannot read admission build-report `{report_str}`: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    let report = match parse_build_report(&report_json) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("{LOG}: FAIL — admission build-report parse error: {e}");
+            return ExitCode::from(2);
+        }
+    };
+    // Fail-closed: an admission build with no `results` is an infra failure, not a clean
+    // workspace — refuse rather than false-green on an empty report.
+    if report.is_empty() {
+        eprintln!(
+            "{LOG}: FAIL — admission build-report has no `results` (buck2 produced no targets). \
+             Refusing to PASS the integration tip on an empty report."
+        );
+        return ExitCode::from(2);
+    }
+
+    let failures = failing_targets(&report);
+    if !failures.is_empty() {
+        // No grandfathering at admission: the integration tip MUST be green (the `run_buck`
+        // hard-build semantics, now derived from the report's failure set).
+        eprintln!(
+            "{LOG}: RED — admission FULL build failed on {} target(s) (integration tip must be \
+             green, no grandfathering):",
+            failures.len()
+        );
+        for t in &failures {
+            eprintln!("{LOG}:   BUILD-FAIL {t}");
+        }
+        eprintln!(
+            "{LOG}: REPRODUCE: {buck2} build {} --keep-going",
+            failures.iter().cloned().collect::<Vec<_>>().join(" ")
+        );
+        return ExitCode::from(1);
+    }
+    println!(
+        "{LOG}: admission build GREEN — all {} workspace target(s) built; running {buck2} test \
+         //... (report byproduct at {report_str})",
+        report.len()
+    );
+    // Build is green -> run the full test suite exactly as the prior admission path did.
+    run_buck(buck2, &policy.full_run_targets, None)
 }
 
 /// Run `buck2 build` then `buck2 test` on either explicit patterns or an @argfile, streaming
