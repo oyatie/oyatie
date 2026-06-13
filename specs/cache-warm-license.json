@@ -1,0 +1,10 @@
+{
+  "_comment": "Declarative warm-license kill-switch (DATA, not code) — ADR-0560, enforcing the ADR-0556 D2 trust invariant: a build class MAY run warm IFF it is warm-eligible in /specs/cache-warmth-policy.json AND the most recent scheduled cold integrity-canary run is GREEN. This file is the mechanical carrier of clause (b): the cache-wiring resolver refuses every warm mode while warm_reads_licensed is false, regardless of class. It ships FALSE and stays false until (1) the NativeLink CAS endpoints are live and reachable from the executing lanes and (2) the integrity-canary has produced a GREEN verdict against the warm substrate. Flipping to true is a reviewed change citing that first GREEN run; flipping to false is the ADR-0556 canary-RED response (suspend-all-warm, shrink needs no door) — performed today by PR (transitional local bridge), by the canary reconciler when it lands (ADR-0556 D4.3 successor). Surface model per ADR-0556 D4: consumed by the resolver and the conformance gate, never an operator CLI.",
+  "schema_version": "1.0.0",
+  "adr": "ADR-0560",
+  "policy": "specs/cache-warmth-policy.json",
+  "warm_reads_licensed": false,
+  "reason": "no live CAS endpoint is reachable from any executing lane and the cold integrity-canary has never run GREEN against a warm substrate — the ADR-0556 D2 IFF is unsatisfied on clause (b); slice 1 ships the wiring dark",
+  "licensed_by_canary_run": null,
+  "red_response": "on canary RED: this flag flips to false fleet-wide before any divergence remediation begins (ADR-0556 D2: a RED canary suspends ALL warm reads pending the next GREEN run); divergent-key eviction and the friction-ledger row open per the canary_red_response steps in the policy"
+}
