@@ -80,6 +80,30 @@ impl<S: SigningBackend> TrustBundle<S> {
         self.anchors.values().map(|a| a.cert.to_pem()).collect()
     }
 
+    /// The SubjectPublicKeyInfo DER of every trusted CA anchor (G002 slice-1b-i).
+    ///
+    /// For a real-crypto bundle (anchored on certificates whose `public_key_der`
+    /// is a real ECDSA SubjectPublicKeyInfo), these are the public keys a
+    /// real-DER verifier checks a presented leaf's signature against. The
+    /// adapter's `x509-parser` verify path consults this set: a leaf is trusted
+    /// only when its real signature verifies under one of these anchors. The
+    /// trustd shape-model in-domain verification continues to use
+    /// [`TrustBundle::verify_leaf`] and the [`SigningBackend`]; this accessor adds
+    /// the real-DER seam without changing either.
+    pub fn trusted_ca_spki_ders(&self) -> Vec<Vec<u8>> {
+        self.anchors
+            .values()
+            .map(|a| a.cert.public_key_der.clone())
+            .collect()
+    }
+
+    /// The full trust-anchor certificates (subject DN, validity, real SPKI) the
+    /// adapter materialises into real CA DER for chain verification. Returned in a
+    /// stable order (BTreeMap by subject DN).
+    pub fn anchor_certificates(&self) -> Vec<&Certificate> {
+        self.anchors.values().map(|a| &a.cert).collect()
+    }
+
     /// Remove a CA anchor by subject DN string (used to retire an old CA
     /// generation once all its certs have rotated). Returns whether one existed.
     pub fn remove_anchor(&mut self, subject_rfc: &str) -> bool {
