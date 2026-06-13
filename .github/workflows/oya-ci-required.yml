@@ -459,6 +459,11 @@ jobs:
   gate-affected-set:
     name: "gate · affected-set (ADR-0554, binding workspace coverage)"
     runs-on: ubuntu-latest
+    # SAFETY RAIL (ADR-0554 D7): bound the cold full-workspace rebuild so a runaway/exhaustion
+    # (a wedged buck2 action, a non-terminating compile) cannot burn the runner indefinitely.
+    # Derivation: ≈4x the ADR-0554-measured warm full run (4m35s cold / 5m45s incl. tests, lines
+    # 56-58) — fires only on a genuine runaway, never on a healthy cold build.
+    timeout-minutes: 45
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -554,11 +559,32 @@ jobs:
               --baseline-report "${RUNNER_TEMP}/build-health-baseline.json"
           else
             # Admission/integration tier (merge_group/push/dispatch): hard full build+test — the
-            # integration tip MUST be green, no grandfathering.
+            # integration tip MUST be green, no grandfathering. ADR-0554 D7: this run ALSO captures
+            # a build-report at ${RUNNER_TEMP}/build-health-admission-report.json (the binary's
+            # stable RUNNER_TEMP-anchored path) as a pure byproduct; the verdict is unchanged
+            # (non-empty failure set = hard fail) and the report is uploaded below only on
+            # trusted push-to-dev.
             "${gate_bin}" \
               --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode full
           fi
+      # ── BUILD-HEALTH BASELINE PRODUCER (ADR-0554 D7; ADR-0556 D5 QW-1 trusted-producer +
+      #    postmerge-dev-trunk warmth class). ONLY a trusted push-to-dev publishes the admission
+      #    build-report as the merge-base-to-be baseline artifact — NOT merge_group, NOT
+      #    pull_request — so the artifact namespace stays clean of attacker-controllable producers
+      #    (part of the DEFERRED D8 consumer's anti-laundering defense; D8 trusts workflow_run
+      #    PROVENANCE, never the artifact name). Producer-only: nothing consumes this yet, so it is
+      #    sound + harmless (no merge-authority change, no new permissions). The artifact is on the
+      #    critical path of BOTH the deferred D8 cross-run consumer AND the ADR-0560 warm-CAS.
+      - name: Upload build-health baseline artifact (trusted push-to-dev producer)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: build-health-baseline-${{ github.sha }}
+          path: ${{ runner.temp }}/build-health-admission-report.json
+          retention-days: 90
+          if-no-files-found: error
 
   # ── APP-SHELL GENERATED CLIENT LANE. Generated TypeScript clients are intentionally ignored
   #    in git, so clean checkout CI must prove they regenerate from canonical OpenAPI sources

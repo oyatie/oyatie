@@ -714,4 +714,48 @@ mod tests {
         assert!(v.is_green());
         assert!(v.regressions.is_empty() && v.grandfathered.is_empty());
     }
+
+    // ── D7 admission PRODUCER verdict (round-4): the admission FULL tier emits a build-report as
+    //    a byproduct and derives the HARD verdict from the report's failure set being EMPTY — no
+    //    grandfathering (the integration tip MUST be green). These pin the kernel semantic the
+    //    admission producer (run_full_admission_producer in main.rs) reads off the parsed report;
+    //    it is deliberately STRICTER than the PR ratchet (build_health_verdict), which
+    //    grandfathers pre-existing reds.
+
+    #[test]
+    fn admission_producer_passes_only_on_empty_failure_set() {
+        // A clean admission build-report -> empty failure set -> the producer's HARD verdict is
+        // GREEN. (Build green is the precondition for running the full test suite.)
+        let json = r#"{
+            "results": {
+                "root//a:a": {"success": "SUCCESS"},
+                "root//b:b": {"success": "SUCCESS"}
+            }
+        }"#;
+        let report = parse_build_report(json).unwrap();
+        assert!(
+            failing_targets(&report).is_empty(),
+            "an all-SUCCESS admission report has an empty failure set -> producer PASS"
+        );
+    }
+
+    #[test]
+    fn admission_producer_hard_fails_on_any_failure_no_grandfathering() {
+        // The integration-tip semantic: ANY build failure in the admission report is a hard fail —
+        // there is NO baseline and NO grandfathering at admission (unlike the PR ratchet). A single
+        // FAIL makes the failure set non-empty, so the producer blocks.
+        let json = r#"{
+            "results": {
+                "root//a:a": {"success": "SUCCESS"},
+                "root//pre-existing:red": {"success": "FAIL"}
+            }
+        }"#;
+        let report = parse_build_report(json).unwrap();
+        let failures = failing_targets(&report);
+        assert_eq!(failures, set(&["root//pre-existing:red"]));
+        assert!(
+            !failures.is_empty(),
+            "a non-empty admission failure set must hard-fail (no grandfathering at admission)"
+        );
+    }
 }
