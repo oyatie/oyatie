@@ -146,24 +146,38 @@ trust gaps from the PR #698 independent review):
   `policy_missing_at_merge_base_falls_back_to_declared_candidate_bootstrap`. Defense in
   depth: `ratchet_policy_base_ref_is_pinned_to_origin_dev` (firewall gate test) makes any
   repoint of the committed policy require a visible test edit as well.
-- **Inert-door detector.** "Exempt for one regen" is now mechanical: a sign-off entry whose
-  key is absent from the merge-base frozen face AND from current AND from proposed exempts
-  nothing — it is a standing re-introduction ticket for that exact debt key — and FAILS the
-  firewall with the remediation "retire the entry" (`inert_signoff_entries`,
-  `FirewallReport::inert_signoff`). The in-flight admission (key absent from frozen,
-  present in current/proposed) stays tolerated; a key present in the frozen face is a
-  harmless no-op that is forced retired the moment the debt is fixed. Fixtures both ways:
+- **Inert-door detector (symmetrized, FRIC-1781460000).** "Exempt for one regen" is now
+  mechanical: a sign-off entry whose key is absent from the CANDIDATE tree (current AND
+  proposed) exempts nothing in the change under evaluation — it is a standing re-introduction
+  ticket for that exact debt key — and FAILS the firewall with the remediation "retire the
+  entry" (`inert_signoff_entries`, `FirewallReport::inert_signoff`). Inert-ness is read
+  against the candidate, **not** the merge-base frozen face: a key present in the frozen face
+  is tolerated/not-growth regardless of sign-off, so frozen-presence does NOT keep an
+  orphaned entry alive. A still-present baselined exemption (key in the candidate's debt set,
+  whether or not also frozen) stays LIVE; an in-flight admission (key in current/proposed,
+  not yet frozen) stays tolerated. The original detector ALSO required absence from the
+  frozen face — so frozen-presence VETOED the inert verdict. Because the PR-tier frozen face
+  is the merge-base baseline (BEFORE the candidate's own additions), a PR that ADDS an OWNERS
+  file (resolving a previously-unowned key) and thereby ORPHANS a live sign-off entry passed
+  GREEN at PR time, then broke dev on the push-tier GO-LIVE invariant once the merge-base
+  advanced past the OWNERS addition (the false-green that orphaned
+  `cloud-ci-total-accounting/unowned: .github/workflows/oya-ci-required.yml` via #718's
+  `.github/workflows/OWNERS`). Dropping the frozen veto makes PR-admission and push-admission
+  inert detection SYMMETRIC: the orphaning PR FAILS CLOSED at PR time. Fixtures both ways:
   `specs/fixtures/cloud-ci-firewall/tc-FW-bad-inert-signoff-entry.json` (RED) and the
-  extended `tc-FW-good-signed-off-key-in-current.json` (LIVE entry tolerated). Per the
-  founder automation-default directive (2026-06-12: red-gating alone is not enough), the
-  PROVABLY-dead retirement is automated: `oya-cloud-ci-firewall-signoff-fixer --fix`
-  (`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/main.rs`)
-  derives and applies it through the one existing door parser/detector, with
-  reparse-and-refuse self-validation and a grouped audit record appended to
-  `_sign_off_retirements`; the gate failure prints exactly that command
-  (`SIGNOFF_FIXER_COMMAND`). First live catch: the lingering go-live `unjustified`
-  admission for `.github/workflows/oya-ci-required.yml` was inert (the workflow became
-  ADR-justified) and is retired by the fixer in the same change.
+  extended `tc-FW-good-signed-off-key-in-current.json` (LIVE entry tolerated); the symmetry
+  foil is the RED/GREEN pair
+  `specs/fixtures/cloud-ci-firewall/tc-FW-bad-owners-addition-orphans-signoff-entry.json`
+  (an OWNERS-added candidate orphans a live entry → RED, caught at PR time) and
+  `specs/fixtures/cloud-ci-firewall/tc-FW-good-owners-addition-with-entry-retired.json` (the
+  same candidate with the entry retired → GREEN). The RED fixture passes the fixtures test
+  ONLY under the old frozen-veto predicate (binding evidence the bug class is now caught at
+  PR time). Per the founder automation-default directive (2026-06-12: red-gating alone is not
+  enough), the PROVABLY-dead retirement is automated: `oya-cloud-ci-firewall-signoff-fixer
+  --fix` (`cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/main.rs`) derives and applies
+  it through the one existing door parser/detector, with reparse-and-refuse self-validation
+  and a grouped audit record appended to `_sign_off_retirements`; the gate failure prints
+  exactly that command (`SIGNOFF_FIXER_COMMAND`).
 
 ## Consequences
 
