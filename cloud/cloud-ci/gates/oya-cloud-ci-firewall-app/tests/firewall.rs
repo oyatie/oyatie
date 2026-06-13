@@ -365,8 +365,10 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
     );
     assert!(
         report.inert_signoff.is_empty(),
-        "GO-LIVE: every sign-off door entry must exempt something that exists (frozen, \
-         current, or proposed) — an inert entry is a standing re-introduction ticket. \
+        "GO-LIVE: every sign-off door entry must exempt a key the CANDIDATE tree still \
+         carries (current or proposed) — an entry the candidate has orphaned is a standing \
+         re-introduction ticket (FRIC-1781460000: read against the candidate, not the \
+         merge-base frozen face, so PR-tier and push-tier agree). \
          Remediation (auto-derives + applies the retirement): {SIGNOFF_FIXER_COMMAND} \
          Inert: {:?}",
         report.inert_signoff

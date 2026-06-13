@@ -2,8 +2,9 @@
 //!
 //! Founder directive 2026-06-12: "flagging, red gating isn't enough — automate everything
 //! that can be automated canonically, universally." An INERT sign-off door entry
-//! (FRIC-1781280001) is PROVABLY dead — its key is absent from the merge-base frozen face
-//! AND from the live current/proposed sets, so the retirement is mechanically derivable.
+//! (FRIC-1781280001; symmetrized FRIC-1781460000) is PROVABLY dead — its key is absent from
+//! the CANDIDATE tree's live current/proposed sets (the merge-base frozen face does not keep
+//! an orphaned entry alive), so the retirement is mechanically derivable.
 //! This fixer derives and applies it: it removes the inert keys from
 //! `_sign_off_additions` and appends the grouped audit records to
 //! `_sign_off_retirements`. The firewall gate's inert-door RED remains the enforcement
@@ -115,7 +116,8 @@ fn run() -> Result<i32, String> {
     if inert.is_empty() {
         println!(
             "oya-cloud-ci-firewall-signoff-fixer: door clean — every sign-off entry \
-             exempts something that exists (frozen @ {}, current, or proposed)",
+             exempts a key the candidate still carries (current or proposed; merge-base \
+             frozen face @ {} does not keep an orphaned entry alive)",
             frozen.merge_base
         );
         return Ok(0);
@@ -123,8 +125,8 @@ fn run() -> Result<i32, String> {
 
     println!(
         "oya-cloud-ci-firewall-signoff-fixer: {} INERT door entr{} (key absent from the \
-         merge-base frozen face @ {} AND from current AND from proposed — a standing \
-         re-introduction ticket):",
+         CANDIDATE tree — current AND proposed — so the door admits nothing in this change; \
+         a standing re-introduction ticket regardless of the merge-base frozen face @ {}):",
         inert.len(),
         if inert.len() == 1 { "y" } else { "ies" },
         frozen.merge_base
@@ -236,7 +238,7 @@ fn apply_retirements(
         records.push(json!({
             "date": date,
             "retired_by": retired_by,
-            "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed — the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
+            "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
             "gate": gate,
             "code": code,
             "keys": keys,
@@ -417,9 +419,9 @@ mod tests {
         let door = json!({
             "_sign_off_additions": {"g": {"c": ["long-gone.rs"]}, "g2": {"c2": ["frozen.rs"]}}
         });
-        // g2/c2/frozen.rs — wrong gate for the frozen key, so it is inert too? No: the
-        // lookup is (gate, code)-scoped and g2/c2 has no frozen/current/proposed keys, so
-        // BOTH entries are inert here.
+        // g2/c2/frozen.rs — the key is in the frozen face under g/c, but the inert lookup is
+        // (gate, code)-scoped and reads the CANDIDATE tree: g2/c2 carries no current/proposed
+        // key, so the entry admits nothing and BOTH entries are inert here.
         let signoff = SignOff::from_value(&door);
         let inert = inert_signoff_entries(&frozen, &proposed, &current, &signoff);
         assert_eq!(inert.len(), 2, "per-(gate,code) scoping: {inert:?}");

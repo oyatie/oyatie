@@ -30,10 +30,13 @@
 //! undeclared source fail-closed. Prow precedent: OWNERS files are read from the base
 //! branch, never the PR head, for exactly this reason.
 //!
-//! INERT-DOOR DETECTOR (FRIC-1781280001): a sign-off entry whose key exists nowhere
-//! (frozen face, current, proposed) is a standing re-introduction ticket and FAILS the
-//! firewall until retired — the mechanical expiry of the "exempt for one regen" door
-//! ([`inert_signoff_entries`]).
+//! INERT-DOOR DETECTOR (FRIC-1781280001; symmetrized FRIC-1781460000): a sign-off entry
+//! whose key is absent from the CANDIDATE tree (current AND proposed) is a standing
+//! re-introduction ticket and FAILS the firewall until retired — the mechanical expiry of
+//! the "exempt for one regen" door ([`inert_signoff_entries`]). Inert-ness is read against
+//! the candidate, NOT the frozen merge-base face: a PR that orphans a live entry (e.g. adds
+//! an OWNERS file that resolves a previously-unowned key) FAILS CLOSED at PR time, symmetric
+//! with the push tier on the integrated tip — closing the FRIC-1781460000 false-green.
 //!
 //! COMPARE-MODE — for each `(gate, code)` it computes `regressions = current_keys \
 //! frozen_keys \ signed_off` (NEW debt), `signed_off = (current_keys \ frozen_keys) ∩
@@ -365,9 +368,11 @@ pub struct FirewallReport {
     /// `ratchet_regression` (debt cannot be laundered into the baseline by regen — not
     /// even by the same-PR regen the settle protocol mandates).
     pub ratchet_growth: Vec<(String, String, String)>,
-    /// `(gate, code, key)` sign-off-door entries that exempt NOTHING (key absent from the
-    /// frozen face AND from current AND from proposed): each is a standing re-introduction
-    /// ticket and a failure — remediation: retire the entry (see [`inert_signoff_entries`]).
+    /// `(gate, code, key)` sign-off-door entries that exempt NOTHING (key absent from current
+    /// AND from proposed in the candidate tree — the merge-base frozen face is NOT consulted,
+    /// so a PR's own OWNERS addition that orphans an entry fails at PR tier, symmetric with
+    /// push): each is a standing re-introduction ticket and a failure — remediation: retire the
+    /// entry (see [`inert_signoff_entries`]).
     pub inert_signoff: Vec<(String, String, String)>,
 }
 
@@ -487,39 +492,72 @@ pub fn ratchet_growth(
     growth
 }
 
-/// INERT-DOOR detector (FRIC-1781280001 / ADR-0551 hardening): door entries never
-/// mechanically expired — "exempt for one regen" was unenforced prose, so a lingering entry
-/// for a since-fixed (or never-introduced) key was a STANDING re-introduction ticket: that
-/// exact debt key could come back at any time and the stale entry would launder it past
-/// both predicates. An entry is INERT iff its key is absent from the FROZEN face AND from
-/// `current` AND from `proposed` — it exempts nothing in flight and nothing frozen.
-/// Remediation: retire the entry (move it to `_sign_off_retirements`). The LIVE case (key
-/// absent from frozen but present in current/proposed — the one-regen admission in flight)
-/// is tolerated; a key present in the frozen face makes the entry a harmless no-op (frozen
-/// keys are tolerated/not-growth regardless of sign-off) that turns inert — and is forced
-/// retired — the moment the debt is fixed.
+/// INERT-DOOR detector (FRIC-1781280001 / ADR-0551 hardening; symmetrized FRIC-1781460000):
+/// door entries never mechanically expired — "exempt for one regen" was unenforced prose, so
+/// a lingering entry for a key the candidate no longer carries was a STANDING re-introduction
+/// ticket: that exact debt key could come back at any time and the stale entry would launder
+/// it past both predicates.
+///
+/// An entry is INERT iff its key is absent from the CANDIDATE tree — `key ∉ current AND
+/// key ∉ proposed` — i.e. the debt it admitted does not exist in the change under
+/// evaluation. The FROZEN (merge-base) face does NOT keep an entry alive: a key present in
+/// the frozen face is tolerated/not-growth by [`compare`]/[`ratchet_growth`] regardless of
+/// sign-off, so a frozen-present-but-candidate-absent entry exempts nothing in flight and is
+/// a pure standing ticket. The LIVE entry — its key still in the candidate's debt set
+/// (`current`/`proposed`), whether or not it is also frozen — is tolerated: it is either
+/// admitting in-flight growth (`∉ frozen`) or covering still-present baselined debt
+/// (`∈ frozen`), and in both cases the debt the door names still exists.
+///
+/// FRIC-1781460000 (the asymmetry this closes): the previous predicate ALSO required the key
+/// to be absent from the FROZEN face — so frozen-presence VETOED the inert verdict. At PR
+/// time the frozen face is the merge-base baseline, BEFORE the candidate's own additions, so
+/// a PR that ADDS an OWNERS file (resolving a previously-unowned key) ORPHANS that key's
+/// sign-off entry: the key drops out of the candidate's `current`/`proposed` set, but it is
+/// STILL present in the (pre-OWNERS) frozen face, so the frozen veto judged the entry LIVE →
+/// PR passed GREEN. Post-merge the merge-base advanced past the OWNERS addition, the key
+/// dropped from the frozen face too, and the push-tier firewall went RED on this same
+/// invariant → dev broke AFTER merge. Dropping the frozen veto reads inert-ness against the
+/// CANDIDATE tree's ownership/reachability — which already includes the PR's own additions —
+/// making PR-admission and push-admission SYMMETRIC: a candidate that orphans a live entry
+/// FAILS CLOSED at PR time.
+///
+/// Per-(gate,code): the lookup is scoped — a key live in one code's candidate set but absent
+/// from another's stays exempted under the live code and is only inert under the code where
+/// the candidate no longer carries it. Remediation: retire the entry (move it to
+/// `_sign_off_retirements`); the [`SIGNOFF_FIXER_COMMAND`] derives and applies this
+/// mechanically.
 pub fn inert_signoff_entries(
     frozen: &Baseline,
     proposed: &Baseline,
     current: &BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
     signoff: &SignOff,
 ) -> Vec<(String, String, String)> {
-    let in_baseline = |b: &Baseline, gate: &str, code: &str, key: &str| -> bool {
+    // `frozen` is intentionally unused: the FROZEN (merge-base) face no longer vetoes the
+    // inert verdict (FRIC-1781460000). Inert-ness is read against the CANDIDATE tree alone
+    // so PR-tier (merge-base frozen) and push-tier (integrated tip) agree. Kept in the
+    // signature so the gate, the fixer, and the four-input call sites stay uniform.
+    let _ = frozen;
+    let in_proposed = |b: &Baseline, gate: &str, code: &str, key: &str| -> bool {
         b.gates
             .get(gate)
             .and_then(|codes| codes.get(code))
             .is_some_and(|cb| cb.keys.contains(key))
     };
+    let in_current = |gate: &str, code: &str, key: &str| -> bool {
+        current
+            .get(gate)
+            .and_then(|codes| codes.get(code))
+            .is_some_and(|keys| keys.contains(key))
+    };
     signoff
         .entries()
         .into_iter()
         .filter(|(gate, code, key)| {
-            !in_baseline(frozen, gate, code, key)
-                && !in_baseline(proposed, gate, code, key)
-                && !current
-                    .get(gate)
-                    .and_then(|codes| codes.get(code))
-                    .is_some_and(|keys| keys.contains(key))
+            // INERT iff the key is absent from the candidate tree (current AND proposed):
+            // the door admits nothing that exists in the change under evaluation. A
+            // frozen-present key does NOT rescue the entry — it is tolerated/not-growth
+            // regardless of sign-off, so the entry exempts nothing in flight.
+            !in_proposed(proposed, gate, code, key) && !in_current(gate, code, key)
         })
         .collect()
 }
@@ -851,23 +889,35 @@ mod tests {
     }
 
     #[test]
-    fn signoff_entry_for_frozen_key_is_not_inert_until_the_debt_is_fixed() {
-        // Post-merge redundancy: the admitted key landed in the merge-base face. The entry
-        // is a harmless no-op (frozen keys are tolerated/not-growth regardless of sign-off)
-        // and must NOT fail innocent PRs; it turns inert — forcing retirement — only when
-        // the debt is fixed and the key leaves the face.
+    fn signoff_entry_for_frozen_key_that_candidate_still_carries_is_not_inert() {
+        // The still-present baselined exemption: the admitted key is in the merge-base face
+        // AND the candidate's debt set (current + proposed). The debt the door names still
+        // exists, so the entry is LIVE and must NOT fail innocent PRs.
         let frozen = baseline_fixture();
         let cur = baseline_keys_map(&frozen);
         let signoff = SignOff::from_value(&json!({
             "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["a.rs"]}}
         }));
         let report = evaluate_firewall(&frozen, &frozen, &cur, &signoff);
-        assert!(report.inert_signoff.is_empty());
+        assert!(report.inert_signoff.is_empty(), "still-present baselined debt is LIVE");
         assert!(report.is_green());
+    }
 
-        // The fix lands: a.rs leaves current + proposed (frozen still carries it until the
-        // fix merges) — the entry is STILL not inert (key in frozen face), so the fixing PR
-        // is not forced to bundle the retirement...
+    #[test]
+    fn signoff_entry_orphaned_by_candidate_fails_at_pr_time_symmetric() {
+        // FRIC-1781460000 — THE SYMMETRY FIX. The candidate RESOLVES the key out of its debt
+        // set (e.g. a PR adds an OWNERS file, rendering a previously-unowned key owned), so
+        // a.rs leaves current + proposed while the FROZEN merge-base face — which predates
+        // the PR's OWNERS addition — still carries it. The old frozen-veto judged the entry
+        // LIVE (key ∈ frozen) → PR passed GREEN, then dev went RED post-merge once the
+        // merge-base advanced. With the veto dropped, inert-ness reads against the candidate
+        // tree: the orphaned entry is INERT and FAILS CLOSED at PR time, symmetric with the
+        // push tier.
+        let frozen = baseline_fixture();
+        let signoff = SignOff::from_value(&json!({
+            "_sign_off_additions": {"cloud-ci-total-accounting": {"unjustified": ["a.rs"]}}
+        }));
+        // Candidate resolved a.rs out of the debt set; frozen (merge-base) still carries it.
         let fixed = Baseline::from_value(&json!({
             "gates": {"cloud-ci-total-accounting": {
                 "unjustified": {"mode": "baseline-block-on-new", "keys": ["b.rs"]}
@@ -875,13 +925,26 @@ mod tests {
         }));
         let cur_fixed = baseline_keys_map(&fixed);
         let report = evaluate_firewall(&frozen, &fixed, &cur_fixed, &signoff);
-        assert!(report.inert_signoff.is_empty());
+        assert_eq!(
+            report.inert_signoff,
+            vec![(
+                "cloud-ci-total-accounting".to_owned(),
+                "unjustified".to_owned(),
+                "a.rs".to_owned()
+            )],
+            "an entry the candidate orphaned must be flagged inert at PR time (key ∈ frozen \
+             must NOT veto the verdict — that is the FRIC-1781460000 asymmetry)"
+        );
+        assert!(!report.is_green(), "the orphaning PR must FAIL CLOSED, not pass GREEN");
 
-        // ...but once the fix is in the merge-base face too, the lingering entry is a pure
-        // standing ticket and goes RED everywhere until retired.
-        let report = evaluate_firewall(&fixed, &fixed, &cur_fixed, &signoff);
-        assert_eq!(report.inert_signoff.len(), 1);
-        assert!(!report.is_green());
+        // SYMMETRY: the push tier (frozen advanced to the integrated tip := fixed) reaches
+        // the IDENTICAL verdict — the same lingering entry, the same inert RED.
+        let push = evaluate_firewall(&fixed, &fixed, &cur_fixed, &signoff);
+        assert_eq!(
+            push.inert_signoff, report.inert_signoff,
+            "PR-tier and push-tier inert detection must be symmetric"
+        );
+        assert!(!push.is_green());
     }
 
     fn frozen_value() -> Value {
