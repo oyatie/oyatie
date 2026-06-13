@@ -75,7 +75,10 @@ pub struct TtlRecord {
 pub struct RepoInputs {
     /// Every `git ls-files` path, repo-relative.
     pub tracked_paths: Vec<String>,
-    /// path -> nearest up-tree OWNERS-resolved owner. Absent ⇒ unowned (RED).
+    /// path -> nearest up-tree OWNERS-resolved owner. Absent ⇒ unowned (RED). Ownership
+    /// requires existence AND schema-valid content under the per-file breadth bound
+    /// (ADR-0555 hardening, FRIC-1781400000) — the binary's `resolve_owners` enforces
+    /// both before a path ever lands in this map.
     pub owners: BTreeMap<String, String>,
     /// path -> justification ref (ADR-####/spec $id/need:<ticket>). Absent ⇒ unjustified.
     pub justifications: BTreeMap<String, String>,
