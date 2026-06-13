@@ -228,3 +228,86 @@ grandfathered set (burn-down owned by the breakage-fix lanes).
   collision-surface edit at a time; this change is purely additive).
 - The engine is a paved-road component (ADR-0548): `GatePolicy`-pack-shaped, reusable on any
   buck2 repo unchanged.
+
+### D7 — Trusted-producer baseline-artifact emission + timeout rail (round-4, ship now)
+
+Two changes ship now; a third (the cross-run CONSUMER) is deferred to D8.
+
+**1. The admission tier emits the build-health baseline as a byproduct.** The admission/integration
+FULL tier (`merge_group`/`push`/`workflow_dispatch`, `--mode full` with NO `--baseline-report`)
+previously ran a hard `buck2 build //...` + `buck2 test //...` (`run_buck`). It now runs
+`buck2 build //... --keep-going --build-report <stable path>`, derives the SAME hard verdict from
+the report's **failure set being EMPTY** (any non-empty failure set = hard fail — the integration
+tip MUST be green, **no grandfathering**, preserving the `run_buck` admission semantics exactly),
+and STILL runs `buck2 test //...`. The report is a **pure byproduct**: merge authority is unchanged
+(the verdict is identical to the prior hard build, derived from `failing_targets(report).is_empty()`
+on the same `parse_build_report`/`failing_targets` kernel the D6 ratchet uses), and it is written to
+a `RUNNER_TEMP`-anchored stable path (`build-health-admission-report.json`) the workflow can publish
+without guessing a PID. On a trusted **push-to-dev** the workflow uploads it as artifact
+`build-health-baseline-<github.sha>` (`retention-days: 90`, `if-no-files-found: error`), gated
+`github.event_name == 'push' && github.ref == 'refs/heads/dev'` — **NOT** `merge_group`, **NOT**
+`pull_request`. This keeps the artifact namespace clean of non-push (attacker-controllable)
+producers, which is part of the deferred D8 consumer's defense. Precedent: ADR-0556 D5 QW-1
+(same-run trusted-producer artifact) + the `postmerge-dev-trunk` warmth class
+(`specs/cache-warmth-policy.json`) — post-merge dev CI is the canonical trusted populator (Bazel/Google
+post-merge-fills-cache pattern), and trunk content is by definition admitted (passed `oya-ci-required`).
+The dev SHA's admission report IS the **merge-base-to-be** for the next batch of PRs.
+
+This producer is **sound + harmless**: no merge-authority change (same verdict), no new permissions
+(stays under workflow-wide `contents: read`), and **zero laundering surface** because nothing
+consumes the artifact yet. It is on the critical path of BOTH the deferred D8 cross-run consumer AND
+the ADR-0560 warm-CAS bring-up — emitting the trusted baseline now is the prerequisite both reuse.
+
+**2. The `timeout-minutes: 45` rail.** The `gate-affected-set` job runs the cold full workspace at
+admission. A wedged buck2 action or a non-terminating compile would otherwise burn the runner
+indefinitely (cold-rebuild runaway/exhaustion). The rail bounds it at **≈4x** the ADR-0554-measured
+warm full run (4m35s cold / 5m45s incl. tests, lines 56-58) — it fires only on a genuine runaway,
+never on a healthy cold build.
+
+### D8 — Cross-run baseline consumption (DEFERRED, design-of-record, superseded-on-arrival by warm-CAS)
+
+The D7 producer emits the trusted baseline; a future PR FULL tier could **download** the
+merge-base's dev-pushed baseline cross-run instead of recomputing it in the cold out-of-band
+worktree (the current D6 cold-worktree baseline, which STAYS as-is for PRs). D8 is **deferred** and
+recorded here as design-of-record so a future implementer builds the HARDENED version, not the naive
+one that reopens the #698 F1 laundering hole.
+
+**(a) Why the naive cross-run download is both dead code AND a laundering hole.**
+`actions/download-artifact@v8` cannot fetch a cross-run artifact by name — it only sees the current
+run's artifacts unless given an explicit `run-id` + a token with `actions: read`. So the naive
+"download `build-health-baseline-<merge_base>`" is **dead code** (resolves nothing). Worse, the
+`gh api` artifacts-by-name listing spans **ALL runs including `pull_request`**: a malicious PR can
+upload a forged `build-health-baseline-<merge_base>` artifact that a sibling consumer then ingests as
+"the merge-base baseline," grandfathering a regression past the ratchet — the exact #698 F1
+laundering class, reopened.
+
+**(b) The HARDENED recipe (what D8 MUST do):**
+- Grant `actions: read` **job-scoped** on the consuming job — NOT workflow-wide. Job-level
+  `permissions` **REPLACE, not merge**, so the job block must **re-declare** `contents: read` too.
+- Resolve candidates via
+  `gh api repos/{owner}/{repo}/actions/artifacts?name=build-health-baseline-<merge_base>`.
+- Apply the **3-CLAUSE TRUSTED-PRODUCER FILTER** to each candidate's `workflow_run`:
+  `event == "push" && head_branch == "dev" && head_sha == <merge_base>`. **Reject everything else**,
+  including `event == "pull_request"`.
+- Download by **artifact ID** via `gh api .../artifacts/{id}/zip` (avoids `download-artifact`'s
+  run-id plumbing entirely).
+- **Cold fallback** when no qualifying artifact exists: recompute the baseline in the out-of-band
+  merge-base worktree (the current D6 path), never false-green.
+
+**(c) Anti-laundering soundness.** Trust flows from the artifact's `workflow_run` **PROVENANCE**
+(`push`-write-gated, on the `dev` branch) — **never** the attacker-controllable artifact NAME. A PR
+can name an artifact anything, but it cannot forge a `push`+`dev`+`<merge_base>` `workflow_run`
+record, so the 3-clause filter rejects it. This is the same "trust the producer's provenance, not the
+candidate's input" property as the D6 out-of-band merge-base baseline.
+
+**(d) D8 ships WITH a conformance gate.** A sibling of
+`cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/tests/cache_conformance.rs` must assert on the
+workflow TEXT that (i) all 3 trusted-producer filter clauses, (ii) the `push && dev` producer gate,
+and (iii) the job-scoped `actions: read` are all present — otherwise a future edit silently drops a
+clause and reopens F1.
+
+**(e) Cutover.** The entire D8 apparatus (download + filter + conformance gate) is **DELETED, not
+reworked**, at warm-CAS bring-up: a content-addressed shared cache (ADR-0560) makes the merge-base
+build a cache hit, so there is no artifact to download. D8 is therefore marked
+**superseded-on-arrival by the warm-CAS consumer** — implement it only if warm-CAS slips and the
+cross-run baseline is needed in the interim.
