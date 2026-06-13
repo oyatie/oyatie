@@ -1,12 +1,21 @@
+_DEPS = [
+    "//cloud/cloud-os/crates/oya-cloud-os-kernel:oya-cloud-os-kernel",
+    # Real X.509 crypto (G002 slice-1b-i; ADR-0561, ADR-0506). All ride the
+    # aws-lc-rs backend with NO ring (rcgen default-features disabled at the
+    # workspace seam; x509-parser on verify-aws).
+    "third-party//:aws-lc-rs",
+    "third-party//:rcgen",
+    "third-party//:time",
+    "third-party//:x509-parser",
+]
+
 rust_library(
     name = "oya-cloud-os-trustd-domain",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_cloud_os_trustd_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//cloud/cloud-os/crates/oya-cloud-os-kernel:oya-cloud-os-kernel",
-    ],
+    deps = _DEPS,
 )
 
 rust_test(
@@ -15,7 +24,5 @@ rust_test(
     crate = "oya_cloud_os_trustd_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [
-        "//cloud/cloud-os/crates/oya-cloud-os-kernel:oya-cloud-os-kernel",
-    ],
+    deps = _DEPS,
 )

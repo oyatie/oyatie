@@ -639,6 +639,47 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "asn1-rs-0.7.2.crate",
+    sha256 = "b7f43a50ac4fdca5df8e885c21b835997f0a1cdee65494a6847694a98652d9d8",
+    strip_prefix = "asn1-rs-0.7.2",
+    urls = ["https://static.crates.io/crates/asn1-rs/0.7.2/download"],
+    visibility = [],
+)
+cargo.rust_library(
+    name = "asn1-rs-0.7",
+    srcs = [":asn1-rs-0.7.2.crate"],
+    crate = "asn1_rs",
+    crate_root = "asn1-rs-0.7.2.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "asn1-rs-0.7.2.crate",
+        "CARGO_PKG_NAME": "asn1-rs",
+        "CARGO_PKG_VERSION": "0.7.2",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "7",
+        "CARGO_PKG_VERSION_PATCH": "2",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "datetime",
+        "default",
+        "std",
+        "time",
+    ],
+    visibility = [],
+    deps = [
+        ":asn1-rs-derive-0.6",
+        ":asn1-rs-impl-0.2",
+        ":displaydoc-0.2",
+        ":nom-7",
+        ":num-traits-0.2",
+        ":rusticata-macros-4",
+        ":thiserror-2",
+        ":time-0.3",
+    ],
+)
+
+http_archive(
     name = "asn1-rs-derive-0.5.1.crate",
     sha256 = "965c2d33e53cb6b267e148a4cb0760bc01f4904c1cd4bb4002a085bb016d1490",
     strip_prefix = "asn1-rs-derive-0.5.1",
@@ -659,6 +700,38 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MAJOR": "0",
         "CARGO_PKG_VERSION_MINOR": "5",
         "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    proc_macro = True,
+    visibility = [],
+    deps = [
+        ":proc-macro2-1",
+        ":quote-1",
+        ":syn-2",
+        ":synstructure-0.13",
+    ],
+)
+
+http_archive(
+    name = "asn1-rs-derive-0.6.0.crate",
+    sha256 = "3109e49b1e4909e9db6515a30c633684d68cdeaa252f215214cb4fa1a5bfee2c",
+    strip_prefix = "asn1-rs-derive-0.6.0",
+    urls = ["https://static.crates.io/crates/asn1-rs-derive/0.6.0/download"],
+    visibility = [],
+)
+cargo.rust_library(
+    name = "asn1-rs-derive-0.6",
+    srcs = [":asn1-rs-derive-0.6.0.crate"],
+    crate = "asn1_rs_derive",
+    crate_root = "asn1-rs-derive-0.6.0.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "asn1-rs-derive-0.6.0.crate",
+        "CARGO_PKG_NAME": "asn1-rs-derive",
+        "CARGO_PKG_VERSION": "0.6.0",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "6",
+        "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
     },
     proc_macro = True,
@@ -3626,6 +3699,45 @@ cargo.rust_library(
         "std",
     ],
     visibility = [],
+)
+
+http_archive(
+    name = "der-parser-10.0.0.crate",
+    sha256 = "07da5016415d5a3c4dd39b11ed26f915f52fc4e0dc197d87908bc916e51bc1a6",
+    strip_prefix = "der-parser-10.0.0",
+    urls = ["https://static.crates.io/crates/der-parser/10.0.0/download"],
+    visibility = [],
+)
+cargo.rust_library(
+    name = "der-parser-10",
+    srcs = [":der-parser-10.0.0.crate"],
+    crate = "der_parser",
+    crate_root = "der-parser-10.0.0.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "der-parser-10.0.0.crate",
+        "CARGO_PKG_NAME": "der-parser",
+        "CARGO_PKG_VERSION": "10.0.0",
+        "CARGO_PKG_VERSION_MAJOR": "10",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "bigint",
+        "default",
+        "num-bigint",
+        "std",
+    ],
+    visibility = [],
+    deps = [
+        ":asn1-rs-0.7",
+        ":displaydoc-0.2",
+        ":nom-7",
+        ":num-bigint-0.4",
+        ":num-traits-0.2",
+        ":rusticata-macros-4",
+    ],
 )
 
 http_archive(
@@ -9297,6 +9409,102 @@ buildscript_run(
 )
 
 http_archive(
+    name = "oid-registry-0.8.1.crate",
+    sha256 = "12f40cff3dde1b6087cc5d5f5d4d65712f34016a03ed60e9c08dcc392736b5b7",
+    strip_prefix = "oid-registry-0.8.1",
+    urls = ["https://static.crates.io/crates/oid-registry/0.8.1/download"],
+    visibility = [],
+)
+cargo.rust_library(
+    name = "oid-registry-0.8",
+    srcs = [":oid-registry-0.8.1.crate"],
+    crate = "oid_registry",
+    crate_root = "oid-registry-0.8.1.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "oid-registry-0.8.1.crate",
+        "CARGO_PKG_NAME": "oid-registry",
+        "CARGO_PKG_VERSION": "0.8.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :oid-registry-0.8-build-script-run[out_dir])",
+    },
+    features = [
+        "crypto",
+        "default",
+        "kdf",
+        "nist_algs",
+        "pkcs1",
+        "pkcs12",
+        "pkcs7",
+        "pkcs9",
+        "registry",
+        "x509",
+        "x962",
+    ],
+    rustc_flags = ["@$(location :oid-registry-0.8-build-script-run[rustc_flags])"],
+    visibility = [],
+    deps = [":asn1-rs-0.7"],
+)
+cargo.rust_binary(
+    name = "oid-registry-0.8-build-script-build",
+    srcs = [":oid-registry-0.8.1.crate"],
+    crate = "build_script_build",
+    crate_root = "oid-registry-0.8.1.crate/build.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "oid-registry-0.8.1.crate",
+        "CARGO_PKG_NAME": "oid-registry",
+        "CARGO_PKG_VERSION": "0.8.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "crypto",
+        "default",
+        "kdf",
+        "nist_algs",
+        "pkcs1",
+        "pkcs12",
+        "pkcs7",
+        "pkcs9",
+        "registry",
+        "x509",
+        "x962",
+    ],
+    visibility = [],
+)
+buildscript_run(
+    name = "oid-registry-0.8-build-script-run",
+    package_name = "oid-registry",
+    buildscript_rule = ":oid-registry-0.8-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "8",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "crypto",
+        "default",
+        "kdf",
+        "nist_algs",
+        "pkcs1",
+        "pkcs12",
+        "pkcs7",
+        "pkcs9",
+        "registry",
+        "x509",
+        "x962",
+    ],
+    version = "0.8.1",
+)
+
+http_archive(
     name = "once_cell-1.21.4.crate",
     sha256 = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
     strip_prefix = "once_cell-1.21.4",
@@ -12006,6 +12214,50 @@ cargo.rust_library(
     ],
     visibility = [],
     deps = [":getrandom-0.3"],
+)
+
+alias(
+    name = "rcgen",
+    actual = ":rcgen-0.14",
+    visibility = ["PUBLIC"],
+)
+http_archive(
+    name = "rcgen-0.14.8.crate",
+    sha256 = "57f6d249aad744e274e682777a50283a225a32705394ee6d5fcc01efa25e4055",
+    strip_prefix = "rcgen-0.14.8",
+    urls = ["https://static.crates.io/crates/rcgen/0.14.8/download"],
+    visibility = [],
+)
+cargo.rust_library(
+    name = "rcgen-0.14",
+    srcs = [":rcgen-0.14.8.crate"],
+    crate = "rcgen",
+    crate_root = "rcgen-0.14.8.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "rcgen-0.14.8.crate",
+        "CARGO_PKG_NAME": "rcgen",
+        "CARGO_PKG_VERSION": "0.14.8",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "14",
+        "CARGO_PKG_VERSION_PATCH": "8",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "aws_lc_rs",
+        "crypto",
+        "pem",
+    ],
+    named_deps = {
+        "pki_types": ":rustls-pki-types-1",
+    },
+    visibility = [],
+    deps = [
+        ":aws-lc-rs-1",
+        ":pem-3",
+        ":time-0.3",
+        ":yasna-0.6",
+    ],
 )
 
 http_archive(
@@ -15897,6 +16149,12 @@ cargo.rust_library(
     deps = [":pin-project-lite-0.2"],
 )
 
+alias(
+    name = "time",
+    actual = ":time-0.3",
+    visibility = ["PUBLIC"],
+)
+
 http_archive(
     name = "time-0.3.47.crate",
     sha256 = "743bd48c283afc0388f9b8827b976905fb217ad9e647fae3a379a9283c4def2c",
@@ -19195,6 +19453,52 @@ cargo.rust_library(
     visibility = [],
 )
 
+alias(
+    name = "x509-parser",
+    actual = ":x509-parser-0.18",
+    visibility = ["PUBLIC"],
+)
+http_archive(
+    name = "x509-parser-0.18.1.crate",
+    sha256 = "d43b0f71ce057da06bc0851b23ee24f3f86190b07203dd8f567d0b706a185202",
+    strip_prefix = "x509-parser-0.18.1",
+    urls = ["https://static.crates.io/crates/x509-parser/0.18.1/download"],
+    visibility = [],
+)
+cargo.rust_library(
+    name = "x509-parser-0.18",
+    srcs = [":x509-parser-0.18.1.crate"],
+    crate = "x509_parser",
+    crate_root = "x509-parser-0.18.1.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_MANIFEST_DIR": "x509-parser-0.18.1.crate",
+        "CARGO_PKG_NAME": "x509-parser",
+        "CARGO_PKG_VERSION": "0.18.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "18",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "aws-lc-rs",
+        "verify-aws",
+    ],
+    visibility = [],
+    deps = [
+        ":asn1-rs-0.7",
+        ":aws-lc-rs-1",
+        ":data-encoding-2",
+        ":der-parser-10",
+        ":lazy_static-1",
+        ":nom-7",
+        ":oid-registry-0.8",
+        ":rusticata-macros-4",
+        ":thiserror-2",
+        ":time-0.3",
+    ],
+)
+
 http_archive(
     name = "x509-parser-0.16.0.crate",
     sha256 = "fcbc162f30700d6f3f82a24bf7cc62ffe7caea42c0b2cba8bf7f3ae50cf51f69",
@@ -19289,6 +19593,37 @@ cargo.rust_library(
         "std",
     ],
     visibility = [],
+)
+
+http_archive(
+    name = "yasna-0.6.0.crate",
+    sha256 = "b5f6765e852b9b4dc8e2a76843e4d64d1cea8e79bcde0b6901aea8e7c7f08282",
+    strip_prefix = "yasna-0.6.0",
+    urls = ["https://static.crates.io/crates/yasna/0.6.0/download"],
+    visibility = [],
+)
+cargo.rust_library(
+    name = "yasna-0.6",
+    srcs = [":yasna-0.6.0.crate"],
+    crate = "yasna",
+    crate_root = "yasna-0.6.0.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_MANIFEST_DIR": "yasna-0.6.0.crate",
+        "CARGO_PKG_NAME": "yasna",
+        "CARGO_PKG_VERSION": "0.6.0",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "6",
+        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "default",
+        "std",
+        "time",
+    ],
+    visibility = [],
+    deps = [":time-0.3"],
 )
 
 http_archive(

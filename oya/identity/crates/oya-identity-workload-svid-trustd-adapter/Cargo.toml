@@ -10,6 +10,9 @@ description = "Workload X.509-SVID trustd adapter (G002 slice-1; ADR-0561): impl
 [dependencies]
 oya-identity-workload-svid-kernel = { path = "../oya-identity-workload-svid-kernel" }
 oya-cloud-os-trustd-domain = { path = "../../../../cloud/cloud-os/crates/oya-cloud-os-trustd-domain" }
+# Real leaf-DER parsing + signature verification (G002 slice-1b-i; ADR-0561).
+# aws-lc-rs backend, NO ring (verify-aws only); replaces the TSV1 leaf_codec.
+x509-parser = { workspace = true }
 
 [lib]
 name = "oya_identity_workload_svid_trustd_adapter"
