@@ -361,23 +361,39 @@ jobs:
           rustup component add rustfmt clippy --toolchain 1.95.0
           rustc --version
           cargo --version
-      # Warm buck-out + the buck2 daemon cache across runs so ephemeral runners do not
-      # cold-bootstrap the toolchain (design §3.1 / ADR-0515 D4).
+      # Restore buck-out across runs so ephemeral runners start warm (design §3.1 / ADR-0515 D4).
+      #
+      # WHAT IS WARMED, PRECISELY (ADR-0554 D9, round-5): 100% of buck2 cross-run warmth lives in
+      # ./buck-out — buck-out/v2/cache/{materializer_state,incremental_state}/db.sqlite plus
+      # buck-out/v2/art (the materialized action outputs). buck-out is PATH-RELOCATABLE (relative
+      # paths + --remap-cwd-prefix=., no absolute project root baked in; a restored hit is keyed
+      # only on buck2_revision + os + arch), so restoring it into any runner checkout is sound.
+      # ~/.buck2 and ~/.buck hold ONLY daemon pid/endpoint/log scratch — ZERO action results — so
+      # caching `path: buck-out` warms everything cacheable and ~/.buck2/~/.buck is DELIBERATELY
+      # NOT cached (caching daemon scratch warms nothing; do not cargo-cult global-state caching).
+      #
+      # SAVE/RESTORE SPLIT (ADR-0554 D9; specs/cache-warmth-policy.json postmerge-dev-trunk = sole
+      # writer, presubmit-trusted-affected-cone = reader). dev-push is the SOLE canonical writer via
+      # the gate-affected-set job's SAVE step (see below): that job builds the FULL //... graph on
+      # push, so the saved buck-out is the full-graph superset. This buck2 job is READ-ONLY on every
+      # trigger — it restores the full-graph buck-out and its //cloud/cloud-ci/... build is a subset
+      # hit. PRs never write, eliminating the per-commit multi-GB write-churn/eviction (the
+      # Bazel/Google post-merge-fills-the-cache pattern).
       #
       # Cache key is STABLE per dependency-set (.buckconfig + toolchains/BUCK + Cargo.lock),
       # NOT per-commit. The previous `-${{ github.sha }}` suffix made the primary key unique
       # every commit, so actions/cache SAVED a fresh full buck-out (multi-GB) on EVERY run and
       # never hit the primary key — bloating the 10GB repo cache into constant LRU eviction and
-      # exhausting ephemeral-runner disk at the save step (the "No space left on device" failure).
-      # A stable key saves once per dependency-set and restores it exactly: deterministic warm
-      # start, no per-commit bloat. Changed crates still rebuild (buck2 is content-addressed, so a
-      # restored hit is bit-identical to a cold build); only a Cargo.lock/toolchain/.buckconfig
+      # exhausting ephemeral-runner disk at the save step (the "No space left on device" failure,
+      # FRIC-017). A stable key saves once per dependency-set and restores it exactly: deterministic
+      # warm start, no per-commit bloat. Changed crates still rebuild (buck2 is content-addressed,
+      # so a restored hit is bit-identical to a cold build); only a Cargo.lock/toolchain/.buckconfig
       # change mints a new entry. Interim warm-by-default until the shared content-addressed
-      # remote cache (NativeLink/CAS, HANDOFF W3) lands with a cold-canary integrity job proving
-      # cold==warm. See friction-ledger buck2-no-shared-cache.
-      - name: Cache buck-out
-        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+      # remote cache (NativeLink/CAS, ADR-0560, HANDOFF W3) lands with a cold-canary integrity job
+      # proving cold==warm. See friction-ledger buck2-no-shared-cache.
+      - name: Restore buck-out (read-only; dev-push is the sole writer)
+        # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: buck-out
           key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
@@ -493,11 +509,14 @@ jobs:
           rustup component add rustfmt clippy --toolchain 1.95.0
           rustc --version
           cargo --version
-      # Same stable per-dependency-set cache key as the buck2 lane (shared restore, no
-      # per-commit bloat; see the cache rationale comment above).
-      - name: Cache buck-out
-        # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+      # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency-set key as the buck2
+      # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
+      # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
+      # is the sole writer (the save step below is push-to-dev-gated), so PR runs read only — no
+      # per-commit multi-GB write-churn/eviction (see the buck2-lane rationale above).
+      - name: Restore buck-out (read-only; dev-push is the sole writer)
+        # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: buck-out
           key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
@@ -514,33 +533,50 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
-      # ── BUILD-HEALTH BASELINE (ADR-0554 round-3; ADR-0551 merge-base frozen pattern). On a
-      #    pull_request, materialize the MERGE-BASE build-health baseline OUT-OF-BAND: check the
-      #    merge-base commit out into a SEPARATE git worktree (never the candidate tree — the
-      #    #698 F1 laundering lesson) and run the full keep-going build there, capturing each
-      #    target's pass/fail into a build-report. The affected-set FULL tier then grandfathers
-      #    targets already failing at the merge-base and blocks only REGRESSIONS. Skipped for
-      #    push/merge_group/dispatch (the admission tier is a hard full build — no grandfathering).
-      - name: Materialize merge-base build-health baseline (out-of-band)
+      # ── BUILD-HEALTH BASELINE (ADR-0554 D9 same-root build, round-5; ADR-0551 merge-base frozen
+      #    pattern). On a pull_request, materialize the MERGE-BASE build-health baseline IN THE MAIN
+      #    ROOT so it shares the warm ./buck-out restored above (the merge-base IS a dev commit, so
+      #    the dev-keyed buck-out is near-fully-warm for it). We detach the SAME working tree to the
+      #    merge-base COMMITTED tree-ish (the candidate working tree is removed from disk for the
+      #    build), run the full keep-going build, capture per-target pass/fail, then a TRAP restores
+      #    the candidate on EXIT. The affected-set FULL tier grandfathers targets already failing at
+      #    the merge-base and blocks only REGRESSIONS. Skipped for push/merge_group/dispatch (the
+      #    admission tier is a hard full build — no grandfathering).
+      #
+      #    ANTI-LAUNDERING (ADR-0554 D6, preserved): the baseline failure-set comes ENTIRELY from
+      #    the merge-base COMMITTED tree (git object history — candidate-uncontrollable); during the
+      #    baseline build the candidate working tree is GONE from disk, so it cannot feed the
+      #    baseline; the report reaches the verdict ONLY via --baseline-report. The warm ./buck-out
+      #    is a content-addressed substrate — a buck2 hit is bit-identical to a cold build (ADR-0556
+      #    D1/D2) — so warmth changes only wall-clock, never the baseline SOURCE. Warm-eligible
+      #    under ADR-0556 with no policy change (trusted-author, content-addressed; not the
+      #    integrity-canary/release cold floor). This SUPERSEDES the deferred ADR-0554 D8 cross-run
+      #    report-artifact CONSUMER (do not build it) — Option A warms the build directly.
+      - name: Materialize merge-base build-health baseline (same-root, warm buck-out)
         if: ${{ github.event_name == 'pull_request' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
         run: |
           set -euo pipefail
           merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
-          echo "build-health baseline: merge-base=${merge_base}"
-          # Separate worktree at the merge-base — the baseline is computed from the merge-base
-          # COMMITTED tree, structurally not the PR candidate tree, so a PR cannot grow its own
-          # baseline to launder a regression.
-          base_wt="${RUNNER_TEMP}/oya-build-health-merge-base"
-          rm -rf "${base_wt}"
-          git worktree add --detach "${base_wt}" "${merge_base}"
-          # Build the whole merge-base workspace keep-going; record per-target status. The build
+          orig_ref="$(git rev-parse HEAD)"
+          echo "build-health baseline: merge-base=${merge_base} candidate=${orig_ref}"
+          # ALWAYS restore the candidate tree on EXIT — a failed baseline build can never strand CI
+          # on the merge-base tree (the subsequent Binding affected-set step runs on the candidate).
+          # NOTE: if the timeout-minutes:45 rail SIGKILLs this build, the bash EXIT trap does NOT
+          # fire (tree left detached at merge-base) — but a timeout fails the whole job RED → fan-in
+          # RED, so it is fail-closed and never produces a wrong-baseline verdict.
+          trap 'git checkout --quiet --detach "${orig_ref}" 2>/dev/null || git checkout --quiet "${orig_ref}"' EXIT
+          # Detach the MAIN working tree to the merge-base COMMITTED tree-ish: the baseline is
+          # computed from git object history (candidate-uncontrollable), and the candidate working
+          # tree is removed from disk for the build, so a PR cannot grow its own baseline to
+          # launder a regression.
+          git checkout --quiet --detach "${merge_base}"
+          # Build the whole merge-base workspace keep-going, sharing the warm ./buck-out. The build
           # is EXPECTED to be non-zero (dev carries pre-existing breakage) — that is the baseline,
           # not a failure, so we never propagate its exit code.
-          ( cd "${base_wt}" && buck2 build //... --keep-going \
-              --build-report "${RUNNER_TEMP}/build-health-baseline.json" ) || true
-          git worktree remove --force "${base_wt}"
+          buck2 build //... --keep-going \
+              --build-report "${RUNNER_TEMP}/build-health-baseline.json" || true
           test -s "${RUNNER_TEMP}/build-health-baseline.json" \
             || { echo "build-health: FATAL empty merge-base baseline report"; exit 1; }
       - name: Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)
@@ -568,6 +604,24 @@ jobs:
               --policy cloud/cloud-ci/gates/oya-cloud-ci-affected-set-app/affected-set-policy.json \
               --base "origin/${BASE_REF}" --mode full
           fi
+      # ── FULL-GRAPH CACHE SAVE (ADR-0554 D9; sole canonical writer). On dev-push this job runs
+      #    --mode full (buck2 build + test //...), so buck-out is populated with the FULL workspace
+      #    graph — not just //cloud/cloud-ci/... as in the buck2 lane. Saving here means PR
+      #    gate-affected-set restores a full-graph buck-out, so the same-root merge-base baseline
+      #    build is near-fully-warm (the merge-base IS a recent dev commit whose full-graph buck-out
+      #    was just saved). The buck2 lane restores the same key and is a subset hit. One save step,
+      #    one job, one key — no two-writer race. Runs AFTER the Binding step (buck-out fully
+      #    populated). Guarded push-to-dev so PRs remain read-only (restore-only via the step above).
+      #    Size note: the full-graph buck-out is one blob per stable key (overwrites, non-accumulating
+      #    due to dev-push-sole-writer), bounded by the dependency-set change cadence — worth watching
+      #    against the GitHub 10GB cache limit; NativeLink CAS (ADR-0560) removes this at cutover.
+      - name: Save buck-out (dev-push only; sole canonical full-graph writer)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        # actions/cache/save@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: buck-out
+          key: buck-out-${{ runner.os }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
       # ── BUILD-HEALTH BASELINE PRODUCER (ADR-0554 D7; ADR-0556 D5 QW-1 trusted-producer +
       #    postmerge-dev-trunk warmth class). ONLY a trusted push-to-dev publishes the admission
       #    build-report as the merge-base-to-be baseline artifact — NOT merge_group, NOT
