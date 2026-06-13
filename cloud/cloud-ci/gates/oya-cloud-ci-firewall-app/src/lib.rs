@@ -368,9 +368,11 @@ pub struct FirewallReport {
     /// `ratchet_regression` (debt cannot be laundered into the baseline by regen — not
     /// even by the same-PR regen the settle protocol mandates).
     pub ratchet_growth: Vec<(String, String, String)>,
-    /// `(gate, code, key)` sign-off-door entries that exempt NOTHING (key absent from the
-    /// frozen face AND from current AND from proposed): each is a standing re-introduction
-    /// ticket and a failure — remediation: retire the entry (see [`inert_signoff_entries`]).
+    /// `(gate, code, key)` sign-off-door entries that exempt NOTHING (key absent from current
+    /// AND from proposed in the candidate tree — the merge-base frozen face is NOT consulted,
+    /// so a PR's own OWNERS addition that orphans an entry fails at PR tier, symmetric with
+    /// push): each is a standing re-introduction ticket and a failure — remediation: retire the
+    /// entry (see [`inert_signoff_entries`]).
     pub inert_signoff: Vec<(String, String, String)>,
 }
 
