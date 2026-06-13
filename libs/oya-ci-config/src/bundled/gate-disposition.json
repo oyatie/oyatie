@@ -17,6 +17,7 @@
       "generated_face_drift": {"mode": "baseline-block-on-new"},
       "dual_decision_collision": {"mode": "baseline-block-on-new"},
       "decision_id_mismatch": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "phantom_decision_citation": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "a governed surface cites a decision id with NO decision file on disk (the phantom-0397 shape, FRIC-1781430000): mint the record at the cited number (reconstruction, status Proposed, founder-ratification banner) or retarget the citation to the real decision; allocate NEW numbers only via the accounting-registry producer --next-adr; the pre-2026-06-12 phantom inventory is grandfathered shrink-only DATA in the producer (each id ledgered with its citation sites) and may never grow."},
       "supersession_half_edge": {"mode": "baseline-block-on-new"},
       "unpropagated_decision": {"mode": "baseline-block-on-new"},
       "orphan_decision": {"mode": "baseline-block-on-new"},

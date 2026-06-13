@@ -1007,6 +1007,108 @@ mod tests {
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    /// RED fixture for FRIC-1781430000 (the phantom-0397 shape): an `ADR-NNNN` citation in
+    /// a governed surface (a decision body, the roadmap, the masterplan `bound_adrs`) that
+    /// resolves to NO on-disk decision id must surface as a `<cited>@<source>` edge in
+    /// `phantom_citations`; a citation of an EXISTING decision must not; a citation of a
+    /// GRANDFATHERED historical phantom (reviewed shrink-only DATA) must not; a masterplan
+    /// mention OUTSIDE `bound_adrs` must not. Then MINTING the missing record at the cited
+    /// number must heal the edge with zero retargeting — the ADR-0397 reconstruction
+    /// mechanism, witnessed mechanically.
+    #[test]
+    fn crosswalk_flags_phantom_citations_and_minting_heals_them() {
+        let root = unique_temp_repo();
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let decisions = root.join(&cfg.justification.adr_dir);
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        fs::write(
+            decisions.join("ADR-0001-citer.md"),
+            "---\nid: ADR-0001\nstatus: Accepted\n---\nCites ADR-0900 (phantom), \
+             ADR-0002 (exists), and ADR-0436 (grandfathered inventory).\n",
+        )
+        .expect("write citing ADR");
+        fs::write(
+            decisions.join("ADR-0002-target.md"),
+            "---\nid: ADR-0002\nstatus: Accepted\n---\n",
+        )
+        .expect("write existing target ADR");
+        let roadmap_path = root.join(&cfg.justification.roadmap);
+        fs::create_dir_all(roadmap_path.parent().expect("roadmap parent"))
+            .expect("create specs dir");
+        fs::write(&roadmap_path, r#"{"wave": "depends on ADR-0901"}"#).expect("write roadmap");
+        let masterplan_path = root.join(&cfg.reachability.masterplan);
+        fs::write(
+            &masterplan_path,
+            r#"{"phases":[{"bound_adrs":["ADR-0902","ADR-0002"],"narrative":"ADR-0903 outside bound_adrs is not a citation edge"}]}"#,
+        )
+        .expect("write masterplan");
+
+        let inputs = collect_crosswalk_inputs(&root, &cfg);
+        assert_eq!(
+            inputs.phantom_citations,
+            vec![
+                format!("ADR-0900@{}/ADR-0001-citer.md", cfg.justification.adr_dir),
+                format!("ADR-0901@{}", cfg.justification.roadmap),
+                format!("ADR-0902@{}#bound_adrs", cfg.reachability.masterplan),
+            ],
+            "exactly the unresolved, non-grandfathered citation edges must surface"
+        );
+
+        // MINT the missing records at the cited numbers: every edge heals, zero retargeting.
+        fs::write(
+            decisions.join("ADR-0900-minted.md"),
+            "---\nid: ADR-0900\nstatus: Proposed\n---\n",
+        )
+        .expect("write minted ADR");
+        fs::write(
+            decisions.join("ADR-0901-minted.md"),
+            "---\nid: ADR-0901\nstatus: Proposed\n---\n",
+        )
+        .expect("write minted ADR");
+        fs::write(
+            decisions.join("ADR-0902-minted.md"),
+            "---\nid: ADR-0902\nstatus: Proposed\n---\n",
+        )
+        .expect("write minted ADR");
+        let healed = collect_crosswalk_inputs(&root, &cfg);
+        assert!(
+            healed.phantom_citations.is_empty(),
+            "minting the record at the cited number must heal every edge: {:?}",
+            healed.phantom_citations
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// The token scanner accepts exactly-four-digit ids and rejects longer digit runs.
+    #[test]
+    fn adr_citation_tokens_match_exactly_four_digits() {
+        let tokens = adr_citation_tokens(
+            "ADR-0001 then ADR-04031 (five digits: no match) then (ADR-0403's) and ADR-12",
+        );
+        let expected: BTreeSet<String> = ["ADR-0001", "ADR-0403"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+        assert_eq!(tokens, expected);
+    }
+
+    /// The grandfathered inventory is shrink-only DATA: it must never contain ADR-0397
+    /// (healed by the minted record — the exhibit that keeps this lane frozen-empty) and
+    /// must stay sorted+deduped so reviews see a canonical list.
+    #[test]
+    fn grandfathered_phantom_inventory_is_canonical_and_excludes_healed_ids() {
+        let list = GRANDFATHERED_PHANTOM_DECISION_IDS;
+        assert!(
+            !list.contains(&"ADR-0397"),
+            "ADR-0397 was healed by minting the record; it must not be grandfathered"
+        );
+        let mut sorted = list.to_vec();
+        sorted.sort_unstable();
+        sorted.dedup();
+        assert_eq!(sorted.as_slice(), list, "inventory must be sorted + deduped");
+    }
+
     /// A clean corpus carries no mismatch signal and allocates max+1 from the filename ids.
     #[test]
     fn crosswalk_is_quiet_and_allocates_on_a_clean_corpus() {
@@ -1665,10 +1767,129 @@ fn is_workspace_inherited(line: &str, key: &str) -> bool {
     false
 }
 
+/// The HISTORICAL phantom-citation inventory (FRIC-1781430000): decision ids that governed
+/// surfaces cite TODAY with no decision file on disk, inventoried 2026-06-12 during the
+/// ADR-0397 reconstruction (audit register H-19). This is reviewed, shrink-only carve-out
+/// DATA — the same doctrine as the brand-residue carve-outs: exceptions live as DATA, never
+/// as evaluator branches. Each id is ledgered as its own friction-ledger row listing its
+/// citation sites; healing an id (minting the record at the number, or retargeting every
+/// citer) REMOVES it here. ADDING an id is forbidden — a new phantom citation is exactly
+/// the defect the `phantom_decision_citation` lane blocks (its baseline is frozen-empty;
+/// any non-grandfathered phantom edge is born-blocking). ADR-0397 itself is deliberately
+/// NOT in this list: it was healed by minting the record, which is what keeps this lane's
+/// live key set empty.
+const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 63] = [
+    "ADR-0000", "ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0086",
+    "ADR-0088", "ADR-0125", "ADR-0126", "ADR-0127", "ADR-0224", "ADR-0231", "ADR-0232",
+    "ADR-0247", "ADR-0322", "ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0395",
+    "ADR-0399", "ADR-0403", "ADR-0406", "ADR-0407", "ADR-0408", "ADR-0409", "ADR-0410",
+    "ADR-0411", "ADR-0413", "ADR-0416", "ADR-0418", "ADR-0419", "ADR-0420", "ADR-0421",
+    "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441", "ADR-0443",
+    "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
+    "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472",
+    "ADR-0473", "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
+];
+
+/// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).
+/// Hand-rolled scanner (minimal-deps doctrine: no regex crate in the producer).
+fn adr_citation_tokens(text: &str) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    let bytes = text.as_bytes();
+    let mut from = 0;
+    while let Some(rel) = text[from..].find("ADR-") {
+        let start = from + rel;
+        let digits_start = start + 4;
+        let digits_end = digits_start + 4;
+        if digits_end <= bytes.len()
+            && bytes[digits_start..digits_end]
+                .iter()
+                .all(u8::is_ascii_digit)
+            && !bytes.get(digits_end).is_some_and(u8::is_ascii_digit)
+        {
+            // SAFETY-free slice: the matched region is pure ASCII, so the str slice is valid.
+            out.insert(text[start..digits_end].to_owned());
+            from = digits_end;
+        } else {
+            from = start + 4;
+        }
+    }
+    out
+}
+
+/// Collect the `ADR-NNNN` citation edges of the governed surfaces that resolve to NO
+/// on-disk decision id, excluding the grandfathered historical inventory. Governed
+/// surfaces: every decision file body, the roadmap/sequencing artifact, and the
+/// masterplan's `bound_adrs` arrays. Edge key shape: `<cited-id>@<source-path>`
+/// (e.g. `ADR-0397@docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md`),
+/// matching the GATE-1 `phantom_decision_citation` finding key.
+fn collect_phantom_citations(
+    known_ids: &BTreeSet<String>,
+    decision_bodies: &[(String, String)],
+    roadmap_path: &str,
+    roadmap: &str,
+    masterplan_path: &str,
+    masterplan: &str,
+) -> Vec<String> {
+    let grandfathered: BTreeSet<&str> = GRANDFATHERED_PHANTOM_DECISION_IDS.into_iter().collect();
+    let mut edges: BTreeSet<String> = BTreeSet::new();
+
+    let mut record = |cited: &str, source: &str, edges: &mut BTreeSet<String>| {
+        if !known_ids.contains(cited) && !grandfathered.contains(cited) {
+            edges.insert(format!("{cited}@{source}"));
+        }
+    };
+
+    for (source, body) in decision_bodies {
+        for cited in adr_citation_tokens(body) {
+            record(&cited, source, &mut edges);
+        }
+    }
+    for cited in adr_citation_tokens(roadmap) {
+        record(&cited, roadmap_path, &mut edges);
+    }
+    // masterplan: only the `bound_adrs` arrays are citation edges (the rest of the
+    // masterplan is generated narrative; its decision binding IS bound_adrs).
+    if let Ok(value) = serde_json::from_str::<Value>(masterplan) {
+        let mut bound: BTreeSet<String> = BTreeSet::new();
+        collect_bound_adrs(&value, &mut bound);
+        let source = format!("{masterplan_path}#bound_adrs");
+        for cited in bound {
+            record(&cited, &source, &mut edges);
+        }
+    }
+    edges.into_iter().collect()
+}
+
+/// Recursively collect the string items of every `bound_adrs` array in a JSON document.
+fn collect_bound_adrs(value: &Value, out: &mut BTreeSet<String>) {
+    match value {
+        Value::Object(map) => {
+            for (key, nested) in map {
+                if key == "bound_adrs"
+                    && let Some(items) = nested.as_array()
+                {
+                    for item in items.iter().filter_map(Value::as_str) {
+                        out.extend(adr_citation_tokens(item));
+                    }
+                }
+                collect_bound_adrs(nested, out);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                collect_bound_adrs(item, out);
+            }
+        }
+        _ => {}
+    }
+}
+
 /// Collect the GATE-1 cross-artifact facts from the live corpus: ADR front-matter
 /// (status + reciprocal supersession edges), spec/masterplan/roadmap presence, the
-/// duplicate-id collision (two files carrying one id), and the generated-face axes drift
-/// (catalog.json vs contracts.json `axes_count`). Single pass over the ADR corpus.
+/// duplicate-id collision (two files carrying one id), the phantom citation edges
+/// (`ADR-NNNN` cited from a governed surface with no decision file on disk), and the
+/// generated-face axes drift (catalog.json vs contracts.json `axes_count`). Single pass
+/// over the ADR corpus.
 fn collect_crosswalk_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
@@ -1687,16 +1908,26 @@ fn collect_crosswalk_inputs(
     // The allocator input: the highest decision number seen across BOTH the filename
     // and the front-matter id of every decision file.
     let mut max_decision_number: u32 = 0;
+    // Every id ANY decision file carries (filename or front-matter) — the resolution
+    // universe for phantom-citation detection (FRIC-1781430000): a citation resolves iff
+    // some on-disk decision file carries the cited id under either identity.
+    let mut known_ids: BTreeSet<String> = BTreeSet::new();
+    // The governed decision bodies, kept for the citation scan (one read per file).
+    let mut decision_bodies: Vec<(String, String)> = Vec::new();
     if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
             if let Some(filename_id) = adr_id_from_filename(&name) {
                 let path = entry.path();
-                let front_id = front_matter_field(&read_text(&path), "id");
+                let body = read_text(&path);
+                let front_id = front_matter_field(&body, "id");
+                decision_bodies.push((format!("{}/{name}", cfg.justification.adr_dir), body));
+                known_ids.insert(filename_id.clone());
                 if let Some(number) = adr_number(&filename_id) {
                     max_decision_number = max_decision_number.max(number);
                 }
                 if let Some(front_id) = &front_id {
+                    known_ids.insert(front_id.clone());
                     if front_id != &filename_id {
                         id_mismatches.push(format!("{name}:{filename_id}!={front_id}"));
                     }
@@ -1710,7 +1941,17 @@ fn collect_crosswalk_inputs(
         }
     }
     id_mismatches.sort();
+    decision_bodies.sort_by(|a, b| a.0.cmp(&b.0));
     let next_free_id = format!("ADR-{:04}", max_decision_number + 1);
+
+    let phantom_citations = collect_phantom_citations(
+        &known_ids,
+        &decision_bodies,
+        &cfg.justification.roadmap,
+        &roadmap,
+        &cfg.reachability.masterplan,
+        &masterplan,
+    );
 
     let mut decisions: Vec<DecisionCrosswalkRow> = Vec::new();
     let mut duplicate_ids: Vec<String> = Vec::new();
@@ -1758,6 +1999,11 @@ fn collect_crosswalk_inputs(
         decisions,
         duplicate_ids,
         id_mismatches,
+        phantom_citations,
+        grandfathered_phantom_ids: GRANDFATHERED_PHANTOM_DECISION_IDS
+            .iter()
+            .map(|id| (*id).to_owned())
+            .collect(),
         next_free_id,
         generated_face_axes,
     }
