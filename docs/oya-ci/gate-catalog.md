@@ -56,7 +56,7 @@ agent-wiring + catalog`.
 | Gate id | Pack | Input KIND (face) | Violation codes |
 |---|---|---|---|
 | `cloud-ci-total-accounting` | core | producer-face (`total_accounting`) | `unaccounted`, `unowned`, `unjustified`, `unreachable`, `no_ttl_class`, `registry_drift` (frozen-empty) |
-| `cloud-ci-cross-artifact-agreement` | core | producer-face (`cross_artifact`) | `generated_face_drift`, `dual_decision_collision`, `decision_id_mismatch` (frozen-empty), `supersession_half_edge`, `unpropagated_decision`, `orphan_decision`, `status_disagreement` |
+| `cloud-ci-cross-artifact-agreement` | core | producer-face (`cross_artifact`) | `generated_face_drift`, `dual_decision_collision`, `decision_id_mismatch` (frozen-empty), `phantom_decision_citation` (frozen-empty), `supersession_half_edge`, `unpropagated_decision`, `orphan_decision`, `status_disagreement` |
 | `cloud-ci-automation-ratchet` | core | producer-face (`automation_ratchet`) | `advisory_claiming_enforced`, `blocking_invariant_mapped_to_oya_cli`, `ratchet_regression` (frozen-empty), `enforceable_or_automatable_marked_human_judgment`, `duplicate_row_id` (frozen-empty), `unknown_classification`, `missing_or_empty_required_field` |
 | `cloud-ci-staleness-reaper` | core | producer-face (`staleness`) | `stale_over_budget_unreachable`, `untyped_staleness`, `reap_without_report` (frozen-empty) |
 | `cloud-ci-brand-residue` | core | raw-corpus-collector | one `forbidden_<stem>` code per configured `[vocab]` stem |
@@ -181,7 +181,15 @@ backstop.
 
 - total-accounting / staleness: the registry row `path`.
 - cross-artifact: a decision id; for `decision_id_mismatch`, the producer's
-  `<file>:<filename-id>!=<front-matter-id>` entry. Decision NUMBER ALLOCATION is mechanical
+  `<file>:<filename-id>!=<front-matter-id>` entry; for `phantom_decision_citation`, the
+  producer's `<cited-id>@<source-path>` citation edge — an `ADR-NNNN` cited from a governed
+  surface (a decision body, the roadmap/sequencing artifact, or the masterplan `bound_adrs`)
+  with NO decision file on disk (the phantom-0397 exhibit, audit register H-19, healed
+  2026-06-12 by minting `docs/decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md`;
+  FRIC-1781430000). Frozen-empty: the pre-existing phantom inventory is grandfathered
+  shrink-only DATA in the producer (each id ledgered with its citation sites); remediation is
+  mint-the-record-at-the-cited-number (reconstruction, status Proposed) or retarget the
+  citation — never silently re-baseline. Decision NUMBER ALLOCATION is mechanical
   (FRIC-1781320000): the accounting-registry producer's `--next-adr` mode prints the next free
   `ADR-NNNN` derived from the tree (max over filename AND front-matter ids, plus one) — lanes
   allocate by running it, never by convention or leader memory; the crosswalk face carries the

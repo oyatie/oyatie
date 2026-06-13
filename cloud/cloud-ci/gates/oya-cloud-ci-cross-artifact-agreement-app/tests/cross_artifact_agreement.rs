@@ -257,6 +257,94 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         "next_free_id must be an ADR-NNNN allocator output, got {next_free_id:?}"
     );
 
+    // phantom_decision_citation is frozen-empty (born-blocking, FRIC-1781430000): the
+    // phantom-0397 exhibit (seven governed surfaces citing "ADR-0397 Pulsar 4.x + Oxia
+    // canonical event-bus" with no file at the number — audit register H-19) was healed
+    // 2026-06-12 by MINTING docs/decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md,
+    // and the pre-existing phantom inventory is grandfathered shrink-only DATA in the
+    // producer (each id ledgered with its citation sites). Any edge here is NEW debt.
+    let phantom_citations = crosswalk["phantom_citations"]
+        .as_array()
+        .expect("phantom_citations");
+    assert!(
+        phantom_citations.is_empty(),
+        "phantom_decision_citation must stay frozen-empty: {phantom_citations:?} — mint the \
+         record at the cited number (status Proposed, reconstruction banner; allocate NEW \
+         numbers via the accounting-registry producer's --next-adr) or retarget the citation"
+    );
+    assert!(
+        !report.violations.contains("phantom_decision_citation"),
+        "the live corpus must carry no phantom decision citation"
+    );
+    // The healed exhibit resolves: the minted ADR-0397 carries a crosswalk row, so every
+    // pre-existing "ADR-0397" citation now reaches a real decision with zero retargeting.
+    assert!(
+        crosswalk["decisions"]
+            .as_array()
+            .expect("decisions")
+            .iter()
+            .any(|d| d["id"] == "ADR-0397"),
+        "the minted ADR-0397 must appear as a decision-crosswalk row"
+    );
+
+    // The grandfathered inventory is mechanically guarded (review MEDIUM, 2026-06-12):
+    // (1) ANTI-PADDING — every grandfathered id must STILL resolve to no decision file;
+    //     a healed id (one that now has a crosswalk row) must leave the inventory in the
+    //     healing PR, so the carve-out can never shadow a real decision.
+    // (2) ANTI-GROWTH — a decrease-only ceiling (the #676 baseline+independent-ceiling
+    //     pattern): laundering a NEW phantom citation by adding its id to the inventory
+    //     in the same PR forces a loud edit of this pinned ceiling, which may only ever
+    //     go DOWN as ids are healed (mint-or-retarget per their ledger rows).
+    const GRANDFATHERED_PHANTOM_CEILING: usize = 63; // decrease-only; never raise
+    let grandfathered: Vec<&str> = crosswalk["grandfathered_phantom_ids"]
+        .as_array()
+        .expect("grandfathered_phantom_ids")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    assert!(
+        grandfathered.len() <= GRANDFATHERED_PHANTOM_CEILING,
+        "the grandfathered phantom inventory may only SHRINK (got {}, ceiling {}): a new \
+         phantom citation is never grandfathered — mint the record at the cited number or \
+         retarget the citation (FRIC-1781430000)",
+        grandfathered.len(),
+        GRANDFATHERED_PHANTOM_CEILING
+    );
+    let decision_ids: BTreeSet<&str> = crosswalk["decisions"]
+        .as_array()
+        .expect("decisions")
+        .iter()
+        .filter_map(|d| d["id"].as_str())
+        .collect();
+    let padded: Vec<&str> = grandfathered
+        .iter()
+        .copied()
+        .filter(|id| decision_ids.contains(id))
+        .collect();
+    assert!(
+        padded.is_empty(),
+        "grandfathered ids that now resolve to a real decision must leave the inventory \
+         (remove from GRANDFATHERED_PHANTOM_DECISION_IDS + lower the ceiling): {padded:?}"
+    );
+    // (3) ANTI-INERT — every grandfathered id must still be CITED somewhere in the
+    //     governed surfaces; an entry whose citations were all retargeted away protects
+    //     nothing and is a standing silent-reintroduction ticket (the FRIC-1781280001
+    //     inert-door class) — retire it (remove + lower the ceiling). Together with
+    //     (1), (2) and the frozen-empty phantom lane this pins the inventory to be
+    //     EXACTLY the live cited-but-missing set.
+    let governed_corpus = read_governed_citation_corpus(&root);
+    let inert: Vec<&str> = grandfathered
+        .iter()
+        .copied()
+        .filter(|id| !governed_corpus.contains(*id))
+        .collect();
+    assert!(
+        inert.is_empty(),
+        "grandfathered ids no longer cited by any governed surface protect nothing — \
+         retire them (remove from GRANDFATHERED_PHANTOM_DECISION_IDS + lower the \
+         ceiling): {inert:?}"
+    );
+
     // Count the real exhibits for the evidence digest.
     let decisions = crosswalk["decisions"].as_array().expect("decisions");
     let dup_ids = crosswalk["duplicate_ids"]
@@ -281,14 +369,39 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         .count();
 
     eprintln!(
-        "BORN-BLOCKING live-corpus counts: decisions={} duplicate_ids={:?} id_mismatches={:?} next_free_id={next_free_id} axes={:?} unpropagated_decision={} violations={:?}",
+        "BORN-BLOCKING live-corpus counts: decisions={} duplicate_ids={:?} id_mismatches={:?} phantom_citations={} next_free_id={next_free_id} axes={:?} unpropagated_decision={} violations={:?}",
         decisions.len(),
         dup_ids,
         id_mismatches,
+        phantom_citations.len(),
         axes,
         unpropagated,
         report.violations
     );
+}
+
+/// Concatenate the governed citation surfaces (every decision body + the
+/// roadmap/sequencing artifact + the masterplan) into one corpus string for the
+/// anti-inert containment check. A plain substring probe over-approximates the
+/// producer's token scan in the conservative direction: an id mentioned in ANY form
+/// counts as still-cited, so an entry is only called inert when no governed surface
+/// mentions it at all.
+fn read_governed_citation_corpus(root: &Path) -> String {
+    let mut corpus = String::new();
+    let decisions_dir = root.join("docs/decisions");
+    let mut paths: Vec<PathBuf> = fs::read_dir(&decisions_dir)
+        .unwrap_or_else(|e| panic!("read_dir {}: {e}", decisions_dir.display()))
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "md"))
+        .collect();
+    paths.push(root.join("specs/master-plan-sequencing.json"));
+    paths.push(root.join("specs/masterplan.json"));
+    for path in paths {
+        corpus.push_str(&fs::read_to_string(&path).unwrap_or_default());
+        corpus.push('\n');
+    }
+    corpus
 }
 
 /// Run the producer to emit a single face to stdout, HERMETICALLY (no `env!("CARGO")`, the

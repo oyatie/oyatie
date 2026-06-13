@@ -232,15 +232,25 @@ fn access_token_claims_json(claims: &AccessTokenClaims) -> serde_json::Value {
 /// Shared handle for the issuer routes.
 pub type SharedIssuerState = Arc<IssuerState>;
 
+/// Serve the discovery document. Only endpoints this delivery surface
+/// actually mounts are advertised: the kernel metadata also carries
+/// `authorization_endpoint`/`token_endpoint`/`userinfo_endpoint`, but no such
+/// routes exist here (plane-3 workload identity publishes keys; it hosts no
+/// human authorization code flow), and advertising endpoints that 404 is
+/// worse than omitting them — RFC 8414 §2 scopes metadata claims to
+/// supported capabilities. Known tension: OIDC Discovery 1.0 (the
+/// `/.well-known/openid-configuration` path this router serves) marks
+/// `authorization_endpoint` REQUIRED for a full OP, so a strict OIDC RP
+/// validator would reject this document — acceptable here because no RP
+/// consumes this surface as an OP (it is a JWKS-publication endpoint), and
+/// the endgame is either the RFC 8414 `oauth-authorization-server` suffix or
+/// mounting a real authorization surface, never re-advertising 404s.
 async fn discovery_handler(State(state): State<SharedIssuerState>) -> Response {
     let algorithms: Vec<Algorithm> = state.keys.iter().map(SigningKey::algorithm).collect();
     match build_issuer_metadata(state.issuer_url.clone(), &algorithms) {
         Ok(metadata) => Json(serde_json::json!({
             "issuer": metadata.issuer.as_str(),
             "jwks_uri": metadata.jwks_uri,
-            "authorization_endpoint": metadata.authorization_endpoint,
-            "token_endpoint": metadata.token_endpoint,
-            "userinfo_endpoint": metadata.userinfo_endpoint,
             "response_types_supported": metadata.response_types_supported,
             "subject_types_supported": metadata.subject_types_supported,
             "id_token_signing_alg_values_supported": metadata.id_token_signing_alg_values_supported,
@@ -448,6 +458,18 @@ mod tests {
                 .expect("algs")
                 .contains(&serde_json::json!("ES256"))
         );
+        // Endpoints this surface does not mount must NOT be advertised
+        // (they would 404; RFC 8414 §2 capability claims).
+        for absent in [
+            "authorization_endpoint",
+            "token_endpoint",
+            "userinfo_endpoint",
+        ] {
+            assert!(
+                document.get(absent).is_none(),
+                "discovery doc must not advertise unmounted endpoint {absent}"
+            );
+        }
 
         let response = router
             .oneshot(

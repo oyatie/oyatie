@@ -103,6 +103,12 @@ roadmap = "specs/master-plan-sequencing.json"
 
 [owners]
 file_name = "OWNERS"
+# ADR-0555 hardening (FRIC-1781400000): max tracked paths one OWNERS file may cover via
+# nearest-ancestor resolution (the file itself counts). Excess coverage stays UNOWNED with
+# the split-the-registration remediation, so a single bulk OWNERS cannot neuter a tree's
+# unowned accounting. Measured live corpus 2026-06-12: max legitimate coverage 886
+# (registry/catalog/OWNERS) of 18,400 tracked paths; 2000 gives >2x growth headroom.
+max_paths_per_owners_file = 2000
 
 [enforcement]
 governance_crate_substr = "oya-governance"
