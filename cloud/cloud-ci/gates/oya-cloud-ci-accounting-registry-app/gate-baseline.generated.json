@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:f6fbaeb95dd3aa45",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:80c0ee761938d670"
+    "source_inputs_digest": "fnv1a64:21cb70e519f0ea67"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -7232,7 +7232,6 @@
           "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/service.rs",
           "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/signer.rs",
           "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/token.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/x509.rs",
           "cloud/cloud-os/crates/oya-cloud-os-upgrade-domain/BUCK",
           "cloud/cloud-os/crates/oya-cloud-os-upgrade-domain/Cargo.toml",
           "cloud/cloud-os/crates/oya-cloud-os-upgrade-domain/src/drain.rs",
@@ -11689,7 +11688,6 @@
           "oya/api-gateway/iac/network-policy.yaml",
           "oya/api-gateway/iac/openbao-policy.hcl",
           "oya/api-gateway/iac/pqc-cert.yaml",
-          "oya/api-gateway/iac/spire-trust-bundle.yaml",
           "oya/api-gateway/iac/terraform-module.tf",
           "oya/api-gateway/manifest.json",
           "oya/api-gateway/policy/abuse-defence.cedar",
