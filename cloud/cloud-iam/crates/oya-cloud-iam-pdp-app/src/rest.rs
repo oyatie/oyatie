@@ -22,16 +22,20 @@
 
 use std::sync::Arc;
 
-use axum::extract::State;
+use axum::extract::{Extension, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 
+use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
+use oya_cloud_os_trustd_domain::TrustBundle;
 use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError};
 use oya_shared_platform_contracts_kernel::pdp::AuthorizationRequest;
 
+use crate::mtls::SpiffeCallerAuth;
+use crate::mtls_transport::PeerCertInfo;
 use crate::PdpState;
 
 /// `POST /v1/authorize` body: the locked-contract request plus the
@@ -71,10 +75,57 @@ fn refusal_response(error: &PdpError) -> Response {
         .into_response()
 }
 
+/// The mTLS PEP context layered onto the router per connection: the trust bundle
+/// (request-tenant authority) plus the captured peer leaf. Both are `Extension`s
+/// so the plain-TCP router (no layers) runs the legacy verbatim-tenant path.
+type CallerAuthBundle = Arc<TrustBundle<EcdsaP256Signer>>;
+
+/// Current wall-clock as epoch seconds (clock-before-epoch ⇒ `0` ⇒ every SVID
+/// expired ⇒ fail-closed DENY, never a spurious accept).
+fn now_secs() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+/// A 403 refusal carrying the coarse auth-failure class (never 404, never the
+/// SVID/tenant detail — anti-enumeration, mirroring the gRPC PermissionDenied).
+fn caller_auth_refusal(message: &str) -> Response {
+    (
+        StatusCode::FORBIDDEN,
+        Json(serde_json::json!({
+            "error_code": "caller_unauthenticated",
+            "detail": message,
+        })),
+    )
+        .into_response()
+}
+
 async fn authorize(
     State(state): State<Arc<PdpState>>,
-    Json(body): Json<AuthorizeBody>,
+    bundle: Option<Extension<CallerAuthBundle>>,
+    peer: Option<Extension<PeerCertInfo>>,
+    Json(mut body): Json<AuthorizeBody>,
 ) -> Response {
+    // mTLS PEP (the #717 closure): when a trust bundle is layered (mTLS boot),
+    // authenticate the caller by its verified peer SVID and bind the tenant from
+    // the SVID path BEFORE deciding. Reject ⇒ 403, never 404, never a verbatim
+    // fall-through. Plain-TCP boot (no bundle layer) keeps the legacy path.
+    if let Some(Extension(bundle)) = bundle {
+        let peer_leaf = peer
+            .as_ref()
+            .and_then(|Extension(info)| info.leaf_der.as_deref());
+        let pep = match SpiffeCallerAuth::new(&bundle) {
+            Ok(pep) => pep,
+            Err(err) => return caller_auth_refusal(&err.to_string()),
+        };
+        match pep.authenticate_caller(peer_leaf, &body.request.tenant_id, now_secs()) {
+            Ok(bound) => body.request.tenant_id = bound.as_str().to_owned(),
+            Err(rej) => return caller_auth_refusal(rej.public_message()),
+        }
+    }
+
     let entities = EntitySlice {
         entities: body.entities,
     };
@@ -115,7 +166,8 @@ async fn unknown_route() -> Response {
         .into_response()
 }
 
-/// Build the REST router over the shared state.
+/// Build the REST router over the shared state (plain-TCP boot — NO caller
+/// authentication; the legacy verbatim-tenant path).
 pub fn build_router(state: Arc<PdpState>) -> Router {
     Router::new()
         .route("/v1/authorize", post(authorize))
@@ -123,4 +175,15 @@ pub fn build_router(state: Arc<PdpState>) -> Router {
         .route("/readyz", get(readyz))
         .fallback(unknown_route)
         .with_state(state)
+}
+
+/// Build the REST router with the mTLS PEP enforced: the trust bundle is layered
+/// as an `Extension` so `authorize` authenticates the caller by its peer SVID and
+/// binds the tenant from the SVID path. The per-connection peer leaf is injected
+/// separately by the mTLS accept loop (`mtls_transport`).
+pub fn build_router_mtls(
+    state: Arc<PdpState>,
+    bundle: Arc<TrustBundle<EcdsaP256Signer>>,
+) -> Router {
+    build_router(state).layer(Extension(bundle))
 }

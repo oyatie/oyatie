@@ -52,14 +52,21 @@ _DEPS = [
     "//oya/identity/crates/oya-identity-workload-svid-kernel:oya-identity-workload-svid-kernel",
     "//oya/identity/crates/oya-identity-workload-svid-trustd-adapter:oya-identity-workload-svid-trustd-adapter",
     "//cloud/cloud-os/crates/oya-cloud-os-trustd-domain:oya-cloud-os-trustd-domain",
+    "third-party//:async-stream",
     "third-party//:aws-lc-rs",
     "third-party//:axum",
+    "third-party//:futures-core",
+    "third-party//:hyper",
+    "third-party//:hyper-util",
     "third-party//:prost",
+    "third-party//:rustls",
     "third-party//:serde",
     "third-party//:serde_json",
     "third-party//:tokio",
+    "third-party//:tokio-rustls",
     "third-party//:tonic",
     "third-party//:tonic-prost",
+    "third-party//:tower",
     "third-party//:tracing",
     "third-party//:tracing-subscriber",
 ]
@@ -122,6 +129,14 @@ rust_test(
     crate_root = "tests/e2e_live_socket.rs",
     visibility = ["PUBLIC"],
     deps = _TEST_DEPS + ["third-party//:reqwest"],
+)
+
+rust_test(
+    name = "oya-cloud-iam-pdp-app-mtls-e2e",
+    srcs = glob(["tests/mtls_live_socket.rs", "tests/common/mod.rs", "cedar/**"]),
+    crate_root = "tests/mtls_live_socket.rs",
+    visibility = ["PUBLIC"],
+    deps = _TEST_DEPS,
 )
 
 rust_test(

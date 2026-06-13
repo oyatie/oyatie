@@ -28,11 +28,15 @@ use tonic::transport::Server;
 use tonic::transport::server::TcpIncoming;
 use tonic::{Request, Response, Status};
 
+use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
+use oya_cloud_os_trustd_domain::TrustBundle;
 use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError};
 use oya_shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, PolicyVersion,
 };
 
+use crate::mtls::SpiffeCallerAuth;
+use crate::mtls_transport::PeerCertInfo;
 use crate::PdpState;
 
 /// Generated protobuf/tonic bindings for `oya.cloud.iam.pdp.v1`.
@@ -43,15 +47,38 @@ pub mod proto {
 pub use proto::cloud_iam_pdp_server::CloudIamPdpServer;
 
 /// The tonic service over the shared decision core.
+///
+/// When `bundle` is `Some`, the mTLS PEP is enforced: BEFORE the proto→contract
+/// translation, the verified peer SVID (captured by the rustls handshake into a
+/// [`PeerCertInfo`] request extension) is authenticated and its tenant binds the
+/// decision, superseding the request-body `tenant_id` (the #717 closure). When
+/// `bundle` is `None` (plain-TCP boot), the legacy verbatim-tenant path runs.
 pub struct CloudIamPdpService {
     state: Arc<PdpState>,
+    bundle: Option<Arc<TrustBundle<EcdsaP256Signer>>>,
 }
 
 impl CloudIamPdpService {
-    /// Build the service over the shared state.
+    /// Build the service over the shared state with NO caller authentication
+    /// (plain-TCP boot path).
     #[must_use]
     pub fn new(state: Arc<PdpState>) -> Self {
-        Self { state }
+        Self {
+            state,
+            bundle: None,
+        }
+    }
+
+    /// Build the service with the mTLS PEP enforced over `bundle`.
+    #[must_use]
+    pub fn with_caller_auth(
+        state: Arc<PdpState>,
+        bundle: Arc<TrustBundle<EcdsaP256Signer>>,
+    ) -> Self {
+        Self {
+            state,
+            bundle: Some(bundle),
+        }
     }
 }
 
@@ -195,7 +222,36 @@ impl proto::cloud_iam_pdp_server::CloudIamPdp for CloudIamPdpService {
         &self,
         request: Request<proto::AuthorizeRequest>,
     ) -> Result<Response<proto::AuthorizeResponse>, Status> {
-        let (contract_request, entities) = contract_request_from_proto(request.into_inner())?;
+        // mTLS PEP (the #717 closure): authenticate the caller by its verified
+        // peer SVID and bind the tenant from the SVID path BEFORE translating
+        // the body. The body `tenant_id` is only a cross-check input; any
+        // mismatch is PermissionDenied (never INVALID_ARGUMENT, never a
+        // verbatim-trust fall-through).
+        let svid_tenant = if let Some(bundle) = &self.bundle {
+            let peer_leaf = request
+                .extensions()
+                .get::<PeerCertInfo>()
+                .and_then(|info| info.leaf_der.as_deref());
+            let pep = SpiffeCallerAuth::new(bundle).map_err(|err| {
+                // A serving process always has a non-empty bundle (boot-refuses
+                // otherwise); treat any deviation as fail-closed deny.
+                Status::new(tonic::Code::PermissionDenied, err.to_string())
+            })?;
+            let requested = request.get_ref().tenant_id.clone();
+            let bound = pep
+                .authenticate_caller(peer_leaf, &requested, now_secs())
+                .map_err(|rej| rej.to_grpc_status())?;
+            Some(bound.as_str().to_owned())
+        } else {
+            None
+        };
+
+        let (mut contract_request, entities) =
+            contract_request_from_proto(request.into_inner())?;
+        // Replace the verbatim body tenant with the SVID-derived tenant.
+        if let Some(tenant) = svid_tenant {
+            contract_request.tenant_id = tenant;
+        }
         match self.state.decide(&contract_request, &entities) {
             Ok(response) => Ok(Response::new(proto_response_from_contract(response))),
             Err(error) => {
@@ -215,8 +271,18 @@ impl proto::cloud_iam_pdp_server::CloudIamPdp for CloudIamPdpService {
     }
 }
 
-/// Serve the gRPC surface on `incoming` until `shutdown` resolves
-/// (graceful drain).
+/// Current wall-clock as epoch seconds for SVID validity checks. A clock before
+/// the epoch yields `0` (every short-TTL SVID is then expired ⇒ fail-closed
+/// DENY, never a spurious accept).
+fn now_secs() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+/// Serve the gRPC surface on `incoming` (plain TCP) until `shutdown` resolves
+/// (graceful drain). No caller authentication — the legacy verbatim-tenant path.
 ///
 /// # Errors
 /// Returns the tonic transport error when serving fails.
@@ -230,6 +296,34 @@ where
 {
     Server::builder()
         .add_service(CloudIamPdpServer::new(CloudIamPdpService::new(state)))
+        .serve_with_incoming_shutdown(incoming, shutdown)
+        .await
+}
+
+/// Serve the gRPC surface over mTLS: each connection terminates a rustls
+/// handshake requiring a verified client SVID, and the PEP binds the caller's
+/// tenant. `incoming` yields TLS-terminated streams carrying the captured peer
+/// leaf (failed handshakes are already dropped upstream).
+///
+/// # Errors
+/// Returns the tonic transport error when serving fails.
+pub async fn serve_mtls<F, I>(
+    state: Arc<PdpState>,
+    bundle: Arc<TrustBundle<EcdsaP256Signer>>,
+    incoming: I,
+    shutdown: F,
+) -> Result<(), tonic::transport::Error>
+where
+    F: Future<Output = ()> + Send + 'static,
+    I: futures_core::Stream<
+            Item = Result<crate::mtls_transport::PeerCertTlsStream, std::io::Error>,
+        > + Send
+        + 'static,
+{
+    Server::builder()
+        .add_service(CloudIamPdpServer::new(CloudIamPdpService::with_caller_auth(
+            state, bundle,
+        )))
         .serve_with_incoming_shutdown(incoming, shutdown)
         .await
 }

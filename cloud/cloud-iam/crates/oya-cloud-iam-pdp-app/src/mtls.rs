@@ -50,6 +50,10 @@ pub enum MtlsBootError {
     /// The trust bundle held no anchors (missing/garbage) — there is no root to
     /// verify a caller SVID against.
     TrustBundleEmpty,
+    /// The rustls `ServerConfig` could not be built from the supplied PDP server
+    /// leaf/key (malformed DER, key/cert mismatch, or no usable protocol
+    /// version) — a server that cannot present its own identity must never boot.
+    ServerConfig(String),
 }
 
 impl std::fmt::Display for MtlsBootError {
@@ -58,6 +62,9 @@ impl std::fmt::Display for MtlsBootError {
             Self::TrustBundleEmpty => f.write_str(
                 "mTLS trust bundle is empty (missing/garbage), refusing to authenticate callers",
             ),
+            Self::ServerConfig(detail) => {
+                write!(f, "mTLS server config rejected, refusing to boot: {detail}")
+            }
         }
     }
 }

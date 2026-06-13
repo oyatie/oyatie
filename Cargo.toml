@@ -382,7 +382,11 @@ protoc-bin-vendored = "3.2.0"
 tonic = { version = "0.14.6", default-features = false, features = ["codegen"] }
 tonic-prost = "0.14.6"
 tonic-prost-build = { version = "0.14.6", default-features = false, features = ["cleanup-markdown"] }
-sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "postgres"] }
+# ADR-0506 zero-ring: sqlx's `runtime-tokio-rustls` is the SOLE activator of
+# rustls's `ring` feature (it pulls `tls-rustls-ring`); pin the aws-lc-rs TLS
+# drop-in (`runtime-tokio` + `tls-rustls-aws-lc-rs`) so the resolved rustls/
+# rustls-webpki carry NO ring and `ring 0.17` drops from the graph entirely.
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "tls-rustls-aws-lc-rs", "postgres"] }
 tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt", "json", "env-filter"] }
 opentelemetry = { version = "0.32.0", default-features = false, features = ["metrics"] }

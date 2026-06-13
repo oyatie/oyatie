@@ -50,6 +50,13 @@ async fn main() {
         }
     };
 
+    // TODO(ADR-0561 slice-1b-iii): build an `MtlsContext::from_env` from the
+    // operator-reconciled projected SVID Secret (K8s cert-delivery) + cloud-kms
+    // signer, then call `server::start_with_mtls(&config, Some(ctx))`. The live
+    // rustls transport + custom ClientCertVerifier + the PEP-at-call-site are
+    // delivered (slice-1b-ii) and exercised by the real-handshake E2E fixtures;
+    // only the runtime bundle-delivery source remains deferred — until it lands
+    // the binary boots PLAIN TCP (no env source can satisfy a trust bundle yet).
     let mut handle = match server::start(&config).await {
         Ok(handle) => handle,
         Err(err) => {
