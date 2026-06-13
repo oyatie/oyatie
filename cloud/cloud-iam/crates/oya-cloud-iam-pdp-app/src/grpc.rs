@@ -116,6 +116,16 @@ fn entity_slice_from_proto(records: Vec<proto::EntityRecord>) -> Result<EntitySl
     Ok(EntitySlice { entities })
 }
 
+// SVID caller-auth seam (G002 slice-1; ADR-0561): the mTLS PEP
+// (`crate::mtls::SpiffeCallerAuth::authenticate_caller`) runs BEFORE this
+// translation, deriving the authorized tenant from the verified peer SVID and
+// passing it in place of `request.tenant_id`. The live wiring binds the peer
+// leaf from the rustls handshake on `server.rs`'s listeners — the DEFERRED
+// slice-1b transport (ADR-0561 D5). Until that lands, `request.tenant_id` is
+// still threaded here; the PEP + its 6 RED fixtures (`crate::mtls::tests`) are
+// the in-process closure that proves the bind-or-deny logic, and the bound
+// tenant supersedes the body tenant at the call site, never inside this
+// pure proto→contract translation.
 fn contract_request_from_proto(
     request: proto::AuthorizeRequest,
 ) -> Result<(AuthorizationRequest, EntitySlice), Status> {

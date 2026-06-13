@@ -47,6 +47,27 @@ impl CertificateSigningRequest {
         }
     }
 
+    /// Build a CSR for a *workload* identity: the SPIFFE id is carried as the
+    /// single URI SAN (SPIFFE X.509-SVID §2), the CN is the workload name, and
+    /// the usage is `ClientAuth` (a workload presents a client cert to the PEP).
+    /// Mirrors [`CertificateSigningRequest::for_node`] but for the SVID shape.
+    pub fn for_workload(
+        name: impl Into<String>,
+        spiffe_uri: impl Into<String>,
+        keypair: &KeyPair,
+        ttl_secs: u64,
+    ) -> Self {
+        let mut sans = SubjectAltNames::default();
+        sans.uris.push(spiffe_uri.into());
+        CertificateSigningRequest {
+            subject: DistinguishedName::common(name),
+            usage: CertUsage::ClientAuth,
+            sans,
+            public_key_der: keypair.public_der().to_vec(),
+            ttl_secs,
+        }
+    }
+
     /// Add a requested role (encoded as an `os:<role>` organizational unit).
     pub fn requesting_role(mut self, ou: impl Into<String>) -> Self {
         self.subject.organizations.push(ou.into());
@@ -56,6 +77,12 @@ impl CertificateSigningRequest {
     /// Add a DNS SAN.
     pub fn with_dns(mut self, name: impl Into<String>) -> Self {
         self.sans.dns_names.push(name.into());
+        self
+    }
+
+    /// Add a URI SAN (the SPIFFE-identity carrier for a workload SVID).
+    pub fn with_uri(mut self, uri: impl Into<String>) -> Self {
+        self.sans.uris.push(uri.into());
         self
     }
 
@@ -116,7 +143,8 @@ impl IssuancePolicy {
         if csr.ttl_secs == 0 {
             return Err(TrustError::csr_rejected("CSR requested zero TTL"));
         }
-        let san_count = csr.sans.dns_names.len() + csr.sans.ip_addresses.len();
+        let san_count =
+            csr.sans.dns_names.len() + csr.sans.ip_addresses.len() + csr.sans.uris.len();
         if san_count > self.max_sans {
             return Err(TrustError::csr_rejected(format!(
                 "CSR requests {san_count} SANs, exceeding the limit of {}",
@@ -500,6 +528,40 @@ mod tests {
         // old leaf does not verify under the new generation
         assert!(new.verify(&old_leaf, 3500).is_err());
         assert!(new.is_valid_at(3500));
+    }
+
+    #[test]
+    fn for_workload_issues_cert_carrying_signed_uri_san() {
+        let mut ca = ca();
+        let wl_key = KeyPair::from_seed(b"wl-pdp");
+        let uri = "spiffe://oyatie.cell-7/platform/cloud-iam-pdp";
+        let csr = CertificateSigningRequest::for_workload("cloud-iam-pdp", uri, &wl_key, 3600);
+        let cert = ca.sign_csr(&csr, 2000).unwrap();
+        // The SPIFFE URI survives issuance and is bound into the signed cert.
+        assert!(cert.sans.covers_uri(uri));
+        assert!(ca.verify(&cert, 2500).is_ok());
+        // Tampering the URI SAN after signing breaks verification (the URI is
+        // inside the to-be-signed bytes).
+        let mut forged = cert.clone();
+        forged.sans.uris = vec!["spiffe://oyatie.cell-7/platform/evil".into()];
+        assert!(ca.verify(&forged, 2500).is_err());
+    }
+
+    #[test]
+    fn for_workload_leaf_may_not_request_ca_usage() {
+        // Regression guard over the IssuancePolicy CA-leaf rejection (ca.rs
+        // `approve`): even a workload CSR mutated to CertificateAuthority usage
+        // is refused — a workload SVID can never be a signing cert.
+        let mut ca = ca();
+        let wl_key = KeyPair::from_seed(b"wl-evil");
+        let mut csr = CertificateSigningRequest::for_workload(
+            "evil",
+            "spiffe://oyatie.cell-7/platform/evil",
+            &wl_key,
+            3600,
+        );
+        csr.usage = CertUsage::CertificateAuthority;
+        assert_eq!(ca.sign_csr(&csr, 2000).unwrap_err().kind(), "csr_rejected");
     }
 
     #[test]
