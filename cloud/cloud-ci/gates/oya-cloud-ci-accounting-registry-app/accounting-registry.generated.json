@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18440,
-    "source_inputs_digest": "fnv1a64:7850b2df7b92e36e"
+    "source_inputs_digest": "fnv1a64:5e7304e0692f277b"
   },
   "rows": [
     {
@@ -7072,7 +7072,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": "ADR-0560",
+      "justification_ref": "ADR-0554",
       "owner": "OWNERS:cloud/cloud-ci/gates",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app/tests/cache_conformance.rs",
       "reachable_from": [
@@ -365991,7 +365991,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": "ADR-0556",
+      "justification_ref": "ADR-0554",
       "owner": "OWNERS:specs",
       "path": "specs/cache-warmth-policy.json",
       "reachable_from": [
