@@ -119,6 +119,20 @@ aws-lc-rs is the bridge indefinitely. Cutover to oya-crypto is gated on:
   at github.com/aws/aws-lc-rs)
 - FIPS 140-3 path available without bespoke validation work — enables future
   compliance posture at no additional cost
+- **Zero-ring realized (G002, 2026-06-13):** the final ring-feature activator in
+  the workspace was sqlx's `runtime-tokio-rustls` (it pulls `tls-rustls-ring`,
+  which enables rustls's `ring` feature). Pinning sqlx to `runtime-tokio` +
+  `tls-rustls-aws-lc-rs` removes that activation; `cargo tree -i ring --target
+  all` now prints nothing and `buck2 cquery "deps(//...)" | grep ring-0.17`
+  returns 0. The orphaned ring-0.17 third-party BUCK targets + the rustls/
+  rustls-webpki `ring` features/deps were purged. A residual `name = "ring"`
+  stanza remains in `Cargo.lock` ONLY as an unreachable phantom: `reqwest`'s
+  optional, never-enabled `http3`/`quinn` -> `quinn-proto` chain pins ring's
+  version in the lock graph (Cargo retains resolved optional-dep closures even
+  when the feature is off; Cargo.lock stores versions, not feature activation).
+  It is in no BUCK target and no build graph. The dev-dependency `ring` retained
+  for JWT test minting (above) was already removed in earlier slices; no prod or
+  dev `ring` remains active.
 
 ## Related
 

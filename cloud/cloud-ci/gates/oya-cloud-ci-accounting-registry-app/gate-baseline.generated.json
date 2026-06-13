@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:f6fbaeb95dd3aa45",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:2c4f921aac5ccb33"
+    "source_inputs_digest": "fnv1a64:bfb276df4ab8a8a3"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -22598,7 +22598,6 @@
           "third-party/fixups/quote/fixups.toml",
           "third-party/fixups/reactive_graph/fixups.toml",
           "third-party/fixups/ref-cast/fixups.toml",
-          "third-party/fixups/ring/fixups.toml",
           "third-party/fixups/rustix/fixups.toml",
           "third-party/fixups/rustls/fixups.toml",
           "third-party/fixups/rustversion/fixups.toml",

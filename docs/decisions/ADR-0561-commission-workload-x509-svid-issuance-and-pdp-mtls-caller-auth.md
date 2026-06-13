@@ -173,12 +173,30 @@ split the deferral into two independently-shippable slices, and **slice-1b-i is 
   `bind_caller_tenant` are byte-unchanged** (cutover litmus: only the trustd signer + the adapter
   codec gained real crypto; the kernel/port shapes that model the W5 destination did not move).
 
-- **Slice-1b-ii — PDP rustls mTLS wiring (STILL DEFERRED):** the live transport — a rustls
-  `ServerConfig` requiring + verifying a client cert on the PDP listeners, a custom
-  `ClientCertVerifier`, and the `server.rs`/`grpc.rs` wiring invoking `SpiffeCallerAuth` in place of
-  the verbatim `request.tenant_id` — plus the cloud-kms signer swap, remain deferred. The live PDP is
-  **still plain-TCP**, so **FRIC-1781490000 is NOT closed by slice-1b-i** and stays `queued`; a
-  consumer must not treat the PDP as cryptographically tenant-authenticated until 1b-ii lands.
+- **Slice-1b-ii — PDP rustls mTLS wiring (DELIVERED, 2026-06-13, FRIC-1781490000):** the live
+  transport is built and RED-proven over real handshakes. A custom rustls `ClientCertVerifier`
+  (`oya-cloud-iam-pdp-app/src/client_cert_verifier.rs`) on the `aws-lc-rs` provider (NO ring,
+  ADR-0506) requires a client cert (`client_auth_mandatory`) and defers the leaf trust decision to
+  `TrustdSvidVerifier::verify_peer` — the SAME real-DER verification the in-process PEP uses, so the
+  transport check and the PEP check cannot diverge. Both listeners terminate the handshake via one
+  `tokio_rustls::TlsAcceptor` (`oya-cloud-iam-pdp-app/src/mtls_transport.rs`): gRPC feeds the
+  TLS-terminated streams to tonic's `serve_with_incoming` with a custom `Connected` impl surfacing the
+  verified peer leaf as a request extension (NO tonic TLS feature — confined to the PDP crate); REST
+  runs a manual `hyper-util` accept loop layering the peer leaf as an axum `Extension`. The
+  `grpc.rs`/`rest.rs` call sites invoke `SpiffeCallerAuth::authenticate_caller` BEFORE deciding,
+  binding the tenant from the SVID and replacing the verbatim `request.tenant_id` (the #717 closure,
+  live); every reject is `PermissionDenied`/`403`, never `404`, never a fall-through. Boot is
+  fail-closed: an empty trust bundle is `StartError::Mtls(TrustBundleEmpty)`. Five real-handshake E2E
+  fixtures (`tests/mtls_live_socket.rs`) prove trusted-SVID ALLOW with SVID-tenant binding (REST +
+  gRPC), rogue/untrusted-CA rejection, expired rejection, cross-tenant `403`/`PermissionDenied`,
+  no-client-cert refusal, and the empty-bundle boot-refuse. **The only residual deferral is the
+  runtime bundle-delivery source** (the operator-reconciled projected SVID Secret + init-container
+  fetch — K8s cert-delivery) and the **cloud-kms signer swap**: `main.rs` therefore still boots PLAIN
+  TCP via `start()` (no env source can satisfy a trust bundle yet), with the mTLS path exercised by
+  the fixtures' real `MtlsContext`; `server::start_with_mtls` is the boot path `main` calls once
+  cert-delivery lands (slice-1b-iii). **FRIC-1781490000 is CLOSED by slice-1b-ii** (live transport +
+  PEP-at-call-site); a consumer may treat a request that reaches a decision over the mTLS listeners as
+  cryptographically tenant-authenticated.
 
 The `SigningBackend` cutover seam (D4) is now exercised by a real asymmetric backend, confirming the
 seam shape was already correct: the CA, `TrustBundle`, `SecurityService`, and the kernel ports did
@@ -259,6 +277,24 @@ The retired oya-identity-workload-svid-trustd-adapter/src/leaf_codec.rs (the TSV
 shape-model stand-in) is removed in the same change; its accounting row is
 retired with it. The new third-party deps (rcgen, x509-parser, time) ride the
 reindeer-generated third-party/BUCK and the workspace Cargo.toml/Cargo.lock.
+
+Slice-1b-ii (FRIC-1781490000) adds two new source files + one E2E test, all
+owned by the existing cloud/cloud-iam OWNERS (axis-cloud-platform) and reachable
+via cargo-members (they inherit the crate's accounting; no new unowned rows):
+
+- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/client_cert_verifier.rs — the
+  rustls `ClientCertVerifier` deferring leaf trust to the SVID verifier (aws-lc-rs
+  provider, NO ring; ADR-0506).
+- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/mtls_transport.rs — the
+  one-acceptor mTLS transport (`MtlsContext`, the gRPC `Connected` peer-cert
+  stream, the REST hyper-util accept loop).
+- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/mtls_live_socket.rs — the
+  five real-handshake RED fixtures + boot-refuse.
+
+The new third-party deps (rustls, tokio-rustls, hyper, hyper-util, tower,
+futures-core, async-stream — all aws-lc-rs/ring-free) ride the workspace
+Cargo.toml/Cargo.lock and the third-party/BUCK aliases; no tonic TLS feature is
+enabled (the gRPC peer-cert capture is confined to the PDP crate).
 
 ## Consequences
 

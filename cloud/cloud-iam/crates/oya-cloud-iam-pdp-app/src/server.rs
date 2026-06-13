@@ -24,6 +24,8 @@ use oya_shared_pdp_kernel::{PdpError, PolicyDecisionPoint as _};
 
 use crate::audit::TracingDecisionAuditSink;
 use crate::idgen::SystemUlidIdGenerator;
+use crate::mtls::MtlsBootError;
+use crate::mtls_transport::{self, MtlsContext};
 use crate::{PdpState, grpc, rest};
 
 /// A failure on the boot path. Every variant REFUSES the boot (exit
@@ -40,6 +42,11 @@ pub enum StartError {
         addr: String,
         source: std::io::Error,
     },
+    /// The mTLS transport could not be composed (empty trust bundle or a
+    /// rejected server identity) — boot-refused, mirroring [`Self::Bundle`]: a
+    /// process that cannot prove a trust root or present its own identity must
+    /// never serve a caller (the fail-closed mTLS boot, ADR-0561 slice-1b-ii).
+    Mtls(MtlsBootError),
 }
 
 impl fmt::Display for StartError {
@@ -50,6 +57,7 @@ impl fmt::Display for StartError {
                 write!(f, "policy bundle rejected, refusing to boot: {err}")
             }
             Self::Bind { addr, source } => write!(f, "cannot bind {addr}: {source}"),
+            Self::Mtls(err) => write!(f, "mTLS transport unavailable, refusing to boot: {err}"),
         }
     }
 }
@@ -114,12 +122,41 @@ pub fn build_state(config: &PdpConfig) -> Result<Arc<PdpState>, StartError> {
     )))
 }
 
-/// Boot the service: build state, bind both listeners, spawn both servers.
+/// Boot the service on PLAIN TCP (no caller authentication). This is the legacy
+/// boot path; it delegates to [`start_with_mtls`] with no [`MtlsContext`] so the
+/// plain and mTLS boots share ONE body and can never drift.
 ///
 /// # Errors
 /// [`StartError`] when state composition or a bind fails (boot refusal).
 pub async fn start(config: &PdpConfig) -> Result<ServiceHandle, StartError> {
+    start_with_mtls(config, None).await
+}
+
+/// Boot the service, optionally over mTLS.
+///
+/// When `mtls` is `Some`, both listeners terminate a rustls handshake REQUIRING a
+/// verified client SVID, and the PEP binds the caller's tenant from the SVID
+/// (the #717 closure, live). When `None`, plain TCP with the legacy
+/// verbatim-tenant path runs. Both share the same fail-closed boot: the state
+/// must compile and (for mTLS) the trust bundle + server identity must compose
+/// BEFORE either socket binds.
+///
+/// # Errors
+/// [`StartError`] when state composition, an mTLS-context build, or a bind fails
+/// (boot refusal).
+pub async fn start_with_mtls(
+    config: &PdpConfig,
+    mtls: Option<MtlsContext>,
+) -> Result<ServiceHandle, StartError> {
     let state = build_state(config)?;
+
+    // Compose the mTLS acceptor BEFORE binding: a rejected bundle/identity is a
+    // boot refusal, never a degraded plain serve.
+    let acceptor = match &mtls {
+        Some(ctx) => Some(ctx.build_acceptor().map_err(StartError::Mtls)?),
+        None => None,
+    };
+    let bundle = mtls.as_ref().map(MtlsContext::bundle);
 
     let rest_listener = TcpListener::bind(&config.rest_addr)
         .await
@@ -146,35 +183,71 @@ pub async fn start(config: &PdpConfig) -> Result<ServiceHandle, StartError> {
             addr: config.grpc_addr.clone(),
             source,
         })?;
-    let grpc_incoming = TcpIncoming::from(grpc_listener).with_nodelay(Some(true));
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
 
-    let rest_router = rest::build_router(Arc::clone(&state));
-    let mut rest_shutdown = shutdown_rx.clone();
-    let rest_task = tokio::spawn(async move {
-        let shutdown = async move {
-            let _ = rest_shutdown.changed().await;
-        };
-        if let Err(err) = axum::serve(rest_listener, rest_router)
-            .with_graceful_shutdown(shutdown)
-            .await
-        {
-            error!(error = %err, "REST server exited with error");
+    let rest_task = match (acceptor.clone(), bundle.clone()) {
+        (Some(acc), Some(bundle)) => {
+            let router = rest::build_router_mtls(Arc::clone(&state), bundle);
+            let mut rest_shutdown = shutdown_rx.clone();
+            tokio::spawn(async move {
+                let shutdown = async move {
+                    let _ = rest_shutdown.changed().await;
+                };
+                serve_rest_mtls(rest_listener, router, acc, shutdown).await;
+            })
         }
-    });
-
-    let mut grpc_shutdown = shutdown_rx;
-    let grpc_task = tokio::spawn(async move {
-        let shutdown = async move {
-            let _ = grpc_shutdown.changed().await;
-        };
-        if let Err(err) = grpc::serve(state, grpc_incoming, shutdown).await {
-            error!(error = %err, "gRPC server exited with error");
+        _ => {
+            let router = rest::build_router(Arc::clone(&state));
+            let mut rest_shutdown = shutdown_rx.clone();
+            tokio::spawn(async move {
+                let shutdown = async move {
+                    let _ = rest_shutdown.changed().await;
+                };
+                if let Err(err) = axum::serve(rest_listener, router)
+                    .with_graceful_shutdown(shutdown)
+                    .await
+                {
+                    error!(error = %err, "REST server exited with error");
+                }
+            })
         }
-    });
+    };
 
-    info!(rest = %rest_addr, grpc = %grpc_addr, "oya-cloud-iam-pdp serving");
+    let grpc_task = match (acceptor, bundle) {
+        (Some(acc), Some(bundle)) => {
+            let state = Arc::clone(&state);
+            let mut grpc_shutdown = shutdown_rx;
+            tokio::spawn(async move {
+                let shutdown = async move {
+                    let _ = grpc_shutdown.changed().await;
+                };
+                let incoming = grpc_tls_incoming(grpc_listener, acc);
+                if let Err(err) = grpc::serve_mtls(state, bundle, incoming, shutdown).await {
+                    error!(error = %err, "gRPC server exited with error");
+                }
+            })
+        }
+        _ => {
+            let grpc_incoming = TcpIncoming::from(grpc_listener).with_nodelay(Some(true));
+            let mut grpc_shutdown = shutdown_rx;
+            tokio::spawn(async move {
+                let shutdown = async move {
+                    let _ = grpc_shutdown.changed().await;
+                };
+                if let Err(err) = grpc::serve(state, grpc_incoming, shutdown).await {
+                    error!(error = %err, "gRPC server exited with error");
+                }
+            })
+        }
+    };
+
+    info!(
+        rest = %rest_addr,
+        grpc = %grpc_addr,
+        mtls = mtls.is_some(),
+        "oya-cloud-iam-pdp serving",
+    );
     Ok(ServiceHandle {
         rest_addr,
         grpc_addr,
@@ -182,4 +255,92 @@ pub async fn start(config: &PdpConfig) -> Result<ServiceHandle, StartError> {
         rest_task,
         grpc_task,
     })
+}
+
+/// Build the gRPC mTLS incoming stream: accept TCP, terminate the rustls
+/// handshake (dropping rogue/no-cert connections), yield connected streams.
+fn grpc_tls_incoming(
+    listener: TcpListener,
+    acceptor: tokio_rustls::TlsAcceptor,
+) -> impl futures_core::Stream<Item = Result<mtls_transport::PeerCertTlsStream, std::io::Error>>
+{
+    async_stream::stream! {
+        loop {
+            let tcp = match mtls_transport::accept_tcp(&listener).await {
+                Ok(tcp) => tcp,
+                Err(err) => {
+                    error!(error = %err, "gRPC TCP accept failed");
+                    continue;
+                }
+            };
+            match mtls_transport::accept_grpc(&acceptor, tcp).await {
+                Ok(stream) => yield Ok(stream),
+                Err(err) => {
+                    // Fail-closed: a failed handshake (rogue / no client cert)
+                    // drops the connection; it never reaches a handler.
+                    tracing::debug!(error = %err, "gRPC mTLS handshake rejected");
+                }
+            }
+        }
+    }
+}
+
+/// Serve the REST surface over mTLS with a manual hyper-util accept loop
+/// (axum 0.8 has no built-in rustls serve helper). Each connection terminates a
+/// rustls handshake requiring a verified client SVID; the captured peer leaf is
+/// layered as a per-connection `Extension` so the PEP authenticates the caller.
+async fn serve_rest_mtls<F>(
+    listener: TcpListener,
+    router: axum::Router,
+    acceptor: tokio_rustls::TlsAcceptor,
+    shutdown: F,
+) where
+    F: std::future::Future<Output = ()> + Send + 'static,
+{
+    use hyper_util::rt::{TokioExecutor, TokioIo};
+    use hyper_util::server::conn::auto::Builder;
+    use hyper_util::service::TowerToHyperService;
+    use tower::ServiceExt as _;
+
+    let shutdown = std::pin::pin!(shutdown);
+    let mut shutdown = shutdown;
+    loop {
+        let tcp = tokio::select! {
+            () = &mut shutdown => break,
+            accepted = mtls_transport::accept_tcp(&listener) => match accepted {
+                Ok(tcp) => tcp,
+                Err(err) => {
+                    error!(error = %err, "REST TCP accept failed");
+                    continue;
+                }
+            },
+        };
+        let acceptor = acceptor.clone();
+        let router = router.clone();
+        tokio::spawn(async move {
+            let (tls, peer) = match mtls_transport::accept_rest(&acceptor, tcp).await {
+                Ok(pair) => pair,
+                Err(err) => {
+                    // Fail-closed: rogue / no client cert ⇒ drop the connection.
+                    tracing::debug!(error = %err, "REST mTLS handshake rejected");
+                    return;
+                }
+            };
+            // Inject the verified peer leaf as a per-connection Extension so
+            // `authorize` runs the PEP on it.
+            let svc = router
+                .layer(axum::Extension(peer))
+                .into_service::<axum::body::Body>();
+            let hyper_svc = TowerToHyperService::new(svc.map_request(
+                |req: hyper::Request<hyper::body::Incoming>| req.map(axum::body::Body::new),
+            ));
+            let io = TokioIo::new(tls);
+            if let Err(err) = Builder::new(TokioExecutor::new())
+                .serve_connection_with_upgrades(io, hyper_svc)
+                .await
+            {
+                tracing::debug!(error = %err, "REST mTLS connection ended");
+            }
+        });
+    }
 }
