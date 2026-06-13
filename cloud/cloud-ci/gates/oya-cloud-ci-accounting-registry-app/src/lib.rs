@@ -381,6 +381,22 @@ pub struct CrosswalkInputs {
     /// re-keys the file in the dup map, so this is the mask vector for
     /// `dual_decision_collision` (FRIC-1781320000) and a violation in its own right.
     pub id_mismatches: Vec<String>,
+    /// `ADR-NNNN` citation edges from governed surfaces (decision bodies, the
+    /// roadmap/sequencing artifact, the masterplan `bound_adrs`) that resolve to NO
+    /// on-disk decision id (`<cited-id>@<source-path>`), excluding the grandfathered
+    /// historical inventory (reviewed shrink-only DATA in the binary; each grandfathered
+    /// id is ledgered with its citation sites — FRIC-1781430000). The GATE-1
+    /// `phantom_decision_citation` lane is frozen-empty over these: the phantom-0397
+    /// exhibit was healed by MINTING the record at the cited number, so any entry here
+    /// is NEW debt and born-blocking.
+    pub phantom_citations: Vec<String>,
+    /// The grandfathered historical phantom inventory itself (the binary's reviewed
+    /// shrink-only carve-out DATA), emitted into the face as `grandfathered_phantom_ids`
+    /// so the carve-out is AUDIT-VISIBLE and mechanically guarded: the live gate test
+    /// asserts anti-padding (every listed id must still resolve to NO decision file — a
+    /// healed id must leave the list) and a decrease-only size ceiling (anti-growth:
+    /// laundering a NEW phantom by same-PR list addition forces a loud ceiling edit).
+    pub grandfathered_phantom_ids: Vec<String>,
     /// The next unallocated decision number derived from the whole tree
     /// (max over filename AND front-matter ids, plus one). The allocator output:
     /// lanes allocate by reading this (or `--next-adr`), never by convention.
@@ -406,6 +422,14 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
     let mut id_mismatches = inputs.id_mismatches.clone();
     id_mismatches.sort();
     id_mismatches.dedup();
+
+    let mut phantom_citations = inputs.phantom_citations.clone();
+    phantom_citations.sort();
+    phantom_citations.dedup();
+
+    let mut grandfathered_phantom_ids = inputs.grandfathered_phantom_ids.clone();
+    grandfathered_phantom_ids.sort();
+    grandfathered_phantom_ids.dedup();
 
     let mut axes = Map::new();
     for (face, value) in &inputs.generated_face_axes {
@@ -436,6 +460,19 @@ pub fn build_decision_crosswalk(inputs: &CrosswalkInputs) -> Result<Value, Produ
     root.insert(
         "id_mismatches".into(),
         Value::Array(id_mismatches.into_iter().map(Value::String).collect()),
+    );
+    root.insert(
+        "phantom_citations".into(),
+        Value::Array(phantom_citations.into_iter().map(Value::String).collect()),
+    );
+    root.insert(
+        "grandfathered_phantom_ids".into(),
+        Value::Array(
+            grandfathered_phantom_ids
+                .into_iter()
+                .map(Value::String)
+                .collect(),
+        ),
     );
     root.insert(
         "next_free_id".into(),

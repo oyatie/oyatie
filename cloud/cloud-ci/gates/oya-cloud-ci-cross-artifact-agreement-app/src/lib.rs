@@ -23,6 +23,13 @@
 //!   the newer one to ADR-0557 per FRIC-1781390000; frozen as tc-XA-bad-dup-adr-number).
 //! - `supersession_half_edge` — a supersession edge that is not reciprocal (A `supersedes`
 //!   B while B's `superseded_by` omits A, or the reverse): a half-built edge.
+//! - `phantom_decision_citation` — a governed surface (a decision body, the
+//!   roadmap/sequencing artifact, or the masterplan `bound_adrs`) cites an `ADR-NNNN`
+//!   that resolves to NO on-disk decision file (the phantom-0397 exhibit: seven surfaces
+//!   cited "ADR-0397 Pulsar 4.x + Oxia canonical event-bus" with no file at the number —
+//!   audit register H-19; healed 2026-06-12 by MINTING the record, FRIC-1781430000).
+//!   Frozen-empty: the producer excludes the ledgered historical inventory as reviewed
+//!   shrink-only DATA, so any edge that reaches the face is NEW debt and born-blocking.
 //!
 //! The evaluator is pure: the fixture (data-under-test) drives it; there are no scanner
 //! special-cases. Carve-outs/exceptions live as DATA, never as evaluator branches.
@@ -37,14 +44,15 @@ use serde_json::Value;
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-cross-artifact-agreement";
 
-/// The six blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 6] = [
+/// The seven blocking codes, in canonical order. The fixtures pin exact subsets.
+pub const VIOLATION_CODES: [&str; 7] = [
     "orphan_decision",
     "unpropagated_decision",
     "status_disagreement",
     "generated_face_drift",
     "dual_decision_collision",
     "supersession_half_edge",
+    "phantom_decision_citation",
 ];
 
 /// The gate report.
@@ -65,8 +73,8 @@ pub enum Verdict {
 /// `(code, key)`; `evaluate()` is the bare-code projection of `evaluate_keyed()`.
 /// Keys for this gate are: the decision `id` (orphan/unpropagated/dual),
 /// `{decision_id}@{face}` (status_disagreement), `{source_id}->{target_id}`
-/// (supersession_half_edge), and `{shared-value}@{sorted face names}`
-/// (generated_face_drift).
+/// (supersession_half_edge), `{cited_id}@{source_path}` (phantom_decision_citation),
+/// and `{shared-value}@{sorted face names}` (generated_face_drift).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Finding {
     pub code: String,
@@ -118,6 +126,9 @@ impl Report {
 ///   "duplicate_ids": ["ADR-0377"],     // ids carried by >1 decision file (DATA signal)
 ///   "id_mismatches": [                 // filename id != front-matter id (the collision mask)
 ///     "ADR-0552-x.md:ADR-0552!=ADR-0553"
+///   ],
+///   "phantom_citations": [             // cited id with no decision file (phantom-0397 shape)
+///     "ADR-0397@docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md"
 ///   ],
 ///   "next_free_id": "ADR-0554",        // allocator output (producer --next-adr)
 ///   "generated_face_axes": {           // shared values two generated faces must agree on
@@ -206,6 +217,15 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
     // producer's `<file>:<filename-id>!=<front-matter-id>` entry.
     for entry in str_array(fixture, "id_mismatches") {
         findings.insert(Finding::new("decision_id_mismatch", &entry));
+    }
+
+    // phantom_decision_citation: a governed surface cites a decision id with no decision
+    // file on disk (the phantom-0397 shape — FRIC-1781430000). Keyed by the producer's
+    // `<cited-id>@<source-path>` edge. The carve-out for the ledgered historical
+    // inventory is producer-side DATA, never an evaluator branch, so anything in the
+    // face IS a violation.
+    for entry in str_array(fixture, "phantom_citations") {
+        findings.insert(Finding::new("phantom_decision_citation", &entry));
     }
 
     // generated_face_drift: two generated faces disagree on a shared value. Keyed by
@@ -342,6 +362,32 @@ mod tests {
             .contains("dual_decision_collision"));
     }
 
+    /// RED fixture (FRIC-1781430000): a governed surface citing a decision id with no
+    /// decision file on disk — the phantom-0397 shape — must go RED.
+    #[test]
+    fn phantom_citation_fires_phantom_decision_citation() {
+        let fixture = json!({
+            "decisions": [{
+                "id": "ADR-0478",
+                "status": "Accepted",
+                "in_spec": true, "in_masterplan": true, "in_roadmap": true
+            }],
+            "phantom_citations": [
+                "ADR-0397@docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md"
+            ]
+        });
+        let report = evaluate(&fixture);
+        assert_eq!(report.verdict, Verdict::Red);
+        assert!(report.violations.contains("phantom_decision_citation"));
+    }
+
+    /// An empty phantom_citations array (the healed live shape) contributes nothing.
+    #[test]
+    fn empty_phantom_citations_is_quiet() {
+        let fixture = json!({"decisions": [], "phantom_citations": []});
+        assert_eq!(evaluate(&fixture).verdict, Verdict::Green);
+    }
+
     /// RED fixture (FRIC-1781320000): a filename/front-matter id disagreement — the
     /// re-keying vector that can mask a duplicate-numbered ADR pair — must go RED.
     #[test]
@@ -393,6 +439,7 @@ mod tests {
             }],
             "duplicate_ids": ["ADR-0377"],
             "id_mismatches": ["ADR-0552-x.md:ADR-0552!=ADR-0553"],
+            "phantom_citations": ["ADR-0397@specs/master-plan-sequencing.json"],
             "generated_face_axes": {"catalog.json": 6, "contracts.json": 7}
         });
         let findings = evaluate_keyed(&fixture);
@@ -401,6 +448,10 @@ mod tests {
         assert!(findings.contains(&Finding::new(
             "decision_id_mismatch",
             "ADR-0552-x.md:ADR-0552!=ADR-0553"
+        )));
+        assert!(findings.contains(&Finding::new(
+            "phantom_decision_citation",
+            "ADR-0397@specs/master-plan-sequencing.json"
         )));
         assert!(findings.contains(&Finding::new(
             "generated_face_drift",
