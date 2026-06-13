@@ -82,6 +82,16 @@ impl Certificate {
             buf.extend_from_slice(ip.as_bytes());
             buf.push(b',');
         }
+        // URI SANs are signed too: a SPIFFE SVID's identity is the URI SAN, so
+        // it MUST be inside the to-be-signed bytes or an attacker could append
+        // a forged identity to a validly-signed cert without breaking the
+        // signature. The `|` separator keeps the URI section unambiguous from
+        // the DNS/IP sections above.
+        buf.push(b'|');
+        for uri in &self.sans.uris {
+            buf.extend_from_slice(uri.as_bytes());
+            buf.push(b',');
+        }
         buf.extend_from_slice(&self.public_key_der);
         buf
     }

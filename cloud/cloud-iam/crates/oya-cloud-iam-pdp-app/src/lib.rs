@@ -45,6 +45,7 @@ use oya_shared_platform_contracts_kernel::pdp::{
 pub mod audit;
 pub mod grpc;
 pub mod idgen;
+pub mod mtls;
 pub mod observability;
 pub mod rest;
 pub mod server;
