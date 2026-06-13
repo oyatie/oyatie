@@ -39,7 +39,11 @@ identity:
   # Secret holding the ES256 issuer signing key (key: signing-key.pk8). The
   # runtime serves OIDC discovery/JWKS only when OYA_IDENTITY_SIGNING_KEY_PATH is
   # present, so the chart wires the mounted key path explicitly.
-  signingKeySecretName: oya-identity-signing-key
+  # Default EMPTY: the issuer surface is config-gated OFF, matching the binary
+  # default (no OYA_IDENTITY_SIGNING_KEY_PATH => no discovery/JWKS routes).
+  # Deployments that issue tokens opt in by naming the secret, e.g.
+  # `oya-identity-signing-key`.
+  signingKeySecretName: ""
   signingKeySecretKey: signing-key.pk8
   signingKeyPath: /etc/oya-identity/signing/signing-key.pk8
   # Optional bring-up principal seed (key: principals.json). The durable

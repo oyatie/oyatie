@@ -41,6 +41,9 @@ impl AuditSink for TracingAuditSink {
             workload_id = record.workload_id().unwrap_or("-"),
             outcome = record.outcome(),
             detail = record.detail().unwrap_or("-"),
+            action = record.action().unwrap_or("-"),
+            resource_type = record.resource_type().unwrap_or("-"),
+            resource_id = record.resource_id().unwrap_or("-"),
             "audit-record",
         );
     }
