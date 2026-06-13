@@ -12833,100 +12833,6 @@ cargo.rust_library(
 )
 
 http_archive(
-    name = "ring-0.17.14.crate",
-    sha256 = "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7",
-    strip_prefix = "ring-0.17.14",
-    urls = ["https://static.crates.io/crates/ring/0.17.14/download"],
-    visibility = [],
-)
-
-cargo.rust_library(
-    name = "ring-0.17",
-    srcs = [":ring-0.17.14.crate"],
-    crate = "ring",
-    crate_root = "ring-0.17.14.crate/src/lib.rs",
-    edition = "2021",
-    env = {
-        "CARGO_MANIFEST_DIR": "ring-0.17.14.crate",
-        "CARGO_PKG_NAME": "ring",
-        "CARGO_PKG_VERSION": "0.17.14",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "17",
-        "CARGO_PKG_VERSION_PATCH": "14",
-        "CARGO_PKG_VERSION_PRE": "",
-        "OUT_DIR": "$(location :ring-0.17-build-script-run[out_dir])",
-    },
-    features = [
-        "alloc",
-        "default",
-        "dev_urandom_fallback",
-    ],
-    platform = {
-        "linux-arm64": dict(
-            deps = [":libc-0.2"],
-        ),
-        "macos-arm64": dict(
-            deps = [":libc-0.2"],
-        ),
-    },
-    rustc_flags = ["@$(location :ring-0.17-build-script-run[rustc_flags])"],
-    visibility = [],
-    deps = [
-        ":cfg-if-1",
-        ":getrandom-0.2",
-        ":untrusted-0.9",
-    ],
-)
-
-cargo.rust_binary(
-    name = "ring-0.17-build-script-build",
-    srcs = [":ring-0.17.14.crate"],
-    crate = "build_script_build",
-    crate_root = "ring-0.17.14.crate/build.rs",
-    edition = "2021",
-    env = {
-        "CARGO_MANIFEST_DIR": "ring-0.17.14.crate",
-        "CARGO_PKG_NAME": "ring",
-        "CARGO_PKG_VERSION": "0.17.14",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "17",
-        "CARGO_PKG_VERSION_PATCH": "14",
-        "CARGO_PKG_VERSION_PRE": "",
-    },
-    features = [
-        "alloc",
-        "default",
-        "dev_urandom_fallback",
-    ],
-    visibility = [],
-    deps = [":cc-1"],
-)
-
-buildscript_run(
-    name = "ring-0.17-build-script-run",
-    package_name = "ring",
-    buildscript_rule = ":ring-0.17-build-script-build",
-    env = {
-        "CARGO_MANIFEST_LINKS": "ring_core_0_17_14_",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "17",
-        "CARGO_PKG_VERSION_PATCH": "14",
-        "CARGO_PKG_VERSION_PRE": "",
-        "DEBUG": "false",
-        "OPT_LEVEL": "3",
-        "PROFILE": "release",
-    },
-    features = [
-        "alloc",
-        "default",
-        "dev_urandom_fallback",
-    ],
-    rustc_link_lib = True,
-    rustc_link_search = True,
-    version = "0.17.14",
-)
-
-http_archive(
     name = "rstml-0.12.1.crate",
     sha256 = "61cf4616de7499fc5164570d40ca4e1b24d231c6833a88bff0fe00725080fd56",
     strip_prefix = "rstml-0.12.1",
@@ -13208,7 +13114,6 @@ cargo.rust_library(
         "aws_lc_rs",
         "log",
         "logging",
-        "ring",
         "std",
         "tls12",
     ],
@@ -13221,7 +13126,6 @@ cargo.rust_library(
         ":aws-lc-rs-1",
         ":log-0.4",
         ":once_cell-1",
-        ":ring-0.17",
         ":rustls-webpki-0.103",
         ":subtle-2",
         ":zeroize-1",
@@ -13248,7 +13152,6 @@ cargo.rust_binary(
         "aws_lc_rs",
         "log",
         "logging",
-        "ring",
         "std",
         "tls12",
     ],
@@ -13270,7 +13173,6 @@ buildscript_run(
         "aws_lc_rs",
         "log",
         "logging",
-        "ring",
         "std",
         "tls12",
     ],
@@ -13450,7 +13352,6 @@ cargo.rust_library(
     features = [
         "alloc",
         "aws-lc-rs",
-        "ring",
         "std",
     ],
     named_deps = {
@@ -13459,7 +13360,6 @@ cargo.rust_library(
     visibility = [],
     deps = [
         ":aws-lc-rs-1",
-        ":ring-0.17",
         ":untrusted-0.9",
     ],
 )
@@ -15151,10 +15051,8 @@ cargo.rust_library(
         "_rt-tokio",
         "postgres",
         "runtime-tokio",
-        "runtime-tokio-rustls",
         "sqlx-postgres",
-        "tls-rustls-ring",
-        "tls-rustls-ring-webpki",
+        "tls-rustls-aws-lc-rs",
     ],
     visibility = [],
     deps = [
@@ -15189,7 +15087,7 @@ cargo.rust_library(
     features = [
         "_rt-tokio",
         "_tls-rustls",
-        "_tls-rustls-ring-webpki",
+        "_tls-rustls-aws-lc-rs",
         "crc",
         "default",
         "json",
