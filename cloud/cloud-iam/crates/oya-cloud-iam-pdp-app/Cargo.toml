@@ -41,6 +41,21 @@ prost.workspace = true
 tonic = { workspace = true, features = ["router", "transport"] }
 tonic-prost.workspace = true
 
+# mTLS transport (G002 slice-1b-ii; ADR-0561, ADR-0506): a rustls ServerConfig
+# requires + verifies a client cert on both listeners, deferring leaf trust to
+# the SVID verifier (custom ClientCertVerifier), so the PEP runs on a verified
+# peer SVID. aws-lc-rs ONLY — NO ring (default-features off; aws-lc-rs+tls12+
+# logging). tokio-rustls wraps accepted TCP for both surfaces; hyper-util drives
+# the REST accept loop (axum 0.8 has no built-in rustls serve helper); tower
+# layers the per-connection peer-leaf Extension onto the axum router.
+rustls = { version = "0.23", default-features = false, features = ["aws-lc-rs", "tls12", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["aws-lc-rs", "tls12"] }
+hyper = { version = "1", default-features = false, features = ["server", "http1", "http2"] }
+hyper-util = { version = "0.1", default-features = false, features = ["server-auto", "server-graceful", "service", "tokio"] }
+tower = { version = "0.5", default-features = false, features = ["util"] }
+futures-core = { version = "0.3", default-features = false }
+async-stream = "0.3"
+
 [build-dependencies]
 # Proto codegen — mirrors the oya-identity-workload-rest build.rs pattern.
 protoc-bin-vendored.workspace = true
