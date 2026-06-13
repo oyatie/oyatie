@@ -2861,6 +2861,9 @@ async fn handle_admin_guardrails(
     if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
+    if !admin_tenant_allowed(&headers, state.tenant_id.as_str()) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
     Json(serde_json::json!({
         "profiles": [{
             "kind": "GuardrailDetectionProfile",
@@ -3038,6 +3041,9 @@ async fn handle_admin_guardrail_escalations(
     if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
+    if !admin_tenant_allowed(&headers, state.tenant_id.as_str()) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
     Json(serde_json::json!({
         "escalations": [{
             "kind": "ManualReviewEscalation",
@@ -3059,6 +3065,9 @@ async fn handle_admin_evidence_retention(
 ) -> Response {
     if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
         return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !admin_tenant_allowed(&headers, state.tenant_id.as_str()) {
+        return StatusCode::FORBIDDEN.into_response();
     }
     Json(serde_json::json!({
         "profiles": [{
@@ -3089,6 +3098,9 @@ async fn handle_admin_redaction_profiles(
 ) -> Response {
     if !admin_bearer_allowed(&headers, state.admin_bearer_token.as_deref()) {
         return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !admin_tenant_allowed(&headers, state.tenant_id.as_str()) {
+        return StatusCode::FORBIDDEN.into_response();
     }
     Json(serde_json::json!({
         "profiles": [{
@@ -3309,12 +3321,15 @@ fn estimate_input_tokens(payload: &serde_json::Value) -> u64 {
     }
 }
 
+/// Fail-closed admin tenant guard (FRIC-1781420000): the x-oya-admin-tenant
+/// assertion is REQUIRED and must match the administered tenant. An absent or
+/// unparseable header denies (default-deny doctrine) — bearer auth alone never
+/// grants the tenant axis.
 fn admin_tenant_allowed(headers: &HeaderMap, tenant_id: &str) -> bool {
     headers
         .get("x-oya-admin-tenant")
         .and_then(|value| value.to_str().ok())
-        .map(|header_tenant| header_tenant == tenant_id)
-        .unwrap_or(true)
+        .is_some_and(|header_tenant| header_tenant == tenant_id)
 }
 
 /// Probe the owned-policy-engine port with a no-op decision request. The
@@ -4149,6 +4164,7 @@ mod tests {
                     Request::builder()
                         .uri(path)
                         .header("authorization", "Bearer admin-token")
+                        .header("x-oya-admin-tenant", "tenant-a")
                         .body(Body::empty())
                         .unwrap(),
                 )
@@ -4327,6 +4343,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/guardrails")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -4348,6 +4365,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/evidence/retention")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -4366,6 +4384,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/redaction/profiles")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -4377,6 +4396,128 @@ mod tests {
         assert!(body.contains("reversible_tokens_require_tenant_policy"));
         assert!(body.contains("ephemeral-run"));
         assert!(body.contains("restore_only_after_model_output"));
+    }
+
+    /// FRIC-1781420000: the admin tenant guard must be fail-closed. A
+    /// bearer-authenticated admin request WITHOUT the x-oya-admin-tenant
+    /// assertion is denied 403 on every tenant-asserting admin route class
+    /// (default-deny doctrine); present+matching is allowed, present+foreign
+    /// stays denied.
+    #[tokio::test]
+    async fn admin_tenant_guard_fails_closed_when_tenant_header_absent() {
+        let router = build_router(test_state(true, true));
+        for path in [
+            "/admin/v1/agent-runtimes",
+            "/admin/v1/agent-schedules",
+            "/admin/v1/parity/canaries",
+            "/admin/v1/guardrails",
+            "/admin/v1/guardrails/escalations",
+            "/admin/v1/evidence/retention",
+            "/admin/v1/redaction/profiles",
+            "/admin/v1/tenants/tenant-a/providers/anthropic/pool",
+        ] {
+            let absent = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .uri(path)
+                        .header("authorization", "Bearer admin-token")
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(
+                absent.status(),
+                StatusCode::FORBIDDEN,
+                "{path} must deny when the admin tenant header is absent"
+            );
+
+            let foreign = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .uri(path)
+                        .header("authorization", "Bearer admin-token")
+                        .header("x-oya-admin-tenant", "tenant-b")
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(
+                foreign.status(),
+                StatusCode::FORBIDDEN,
+                "{path} must deny a foreign admin tenant header"
+            );
+
+            let matching = router
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .uri(path)
+                        .header("authorization", "Bearer admin-token")
+                        .header("x-oya-admin-tenant", "tenant-a")
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(
+                matching.status(),
+                StatusCode::OK,
+                "{path} must allow the matching admin tenant header"
+            );
+        }
+
+        // Mutating admin surface: the tenant guard runs before idempotency
+        // and body validation, so an absent header denies outright.
+        let subscription_request = |tenant_header: Option<&str>| {
+            let mut builder = Request::builder()
+                .method("POST")
+                .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
+                .header("authorization", "Bearer admin-token")
+                .header("idempotency-key", "44444444-4444-4444-8444-444444444444")
+                .header("content-type", "application/json");
+            if let Some(tenant) = tenant_header {
+                builder = builder.header("x-oya-admin-tenant", tenant);
+            }
+            builder
+                .body(Body::from(
+                    r#"{"seat_id":"seat-guard","subscription_id":"sub-guard","credential_mode":"oauth_subscription","secret_handle":"secret-ref://tenant-a/anthropic/seat-guard"}"#,
+                ))
+                .unwrap()
+        };
+
+        let absent = build_router(test_state(true, true))
+            .oneshot(subscription_request(None))
+            .await
+            .unwrap();
+        assert_eq!(
+            absent.status(),
+            StatusCode::FORBIDDEN,
+            "subscription registration must deny when the admin tenant header is absent"
+        );
+
+        let foreign = build_router(test_state(true, true))
+            .oneshot(subscription_request(Some("tenant-b")))
+            .await
+            .unwrap();
+        assert_eq!(
+            foreign.status(),
+            StatusCode::FORBIDDEN,
+            "subscription registration must deny a foreign admin tenant header"
+        );
+
+        let matching = build_router(test_state(true, true))
+            .oneshot(subscription_request(Some("tenant-a")))
+            .await
+            .unwrap();
+        assert_eq!(
+            matching.status(),
+            StatusCode::CREATED,
+            "subscription registration must allow the matching admin tenant header"
+        );
     }
 
     #[tokio::test]
@@ -5040,6 +5181,7 @@ mod tests {
             .method("POST")
             .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
             .header("authorization", "Bearer admin-token")
+            .header("x-oya-admin-tenant", "tenant-a")
             .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
             .header("content-type", "application/json")
             .body(Body::from(format!(
@@ -5210,6 +5352,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5253,6 +5396,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
                     .header("content-type", "application/json")
                     .body(Body::from(
@@ -5274,6 +5418,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/pool")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5294,6 +5439,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/gemini/subscriptions")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .header("idempotency-key", "33333333-3333-4333-8333-333333333333")
                     .header("content-type", "application/json")
                     .body(Body::from(
@@ -5315,6 +5461,7 @@ mod tests {
                 Request::builder()
                     .uri("/admin/v1/tenants/tenant-a/providers/gemini/pool")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -5335,6 +5482,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .header("content-type", "application/json")
                     .body(Body::from(
                         r#"{"seat_id":"seat-b","subscription_id":"sub-b","credential_mode":"oauth_subscription","secret_handle":"secret-ref://tenant-a/anthropic/seat-b"}"#,
@@ -5359,6 +5507,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .header("idempotency-key", "11111111-1111-4111-8111-111111111111")
                     .header("content-type", "application/json")
                     .body(Body::from(request_body))
@@ -5374,6 +5523,7 @@ mod tests {
                     .method("POST")
                     .uri("/admin/v1/tenants/tenant-a/providers/anthropic/subscriptions")
                     .header("authorization", "Bearer admin-token")
+                    .header("x-oya-admin-tenant", "tenant-a")
                     .header("idempotency-key", "22222222-2222-4222-8222-222222222222")
                     .header("content-type", "application/json")
                     .body(Body::from(request_body))

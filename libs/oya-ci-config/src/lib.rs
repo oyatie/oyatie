@@ -504,22 +504,42 @@ impl Default for JustificationConfig {
     }
 }
 
-/// `[owners]` — the nearest-up-tree OWNERS marker file name (`resolve_owners`).
+/// `[owners]` — the nearest-up-tree OWNERS marker file name (`resolve_owners`) plus the
+/// ADR-0555 hardening policy (FRIC-1781400000): the per-file breadth bound that stops a
+/// single OWNERS registration from bulk-neutering a tree's unowned accounting.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct OwnersConfig {
     #[serde(default = "default_owners_file")]
     pub file_name: String,
+    /// The maximum number of tracked paths a SINGLE OWNERS file may cover via
+    /// nearest-ancestor resolution (the OWNERS file itself counts as one covered path).
+    /// Coverage beyond the bound stays UNOWNED and the producer names the exact fix:
+    /// split the registration into narrower subtree OWNERS files. Policy-as-data
+    /// (reviewed TOML, same trust class as ratchet-policy.json); the default is sized
+    /// from the live-corpus distribution — max legitimate coverage 886 paths
+    /// (`registry/catalog/OWNERS`) of 18,400 tracked at measurement (2026-06-12), so
+    /// 2000 gives >2x headroom for legitimate tree growth while catching bulk
+    /// registrations (a root/`cloud/`-level OWNERS would claim thousands).
+    /// `NonZeroU64` by construction: a zero bound (which would neuter ALL ownership) is
+    /// rejected by the closed-schema loader, fail-loud.
+    #[serde(default = "default_max_paths_per_owners_file")]
+    pub max_paths_per_owners_file: std::num::NonZeroU64,
 }
 
 fn default_owners_file() -> String {
     "OWNERS".to_owned()
 }
 
+fn default_max_paths_per_owners_file() -> std::num::NonZeroU64 {
+    std::num::NonZeroU64::new(2000).expect("2000 is non-zero")
+}
+
 impl Default for OwnersConfig {
     fn default() -> Self {
         Self {
             file_name: default_owners_file(),
+            max_paths_per_owners_file: default_max_paths_per_owners_file(),
         }
     }
 }
@@ -940,6 +960,30 @@ mod tests {
                 Some(true)
             );
         }
+        // The phantom-citation lane (FRIC-1781430000) is born-blocking frozen-empty: the
+        // pre-existing inventory is producer-side shrink-only DATA, never a baseline.
+        let phantom = disp
+            .get("gates")
+            .and_then(|gates| gates.get("cloud-ci-cross-artifact-agreement"))
+            .and_then(|codes| codes.get("phantom_decision_citation"))
+            .expect("phantom_decision_citation disposition");
+        assert_eq!(
+            phantom.get("mode").and_then(serde_json::Value::as_str),
+            Some("baseline-block-on-new")
+        );
+        assert_eq!(
+            phantom
+                .get("frozen_empty")
+                .and_then(serde_json::Value::as_bool),
+            Some(true)
+        );
+        assert!(
+            phantom
+                .get("remediation")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|text| text.contains("--next-adr")),
+            "the phantom remediation must name the allocator"
+        );
         let liveness_codes = disp
             .get("gates")
             .and_then(|gates| gates.get("cloud-ci-enforcement-liveness"))
@@ -989,6 +1033,33 @@ doctrinal_carve_outs = []
         // unspecified sections are the bundled default
         assert_eq!(cfg.vocab, VocabConfig::default());
         assert_eq!(cfg.gates, GatesConfig::default());
+    }
+
+    /// ADR-0555 hardening (FRIC-1781400000): the OWNERS breadth bound is policy-as-data
+    /// with a measured default (2000, >2x the live-corpus max of 886), overridable in
+    /// TOML, and a ZERO bound — which would neuter all ownership — is structurally
+    /// impossible (NonZeroU64 rejected by the closed-schema loader, fail-loud).
+    #[test]
+    fn owners_breadth_bound_defaults_overrides_and_rejects_zero() {
+        let cfg = OyaCiConfig::bundled_default();
+        assert_eq!(cfg.owners.max_paths_per_owners_file.get(), 2000);
+
+        let cfg = OyaCiConfig::from_toml_str("[owners]\nmax_paths_per_owners_file = 50\n")
+            .expect("explicit bound parses");
+        assert_eq!(cfg.owners.max_paths_per_owners_file.get(), 50);
+        // an unspecified bound falls back to the measured default
+        assert_eq!(
+            OyaCiConfig::from_toml_str("[owners]\nfile_name = \"OWNERS\"\n")
+                .expect("partial owners section parses")
+                .owners
+                .max_paths_per_owners_file
+                .get(),
+            2000
+        );
+
+        let err = OyaCiConfig::from_toml_str("[owners]\nmax_paths_per_owners_file = 0\n")
+            .unwrap_err();
+        assert!(matches!(err, ConfigError::Parse(_)), "got {err:?}");
     }
 
     #[test]

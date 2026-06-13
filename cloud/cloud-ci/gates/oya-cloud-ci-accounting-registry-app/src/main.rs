@@ -214,7 +214,29 @@ fn run() -> Result<(), CliError> {
     }
 
     let policy = Policy::from_config(&cfg)?;
-    let inputs = collect_repo_inputs(&repo_root, &cfg, &scm_facts)?;
+    let (inputs, owners_integrity) = collect_repo_inputs(&repo_root, &cfg, &scm_facts)?;
+    // OWNERS integrity remediation (ADR-0555 hardening, FRIC-1781400000): name the exact
+    // fix for every OWNERS file that failed the content schema or the breadth bound — the
+    // affected paths stay UNOWNED (fail-closed) and the firewall's unowned remediation
+    // carries the same fix, so a FAIL is never a bare flag.
+    for (file, defect) in &owners_integrity.invalid {
+        eprintln!(
+            "owners integrity: {file} is NOT a valid ownership marker — {defect}; its \
+             subtree stays unowned (fail-closed, no fall-through to a broader ancestor); \
+             exact fix: rewrite {file} to the OWNERS schema — one owner principal per \
+             line (lowercase alphanumeric + interior hyphens), `#` comments allowed, at \
+             least one principal required"
+        );
+    }
+    for (file, coverage) in &owners_integrity.over_broad {
+        let bound = cfg.owners.max_paths_per_owners_file;
+        eprintln!(
+            "owners integrity: {file} covers {coverage} tracked paths, over the [owners] \
+             max_paths_per_owners_file bound ({bound}); the excess stays unowned; exact \
+             fix: split the registration — add OWNERS files in child subtrees so no \
+             single file covers more than {bound} paths"
+        );
+    }
     let registry = build_registry(&inputs, &policy)?;
     let crosswalk_inputs = collect_crosswalk_inputs(&repo_root, &cfg);
     if !crosswalk_inputs.duplicate_ids.is_empty() || !crosswalk_inputs.id_mismatches.is_empty() {
@@ -985,6 +1007,108 @@ mod tests {
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    /// RED fixture for FRIC-1781430000 (the phantom-0397 shape): an `ADR-NNNN` citation in
+    /// a governed surface (a decision body, the roadmap, the masterplan `bound_adrs`) that
+    /// resolves to NO on-disk decision id must surface as a `<cited>@<source>` edge in
+    /// `phantom_citations`; a citation of an EXISTING decision must not; a citation of a
+    /// GRANDFATHERED historical phantom (reviewed shrink-only DATA) must not; a masterplan
+    /// mention OUTSIDE `bound_adrs` must not. Then MINTING the missing record at the cited
+    /// number must heal the edge with zero retargeting — the ADR-0397 reconstruction
+    /// mechanism, witnessed mechanically.
+    #[test]
+    fn crosswalk_flags_phantom_citations_and_minting_heals_them() {
+        let root = unique_temp_repo();
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let decisions = root.join(&cfg.justification.adr_dir);
+        fs::create_dir_all(&decisions).expect("create decisions dir");
+        fs::write(
+            decisions.join("ADR-0001-citer.md"),
+            "---\nid: ADR-0001\nstatus: Accepted\n---\nCites ADR-0900 (phantom), \
+             ADR-0002 (exists), and ADR-0436 (grandfathered inventory).\n",
+        )
+        .expect("write citing ADR");
+        fs::write(
+            decisions.join("ADR-0002-target.md"),
+            "---\nid: ADR-0002\nstatus: Accepted\n---\n",
+        )
+        .expect("write existing target ADR");
+        let roadmap_path = root.join(&cfg.justification.roadmap);
+        fs::create_dir_all(roadmap_path.parent().expect("roadmap parent"))
+            .expect("create specs dir");
+        fs::write(&roadmap_path, r#"{"wave": "depends on ADR-0901"}"#).expect("write roadmap");
+        let masterplan_path = root.join(&cfg.reachability.masterplan);
+        fs::write(
+            &masterplan_path,
+            r#"{"phases":[{"bound_adrs":["ADR-0902","ADR-0002"],"narrative":"ADR-0903 outside bound_adrs is not a citation edge"}]}"#,
+        )
+        .expect("write masterplan");
+
+        let inputs = collect_crosswalk_inputs(&root, &cfg);
+        assert_eq!(
+            inputs.phantom_citations,
+            vec![
+                format!("ADR-0900@{}/ADR-0001-citer.md", cfg.justification.adr_dir),
+                format!("ADR-0901@{}", cfg.justification.roadmap),
+                format!("ADR-0902@{}#bound_adrs", cfg.reachability.masterplan),
+            ],
+            "exactly the unresolved, non-grandfathered citation edges must surface"
+        );
+
+        // MINT the missing records at the cited numbers: every edge heals, zero retargeting.
+        fs::write(
+            decisions.join("ADR-0900-minted.md"),
+            "---\nid: ADR-0900\nstatus: Proposed\n---\n",
+        )
+        .expect("write minted ADR");
+        fs::write(
+            decisions.join("ADR-0901-minted.md"),
+            "---\nid: ADR-0901\nstatus: Proposed\n---\n",
+        )
+        .expect("write minted ADR");
+        fs::write(
+            decisions.join("ADR-0902-minted.md"),
+            "---\nid: ADR-0902\nstatus: Proposed\n---\n",
+        )
+        .expect("write minted ADR");
+        let healed = collect_crosswalk_inputs(&root, &cfg);
+        assert!(
+            healed.phantom_citations.is_empty(),
+            "minting the record at the cited number must heal every edge: {:?}",
+            healed.phantom_citations
+        );
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// The token scanner accepts exactly-four-digit ids and rejects longer digit runs.
+    #[test]
+    fn adr_citation_tokens_match_exactly_four_digits() {
+        let tokens = adr_citation_tokens(
+            "ADR-0001 then ADR-04031 (five digits: no match) then (ADR-0403's) and ADR-12",
+        );
+        let expected: BTreeSet<String> = ["ADR-0001", "ADR-0403"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+        assert_eq!(tokens, expected);
+    }
+
+    /// The grandfathered inventory is shrink-only DATA: it must never contain ADR-0397
+    /// (healed by the minted record — the exhibit that keeps this lane frozen-empty) and
+    /// must stay sorted+deduped so reviews see a canonical list.
+    #[test]
+    fn grandfathered_phantom_inventory_is_canonical_and_excludes_healed_ids() {
+        let list = GRANDFATHERED_PHANTOM_DECISION_IDS;
+        assert!(
+            !list.contains(&"ADR-0397"),
+            "ADR-0397 was healed by minting the record; it must not be grandfathered"
+        );
+        let mut sorted = list.to_vec();
+        sorted.sort_unstable();
+        sorted.dedup();
+        assert_eq!(sorted.as_slice(), list, "inventory must be sorted + deduped");
+    }
+
     /// A clean corpus carries no mismatch signal and allocates max+1 from the filename ids.
     #[test]
     fn crosswalk_is_quiet_and_allocates_on_a_clean_corpus() {
@@ -1220,6 +1344,254 @@ mod tests {
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    /// ADR-0555 hardening (FRIC-1781400000): the OWNERS content schema + breadth bound
+    /// RED/GREEN corpus, dir-loaded from `specs/fixtures/owners-schema/` (data-under-test
+    /// — the fixtures are the reviewable spec of the schema).
+    #[test]
+    fn owners_schema_fixtures_execute_red_green_cases() {
+        let fixtures_dir = {
+            let mut dir = std::env::current_dir().expect("current_dir");
+            loop {
+                if dir.join("specs/root-hub-pointers.json").is_file() {
+                    break dir.join("specs/fixtures/owners-schema");
+                }
+                assert!(dir.pop(), "failed to locate repo root from test current_dir");
+            }
+        };
+        let mut entries: Vec<PathBuf> = fs::read_dir(&fixtures_dir)
+            .unwrap_or_else(|e| panic!("read {}: {e}", fixtures_dir.display()))
+            .map(|entry| entry.expect("dir entry").path())
+            .filter(|p| p.extension().is_some_and(|ext| ext == "json"))
+            .collect();
+        entries.sort();
+        assert!(
+            entries.len() >= 6,
+            "owners-schema fixture corpus must carry the RED set (empty / comment-only / \
+             garbage / over-broad / poison) plus GREEN exemplars, got {entries:?}"
+        );
+
+        for path in entries {
+            let text = fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+            let fixture: Value = serde_json::from_str(&text)
+                .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
+            let id = fixture["fixture_id"].as_str().expect("fixture_id").to_owned();
+
+            let root = unique_temp_repo();
+            for (rel, content) in fixture["owners_files"].as_object().expect("owners_files") {
+                let abs = root.join(rel);
+                fs::create_dir_all(abs.parent().expect("parent")).expect("create owners dir");
+                fs::write(&abs, content.as_str().expect("owners content")).expect("write");
+            }
+            let cfg = match fixture.get("max_paths_per_owners_file").and_then(Value::as_u64) {
+                Some(bound) => oya_ci_config_kernel::OyaCiConfig::from_toml_str(&format!(
+                    "[owners]\nmax_paths_per_owners_file = {bound}\n"
+                ))
+                .expect("fixture bound parses"),
+                None => oya_ci_config_kernel::OyaCiConfig::bundled_default(),
+            };
+            let tracked: Vec<String> = fixture["tracked_paths"]
+                .as_array()
+                .expect("tracked_paths")
+                .iter()
+                .map(|v| v.as_str().expect("path").to_owned())
+                .collect();
+
+            let resolution = resolve_owners(&root, &tracked, &cfg);
+
+            let expected_owned: BTreeMap<String, String> = fixture["expected_owned"]
+                .as_object()
+                .expect("expected_owned")
+                .iter()
+                .map(|(k, v)| (k.clone(), v.as_str().expect("owner").to_owned()))
+                .collect();
+            assert_eq!(
+                resolution.by_path, expected_owned,
+                "{id}: owned map mismatch"
+            );
+            let expected_invalid = fixture["expected_invalid"]
+                .as_object()
+                .expect("expected_invalid");
+            assert_eq!(
+                resolution.integrity.invalid.len(),
+                expected_invalid.len(),
+                "{id}: invalid set mismatch: {:?}",
+                resolution.integrity.invalid
+            );
+            for (file, defect_substr) in expected_invalid {
+                let defect = resolution
+                    .integrity
+                    .invalid
+                    .get(file)
+                    .unwrap_or_else(|| panic!("{id}: {file} must be flagged invalid"));
+                let needle = defect_substr.as_str().expect("defect substring");
+                assert!(
+                    defect.contains(needle),
+                    "{id}: {file} defect {defect:?} must name {needle:?}"
+                );
+            }
+            let expected_over_broad: BTreeMap<String, usize> = fixture["expected_over_broad"]
+                .as_object()
+                .expect("expected_over_broad")
+                .iter()
+                .map(|(k, v)| (k.clone(), v.as_u64().expect("coverage") as usize))
+                .collect();
+            assert_eq!(
+                resolution.integrity.over_broad, expected_over_broad,
+                "{id}: over-broad set mismatch"
+            );
+
+            fs::remove_dir_all(root).expect("remove temp repo");
+        }
+    }
+
+    /// The owner-principal grammar: every live principal shape is accepted; the obvious
+    /// hostile/garbage shapes are rejected (ADR-0555 hardening, FRIC-1781400000).
+    #[test]
+    fn owner_principal_schema_accepts_live_shapes_and_rejects_garbage() {
+        for valid in [
+            "cloud-ci-platform",
+            "council-architecture",
+            "axis-cloud-platform",
+            "team0",
+            "a",
+        ] {
+            assert!(is_valid_owner_principal(valid), "{valid:?} must be valid");
+        }
+        let too_long = "a".repeat(64);
+        for invalid in [
+            "",
+            "Team-Evil",
+            "EVIL",
+            "team evil",
+            "-leading-hyphen",
+            "trailing-hyphen-",
+            "dot.separated",
+            "email@example.com",
+            "tab\tseparated",
+            too_long.as_str(),
+        ] {
+            assert!(
+                !is_valid_owner_principal(invalid),
+                "{invalid:?} must be rejected"
+            );
+        }
+    }
+
+    /// Live-corpus pin (zero-regression evidence for the ADR-0555 hardening): every
+    /// tracked OWNERS file on the tree parses to the codified schema and sits under the
+    /// breadth bound, so the conversion's grandfathered baseline cannot grow from this
+    /// change. If this fails, fix the named OWNERS file — that is honest registration,
+    /// not laundering.
+    #[test]
+    fn live_owners_corpus_is_schema_valid_and_under_breadth_bound() {
+        let root = {
+            let mut dir = std::env::current_dir().expect("current_dir");
+            loop {
+                if dir.join("specs/root-hub-pointers.json").is_file() {
+                    break dir;
+                }
+                assert!(dir.pop(), "failed to locate repo root from test current_dir");
+            }
+        };
+        let scm_facts = load_scm_facts(&root.join(
+            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        ))
+        .expect("committed scm-facts face loads");
+        let cfg = load_config(&root).expect("repo oya-ci.toml loads");
+        let resolution = resolve_owners(&root, &scm_facts.tracked_paths, &cfg);
+        assert!(
+            resolution.integrity.invalid.is_empty(),
+            "every live OWNERS file must parse to the codified schema (fix the file): {:?}",
+            resolution.integrity.invalid
+        );
+        assert!(
+            resolution.integrity.over_broad.is_empty(),
+            "every live OWNERS file must sit under the [owners] max_paths_per_owners_file \
+             bound ({}) — split the named registration: {:?}",
+            cfg.owners.max_paths_per_owners_file,
+            resolution.integrity.over_broad
+        );
+        assert!(
+            !resolution.by_path.is_empty(),
+            "the live corpus carries valid OWNERS registrations; an empty owned set means \
+             the resolver regressed"
+        );
+    }
+
+    /// ADR-0555 hardening (FRIC-1781400000): the --fix-owners bridge refuses to EMIT a
+    /// schema-invalid OWNERS file and refuses an over-broad registration (the
+    /// bulk-neuter shape), with no residue either way.
+    #[test]
+    fn fix_owners_refuses_schema_invalid_and_over_broad_registrations() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let scm = scm_facts_with(&["docs/decisions/ADR-0001-x.md"]);
+
+        // A principal the resolver would reject must be refused BEFORE writing.
+        for hostile in ["Team Evil", "EVIL", "evil!", "a@b.example", "-x"] {
+            let err = apply_fix_owners(
+                &root,
+                &cfg,
+                &scm,
+                &format!("docs/decisions={hostile}"),
+            )
+            .expect_err("schema-invalid principal must be refused");
+            assert!(
+                format!("{err:?}").contains("not a valid owner principal"),
+                "refusal must name the schema defect, got {err:?}"
+            );
+            assert!(
+                !root.join("docs/decisions/OWNERS").exists(),
+                "a refused registration must leave no OWNERS residue"
+            );
+        }
+
+        // The bulk-neuter shape: a registration covering more tracked paths than the
+        // bound is refused with the split-the-registration fix, and the written file is
+        // reverted.
+        let small_bound_cfg = oya_ci_config_kernel::OyaCiConfig::from_toml_str(
+            "[owners]\nmax_paths_per_owners_file = 3\n",
+        )
+        .expect("bound parses");
+        let bulk = scm_facts_with(&[
+            "docs/decisions/ADR-0001-a.md",
+            "docs/decisions/ADR-0002-b.md",
+            "docs/decisions/ADR-0003-c.md",
+            "docs/decisions/ADR-0004-d.md",
+        ]);
+        let err = apply_fix_owners(
+            &root,
+            &small_bound_cfg,
+            &bulk,
+            "docs/decisions=council-architecture",
+        )
+        .expect_err("an over-broad registration must be refused");
+        let message = format!("{err:?}");
+        assert!(
+            message.contains("max_paths_per_owners_file") && message.contains("split"),
+            "refusal must name the bound and the split fix, got {message}"
+        );
+        assert!(
+            !root.join("docs/decisions/OWNERS").exists(),
+            "the over-broad OWNERS must be reverted (no residue)"
+        );
+
+        // Under the bound the same registration applies cleanly (the bound only catches
+        // bulk shapes, never legitimate trees).
+        let ok = apply_fix_owners(
+            &root,
+            &small_bound_cfg,
+            &scm,
+            "docs/decisions=council-architecture",
+        )
+        .expect("a within-bound registration applies");
+        assert!(ok.contains("1 tracked path(s)"), "{ok}");
+
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     #[test]
     fn fix_reachability_appends_registers_and_round_trips() {
         let root = unique_temp_repo();
@@ -1395,10 +1767,129 @@ fn is_workspace_inherited(line: &str, key: &str) -> bool {
     false
 }
 
+/// The HISTORICAL phantom-citation inventory (FRIC-1781430000): decision ids that governed
+/// surfaces cite TODAY with no decision file on disk, inventoried 2026-06-12 during the
+/// ADR-0397 reconstruction (audit register H-19). This is reviewed, shrink-only carve-out
+/// DATA — the same doctrine as the brand-residue carve-outs: exceptions live as DATA, never
+/// as evaluator branches. Each id is ledgered as its own friction-ledger row listing its
+/// citation sites; healing an id (minting the record at the number, or retargeting every
+/// citer) REMOVES it here. ADDING an id is forbidden — a new phantom citation is exactly
+/// the defect the `phantom_decision_citation` lane blocks (its baseline is frozen-empty;
+/// any non-grandfathered phantom edge is born-blocking). ADR-0397 itself is deliberately
+/// NOT in this list: it was healed by minting the record, which is what keeps this lane's
+/// live key set empty.
+const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 63] = [
+    "ADR-0000", "ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0086",
+    "ADR-0088", "ADR-0125", "ADR-0126", "ADR-0127", "ADR-0224", "ADR-0231", "ADR-0232",
+    "ADR-0247", "ADR-0322", "ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0395",
+    "ADR-0399", "ADR-0403", "ADR-0406", "ADR-0407", "ADR-0408", "ADR-0409", "ADR-0410",
+    "ADR-0411", "ADR-0413", "ADR-0416", "ADR-0418", "ADR-0419", "ADR-0420", "ADR-0421",
+    "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441", "ADR-0443",
+    "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
+    "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472",
+    "ADR-0473", "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
+];
+
+/// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).
+/// Hand-rolled scanner (minimal-deps doctrine: no regex crate in the producer).
+fn adr_citation_tokens(text: &str) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    let bytes = text.as_bytes();
+    let mut from = 0;
+    while let Some(rel) = text[from..].find("ADR-") {
+        let start = from + rel;
+        let digits_start = start + 4;
+        let digits_end = digits_start + 4;
+        if digits_end <= bytes.len()
+            && bytes[digits_start..digits_end]
+                .iter()
+                .all(u8::is_ascii_digit)
+            && !bytes.get(digits_end).is_some_and(u8::is_ascii_digit)
+        {
+            // SAFETY-free slice: the matched region is pure ASCII, so the str slice is valid.
+            out.insert(text[start..digits_end].to_owned());
+            from = digits_end;
+        } else {
+            from = start + 4;
+        }
+    }
+    out
+}
+
+/// Collect the `ADR-NNNN` citation edges of the governed surfaces that resolve to NO
+/// on-disk decision id, excluding the grandfathered historical inventory. Governed
+/// surfaces: every decision file body, the roadmap/sequencing artifact, and the
+/// masterplan's `bound_adrs` arrays. Edge key shape: `<cited-id>@<source-path>`
+/// (e.g. `ADR-0397@docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md`),
+/// matching the GATE-1 `phantom_decision_citation` finding key.
+fn collect_phantom_citations(
+    known_ids: &BTreeSet<String>,
+    decision_bodies: &[(String, String)],
+    roadmap_path: &str,
+    roadmap: &str,
+    masterplan_path: &str,
+    masterplan: &str,
+) -> Vec<String> {
+    let grandfathered: BTreeSet<&str> = GRANDFATHERED_PHANTOM_DECISION_IDS.into_iter().collect();
+    let mut edges: BTreeSet<String> = BTreeSet::new();
+
+    let mut record = |cited: &str, source: &str, edges: &mut BTreeSet<String>| {
+        if !known_ids.contains(cited) && !grandfathered.contains(cited) {
+            edges.insert(format!("{cited}@{source}"));
+        }
+    };
+
+    for (source, body) in decision_bodies {
+        for cited in adr_citation_tokens(body) {
+            record(&cited, source, &mut edges);
+        }
+    }
+    for cited in adr_citation_tokens(roadmap) {
+        record(&cited, roadmap_path, &mut edges);
+    }
+    // masterplan: only the `bound_adrs` arrays are citation edges (the rest of the
+    // masterplan is generated narrative; its decision binding IS bound_adrs).
+    if let Ok(value) = serde_json::from_str::<Value>(masterplan) {
+        let mut bound: BTreeSet<String> = BTreeSet::new();
+        collect_bound_adrs(&value, &mut bound);
+        let source = format!("{masterplan_path}#bound_adrs");
+        for cited in bound {
+            record(&cited, &source, &mut edges);
+        }
+    }
+    edges.into_iter().collect()
+}
+
+/// Recursively collect the string items of every `bound_adrs` array in a JSON document.
+fn collect_bound_adrs(value: &Value, out: &mut BTreeSet<String>) {
+    match value {
+        Value::Object(map) => {
+            for (key, nested) in map {
+                if key == "bound_adrs"
+                    && let Some(items) = nested.as_array()
+                {
+                    for item in items.iter().filter_map(Value::as_str) {
+                        out.extend(adr_citation_tokens(item));
+                    }
+                }
+                collect_bound_adrs(nested, out);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                collect_bound_adrs(item, out);
+            }
+        }
+        _ => {}
+    }
+}
+
 /// Collect the GATE-1 cross-artifact facts from the live corpus: ADR front-matter
 /// (status + reciprocal supersession edges), spec/masterplan/roadmap presence, the
-/// duplicate-id collision (two files carrying one id), and the generated-face axes drift
-/// (catalog.json vs contracts.json `axes_count`). Single pass over the ADR corpus.
+/// duplicate-id collision (two files carrying one id), the phantom citation edges
+/// (`ADR-NNNN` cited from a governed surface with no decision file on disk), and the
+/// generated-face axes drift (catalog.json vs contracts.json `axes_count`). Single pass
+/// over the ADR corpus.
 fn collect_crosswalk_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
@@ -1417,16 +1908,26 @@ fn collect_crosswalk_inputs(
     // The allocator input: the highest decision number seen across BOTH the filename
     // and the front-matter id of every decision file.
     let mut max_decision_number: u32 = 0;
+    // Every id ANY decision file carries (filename or front-matter) — the resolution
+    // universe for phantom-citation detection (FRIC-1781430000): a citation resolves iff
+    // some on-disk decision file carries the cited id under either identity.
+    let mut known_ids: BTreeSet<String> = BTreeSet::new();
+    // The governed decision bodies, kept for the citation scan (one read per file).
+    let mut decision_bodies: Vec<(String, String)> = Vec::new();
     if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
             if let Some(filename_id) = adr_id_from_filename(&name) {
                 let path = entry.path();
-                let front_id = front_matter_field(&read_text(&path), "id");
+                let body = read_text(&path);
+                let front_id = front_matter_field(&body, "id");
+                decision_bodies.push((format!("{}/{name}", cfg.justification.adr_dir), body));
+                known_ids.insert(filename_id.clone());
                 if let Some(number) = adr_number(&filename_id) {
                     max_decision_number = max_decision_number.max(number);
                 }
                 if let Some(front_id) = &front_id {
+                    known_ids.insert(front_id.clone());
                     if front_id != &filename_id {
                         id_mismatches.push(format!("{name}:{filename_id}!={front_id}"));
                     }
@@ -1440,7 +1941,17 @@ fn collect_crosswalk_inputs(
         }
     }
     id_mismatches.sort();
+    decision_bodies.sort_by(|a, b| a.0.cmp(&b.0));
     let next_free_id = format!("ADR-{:04}", max_decision_number + 1);
+
+    let phantom_citations = collect_phantom_citations(
+        &known_ids,
+        &decision_bodies,
+        &cfg.justification.roadmap,
+        &roadmap,
+        &cfg.reachability.masterplan,
+        &masterplan,
+    );
 
     let mut decisions: Vec<DecisionCrosswalkRow> = Vec::new();
     let mut duplicate_ids: Vec<String> = Vec::new();
@@ -1488,6 +1999,11 @@ fn collect_crosswalk_inputs(
         decisions,
         duplicate_ids,
         id_mismatches,
+        phantom_citations,
+        grandfathered_phantom_ids: GRANDFATHERED_PHANTOM_DECISION_IDS
+            .iter()
+            .map(|id| (*id).to_owned())
+            .collect(),
         next_free_id,
         generated_face_axes,
     }
@@ -1673,50 +2189,175 @@ fn collect_repo_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
     scm_facts: &ScmFacts,
-) -> Result<RepoInputs, CliError> {
+) -> Result<(RepoInputs, OwnersIntegrity), CliError> {
     let tracked_paths = scm_facts.tracked_paths.clone();
-    let owners = resolve_owners(repo_root, &tracked_paths, cfg);
+    let owners_resolution = resolve_owners(repo_root, &tracked_paths, cfg);
     let reachability = resolve_reachability(repo_root, &tracked_paths, cfg)?;
     let justifications = resolve_justifications(repo_root, &tracked_paths, cfg);
 
-    Ok(RepoInputs {
-        tracked_paths,
-        owners,
-        justifications,
-        reachability,
-        dup_of: BTreeMap::new(),
-    })
+    Ok((
+        RepoInputs {
+            tracked_paths,
+            owners: owners_resolution.by_path,
+            justifications,
+            reachability,
+            dup_of: BTreeMap::new(),
+        },
+        owners_resolution.integrity,
+    ))
 }
 
-/// Resolve the nearest up-tree `OWNERS` file for each path. With zero OWNERS files
-/// on the tree today this returns an empty map (every row ⇒ unowned), which is the
-/// born-blocking exhibit — the gap is DATA (no OWNERS rows), not scanner code.
+/// OWNERS-resolution integrity diagnostics (ADR-0555 hardening, FRIC-1781400000).
+/// These never grant or carry ownership themselves — they name the exact fix for each
+/// OWNERS file that failed the content schema or the breadth bound, so a FAIL is never
+/// a bare flag (founder directive: flagging/red-gating isn't enough).
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+struct OwnersIntegrity {
+    /// OWNERS file (repo-relative) -> the schema defect. Fail-closed: an invalid file is
+    /// NOT an ownership marker AND still poisons resolution at its directory (no
+    /// fall-through to a broader ancestor) — invalid content can never yield owned rows.
+    invalid: BTreeMap<String, String>,
+    /// OWNERS file (repo-relative) -> raw nearest-ancestor coverage, for files whose
+    /// coverage exceeds `[owners] max_paths_per_owners_file`. The first <bound> covered
+    /// paths (path-sorted) keep ownership; the excess stays UNOWNED.
+    over_broad: BTreeMap<String, usize>,
+}
+
+/// The outcome of OWNERS resolution: the per-path owner map plus integrity diagnostics.
+struct OwnersResolution {
+    by_path: BTreeMap<String, String>,
+    integrity: OwnersIntegrity,
+}
+
+/// An owner principal (one OWNERS line): a lowercase DNS-1123-label-shaped team
+/// identifier — `[a-z0-9]` plus interior `-`, 1..=63 chars (the K8s name shape; matches
+/// every live principal: `cloud-ci-platform`, `council-architecture`,
+/// `axis-cloud-platform`).
+fn is_valid_owner_principal(s: &str) -> bool {
+    let bytes = s.as_bytes();
+    if bytes.is_empty() || bytes.len() > 63 {
+        return false;
+    }
+    let alnum = |b: u8| b.is_ascii_lowercase() || b.is_ascii_digit();
+    alnum(bytes[0])
+        && alnum(bytes[bytes.len() - 1])
+        && bytes.iter().all(|&b| alnum(b) || b == b'-')
+}
+
+/// Parse OWNERS content against the minimal codified schema (ADR-0555 hardening,
+/// FRIC-1781400000 — codifies what the live corpus already does): each line, after
+/// trimming, is empty (ignored), a `#` comment (ignored), or an owner principal. A VALID
+/// file carries at least one principal and zero unparseable lines. Anything else —
+/// empty, comment-only, garbage, non-UTF-8 — is NOT ownership (fail-closed).
+fn parse_owners_content(text: &str) -> Result<Vec<String>, String> {
+    let mut principals = Vec::new();
+    for (idx, raw) in text.lines().enumerate() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if !is_valid_owner_principal(line) {
+            return Err(format!(
+                "line {}: {line:?} is not a valid owner principal (schema: one owner \
+                 principal per line — lowercase alphanumeric + interior hyphens, 1..=63 \
+                 chars, e.g. `cloud-ci-platform`; `#` comments and blank lines allowed)",
+                idx + 1
+            ));
+        }
+        principals.push(line.to_owned());
+    }
+    if principals.is_empty() {
+        return Err(
+            "zero owner principals (an empty or comment-only OWNERS file is NOT \
+             ownership — name at least one owning team, one principal per line)"
+            .to_owned(),
+        );
+    }
+    Ok(principals)
+}
+
+/// Resolve the nearest up-tree `OWNERS` file for each path. Ownership requires BOTH
+/// existence and valid content (ADR-0555 hardening, FRIC-1781400000): the file must
+/// parse to >=1 owner principal under `parse_owners_content`, and a single file's
+/// coverage is capped by `[owners] max_paths_per_owners_file` (excess stays unowned).
+/// With zero valid OWNERS files this returns an empty map (every row ⇒ unowned) — the
+/// gap is DATA (no OWNERS rows), not scanner code.
 fn resolve_owners(
     repo_root: &Path,
     paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
-) -> BTreeMap<String, String> {
+) -> OwnersResolution {
     let owners_file = cfg.owners.file_name.as_str();
-    let owners_dirs: BTreeSet<String> = paths
-        .iter()
-        .filter(|p| p.ends_with(&format!("/{owners_file}")) || p.as_str() == owners_file)
-        .map(|p| {
-            p.rsplit_once('/')
-                .map(|(dir, _)| dir.to_owned())
-                .unwrap_or_default()
-        })
-        .collect();
-    let _ = repo_root; // OWNERS content parsing is the A-STRUCT follow-on; existence drives the gap
-    let mut map = BTreeMap::new();
-    if owners_dirs.is_empty() {
-        return map;
-    }
-    for path in paths {
-        if let Some(owner_dir) = nearest_ancestor(path, &owners_dirs) {
-            map.insert(path.clone(), format!("OWNERS:{owner_dir}"));
+    let bound = usize::try_from(cfg.owners.max_paths_per_owners_file.get()).unwrap_or(usize::MAX);
+    // Every tracked OWNERS file is a resolution BOUNDARY (dir -> the file's repo-relative
+    // path); only the ones with schema-valid content GRANT ownership. An invalid file
+    // poisons its directory rather than falling through to a broader ancestor — fail-
+    // closed, so invalid content can never yield owned rows.
+    let mut owners_paths: BTreeMap<String, String> = BTreeMap::new();
+    for p in paths {
+        if p.as_str() == owners_file {
+            owners_paths.insert(String::new(), p.clone());
+        } else if p.ends_with(&format!("/{owners_file}")) {
+            if let Some((dir, _)) = p.rsplit_once('/') {
+                owners_paths.insert(dir.to_owned(), p.clone());
+            }
         }
     }
-    map
+
+    let mut integrity = OwnersIntegrity::default();
+    let mut valid_dirs: BTreeSet<String> = BTreeSet::new();
+    for (dir, rel) in &owners_paths {
+        let defect = match std::fs::read(repo_root.join(rel)) {
+            Err(e) => Some(format!("unreadable: {e}")),
+            Ok(bytes) => match String::from_utf8(bytes) {
+                Err(_) => Some("not UTF-8 text".to_owned()),
+                Ok(text) => match parse_owners_content(&text) {
+                    Err(defect) => Some(defect),
+                    Ok(_principals) => None,
+                },
+            },
+        };
+        match defect {
+            Some(defect) => {
+                integrity.invalid.insert(rel.clone(), defect);
+            }
+            None => {
+                valid_dirs.insert(dir.clone());
+            }
+        }
+    }
+
+    let mut by_path = BTreeMap::new();
+    if owners_paths.is_empty() {
+        return OwnersResolution { by_path, integrity };
+    }
+
+    let all_dirs: BTreeSet<String> = owners_paths.keys().cloned().collect();
+    let mut covered: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for path in paths {
+        if let Some(owner_dir) = nearest_ancestor(path, &all_dirs) {
+            if valid_dirs.contains(&owner_dir) {
+                covered.entry(owner_dir).or_default().push(path.clone());
+            }
+        }
+    }
+
+    for (dir, mut dir_paths) in covered {
+        // Deterministic breadth accounting: path-sorted, so the SAME paths keep
+        // ownership on every regeneration (committed==regenerated holds).
+        dir_paths.sort();
+        if dir_paths.len() > bound {
+            integrity
+                .over_broad
+                .insert(owners_paths[&dir].clone(), dir_paths.len());
+            dir_paths.truncate(bound);
+        }
+        for p in dir_paths {
+            by_path.insert(p, format!("OWNERS:{dir}"));
+        }
+    }
+
+    OwnersResolution { by_path, integrity }
 }
 
 fn nearest_ancestor(path: &str, dirs: &BTreeSet<String>) -> Option<String> {
@@ -1868,6 +2509,16 @@ fn apply_fix_owners(
             "--fix-owners: both <dir> and <owner> must be non-empty".to_owned(),
         ));
     }
+    // ADR-0555 hardening (FRIC-1781400000): the bridge must EMIT valid schema content —
+    // an OWNERS file it writes that the resolver would reject is a self-defeating
+    // registration. Validate the principal before writing anything.
+    if !is_valid_owner_principal(owner) {
+        return Err(CliError::Io(format!(
+            "--fix-owners: {owner:?} is not a valid owner principal (OWNERS schema: \
+             lowercase alphanumeric + interior hyphens, 1..=63 chars, e.g. \
+             `cloud-ci-platform`)"
+        )));
+    }
     // <dir> must be a repo-relative path; reject absolute paths and `..` traversal so the
     // local bridge cannot write an OWNERS file outside the repo (defence-in-depth — this is
     // a local feedback bridge, never merge authority).
@@ -1894,12 +2545,29 @@ fn apply_fix_owners(
         .map_err(|e| CliError::Io(format!("{owners_rel}: {e}")))?;
 
     // SELF-VALIDATION: re-run the derivation over tracked ∪ {the new OWNERS file} and
-    // count the tracked paths that now ownership-resolve to this registration.
+    // count the tracked paths that now ownership-resolve to this registration. The
+    // derivation is content-aware (ADR-0555 hardening), so this also proves the written
+    // file parses to the schema.
     let mut universe = scm_facts.tracked_paths.clone();
     if !universe.contains(&owners_rel) {
         universe.push(owners_rel.clone());
     }
-    let owners = resolve_owners(repo_root, &universe, cfg);
+    let resolution = resolve_owners(repo_root, &universe, cfg);
+    // Breadth bound (FRIC-1781400000): refuse a registration whose coverage exceeds
+    // [owners] max_paths_per_owners_file — a single bulk OWNERS must not neuter a
+    // tree's unowned accounting. No residue on refusal.
+    if let Some(coverage) = resolution.integrity.over_broad.get(&owners_rel) {
+        let bound = cfg.owners.max_paths_per_owners_file;
+        let _ = std::fs::remove_file(&owners_abs);
+        return Err(CliError::Io(format!(
+            "--fix-owners: {owners_rel} would cover {coverage} tracked paths, over the \
+             [owners] max_paths_per_owners_file bound ({bound}) — a single bulk \
+             registration cannot neuter a tree's unowned accounting (ADR-0555); reverted \
+             the written {owners_rel}. Exact fix: split the registration — add OWNERS \
+             files in child subtrees so no single file covers more than {bound} paths"
+        )));
+    }
+    let owners = resolution.by_path;
     // Count only the PRE-EXISTING tracked paths the registration now covers (the new
     // OWNERS file covering itself is not evidence of coverage).
     let covered = owners
