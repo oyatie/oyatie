@@ -60,6 +60,10 @@
     {
       "anchor": "ADR-0555 ownership seed: the workflows tree's OWNERS marker (cloud-ci-platform) — added with ADR-0560's canary workflow so new workflow files are born owned",
       "prefix": ".github/workflows/OWNERS"
+    },
+    {
+      "anchor": "ADR-0561 ownership seed: the cloud-os trustd-domain crate's OWNERS marker (axis-cloud-platform) — added with slice-1b-i's der.rs so the trustd crate's new real-X.509 source is born owned",
+      "prefix": "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/OWNERS"
     }
   ]
 }
