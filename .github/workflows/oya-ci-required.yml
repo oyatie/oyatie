@@ -132,6 +132,7 @@ jobs:
           - { crate: oya-cloud-ci-embedded-asset-hermeticity-app, label: "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)" }
           - { crate: oya-cloud-ci-kernel-purity-app,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
           - { crate: oya-cloud-ci-generated-artifact-control-plane-app, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
+          - { crate: oya-cloud-ci-cache-wiring-app,            label: "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)" }
     steps:
       # actions/checkout@v6.0.3 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -408,7 +409,32 @@ jobs:
           set -euo pipefail
           # buck2 test builds its targets before running them, so a standalone
           # `buck2 build` immediately before is redundant — removed (item 4 quick win).
-          buck2 test //cloud/cloud-ci/...
+          # --unstable-write-invocation-record is additive observability only: it
+          # writes buck2's structured run record (cache_hit_rate, run_* counters)
+          # for the telemetry step below and changes nothing about the build.
+          buck2 test //cloud/cloud-ci/... --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
+      # Per-lane cache-hit telemetry (ADR-0560; the audit's missing-SLO item):
+      # structured counters from buck2's invocation record — never log-grep — labeled
+      # with this lane's ADR-0556 build class. Non-blocking by construction
+      # (continue-on-error): telemetry must never affect merge authority. Today the
+      # lane runs bypass (the NativeLink wiring ships dark), so this baselines the
+      # 0%-hit cold state (FRIC-1781450000) that the warm substrate will move.
+      - name: Cache-hit telemetry (ADR-0560, structured per-lane report)
+        if: always()
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode bypass --out /tmp/cache-hit-report.json
+          cat /tmp/cache-hit-report.json
+      - name: Upload cache-hit telemetry artifact
+        if: always()
+        continue-on-error: true
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: cache-hit-report-buck2-lane
+          path: /tmp/cache-hit-report.json
+          if-no-files-found: warn
       - name: buck2 affected-set driver (advisory speed path)
         continue-on-error: true
         run: |
