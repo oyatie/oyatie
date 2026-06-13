@@ -240,14 +240,20 @@ membership (cargo-members). The trustd X.509 extension
 .../src/certificate.rs, .../src/ca.rs) amends already-accounted files in place
 and carries no new accounting rows.
 
-Slice-1b-i (FRIC-1781510000) adds two new source files, both inside
-already-accounted crate directories (owned + reachable via cargo-members, so they
-inherit their crate's OWNERS and need no new owner row):
+Slice-1b-i (FRIC-1781510000) adds two new source files:
 
 - cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/der.rs — real ASN.1 DER
-  issuance (rcgen on the aws-lc-rs backend).
+  issuance (rcgen on the aws-lc-rs backend). Its crate (oya-cloud-os-trustd-domain)
+  was previously UNOWNED baseline debt (no OWNERS marker), so der.rs would be born
+  unowned. Slice-1b-i therefore born-accounts the crate: it adds
+  cloud/cloud-os/crates/oya-cloud-os-trustd-domain/OWNERS (owner: axis-cloud-platform,
+  matching the sibling cloud/* substrate crates cloud-iam/cloud-kms/cloud-kernel),
+  registered as reached in specs/reachability-registry.json — which owns der.rs and
+  pays down the crate's prior unowned debt (12 source files newly owned, zero new
+  unowned). This OWNERS marker is justified by its citation here.
 - oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/leaf_der.rs —
-  real leaf-DER parsing + signature verification (x509-parser, verify-aws).
+  real leaf-DER parsing + signature verification (x509-parser, verify-aws). Its crate
+  is already owned (axis-identity OWNERS from slice-1), so leaf_der.rs inherits it.
 
 The retired oya-identity-workload-svid-trustd-adapter/src/leaf_codec.rs (the TSV1
 shape-model stand-in) is removed in the same change; its accounting row is

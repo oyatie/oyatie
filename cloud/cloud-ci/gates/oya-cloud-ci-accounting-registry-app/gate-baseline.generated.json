@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:f6fbaeb95dd3aa45",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:29c98584c14d747e"
+    "source_inputs_digest": "fnv1a64:2c4f921aac5ccb33"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -24240,19 +24240,6 @@
           "cloud/cloud-os/crates/oya-cloud-os-time-domain/src/sync.rs",
           "cloud/cloud-os/crates/oya-cloud-os-time-domain/src/time_service.rs",
           "cloud/cloud-os/crates/oya-cloud-os-time-domain/src/timeserver.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/BUCK",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/Cargo.toml",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/bundle.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/ca.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/certificate.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/crl.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/der.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/error.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/lib.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/service.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/signer.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/token.rs",
-          "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/x509.rs",
           "cloud/cloud-os/crates/oya-cloud-os-upgrade-domain/BUCK",
           "cloud/cloud-os/crates/oya-cloud-os-upgrade-domain/Cargo.toml",
           "cloud/cloud-os/crates/oya-cloud-os-upgrade-domain/src/drain.rs",

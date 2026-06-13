@@ -2222,6 +2222,7 @@
     "cloud/cloud-os/crates/oya-cloud-os-time-domain/src/timeserver.rs",
     "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/BUCK",
     "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/Cargo.toml",
+    "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/OWNERS",
     "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/bundle.rs",
     "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/ca.rs",
     "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/certificate.rs",
