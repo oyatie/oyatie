@@ -4389,6 +4389,10 @@ dependencies = [
  "http-body-util",
  "oya-cloud-iam-pdp-bundle-file-adapter",
  "oya-cloud-iam-pdp-kernel",
+ "oya-cloud-os-trustd-domain",
+ "oya-identity-workload-domain",
+ "oya-identity-workload-svid-kernel",
+ "oya-identity-workload-svid-trustd-adapter",
  "oya-shared-pdp-adapter-cedar",
  "oya-shared-pdp-kernel",
  "oya-shared-platform-contracts-kernel",
@@ -6334,6 +6338,21 @@ dependencies = [
  "tonic-prost-build",
  "tower 0.5.3",
  "tracing",
+]
+
+[[package]]
+name = "oya-identity-workload-svid-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-identity-workload-domain",
+]
+
+[[package]]
+name = "oya-identity-workload-svid-trustd-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-os-trustd-domain",
+ "oya-identity-workload-svid-kernel",
 ]
 
 [[package]]

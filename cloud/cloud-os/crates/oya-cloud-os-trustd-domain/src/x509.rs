@@ -204,12 +204,35 @@ pub struct SubjectAltNames {
     pub dns_names: Vec<String>,
     /// IP addresses, stored as their string representation.
     pub ip_addresses: Vec<String>,
+    /// URI SANs. This is the SPIFFE-identity carrier: a SPIFFE SVID encodes its
+    /// identity as a single `spiffe://…` URI in the `uniformResourceIdentifier`
+    /// general-name slot (SPIFFE X.509-SVID §2). Talos node certs use only
+    /// DNS/IP SANs; workload SVIDs additionally carry exactly one URI SAN.
+    pub uris: Vec<String>,
 }
 
 impl SubjectAltNames {
     /// True when there are no SANs at all.
     pub fn is_empty(&self) -> bool {
-        self.dns_names.is_empty() && self.ip_addresses.is_empty()
+        self.dns_names.is_empty() && self.ip_addresses.is_empty() && self.uris.is_empty()
+    }
+
+    /// Whether the given URI literal appears in the URI SANs (exact match — a
+    /// SPIFFE id is compared byte-for-byte, never normalised).
+    pub fn covers_uri(&self, uri: &str) -> bool {
+        self.uris.iter().any(|entry| entry == uri)
+    }
+
+    /// Add a URI SAN after validating it parses as an absolute
+    /// `scheme://authority[/path]` URI with no whitespace/control characters.
+    /// A SPIFFE id (`spiffe://…`) satisfies this shape.
+    pub fn push_uri(&mut self, uri: impl AsRef<str>) -> Result<(), TrustError> {
+        let uri = uri.as_ref();
+        if !is_valid_uri(uri) {
+            return Err(TrustError::invalid(format!("invalid URI SAN '{uri}'")));
+        }
+        self.uris.push(uri.to_string());
+        Ok(())
     }
 
     /// Whether the given DNS name is covered (exact match only; Talos node
@@ -248,8 +271,9 @@ impl SubjectAltNames {
         Ok(())
     }
 
-    /// Validate every DNS and IP SAN; returns an error on the first malformed
-    /// entry. Talos rejects a CSR carrying a syntactically invalid SAN.
+    /// Validate every DNS, IP, and URI SAN; returns an error on the first
+    /// malformed entry. Talos rejects a CSR carrying a syntactically invalid
+    /// SAN.
     pub fn validate(&self) -> Result<(), TrustError> {
         for d in &self.dns_names {
             if !is_valid_dns_name(d) {
@@ -261,8 +285,41 @@ impl SubjectAltNames {
                 return Err(TrustError::invalid(format!("invalid IP SAN '{ip}'")));
             }
         }
+        for uri in &self.uris {
+            if !is_valid_uri(uri) {
+                return Err(TrustError::invalid(format!("invalid URI SAN '{uri}'")));
+            }
+        }
         Ok(())
     }
+}
+
+/// Whether a string is a syntactically valid absolute URI SAN: a non-empty
+/// `scheme://authority[/path]` with a non-empty authority and no whitespace or
+/// control characters. Conservative on purpose — the only URI SANs this model
+/// issues are SPIFFE ids, and a tighter SPIFFE shape is enforced by the
+/// SVID-kernel `SpiffeId` parser, not here.
+pub fn is_valid_uri(uri: &str) -> bool {
+    if uri.is_empty() || uri.len() > 2048 {
+        return false;
+    }
+    if uri.chars().any(|c| c.is_whitespace() || c.is_control()) {
+        return false;
+    }
+    let Some((scheme, rest)) = uri.split_once("://") else {
+        return false;
+    };
+    if scheme.is_empty()
+        || !scheme
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '.')
+        || !scheme.chars().next().is_some_and(|c| c.is_ascii_alphabetic())
+    {
+        return false;
+    }
+    // Authority is everything up to the first '/' (path), '?' (query) or '#'.
+    let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    !rest[..authority_end].is_empty()
 }
 
 /// Whether a DNS name is syntactically valid (optionally with a leading `*`
@@ -625,5 +682,43 @@ mod tests {
         sans.dns_names.push("*.cluster.local".into());
         assert!(sans.covers_dns_wildcard("worker-1.cluster.local"));
         assert!(!sans.covers_dns("worker-1.cluster.local"));
+    }
+
+    #[test]
+    fn uri_san_push_validate_and_coverage() {
+        let mut sans = SubjectAltNames::default();
+        assert!(sans.is_empty());
+        sans.push_uri("spiffe://oyatie.cell-7/platform/cloud-iam-pdp")
+            .unwrap();
+        assert!(!sans.is_empty());
+        assert!(sans.covers_uri("spiffe://oyatie.cell-7/platform/cloud-iam-pdp"));
+        assert!(!sans.covers_uri("spiffe://oyatie.cell-7/platform/other"));
+        assert!(sans.validate().is_ok());
+    }
+
+    #[test]
+    fn uri_san_rejects_malformed() {
+        let mut sans = SubjectAltNames::default();
+        assert_eq!(sans.push_uri("").unwrap_err().kind(), "invalid");
+        assert_eq!(sans.push_uri("not-a-uri").unwrap_err().kind(), "invalid");
+        assert_eq!(sans.push_uri("spiffe://").unwrap_err().kind(), "invalid");
+        assert_eq!(
+            sans.push_uri("has space://authority").unwrap_err().kind(),
+            "invalid"
+        );
+        // validate() also catches a URI smuggled directly into the vector.
+        sans.uris.push("://no-scheme".into());
+        assert!(sans.validate().is_err());
+    }
+
+    #[test]
+    fn is_valid_uri_shapes() {
+        assert!(is_valid_uri("spiffe://oyatie.cell-1/tenant/ten_acme/wl_x"));
+        assert!(is_valid_uri("https://idp.example.com"));
+        assert!(!is_valid_uri(""));
+        assert!(!is_valid_uri("spiffe:/single-slash"));
+        assert!(!is_valid_uri("1scheme://authority")); // scheme must start alpha
+        assert!(!is_valid_uri("spiffe://")); // empty authority
+        assert!(!is_valid_uri("spiffe://auth ority/x")); // whitespace
     }
 }
