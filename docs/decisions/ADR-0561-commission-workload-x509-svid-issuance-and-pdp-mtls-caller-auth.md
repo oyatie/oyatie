@@ -194,9 +194,13 @@ split the deferral into two independently-shippable slices, and **slice-1b-i is 
   fetch — K8s cert-delivery) and the **cloud-kms signer swap**: `main.rs` therefore still boots PLAIN
   TCP via `start()` (no env source can satisfy a trust bundle yet), with the mTLS path exercised by
   the fixtures' real `MtlsContext`; `server::start_with_mtls` is the boot path `main` calls once
-  cert-delivery lands (slice-1b-iii). **FRIC-1781490000 is CLOSED by slice-1b-ii** (live transport +
-  PEP-at-call-site); a consumer may treat a request that reaches a decision over the mTLS listeners as
-  cryptographically tenant-authenticated.
+  cert-delivery lands (slice-1b-iii). **FRIC-1781490000 stays OPEN**: slice-1b-ii DELIVERS the mTLS
+  transport + custom `ClientCertVerifier` + PEP-at-call-site as a real, RED-proven CAPABILITY, but
+  the PRODUCTION boot path is unchanged (`main.rs` calls `start()` = plain TCP), so the live PDP still
+  trusts a caller-supplied `tenant_id` verbatim. Production closure is deferred to slice-1b-iii
+  (cert-delivery + switching `main()` to `start_with_mtls`). Until slice-1b-iii lands, a consumer (and
+  the G004 PDP slice-2 per-tenant-policy author) MUST NOT treat the live PDP as cryptographically
+  tenant-authenticated. The capability is proven only by the fixtures' real-handshake `MtlsContext`.
 
 The `SigningBackend` cutover seam (D4) is now exercised by a real asymmetric backend, confirming the
 seam shape was already correct: the CA, `TrustBundle`, `SecurityService`, and the kernel ports did
