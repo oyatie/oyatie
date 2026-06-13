@@ -166,6 +166,41 @@ testable without K8s. The following are explicitly deferred and design-of-record
 - **CA-capable leaf**: a workload requests a signing cert to mint its own identities. Mitigated by
   the `IssuancePolicy` CA-leaf rejection (regression-guarded by `issuance_policy_rejects_ca_leaf`).
 
+## Commissioned + governed artifacts (structural-accounting justification)
+
+This decision commissions and governs the following tracked artifacts; each
+exact path is the structural-accounting `justification_ref` for its row
+(ADR-0555 born-accounted-at-creation; the firewall's total-accounting gate
+requires every NEW tracked path be ADR-justified, owned, and reachable):
+
+New SVID kernel crate (owned by axis-identity, reachable via cargo-members):
+
+- oya/identity/crates/oya-identity-workload-svid-kernel/src/lib.rs
+- oya/identity/crates/oya-identity-workload-svid-kernel/Cargo.toml
+- oya/identity/crates/oya-identity-workload-svid-kernel/BUCK
+- oya/identity/crates/oya-identity-workload-svid-kernel/OWNERS
+- oya/identity/crates/oya-identity-workload-svid-kernel/slos/workload-svid-issuance-availability.openslo.yaml
+
+New SVID trustd adapter crate (owned by axis-identity, reachable via cargo-members):
+
+- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/lib.rs
+- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/leaf_codec.rs
+- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/Cargo.toml
+- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/BUCK
+- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/OWNERS
+
+New PDP mTLS PEP module (owned by the existing cloud/cloud-iam OWNERS,
+axis-cloud-platform; reachable via cargo-members):
+
+- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/mtls.rs
+
+The two new crate roots are owned by axis-identity (a born-at-creation OWNERS in
+each crate directory per ADR-0555) and reachable via the globbed Cargo workspace
+membership (cargo-members). The trustd X.509 extension
+(cloud/cloud-os/crates/oya-cloud-os-trustd-domain/src/x509.rs,
+.../src/certificate.rs, .../src/ca.rs) amends already-accounted files in place
+and carries no new accounting rows.
+
 ## Consequences
 
 - **Positive**: the PDP tenant is cryptographically bound; G004 slice-2 per-tenant policy is
