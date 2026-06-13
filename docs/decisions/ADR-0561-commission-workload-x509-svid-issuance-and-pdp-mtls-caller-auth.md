@@ -1,6 +1,6 @@
 ---
 id: ADR-0561
-title: "Commission the workload-identity X.509-SVID issuance substrate + PDP mTLS caller-auth (G002 slice)"
+title: "Commission the workload-identity X.509-SVID issuance + PDP caller-tenant-binding substrate (G002 slice 1; live mTLS = slice-1b)"
 status: Proposed
 planning_impact: false
 deciders: founder, agent-lane g02-workload-svid
@@ -17,7 +17,7 @@ related_specs: []
 milestone: W0
 ---
 
-# ADR-0561: Commission the workload-identity X.509-SVID issuance substrate + PDP mTLS caller-auth (G002 slice)
+# ADR-0561: Commission the workload-identity X.509-SVID issuance + PDP caller-tenant-binding substrate (G002 slice 1; live mTLS = slice-1b)
 
 ## Status
 
@@ -58,7 +58,8 @@ split), plus the X.509 work in the trustd domain to carry a SPIFFE identity:
    `WorkloadPath` value types; the `WorkloadIdentityIssuer` / `SvidVerifier` / `TrustBundleSource`
    ports; and the fail-closed `bind_caller_tenant(&SpiffeId, &TenantId) -> Result<TenantId, …>`
    gate that derives the authorized tenant from a verified SVID path and rejects any caller-body
-   mismatch (the #717 closure). Reuses `oya-identity-workload-domain::TenantId`.
+   mismatch (the #717 tenant-binding gate; logic only — live enforcement is slice-1b).
+   Reuses `oya-identity-workload-domain::TenantId`.
 2. **`oya-identity-workload-svid-trustd-adapter`**: implements the kernel ports over the trustd
    CA — issuance via `SecurityService::handle_certificate` with a new `for_workload` URI-SAN CSR
    shape; verification via `TrustBundle::verify_leaf` + single-URI-SAN extraction.
@@ -152,8 +153,12 @@ testable without K8s. The following are explicitly deferred and design-of-record
 ## Threat model (all fail-closed)
 
 - **Spoofing (tenant impersonation, the #717 root)**: a caller asserts `tenant_id` it does not own.
-  Mitigated: the tenant is derived from the verified SVID path; a request-body tenant that disagrees
-  is `TenantMismatch` → DENY. The body tenant is only ever a cross-check input.
+  Mitigated **by the slice-1 logic** (RED-proven in-process): the tenant is derived from the verified
+  SVID path; a request-body tenant that disagrees is `TenantMismatch` → DENY; the body tenant is only
+  ever a cross-check input. **NOT YET ENFORCED in production**: the `SpiffeCallerAuth` PEP is built and
+  tested but unwired — `server.rs` still binds plain `TcpListener` and `grpc.rs` still trusts
+  `request.tenant_id` verbatim. The live gap closure (real rustls mTLS transport invoking the PEP) is
+  the deferred slice-1b and remains open, tracked as `FRIC-1781490000`.
 - **SVID theft / replay**: a stolen leaf is presented by an attacker. Bounded by short TTL (issuance
   caps TTL via `IssuancePolicy`) + expiry enforcement (`Expired` → DENY); full rotation + revocation
   ride the CRL already in trustd. Deeper binding (proof-of-possession) is slice-1b mesh work.
