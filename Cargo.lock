@@ -4051,6 +4051,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-cache-wiring-app"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "oya-cloud-ci-canonical-json-app"
 version = "0.1.0"
 dependencies = [
@@ -4370,6 +4378,51 @@ dependencies = [
  "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-identity-domain",
+]
+
+[[package]]
+name = "oya-cloud-iam-pdp-app"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "axum",
+ "http-body-util",
+ "oya-cloud-iam-pdp-bundle-file-adapter",
+ "oya-cloud-iam-pdp-kernel",
+ "oya-shared-pdp-adapter-cedar",
+ "oya-shared-pdp-kernel",
+ "oya-shared-platform-contracts-kernel",
+ "oya-shared-ulid-id-kernel",
+ "prost",
+ "protoc-bin-vendored",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "oya-cloud-iam-pdp-bundle-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-iam-pdp-kernel",
+ "oya-shared-pdp-kernel",
+ "oya-shared-platform-contracts-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-iam-pdp-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-pdp-kernel",
+ "oya-shared-platform-contracts-kernel",
 ]
 
 [[package]]
