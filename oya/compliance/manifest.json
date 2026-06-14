@@ -1,6 +1,15 @@
 {
   "$schema": "../../specs/microservices/manifest-schema.json",
   "microservice": "compliance",
+  "tier": "substrate",
+  "tier_subtype": "substrate-compliance",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S4",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+  },
   "owner": "axis-compliance",
   "co_owners": [
     "axis-security",
@@ -79,9 +88,7 @@
         "random_baseline=0.02"
       ],
       "p99_latency_threshold_ms": 800,
-      "new_endpoints": [
-
-      ]
+      "new_endpoints": []
     },
     "metric_cardinality_envelope": {
       "max_unique_attribute_combinations": 50000
@@ -316,9 +323,7 @@
     "istio",
     "kyverno"
   ],
-  "oss_stewardship_class_overrides": [
-
-  ],
+  "oss_stewardship_class_overrides": [],
   "iac_module_invocations": [
     {
       "context": "oci-guest",

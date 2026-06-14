@@ -1,6 +1,9 @@
 {
   "schema_version": "1.0",
   "microservice": "application",
+  "tier": "product",
+  "tier_subtype": "product-developer-application-shell",
+  "dr_tier": "T1",
   "version": "0.1.0",
   "owner": "axis-application",
   "bounded_contexts": [

@@ -34,6 +34,10 @@
       "prefix": "specs/substrate-dependency-dag.json"
     },
     {
+      "anchor": "Phase-0 capability-first reorg (ADR-0562/0536/0245): the per-service tier classification PROJECTION — the read-only roll-up of the per-manifest tier/tier_subtype/dr_tier facets, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref; its named consumer is the oya-cloud-ci-tier-field-coverage-app born-blocking gate + platform-architecture.json related ref",
+      "prefix": "specs/microservice-tier-classification.json"
+    },
+    {
       "anchor": "ADR-0555 D3: the gates' data-under-test corpus — fixture dirs are loaded wholesale by each gate's fixture-driven test (read_dir over tc-*.json), so the consuming test IS the live pointer",
       "prefix": "specs/fixtures/"
     },

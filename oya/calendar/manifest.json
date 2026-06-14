@@ -1,6 +1,9 @@
 {
   "schema_version": "1.0",
   "microservice": "calendar",
+  "tier": "product",
+  "tier_subtype": "product-consumer-calendar",
+  "dr_tier": "T0",
   "version": "0.1.0",
   "owner": "axis-calendar",
   "bounded_contexts": [

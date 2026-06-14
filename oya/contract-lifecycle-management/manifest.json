@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "contract-lifecycle-management",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T1",
   "title": "Contract Lifecycle Management",
   "status": "wave-4-rolling-remediated",
   "date": "2026-05-21",

@@ -1,6 +1,25 @@
 {
   "schema_version": "1.0",
   "microservice": "foundry",
+  "tier": "substrate",
+  "tier_subtype": "substrate-ai",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S4",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "observability",
+      "ontology",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "workflow-engine"
+    ]
+  },
   "version": "0.1.0",
   "owner": "axis-foundry",
   "bounded_contexts": [

@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "healthcare-integration",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T3",
   "title": "Healthcare Integration",
   "status": "reserved-wave-3-i-anchor",
   "date": "2026-05-20",

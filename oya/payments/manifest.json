@@ -1,9 +1,11 @@
 {
   "schema_version": "1.0",
   "microservice": "payments",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T1",
   "version": "0.1.0",
   "owner": "axis-payments",
-  "tier": "substrate",
   "slo_tier": "tier-0-revenue-critical",
   "pci_scope": true,
   "cell_tier": {

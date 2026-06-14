@@ -1,6 +1,9 @@
 {
   "schema_version": "1.0",
   "microservice": "social",
+  "tier": "product",
+  "tier_subtype": "product-consumer-social",
+  "dr_tier": "T0",
   "version": "0.1.0",
   "owner": "axis-social",
   "bounded_contexts": [

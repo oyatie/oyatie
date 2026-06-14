@@ -1,6 +1,24 @@
 {
   "schema_version": "1.0",
   "microservice": "identity",
+  "tier": "substrate",
+  "tier_subtype": "substrate-identity",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S1",
+    "depends_on": [
+      "cell"
+    ],
+    "consumed_by_substrates": [
+      "audit-chain",
+      "intelligence",
+      "observability",
+      "ontology",
+      "policy-engine",
+      "tenancy",
+      "workflow-engine"
+    ]
+  },
   "version": "0.1.0",
   "owner": "axis-identity",
   "bounded_contexts": [

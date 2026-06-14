@@ -186,6 +186,15 @@
     "no incident command deployment command cluster health or operator dashboard runtime"
   ],
   "microservice": "ops-dashboard-control-center",
+  "tier": "substrate",
+  "tier_subtype": "substrate-governance",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S4",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+  },
   "owner": "ops-sre-reliability",
   "bounded_contexts": [
     {

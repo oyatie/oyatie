@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "incident-management",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T1",
   "title": "Incident Management",
   "status": "reserved-wave-3-i-anchor",
   "date": "2026-05-20",

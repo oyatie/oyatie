@@ -1,6 +1,15 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "contact-center",
+  "tier": "substrate",
+  "tier_subtype": "substrate-comms",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S2",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+  },
   "title": "Contact Center",
   "status": "reserved-wave-3-i-anchor",
   "date": "2026-05-20",

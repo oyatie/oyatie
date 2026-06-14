@@ -1,12 +1,14 @@
 {
   "schema_version": "1.0",
   "microservice": "plugin-app-store",
+  "tier": "product",
+  "tier_subtype": "product-developer-plugin-store",
+  "dr_tier": "T1",
   "version": "0.0.1",
   "status": "seed",
   "seeded_date": "2026-05-18",
   "owner": "axis-ecosystem",
   "owner_council": "council-architecture",
-  "tier": "external-facing",
   "doctrine": {
     "canonical_authority": "ADR-0213",
     "naming_reservation_note": "The substring 'marketplace' in oyatie \u00b5service names is reserved for the future B2C commerce \u00b5service (Amazon/Shopify class), per ADR-0213 \u00a7Disambiguation. This \u00b5service (plugin/app distribution + vetting + per-plugin permissioning) is named plugin-app-store, NOT marketplace.",

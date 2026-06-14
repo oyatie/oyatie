@@ -1,11 +1,12 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "treasury",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T2",
   "title": "Treasury",
   "status": "reserved-wave-3-g-anchor",
   "date": "2026-05-20",
-  "tier": "product",
-  "tier_subtype": "erp-parity-single-concern",
   "binding_adrs": [
     "ADR-0131",
     "ADR-0132",
