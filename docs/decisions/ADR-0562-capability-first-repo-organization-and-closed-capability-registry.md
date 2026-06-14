@@ -252,6 +252,28 @@ Migration is **strangler, per-capability**, after a repo-wide **Phase 0** that m
 Then **each capability moves in ONE PR** via the codemod, green under all lints, before the next
 capability moves. No crates move in this ADR.
 
+#### §10.4 Phase-0 machinery: the reversible capability-move codemod (built; moves nothing)
+
+Migration-contract item 4 (the reversible codemod + pre-move green-snapshot oracle) is realized by
+the `oya-reorg-codemod-app` tool. It is a deterministic, idempotent, fail-closed engine that, given
+a capability move plan (per the §3 placement rule), performs the directory `git mv` +
+`Cargo.toml` package/dependency/relative-path-dep recompute (the ~200 move-fatal `../../../`
+path-deps) + root workspace `members`/`exclude` rewrite (via the `oya-workspace-members-kernel`
+resolver) + Rust `use`/`extern crate` kebab→snake rewrite + BUCK label/`name`/`crate` rewrite, and
+emits an invertible `(old_path, new_path, old_cargo_name, new_cargo_name, buck_label)` mapping. The
+inverse (`--revert`) restores the tree byte-identically; the pre-move green-snapshot oracle captures
+`cargo metadata` + `buck2 targets //...`, and a dry-run shadow-apply PROVES a move resolves WITHOUT
+landing it (exit 2 = unclean, fail-closed). It ships UNUSED — the strangler PRs invoke it; this ADR
+moves no crate. The tool is a local bridge only (merge authority stays in cloud-ci/oya-ci). Its
+tracked, born-accounted paths are `tools/oya-reorg-codemod-app/Cargo.toml`,
+`tools/oya-reorg-codemod-app/BUCK`, `tools/oya-reorg-codemod-app/OWNERS`,
+`tools/oya-reorg-codemod-app/src/lib.rs`, `tools/oya-reorg-codemod-app/src/model.rs`,
+`tools/oya-reorg-codemod-app/src/cargo.rs`, `tools/oya-reorg-codemod-app/src/buck.rs`,
+`tools/oya-reorg-codemod-app/src/rust_src.rs`, `tools/oya-reorg-codemod-app/src/plan.rs`,
+`tools/oya-reorg-codemod-app/src/oracle.rs`, `tools/oya-reorg-codemod-app/src/main.rs`,
+`tools/oya-reorg-codemod-app/tests/fixture_roundtrip.rs`, and
+`registry/catalog/oya-reorg-codemod-app.yaml`.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

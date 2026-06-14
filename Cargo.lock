@@ -8494,6 +8494,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-reorg-codemod-app"
+version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "toml_edit",
+]
+
+[[package]]
 name = "oya-residency-domain"
 version = "0.1.0"
 dependencies = [
