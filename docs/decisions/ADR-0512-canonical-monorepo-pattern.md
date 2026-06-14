@@ -13,6 +13,7 @@ amends:
   - ADR-0131
 amended_by:
   - ADR-0550
+  - ADR-0562
 relates:
   - ADR-0392
   - ADR-0408
@@ -35,6 +36,19 @@ transient-tech seam (kernel vs adapter) and the composition root (app) — per t
 structure directive of 2026-06-10 (ADR-0543, PR #686) and the kernel-purity gate (ADR-0547),
 which enforces the seam on the crate dependency graph where a module seam is invisible. The
 "no layer-per-crate" rejection stands everywhere except these two mandated seams. See ADR-0550 D1.
+
+**Amendment — 2026-06-14 (ADR-0562 capability-first repo organization):** the top-level
+`{oya,cloud}/<service>/` + `libs/<lib>/` root assumption is **superseded** by the capability-first
+shape. The tree is organized by capability (one top dir per registered system; faces
+core/ports/adapters/facade inside it); `libs/` **dissolves** into capability homes (single-capability
+shared code) + `base/` (>=3-consumer cross-capability primitives, admission-gated). The surviving
+invariants are unchanged: one root Cargo workspace, one-version policy, crate = bounded context, the
+Buck2 graph as the parallelism/containment substrate. **Carve-out (ADR-0562 §8 Fork 2):** the
+kuberos kernel becomes top-level `kernel/` as a **sanctioned nested/excluded Cargo workspace** —
+clause 2's "no nested `[workspace]` tables" rule and the `workspace-topology` gate are amended to
+whitelist `kernel/` (analogous to the release-image cargo exception; the `no_std`+custom-sysroot rung
+cannot share the std-targeted root lockfile). This is the ONLY sanctioned nested workspace. ADR-0562
+is the governing reorg ADR.
 
 ## Date
 
