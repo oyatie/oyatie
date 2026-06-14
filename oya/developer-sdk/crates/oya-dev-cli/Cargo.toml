@@ -43,7 +43,6 @@ oya-check-aspirational-enforcement = { path = "../../../../libs/oya-check-aspira
 oya-governance-banned-primitives-kernel = { path = "../../../../libs/oya-governance-banned-primitives-kernel" }
 oya-check-license-policy = { path = "../../../../libs/oya-check-license-policy" }
 oya-check-vendor-lockin-discipline = { path = "../../../../libs/oya-check-vendor-lockin-discipline" }
-# PR #143 Fix-M/R/S/T/U advisory lanes (most report-only; promotion triggers in lanes.yaml).
 oya-check-authz-tier-discipline = { path = "../../../../libs/oya-check-authz-tier-discipline" }
 oya-check-tenant-cost-labels-coverage = { path = "../../../../libs/oya-check-tenant-cost-labels-coverage" }
 oya-check-backup-retention-discipline = { path = "../../../../libs/oya-check-backup-retention-discipline" }
@@ -77,13 +76,11 @@ oya-check-supply-chain = { path = "../../../../libs/oya-check-supply-chain" }
 oya-check-typescript-workspace = { path = "../../../../libs/oya-check-typescript-workspace" }
 oya-check-vendor-recency = { path = "../../../../libs/oya-check-vendor-recency" }
 oya-workspace-members-kernel = { path = "../../../../libs/oya-workspace-members-kernel" }
-# PR #143 Fix-D + ADR-0145 enforcement gates (some run in advisory/DEFERRED mode).
 oya-check-high-risk-auto-decision-refusal = { path = "../../../../libs/oya-check-high-risk-auto-decision-refusal" }
 oya-check-slsa-l3-evidence-grounded = { path = "../../../../libs/oya-check-slsa-l3-evidence-grounded" }
 oya-check-otel-trace-propagation = { path = "../../../../libs/oya-check-otel-trace-propagation" }
 oya-check-ontology-projection-coverage = { path = "../../../../libs/oya-check-ontology-projection-coverage" }
 oya-check-audit-chain-seal-coverage = { path = "../../../../libs/oya-check-audit-chain-seal-coverage" }
-# Tier-A hyperscaler pattern remediation gates (ADR-0149..ADR-0156).
 oya-check-idempotency-key-coverage = { path = "../../../../libs/oya-check-idempotency-key-coverage" }
 oya-check-cursor-pagination-coverage = { path = "../../../../libs/oya-check-cursor-pagination-coverage" }
 oya-check-rpo-rto-coverage = { path = "../../../../libs/oya-check-rpo-rto-coverage" }
@@ -91,7 +88,6 @@ oya-check-metric-cardinality = { path = "../../../../libs/oya-check-metric-cardi
 oya-check-event-schema-versioning = { path = "../../../../libs/oya-check-event-schema-versioning" }
 oya-check-id-discipline = { path = "../../../../libs/oya-check-id-discipline" }
 oya-check-image-signing-discipline = { path = "../../../../libs/oya-check-image-signing-discipline" }
-# ADR-0148 / ADR-0182 / ADR-0183 / ADR-0184 / ADR-0185 layered architecture discipline.
 oya-check-layered-architecture-discipline = { path = "../../../../libs/oya-check-layered-architecture-discipline" }
 oya-check-client-stack-discipline = { path = "../../../../libs/oya-check-client-stack-discipline" }
 oya-intelligence-step-file-adapter = { path = "../../../intelligence/crates/oya-intelligence-step-file-adapter" }
@@ -99,8 +95,8 @@ oya-intelligence-step-domain = { path = "../../../intelligence/crates/oya-intell
 oya-audit-chain-domain = { path = "../../../audit-chain/crates/oya-audit-chain-domain" }
 oya-audit-chain-file-adapter = { path = "../../../audit-chain/crates/oya-audit-chain-file-adapter" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-eventing-file-adapter = { path = "../../../eventing/crates/oya-eventing-file-adapter" }
-oya-eventing-domain = { path = "../../../eventing/crates/oya-eventing-domain" }
+messaging-file-adapter = { path = "../../../../messaging/adapters/file" }
+messaging-domain = { path = "../../../../messaging/core/domain" }
 oya-secrets-file-adapter = { path = "../../../../cloud/cloud-secrets/crates/oya-secrets-file-adapter" }
 oya-secrets-domain = { path = "../../../../cloud/cloud-secrets/crates/oya-secrets-domain" }
 serde_json = { workspace = true }

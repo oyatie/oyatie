@@ -1,5 +1,5 @@
 [package]
-name = "oya-eventing-file-adapter"
+name = "messaging-domain"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,11 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-eventing-domain = { path = "../oya-eventing-domain" }
+oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
 
 [lib]
-name = "oya_eventing_file_adapter"
+name = "messaging_domain"
 path = "src/lib.rs"
 doctest = false
 
