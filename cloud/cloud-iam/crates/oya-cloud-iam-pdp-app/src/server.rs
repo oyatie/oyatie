@@ -1,11 +1,16 @@
 //! Service composition: config -> bundle -> embedded Cedar PDP -> bound
 //! REST + gRPC servers.
 //!
-//! `start` is the single boot path used by both `main` and the E2E tests, so
-//! the tested wiring IS the production wiring (the oya-identity precedent).
-//! Boot is fail-closed: the policy bundle must load AND strict-validate
-//! through the shared Cedar engine BEFORE either socket binds — a process
-//! that cannot prove its policy set never serves a single request.
+//! [`boot_from_config`] is the single PRODUCTION boot body run by both `main`
+//! and the production-path closure E2E, so the tested wiring IS the production
+//! wiring (the oya-identity "tested wiring IS production wiring" precedent): it
+//! builds the [`MtlsContext`] from the delivered cert mount and boots over mTLS
+//! via [`start_with_mtls`], fail-closed. `start`/`start_with_mtls` remain the
+//! shared boot bodies (and test helpers); `start` (plain TCP) is now unreachable
+//! from `main`. Boot is fail-closed: the policy bundle must load AND
+//! strict-validate through the shared Cedar engine, and the mTLS material must
+//! compose, BEFORE either socket binds — a process that cannot prove its policy
+//! set or its trust root never serves a single request.
 
 use std::fmt;
 use std::net::SocketAddr;
@@ -22,10 +27,12 @@ use oya_cloud_iam_pdp_kernel::{BundleStoreError, PdpConfig, PolicyBundleStore};
 use oya_shared_pdp_adapter_cedar::CedarPdp;
 use oya_shared_pdp_kernel::{PdpError, PolicyDecisionPoint as _};
 
+use std::path::Path;
+
 use crate::audit::TracingDecisionAuditSink;
 use crate::idgen::SystemUlidIdGenerator;
 use crate::mtls::MtlsBootError;
-use crate::mtls_transport::{self, MtlsContext};
+use crate::mtls_transport::{self, MtlsContext, MtlsMaterialError};
 use crate::{PdpState, grpc, rest};
 
 /// A failure on the boot path. Every variant REFUSES the boot (exit
@@ -255,6 +262,61 @@ pub async fn start_with_mtls(
         rest_task,
         grpc_task,
     })
+}
+
+/// A production-boot failure: either the delivered cert mount could not be turned
+/// into an [`MtlsContext`] (fail-closed — never plain TCP), or the service
+/// composition/bind refused. `main` maps either to a non-zero exit (BOOT
+/// REFUSAL).
+#[derive(Debug)]
+pub enum BootError {
+    /// The mTLS cert mount was absent/empty/malformed — the production boot
+    /// REFUSES rather than serving plain TCP (ADR-0561 slice-1b-iii).
+    Material(MtlsMaterialError),
+    /// State composition or a listener bind failed.
+    Start(StartError),
+}
+
+impl fmt::Display for BootError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Material(err) => {
+                write!(f, "mTLS cert material rejected, refusing to boot: {err}")
+            }
+            Self::Start(err) => write!(f, "{err}"),
+        }
+    }
+}
+
+impl std::error::Error for BootError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Material(err) => Some(err),
+            Self::Start(err) => Some(err),
+        }
+    }
+}
+
+/// THE production boot decision (G002 slice-1b-iii-a/b; ADR-0561). Resolve the
+/// delivered mTLS cert mount from `config.mtls_cert_dir`, build an [`MtlsContext`]
+/// from it (fail-closed — an absent/empty/malformed mount is a HARD
+/// [`BootError::Material`], NEVER a downgrade to plain TCP), then boot the service
+/// over mTLS via [`start_with_mtls`].
+///
+/// This is the SINGLE boot body `main` runs, so the tested wiring IS the
+/// production wiring (the oya-identity precedent; see this module's doc). The
+/// closure E2E exercises THIS function, not a parallel test-only path.
+///
+/// # Errors
+/// [`BootError::Material`] when the cert mount cannot produce an `MtlsContext`;
+/// [`BootError::Start`] when composition or a bind fails. Either is a boot
+/// refusal (`main` exits non-zero).
+pub async fn boot_from_config(config: &PdpConfig) -> Result<ServiceHandle, BootError> {
+    let dir = Path::new(&config.mtls_cert_dir);
+    let ctx = MtlsContext::from_path(dir).map_err(BootError::Material)?;
+    start_with_mtls(config, Some(ctx))
+        .await
+        .map_err(BootError::Start)
 }
 
 /// Build the gRPC mTLS incoming stream: accept TCP, terminate the rustls

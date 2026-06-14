@@ -28,6 +28,7 @@ fn config_for(bundle_path: &std::path::Path) -> PdpConfig {
         rest_addr: "127.0.0.1:0".to_owned(),
         grpc_addr: "127.0.0.1:0".to_owned(),
         decision_cache_capacity: 64,
+        mtls_cert_dir: "/etc/oya-cloud-iam-pdp/tls".to_owned(),
     }
 }
 

@@ -50,17 +50,18 @@ async fn main() {
         }
     };
 
-    // TODO(ADR-0561 slice-1b-iii): build an `MtlsContext::from_env` from the
-    // operator-reconciled projected SVID Secret (K8s cert-delivery) + cloud-kms
-    // signer, then call `server::start_with_mtls(&config, Some(ctx))`. The live
-    // rustls transport + custom ClientCertVerifier + the PEP-at-call-site are
-    // delivered (slice-1b-ii) and exercised by the real-handshake E2E fixtures;
-    // only the runtime bundle-delivery source remains deferred — until it lands
-    // the binary boots PLAIN TCP (no env source can satisfy a trust bundle yet).
-    let mut handle = match server::start(&config).await {
+    // Production boot (ADR-0561 slice-1b-iii-a/b): build an `MtlsContext` from the
+    // delivered cert mount (`OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR`, the kubernetes.io/tls
+    // Secret projection) and boot over mTLS via `server::start_with_mtls`. This is
+    // FAIL-CLOSED: an absent/empty/malformed mount is a BOOT REFUSAL (exit 1),
+    // NEVER a downgrade to plain TCP. `server::boot_from_config` is the SAME body
+    // the production-path closure E2E exercises. The in-cluster delivery source
+    // (the SVID operator) is slice-1b-iii-c — until it lands the prod pod
+    // fail-closes without the mount, which is correct.
+    let mut handle = match server::boot_from_config(&config).await {
         Ok(handle) => handle,
         Err(err) => {
-            error!(error = %err, "boot refused");
+            error!(error = %err, "boot refused (mTLS fail-closed)");
             std::process::exit(1);
         }
     };
