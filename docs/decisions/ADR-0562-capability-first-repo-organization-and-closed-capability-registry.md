@@ -335,3 +335,23 @@ ADR-0245:
 - cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/tests.rs — unit tests for the tier-field-coverage gate kernel
 - cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tests/tier_field_coverage.rs — integration tests including live-corpus born-blocking-green test
 - cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tier-field-coverage-policy.json — policy DATA for the tier-field-coverage gate (enum allowlists, governed roots, minimum manifest count)
+
+Phase-0 also introduces the tier-DEPENDENCY acyclicity gate (ADR-0245/ADR-0280/ADR-0562): the
+enforcement surface that asserts the ADR-0245 cross-tier dependency rules + the ADR-0280
+intra-substrate S-rank rule + a Tarjan cycle backstop over the REAL crate dependency graph read from
+BOTH cargo (path-deps + workspace membership) AND buck (deps/visibility). Because the pre-move tree
+carries pre-existing substrate-inversions (the very debt the reorg fixes), the gate is born-ADVISORY
+against a FROZEN baseline and enforces NO REGRESSION; it flips to fully blocking when the baseline
+burns down to zero. Its tracked artifacts, each justified by this decision (ADR-0562) together with
+ADR-0245 and ADR-0280:
+
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/BUCK — buck2 build targets for the born-advisory tier-dependency-acyclicity gate
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/Cargo.toml — Cargo manifest for the tier-dependency-acyclicity gate crate
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/lib.rs — pure kernel + cargo/buck dep-graph collector + tier-rule/S-rank/Tarjan evaluator + frozen-baseline split (ADR-0245/ADR-0280/ADR-0562)
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/main.rs — binary entry point + baseline re-freeze (--emit-baseline) for the tier-dependency-acyclicity gate
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/src/tests.rs — unit tests for the tier-dependency-acyclicity gate kernel
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/tier_dependency_acyclicity.rs — integration tests: live-corpus zero-regression GREEN + RED wrong-tier fixture + burn-down fixture
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures/red-substrate-to-product.json — RED fixture: a synthetic substrate→product edge the gate must fail closed
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tests/fixtures/burn-down.json — burn-down fixture: a removed baselined inversion the gate must keep green
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-policy.json — policy DATA for the tier-dependency-acyclicity gate (governed crate-root globs, tier'd service roots, unclassified meta roots, S-rank order, enforcement mode)
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-dependency-acyclicity-app/tier-dependency-acyclicity-baseline.json — the FROZEN known-debt baseline: the pre-move tier-dependency violations the reorg strangler burns down (the burn-down target)
