@@ -20,6 +20,7 @@ owners:
   - axis-workflow-engine
 amended_by:
   - ADR-0520
+  - ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md (DAG nodes use de-branded capability names; §D-1 is the canonical substrate bootstrap ordering source per ADR-0562 §8 Fork 1)
 supersedes: []
 amends:
   - ADR-0245-substrate-vs-product-layering.md (hardens §D-4 dependency-direction text into a machine-readable DAG spec + acyclicity lane)
@@ -117,7 +118,15 @@ enforced_by:
 
 **Accepted — 2026-06-08 (founder-ruled; ratified at the WAVE-1 convergence door).** Originally Proposed
 2026-05-20; ratified to Accepted as part of the WAVE-1 fabric convergence (resolve-every-Proposed
-rule), and **amended by ADR-0520**.
+rule), and **amended by ADR-0520** and **ADR-0562**.
+
+**Amended by ADR-0562 (2026-06-14, capability-first repo organization).** Two linkages: (1) the DAG
+`nodes` use **de-branded capability names** (the `specs/capability-registry.json` slugs), realized
+via the ADR-0532/0533 profile mechanism in a later Phase-0 lane; (2) §D-1's
+`bootstrap_order` is the **canonical** substrate bootstrap ordering source (ADR-0562 §8 Fork 1) —
+`platform-architecture.json`'s `substrate_dag_canonical_ordering` is the derived mirror, amended to
+match §D-1. The acyclicity invariant and the Tier-1 DAG are unchanged. ADR-0562 is the governing
+reorg ADR.
 
 ## Amendment (2026-06-08, WAVE-1 fabric convergence)
 
