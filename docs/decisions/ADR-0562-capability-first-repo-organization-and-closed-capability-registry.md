@@ -335,3 +335,17 @@ ADR-0245:
 - cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/tests.rs — unit tests for the tier-field-coverage gate kernel
 - cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tests/tier_field_coverage.rs — integration tests including live-corpus born-blocking-green test
 - cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tier-field-coverage-policy.json — policy DATA for the tier-field-coverage gate (enum allowlists, governed roots, minimum manifest count)
+
+Phase-0 also introduces the §6 MEMBERSHIP lint (the anti-junk-drawer authority) — born-advisory with
+a frozen unmapped baseline, enforcing no-regression (no NEW unmapped crate, no NEW top-level dir
+outside the closed set) and the base/-admission rule — plus the registry's `membership_lint_coverage`
+extension that closes the per-crate mapping over the whole tree. These tracked artifacts are each
+justified by this decision (ADR-0562 §6) together with ADR-0536, ADR-0280, and ADR-0512:
+
+- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/BUCK — buck2 build targets for the born-advisory capability-membership lint
+- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/Cargo.toml — Cargo manifest for the capability-membership lint crate
+- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/lib.rs — pure kernel + crate collector for the capability-membership lint (ADR-0562 §6/ADR-0280/ADR-0512)
+- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/main.rs — binary entry point for the capability-membership lint
+- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/src/tests.rs — unit RED/GREEN fixtures for the capability-membership kernel (crate in no/two capabilities, new top-level dir, base/-admission, frozen-baseline advisory)
+- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/tests/capability_membership.rs — integration tests including the live-corpus born-advisory-green self-test and on-disk RED fixtures
+- cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json — policy DATA for the capability-membership lint (gate id, registry pointer, scan roots, closed meta-directory + top-level set, ignored build-artifact dirs, minimum crate count)
