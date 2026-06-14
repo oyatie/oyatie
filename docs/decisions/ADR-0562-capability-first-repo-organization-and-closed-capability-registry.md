@@ -274,6 +274,25 @@ tracked, born-accounted paths are `tools/oya-reorg-codemod-app/Cargo.toml`,
 `tools/oya-reorg-codemod-app/tests/fixture_roundtrip.rs`, and
 `registry/catalog/oya-reorg-codemod-app.yaml`.
 
+#### §10.5 First executed strangler move: `messaging` capability (oya/eventing → messaging/)
+
+The first REAL codemod run homes the `messaging` capability. The two former `oya/eventing` crates
+move under the §3 placement rule with the face mirrored by the sub-fold: the CloudEvent/outbox
+domain (`face: core`, the engine we run) → `messaging/core/domain` (cargo `messaging-domain`); the
+file-backed outbox adapter (`face: adapters`, transient-infra impl) → `messaging/adapters/file`
+(cargo `messaging-file-adapter`). The de-brand drops the `oya-eventing-` prefix to the capability
+slug. The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree
+dry-run (`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree); its
+three dependents (`oya/application`, `oya/audit-chain`, `oya/developer-sdk` dev-cli) had their
+cargo path-deps, BUCK labels, and Rust `use` idents recomputed mechanically. The capability registry
+`messaging.absorbs_current_dirs` flips `oya/eventing` → `messaging`, the membership/acyclicity policy
+scan roots gain `messaging`, and the root workspace gains the `messaging/*/*` member glob (ADR-0538
+glob-only contract). The move's tracked, born-accounted artifact paths are
+`messaging/core/domain/Cargo.toml`, `messaging/core/domain/BUCK`, `messaging/core/domain/src/lib.rs`,
+`messaging/core/domain/src/cloud_event.rs`, `messaging/adapters/file/Cargo.toml`,
+`messaging/adapters/file/BUCK`, `messaging/adapters/file/src/lib.rs`,
+`messaging/adapters/file/tests/file_outbox.rs`, and the subtree `messaging/OWNERS`.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

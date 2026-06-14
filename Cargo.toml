@@ -17,6 +17,12 @@ members = [
   "oya/*/crates/oya-*",
   "oya/office/oya-*",
   "tools/oya-*",
+  # Capability-first home (ADR-0562 strangler move 1): the `messaging` capability absorbs the
+  # former oya/eventing crates at messaging/<face>/<leaf>. The leaf is NOT oya-prefixed (the
+  # ADR-0532/0533 de-brand: cargo names messaging-domain / messaging-file-adapter), so the leaf
+  # segment stays a bare `*`. `messaging/*/*` covers both faces (core/domain, adapters/file) with
+  # one glob, satisfying ADR-0538's glob-only members contract (no explicit-path members).
+  "messaging/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]

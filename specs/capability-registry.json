@@ -252,7 +252,7 @@
         "messaging"
       ],
       "absorbs_current_dirs": [
-        "oya/eventing"
+        "messaging"
       ],
       "dag_node": "messaging"
     },

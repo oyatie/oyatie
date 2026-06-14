@@ -26,7 +26,7 @@ oya-residency-domain = { path = "../../../../cloud/cloud-network/crates/oya-resi
 oya-ontology-domain = { path = "../../../ontology/crates/oya-ontology-domain" }
 oya-observability-domain = { path = "../../../observability/crates/oya-observability-domain" }
 oya-policy-cedar-domain = { path = "../../../policy/crates/oya-policy-cedar-domain" }
-oya-eventing-domain = { path = "../../../eventing/crates/oya-eventing-domain" }
+messaging-domain = { path = "../../../../messaging/core/domain" }
 oya-secrets-domain = { path = "../../../../cloud/cloud-secrets/crates/oya-secrets-domain" }
 oya-tenancy-domain = { path = "../../../../cloud/tenancy/crates/oya-tenancy-domain" }
 

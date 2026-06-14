@@ -20,7 +20,7 @@ use oya_data_boundary_kernel::{
     Classified, DataClassification, DataUseAttributes, DataUseDenialReason, OperationalDataClass,
     evaluate_data_use,
 };
-use oya_eventing_domain::{EventingError, Outbox, OutboxRecord};
+use messaging_domain::{EventingError, Outbox, OutboxRecord};
 use oya_governance_eval_domain::EvalError;
 pub use oya_governance_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
