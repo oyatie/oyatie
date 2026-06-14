@@ -2986,6 +2986,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b947ae49db0d222b1dbc6b113ce7248a3fc3a6ca21b696717bfc000ba4484d8"
 
 [[package]]
+name = "messaging-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "messaging-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "messaging-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3360,11 +3375,11 @@ dependencies = [
 name = "oya-application-app"
 version = "0.1.0"
 dependencies = [
+ "messaging-domain",
  "oya-audit-chain-domain",
  "oya-cell-domain",
  "oya-check-cost-budget",
  "oya-data-boundary-kernel",
- "oya-eventing-domain",
  "oya-governance-eval-domain",
  "oya-identity-domain",
  "oya-intelligence-adapter-domain",
@@ -3497,9 +3512,9 @@ version = "0.1.0"
 name = "oya-audit-chain-usecase"
 version = "0.1.0"
 dependencies = [
+ "messaging-domain",
  "oya-audit-chain-domain",
  "oya-data-boundary-kernel",
- "oya-eventing-domain",
 ]
 
 [[package]]
@@ -5679,6 +5694,8 @@ dependencies = [
 name = "oya-dev-cli"
 version = "0.1.0"
 dependencies = [
+ "messaging-domain",
+ "messaging-file-adapter",
  "oya-application-app",
  "oya-audit-chain-domain",
  "oya-audit-chain-file-adapter",
@@ -5751,8 +5768,6 @@ dependencies = [
  "oya-check-wasm-runtime-discipline",
  "oya-cloud-ci-freshness-app",
  "oya-data-boundary-kernel",
- "oya-eventing-domain",
- "oya-eventing-file-adapter",
  "oya-governance-banned-primitives-kernel",
  "oya-governance-gate-catalog-domain",
  "oya-intelligence-api-semver-domain",
@@ -5824,21 +5839,6 @@ version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
  "oya-retention-domain",
-]
-
-[[package]]
-name = "oya-eventing-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-eventing-file-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-eventing-domain",
 ]
 
 [[package]]

@@ -10,7 +10,7 @@ use oya_audit_chain_usecase::{
     AuditEventEmitAuthorization, AuditEventEmitEnvelopeContext, AuditEventEmitIdempotencyLedger,
     AuditEventEmitPayload, emit_audit_event_from_app,
 };
-use oya_eventing_domain::Outbox;
+use messaging_domain::Outbox;
 
 const EVENT_ID: &str = "audit_evt_cloud_vm_001";
 const IDEMPOTENCY_KEY: &str = "idem_audit_emit_cloud_vm_001";

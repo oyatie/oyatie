@@ -19,26 +19,147 @@ use crate::model::{snake, CrateMove};
 /// Rewrite a MOVED crate's own `BUCK`: its `name = "..."`, `crate = "..."`,
 /// `crate_root = "..."` (path stays relative so it is move-invariant), and any
 /// same-package `:old-name` self-references in `deps`. Returns `(new_text, changed)`.
+///
+/// `name`/`crate` come in two flavors that need different match rules:
+/// * EXACT-valued targets (`rust_library`/`rust_binary`) whose `name`/`crate` IS the crate
+///   name — matched as the whole quoted token `"old"`. A `-bin` sibling like `"oya-x-bin"` is
+///   a SEPARATE crate with its own move, so it must NOT be prefix-matched here.
+/// * SUFFIXED `rust_test` targets whose `name`/`crate` is `<crate-name><sep><suffix>` (e.g.
+///   `oya-x-domain-unittest`, crate `oya_x_domain_file_outbox`). The codemod owns the
+///   crate-name PREFIX; the suffix (`-unittest`, `_file_outbox`) is test-author-chosen and is
+///   preserved. To stay safe against the `-bin`-sibling ambiguity, the prefix rewrite is scoped
+///   to the `name`/`crate` FIELDS of `rust_test( ... )` stanzas ONLY, and a value is rewritten
+///   only when the LONGEST package crate name that prefixes it IS the moving crate — so the
+///   `-bin` sibling's own test (`oya-x-bin-unittest`, longest prefix `oya-x-bin`) is left
+///   untouched even though the bare `oya-x` also prefixes it (the B1 silent-clobber fix).
 pub fn rewrite_moved_buck(buck_text: &str, cm: &CrateMove) -> (String, bool) {
     let old_name = &cm.old_cargo_name;
     let new_name = &cm.new_cargo_name;
     let old_ident = snake(old_name);
     let new_ident = snake(new_name);
 
+    // The package's defined crate vocabulary, collected from the ORIGINAL (as-authored) text so it
+    // contains the moving crate's OLD name — the disambiguation set for step 2's longest-prefix
+    // match against the still-old `rust_test` `name`/`crate` values. Must precede step 1's exact
+    // rename (which would otherwise replace the moving crate's name in the set with its new name).
+    let kebab_set = collect_crate_set(buck_text, false);
+    let snake_set = collect_crate_set(buck_text, true);
+
+    // 1. Exact whole-token rewrite of `name`/`crate` everywhere (lib/binary/test exact values,
+    //    same-package self-dep). This preserves the invariant that a `-bin` sibling target is
+    //    untouched (its quoted value never equals the bare crate name).
     let mut out = buck_text.to_string();
     let mut changed = false;
-
-    // name = "old" -> name = "new"  (kebab target name; e.g. rust_library/binary/test name).
-    changed |= replace_quoted(&mut out, old_name, new_name);
-    // crate = "old_snake" -> "new_snake"
+    changed |= replace_quoted_exact(&mut out, old_name, new_name);
     if old_ident != *old_name {
-        changed |= replace_quoted(&mut out, &old_ident, &new_ident);
-    } else {
-        // old_name had no dash so kebab == snake; the replace above already covered it.
+        changed |= replace_quoted_exact(&mut out, &old_ident, &new_ident);
     }
-    // same-package self-dep ":old-name" -> ":new-name"
+
+    // 2. Suffixed prefix rewrite, scoped to the `name`/`crate` FIELDS of `rust_test(...)` stanzas.
+    //    A `rust_test` `name`/`crate` is `<crate-name><sep><suffix>` (e.g. `oya-x-unittest`,
+    //    `oya_x_file_outbox`); the codemod owns the crate-name PREFIX and preserves the suffix.
+    //    Disambiguation against a `-bin` sibling (whose own test target is `oya-x-bin-unittest`)
+    //    is by LONGEST crate-name prefix against the package's defined crate set: a value is only
+    //    rewritten when the longest package crate that prefixes it IS the moving crate. If the
+    //    longest prefix is a different crate (the `-bin` sibling) the value is left untouched —
+    //    this is the B1 silent-clobber fix. Field-key anchoring (only `name`/`crate`) prevents
+    //    rewriting arbitrary quoted values (`env`/`deps`/`srcs`) inside the stanza.
+    out = rewrite_rust_test_stanzas(
+        &out,
+        |stanza| {
+            let mut s = stanza.to_string();
+            let mut c = false;
+            c |= rewrite_test_field(&mut s, "name", old_name, new_name, b'-', &kebab_set);
+            c |= rewrite_test_field(&mut s, "crate", &old_ident, &new_ident, b'_', &snake_set);
+            (s, c)
+        },
+        &mut changed,
+    );
+
+    // 3. same-package self-dep ":old-name" -> ":new-name"
     changed |= replace_token_label(&mut out, &format!(":{old_name}"), &format!(":{new_name}"));
     (out, changed)
+}
+
+/// Apply `f` to the interior text of every top-level `rust_test( ... )` stanza, splicing the
+/// rewritten interior back in place. A stanza head is the identifier `rust_test` (anchored on a
+/// non-identifier boundary BEFORE it — start-of-file, whitespace, newline, `(`, or `,` — so a
+/// longer macro like `custom_rust_test(` is NOT matched as a stanza head), followed by optional
+/// whitespace and the opening `(`. The stanza is delimited by that `(` and its matching close
+/// paren (paren-depth balanced, quote-aware so a `)` inside a string literal does not end it).
+/// Non-`rust_test` text is copied verbatim. `changed` is OR-ed with any interior change.
+fn rewrite_rust_test_stanzas(
+    text: &str,
+    f: impl Fn(&str) -> (String, bool),
+    changed: &mut bool,
+) -> String {
+    const IDENT: &str = "rust_test";
+    let bytes = text.as_bytes();
+    let mut out = String::with_capacity(text.len());
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if text[i..].starts_with(IDENT)
+            && (i == 0 || !is_ident_char(bytes[i - 1]))
+        {
+            // Skip optional whitespace between `rust_test` and `(` (the `rust_test (` space form).
+            let mut j = i + IDENT.len();
+            while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\t') {
+                j += 1;
+            }
+            if j < bytes.len() && bytes[j] == b'(' {
+                let open = j + 1;
+                // Find the matching close paren for this call, quote-aware.
+                if let Some(close) = matching_close_paren(text, open) {
+                    let interior = &text[open..close];
+                    let (new_interior, c) = f(interior);
+                    *changed |= c;
+                    out.push_str(&text[i..open]); // `rust_test` + optional ws + `(`
+                    out.push_str(&new_interior);
+                    out.push(')');
+                    i = close + 1;
+                    continue;
+                }
+            }
+        }
+        let ch_len = utf8_len(bytes[i]);
+        out.push_str(&text[i..i + ch_len]);
+        i += ch_len;
+    }
+    out
+}
+
+/// Given the byte index just AFTER an opening `(`, return the index of its matching `)`,
+/// tracking nested parens and skipping `(`/`)` inside `"..."` string literals. Returns `None`
+/// if unbalanced (in which case the caller leaves the stanza untouched, fail-safe).
+fn matching_close_paren(text: &str, after_open: usize) -> Option<usize> {
+    let bytes = text.as_bytes();
+    let mut depth = 1i32;
+    let mut i = after_open;
+    let mut in_str = false;
+    while i < bytes.len() {
+        let b = bytes[i];
+        if in_str {
+            if b == b'"' {
+                in_str = false;
+            }
+            // BUCK string literals do not span the constructs we rewrite; no escape handling
+            // needed for the codemod's vocabulary (no escaped quotes in name/crate values).
+        } else {
+            match b {
+                b'"' => in_str = true,
+                b'(' => depth += 1,
+                b')' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        return Some(i);
+                    }
+                }
+                _ => {}
+            }
+        }
+        i += utf8_len(b);
+    }
+    None
 }
 
 /// Rewrite, in ANY BUCK file, every ABSOLUTE label that points at a moved crate:
@@ -76,9 +197,11 @@ pub fn rewrite_buck_labels(
     (out, changed)
 }
 
-/// Replace every `"needle"` (exactly quoted) with `"replacement"`. Used for `name`/`crate`
-/// fields where the value is a standalone quoted token.
-fn replace_quoted(haystack: &mut String, needle: &str, replacement: &str) -> bool {
+/// Replace every `"needle"` (the WHOLE quoted token, exactly) with `"replacement"`. Used for
+/// `name`/`crate` fields whose value IS the crate name (the `rust_library`/`rust_binary` case)
+/// and for the same-package self-dep. The quote-delimited match guarantees a longer sibling
+/// token (e.g. `"oya-x-bin"`) is never matched by the bare crate name `oya-x`.
+fn replace_quoted_exact(haystack: &mut String, needle: &str, replacement: &str) -> bool {
     let from = format!("\"{needle}\"");
     let to = format!("\"{replacement}\"");
     if haystack.contains(&from) {
@@ -87,6 +210,168 @@ fn replace_quoted(haystack: &mut String, needle: &str, replacement: &str) -> boo
     } else {
         false
     }
+}
+
+/// Collect the package's defined crate set from `buck_text`: the `name` value of every
+/// `rust_library(`/`rust_binary(` stanza (kebab when `snake == false`), or its snake `crate`
+/// ident (when `snake == true`, derived from the kebab `name`). This is the disambiguation set
+/// the `rust_test` `name`/`crate` rewrite matches a longest crate-name prefix against. Binaries
+/// and libraries are exactly the crates whose `name`/`crate` IS the crate name, so their `name`
+/// fields are the authoritative crate vocabulary defined in this BUCK.
+fn collect_crate_set(buck_text: &str, want_snake: bool) -> Vec<String> {
+    let mut set: Vec<String> = Vec::new();
+    for head in ["rust_library", "rust_binary"] {
+        let bytes = buck_text.as_bytes();
+        let mut i = 0usize;
+        while i < bytes.len() {
+            if buck_text[i..].starts_with(head) && (i == 0 || !is_ident_char(bytes[i - 1])) {
+                let mut j = i + head.len();
+                while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\t') {
+                    j += 1;
+                }
+                if j < bytes.len() && bytes[j] == b'(' {
+                    let open = j + 1;
+                    if let Some(close) = matching_close_paren(buck_text, open) {
+                        let interior = &buck_text[open..close];
+                        if let Some(name) = field_value(interior, "name") {
+                            let crate_name = if want_snake { snake(&name) } else { name };
+                            if !set.contains(&crate_name) {
+                                set.push(crate_name);
+                            }
+                        }
+                        i = close + 1;
+                        continue;
+                    }
+                }
+            }
+            i += utf8_len(bytes[i]);
+        }
+    }
+    set
+}
+
+/// Read the quoted value of a top-level `key = "..."` field inside a stanza interior, returning
+/// the unquoted string. Field-key-anchored: `key` must be a whole identifier (non-identifier
+/// boundary before it) followed by optional whitespace, `=`, optional whitespace, then `"...".`
+/// Returns the FIRST such field's value, or `None` if absent.
+fn field_value(interior: &str, key: &str) -> Option<String> {
+    let bytes = interior.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if interior[i..].starts_with(key) && (i == 0 || !is_ident_char(bytes[i - 1])) {
+            let mut j = i + key.len();
+            while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\t') {
+                j += 1;
+            }
+            if j < bytes.len() && bytes[j] == b'=' {
+                j += 1;
+                while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\t') {
+                    j += 1;
+                }
+                if j < bytes.len() && bytes[j] == b'"' {
+                    let val_start = j + 1;
+                    if let Some(end_rel) = interior[val_start..].find('"') {
+                        return Some(interior[val_start..val_start + end_rel].to_string());
+                    }
+                }
+            }
+        }
+        i += utf8_len(bytes[i]);
+    }
+    None
+}
+
+/// Rewrite, inside a `rust_test(...)` stanza interior, the value of the `key` field (`name` or
+/// `crate`) when its longest package-crate prefix is the moving crate. Field-key-anchored: only
+/// `key = "..."` is touched, never arbitrary quoted values (`env`/`deps`/`srcs`) — that is the
+/// MED-1 over-broad-rewrite fix. For the matched value V, the longest crate `C*` in `crate_set`
+/// that prefixes V (V == C* OR V starts with `C* + sep`) is found; if `C* == old` the `C*`
+/// portion is rewritten to `new` and the suffix preserved, else V is left UNCHANGED (the B1
+/// `-bin`-sibling fix). Returns whether any field value changed.
+fn rewrite_test_field(
+    haystack: &mut String,
+    key: &str,
+    old: &str,
+    new: &str,
+    sep: u8,
+    crate_set: &[String],
+) -> bool {
+    if old.is_empty() {
+        return false;
+    }
+    let bytes = haystack.as_bytes();
+    let mut result = String::with_capacity(haystack.len());
+    let mut changed = false;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        // Anchor on the field key: `<key>` (whole ident) ws* `=` ws* `"`.
+        if haystack[i..].starts_with(key) && (i == 0 || !is_ident_char(bytes[i - 1])) {
+            let mut j = i + key.len();
+            while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\t') {
+                j += 1;
+            }
+            if j < bytes.len() && bytes[j] == b'=' {
+                let mut k = j + 1;
+                while k < bytes.len() && (bytes[k] == b' ' || bytes[k] == b'\t') {
+                    k += 1;
+                }
+                if k < bytes.len() && bytes[k] == b'"' {
+                    let val_start = k + 1;
+                    if let Some(end_rel) = haystack[val_start..].find('"') {
+                        let val = &haystack[val_start..val_start + end_rel];
+                        // Copy the field key + `= "` verbatim.
+                        result.push_str(&haystack[i..val_start]);
+                        match longest_crate_prefix(val, crate_set, sep) {
+                            Some(cstar) if cstar == old => {
+                                // Rewrite the C* prefix to `new`, preserve the suffix.
+                                result.push_str(new);
+                                result.push_str(&val[old.len()..]);
+                                changed = true;
+                            }
+                            _ => result.push_str(val), // different crate or no prefix: leave.
+                        }
+                        i = val_start + end_rel; // resume at the closing quote.
+                        continue;
+                    }
+                }
+            }
+        }
+        let ch_len = utf8_len(bytes[i]);
+        result.push_str(&haystack[i..i + ch_len]);
+        i += ch_len;
+    }
+    if changed {
+        *haystack = result;
+    }
+    changed
+}
+
+/// Find the LONGEST crate name in `crate_set` that is a prefix of `val`, where "prefix" means
+/// `val == C` OR `val` starts with `C + sep` (sep = `-` for kebab `name`, `_` for snake `crate`).
+/// Returns the matched crate name, or `None` if none prefixes `val`. Longest-wins disambiguates a
+/// lib `oya-x` from its `-bin` sibling `oya-x-bin`: for `oya-x-bin-unittest`, both `oya-x` and
+/// `oya-x-bin` prefix it, but the longest (`oya-x-bin`) is returned, so a lib move leaves it.
+fn longest_crate_prefix<'a>(val: &str, crate_set: &'a [String], sep: u8) -> Option<&'a str> {
+    let mut best: Option<&str> = None;
+    for c in crate_set {
+        if c.is_empty() {
+            continue;
+        }
+        let is_prefix = val == c.as_str()
+            || (val.len() > c.len()
+                && val.as_bytes()[c.len()] == sep
+                && val.starts_with(c.as_str()));
+        if is_prefix && best.map(|b| c.len() > b.len()).unwrap_or(true) {
+            best = Some(c.as_str());
+        }
+    }
+    best
+}
+
+/// An identifier continuation char (used to anchor stanza heads + field keys on a non-identifier
+/// boundary). BUCK identifiers are alnum + `_`.
+fn is_ident_char(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_'
 }
 
 /// Replace a full label token `from` with `to`, but only when `from` is NOT immediately
@@ -250,5 +535,250 @@ rust_binary(
         let (out, changed) = rewrite_buck_labels(text, &by_old);
         assert!(!changed);
         assert_eq!(out, text);
+    }
+
+    /// Regression for PR #735 (review MED): the moved-BUCK rewrite renamed `rust_library`
+    /// `name`/`crate` but MISSED `rust_test` `name`/`crate`, which carry the crate name PLUS a
+    /// suffix (`-unittest`, `_file_outbox`) and so never matched the exact-token rewrite. This
+    /// asserts the suffixed test `name`/`crate` ARE renamed (prefix only, suffix preserved), that
+    /// non-identifier fields are untouched, AND that a non-test `-bin` sibling target is NOT
+    /// clobbered by the prefix rewrite.
+    #[test]
+    fn moved_buck_rewrites_suffixed_rust_test_name_and_crate() {
+        let text = r#"rust_library(
+    name = "oya-eventing-file-adapter",
+    crate = "oya_eventing_file_adapter",
+    crate_root = "src/lib.rs",
+    srcs = ["src/lib.rs"],
+)
+
+rust_binary(
+    name = "oya-eventing-file-adapter-bin",
+    crate = "oya_eventing_file_adapter_bin",
+    crate_root = "src/main.rs",
+)
+
+rust_test(
+    name = "oya-eventing-file-adapter-file-outbox",
+    srcs = ["tests/file_outbox.rs"],
+    crate = "oya_eventing_file_adapter_file_outbox",
+    crate_root = "tests/file_outbox.rs",
+    visibility = ["PUBLIC"],
+)
+"#;
+        let m = cm(
+            "oya/eventing/crates/oya-eventing-file-adapter",
+            "messaging/adapters/file",
+            "oya-eventing-file-adapter",
+            "messaging-file-adapter",
+        );
+        let (out, changed) = rewrite_moved_buck(text, &m);
+        assert!(changed);
+
+        // The library's own exact name/crate rewrite (unchanged behavior).
+        assert!(out.contains("name = \"messaging-file-adapter\""), "{out}");
+        assert!(out.contains("crate = \"messaging_file_adapter\""), "{out}");
+
+        // THE GAP: the suffixed rust_test name/crate are now renamed, prefix-only.
+        assert!(
+            out.contains("name = \"messaging-file-adapter-file-outbox\""),
+            "rust_test name prefix renamed + suffix preserved: {out}"
+        );
+        assert!(
+            out.contains("crate = \"messaging_file_adapter_file_outbox\""),
+            "rust_test crate prefix renamed + suffix preserved: {out}"
+        );
+        // The stale-prefix tokens that REMAIN belong ONLY to the `-bin` sibling (asserted below);
+        // the rust_test and rust_library stanzas carry no stale prefix.
+        assert!(
+            !out.contains("name = \"oya-eventing-file-adapter-file-outbox\""),
+            "stale rust_test name eliminated: {out}"
+        );
+        assert!(
+            !out.contains("crate = \"oya_eventing_file_adapter_file_outbox\""),
+            "stale rust_test crate eliminated: {out}"
+        );
+
+        // Non-identifier fields untouched.
+        assert!(out.contains("srcs = [\"tests/file_outbox.rs\"]"), "{out}");
+        assert!(
+            out.contains("crate_root = \"tests/file_outbox.rs\""),
+            "{out}"
+        );
+        assert!(out.contains("visibility = [\"PUBLIC\"]"), "{out}");
+        assert!(out.contains("crate_root = \"src/lib.rs\""), "{out}");
+
+        // The `-bin` sibling is a SEPARATE crate (own move); it must NOT be prefix-clobbered by
+        // the library rename — its name/crate stay as-authored.
+        assert!(
+            out.contains("name = \"oya-eventing-file-adapter-bin\""),
+            "non-test -bin sibling preserved: {out}"
+        );
+        assert!(
+            out.contains("crate = \"oya_eventing_file_adapter_bin\""),
+            "non-test -bin sibling crate preserved: {out}"
+        );
+
+        // Reversibility: the inverse move restores the original byte-for-byte.
+        let inv = cm(
+            "messaging/adapters/file",
+            "oya/eventing/crates/oya-eventing-file-adapter",
+            "messaging-file-adapter",
+            "oya-eventing-file-adapter",
+        );
+        let (round, _c) = rewrite_moved_buck(&out, &inv);
+        assert_eq!(round, text, "inverse must round-trip byte-identically");
+    }
+
+    /// The `-unittest` flavor (same-dir test target for a library), proving the kebab + snake
+    /// suffix preservation for the `messaging-domain` crate shape too.
+    #[test]
+    fn moved_buck_rewrites_unittest_rust_test_target() {
+        let text = r#"rust_library(
+    name = "oya-eventing-domain",
+    crate = "oya_eventing_domain",
+    crate_root = "src/lib.rs",
+)
+
+rust_test(
+    name = "oya-eventing-domain-unittest",
+    crate = "oya_eventing_domain",
+    crate_root = "src/lib.rs",
+)
+"#;
+        let m = cm(
+            "oya/eventing/crates/oya-eventing-domain",
+            "messaging/core/domain",
+            "oya-eventing-domain",
+            "messaging-domain",
+        );
+        let (out, changed) = rewrite_moved_buck(text, &m);
+        assert!(changed);
+        assert!(
+            out.contains("name = \"messaging-domain-unittest\""),
+            "unittest target name renamed: {out}"
+        );
+        // The unittest target shares the library's snake crate ident (no suffix on `crate` here);
+        // it is renamed by the exact pass.
+        assert!(out.contains("crate = \"messaging_domain\""), "{out}");
+        assert!(!out.contains("oya-eventing"), "{out}");
+        assert!(!out.contains("oya_eventing"), "{out}");
+    }
+
+    /// B1 (PR #735 review, BLOCKING): silent `-bin`-sibling clobber. A package with a library
+    /// `oya-x` AND a `-bin` binary sibling `oya-x-bin` (whose own test target is
+    /// `oya-x-bin-unittest` / `oya_x_bin_tests`). Moving the LIBRARY `oya-x` -> `new-x` previously
+    /// front-matched `"oya-x"` + `-` inside `oya-x-bin-unittest` and rewrote it to
+    /// `new-x-bin-unittest`, leaving the binary `oya-x-bin` itself untouched — a permanently
+    /// inconsistent BUCK. The longest-crate-prefix match must leave the `-bin` sibling's test
+    /// targets untouched (their longest package-crate prefix is `oya-x-bin`, not the moving
+    /// `oya-x`), and must round-trip byte-identically through the inverse. (`new-x` is the realistic
+    /// multi-segment destination name; the brief's worked examples use `new` as shorthand.)
+    #[test]
+    fn moved_buck_leaves_bin_sibling_rust_test_untouched() {
+        let text = r#"rust_library(
+    name = "oya-x",
+    crate = "oya_x",
+    crate_root = "src/lib.rs",
+)
+
+rust_binary(
+    name = "oya-x-bin",
+    crate_root = "src/main.rs",
+    deps = [":oya-x"],
+)
+
+rust_test(
+    name = "oya-x-unittest",
+    crate = "oya_x_tests",
+    crate_root = "src/lib.rs",
+)
+
+rust_test(
+    name = "oya-x-bin-unittest",
+    crate = "oya_x_bin_tests",
+    crate_root = "src/main.rs",
+)
+"#;
+        let m = cm("cloud/c/oya-x", "cap/core/new-x", "oya-x", "new-x");
+        let (out, changed) = rewrite_moved_buck(text, &m);
+        assert!(changed);
+
+        // Library's own name/crate renamed (exact pass, unchanged behavior). snake(`oya-x`)=`oya_x`,
+        // snake(`new-x`)=`new_x`, so lib `name "oya-x"` -> `new-x`, `crate "oya_x"` -> `new_x`.
+        assert!(out.contains("name = \"new-x\""), "{out}");
+        assert!(out.contains("crate = \"new_x\""), "lib crate is the new snake ident: {out}");
+
+        // Library's own `-unittest` test: longest kebab prefix `oya-x` == moving -> `new-x-unittest`.
+        assert!(out.contains("name = \"new-x-unittest\""), "lib unittest name renamed: {out}");
+        // Its `crate = "oya_x_tests"`: longest snake prefix `oya_x` == moving -> `new_x_tests`.
+        assert!(out.contains("crate = \"new_x_tests\""), "lib unittest crate renamed: {out}");
+
+        // THE B1 FIX: the binary `-bin` and its `-bin-unittest` test are UNCHANGED.
+        assert!(out.contains("name = \"oya-x-bin\""), "binary name preserved: {out}");
+        assert!(out.contains("name = \"oya-x-bin-unittest\""), "B1: bin-unittest name NOT clobbered: {out}");
+        assert!(out.contains("crate = \"oya_x_bin_tests\""), "B1: bin-unittest crate NOT clobbered: {out}");
+        // The clobbered shape that the un-fixed code produced must NOT appear.
+        assert!(!out.contains("new-x-bin-unittest"), "B1: no front-clobbered name: {out}");
+        assert!(!out.contains("new_x_bin_tests"), "B1: no front-clobbered crate: {out}");
+        // The self-dep `:oya-x` IS rewritten (exact label), but `:oya-x-bin` is not present here.
+        assert!(out.contains("deps = [\":new-x\"]"), "self-dep rewritten: {out}");
+
+        // Inverse round-trips byte-identically, including the untouched `-bin-unittest`.
+        let inv = cm("cap/core/new-x", "cloud/c/oya-x", "new-x", "oya-x");
+        let (round, _c) = rewrite_moved_buck(&out, &inv);
+        assert_eq!(round, text, "inverse must round-trip byte-identically");
+    }
+
+    /// MED-2 / LOW: a longer macro whose name merely ends in `rust_test` (e.g. `custom_rust_test(`)
+    /// must NOT be treated as a `rust_test` stanza head, so its interior is not prefix-rewritten.
+    #[test]
+    fn substring_macro_head_is_not_a_rust_test_stanza() {
+        let text = r#"rust_library(
+    name = "oya-x",
+    crate = "oya_x",
+)
+
+custom_rust_test(
+    name = "oya-x-foo",
+    crate = "oya_x_foo",
+)
+"#;
+        let m = cm("cloud/c/oya-x", "cap/core/new", "oya-x", "new");
+        let (out, _changed) = rewrite_moved_buck(text, &m);
+        // Library renamed by the exact pass.
+        assert!(out.contains("name = \"new\""), "{out}");
+        // The custom_rust_test interior is NOT a rust_test stanza -> its name/crate are left as-is
+        // (the prefixed pass never runs on it; the exact pass does not whole-token match either).
+        assert!(out.contains("name = \"oya-x-foo\""), "custom macro name not prefix-rewritten: {out}");
+        assert!(out.contains("crate = \"oya_x_foo\""), "custom macro crate not prefix-rewritten: {out}");
+    }
+
+    /// MED-1: field-key anchoring. A `rust_test` with a quoted value matching the moving crate's
+    /// prefix in a NON-`name`/`crate` field (`env`, a bare-quoted dep) must NOT be rewritten — only
+    /// the `name` and `crate` fields are crate-name vocabulary.
+    #[test]
+    fn rust_test_non_name_crate_fields_are_not_rewritten() {
+        let text = r#"rust_library(
+    name = "oya-x",
+    crate = "oya_x",
+)
+
+rust_test(
+    name = "oya-x-unittest",
+    crate = "oya_x",
+    env = {"FIXTURE": "oya-x-thing"},
+    deps = ["//some/where:oya-x-helper"],
+)
+"#;
+        let m = cm("cloud/c/oya-x", "cap/core/new", "oya-x", "new");
+        let (out, changed) = rewrite_moved_buck(text, &m);
+        assert!(changed);
+        // name/crate ARE rewritten.
+        assert!(out.contains("name = \"new-unittest\""), "{out}");
+        assert!(out.contains("crate = \"new\""), "{out}");
+        // The env value and the bare-quoted dep entry are NOT rewritten by the prefix pass.
+        assert!(out.contains("\"FIXTURE\": \"oya-x-thing\""), "env value untouched: {out}");
+        assert!(out.contains("\"//some/where:oya-x-helper\""), "dep entry untouched by prefix pass: {out}");
     }
 }

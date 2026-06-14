@@ -10,7 +10,7 @@ use oya_audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
 use oya_data_boundary_kernel::{
     DataClassification, Purpose, parse_data_class_label, parse_purpose_pascal_label,
 };
-use oya_eventing_domain::{EventingError, Outbox, OutboxRecord};
+use messaging_domain::{EventingError, Outbox, OutboxRecord};
 
 pub const AUDIT_EVENT_EMIT_SURFACE: &str = "audit.event.emit";
 pub const AUDIT_EVENT_TOPIC: &str = "oya.platform.audit";

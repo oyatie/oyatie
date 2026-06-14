@@ -10,6 +10,10 @@
       "prefix": "cloud/cloud-iam/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.5 ownership seed: the messaging capability tree's OWNERS marker (axis-cloud-platform), homed by the first strangler move (oya/eventing → messaging/)",
+      "prefix": "messaging/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },

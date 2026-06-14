@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 oya-audit-chain-domain = { path = "../oya-audit-chain-domain" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-eventing-domain = { path = "../../../eventing/crates/oya-eventing-domain" }
+messaging-domain = { path = "../../../../messaging/core/domain" }
 
 [lib]
 name = "oya_audit_chain_usecase"

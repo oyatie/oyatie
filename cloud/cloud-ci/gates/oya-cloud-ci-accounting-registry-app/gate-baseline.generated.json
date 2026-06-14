@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:a33d7f020ed83e38",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:cecc87783b99aba6"
+    "source_inputs_digest": "fnv1a64:1656c483b0a7372c"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -14467,14 +14467,6 @@
           "oya/emr/slos/order-entry-latency.openslo.yaml",
           "oya/emr/slos/search-latency.openslo.yaml",
           "oya/emr/supported-oses.json",
-          "oya/eventing/crates/oya-eventing-domain/BUCK",
-          "oya/eventing/crates/oya-eventing-domain/Cargo.toml",
-          "oya/eventing/crates/oya-eventing-domain/src/cloud_event.rs",
-          "oya/eventing/crates/oya-eventing-domain/src/lib.rs",
-          "oya/eventing/crates/oya-eventing-file-adapter/BUCK",
-          "oya/eventing/crates/oya-eventing-file-adapter/Cargo.toml",
-          "oya/eventing/crates/oya-eventing-file-adapter/src/lib.rs",
-          "oya/eventing/crates/oya-eventing-file-adapter/tests/file_outbox.rs",
           "oya/feature-flags/AUDIT-FINDINGS-2026-05-18.json",
           "oya/feature-flags/AUDIT-FINDINGS-2026-05-20.json",
           "oya/feature-flags/IPs/IP-ADR-0339-Shared-IaC-Modules.md",
@@ -31476,14 +31468,6 @@
           "oya/emr/slos/order-entry-latency.openslo.yaml",
           "oya/emr/slos/search-latency.openslo.yaml",
           "oya/emr/supported-oses.json",
-          "oya/eventing/crates/oya-eventing-domain/BUCK",
-          "oya/eventing/crates/oya-eventing-domain/Cargo.toml",
-          "oya/eventing/crates/oya-eventing-domain/src/cloud_event.rs",
-          "oya/eventing/crates/oya-eventing-domain/src/lib.rs",
-          "oya/eventing/crates/oya-eventing-file-adapter/BUCK",
-          "oya/eventing/crates/oya-eventing-file-adapter/Cargo.toml",
-          "oya/eventing/crates/oya-eventing-file-adapter/src/lib.rs",
-          "oya/eventing/crates/oya-eventing-file-adapter/tests/file_outbox.rs",
           "oya/feature-flags/AUDIT-FINDINGS-2026-05-18.json",
           "oya/feature-flags/AUDIT-FINDINGS-2026-05-20.json",
           "oya/feature-flags/IPs/IP-ADR-0339-Shared-IaC-Modules.md",

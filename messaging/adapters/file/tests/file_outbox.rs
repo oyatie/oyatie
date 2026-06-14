@@ -6,8 +6,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_eventing_domain::Outbox;
-use oya_eventing_file_adapter::{FileOutboxStore, FileOutboxStoreError};
+use messaging_domain::Outbox;
+use messaging_file_adapter::{FileOutboxStore, FileOutboxStoreError};
 
 #[test]
 fn file_outbox_store_replays_records_and_appends_only_new_suffix() {
@@ -139,7 +139,7 @@ fn temp_outbox_path(label: &str) -> PathBuf {
         .expect("clock after epoch")
         .as_nanos();
     std::env::temp_dir().join(format!(
-        "oya-eventing-outbox-{label}-{}-{nanos}.log",
+        "messaging-outbox-{label}-{}-{nanos}.log",
         std::process::id()
     ))
 }
