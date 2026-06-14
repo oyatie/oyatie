@@ -30,6 +30,10 @@
       "prefix": "specs/capability-registry.json"
     },
     {
+      "anchor": "ADR-0280 §D-1: the canonical substrate-of-substrate dependency DAG policy-as-data (the Tier-1 v1.0.0 worked example, populated verbatim; de-branded node names per ADR-0562). Its named consumer is the oya-cloud-ci-substrate-dependency-dag-acyclicity-app gate (ADR-0280 §D-3, Tarjan/Kahn validator) + ADR-0280 related_specs; every derived surface (manifests, bootstrap, SLO composition, Cedar permits) derives from it",
+      "prefix": "specs/substrate-dependency-dag.json"
+    },
+    {
       "anchor": "ADR-0555 D3: the gates' data-under-test corpus — fixture dirs are loaded wholesale by each gate's fixture-driven test (read_dir over tc-*.json), so the consuming test IS the live pointer",
       "prefix": "specs/fixtures/"
     },
@@ -60,6 +64,10 @@
     {
       "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): the scheduled cold integrity-canary workflow — from-empty pinned build + assert-cold + digest manifests + verdict artifact; shape pinned by the oya-cloud-ci-cache-wiring-app conformance gate",
       "prefix": ".github/workflows/cache-integrity-canary.yml"
+    },
+    {
+      "anchor": "ADR-0280 §D-3: the substrate-dependency-dag acyclicity lane workflow (oya-check-substrate-dependency-dag-acyclicity) — the ADR-0280-prescribed CI surface that runs the Tarjan/Kahn validator on every PR targeting dev; named explicitly in ADR-0280 §status prerequisite #3 + §D-3",
+      "prefix": ".github/workflows/check-substrates.yml"
     },
     {
       "anchor": "ADR-0555 ownership seed: the workflows tree's OWNERS marker (cloud-ci-platform) — added with ADR-0560's canary workflow so new workflow files are born owned",
