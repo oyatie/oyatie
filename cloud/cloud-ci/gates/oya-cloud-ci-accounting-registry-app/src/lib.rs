@@ -610,6 +610,7 @@ pub struct GateInputs<'a> {
 fn producer_face_keys(
     face: oya_ci_config_kernel::GateFace,
     inputs: &GateInputs<'_>,
+    naming: &oya_ci_config_kernel::NamingConfig,
 ) -> BTreeMap<String, BTreeSet<String>> {
     use oya_ci_config_kernel::GateFace;
     match face {
@@ -636,18 +637,25 @@ fn producer_face_keys(
         // is its own gate lane, not the firewall ratchet. The disposition rows (modes)
         // remain declared so a future flip is still a reviewed DATA edit.
         GateFace::Staleness => BTreeMap::new(),
+        // ADR-0533 items 1/2: route the PROFILE-RESOLVED `[naming]` config (oyatie default ==
+        // today's consts, byte-identical; neutral == empty prefix, de-branded).
         GateFace::BnfLayerSuffix => group_findings(
-            oya_cloud_ci_bnf_layer_suffix_app::evaluate_keyed(inputs.bnf_layer_suffix)
-                .into_iter()
-                .map(|f| (f.code, f.key)),
+            oya_cloud_ci_bnf_layer_suffix_app::evaluate_keyed_with(
+                inputs.bnf_layer_suffix,
+                naming,
+            )
+            .into_iter()
+            .map(|f| (f.code, f.key)),
         ),
         GateFace::ManifestHygiene => group_findings(
             oya_cloud_ci_manifest_hygiene_app::evaluate_keyed(inputs.manifest_hygiene)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
+        // ADR-0533 item 3: route the PROFILE-RESOLVED `[naming].required_prefix` (oyatie default
+        // == `oya-`, byte-identical; neutral == empty prefix, no cargo_prefix_violation).
         GateFace::CargoPrefix => group_findings(
-            oya_cloud_ci_cargo_prefix_app::evaluate_keyed(inputs.cargo_prefix)
+            oya_cloud_ci_cargo_prefix_app::evaluate_keyed_with(inputs.cargo_prefix, naming)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
@@ -698,7 +706,7 @@ fn current_keys_per_gate(
     for gate in &cfg.gates.enabled {
         let keys = match gate.input_kind {
             GateInputKind::ProducerFace => match gate.face {
-                Some(face) => producer_face_keys(face, inputs),
+                Some(face) => producer_face_keys(face, inputs, &cfg.naming),
                 // A producer-face gate with no bound face contributes nothing (mis-config-safe).
                 None => BTreeMap::new(),
             },
@@ -751,13 +759,25 @@ pub fn build_gate_baseline(
     // Iterate the CONFIG-DECLARED enabled gates (replacing the hardcoded GATE_IDS, §3.5):
     // each gate's codes + dispositions come from the disposition table, its CURRENT keys from
     // the KIND-dispatched `current` map. The on-disk gate order is BTreeMap-sorted regardless.
+    // ADR-0533 "gates present-but-quiet": under the NEUTRAL profile a gate may be ENABLED (so the
+    // engine still dispatches its KIND) while the disposition table is empty — that gate then
+    // contributes NO codes (quiet). Under the OYATIE profile a gate enabled but absent from the
+    // disposition table stays a HARD error (a real misconfig must fail loud — the safety property
+    // keeps first-party behaviour identical).
+    let quiet_missing_disposition = cfg.profile == oya_ci_config_kernel::Profile::Neutral;
+    let empty_disp = Map::new();
     let mut gates_obj = Map::new();
     for spec in &cfg.gates.enabled {
         let gate = spec.id.as_str();
-        let disp_codes = disp_gates
-            .get(gate)
-            .and_then(Value::as_object)
-            .ok_or_else(|| ProducerError::Policy(format!("disposition missing gate {gate}")))?;
+        let disp_codes = match disp_gates.get(gate).and_then(Value::as_object) {
+            Some(codes) => codes,
+            None if quiet_missing_disposition => &empty_disp,
+            None => {
+                return Err(ProducerError::Policy(format!(
+                    "disposition missing gate {gate}"
+                )))
+            }
+        };
         let empty = BTreeMap::new();
         let gate_current = current.get(gate).unwrap_or(&empty);
 
@@ -1059,5 +1079,116 @@ mod tests {
         // and the provenance digest must be present (proves generation)
         assert!(a.contains("source_inputs_digest"));
         assert!(!a.contains("generated_at"), "no wall-clock in the face");
+    }
+
+    /// SYNTHETIC NEUTRAL-FIXTURE (ADR-0533 item 6 / ADR-0532 amends ADR-0017): under the NEUTRAL
+    /// profile the gate pipeline produces a baseline carrying ZERO oyatie/`oya-` brand literals,
+    /// PROVING the neutral profile actually de-brands. The SAME corpus under the oyatie profile
+    /// DOES carry brand findings (the safety property — oyatie is unchanged).
+    ///
+    /// Inputs deliberately include corpus that WOULD trip the brand-specific gates under oyatie:
+    /// an unprefixed crate (`acme-bad` → cargo-prefix / bnf would flag `oya-` violations under
+    /// oyatie), and a `foundry` residue file (brand-residue would flag `forbidden_foundry`).
+    #[test]
+    fn neutral_profile_baseline_emits_zero_brand_literals() {
+        let registry = serde_json::json!({"rows": []});
+        let crosswalk = serde_json::json!({"decisions": [], "duplicate_ids": []});
+        let automation = serde_json::json!({"rows": []});
+        let empty_face = serde_json::json!({"rows": []});
+        // Corpus that trips the brand gates under OYATIE: an unprefixed crate + a foundry file.
+        let cargo_face = serde_json::json!({"rows": [
+            {"member_path": "crates/acme-bad", "package_name": "acme-bad"}
+        ]});
+        let bnf_face = serde_json::json!({"rows": [ {"crate_name": "acme-bad"} ]});
+        let mut brand_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        brand_residue
+            .entry("forbidden_foundry".to_owned())
+            .or_default()
+            .insert("docs/products/foundry/PRD.md".to_owned());
+
+        // --- NEUTRAL: brand_residue is supplied EMPTY (the producer's collector uses the
+        // neutral [vocab] policy = empty deny-list, so it would find nothing); cargo/bnf faces
+        // carry the unprefixed crate but the neutral [naming] prefix is empty ⇒ no violation. ---
+        let neutral_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        let neutral_inputs = GateInputs {
+            total_accounting: &registry,
+            cross_artifact: &crosswalk,
+            automation_ratchet: &automation,
+            bnf_layer_suffix: &bnf_face,
+            manifest_hygiene: &empty_face,
+            cargo_prefix: &cargo_face,
+            slo_coverage: &empty_face,
+            workspace_glob_coverage: &empty_face,
+            target_parity: &empty_face,
+            enforcement_liveness: &empty_face,
+            brand_residue: &neutral_residue,
+        };
+        let neutral_cfg = oya_ci_config_kernel::OyaCiConfig::neutral();
+        let neutral_baseline =
+            build_gate_baseline(&neutral_cfg, &neutral_inputs, "fnv1a64:neutral").expect("neutral");
+        // THE DE-BRAND PROOF: the GATE FINDINGS (the `gates` object — codes + keys the gates
+        // emit) carry ZERO oyatie/oya- brand literals under neutral. (The face's `_comment` /
+        // `_provenance` legitimately name the producer crate itself — that is producer
+        // self-identification, not a policy literal — so the proof is scoped to `gates`.)
+        let neutral_gates_json = to_canonical_json(&neutral_baseline["gates"])
+            .expect("neutral gates findings serialize");
+        for needle in [
+            "oya-",
+            "oyatie",
+            "forbidden_foundry",
+            "foundry",
+            "oya-governance",
+            "oya-check-",
+            "cargo_prefix_violation",
+            "bnf_missing_oya_prefix",
+        ] {
+            assert!(
+                !neutral_gates_json.contains(needle),
+                "neutral gate findings leaked brand literal {needle:?}:\n{neutral_gates_json}"
+            );
+        }
+        // "Gates present-but-quiet" (ADR-0533 item 1): the gates are PRESENT (the 13 enabled
+        // gates still appear so the engine dispatches every KIND) but QUIET (each gate's code
+        // object is empty — the neutral disposition stamps no codes).
+        let neutral_gates = neutral_baseline["gates"]
+            .as_object()
+            .expect("neutral gates object");
+        assert_eq!(neutral_gates.len(), 13, "gates present (all 13 enabled)");
+        for (gate_id, codes) in neutral_gates {
+            assert_eq!(
+                codes.as_object().map(|m| m.len()),
+                Some(0),
+                "gate {gate_id} must be quiet (no codes) under neutral"
+            );
+        }
+
+        // SAFETY PROPERTY: the SAME unprefixed/foundry corpus under the OYATIE profile DOES
+        // surface the brand findings — oyatie behaviour is unchanged.
+        let oyatie_inputs = GateInputs {
+            total_accounting: &registry,
+            cross_artifact: &crosswalk,
+            automation_ratchet: &automation,
+            bnf_layer_suffix: &bnf_face,
+            manifest_hygiene: &empty_face,
+            cargo_prefix: &cargo_face,
+            slo_coverage: &empty_face,
+            workspace_glob_coverage: &empty_face,
+            target_parity: &empty_face,
+            enforcement_liveness: &empty_face,
+            brand_residue: &brand_residue,
+        };
+        let oyatie_cfg = oya_ci_config_kernel::OyaCiConfig::oyatie();
+        let oyatie_baseline =
+            build_gate_baseline(&oyatie_cfg, &oyatie_inputs, "fnv1a64:oyatie").expect("oyatie");
+        let cp = &oyatie_baseline["gates"]["cloud-ci-cargo-prefix"]["cargo_prefix_violation"];
+        assert_eq!(
+            cp["keys"][0], "acme-bad",
+            "oyatie profile must flag the unprefixed crate (safety: unchanged)"
+        );
+        let br = &oyatie_baseline["gates"]["cloud-ci-brand-residue"]["forbidden_foundry"];
+        assert_eq!(
+            br["keys"][0], "docs/products/foundry/PRD.md",
+            "oyatie profile must flag the foundry residue (safety: unchanged)"
+        );
     }
 }

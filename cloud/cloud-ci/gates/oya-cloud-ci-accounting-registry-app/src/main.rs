@@ -369,7 +369,16 @@ fn load_config(repo_root: &Path) -> Result<oya_ci_config_kernel::OyaCiConfig, Cl
     }
 }
 
+/// Config-driven repo-root discovery (ADR-0533 §Decision item 4 — the config-driven test/run
+/// harness). The root is located by, in order: (1) the `OYA_CI_REPO_ROOT` env override (a portable
+/// escape hatch so an adopter's runner — or a hermetic test — can pin the root without an on-disk
+/// marker walk); (2) walking up-tree until any `[repo].root_markers` entry is present. The markers
+/// are DATA (the neutral profile uses the generic `.git`; oyatie uses `specs/root-hub-pointers.json`),
+/// so the producer is not hardcoded to the oyatie marker.
 fn discover_repo_root(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<PathBuf, CliError> {
+    if let Some(root) = std::env::var_os("OYA_CI_REPO_ROOT") {
+        return Ok(PathBuf::from(root));
+    }
     let markers = &cfg.repo.root_markers;
     let mut dir = std::env::current_dir().map_err(|e| CliError::Io(e.to_string()))?;
     for _ in 0..16 {
