@@ -9,6 +9,8 @@ door: one-way
 owner: founder
 supersedes: []
 superseded_by: []
+amended_by:
+  - ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md (its sixteen domains seed the closed capability registry; its enforcement gains face-direction + membership checks)
 depends_on: [ADR-0328, ADR-0510, ADR-0516]
 amends: []
 related: [ADR-0131, ADR-0132, ADR-0243, ADR-0328, ADR-0341, ADR-0348, ADR-0393, ADR-0476, ADR-0510, ADR-0513, ADR-0515, ADR-0516, ADR-0517, ADR-0518, ADR-0519, ADR-0520, ADR-0521, ADR-0522, ADR-0523, ADR-0524, ADR-0525, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0531, ADR-0532, ADR-0533, ADR-0534, ADR-0535, ADR-0537]
@@ -29,6 +31,12 @@ locks one normative decision per researched substrate domain so that parallel la
 contract lock (founder directive 2026-06-09: contract lock first, then parallel lanes; not MVP —
 hyperscaler-grade now). ADR-0328 remains the canonical sequence authority; ADR-0537 sequences the
 dogfood bring-up of the substrate this matrix decides.
+
+**Amended by ADR-0562 (2026-06-14, capability-first repo organization).** The sixteen domains below
+seed the closed capability registry (`specs/capability-registry.json`); the enforcement posture
+gains the ADR-0562 §4 face-direction check (no crate is both engine and facade) and the §6
+membership lint (every crate maps to exactly one registered capability + a valid face). ADR-0562 is
+the governing reorg ADR; this matrix's domain decisions are unchanged.
 
 ## Context
 
