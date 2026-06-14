@@ -298,3 +298,18 @@ Azure SDK `sdk/<service>/`. Meta fbcode (domain-rooted top, shared infra below).
 ports/adapters seam (Cockburn hexagonal architecture; ADR-0550 D1 kernel/adapter/app) realized as
 the within-capability faces. The closed-enum-as-data discipline mirrors ADR-0280's `tier_subtype`
 enum and ADR-0245's tier facet.
+
+## Phase-0 implementation artifacts
+
+Phase-0 of this ADR (per-service tier metadata schema + born-blocking coverage gate) introduces the
+following tracked artifacts, each justified by this decision (ADR-0562) together with ADR-0536 and
+ADR-0245:
+
+- specs/microservice-tier-classification.json — the generated projection: services → tier/tier_subtype/dr_tier, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/BUCK — buck2 build targets for the born-blocking tier-field-coverage gate
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/Cargo.toml — Cargo manifest for the born-blocking tier-field-coverage gate crate
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/lib.rs — pure kernel + collector for the tier-field-coverage gate (ADR-0562/ADR-0536/ADR-0245)
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/main.rs — binary entry point for the tier-field-coverage gate
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/tests.rs — unit tests for the tier-field-coverage gate kernel
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tests/tier_field_coverage.rs — integration tests including live-corpus born-blocking-green test
+- cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tier-field-coverage-policy.json — policy DATA for the tier-field-coverage gate (enum allowlists, governed roots, minimum manifest count)

@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18484,
-    "source_inputs_digest": "fnv1a64:06b349d3e006360f"
+    "source_inputs_digest": "fnv1a64:00993c5110d0492e"
   },
   "rows": [
     {
@@ -9242,7 +9242,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:cloud/cloud-ci/gates",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/BUCK",
       "reachable_from": [
@@ -9256,7 +9256,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -9264,7 +9264,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:cloud/cloud-ci/gates",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/Cargo.toml",
       "reachable_from": [
@@ -9278,7 +9278,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -9286,7 +9286,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:cloud/cloud-ci/gates",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/lib.rs",
       "reachable_from": [
@@ -9300,7 +9300,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -9308,7 +9308,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:cloud/cloud-ci/gates",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/main.rs",
       "reachable_from": [
@@ -9322,7 +9322,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -9330,7 +9330,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:cloud/cloud-ci/gates",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/src/tests.rs",
       "reachable_from": [
@@ -9344,7 +9344,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -9352,7 +9352,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:cloud/cloud-ci/gates",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tests/tier_field_coverage.rs",
       "reachable_from": [
@@ -9366,7 +9366,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -9374,7 +9374,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:cloud/cloud-ci/gates",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app/tier-field-coverage-policy.json",
       "reachable_from": [
@@ -9388,7 +9388,7 @@
         "ttl_class": "husk"
       },
       "unit_class": "husk",
-      "verdict": "RED"
+      "verdict": "ARCHIVE"
     },
     {
       "_provenance": {
@@ -370603,7 +370603,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:specs",
       "path": "specs/microservice-tier-classification.json",
       "reachable_from": [
@@ -370617,7 +370617,7 @@
         "ttl_class": "spec"
       },
       "unit_class": "spec",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -371670,7 +371670,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:specs",
       "path": "specs/platform-architecture.json",
       "reachable_from": [
@@ -371684,7 +371684,7 @@
         "ttl_class": "spec"
       },
       "unit_class": "spec",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
