@@ -189,18 +189,34 @@ split the deferral into two independently-shippable slices, and **slice-1b-i is 
   fail-closed: an empty trust bundle is `StartError::Mtls(TrustBundleEmpty)`. Five real-handshake E2E
   fixtures (`tests/mtls_live_socket.rs`) prove trusted-SVID ALLOW with SVID-tenant binding (REST +
   gRPC), rogue/untrusted-CA rejection, expired rejection, cross-tenant `403`/`PermissionDenied`,
-  no-client-cert refusal, and the empty-bundle boot-refuse. **The only residual deferral is the
-  runtime bundle-delivery source** (the operator-reconciled projected SVID Secret + init-container
-  fetch — K8s cert-delivery) and the **cloud-kms signer swap**: `main.rs` therefore still boots PLAIN
-  TCP via `start()` (no env source can satisfy a trust bundle yet), with the mTLS path exercised by
-  the fixtures' real `MtlsContext`; `server::start_with_mtls` is the boot path `main` calls once
-  cert-delivery lands (slice-1b-iii). **FRIC-1781490000 stays OPEN**: slice-1b-ii DELIVERS the mTLS
-  transport + custom `ClientCertVerifier` + PEP-at-call-site as a real, RED-proven CAPABILITY, but
-  the PRODUCTION boot path is unchanged (`main.rs` calls `start()` = plain TCP), so the live PDP still
-  trusts a caller-supplied `tenant_id` verbatim. Production closure is deferred to slice-1b-iii
-  (cert-delivery + switching `main()` to `start_with_mtls`). Until slice-1b-iii lands, a consumer (and
-  the G004 PDP slice-2 per-tenant-policy author) MUST NOT treat the live PDP as cryptographically
-  tenant-authenticated. The capability is proven only by the fixtures' real-handshake `MtlsContext`.
+  no-client-cert refusal, and the empty-bundle boot-refuse. The capability is RED-proven over real
+  handshakes; the production boot wiring landed in slice-1b-iii-a/b (below).
+
+- **Slice-1b-iii-a/b — production mTLS boot from a delivered cert mount (LANDED, 2026-06-13,
+  FRIC-1781490000 STAYS OPEN):** `main()` no longer boots plain TCP. A new runtime source
+  `MtlsContext::from_path(dir)` (`oya-cloud-iam-pdp-app/src/mtls_transport.rs`) builds the
+  `MtlsContext` from the delivered kubernetes.io/tls Secret projection (`tls.crt`/`tls.key`/`ca.crt`,
+  PEM), extracting **each CA's REAL `SubjectPublicKeyInfo` DER** (via `x509-parser`) into the trust
+  anchor's `public_key_der` — the value the live rustls verify path consults
+  (`TrustBundle::trusted_ca_spki_ders`); the anchor's attached signer + shape-model `signature` are
+  inert on that path (the correctness finding). A new config knob
+  `OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR` (default `/etc/oya-cloud-iam-pdp/tls`) resolves the mount. The
+  boot decision is extracted into `server::boot_from_config` — the SINGLE body both `main()` and the
+  production-path closure E2E run (tested wiring IS production wiring): it does `from_path` +
+  `start_with_mtls`, **fail-closed** — an absent/empty/malformed mount is a HARD `BootError` and
+  `main` exits non-zero (BOOT REFUSAL), NEVER a downgrade to plain TCP. `start()` (plain TCP) remains
+  the shared boot body / test helper but is unreachable from `main`. The Helm Deployment mounts the
+  `oya-cloud-iam-pdp-svid` Secret read-only at `/etc/oya-cloud-iam-pdp/tls` and sets the env knob.
+  The production-path closure E2E (`tests/main_boot_closure.rs`) boots through `boot_from_config`
+  from a real operator-shaped mount and drives real rustls client handshakes (trusted SVID → ALLOW
+  bound to the SVID tenant; cross-tenant → 403), plus a missing-cert RED fixture proving the boot
+  helper refuses (no plain socket binds). **FRIC-1781490000 STAYS OPEN** until slice-1b-iii-c — the
+  **live SVID operator** that PRODUCES the `oya-cloud-iam-pdp-svid` Secret in-cluster — is the
+  delivery source, because genuine end-to-end production closure requires REAL cert delivery, not
+  test-written material (the twice-burned overclaim rule, #722/#725). The **cloud-kms signer swap**
+  also remains. Until iii-c lands, the prod pod fail-closes without the mount (which is correct), and
+  a consumer (and the G004 PDP slice-2 author) MUST NOT treat the live PDP as cryptographically
+  tenant-authenticated end-to-end.
 
 The `SigningBackend` cutover seam (D4) is now exercised by a real asymmetric backend, confirming the
 seam shape was already correct: the CA, `TrustBundle`, `SecurityService`, and the kernel ports did
@@ -299,6 +315,23 @@ The new third-party deps (rustls, tokio-rustls, hyper, hyper-util, tower,
 futures-core, async-stream — all aws-lc-rs/ring-free) ride the workspace
 Cargo.toml/Cargo.lock and the third-party/BUCK aliases; no tonic TLS feature is
 enabled (the gRPC peer-cert capture is confined to the PDP crate).
+
+Slice-1b-iii-a/b (FRIC-1781490000) adds one new test file (the production-path
+closure E2E + the fail-closed RED fixtures), owned by the existing
+cloud/cloud-iam OWNERS (axis-cloud-platform) and reachable via cargo-members (it
+inherits the PDP crate's accounting; no new unowned/OWNERS row). The from_path
+runtime source + the OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR knob + the main()/server.rs
+boot switch + the Helm SVID mount amend already-accounted files in place:
+
+- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/main_boot_closure.rs — the
+  production-path closure E2E (boot through `server::boot_from_config` from a real
+  operator-shaped cert mount → trusted-SVID ALLOW + cross-tenant 403) plus the
+  fail-closed RED fixtures (absent/empty mount → boot refusal; from_path unit
+  RED: MountUnreadable / Empty / NoCaAnchors / MalformedPem).
+
+The new dev-dep `base64` (operator-shaped PEM serialization in the closure
+fixture) rides the workspace Cargo.toml/third-party//:base64; it is dev-only and
+adds no library surface.
 
 ## Consequences
 

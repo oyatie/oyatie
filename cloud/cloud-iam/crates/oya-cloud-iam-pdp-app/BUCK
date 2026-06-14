@@ -69,6 +69,7 @@ _DEPS = [
     "third-party//:tower",
     "third-party//:tracing",
     "third-party//:tracing-subscriber",
+    "third-party//:x509-parser",
 ]
 
 rust_library(
@@ -137,6 +138,14 @@ rust_test(
     crate_root = "tests/mtls_live_socket.rs",
     visibility = ["PUBLIC"],
     deps = _TEST_DEPS,
+)
+
+rust_test(
+    name = "oya-cloud-iam-pdp-app-boot-closure",
+    srcs = glob(["tests/main_boot_closure.rs", "tests/common/mod.rs", "cedar/**"]),
+    crate_root = "tests/main_boot_closure.rs",
+    visibility = ["PUBLIC"],
+    deps = _TEST_DEPS + ["third-party//:base64"],
 )
 
 rust_test(

@@ -4481,6 +4481,7 @@ dependencies = [
  "async-stream",
  "aws-lc-rs",
  "axum",
+ "base64 0.22.1",
  "futures-core",
  "http-body-util",
  "hyper 1.10.0",
@@ -4509,6 +4510,7 @@ dependencies = [
  "tower 0.5.3",
  "tracing",
  "tracing-subscriber",
+ "x509-parser",
 ]
 
 [[package]]

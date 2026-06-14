@@ -166,10 +166,17 @@ pub const ENV_GRPC_ADDR: &str = "OYA_CLOUD_IAM_PDP_GRPC_ADDR";
 /// (default `65536`; `0` disables caching). Cache keys carry the bundle
 /// version, so revocation stays structural regardless of this knob.
 pub const ENV_DECISION_CACHE_CAPACITY: &str = "OYA_CLOUD_IAM_PDP_DECISION_CACHE_CAPACITY";
+/// `OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR` — directory of the delivered mTLS cert mount
+/// (the kubernetes.io/tls Secret projection: `tls.crt`/`tls.key`/`ca.crt`; default
+/// `/etc/oya-cloud-iam-pdp/tls`). The production boot builds an `MtlsContext` from
+/// this mount and refuses to boot (never plain TCP) if the material is
+/// absent/empty/malformed (G002 slice-1b-iii; ADR-0561).
+pub const ENV_MTLS_CERT_DIR: &str = "OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR";
 
 const DEFAULT_REST_ADDR: &str = "0.0.0.0:8080";
 const DEFAULT_GRPC_ADDR: &str = "0.0.0.0:8081";
 const DEFAULT_DECISION_CACHE_CAPACITY: usize = 65_536;
+const DEFAULT_MTLS_CERT_DIR: &str = "/etc/oya-cloud-iam-pdp/tls";
 
 /// A configuration defect found while resolving [`PdpConfig`].
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -210,6 +217,10 @@ pub struct PdpConfig {
     pub grpc_addr: String,
     /// Bounded decision-cache capacity (`0` disables caching).
     pub decision_cache_capacity: usize,
+    /// Directory of the delivered mTLS cert mount (kubernetes.io/tls Secret
+    /// projection). The production boot builds an `MtlsContext` from this mount
+    /// and fail-closes if it is absent/empty/malformed.
+    pub mtls_cert_dir: String,
 }
 
 impl PdpConfig {
@@ -238,11 +249,15 @@ impl PdpConfig {
                 detail: e.to_string(),
             })?,
         };
+        let mtls_cert_dir = get(ENV_MTLS_CERT_DIR)
+            .unwrap_or(DEFAULT_MTLS_CERT_DIR)
+            .to_owned();
         Ok(Self {
             bundle_path,
             rest_addr,
             grpc_addr,
             decision_cache_capacity,
+            mtls_cert_dir,
         })
     }
 
@@ -271,6 +286,10 @@ mod tests {
             (ENV_REST_ADDR.to_owned(), "127.0.0.1:9090".to_owned()),
             (ENV_GRPC_ADDR.to_owned(), "127.0.0.1:9091".to_owned()),
             (ENV_DECISION_CACHE_CAPACITY.to_owned(), "128".to_owned()),
+            (
+                ENV_MTLS_CERT_DIR.to_owned(),
+                "/var/run/pdp/svid".to_owned(),
+            ),
         ])
     }
 
@@ -284,6 +303,7 @@ mod tests {
                 rest_addr: "127.0.0.1:9090".to_owned(),
                 grpc_addr: "127.0.0.1:9091".to_owned(),
                 decision_cache_capacity: 128,
+                mtls_cert_dir: "/var/run/pdp/svid".to_owned(),
             }
         );
     }
@@ -301,6 +321,27 @@ mod tests {
             config.decision_cache_capacity,
             DEFAULT_DECISION_CACHE_CAPACITY
         );
+    }
+
+    #[test]
+    fn mtls_cert_dir_resolves_present_and_defaults() {
+        // Present: the env value flows through verbatim.
+        let mut vars = BTreeMap::from([(
+            ENV_BUNDLE_PATH.to_owned(),
+            "/etc/pdp/bundle.json".to_owned(),
+        )]);
+        vars.insert(ENV_MTLS_CERT_DIR.to_owned(), "/custom/svid/mount".to_owned());
+        let config = PdpConfig::from_lookup(&vars).unwrap();
+        assert_eq!(config.mtls_cert_dir, "/custom/svid/mount");
+
+        // Absent: the twelve-factor default is the canonical mount path.
+        let defaulted = PdpConfig::from_lookup(&BTreeMap::from([(
+            ENV_BUNDLE_PATH.to_owned(),
+            "/etc/pdp/bundle.json".to_owned(),
+        )]))
+        .unwrap();
+        assert_eq!(defaulted.mtls_cert_dir, DEFAULT_MTLS_CERT_DIR);
+        assert_eq!(defaulted.mtls_cert_dir, "/etc/oya-cloud-iam-pdp/tls");
     }
 
     #[test]
