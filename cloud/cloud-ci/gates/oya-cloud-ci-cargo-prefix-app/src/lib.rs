@@ -131,14 +131,17 @@ fn member_from_row(row: &Value) -> Option<CargoPrefixMember> {
     })
 }
 
-/// Pure evaluator: takes `{"rows": [{"member_path": "...", "package_name": "..."}, ...]}` and
-/// returns one `Finding` per cargo-prefix violation. Reuses
+/// Pure evaluator over an INJECTED [`NamingConfig`] (ADR-0533 §Decision item 3: the required
+/// prefix is the PROFILE-RESOLVED config loaded from `oya-ci.toml`, NOT a hardcoded literal).
+/// Takes `{"rows": [{"member_path": "...", "package_name": "..."}, ...]}` and returns one
+/// `Finding` per cargo-prefix violation. Reuses
 /// `oya_intelligence_cargo_prefix_domain::validate_cargo_prefix` per crate (surface-all).
-pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
-    // The required prefix is sourced from the oya-ci config `[naming]` section. In this floor the
-    // gate uses the bundled default (== today's `oya-`), so findings are byte-identical; the
-    // producer's input-binding routes the live config when it builds the rows.
-    let prefix = NamingConfig::default().required_prefix;
+///
+/// Under `profile='neutral'` the resolved `required_prefix` is empty, so EVERY member "starts
+/// with" it and no `cargo_prefix_violation` is raised — the de-brand. Under `profile='oyatie'`
+/// the resolved prefix is `oya-`, so findings are byte-identical to today.
+pub fn evaluate_keyed_with(input: &Value, naming: &NamingConfig) -> BTreeSet<Finding> {
+    let prefix = naming.required_prefix.clone();
     let rows = input
         .get("rows")
         .and_then(Value::as_array)
@@ -151,7 +154,11 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
         };
         // Run the policy over a SINGLE member so the first-error contract yields a per-crate
         // verdict (surface-all): a conforming member is `Ok`, a non-conforming one is the `Err`
-        // describing its single violation.
+        // describing its single violation. An empty configured prefix (neutral profile) makes
+        // `validate_cargo_prefix` treat every member as conformant — the de-brand path.
+        if prefix.is_empty() {
+            continue;
+        }
         if let Err(error) = validate_cargo_prefix([member], &prefix) {
             findings.insert(finding_for(&error));
         }
@@ -159,13 +166,25 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     findings
 }
 
-/// Bare-code projection of [`evaluate_keyed`] — the single source of truth for the verdict.
-pub fn evaluate(input: &Value) -> Report {
-    let codes: BTreeSet<String> = evaluate_keyed(input)
+/// Bundled-default (oyatie profile) projection of [`evaluate_keyed_with`]. The producer routes
+/// the live profile-resolved config via `evaluate_keyed_with`; this projection keeps the legacy
+/// pure surface byte-identical (default `required_prefix == "oya-"`).
+pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
+    evaluate_keyed_with(input, &NamingConfig::default())
+}
+
+/// Bare-code projection of [`evaluate_keyed_with`] over an injected config.
+pub fn evaluate_with(input: &Value, naming: &NamingConfig) -> Report {
+    let codes: BTreeSet<String> = evaluate_keyed_with(input, naming)
         .into_iter()
         .map(|f| f.code)
         .collect();
     Report::from_codes(codes)
+}
+
+/// Bare-code projection of [`evaluate_keyed`] — the single source of truth for the verdict.
+pub fn evaluate(input: &Value) -> Report {
+    evaluate_with(input, &NamingConfig::default())
 }
 
 #[cfg(test)]
@@ -256,5 +275,41 @@ mod tests {
     #[test]
     fn empty_corpus_is_green() {
         assert_eq!(evaluate(&json!({ "rows": [] })).verdict, Verdict::Green);
+    }
+
+    /// ADR-0533 de-brand: under the NEUTRAL profile the resolved `required_prefix` is empty, so a
+    /// member that would trip `cargo_prefix_violation` under oyatie is GREEN — the prefix rule is
+    /// de-branded. Proves the gate is profile-sourced, not hardcoded to `oya-`.
+    #[test]
+    fn neutral_profile_empty_prefix_raises_no_prefix_violation() {
+        let input = rows(&[
+            ("crates/acme-capability-kernel", "acme-capability-kernel"),
+            ("crates/widget-thing", "widget-thing"),
+        ]);
+        let neutral = NamingConfig {
+            required_prefix: String::new(),
+            allowed_roles: vec![],
+            check_family_prefix: String::new(),
+            backend_suffixes: vec![],
+            doctrinal_carve_outs: vec![],
+        };
+        let findings = evaluate_keyed_with(&input, &neutral);
+        assert!(
+            findings.is_empty(),
+            "neutral profile must raise no prefix violations, got {findings:?}"
+        );
+        assert_eq!(evaluate_with(&input, &neutral).verdict, Verdict::Green);
+        // The SAME corpus under the oyatie default still RED (safety property: oyatie unchanged).
+        assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    /// The oyatie-profile config reproduces the bundled default exactly (byte-identity).
+    #[test]
+    fn oyatie_profile_matches_bundled_default() {
+        let input = rows(&[("crates/acme-bad", "acme-bad")]);
+        assert_eq!(
+            evaluate_keyed_with(&input, &NamingConfig::default()),
+            evaluate_keyed(&input)
+        );
     }
 }
