@@ -406,6 +406,6 @@
     "console shell vs app/<product> surfaces that compile into it: where is the shell/surface line?",
     "compliance vs audit: clean port seam exists, heavy coupling; collapse candidate.",
     "comms substrate notifications vs comms product surfaces (messenger/meet/mail): substrate or app?",
-    "intelligence/workflow/iac/tenancy map to ADR-0280 nodes not present in the original Tier-1 worked example; their dag_node names are proposed and must be reconciled when ADR-0280's DAG is populated in Phase 0."
+    "intelligence/workflow/iac/tenancy dag_node reconciliation (RESOLVED in Phase-0 when specs/substrate-dependency-dag.json was populated to ADR-0280 §D-1 verbatim): tenancy, intelligence, and workflow-engine ARE present in the §D-1 Tier-1 ten (this flag predated reading §D-1, which already carries them) — their dag_node names are confirmed canonical. The fourth, iac (dag_node 'iac'; ADR-0280 Appendix C names it 'cloud-iac', tier_subtype substrate-iac), is a TIER-2 substrate forward-declared per ADR-0280 Appendix C and lands in DAG v1.1.0, NOT the v1.0.0 Tier-1 file. See the substrate-dependency-dag.json _comment for the full reconciliation."
   ]
 }

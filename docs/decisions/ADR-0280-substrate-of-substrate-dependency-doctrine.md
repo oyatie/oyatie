@@ -180,6 +180,55 @@ Until those five prerequisites land, the validators emit findings
 without failing CI. Post-prerequisite, the lanes promote to
 BLOCKER per ADR-0139 agentic-SLO-gated promotion.
 
+### Phase-0 implementation manifest (born-accounting anchor)
+
+The Phase-0 reorg lane (capability-first reorg per ADR-0562) realizes
+prerequisites #1-#3 above with the following concrete artifacts. This
+manifest is the born-accounting justification anchor for those files
+(ADR-0555 unjustified-is-unmergeable): each path below is justified by
+this ADR (the doctrine that mandates it). The original prose names
+`crates/oya-substrate-dependency-dag-validator-*` are realized as a
+cloud-ci gate crate so the validator is wired into the one-canonical-CI
+gate matrix (ADR-0515) rather than a standalone crate, satisfying the
+gate-registration meta-test (an in-tree-but-unregistered gate is a
+silent false-green):
+
+- Prerequisite #1 (the canonical DAG): `specs/substrate-dependency-dag.json`
+  (the §D-1 v1.0.0 Tier-1 worked example, populated verbatim; de-branded
+  node names per ADR-0562).
+- Prerequisite #2 (the Tarjan/Kahn validator + cycle fixtures):
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/BUCK`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/Cargo.toml`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/lib.rs`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/main.rs`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/acyclicity.rs`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/simple-two-node.json`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/three-node.json`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/self-loop.json`
+  - `cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/fixtures/dag-cycles/six-node-buried.json`
+- Prerequisite #3 (the named CI lane): the lane
+  `oya-check-substrate-dependency-dag-acyclicity` is authored in
+  `.github/workflows/check-substrates.yml` (the ADR-prescribed surface)
+  and ALSO registered in the canonical `.github/workflows/oya-ci-required.yml`
+  gate matrix (so the gate-registration meta-test passes and the lane
+  gates the required context).
+
+Prerequisites #4 (per-µservice manifest `substrate_dag_position`) and #5
+(the cloud-iac substrate catalog) are NOT in scope for this Phase-0 lane;
+they remain advisory until their own follow-up IPs land, so the lane stays
+advisory (not yet promoted to BLOCKER) per the enforcement_status above.
+
+VERIFIED FINDING recorded by this lane: the §D-1 `bootstrap_order` is a
+valid topological order but is NOT the alphabetical-tie-break Kahn sort
+that §D-4 calls "unique" (cloud-secrets depends only on cell at runtime,
+so it would alphabetically sort 2nd, yet §D-1 places it at step 5 per the
+R-5 Shamir-genesis bootstrap-only seam). The validator therefore checks
+VALID-topological-order (the load-bearing invariant accommodating R-5),
+not equality to the alphabetical sort; see the
+`specs/substrate-dependency-dag.json` `_comment` for the full record. A
+follow-up may reconcile §D-4's "unique alphabetical sort" prose with
+§D-1's verbatim order.
+
 ## Date
 
 2026-05-20.
