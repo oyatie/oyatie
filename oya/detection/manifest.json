@@ -1,8 +1,26 @@
 {
   "schema_version": "1.0",
   "microservice": "detection",
-  "version": "0.1.0",
   "tier": "substrate",
+  "tier_subtype": "substrate-ai",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S4",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "observability",
+      "ontology",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "workflow-engine"
+    ]
+  },
+  "version": "0.1.0",
   "owner": "axis-detection",
   "microservice_count_delta": {
     "before": 69,
@@ -294,9 +312,7 @@
     "istio",
     "kyverno"
   ],
-  "oss_stewardship_class_overrides": [
-
-  ],
+  "oss_stewardship_class_overrides": [],
   "iac_module_invocations": [
     {
       "context": "oci-guest",

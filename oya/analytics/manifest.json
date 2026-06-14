@@ -1,6 +1,25 @@
 {
   "manifest_schema_version": "1.0",
   "microservice": "analytics",
+  "tier": "substrate",
+  "tier_subtype": "substrate-data",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S3",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "observability",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "intelligence",
+      "workflow-engine"
+    ]
+  },
   "owner": "council-analytics",
   "rationale": "Analytics µservice — tenant-facing OLAP analytics warehouse per ADR-0193. Serves tenant-facing dashboards, ops portal rollups, audit-log query, and billing rollups. Distinct from observability (ops/SRE telemetry per ADR-0186) and foundry (vector retrieval per ADR-0192). Introduced 2026-05-18 by the data-substrate batch.",
   "introducing_phase": "M02-data-substrate",
@@ -44,8 +63,12 @@
     "data_class_taxonomy": "ADR-0008-DUBO"
   },
   "observability": {
-    "openslo_manifests": ["microservices/analytics/slos/clickhouse-query-latency.openslo.yaml"],
-    "dashboards": ["microservices/analytics/dashboards/clickhouse-overview.json"],
+    "openslo_manifests": [
+      "microservices/analytics/slos/clickhouse-query-latency.openslo.yaml"
+    ],
+    "dashboards": [
+      "microservices/analytics/dashboards/clickhouse-overview.json"
+    ],
     "prometheus_rules": "rendered via sloth from openslo source per ADR-0186 Stage 5"
   },
   "framework_scorecards": {
@@ -55,23 +78,70 @@
     "slsa_l3": "microservices/analytics/scorecards/slsa-l3.json"
   },
   "ip_pack": [
-    {"id": "IP-001", "title": "ClickHouse cluster IaC (operator + 3-shard × 2-replica + Keeper)"},
-    {"id": "IP-002", "title": "Per-tenant database bootstrap + row-level policies"},
-    {"id": "IP-003", "title": "OLAP client kernel wiring + adapter crate scaffold"},
-    {"id": "IP-004", "title": "Outbox → ClickHouse CDC ingest pipeline"},
-    {"id": "IP-005", "title": "Materialized View canon (per ADR-0195 default tier)"},
-    {"id": "IP-006", "title": "Cold-tier S3 disk + TTL retention"},
-    {"id": "IP-007", "title": "Tenant-facing dashboard API (REST + GraphQL)"},
-    {"id": "IP-008", "title": "Audit-log query API (per-axis filter + cursor pagination)"},
-    {"id": "IP-009", "title": "Billing rollup pipeline (daily + monthly partitions)"},
-    {"id": "IP-010", "title": "Cross-cell federation via Distributed table engine"},
-    {"id": "IP-011", "title": "Per-tenant quota enforcement (ClickHouse QUOTA → Cedar)"},
-    {"id": "IP-012", "title": "Backup tool (BACKUP TABLE → S3-compat) + restore drill"},
-    {"id": "IP-013", "title": "ClickHouse data-export evidence pack (regulator export)"},
-    {"id": "IP-014", "title": "Self-SLO authoring + 4-window burn-rate alerts"},
-    {"id": "IP-015", "title": "App composition root + REST/gRPC adapters"}
+    {
+      "id": "IP-001",
+      "title": "ClickHouse cluster IaC (operator + 3-shard × 2-replica + Keeper)"
+    },
+    {
+      "id": "IP-002",
+      "title": "Per-tenant database bootstrap + row-level policies"
+    },
+    {
+      "id": "IP-003",
+      "title": "OLAP client kernel wiring + adapter crate scaffold"
+    },
+    {
+      "id": "IP-004",
+      "title": "Outbox → ClickHouse CDC ingest pipeline"
+    },
+    {
+      "id": "IP-005",
+      "title": "Materialized View canon (per ADR-0195 default tier)"
+    },
+    {
+      "id": "IP-006",
+      "title": "Cold-tier S3 disk + TTL retention"
+    },
+    {
+      "id": "IP-007",
+      "title": "Tenant-facing dashboard API (REST + GraphQL)"
+    },
+    {
+      "id": "IP-008",
+      "title": "Audit-log query API (per-axis filter + cursor pagination)"
+    },
+    {
+      "id": "IP-009",
+      "title": "Billing rollup pipeline (daily + monthly partitions)"
+    },
+    {
+      "id": "IP-010",
+      "title": "Cross-cell federation via Distributed table engine"
+    },
+    {
+      "id": "IP-011",
+      "title": "Per-tenant quota enforcement (ClickHouse QUOTA → Cedar)"
+    },
+    {
+      "id": "IP-012",
+      "title": "Backup tool (BACKUP TABLE → S3-compat) + restore drill"
+    },
+    {
+      "id": "IP-013",
+      "title": "ClickHouse data-export evidence pack (regulator export)"
+    },
+    {
+      "id": "IP-014",
+      "title": "Self-SLO authoring + 4-window burn-rate alerts"
+    },
+    {
+      "id": "IP-015",
+      "title": "App composition root + REST/gRPC adapters"
+    }
   ],
-  "phases": ["PHASE-01-ANALYTICS-OLAP-BOOTSTRAP"],
+  "phases": [
+    "PHASE-01-ANALYTICS-OLAP-BOOTSTRAP"
+  ],
   "deferred_doc_artifacts": "see /Users/jasonlee/oyatie/evidence/parent-wiring-todo-data-batch.json",
   "mesh_layering": {
     "cilium_l4": true,

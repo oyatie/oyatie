@@ -2,6 +2,15 @@
   "$schema": "https://oyatie.com/schemas/microservice-manifest.json",
   "schema_version": "1.0",
   "microservice": "managed-k8s-control-plane-host",
+  "tier": "substrate",
+  "tier_subtype": "substrate-infra",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S1",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+  },
   "version": "0.1.0",
   "owner": "council-architecture + ops-platform",
   "bounded_contexts": [
@@ -17,11 +26,22 @@
       ]
     }
   ],
-  "layers": ["kernel", "api", "adapter", "app"],
+  "layers": [
+    "kernel",
+    "api",
+    "adapter",
+    "app"
+  ],
   "contracts": {
-    "openapi": ["microservices/oya-managed-k8s-control-plane-host/contracts/openapi.yaml"],
-    "asyncapi": ["microservices/oya-managed-k8s-control-plane-host/contracts/asyncapi.yaml"],
-    "proto": ["microservices/oya-managed-k8s-control-plane-host/contracts/control_plane_host.proto"]
+    "openapi": [
+      "microservices/oya-managed-k8s-control-plane-host/contracts/openapi.yaml"
+    ],
+    "asyncapi": [
+      "microservices/oya-managed-k8s-control-plane-host/contracts/asyncapi.yaml"
+    ],
+    "proto": [
+      "microservices/oya-managed-k8s-control-plane-host/contracts/control_plane_host.proto"
+    ]
   },
   "capabilities": [
     {
@@ -65,7 +85,18 @@
       "file": "microservices/oya-managed-k8s-control-plane-host/IPs/IP-001-control-plane-host-foundation.md"
     }
   ],
-  "regulatory_packs": ["kr", "eu", "us", "jp", "sg", "au", "in", "br", "ae", "ksa"],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
   "lts_pins": {
     "rust": "1.95.0",
     "kube": "3.1 (pin lands in registry/lts-pins.yaml when kamaji-provider-live-integration wires the live reconcile per ADR-0376)",

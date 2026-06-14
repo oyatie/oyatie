@@ -1,6 +1,24 @@
 {
   "schema_version": "1.0",
   "microservice": "workflow-engine",
+  "tier": "substrate",
+  "tier_subtype": "substrate-orchestration",
+  "dr_tier": "T2",
+  "substrate_dag_position": {
+    "stratum": "S4",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "intelligence",
+      "observability",
+      "ontology",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": []
+  },
   "version": "0.1.0",
   "owner": "axis-workflow-engine",
   "bounded_contexts": [

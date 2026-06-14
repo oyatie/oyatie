@@ -1,12 +1,19 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "imaging",
+  "tier": "substrate",
+  "tier_subtype": "substrate-data",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+  },
   "title": "Imaging (Medical Imaging / PACS / VNA / Radiology Workflow)",
   "status": "wave-15m-g-authored-2026-05-21",
   "date": "2026-05-21",
-  "tier": "product",
   "audience_type": "tenant-b2b-healthcare",
-  "tier_subtype": "b2b-leader-operational-concern",
   "binding_adrs": [
     "ADR-0131",
     "ADR-0132",

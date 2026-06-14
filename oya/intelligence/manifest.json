@@ -1,10 +1,28 @@
 {
   "schema_version": "1.0",
   "microservice": "intelligence",
+  "tier": "substrate",
+  "tier_subtype": "substrate-ai",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S4",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "observability",
+      "ontology",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "workflow-engine"
+    ]
+  },
   "version": "0.1.0",
   "owner": "axis-intelligence",
   "naming_justification": "intelligence = canonical AI substrate per ADR-0255 two-layer model; layer-A substrate + layer-B brand-ux-surface cohabit in one \u00b5service; name is lowercase-singular per oyatie naming convention; ADR-0105 13-layer-enum conformant",
-  "tier": "substrate",
   "audience_type": [
     "CONSUMER",
     "DEVELOPER",

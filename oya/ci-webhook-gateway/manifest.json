@@ -1,12 +1,23 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "ci-webhook-gateway",
+  "tier": "substrate",
+  "tier_subtype": "substrate-meta",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+  },
   "title": "CI Webhook Gateway",
   "status": "wave-3-scaffold-2026-05-26",
   "date": "2026-05-26",
   "audience_type": "internal-substrate",
   "summary": "Receives GitHub webhook deliveries, verifies the HMAC signature (fail-closed), parses pull_request events against the gated branch (dev), and dispatches the gated CI pipeline by kicking the Jenkins oyaCiLane lane. The missing trigger that turns a PR event into a real, gated CI run — retiring the manual admin-relax-merge seam.",
-  "bounded_contexts": ["change-coordination-substrate"],
+  "bounded_contexts": [
+    "change-coordination-substrate"
+  ],
   "layer": "app",
   "package_name": "oya-ci-webhook-gateway-app",
   "owner": "council-architecture + ops-platform",
@@ -33,7 +44,10 @@
     "ADR-0367",
     "ADR-0374"
   ],
-  "contracts": ["openapi-v1", "asyncapi-v1"],
+  "contracts": [
+    "openapi-v1",
+    "asyncapi-v1"
+  ],
   "contract_notes": "No proto3/gRPC surface: this is an HTTP webhook receiver + Jenkins dispatcher, not an inter-service gRPC API. The proto3 design surface is deliberately deferred (see registry/design-spec-maturity/wave-3-i-deferred-surfaces.tsv).",
   "regulatory_packs": [
     {
@@ -76,8 +90,12 @@
     "runtime_mesh_enabled": false,
     "non_claim": "No Istio/Cilium/Envoy runtime configuration is implemented by this scaffold; the declaration records the ADR-0148 Tier-1 + Tier-2 layering intent that the deploy substrate provisions."
   },
-  "slos": ["slos/ci-webhook-gateway.openslo.yaml"],
-  "capabilities": ["capabilities/capability-catalog.md"],
+  "slos": [
+    "slos/ci-webhook-gateway.openslo.yaml"
+  ],
+  "capabilities": [
+    "capabilities/capability-catalog.md"
+  ],
   "tenant_isolation": "N/A — substrate service, not tenant-scoped. Runs in the oya-ci namespace; no cross-tenant data path.",
   "dispatch_targets": {
     "trusted_runner": "Jenkins oyaCiLane pipeline (infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy)",

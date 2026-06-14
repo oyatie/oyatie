@@ -1,13 +1,30 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "data-pipeline",
+  "tier": "substrate",
+  "tier_subtype": "substrate-data",
+  "dr_tier": "T2",
+  "substrate_dag_position": {
+    "stratum": "S3",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "observability",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "intelligence",
+      "workflow-engine"
+    ]
+  },
   "title": "Data Pipeline",
   "status": "reserved-wave-3-i-anchor",
   "date": "2026-05-20",
   "date_amended": "2026-05-21",
-  "tier": "product",
   "audience_type": "tenant-b2b-data",
-  "tier_subtype": "b2b-leader-operational-concern",
   "binding_adrs": [
     "ADR-0105",
     "ADR-0131",
@@ -56,9 +73,17 @@
     "schedule"
   ],
   "bounded_sub_contexts": {
-    "connector": ["cdk-authoring"],
-    "transform": ["semantic-layer", "materialization-policy", "package-management"],
-    "lineage": ["exposure-tracking"]
+    "connector": [
+      "cdk-authoring"
+    ],
+    "transform": [
+      "semantic-layer",
+      "materialization-policy",
+      "package-management"
+    ],
+    "lineage": [
+      "exposure-tracking"
+    ]
   },
   "substrate_dependencies": [
     "data-warehouse",
@@ -82,7 +107,10 @@
     "cross_cell_replication": "metadata-only-unless-pack-allows"
   },
   "tenant_class_doctrine": {
-    "axis": ["demo_trial", "paid"],
+    "axis": [
+      "demo_trial",
+      "paid"
+    ],
     "source": "ADR-0331 tenant_class adoption",
     "feature_surface": "identical across classes",
     "discriminator": "metering, capacity, billing"

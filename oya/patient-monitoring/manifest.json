@@ -1,12 +1,13 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "patient-monitoring",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T2",
   "title": "Patient Monitoring (Vital Signs Telemetry + RPM + ICU)",
   "status": "wave-15m-f-authoring",
   "date": "2026-05-21",
-  "tier": "product",
   "audience_type": "tenant-b2b-healthcare-provider",
-  "tier_subtype": "b2b-clinical-realtime-physiologic-substrate",
   "doctrine_summary": "Hyperscaler-grade continuous physiologic surveillance \u00b5service. Owns VitalSignsStream + Waveform + ICUMonitoring + RPM + AlarmManagement + SmartAlarm + Trending + DeteriorationPrediction + SepsisEarlyWarning + CodeBlue + TelemetryCoverage + CentralStation + MobileNotification + WaveformArchive + DeviceInterop + TrendAnalytics + WearableIntegration + ICUBundleCompliance bounded contexts. Streams 50-1000Hz waveforms via gRPC + FlatBuffers; 1Hz numeric vitals via FHIR Observation[vital-signs]; ML deterioration scoring (NEWS2/MEWS/qSOFA/SOFA/Rothman analog) every 5 minutes; smart alarm engine reduces alarm-fatigue \u226540% vs. Philips/GE/Mindray baselines. Cedar-gated bed-group + alarm-suppression authority chain; HIPAA + EU-AI-Act packs mandatory; FDA 21 CFR Part 11 + IEC 62304 SaMD Class C lifecycle binding.",
   "binding_adrs": [
     "ADR-0131",

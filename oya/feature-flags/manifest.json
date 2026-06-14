@@ -1,9 +1,17 @@
 {
   "schema_version": "1.0",
   "microservice": "feature-flags",
-  "owner": "axis-governance",
   "tier": "substrate",
-  "purpose": "Canonical OpenFeature-compatible runtime flag substrate with tenant, persona, cohort, and emergency kill-switch targeting. Consumed by all 46+ \u00b5services as shared substrate per ADR-0245.",
+  "tier_subtype": "substrate-governance",
+  "dr_tier": "T0",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+  },
+  "owner": "axis-governance",
+  "purpose": "Canonical OpenFeature-compatible runtime flag substrate with tenant, persona, cohort, and emergency kill-switch targeting. Consumed by all 46+ µservices as shared substrate per ADR-0245.",
   "substrate_dependencies": [
     "oya-shared-policy-eval",
     "oya-shared-hlc",
@@ -501,8 +509,8 @@
   "naming_justifications": {
     "microservice": "feature-flags — single-concern substrate per ADR-0132 no-grouping policy; hyphen-separated per BNF v4.1",
     "crate_pattern": "oya-feature-flags-<bc>-<layer> per ADR-0105 13-layer enum; BC values: flag, targeting, experiment, metric, rollout, killswitch",
-    "kafka_topics": "oya.feature-flags.<event-class> \u2014 dot-separated namespace; snake_case event class per ADR-0263",
-    "cedar_fragments": "policy/<capability>-<action>-authorization.cedar \u2014 kebab-case; action-scoped per ADR-0183"
+    "kafka_topics": "oya.feature-flags.<event-class> — dot-separated namespace; snake_case event class per ADR-0263",
+    "cedar_fragments": "policy/<capability>-<action>-authorization.cedar — kebab-case; action-scoped per ADR-0183"
   },
   "regulatory_packs": [
     "us",

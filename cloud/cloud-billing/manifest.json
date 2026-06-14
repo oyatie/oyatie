@@ -1,6 +1,15 @@
 {
   "schema_version": "1.0",
   "microservice": "cloud-billing",
+  "tier": "substrate",
+  "tier_subtype": "substrate-marketplace-data",
+  "dr_tier": "T2",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+  },
   "version": "0.1.0",
   "owner": "axis-cloud-billing",
   "bounded_contexts": [

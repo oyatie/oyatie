@@ -1,6 +1,15 @@
 {
   "schema_version": "1.0",
   "microservice": "cloud-network",
+  "tier": "substrate",
+  "tier_subtype": "substrate-network",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S1",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+  },
   "version": "0.1.0",
   "owner": "axis-cloud-network",
   "bounded_contexts": [

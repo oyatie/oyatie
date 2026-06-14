@@ -182,6 +182,15 @@
     "no external marketplace adapter crate or provider API integration"
   ],
   "microservice": "marketplace",
+  "tier": "substrate",
+  "tier_subtype": "substrate-marketplace-data",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+  },
   "owner": "axis-marketplace",
   "bounded_contexts": [
     {
