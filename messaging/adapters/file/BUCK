@@ -11,9 +11,9 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-eventing-file-adapter-file-outbox",
+    name = "messaging-file-adapter-file-outbox",
     srcs = ["tests/file_outbox.rs"],
-    crate = "oya_eventing_file_adapter_file_outbox",
+    crate = "messaging_file_adapter_file_outbox",
     crate_root = "tests/file_outbox.rs",
     visibility = ["PUBLIC"],
     deps = [

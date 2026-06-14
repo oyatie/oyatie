@@ -139,7 +139,7 @@ fn temp_outbox_path(label: &str) -> PathBuf {
         .expect("clock after epoch")
         .as_nanos();
     std::env::temp_dir().join(format!(
-        "oya-eventing-outbox-{label}-{}-{nanos}.log",
+        "messaging-outbox-{label}-{}-{nanos}.log",
         std::process::id()
     ))
 }
