@@ -1,0 +1,258 @@
+//! CLI for the reversible capability-move codemod + pre-move green-snapshot oracle
+//! (ADR-0562 Phase-0 reorg machinery). Local bridge tool ONLY — it ships UNUSED until the
+//! strangler invokes it, and merge authority stays in the cloud-ci/oya-ci required contexts
+//! (cli_surface_policy). NO real capability is moved by this lane.
+//!
+//! Modes:
+//!   apply    --plan <plan.json> [--repo-root <p>] [--revert]
+//!              Apply (or, with --revert, inverse-apply) a move plan to the tree. Fail-closed.
+//!   dry-run  --plan <plan.json> [--repo-root <p>] [--revert] [--with-buck] [--keep-shadow]
+//!              Shadow-apply + prove resolution WITHOUT landing. Exit 0 = clean, 2 = unclean.
+//!   snapshot [--repo-root <p>] [--with-buck]
+//!              Capture the green snapshot (cargo metadata + buck2 targets) as the rollback
+//!              oracle; printed to stdout as canonical JSON faces.
+//!
+//! The plan JSON shape:
+//!   { "capability": "iam",
+//!     "moves": [ { "old_path": "...", "new_path": "...",
+//!                  "old_cargo_name": "...", "new_cargo_name": "..." }, ... ] }
+
+#![forbid(unsafe_code)]
+
+use std::path::{Path, PathBuf};
+use std::process::ExitCode;
+
+use oya_reorg_codemod_app::model::{CodemodError, CrateMove, MovePlan};
+use oya_reorg_codemod_app::oracle;
+use oya_reorg_codemod_app::plan::{apply_plan, ApplyOptions};
+use serde_json::{json, Value};
+
+fn main() -> ExitCode {
+    match run() {
+        Ok(code) => code,
+        Err(error) => {
+            eprintln!("oya-reorg-codemod: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run() -> Result<ExitCode, String> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let mode = args.first().map(String::as_str).unwrap_or("");
+    let rest = &args[args.len().min(1)..];
+
+    match mode {
+        "apply" => cmd_apply(rest),
+        "dry-run" => cmd_dry_run(rest),
+        "snapshot" => cmd_snapshot(rest),
+        "" | "-h" | "--help" => {
+            print_usage();
+            Ok(ExitCode::SUCCESS)
+        }
+        other => Err(format!("unknown mode {other:?}; try --help")),
+    }
+}
+
+fn cmd_apply(args: &[String]) -> Result<ExitCode, String> {
+    let opts = parse_common(args)?;
+    let plan = load_plan(&opts.plan, opts.revert)?;
+    let outcome = apply_plan(&opts.repo_root, &plan, &ApplyOptions { use_git_mv: true })
+        .map_err(|e: CodemodError| e.to_string())?;
+    println!("{}", to_canonical_json(&apply_outcome_json(&outcome)));
+    Ok(ExitCode::SUCCESS)
+}
+
+fn cmd_dry_run(args: &[String]) -> Result<ExitCode, String> {
+    let opts = parse_common(args)?;
+    let plan = load_plan(&opts.plan, opts.revert)?;
+    let report = oracle::dry_run(&opts.repo_root, &plan, opts.with_buck, opts.keep_shadow)
+        .map_err(|e: CodemodError| e.to_string())?;
+    println!("{}", to_canonical_json(&dry_run_json(&report)));
+    if report.clean {
+        Ok(ExitCode::SUCCESS)
+    } else {
+        // Distinct unclean exit code (2) so a gate can tell "tool error" from "move unclean".
+        Ok(ExitCode::from(2))
+    }
+}
+
+fn cmd_snapshot(args: &[String]) -> Result<ExitCode, String> {
+    let opts = parse_common_lenient(args)?;
+    let snap = oracle::capture_snapshot(&opts.repo_root, opts.with_buck);
+    println!("{}", to_canonical_json(&snapshot_json(&snap)));
+    Ok(ExitCode::SUCCESS)
+}
+
+struct Opts {
+    plan: PathBuf,
+    repo_root: PathBuf,
+    revert: bool,
+    with_buck: bool,
+    keep_shadow: bool,
+}
+
+fn parse_common(args: &[String]) -> Result<Opts, String> {
+    let opts = parse_common_lenient(args)?;
+    if opts.plan.as_os_str().is_empty() {
+        return Err("--plan <path> is required".to_string());
+    }
+    Ok(opts)
+}
+
+fn parse_common_lenient(args: &[String]) -> Result<Opts, String> {
+    let mut plan = PathBuf::new();
+    let mut repo_root = std::env::current_dir().map_err(|e| e.to_string())?;
+    let mut revert = false;
+    let mut with_buck = false;
+    let mut keep_shadow = false;
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--plan" => {
+                plan = PathBuf::from(next(args, &mut i, "--plan")?);
+            }
+            "--repo-root" => {
+                repo_root = PathBuf::from(next(args, &mut i, "--repo-root")?);
+            }
+            "--revert" => revert = true,
+            "--with-buck" => with_buck = true,
+            "--keep-shadow" => keep_shadow = true,
+            other => return Err(format!("unknown flag {other:?}")),
+        }
+        i += 1;
+    }
+    Ok(Opts {
+        plan,
+        repo_root,
+        revert,
+        with_buck,
+        keep_shadow,
+    })
+}
+
+fn next(args: &[String], i: &mut usize, flag: &str) -> Result<String, String> {
+    *i += 1;
+    args.get(*i)
+        .cloned()
+        .ok_or_else(|| format!("{flag} requires a value"))
+}
+
+fn load_plan(path: &Path, revert: bool) -> Result<MovePlan, String> {
+    let text = std::fs::read_to_string(path)
+        .map_err(|e| format!("read plan {}: {e}", path.display()))?;
+    let value: Value = serde_json::from_str(&text)
+        .map_err(|e| format!("parse plan {}: {e}", path.display()))?;
+    let capability = value
+        .get("capability")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
+    let moves_val = value
+        .get("moves")
+        .and_then(Value::as_array)
+        .ok_or("plan missing `moves` array")?;
+    let mut moves = Vec::with_capacity(moves_val.len());
+    for (idx, m) in moves_val.iter().enumerate() {
+        moves.push(CrateMove {
+            old_path: field(m, "old_path", idx)?,
+            new_path: field(m, "new_path", idx)?,
+            old_cargo_name: field(m, "old_cargo_name", idx)?,
+            new_cargo_name: field(m, "new_cargo_name", idx)?,
+        });
+    }
+    let plan = MovePlan { capability, moves };
+    Ok(if revert { plan.inverse() } else { plan })
+}
+
+fn field(m: &Value, key: &str, idx: usize) -> Result<String, String> {
+    m.get(key)
+        .and_then(Value::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| format!("move[{idx}] missing string field {key:?}"))
+}
+
+fn apply_outcome_json(o: &oya_reorg_codemod_app::plan::ApplyOutcome) -> Value {
+    json!({
+        "capability": o.mapping.capability,
+        "mapping": o.mapping.rows.iter().map(|r| json!({
+            "old_path": r.old_path,
+            "new_path": r.new_path,
+            "old_cargo_name": r.old_cargo_name,
+            "new_cargo_name": r.new_cargo_name,
+            "buck_label": r.buck_label,
+        })).collect::<Vec<_>>(),
+        "manifests_rewritten": o.manifests_rewritten,
+        "bucks_rewritten": o.bucks_rewritten,
+        "rust_files_rewritten": o.rust_files_rewritten,
+        "root_workspace_changed": o.root_workspace_changed,
+        "dirs_moved": o.dirs_moved.iter().map(|(a, b)| json!([a, b])).collect::<Vec<_>>(),
+    })
+}
+
+fn dry_run_json(r: &oracle::DryRunReport) -> Value {
+    json!({
+        "clean": r.clean,
+        "cargo_ok": r.cargo_ok,
+        "cargo_detail": truncate(&r.cargo_detail, 4000),
+        "buck_ok": r.buck_ok,
+        "buck_detail": truncate(&r.buck_detail, 4000),
+    })
+}
+
+fn snapshot_json(s: &oracle::GreenSnapshot) -> Value {
+    json!({
+        "cargo_ok": s.cargo_ok,
+        "buck_available": s.buck_available,
+        "buck_ok": s.buck_ok,
+        "cargo_metadata_len": s.cargo_metadata.len(),
+        "buck_targets_len": s.buck_targets.len(),
+    })
+}
+
+fn truncate(s: &str, max: usize) -> String {
+    if s.len() <= max {
+        s.to_string()
+    } else {
+        format!("{}…", &s[..max])
+    }
+}
+
+/// Canonical JSON: sorted keys, 2-space indent, trailing newline. Mirrors the repo's
+/// canonical-json discipline for any emitted JSON.
+fn to_canonical_json(value: &Value) -> String {
+    let canon = canonicalize(value);
+    let mut out = serde_json::to_string_pretty(&canon).unwrap_or_default();
+    out.push('\n');
+    out
+}
+
+fn canonicalize(value: &Value) -> Value {
+    match value {
+        Value::Object(map) => {
+            let mut sorted = serde_json::Map::new();
+            let mut keys: Vec<&String> = map.keys().collect();
+            keys.sort();
+            for k in keys {
+                sorted.insert(k.clone(), canonicalize(&map[k]));
+            }
+            Value::Object(sorted)
+        }
+        Value::Array(items) => Value::Array(items.iter().map(canonicalize).collect()),
+        other => other.clone(),
+    }
+}
+
+fn print_usage() {
+    eprintln!(
+        "oya-reorg-codemod — reversible capability-move codemod + green-snapshot oracle (ADR-0562)\n\
+         \n\
+         USAGE:\n\
+         \x20 oya-reorg-codemod apply    --plan <plan.json> [--repo-root <p>] [--revert]\n\
+         \x20 oya-reorg-codemod dry-run  --plan <plan.json> [--repo-root <p>] [--revert] [--with-buck] [--keep-shadow]\n\
+         \x20 oya-reorg-codemod snapshot [--repo-root <p>] [--with-buck]\n\
+         \n\
+         Local bridge ONLY; merge authority stays in cloud-ci/oya-ci. Ships UNUSED until the\n\
+         strangler invokes it. dry-run exits 0=clean, 2=unclean (fail-closed)."
+    );
+}

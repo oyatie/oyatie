@@ -194,6 +194,13 @@
       "purpose": "Retirement-marked local bridge catalog row for the lane-supervisor app. Supporting local-only surfaces are .omc/ultragoal/OWNERS, .omc/ultragoal/TEAMMATE-PREAMBLE.md, .omc/ultragoal/friction-ledger.jsonl, .omc/ultragoal/premise.txt, .omc/ultragoal/review-verdict.txt, registry/catalog/OWNERS, and registry/catalog/oya-lane-supervisor-app.yaml. Merge authority remains in cloud-ci/oya-ci required contexts per ADR-0363.",
       "target_path_after_md_retirement": "cloud-ci durable lane orchestration state"
     },
+    "reorg_codemod_bridge": {
+      "current_path": "registry/catalog/oya-reorg-codemod-app.yaml",
+      "kind": "registry",
+      "migration_phase": "phase-0-reorg-machinery-ships-unused-until-strangler",
+      "purpose": "Catalog row for the ADR-0562 Phase-0 reversible capability-move codemod + pre-move green-snapshot oracle (oya-reorg-codemod-app). Local bridge only; ships UNUSED until the per-capability strangler PRs invoke it; moves no real capability. Merge authority remains in cloud-ci/oya-ci required contexts.",
+      "target_path_after_md_retirement": "governance/capability-registry strangler tooling"
+    },
     "cloud_authorization_target": {
       "current_path": "/specs/cloud-authorization-target.json",
       "kind": "spec",
