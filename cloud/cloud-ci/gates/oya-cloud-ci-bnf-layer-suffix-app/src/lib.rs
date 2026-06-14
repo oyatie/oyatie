@@ -150,13 +150,15 @@ fn resolve_naming(crate_name: &str, policy: &NamingPolicy) -> CrateNaming {
     }
 }
 
-/// Pure evaluator: takes `{"rows": [{"crate_name": "oya-..."}, ...]}` and returns one
-/// `Finding` per layer-suffix violation. Reuses `oya_governance_predictable_naming_kernel::check`.
-pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
-    // The naming policy is sourced from the oya-ci config `[naming]` section. In this floor
-    // the gate uses the bundled default (== today's consts), so findings are byte-identical;
-    // the producer's input-binding routes the live config in Stage 3.
-    let policy = naming_policy(&NamingConfig::default());
+/// Pure evaluator over an INJECTED [`NamingConfig`] (ADR-0533 §Decision item 1/2: the naming
+/// policy — including `required_prefix` — is the PROFILE-RESOLVED config). Takes
+/// `{"rows": [{"crate_name": "..."}, ...]}` and returns one `Finding` per layer-suffix
+/// violation. Reuses `oya_governance_predictable_naming_kernel::check_with_policy`.
+///
+/// Under `profile='neutral'` the resolved `required_prefix` is empty, so `MissingOyaPrefix` is
+/// never raised (de-brand). Under `profile='oyatie'` the policy is today's consts, byte-identical.
+pub fn evaluate_keyed_with(input: &Value, naming: &NamingConfig) -> BTreeSet<Finding> {
+    let policy = naming_policy(naming);
     let rows = input
         .get("rows")
         .and_then(Value::as_array)
@@ -184,13 +186,24 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
         .collect()
 }
 
-/// Bare-code projection of [`evaluate_keyed`] — the single source of truth for the verdict.
-pub fn evaluate(input: &Value) -> Report {
-    let codes: BTreeSet<String> = evaluate_keyed(input)
+/// Bundled-default (oyatie profile) projection of [`evaluate_keyed_with`]. The producer routes
+/// the live profile-resolved config; this keeps the legacy pure surface byte-identical.
+pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
+    evaluate_keyed_with(input, &NamingConfig::default())
+}
+
+/// Bare-code projection of [`evaluate_keyed_with`] over an injected config.
+pub fn evaluate_with(input: &Value, naming: &NamingConfig) -> Report {
+    let codes: BTreeSet<String> = evaluate_keyed_with(input, naming)
         .into_iter()
         .map(|f| f.code)
         .collect();
     Report::from_codes(codes)
+}
+
+/// Bare-code projection of [`evaluate_keyed`] — the single source of truth for the verdict.
+pub fn evaluate(input: &Value) -> Report {
+    evaluate_with(input, &NamingConfig::default())
 }
 
 #[cfg(test)]
@@ -274,5 +287,41 @@ mod tests {
     #[test]
     fn empty_corpus_is_green() {
         assert_eq!(evaluate(&json!({ "rows": [] })).verdict, Verdict::Green);
+    }
+
+    /// ADR-0533 de-brand (item 2): under the NEUTRAL profile `required_prefix` is empty, so
+    /// `bnf_missing_oya_prefix` is NOT raised for an unprefixed crate. Proves the prefix axis is
+    /// profile-sourced. (The role-enum axis is separate; neutral leaves allowed_roles empty.)
+    #[test]
+    fn neutral_profile_does_not_raise_missing_prefix() {
+        let input = rows(&["registry-drift", "acme-thing"]);
+        let neutral = NamingConfig {
+            required_prefix: String::new(),
+            allowed_roles: vec![],
+            check_family_prefix: String::new(),
+            backend_suffixes: vec![],
+            doctrinal_carve_outs: vec![],
+        };
+        let findings = evaluate_keyed_with(&input, &neutral);
+        assert!(
+            !findings.iter().any(|f| f.code == "bnf_missing_oya_prefix"),
+            "neutral profile must not raise MissingOyaPrefix, got {findings:?}"
+        );
+        // The SAME corpus under oyatie DOES flag the unprefixed name (safety: oyatie unchanged).
+        assert!(
+            evaluate_keyed(&input)
+                .iter()
+                .any(|f| f.code == "bnf_missing_oya_prefix")
+        );
+    }
+
+    /// The oyatie-profile config reproduces the bundled default exactly (byte-identity).
+    #[test]
+    fn oyatie_profile_matches_bundled_default() {
+        let input = rows(&["oya-foo-runtime", "registry-drift"]);
+        assert_eq!(
+            evaluate_keyed_with(&input, &NamingConfig::default()),
+            evaluate_keyed(&input)
+        );
     }
 }

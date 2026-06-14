@@ -10,6 +10,14 @@
 # The ttl + unit_class + gate-disposition tables stay as the crate's bundled JSON DATA (the
 # `[ttl]` / `[unit_class]` sections below are intentionally empty = "use the bundled table");
 # author an inline_json override only to diverge from the bundled tables.
+#
+# DE-BRAND PROFILE (ADR-0532 amends ADR-0017; ADR-0533; ADR-0562 §9): `profile` selects the
+# bundled section defaults. `oyatie` is the first-party self-host profile — today's values
+# VERBATIM, ZERO behaviour change (the safety property). A neutral adopter sets `profile =
+# 'neutral'` (policy-free, zero oyatie literals) and authors only their own policy. `oyatie` is
+# the default, so this key is byte-identical to omitting it (it is skipped from the canonical
+# serialization that feeds the provenance digest).
+profile = 'oyatie'
 
 [repo]
 root_markers = ["specs/root-hub-pointers.json"]
