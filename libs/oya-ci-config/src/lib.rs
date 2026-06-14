@@ -43,6 +43,17 @@ use serde::{Deserialize, Serialize};
 const BUNDLED_UNIT_CLASS_JSON: &str = include_str!("bundled/unit-class-policy.json");
 const BUNDLED_TTL_JSON: &str = include_str!("bundled/ttl-policy.json");
 
+/// The closed-schema version (ADR-0533 §Decision item 5): a published `$id`/`$schema` + a
+/// `schema_version` so the closed schema can evolve without silently breaking adopters. Bumped
+/// when a breaking schema change ships; additive (back-compatible) keys do NOT bump it.
+pub const SCHEMA_VERSION: u32 = 1;
+
+/// The published `$id` URL for the closed `oya-ci.toml` schema (ADR-0533 §Decision item 5).
+pub const SCHEMA_ID: &str = "https://oya-ci.dev/schema/oya-ci-config/v1";
+
+/// The JSON-Schema dialect the published schema is authored against (ADR-0533 item 5).
+pub const SCHEMA_DIALECT: &str = "https://json-schema.org/draft/2020-12/schema";
+
 /// A config load/validation error. No panics escape the parse path.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConfigError {
@@ -64,38 +75,124 @@ impl std::fmt::Display for ConfigError {
 impl std::error::Error for ConfigError {}
 
 // ---------------------------------------------------------------------------
+// The DE-BRAND PROFILE (ADR-0532 amends ADR-0017; ADR-0533; ADR-0562 §9)
+// ---------------------------------------------------------------------------
+
+/// The de-brand PROFILE that selects the bundled section defaults (ADR-0533 §Decision item 1).
+///
+/// ADR-0527 made the floor config-driven, but the verified trap is that "zero-config does NOT
+/// mean policy-free; it means OYATIE-policy" — the bundled defaults ARE oyatie's brand
+/// deny-list + layout. The profile resolves that trap: `Oyatie` reproduces today's values
+/// VERBATIM (first-party self-host, ZERO behaviour change — the safety property), while
+/// `Neutral` is policy-FREE (empty `forbidden_stems`, no `required_prefix`, generic `.git`
+/// root marker, no `governance_lanes`, gates present-but-quiet, ZERO oyatie path literals) so
+/// an external adopter inherits NO oyatie policy by default.
+///
+/// `Oyatie` is the `#[default]`, so a profile-less `oya-ci.toml` (and the compiled-in
+/// `bundled_default()`) resolve to today's behaviour unchanged.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum Profile {
+    /// Policy-FREE public boundary: zero oyatie literals (ADR-0533 §Decision item 1).
+    Neutral,
+    /// Today's oyatie values verbatim — the first-party self-host profile (the safety property).
+    #[default]
+    Oyatie,
+}
+
+impl Profile {
+    /// True iff this is the (default) `Oyatie` profile. Used to SKIP serializing the `profile`
+    /// key when it is the default, so today's `oya-ci.toml` (which carries no `profile` key)
+    /// round-trips to the byte-IDENTICAL canonical TOML — keeping `digest()` (and thus every
+    /// face's `_provenance` config digest) byte-stable for first-party (zero behaviour change).
+    fn is_oyatie(&self) -> bool {
+        matches!(self, Profile::Oyatie)
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Top-level config
 // ---------------------------------------------------------------------------
 
 /// The full, validated oya-ci policy. Parsed from `oya-ci.toml`, or materialized from the
 /// bundled default when no file is present.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+///
+/// Deserialization routes through [`OyaCiConfigShadow`] (every section `Option`) so the
+/// top-level `profile` key is the SOLE selector of the section defaults: a `profile='neutral'`
+/// file with no other sections materializes [`OyaCiConfig::neutral`], not the oyatie defaults.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct OyaCiConfig {
-    #[serde(default)]
+    /// The active de-brand profile (ADR-0533). Skipped from serialization when `Oyatie` (the
+    /// default), so first-party output is byte-identical to today (the `digest()` invariant).
+    #[serde(default, skip_serializing_if = "Profile::is_oyatie")]
+    pub profile: Profile,
     pub repo: RepoConfig,
-    #[serde(default)]
     pub naming: NamingConfig,
-    #[serde(default)]
     pub vocab: VocabConfig,
-    #[serde(default)]
     pub manifest: ManifestConfig,
-    #[serde(default)]
     pub reachability: ReachabilityConfig,
-    #[serde(default)]
     pub justification: JustificationConfig,
-    #[serde(default)]
     pub owners: OwnersConfig,
-    #[serde(default)]
     pub enforcement: EnforcementConfig,
-    #[serde(default)]
     pub slo_coverage: SloCoverageConfig,
-    #[serde(default)]
     pub ttl: TtlConfig,
-    #[serde(default)]
     pub unit_class: UnitClassConfig,
-    #[serde(default)]
     pub gates: GatesConfig,
+    /// `[output]` — producer output layout (ADR-0533 §Decision item 2). Faces directory.
+    /// Skipped from serialization when it equals the default so first-party canonical TOML (and
+    /// thus `digest()`) is byte-identical to today — this section did not exist before ADR-0533.
+    #[serde(default, skip_serializing_if = "OutputConfig::is_default")]
+    pub output: OutputConfig,
+    /// `[cross_artifact]` — the crosswalk source paths (ADR-0533 §Decision item 3). Skipped from
+    /// serialization when default, same byte-identity rationale as `[output]`.
+    #[serde(default, skip_serializing_if = "CrossArtifactConfig::is_default")]
+    pub cross_artifact: CrossArtifactConfig,
+}
+
+/// The closed-schema DESERIALIZATION shadow (ADR-0533): every section is `Option` so an
+/// OMITTED table is distinguishable from one authored with default values. After parse, the
+/// top-level `profile`/`extends` selects the base ([`OyaCiConfig::oyatie`] /
+/// [`OyaCiConfig::neutral`]) and each `Some(section)` overlays it. `deny_unknown_fields` lives
+/// here (the input gate); each inner section keeps its OWN `deny_unknown_fields` so a bogus
+/// nested key still errors inside its `Option`.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct OyaCiConfigShadow {
+    #[serde(default)]
+    profile: Profile,
+    /// Optional alias for `profile` (ADR-0533 §Decision item 1: "a top-level `profile` ... (or
+    /// `extends`) key"). When present it WINS over `profile` (it names the base to extend).
+    #[serde(default)]
+    extends: Option<Profile>,
+    #[serde(default)]
+    repo: Option<RepoConfig>,
+    #[serde(default)]
+    naming: Option<NamingConfig>,
+    #[serde(default)]
+    vocab: Option<VocabConfig>,
+    #[serde(default)]
+    manifest: Option<ManifestConfig>,
+    #[serde(default)]
+    reachability: Option<ReachabilityConfig>,
+    #[serde(default)]
+    justification: Option<JustificationConfig>,
+    #[serde(default)]
+    owners: Option<OwnersConfig>,
+    #[serde(default)]
+    enforcement: Option<EnforcementConfig>,
+    #[serde(default)]
+    slo_coverage: Option<SloCoverageConfig>,
+    #[serde(default)]
+    ttl: Option<TtlConfig>,
+    #[serde(default)]
+    unit_class: Option<UnitClassConfig>,
+    #[serde(default)]
+    gates: Option<GatesConfig>,
+    #[serde(default)]
+    output: Option<OutputConfig>,
+    #[serde(default)]
+    cross_artifact: Option<CrossArtifactConfig>,
 }
 
 impl Default for OyaCiConfig {
@@ -106,9 +203,18 @@ impl Default for OyaCiConfig {
 
 impl OyaCiConfig {
     /// Materialize oyatie's CURRENT policy as the bundled default (no file required). This is
-    /// the byte-for-byte equivalent of today's hardcoded `const`s + embedded JSON.
+    /// the byte-for-byte equivalent of today's hardcoded `const`s + embedded JSON. Alias for
+    /// [`OyaCiConfig::oyatie`] — preserved so every existing caller is unchanged (ADR-0533).
     pub fn bundled_default() -> Self {
+        Self::oyatie()
+    }
+
+    /// The `oyatie` profile: today's values VERBATIM (ADR-0533 §Decision item 1). This is the
+    /// first-party self-host profile and the SAFETY PROPERTY — it reproduces the pre-profile
+    /// `bundled_default()` byte-for-byte, so first-party gate outputs do not move.
+    pub fn oyatie() -> Self {
         Self {
+            profile: Profile::Oyatie,
             repo: RepoConfig::default(),
             naming: NamingConfig::default(),
             vocab: VocabConfig::default(),
@@ -121,13 +227,93 @@ impl OyaCiConfig {
             ttl: TtlConfig::default(),
             unit_class: UnitClassConfig::default(),
             gates: GatesConfig::default(),
+            output: OutputConfig::default(),
+            cross_artifact: CrossArtifactConfig::default(),
         }
     }
 
-    /// Parse + closed-schema-validate an `oya-ci.toml`. Absent sections fall back to the
-    /// bundled default for that section (via each struct's `Default`). Unknown keys error.
+    /// The `neutral` profile: a policy-FREE public boundary with ZERO oyatie path literals
+    /// (ADR-0533 §Decision item 1). Empty `forbidden_stems`, no `required_prefix`, generic
+    /// `.git` root marker, no `governance_lanes`, gates present-but-quiet (the gate set is
+    /// enabled so the engine dispatches, but the deny-lists/dispositions are empty). An
+    /// external adopter starting from `profile='neutral'` inherits NO oyatie policy.
+    pub fn neutral() -> Self {
+        Self {
+            profile: Profile::Neutral,
+            repo: RepoConfig::neutral(),
+            naming: NamingConfig::neutral(),
+            vocab: VocabConfig::neutral(),
+            manifest: ManifestConfig::neutral(),
+            reachability: ReachabilityConfig::neutral(),
+            justification: JustificationConfig::neutral(),
+            owners: OwnersConfig::neutral(),
+            enforcement: EnforcementConfig::neutral(),
+            slo_coverage: SloCoverageConfig::neutral(),
+            ttl: TtlConfig::neutral(),
+            unit_class: UnitClassConfig::neutral(),
+            gates: GatesConfig::neutral(),
+            output: OutputConfig::default(),
+            cross_artifact: CrossArtifactConfig::neutral(),
+        }
+    }
+
+    /// Parse + closed-schema-validate an `oya-ci.toml`. The top-level `profile` (or `extends`)
+    /// key selects the base defaults ([`oyatie`](Self::oyatie) when absent — zero behaviour
+    /// change for first-party — or [`neutral`](Self::neutral)); each section AUTHORED in the
+    /// file overlays that base, and an OMITTED section keeps the base value. Unknown keys error.
     pub fn from_toml_str(text: &str) -> Result<Self, ConfigError> {
-        toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))
+        let shadow: OyaCiConfigShadow =
+            toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?;
+        // `extends` (the explicit base-to-extend) wins over `profile` when both are present.
+        let profile = shadow.extends.unwrap_or(shadow.profile);
+        let mut base = match profile {
+            Profile::Oyatie => Self::oyatie(),
+            Profile::Neutral => Self::neutral(),
+        };
+        base.profile = profile;
+        if let Some(v) = shadow.repo {
+            base.repo = v;
+        }
+        if let Some(v) = shadow.naming {
+            base.naming = v;
+        }
+        if let Some(v) = shadow.vocab {
+            base.vocab = v;
+        }
+        if let Some(v) = shadow.manifest {
+            base.manifest = v;
+        }
+        if let Some(v) = shadow.reachability {
+            base.reachability = v;
+        }
+        if let Some(v) = shadow.justification {
+            base.justification = v;
+        }
+        if let Some(v) = shadow.owners {
+            base.owners = v;
+        }
+        if let Some(v) = shadow.enforcement {
+            base.enforcement = v;
+        }
+        if let Some(v) = shadow.slo_coverage {
+            base.slo_coverage = v;
+        }
+        if let Some(v) = shadow.ttl {
+            base.ttl = v;
+        }
+        if let Some(v) = shadow.unit_class {
+            base.unit_class = v;
+        }
+        if let Some(v) = shadow.gates {
+            base.gates = v;
+        }
+        if let Some(v) = shadow.output {
+            base.output = v;
+        }
+        if let Some(v) = shadow.cross_artifact {
+            base.cross_artifact = v;
+        }
+        Ok(base)
     }
 
     /// A stable, dependency-free FNV-1a 64-bit digest of the config's canonical TOML
@@ -143,6 +329,11 @@ impl OyaCiConfig {
             hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
         }
         format!("fnv1a64:{hash:016x}")
+    }
+
+    /// The closed-schema version this config was authored against (ADR-0533 item 5).
+    pub fn schema_version(&self) -> u32 {
+        SCHEMA_VERSION
     }
 
     /// The bundled `unit-class-policy.json` body (DATA the producer hands to its classifier).
@@ -193,6 +384,17 @@ impl Default for RepoConfig {
         Self {
             root_markers: default_root_markers(),
             path_excludes: default_path_excludes(),
+        }
+    }
+}
+
+impl RepoConfig {
+    /// The neutral profile's `[repo]`: a generic `.git` root marker (ADR-0533 item 1 — "generic
+    /// root_markers defaulting to `.git`") and no path exclusions (zero oyatie path literals).
+    fn neutral() -> Self {
+        Self {
+            root_markers: vec![".git".to_owned()],
+            path_excludes: Vec::new(),
         }
     }
 }
@@ -267,6 +469,22 @@ impl Default for NamingConfig {
             check_family_prefix: default_check_family_prefix(),
             backend_suffixes: default_backend_suffixes(),
             doctrinal_carve_outs: default_doctrinal_carve_outs(),
+        }
+    }
+}
+
+impl NamingConfig {
+    /// The neutral profile's `[naming]`: NO `required_prefix` (so `MissingOyaPrefix` is never
+    /// raised, ADR-0533 item 1) and empty role/family/backend/carve-out tables — zero oyatie
+    /// brand literals. The naming kernel sources `required_prefix` from here; an empty prefix
+    /// means every crate name "starts with" it, so the de-brand is complete.
+    fn neutral() -> Self {
+        Self {
+            required_prefix: String::new(),
+            allowed_roles: Vec::new(),
+            check_family_prefix: String::new(),
+            backend_suffixes: Vec::new(),
+            doctrinal_carve_outs: Vec::new(),
         }
     }
 }
@@ -390,6 +608,18 @@ impl Default for VocabConfig {
     }
 }
 
+impl VocabConfig {
+    /// The neutral profile's `[vocab]`: an EMPTY forbidden-stem list (ADR-0533 item 1) — the
+    /// brand-residue census finds nothing, so a neutral repo carries no oyatie deny-list. No
+    /// carve-outs either (carve-outs only exist to exempt the deny-list, which is empty).
+    fn neutral() -> Self {
+        Self {
+            forbidden_stems: Vec::new(),
+            carve_outs: Vec::new(),
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // [manifest]  (replaces the §2.5#7 ManifestFlags field-set, plan §2.3)
 // ---------------------------------------------------------------------------
@@ -421,6 +651,16 @@ impl Default for ManifestConfig {
     fn default() -> Self {
         Self {
             required_flags: default_required_flags(),
+        }
+    }
+}
+
+impl ManifestConfig {
+    /// The neutral profile's `[manifest]`: no required Cargo.toml hygiene flags (the manifest
+    /// gate is present-but-quiet for an adopter who has not declared a flag set). ADR-0533.
+    fn neutral() -> Self {
+        Self {
+            required_flags: Vec::new(),
         }
     }
 }
@@ -476,6 +716,20 @@ impl Default for ReachabilityConfig {
     }
 }
 
+impl ReachabilityConfig {
+    /// The neutral profile's `[reachability]`: EMPTY source paths (zero oyatie path literals,
+    /// ADR-0533 item 1). An adopter declares their own reachability sources; absent ⇒ the
+    /// producer treats reachability as an empty registry (zero-config, no oyatie `specs/` leak).
+    fn neutral() -> Self {
+        Self {
+            masterplan: String::new(),
+            root_hub: String::new(),
+            doc_catalog: String::new(),
+            registry: String::new(),
+        }
+    }
+}
+
 /// `[justification]` — the ADR corpus dir + crosswalk specs (`resolve_justifications`,
 /// `collect_crosswalk_inputs`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -500,6 +754,17 @@ impl Default for JustificationConfig {
         Self {
             adr_dir: default_adr_dir(),
             roadmap: default_roadmap(),
+        }
+    }
+}
+
+impl JustificationConfig {
+    /// The neutral profile's `[justification]`: EMPTY ADR/roadmap source paths (zero oyatie
+    /// `docs/`/`specs/` literals, ADR-0533 item 1). An adopter declares their own corpus.
+    fn neutral() -> Self {
+        Self {
+            adr_dir: String::new(),
+            roadmap: String::new(),
         }
     }
 }
@@ -544,6 +809,18 @@ impl Default for OwnersConfig {
     }
 }
 
+impl OwnersConfig {
+    /// The neutral profile's `[owners]`: the generic `OWNERS` marker (NOT an oyatie literal —
+    /// `OWNERS` is the cross-ecosystem convention) and the measured breadth bound. The bound is
+    /// `NonZeroU64` by construction, so neutral cannot zero it (ADR-0533; ADR-0555 hardening).
+    fn neutral() -> Self {
+        Self {
+            file_name: default_owners_file(),
+            max_paths_per_owners_file: default_max_paths_per_owners_file(),
+        }
+    }
+}
+
 /// `[enforcement]` — the enforcement-surface sources (`collect_enforcement_inputs`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -577,6 +854,18 @@ impl Default for EnforcementConfig {
     }
 }
 
+impl EnforcementConfig {
+    /// The neutral profile's `[enforcement]`: an EMPTY governance-crate substring (the default
+    /// `oya-governance` is a brand literal) and NO `governance_lanes` (ADR-0533 item 1 — "no
+    /// governance_lanes"; zero oyatie path literals). The enforcement gate is present-but-quiet.
+    fn neutral() -> Self {
+        Self {
+            governance_crate_substr: String::new(),
+            governance_lanes: Vec::new(),
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // [slo_coverage]  (portable input contract for cloud-ci-slo-coverage)
 // ---------------------------------------------------------------------------
@@ -606,6 +895,17 @@ impl Default for SloCoverageConfig {
     }
 }
 
+impl SloCoverageConfig {
+    /// The neutral profile's `[slo_coverage]`: NO catalog globs (the default
+    /// `registry/catalog/*.yaml` is an oyatie path literal; ADR-0533 item 1). An adopter points
+    /// the gate at their own catalog source; absent ⇒ the gate is present-but-quiet.
+    fn neutral() -> Self {
+        Self {
+            catalog_record_globs: Vec::new(),
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // [ttl] / [unit_class]  (subsumes the already-DATA JSON tables, plan §3.1)
 // ---------------------------------------------------------------------------
@@ -622,6 +922,17 @@ pub struct TtlConfig {
     pub inline_json: Option<String>,
 }
 
+impl TtlConfig {
+    /// The neutral profile's `[ttl]`: an inline EMPTY-but-schema-valid table (`{"by_unit_class":
+    /// {}}`) rather than `None`, because `None` would silently inherit the BUNDLED oyatie TTL
+    /// JSON (ADR-0533 item 1 — zero oyatie policy leak). An adopter authors their own budgets.
+    fn neutral() -> Self {
+        Self {
+            inline_json: Some("{\"by_unit_class\":{}}".to_owned()),
+        }
+    }
+}
+
 /// `[unit_class]` — the carve-out classification table, carried as the existing JSON body.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
@@ -629,6 +940,17 @@ pub struct UnitClassConfig {
     /// An explicit inline override of the `unit-class-policy.json` body. `None` ⇒ bundled.
     #[serde(default)]
     pub inline_json: Option<String>,
+}
+
+impl UnitClassConfig {
+    /// The neutral profile's `[unit_class]`: an inline EMPTY-but-schema-valid table
+    /// (`{"rules": []}`) rather than `None`, because `None` would silently inherit the BUNDLED
+    /// oyatie classification JSON (ADR-0533 item 1 — zero oyatie policy leak).
+    fn neutral() -> Self {
+        Self {
+            inline_json: Some("{\"rules\":[]}".to_owned()),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -782,6 +1104,108 @@ impl Default for GatesConfig {
             enabled: default_enabled_gates(),
             disposition_json: None,
         }
+    }
+}
+
+impl GatesConfig {
+    /// The neutral profile's `[gates]`: the SAME enabled gate set (so the portable engine still
+    /// dispatches every gate KIND — "gates present", ADR-0533 item 1) but an EMPTY disposition
+    /// table (`{"gates":{}}`) instead of `None`, because `None` would inherit the BUNDLED oyatie
+    /// disposition JSON (a policy leak). "Present-but-quiet": the gates run, the dispositions are
+    /// empty, so no oyatie-specific code disposition is stamped.
+    fn neutral() -> Self {
+        Self {
+            enabled: default_enabled_gates(),
+            disposition_json: Some("{\"gates\":{}}".to_owned()),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// [output]  (ADR-0533 §Decision item 2 — faces_dir replaces the hardcoded literal)
+// ---------------------------------------------------------------------------
+
+/// `[output]` — the producer output layout (ADR-0533 item 2). `faces_dir` replaces the
+/// hardcoded `.oya-ci/faces/`-class literal at the producer's `main.rs`, so the faces location
+/// is DATA. The default keeps oyatie's location, so first-party output is unchanged; an adopter
+/// overrides it without forking the producer.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OutputConfig {
+    /// Directory the producer writes the generated faces into. Default = oyatie's current
+    /// location (the producer's `out_dir` literal) so first-party byte-output is unchanged.
+    #[serde(default = "default_faces_dir")]
+    pub faces_dir: String,
+}
+
+fn default_faces_dir() -> String {
+    "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app".to_owned()
+}
+
+impl Default for OutputConfig {
+    fn default() -> Self {
+        Self {
+            faces_dir: default_faces_dir(),
+        }
+    }
+}
+
+impl OutputConfig {
+    /// True iff this is the default `[output]` — used to SKIP serialization so first-party
+    /// canonical TOML (and `digest()`) is byte-identical to the pre-ADR-0533 output.
+    fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// [cross_artifact]  (ADR-0533 §Decision item 3 — sources replace compiled-in artifacts)
+// ---------------------------------------------------------------------------
+
+/// `[cross_artifact]` — the crosswalk SOURCE paths (ADR-0533 item 3). Replaces the compiled-in
+/// oyatie artifacts the producer feeds the cross-artifact-agreement gate. The default keeps
+/// oyatie's source set (so first-party is unchanged); a neutral adopter declares their own.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CrossArtifactConfig {
+    /// The generated-face / corpus source paths the crosswalk agreement is computed over.
+    #[serde(default = "default_cross_artifact_sources")]
+    pub sources: Vec<String>,
+}
+
+fn default_cross_artifact_sources() -> Vec<String> {
+    [
+        "specs/masterplan.json",
+        "specs/root-hub-pointers.json",
+        "specs/master-plan-sequencing.json",
+        "docs/decisions",
+    ]
+    .iter()
+    .map(|s| (*s).to_owned())
+    .collect()
+}
+
+impl Default for CrossArtifactConfig {
+    fn default() -> Self {
+        Self {
+            sources: default_cross_artifact_sources(),
+        }
+    }
+}
+
+impl CrossArtifactConfig {
+    /// The neutral profile's `[cross_artifact]`: EMPTY sources (the defaults are oyatie
+    /// `specs/`/`docs/` path literals; ADR-0533 item 1, item 3). An adopter declares their own.
+    fn neutral() -> Self {
+        Self {
+            sources: Vec::new(),
+        }
+    }
+
+    /// True iff this is the default `[cross_artifact]` — used to SKIP serialization so
+    /// first-party canonical TOML (and `digest()`) is byte-identical to the pre-ADR-0533 output.
+    fn is_default(&self) -> bool {
+        *self == Self::default()
     }
 }
 
@@ -1128,5 +1552,179 @@ face = "total_accounting"
         let text = toml::to_string(&cfg).expect("serialize");
         let reparsed = OyaCiConfig::from_toml_str(&text).expect("reparse");
         assert_eq!(reparsed, cfg);
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-0532 (amends ADR-0017) + ADR-0533 + ADR-0562 §9: the de-brand PROFILE.
+    // -----------------------------------------------------------------------
+
+    /// SAFETY PROPERTY: `bundled_default()` is exactly the `oyatie()` profile, and `oyatie()` is
+    /// the (default) profile a profile-less config resolves to — so first-party is unchanged.
+    #[test]
+    fn bundled_default_is_the_oyatie_profile_verbatim() {
+        assert_eq!(OyaCiConfig::bundled_default(), OyaCiConfig::oyatie());
+        assert_eq!(OyaCiConfig::oyatie().profile, Profile::Oyatie);
+        // a profile-less config IS the oyatie profile (default profile = oyatie).
+        let cfg = OyaCiConfig::from_toml_str("").expect("empty toml parses");
+        assert_eq!(cfg.profile, Profile::Oyatie);
+        assert_eq!(cfg, OyaCiConfig::oyatie());
+    }
+
+    /// SAFETY PROPERTY: serializing the oyatie profile produces BYTE-IDENTICAL canonical TOML to
+    /// today (no `profile`/`[output]`/`[cross_artifact]` keys leak in), so `digest()` — stamped
+    /// into every face's `_provenance` — does not move. `skip_serializing_if` guards this.
+    #[test]
+    fn oyatie_profile_serialization_is_byte_identical_to_pre_profile() {
+        let oyatie = OyaCiConfig::oyatie();
+        let text = toml::to_string(&oyatie).expect("serialize");
+        // The de-brand additions must NOT appear in the first-party canonical serialization.
+        assert!(!text.contains("profile"), "profile leaked:\n{text}");
+        assert!(!text.contains("[output]"), "[output] leaked:\n{text}");
+        assert!(
+            !text.contains("[cross_artifact]"),
+            "[cross_artifact] leaked:\n{text}"
+        );
+        // And it still round-trips.
+        assert_eq!(OyaCiConfig::from_toml_str(&text).expect("reparse"), oyatie);
+    }
+
+    /// The `neutral()` profile is policy-FREE: empty deny-list, no required prefix, generic
+    /// `.git` root marker, no governance lanes, present-but-quiet gates (ADR-0533 item 1).
+    #[test]
+    fn neutral_profile_is_policy_free() {
+        let n = OyaCiConfig::neutral();
+        assert_eq!(n.profile, Profile::Neutral);
+        assert!(n.vocab.forbidden_stems.is_empty(), "neutral has no deny-list");
+        assert!(n.vocab.carve_outs.is_empty());
+        assert_eq!(n.naming.required_prefix, "", "neutral has no required prefix");
+        assert!(n.naming.allowed_roles.is_empty());
+        assert_eq!(n.repo.root_markers, vec![".git".to_owned()]);
+        assert!(n.repo.path_excludes.is_empty());
+        assert!(n.enforcement.governance_lanes.is_empty());
+        assert_eq!(n.enforcement.governance_crate_substr, "");
+        assert!(n.slo_coverage.catalog_record_globs.is_empty());
+        assert!(n.cross_artifact.sources.is_empty());
+        // gates present (engine still dispatches) but disposition is empty (quiet).
+        assert_eq!(n.gates.enabled.len(), 13, "gates present");
+        let disp: serde_json::Value =
+            serde_json::from_str(n.gates.disposition_json()).expect("neutral disposition json");
+        assert_eq!(
+            disp.get("gates").and_then(serde_json::Value::as_object).map(|m| m.len()),
+            Some(0),
+            "neutral disposition is quiet (empty)"
+        );
+        // ttl/unit_class do NOT silently inherit the oyatie bundled JSON.
+        let uc: serde_json::Value =
+            serde_json::from_str(n.unit_class_policy_json()).expect("neutral unit-class json");
+        assert_eq!(
+            uc.get("rules").and_then(serde_json::Value::as_array).map(Vec::len),
+            Some(0)
+        );
+    }
+
+    /// THE DE-BRAND PROOF: the neutral profile emits ZERO oyatie/oya- brand literals across the
+    /// whole serialized config (no `oya-` prefix, no `oyatie`, no `forbidden_foundry`, no oyatie
+    /// `specs/`/`docs/`/`cloud/` path literals). This is the capability ADR-0533 adds.
+    #[test]
+    fn neutral_profile_serializes_zero_brand_literals() {
+        let text = toml::to_string(&OyaCiConfig::neutral()).expect("serialize neutral");
+        for needle in [
+            "oya-",
+            "oyatie",
+            "oya-governance",
+            "oya-check-",
+            "forbidden_foundry",
+            "registry/catalog",
+            "specs/masterplan.json",
+            "docs/decisions",
+            "oya-cloud-ci",
+        ] {
+            assert!(
+                !text.contains(needle),
+                "neutral config leaked brand literal {needle:?}:\n{text}"
+            );
+        }
+        // It still round-trips through the closed schema.
+        assert_eq!(
+            OyaCiConfig::from_toml_str(&text).expect("reparse neutral"),
+            OyaCiConfig::neutral()
+        );
+    }
+
+    /// `profile = 'neutral'` with NO other sections materializes the neutral defaults — the
+    /// top-level profile key is the SOLE selector (the serde-default trap ADR-0533 resolves).
+    #[test]
+    fn profile_neutral_key_alone_materializes_neutral_defaults() {
+        let cfg = OyaCiConfig::from_toml_str("profile = 'neutral'\n").expect("parses");
+        assert_eq!(cfg, OyaCiConfig::neutral());
+        // explicit oyatie key materializes oyatie.
+        let cfg = OyaCiConfig::from_toml_str("profile = 'oyatie'\n").expect("parses");
+        assert_eq!(cfg, OyaCiConfig::oyatie());
+    }
+
+    /// A neutral config may still AUTHOR a section, which overlays the neutral base (the public
+    /// adoption path: start neutral, declare only your own policy).
+    #[test]
+    fn neutral_base_overlays_authored_sections() {
+        let toml = "profile = 'neutral'\n[naming]\nrequired_prefix = \"acme-\"\nallowed_roles = [\"kernel\"]\ncheck_family_prefix = \"\"\nbackend_suffixes = []\ndoctrinal_carve_outs = []\n";
+        let cfg = OyaCiConfig::from_toml_str(toml).expect("parses");
+        assert_eq!(cfg.profile, Profile::Neutral);
+        assert_eq!(cfg.naming.required_prefix, "acme-");
+        // the unspecified sections stay at the NEUTRAL base, not oyatie.
+        assert!(cfg.vocab.forbidden_stems.is_empty());
+        assert_eq!(cfg.repo.root_markers, vec![".git".to_owned()]);
+    }
+
+    /// `extends` is the explicit alias for the base profile and wins over `profile` when both
+    /// are present (ADR-0533 item 1: "a top-level `profile` ... (or `extends`) key").
+    #[test]
+    fn extends_selects_and_overrides_profile() {
+        let cfg = OyaCiConfig::from_toml_str("extends = 'neutral'\n").expect("parses");
+        assert_eq!(cfg, OyaCiConfig::neutral());
+        // extends wins over a conflicting profile key.
+        let cfg = OyaCiConfig::from_toml_str("profile = 'oyatie'\nextends = 'neutral'\n")
+            .expect("parses");
+        assert_eq!(cfg.profile, Profile::Neutral);
+    }
+
+    /// The closed schema still rejects an unknown top-level key AND the de-brand additions are
+    /// the only new accepted keys (`profile`, `extends`, `[output]`, `[cross_artifact]`).
+    #[test]
+    fn closed_schema_still_rejects_unknown_key_after_profile_addition() {
+        assert!(matches!(
+            OyaCiConfig::from_toml_str("bogus = 1").unwrap_err(),
+            ConfigError::Parse(_)
+        ));
+        // an unknown profile value is rejected (closed enum).
+        assert!(matches!(
+            OyaCiConfig::from_toml_str("profile = 'acme'").unwrap_err(),
+            ConfigError::Parse(_)
+        ));
+    }
+
+    /// The new `[output]`/`[cross_artifact]` sections parse + carry oyatie defaults under the
+    /// oyatie profile (faces_dir + crosswalk sources are now DATA, ADR-0533 items 2 + 3).
+    #[test]
+    fn output_and_cross_artifact_sections_default_under_oyatie() {
+        let cfg = OyaCiConfig::oyatie();
+        assert_eq!(
+            cfg.output.faces_dir,
+            "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app"
+        );
+        assert!(cfg.cross_artifact.sources.contains(&"specs/masterplan.json".to_owned()));
+        // explicitly authoring them overlays.
+        let toml = "[output]\nfaces_dir = \".oya-ci/faces\"\n[cross_artifact]\nsources = [\"x.json\"]\n";
+        let cfg = OyaCiConfig::from_toml_str(toml).expect("parses");
+        assert_eq!(cfg.output.faces_dir, ".oya-ci/faces");
+        assert_eq!(cfg.cross_artifact.sources, vec!["x.json".to_owned()]);
+    }
+
+    /// The published closed-schema version + `$id`/`$schema` are exposed (ADR-0533 item 5).
+    #[test]
+    fn schema_version_and_id_are_published() {
+        assert_eq!(OyaCiConfig::oyatie().schema_version(), SCHEMA_VERSION);
+        assert_eq!(SCHEMA_VERSION, 1);
+        assert!(SCHEMA_ID.starts_with("https://"));
+        assert!(SCHEMA_DIALECT.contains("json-schema.org"));
     }
 }
