@@ -1,4 +1,23 @@
 {
+  "tier": "substrate",
+  "tier_subtype": "substrate-observability",
+  "dr_tier": "T3",
+  "substrate_dag_position": {
+    "stratum": "S0",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "intelligence",
+      "ontology",
+      "workflow-engine"
+    ]
+  },
   "schema_version": "1.0",
   "slug": "diagnostics",
   "title": "Diagnostics (Lab + Pathology)",

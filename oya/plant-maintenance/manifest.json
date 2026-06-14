@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "plant-maintenance",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T2",
   "title": "Plant Maintenance",
   "status": "reserved-wave-3-g-anchor",
   "date": "2026-05-20",

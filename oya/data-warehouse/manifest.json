@@ -1,12 +1,29 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "data-warehouse",
+  "tier": "substrate",
+  "tier_subtype": "substrate-data",
+  "dr_tier": "T2",
+  "substrate_dag_position": {
+    "stratum": "S3",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "observability",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "intelligence",
+      "workflow-engine"
+    ]
+  },
   "title": "Data Warehouse",
   "status": "wave-15a-remediated",
   "date": "2026-05-21",
-  "tier": "product",
   "audience_type": "tenant-b2b-data",
-  "tier_subtype": "b2b-leader-operational-concern",
   "binding_adrs": [
     "ADR-0105",
     "ADR-0131",

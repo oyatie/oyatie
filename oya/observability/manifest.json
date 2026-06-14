@@ -1,6 +1,25 @@
 {
   "schema_version": "1.0",
   "microservice": "observability",
+  "tier": "substrate",
+  "tier_subtype": "substrate-observability",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S0",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "intelligence",
+      "ontology",
+      "workflow-engine"
+    ]
+  },
   "version": "0.1.0",
   "owner": "axis-observability",
   "bounded_contexts": [

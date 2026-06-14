@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "performance-management",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T1",
   "title": "Performance Management",
   "status": "wave-4-rolling-remediation-2026-05-21",
   "date": "2026-05-21",

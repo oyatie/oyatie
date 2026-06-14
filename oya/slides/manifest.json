@@ -1,6 +1,9 @@
 {
   "schema_version": "1.0",
   "microservice": "slides",
+  "tier": "product",
+  "tier_subtype": "product-consumer-slides",
+  "dr_tier": "T2",
   "version": "0.1.0",
   "owner": "axis-slides",
   "bounded_contexts": [

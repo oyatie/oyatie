@@ -186,6 +186,24 @@
     "no cross-cell tenant move execution or data-plane drain automation"
   ],
   "microservice": "cell-rebalancer",
+  "tier": "substrate",
+  "tier_subtype": "substrate-infra",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S2",
+    "depends_on": [],
+    "consumed_by_substrates": [
+      "audit-chain",
+      "cloud-secrets",
+      "identity",
+      "intelligence",
+      "observability",
+      "ontology",
+      "policy-engine",
+      "tenancy",
+      "workflow-engine"
+    ]
+  },
   "owner": "axis-platform-reliability",
   "bounded_contexts": [
     {

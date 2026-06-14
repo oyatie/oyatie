@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "global-trade",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T2",
   "title": "Global Trade",
   "status": "reserved-wave-3-g-anchor",
   "date": "2026-05-20",

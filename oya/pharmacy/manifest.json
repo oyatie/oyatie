@@ -1,6 +1,9 @@
 {
   "schema_version": "1.0",
   "microservice": "pharmacy",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T2",
   "version": "0.1.0",
   "owner": "axis-pharmacy",
   "authority_adr": "docs/decisions/ADR-0332-pharmacy-substrate.md",
@@ -20,7 +23,7 @@
     },
     {
       "name": "eprescribe",
-      "description": "Surescripts + NCPDP SCRIPT 2017-071+ orchestration; EPCS signing for Schedule II\u2013V.",
+      "description": "Surescripts + NCPDP SCRIPT 2017-071+ orchestration; EPCS signing for Schedule II–V.",
       "crates": []
     },
     {
@@ -70,7 +73,7 @@
     },
     {
       "name": "controlled-substance",
-      "description": "DEA Form 222 ordering; perpetual inventory CII\u2013CV; witnessed waste; two-person count; EPCS; DEA inspection report.",
+      "description": "DEA Form 222 ordering; perpetual inventory CII–CV; witnessed waste; two-person count; EPCS; DEA inspection report.",
       "crates": []
     },
     {
@@ -100,7 +103,7 @@
     },
     {
       "name": "mtm",
-      "description": "CMR/TMR/MAP/PML; CPT 99605\u201399607 billing codes; intelligence-substrate PML drafting with redaction.",
+      "description": "CMR/TMR/MAP/PML; CPT 99605–99607 billing codes; intelligence-substrate PML drafting with redaction.",
       "crates": []
     },
     {
@@ -424,7 +427,7 @@
     },
     {
       "id": "ADR-MS-PHARM-001",
-      "title": "ePrescribe substrate \u2014 Surescripts + NCPDP SCRIPT + EPCS",
+      "title": "ePrescribe substrate — Surescripts + NCPDP SCRIPT + EPCS",
       "scope": "service",
       "file": "microservices/pharmacy/decisions/ADR-MS-001-ePrescribe-substrate.md"
     },
@@ -436,10 +439,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

@@ -1,8 +1,16 @@
 {
   "schema_version": "1.0",
   "microservice": "api-gateway",
-  "owner": "axis-network",
   "tier": "substrate",
+  "tier_subtype": "substrate-api-gateway",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S0",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+  },
+  "owner": "axis-network",
   "audience_type": "all",
   "cell_eligibility": [
     "tier-0"
@@ -583,9 +591,7 @@
     "istio",
     "kyverno"
   ],
-  "oss_stewardship_class_overrides": [
-
-  ],
+  "oss_stewardship_class_overrides": [],
   "iac_module_invocations": [
     {
       "context": "aws-guest",

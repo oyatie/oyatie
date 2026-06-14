@@ -1,12 +1,13 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "financial-planning",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T2",
   "title": "Financial Planning",
   "status": "reserved-wave-3-i-anchor",
   "date": "2026-05-20",
-  "tier": "product",
   "audience_type": "tenant-b2b-finance",
-  "tier_subtype": "b2b-leader-operational-concern",
   "binding_adrs": [
     "ADR-0105",
     "ADR-0131",

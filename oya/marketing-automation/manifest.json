@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "marketing-automation",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T1",
   "title": "Marketing Automation",
   "status": "wave-15a-big8-remediation",
   "date": "2026-05-21",

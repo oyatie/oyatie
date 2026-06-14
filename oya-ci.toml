@@ -92,6 +92,11 @@ value = ".generated.json"
 reason = "producer-generated faces record the tokens the gates track; a hand-edit is its own registry_drift RED"
 
 [[vocab.carve_outs]]
+kind = "path_exact"
+value = "specs/microservice-tier-classification.json"
+reason = "faithful projection of ALL manifest paths in the live tree, including oya/intelligence/_legacy-foundry/manifest.json whose directory is already carved out; the projection embeds the path as a JSON key, not brand residue — the underlying _legacy-foundry de-brand is a separate tracked concern (ADR-0562/Phase-0)"
+
+[[vocab.carve_outs]]
 kind = "line_contains_ci"
 value = "palantir"
 reason = "Palantir-Foundry is a competitor proper noun, not brand residue"

@@ -1,12 +1,13 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
   "microservice": "emr",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T2",
   "title": "Electronic Medical Record (EMR/EHR)",
   "status": "wave-15m-b-authoring",
   "date": "2026-05-21",
-  "tier": "product",
   "audience_type": "tenant-b2b-healthcare-provider",
-  "tier_subtype": "b2b-clinical-record-of-truth",
   "doctrine_summary": "Foundational healthcare record-of-truth \u00b5service. Owns Patient + Encounter + Problem + Medication + Allergy + Vital + Note + Order + Result + CareTeam + OrderSet + Documentation + BillingCode + PatientEducation + PortalSession bounded contexts. FHIR R5 (default) + R4 (compatibility) API surface. Cedar-gated PHI access; HIPAA pack mandatory.",
   "binding_adrs": [
     "ADR-0131",

@@ -186,6 +186,15 @@
     "no tenant portal UI, invoice PDF renderer, or public FinOps dashboard runtime"
   ],
   "microservice": "finops-portal",
+  "tier": "substrate",
+  "tier_subtype": "substrate-marketplace-data",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+  },
   "owner": "ops-finops",
   "bounded_contexts": [
     {

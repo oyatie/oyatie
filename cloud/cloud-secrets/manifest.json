@@ -1,6 +1,22 @@
 {
   "schema_version": "1.0",
   "microservice": "cloud-secrets",
+  "tier": "substrate",
+  "tier_subtype": "substrate-secrets",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S0",
+    "depends_on": [
+      "cell"
+    ],
+    "consumed_by_substrates": [
+      "audit-chain",
+      "intelligence",
+      "observability",
+      "ontology",
+      "workflow-engine"
+    ]
+  },
   "version": "0.1.0",
   "owner": "axis-cloud-secrets",
   "bounded_contexts": [

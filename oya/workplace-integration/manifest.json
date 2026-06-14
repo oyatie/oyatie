@@ -1,9 +1,11 @@
 {
   "schema_version": "1.0",
   "microservice": "workplace-integration",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "dr_tier": "T1",
   "version": "0.1.0",
   "owner": "axis-workplace-integration",
-  "tier": "product",
   "doctrine": "workplace agreement, e-sign, roster, and regulated workforce integration substrate",
   "primary_adr": "ADR-0320",
   "related_adrs": [
