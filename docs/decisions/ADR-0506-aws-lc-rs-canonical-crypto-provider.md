@@ -134,6 +134,66 @@ aws-lc-rs is the bridge indefinitely. Cutover to oya-crypto is gated on:
   for JWT test minting (above) was already removed in earlier slices; no prod or
   dev `ring` remains active.
 
+## Enforcement (G002, 2026-06-13)
+
+The zero-ring-activation invariant above was previously only *described* here; it
+is now **mechanically enforced** by a new single-concern cloud-ci gate (ADR-0132
+no-grouping; founder doctrine "flag-only/manual = incomplete; construction >
+reaction; automate everything automatable"):
+
+- **Gate:** `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app`
+  (gate_id `cloud-ci-crypto-backend-purity`), wired into the `gate-affected-set`
+  matrix of `.github/workflows/oya-ci-required.yml`.
+- **What it asserts:** the forbidden crypto backend(s) — at minimum `ring`,
+  policy-driven in `crypto-backend-purity-policy.json` — are never **ACTIVATED**
+  in the workspace's feature-resolved dependency graph; `aws-lc-rs` is the
+  mandated backend.
+- **The signal is feature-resolved ACTIVATION, not the dependency SUPERSET.** The
+  gate runs `cargo tree -i <crate> --target all` (the inverse, feature-resolved
+  view that prunes an optional-dependency edge whose activating feature is off)
+  and FAILS iff a forbidden backend has ≥1 activated dependent. It deliberately
+  does **not** inspect `Cargo.lock` text nor `cargo metadata`'s
+  `resolve.nodes[].dependencies`/`resolve.nodes[].deps[]` lists: those retain the
+  unactivated optional-dep `ring` phantom (see the previous consequence —
+  `reqwest`'s off `http3`/`quinn` → `quinn-proto` chain; `rustls-webpki`'s off
+  `ring` feature) and would **false-RED** on a harmless stanza that is in no
+  build graph and is never compiled. **Cargo.lock stores resolved versions,
+  including optional deps, not feature activation** (restating the invariant the
+  gate is built around). The gate thus distinguishes an **activated** ring (FAIL)
+  from the lock-superset phantom (OK).
+- **Proven, not always-pass:** RED/GREEN tests ship with the gate — a GREEN test
+  asserts the live tree has zero activated ring (born-blocking green today), and
+  a RED test asserts the gate FAILS on a fixture where a crate activates ring;
+  the live gate binary additionally fails closed (exit 1) when pointed at a
+  forbidden crate that is genuinely activated.
+- **The Cargo.lock `ring` phantom remains** as an unactivated optional-dep entry.
+  Its full removal requires removing `reqwest` entirely (direct `reqwest 0.13` in
+  ~11 workspace crates + the transitive `reqwest`/`opentelemetry-otlp`
+  reqwest-blocking-client edge) in favour of the hyper-rustls (aws-lc-rs) client
+  already declared at the workspace seam (root `Cargo.toml` "Doctrine: hyper
+  client, not reqwest"). That is a large multi-crate slice tracked as the
+  **reqwest→hyper migration** friction (`FRIC-1781530000`); the lock phantom is
+  harmless because it is never built, and this gate enforces the invariant that
+  actually matters (zero ring activation) in the interim.
+
+### Accounting (ADR-0555 born-accounting justification_ref)
+
+This ADR is the justification anchor for the new gate's tracked surfaces (each
+file path is cited explicitly so the accounting-registry producer maps it to
+`justification_ref: ADR-0506`):
+
+- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/Cargo.toml`
+- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/BUCK`
+- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/crypto-backend-purity-policy.json`
+- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/src/lib.rs`
+- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/src/main.rs`
+- `cloud/cloud-ci/gates/oya-cloud-ci-crypto-backend-purity-app/tests/crypto_backend_purity.rs`
+
+The gate is OWNED via the inherited `cloud/cloud-ci/gates/OWNERS`
+(`cloud-ci-platform`, the same ownership seed as every sibling gate) and
+REACHABLE via cargo workspace membership + its BUCK target (the
+`reachable_from: ["cargo-members"]` class kernel-purity also uses).
+
 ## Related
 
 - ADR-0482 — Bespoke Substrate Roadmap (Tier 1-4); oya-crypto added as Tier-4
