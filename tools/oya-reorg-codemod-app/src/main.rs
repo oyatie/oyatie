@@ -20,12 +20,21 @@
 #![forbid(unsafe_code)]
 
 use std::path::{Path, PathBuf};
-use std::process::ExitCode;
+use std::process::{Command, ExitCode};
 
-use oya_reorg_codemod_app::model::{CodemodError, CrateMove, MovePlan};
+use oya_reorg_codemod_app::model::{
+    move_manifest_value, CodemodError, CrateMove, MovePlan,
+};
 use oya_reorg_codemod_app::oracle;
 use oya_reorg_codemod_app::plan::{apply_plan, ApplyOptions};
 use serde_json::{json, Value};
+
+/// The committed move-manifest's canonical repo-relative path (task #64). Per-PR-overwrite,
+/// regenerated each run under `specs/reorg/` (DECIDED). Declared in
+/// `registry/generated-artifact-control-plane.json`; the `.generated.json` suffix makes a
+/// hand-edit a generated-output-diff-policy rejection, and the registry-drift/freshness
+/// committed==regenerated coverage byte-binds it to this deterministic codemod output.
+const DEFAULT_MANIFEST_OUT: &str = "specs/reorg/move-manifest.generated.json";
 
 fn main() -> ExitCode {
     match run() {
@@ -46,12 +55,99 @@ fn run() -> Result<ExitCode, String> {
         "apply" => cmd_apply(rest),
         "dry-run" => cmd_dry_run(rest),
         "snapshot" => cmd_snapshot(rest),
+        "manifest" => cmd_manifest(rest),
         "" | "-h" | "--help" => {
             print_usage();
             Ok(ExitCode::SUCCESS)
         }
         other => Err(format!("unknown mode {other:?}; try --help")),
     }
+}
+
+/// `manifest [--plan <plan.json>] [--repo-root <p>] [--out <p>]`: write the committed,
+/// canonical-JSON move-manifest (schema `oya-ci/reorg-move-manifest/v1`) the rename-aware
+/// path-keyed CI baseline relabel consumes (task #64). It loads the plan (if any), VALIDATES
+/// it, enumerates the candidate tracked tree (`git ls-files` — the emitter's exact universe),
+/// derives the file-level + crate-ident pairs deterministically, and writes the canonical
+/// face. With NO `--plan` it writes the canonical EMPTY manifest (`files: []`,
+/// `crate_idents: []`) — the strict no-op the emitter reads as "no renames" (identity
+/// relabel), so a no-move PR is gate-green and byte-stable. Determinism: sorted pairs +
+/// canonical JSON => `committed==regenerated` holds byte-for-byte (the registry-drift binding).
+fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
+    let mut plan_path: Option<PathBuf> = None;
+    let mut repo_root = std::env::current_dir().map_err(|e| e.to_string())?;
+    let mut out: Option<PathBuf> = None;
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--plan" => plan_path = Some(PathBuf::from(next(args, &mut i, "--plan")?)),
+            "--repo-root" => repo_root = PathBuf::from(next(args, &mut i, "--repo-root")?),
+            "--out" => out = Some(PathBuf::from(next(args, &mut i, "--out")?)),
+            other => return Err(format!("unknown flag {other:?}")),
+        }
+        i += 1;
+    }
+    let out = out.unwrap_or_else(|| repo_root.join(DEFAULT_MANIFEST_OUT));
+
+    // The plan is OPTIONAL: a no-move PR has no plan and emits the canonical empty manifest.
+    // When a plan IS supplied, validate fail-closed (its bijection back-guarantees the relabel
+    // determinism) before deriving any pair.
+    let (capability, file_pairs, crate_dir_pairs, crate_ident_pairs) = match plan_path {
+        Some(path) => {
+            let plan = load_plan(&path, false)?;
+            plan.validate().map_err(|e: CodemodError| e.to_string())?;
+            let tracked = git_ls_files(&repo_root)?;
+            (
+                plan.capability.clone(),
+                plan.file_level_manifest(&tracked),
+                plan.crate_dir_pairs(&tracked),
+                plan.crate_ident_pairs(),
+            )
+        }
+        None => (String::new(), Vec::new(), Vec::new(), Vec::new()),
+    };
+
+    let manifest =
+        move_manifest_value(&capability, &file_pairs, &crate_dir_pairs, &crate_ident_pairs);
+    let text = to_canonical_json(&manifest);
+    if let Some(parent) = out.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("create {}: {e}", parent.display()))?;
+    }
+    std::fs::write(&out, &text).map_err(|e| format!("write {}: {e}", out.display()))?;
+    eprintln!(
+        "oya-reorg-codemod: move-manifest ({} file pairs, {} crate-dir pairs, {} crate-ident pairs) -> {}",
+        file_pairs.len(),
+        crate_dir_pairs.len(),
+        crate_ident_pairs.len(),
+        out.display()
+    );
+    Ok(ExitCode::SUCCESS)
+}
+
+/// The candidate tracked-path universe (`git ls-files`), sorted + deduplicated — the SAME
+/// universe the scm-facts emitter censuses (so the file-level derivation the relabel later
+/// re-verifies against `git ls-files` agrees by construction). The git call here is local
+/// bridge tooling (the codemod ships unused until the strangler invokes it); it never feeds a
+/// transform decision, only the manifest enumeration.
+fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .arg("ls-files")
+        .output()
+        .map_err(|e| format!("git ls-files: {e}"))?;
+    if !output.status.success() {
+        return Err(format!("git ls-files exit {:?}", output.status.code()));
+    }
+    let mut paths: Vec<String> = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(str::to_owned)
+        .filter(|p| !p.is_empty())
+        .collect();
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
 }
 
 fn cmd_apply(args: &[String]) -> Result<ExitCode, String> {
@@ -251,6 +347,7 @@ fn print_usage() {
          \x20 oya-reorg-codemod apply    --plan <plan.json> [--repo-root <p>] [--revert]\n\
          \x20 oya-reorg-codemod dry-run  --plan <plan.json> [--repo-root <p>] [--revert] [--with-buck] [--keep-shadow]\n\
          \x20 oya-reorg-codemod snapshot [--repo-root <p>] [--with-buck]\n\
+         \x20 oya-reorg-codemod manifest [--plan <plan.json>] [--repo-root <p>] [--out <p>]\n\
          \n\
          Local bridge ONLY; merge authority stays in cloud-ci/oya-ci. Ships UNUSED until the\n\
          strangler invokes it. dry-run exits 0=clean, 2=unclean (fail-closed)."

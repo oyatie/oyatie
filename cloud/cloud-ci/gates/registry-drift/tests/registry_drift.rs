@@ -60,6 +60,12 @@ const FACES: [(&str, &str); 6] = [
 
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
 
+/// The committed reorg move-manifest face (task #64). Byte-bound to the codemod's deterministic
+/// output exactly like the accounting faces + scm-facts: a hand-forged manifest row is
+/// registry_drift RED before the firewall consumes it (the anti-forgery binding for the
+/// rename-aware path-keyed baseline relabel).
+const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
+
 /// Run the producer to regenerate a single face to stdout. Prefers the buck2-provided binary
 /// (`OYA_CI_PRODUCER_BIN`), else falls back to `cargo run -p` via the RUNTIME `CARGO` env var.
 fn regenerate_face(root: &Path, face: &str) -> String {
@@ -98,6 +104,80 @@ fn regenerate_face(root: &Path, face: &str) -> String {
         String::from_utf8_lossy(&output.stderr)
     );
     String::from_utf8(output.stdout).expect("producer stdout utf8")
+}
+
+/// The committed per-PR move plan (task #64), if any: a MOVE PR commits exactly one
+/// `specs/reorg/<capability>-move-plan.json`. The codemod's `manifest` subcommand derives the
+/// move-manifest from (this plan + the candidate tracked tree), so the regen here MUST pass the
+/// same `--plan` the materialize pipeline does, or `committed != regenerated` would falsely RED a
+/// real move PR (and falsely GREEN-empty a forged manifest). With no plan (a no-move PR) the
+/// manifest is the canonical EMPTY identity manifest. The glob is sorted for determinism; the
+/// first match is used (exactly one plan per move PR).
+fn committed_move_plan(root: &Path) -> Option<PathBuf> {
+    let dir = root.join("specs/reorg");
+    let mut plans: Vec<PathBuf> = fs::read_dir(&dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| {
+            p.file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.ends_with("-move-plan.json"))
+        })
+        .collect();
+    plans.sort();
+    plans.into_iter().next()
+}
+
+/// Run the reorg codemod `manifest` subcommand to regenerate the move-manifest face to a temp
+/// path, returning its bytes (task #64). Prefers the buck2-provided binary
+/// (`OYA_CI_CODEMOD_BIN`), else `cargo run -p`. Passes the committed move plan via `--plan` (same
+/// as the materialize pipeline) so committed==regenerated holds for a real move PR; with no plan
+/// it emits the canonical EMPTY manifest. Reads `git ls-files`, so this is a git-boundary regen
+/// (the caller gates it to the boundary context, identical to scm-facts).
+fn regenerate_move_manifest(root: &Path) -> String {
+    let out = std::env::temp_dir().join(format!(
+        "oya-ci-move-manifest-regen-{}.json",
+        std::process::id()
+    ));
+    let plan = committed_move_plan(root);
+    let status = if let Ok(bin) = std::env::var("OYA_CI_CODEMOD_BIN") {
+        let mut cmd = Command::new(resolve_bin(root, &bin));
+        cmd.args(["manifest", "--repo-root"]).arg(root);
+        if let Some(plan) = &plan {
+            cmd.args(["--plan"]).arg(plan);
+        }
+        cmd.args(["--out"])
+            .arg(&out)
+            .current_dir(root)
+            .status()
+            .expect("run codemod binary")
+    } else {
+        let mut cmd = Command::new(cargo());
+        cmd.args([
+            "run",
+            "--quiet",
+            "-p",
+            "oya-reorg-codemod-app",
+            "--",
+            "manifest",
+            "--repo-root",
+        ])
+        .arg(root);
+        if let Some(plan) = &plan {
+            cmd.args(["--plan"]).arg(plan);
+        }
+        cmd.args(["--out"])
+            .arg(&out)
+            .current_dir(root)
+            .status()
+            .expect("cargo run codemod")
+    };
+    assert!(status.success(), "reorg codemod manifest failed");
+    let bytes = fs::read_to_string(&out).expect("read regenerated move-manifest");
+    let _ = fs::remove_file(&out);
+    bytes
 }
 
 /// Run the scm-facts emitter to regenerate the scm-facts face to a temp path, returning its
@@ -235,5 +315,46 @@ fn committed_scm_facts_equal_regenerated() {
         "SCM-FACTS DRIFT: committed {SCM_FACTS_FACE} != regenerated. \
          The scm-facts face was hand-edited, or git history advanced without re-running the \
          emitter. Re-run //cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app to regenerate."
+    );
+}
+
+/// Regenerate the reorg move-manifest face (task #64) via the codemod `manifest` subcommand and
+/// assert it byte-matches the committed `specs/reorg/move-manifest.generated.json`. This extends
+/// the committed==regenerated coverage to the move-manifest: a hand-forged manifest row is
+/// registry_drift RED before the firewall's rename-aware relabel consumes it (the anti-forgery
+/// binding). The codemod reads `git ls-files`, so — exactly like the scm-facts emitter — this
+/// runs ONLY at a git boundary (cargo dev / CI regen pre-step with OYA_CI_SCM_FACTS_REGEN=1) and
+/// SKIPS inside a hermetic buck2 action (no `.git` on an RBE worker).
+#[test]
+fn committed_move_manifest_equals_regenerated() {
+    let regen_boundary = std::env::var_os("CARGO").is_some()
+        || std::env::var("OYA_CI_SCM_FACTS_REGEN").as_deref() == Ok("1");
+    if !regen_boundary {
+        eprintln!(
+            "move-manifest regen-validation SKIPPED: not a git boundary context (run via cargo \
+             or the CI regen pre-step with OYA_CI_SCM_FACTS_REGEN=1). git stays out of the buck2 \
+             action graph."
+        );
+        return;
+    }
+
+    let root = repo_root();
+    let committed_path = root.join(MOVE_MANIFEST_FACE);
+    let committed = fs::read_to_string(&committed_path).unwrap_or_else(|e| {
+        panic!(
+            "committed move-manifest face missing at {} ({e}); run the codemod manifest \
+             subcommand to generate it",
+            committed_path.display()
+        )
+    });
+
+    let regenerated = regenerate_move_manifest(&root);
+
+    assert_eq!(
+        committed, regenerated,
+        "MOVE-MANIFEST DRIFT: committed {MOVE_MANIFEST_FACE} != regenerated. \
+         The move-manifest face was hand-edited, or the committed move plan / candidate tree \
+         changed without re-running the codemod. Re-run \
+         //tools/oya-reorg-codemod-app:oya-reorg-codemod manifest to regenerate."
     );
 }

@@ -4305,8 +4305,11 @@ dependencies = [
 name = "oya-cloud-ci-scm-facts-emitter-app"
 version = "0.1.0"
 dependencies = [
+ "oya-check-brand-residue",
+ "oya-ci-config-kernel",
  "oya-cloud-ci-accounting-registry-app",
  "oya-cloud-ci-firewall-app",
+ "oya-reorg-codemod-app",
  "serde_json",
 ]
 

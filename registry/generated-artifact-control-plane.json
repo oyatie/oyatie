@@ -264,6 +264,33 @@
         ],
         "output_mode": "controller-materialized"
       }
+    },
+    {
+      "artifact_id": "cloud-ci-reorg-move-manifest",
+      "path": "specs/reorg/move-manifest.generated.json",
+      "artifact_class": "review-artifact",
+      "materialization_mode": "merge-candidate-regenerated",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "source_inputs": [
+        "specs/reorg/*-move-plan.json",
+        "git ls-files (candidate tracked tree)"
+      ],
+      "final_tree_validation": "regenerate from the committed move plan (if any) + the final candidate tracked tree via the codemod `manifest` subcommand and byte-compare; the registry-drift/freshness committed==regenerated coverage makes a hand-forged row RED before the firewall runs (task #64 anti-forgery binding).",
+      "public_product_contract": "The authoritative committed move bijection the rename-aware path-keyed CI baseline relabel consumes (task #64): file-level pairs (brand-residue path-keyed relabel), crate-DIR pairs (total-accounting/target-parity existence relabel), and crate-IDENT pairs (tier-dep endpoint mapping). The file-level + crate-DIR pairs are derived from the candidate POST-move tracked tree (NEW-dir descendants mapped back to OLD), so a real move yields a NON-empty manifest. It is a pure function of committed inputs (move plan committed at specs/reorg/<capability>-move-plan.json + candidate tree), regenerated each PR run; a no-move PR commits the canonical empty manifest (identity relabel). Never hand-edited; the codemod is the sole generator.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//tools/oya-reorg-codemod-app:oya-reorg-codemod",
+        "operation_id": "emit-reorg-move-manifest",
+        "parameters": {
+          "mode": "manifest"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs"
+        ],
+        "output_mode": "declared-artifact-path-write"
+      }
     }
   ],
   "development_lifecycle_enforcement_layers": [

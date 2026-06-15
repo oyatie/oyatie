@@ -69,5 +69,8 @@ pub mod oracle;
 pub mod plan;
 pub mod rust_src;
 
-pub use model::{CodemodError, CrateMove, MovePlan, Mapping, MappingRow};
+pub use model::{
+    move_manifest_value, CodemodError, CrateMove, Mapping, MappingRow, MovePlan,
+    REORG_MOVE_MANIFEST_SCHEMA,
+};
 pub use plan::{apply_plan, ApplyOptions, ApplyOutcome};

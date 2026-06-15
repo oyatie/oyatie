@@ -88,6 +88,10 @@
     {
       "anchor": "ADR-0561 ownership seed: the cloud-os trustd-domain crate's OWNERS marker (axis-cloud-platform) — added with slice-1b-i's der.rs so the trustd crate's new real-X.509 source is born owned",
       "prefix": "cloud/cloud-os/crates/oya-cloud-os-trustd-domain/OWNERS"
+    },
+    {
+      "anchor": "ADR-0563: the rename-aware path-keyed CI baseline relabel move-manifest tree — the committed move bijection face (move-manifest.generated.json) the scm-facts emitter relabel consumes; a per-PR-regenerated review artifact reached by the codemod manifest subcommand + the emitter that reads it",
+      "prefix": "specs/reorg/"
     }
   ]
 }
