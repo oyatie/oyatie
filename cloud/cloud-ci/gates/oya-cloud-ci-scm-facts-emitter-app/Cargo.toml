@@ -34,6 +34,13 @@ oya-ci-config-kernel = { path = "../../../../libs/oya-ci-config" }
 # The frozen-policy-wins RED pin (FRIC-1781280000) runs the firewall predicates end-to-end
 # over the snapshot the emitter resolves, proving the #698 repoint attack goes RED.
 oya-cloud-ci-firewall-app = { path = "../oya-cloud-ci-firewall-app" }
+# EFFICACY pin (task #64 BLOCKER A): the chained test derives the move-manifest from a MovePlan
+# over a realistic candidate POST-move tree via the CODEMOD's own file_level_manifest +
+# crate_dir_pairs + move_manifest_value, then drives relabel_frozen_face — so the relabel is
+# proven to FIRE for a real move, and the test FAILS if file_level_manifest reverts to
+# enumerating-old (an old-keyed candidate enumeration over the post-move tree finds zero
+# descendants => empty manifest => no-op). dev-only: no production/runtime tier coupling.
+oya-reorg-codemod-app = { path = "../../../../tools/oya-reorg-codemod-app" }
 
 [lints]
 workspace = true

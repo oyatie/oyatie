@@ -4309,6 +4309,7 @@ dependencies = [
  "oya-ci-config-kernel",
  "oya-cloud-ci-accounting-registry-app",
  "oya-cloud-ci-firewall-app",
+ "oya-reorg-codemod-app",
  "serde_json",
 ]
 

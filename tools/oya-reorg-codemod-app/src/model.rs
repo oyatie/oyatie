@@ -144,26 +144,54 @@ impl MovePlan {
     /// The FILE-level move pairs `(old_file_path, new_file_path)` derived deterministically
     /// from the crate-DIR plan, for the rename-aware path-keyed CI baseline relabel (task #64).
     ///
-    /// For each tracked file path in `tracked_paths` that lies under some move's `old_path`
-    /// crate dir, the new path is `<new_path>/<rel>` where `rel` is the file path relative to
-    /// `old_path`. This is EXACT because `plan.rs` step-7 performs a wholesale
-    /// `git mv <old_dir> <new_dir>` (longest-first), so every file under the old dir lands at
-    /// the mirror location under the new dir — there is no `-M`/`-C`/similarity heuristic.
+    /// CANDIDATE-SIDE DERIVATION (the BLOCKER-A fix): `tracked_paths` is the candidate
+    /// POST-move tree (`git ls-files` AFTER the codemod's wholesale `git mv <old_dir>
+    /// <new_dir>`), so `old_path` is GONE from it and only `new_path` is present. We therefore
+    /// enumerate strict descendants of each move's `new_path` (which ARE in the candidate tree)
+    /// and map each back to its mirror `old_path/<rel>`, emitting `(old_path/rel -> new_path/rel)`.
+    /// This is EXACT because `plan.rs` step-7 is a wholesale `git mv <old_dir> <new_dir>`
+    /// (longest-first), so every file under the old dir lands at the mirror location under the
+    /// new dir — there is no `-M`/`-C`/similarity heuristic. The result has `new_path` PRESENT in
+    /// the candidate (the emitter's P3 holds) and `old_path` ABSENT from it (P2 holds, the dir
+    /// moved away). (Enumerating `old_path` descendants over the candidate tree — the previous,
+    /// structurally-inert form — found ZERO descendants and emitted an empty manifest, so the
+    /// relabel could never fire for a real move.)
     ///
-    /// A file path EQUAL to `old_path` (no trailing component) is not a crate-dir member and is
-    /// skipped; only strict descendants (`old_path/<rel>`) are mapped. The result is sorted +
-    /// deduplicated (BTreeMap) so the emitted manifest is canonical and `committed==regenerated`
-    /// holds byte-for-byte. `MovePlan::validate` guarantees `old_path` injectivity + no nesting,
-    /// so a tracked file maps under at most one move (longest matching `old_path` would be
-    /// ambiguous only for nested dirs, which validate rejects).
+    /// A file path EQUAL to `new_path` (no trailing component) is not a crate-dir member and is
+    /// skipped; only strict descendants (`new_path/<rel>`) are mapped. The result is sorted +
+    /// deduplicated (BTreeMap, keyed by old_path) so the emitted manifest is canonical and
+    /// `committed==regenerated` holds byte-for-byte. `MovePlan::validate` guarantees `new_path`
+    /// injectivity + no nesting, so a candidate file maps under at most one move.
     pub fn file_level_manifest(&self, tracked_paths: &[String]) -> Vec<(String, String)> {
         let mut pairs: BTreeMap<String, String> = BTreeMap::new();
         for m in &self.moves {
-            let old_prefix = format!("{}/", m.old_path);
+            let new_prefix = format!("{}/", m.new_path);
             for path in tracked_paths {
-                if let Some(rel) = path.strip_prefix(&old_prefix) {
-                    pairs.insert(path.clone(), format!("{}/{}", m.new_path, rel));
+                if let Some(rel) = path.strip_prefix(&new_prefix) {
+                    pairs.insert(format!("{}/{}", m.old_path, rel), path.clone());
                 }
+            }
+        }
+        pairs.into_iter().collect()
+    }
+
+    /// The crate-DIR move pairs `(old_crate_dir, new_crate_dir)` for the existence-only relabel
+    /// of the total-accounting / target-parity gates, which key by crate-DIR / `member_path`
+    /// (task #64 Section C). Unlike [`file_level_manifest`], these are pure plan pairs (one per
+    /// move) — the gate key IS the crate dir, not a file under it — so no tracked-tree
+    /// enumeration is needed. Emitted only for moves whose `new_path` actually landed in the
+    /// candidate tree (a strict descendant exists), so a crate-DIR pair is never emitted for a
+    /// move that did not take effect. Sorted + deduplicated (BTreeMap) for a canonical manifest;
+    /// `MovePlan::validate` guarantees `old_path` injectivity.
+    pub fn crate_dir_pairs(&self, tracked_paths: &[String]) -> Vec<(String, String)> {
+        let mut pairs: BTreeMap<String, String> = BTreeMap::new();
+        for m in &self.moves {
+            let new_prefix = format!("{}/", m.new_path);
+            // Only emit the crate-DIR pair when the move actually landed (some file is under
+            // new_path in the candidate tree) — mirrors the file-level candidate-side guard so a
+            // no-effect move never emits a pair.
+            if tracked_paths.iter().any(|p| p.starts_with(&new_prefix)) {
+                pairs.insert(m.old_path.clone(), m.new_path.clone());
             }
         }
         pairs.into_iter().collect()
@@ -205,30 +233,40 @@ impl MovePlan {
 /// anti-forgery-bound bijection the rename-aware path-keyed CI baseline relabel consumes.
 pub const REORG_MOVE_MANIFEST_SCHEMA: &str = "oya-ci/reorg-move-manifest/v1";
 
-/// Encode `(capability, file-level pairs, crate-ident pairs)` as the canonical-JSON
-/// move-manifest `serde_json::Value` (schema [`REORG_MOVE_MANIFEST_SCHEMA`]):
+/// Encode `(capability, file-level pairs, crate-dir pairs, crate-ident pairs)` as the
+/// canonical-JSON move-manifest `serde_json::Value` (schema [`REORG_MOVE_MANIFEST_SCHEMA`]):
 ///
 /// ```json
 /// {"schema": "...", "capability": "<cap>",
 ///  "files": [{"old_path": "...", "new_path": "..."}, ...],
+///  "crate_dirs": [{"old_path": "...", "new_path": "..."}, ...],
 ///  "crate_idents": [{"old": "...", "new": "..."}, ...]}
 /// ```
 ///
+/// `files` drives the path-keyed brand-residue relabel; `crate_dirs` drives the
+/// existence-only total-accounting / target-parity relabel (those gates key by crate-DIR /
+/// `member_path`, task #64 Section C); `crate_idents` drives the tier-dep endpoint mapping.
+///
 /// Pure + deterministic: the caller passes the SORTED outputs of
-/// [`MovePlan::file_level_manifest`] + [`MovePlan::crate_ident_pairs`], so re-deriving the
-/// manifest from the committed plan + candidate tree yields byte-identical bytes (the
-/// `committed==regenerated` registry-drift binding). For a NO-MOVE PR the caller passes empty
-/// slices, yielding `files: []`/`crate_idents: []` — the strict no-op the emitter reads as
-/// "no renames" (identity relabel).
+/// [`MovePlan::file_level_manifest`] + [`MovePlan::crate_dir_pairs`] +
+/// [`MovePlan::crate_ident_pairs`], so re-deriving the manifest from the committed plan +
+/// candidate tree yields byte-identical bytes (the `committed==regenerated` registry-drift
+/// binding). For a NO-MOVE PR the caller passes empty slices, yielding `files: []`/`crate_dirs:
+/// []`/`crate_idents: []` — the strict no-op the emitter reads as "no renames" (identity relabel).
 pub fn move_manifest_value(
     capability: &str,
     file_pairs: &[(String, String)],
+    crate_dir_pairs: &[(String, String)],
     crate_ident_pairs: &[(String, String)],
 ) -> serde_json::Value {
     serde_json::json!({
         "schema": REORG_MOVE_MANIFEST_SCHEMA,
         "capability": capability,
         "files": file_pairs
+            .iter()
+            .map(|(old, new)| serde_json::json!({"old_path": old, "new_path": new}))
+            .collect::<Vec<_>>(),
+        "crate_dirs": crate_dir_pairs
             .iter()
             .map(|(old, new)| serde_json::json!({"old_path": old, "new_path": new}))
             .collect::<Vec<_>>(),
@@ -584,7 +622,12 @@ mod tests {
     }
 
     #[test]
-    fn file_level_manifest_mirrors_dir_move_for_tracked_descendants() {
+    fn file_level_manifest_derives_from_candidate_new_descendants_mapping_back_to_old() {
+        // The candidate POST-move tree carries the NEW paths; old_path is GONE. The derivation
+        // must enumerate strict descendants of NEW_path and map them BACK to old_path/<rel>, so
+        // the emitted pairs have new PRESENT in the candidate (P3) and old ABSENT (P2). The
+        // previous (inert) form enumerated old_path descendants over this same candidate tree
+        // and found ZERO => empty manifest => the relabel could never fire.
         let plan = MovePlan {
             capability: "observability".to_string(),
             moves: vec![CrateMove {
@@ -594,13 +637,14 @@ mod tests {
                 new_cargo_name: "observability-core-aggregate".to_string(),
             }],
         };
+        // The candidate tracked set is the POST-move tree: NEW paths present, OLD path absent.
         let tracked = vec![
-            "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs".to_string(),
-            "cloud/cloud-observability/crates/oya-cloud-observability-domain/Cargo.toml".to_string(),
-            // unrelated file (different crate) — must NOT map
-            "cloud/cloud-observability/crates/oya-cloud-observability-api/src/lib.rs".to_string(),
-            // a file equal to the dir name prefix but not a strict descendant — must NOT map
-            "cloud/cloud-observability/crates/oya-cloud-observability-domain-extra/x.rs".to_string(),
+            "observability/core/aggregate/src/lib.rs".to_string(),
+            "observability/core/aggregate/Cargo.toml".to_string(),
+            // unrelated NEW file (different crate) — must NOT map
+            "observability/core/api/src/lib.rs".to_string(),
+            // a file equal to the new dir name prefix but not a strict descendant — must NOT map
+            "observability/core/aggregate-extra/x.rs".to_string(),
         ];
         let pairs = plan.file_level_manifest(&tracked);
         assert_eq!(
@@ -615,12 +659,15 @@ mod tests {
                     "observability/core/aggregate/src/lib.rs".to_string()
                 ),
             ],
-            "only strict descendants map, mirror-located, sorted"
+            "only strict NEW-dir descendants map, mapped back to old/<rel>, sorted by old"
         );
     }
 
     #[test]
-    fn file_level_manifest_is_empty_for_no_moves_or_no_tracked() {
+    fn file_level_manifest_is_empty_when_new_dir_absent_from_candidate() {
+        // Feeding the inert OLD-tree (where new_path is absent) yields NO pairs — the candidate
+        // post-move tree is the contract, and a tree with only old paths means the move did not
+        // land, so the relabel correctly does not fire.
         let plan = MovePlan {
             capability: "x".to_string(),
             moves: vec![CrateMove {
@@ -631,6 +678,44 @@ mod tests {
             }],
         };
         assert!(plan.file_level_manifest(&[]).is_empty(), "no tracked => no pairs");
+        // Only the OLD path tracked (move did not land) => still empty (new descendants absent).
+        assert!(
+            plan.file_level_manifest(&["cloud/a/src/lib.rs".to_string()])
+                .is_empty(),
+            "old-only tree => no NEW descendants => empty manifest (inert old-enum would over-map)"
+        );
+    }
+
+    #[test]
+    fn crate_dir_pairs_emit_one_pair_per_landed_move() {
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "cloud/cloud-observability/crates/oya-cloud-observability-domain".to_string(),
+                    new_path: "observability/core/aggregate".to_string(),
+                    old_cargo_name: "oya-cloud-observability-domain".to_string(),
+                    new_cargo_name: "observability-core-aggregate".to_string(),
+                },
+                // a SECOND move whose new dir is NOT in the candidate tree (did not land) — its
+                // crate-DIR pair must NOT be emitted (mirrors the file-level candidate guard).
+                CrateMove {
+                    old_path: "cloud/cloud-observability/crates/oya-cloud-observability-ghost".to_string(),
+                    new_path: "observability/core/ghost".to_string(),
+                    old_cargo_name: "oya-cloud-observability-ghost".to_string(),
+                    new_cargo_name: "observability-core-ghost".to_string(),
+                },
+            ],
+        };
+        let tracked = vec!["observability/core/aggregate/src/lib.rs".to_string()];
+        assert_eq!(
+            plan.crate_dir_pairs(&tracked),
+            vec![(
+                "cloud/cloud-observability/crates/oya-cloud-observability-domain".to_string(),
+                "observability/core/aggregate".to_string()
+            )],
+            "only the landed move emits a crate-DIR pair"
+        );
     }
 
     #[test]
@@ -664,19 +749,23 @@ mod tests {
 
     #[test]
     fn move_manifest_value_is_canonical_and_empty_for_no_move() {
-        let empty = move_manifest_value("", &[], &[]);
+        let empty = move_manifest_value("", &[], &[], &[]);
         assert_eq!(empty["schema"], REORG_MOVE_MANIFEST_SCHEMA);
         assert_eq!(empty["capability"], "");
         assert_eq!(empty["files"], serde_json::json!([]));
+        assert_eq!(empty["crate_dirs"], serde_json::json!([]));
         assert_eq!(empty["crate_idents"], serde_json::json!([]));
 
         let full = move_manifest_value(
             "observability",
             &[("old/a.rs".to_string(), "new/a.rs".to_string())],
+            &[("old".to_string(), "new".to_string())],
             &[("oya-old".to_string(), "new-core".to_string())],
         );
         assert_eq!(full["files"][0]["old_path"], "old/a.rs");
         assert_eq!(full["files"][0]["new_path"], "new/a.rs");
+        assert_eq!(full["crate_dirs"][0]["old_path"], "old");
+        assert_eq!(full["crate_dirs"][0]["new_path"], "new");
         assert_eq!(full["crate_idents"][0]["old"], "oya-old");
         assert_eq!(full["crate_idents"][0]["new"], "new-core");
     }

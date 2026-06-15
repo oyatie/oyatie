@@ -1,5 +1,6 @@
 {
   "capability": "",
+  "crate_dirs": [],
   "crate_idents": [],
   "files": [],
   "schema": "oya-ci/reorg-move-manifest/v1"

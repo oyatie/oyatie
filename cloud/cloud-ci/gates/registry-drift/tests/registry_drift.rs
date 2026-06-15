@@ -106,37 +106,69 @@ fn regenerate_face(root: &Path, face: &str) -> String {
     String::from_utf8(output.stdout).expect("producer stdout utf8")
 }
 
+/// The committed per-PR move plan (task #64), if any: a MOVE PR commits exactly one
+/// `specs/reorg/<capability>-move-plan.json`. The codemod's `manifest` subcommand derives the
+/// move-manifest from (this plan + the candidate tracked tree), so the regen here MUST pass the
+/// same `--plan` the materialize pipeline does, or `committed != regenerated` would falsely RED a
+/// real move PR (and falsely GREEN-empty a forged manifest). With no plan (a no-move PR) the
+/// manifest is the canonical EMPTY identity manifest. The glob is sorted for determinism; the
+/// first match is used (exactly one plan per move PR).
+fn committed_move_plan(root: &Path) -> Option<PathBuf> {
+    let dir = root.join("specs/reorg");
+    let mut plans: Vec<PathBuf> = fs::read_dir(&dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| {
+            p.file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.ends_with("-move-plan.json"))
+        })
+        .collect();
+    plans.sort();
+    plans.into_iter().next()
+}
+
 /// Run the reorg codemod `manifest` subcommand to regenerate the move-manifest face to a temp
 /// path, returning its bytes (task #64). Prefers the buck2-provided binary
-/// (`OYA_CI_CODEMOD_BIN`), else `cargo run -p`. Reads `git ls-files`, so this is a git-boundary
-/// regen (the caller gates it to the boundary context, identical to scm-facts).
+/// (`OYA_CI_CODEMOD_BIN`), else `cargo run -p`. Passes the committed move plan via `--plan` (same
+/// as the materialize pipeline) so committed==regenerated holds for a real move PR; with no plan
+/// it emits the canonical EMPTY manifest. Reads `git ls-files`, so this is a git-boundary regen
+/// (the caller gates it to the boundary context, identical to scm-facts).
 fn regenerate_move_manifest(root: &Path) -> String {
     let out = std::env::temp_dir().join(format!(
         "oya-ci-move-manifest-regen-{}.json",
         std::process::id()
     ));
+    let plan = committed_move_plan(root);
     let status = if let Ok(bin) = std::env::var("OYA_CI_CODEMOD_BIN") {
-        Command::new(resolve_bin(root, &bin))
-            .args(["manifest", "--repo-root"])
-            .arg(root)
-            .args(["--out"])
+        let mut cmd = Command::new(resolve_bin(root, &bin));
+        cmd.args(["manifest", "--repo-root"]).arg(root);
+        if let Some(plan) = &plan {
+            cmd.args(["--plan"]).arg(plan);
+        }
+        cmd.args(["--out"])
             .arg(&out)
             .current_dir(root)
             .status()
             .expect("run codemod binary")
     } else {
-        Command::new(cargo())
-            .args([
-                "run",
-                "--quiet",
-                "-p",
-                "oya-reorg-codemod-app",
-                "--",
-                "manifest",
-                "--repo-root",
-            ])
-            .arg(root)
-            .args(["--out"])
+        let mut cmd = Command::new(cargo());
+        cmd.args([
+            "run",
+            "--quiet",
+            "-p",
+            "oya-reorg-codemod-app",
+            "--",
+            "manifest",
+            "--repo-root",
+        ])
+        .arg(root);
+        if let Some(plan) = &plan {
+            cmd.args(["--plan"]).arg(plan);
+        }
+        cmd.args(["--out"])
             .arg(&out)
             .current_dir(root)
             .status()

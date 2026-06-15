@@ -36,6 +36,11 @@ rust_test(
         # Rename-aware path-keyed baseline relabel (task #64) — census SSOT + VocabPolicy.
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",
+        # dev-only EFFICACY pin (task #64 BLOCKER A): the chained test derives the move-manifest
+        # from a MovePlan over a candidate POST-move tree via the codemod's own
+        # file_level_manifest + crate_dir_pairs + move_manifest_value, then drives the relabel —
+        # proving it FIRES for a real move (and FAILS if file_level_manifest enumerates-old).
+        "//tools/oya-reorg-codemod-app:oya-reorg-codemod-app",
         "third-party//:serde_json",
     ],
 )

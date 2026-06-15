@@ -92,7 +92,7 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     // The plan is OPTIONAL: a no-move PR has no plan and emits the canonical empty manifest.
     // When a plan IS supplied, validate fail-closed (its bijection back-guarantees the relabel
     // determinism) before deriving any pair.
-    let (capability, file_pairs, crate_ident_pairs) = match plan_path {
+    let (capability, file_pairs, crate_dir_pairs, crate_ident_pairs) = match plan_path {
         Some(path) => {
             let plan = load_plan(&path, false)?;
             plan.validate().map_err(|e: CodemodError| e.to_string())?;
@@ -100,13 +100,15 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
             (
                 plan.capability.clone(),
                 plan.file_level_manifest(&tracked),
+                plan.crate_dir_pairs(&tracked),
                 plan.crate_ident_pairs(),
             )
         }
-        None => (String::new(), Vec::new(), Vec::new()),
+        None => (String::new(), Vec::new(), Vec::new(), Vec::new()),
     };
 
-    let manifest = move_manifest_value(&capability, &file_pairs, &crate_ident_pairs);
+    let manifest =
+        move_manifest_value(&capability, &file_pairs, &crate_dir_pairs, &crate_ident_pairs);
     let text = to_canonical_json(&manifest);
     if let Some(parent) = out.parent() {
         std::fs::create_dir_all(parent)
@@ -114,8 +116,9 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     }
     std::fs::write(&out, &text).map_err(|e| format!("write {}: {e}", out.display()))?;
     eprintln!(
-        "oya-reorg-codemod: move-manifest ({} file pairs, {} crate-ident pairs) -> {}",
+        "oya-reorg-codemod: move-manifest ({} file pairs, {} crate-dir pairs, {} crate-ident pairs) -> {}",
         file_pairs.len(),
+        crate_dir_pairs.len(),
         crate_ident_pairs.len(),
         out.display()
     );

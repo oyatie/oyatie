@@ -25,6 +25,15 @@ milestone: W0
 
 **Proposed — 2026-06-14 (cloud-ci-platform; door: two-way — pure data-over-data capability, reversible by reverting the emitter relabel pass).**
 
+**Scope of THIS PR (#737): the MACHINERY only.** This PR ships the rename-aware relabel mechanism
+— the codemod move-manifest emitter (file-level + crate-DIR + crate-IDENT pairs derived from a
+committed plan over the candidate tree), the emitter relabel pass, the `--plan` wiring through the
+materialize pipeline + registry-drift, and the anti-forgery declaration. This PR commits NO move
+plan, so the move-manifest is the canonical EMPTY manifest, the relabel is a verified strict
+NO-OP (the frozen merge-base face is byte-identical before/after the relabel pass), and move-3 is
+NOT yet unblocked. A subsequent MOVE PR exercises the machinery by committing its plan at
+`specs/reorg/<capability>-move-plan.json`; only THAT PR's relabel fires and unblocks its move.
+
 ## Context
 
 The firewall ratchet (ADR-0551) freezes today's known-debt as a merge-base baseline keyed
@@ -76,8 +85,10 @@ not a firewall code change.
 
 - Neutral: the firewall, the producer, and every other gate are unchanged; the relabel is pure
   data-over-data at the emitter boundary.
-- Positive: strangler moves of already-accepted residue files no longer read as new debt;
-  move-3 (and every future capability move) is unblocked with no manual signoff door.
+- Positive: the machinery lets strangler moves of already-accepted residue files stop reading as
+  new debt — a move PR that commits its plan unblocks its own move with no manual signoff door.
+  THIS PR ships the machinery as a strict no-op (no plan committed); move-3 is unblocked by the
+  subsequent move PR that commits the observability move plan.
 - Reachability + justification: the committed move-manifest face
   `specs/reorg/move-manifest.generated.json` is justified by this ADR and reachable via the
   `specs/reorg/` reachability-registry entry (ADR-0555 born-accounting).

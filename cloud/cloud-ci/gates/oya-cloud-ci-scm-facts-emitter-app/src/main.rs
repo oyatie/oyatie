@@ -327,6 +327,10 @@ struct MoveManifest {
     /// `(old_path, new_path)` file-level pairs. Injective on `old_path` (the codemod's
     /// `MovePlan::validate` guarantees it; re-checked here fail-closed).
     file_pairs: Vec<(String, String)>,
+    /// `(old_crate_dir, new_crate_dir)` crate-DIR pairs for the existence-only relabel of the
+    /// total-accounting / target-parity gates (which key by crate-DIR / `member_path`, task #64
+    /// Section C). Injective on `old_crate_dir`.
+    crate_dir_pairs: Vec<(String, String)>,
     /// `(old_cargo_name, new_cargo_name)` crate-IDENT pairs for tier-dep endpoint mapping.
     crate_ident_pairs: Vec<(String, String)>,
 }
@@ -356,6 +360,20 @@ impl MoveManifest {
                 }
             }
         }
+        let mut crate_dir_pairs: Vec<(String, String)> = Vec::new();
+        if let Some(dirs) = value.get("crate_dirs").and_then(Value::as_array) {
+            for row in dirs {
+                match (
+                    row.get("old_path").and_then(Value::as_str),
+                    row.get("new_path").and_then(Value::as_str),
+                ) {
+                    (Some(old), Some(new)) if !old.is_empty() && !new.is_empty() => {
+                        crate_dir_pairs.push((old.to_owned(), new.to_owned()));
+                    }
+                    _ => return Self::default(),
+                }
+            }
+        }
         let mut crate_ident_pairs: Vec<(String, String)> = Vec::new();
         if let Some(idents) = value.get("crate_idents").and_then(Value::as_array) {
             for row in idents {
@@ -370,19 +388,25 @@ impl MoveManifest {
                 }
             }
         }
-        // Injectivity on old_path / old_cargo_name (the codemod guarantees it; re-verify
-        // fail-closed — a duplicated old key is an ambiguous bijection).
-        if !is_injective_on_old(&file_pairs) || !is_injective_on_old(&crate_ident_pairs) {
+        // Injectivity on old_path / old_crate_dir / old_cargo_name (the codemod guarantees it;
+        // re-verify fail-closed — a duplicated old key is an ambiguous bijection).
+        if !is_injective_on_old(&file_pairs)
+            || !is_injective_on_old(&crate_dir_pairs)
+            || !is_injective_on_old(&crate_ident_pairs)
+        {
             return Self::default();
         }
         Self {
             file_pairs,
+            crate_dir_pairs,
             crate_ident_pairs,
         }
     }
 
     fn is_empty(&self) -> bool {
-        self.file_pairs.is_empty() && self.crate_ident_pairs.is_empty()
+        self.file_pairs.is_empty()
+            && self.crate_dir_pairs.is_empty()
+            && self.crate_ident_pairs.is_empty()
     }
 }
 
@@ -461,6 +485,11 @@ fn relabel_frozen_face(
         .iter()
         .map(|(old, new)| (old.as_str(), new.as_str()))
         .collect();
+    let dir_pairs: BTreeMap<&str, &str> = manifest
+        .crate_dir_pairs
+        .iter()
+        .map(|(old, new)| (old.as_str(), new.as_str()))
+        .collect();
     let ident_pairs: BTreeMap<&str, &str> = manifest
         .crate_ident_pairs
         .iter()
@@ -482,7 +511,9 @@ fn relabel_frozen_face(
                 vocab_policy,
             ),
             GATE_TARGET_PARITY | GATE_TOTAL_ACCOUNTING => {
-                relabel_existence_only_gate(codes, &file_pairs, &candidate_paths);
+                // Section C: these gates key by crate-DIR / member_path, so they relabel on the
+                // crate-DIR pairs (not the file-level pairs). Same existence-only P2/P3 guard.
+                relabel_existence_only_gate(codes, &dir_pairs, &candidate_paths);
             }
             GATE_TIER_DEP_ACYCLICITY => {
                 relabel_tier_dep_gate(codes, &ident_pairs, &candidate_paths);
@@ -578,15 +609,25 @@ fn relabel_brand_residue_gate(
     }
 }
 
-/// (C) total-accounting / target-parity (key = file path / crate-dir member_path). Relabel
-/// old->new per the FILE manifest pair iff P2 (old absent from candidate keyset for that code)
-/// and P3 (new present). Pure existence keys; the codemod's own buck/cargo rewrites are
+/// (C) total-accounting / target-parity (key = crate-DIR / member_path). Relabel old->new per
+/// the crate-DIR manifest pair iff P2 (old dir absent from the candidate tree) and P3 (new dir
+/// present in the candidate tree). Pure existence keys; the codemod's own buck/cargo rewrites are
 /// independently registry-drift-checked, so a content guard is not needed here.
+///
+/// DIRECTORY-AWARE EXISTENCE: a crate-DIR key (e.g. `observability/core/aggregate`) is itself
+/// never a tracked path — only the files UNDER it are in `git ls-files`. So "old absent" /
+/// "new present" must mean "no tracked file under old_dir" / "some tracked file under new_dir",
+/// NOT membership of the dir literal (which is always false). [`pairs`] is the crate-DIR pairs.
 fn relabel_existence_only_gate(
     codes: &mut serde_json::Map<String, Value>,
-    file_pairs: &BTreeMap<&str, &str>,
+    pairs: &BTreeMap<&str, &str>,
     candidate_paths: &BTreeSet<String>,
 ) {
+    // A crate dir is "present" iff some tracked path is a strict descendant of it (`<dir>/...`).
+    let dir_present = |dir: &str| -> bool {
+        let prefix = format!("{dir}/");
+        candidate_paths.iter().any(|p| p.starts_with(&prefix))
+    };
     for (_code, entry) in codes.iter_mut() {
         let Some(keys_val) = entry.get_mut("keys").and_then(Value::as_array_mut) else {
             continue;
@@ -597,7 +638,7 @@ fn relabel_existence_only_gate(
             .map(str::to_owned)
             .collect();
         let mut relabels: Vec<(String, String)> = Vec::new();
-        for (old_path, new_path) in file_pairs {
+        for (old_path, new_path) in pairs {
             let old_path = *old_path;
             let new_path = *new_path;
             if !frozen_keys.contains(old_path) {
@@ -606,8 +647,8 @@ fn relabel_existence_only_gate(
             if frozen_keys.contains(new_path) && new_path != old_path {
                 continue; // fail-closed on collision
             }
-            // P2 old absent from candidate, P3 new present in candidate.
-            if candidate_paths.contains(old_path) || !candidate_paths.contains(new_path) {
+            // P2 old dir absent from candidate tree, P3 new dir present in candidate tree.
+            if dir_present(old_path) || !dir_present(new_path) {
                 continue;
             }
             relabels.push((old_path.to_owned(), new_path.to_owned()));
@@ -771,20 +812,28 @@ fn load_move_manifest(repo_root: &Path) -> MoveManifest {
 /// Load the LIVE VocabPolicy from `oya-ci.toml` (the deny-list SSOT — correction #2/#3), mapped
 /// onto the brand-residue crate's `VocabPolicy` exactly as the producer's `vocab_policy` does, so
 /// the relabel's carve-outs + case-folding are byte-identical to `collect_brand_residue`.
-/// FAIL-CLOSED: a missing/malformed config falls back to `VocabPolicy::bundled_default()`, which
-/// reproduces the bundled stem catalog + carve-out table — the same default the config kernel
-/// applies, so the policy is never silently widened.
-fn load_vocab_policy(repo_root: &Path) -> VocabPolicy {
+///
+/// FAIL-LOUD on a MALFORMED config (matching the producer's `load_config`, main.rs): a present
+/// but unparseable `oya-ci.toml` is a HARD error, NOT a silent `bundled_default()` fallback — a
+/// silently-divergent VocabPolicy could make the relabel's P4 use the WRONG carve-outs vs the
+/// producer's census (which fails loud on the same file), breaking the byte-identical-census
+/// guarantee the whole soundness argument rests on. Only an ABSENT config falls back to
+/// `VocabPolicy::bundled_default()` (zero-config = the bundled stem catalog + carve-out table,
+/// the same default the config kernel applies), so the policy is never silently widened.
+fn load_vocab_policy(repo_root: &Path) -> Result<VocabPolicy, String> {
     use oya_check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
     use oya_ci_config_kernel::{OyaCiConfig, VocabCarveOutKind};
 
-    let cfg = std::fs::read_to_string(repo_root.join(OYA_CI_CONFIG_PATH))
-        .ok()
-        .and_then(|text| OyaCiConfig::from_toml_str(&text).ok());
-    let Some(cfg) = cfg else {
-        return VocabPolicy::bundled_default();
+    let path = repo_root.join(OYA_CI_CONFIG_PATH);
+    let cfg = match std::fs::read_to_string(&path) {
+        Ok(text) => OyaCiConfig::from_toml_str(&text)
+            .map_err(|e| format!("{}: {e} — refusing a silent VocabPolicy divergence (the producer's census fails loud on the same file; the relabel's P4 must use the IDENTICAL policy)", path.display()))?,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(VocabPolicy::bundled_default());
+        }
+        Err(e) => return Err(format!("{}: {e}", path.display())),
     };
-    VocabPolicy {
+    Ok(VocabPolicy {
         stems: cfg
             .vocab
             .forbidden_stems
@@ -808,7 +857,7 @@ fn load_vocab_policy(repo_root: &Path) -> VocabPolicy {
                 value: c.value.clone(),
             })
             .collect(),
-    }
+    })
 }
 
 /// Materialize the frozen reference: bootstrap -> merge-base -> frozen policy -> frozen
@@ -825,7 +874,7 @@ fn emit_merge_base_baseline(repo_root: &Path, bootstrap_ref: &str) -> Result<(),
     //  - the LIVE VocabPolicy from oya-ci.toml (the same source the producer censuses with);
     //  - the candidate source (git ls-files existence + on-disk content).
     let manifest = load_move_manifest(repo_root);
-    let vocab_policy = load_vocab_policy(repo_root);
+    let vocab_policy = load_vocab_policy(repo_root)?;
     let candidate = CandidateFsSource { repo_root };
     let relabel = RelabelInputs {
         manifest: &manifest,
@@ -1629,6 +1678,19 @@ mod tests {
                 .iter()
                 .map(|(o, n)| ((*o).to_owned(), (*n).to_owned()))
                 .collect(),
+            crate_dir_pairs: Vec::new(),
+            crate_ident_pairs: Vec::new(),
+        }
+    }
+
+    /// A manifest carrying only crate-DIR pairs (Section C: total-accounting / target-parity).
+    fn dir_manifest(dirs: &[(&str, &str)]) -> MoveManifest {
+        MoveManifest {
+            file_pairs: Vec::new(),
+            crate_dir_pairs: dirs
+                .iter()
+                .map(|(o, n)| ((*o).to_owned(), (*n).to_owned()))
+                .collect(),
             crate_ident_pairs: Vec::new(),
         }
     }
@@ -1822,8 +1884,11 @@ mod tests {
         assert_eq!(out, face, "empty manifest => byte-identical face (strict no-op)");
     }
 
-    /// Existence-only gate (target-parity / total-accounting): pure P2+P3 relabel, no content
-    /// guard. A moved member dir key is relabeled when old absent + new present in candidate.
+    /// Existence-only gate (target-parity / total-accounting): pure P2+P3 relabel on the
+    /// crate-DIR pairs (Section C), no content guard. A moved member-DIR key is relabeled when the
+    /// old dir is absent (no tracked file under it) + the new dir is present (some tracked file
+    /// under it) in the candidate tree — DIRECTORY-AWARE existence (the crate-DIR literal itself
+    /// is never in `git ls-files`, only files under it).
     #[test]
     fn relabel_existence_only_gate_relabels_on_presence() {
         let old = "cloud/cloud-observability/crates/oya-cloud-observability-domain";
@@ -1834,14 +1899,41 @@ mod tests {
             }
         }}});
         let frozen = FakeFrozen::new(&[]);
-        let candidate = FakeCandidate::new(&[new, "other/dir"], &[]);
+        // Candidate carries FILES under the new dir + under other/dir; the dir literals are NOT
+        // tracked paths themselves. "other/dir" stays a frozen key (it is not a manifest pair).
+        let candidate = FakeCandidate::new(
+            &[
+                "observability/core/aggregate/src/lib.rs",
+                "other/dir/src/lib.rs",
+            ],
+            &[],
+        );
         let policy = VocabPolicy::bundled_default();
-        let out = relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let out = relabel_frozen_face(&face, &dir_manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
         let keys: BTreeSet<String> = out["gates"][GATE_TARGET_PARITY]
             ["member_test_code_without_rust_test_target"]["keys"]
             .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
-        assert!(keys.contains(new) && !keys.contains(old));
-        assert!(keys.contains("other/dir"));
+        assert!(keys.contains(new) && !keys.contains(old), "crate-DIR relabeled on dir presence");
+        assert!(keys.contains("other/dir"), "unmoved dir key untouched");
+    }
+
+    /// Section C fail-closed: a crate-DIR move where the NEW dir has NO tracked file under it
+    /// (the move did not land) must NOT relabel (P3 directory-presence fails).
+    #[test]
+    fn relabel_existence_only_gate_fails_closed_when_new_dir_empty() {
+        let old = "cloud/cloud-observability/crates/oya-cloud-observability-domain";
+        let new = "observability/core/aggregate";
+        let face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [old]}
+        }}});
+        let frozen = FakeFrozen::new(&[]);
+        // No tracked file under the new dir => new dir absent => no relabel.
+        let candidate = FakeCandidate::new(&["unrelated/x.rs"], &[]);
+        let policy = VocabPolicy::bundled_default();
+        let out = relabel_frozen_face(&face, &dir_manifest(&[(old, new)]), &frozen, MB, &candidate, &policy).unwrap();
+        let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
+            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+        assert!(keys.contains(old), "no relabel when new dir has no tracked descendant");
     }
 
     /// Non-path gate pass-through: a gate with a NON-path key space (crate names) is never
@@ -1874,10 +1966,188 @@ mod tests {
         let frozen = FakeFrozen::new(&[]);
         let candidate = FakeCandidate::new(&[], &[]);
         let policy = VocabPolicy::bundled_default();
-        let mut m = MoveManifest::default();
-        m.crate_ident_pairs = vec![("oya-old-a".to_owned(), "new-a".to_owned())];
+        let m = MoveManifest {
+            crate_ident_pairs: vec![("oya-old-a".to_owned(), "new-a".to_owned())],
+            ..MoveManifest::default()
+        };
         let out = relabel_frozen_face(&face, &m, &frozen, MB, &candidate, &policy).unwrap();
         assert_eq!(out, face, "tier-dep branch is a safe no-op without a candidate-edge source");
+    }
+
+    // -----------------------------------------------------------------------
+    // EFFICACY pins (task #64 BLOCKER A): the relabel must ACTUALLY FIRE for a real move.
+    //
+    // These chain the CODEMOD's own derivation (file_level_manifest + crate_dir_pairs +
+    // move_manifest_value over a realistic candidate POST-move tree) into the emitter's
+    // MoveManifest::from_value + relabel_frozen_face, then run the firewall end-to-end. They
+    // FAIL if file_level_manifest reverts to enumerating-old: the candidate tree carries only
+    // the NEW paths (old is GONE, as in a real post-move state), so an old-keyed enumeration
+    // finds ZERO descendants => empty manifest => no relabel => the asserts below all break.
+    // -----------------------------------------------------------------------
+
+    use oya_reorg_codemod_app::model::{
+        move_manifest_value as codemod_manifest_value, CrateMove, MovePlan,
+    };
+
+    /// Build the manifest EXACTLY as the codemod + the materialize pipeline do: derive the pairs
+    /// from the plan over the candidate POST-move tracked tree, encode to the canonical JSON
+    /// face, then parse it back via the emitter's fail-closed `MoveManifest::from_value`. This is
+    /// the load-bearing chain — a regression in `file_level_manifest` flows straight through.
+    fn manifest_from_plan(plan: &MovePlan, candidate_tracked: &[&str]) -> MoveManifest {
+        let tracked: Vec<String> = candidate_tracked.iter().map(|s| (*s).to_owned()).collect();
+        let value = codemod_manifest_value(
+            &plan.capability,
+            &plan.file_level_manifest(&tracked),
+            &plan.crate_dir_pairs(&tracked),
+            &plan.crate_ident_pairs(),
+        );
+        MoveManifest::from_value(&value)
+    }
+
+    fn observability_plan() -> MovePlan {
+        MovePlan {
+            capability: "observability".to_owned(),
+            moves: vec![CrateMove {
+                old_path: "cloud/cloud-observability/crates/oya-cloud-observability-domain"
+                    .to_owned(),
+                new_path: "observability/core/aggregate".to_owned(),
+                old_cargo_name: "oya-cloud-observability-domain".to_owned(),
+                new_cargo_name: "observability-core-aggregate".to_owned(),
+            }],
+        }
+    }
+
+    /// THE EFFICACY PIN: a realistic POST-move state (frozen brand-residue keyed at the OLD path,
+    /// candidate tree carrying the NEW path with byte-identical residue, a committed plan) makes
+    /// the relabel FIRE — old key removed, new key inserted — AND the firewall is GREEN over the
+    /// relabeled-frozen vs candidate keysets. This is the move-3 unblock, proven end-to-end
+    /// through the codemod's own manifest derivation.
+    #[test]
+    fn relabel_fires_for_a_real_move_and_firewall_is_green() {
+        let plan = observability_plan();
+        let old_file =
+            "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs";
+        let new_file = "observability/core/aggregate/src/lib.rs";
+        let code = code_a();
+
+        // Candidate POST-move tree: the NEW file is tracked; the OLD file is GONE.
+        let candidate_tracked = [new_file, "other/unmoved.rs"];
+        let manifest = manifest_from_plan(&plan, &candidate_tracked);
+        // The derivation must have produced the file pair (this is exactly what breaks if
+        // file_level_manifest enumerates-old over the post-move tree).
+        assert!(
+            !manifest.is_empty(),
+            "EFFICACY: the manifest must be NON-empty for a real move (file_level_manifest must \
+             enumerate NEW-dir descendants over the candidate tree, not old-dir)"
+        );
+        assert!(
+            manifest
+                .file_pairs
+                .iter()
+                .any(|(o, n)| o == old_file && n == new_file),
+            "EFFICACY: the file pair (old -> new) must be present: {:?}",
+            manifest.file_pairs
+        );
+
+        // Frozen face: the residue is an ACCEPTED debt keyed at the OLD path (block-on-new).
+        let face = brand_face(&code, &[old_file, "other/unmoved.rs"]);
+        // Frozen content at the merge-base: the OLD file carried the residue line.
+        let frozen = FakeFrozen::new(&[(old_file, &line_with(&residue_a()))]);
+        // Candidate content: the NEW file carries the SAME residue line (byte-identical move).
+        let candidate = FakeCandidate::new(
+            &candidate_tracked,
+            &[(new_file, &line_with(&residue_a()))],
+        );
+        let policy = VocabPolicy::bundled_default();
+
+        let relabeled =
+            relabel_frozen_face(&face, &manifest, &frozen, MB, &candidate, &policy).unwrap();
+        let keys = brand_keys(&relabeled, &code);
+        assert!(keys.contains(new_file), "EFFICACY: NEW key relabeled IN");
+        assert!(!keys.contains(old_file), "EFFICACY: OLD key relabeled OUT");
+        assert!(keys.contains("other/unmoved.rs"), "unmoved key untouched");
+
+        // FIREWALL GREEN end-to-end: wrap the relabeled face as the frozen snapshot and
+        // difference it against the candidate's own brand-residue keyset (the NEW path). The
+        // relabel removed the false-RED: no growth, no regression.
+        let snapshot = build_merge_base_baseline_snapshot(
+            &parse_ratchet_policy(POLICY_TEXT).unwrap(),
+            FROZEN_POLICY_SOURCE_MERGE_BASE,
+            MB,
+            Some(relabeled),
+        );
+        let frozen_baseline =
+            oya_cloud_ci_firewall_app::FrozenBaseline::from_value(&snapshot).unwrap();
+        // The candidate's observed brand-residue: the residue now lives at the NEW path.
+        let candidate_face = brand_face(&code, &[new_file, "other/unmoved.rs"]);
+        let proposed = oya_cloud_ci_firewall_app::Baseline::from_value(&candidate_face);
+        let current = oya_cloud_ci_firewall_app::baseline_keys_map(&proposed);
+        let report = oya_cloud_ci_firewall_app::evaluate_firewall(
+            &frozen_baseline.baseline,
+            &proposed,
+            &current,
+            &oya_cloud_ci_firewall_app::SignOff::default(),
+        );
+        assert!(
+            report.is_green(),
+            "EFFICACY: after the relabel, the firewall must be GREEN (the moved residue is no \
+             longer false-RED): {report:?}"
+        );
+    }
+
+    /// CONTENT-SUPERSET (added residue) does NOT relabel — stays RED. The move keeps the original
+    /// residue AND adds a distinct residue line, so P4 (NEW_OCC ⊆ OLD_OCC) fails => no relabel =>
+    /// the firewall sees the OLD path as fixed AND the NEW path as genuine new debt => RED. Proven
+    /// through the same codemod-derived manifest chain.
+    #[test]
+    fn relabel_does_not_fire_for_a_content_superset_move_and_firewall_is_red() {
+        let plan = observability_plan();
+        let old_file =
+            "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs";
+        let new_file = "observability/core/aggregate/src/lib.rs";
+        let code = code_a();
+
+        let candidate_tracked = [new_file];
+        let manifest = manifest_from_plan(&plan, &candidate_tracked);
+        assert!(!manifest.is_empty(), "the manifest is derived (the move is real)");
+
+        let face = brand_face(&code, &[old_file]);
+        let frozen = FakeFrozen::new(&[(old_file, &line_with(&residue_a()))]);
+        // The NEW file keeps the original residue AND grows a DISTINCT residue line.
+        let grown = format!("{}let w = \"{}-extra\";\n", line_with(&residue_a()), residue_a());
+        let candidate = FakeCandidate::new(&candidate_tracked, &[(new_file, &grown)]);
+        let policy = VocabPolicy::bundled_default();
+
+        let relabeled =
+            relabel_frozen_face(&face, &manifest, &frozen, MB, &candidate, &policy).unwrap();
+        let keys = brand_keys(&relabeled, &code);
+        assert!(keys.contains(old_file), "P4 broke => OLD stays (no relabel)");
+        assert!(!keys.contains(new_file), "NEW must NOT be laundered into the frozen set");
+
+        // FIREWALL RED end-to-end: the frozen (un-relabeled) keys the OLD path; the candidate
+        // keys the NEW path. The NEW path is growth (a key absent from the frozen set) => RED.
+        let snapshot = build_merge_base_baseline_snapshot(
+            &parse_ratchet_policy(POLICY_TEXT).unwrap(),
+            FROZEN_POLICY_SOURCE_MERGE_BASE,
+            MB,
+            Some(relabeled),
+        );
+        let frozen_baseline =
+            oya_cloud_ci_firewall_app::FrozenBaseline::from_value(&snapshot).unwrap();
+        let candidate_face = brand_face(&code, &[new_file]);
+        let proposed = oya_cloud_ci_firewall_app::Baseline::from_value(&candidate_face);
+        let current = oya_cloud_ci_firewall_app::baseline_keys_map(&proposed);
+        let report = oya_cloud_ci_firewall_app::evaluate_firewall(
+            &frozen_baseline.baseline,
+            &proposed,
+            &current,
+            &oya_cloud_ci_firewall_app::SignOff::default(),
+        );
+        assert!(
+            !report.is_green(),
+            "EFFICACY: a content-superset move must stay RED (the relabel manufactures no \
+             false-GREEN): {report:?}"
+        );
     }
 
     /// MoveManifest::from_value fail-closes a foreign schema and a malformed row to EMPTY.
@@ -1889,9 +2159,14 @@ mod tests {
         // duplicate old_path => not injective => empty.
         assert!(MoveManifest::from_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
             "files": [{"old_path":"a","new_path":"b"},{"old_path":"a","new_path":"c"}]})).is_empty());
-        // a well-formed manifest parses.
+        // a malformed crate_dirs row also poisons the whole manifest fail-closed.
+        assert!(MoveManifest::from_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
+            "crate_dirs": [{"old_path":"a"}]})).is_empty());
+        // a well-formed manifest (incl. crate_dirs) parses.
         let ok = MoveManifest::from_value(&json!({"schema": MOVE_MANIFEST_SCHEMA,
-            "capability": "x", "files": [{"old_path":"a","new_path":"b"}], "crate_idents": []}));
+            "capability": "x", "files": [{"old_path":"a","new_path":"b"}],
+            "crate_dirs": [{"old_path":"a","new_path":"b"}], "crate_idents": []}));
         assert_eq!(ok.file_pairs, vec![("a".to_owned(), "b".to_owned())]);
+        assert_eq!(ok.crate_dir_pairs, vec![("a".to_owned(), "b".to_owned())]);
     }
 }

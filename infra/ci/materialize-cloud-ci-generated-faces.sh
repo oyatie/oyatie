@@ -32,9 +32,22 @@ codemod="$(printf '%s\n' "$show_out" | awk '/oya-reorg-codemod-app:oya-reorg-cod
 #      content-aware relabel its path-keyed keys per that manifest (fail-closed; strict no-op
 #      when there are no renames);
 #   3. producer(faces) — regenerate the candidate-tree faces the firewall differences against.
-# The manifest is per-PR-overwrite, regenerated each run; with no committed plan it is the
-# canonical EMPTY manifest (identity relabel — a no-move PR is gate-green and byte-stable).
-"$codemod" manifest --repo-root "$repo_root" --out "${repo_root%/}/specs/reorg/move-manifest.generated.json"
+# A MOVE PR commits its plan at specs/reorg/<capability>-move-plan.json; the manifest is then a
+# pure function of (committed plan + candidate tree), regenerated each run. With NO committed plan
+# (a no-move PR like #737 itself) the codemod gets no --plan and emits the canonical EMPTY
+# manifest (identity relabel — a no-move PR is gate-green and byte-stable). The glob is sorted by
+# the shell's deterministic expansion; exactly one plan is expected per move PR, so the first
+# match is used (a multi-plan tree is a contributor error the move PR must avoid).
+plan_args=()
+shopt -s nullglob
+move_plans=("${repo_root%/}"/specs/reorg/*-move-plan.json)
+shopt -u nullglob
+if [ "${#move_plans[@]}" -gt 0 ]; then
+  plan_args=(--plan "${move_plans[0]}")
+fi
+# `${plan_args[@]+...}` guards the empty-array expansion under `set -u` (an empty array is
+# "unbound" in bash < 4.4) — a no-move PR runs the codemod with NO --plan (empty manifest).
+"$codemod" manifest --repo-root "$repo_root" ${plan_args[@]+"${plan_args[@]}"} --out "${repo_root%/}/specs/reorg/move-manifest.generated.json"
 
 # --merge-base-baseline (ADR-0551, FRIC-1781112000): the emitter also materializes the
 # firewall's FROZEN reference — the gate-baseline face at `git merge-base <bootstrap> HEAD`.
