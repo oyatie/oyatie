@@ -24,7 +24,7 @@ oya-identity-domain = { path = "../../../identity/crates/oya-identity-domain" }
 oya-regional-pack-domain = { path = "../../../../cloud/cloud-cell/crates/oya-regional-pack-domain" }
 oya-residency-domain = { path = "../../../../cloud/cloud-network/crates/oya-residency-domain" }
 oya-ontology-domain = { path = "../../../ontology/crates/oya-ontology-domain" }
-oya-observability-domain = { path = "../../../observability/crates/oya-observability-domain" }
+observability-domain = { path = "../../../../observability/core/domain" }
 oya-policy-cedar-domain = { path = "../../../policy/crates/oya-policy-cedar-domain" }
 messaging-domain = { path = "../../../../messaging/core/domain" }
 oya-secrets-domain = { path = "../../../../cloud/cloud-secrets/crates/oya-secrets-domain" }
@@ -36,7 +36,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dev-dependencies]
-oya-observability-tracing-adapter = { path = "../../../observability/crates/oya-observability-tracing-adapter" }
+observability-tracing-adapter = { path = "../../../../observability/adapters/tracing" }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 

@@ -349,6 +349,92 @@ The move's tracked, born-accounted artifact paths are `iac/core/domain/Cargo.tom
 `iac/facade/app/Cargo.toml`, `iac/facade/app/BUCK`, `iac/facade/app/src/lib.rs`,
 `iac/facade/app/src/main.rs`, `iac/facade/app/tests/cloud_iac_app.rs`, and the subtree `iac/OWNERS`.
 
+#### §10.7 Third executed strangler move: `observability` capability (cloud/cloud-observability + oya/observability → observability/)
+
+The third REAL codemod run homes the `observability` capability's five crates from TWO source dirs
+(`cloud/cloud-observability/crates` + `oya/observability/crates`) under the §3 placement rule, each
+face mirrored by its sub-fold across two faces (`core`, `adapters`):
+the cloud aggregate domain engine (`face: core`) → `observability/core/aggregate`
+(cargo `observability-aggregate`); the cloud audit-DTO application boundary (`face: core`, concrete
+logic over the domain) → `observability/core/api` (cargo `observability-api`); the cloud
+self-identity primitive (`face: core`, leaf) → `observability/core/kernel`
+(cargo `observability-kernel`); the base telemetry/SLO vocabulary domain engine (`face: core`,
+foundational) → `observability/core/domain` (cargo `observability-domain`); and the
+tracing-subscriber transient-infra impl (`face: adapters`) → `observability/adapters/tracing`
+(cargo `observability-tracing-adapter`). The de-brand drops the `oya-cloud-observability-` /
+`oya-observability-` prefixes to the capability slug; cargo names are the de-branded leaf, matching
+the §10.5/§10.6 precedent.
+
+**Face reasoning — both source dirs are `core`, not `facade` (§3 "by WHAT IT IS, not cloud/oya
+prefix"):** the cloud→oya dependency runs DOWNWARD — `oya-cloud-observability-domain`
+(cloud aggregate) depends on `oya-observability-domain` (the base telemetry vocab) — so
+`oya/observability` is the FOUNDATIONAL core of the capability, NOT a product facade; mapping it to
+`facade/` would invert the dependency edge (a facade depended on by a `core` crate). Both the cloud
+aggregate/api and the oya base vocab are therefore `core/`. Per the §3 tie-breaker, the oya base
+vocab sits at the lowest DAG node it participates in (a leaf with one `oya-data-boundary-kernel`
+dep), so it is unambiguously foundational core.
+
+**Collision resolution (two `*-domain` crates into one capability):** both source dirs held a
+`*-domain` crate (`oya-cloud-observability-domain` and `oya-observability-domain`). De-branding both
+to `observability-domain` would collide on path AND cargo name. The cloud aggregate domain is
+therefore RENAMED to `aggregate` (`observability/core/aggregate`, cargo `observability-aggregate`)
+to reflect WHAT IT IS (it aggregates cloud-side telemetry over the base vocab), while the
+foundational base telemetry vocab keeps `domain` (`observability/core/domain`, cargo
+`observability-domain`). The resulting 5 paths + 5 cargo names are all distinct
+(`MovePlan::validate` passes: no duplicate `old_path`/`new_path`/`old_cargo_name`/`new_cargo_name`,
+no nested target).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree
+dry-run (`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree,
+`buck_ok=true` not null, `clean=true`). The single first-party dependent OUTSIDE the capability —
+`oya/application/crates/oya-application-app` (depending on `observability-domain` +
+`observability-tracing-adapter`) — had its cargo path-deps, BUCK labels, and Rust `use` idents
+recomputed mechanically. The capability registry `observability.absorbs_current_dirs` gains
+`observability` (the old `cloud/cloud-observability` / `oya/observability` / `oya/diagnostics`
+entries are retained for the phase-2 non-crate residue + the crate-free `oya/diagnostics`), the
+membership policy scan_roots + allowed_top_level_dirs gain `observability`, the acyclicity policy
+crate_root_globs gains `observability/*/*` + unclassified_roots gains `observability`, and the root
+workspace gains the `observability/*/*` member glob (one glob covers both faces; ADR-0538 glob-only
+contract).
+
+**Rename-aware baseline relabel exercised (ADR-0563, first MOVE PR to fire it):** this is the first
+strangler move under the rename-aware path-keyed CI baseline relabel machinery (ADR-0563 / #737), so
+it commits exactly ONE move-plan at `specs/reorg/observability-move-plan.json` (the codemod's
+`MovePlan` bijection), and the move-manifest at `specs/reorg/move-manifest.generated.json` is
+regenerated from it via `oya-reorg-codemod manifest --plan` (registry-drift byte-bound). Three
+relocated source files carry PRE-EXISTING brand-residue vocabulary (a retired-brand stem the
+shrink-only ratchet tracks via the `cloud-ci-brand-residue` gate) at `observability/core/aggregate/src/lib.rs`,
+`observability/core/api/tests/cloud_observability_audit_api.rs`, and `observability/core/domain/src/lib.rs`
+whose OLD paths are in that gate's frozen merge-base baseline; the emitter relabel maps those OLD
+paths to their NEW paths in the frozen face, so the firewall reads zero new debt (the residue was
+already accepted at the old path; the move adds none). This ADR §10.7 record itself names no
+brand-stem token verbatim (per the same shrink-only ratchet, exactly as ADR-0563 describes the
+residue). No manual signoff door is used.
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** like
+`cloud/cloud-iac` in §10.6, both `cloud/cloud-observability/` and `oya/observability/` also hold
+non-crate capability artifacts (docs, slos, contracts, GitOps manifests), and `oya/diagnostics/`
+holds ZERO crates (pure non-crate artifacts). This crates-only strangler move homes the CRATES; the
+non-crate artifacts + `oya/diagnostics` stay in place and are homed in phase-2 (task #62), so only
+the `crates/` subtrees are emptied.
+
+The move's tracked, born-accounted artifact paths are `observability/core/kernel/Cargo.toml`,
+`observability/core/kernel/BUCK`, `observability/core/kernel/src/lib.rs`,
+`observability/core/aggregate/Cargo.toml`, `observability/core/aggregate/BUCK`,
+`observability/core/aggregate/src/lib.rs`, `observability/core/api/Cargo.toml`,
+`observability/core/api/BUCK`, `observability/core/api/src/lib.rs`,
+`observability/core/api/tests/cloud_observability_audit_api.rs`,
+`observability/core/domain/Cargo.toml`, `observability/core/domain/BUCK`,
+`observability/core/domain/src/lib.rs`, `observability/core/domain/src/severity.rs`,
+`observability/core/domain/src/slo.rs`,
+`observability/core/domain/tests/severity_threshold_gate.rs`,
+`observability/core/domain/tests/slo_burn_rate.rs`,
+`observability/adapters/tracing/Cargo.toml`, `observability/adapters/tracing/BUCK`,
+`observability/adapters/tracing/src/lib.rs`,
+`observability/adapters/tracing/tests/slo_breach_observer.rs`, the subtree `observability/OWNERS`,
+and the committed move-plan `specs/reorg/observability-move-plan.json` (reached by the existing
+ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

@@ -1,0 +1,35 @@
+{
+  "capability": "observability",
+  "moves": [
+    {
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-kernel",
+      "new_path": "observability/core/kernel",
+      "old_cargo_name": "oya-cloud-observability-kernel",
+      "new_cargo_name": "observability-kernel"
+    },
+    {
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-domain",
+      "new_path": "observability/core/aggregate",
+      "old_cargo_name": "oya-cloud-observability-domain",
+      "new_cargo_name": "observability-aggregate"
+    },
+    {
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-api",
+      "new_path": "observability/core/api",
+      "old_cargo_name": "oya-cloud-observability-api",
+      "new_cargo_name": "observability-api"
+    },
+    {
+      "old_path": "oya/observability/crates/oya-observability-domain",
+      "new_path": "observability/core/domain",
+      "old_cargo_name": "oya-observability-domain",
+      "new_cargo_name": "observability-domain"
+    },
+    {
+      "old_path": "oya/observability/crates/oya-observability-tracing-adapter",
+      "new_path": "observability/adapters/tracing",
+      "old_cargo_name": "oya-observability-tracing-adapter",
+      "new_cargo_name": "observability-tracing-adapter"
+    }
+  ]
+}

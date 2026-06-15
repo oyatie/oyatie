@@ -156,6 +156,7 @@
         "observability"
       ],
       "absorbs_current_dirs": [
+        "observability",
         "cloud/cloud-observability",
         "oya/observability",
         "oya/diagnostics"

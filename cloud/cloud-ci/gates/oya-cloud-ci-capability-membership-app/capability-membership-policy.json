@@ -15,7 +15,8 @@
     "libs",
     "tools",
     "messaging",
-    "iac"
+    "iac",
+    "observability"
   ],
   "meta_directories": [
     "kernel",
@@ -34,6 +35,7 @@
     "app",
     "messaging",
     "iac",
+    "observability",
     "cloud",
     "oya",
     "libs",
