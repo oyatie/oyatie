@@ -1,0 +1,29 @@
+{
+  "fixture_id": "TC-FW-GOOD-relabeled-residue-move-tolerated",
+  "expected_firewall": "GREEN",
+  "expected_failing_codes": [],
+  "expected_ratchet_growth": 0,
+  "expected_inert_signoff": 0,
+  "description": "Rename-aware path-keyed baseline relabel INVARIANCE (task #64). The scm-facts emitter has already relabeled the frozen merge-base face: a moved residue file's OLD path key (under a residue code, e.g. cloud/cloud-observability/.../src/lib.rs) was relabeled to its NEW path key (observability/core/aggregate/src/lib.rs) because the move was pure (NEW occurrence-set subset of OLD). The firewall is pure DATA-over-DATA — it never sees content, paths, or git, so this fixture uses an OPAQUE residue code/keys (stem-free by design, mirroring the firewall's content-blindness). It differences the candidate (NEW path) against the relabeled-frozen (NEW path): tolerated, zero regressions, zero growth => GREEN. This is the move-3 unblock: a strangler move of an already-accepted residue file is no longer read as NEW debt. The relabel DECISION itself is pinned in the emitter's relabel_green_pure_move_relabels_old_to_new unit test; this fixture pins that the firewall is INVARIANT under an already-relabeled frozen face.",
+  "merge_base_baseline": {
+    "gates": {
+      "cloud-ci-brand-residue": {
+        "forbidden_RESIDUEA": {"mode": "baseline-block-on-new", "keys": ["observability/core/aggregate/src/lib.rs", "other/unmoved-residue.rs"]}
+      }
+    }
+  },
+  "current": {
+    "cloud-ci-brand-residue": {
+      "forbidden_RESIDUEA": ["observability/core/aggregate/src/lib.rs", "other/unmoved-residue.rs"]
+    }
+  },
+  "proposed_baseline": {
+    "gates": {
+      "cloud-ci-brand-residue": {
+        "forbidden_RESIDUEA": {"mode": "baseline-block-on-new", "keys": ["observability/core/aggregate/src/lib.rs", "other/unmoved-residue.rs"]}
+      }
+    }
+  },
+  "signoff": {"_sign_off_additions": {}},
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/firewall.rs"
+}

@@ -141,6 +141,47 @@ impl MovePlan {
         Ok(())
     }
 
+    /// The FILE-level move pairs `(old_file_path, new_file_path)` derived deterministically
+    /// from the crate-DIR plan, for the rename-aware path-keyed CI baseline relabel (task #64).
+    ///
+    /// For each tracked file path in `tracked_paths` that lies under some move's `old_path`
+    /// crate dir, the new path is `<new_path>/<rel>` where `rel` is the file path relative to
+    /// `old_path`. This is EXACT because `plan.rs` step-7 performs a wholesale
+    /// `git mv <old_dir> <new_dir>` (longest-first), so every file under the old dir lands at
+    /// the mirror location under the new dir — there is no `-M`/`-C`/similarity heuristic.
+    ///
+    /// A file path EQUAL to `old_path` (no trailing component) is not a crate-dir member and is
+    /// skipped; only strict descendants (`old_path/<rel>`) are mapped. The result is sorted +
+    /// deduplicated (BTreeMap) so the emitted manifest is canonical and `committed==regenerated`
+    /// holds byte-for-byte. `MovePlan::validate` guarantees `old_path` injectivity + no nesting,
+    /// so a tracked file maps under at most one move (longest matching `old_path` would be
+    /// ambiguous only for nested dirs, which validate rejects).
+    pub fn file_level_manifest(&self, tracked_paths: &[String]) -> Vec<(String, String)> {
+        let mut pairs: BTreeMap<String, String> = BTreeMap::new();
+        for m in &self.moves {
+            let old_prefix = format!("{}/", m.old_path);
+            for path in tracked_paths {
+                if let Some(rel) = path.strip_prefix(&old_prefix) {
+                    pairs.insert(path.clone(), format!("{}/{}", m.new_path, rel));
+                }
+            }
+        }
+        pairs.into_iter().collect()
+    }
+
+    /// The crate-IDENT move pairs `(old_cargo_name, new_cargo_name)` for tier-dependency
+    /// edge-endpoint mapping (task #64 correction #3). The tier-dep gate keys edges over crate
+    /// IDENTS (`<code>|<from-ident> -> <to-idents>`), so the relabel maps endpoints via these
+    /// kebab cargo-name pairs, NOT old_path->new_path. Sorted + deduplicated (BTreeMap) for a
+    /// canonical manifest; `MovePlan::validate` guarantees `old_cargo_name` injectivity.
+    pub fn crate_ident_pairs(&self) -> Vec<(String, String)> {
+        let mut pairs: BTreeMap<String, String> = BTreeMap::new();
+        for m in &self.moves {
+            pairs.insert(m.old_cargo_name.clone(), m.new_cargo_name.clone());
+        }
+        pairs.into_iter().collect()
+    }
+
     /// Build the emitted [`Mapping`] (one row per crate move) for audit + the inverse.
     pub fn mapping(&self) -> Mapping {
         Mapping {
@@ -158,6 +199,44 @@ impl MovePlan {
                 .collect(),
         }
     }
+}
+
+/// The canonical move-manifest schema id (task #64). The authoritative, committed,
+/// anti-forgery-bound bijection the rename-aware path-keyed CI baseline relabel consumes.
+pub const REORG_MOVE_MANIFEST_SCHEMA: &str = "oya-ci/reorg-move-manifest/v1";
+
+/// Encode `(capability, file-level pairs, crate-ident pairs)` as the canonical-JSON
+/// move-manifest `serde_json::Value` (schema [`REORG_MOVE_MANIFEST_SCHEMA`]):
+///
+/// ```json
+/// {"schema": "...", "capability": "<cap>",
+///  "files": [{"old_path": "...", "new_path": "..."}, ...],
+///  "crate_idents": [{"old": "...", "new": "..."}, ...]}
+/// ```
+///
+/// Pure + deterministic: the caller passes the SORTED outputs of
+/// [`MovePlan::file_level_manifest`] + [`MovePlan::crate_ident_pairs`], so re-deriving the
+/// manifest from the committed plan + candidate tree yields byte-identical bytes (the
+/// `committed==regenerated` registry-drift binding). For a NO-MOVE PR the caller passes empty
+/// slices, yielding `files: []`/`crate_idents: []` — the strict no-op the emitter reads as
+/// "no renames" (identity relabel).
+pub fn move_manifest_value(
+    capability: &str,
+    file_pairs: &[(String, String)],
+    crate_ident_pairs: &[(String, String)],
+) -> serde_json::Value {
+    serde_json::json!({
+        "schema": REORG_MOVE_MANIFEST_SCHEMA,
+        "capability": capability,
+        "files": file_pairs
+            .iter()
+            .map(|(old, new)| serde_json::json!({"old_path": old, "new_path": new}))
+            .collect::<Vec<_>>(),
+        "crate_idents": crate_ident_pairs
+            .iter()
+            .map(|(old, new)| serde_json::json!({"old": old, "new": new}))
+            .collect::<Vec<_>>(),
+    })
 }
 
 /// One audit row of the emitted mapping tuple, per ADR-0562 P0.13 spec
@@ -502,6 +581,104 @@ mod tests {
             plan.validate(),
             Err(CodemodError::NestedTarget { .. })
         ));
+    }
+
+    #[test]
+    fn file_level_manifest_mirrors_dir_move_for_tracked_descendants() {
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![CrateMove {
+                old_path: "cloud/cloud-observability/crates/oya-cloud-observability-domain".to_string(),
+                new_path: "observability/core/aggregate".to_string(),
+                old_cargo_name: "oya-cloud-observability-domain".to_string(),
+                new_cargo_name: "observability-core-aggregate".to_string(),
+            }],
+        };
+        let tracked = vec![
+            "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs".to_string(),
+            "cloud/cloud-observability/crates/oya-cloud-observability-domain/Cargo.toml".to_string(),
+            // unrelated file (different crate) — must NOT map
+            "cloud/cloud-observability/crates/oya-cloud-observability-api/src/lib.rs".to_string(),
+            // a file equal to the dir name prefix but not a strict descendant — must NOT map
+            "cloud/cloud-observability/crates/oya-cloud-observability-domain-extra/x.rs".to_string(),
+        ];
+        let pairs = plan.file_level_manifest(&tracked);
+        assert_eq!(
+            pairs,
+            vec![
+                (
+                    "cloud/cloud-observability/crates/oya-cloud-observability-domain/Cargo.toml".to_string(),
+                    "observability/core/aggregate/Cargo.toml".to_string()
+                ),
+                (
+                    "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs".to_string(),
+                    "observability/core/aggregate/src/lib.rs".to_string()
+                ),
+            ],
+            "only strict descendants map, mirror-located, sorted"
+        );
+    }
+
+    #[test]
+    fn file_level_manifest_is_empty_for_no_moves_or_no_tracked() {
+        let plan = MovePlan {
+            capability: "x".to_string(),
+            moves: vec![CrateMove {
+                old_path: "cloud/a".to_string(),
+                new_path: "x/core/a".to_string(),
+                old_cargo_name: "oya-a".to_string(),
+                new_cargo_name: "x-core-a".to_string(),
+            }],
+        };
+        assert!(plan.file_level_manifest(&[]).is_empty(), "no tracked => no pairs");
+    }
+
+    #[test]
+    fn crate_ident_pairs_exposes_cargo_name_bijection() {
+        let plan = MovePlan {
+            capability: "iam".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "cloud/cloud-iam/crates/oya-cloud-iam-domain".to_string(),
+                    new_path: "iam/core/identity-domain".to_string(),
+                    old_cargo_name: "oya-cloud-iam-domain".to_string(),
+                    new_cargo_name: "identity-domain".to_string(),
+                },
+                CrateMove {
+                    old_path: "cloud/cloud-iam/crates/oya-cloud-iam-app".to_string(),
+                    new_path: "iam/facade/iam-app".to_string(),
+                    old_cargo_name: "oya-cloud-iam-app".to_string(),
+                    new_cargo_name: "iam-app".to_string(),
+                },
+            ],
+        };
+        assert_eq!(
+            plan.crate_ident_pairs(),
+            vec![
+                ("oya-cloud-iam-app".to_string(), "iam-app".to_string()),
+                ("oya-cloud-iam-domain".to_string(), "identity-domain".to_string()),
+            ],
+            "sorted by old cargo name"
+        );
+    }
+
+    #[test]
+    fn move_manifest_value_is_canonical_and_empty_for_no_move() {
+        let empty = move_manifest_value("", &[], &[]);
+        assert_eq!(empty["schema"], REORG_MOVE_MANIFEST_SCHEMA);
+        assert_eq!(empty["capability"], "");
+        assert_eq!(empty["files"], serde_json::json!([]));
+        assert_eq!(empty["crate_idents"], serde_json::json!([]));
+
+        let full = move_manifest_value(
+            "observability",
+            &[("old/a.rs".to_string(), "new/a.rs".to_string())],
+            &[("oya-old".to_string(), "new-core".to_string())],
+        );
+        assert_eq!(full["files"][0]["old_path"], "old/a.rs");
+        assert_eq!(full["files"][0]["new_path"], "new/a.rs");
+        assert_eq!(full["crate_idents"][0]["old"], "oya-old");
+        assert_eq!(full["crate_idents"][0]["new"], "new-core");
     }
 
     #[test]
