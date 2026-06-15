@@ -3179,6 +3179,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "observability-aggregate"
+version = "0.1.0"
+dependencies = [
+ "observability-domain",
+ "oya-audit-chain-domain",
+ "oya-cloud-iam-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "observability-api"
+version = "0.1.0"
+dependencies = [
+ "observability-aggregate",
+ "oya-audit-chain-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "observability-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "observability-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "observability-tracing-adapter"
+version = "0.1.0"
+dependencies = [
+ "observability-domain",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "oco_ref"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3419,6 +3462,8 @@ name = "oya-application-app"
 version = "0.1.0"
 dependencies = [
  "messaging-domain",
+ "observability-domain",
+ "observability-tracing-adapter",
  "oya-audit-chain-domain",
  "oya-cell-domain",
  "oya-check-cost-budget",
@@ -3433,8 +3478,6 @@ dependencies = [
  "oya-intelligence-policy-domain",
  "oya-intelligence-run-domain",
  "oya-intelligence-step-domain",
- "oya-observability-domain",
- "oya-observability-tracing-adapter",
  "oya-ontology-domain",
  "oya-policy-cedar-domain",
  "oya-regional-pack-domain",
@@ -4925,33 +4968,6 @@ dependencies = [
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
-
-[[package]]
-name = "oya-cloud-observability-api"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-domain",
- "oya-cloud-observability-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-observability-domain"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-domain",
- "oya-cloud-iam-domain",
- "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
- "oya-data-boundary-kernel",
- "oya-observability-domain",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-observability-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-cloud-os-apid-domain"
@@ -7906,22 +7922,6 @@ version = "0.1.0"
 dependencies = [
  "oya-collab-runtime-domain",
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-observability-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-observability-tracing-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-observability-domain",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

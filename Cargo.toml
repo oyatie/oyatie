@@ -30,6 +30,15 @@ members = [
   # face/leaf (iac/core/domain, iac/core/api, iac/ports/rest, iac/adapters/infrastructure,
   # iac/facade/app) with one glob, satisfying ADR-0538's glob-only members contract.
   "iac/*/*",
+  # Capability-first home (ADR-0562 strangler move 3): the `observability` capability absorbs the
+  # former cloud/cloud-observability + oya/observability crates at observability/<face>/<leaf>
+  # across two faces (core, adapters). The leaf is de-branded (cargo names observability-kernel /
+  # observability-aggregate / observability-api / observability-domain /
+  # observability-tracing-adapter), so the leaf segment stays a bare `*`. `observability/*/*`
+  # covers every face/leaf (observability/core/{kernel,aggregate,api,domain},
+  # observability/adapters/tracing) with one glob, satisfying ADR-0538's glob-only members
+  # contract (no explicit-path members).
+  "observability/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]

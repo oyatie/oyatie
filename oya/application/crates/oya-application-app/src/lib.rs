@@ -56,7 +56,7 @@ pub use oya_intelligence_run_domain::{Run, RunDisposition, RunState};
 use oya_intelligence_run_domain::{RunError, RunLedger, RunStart};
 pub use oya_intelligence_step_domain::{Step, StepDisposition, StepKind, StepState};
 use oya_intelligence_step_domain::{StepError, StepLedger, StepStart};
-use oya_observability_domain::{
+use observability_domain::{
     CAPABILITY_INVOCATION_OPERATION_NAME, CapabilityInvocationTraceContext,
     CapabilityInvocationTraceObserver, CapabilityInvocationTraceSpan, FOUNDRY_PROVIDER_NAME,
     InvocationTraceResult, NoopCapabilityInvocationTraceObserver,
