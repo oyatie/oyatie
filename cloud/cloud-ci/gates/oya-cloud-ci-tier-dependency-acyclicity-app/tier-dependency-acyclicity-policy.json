@@ -17,7 +17,8 @@
     "tools/oya-*",
     "messaging/*/*",
     "iac/*/*",
-    "observability/*/*"
+    "observability/*/*",
+    "compute/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -29,7 +30,8 @@
     "cloud/cloud-ci",
     "messaging",
     "iac",
-    "observability"
+    "observability",
+    "compute"
   ],
   "stratum_rank_order": [
     "S0",

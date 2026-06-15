@@ -201,6 +201,7 @@
         "compute"
       ],
       "absorbs_current_dirs": [
+        "compute",
         "cloud/cloud-compute"
       ],
       "dag_node": "compute",

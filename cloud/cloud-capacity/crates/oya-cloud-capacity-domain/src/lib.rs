@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 
 use oya_cloud_billing_domain::Money;
 use oya_cloud_region_domain::{CellId, RegionCode};
-use oya_cloud_resource_domain::InstanceFlavor;
+use compute_resource::InstanceFlavor;
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_metering_domain::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
