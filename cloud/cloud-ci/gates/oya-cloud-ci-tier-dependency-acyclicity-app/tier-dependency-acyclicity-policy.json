@@ -18,7 +18,8 @@
     "messaging/*/*",
     "iac/*/*",
     "observability/*/*",
-    "compute/*/*"
+    "compute/*/*",
+    "storage/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -31,7 +32,8 @@
     "messaging",
     "iac",
     "observability",
-    "compute"
+    "compute",
+    "storage"
   ],
   "stratum_rank_order": [
     "S0",

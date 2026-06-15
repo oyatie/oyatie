@@ -17,7 +17,8 @@
     "messaging",
     "iac",
     "observability",
-    "compute"
+    "compute",
+    "storage"
   ],
   "meta_directories": [
     "kernel",
@@ -38,6 +39,7 @@
     "iac",
     "observability",
     "compute",
+    "storage",
     "cloud",
     "oya",
     "libs",
