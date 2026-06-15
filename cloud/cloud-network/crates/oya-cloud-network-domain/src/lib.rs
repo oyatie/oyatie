@@ -14,7 +14,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 
 use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
-use oya_cloud_resource_domain::{
+use compute_resource::{
     CloudResourceError, LbProtocol, PrincipalId, ResourceId, ResourceKind,
 };
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};

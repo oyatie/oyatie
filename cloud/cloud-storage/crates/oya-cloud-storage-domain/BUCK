@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
-        "//cloud/cloud-compute/crates/oya-cloud-resource-domain:oya-cloud-resource-domain",
+        "//compute/core/resource:compute-resource",
         "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
@@ -21,7 +21,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
-        "//cloud/cloud-compute/crates/oya-cloud-resource-domain:oya-cloud-resource-domain",
+        "//compute/core/resource:compute-resource",
         "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
@@ -37,7 +37,7 @@ rust_test(
     deps = [
         ":oya-cloud-storage-domain",
         "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
-        "//cloud/cloud-compute/crates/oya-cloud-resource-domain:oya-cloud-resource-domain",
+        "//compute/core/resource:compute-resource",
         "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",

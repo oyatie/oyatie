@@ -1,0 +1,48 @@
+rust_library(
+    name = "compute-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "compute_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//compute/core/resource:compute-resource",
+        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+        "//cloud/cloud-network/crates/oya-cloud-network-domain:oya-cloud-network-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "compute-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "compute_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//compute/core/resource:compute-resource",
+        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+        "//cloud/cloud-network/crates/oya-cloud-network-domain:oya-cloud-network-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "compute-domain-cloud-compute-foundation",
+    srcs = ["tests/cloud_compute_foundation.rs"],
+    crate = "compute_domain_cloud_compute_foundation",
+    crate_root = "tests/cloud_compute_foundation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":compute-domain",
+        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//compute/core/resource:compute-resource",
+        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+        "//cloud/cloud-network/crates/oya-cloud-network-domain:oya-cloud-network-domain",
+        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
