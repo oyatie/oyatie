@@ -305,7 +305,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
-        "cloud/cloud-iac"
+        "iac"
       ],
       "dag_node": "iac"
     },
