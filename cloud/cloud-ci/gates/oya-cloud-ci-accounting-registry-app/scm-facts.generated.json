@@ -18131,6 +18131,7 @@
     "specs/proto/backbone/social/social_post_composition.proto",
     "specs/reachability-registry.json",
     "specs/reorg/move-manifest.generated.json",
+    "specs/reorg/storage-move-plan.json",
     "specs/repo-hygiene-automation.json",
     "specs/root-hub-pointers.json",
     "specs/saga-shape.json",
