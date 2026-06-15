@@ -68,6 +68,15 @@ test-results/
 !**/generated/
 !**/generated/.gitkeep
 
+# Rename-aware path-keyed CI baseline relabel move-manifest (task #64): a COMMITTED review
+# artifact (the authoritative move bijection the scm-facts emitter relabel consumes), unlike
+# the untracked per-checkout snapshots below. It is regenerated each PR run by the codemod
+# `manifest` subcommand and byte-bound by the registry-drift/freshness committed==regenerated
+# coverage + declared in registry/generated-artifact-control-plane.json, so it must be TRACKED
+# (the control-plane gate's declared-path-must-be-tracked predicate). Negate the broad
+# *.generated.json ignore for exactly this path.
+!specs/reorg/move-manifest.generated.json
+
 # buck2 build output
 /buck-out/
 

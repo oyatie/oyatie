@@ -209,7 +209,7 @@ pub fn is_path_carved_out(path: &str) -> bool {
 }
 
 /// Whether `line_lower` is carved out by an INJECTED policy's line-level rule.
-fn is_line_carved_out_with(line_lower: &str, policy: &VocabPolicy) -> bool {
+pub fn is_line_carved_out_with(line_lower: &str, policy: &VocabPolicy) -> bool {
     policy.carve_outs.iter().any(|rule| {
         rule.kind == CarveOutKind::LineContainsCi && line_lower.contains(rule.value.as_str())
     })
@@ -286,6 +286,45 @@ where
     I: IntoIterator<Item = CensusDocument<'a>>,
 {
     census_findings_with(documents, &VocabPolicy::bundled_default())
+}
+
+/// The de-duplicated, line-number-free SET of normalized (lower-cased) matched-line TEXTS for
+/// a single `stem` in `contents`, computed by the SAME line-walk [`census_findings_with`] uses
+/// (skip wholly path-carved files; skip `LineContainsCi`-carved lines; case-fold with
+/// `to_ascii_lowercase`; substring match). This is the occurrence-identity SSOT for the
+/// rename-aware path-keyed CI baseline relabel (task #64): the relabel's P4 content-subset guard
+/// (`NEW_OCC ⊆ OLD_OCC`) is `matched_line_occurrences_with(new) ⊆ matched_line_occurrences_with(old)`.
+///
+/// Returns the EMPTY set when the file is wholly path-carved (so a move into/out of a carve-out
+/// is symmetric on both sides — an empty NEW set is trivially a subset, and an empty OLD set
+/// makes any non-empty NEW set NOT a subset). `stem` is matched exactly as the census matches it
+/// (lower-cased substring); the caller passes the live policy's stem string (decoded from the
+/// `forbidden_<stem>` code via the policy table), so carve-outs and case-folding agree
+/// byte-for-byte with the producer's `collect_brand_residue` census.
+pub fn matched_line_occurrences_with(
+    path: &str,
+    contents: &str,
+    stem: &str,
+    policy: &VocabPolicy,
+) -> BTreeSet<String> {
+    let mut occurrences: BTreeSet<String> = BTreeSet::new();
+    if is_path_carved_out_with(path, policy) {
+        return occurrences;
+    }
+    let stem_lower = stem.to_ascii_lowercase();
+    for line in contents.lines() {
+        let lower = line.to_ascii_lowercase();
+        if is_line_carved_out_with(&lower, policy) {
+            continue;
+        }
+        if lower.contains(stem_lower.as_str()) {
+            // The normalized (lower-cased) matched-line text, de-duplicated (BTreeSet) and
+            // line-number-free (churn-stable): two identical foundry lines collapse to one
+            // occurrence, and reordering/whitespace-above edits never change the set.
+            occurrences.insert(lower);
+        }
+    }
+    occurrences
 }
 
 /// The per-stem file COUNT (the shrink-only ratchet metric), derived from the census. Keyed
@@ -426,5 +465,84 @@ mod tests {
         let a = census_findings([doc("z.md", "foundry"), doc("a.md", "jenkins")]);
         let b = census_findings([doc("a.md", "jenkins"), doc("z.md", "foundry")]);
         assert_eq!(a, b, "census must be order-independent (BTreeSet)");
+    }
+
+    // -----------------------------------------------------------------------
+    // matched_line_occurrences_with — the rename-aware relabel P4 SSOT (task #64)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn occurrences_are_lowercased_deduped_and_line_number_free() {
+        let policy = VocabPolicy::bundled_default();
+        // Two identical foundry lines (different surrounding case) collapse to ONE occurrence;
+        // a clean line contributes nothing.
+        let occ = matched_line_occurrences_with(
+            "docs/a.md",
+            "actor: SP_FOUNDRY\nactor: sp_foundry\nclean line\n",
+            "foundry",
+            &policy,
+        );
+        assert_eq!(occ.len(), 1, "case-folded duplicates collapse: {occ:?}");
+        assert!(occ.contains("actor: sp_foundry"));
+    }
+
+    #[test]
+    fn occurrences_subset_holds_for_pure_move_and_breaks_on_added_residue() {
+        let policy = VocabPolicy::bundled_default();
+        // A pure move: identical foundry line at old and new path => NEW ⊆ OLD (equal).
+        let old = matched_line_occurrences_with("old/lib.rs", "let x = \"foundry\";", "foundry", &policy);
+        let new = matched_line_occurrences_with("new/lib.rs", "let x = \"foundry\";", "foundry", &policy);
+        assert!(new.is_subset(&old) && old.is_subset(&new), "pure move keeps the set");
+        // A move that ADDS a distinct foundry line => NEW ⊄ OLD (subset breaks).
+        let new_grown = matched_line_occurrences_with(
+            "new/lib.rs",
+            "let x = \"foundry\";\nlet y = \"foundry-extra\";",
+            "foundry",
+            &policy,
+        );
+        assert!(!new_grown.is_subset(&old), "an added residue line breaks the subset");
+    }
+
+    #[test]
+    fn occurrences_skip_palantir_line_carve_out() {
+        let policy = VocabPolicy::bundled_default();
+        // The Palantir proper-noun line is carved out on BOTH sides identically.
+        let occ = matched_line_occurrences_with(
+            "docs/c.md",
+            "Benchmarked against Palantir Foundry.\nOur dropped foundry name.",
+            "foundry",
+            &policy,
+        );
+        assert_eq!(occ.len(), 1, "only the non-palantir foundry line counts: {occ:?}");
+        assert!(occ.contains("our dropped foundry name."));
+    }
+
+    #[test]
+    fn occurrences_empty_for_wholly_path_carved_file() {
+        let policy = VocabPolicy::bundled_default();
+        // A wholly path-carved file yields the empty set (an empty OLD makes any non-empty
+        // NEW fail the subset; an empty NEW is a trivial subset — symmetric carve-out handling).
+        let occ = matched_line_occurrences_with(
+            "libs/oya-check-brand-residue/src/forbidden_vocab.rs",
+            "foundry foundry foundry",
+            "foundry",
+            &policy,
+        );
+        assert!(occ.is_empty(), "path-carved files contribute no occurrences");
+    }
+
+    #[test]
+    fn occurrences_match_census_decision_per_file() {
+        // matched_line_occurrences_with non-empty IFF census_findings_with flags the file for
+        // that stem — the two must agree (same line-walk, same carve-outs).
+        let policy = VocabPolicy::bundled_default();
+        let contents = "nothing here\nbut jenkins lives here";
+        let occ_foundry = matched_line_occurrences_with("x.md", contents, "foundry", &policy);
+        let occ_jenkins = matched_line_occurrences_with("x.md", contents, "jenkins", &policy);
+        let findings = census_findings_with([doc("x.md", contents)], &policy);
+        let flagged_foundry = findings.contains(&Finding { code: "forbidden_foundry".into(), key: "x.md".into() });
+        let flagged_jenkins = findings.contains(&Finding { code: "forbidden_jenkins".into(), key: "x.md".into() });
+        assert_eq!(occ_foundry.is_empty(), !flagged_foundry);
+        assert_eq!(occ_jenkins.is_empty(), !flagged_jenkins);
     }
 }

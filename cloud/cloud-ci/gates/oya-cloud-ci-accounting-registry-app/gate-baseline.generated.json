@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:a33d7f020ed83e38",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:c3837c0d2a7fef9e"
+    "source_inputs_digest": "fnv1a64:950f84c49f907997"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5507,7 +5507,6 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/tests/rust_first_automation_hygiene.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/Cargo.toml",
-          "cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/src/main.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/Cargo.toml",
           "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/src/lib.rs",
@@ -5527,7 +5526,6 @@
           "cloud/cloud-ci/gates/registry-drift/BUCK",
           "cloud/cloud-ci/gates/registry-drift/Cargo.toml",
           "cloud/cloud-ci/gates/registry-drift/src/lib.rs",
-          "cloud/cloud-ci/gates/registry-drift/tests/registry_drift.rs",
           "cloud/cloud-compute/crates/oya-cloud-compute-adapter-aws/BUCK",
           "cloud/cloud-compute/crates/oya-cloud-compute-adapter-aws/Cargo.toml",
           "cloud/cloud-compute/crates/oya-cloud-compute-adapter-aws/src/lib.rs",
@@ -10840,7 +10838,6 @@
           "libs/oya-check-benchmark/src/lib.rs",
           "libs/oya-check-brand-residue/BUCK",
           "libs/oya-check-brand-residue/Cargo.toml",
-          "libs/oya-check-brand-residue/src/forbidden_vocab.rs",
           "libs/oya-check-brand-residue/src/lib.rs",
           "libs/oya-check-cedar-fragment-coverage/BUCK",
           "libs/oya-check-cedar-fragment-coverage/Cargo.toml",
