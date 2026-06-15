@@ -13,8 +13,8 @@ use oya_application_app::{
     CostBudgetRegistration, DataClass, Foundation, FoundationError, IdentityRegistration, Purpose,
     SubjectClass, TenantCapabilityGrant, TenantRegistration,
 };
-use oya_observability_domain::fields;
-use oya_observability_tracing_adapter::TracingCapabilityInvocationObserver;
+use observability_domain::fields;
+use observability_tracing_adapter::TracingCapabilityInvocationObserver;
 use tracing::field::{Field, Visit};
 use tracing::span::{Attributes, Record};
 use tracing::{Event, Id, Subscriber};

@@ -1,7 +1,134 @@
 {
-  "capability": "",
-  "crate_dirs": [],
-  "crate_idents": [],
-  "files": [],
+  "capability": "observability",
+  "crate_dirs": [
+    {
+      "new_path": "observability/core/api",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-api"
+    },
+    {
+      "new_path": "observability/core/aggregate",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-domain"
+    },
+    {
+      "new_path": "observability/core/kernel",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-kernel"
+    },
+    {
+      "new_path": "observability/core/domain",
+      "old_path": "oya/observability/crates/oya-observability-domain"
+    },
+    {
+      "new_path": "observability/adapters/tracing",
+      "old_path": "oya/observability/crates/oya-observability-tracing-adapter"
+    }
+  ],
+  "crate_idents": [
+    {
+      "new": "observability-api",
+      "old": "oya-cloud-observability-api"
+    },
+    {
+      "new": "observability-aggregate",
+      "old": "oya-cloud-observability-domain"
+    },
+    {
+      "new": "observability-kernel",
+      "old": "oya-cloud-observability-kernel"
+    },
+    {
+      "new": "observability-domain",
+      "old": "oya-observability-domain"
+    },
+    {
+      "new": "observability-tracing-adapter",
+      "old": "oya-observability-tracing-adapter"
+    }
+  ],
+  "files": [
+    {
+      "new_path": "observability/core/api/BUCK",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-api/BUCK"
+    },
+    {
+      "new_path": "observability/core/api/Cargo.toml",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-api/Cargo.toml"
+    },
+    {
+      "new_path": "observability/core/api/src/lib.rs",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-api/src/lib.rs"
+    },
+    {
+      "new_path": "observability/core/api/tests/cloud_observability_audit_api.rs",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-api/tests/cloud_observability_audit_api.rs"
+    },
+    {
+      "new_path": "observability/core/aggregate/BUCK",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-domain/BUCK"
+    },
+    {
+      "new_path": "observability/core/aggregate/Cargo.toml",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-domain/Cargo.toml"
+    },
+    {
+      "new_path": "observability/core/aggregate/src/lib.rs",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs"
+    },
+    {
+      "new_path": "observability/core/kernel/BUCK",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-kernel/BUCK"
+    },
+    {
+      "new_path": "observability/core/kernel/Cargo.toml",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-kernel/Cargo.toml"
+    },
+    {
+      "new_path": "observability/core/kernel/src/lib.rs",
+      "old_path": "cloud/cloud-observability/crates/oya-cloud-observability-kernel/src/lib.rs"
+    },
+    {
+      "new_path": "observability/core/domain/BUCK",
+      "old_path": "oya/observability/crates/oya-observability-domain/BUCK"
+    },
+    {
+      "new_path": "observability/core/domain/Cargo.toml",
+      "old_path": "oya/observability/crates/oya-observability-domain/Cargo.toml"
+    },
+    {
+      "new_path": "observability/core/domain/src/lib.rs",
+      "old_path": "oya/observability/crates/oya-observability-domain/src/lib.rs"
+    },
+    {
+      "new_path": "observability/core/domain/src/severity.rs",
+      "old_path": "oya/observability/crates/oya-observability-domain/src/severity.rs"
+    },
+    {
+      "new_path": "observability/core/domain/src/slo.rs",
+      "old_path": "oya/observability/crates/oya-observability-domain/src/slo.rs"
+    },
+    {
+      "new_path": "observability/core/domain/tests/severity_threshold_gate.rs",
+      "old_path": "oya/observability/crates/oya-observability-domain/tests/severity_threshold_gate.rs"
+    },
+    {
+      "new_path": "observability/core/domain/tests/slo_burn_rate.rs",
+      "old_path": "oya/observability/crates/oya-observability-domain/tests/slo_burn_rate.rs"
+    },
+    {
+      "new_path": "observability/adapters/tracing/BUCK",
+      "old_path": "oya/observability/crates/oya-observability-tracing-adapter/BUCK"
+    },
+    {
+      "new_path": "observability/adapters/tracing/Cargo.toml",
+      "old_path": "oya/observability/crates/oya-observability-tracing-adapter/Cargo.toml"
+    },
+    {
+      "new_path": "observability/adapters/tracing/src/lib.rs",
+      "old_path": "oya/observability/crates/oya-observability-tracing-adapter/src/lib.rs"
+    },
+    {
+      "new_path": "observability/adapters/tracing/tests/slo_breach_observer.rs",
+      "old_path": "oya/observability/crates/oya-observability-tracing-adapter/tests/slo_breach_observer.rs"
+    }
+  ],
   "schema": "oya-ci/reorg-move-manifest/v1"
 }
