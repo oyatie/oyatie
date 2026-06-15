@@ -23,6 +23,13 @@ members = [
   # segment stays a bare `*`. `messaging/*/*` covers both faces (core/domain, adapters/file) with
   # one glob, satisfying ADR-0538's glob-only members contract (no explicit-path members).
   "messaging/*/*",
+  # Capability-first home (ADR-0562 strangler move 2): the `iac` capability absorbs the former
+  # cloud/cloud-iac crates at iac/<face>/<leaf> across three faces (core, ports, adapters,
+  # facade). The leaf is de-branded (cargo names iac-domain / iac-api / iac-rest /
+  # iac-infrastructure / iac-app), so the leaf segment stays a bare `*`. `iac/*/*` covers every
+  # face/leaf (iac/core/domain, iac/core/api, iac/ports/rest, iac/adapters/infrastructure,
+  # iac/facade/app) with one glob, satisfying ADR-0538's glob-only members contract.
+  "iac/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
