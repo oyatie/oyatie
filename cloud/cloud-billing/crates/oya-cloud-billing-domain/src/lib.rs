@@ -10,7 +10,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use oya_cloud_region_domain::RegionCode;
-use oya_cloud_resource_domain::ResourceId;
+use compute_resource::ResourceId;
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_metering_domain::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,

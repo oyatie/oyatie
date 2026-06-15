@@ -971,6 +971,85 @@ dependencies = [
 ]
 
 [[package]]
+name = "compute-aws-adapter"
+version = "0.1.0"
+dependencies = [
+ "compute-domain",
+ "compute-resource",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "compute-dcops"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "compute-domain"
+version = "0.1.0"
+dependencies = [
+ "compute-resource",
+ "oya-cloud-iam-domain",
+ "oya-cloud-network-domain",
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "compute-functions-api"
+version = "0.1.0"
+dependencies = [
+ "compute-domain",
+ "compute-resource",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "compute-k8s-api"
+version = "0.1.0"
+dependencies = [
+ "compute-domain",
+ "compute-resource",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "compute-oci-adapter"
+version = "0.1.0"
+dependencies = [
+ "compute-domain",
+ "compute-resource",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "compute-resource"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "compute-vm-api"
+version = "0.1.0"
+dependencies = [
+ "compute-domain",
+ "compute-resource",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
 name = "concurrent-queue"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3182,11 +3261,11 @@ dependencies = [
 name = "observability-aggregate"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "observability-domain",
  "oya-audit-chain-domain",
  "oya-cloud-iam-domain",
  "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -4160,8 +4239,8 @@ dependencies = [
 name = "oya-cloud-billing-domain"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-metering-domain",
 ]
@@ -4178,9 +4257,9 @@ version = "0.1.0"
 name = "oya-cloud-capacity-domain"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "oya-cloud-billing-domain",
  "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-metering-domain",
 ]
@@ -4414,74 +4493,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-compute-adapter-aws"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-compute-domain",
- "oya-cloud-resource-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-compute-adapter-oci"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-compute-domain",
- "oya-cloud-resource-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-compute-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-iam-domain",
- "oya-cloud-network-domain",
- "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-compute-functions-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-compute-domain",
- "oya-cloud-resource-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-compute-k8s-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-compute-domain",
- "oya-cloud-resource-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-compute-vm-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-compute-domain",
- "oya-cloud-resource-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
 name = "oya-cloud-data-domain"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "oya-cloud-kms-domain",
  "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -4489,14 +4506,6 @@ dependencies = [
 [[package]]
 name = "oya-cloud-data-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-dcops-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-region-domain",
- "oya-data-boundary-kernel",
-]
 
 [[package]]
 name = "oya-cloud-finops-api"
@@ -4512,9 +4521,9 @@ dependencies = [
 name = "oya-cloud-finops-domain"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "oya-cloud-billing-domain",
  "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-metering-domain",
 ]
@@ -4846,8 +4855,8 @@ dependencies = [
 name = "oya-cloud-kms-domain"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -4945,8 +4954,8 @@ dependencies = [
 name = "oya-cloud-network-domain"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -5310,15 +5319,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-resource-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-region-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
 name = "oya-cloud-storage-adapter-oci"
 version = "0.1.0"
 dependencies = [
@@ -5347,9 +5347,9 @@ dependencies = [
 name = "oya-cloud-storage-domain"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "oya-cloud-kms-domain",
  "oya-cloud-region-domain",
- "oya-cloud-resource-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -5358,8 +5358,8 @@ dependencies = [
 name = "oya-cloud-storage-object-api"
 version = "0.1.0"
 dependencies = [
+ "compute-resource",
  "oya-cloud-kms-domain",
- "oya-cloud-resource-domain",
  "oya-cloud-storage-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",

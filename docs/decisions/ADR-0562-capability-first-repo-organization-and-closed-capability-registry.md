@@ -435,6 +435,93 @@ The move's tracked, born-accounted artifact paths are `observability/core/kernel
 and the committed move-plan `specs/reorg/observability-move-plan.json` (reached by the existing
 ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.8 Fourth executed strangler move: `compute` capability (cloud/cloud-compute/crates → compute/)
+
+The fourth REAL codemod run homes the `compute` capability's eight crates from a SINGLE source dir
+(`cloud/cloud-compute/crates`) under the §3 placement rule, each face mirrored by its sub-fold across
+THREE faces (`core`, `facade`, `adapters`):
+the compute aggregate domain engine (`face: core`) → `compute/core/domain` (cargo `compute-domain`);
+the datacenter-ops domain engine (`face: core`, leaf) → `compute/core/dcops` (cargo `compute-dcops`);
+the resource aggregate domain engine (`face: core`, leaf) → `compute/core/resource`
+(cargo `compute-resource`); the VM product API surface (`face: facade`) → `compute/facade/vm`
+(cargo `compute-vm-api`); the managed-K8s product API surface (`face: facade`) → `compute/facade/k8s`
+(cargo `compute-k8s-api`); the Functions/serverless product API surface (`face: facade`) →
+`compute/facade/functions` (cargo `compute-functions-api`); the transient AWS EC2 adapter
+(`face: adapters`) → `compute/adapters/aws` (cargo `compute-aws-adapter`); and the transient OCI
+adapter (`face: adapters`) → `compute/adapters/oci` (cargo `compute-oci-adapter`). The de-brand drops
+the `oya-cloud-compute-` / `oya-cloud-dcops-` / `oya-cloud-resource-` prefixes to the capability
+slug; cargo names are the de-branded leaf, matching the §10.5/§10.6/§10.7 precedent.
+
+**Face reasoning — engine-with-facade-subsurfaces (§2 boundary note + §3 "by WHAT IT IS"):** the
+capability registry records compute as ONE engine (vm + k8s-on-compute + functions) with facade
+sub-surfaces, NOT three capabilities. The three `*-domain` aggregate kernels (compute, dcops,
+resource) are the engine → `core/`. The vm/k8s/functions `*-api` crates are the multi-tenant product
+surfaces the platform SELLS → `facade/` (the EKS-over-EC2 split: the engine is `core`, the sold
+managed surface is `facade`). The aws/oci adapters are transient infra absorbed at cutover →
+`adapters/`. The dependency direction is correct-downward: every `*-api` (facade) and every adapter
+depends on `compute-domain` AND `compute-resource` (both `core`) — a facade→core / adapters→core
+edge; `compute-domain` (core aggregate) itself depends on `compute-resource` (core leaf) — a
+core→core edge. No `ports/` indirection layer exists yet, so the facade→core and adapters→core edges
+are direct; this is dependency-legal and (as in §10.6's accepted facade→adapters edge) is NOT
+gate-flagged — a §4 ports carve-out for these product surfaces is the documented future alternative
+(`ports/{vm,k8s,functions}`), deferred. The `compute/facade/k8s` crate (managed-K8s ON compute) is
+DISTINCT from the separate `k8s` capability (the owned Kubernetes control plane under
+`cloud/cloud-k8s` + `managed-k8s-*`, a later move) — different source crates, not conflated.
+The resulting 8 paths + 8 cargo names are all distinct (`MovePlan::validate` passes: no duplicate
+`old_path`/`new_path`/`old_cargo_name`/`new_cargo_name`, no nested target).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true`
+not null, `clean=true`). compute is NOT a violation source (zero entries in the acyclicity frozen
+baseline) and the moved crate dirs are not in the membership unmapped baseline, so both lints carry
+0 burn-down / 0 regression. The first-party dependents OUTSIDE the capability — all on
+`compute-resource` (formerly `oya-cloud-resource-domain`): `cloud/cloud-billing`,
+`cloud/cloud-capacity`, `cloud/cloud-data`, `cloud/cloud-finops`, `cloud/cloud-kms`,
+`cloud/cloud-network`, `cloud/cloud-storage` (×2 crates), and `observability/core/aggregate` — had
+their cargo path-deps, BUCK labels, and Rust `use` idents recomputed mechanically by the codemod. The
+capability registry `compute.absorbs_current_dirs` gains `compute` (the old `cloud/cloud-compute`
+entry is retained for the phase-2 non-crate residue), the membership policy scan_roots +
+allowed_top_level_dirs gain `compute`, the acyclicity policy crate_root_globs gains `compute/*/*` +
+unclassified_roots gains `compute`, and the root workspace gains the `compute/*/*` member glob (one
+glob covers all three faces; ADR-0538 glob-only contract).
+
+**Rename-aware baseline relabel exercised (ADR-0563):** this move commits exactly ONE move-plan at
+`specs/reorg/compute-move-plan.json` (the codemod's `MovePlan` bijection), and the move-manifest at
+`specs/reorg/move-manifest.generated.json` is regenerated from it via `oya-reorg-codemod manifest
+--plan` (registry-drift byte-bound, committed==regenerated). One relocated source file —
+`compute/core/resource/src/lib.rs` — carries PRE-EXISTING brand-residue vocabulary (a retired-brand
+stem the shrink-only ratchet tracks via the `cloud-ci-brand-residue` gate) whose OLD path is in that
+gate's frozen merge-base baseline; the emitter relabel maps that OLD path to its NEW path in the
+frozen face (content-preserving, the move adds zero residue), so the firewall reads zero new debt.
+This ADR §10.8 record itself names no brand-stem token verbatim (per the same shrink-only ratchet,
+exactly as ADR-0563 describes the residue). No manual signoff door is used.
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** like the
+prior moves, `cloud/cloud-compute/` also holds non-crate capability artifacts (docs, slos, contracts,
+GitOps manifests, tofu). This crates-only strangler move homes the CRATES; the non-crate artifacts
+stay in place and are homed in phase-2 (task #62), so only the `crates/` subtree is emptied. The
+deferred de-brand residue (the resource-domain brand stem above, plus any `[[bin]]`/`OYA_*` literals)
+is the ADR-0532/0533 de-brand profile lane's scope (task #63), not this structural move.
+
+**Born-accounting (ADR-0555):** the eight new crate dirs under `compute/{core,facade,adapters}/` are
+reached by the `compute/*/*` member glob + the `compute/*/*` acyclicity glob, and owned by the
+subtree `compute/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.8
+entry. The move's tracked, born-accounted artifact paths are `compute/core/domain/Cargo.toml`,
+`compute/core/domain/BUCK`, `compute/core/domain/src/lib.rs`,
+`compute/core/domain/tests/cloud_compute_foundation.rs`, `compute/core/dcops/Cargo.toml`,
+`compute/core/dcops/BUCK`, `compute/core/dcops/src/lib.rs`, `compute/core/resource/Cargo.toml`,
+`compute/core/resource/BUCK`, `compute/core/resource/src/lib.rs`, `compute/facade/vm/Cargo.toml`,
+`compute/facade/vm/BUCK`, `compute/facade/vm/src/lib.rs`,
+`compute/facade/vm/tests/cloud_compute_vm_api.rs`, `compute/facade/k8s/Cargo.toml`,
+`compute/facade/k8s/BUCK`, `compute/facade/k8s/src/lib.rs`,
+`compute/facade/k8s/tests/cloud_compute_k8s_api.rs`, `compute/facade/functions/Cargo.toml`,
+`compute/facade/functions/BUCK`, `compute/facade/functions/src/lib.rs`,
+`compute/facade/functions/tests/cloud_compute_functions_api.rs`, `compute/adapters/aws/Cargo.toml`,
+`compute/adapters/aws/BUCK`, `compute/adapters/aws/src/lib.rs`, `compute/adapters/oci/Cargo.toml`,
+`compute/adapters/oci/BUCK`, `compute/adapters/oci/src/lib.rs`, the subtree `compute/OWNERS`, and the
+committed move-plan `specs/reorg/compute-move-plan.json` (reached by the existing ADR-0563
+`specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use oya_cloud_billing_domain::{CurrencyCode, Money, RateCardRef};
 use oya_cloud_region_domain::RegionCode;
-use oya_cloud_resource_domain::{CloudResourceError, ResourceId};
+use compute_resource::{CloudResourceError, ResourceId};
 use oya_data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
 use oya_metering_domain::{AxisId, MeterEvent, MeterEventId, MeterUnitKind};
 

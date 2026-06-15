@@ -18,8 +18,8 @@ use oya_cloud_kms_domain::{
     MaterialRef,
 };
 use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
-pub use oya_cloud_resource_domain::{BucketTier, FilesystemTier, VolumeTier};
-use oya_cloud_resource_domain::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
+pub use compute_resource::{BucketTier, FilesystemTier, VolumeTier};
+use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 pub use oya_residency_domain::ResidencyClass;
 use oya_residency_domain::residency_class_allows_home_region_label;

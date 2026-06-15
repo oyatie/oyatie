@@ -8,7 +8,7 @@ rust_library(
         "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
         "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
         "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
-        "//cloud/cloud-compute/crates/oya-cloud-resource-domain:oya-cloud-resource-domain",
+        "//compute/core/resource:compute-resource",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
@@ -23,7 +23,7 @@ rust_test(
         "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
         "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
         "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
-        "//cloud/cloud-compute/crates/oya-cloud-resource-domain:oya-cloud-resource-domain",
+        "//compute/core/resource:compute-resource",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
@@ -39,7 +39,7 @@ rust_test(
         "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
         "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
         "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
-        "//cloud/cloud-compute/crates/oya-cloud-resource-domain:oya-cloud-resource-domain",
+        "//compute/core/resource:compute-resource",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )

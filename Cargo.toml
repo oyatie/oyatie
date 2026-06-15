@@ -39,6 +39,17 @@ members = [
   # observability/adapters/tracing) with one glob, satisfying ADR-0538's glob-only members
   # contract (no explicit-path members).
   "observability/*/*",
+  # Capability-first home (ADR-0562 strangler move 4): the `compute` capability absorbs the former
+  # cloud/cloud-compute crates at compute/<face>/<leaf> across three faces (core, facade,
+  # adapters). compute is ONE engine (vm + k8s-on-compute + functions) with facade sub-surfaces:
+  # the three aggregate kernels are the engine (core), the vm/k8s/functions product APIs are the
+  # sold surfaces (facade), and the aws/oci impls are transient infra (adapters). The leaf is
+  # de-branded (cargo names compute-domain / compute-dcops / compute-resource / compute-vm-api /
+  # compute-k8s-api / compute-functions-api / compute-aws-adapter / compute-oci-adapter), so the
+  # leaf segment stays a bare `*`. `compute/*/*` covers every face/leaf (compute/core/{domain,
+  # dcops,resource}, compute/facade/{vm,k8s,functions}, compute/adapters/{aws,oci}) with one glob,
+  # satisfying ADR-0538's glob-only members contract (no explicit-path members).
+  "compute/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
