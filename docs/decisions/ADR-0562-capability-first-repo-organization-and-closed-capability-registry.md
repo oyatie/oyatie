@@ -293,6 +293,62 @@ glob-only contract). The move's tracked, born-accounted artifact paths are
 `messaging/adapters/file/BUCK`, `messaging/adapters/file/src/lib.rs`,
 `messaging/adapters/file/tests/file_outbox.rs`, and the subtree `messaging/OWNERS`.
 
+#### §10.6 Second executed strangler move: `iac` capability (cloud/cloud-iac/crates → iac/)
+
+The second REAL codemod run homes the `iac` capability's five crates under the §3 placement rule,
+each face mirrored by its sub-fold: the pure IaC plan/diff/drift domain engine (`face: core`) →
+`iac/core/domain` (cargo `iac-domain`); the authz + DTO application boundary (`face: core`, concrete
+logic over the domain) → `iac/core/api` (cargo `iac-api`); the framework-free route-table / authz-surface
+HTTP contract (`face: ports`, the stable seam) → `iac/ports/rest` (cargo `iac-rest`); the transient infra
+impls (`face: adapters`) → `iac/adapters/infrastructure` (cargo `iac-infrastructure`); the single-capability
+deployable composition root (`face: facade`, §6: a single-capability app IS a facade) → `iac/facade/app`
+(cargo `iac-app`). The de-brand drops the `oya-cloud-iac-` prefix to the capability slug; cargo names are
+the path-tail leaf (the fold is carried by the path + manifest `face:` facet, not repeated in the name),
+matching the §10.5 `messaging-domain` precedent. The move was performed by `oya-reorg-codemod-app` (NOT by
+hand), gated on the buck2-full-tree dry-run (`cargo metadata` + `buck2 targets //...` both resolved
+post-move on a shadow tree, `buck_ok=true` not null). The five crates have NO first-party dependents
+OUTSIDE the capability (every cargo/BUCK/Rust reference was intra-`cloud-iac`), so the move's rewrites are
+entirely intra-capability. The capability registry `iac.absorbs_current_dirs` flips `cloud/cloud-iac` →
+`iac`, the membership policy scan_roots + allowed_top_level_dirs gain `iac`, the acyclicity policy
+crate_root_globs gains `iac/*/*` + unclassified_roots gains `iac`, and the root workspace gains the
+`iac/*/*` member glob (one glob covers all three folds; ADR-0538 glob-only contract).
+
+**Known intra-capability face-rule gap (composition root):** `iac/facade/app` (`face: facade`) depends on
+`iac/adapters/infrastructure` (`face: adapters`) — a facade→adapters edge. §4 says a facade composes core
+ONLY through ports; the composition-root reality (the deployable wires concrete adapters) is the universal
+exception. No intra-capability face-direction gate exists today (the membership lint checks face↔sub-fold
+agreement and the closed-set; the acyclicity lint checks tier-DAG direction across capability roots, not
+within-capability face direction), so this edge is NOT flagged and the move lands green. Tracked here as a
+face-rule gap pending a §4 composition-root carve-out; no hack is introduced.
+
+**De-brand residue (out of scope here, §9 later lane):** the codemod renames crate names/idents/labels/
+path-deps only, never string literals or non-crate target names. So the app's `[[bin]] name = "oya-cloud-iac"`
+(a binary artifact name), the runtime self-identity constants (`CLOUD_IAC_APP_BINARY_NAME`,
+`CLOUD_IAC_APP_PACKAGE_NAME`, the `OYA_CLOUD_IAC_*` env-var contract, `microservices/cloud-iac/...` and
+`target/oya-cloud-iac/...` path literals), and the `iac/facade/app` rust_test `crate_root` / `mapped_srcs`
+SANDBOX-INTERNAL destination labels (`cloud/cloud-iac/...`; the real resolved source is the moved
+`iac/facade/app/tests/cloud_iac_app.rs`, verified via `buck2 cquery inputs(...)`) are intentionally
+preserved. These are application/runtime identity, not crate identifiers; their de-brand is the ADR-0532/0533
+profile lane (§9), not this structural move.
+
+**Non-crate capability artifacts retained in place:** unlike `oya/eventing` (a pure-crate dir that vanished
+in §10.5), `cloud/cloud-iac/` also holds ~242 non-crate capability artifacts (docs, slos, contracts,
+`iac/` GitOps manifests, catalog, tofu modules incl. `cloud/cloud-iac/tofu/modules:release-index.json`
+which the app test still depends on as a live label). This crates-only strangler move homes the CRATES; the
+non-crate artifacts stay at `cloud/cloud-iac/` (a separate later concern), so the old dir is NOT fully
+removed — only `cloud/cloud-iac/crates/` is emptied.
+
+The move's tracked, born-accounted artifact paths are `iac/core/domain/Cargo.toml`, `iac/core/domain/BUCK`,
+`iac/core/domain/src/lib.rs`, `iac/core/domain/tests/cloud_iac_foundation.rs`,
+`iac/core/domain/tests/gitops_drift_reconciliation.rs`, `iac/core/domain/tests/iac_plan_diff.rs`,
+`iac/core/domain/tests/opentofu_plan_changeset.rs`, `iac/core/api/Cargo.toml`, `iac/core/api/BUCK`,
+`iac/core/api/src/lib.rs`, `iac/core/api/tests/cloud_iac_api.rs`, `iac/ports/rest/Cargo.toml`,
+`iac/ports/rest/BUCK`, `iac/ports/rest/src/lib.rs`, `iac/ports/rest/tests/cloud_iac_rest.rs`,
+`iac/adapters/infrastructure/Cargo.toml`, `iac/adapters/infrastructure/BUCK`,
+`iac/adapters/infrastructure/src/lib.rs`, `iac/adapters/infrastructure/tests/cloud_iac_infrastructure.rs`,
+`iac/facade/app/Cargo.toml`, `iac/facade/app/BUCK`, `iac/facade/app/src/lib.rs`,
+`iac/facade/app/src/main.rs`, `iac/facade/app/tests/cloud_iac_app.rs`, and the subtree `iac/OWNERS`.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

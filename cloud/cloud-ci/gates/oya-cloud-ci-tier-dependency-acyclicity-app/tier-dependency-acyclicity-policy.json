@@ -15,7 +15,8 @@
     "oya/*/crates/oya-*",
     "oya/office/oya-*",
     "tools/oya-*",
-    "messaging/*/*"
+    "messaging/*/*",
+    "iac/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -25,7 +26,8 @@
     "libs",
     "tools",
     "cloud/cloud-ci",
-    "messaging"
+    "messaging",
+    "iac"
   ],
   "stratum_rank_order": [
     "S0",
