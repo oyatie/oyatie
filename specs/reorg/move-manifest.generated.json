@@ -1,69 +1,709 @@
 {
-  "capability": "flags",
+  "capability": "marketplace",
   "crate_dirs": [
     {
-      "new_path": "flags/core/server",
-      "old_path": "oya/feature-flags/crates/oya-flags"
+      "new_path": "marketplace/core/cloud-domain",
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain"
+    },
+    {
+      "new_path": "marketplace/core/cloud-kernel",
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel"
+    },
+    {
+      "new_path": "marketplace/core/plugin-kernel",
+      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli"
+    },
+    {
+      "new_path": "marketplace/core/doc-set-scaffold",
+      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold"
     }
   ],
   "crate_idents": [
     {
-      "new": "flags-server",
-      "old": "oya-flags"
+      "new": "marketplace-cloud-domain",
+      "old": "oya-cloud-marketplace-domain"
+    },
+    {
+      "new": "marketplace-cloud-kernel",
+      "old": "oya-cloud-marketplace-kernel"
+    },
+    {
+      "new": "marketplace-dev-cli",
+      "old": "oya-dev-cli"
+    },
+    {
+      "new": "marketplace-doc-set-scaffold",
+      "old": "oya-marketplace-doc-set-scaffold"
+    },
+    {
+      "new": "marketplace-plugin-kernel",
+      "old": "oya-saas-plugin-marketplace-kernel"
     }
   ],
   "files": [
     {
-      "new_path": "flags/core/server/BUCK",
-      "old_path": "oya/feature-flags/crates/oya-flags/BUCK"
+      "new_path": "marketplace/core/cloud-domain/BUCK",
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain/BUCK"
     },
     {
-      "new_path": "flags/core/server/Cargo.toml",
-      "old_path": "oya/feature-flags/crates/oya-flags/Cargo.toml"
+      "new_path": "marketplace/core/cloud-domain/Cargo.toml",
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain/Cargo.toml"
     },
     {
-      "new_path": "flags/core/server/src/config.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/config.rs"
+      "new_path": "marketplace/core/cloud-domain/src/lib.rs",
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain/src/lib.rs"
     },
     {
-      "new_path": "flags/core/server/src/evaluation/mod.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/evaluation/mod.rs"
+      "new_path": "marketplace/core/cloud-kernel/BUCK",
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel/BUCK"
     },
     {
-      "new_path": "flags/core/server/src/grpc/mod.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/grpc/mod.rs"
+      "new_path": "marketplace/core/cloud-kernel/Cargo.toml",
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel/Cargo.toml"
     },
     {
-      "new_path": "flags/core/server/src/lib.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/lib.rs"
+      "new_path": "marketplace/core/cloud-kernel/src/lib.rs",
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel/src/lib.rs"
     },
     {
-      "new_path": "flags/core/server/src/main.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/main.rs"
+      "new_path": "marketplace/core/plugin-kernel/BUCK",
+      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/BUCK"
     },
     {
-      "new_path": "flags/core/server/src/observability/mod.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/observability/mod.rs"
+      "new_path": "marketplace/core/plugin-kernel/Cargo.toml",
+      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/Cargo.toml"
     },
     {
-      "new_path": "flags/core/server/src/ofrep/mod.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/ofrep/mod.rs"
+      "new_path": "marketplace/core/plugin-kernel/src/auction.rs",
+      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/src/auction.rs"
     },
     {
-      "new_path": "flags/core/server/src/rest/mod.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/rest/mod.rs"
+      "new_path": "marketplace/core/plugin-kernel/src/lib.rs",
+      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/src/lib.rs"
     },
     {
-      "new_path": "flags/core/server/src/storage/mod.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/storage/mod.rs"
+      "new_path": "marketplace/core/plugin-kernel/src/vertical_fanout.rs",
+      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/src/vertical_fanout.rs"
     },
     {
-      "new_path": "flags/core/server/src/targeting/mod.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/targeting/mod.rs"
+      "new_path": "marketplace/facade/dev-cli/BUCK",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/BUCK"
     },
     {
-      "new_path": "flags/core/server/src/tenants/mod.rs",
-      "old_path": "oya/feature-flags/crates/oya-flags/src/tenants/mod.rs"
+      "new_path": "marketplace/facade/dev-cli/Cargo.toml",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/Cargo.toml"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/active_artifact_contract_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/active_artifact_contract_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/adr_0145_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/adr_0145_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/adr_planning_completeness_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/adr_planning_completeness_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/adr_planning_frontmatter.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/adr_planning_frontmatter.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/adr_supersession_consistency_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/adr_supersession_consistency_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/api_contract_registry.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/api_contract_registry.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/architecture_map_emit_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/architecture_map_emit_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/architecture_plane_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/architecture_plane_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/aspirational_enforcement_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/aspirational_enforcement_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/banned_primitives_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/banned_primitives_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/bin/fake-cargo.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/bin/fake-cargo.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/bin/fake-verify-command.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/bin/fake-verify-command.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/bin/oya_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/bin/oya_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/canonical_base_neutrality_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/canonical_base_neutrality_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/catalog_contract_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/catalog_contract_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/catalog_registry.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/catalog_registry.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cedar_fragment_coverage_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cedar_fragment_coverage_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/changeset_state_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/changeset_state_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_gitops_evidence_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_helm_chart_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_helm_chart_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_kubewarden_admission_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_archive_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_archive_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_catalog_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_catalog_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_provenance_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_provider_requirements_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_provider_requirements_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_registry_protocol_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_release_index_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_release_index_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_opentofu_validation_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_opentofu_validation_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_provider_lockfile_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_provider_lockfile_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_provider_readiness_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_provider_readiness_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_provider_signature_review_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_provider_signature_review_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/codeview_read_surface_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/codeview_read_surface_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/command_output.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/command_output.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/command_process.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/command_process.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/catalog.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/catalog.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/check.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/check.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/cleanup.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/cleanup.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/codex_thread_sweep.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/codex_thread_sweep.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/demo.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/demo.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/doc/adr_index.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/adr_index.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/doc/exit_checklist/m02.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/exit_checklist/m02.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/doc/exit_checklist/mod.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/exit_checklist/mod.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/doc/master_plan_ledger.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/master_plan_ledger.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/doc/mdbook.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/mdbook.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/doc/mod.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/mod.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/doc/openapi.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/openapi.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/doc/rustdoc.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/rustdoc.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/architecture_boundaries.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/board_masterplan_consistency.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/board_masterplan_consistency.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/deployment_ops_contract.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/deployment_ops_contract.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/master_plan_completion_audit.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/master_plan_completion_audit.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/milestone_audit.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/milestone_audit.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/mod.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/mod.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/product_index.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/product_index.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/product_prd_json.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/product_prd_json.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/result_cache.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/result_cache.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/run_all.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/run_all.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/gate/stage0_application_shell_prereqs.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/stage0_application_shell_prereqs.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/generate/board_sync.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/generate/board_sync.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/generate/masterplan.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/generate/masterplan.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/generate/mod.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/generate/mod.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/lint.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/lint.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/merge_queue.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/merge_queue.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/mod.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/mod.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/onprem.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/onprem.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/ops.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/ops.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/plan.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/plan.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/submit.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/submit.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/supply_chain.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/supply_chain.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/verify.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/verify.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/verify_affected.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/verify_affected.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/commands/verify_results.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/verify_results.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cross_axis_contracts.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cross_axis_contracts.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/cross_tenant_access_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cross_tenant_access_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/data_class_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/data_class_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/date_utils.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/date_utils.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/dependency_blessed_allowlist_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/dependency_blessed_allowlist_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/dependency_seam_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/dependency_seam_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/design_spec_maturity_claims_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/design_spec_maturity_claims_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/documentation_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/documentation_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/fd001_manifest_workspace_alignment_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/fd001_manifest_workspace_alignment_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/foundation_audit_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/foundation_audit_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/foundation_fixture.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/foundation_fixture.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/foundry_capability_schema_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/foundry_capability_schema_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/foundry_eval_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/foundry_eval_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/freshness_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/freshness_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/glossary_cross_doc_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/glossary_cross_doc_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/governance_advisory_lanes.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/governance_advisory_lanes.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/governance_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/governance_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/honest_claims_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/honest_claims_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/http_stack_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/http_stack_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/hyperscaler_arch_invariants_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/hyperscaler_maturity_claims_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/hyperscaler_maturity_claims_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/json_scan.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/json_scan.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/korea_localization_evidence_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/korea_localization_evidence_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/layered_architecture_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/layered_architecture_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/lib.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/lib.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/loop_recovery_patterns_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/loop_recovery_patterns_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/main.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/main.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/masterplan_drift_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/masterplan_drift_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/openapi_rest_route_parity_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/openapi_rest_route_parity_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/path_format.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/path_format.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/placeholder_debt_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/placeholder_debt_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/planning_closure_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/planning_closure_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/planning_ssot_coverage_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/planning_ssot_coverage_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/platform_substrate_defaults_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/platform_substrate_defaults_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/pre_push_contract_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/pre_push_contract_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/protection_context_match_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/protection_context_match_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/quality_lane_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/quality_lane_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/retired_vocabulary_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/retired_vocabulary_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/runbook_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/runbook_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/saga_shape_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/saga_shape_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/scalability_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/scalability_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/scalar_parse.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/scalar_parse.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/supply_chain_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/supply_chain_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/team_ownership_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/team_ownership_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/tier_a_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/tier_a_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/typescript_workspace_gates.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/typescript_workspace_gates.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/workspace_hygiene_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/workspace_hygiene_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/workspace_manifest.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/workspace_manifest.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/workspace_topology_gate.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/workspace_topology_gate.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/src/yaml_scan.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/yaml_scan.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/audit_chain_replay_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/audit_chain_replay_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/catalog_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/catalog_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/cross_tenant_access_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/cross_tenant_access_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/demo_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/demo_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/deployment_ops_contract.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/deployment_ops_contract.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/doc_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/doc_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/fd001_data_class_taxonomy.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fd001_data_class_taxonomy.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/fd001_manifest_workspace_alignment_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fd001_manifest_workspace_alignment_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/fixtures/board-sync/board-snapshot-forward-orphan.json",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/board-sync/board-snapshot-forward-orphan.json"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/fixtures/board-sync/board-snapshot-matching.json",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/board-sync/board-snapshot-matching.json"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/fixtures/board-sync/board-snapshot-reverse-orphan.json",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/board-sync/board-snapshot-reverse-orphan.json"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/fixtures/board-sync/masterplan-minimal.json",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/board-sync/masterplan-minimal.json"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/fixtures/missing-row-registry.json",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/missing-row-registry.json"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/foundry_capability_schema_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/foundry_capability_schema_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/foundry_eval_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/foundry_eval_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/gate_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/knowledge_graph_semantic.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/knowledge_graph_semantic.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/lint_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/lint_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/loop_recovery_patterns.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/loop_recovery_patterns.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/milestone_audit.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/milestone_audit.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/oya_verify_ci_mirror.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/oya_verify_ci_mirror.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/plan_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/plan_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/pr_traceability_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/pr_traceability_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/product_prd_json.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/product_prd_json.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/runbook_freshness_cli.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/runbook_freshness_cli.rs"
+    },
+    {
+      "new_path": "marketplace/facade/dev-cli/tests/supply_chain_adr0039.rs",
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/supply_chain_adr0039.rs"
+    },
+    {
+      "new_path": "marketplace/core/doc-set-scaffold/BUCK",
+      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold/BUCK"
+    },
+    {
+      "new_path": "marketplace/core/doc-set-scaffold/Cargo.toml",
+      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold/Cargo.toml"
+    },
+    {
+      "new_path": "marketplace/core/doc-set-scaffold/src/lib.rs",
+      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold/src/lib.rs"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

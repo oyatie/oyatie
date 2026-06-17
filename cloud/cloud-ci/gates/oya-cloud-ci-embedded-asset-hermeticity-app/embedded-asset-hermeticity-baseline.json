@@ -16,7 +16,7 @@
   },
   "codes": {
     "skip_non_literal_argument": [
-      "oya/developer-sdk/crates/oya-dev-cli/tests/doc_cli.rs:1003",
+      "marketplace/facade/dev-cli/tests/doc_cli.rs:1003",
       "oya/intelligence/crates/oya-intelligence-openapi-domain/src/lib.rs:6088"
     ],
     "skip_absolute_literal": [],
@@ -48,12 +48,12 @@
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:18",
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:19",
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:20",
-      "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs:5125",
-      "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs:5130",
-      "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs:5175",
-      "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs:5180",
-      "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs:5219",
-      "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs:5224"
+      "marketplace/facade/dev-cli/tests/gate_cli.rs:5125",
+      "marketplace/facade/dev-cli/tests/gate_cli.rs:5130",
+      "marketplace/facade/dev-cli/tests/gate_cli.rs:5175",
+      "marketplace/facade/dev-cli/tests/gate_cli.rs:5180",
+      "marketplace/facade/dev-cli/tests/gate_cli.rs:5219",
+      "marketplace/facade/dev-cli/tests/gate_cli.rs:5224"
     ],
     "skip_buck_unparseable": []
   }

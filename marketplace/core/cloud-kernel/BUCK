@@ -1,15 +1,15 @@
 rust_library(
-    name = "oya-saas-plugin-marketplace-kernel",
+    name = "marketplace-cloud-kernel",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_saas_plugin_marketplace_kernel",
+    crate = "marketplace_cloud_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
 )
 
 rust_test(
-    name = "oya-saas-plugin-marketplace-kernel-unittest",
+    name = "marketplace-cloud-kernel-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_saas_plugin_marketplace_kernel",
+    crate = "marketplace_cloud_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [],

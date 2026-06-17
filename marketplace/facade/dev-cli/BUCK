@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-dev-cli",
+    name = "marketplace-dev-cli",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_dev_cli",
+    crate = "marketplace_dev_cli",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -107,7 +107,7 @@ rust_binary(
     crate_root = "src/bin/fake-cargo.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/developer-sdk/crates/oya-dev-cli:oya-dev-cli",
+        "//marketplace/facade/dev-cli:marketplace-dev-cli",
         "//cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain",
         "//cloud/cloud-secrets/crates/oya-secrets-file-adapter:oya-secrets-file-adapter",
         "//libs/oya-check-a11y-discipline:oya-check-a11y-discipline",
@@ -209,7 +209,7 @@ rust_binary(
     crate_root = "src/bin/fake-verify-command.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/developer-sdk/crates/oya-dev-cli:oya-dev-cli",
+        "//marketplace/facade/dev-cli:marketplace-dev-cli",
         "//cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain",
         "//cloud/cloud-secrets/crates/oya-secrets-file-adapter:oya-secrets-file-adapter",
         "//libs/oya-check-a11y-discipline:oya-check-a11y-discipline",
@@ -311,7 +311,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/developer-sdk/crates/oya-dev-cli:oya-dev-cli",
+        "//marketplace/facade/dev-cli:marketplace-dev-cli",
         "//cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain",
         "//cloud/cloud-secrets/crates/oya-secrets-file-adapter:oya-secrets-file-adapter",
         "//libs/oya-check-a11y-discipline:oya-check-a11y-discipline",
@@ -413,7 +413,7 @@ rust_binary(
     crate_root = "src/bin/oya_gate.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/developer-sdk/crates/oya-dev-cli:oya-dev-cli",
+        "//marketplace/facade/dev-cli:marketplace-dev-cli",
         "//cloud/cloud-secrets/crates/oya-secrets-domain:oya-secrets-domain",
         "//cloud/cloud-secrets/crates/oya-secrets-file-adapter:oya-secrets-file-adapter",
         "//libs/oya-check-a11y-discipline:oya-check-a11y-discipline",

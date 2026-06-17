@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-cloud-marketplace-domain",
+    name = "marketplace-cloud-domain",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_cloud_marketplace_domain",
+    crate = "marketplace_cloud_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -13,9 +13,9 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-cloud-marketplace-domain-unittest",
+    name = "marketplace-cloud-domain-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_cloud_marketplace_domain",
+    crate = "marketplace_cloud_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [

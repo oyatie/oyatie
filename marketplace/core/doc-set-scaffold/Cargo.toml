@@ -1,5 +1,5 @@
 [package]
-name = "oya-marketplace-doc-set-scaffold"
+name = "marketplace-doc-set-scaffold"
 version = "0.1.0"
 edition = "2021"
 publish = false

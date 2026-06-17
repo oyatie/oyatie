@@ -82,8 +82,8 @@ access, no Cargo invocation, and no duplicated glob expansion.
 |---|---|---|---|
 | `Cargo.toml` | update root workspace members/exclude | - | - |
 | `libs/oya-workspace-members-kernel/` | create canonical resolver kernel | `oya-workspace-members-kernel` | kernel |
-| `oya/developer-sdk/crates/oya-dev-cli/src/workspace_manifest.rs` | migrate parser to kernel | `oya-dev-cli` | cli |
-| `oya/developer-sdk/crates/oya-dev-cli/src/workspace_topology_gate.rs` | consume expanded members and skip nested workspaces | `oya-dev-cli` | cli |
+| `marketplace/facade/dev-cli/src/workspace_manifest.rs` | migrate parser to kernel | `marketplace-dev-cli` | cli |
+| `marketplace/facade/dev-cli/src/workspace_topology_gate.rs` | consume expanded members and skip nested workspaces | `marketplace-dev-cli` | cli |
 | `tools/oya-xtask-metadata-augment-app/src/metadata.rs` | migrate metadata member enumeration to kernel | `oya-xtask-metadata-augment-app` | app |
 | `cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app/` | create gate crate | `oya-cloud-ci-workspace-glob-coverage-app` | app |
 | `cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/` | emit producer face and baseline keys | `oya-cloud-ci-accounting-registry-app` | app |

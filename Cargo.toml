@@ -102,6 +102,21 @@ members = [
   # explicit-path members); the crate-empty oya/oya-flags placeholder + oya/feature-flags non-crate
   # artifacts are not swept (no Cargo.toml) and are homed in phase-2 (task #62).
   "flags/*/*",
+  # Capability-first home (ADR-0562 strangler move 9): the `marketplace` capability absorbs the
+  # former cloud/cloud-marketplace + oya/marketplace + oya/developer-sdk crates into
+  # marketplace/{core,facade} (two faces). marketplace is the marketplace / plugin-app-store / SKU
+  # ENGINE (dag_node marketplace, a first-class cross-cutting sold-ness capability): the cloud
+  # marketplace domain/kernel + the SaaS plugin-marketplace kernel + the doc-set-scaffold home to
+  # core/ (substrate engine surfaces), and the `oya` gate-runner dev-CLI homes to facade/dev-cli
+  # (the sold developer-tooling surface; its [[bin]] name `oya` is preserved). All five crates are
+  # de-branded to the capability prefix (marketplace-cloud-domain / marketplace-cloud-kernel /
+  # marketplace-plugin-kernel / marketplace-dev-cli / marketplace-doc-set-scaffold), so each leaf
+  # segment stays a bare `*`. `marketplace/*/*` covers all five faces/leaves
+  # (marketplace/core/{cloud-domain,cloud-kernel,plugin-kernel,doc-set-scaffold} +
+  # marketplace/facade/dev-cli) with one glob, satisfying ADR-0538's glob-only members contract (no
+  # explicit-path members); the crate-empty oya/plugin-app-store + the non-crate artifacts of the
+  # absorbed dirs are not swept (no Cargo.toml) and are homed in phase-2 (task #62).
+  "marketplace/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]

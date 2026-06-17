@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel:oya-saas-plugin-marketplace-kernel",
+        "//marketplace/core/plugin-kernel:marketplace-plugin-kernel",
     ],
 )
 
@@ -16,6 +16,6 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel:oya-saas-plugin-marketplace-kernel",
+        "//marketplace/core/plugin-kernel:marketplace-plugin-kernel",
     ],
 )

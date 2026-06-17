@@ -1,16 +1,16 @@
 rust_library(
-    name = "oya-marketplace-doc-set-scaffold",
+    name = "marketplace-doc-set-scaffold",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_marketplace_doc_set_scaffold",
+    crate = "marketplace_doc_set_scaffold",
     crate_root = "src/lib.rs",
     edition = "2021",
     visibility = ["PUBLIC"],
 )
 
 rust_test(
-    name = "oya-marketplace-doc-set-scaffold-unittest",
+    name = "marketplace-doc-set-scaffold-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_marketplace_doc_set_scaffold",
+    crate = "marketplace_doc_set_scaffold",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [],

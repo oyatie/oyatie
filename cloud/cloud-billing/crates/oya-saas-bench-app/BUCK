@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel:oya-saas-plugin-marketplace-kernel",
+        "//marketplace/core/plugin-kernel:marketplace-plugin-kernel",
         "//oya/application/crates/oya-saas-plugin-app:oya-saas-plugin-app",
         "//oya/workflow-engine/crates/oya-saas-workflow-app:oya-saas-workflow-app",
         "//oya/workflow-engine/crates/oya-saas-workflow-domain:oya-saas-workflow-domain",
@@ -20,7 +20,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel:oya-saas-plugin-marketplace-kernel",
+        "//marketplace/core/plugin-kernel:marketplace-plugin-kernel",
         "//oya/application/crates/oya-saas-plugin-app:oya-saas-plugin-app",
         "//oya/workflow-engine/crates/oya-saas-workflow-app:oya-saas-workflow-app",
         "//oya/workflow-engine/crates/oya-saas-workflow-domain:oya-saas-workflow-domain",
