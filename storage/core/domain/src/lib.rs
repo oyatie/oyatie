@@ -17,7 +17,7 @@ use oya_cloud_kms_domain::{
     CiphertextRef, DestructionProofRef, KmsKeyId, KmsKeyOrigin, KmsPurpose, KmsUseEventId,
     MaterialRef,
 };
-use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+use cell_region::{AzCode, CellId, RegionCode};
 pub use compute_resource::{BucketTier, FilesystemTier, VolumeTier};
 use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};

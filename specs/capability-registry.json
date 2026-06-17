@@ -83,6 +83,7 @@
         "cells"
       ],
       "absorbs_current_dirs": [
+        "cell",
         "cloud/cloud-cell",
         "cloud/cell-lifecycle",
         "cloud/cell-rebalancer",

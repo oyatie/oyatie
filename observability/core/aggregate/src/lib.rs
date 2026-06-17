@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
 use oya_cloud_iam_domain::IamRoleId;
-use oya_cloud_region_domain::{CellId, RegionCode};
+use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId};
 use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,

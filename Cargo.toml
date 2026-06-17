@@ -63,6 +63,20 @@ members = [
   # recordings}) with one glob, satisfying ADR-0538's glob-only members contract (no explicit-path
   # members).
   "storage/*/*",
+  # Capability-first home (ADR-0562 strangler move 6): the `cell` capability absorbs the former
+  # cloud/cloud-cell + cloud/cloud-capacity crates at cell/<face>/<leaf> across two faces (core,
+  # ports). cell is the ADR-0280 leaf cellular-topology substrate (NOT a sold product, so NO
+  # facade): the routing/region/regional-pack/capacity/capacity-commercial engines are the
+  # substrate (core), and the *-api binding surfaces (region-api, regional-pack-api, the no-dep
+  # cell-bind lib proving the cloud-cell-bind-v1 contract) are the inbound capability boundaries
+  # (ports). The leaf is de-branded (cargo names cell-routing / cell-region / cell-region-api /
+  # cell-regional-pack / cell-regional-pack-api / cell-bind-api / cell-capacity /
+  # cell-capacity-commercial; routing not cell to avoid path-doubling), so the leaf segment stays
+  # a bare `*`. `cell/*/*` covers every face/leaf (cell/core/{routing,region,regional-pack,
+  # capacity,capacity-commercial}, cell/ports/{region,regional-pack,cell-bind}) with one glob,
+  # satisfying ADR-0538's glob-only members contract (no explicit-path members); the crate-free
+  # cell-lifecycle / cell-rebalancer phase-2 dirs are not swept (no Cargo.toml).
+  "cell/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]

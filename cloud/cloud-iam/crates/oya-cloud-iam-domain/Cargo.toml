@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-region-domain = { path = "../../../cloud-cell/crates/oya-cloud-region-domain" }
+cell-region = { path = "../../../../cell/core/region" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 oya-identity-domain = { path = "../../../../oya/identity/crates/oya-identity-domain" }
 

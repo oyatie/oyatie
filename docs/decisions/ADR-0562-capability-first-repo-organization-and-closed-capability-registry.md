@@ -616,6 +616,119 @@ entry. The move's tracked, born-accounted artifact paths are `storage/core/domai
 subtree `storage/OWNERS`, and the committed move-plan `specs/reorg/storage-move-plan.json` (reached by
 the existing ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.10 Sixth executed strangler move: `cell` capability (cloud/cloud-cell + cloud/cloud-capacity → cell/)
+
+The sixth REAL codemod run homes the `cell` capability's eight crates from TWO source dirs
+(`cloud/cloud-cell/crates`, `cloud/cloud-capacity/crates`) under the §3 placement rule, across TWO
+faces (`core`, `ports`) with NO `facade` (cell is the ADR-0280 LEAF cellular-topology substrate — the
+bootstrap floor the platform RUNS, not a product it SELLS): the cell-routing kernel (`face: core`) →
+`cell/core/routing` (cargo `cell-routing`); the region domain engine (`face: core`) →
+`cell/core/region` (cargo `cell-region`); the region capability surface (`face: ports`) →
+`cell/ports/region` (cargo `cell-region-api`); the regional-pack domain engine (`face: core`) →
+`cell/core/regional-pack` (cargo `cell-regional-pack`); the regional-pack capability surface
+(`face: ports`) → `cell/ports/regional-pack` (cargo `cell-regional-pack-api`); the no-dep cell-bind
+binding library (`face: ports`) → `cell/ports/cell-bind` (cargo `cell-bind-api`); the capacity kernel
+(`face: core`) → `cell/core/capacity` (cargo `cell-capacity`); and the commercial-capacity domain
+(`face: core`) → `cell/core/capacity-commercial` (cargo `cell-capacity-commercial`). The de-brand
+drops the `oya-cell-` / `oya-cloud-region-` / `oya-regional-pack-` / `oya-cloud-cell-` /
+`oya-cloud-capacity-` prefixes to the capability slug, matching the §10.5..§10.9 precedent. ONE
+de-dup-path-doubling refinement applies (naming-grammar): the routing kernel homes to
+`cell/core/routing` (cargo `cell-routing`), NOT `cell/core/cell` (cargo `cell-cell`), since it IS the
+"Cell-routing kernel" and the leaf slug must not double the capability slug.
+
+**Face reasoning — leaf substrate, core engines + inbound ports, no facade (§2 boundary note + §3 "by
+WHAT IT IS"):** the capability registry records cell as the ADR-0280 leaf substrate (cluster-per-cell,
+hard caps, the thin static-stable cell router, autosharding/rebalancing). All five engine/kernel
+crates (routing, region, regional-pack, capacity, capacity-commercial) are the substrate the platform
+RUNS → `core/`. The three `*-api` binding crates are the inbound capability boundary surfaces →
+`ports/` (ports→core is the legal downward edge, the iac-rest / storage precedent of §10.6/§10.9): the
+region-api and regional-pack-api crates each depend on their `core/` engine, and the
+`cloud-cell-app` crate is a NO-DEP `rust_library` (NOT a `[[bin]]` composition-root) holding the bind
+DTOs + a pure cell-lifecycle state machine that proves the `cloud-cell-bind-v1` OpenAPI contract — an
+inbound API/binding boundary → `cell/ports/cell-bind`, NOT `facade`, NOT `core/app`. cell is NOT a
+sold product (it is the bootstrap floor every other capability sits on), so it has NO `facade/`. The
+intra-capability edges are all correct-downward and legal: `cell-region` → `cell-routing`
+(core→core), `cell-region-api` → `cell-region` (ports→core), `cell-regional-pack-api` →
+`cell-regional-pack` (ports→core), and `cell-capacity-commercial` → `cell-region` (core→core). The
+resulting 8 paths + 8 cargo names are all distinct (`MovePlan::validate` passes: no duplicate
+`old_path`/`new_path`/`old_cargo_name`/`new_cargo_name`, no nested target).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true`
+not null, `clean=true`). cell is NOT a violation source (zero entries in the acyclicity frozen
+baseline) and the moved crate dirs are not in the membership unmapped baseline, so both lints carry
+0 burn-down / 0 regression.
+
+**Largest dependent blast radius to date — 14 first-party dependents OUTSIDE the capability rewritten
+mechanically by the codemod (cargo path-dep + dep-key + BUCK `//`label + Rust `use`/ident across all
+three surfaces):** the `cell-region` engine (formerly `oya-cloud-region-domain`, lib ident
+`oya_cloud_region_domain` → `cell_region`) has thirteen cross-capability consumers, and the
+`cell-routing` + `cell-regional-pack` engines add one more. The full set:
+`oya/application/crates/oya-application-app` (on `cell-routing` AND `cell-regional-pack`),
+`compute/core/domain`, `compute/core/resource`, `compute/core/dcops`,
+`observability/core/aggregate`, `cloud/cloud-billing/crates/oya-cloud-billing-domain`,
+`cloud/cloud-data/crates/oya-cloud-data-domain`, `cloud/cloud-finops/crates/oya-cloud-finops-domain`,
+`cloud/cloud-iam/crates/oya-cloud-iam-domain`, `cloud/cloud-kms/crates/oya-cloud-kms-api`,
+`cloud/cloud-kms/crates/oya-cloud-kms-domain`,
+`cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain`,
+`cloud/cloud-network/crates/oya-cloud-network-domain`, and `storage/core/domain` (the already-homed
+move-5 storage core, on `cell-region`). Each dependent's three surfaces were recomputed mechanically
+and verified consistent (a half-rewritten dependent that compiles-by-luck is the danger this move
+explicitly guards against; the post-move grep is clean of every old token in every dependent). The
+capability registry `cell.absorbs_current_dirs` gains `cell` (the old `cloud/cloud-cell` +
+`cloud/cell-lifecycle` + `cloud/cell-rebalancer` + `cloud/cloud-capacity` entries are retained for the
+phase-2 non-crate residue — `cell-lifecycle` and `cell-rebalancer` hold zero crates today), the
+membership policy scan_roots + allowed_top_level_dirs gain `cell`, the acyclicity policy
+crate_root_globs gains `cell/*/*` + unclassified_roots gains `cell`, and the root workspace gains the
+`cell/*/*` member glob (one glob covers both faces and all eight leaves; ADR-0538 glob-only contract).
+
+**Rename-aware baseline relabel exercised (ADR-0563):** this move commits exactly ONE move-plan at
+`specs/reorg/cell-move-plan.json` (the codemod's `MovePlan` bijection), and the move-manifest at
+`specs/reorg/move-manifest.generated.json` is regenerated from it via `oya-reorg-codemod manifest
+--plan` (registry-drift byte-bound, committed==regenerated). THREE relocated crate files carried a
+PRE-EXISTING `cloud-ci-brand-residue` first-forbidden-stem baseline entry at their OLD path —
+`cloud/cloud-cell/crates/oya-cell-domain/src/lib.rs` → `cell/core/routing/src/lib.rs`,
+`cloud/cloud-cell/crates/oya-cloud-region-api/src/lib.rs` → `cell/ports/region/src/lib.rs`, and
+`cloud/cloud-cell/crates/oya-cloud-region-domain/src/lib.rs` → `cell/core/region/src/lib.rs`. That
+residue is a domain enum-variant / density-class string (a tenant-density / cell-tier identifier, NOT
+a retired-VCS-brand reference), and the codemod renames only the crate-IDENT prefixes
+(`oya_cloud_region_domain::` → `cell_region::` etc.), leaving the residue byte-identical at the new
+path. The emitter relabel maps each OLD path to its NEW path in the frozen face guarded by P4
+(NEW_OCC ⊆ OLD_OCC, here NEW_OCC == OLD_OCC), so the firewall reads a pure relocation (no new debt,
+no scrub). No manual signoff door is used.
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** like the
+prior moves, `cloud/cloud-cell/` and `cloud/cloud-capacity/` also hold non-crate capability artifacts
+(docs, slos, contracts, GitOps manifests, the `contracts/openapi/cloud/cloud-cell-bind-v1.yaml`
+contract). This crates-only strangler move homes the CRATES; the non-crate artifacts stay in place and
+are homed in phase-2 (task #62), so only the `crates/` subtrees are emptied. The crate-free
+`cloud/cell-lifecycle/` and `cloud/cell-rebalancer/` capability dirs hold zero crates and so are
+wholly a phase-2 non-crate concern. The deferred de-brand residue outside the moved crates is the
+ADR-0532/0533 de-brand profile lane's scope (task #63), not this structural move.
+
+**Born-accounting (ADR-0555):** the eight new crate dirs under `cell/{core,ports}/` are reached by the
+`cell/*/*` member glob + the `cell/*/*` acyclicity glob, and owned by the subtree `cell/OWNERS`
+(axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.10 entry. The move's
+tracked, born-accounted artifact paths are `cell/core/routing/Cargo.toml`, `cell/core/routing/BUCK`,
+`cell/core/routing/src/lib.rs`, `cell/core/routing/tests/cell_router.rs`,
+`cell/core/region/Cargo.toml`, `cell/core/region/BUCK`, `cell/core/region/src/lib.rs`,
+`cell/core/regional-pack/Cargo.toml`, `cell/core/regional-pack/BUCK`,
+`cell/core/regional-pack/src/lib.rs`, `cell/core/regional-pack/src/capability_pack.rs`,
+`cell/core/regional-pack/src/kr_regulatory.rs`, `cell/core/regional-pack/src/pack_onboarding_phase.rs`,
+`cell/core/regional-pack/src/vertical_regulatory_profile.rs`, `cell/core/capacity/Cargo.toml`,
+`cell/core/capacity/BUCK`, `cell/core/capacity/src/lib.rs`, `cell/core/capacity/src/cell_budget.rs`,
+`cell/core/capacity/src/committed_use.rs`, `cell/core/capacity-commercial/Cargo.toml`,
+`cell/core/capacity-commercial/BUCK`, `cell/core/capacity-commercial/src/lib.rs`,
+`cell/core/capacity-commercial/tests/cloud_ops_foundation.rs`, `cell/ports/region/Cargo.toml`,
+`cell/ports/region/BUCK`, `cell/ports/region/src/lib.rs`,
+`cell/ports/region/tests/cloud_region_api.rs`, `cell/ports/regional-pack/Cargo.toml`,
+`cell/ports/regional-pack/BUCK`, `cell/ports/regional-pack/src/lib.rs`,
+`cell/ports/regional-pack/tests/regulatory_pack_bind_api.rs`, `cell/ports/cell-bind/Cargo.toml`,
+`cell/ports/cell-bind/BUCK`, `cell/ports/cell-bind/src/lib.rs`,
+`cell/ports/cell-bind/src/cell_lifecycle.rs`, `cell/ports/cell-bind/tests/cloud_cell_bind_api.rs`, the
+subtree `cell/OWNERS`, and the committed move-plan `specs/reorg/cell-move-plan.json` (reached by the
+existing ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

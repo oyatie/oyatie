@@ -14,7 +14,7 @@ pub use envelope_keys::{DekId, EnvelopeKeyError, KekId};
 
 use std::collections::BTreeMap;
 
-use oya_cloud_region_domain::{CellId, RegionCode};
+use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId, ResourceKind};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
