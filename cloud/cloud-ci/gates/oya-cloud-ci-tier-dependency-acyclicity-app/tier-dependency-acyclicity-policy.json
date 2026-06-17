@@ -21,7 +21,8 @@
     "compute/*/*",
     "storage/*/*",
     "cell/*/*",
-    "gateway/*/*"
+    "gateway/*/*",
+    "flags/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -37,7 +38,8 @@
     "compute",
     "storage",
     "cell",
-    "gateway"
+    "gateway",
+    "flags"
   ],
   "stratum_rank_order": [
     "S0",

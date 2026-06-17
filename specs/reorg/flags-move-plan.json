@@ -1,0 +1,11 @@
+{
+  "capability": "flags",
+  "moves": [
+    {
+      "old_path": "oya/feature-flags/crates/oya-flags",
+      "new_path": "flags/core/server",
+      "old_cargo_name": "oya-flags",
+      "new_cargo_name": "flags-server"
+    }
+  ]
+}
