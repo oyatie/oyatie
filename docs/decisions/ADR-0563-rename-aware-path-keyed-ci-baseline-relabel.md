@@ -81,6 +81,35 @@ not a firewall code change.
    a proven pure-or-shrinking relocation; it can never manufacture a false-GREEN. No sign-off
    door is used (founder doctrine: a purely mechanical rename needs no signoff).
 
+## Amendment — Section C2: per-FILE total-accounting relabel (2026-06-17, cloud-ci-platform)
+
+The original Section C relabeled `cloud-ci-total-accounting` (and `cloud-ci-target-parity`)
+purely on the crate-DIR pairs, treating the gate as member_path-keyed. That is incomplete:
+`total-accounting` also carries codes keyed by **repo-relative FILE path** —
+`unjustified` / `unowned` / `unreachable`. `unowned` re-derives from OWNERS and `unreachable`
+from the reachability-registry, so a relocated file re-seeds those two automatically. But
+`unjustified` has **no re-derivation seed**: its frozen baseline IS the only record that a file
+was accepted as unjustified, so relocating an accepted-`unjustified` file with the crate-DIR-only
+relabel left the OLD file path frozen and the NEW file path read as fresh debt — firewall RED.
+Every prior strangler move relocated ADR/spec-justified files, so this path was never exercised;
+the marketplace move's dev-cli (151 files) is the FIRST move of `unjustified`-tolerated crates,
+which surfaced the gap.
+
+Fix (data-over-data, no firewall change): a new `relabel_existence_only_file_gate` (Section C2),
+dispatched alongside `relabel_existence_only_gate` for `GATE_TOTAL_ACCOUNTING` only. It mirrors
+Section C's existence-only P1(frozen-key)+P2(old-absent)+P3(new-present) guard and per-(gate,code)
+injectivity, but uses **EXACT** candidate-path membership (these keys ARE tracked file paths) in
+place of the directory-aware descendant test. No content guard (same rationale as Section C: the
+FILE pairs come from the registry-drift-checked move-plan manifest and the codemod is a
+content-preserving mover). The two relabels touch disjoint key classes (DIR keys never match a
+FILE pair's old-key and vice versa), so running both is order-independent and non-overlapping.
+`GATE_TARGET_PARITY` keeps the dir-only relabel. Inert without a committed move-plan
+(`file_pairs` empty ⇒ strict byte-identical no-op), so this amendment changes no materialized
+face on non-move PRs. `cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app/src/main.rs`
+carries the function + the split dispatch + six unit pins (marketplace-shaped relabel, P2/P3/
+collision fail-closed, mixed per-DIR + per-FILE independence, empty-manifest inert) with a
+non-vacuity canary proving the marketplace pin fails without the C2 dispatch line.
+
 ## Consequences
 
 - Neutral: the firewall, the producer, and every other gate are unchanged; the relabel is pure

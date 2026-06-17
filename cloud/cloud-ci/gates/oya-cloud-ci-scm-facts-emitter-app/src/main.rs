@@ -510,10 +510,24 @@ fn relabel_frozen_face(
                 candidate,
                 vocab_policy,
             ),
-            GATE_TARGET_PARITY | GATE_TOTAL_ACCOUNTING => {
-                // Section C: these gates key by crate-DIR / member_path, so they relabel on the
-                // crate-DIR pairs (not the file-level pairs). Same existence-only P2/P3 guard.
+            GATE_TARGET_PARITY => {
+                // Keys are crate-DIR / member_path: relabel on the crate-DIR pairs (Section C),
+                // directory-aware existence, no content guard.
                 relabel_existence_only_gate(codes, &dir_pairs, &candidate_paths);
+            }
+            GATE_TOTAL_ACCOUNTING => {
+                // total-accounting carries BOTH per-DIR codes (member_path: relabel on crate-DIR
+                // pairs, Section C) AND per-FILE codes (`unjustified`/`unowned`/`unreachable`,
+                // keyed by repo-relative file path: relabel on the manifest FILE pairs, Section
+                // C2). `unowned` re-derives via OWNERS and `unreachable` via the
+                // reachability-registry, but `unjustified` has NO re-derivation seed, so a
+                // relocated accepted-unjustified file depends ENTIRELY on this per-FILE relabel
+                // (ADR-0563 gap surfaced by the marketplace move's dev-cli; every prior move's
+                // files were ADR/spec-justified so this path was never exercised). The two relabels
+                // touch disjoint key classes (DIR keys never match a FILE pair's old-key and vice
+                // versa), so running both is order-independent and non-overlapping.
+                relabel_existence_only_gate(codes, &dir_pairs, &candidate_paths);
+                relabel_existence_only_file_gate(codes, &file_pairs, &candidate_paths);
             }
             GATE_TIER_DEP_ACYCLICITY => {
                 relabel_tier_dep_gate(codes, &ident_pairs, &candidate_paths);
@@ -649,6 +663,66 @@ fn relabel_existence_only_gate(
             }
             // P2 old dir absent from candidate tree, P3 new dir present in candidate tree.
             if dir_present(old_path) || !dir_present(new_path) {
+                continue;
+            }
+            relabels.push((old_path.to_owned(), new_path.to_owned()));
+        }
+        if relabels.is_empty() {
+            continue;
+        }
+        let to_remove: BTreeSet<String> = relabels.iter().map(|(o, _)| o.clone()).collect();
+        let to_add: BTreeSet<String> = relabels.iter().map(|(_, n)| n.clone()).collect();
+        let mut rebuilt: BTreeSet<String> = frozen_keys
+            .iter()
+            .filter(|k| !to_remove.contains(*k))
+            .cloned()
+            .collect();
+        rebuilt.extend(to_add);
+        *keys_val = rebuilt.into_iter().map(Value::String).collect();
+    }
+}
+
+/// (C2) total-accounting per-FILE codes (`unjustified` / `unowned` / `unreachable`; key =
+/// repo-relative FILE path). Relabel old->new per the manifest FILE pair iff:
+///   P1: old_path is a frozen key under THIS code;
+///   P2: old_path ABSENT from the candidate tracked set (it moved away);
+///   P3: new_path PRESENT in the candidate tracked set (it landed);
+/// and per-(gate,code) injectivity (refuse if new_path is already a DISTINCT frozen key).
+/// EXACT path membership (NOT the directory-aware descendant test of Section C) — these keys ARE
+/// tracked file paths, so `git ls-files` membership is the direct existence signal. No content
+/// guard: the FILE pairs come from the registry-drift-checked move-plan manifest
+/// (committed==regenerated) and the codemod is a content-preserving mover, so — exactly as for the
+/// crate-DIR existence relabel (C) — a content guard is not needed. Without a committed move-plan
+/// `file_pairs` is empty, so this is a strict no-op (byte-identical face) on non-move PRs.
+fn relabel_existence_only_file_gate(
+    codes: &mut serde_json::Map<String, Value>,
+    file_pairs: &BTreeMap<&str, &str>,
+    candidate_paths: &BTreeSet<String>,
+) {
+    for (_code, entry) in codes.iter_mut() {
+        let Some(keys_val) = entry.get_mut("keys").and_then(Value::as_array_mut) else {
+            continue;
+        };
+        let frozen_keys: BTreeSet<String> = keys_val
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect();
+        // Collect validated relabels first (do not mutate while deciding), then apply.
+        let mut relabels: Vec<(String, String)> = Vec::new();
+        for (old_path, new_path) in file_pairs {
+            let old_path = *old_path;
+            let new_path = *new_path;
+            // P1: old_path is a frozen key under THIS code.
+            if !frozen_keys.contains(old_path) {
+                continue;
+            }
+            // Per-(gate,code) injectivity: refuse if new_path is already a DISTINCT frozen key.
+            if frozen_keys.contains(new_path) && new_path != old_path {
+                continue; // fail-closed on collision
+            }
+            // P2: old file ABSENT from candidate; P3: new file PRESENT (EXACT membership).
+            if candidate_paths.contains(old_path) || !candidate_paths.contains(new_path) {
                 continue;
             }
             relabels.push((old_path.to_owned(), new_path.to_owned()));
@@ -1934,6 +2008,167 @@ mod tests {
         let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
             .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
         assert!(keys.contains(old), "no relabel when new dir has no tracked descendant");
+    }
+
+    // -----------------------------------------------------------------------
+    // (C2) total-accounting per-FILE codes (`unjustified`/`unowned`/`unreachable`, keyed by
+    // repo-relative FILE path). `unowned` re-derives via OWNERS and `unreachable` via the
+    // reachability-registry, but `unjustified` has NO re-derivation seed, so a relocated
+    // accepted-unjustified file depends ENTIRELY on this per-FILE relabel (the ADR-0563 gap the
+    // marketplace dev-cli move surfaced). EXACT path membership (not the directory-aware
+    // descendant test of Section C). These pin `relabel_existence_only_file_gate` via the public
+    // `relabel_frozen_face` seam, mirroring the brand-residue / Section-C pins above.
+    // -----------------------------------------------------------------------
+
+    /// (a) Marketplace-shaped relabel: an accepted-`unjustified` FILE key (the dev-cli move) is
+    /// relabeled old->new on the manifest FILE pair when the old file is gone and the new file
+    /// landed in the candidate tree; an unrelated `unjustified` key is untouched.
+    #[test]
+    fn relabel_total_accounting_file_relabels_marketplace_unjustified() {
+        let old = "oya/developer-sdk/crates/oya-dev-cli/src/foo.rs";
+        let new = "marketplace/facade/dev-cli/src/foo.rs";
+        let face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [old, "other/keep.rs"]}
+        }}});
+        let frozen = FakeFrozen::new(&[]); // existence-only: no content guard for per-FILE codes
+        // Candidate has the NEW file + the unrelated keep, but NOT the old file (it moved away).
+        let candidate = FakeCandidate::new(&[new, "other/keep.rs"], &[]);
+        let policy = VocabPolicy::bundled_default();
+        let out =
+            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
+                .unwrap();
+        let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
+            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+        assert!(keys.contains(new), "moved unjustified FILE key relabeled to NEW path");
+        assert!(!keys.contains(old), "old FILE key relabeled out");
+        assert!(keys.contains("other/keep.rs"), "unrelated FILE key untouched");
+    }
+
+    /// (b) P3 fail-closed: the NEW file is NOT in the candidate tracked set (the move did not land
+    /// where the manifest claims) => no relabel, key stays old.
+    #[test]
+    fn relabel_total_accounting_file_p3_new_absent_fails_closed() {
+        let old = "oya/developer-sdk/crates/oya-dev-cli/src/bar.rs";
+        let new = "marketplace/facade/dev-cli/src/bar.rs";
+        let face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [old]}
+        }}});
+        let frozen = FakeFrozen::new(&[]);
+        // old is gone but new never landed => P3 fails.
+        let candidate = FakeCandidate::new(&["unrelated/x.rs"], &[]);
+        let policy = VocabPolicy::bundled_default();
+        let out =
+            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
+                .unwrap();
+        let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
+            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+        assert!(keys.contains(old), "no relabel when new FILE absent from candidate");
+        assert!(!keys.contains(new));
+    }
+
+    /// (c) P2 fail-closed: the OLD file is STILL tracked in the candidate (it did not actually
+    /// move away) => no relabel, key stays old.
+    #[test]
+    fn relabel_total_accounting_file_p2_old_still_present_fails_closed() {
+        let old = "oya/developer-sdk/crates/oya-dev-cli/src/baz.rs";
+        let new = "marketplace/facade/dev-cli/src/baz.rs";
+        let face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [old]}
+        }}});
+        let frozen = FakeFrozen::new(&[]);
+        // BOTH old and new tracked => P2 fails (old still present).
+        let candidate = FakeCandidate::new(&[old, new], &[]);
+        let policy = VocabPolicy::bundled_default();
+        let out =
+            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
+                .unwrap();
+        let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
+            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+        assert!(keys.contains(old), "no relabel when old FILE still present in candidate");
+    }
+
+    /// (d) Injectivity/collision fail-closed: the NEW file is already a DISTINCT frozen key under
+    /// the same code => no relabel (the per-(gate,code) keyset stays injective).
+    #[test]
+    fn relabel_total_accounting_file_collision_fails_closed() {
+        let old = "oya/developer-sdk/crates/oya-dev-cli/src/qux.rs";
+        let new = "marketplace/facade/dev-cli/src/qux.rs";
+        // new is ALREADY a frozen key (a distinct pre-existing unjustified file at that path).
+        let face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [old, new]}
+        }}});
+        let frozen = FakeFrozen::new(&[]);
+        let candidate = FakeCandidate::new(&[new], &[]);
+        let policy = VocabPolicy::bundled_default();
+        let out =
+            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
+                .unwrap();
+        let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
+            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+        assert!(keys.contains(old) && keys.contains(new), "collision => leave both, no relabel");
+    }
+
+    /// (e) Mixed code in one total-accounting face: a per-DIR member key (relabeled via crate-DIR
+    /// pairs, Section C) AND a per-FILE `unjustified` key (relabeled via FILE pairs, Section C2)
+    /// both relabel in the SAME run, independently — proving the two relabels touch disjoint key
+    /// classes and are order-independent / non-overlapping.
+    #[test]
+    fn relabel_total_accounting_mixed_dir_and_file_codes_independent() {
+        let old_dir = "cloud/cloud-observability/crates/oya-cloud-observability-domain";
+        let new_dir = "observability/core/aggregate";
+        let old_file = "oya/developer-sdk/crates/oya-dev-cli/src/foo.rs";
+        let new_file = "marketplace/facade/dev-cli/src/foo.rs";
+        let face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            // per-DIR code (member_path-keyed): relabel via crate-DIR pairs.
+            "member_test_code_without_rust_test_target": {
+                "mode": "baseline-block-on-new", "keys": [old_dir]
+            },
+            // per-FILE code (repo-relative path-keyed): relabel via FILE pairs.
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [old_file]}
+        }}});
+        let frozen = FakeFrozen::new(&[]);
+        // Candidate: a tracked descendant under the NEW dir (dir-presence), plus the NEW file
+        // (exact membership); neither OLD survives.
+        let candidate = FakeCandidate::new(
+            &["observability/core/aggregate/src/lib.rs", new_file],
+            &[],
+        );
+        let policy = VocabPolicy::bundled_default();
+        // A manifest carrying BOTH a crate-DIR pair AND a FILE pair (no single helper builds both).
+        let m = MoveManifest {
+            file_pairs: vec![(old_file.to_owned(), new_file.to_owned())],
+            crate_dir_pairs: vec![(old_dir.to_owned(), new_dir.to_owned())],
+            ..MoveManifest::default()
+        };
+        let out = relabel_frozen_face(&face, &m, &frozen, MB, &candidate, &policy).unwrap();
+        let dir_keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]
+            ["member_test_code_without_rust_test_target"]["keys"]
+            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+        let file_keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
+            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+        assert!(dir_keys.contains(new_dir) && !dir_keys.contains(old_dir),
+            "per-DIR member key relabeled via crate-DIR pairs");
+        assert!(file_keys.contains(new_file) && !file_keys.contains(old_file),
+            "per-FILE unjustified key relabeled via FILE pairs, independently in the same run");
+    }
+
+    /// (f) Inert without a move-plan: an EMPTY manifest must return the face BYTE-IDENTICAL even
+    /// with a total-accounting per-FILE key present (strict no-op — the no-move PR property).
+    #[test]
+    fn relabel_total_accounting_file_inert_for_empty_manifest() {
+        let old = "oya/developer-sdk/crates/oya-dev-cli/src/foo.rs";
+        let face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": [old, "other/keep.rs"]}
+        }}});
+        let frozen = FakeFrozen::new(&[]);
+        // Even though the candidate already carries the moved-to path, an empty manifest is a
+        // strict no-op (no FILE pair to act on).
+        let candidate = FakeCandidate::new(&["marketplace/facade/dev-cli/src/foo.rs"], &[]);
+        let policy = VocabPolicy::bundled_default();
+        let out =
+            relabel_frozen_face(&face, &MoveManifest::default(), &frozen, MB, &candidate, &policy)
+                .unwrap();
+        assert_eq!(out, face, "empty manifest => byte-identical face (strict no-op)");
     }
 
     /// Non-path gate pass-through: a gate with a NON-path key space (crate names) is never
