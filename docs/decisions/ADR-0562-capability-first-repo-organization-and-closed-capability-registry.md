@@ -522,6 +522,100 @@ entry. The move's tracked, born-accounted artifact paths are `compute/core/domai
 committed move-plan `specs/reorg/compute-move-plan.json` (reached by the existing ADR-0563
 `specs/reorg/` reachability prefix).
 
+#### §10.9 Fifth executed strangler move: `storage` capability (cloud/cloud-storage + oya/drive + oya/recordings → storage/)
+
+The fifth REAL codemod run homes the `storage` capability's seven crates from THREE source dirs
+(`cloud/cloud-storage/crates`, `oya/drive/crates`, `oya/recordings/crates`) under the §3 placement
+rule, each face mirrored by its sub-fold across FOUR faces (`core`, `ports`, `adapters`, `facade`):
+the CAS/blob substrate domain engine (`face: core`, DEFINES the provider port traits
+`StorageProviderObjectPort` / `StorageProviderBlockPort` + `StorageRepo`) → `storage/core/domain`
+(cargo `storage-domain`); the object capability surface (`face: ports`) → `storage/ports/object-api`
+(cargo `storage-object-api`); the block capability surface (`face: ports`) → `storage/ports/block-api`
+(cargo `storage-block-api`); the transient S3 provider adapter (`face: adapters`) →
+`storage/adapters/s3` (cargo `storage-s3-adapter`); the transient OCI provider adapter
+(`face: adapters`) → `storage/adapters/oci` (cargo `storage-oci-adapter`); the Drive product domain
+(`face: facade`) → `storage/facade/drive` (cargo `storage-drive-domain`); and the Recordings product
+domain (`face: facade`) → `storage/facade/recordings` (cargo `storage-recordings-domain`). The
+de-brand drops the `oya-cloud-storage-` / `oya-drive-` / `oya-recordings-` prefixes to the capability
+slug; cargo names are the de-branded leaf, matching the §10.5/§10.6/§10.7/§10.8 precedent.
+
+**Face reasoning — core substrate defining provider ports, with consumer-facing product facades (§2
+boundary note + §3 "by WHAT IT IS"):** the capability registry records storage as ONE engine — the
+content-addressed-store / blob substrate the platform RUNS. `cloud-storage`'s `*-domain` is the engine
+→ `core/`: it DEFINES the outbound provider port traits (`StorageProviderObjectPort`,
+`StorageProviderBlockPort`, `StorageRepo`) that the s3/oci adapters implement. The object-api /
+block-api crates are the inbound capability boundary surfaces → `ports/` (ports→core is the legal
+downward edge, the iac-rest precedent of §10.6). The s3/oci adapters are transient provider infra
+absorbed at cutover → `adapters/` (adapters→core). The `oya/drive` (Drive) and `oya/recordings`
+(Recordings) product domains are the consumer-facing surfaces the platform SELLS on top of the storage
+substrate → `facade/` (the §2 iam-pattern: they sit on the object/blob substrate by product charter,
+not by a Cargo-level edge into cloud-storage). The `domain` triple-clash is disambiguated by face+leaf:
+`storage-domain` is the `core` engine, while `storage-drive-domain` / `storage-recordings-domain` are
+`facade` products. The dependency directions are correct-downward: object-api/block-api/s3/oci each
+depend on `storage-domain` (a ports→core / adapters→core edge), and the cross-capability runtime deps
+are PRESERVED unchanged through the move — `block-api` still depends on
+`//cloud/cloud-network/crates/oya-residency-domain` (residency, a runtime data-locality dependency,
+NOT dev-only), and `object-api` still depends on `//cloud/cloud-kms/crates/oya-cloud-kms-domain` and
+on the already-homed `//compute/core/resource:compute-resource`; the codemod only recomputed those
+crates' OWN relative Cargo paths, leaving the cross-cap targets untouched. The resulting 7 paths + 7
+cargo names are all distinct (`MovePlan::validate` passes: no duplicate `old_path`/`new_path`/
+`old_cargo_name`/`new_cargo_name`, no nested target).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true`
+not null, `clean=true`). storage is NOT a violation source (zero entries in the acyclicity frozen
+baseline) and the moved crate dirs are not in the membership unmapped baseline, so both lints carry
+0 burn-down / 0 regression. The first-party dependent OUTSIDE the capability —
+`oya/application/crates/oya-workspace-drive-api` (on the former `oya-drive-domain`, now
+`storage-drive-domain`) — had its cargo path-dep, BUCK labels (lib + test), and Rust `use` ident
+recomputed mechanically by the codemod. The capability registry `storage.absorbs_current_dirs` gains
+`storage` (the old `cloud/cloud-storage` + `oya/drive` + `oya/imaging` + `oya/recordings` entries are
+retained for the phase-2 non-crate residue, `oya/imaging` having zero crates today), the membership
+policy scan_roots + allowed_top_level_dirs gain `storage`, the acyclicity policy crate_root_globs
+gains `storage/*/*` + unclassified_roots gains `storage`, and the root workspace gains the
+`storage/*/*` member glob (one glob covers all four faces; ADR-0538 glob-only contract).
+
+**Rename-aware baseline relabel exercised (ADR-0563):** this move commits exactly ONE move-plan at
+`specs/reorg/storage-move-plan.json` (the codemod's `MovePlan` bijection), and the move-manifest at
+`specs/reorg/move-manifest.generated.json` is regenerated from it via `oya-reorg-codemod manifest
+--plan` (registry-drift byte-bound, committed==regenerated). The relocated `storage/facade/drive`
+crate's `src/lib.rs` carried a PRE-EXISTING retired-brand-stem doc-comment whose OLD path was in the
+`cloud-ci-brand-residue` gate's frozen merge-base baseline; this move SCRUBS that comment-only residue
+(a content-preserving de-brand, no identifier or behavior change — removing residue is always
+gate-allowed under the shrink-only ratchet), so the relocated file carries zero residue. The emitter
+relabel maps the OLD path to its NEW path in the frozen face guarded by P4 (NEW_OCC ⊆ OLD_OCC, here
+NEW_OCC = ∅), so the firewall reads a clean shrink (no new debt, the moved file is brand-clean at the
+new path). This ADR §10.9 record itself names no brand-stem token verbatim (per the same shrink-only
+ratchet, exactly as ADR-0563 describes the residue). No manual signoff door is used.
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** like the
+prior moves, `cloud/cloud-storage/`, `oya/drive/`, and `oya/recordings/` also hold non-crate
+capability artifacts (docs, slos, contracts, GitOps manifests, tofu, the `oya/drive/manifest.json`
+that still carries a phase-2 de-brand residue). This crates-only strangler move homes the CRATES; the
+non-crate artifacts stay in place and are homed in phase-2 (task #62), so only the `crates/` subtrees
+are emptied. `oya/imaging` holds zero crates and so is wholly a phase-2 non-crate concern. The
+deferred de-brand residue outside the moved crates (the `oya/drive/manifest.json` brand stem, plus any
+`[[bin]]`/`OYA_*` literals) is the ADR-0532/0533 de-brand profile lane's scope (task #63), not this
+structural move.
+
+**Born-accounting (ADR-0555):** the seven new crate dirs under `storage/{core,ports,adapters,facade}/`
+are reached by the `storage/*/*` member glob + the `storage/*/*` acyclicity glob, and owned by the
+subtree `storage/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.9
+entry. The move's tracked, born-accounted artifact paths are `storage/core/domain/Cargo.toml`,
+`storage/core/domain/BUCK`, `storage/core/domain/src/lib.rs`,
+`storage/core/domain/tests/cloud_storage_foundation.rs`, `storage/ports/object-api/Cargo.toml`,
+`storage/ports/object-api/BUCK`, `storage/ports/object-api/src/lib.rs`,
+`storage/ports/object-api/tests/cloud_storage_object_api.rs`, `storage/ports/block-api/Cargo.toml`,
+`storage/ports/block-api/BUCK`, `storage/ports/block-api/src/lib.rs`,
+`storage/ports/block-api/tests/cloud_storage_block_api.rs`, `storage/adapters/s3/Cargo.toml`,
+`storage/adapters/s3/BUCK`, `storage/adapters/s3/src/lib.rs`, `storage/adapters/oci/Cargo.toml`,
+`storage/adapters/oci/BUCK`, `storage/adapters/oci/src/lib.rs`, `storage/facade/drive/Cargo.toml`,
+`storage/facade/drive/BUCK`, `storage/facade/drive/src/lib.rs`,
+`storage/facade/recordings/Cargo.toml`, `storage/facade/recordings/BUCK`,
+`storage/facade/recordings/src/lib.rs`, `storage/facade/recordings/src/fhir_resource_type.rs`, the
+subtree `storage/OWNERS`, and the committed move-plan `specs/reorg/storage-move-plan.json` (reached by
+the existing ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a
