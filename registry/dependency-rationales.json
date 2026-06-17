@@ -46,6 +46,7 @@
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
+        "gateway-slack-connector",
         "oya-accounting-journal-domain",
         "oya-accounting-journal-infrastructure",
         "oya-application-shell-frontend",
@@ -82,7 +83,6 @@
         "oya-cloud-storage-object-api",
         "oya-cloud-surface-domain",
         "oya-collab-crdt-portability-kernel",
-        "oya-connector-slack-adapter",
         "oya-dev-cli",
         "oya-document-format-domain",
         "oya-gen-microservice-manifests-app",
