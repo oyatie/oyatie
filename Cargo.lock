@@ -5319,53 +5319,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-storage-adapter-oci"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-storage-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-cloud-storage-adapter-s3"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-storage-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-cloud-storage-block-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-storage-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-storage-domain"
-version = "0.1.0"
-dependencies = [
- "compute-resource",
- "oya-cloud-kms-domain",
- "oya-cloud-region-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-storage-object-api"
-version = "0.1.0"
-dependencies = [
- "compute-resource",
- "oya-cloud-kms-domain",
- "oya-cloud-storage-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
 name = "oya-cloud-surface-domain"
 version = "0.1.0"
 dependencies = [
@@ -5827,13 +5780,6 @@ name = "oya-document-format-domain"
 version = "0.1.0"
 dependencies = [
  "oya-collab-runtime-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-drive-domain"
-version = "0.1.0"
-dependencies = [
  "oya-data-boundary-kernel",
 ]
 
@@ -8487,14 +8433,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-recordings-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-meet-domain",
-]
-
-[[package]]
 name = "oya-regional-pack-api"
 version = "0.1.0"
 dependencies = [
@@ -9916,7 +9854,7 @@ name = "oya-workspace-drive-api"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
- "oya-drive-domain",
+ "storage-drive-domain",
 ]
 
 [[package]]
@@ -11719,6 +11657,68 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "storage-block-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+ "storage-domain",
+]
+
+[[package]]
+name = "storage-domain"
+version = "0.1.0"
+dependencies = [
+ "compute-resource",
+ "oya-cloud-kms-domain",
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "storage-drive-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "storage-object-api"
+version = "0.1.0"
+dependencies = [
+ "compute-resource",
+ "oya-cloud-kms-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+ "storage-domain",
+]
+
+[[package]]
+name = "storage-oci-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "storage-domain",
+]
+
+[[package]]
+name = "storage-recordings-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-meet-domain",
+]
+
+[[package]]
+name = "storage-s3-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "storage-domain",
+]
 
 [[package]]
 name = "string_cache"

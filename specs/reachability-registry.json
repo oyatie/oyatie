@@ -26,6 +26,10 @@
       "prefix": "compute/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.9 ownership seed: the storage capability tree's OWNERS marker (axis-cloud-platform), homed by the fifth strangler move (cloud/cloud-storage/crates + oya/drive/crates + oya/recordings/crates → storage/{core,ports,adapters,facade}/); the committed move-plan at specs/reorg/storage-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "storage/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },

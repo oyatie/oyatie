@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-drive-domain = { path = "../../../drive/crates/oya-drive-domain" }
+storage-drive-domain = { path = "../../../../storage/facade/drive" }
 
 [lib]
 name = "oya_workspace_drive_api"

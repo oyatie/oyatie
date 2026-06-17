@@ -186,6 +186,7 @@
         "storage/CAS"
       ],
       "absorbs_current_dirs": [
+        "storage",
         "cloud/cloud-storage",
         "oya/drive",
         "oya/imaging",

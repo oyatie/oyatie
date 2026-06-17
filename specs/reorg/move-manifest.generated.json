@@ -1,185 +1,165 @@
 {
-  "capability": "compute",
+  "capability": "storage",
   "crate_dirs": [
     {
-      "new_path": "compute/adapters/aws",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-adapter-aws"
+      "new_path": "storage/adapters/oci",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci"
     },
     {
-      "new_path": "compute/adapters/oci",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-adapter-oci"
+      "new_path": "storage/adapters/s3",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3"
     },
     {
-      "new_path": "compute/core/domain",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-domain"
+      "new_path": "storage/ports/block-api",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api"
     },
     {
-      "new_path": "compute/facade/functions",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-functions-api"
+      "new_path": "storage/core/domain",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain"
     },
     {
-      "new_path": "compute/facade/k8s",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-k8s-api"
+      "new_path": "storage/ports/object-api",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api"
     },
     {
-      "new_path": "compute/facade/vm",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-vm-api"
+      "new_path": "storage/facade/drive",
+      "old_path": "oya/drive/crates/oya-drive-domain"
     },
     {
-      "new_path": "compute/core/dcops",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-dcops-domain"
-    },
-    {
-      "new_path": "compute/core/resource",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-resource-domain"
+      "new_path": "storage/facade/recordings",
+      "old_path": "oya/recordings/crates/oya-recordings-domain"
     }
   ],
   "crate_idents": [
     {
-      "new": "compute-aws-adapter",
-      "old": "oya-cloud-compute-adapter-aws"
+      "new": "storage-oci-adapter",
+      "old": "oya-cloud-storage-adapter-oci"
     },
     {
-      "new": "compute-oci-adapter",
-      "old": "oya-cloud-compute-adapter-oci"
+      "new": "storage-s3-adapter",
+      "old": "oya-cloud-storage-adapter-s3"
     },
     {
-      "new": "compute-domain",
-      "old": "oya-cloud-compute-domain"
+      "new": "storage-block-api",
+      "old": "oya-cloud-storage-block-api"
     },
     {
-      "new": "compute-functions-api",
-      "old": "oya-cloud-compute-functions-api"
+      "new": "storage-domain",
+      "old": "oya-cloud-storage-domain"
     },
     {
-      "new": "compute-k8s-api",
-      "old": "oya-cloud-compute-k8s-api"
+      "new": "storage-object-api",
+      "old": "oya-cloud-storage-object-api"
     },
     {
-      "new": "compute-vm-api",
-      "old": "oya-cloud-compute-vm-api"
+      "new": "storage-drive-domain",
+      "old": "oya-drive-domain"
     },
     {
-      "new": "compute-dcops",
-      "old": "oya-cloud-dcops-domain"
-    },
-    {
-      "new": "compute-resource",
-      "old": "oya-cloud-resource-domain"
+      "new": "storage-recordings-domain",
+      "old": "oya-recordings-domain"
     }
   ],
   "files": [
     {
-      "new_path": "compute/adapters/aws/BUCK",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-adapter-aws/BUCK"
+      "new_path": "storage/adapters/oci/BUCK",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci/BUCK"
     },
     {
-      "new_path": "compute/adapters/aws/Cargo.toml",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-adapter-aws/Cargo.toml"
+      "new_path": "storage/adapters/oci/Cargo.toml",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci/Cargo.toml"
     },
     {
-      "new_path": "compute/adapters/aws/src/lib.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-adapter-aws/src/lib.rs"
+      "new_path": "storage/adapters/oci/src/lib.rs",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci/src/lib.rs"
     },
     {
-      "new_path": "compute/adapters/oci/BUCK",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-adapter-oci/BUCK"
+      "new_path": "storage/adapters/s3/BUCK",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3/BUCK"
     },
     {
-      "new_path": "compute/adapters/oci/Cargo.toml",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-adapter-oci/Cargo.toml"
+      "new_path": "storage/adapters/s3/Cargo.toml",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3/Cargo.toml"
     },
     {
-      "new_path": "compute/adapters/oci/src/lib.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-adapter-oci/src/lib.rs"
+      "new_path": "storage/adapters/s3/src/lib.rs",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3/src/lib.rs"
     },
     {
-      "new_path": "compute/core/domain/BUCK",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-domain/BUCK"
+      "new_path": "storage/ports/block-api/BUCK",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/BUCK"
     },
     {
-      "new_path": "compute/core/domain/Cargo.toml",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-domain/Cargo.toml"
+      "new_path": "storage/ports/block-api/Cargo.toml",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/Cargo.toml"
     },
     {
-      "new_path": "compute/core/domain/src/lib.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-domain/src/lib.rs"
+      "new_path": "storage/ports/block-api/src/lib.rs",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/src/lib.rs"
     },
     {
-      "new_path": "compute/core/domain/tests/cloud_compute_foundation.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-domain/tests/cloud_compute_foundation.rs"
+      "new_path": "storage/ports/block-api/tests/cloud_storage_block_api.rs",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/tests/cloud_storage_block_api.rs"
     },
     {
-      "new_path": "compute/facade/functions/BUCK",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-functions-api/BUCK"
+      "new_path": "storage/core/domain/BUCK",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/BUCK"
     },
     {
-      "new_path": "compute/facade/functions/Cargo.toml",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-functions-api/Cargo.toml"
+      "new_path": "storage/core/domain/Cargo.toml",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/Cargo.toml"
     },
     {
-      "new_path": "compute/facade/functions/src/lib.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-functions-api/src/lib.rs"
+      "new_path": "storage/core/domain/src/lib.rs",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/src/lib.rs"
     },
     {
-      "new_path": "compute/facade/functions/tests/cloud_compute_functions_api.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-functions-api/tests/cloud_compute_functions_api.rs"
+      "new_path": "storage/core/domain/tests/cloud_storage_foundation.rs",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/tests/cloud_storage_foundation.rs"
     },
     {
-      "new_path": "compute/facade/k8s/BUCK",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-k8s-api/BUCK"
+      "new_path": "storage/ports/object-api/BUCK",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/BUCK"
     },
     {
-      "new_path": "compute/facade/k8s/Cargo.toml",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-k8s-api/Cargo.toml"
+      "new_path": "storage/ports/object-api/Cargo.toml",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/Cargo.toml"
     },
     {
-      "new_path": "compute/facade/k8s/src/lib.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-k8s-api/src/lib.rs"
+      "new_path": "storage/ports/object-api/src/lib.rs",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/src/lib.rs"
     },
     {
-      "new_path": "compute/facade/k8s/tests/cloud_compute_k8s_api.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-k8s-api/tests/cloud_compute_k8s_api.rs"
+      "new_path": "storage/ports/object-api/tests/cloud_storage_object_api.rs",
+      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/tests/cloud_storage_object_api.rs"
     },
     {
-      "new_path": "compute/facade/vm/BUCK",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-vm-api/BUCK"
+      "new_path": "storage/facade/drive/BUCK",
+      "old_path": "oya/drive/crates/oya-drive-domain/BUCK"
     },
     {
-      "new_path": "compute/facade/vm/Cargo.toml",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-vm-api/Cargo.toml"
+      "new_path": "storage/facade/drive/Cargo.toml",
+      "old_path": "oya/drive/crates/oya-drive-domain/Cargo.toml"
     },
     {
-      "new_path": "compute/facade/vm/src/lib.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-vm-api/src/lib.rs"
+      "new_path": "storage/facade/drive/src/lib.rs",
+      "old_path": "oya/drive/crates/oya-drive-domain/src/lib.rs"
     },
     {
-      "new_path": "compute/facade/vm/tests/cloud_compute_vm_api.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-compute-vm-api/tests/cloud_compute_vm_api.rs"
+      "new_path": "storage/facade/recordings/BUCK",
+      "old_path": "oya/recordings/crates/oya-recordings-domain/BUCK"
     },
     {
-      "new_path": "compute/core/dcops/BUCK",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-dcops-domain/BUCK"
+      "new_path": "storage/facade/recordings/Cargo.toml",
+      "old_path": "oya/recordings/crates/oya-recordings-domain/Cargo.toml"
     },
     {
-      "new_path": "compute/core/dcops/Cargo.toml",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-dcops-domain/Cargo.toml"
+      "new_path": "storage/facade/recordings/src/fhir_resource_type.rs",
+      "old_path": "oya/recordings/crates/oya-recordings-domain/src/fhir_resource_type.rs"
     },
     {
-      "new_path": "compute/core/dcops/src/lib.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-dcops-domain/src/lib.rs"
-    },
-    {
-      "new_path": "compute/core/resource/BUCK",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-resource-domain/BUCK"
-    },
-    {
-      "new_path": "compute/core/resource/Cargo.toml",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-resource-domain/Cargo.toml"
-    },
-    {
-      "new_path": "compute/core/resource/src/lib.rs",
-      "old_path": "cloud/cloud-compute/crates/oya-cloud-resource-domain/src/lib.rs"
+      "new_path": "storage/facade/recordings/src/lib.rs",
+      "old_path": "oya/recordings/crates/oya-recordings-domain/src/lib.rs"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"
