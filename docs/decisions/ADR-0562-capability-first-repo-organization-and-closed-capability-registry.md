@@ -853,6 +853,91 @@ The move's tracked, born-accounted artifact paths are
 the committed move-plan `specs/reorg/gateway-move-plan.json` (reached by the existing ADR-0563
 `specs/reorg/` reachability prefix).
 
+#### §10.12 Eighth executed strangler move: `flags` capability (oya/feature-flags → flags/)
+
+The eighth REAL codemod run homes the `flags` capability's single crate from ONE source dir
+(`oya/feature-flags/crates`) under the §3 placement rule, across ONE face (`core`) with NO `ports`,
+`adapters`, or `facade`: the OFREP/gRPC/REST feature-flag evaluation server (`face: core`) homes to
+`flags/core/server` (cargo `flags-server`, lib `flags_server`). The de-brand drops the `oya-flags`
+form to the capability slug `flags-server`, matching the §10.5..§10.11 precedent. flags is the
+feature-flag / configuration substrate (the `flags` dag node): dynamic config, progressive delivery,
+and kill switches.
+
+**Face reasoning — single core crate, no ports/adapters/facade (§3 "by WHAT IT IS"):** the capability
+registry records flags as absorbing both `oya/feature-flags` and the crate-empty placeholder
+`oya/oya-flags`. The `oya/oya-flags` dir holds ZERO crates (a neutralized BUCK with every target
+commented out, no `Cargo.toml`, no `.rs` source — only non-crate artifacts), so it contributes no
+crate to this move; its non-crate residue is a phase-2 concern (task #62) while the registry still
+ABSORBS it so it is accounted under `flags`. The ONE crate that exists under `oya/feature-flags` is
+the evaluation SERVER — the substrate engine itself, carrying its `ofrep`, `grpc`, `rest`,
+`targeting`, `evaluation`, `storage`, `tenants`, and `observability` subsystems as internal modules
+(the aspirational ADR-0481 three-crate kernel/rest/app split was never built). Because the crate IS
+the flag-evaluation substrate, it homes to `core/`; flags is therefore a single-core-crate capability
+at this incremental stage, and the missing faces would arrive only if the engine is later decomposed
+(acceptable per the crate-first strangler — a capability is "crate-homed" per move and "fully homed"
+after phase-2). The crate's SOLE dependency is `tokio` (a third-party workspace crate); there are
+ZERO intra-capability edges and ZERO first-party reverse dependents anywhere in the tree (the
+simplest blast radius of any move to date — the codemod rewrote no first-party dependent because
+none exists). The resulting path + cargo name are distinct (`MovePlan::validate` passes).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true`
+not null, `clean=true`). flags is NOT a violation source (zero entries in the acyclicity frozen
+baseline) and the moved crate dir is not in the membership unmapped baseline, so both lints carry
+0 burn-down / 0 regression. The capability registry already records `flags.absorbs_current_dirs` with
+both `oya/feature-flags` and `oya/oya-flags` (retained for the phase-2 non-crate + placeholder
+residue), the membership policy scan_roots + allowed_top_level_dirs gain `flags`, the acyclicity
+policy crate_root_globs gains `flags/*/*` + unclassified_roots gains `flags`, and the root workspace
+gains the `flags/*/*` member glob (one glob covers the single `core` face and single `server` leaf;
+ADR-0538 glob-only contract).
+
+**Zero-dependent move, no relabel needed (ADR-0563):** this move commits exactly ONE move-plan at
+`specs/reorg/flags-move-plan.json` (the codemod's `MovePlan` bijection), and the move-manifest at
+`specs/reorg/move-manifest.generated.json` is regenerated from it via `oya-reorg-codemod manifest
+--plan` (registry-drift byte-bound, committed==regenerated). The relocated crate carries no frozen
+brand-residue baseline entry (`flags` is not a forbidden vocabulary stem), so the rename-aware emitter
+relabels only the move-plan→manifest path-keyed baselines that point at the moved tree; no scrub and
+no manual signoff door are used.
+
+**Registry SSOT store de-branded in lockstep (registry/stores):** the evaluation server is
+registry-tracked, so the registry SSOT store's per-crate KEY was renamed to the new crate id
+(`flags-server`, capability `flags`) — an internal JSON key edit, not a separate tracked path, so the
+rename de-brands without any reachability impact (the store FILE keeps its signed-off accounting
+status; its tracked path is NOT cited here, to preserve the founder one-way-door admission). The
+per-crate dependency-rationales store holds no entry for this crate (its sole dep is the third-party
+`tokio`), so no rationale edit is needed.
+
+**Per-crate catalog/SLO record retained at old name (crate-first incremental, task #62):** like the
+cell/storage/gateway precedent, the per-crate `registry/catalog/oya-flags.yaml` SLO-catalog record
+STAYS at its old path and is homed in phase-2. It is accepted unreachable debt in the frozen
+merge-base total-accounting baseline, so leaving it in place is gate-green; RENAMING it would mint a
+NEW unreachable tracked path (the move-plan→manifest relabel only relocates files UNDER the moved
+crate dir, not the sibling catalog record), which total-accounting blocks on. The slo-coverage gate
+stays green at the old stem (it requires only a non-blank `slo:` scalar, not a live-crate stem).
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** like the
+prior moves, `oya/feature-flags/` also holds non-crate capability artifacts (contracts, slos, policy,
+cedar, runbooks, dashboards, IaC, IP journeys, decisions, the per-crate catalog record above), and
+the `oya/oya-flags/` placeholder holds wholly non-crate artifacts (a neutralized BUCK, a README, a
+catalog stub, an SLO stub). This crates-only strangler move homes the CRATE; the non-crate artifacts
+stay in place and are homed in phase-2 (task #62), so only the `crates/` subtree of
+`oya/feature-flags/` is emptied. The deferred de-brand residue outside the moved crate (the
+`[[bin]] name = "oya-flags"` + `oya-flags-bin` BUCK target name + the module self-name doc comments)
+is the ADR-0532/0533 de-brand profile lane's scope (task #63), not this structural move; it is
+gate-green and non-corrupting at the buck label / cargo name level.
+
+**Born-accounting (ADR-0555):** the new crate dir under `flags/core/server/` is reached by the
+`flags/*/*` member glob + the `flags/*/*` acyclicity glob, and owned by the subtree `flags/OWNERS`
+(axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.12 entry. The move's
+tracked, born-accounted artifact paths are `flags/core/server/Cargo.toml`, `flags/core/server/BUCK`,
+`flags/core/server/src/lib.rs`, `flags/core/server/src/main.rs`, `flags/core/server/src/config.rs`,
+`flags/core/server/src/ofrep/mod.rs`, `flags/core/server/src/grpc/mod.rs`,
+`flags/core/server/src/rest/mod.rs`, `flags/core/server/src/targeting/mod.rs`,
+`flags/core/server/src/evaluation/mod.rs`, `flags/core/server/src/storage/mod.rs`,
+`flags/core/server/src/tenants/mod.rs`, `flags/core/server/src/observability/mod.rs`, the subtree
+`flags/OWNERS`, and the committed move-plan `specs/reorg/flags-move-plan.json` (reached by the
+existing ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

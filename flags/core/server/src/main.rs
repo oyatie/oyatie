@@ -1,4 +1,4 @@
-use oya_flags::{config, observability};
+use flags_server::{config, observability};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
