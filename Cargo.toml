@@ -77,6 +77,19 @@ members = [
   # satisfying ADR-0538's glob-only members contract (no explicit-path members); the crate-free
   # cell-lifecycle / cell-rebalancer phase-2 dirs are not swept (no Cargo.toml).
   "cell/*/*",
+  # Capability-first home (ADR-0562 strangler move 7): the `gateway` capability absorbs the former
+  # oya/connector SaaS-connector crates at gateway/adapters/<vendor>-connector (one face, adapters).
+  # gateway is the API-gateway / SSOT-edge capability (dag_node api-gateway); for now it is an
+  # ALL-ADAPTERS capability — the ten SaaS connectors (adp, epic-fhir, gusto, netsuite, quickbooks,
+  # rippling, salesforce, slack, teams, workday) are external-system integration adapters, so they
+  # home to adapters/. No core/ports/facade crates exist yet (they arrive when the api-gateway
+  # crates are authored — acceptable incremental state). Each connector is de-branded (cargo names
+  # gateway-<vendor>-connector; the oya-connector-<vendor>-adapter prefix drops to the capability
+  # slug), so the leaf segment stays a bare `*`. `gateway/*/*` covers every face/leaf
+  # (gateway/adapters/{adp,epic-fhir,gusto,netsuite,quickbooks,rippling,salesforce,slack,teams,
+  # workday}-connector) with one glob, satisfying ADR-0538's glob-only members contract (no
+  # explicit-path members); the crate-free oya/api-gateway phase-2 dir is not swept (no Cargo.toml).
+  "gateway/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]

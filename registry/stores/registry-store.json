@@ -3818,10 +3818,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-adp-adapter",
+      "key": "gateway-adp-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-adp",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3833,10 +3833,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-epic-fhir-adapter",
+      "key": "gateway-epic-fhir-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-epic-fhir",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3848,10 +3848,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-gusto-adapter",
+      "key": "gateway-gusto-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-gusto",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3863,10 +3863,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-netsuite-adapter",
+      "key": "gateway-netsuite-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-netsuite",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3878,10 +3878,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-quickbooks-adapter",
+      "key": "gateway-quickbooks-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-quickbooks",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3893,10 +3893,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-rippling-adapter",
+      "key": "gateway-rippling-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-rippling",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3908,10 +3908,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-salesforce-adapter",
+      "key": "gateway-salesforce-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-salesforce",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3923,10 +3923,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-slack-adapter",
+      "key": "gateway-slack-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-slack",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3938,10 +3938,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-teams-adapter",
+      "key": "gateway-teams-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-teams",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -3953,10 +3953,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-connector-workday-adapter",
+      "key": "gateway-workday-connector",
       "context": "connect",
       "role": "adapter",
-      "capability": "connector-workday",
+      "capability": "gateway",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [

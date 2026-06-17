@@ -1814,6 +1814,76 @@ dependencies = [
 ]
 
 [[package]]
+name = "gateway-adp-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-epic-fhir-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-gusto-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-netsuite-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-quickbooks-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-rippling-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-salesforce-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-slack-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-teams-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
+name = "gateway-workday-connector"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-connector-kernel",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5492,76 +5562,6 @@ version = "0.1.0"
 dependencies = [
  "oya-community-social-domain",
  "oya-community-social-post-composition-api",
-]
-
-[[package]]
-name = "oya-connector-adp-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-epic-fhir-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-gusto-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-netsuite-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-quickbooks-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-rippling-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-salesforce-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-slack-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-teams-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
-]
-
-[[package]]
-name = "oya-connector-workday-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-connector-kernel",
 ]
 
 [[package]]

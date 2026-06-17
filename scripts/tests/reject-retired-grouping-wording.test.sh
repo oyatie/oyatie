@@ -5,7 +5,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
-mkdir -p "$tmpdir/good" "$tmpdir/bad" "$tmpdir/good/evidence/vcs" "$tmpdir/good/crates/oya-connector-netsuite-adapter"
+mkdir -p "$tmpdir/good" "$tmpdir/bad" "$tmpdir/good/evidence/vcs" "$tmpdir/good/gateway/adapters/netsuite-connector"
 cat > "$tmpdir/good/platform.md" <<'GOOD'
 Tenant/RBAC packaging uses entitlement_set_id, test_set_id, and eval_set_id.
 Cryptographic cipher suite and C-suite wording are allowed where technically correct.
@@ -15,7 +15,7 @@ GOOD
 cat > "$tmpdir/good/evidence/vcs/cs-ent-suite-historical.json" <<'GOOD'
 {"historical":"cs-ent-suite evidence is immutable"}
 GOOD
-cat > "$tmpdir/good/crates/oya-connector-netsuite-adapter/README.md" <<'GOOD'
+cat > "$tmpdir/good/gateway/adapters/netsuite-connector/README.md" <<'GOOD'
 NetSuite adapter keeps vendor spelling.
 GOOD
 cat > "$tmpdir/good/connector-iac.yaml" <<'GOOD'

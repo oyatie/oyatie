@@ -1,0 +1,65 @@
+{
+  "capability": "gateway",
+  "moves": [
+    {
+      "old_path": "oya/connector/crates/oya-connector-adp-adapter",
+      "new_path": "gateway/adapters/adp-connector",
+      "old_cargo_name": "oya-connector-adp-adapter",
+      "new_cargo_name": "gateway-adp-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter",
+      "new_path": "gateway/adapters/epic-fhir-connector",
+      "old_cargo_name": "oya-connector-epic-fhir-adapter",
+      "new_cargo_name": "gateway-epic-fhir-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-gusto-adapter",
+      "new_path": "gateway/adapters/gusto-connector",
+      "old_cargo_name": "oya-connector-gusto-adapter",
+      "new_cargo_name": "gateway-gusto-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter",
+      "new_path": "gateway/adapters/netsuite-connector",
+      "old_cargo_name": "oya-connector-netsuite-adapter",
+      "new_cargo_name": "gateway-netsuite-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter",
+      "new_path": "gateway/adapters/quickbooks-connector",
+      "old_cargo_name": "oya-connector-quickbooks-adapter",
+      "new_cargo_name": "gateway-quickbooks-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-rippling-adapter",
+      "new_path": "gateway/adapters/rippling-connector",
+      "old_cargo_name": "oya-connector-rippling-adapter",
+      "new_cargo_name": "gateway-rippling-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter",
+      "new_path": "gateway/adapters/salesforce-connector",
+      "old_cargo_name": "oya-connector-salesforce-adapter",
+      "new_cargo_name": "gateway-salesforce-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-slack-adapter",
+      "new_path": "gateway/adapters/slack-connector",
+      "old_cargo_name": "oya-connector-slack-adapter",
+      "new_cargo_name": "gateway-slack-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-teams-adapter",
+      "new_path": "gateway/adapters/teams-connector",
+      "old_cargo_name": "oya-connector-teams-adapter",
+      "new_cargo_name": "gateway-teams-connector"
+    },
+    {
+      "old_path": "oya/connector/crates/oya-connector-workday-adapter",
+      "new_path": "gateway/adapters/workday-connector",
+      "old_cargo_name": "oya-connector-workday-adapter",
+      "new_cargo_name": "gateway-workday-connector"
+    }
+  ]
+}

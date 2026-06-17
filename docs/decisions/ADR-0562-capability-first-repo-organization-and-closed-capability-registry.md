@@ -729,6 +729,130 @@ tracked, born-accounted artifact paths are `cell/core/routing/Cargo.toml`, `cell
 subtree `cell/OWNERS`, and the committed move-plan `specs/reorg/cell-move-plan.json` (reached by the
 existing ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.11 Seventh executed strangler move: `gateway` capability (oya/connector → gateway/)
+
+The seventh REAL codemod run homes the `gateway` capability's ten SaaS-integration crates from ONE
+source dir (`oya/connector/crates`) under the §3 placement rule, across ONE face (`adapters`) with NO
+`core`, `ports`, or `facade` yet: each external-system integration crate (`face: adapters`) homes to
+`gateway/adapters/<vendor>-connector` (cargo `gateway-<vendor>-connector`) for the ten vendors adp,
+epic-fhir, gusto, netsuite, quickbooks, rippling, salesforce, slack, teams, and workday. The de-brand
+drops the `oya-connector-<vendor>-adapter` form to the capability slug `gateway-<vendor>-connector`,
+matching the §10.5..§10.10 precedent. gateway is the API-gateway / SSOT-edge capability (the
+`api-gateway` dag node): the Check/Report enforcement point, the public API contract surface, and
+rate/quota enforcement.
+
+**Face reasoning — all-adapters capability for now, no core/ports/facade (§2 boundary note + §3 "by
+WHAT IT IS"):** the capability registry records gateway as absorbing both `oya/api-gateway` and
+`oya/connector`. The `oya/api-gateway` dir holds ZERO crates today (only non-crate capability
+artifacts — contracts, slos, policy, runbooks — that are a phase-2 concern, task #62), so the
+api-gateway engine/port/facade crates that will become gateway's `core/` + `ports/` + `facade/` are
+not yet authored. The ten crates that DO exist are all SaaS-connector ADAPTERS — outbound integration
+clients for external systems (HRIS/ERP/CRM/FHIR/collaboration vendors) — so they home to `adapters/`.
+gateway is therefore an ALL-ADAPTERS capability at this incremental stage; the missing faces arrive
+when the api-gateway crates are authored (acceptable per the crate-first strangler — a capability is
+"crate-homed" per move and "fully homed" after phase-2). Each connector's SOLE dependency is the
+shared `libs/oya-shared-connector-kernel` (the connector-runtime contract substrate), which STAYS in
+`libs/` — it is a cross-capability shared kernel, not a gateway-owned crate, so re-homing it is a
+future move if it happens at all. There are ZERO intra-capability edges among the ten connectors and
+ZERO reverse dependents anywhere in the tree (the simplest blast radius of any move to date: the
+codemod rewrote no first-party dependent because none exists). The resulting 10 paths + 10 cargo
+names are all distinct (`MovePlan::validate` passes: no duplicate `old_path`/`new_path`/
+`old_cargo_name`/`new_cargo_name`, no nested target).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true`
+not null, `clean=true`). gateway is NOT a violation source (zero entries in the acyclicity frozen
+baseline) and the moved crate dirs are not in the membership unmapped baseline, so both lints carry
+0 burn-down / 0 regression. The capability registry `gateway.absorbs_current_dirs` gains `gateway`
+(the existing `oya/api-gateway` + `oya/connector` entries are retained for the phase-2 non-crate
+residue), the membership policy scan_roots + allowed_top_level_dirs gain `gateway`, the acyclicity
+policy crate_root_globs gains `gateway/*/*` + unclassified_roots gains `gateway`, and the root
+workspace gains the `gateway/*/*` member glob (one glob covers the single `adapters` face and all ten
+leaves; ADR-0538 glob-only contract).
+
+**Zero-dependent move, no relabel needed (ADR-0563):** this move commits exactly ONE move-plan at
+`specs/reorg/gateway-move-plan.json` (the codemod's `MovePlan` bijection), and the move-manifest at
+`specs/reorg/move-manifest.generated.json` is regenerated from it via `oya-reorg-codemod manifest
+--plan` (registry-drift byte-bound, committed==regenerated). None of the ten relocated crates carries
+a frozen brand-residue baseline entry (`connector` is not a forbidden vocabulary stem), so the
+rename-aware emitter relabels only the move-plan→manifest path-keyed baselines that point at the moved
+tree; no scrub and no manual signoff door are used.
+
+**Registry stores de-branded in lockstep (registry/scripts):** the SaaS connectors are
+registry-tracked, so the registry SSOT store + the dependency-rationales store had their per-crate
+KEYS renamed to the new crate ids (`gateway-<vendor>-connector`, capability `gateway`) — these are
+internal JSON keys, not separate tracked paths, so the rename de-brands without any reachability
+impact (the store FILES keep their signed-off accounting status; their tracked paths are NOT cited
+here, to preserve the founder one-way-door admission). The retired-grouping-wording transitional
+script + its test example crate path were updated to the new `gateway/adapters/netsuite-connector`
+path (the .sh gate's own test stays green). The de-brand also scrubbed each crate `src/lib.rs`
+self-name doc comment (plus the README/openapi self-name references and the slack stale
+anthropic-secrets cross-ref) to the new name.
+
+**Per-crate catalog/SLO records retained at old names (crate-first incremental, task #62):** like the
+cell/storage precedent (move-5/6 left `oya-cell-domain.yaml` etc. at old names), the ten per-crate
+`registry/catalog/oya-connector-<vendor>-adapter.yaml` SLO-catalog records STAY at their old paths and
+are homed in phase-2. They are accepted unreachable debt in the frozen merge-base total-accounting
+baseline, so leaving them in place is gate-green; RENAMING them would mint NEW unreachable tracked
+paths (the move-plan→manifest relabel only relocates files UNDER the moved crate dirs, not sibling
+catalog records), which total-accounting blocks on. The slo-coverage gate stays green at the old stem
+(it requires only a non-blank `slo:` scalar, not a live-crate stem).
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** like the
+prior moves, `oya/connector/` also holds non-crate capability artifacts (contracts, slos, policy,
+runbooks, IP journeys, decisions, the per-crate catalog records above), and `oya/api-gateway/` holds
+wholly non-crate artifacts. This crates-only strangler move homes the CRATES; the non-crate artifacts
+stay in place and are homed in phase-2 (task #62), so only the `crates/` subtree of `oya/connector/`
+is emptied. The deferred de-brand residue outside the moved crates is the ADR-0532/0533 de-brand
+profile lane's scope (task #63), not this structural move.
+
+**Born-accounting (ADR-0555):** the ten new crate dirs under `gateway/adapters/` are reached by the
+`gateway/*/*` member glob + the `gateway/*/*` acyclicity glob, and owned by the subtree
+`gateway/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.11 entry.
+The move's tracked, born-accounted artifact paths are
+`gateway/adapters/adp-connector/Cargo.toml`, `gateway/adapters/adp-connector/BUCK`,
+`gateway/adapters/adp-connector/src/lib.rs`, `gateway/adapters/adp-connector/README.md`,
+`gateway/adapters/adp-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/adp-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/epic-fhir-connector/Cargo.toml`, `gateway/adapters/epic-fhir-connector/BUCK`,
+`gateway/adapters/epic-fhir-connector/src/lib.rs`, `gateway/adapters/epic-fhir-connector/README.md`,
+`gateway/adapters/epic-fhir-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/epic-fhir-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/gusto-connector/Cargo.toml`, `gateway/adapters/gusto-connector/BUCK`,
+`gateway/adapters/gusto-connector/src/lib.rs`, `gateway/adapters/gusto-connector/README.md`,
+`gateway/adapters/gusto-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/gusto-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/netsuite-connector/Cargo.toml`, `gateway/adapters/netsuite-connector/BUCK`,
+`gateway/adapters/netsuite-connector/src/lib.rs`, `gateway/adapters/netsuite-connector/README.md`,
+`gateway/adapters/netsuite-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/netsuite-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/quickbooks-connector/Cargo.toml`, `gateway/adapters/quickbooks-connector/BUCK`,
+`gateway/adapters/quickbooks-connector/src/lib.rs`, `gateway/adapters/quickbooks-connector/README.md`,
+`gateway/adapters/quickbooks-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/quickbooks-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/rippling-connector/Cargo.toml`, `gateway/adapters/rippling-connector/BUCK`,
+`gateway/adapters/rippling-connector/src/lib.rs`, `gateway/adapters/rippling-connector/README.md`,
+`gateway/adapters/rippling-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/rippling-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/salesforce-connector/Cargo.toml`, `gateway/adapters/salesforce-connector/BUCK`,
+`gateway/adapters/salesforce-connector/src/lib.rs`, `gateway/adapters/salesforce-connector/README.md`,
+`gateway/adapters/salesforce-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/salesforce-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/slack-connector/Cargo.toml`, `gateway/adapters/slack-connector/BUCK`,
+`gateway/adapters/slack-connector/src/lib.rs`, `gateway/adapters/slack-connector/README.md`,
+`gateway/adapters/slack-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/slack-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/teams-connector/Cargo.toml`, `gateway/adapters/teams-connector/BUCK`,
+`gateway/adapters/teams-connector/src/lib.rs`, `gateway/adapters/teams-connector/README.md`,
+`gateway/adapters/teams-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/teams-connector/specs/openapi.snapshot.yaml`,
+`gateway/adapters/workday-connector/Cargo.toml`, `gateway/adapters/workday-connector/BUCK`,
+`gateway/adapters/workday-connector/src/lib.rs`, `gateway/adapters/workday-connector/README.md`,
+`gateway/adapters/workday-connector/specs/cedar-policy.cedar`,
+`gateway/adapters/workday-connector/specs/openapi.snapshot.yaml`, the subtree `gateway/OWNERS`, and
+the committed move-plan `specs/reorg/gateway-move-plan.json` (reached by the existing ADR-0563
+`specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

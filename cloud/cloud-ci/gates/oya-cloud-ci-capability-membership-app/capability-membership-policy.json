@@ -19,7 +19,8 @@
     "observability",
     "compute",
     "storage",
-    "cell"
+    "cell",
+    "gateway"
   ],
   "meta_directories": [
     "kernel",
@@ -42,6 +43,7 @@
     "compute",
     "storage",
     "cell",
+    "gateway",
     "cloud",
     "oya",
     "libs",

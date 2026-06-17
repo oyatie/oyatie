@@ -1,217 +1,329 @@
 {
-  "capability": "cell",
+  "capability": "gateway",
   "crate_dirs": [
     {
-      "new_path": "cell/core/capacity-commercial",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain"
+      "new_path": "gateway/adapters/adp-connector",
+      "old_path": "oya/connector/crates/oya-connector-adp-adapter"
     },
     {
-      "new_path": "cell/core/capacity",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel"
+      "new_path": "gateway/adapters/epic-fhir-connector",
+      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter"
     },
     {
-      "new_path": "cell/core/routing",
-      "old_path": "cloud/cloud-cell/crates/oya-cell-domain"
+      "new_path": "gateway/adapters/gusto-connector",
+      "old_path": "oya/connector/crates/oya-connector-gusto-adapter"
     },
     {
-      "new_path": "cell/ports/cell-bind",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app"
+      "new_path": "gateway/adapters/netsuite-connector",
+      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter"
     },
     {
-      "new_path": "cell/ports/region",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api"
+      "new_path": "gateway/adapters/quickbooks-connector",
+      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter"
     },
     {
-      "new_path": "cell/core/region",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain"
+      "new_path": "gateway/adapters/rippling-connector",
+      "old_path": "oya/connector/crates/oya-connector-rippling-adapter"
     },
     {
-      "new_path": "cell/ports/regional-pack",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api"
+      "new_path": "gateway/adapters/salesforce-connector",
+      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter"
     },
     {
-      "new_path": "cell/core/regional-pack",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain"
+      "new_path": "gateway/adapters/slack-connector",
+      "old_path": "oya/connector/crates/oya-connector-slack-adapter"
+    },
+    {
+      "new_path": "gateway/adapters/teams-connector",
+      "old_path": "oya/connector/crates/oya-connector-teams-adapter"
+    },
+    {
+      "new_path": "gateway/adapters/workday-connector",
+      "old_path": "oya/connector/crates/oya-connector-workday-adapter"
     }
   ],
   "crate_idents": [
     {
-      "new": "cell-routing",
-      "old": "oya-cell-domain"
+      "new": "gateway-adp-connector",
+      "old": "oya-connector-adp-adapter"
     },
     {
-      "new": "cell-capacity-commercial",
-      "old": "oya-cloud-capacity-domain"
+      "new": "gateway-epic-fhir-connector",
+      "old": "oya-connector-epic-fhir-adapter"
     },
     {
-      "new": "cell-capacity",
-      "old": "oya-cloud-capacity-kernel"
+      "new": "gateway-gusto-connector",
+      "old": "oya-connector-gusto-adapter"
     },
     {
-      "new": "cell-bind-api",
-      "old": "oya-cloud-cell-app"
+      "new": "gateway-netsuite-connector",
+      "old": "oya-connector-netsuite-adapter"
     },
     {
-      "new": "cell-region-api",
-      "old": "oya-cloud-region-api"
+      "new": "gateway-quickbooks-connector",
+      "old": "oya-connector-quickbooks-adapter"
     },
     {
-      "new": "cell-region",
-      "old": "oya-cloud-region-domain"
+      "new": "gateway-rippling-connector",
+      "old": "oya-connector-rippling-adapter"
     },
     {
-      "new": "cell-regional-pack-api",
-      "old": "oya-regional-pack-api"
+      "new": "gateway-salesforce-connector",
+      "old": "oya-connector-salesforce-adapter"
     },
     {
-      "new": "cell-regional-pack",
-      "old": "oya-regional-pack-domain"
+      "new": "gateway-slack-connector",
+      "old": "oya-connector-slack-adapter"
+    },
+    {
+      "new": "gateway-teams-connector",
+      "old": "oya-connector-teams-adapter"
+    },
+    {
+      "new": "gateway-workday-connector",
+      "old": "oya-connector-workday-adapter"
     }
   ],
   "files": [
     {
-      "new_path": "cell/core/capacity-commercial/BUCK",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/BUCK"
+      "new_path": "gateway/adapters/adp-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-adp-adapter/BUCK"
     },
     {
-      "new_path": "cell/core/capacity-commercial/Cargo.toml",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/Cargo.toml"
+      "new_path": "gateway/adapters/adp-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-adp-adapter/Cargo.toml"
     },
     {
-      "new_path": "cell/core/capacity-commercial/src/lib.rs",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/src/lib.rs"
+      "new_path": "gateway/adapters/adp-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-adp-adapter/README.md"
     },
     {
-      "new_path": "cell/core/capacity-commercial/tests/cloud_ops_foundation.rs",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
+      "new_path": "gateway/adapters/adp-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-adp-adapter/specs/cedar-policy.cedar"
     },
     {
-      "new_path": "cell/core/capacity/BUCK",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/BUCK"
+      "new_path": "gateway/adapters/adp-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-adp-adapter/specs/openapi.snapshot.yaml"
     },
     {
-      "new_path": "cell/core/capacity/Cargo.toml",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/Cargo.toml"
+      "new_path": "gateway/adapters/adp-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-adp-adapter/src/lib.rs"
     },
     {
-      "new_path": "cell/core/capacity/src/cell_budget.rs",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/cell_budget.rs"
+      "new_path": "gateway/adapters/epic-fhir-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/BUCK"
     },
     {
-      "new_path": "cell/core/capacity/src/committed_use.rs",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/committed_use.rs"
+      "new_path": "gateway/adapters/epic-fhir-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/Cargo.toml"
     },
     {
-      "new_path": "cell/core/capacity/src/lib.rs",
-      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/lib.rs"
+      "new_path": "gateway/adapters/epic-fhir-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/README.md"
     },
     {
-      "new_path": "cell/core/routing/BUCK",
-      "old_path": "cloud/cloud-cell/crates/oya-cell-domain/BUCK"
+      "new_path": "gateway/adapters/epic-fhir-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/specs/cedar-policy.cedar"
     },
     {
-      "new_path": "cell/core/routing/Cargo.toml",
-      "old_path": "cloud/cloud-cell/crates/oya-cell-domain/Cargo.toml"
+      "new_path": "gateway/adapters/epic-fhir-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/specs/openapi.snapshot.yaml"
     },
     {
-      "new_path": "cell/core/routing/src/lib.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-cell-domain/src/lib.rs"
+      "new_path": "gateway/adapters/epic-fhir-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/src/lib.rs"
     },
     {
-      "new_path": "cell/core/routing/tests/cell_router.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-cell-domain/tests/cell_router.rs"
+      "new_path": "gateway/adapters/gusto-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/BUCK"
     },
     {
-      "new_path": "cell/ports/cell-bind/BUCK",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/BUCK"
+      "new_path": "gateway/adapters/gusto-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/Cargo.toml"
     },
     {
-      "new_path": "cell/ports/cell-bind/Cargo.toml",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/Cargo.toml"
+      "new_path": "gateway/adapters/gusto-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/README.md"
     },
     {
-      "new_path": "cell/ports/cell-bind/src/cell_lifecycle.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/src/cell_lifecycle.rs"
+      "new_path": "gateway/adapters/gusto-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/specs/cedar-policy.cedar"
     },
     {
-      "new_path": "cell/ports/cell-bind/src/lib.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/src/lib.rs"
+      "new_path": "gateway/adapters/gusto-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/specs/openapi.snapshot.yaml"
     },
     {
-      "new_path": "cell/ports/cell-bind/tests/cloud_cell_bind_api.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/tests/cloud_cell_bind_api.rs"
+      "new_path": "gateway/adapters/gusto-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/src/lib.rs"
     },
     {
-      "new_path": "cell/ports/region/BUCK",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api/BUCK"
+      "new_path": "gateway/adapters/netsuite-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/BUCK"
     },
     {
-      "new_path": "cell/ports/region/Cargo.toml",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api/Cargo.toml"
+      "new_path": "gateway/adapters/netsuite-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/Cargo.toml"
     },
     {
-      "new_path": "cell/ports/region/src/lib.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api/src/lib.rs"
+      "new_path": "gateway/adapters/netsuite-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/README.md"
     },
     {
-      "new_path": "cell/ports/region/tests/cloud_region_api.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api/tests/cloud_region_api.rs"
+      "new_path": "gateway/adapters/netsuite-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/specs/cedar-policy.cedar"
     },
     {
-      "new_path": "cell/core/region/BUCK",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain/BUCK"
+      "new_path": "gateway/adapters/netsuite-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/specs/openapi.snapshot.yaml"
     },
     {
-      "new_path": "cell/core/region/Cargo.toml",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain/Cargo.toml"
+      "new_path": "gateway/adapters/netsuite-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/src/lib.rs"
     },
     {
-      "new_path": "cell/core/region/src/lib.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain/src/lib.rs"
+      "new_path": "gateway/adapters/quickbooks-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/BUCK"
     },
     {
-      "new_path": "cell/ports/regional-pack/BUCK",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api/BUCK"
+      "new_path": "gateway/adapters/quickbooks-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/Cargo.toml"
     },
     {
-      "new_path": "cell/ports/regional-pack/Cargo.toml",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api/Cargo.toml"
+      "new_path": "gateway/adapters/quickbooks-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/README.md"
     },
     {
-      "new_path": "cell/ports/regional-pack/src/lib.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api/src/lib.rs"
+      "new_path": "gateway/adapters/quickbooks-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/specs/cedar-policy.cedar"
     },
     {
-      "new_path": "cell/ports/regional-pack/tests/regulatory_pack_bind_api.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api/tests/regulatory_pack_bind_api.rs"
+      "new_path": "gateway/adapters/quickbooks-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/specs/openapi.snapshot.yaml"
     },
     {
-      "new_path": "cell/core/regional-pack/BUCK",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/BUCK"
+      "new_path": "gateway/adapters/quickbooks-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/src/lib.rs"
     },
     {
-      "new_path": "cell/core/regional-pack/Cargo.toml",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/Cargo.toml"
+      "new_path": "gateway/adapters/rippling-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/BUCK"
     },
     {
-      "new_path": "cell/core/regional-pack/src/capability_pack.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/capability_pack.rs"
+      "new_path": "gateway/adapters/rippling-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/Cargo.toml"
     },
     {
-      "new_path": "cell/core/regional-pack/src/kr_regulatory.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/kr_regulatory.rs"
+      "new_path": "gateway/adapters/rippling-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/README.md"
     },
     {
-      "new_path": "cell/core/regional-pack/src/lib.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/lib.rs"
+      "new_path": "gateway/adapters/rippling-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/specs/cedar-policy.cedar"
     },
     {
-      "new_path": "cell/core/regional-pack/src/pack_onboarding_phase.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/pack_onboarding_phase.rs"
+      "new_path": "gateway/adapters/rippling-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/specs/openapi.snapshot.yaml"
     },
     {
-      "new_path": "cell/core/regional-pack/src/vertical_regulatory_profile.rs",
-      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/vertical_regulatory_profile.rs"
+      "new_path": "gateway/adapters/rippling-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/src/lib.rs"
+    },
+    {
+      "new_path": "gateway/adapters/salesforce-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/BUCK"
+    },
+    {
+      "new_path": "gateway/adapters/salesforce-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/Cargo.toml"
+    },
+    {
+      "new_path": "gateway/adapters/salesforce-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/README.md"
+    },
+    {
+      "new_path": "gateway/adapters/salesforce-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/specs/cedar-policy.cedar"
+    },
+    {
+      "new_path": "gateway/adapters/salesforce-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/specs/openapi.snapshot.yaml"
+    },
+    {
+      "new_path": "gateway/adapters/salesforce-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/src/lib.rs"
+    },
+    {
+      "new_path": "gateway/adapters/slack-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-slack-adapter/BUCK"
+    },
+    {
+      "new_path": "gateway/adapters/slack-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-slack-adapter/Cargo.toml"
+    },
+    {
+      "new_path": "gateway/adapters/slack-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-slack-adapter/README.md"
+    },
+    {
+      "new_path": "gateway/adapters/slack-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-slack-adapter/specs/cedar-policy.cedar"
+    },
+    {
+      "new_path": "gateway/adapters/slack-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-slack-adapter/specs/openapi.snapshot.yaml"
+    },
+    {
+      "new_path": "gateway/adapters/slack-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-slack-adapter/src/lib.rs"
+    },
+    {
+      "new_path": "gateway/adapters/teams-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-teams-adapter/BUCK"
+    },
+    {
+      "new_path": "gateway/adapters/teams-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-teams-adapter/Cargo.toml"
+    },
+    {
+      "new_path": "gateway/adapters/teams-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-teams-adapter/README.md"
+    },
+    {
+      "new_path": "gateway/adapters/teams-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-teams-adapter/specs/cedar-policy.cedar"
+    },
+    {
+      "new_path": "gateway/adapters/teams-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-teams-adapter/specs/openapi.snapshot.yaml"
+    },
+    {
+      "new_path": "gateway/adapters/teams-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-teams-adapter/src/lib.rs"
+    },
+    {
+      "new_path": "gateway/adapters/workday-connector/BUCK",
+      "old_path": "oya/connector/crates/oya-connector-workday-adapter/BUCK"
+    },
+    {
+      "new_path": "gateway/adapters/workday-connector/Cargo.toml",
+      "old_path": "oya/connector/crates/oya-connector-workday-adapter/Cargo.toml"
+    },
+    {
+      "new_path": "gateway/adapters/workday-connector/README.md",
+      "old_path": "oya/connector/crates/oya-connector-workday-adapter/README.md"
+    },
+    {
+      "new_path": "gateway/adapters/workday-connector/specs/cedar-policy.cedar",
+      "old_path": "oya/connector/crates/oya-connector-workday-adapter/specs/cedar-policy.cedar"
+    },
+    {
+      "new_path": "gateway/adapters/workday-connector/specs/openapi.snapshot.yaml",
+      "old_path": "oya/connector/crates/oya-connector-workday-adapter/specs/openapi.snapshot.yaml"
+    },
+    {
+      "new_path": "gateway/adapters/workday-connector/src/lib.rs",
+      "old_path": "oya/connector/crates/oya-connector-workday-adapter/src/lib.rs"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

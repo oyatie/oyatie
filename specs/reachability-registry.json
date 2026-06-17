@@ -34,6 +34,10 @@
       "prefix": "cell/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.11 ownership seed: the gateway capability tree's OWNERS marker (axis-cloud-platform), homed by the seventh strangler move (oya/connector/crates SaaS connectors → gateway/adapters/<vendor>-connector); the committed move-plan at specs/reorg/gateway-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "gateway/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },

@@ -20,7 +20,8 @@
     "observability/*/*",
     "compute/*/*",
     "storage/*/*",
-    "cell/*/*"
+    "cell/*/*",
+    "gateway/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -35,7 +36,8 @@
     "observability",
     "compute",
     "storage",
-    "cell"
+    "cell",
+    "gateway"
   ],
   "stratum_rank_order": [
     "S0",
