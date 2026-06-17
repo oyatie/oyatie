@@ -90,6 +90,18 @@ members = [
   # workday}-connector) with one glob, satisfying ADR-0538's glob-only members contract (no
   # explicit-path members); the crate-free oya/api-gateway phase-2 dir is not swept (no Cargo.toml).
   "gateway/*/*",
+  # Capability-first home (ADR-0562 strangler move 8): the `flags` capability absorbs the former
+  # oya/feature-flags evaluation server at flags/core/server (one face, core). flags is the
+  # feature-flag / configuration substrate (dag_node flags): the OFREP/gRPC/REST flag-evaluation
+  # engine. The single moved crate (the OFREP/gRPC/REST evaluation server, with its ofrep/grpc/rest/
+  # targeting/evaluation/storage/tenants/observability internal modules) IS the substrate engine, so
+  # it homes to core/; the aspirational ADR-0481 three-crate split (kernel/rest/app) was never built.
+  # It is de-branded (cargo name flags-server; the oya-flags prefix drops to the capability slug), so
+  # the leaf segment stays a bare `*`. `flags/*/*` covers the single core face + leaf
+  # (flags/core/server) with one glob, satisfying ADR-0538's glob-only members contract (no
+  # explicit-path members); the crate-empty oya/oya-flags placeholder + oya/feature-flags non-crate
+  # artifacts are not swept (no Cargo.toml) and are homed in phase-2 (task #62).
+  "flags/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]

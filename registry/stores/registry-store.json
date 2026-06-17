@@ -4302,10 +4302,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-flags",
+      "key": "flags-server",
       "context": "feature-flag-substrate",
       "role": "app",
-      "capability": "feature-flags",
+      "capability": "flags",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [

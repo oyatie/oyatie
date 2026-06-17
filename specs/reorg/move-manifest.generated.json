@@ -1,329 +1,69 @@
 {
-  "capability": "gateway",
+  "capability": "flags",
   "crate_dirs": [
     {
-      "new_path": "gateway/adapters/adp-connector",
-      "old_path": "oya/connector/crates/oya-connector-adp-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/epic-fhir-connector",
-      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/gusto-connector",
-      "old_path": "oya/connector/crates/oya-connector-gusto-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/netsuite-connector",
-      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/quickbooks-connector",
-      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/rippling-connector",
-      "old_path": "oya/connector/crates/oya-connector-rippling-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/salesforce-connector",
-      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/slack-connector",
-      "old_path": "oya/connector/crates/oya-connector-slack-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/teams-connector",
-      "old_path": "oya/connector/crates/oya-connector-teams-adapter"
-    },
-    {
-      "new_path": "gateway/adapters/workday-connector",
-      "old_path": "oya/connector/crates/oya-connector-workday-adapter"
+      "new_path": "flags/core/server",
+      "old_path": "oya/feature-flags/crates/oya-flags"
     }
   ],
   "crate_idents": [
     {
-      "new": "gateway-adp-connector",
-      "old": "oya-connector-adp-adapter"
-    },
-    {
-      "new": "gateway-epic-fhir-connector",
-      "old": "oya-connector-epic-fhir-adapter"
-    },
-    {
-      "new": "gateway-gusto-connector",
-      "old": "oya-connector-gusto-adapter"
-    },
-    {
-      "new": "gateway-netsuite-connector",
-      "old": "oya-connector-netsuite-adapter"
-    },
-    {
-      "new": "gateway-quickbooks-connector",
-      "old": "oya-connector-quickbooks-adapter"
-    },
-    {
-      "new": "gateway-rippling-connector",
-      "old": "oya-connector-rippling-adapter"
-    },
-    {
-      "new": "gateway-salesforce-connector",
-      "old": "oya-connector-salesforce-adapter"
-    },
-    {
-      "new": "gateway-slack-connector",
-      "old": "oya-connector-slack-adapter"
-    },
-    {
-      "new": "gateway-teams-connector",
-      "old": "oya-connector-teams-adapter"
-    },
-    {
-      "new": "gateway-workday-connector",
-      "old": "oya-connector-workday-adapter"
+      "new": "flags-server",
+      "old": "oya-flags"
     }
   ],
   "files": [
     {
-      "new_path": "gateway/adapters/adp-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-adp-adapter/BUCK"
+      "new_path": "flags/core/server/BUCK",
+      "old_path": "oya/feature-flags/crates/oya-flags/BUCK"
     },
     {
-      "new_path": "gateway/adapters/adp-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-adp-adapter/Cargo.toml"
+      "new_path": "flags/core/server/Cargo.toml",
+      "old_path": "oya/feature-flags/crates/oya-flags/Cargo.toml"
     },
     {
-      "new_path": "gateway/adapters/adp-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-adp-adapter/README.md"
+      "new_path": "flags/core/server/src/config.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/config.rs"
     },
     {
-      "new_path": "gateway/adapters/adp-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-adp-adapter/specs/cedar-policy.cedar"
+      "new_path": "flags/core/server/src/evaluation/mod.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/evaluation/mod.rs"
     },
     {
-      "new_path": "gateway/adapters/adp-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-adp-adapter/specs/openapi.snapshot.yaml"
+      "new_path": "flags/core/server/src/grpc/mod.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/grpc/mod.rs"
     },
     {
-      "new_path": "gateway/adapters/adp-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-adp-adapter/src/lib.rs"
+      "new_path": "flags/core/server/src/lib.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/lib.rs"
     },
     {
-      "new_path": "gateway/adapters/epic-fhir-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/BUCK"
+      "new_path": "flags/core/server/src/main.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/main.rs"
     },
     {
-      "new_path": "gateway/adapters/epic-fhir-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/Cargo.toml"
+      "new_path": "flags/core/server/src/observability/mod.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/observability/mod.rs"
     },
     {
-      "new_path": "gateway/adapters/epic-fhir-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/README.md"
+      "new_path": "flags/core/server/src/ofrep/mod.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/ofrep/mod.rs"
     },
     {
-      "new_path": "gateway/adapters/epic-fhir-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/specs/cedar-policy.cedar"
+      "new_path": "flags/core/server/src/rest/mod.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/rest/mod.rs"
     },
     {
-      "new_path": "gateway/adapters/epic-fhir-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/specs/openapi.snapshot.yaml"
+      "new_path": "flags/core/server/src/storage/mod.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/storage/mod.rs"
     },
     {
-      "new_path": "gateway/adapters/epic-fhir-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-epic-fhir-adapter/src/lib.rs"
+      "new_path": "flags/core/server/src/targeting/mod.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/targeting/mod.rs"
     },
     {
-      "new_path": "gateway/adapters/gusto-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/BUCK"
-    },
-    {
-      "new_path": "gateway/adapters/gusto-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/Cargo.toml"
-    },
-    {
-      "new_path": "gateway/adapters/gusto-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/README.md"
-    },
-    {
-      "new_path": "gateway/adapters/gusto-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/specs/cedar-policy.cedar"
-    },
-    {
-      "new_path": "gateway/adapters/gusto-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/specs/openapi.snapshot.yaml"
-    },
-    {
-      "new_path": "gateway/adapters/gusto-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-gusto-adapter/src/lib.rs"
-    },
-    {
-      "new_path": "gateway/adapters/netsuite-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/BUCK"
-    },
-    {
-      "new_path": "gateway/adapters/netsuite-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/Cargo.toml"
-    },
-    {
-      "new_path": "gateway/adapters/netsuite-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/README.md"
-    },
-    {
-      "new_path": "gateway/adapters/netsuite-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/specs/cedar-policy.cedar"
-    },
-    {
-      "new_path": "gateway/adapters/netsuite-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/specs/openapi.snapshot.yaml"
-    },
-    {
-      "new_path": "gateway/adapters/netsuite-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-netsuite-adapter/src/lib.rs"
-    },
-    {
-      "new_path": "gateway/adapters/quickbooks-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/BUCK"
-    },
-    {
-      "new_path": "gateway/adapters/quickbooks-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/Cargo.toml"
-    },
-    {
-      "new_path": "gateway/adapters/quickbooks-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/README.md"
-    },
-    {
-      "new_path": "gateway/adapters/quickbooks-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/specs/cedar-policy.cedar"
-    },
-    {
-      "new_path": "gateway/adapters/quickbooks-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/specs/openapi.snapshot.yaml"
-    },
-    {
-      "new_path": "gateway/adapters/quickbooks-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-quickbooks-adapter/src/lib.rs"
-    },
-    {
-      "new_path": "gateway/adapters/rippling-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/BUCK"
-    },
-    {
-      "new_path": "gateway/adapters/rippling-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/Cargo.toml"
-    },
-    {
-      "new_path": "gateway/adapters/rippling-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/README.md"
-    },
-    {
-      "new_path": "gateway/adapters/rippling-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/specs/cedar-policy.cedar"
-    },
-    {
-      "new_path": "gateway/adapters/rippling-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/specs/openapi.snapshot.yaml"
-    },
-    {
-      "new_path": "gateway/adapters/rippling-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-rippling-adapter/src/lib.rs"
-    },
-    {
-      "new_path": "gateway/adapters/salesforce-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/BUCK"
-    },
-    {
-      "new_path": "gateway/adapters/salesforce-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/Cargo.toml"
-    },
-    {
-      "new_path": "gateway/adapters/salesforce-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/README.md"
-    },
-    {
-      "new_path": "gateway/adapters/salesforce-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/specs/cedar-policy.cedar"
-    },
-    {
-      "new_path": "gateway/adapters/salesforce-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/specs/openapi.snapshot.yaml"
-    },
-    {
-      "new_path": "gateway/adapters/salesforce-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-salesforce-adapter/src/lib.rs"
-    },
-    {
-      "new_path": "gateway/adapters/slack-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-slack-adapter/BUCK"
-    },
-    {
-      "new_path": "gateway/adapters/slack-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-slack-adapter/Cargo.toml"
-    },
-    {
-      "new_path": "gateway/adapters/slack-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-slack-adapter/README.md"
-    },
-    {
-      "new_path": "gateway/adapters/slack-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-slack-adapter/specs/cedar-policy.cedar"
-    },
-    {
-      "new_path": "gateway/adapters/slack-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-slack-adapter/specs/openapi.snapshot.yaml"
-    },
-    {
-      "new_path": "gateway/adapters/slack-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-slack-adapter/src/lib.rs"
-    },
-    {
-      "new_path": "gateway/adapters/teams-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-teams-adapter/BUCK"
-    },
-    {
-      "new_path": "gateway/adapters/teams-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-teams-adapter/Cargo.toml"
-    },
-    {
-      "new_path": "gateway/adapters/teams-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-teams-adapter/README.md"
-    },
-    {
-      "new_path": "gateway/adapters/teams-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-teams-adapter/specs/cedar-policy.cedar"
-    },
-    {
-      "new_path": "gateway/adapters/teams-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-teams-adapter/specs/openapi.snapshot.yaml"
-    },
-    {
-      "new_path": "gateway/adapters/teams-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-teams-adapter/src/lib.rs"
-    },
-    {
-      "new_path": "gateway/adapters/workday-connector/BUCK",
-      "old_path": "oya/connector/crates/oya-connector-workday-adapter/BUCK"
-    },
-    {
-      "new_path": "gateway/adapters/workday-connector/Cargo.toml",
-      "old_path": "oya/connector/crates/oya-connector-workday-adapter/Cargo.toml"
-    },
-    {
-      "new_path": "gateway/adapters/workday-connector/README.md",
-      "old_path": "oya/connector/crates/oya-connector-workday-adapter/README.md"
-    },
-    {
-      "new_path": "gateway/adapters/workday-connector/specs/cedar-policy.cedar",
-      "old_path": "oya/connector/crates/oya-connector-workday-adapter/specs/cedar-policy.cedar"
-    },
-    {
-      "new_path": "gateway/adapters/workday-connector/specs/openapi.snapshot.yaml",
-      "old_path": "oya/connector/crates/oya-connector-workday-adapter/specs/openapi.snapshot.yaml"
-    },
-    {
-      "new_path": "gateway/adapters/workday-connector/src/lib.rs",
-      "old_path": "oya/connector/crates/oya-connector-workday-adapter/src/lib.rs"
+      "new_path": "flags/core/server/src/tenants/mod.rs",
+      "old_path": "oya/feature-flags/crates/oya-flags/src/tenants/mod.rs"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

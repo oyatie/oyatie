@@ -20,7 +20,8 @@
     "compute",
     "storage",
     "cell",
-    "gateway"
+    "gateway",
+    "flags"
   ],
   "meta_directories": [
     "kernel",
@@ -44,6 +45,7 @@
     "storage",
     "cell",
     "gateway",
+    "flags",
     "cloud",
     "oya",
     "libs",
