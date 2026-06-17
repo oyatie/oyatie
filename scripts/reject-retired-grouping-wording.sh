@@ -34,7 +34,7 @@ ignored_exact = {
 }
 allowed = re.compile(
     r'(^|/)('
-    r'crates/oya-connector-netsuite-adapter|'
+    r'gateway/adapters/netsuite-connector|'
     r'registry/catalog/oya-connector-netsuite-adapter\.yaml|'
     r'scripts/reject-retired-grouping-wording\.sh|'
     r'scripts/tests/reject-retired-grouping-wording\.test\.sh|'
