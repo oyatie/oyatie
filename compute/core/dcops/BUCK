@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//cell/core/region:cell-region",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
@@ -17,7 +17,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//cell/core/region:cell-region",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )

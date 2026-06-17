@@ -9,7 +9,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_region_domain::RegionCode;
+use cell_region::RegionCode;
 use compute_resource::ResourceId;
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_metering_domain::{

@@ -807,6 +807,66 @@ dependencies = [
 ]
 
 [[package]]
+name = "cell-bind-api"
+version = "0.1.0"
+
+[[package]]
+name = "cell-capacity"
+version = "0.1.0"
+
+[[package]]
+name = "cell-capacity-commercial"
+version = "0.1.0"
+dependencies = [
+ "cell-region",
+ "compute-resource",
+ "oya-cloud-billing-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
+]
+
+[[package]]
+name = "cell-region"
+version = "0.1.0"
+dependencies = [
+ "cell-routing",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "cell-region-api"
+version = "0.1.0"
+dependencies = [
+ "cell-region",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "cell-regional-pack"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "cell-regional-pack-api"
+version = "0.1.0"
+dependencies = [
+ "cell-regional-pack",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "cell-routing"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -984,7 +1044,7 @@ dependencies = [
 name = "compute-dcops"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-domain",
+ "cell-region",
  "oya-data-boundary-kernel",
 ]
 
@@ -992,10 +1052,10 @@ dependencies = [
 name = "compute-domain"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "compute-resource",
  "oya-cloud-iam-domain",
  "oya-cloud-network-domain",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -1034,7 +1094,7 @@ dependencies = [
 name = "compute-resource"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-domain",
+ "cell-region",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -3261,11 +3321,11 @@ dependencies = [
 name = "observability-aggregate"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "compute-resource",
  "observability-domain",
  "oya-audit-chain-domain",
  "oya-cloud-iam-domain",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -3540,11 +3600,12 @@ dependencies = [
 name = "oya-application-app"
 version = "0.1.0"
 dependencies = [
+ "cell-regional-pack",
+ "cell-routing",
  "messaging-domain",
  "observability-domain",
  "observability-tracing-adapter",
  "oya-audit-chain-domain",
- "oya-cell-domain",
  "oya-check-cost-budget",
  "oya-data-boundary-kernel",
  "oya-governance-eval-domain",
@@ -3559,7 +3620,6 @@ dependencies = [
  "oya-intelligence-step-domain",
  "oya-ontology-domain",
  "oya-policy-cedar-domain",
- "oya-regional-pack-domain",
  "oya-residency-domain",
  "oya-secrets-domain",
  "oya-tenancy-domain",
@@ -3741,14 +3801,6 @@ name = "oya-cargo-lock-merge-driver-app"
 version = "0.1.0"
 dependencies = [
  "toml_edit",
-]
-
-[[package]]
-name = "oya-cell-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -4239,8 +4291,8 @@ dependencies = [
 name = "oya-cloud-billing-domain"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "compute-resource",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-metering-domain",
 ]
@@ -4251,25 +4303,6 @@ version = "0.1.0"
 
 [[package]]
 name = "oya-cloud-billing-tax-app"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-capacity-domain"
-version = "0.1.0"
-dependencies = [
- "compute-resource",
- "oya-cloud-billing-domain",
- "oya-cloud-region-domain",
- "oya-data-boundary-kernel",
- "oya-metering-domain",
-]
-
-[[package]]
-name = "oya-cloud-capacity-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-cell-app"
 version = "0.1.0"
 
 [[package]]
@@ -4496,9 +4529,9 @@ dependencies = [
 name = "oya-cloud-data-domain"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "compute-resource",
  "oya-cloud-kms-domain",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -4521,9 +4554,9 @@ dependencies = [
 name = "oya-cloud-finops-domain"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "compute-resource",
  "oya-cloud-billing-domain",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-metering-domain",
 ]
@@ -4567,7 +4600,7 @@ dependencies = [
 name = "oya-cloud-iam-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-domain",
+ "cell-region",
  "oya-data-boundary-kernel",
  "oya-identity-domain",
 ]
@@ -4845,8 +4878,8 @@ dependencies = [
 name = "oya-cloud-kms-api"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "oya-cloud-kms-domain",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -4855,8 +4888,8 @@ dependencies = [
 name = "oya-cloud-kms-domain"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "compute-resource",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -4913,8 +4946,8 @@ dependencies = [
 name = "oya-cloud-marketplace-domain"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "oya-cloud-billing-domain",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-metering-domain",
 ]
@@ -4954,8 +4987,8 @@ dependencies = [
 name = "oya-cloud-network-domain"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "compute-resource",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -5299,23 +5332,6 @@ name = "oya-cloud-os-upgrade-domain"
 version = "0.1.0"
 dependencies = [
  "oya-cloud-os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-region-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-region-domain",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-region-domain"
-version = "0.1.0"
-dependencies = [
- "oya-cell-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -8430,22 +8446,6 @@ name = "oya-real-estate-portfolio-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-regional-pack-api"
-version = "0.1.0"
-dependencies = [
- "oya-regional-pack-domain",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-regional-pack-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -11671,9 +11671,9 @@ dependencies = [
 name = "storage-domain"
 version = "0.1.0"
 dependencies = [
+ "cell-region",
  "compute-resource",
  "oya-cloud-kms-domain",
- "oya-cloud-region-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]

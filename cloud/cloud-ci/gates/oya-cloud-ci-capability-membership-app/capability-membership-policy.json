@@ -18,7 +18,8 @@
     "iac",
     "observability",
     "compute",
-    "storage"
+    "storage",
+    "cell"
   ],
   "meta_directories": [
     "kernel",
@@ -40,6 +41,7 @@
     "observability",
     "compute",
     "storage",
+    "cell",
     "cloud",
     "oya",
     "libs",

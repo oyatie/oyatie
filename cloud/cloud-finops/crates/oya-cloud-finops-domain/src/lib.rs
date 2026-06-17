@@ -12,7 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use oya_cloud_billing_domain::{CurrencyCode, Money, RateCardRef};
-use oya_cloud_region_domain::RegionCode;
+use cell_region::RegionCode;
 use compute_resource::{CloudResourceError, ResourceId};
 use oya_data_boundary_kernel::{Classified, DataClass, DataClassMatcher, PrivacyDataClass};
 use oya_metering_domain::{AxisId, MeterEvent, MeterEventId, MeterUnitKind};

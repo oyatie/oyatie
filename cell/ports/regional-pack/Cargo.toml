@@ -1,0 +1,19 @@
+[package]
+name = "cell-regional-pack-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+cell-regional-pack = { path = "../../core/regional-pack" }
+oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+
+[lib]
+name = "cell_regional_pack_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

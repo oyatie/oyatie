@@ -9,7 +9,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_region_domain::{AzCode, RegionCode};
+use cell_region::{AzCode, RegionCode};
 use oya_data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
 
 const DCOPS_SITE_SCHEMA_VERSION: u32 = 1;

@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use oya_cloud_iam_domain::IamRoleId;
 use oya_cloud_network_domain::SecurityGroupId;
-use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{
     CloudResourceError, FunctionRuntime, InstanceFlavor, K8sFlavor, ResourceId, ResourceKind,
 };

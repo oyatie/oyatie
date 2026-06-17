@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-cloud-kms-domain = { path = "../../../cloud-kms/crates/oya-cloud-kms-domain" }
-oya-cloud-region-domain = { path = "../../../cloud-cell/crates/oya-cloud-region-domain" }
+cell-region = { path = "../../../../cell/core/region" }
 compute-resource = { path = "../../../../compute/core/resource" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 oya-residency-domain = { path = "../../../cloud-network/crates/oya-residency-domain" }

@@ -9,7 +9,7 @@ use oya_cloud_kms_domain::{
     CloudKmsDirectory, CloudKmsError, KmsDecryptRequest, KmsEncryptRequest, KmsOperation,
     KmsPurpose, KmsRepo, KmsUseReceipt,
 };
-use oya_cloud_region_domain::{CellId, RegionCode};
+use cell_region::{CellId, RegionCode};
 use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_KMS_ENCRYPT_SURFACE: &str = "cloud.kms.encrypt";

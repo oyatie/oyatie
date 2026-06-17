@@ -1,0 +1,53 @@
+{
+  "capability": "cell",
+  "moves": [
+    {
+      "old_path": "cloud/cloud-cell/crates/oya-cell-domain",
+      "new_path": "cell/core/routing",
+      "old_cargo_name": "oya-cell-domain",
+      "new_cargo_name": "cell-routing"
+    },
+    {
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain",
+      "new_path": "cell/core/region",
+      "old_cargo_name": "oya-cloud-region-domain",
+      "new_cargo_name": "cell-region"
+    },
+    {
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api",
+      "new_path": "cell/ports/region",
+      "old_cargo_name": "oya-cloud-region-api",
+      "new_cargo_name": "cell-region-api"
+    },
+    {
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain",
+      "new_path": "cell/core/regional-pack",
+      "old_cargo_name": "oya-regional-pack-domain",
+      "new_cargo_name": "cell-regional-pack"
+    },
+    {
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api",
+      "new_path": "cell/ports/regional-pack",
+      "old_cargo_name": "oya-regional-pack-api",
+      "new_cargo_name": "cell-regional-pack-api"
+    },
+    {
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app",
+      "new_path": "cell/ports/cell-bind",
+      "old_cargo_name": "oya-cloud-cell-app",
+      "new_cargo_name": "cell-bind-api"
+    },
+    {
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel",
+      "new_path": "cell/core/capacity",
+      "old_cargo_name": "oya-cloud-capacity-kernel",
+      "new_cargo_name": "cell-capacity"
+    },
+    {
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain",
+      "new_path": "cell/core/capacity-commercial",
+      "old_cargo_name": "oya-cloud-capacity-domain",
+      "new_cargo_name": "cell-capacity-commercial"
+    }
+  ]
+}
