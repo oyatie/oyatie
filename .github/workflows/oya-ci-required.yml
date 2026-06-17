@@ -396,6 +396,22 @@ jobs:
       # change mints a new entry. Interim warm-by-default until the shared content-addressed
       # remote cache (NativeLink/CAS, ADR-0560, HANDOFF W3) lands with a cold-canary integrity job
       # proving cold==warm. See friction-ledger buck2-no-shared-cache.
+      # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
+      # ~25-30 GiB) BEFORE the multi-GB buck-out restore. This lane decompresses a ~5.78 GiB buck-out
+      # blob (~12-15 GiB on disk) on top of a fetch-depth:0 monorepo checkout, exhausting the ~14 GiB
+      # free on / on GitHub-hosted ubuntu-latest; FRIC-017 recurred on PR #741 (No space left on device
+      # at this restore, before any build ran). Hermetic: removes only vendor preinstall dirs that no
+      # oya/buck2 action consumes; touches NO repo content and NO cache (buck-out / ~/.rustup / the
+      # restored blob untouched), so the cold==warm integrity canary (ADR-0556/0560) is unaffected. df
+      # is emitted so a genuine disk-NEED growth surfaces as a true RED instead of being masked.
+      - name: Reclaim runner disk before warm restore (FRIC-017 preflight)
+        run: |
+          set -euo pipefail
+          echo "disk before reclaim:"; df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL || true
+          sudo docker image prune --all --force || true
+          echo "disk after reclaim:"; df -h /
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
@@ -519,6 +535,22 @@ jobs:
       # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
       # is the sole writer (the save step below is push-to-dev-gated), so PR runs read only — no
       # per-commit multi-GB write-churn/eviction (see the buck2-lane rationale above).
+      # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
+      # ~25-30 GiB) BEFORE the multi-GB buck-out restore. This lane decompresses a ~5.78 GiB buck-out
+      # blob (~12-15 GiB on disk) on top of a fetch-depth:0 monorepo checkout, exhausting the ~14 GiB
+      # free on / on GitHub-hosted ubuntu-latest; FRIC-017 recurred on PR #741 (No space left on device
+      # at this restore, before any build ran). Hermetic: removes only vendor preinstall dirs that no
+      # oya/buck2 action consumes; touches NO repo content and NO cache (buck-out / ~/.rustup / the
+      # restored blob untouched), so the cold==warm integrity canary (ADR-0556/0560) is unaffected. df
+      # is emitted so a genuine disk-NEED growth surfaces as a true RED instead of being masked.
+      - name: Reclaim runner disk before warm restore (FRIC-017 preflight)
+        run: |
+          set -euo pipefail
+          echo "disk before reclaim:"; df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL || true
+          sudo docker image prune --all --force || true
+          echo "disk after reclaim:"; df -h /
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
