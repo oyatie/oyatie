@@ -516,16 +516,21 @@ fn relabel_frozen_face(
                 relabel_existence_only_gate(codes, &dir_pairs, &candidate_paths);
             }
             GATE_TOTAL_ACCOUNTING => {
-                // total-accounting carries BOTH per-DIR codes (member_path: relabel on crate-DIR
-                // pairs, Section C) AND per-FILE codes (`unjustified`/`unowned`/`unreachable`,
-                // keyed by repo-relative file path: relabel on the manifest FILE pairs, Section
-                // C2). `unowned` re-derives via OWNERS and `unreachable` via the
+                // total-accounting's codes (`unjustified`/`unowned`/`unreachable`) are keyed
+                // per-FILE (repo-relative file path) — they relabel on the manifest FILE pairs
+                // (Section C2). `unowned` re-derives via OWNERS and `unreachable` via the
                 // reachability-registry, but `unjustified` has NO re-derivation seed, so a
                 // relocated accepted-unjustified file depends ENTIRELY on this per-FILE relabel
-                // (ADR-0563 gap surfaced by the marketplace move's dev-cli; every prior move's
-                // files were ADR/spec-justified so this path was never exercised). The two relabels
-                // touch disjoint key classes (DIR keys never match a FILE pair's old-key and vice
-                // versa), so running both is order-independent and non-overlapping.
+                // (the ADR-0563 gap surfaced by the marketplace move's dev-cli; every prior move's
+                // files were ADR/spec-justified so this path was never exercised). The per-DIR
+                // relabel is ALSO run (Section C): it covers any member_path/crate-DIR-keyed code
+                // and is a harmless no-op against the per-FILE codes otherwise. The two relabels
+                // touch disjoint key classes (a crate-DIR string never equals a FILE pair's
+                // old-key and vice versa), so running both is order-independent and non-overlapping.
+                // SAFETY is load-bearing on the move-manifest's registry-drift binding
+                // (committed==regenerated from the codemod's wholesale-git-mv mirror-suffix pairs):
+                // a forged old->new pair is RED at registry-drift BEFORE the firewall runs, so this
+                // relabel can only RELOCATE an already-accepted entry, never admit new debt.
                 relabel_existence_only_gate(codes, &dir_pairs, &candidate_paths);
                 relabel_existence_only_file_gate(codes, &file_pairs, &candidate_paths);
             }
@@ -2169,6 +2174,31 @@ mod tests {
             relabel_frozen_face(&face, &MoveManifest::default(), &frozen, MB, &candidate, &policy)
                 .unwrap();
         assert_eq!(out, face, "empty manifest => byte-identical face (strict no-op)");
+    }
+
+    /// (g) P1 fail-closed: the FILE pair's OLD side is NOT a frozen key under the code (the moved
+    /// file was never an accepted-`unjustified` entry) => no relabel; the frozen keyset is left
+    /// UNCHANGED. Pins that the per-FILE relabel only ever acts on keys it actually carries.
+    #[test]
+    fn relabel_total_accounting_file_p1_miss_is_noop() {
+        let old = "some/moved/old.rs";
+        let new = "new/moved/old.rs";
+        // Frozen keys do NOT contain the old FILE pair's old side.
+        let face = json!({"gates": {GATE_TOTAL_ACCOUNTING: {
+            "unjustified": {"mode": "baseline-block-on-new", "keys": ["other/keep.rs"]}
+        }}});
+        let frozen = FakeFrozen::new(&[]);
+        // Candidate carries the NEW path (the move landed), but the old key was never frozen.
+        let candidate = FakeCandidate::new(&[new, "other/keep.rs"], &[]);
+        let policy = VocabPolicy::bundled_default();
+        let out =
+            relabel_frozen_face(&face, &manifest(&[(old, new)]), &frozen, MB, &candidate, &policy)
+                .unwrap();
+        let keys: BTreeSet<String> = out["gates"][GATE_TOTAL_ACCOUNTING]["unjustified"]["keys"]
+            .as_array().unwrap().iter().filter_map(Value::as_str).map(str::to_owned).collect();
+        assert!(!keys.contains(new), "P1 miss => no relabel onto NEW path");
+        assert!(!keys.contains(old), "old was never a frozen key");
+        assert!(keys.contains("other/keep.rs"), "frozen keyset unchanged (P1 fail-closed)");
     }
 
     /// Non-path gate pass-through: a gate with a NON-path key space (crate names) is never
