@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18527,
-    "source_inputs_digest": "fnv1a64:99593a5134fa9816"
+    "source_inputs_digest": "fnv1a64:cb45c5154d5c83aa"
   },
   "rows": [
     {
@@ -364587,7 +364587,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": "ADR-0562",
+      "justification_ref": null,
       "owner": null,
       "path": "registry/dependency-rationales.json",
       "reachable_from": [
@@ -364601,7 +364601,7 @@
         "ttl_class": "registry"
       },
       "unit_class": "registry",
-      "verdict": "NEEDS-OWNER"
+      "verdict": "RED"
     },
     {
       "_provenance": {
@@ -365384,7 +365384,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": "ADR-0562",
+      "justification_ref": null,
       "owner": null,
       "path": "registry/stores/registry-store.json",
       "reachable_from": [],
@@ -366107,7 +366107,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": "ADR-0562",
+      "justification_ref": null,
       "owner": null,
       "path": "scripts/reject-retired-grouping-wording.sh",
       "reachable_from": [],

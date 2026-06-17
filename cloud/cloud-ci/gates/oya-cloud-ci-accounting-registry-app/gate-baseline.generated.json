@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:a33d7f020ed83e38",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:dca19ba1e06a7c25"
+    "source_inputs_digest": "fnv1a64:e14792c5448935b4"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -21955,6 +21955,7 @@
           "registry/ci-fix-loop-retry-budget.json",
           "registry/data-class/legacy-unannotated-fields.tsv",
           "registry/dependency-blessed-allowlist.json",
+          "registry/dependency-rationales.json",
           "registry/docs/pipeline.tsv",
           "registry/foundation-bypasses/README.md",
           "registry/foundation-bypasses/byp_adr_0346_oya_verify_ci_mirror.yaml",
@@ -21981,6 +21982,7 @@
           "registry/stores/canon-id-crosswalk.json",
           "registry/stores/design-store.json",
           "registry/stores/instructions-store.json",
+          "registry/stores/registry-store.json",
           "registry/test-set-registry.json",
           "registry/vcs/README.md",
           "registry/vocabulary/retired.yaml",
@@ -22009,6 +22011,7 @@
           "scripts/proto-lint.mjs",
           "scripts/reject-placeholder-digests.sh",
           "scripts/reject-public-dev-domains.sh",
+          "scripts/reject-retired-grouping-wording.sh",
           "scripts/repair-sequential-pr-queue.sh",
           "scripts/supply-chain-adr0039.sh",
           "scripts/tests/cloud_control_plane_operation_contract_check.py",
