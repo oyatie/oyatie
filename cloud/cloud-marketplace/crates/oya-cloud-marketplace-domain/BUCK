@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
         "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
-        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//cell/core/region:cell-region",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
@@ -21,7 +21,7 @@ rust_test(
     deps = [
         "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
         "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
-        "//cloud/cloud-cell/crates/oya-cloud-region-domain:oya-cloud-region-domain",
+        "//cell/core/region:cell-region",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )

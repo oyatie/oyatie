@@ -1,165 +1,217 @@
 {
-  "capability": "storage",
+  "capability": "cell",
   "crate_dirs": [
     {
-      "new_path": "storage/adapters/oci",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci"
+      "new_path": "cell/core/capacity-commercial",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain"
     },
     {
-      "new_path": "storage/adapters/s3",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3"
+      "new_path": "cell/core/capacity",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel"
     },
     {
-      "new_path": "storage/ports/block-api",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api"
+      "new_path": "cell/core/routing",
+      "old_path": "cloud/cloud-cell/crates/oya-cell-domain"
     },
     {
-      "new_path": "storage/core/domain",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain"
+      "new_path": "cell/ports/cell-bind",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app"
     },
     {
-      "new_path": "storage/ports/object-api",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api"
+      "new_path": "cell/ports/region",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api"
     },
     {
-      "new_path": "storage/facade/drive",
-      "old_path": "oya/drive/crates/oya-drive-domain"
+      "new_path": "cell/core/region",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain"
     },
     {
-      "new_path": "storage/facade/recordings",
-      "old_path": "oya/recordings/crates/oya-recordings-domain"
+      "new_path": "cell/ports/regional-pack",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api"
+    },
+    {
+      "new_path": "cell/core/regional-pack",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain"
     }
   ],
   "crate_idents": [
     {
-      "new": "storage-oci-adapter",
-      "old": "oya-cloud-storage-adapter-oci"
+      "new": "cell-routing",
+      "old": "oya-cell-domain"
     },
     {
-      "new": "storage-s3-adapter",
-      "old": "oya-cloud-storage-adapter-s3"
+      "new": "cell-capacity-commercial",
+      "old": "oya-cloud-capacity-domain"
     },
     {
-      "new": "storage-block-api",
-      "old": "oya-cloud-storage-block-api"
+      "new": "cell-capacity",
+      "old": "oya-cloud-capacity-kernel"
     },
     {
-      "new": "storage-domain",
-      "old": "oya-cloud-storage-domain"
+      "new": "cell-bind-api",
+      "old": "oya-cloud-cell-app"
     },
     {
-      "new": "storage-object-api",
-      "old": "oya-cloud-storage-object-api"
+      "new": "cell-region-api",
+      "old": "oya-cloud-region-api"
     },
     {
-      "new": "storage-drive-domain",
-      "old": "oya-drive-domain"
+      "new": "cell-region",
+      "old": "oya-cloud-region-domain"
     },
     {
-      "new": "storage-recordings-domain",
-      "old": "oya-recordings-domain"
+      "new": "cell-regional-pack-api",
+      "old": "oya-regional-pack-api"
+    },
+    {
+      "new": "cell-regional-pack",
+      "old": "oya-regional-pack-domain"
     }
   ],
   "files": [
     {
-      "new_path": "storage/adapters/oci/BUCK",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci/BUCK"
+      "new_path": "cell/core/capacity-commercial/BUCK",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/BUCK"
     },
     {
-      "new_path": "storage/adapters/oci/Cargo.toml",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci/Cargo.toml"
+      "new_path": "cell/core/capacity-commercial/Cargo.toml",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/Cargo.toml"
     },
     {
-      "new_path": "storage/adapters/oci/src/lib.rs",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-oci/src/lib.rs"
+      "new_path": "cell/core/capacity-commercial/src/lib.rs",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/src/lib.rs"
     },
     {
-      "new_path": "storage/adapters/s3/BUCK",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3/BUCK"
+      "new_path": "cell/core/capacity-commercial/tests/cloud_ops_foundation.rs",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
     },
     {
-      "new_path": "storage/adapters/s3/Cargo.toml",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3/Cargo.toml"
+      "new_path": "cell/core/capacity/BUCK",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/BUCK"
     },
     {
-      "new_path": "storage/adapters/s3/src/lib.rs",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-adapter-s3/src/lib.rs"
+      "new_path": "cell/core/capacity/Cargo.toml",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/Cargo.toml"
     },
     {
-      "new_path": "storage/ports/block-api/BUCK",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/BUCK"
+      "new_path": "cell/core/capacity/src/cell_budget.rs",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/cell_budget.rs"
     },
     {
-      "new_path": "storage/ports/block-api/Cargo.toml",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/Cargo.toml"
+      "new_path": "cell/core/capacity/src/committed_use.rs",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/committed_use.rs"
     },
     {
-      "new_path": "storage/ports/block-api/src/lib.rs",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/src/lib.rs"
+      "new_path": "cell/core/capacity/src/lib.rs",
+      "old_path": "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/lib.rs"
     },
     {
-      "new_path": "storage/ports/block-api/tests/cloud_storage_block_api.rs",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-block-api/tests/cloud_storage_block_api.rs"
+      "new_path": "cell/core/routing/BUCK",
+      "old_path": "cloud/cloud-cell/crates/oya-cell-domain/BUCK"
     },
     {
-      "new_path": "storage/core/domain/BUCK",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/BUCK"
+      "new_path": "cell/core/routing/Cargo.toml",
+      "old_path": "cloud/cloud-cell/crates/oya-cell-domain/Cargo.toml"
     },
     {
-      "new_path": "storage/core/domain/Cargo.toml",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/Cargo.toml"
+      "new_path": "cell/core/routing/src/lib.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-cell-domain/src/lib.rs"
     },
     {
-      "new_path": "storage/core/domain/src/lib.rs",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/src/lib.rs"
+      "new_path": "cell/core/routing/tests/cell_router.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-cell-domain/tests/cell_router.rs"
     },
     {
-      "new_path": "storage/core/domain/tests/cloud_storage_foundation.rs",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-domain/tests/cloud_storage_foundation.rs"
+      "new_path": "cell/ports/cell-bind/BUCK",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/BUCK"
     },
     {
-      "new_path": "storage/ports/object-api/BUCK",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/BUCK"
+      "new_path": "cell/ports/cell-bind/Cargo.toml",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/Cargo.toml"
     },
     {
-      "new_path": "storage/ports/object-api/Cargo.toml",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/Cargo.toml"
+      "new_path": "cell/ports/cell-bind/src/cell_lifecycle.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/src/cell_lifecycle.rs"
     },
     {
-      "new_path": "storage/ports/object-api/src/lib.rs",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/src/lib.rs"
+      "new_path": "cell/ports/cell-bind/src/lib.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/src/lib.rs"
     },
     {
-      "new_path": "storage/ports/object-api/tests/cloud_storage_object_api.rs",
-      "old_path": "cloud/cloud-storage/crates/oya-cloud-storage-object-api/tests/cloud_storage_object_api.rs"
+      "new_path": "cell/ports/cell-bind/tests/cloud_cell_bind_api.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-cell-app/tests/cloud_cell_bind_api.rs"
     },
     {
-      "new_path": "storage/facade/drive/BUCK",
-      "old_path": "oya/drive/crates/oya-drive-domain/BUCK"
+      "new_path": "cell/ports/region/BUCK",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api/BUCK"
     },
     {
-      "new_path": "storage/facade/drive/Cargo.toml",
-      "old_path": "oya/drive/crates/oya-drive-domain/Cargo.toml"
+      "new_path": "cell/ports/region/Cargo.toml",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api/Cargo.toml"
     },
     {
-      "new_path": "storage/facade/drive/src/lib.rs",
-      "old_path": "oya/drive/crates/oya-drive-domain/src/lib.rs"
+      "new_path": "cell/ports/region/src/lib.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api/src/lib.rs"
     },
     {
-      "new_path": "storage/facade/recordings/BUCK",
-      "old_path": "oya/recordings/crates/oya-recordings-domain/BUCK"
+      "new_path": "cell/ports/region/tests/cloud_region_api.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-api/tests/cloud_region_api.rs"
     },
     {
-      "new_path": "storage/facade/recordings/Cargo.toml",
-      "old_path": "oya/recordings/crates/oya-recordings-domain/Cargo.toml"
+      "new_path": "cell/core/region/BUCK",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain/BUCK"
     },
     {
-      "new_path": "storage/facade/recordings/src/fhir_resource_type.rs",
-      "old_path": "oya/recordings/crates/oya-recordings-domain/src/fhir_resource_type.rs"
+      "new_path": "cell/core/region/Cargo.toml",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain/Cargo.toml"
     },
     {
-      "new_path": "storage/facade/recordings/src/lib.rs",
-      "old_path": "oya/recordings/crates/oya-recordings-domain/src/lib.rs"
+      "new_path": "cell/core/region/src/lib.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-cloud-region-domain/src/lib.rs"
+    },
+    {
+      "new_path": "cell/ports/regional-pack/BUCK",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api/BUCK"
+    },
+    {
+      "new_path": "cell/ports/regional-pack/Cargo.toml",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api/Cargo.toml"
+    },
+    {
+      "new_path": "cell/ports/regional-pack/src/lib.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api/src/lib.rs"
+    },
+    {
+      "new_path": "cell/ports/regional-pack/tests/regulatory_pack_bind_api.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-api/tests/regulatory_pack_bind_api.rs"
+    },
+    {
+      "new_path": "cell/core/regional-pack/BUCK",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/BUCK"
+    },
+    {
+      "new_path": "cell/core/regional-pack/Cargo.toml",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/Cargo.toml"
+    },
+    {
+      "new_path": "cell/core/regional-pack/src/capability_pack.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/capability_pack.rs"
+    },
+    {
+      "new_path": "cell/core/regional-pack/src/kr_regulatory.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/kr_regulatory.rs"
+    },
+    {
+      "new_path": "cell/core/regional-pack/src/lib.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/lib.rs"
+    },
+    {
+      "new_path": "cell/core/regional-pack/src/pack_onboarding_phase.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/pack_onboarding_phase.rs"
+    },
+    {
+      "new_path": "cell/core/regional-pack/src/vertical_regulatory_profile.rs",
+      "old_path": "cloud/cloud-cell/crates/oya-regional-pack-domain/src/vertical_regulatory_profile.rs"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

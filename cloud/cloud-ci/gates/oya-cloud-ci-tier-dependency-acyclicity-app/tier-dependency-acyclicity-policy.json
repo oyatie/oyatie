@@ -19,7 +19,8 @@
     "iac/*/*",
     "observability/*/*",
     "compute/*/*",
-    "storage/*/*"
+    "storage/*/*",
+    "cell/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -33,7 +34,8 @@
     "iac",
     "observability",
     "compute",
-    "storage"
+    "storage",
+    "cell"
   ],
   "stratum_rank_order": [
     "S0",

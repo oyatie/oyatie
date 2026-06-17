@@ -8,7 +8,7 @@ pub use product_catalog::{ProductCatalogError, ProductEntry, ProductId, ProductM
 use std::{collections::BTreeMap, fmt, sync::Arc};
 
 pub use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
-use oya_cell_domain::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
+use cell_routing::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
 use oya_check_cost_budget::{
     BudgetCeiling, BudgetError, BudgetLedger, BudgetScope, BudgetSnapshot, BudgetWarning,
 };
@@ -68,7 +68,7 @@ pub use oya_policy_cedar_domain::{
     AuthorizationDecision, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion,
 };
 use oya_policy_cedar_domain::{AuthorizationQuery, AuthorizationSubject, PolicyError, PolicySet};
-use oya_regional_pack_domain::{RegionalPack, RegionalPackError};
+use cell_regional_pack::{RegionalPack, RegionalPackError};
 pub use oya_residency_domain::ResidencyClass;
 use oya_residency_domain::{
     RegionRef, RegionRefCreate, infer_region_jurisdiction_label, parse_residency_class_label,

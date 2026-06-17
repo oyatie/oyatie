@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use oya_cloud_billing_domain::{BillingAccountId, CloudBillingError, CurrencyCode, Money};
-use oya_cloud_region_domain::RegionCode;
+use cell_region::RegionCode;
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_metering_domain::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,

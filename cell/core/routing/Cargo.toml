@@ -1,0 +1,19 @@
+[package]
+name = "cell-routing"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+
+[lib]
+name = "cell_routing"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

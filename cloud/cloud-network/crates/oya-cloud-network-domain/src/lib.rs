@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 
-use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{
     CloudResourceError, LbProtocol, PrincipalId, ResourceId, ResourceKind,
 };

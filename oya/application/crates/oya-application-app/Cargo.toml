@@ -18,10 +18,10 @@ oya-intelligence-policy-domain = { path = "../../../intelligence/crates/oya-inte
 oya-intelligence-run-domain = { path = "../../../intelligence/crates/oya-intelligence-run-domain" }
 oya-intelligence-step-domain = { path = "../../../intelligence/crates/oya-intelligence-step-domain" }
 oya-audit-chain-domain = { path = "../../../audit-chain/crates/oya-audit-chain-domain" }
-oya-cell-domain = { path = "../../../../cloud/cloud-cell/crates/oya-cell-domain" }
+cell-routing = { path = "../../../../cell/core/routing" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 oya-identity-domain = { path = "../../../identity/crates/oya-identity-domain" }
-oya-regional-pack-domain = { path = "../../../../cloud/cloud-cell/crates/oya-regional-pack-domain" }
+cell-regional-pack = { path = "../../../../cell/core/regional-pack" }
 oya-residency-domain = { path = "../../../../cloud/cloud-network/crates/oya-residency-domain" }
 oya-ontology-domain = { path = "../../../ontology/crates/oya-ontology-domain" }
 observability-domain = { path = "../../../../observability/core/domain" }

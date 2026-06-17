@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use oya_cloud_kms_domain::KmsKeyId;
-use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{DatabaseEngine, QueueEngine, ResourceId, ResourceKind};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};

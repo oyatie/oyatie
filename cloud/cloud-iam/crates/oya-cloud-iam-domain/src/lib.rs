@@ -10,7 +10,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_region_domain::RegionCode;
+use cell_region::RegionCode;
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, Purpose};
 use oya_identity_domain::{
     CredentialRequest, CredentialRequestKind, IdentityError, MAX_TOKEN_TTL_SECONDS, Principal,
