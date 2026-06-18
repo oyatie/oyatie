@@ -8,10 +8,15 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-fn repo_root() -> &'static str {
-    env!("CARGO_MANIFEST_DIR")
-        .strip_suffix("/crates/oya-dev-cli")
-        .expect("manifest dir is under crates/oya-dev-cli")
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .find(|candidate| {
+            candidate.join("specs/masterplan.json").is_file()
+                && candidate.join("HANDOFF.md").is_file()
+        })
+        .expect("repo root")
+        .to_path_buf()
 }
 
 #[test]

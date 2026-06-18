@@ -7,10 +7,12 @@ use std::process::Command;
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .expect("crate has workspace parent")
-        .parent()
-        .expect("workspace has repo root")
+        .ancestors()
+        .find(|candidate| {
+            candidate.join("specs/masterplan.json").is_file()
+                && candidate.join("HANDOFF.md").is_file()
+        })
+        .expect("repo root")
         .to_path_buf()
 }
 

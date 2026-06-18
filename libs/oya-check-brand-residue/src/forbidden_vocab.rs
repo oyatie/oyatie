@@ -124,6 +124,11 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         reason: "intentional historical archive of the dropped work",
     },
     CarveOutRule {
+        kind: CarveOutKind::PathPrefix,
+        value: "marketplace/facade/dev-cli/tests/",
+        reason: "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — these are structural references to real contract paths, not brand residue; the file was moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined",
+    },
+    CarveOutRule {
         kind: CarveOutKind::PathExact,
         value: "evidence/audit-chain.jsonl",
         reason: "append-only audit chain — NEVER rewritten",

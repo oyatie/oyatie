@@ -7,16 +7,15 @@
     "policy_path": "cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app/embedded-asset-hermeticity-policy.json",
     "sites_floor": 72,
     "ceilings": {
-      "skip_non_literal_argument": 2,
+      "skip_non_literal_argument": 1,
       "skip_absolute_literal": 0,
       "skip_build_output_path": 21,
-      "skip_no_owning_target": 10,
+      "skip_no_owning_target": 4,
       "skip_buck_unparseable": 0
     }
   },
   "codes": {
     "skip_non_literal_argument": [
-      "marketplace/facade/dev-cli/tests/doc_cli.rs:1003",
       "oya/intelligence/crates/oya-intelligence-openapi-domain/src/lib.rs:6088"
     ],
     "skip_absolute_literal": [],
@@ -47,13 +46,7 @@
       "cloud/cloud-os/crates/oya-cloud-os-init-app/tests/boot_config_address.rs:8",
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:18",
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:19",
-      "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:20",
-      "marketplace/facade/dev-cli/tests/gate_cli.rs:5125",
-      "marketplace/facade/dev-cli/tests/gate_cli.rs:5130",
-      "marketplace/facade/dev-cli/tests/gate_cli.rs:5175",
-      "marketplace/facade/dev-cli/tests/gate_cli.rs:5180",
-      "marketplace/facade/dev-cli/tests/gate_cli.rs:5219",
-      "marketplace/facade/dev-cli/tests/gate_cli.rs:5224"
+      "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:20"
     ],
     "skip_buck_unparseable": []
   }

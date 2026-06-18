@@ -47,7 +47,9 @@ pub(crate) fn parse_supply_chain_validate_args(
         deny_config_path: PathBuf::from("deny.toml"),
         check_script_path: None,
         adr0039_script_path: PathBuf::from("scripts/supply-chain-adr0039.sh"),
-        adr0039_rust_path: PathBuf::from("crates/oya-dev-cli/src/commands/supply_chain.rs"),
+        adr0039_rust_path: PathBuf::from(
+            "marketplace/facade/dev-cli/src/commands/supply_chain.rs",
+        ),
         workflows_dir: PathBuf::from(".github/workflows"),
         release_images_path: PathBuf::from("registry/release/images.yaml"),
         branch_protection_path: PathBuf::from(".github/branch-protection.yaml"),

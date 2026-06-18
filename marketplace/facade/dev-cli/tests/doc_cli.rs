@@ -1030,14 +1030,23 @@ fn rewrite_post_operation_as_additional_operation(contract: &str, method: &str) 
     rewritten
 }
 
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .find(|candidate| {
+            candidate.join("specs/masterplan.json").is_file()
+                && candidate.join("HANDOFF.md").is_file()
+        })
+        .expect("repo root")
+        .to_path_buf()
+}
+
 fn write_openapi_contract(root: &Path, include_operation_id: bool, include_metadata: bool) {
     let openapi_dir = root.join("openapi").join("foundry");
     fs::create_dir_all(&openapi_dir).expect("openapi dirs created");
-    let mut contract = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../../../contracts/openapi/foundry/capability-v1.yaml"
-    ))
-    .to_string();
+    let mut contract =
+        fs::read_to_string(repo_root().join("contracts/openapi/foundry/capability-v1.yaml"))
+            .expect("openapi capability contract is readable");
     if !include_operation_id {
         contract = contract.replace("      operationId: invokeCapability\n", "");
     }

@@ -7,6 +7,13 @@ publish = false
 default-run = "oya"
 license = "Apache-2.0"
 
+[package.metadata.oya]
+vertical = "marketplace"
+bounded_context = "marketplace-dev-cli"
+kind = "shared"
+layer = "cli"
+purpose = "Gate-runner CLI homed to marketplace/facade; retirement-marked per founder CLI-retirement directive (2026-06-09); zero merge authority — verification and merge authority live in cloud-ci gate apps behind oya-ci-required."
+
 [dependencies]
 oya-application-app = { path = "../../../oya/application/crates/oya-application-app" }
 oya-check-active-artifact-contract = { path = "../../../libs/oya-check-active-artifact-contract" }

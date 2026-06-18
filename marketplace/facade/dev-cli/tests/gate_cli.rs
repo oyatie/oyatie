@@ -4210,6 +4210,14 @@ fn adr_citation_args(root: &Path) -> Vec<String> {
             .to_str()
             .expect("utf8 decisions dir")
             .into(),
+        // Pin to a nonexistent registry so the allowed-ADR count is determined
+        // solely by the fixture's two pack ADRs (ADR-0001, ADR-0051), making
+        // the count assertion stable regardless of the live inheritance registry.
+        "--inheritance-registry".into(),
+        root.join("registry/adr/inherited-bominal-adrs.yaml")
+            .to_str()
+            .expect("utf8 inheritance registry path")
+            .into(),
     ]
 }
 
@@ -4303,6 +4311,14 @@ fn supply_chain_args(root: &Path) -> Vec<String> {
         root.join("scripts/supply-chain-adr0039.sh")
             .to_str()
             .expect("utf8 adr0039 script")
+            .into(),
+        // Pin --adr0039-rust to a fixture-local (non-existent) path so tests
+        // are hermetic and cannot accidentally inherit trivy evidence from the
+        // live repo source file (marketplace/facade/dev-cli/src/commands/supply_chain.rs).
+        "--adr0039-rust".into(),
+        root.join("src/commands/supply_chain.rs")
+            .to_str()
+            .expect("utf8 adr0039 rust")
             .into(),
         "--workflows-dir".into(),
         root.join(".github/workflows")

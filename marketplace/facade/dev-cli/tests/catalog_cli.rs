@@ -13,6 +13,11 @@ fn catalog_validate_cli_checks_workspace_members_against_registry_records() {
     fs::create_dir_all(temp.join("crates/oya-intelligence-capability-kernel"))
         .expect("crate dir created");
     fs::write(
+        temp.join("crates/oya-intelligence-capability-kernel/Cargo.toml"),
+        "[package]\nname = \"oya-intelligence-capability-kernel\"\nedition = \"2024\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n",
+    )
+    .expect("member manifest written");
+    fs::write(
         temp.join("Cargo.toml"),
         r#"[workspace]
 members = ["crates/oya-intelligence-capability-kernel"]
@@ -58,6 +63,11 @@ fn catalog_validate_cli_rejects_missing_workspace_record() {
     fs::create_dir_all(temp.join("registry/catalog")).expect("registry dir created");
     fs::create_dir_all(temp.join("crates/oya-intelligence-capability-kernel"))
         .expect("crate dir created");
+    fs::write(
+        temp.join("crates/oya-intelligence-capability-kernel/Cargo.toml"),
+        "[package]\nname = \"oya-intelligence-capability-kernel\"\nedition = \"2024\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n",
+    )
+    .expect("member manifest written");
     fs::write(
         temp.join("Cargo.toml"),
         r#"[workspace]

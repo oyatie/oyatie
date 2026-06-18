@@ -7,7 +7,7 @@ fn retired_financial_data_class_tokens_absent_from_contract_annotations() -> Res
     let annotation_files = [
         "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml",
         "contracts/openapi/cloud/cloud-finops-report-v1.yaml",
-        "crates/oya-cloud-billing-tax-app/src/lib.rs",
+        "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app/src/lib.rs",
     ];
     let retired_annotations = [
         "x-oyatie-data-class: FINANCIAL_KR_신용정보",
@@ -41,10 +41,12 @@ fn retired_financial_data_class_tokens_absent_from_contract_annotations() -> Res
 }
 
 fn repo_root() -> Result<PathBuf, String> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    manifest_dir
-        .parent()
-        .and_then(|path| path.parent())
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .find(|candidate| {
+            candidate.join("specs/masterplan.json").is_file()
+                && candidate.join("HANDOFF.md").is_file()
+        })
         .map(PathBuf::from)
-        .ok_or_else(|| "oya-dev-cli crate should live under crates/<name>".to_owned())
+        .ok_or_else(|| "dev-cli crate should live under the repo root".to_owned())
 }

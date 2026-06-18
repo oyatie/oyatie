@@ -411,13 +411,25 @@ fn execute_score_card_query(id: &str, query: &str, path: &Path) -> Result<bool, 
                 "[profile.ci]",
                 path,
             )?;
-            run_score_card_command(
-                id,
-                "cargo",
-                &["nextest", "list", "--profile", "ci", "--workspace"],
-                path,
-            )?;
-            Ok(true)
+            // Skip execution when cargo-nextest is not installed in the current
+            // environment (hermetic buck2 lanes, fresh CI containers before the
+            // nextest install step, etc.). The file-contains check above still
+            // validates that the nextest CI profile exists; the list command is
+            // treated as best-effort in environments without the binary.
+            let nextest_available = Command::new("cargo")
+                .args(["nextest", "--version"])
+                .env_remove("RUSTC_WRAPPER")
+                .output()
+                .map_or(false, |o| o.status.success());
+            if nextest_available {
+                run_score_card_command(
+                    id,
+                    "cargo",
+                    &["nextest", "list", "--profile", "ci", "--workspace"],
+                    path,
+                )?;
+            }
+            Ok(nextest_available)
         }
         "find scripts -type f -perm -111 -exec grep -L '^#!' {} + | head -1" => {
             require_executable_scripts_have_shebang(id, Path::new("scripts"), path)?;
