@@ -49,6 +49,10 @@ oya-cloud-ci-cargo-prefix-app = { path = "../oya-cloud-ci-cargo-prefix-app" }
 # cloud-ci-slo-coverage: the producer expands the config-declared catalog globs into
 # {crate_id,slo} rows; the gate reuses the existing oya-check-slo-coverage kernel.
 oya-cloud-ci-slo-coverage-app = { path = "../oya-cloud-ci-slo-coverage-app" }
+# cloud-ci-catalog-liveness: the producer expands the config-declared catalog globs into
+# {crate_id,is_live,marker} rows (resolving live workspace crate-ids IN-PROCESS via
+# oya-workspace-members-kernel — no shell-out); the gate is pure live-OR-marked policy.
+oya-cloud-ci-catalog-liveness-app = { path = "../oya-cloud-ci-catalog-liveness-app" }
 # cloud-ci-workspace-glob-coverage (ADR-0538): the producer emits raw member-entry rows and
 # concrete crate-dir coverage rows; the gate is pure policy over those booleans.
 oya-cloud-ci-workspace-glob-coverage-app = { path = "../oya-cloud-ci-workspace-glob-coverage-app" }

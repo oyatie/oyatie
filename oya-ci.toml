@@ -137,6 +137,13 @@ governance_lanes = ["docs/governance-lanes/diataxis-doc-class.md", "docs/governa
 [slo_coverage]
 catalog_record_globs = ["registry/catalog/*.yaml"]
 
+# cloud-ci-catalog-liveness (PR-C3): the founder live-OR-explicitly-marked policy. Same portable
+# catalog input contract as [slo_coverage] (born pack-shaped, policy-as-data — no hardcoded oyatie
+# paths in the gate logic). The producer expands these globs, resolves the LIVE workspace crate-id
+# universe IN-PROCESS (no shell-out), and parses the explicit non-live marker per record.
+[catalog_liveness]
+catalog_record_globs = ["registry/catalog/*.yaml"]
+
 [ttl]
 
 [unit_class]
@@ -180,6 +187,11 @@ face = "cargo_prefix"
 id = "cloud-ci-slo-coverage"
 input_kind = "producer-face"
 face = "slo_coverage"
+
+[[gates.enabled]]
+id = "cloud-ci-catalog-liveness"
+input_kind = "producer-face"
+face = "catalog_liveness"
 
 [[gates.enabled]]
 id = "cloud-ci-workspace-glob-coverage"

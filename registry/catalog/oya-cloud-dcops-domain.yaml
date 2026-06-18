@@ -1,8 +1,11 @@
-context: cloud
+context: compatibility
 role: domain
 capability: cloud-dcops
 plane: control
-slo: local-foundation-no-runtime-slo
+slo: no-runtime-slo
+status: retired-compatibility-row-no-crate
+successor_catalogs:
+  - registry/catalog/compute-dcops.yaml
 data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL, PII_QUASI_IDENTIFIER]
 operational_classes_owned: [AUDIT]
 api_stability: preview
@@ -11,6 +14,9 @@ supply_chain: source-only
 traceability:
   changeset: CS-CLOUD-OPS-FOUNDATION-001
 non_claims:
+  - no matching crate exists in this checkout
+  - the dcops domain capability moved to the de-branded crate compute-dcops (compute/core/dcops)
+  - retained only for catalog compatibility during the capability-first reorg truth-down
   - no live BMS telemetry ingestion
   - no data-center certification or facility runtime integration
   - no measured SLO or dashboard runtime
