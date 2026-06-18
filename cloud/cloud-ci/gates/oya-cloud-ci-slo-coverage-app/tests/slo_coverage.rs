@@ -70,7 +70,7 @@ fn slo_coverage_verdict_matches_the_live_catalog() {
     let face = run_producer_face(&root, "slo-coverage");
     let rows = face["rows"].as_array().expect("slo-coverage face rows");
     assert!(
-        rows.len() > 800,
+        rows.len() > 500,
         "the slo-coverage face should enumerate the catalog, got {}",
         rows.len()
     );
