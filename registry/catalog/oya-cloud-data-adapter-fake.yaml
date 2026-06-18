@@ -8,3 +8,6 @@ operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+status: designed-ahead-row-no-crate
+non_claims:
+  - no matching crate exists yet; designed-ahead roadmap entry
