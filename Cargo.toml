@@ -491,6 +491,7 @@ status = "planned"
 aws-lc-rs = { version = "1" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+libc = "0.2"
 prost = "0.14.3"
 protoc-bin-vendored = "3.2.0"
 tonic = { version = "0.14.6", default-features = false, features = ["codegen"] }
