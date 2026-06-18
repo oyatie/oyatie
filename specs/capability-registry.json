@@ -370,6 +370,7 @@
         "audit"
       ],
       "absorbs_current_dirs": [
+        "compliance",
         "oya/compliance",
         "oya/governance"
       ],

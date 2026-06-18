@@ -22,7 +22,8 @@
     "cell",
     "gateway",
     "flags",
-    "marketplace"
+    "marketplace",
+    "compliance"
   ],
   "meta_directories": [
     "kernel",
@@ -48,6 +49,7 @@
     "gateway",
     "flags",
     "marketplace",
+    "compliance",
     "cloud",
     "oya",
     "libs",

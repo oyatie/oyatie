@@ -1031,6 +1031,60 @@ dependencies = [
 ]
 
 [[package]]
+name = "compliance-dlp"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "compliance-dsr"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "compliance-dsr-usecase"
+version = "0.1.0"
+dependencies = [
+ "compliance-dsr",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "compliance-ediscovery"
+version = "0.1.0"
+dependencies = [
+ "compliance-retention",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "compliance-retention"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "compliance-retention-dsr"
+version = "0.1.0"
+dependencies = [
+ "compliance-retention",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "compliance-trust-portal"
+version = "0.1.0"
+dependencies = [
+ "compliance-dsr",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
 name = "compute-aws-adapter"
 version = "0.1.0"
 dependencies = [
@@ -5809,13 +5863,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-dlp-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "oya-docs-domain"
 version = "0.1.0"
 dependencies = [
@@ -5828,29 +5875,6 @@ version = "0.1.0"
 dependencies = [
  "oya-collab-runtime-domain",
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-dsr-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-dsr-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-dsr-domain",
-]
-
-[[package]]
-name = "oya-ediscovery-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-retention-domain",
 ]
 
 [[package]]
@@ -8493,21 +8517,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-retention-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-retention-dsr-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-retention-domain",
-]
-
-[[package]]
 name = "oya-saas-bench-app"
 version = "0.1.0"
 dependencies = [
@@ -9504,15 +9513,6 @@ name = "oya-treasury-cash-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-trust-portal-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-dsr-domain",
- "oya-residency-domain",
 ]
 
 [[package]]

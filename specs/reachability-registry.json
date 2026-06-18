@@ -46,6 +46,10 @@
       "prefix": "marketplace/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.14 ownership seed: the compliance capability tree's OWNERS marker (axis-cloud-platform), homed by the tenth strangler move (oya/compliance/crates → compliance/{core,ports}/); breadth-unlimited (ADR-0555) so it also covers the co-moved compliance/observability/slos non-crate SLO subtree (ADR-0139 SLO-home convention); the committed move-plan at specs/reorg/compliance-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "compliance/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },
