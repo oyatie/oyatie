@@ -273,6 +273,41 @@ This is a doctrine ADR; no engine code lands with it. Verification for this chan
 - The decision-crosswalk face registers ADR-0548 after the faces settle
   (`oya-cloud-ci-face-settle --settle --commit` as the final commit, per ADR-0539).
 
+## Amendment — FRIC-017 disk-reclaim productized as a data-driven Rust-first preflight (2026-06-18, pipeline-glue(b))
+
+The paved-road doctrine "new automation never ships as shell" is applied to FRIC-017 (GitHub-hosted
+`ubuntu-latest` exhausts `/` during the buck-out warm restore). The two duplicated multi-line inline
+`sudo rm -rf` disk-reclaim blocks in `.github/workflows/oya-ci-required.yml` (the `buck2` and
+`gate-affected-set` jobs) are retired in favor of a NEUTRAL engine + a single source-of-truth policy
+pack, exactly the R0 reusable shape this ADR prescribes (classification lives in DATA; the engine is
+generic).
+
+**New preflight crate (born-blocking workspace member, pure + fs-injected evaluator):**
+`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/`. The runner-profile classification
+(`reclaim_dirs` + `min_free_gib_after`) is policy-as-data in
+`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/runner-disk-reclaim-policy.json`; the
+binary best-effort removes the profile's vendor preinstall dirs BEFORE the buck-out restore, logs
+structured disk-before/after, and asserts the post-reclaim free-disk floor — emitting a distinct
+INFRA-RED exit + signal line so a downstream disk-exhaustion is attributable to INFRA, not CODE. It
+runs with ZERO dependency on the restored buck-out cache (buck2 cold-builds the tiny
+std+serde_json+libc bin from source). The crate's files born-accounted here (verbatim path mention =
+justification; reachable from `cargo-members`; OWNERS-covered):
+`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/Cargo.toml`,
+`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/BUCK`,
+`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/OWNERS`,
+`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/src/lib.rs`,
+`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/src/main.rs`, and
+`cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app/tests/runner_disk_reclaim.rs`.
+
+The rust-first-automation-hygiene ratchet (ADR-0548 pipeline-glue(a)) counted the two inline blocks
+as accepted legacy-bridge debt; this productization replaces each multi-line block with a single
+irreducible-glue `buck2 run` invocation at the same `(file,job,step)` index, so the keyed
+workflow-inline-shell baseline is unchanged (the residual invocation keys are accepted irreducible
+runner-bootstrap glue) while the inline-shell LINE footprint shrinks 6→1. Residual follow-up
+(separately tracked): surfacing the preflight's INFRA-RED signal as an infra-vs-code label on the
+`oya-ci-required` required context is a broader observability item; this preflight emits the signal,
+the required-context labeling is out of scope.
+
 ## References
 
 - `.omc/ultragoal/PRODUCT-pipeline-paved-road.md` (gitignored session one-pager, 2026-06-10 — the
