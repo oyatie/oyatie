@@ -1,8 +1,5 @@
 {
-  "capability": "catalog-reorg-rekey",
-  "crate_dirs": [],
-  "crate_idents": [],
-  "files": [
+  "artifacts": [
     {
       "new_path": "registry/catalog/cell-routing.yaml",
       "old_path": "registry/catalog/oya-cell-domain.yaml"
@@ -200,5 +197,6 @@
       "old_path": "registry/catalog/oya-saas-plugin-marketplace-kernel.yaml"
     }
   ],
-  "schema": "oya-ci/reorg-move-manifest/v1"
+  "capability": "catalog-reorg-rekey",
+  "moves": []
 }

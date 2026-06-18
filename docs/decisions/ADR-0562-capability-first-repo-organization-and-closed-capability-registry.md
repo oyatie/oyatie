@@ -907,13 +907,15 @@ status; its tracked path is NOT cited here, to preserve the founder one-way-door
 per-crate dependency-rationales store holds no entry for this crate (its sole dep is the third-party
 `tokio`), so no rationale edit is needed.
 
-**Per-crate catalog/SLO record retained at old name (crate-first incremental, task #62):** like the
-cell/storage/gateway precedent, the per-crate `registry/catalog/oya-flags.yaml` SLO-catalog record
-STAYS at its old path and is homed in phase-2. It is accepted unreachable debt in the frozen
-merge-base total-accounting baseline, so leaving it in place is gate-green; RENAMING it would mint a
-NEW unreachable tracked path (the move-plan→manifest relabel only relocates files UNDER the moved
-crate dir, not the sibling catalog record), which total-accounting blocks on. The slo-coverage gate
-stays green at the old stem (it requires only a non-blank `slo:` scalar, not a live-crate stem).
+**Per-crate catalog/SLO records re-keyed by PR-C1 (catalog doctrine-fix):** PR-C1 applies the
+founder's live-OR-explicitly-marked policy to the 9 capabilities moved by the strangler migration.
+The ArtifactMove plan is committed at `specs/reorg/catalog-reorg-rekey-move-plan.json` (49 pairs;
+reached by the existing ADR-0563 `specs/reorg/` reachability-registry seed). Rekeyed records
+include `registry/catalog/flags-server.yaml` (from `oya-flags.yaml`) and
+`registry/catalog/observability-aggregate.yaml` (from `oya-cloud-observability-domain.yaml`,
+which maps to the live `observability-aggregate` crate at `observability/core/aggregate`).
+All 49 rekeyed records remain accepted unreachable debt in the total-accounting baseline; the
+slo-coverage gate stays green (non-blank `slo:` scalars).
 
 **Non-crate capability artifacts retained in place (crate-first incremental, task #62):** like the
 prior moves, `oya/feature-flags/` also holds non-crate capability artifacts (contracts, slos, policy,
