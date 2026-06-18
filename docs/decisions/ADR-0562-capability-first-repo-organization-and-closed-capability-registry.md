@@ -907,13 +907,12 @@ status; its tracked path is NOT cited here, to preserve the founder one-way-door
 per-crate dependency-rationales store holds no entry for this crate (its sole dep is the third-party
 `tokio`), so no rationale edit is needed.
 
-**Per-crate catalog/SLO record retained at old name (crate-first incremental, task #62):** like the
-cell/storage/gateway precedent, the per-crate `registry/catalog/oya-flags.yaml` SLO-catalog record
-STAYS at its old path and is homed in phase-2. It is accepted unreachable debt in the frozen
-merge-base total-accounting baseline, so leaving it in place is gate-green; RENAMING it would mint a
-NEW unreachable tracked path (the move-plan→manifest relabel only relocates files UNDER the moved
-crate dir, not the sibling catalog record), which total-accounting blocks on. The slo-coverage gate
-stays green at the old stem (it requires only a non-blank `slo:` scalar, not a live-crate stem).
+**Per-crate catalog/SLO record re-keyed by PR-C1 (catalog doctrine-fix):** like the
+cell/storage/gateway precedent, the per-crate catalog record for the flags crate was originally
+retained at `registry/catalog/oya-flags.yaml` pending a doctrine-fix pass. PR-C1 (catalog-reorg
+re-key) renamed it to `registry/catalog/flags-server.yaml` to match the live de-branded crate
+identity (`flags-server`). It remains accepted unreachable debt in the total-accounting baseline
+(the `unreachable` code); the slo-coverage gate stays green (non-blank `slo:` scalar).
 
 **Non-crate capability artifacts retained in place (crate-first incremental, task #62):** like the
 prior moves, `oya/feature-flags/` also holds non-crate capability artifacts (contracts, slos, policy,
