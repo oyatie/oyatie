@@ -136,6 +136,12 @@ pub struct OyaCiConfig {
     pub owners: OwnersConfig,
     pub enforcement: EnforcementConfig,
     pub slo_coverage: SloCoverageConfig,
+    /// `[catalog_liveness]` — the catalog-liveness gate input globs (the founder
+    /// live-OR-explicitly-marked policy). Skipped from serialization when it equals the default
+    /// so first-party canonical TOML (and thus `digest()`) is byte-identical to before this
+    /// section existed — same byte-identity rationale as `[output]`/`[cross_artifact]`.
+    #[serde(default, skip_serializing_if = "CatalogLivenessConfig::is_default")]
+    pub catalog_liveness: CatalogLivenessConfig,
     pub ttl: TtlConfig,
     pub unit_class: UnitClassConfig,
     pub gates: GatesConfig,
@@ -184,6 +190,8 @@ struct OyaCiConfigShadow {
     #[serde(default)]
     slo_coverage: Option<SloCoverageConfig>,
     #[serde(default)]
+    catalog_liveness: Option<CatalogLivenessConfig>,
+    #[serde(default)]
     ttl: Option<TtlConfig>,
     #[serde(default)]
     unit_class: Option<UnitClassConfig>,
@@ -224,6 +232,7 @@ impl OyaCiConfig {
             owners: OwnersConfig::default(),
             enforcement: EnforcementConfig::default(),
             slo_coverage: SloCoverageConfig::default(),
+            catalog_liveness: CatalogLivenessConfig::default(),
             ttl: TtlConfig::default(),
             unit_class: UnitClassConfig::default(),
             gates: GatesConfig::default(),
@@ -249,6 +258,7 @@ impl OyaCiConfig {
             owners: OwnersConfig::neutral(),
             enforcement: EnforcementConfig::neutral(),
             slo_coverage: SloCoverageConfig::neutral(),
+            catalog_liveness: CatalogLivenessConfig::neutral(),
             ttl: TtlConfig::neutral(),
             unit_class: UnitClassConfig::neutral(),
             gates: GatesConfig::neutral(),
@@ -297,6 +307,9 @@ impl OyaCiConfig {
         }
         if let Some(v) = shadow.slo_coverage {
             base.slo_coverage = v;
+        }
+        if let Some(v) = shadow.catalog_liveness {
+            base.catalog_liveness = v;
         }
         if let Some(v) = shadow.ttl {
             base.ttl = v;
@@ -912,6 +925,53 @@ impl SloCoverageConfig {
 }
 
 // ---------------------------------------------------------------------------
+// [catalog_liveness]  (portable input contract for cloud-ci-catalog-liveness)
+// ---------------------------------------------------------------------------
+
+/// `[catalog_liveness]` — declared catalog input globs for the catalog-liveness gate (the
+/// founder live-OR-explicitly-marked policy). Same portable contract shape as `[slo_coverage]`:
+/// the producer expands these globs over the declared tracked-path universe, derives the catalog
+/// identity from each file stem, resolves the LIVE workspace crate-id universe in-process, and
+/// parses the explicit non-live marker. The default mirrors oyatie's catalog source; adopters
+/// point the same pure gate at their own catalog layout without forking the producer or evaluator.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CatalogLivenessConfig {
+    #[serde(default = "default_catalog_liveness_record_globs")]
+    pub catalog_record_globs: Vec<String>,
+}
+
+fn default_catalog_liveness_record_globs() -> Vec<String> {
+    vec!["registry/catalog/*.yaml".to_owned()]
+}
+
+impl Default for CatalogLivenessConfig {
+    fn default() -> Self {
+        Self {
+            catalog_record_globs: default_catalog_liveness_record_globs(),
+        }
+    }
+}
+
+impl CatalogLivenessConfig {
+    /// The neutral profile's `[catalog_liveness]`: NO catalog globs (the default
+    /// `registry/catalog/*.yaml` is an oyatie path literal; ADR-0533 item 1). An adopter points
+    /// the gate at their own catalog source; absent ⇒ the gate is present-but-quiet.
+    fn neutral() -> Self {
+        Self {
+            catalog_record_globs: Vec::new(),
+        }
+    }
+
+    /// True iff this is the default `[catalog_liveness]` — used to SKIP serialization so
+    /// first-party canonical TOML (and `digest()`) is byte-identical to before this section
+    /// existed (same rationale as `[output]`).
+    fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
+// ---------------------------------------------------------------------------
 // [ttl] / [unit_class]  (subsumes the already-DATA JSON tables, plan §3.1)
 // ---------------------------------------------------------------------------
 
@@ -989,6 +1049,7 @@ pub enum GateFace {
     ManifestHygiene,
     CargoPrefix,
     SloCoverage,
+    CatalogLiveness,
     WorkspaceGlobCoverage,
     TargetParity,
     EnforcementLiveness,
@@ -1074,6 +1135,11 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             id: "cloud-ci-slo-coverage".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::SloCoverage),
+        },
+        GateSpec {
+            id: "cloud-ci-catalog-liveness".to_owned(),
+            input_kind: GateInputKind::ProducerFace,
+            face: Some(GateFace::CatalogLiveness),
         },
         GateSpec {
             id: "cloud-ci-workspace-glob-coverage".to_owned(),
@@ -1282,9 +1348,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_thirteen_gates_with_input_kinds() {
+    fn bundled_default_enables_all_fourteen_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 13);
+        assert_eq!(cfg.gates.enabled.len(), 14);
         let brand = cfg
             .gates
             .enabled
@@ -1317,6 +1383,14 @@ mod tests {
             .expect("slo-coverage gate enabled");
         assert_eq!(slo_coverage.input_kind, GateInputKind::ProducerFace);
         assert_eq!(slo_coverage.face, Some(GateFace::SloCoverage));
+        let catalog_liveness = cfg
+            .gates
+            .enabled
+            .iter()
+            .find(|g| g.id == "cloud-ci-catalog-liveness")
+            .expect("catalog-liveness gate enabled");
+        assert_eq!(catalog_liveness.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(catalog_liveness.face, Some(GateFace::CatalogLiveness));
         let workspace_glob_coverage = cfg
             .gates
             .enabled
@@ -1610,7 +1684,7 @@ face = "total_accounting"
         assert!(n.slo_coverage.catalog_record_globs.is_empty());
         assert!(n.cross_artifact.sources.is_empty());
         // gates present (engine still dispatches) but disposition is empty (quiet).
-        assert_eq!(n.gates.enabled.len(), 13, "gates present");
+        assert_eq!(n.gates.enabled.len(), 14, "gates present");
         let disp: serde_json::Value =
             serde_json::from_str(n.gates.disposition_json()).expect("neutral disposition json");
         assert_eq!(

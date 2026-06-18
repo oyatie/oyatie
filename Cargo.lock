@@ -4512,6 +4512,7 @@ dependencies = [
  "oya-cloud-ci-automation-ratchet-app",
  "oya-cloud-ci-bnf-layer-suffix-app",
  "oya-cloud-ci-cargo-prefix-app",
+ "oya-cloud-ci-catalog-liveness-app",
  "oya-cloud-ci-cross-artifact-agreement-app",
  "oya-cloud-ci-enforcement-liveness-app",
  "oya-cloud-ci-manifest-hygiene-app",
@@ -4576,6 +4577,13 @@ version = "0.1.0"
 dependencies = [
  "oya-ci-config-kernel",
  "oya-intelligence-cargo-prefix-domain",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-cloud-ci-catalog-liveness-app"
+version = "0.1.0"
+dependencies = [
  "serde_json",
 ]
 

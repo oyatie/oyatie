@@ -279,7 +279,12 @@ fn run() -> Result<(), CliError> {
     // The SLO coverage gate input: the config-declared catalog record globs expanded over the
     // tracked-path universe. This makes the lane input contract portable DATA instead of an
     // Oyatie-only hardcoded directory walk.
-    let slo_coverage = collect_slo_coverage(&repo_root, &inputs.tracked_paths, &cfg);
+    let slo_coverage = collect_slo_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
+    // The catalog-liveness gate input: the config-declared catalog globs expanded over the
+    // tracked-path universe, each row tagged with whether its stem is a LIVE workspace crate-id
+    // (resolved IN-PROCESS via oya-workspace-members-kernel — no shell-out) and its explicit
+    // non-live marker (status:/non_claims). The gate enforces the founder live-OR-marked policy.
+    let catalog_liveness = collect_catalog_liveness(&repo_root, &inputs.tracked_paths, &cfg)?;
     // The ADR-0538 workspace-glob-coverage gate input: root member entries plus concrete
     // first-party crate-dir coverage against the canonical glob-aware workspace-member resolver.
     let workspace_glob_coverage =
@@ -294,6 +299,7 @@ fn run() -> Result<(), CliError> {
         manifest_hygiene: &manifest_hygiene,
         cargo_prefix: &cargo_prefix,
         slo_coverage: &slo_coverage,
+        catalog_liveness: &catalog_liveness,
         workspace_glob_coverage: &workspace_glob_coverage,
         target_parity: &target_parity,
         enforcement_liveness: &enforcement_liveness,
@@ -311,6 +317,7 @@ fn run() -> Result<(), CliError> {
             "manifest-hygiene" => &manifest_hygiene,
             "cargo-prefix" => &cargo_prefix,
             "slo-coverage" => &slo_coverage,
+            "catalog-liveness" => &catalog_liveness,
             "workspace-glob-coverage" => &workspace_glob_coverage,
             "target-parity" => &target_parity,
             "enforcement-liveness" => &enforcement_liveness,
@@ -583,8 +590,12 @@ fn collect_slo_coverage(
     repo_root: &Path,
     tracked_paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
-) -> Value {
-    let mut records: Vec<(String, String, Option<String>)> = Vec::new();
+) -> Result<Value, CliError> {
+    // The slo-coverage gate composes the live-OR-marked predicate (PR-C3): a row with an SLO is
+    // not enough if the catalog record itself is silently stale. Resolve the live crate-id
+    // universe IN-PROCESS (no shell-out) so each row carries is_live + marker alongside slo.
+    let live = live_workspace_crate_ids(repo_root)?;
+    let mut records: Vec<(String, String, Option<String>, bool, Option<String>)> = Vec::new();
     for path in tracked_paths {
         if is_path_excluded(path, cfg) {
             continue;
@@ -601,17 +612,183 @@ fn collect_slo_coverage(
             continue;
         };
         let contents = read_text(&repo_root.join(path));
-        records.push((crate_id, path.clone(), parse_catalog_slo(&contents)));
+        let is_live = live.contains(&crate_id);
+        let marker = catalog_non_live_marker(&contents);
+        records.push((
+            crate_id,
+            path.clone(),
+            parse_catalog_slo(&contents),
+            is_live,
+            marker,
+        ));
     }
     records.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
     let rows: Vec<Value> = records
         .into_iter()
-        .map(|(crate_id, source_path, slo)| {
-            json!({ "crate_id": crate_id, "source_path": source_path, "slo": slo })
+        .map(|(crate_id, source_path, slo, is_live, marker)| {
+            json!({
+                "crate_id": crate_id,
+                "source_path": source_path,
+                "slo": slo,
+                "is_live": is_live,
+                "marker": marker,
+            })
         })
         .collect();
-    json!({ "rows": rows })
+    Ok(json!({ "rows": rows }))
+}
+
+/// The explicit non-live `status:` markers the catalog-liveness gate accepts (the founder
+/// live-OR-explicitly-marked policy). A record whose stem is NOT a live workspace crate-id passes
+/// the gate ONLY if it carries one of these markers (or a `non_claims` no-crate declaration). These
+/// are the verbatim markers PR-C1/PR-C2 used to retire moved/never-built catalog rows:
+///   - `retired-compatibility-row-no-crate`  — a compatibility row whose crate was removed/moved;
+///   - `designed-ahead-row-no-crate`         — a row designed ahead of its (not-yet-built) crate;
+///   - `audit_doctrine_only`                 — a doctrine/audit-only row with no runtime crate;
+///   - `planned` / `aspirational`            — forward-looking rows with no crate yet.
+const NON_LIVE_STATUS_MARKERS: [&str; 5] = [
+    "retired-compatibility-row-no-crate",
+    "designed-ahead-row-no-crate",
+    "audit_doctrine_only",
+    "planned",
+    "aspirational",
+];
+
+/// Parse the top-level `status:` scalar from a catalog record (the same shallow top-level YAML
+/// scan as `parse_catalog_slo`). Returns the verbatim value (no marker classification here).
+fn parse_catalog_status(contents: &str) -> Option<String> {
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let Some((key, value)) = trimmed.split_once(':') else {
+            continue;
+        };
+        if key.trim() == "status" {
+            let v = value.trim();
+            if v.is_empty() {
+                return None;
+            }
+            return Some(v.to_owned());
+        }
+    }
+    None
+}
+
+/// Detect a `non_claims` block whose entries explicitly state no matching crate exists — the
+/// non-`status:` marker shape PR-C1/PR-C2 also used (e.g. "no matching crate exists in this
+/// checkout"). This keeps the gate from false-REDing legitimately-retired rows that declared the
+/// no-crate fact in prose rather than via `status:`. Scoped to entries that name the crate's
+/// absence so generic non_claims (e.g. "no measured SLO") never launder a stale row as marked.
+fn catalog_non_claims_declares_no_crate(contents: &str) -> bool {
+    let mut in_non_claims = false;
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("non_claims:") {
+            in_non_claims = true;
+            continue;
+        }
+        if in_non_claims {
+            // The block ends at the next top-level key (a non-indented, non-list line).
+            let indented = line.starts_with(' ') || line.starts_with('-') || line.starts_with('\t');
+            if !indented && !trimmed.is_empty() {
+                break;
+            }
+            let lower = trimmed.to_ascii_lowercase();
+            if (lower.contains("no matching crate") || lower.contains("no live crate"))
+                && (lower.contains("exist") || lower.contains("checkout") || lower.contains("crate"))
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// The explicit-non-live marker for a catalog record, or `None` if it carries none. The producer
+/// owns this classification (the single source of truth the gate reads): a non-live `status:`
+/// value wins; otherwise a `non_claims` no-crate declaration yields the synthetic
+/// `non-claims-no-crate` marker. A LIVE record needs no marker (the gate checks live OR marked).
+fn catalog_non_live_marker(contents: &str) -> Option<String> {
+    if let Some(status) = parse_catalog_status(contents) {
+        if NON_LIVE_STATUS_MARKERS.contains(&status.as_str()) {
+            return Some(status);
+        }
+    }
+    if catalog_non_claims_declares_no_crate(contents) {
+        return Some("non-claims-no-crate".to_owned());
+    }
+    None
+}
+
+/// The LIVE workspace crate-id universe: the `[package].name` of every resolved workspace member.
+/// Resolved IN-PROCESS via `oya-workspace-members-kernel::resolve_member_dirs` (the same glob-aware
+/// oracle the cohesion gate + the workspace-glob/target-parity faces use) + a shallow Cargo.toml
+/// `[package].name` parse. NEVER a `cargo metadata`/`buck2` shell-out (all-CLI-retirement +
+/// buck2-denied-in-review-sessions + hermetic). The catalog crate_id (the file stem) is compared
+/// to these package names, since the de-brand path-as-namespace means the crate identity is the
+/// `[package].name` (e.g. `compute/core/domain` → `compute-domain`), not the directory basename.
+fn live_workspace_crate_ids(repo_root: &Path) -> Result<BTreeSet<String>, CliError> {
+    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+        .map_err(|error| CliError::Io(format!("catalog-liveness resolve member dirs: {error}")))?;
+    let mut ids = BTreeSet::new();
+    for dir in member_dirs {
+        let manifest = repo_root.join(&dir).join("Cargo.toml");
+        if let Some(name) = parse_package_name(&read_text(&manifest)) {
+            ids.insert(name);
+        }
+    }
+    Ok(ids)
+}
+
+/// Enumerate catalog-liveness rows from the config-declared `[catalog_liveness].catalog_record_globs`.
+/// Each row tags whether the record's stem is a LIVE workspace crate-id and the record's explicit
+/// non-live marker (or `null`). The gate's pure `evaluate_keyed` enforces the founder
+/// live-OR-explicitly-marked policy: RED iff (not live) AND (no marker). Portable DATA shape so an
+/// adopter points the same gate at their own catalog layout.
+fn collect_catalog_liveness(
+    repo_root: &Path,
+    tracked_paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> Result<Value, CliError> {
+    let live = live_workspace_crate_ids(repo_root)?;
+    let mut records: Vec<(String, String, bool, Option<String>)> = Vec::new();
+    for path in tracked_paths {
+        if is_path_excluded(path, cfg) {
+            continue;
+        }
+        if !cfg
+            .catalog_liveness
+            .catalog_record_globs
+            .iter()
+            .any(|glob| path_glob_matches(path, glob))
+        {
+            continue;
+        }
+        let Some(crate_id) = file_stem(path) else {
+            continue;
+        };
+        let contents = read_text(&repo_root.join(path));
+        let is_live = live.contains(&crate_id);
+        let marker = catalog_non_live_marker(&contents);
+        records.push((crate_id, path.clone(), is_live, marker));
+    }
+    records.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+
+    let rows: Vec<Value> = records
+        .into_iter()
+        .map(|(crate_id, source_path, is_live, marker)| {
+            json!({
+                "crate_id": crate_id,
+                "source_path": source_path,
+                "is_live": is_live,
+                "marker": marker,
+            })
+        })
+        .collect();
+    Ok(json!({ "rows": rows }))
 }
 
 /// Enumerate ADR-0538 workspace-glob-coverage rows. Member-entry rows preserve the raw root
@@ -1143,12 +1320,30 @@ mod tests {
     #[test]
     fn slo_coverage_preserves_duplicate_basenames_to_prevent_false_green() {
         let root = unique_temp_repo();
+        // A root workspace manifest is required: the slo-coverage face now composes the
+        // live-OR-marked predicate, which resolves workspace members in-process. An empty
+        // members array yields an empty live set (these `service` rows are not live crates).
+        fs::write(
+            root.join("Cargo.toml"),
+            "[workspace]\nmembers = []\n",
+        )
+        .expect("write root manifest");
         let first = root.join("registry/catalog-a/service.yaml");
         let second = root.join("registry/catalog-b/service.yaml");
         fs::create_dir_all(first.parent().expect("first parent")).expect("create first parent");
         fs::create_dir_all(second.parent().expect("second parent")).expect("create second parent");
-        fs::write(&first, "slo: preview-control-plane\n").expect("write first catalog row");
-        fs::write(&second, "# deliberately missing slo\n").expect("write second catalog row");
+        // Both rows carry an explicit non-live marker so the composed liveness predicate does not
+        // fire here — this test isolates the duplicate-stem SLO behaviour.
+        fs::write(
+            &first,
+            "slo: preview-control-plane\nstatus: designed-ahead-row-no-crate\n",
+        )
+        .expect("write first catalog row");
+        fs::write(
+            &second,
+            "# deliberately missing slo\nstatus: designed-ahead-row-no-crate\n",
+        )
+        .expect("write second catalog row");
 
         let mut cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
         cfg.slo_coverage.catalog_record_globs = vec![
@@ -1160,7 +1355,7 @@ mod tests {
             "registry/catalog-b/service.yaml".to_owned(),
         ];
 
-        let face = collect_slo_coverage(&root, &tracked_paths, &cfg);
+        let face = collect_slo_coverage(&root, &tracked_paths, &cfg).expect("slo-coverage face");
         let rows = face["rows"].as_array().expect("rows");
         assert_eq!(rows.len(), 2, "duplicate stems must not collapse rows");
         assert_eq!(rows[0]["crate_id"], "service");
