@@ -7292,8 +7292,6 @@
     "marketplace/facade/dev-cli/tests/fixtures/board-sync/board-snapshot-reverse-orphan.json",
     "marketplace/facade/dev-cli/tests/fixtures/board-sync/masterplan-minimal.json",
     "marketplace/facade/dev-cli/tests/fixtures/missing-row-registry.json",
-    "marketplace/facade/dev-cli/tests/foundry_capability_schema_cli.rs",
-    "marketplace/facade/dev-cli/tests/foundry_eval_cli.rs",
     "marketplace/facade/dev-cli/tests/gate_cli.rs",
     "marketplace/facade/dev-cli/tests/knowledge_graph_semantic.rs",
     "marketplace/facade/dev-cli/tests/lint_cli.rs",

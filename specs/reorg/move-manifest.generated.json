@@ -642,14 +642,6 @@
       "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/missing-row-registry.json"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/tests/foundry_capability_schema_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/foundry_capability_schema_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/foundry_eval_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/foundry_eval_cli.rs"
-    },
-    {
       "new_path": "marketplace/facade/dev-cli/tests/gate_cli.rs",
       "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs"
     },

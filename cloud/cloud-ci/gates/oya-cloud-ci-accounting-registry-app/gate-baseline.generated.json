@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:c8b848be5ecbf138",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:9affb4e60e4fd1f0"
+    "source_inputs_digest": "fnv1a64:63d9869d95f9f1e6"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -11477,8 +11477,6 @@
           "marketplace/facade/dev-cli/tests/fixtures/board-sync/board-snapshot-reverse-orphan.json",
           "marketplace/facade/dev-cli/tests/fixtures/board-sync/masterplan-minimal.json",
           "marketplace/facade/dev-cli/tests/fixtures/missing-row-registry.json",
-          "marketplace/facade/dev-cli/tests/foundry_capability_schema_cli.rs",
-          "marketplace/facade/dev-cli/tests/foundry_eval_cli.rs",
           "marketplace/facade/dev-cli/tests/gate_cli.rs",
           "marketplace/facade/dev-cli/tests/knowledge_graph_semantic.rs",
           "marketplace/facade/dev-cli/tests/lint_cli.rs",
