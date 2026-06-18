@@ -1,701 +1,483 @@
 {
-  "capability": "marketplace",
-  "crate_dirs": [
-    {
-      "new_path": "marketplace/core/cloud-domain",
-      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain"
-    },
-    {
-      "new_path": "marketplace/core/cloud-kernel",
-      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel"
-    },
-    {
-      "new_path": "marketplace/core/plugin-kernel",
-      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli"
-    },
-    {
-      "new_path": "marketplace/core/doc-set-scaffold",
-      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold"
-    }
-  ],
-  "crate_idents": [
-    {
-      "new": "marketplace-cloud-domain",
-      "old": "oya-cloud-marketplace-domain"
-    },
-    {
-      "new": "marketplace-cloud-kernel",
-      "old": "oya-cloud-marketplace-kernel"
-    },
-    {
-      "new": "marketplace-dev-cli",
-      "old": "oya-dev-cli"
-    },
-    {
-      "new": "marketplace-doc-set-scaffold",
-      "old": "oya-marketplace-doc-set-scaffold"
-    },
-    {
-      "new": "marketplace-plugin-kernel",
-      "old": "oya-saas-plugin-marketplace-kernel"
-    }
-  ],
+  "capability": "slo-catalog-backfill",
+  "crate_dirs": [],
+  "crate_idents": [],
   "files": [
     {
-      "new_path": "marketplace/core/cloud-domain/BUCK",
-      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain/BUCK"
+      "new_path": "cell/observability/slos/cell-lifecycle.openslo.yaml",
+      "old_path": "cloud/cell-lifecycle/slos/cell-lifecycle.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/cloud-domain/Cargo.toml",
-      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain/Cargo.toml"
+      "new_path": "cell/observability/slos/cell-rebalancer.openslo.yaml",
+      "old_path": "cloud/cell-rebalancer/slos/cell-rebalancer.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/cloud-domain/src/lib.rs",
-      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain/src/lib.rs"
+      "new_path": "iac/observability/slos/autosharding-events.openslo.yaml",
+      "old_path": "cloud/cloud-iac/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/cloud-kernel/BUCK",
-      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel/BUCK"
+      "new_path": "iac/observability/slos/helm-chart-lint-correctness.openslo.yaml",
+      "old_path": "cloud/cloud-iac/slos/helm-chart-lint-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/cloud-kernel/Cargo.toml",
-      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel/Cargo.toml"
+      "new_path": "iac/observability/slos/iac-apply-latency.openslo.yaml",
+      "old_path": "cloud/cloud-iac/slos/iac-apply-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/cloud-kernel/src/lib.rs",
-      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel/src/lib.rs"
+      "new_path": "iac/observability/slos/iac-render-latency.openslo.yaml",
+      "old_path": "cloud/cloud-iac/slos/iac-render-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/plugin-kernel/BUCK",
-      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/BUCK"
+      "new_path": "iac/observability/slos/iac-rollback-latency.openslo.yaml",
+      "old_path": "cloud/cloud-iac/slos/iac-rollback-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/plugin-kernel/Cargo.toml",
-      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/Cargo.toml"
+      "new_path": "iac/observability/slos/iac-validator-availability.openslo.yaml",
+      "old_path": "cloud/cloud-iac/slos/iac-validator-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/plugin-kernel/src/auction.rs",
-      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/src/auction.rs"
+      "new_path": "iac/observability/slos/slsa-provenance-completeness.openslo.yaml",
+      "old_path": "cloud/cloud-iac/slos/slsa-provenance-completeness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/plugin-kernel/src/lib.rs",
-      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/src/lib.rs"
+      "new_path": "storage/observability/slos/cloud-storage-autosharding-events.openslo.yaml",
+      "old_path": "cloud/cloud-storage/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/core/plugin-kernel/src/vertical_fanout.rs",
-      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel/src/vertical_fanout.rs"
+      "new_path": "gateway/observability/slos/api-gateway.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/api-gateway.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/BUCK",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/BUCK"
+      "new_path": "gateway/observability/slos/api-gateway-autosharding-events.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/Cargo.toml",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/Cargo.toml"
+      "new_path": "gateway/observability/slos/edge-availability.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/edge-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/active_artifact_contract_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/active_artifact_contract_gate.rs"
+      "new_path": "gateway/observability/slos/edge-latency-p50.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/edge-latency-p50.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/adr_0145_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/adr_0145_gates.rs"
+      "new_path": "gateway/observability/slos/edge-latency-p95.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/edge-latency-p95.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/adr_planning_completeness_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/adr_planning_completeness_gate.rs"
+      "new_path": "gateway/observability/slos/edge-latency-p99.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/edge-latency-p99.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/adr_planning_frontmatter.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/adr_planning_frontmatter.rs"
+      "new_path": "gateway/observability/slos/h3-negotiation-rate.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/h3-negotiation-rate.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/adr_supersession_consistency_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/adr_supersession_consistency_gate.rs"
+      "new_path": "gateway/observability/slos/pqc-negotiation-rate.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/pqc-negotiation-rate.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/api_contract_registry.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/api_contract_registry.rs"
+      "new_path": "gateway/observability/slos/tls-handshake-success.openslo.yaml",
+      "old_path": "oya/api-gateway/slos/tls-handshake-success.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/architecture_map_emit_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/architecture_map_emit_gate.rs"
+      "new_path": "gateway/observability/slos/connector-autosharding-events.openslo.yaml",
+      "old_path": "oya/connector/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/architecture_plane_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/architecture_plane_gates.rs"
+      "new_path": "gateway/observability/slos/connector-availability.openslo.yaml",
+      "old_path": "oya/connector/slos/connector-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/aspirational_enforcement_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/aspirational_enforcement_gate.rs"
+      "new_path": "gateway/observability/slos/connector-retirement.openslo.yaml",
+      "old_path": "oya/connector/slos/connector-retirement.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/banned_primitives_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/banned_primitives_gate.rs"
+      "new_path": "gateway/observability/slos/dlq-overflow-prevention.openslo.yaml",
+      "old_path": "oya/connector/slos/dlq-overflow-prevention.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/bin/fake-cargo.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/bin/fake-cargo.rs"
+      "new_path": "gateway/observability/slos/oauth-token-health.openslo.yaml",
+      "old_path": "oya/connector/slos/oauth-token-health.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/bin/fake-verify-command.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/bin/fake-verify-command.rs"
+      "new_path": "gateway/observability/slos/webhook-receiver-throughput.openslo.yaml",
+      "old_path": "oya/connector/slos/webhook-receiver-throughput.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/bin/oya_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/bin/oya_gate.rs"
+      "new_path": "marketplace/observability/slos/developer-sdk-autosharding-events.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/canonical_base_neutrality_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/canonical_base_neutrality_gate.rs"
+      "new_path": "marketplace/observability/slos/codegen-availability.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/codegen-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/catalog_contract_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/catalog_contract_gates.rs"
+      "new_path": "marketplace/observability/slos/onboarding-completion-availability.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/onboarding-completion-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/catalog_registry.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/catalog_registry.rs"
+      "new_path": "marketplace/observability/slos/payout-settlement-availability.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/payout-settlement-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cedar_fragment_coverage_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cedar_fragment_coverage_gate.rs"
+      "new_path": "marketplace/observability/slos/payout-settlement-correctness.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/payout-settlement-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/changeset_state_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/changeset_state_gates.rs"
+      "new_path": "marketplace/observability/slos/portal-availability.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/portal-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_cell_topology_gate.rs"
+      "new_path": "marketplace/observability/slos/sandbox-provision-latency.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/sandbox-provision-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_gitops_evidence_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs"
+      "new_path": "marketplace/observability/slos/sandbox-reset-latency.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/sandbox-reset-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_helm_chart_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_helm_chart_gate.rs"
+      "new_path": "marketplace/observability/slos/signing-key-issuance-latency.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/signing-key-issuance-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_kubewarden_admission_gate.rs"
+      "new_path": "marketplace/observability/slos/tax-form-emission-correctness.openslo.yaml",
+      "old_path": "oya/developer-sdk/slos/tax-form-emission-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_archive_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_archive_gate.rs"
+      "new_path": "observability/observability/slos/diagnostics-autosharding-events.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_catalog_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_catalog_gate.rs"
+      "new_path": "observability/observability/slos/critical-result-notify-latency.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/critical-result-notify-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_provenance_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs"
+      "new_path": "observability/observability/slos/diagnostic-report-issuance-latency.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/diagnostic-report-issuance-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_provider_requirements_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_provider_requirements_gate.rs"
+      "new_path": "observability/observability/slos/hl7v2-ingest-success.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/hl7v2-ingest-success.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_registry_protocol_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs"
+      "new_path": "observability/observability/slos/pathology-sign-out-to-delivery.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/pathology-sign-out-to-delivery.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_module_release_index_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_module_release_index_gate.rs"
+      "new_path": "observability/observability/slos/policy-decision-latency.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/policy-decision-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_opentofu_validation_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_opentofu_validation_gate.rs"
+      "new_path": "observability/observability/slos/reference-range-lookup-latency.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/reference-range-lookup-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_provider_lockfile_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_provider_lockfile_gate.rs"
+      "new_path": "observability/observability/slos/reflex-evaluation-latency.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/reflex-evaluation-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_provider_readiness_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_provider_readiness_gate.rs"
+      "new_path": "observability/observability/slos/tat-dashboard-refresh.openslo.yaml",
+      "old_path": "oya/diagnostics/slos/tat-dashboard-refresh.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cloud_iac_provider_signature_review_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cloud_iac_provider_signature_review_gate.rs"
+      "new_path": "storage/observability/slos/drive-autosharding-events.openslo.yaml",
+      "old_path": "oya/drive/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/codeview_read_surface_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/codeview_read_surface_gates.rs"
+      "new_path": "storage/observability/slos/dlp-scan-correctness.openslo.yaml",
+      "old_path": "oya/drive/slos/dlp-scan-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/command_output.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/command_output.rs"
+      "new_path": "storage/observability/slos/download-first-byte-latency.openslo.yaml",
+      "old_path": "oya/drive/slos/download-first-byte-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/command_process.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/command_process.rs"
+      "new_path": "storage/observability/slos/file-list-latency.openslo.yaml",
+      "old_path": "oya/drive/slos/file-list-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/catalog.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/catalog.rs"
+      "new_path": "storage/observability/slos/immutability-tier-correctness.openslo.yaml",
+      "old_path": "oya/drive/slos/immutability-tier-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/check.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/check.rs"
+      "new_path": "storage/observability/slos/preview-render-latency.openslo.yaml",
+      "old_path": "oya/drive/slos/preview-render-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/cleanup.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/cleanup.rs"
+      "new_path": "storage/observability/slos/search-latency.openslo.yaml",
+      "old_path": "oya/drive/slos/search-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/codex_thread_sweep.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/codex_thread_sweep.rs"
+      "new_path": "storage/observability/slos/share-link-generation-latency.openslo.yaml",
+      "old_path": "oya/drive/slos/share-link-generation-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/demo.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/demo.rs"
+      "new_path": "storage/observability/slos/sync-delta-latency.openslo.yaml",
+      "old_path": "oya/drive/slos/sync-delta-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/doc/adr_index.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/adr_index.rs"
+      "new_path": "storage/observability/slos/upload-multipart-throughput.openslo.yaml",
+      "old_path": "oya/drive/slos/upload-multipart-throughput.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/doc/exit_checklist/m02.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/exit_checklist/m02.rs"
+      "new_path": "flags/observability/slos/autosharding-events.openslo.yaml",
+      "old_path": "oya/feature-flags/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/doc/exit_checklist/mod.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/exit_checklist/mod.rs"
+      "new_path": "flags/observability/slos/experiment-result-freshness.openslo.yaml",
+      "old_path": "oya/feature-flags/slos/experiment-result-freshness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/doc/master_plan_ledger.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/master_plan_ledger.rs"
+      "new_path": "flags/observability/slos/feature-flags.openslo.yaml",
+      "old_path": "oya/feature-flags/slos/feature-flags.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/doc/mdbook.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/mdbook.rs"
+      "new_path": "flags/observability/slos/flag-eval-latency.openslo.yaml",
+      "old_path": "oya/feature-flags/slos/flag-eval-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/doc/mod.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/mod.rs"
+      "new_path": "flags/observability/slos/flag-state-propagation.openslo.yaml",
+      "old_path": "oya/feature-flags/slos/flag-state-propagation.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/doc/openapi.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/openapi.rs"
+      "new_path": "flags/observability/slos/killswitch-fire-latency.openslo.yaml",
+      "old_path": "oya/feature-flags/slos/killswitch-fire-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/doc/rustdoc.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/doc/rustdoc.rs"
+      "new_path": "storage/observability/slos/ai-inference-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/ai-inference-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/architecture_boundaries.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs"
+      "new_path": "storage/observability/slos/imaging-autosharding-events.openslo.yaml",
+      "old_path": "oya/imaging/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/board_masterplan_consistency.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/board_masterplan_consistency.rs"
+      "new_path": "storage/observability/slos/availability.openslo.yaml",
+      "old_path": "oya/imaging/slos/availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/deployment_ops_contract.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/deployment_ops_contract.rs"
+      "new_path": "storage/observability/slos/c-store-receive-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/c-store-receive-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/master_plan_completion_audit.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/master_plan_completion_audit.rs"
+      "new_path": "storage/observability/slos/critical-result-notify-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/critical-result-notify-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/milestone_audit.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/milestone_audit.rs"
+      "new_path": "storage/observability/slos/hanging-protocol-apply-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/hanging-protocol-apply-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/mod.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/mod.rs"
+      "new_path": "storage/observability/slos/image-pull-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/image-pull-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/product_index.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/product_index.rs"
+      "new_path": "storage/observability/slos/mpr-render-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/mpr-render-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/product_prd_json.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/product_prd_json.rs"
+      "new_path": "storage/observability/slos/mwl-pull-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/mwl-pull-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/result_cache.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/result_cache.rs"
+      "new_path": "storage/observability/slos/phi-audit-completeness.openslo.yaml",
+      "old_path": "oya/imaging/slos/phi-audit-completeness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/run_all.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/run_all.rs"
+      "new_path": "storage/observability/slos/prior-fetch-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/prior-fetch-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/gate/stage0_application_shell_prereqs.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/gate/stage0_application_shell_prereqs.rs"
+      "new_path": "storage/observability/slos/structured-report-save-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/structured-report-save-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/generate/board_sync.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/generate/board_sync.rs"
+      "new_path": "storage/observability/slos/voice-recognition-partial-transcript-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/voice-recognition-partial-transcript-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/generate/masterplan.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/generate/masterplan.rs"
+      "new_path": "storage/observability/slos/worklist-load-latency.openslo.yaml",
+      "old_path": "oya/imaging/slos/worklist-load-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/generate/mod.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/generate/mod.rs"
+      "new_path": "marketplace/observability/slos/marketplace-autosharding-events.openslo.yaml",
+      "old_path": "oya/marketplace/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/lint.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/lint.rs"
+      "new_path": "marketplace/observability/slos/deal-accept-latency.openslo.yaml",
+      "old_path": "oya/marketplace/slos/deal-accept-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/merge_queue.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/merge_queue.rs"
+      "new_path": "marketplace/observability/slos/deal-offer-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/deal-offer-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/mod.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/mod.rs"
+      "new_path": "marketplace/observability/slos/escrow-reserve-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/escrow-reserve-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/onprem.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/onprem.rs"
+      "new_path": "marketplace/observability/slos/listing-agents-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/listing-agents-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/ops.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/ops.rs"
+      "new_path": "marketplace/observability/slos/listing-apps-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/listing-apps-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/plan.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/plan.rs"
+      "new_path": "marketplace/observability/slos/listing-datasets-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/listing-datasets-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/submit.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/submit.rs"
+      "new_path": "marketplace/observability/slos/listing-models-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/listing-models-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/supply_chain.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/supply_chain.rs"
+      "new_path": "marketplace/observability/slos/listing-plugins-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/listing-plugins-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/verify.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/verify.rs"
+      "new_path": "marketplace/observability/slos/listing-workflows-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/listing-workflows-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/verify_affected.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/verify_affected.rs"
+      "new_path": "marketplace/observability/slos/mediation-case-availability.openslo.yaml",
+      "old_path": "oya/marketplace/slos/mediation-case-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/commands/verify_results.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/commands/verify_results.rs"
+      "new_path": "marketplace/observability/slos/revenue-share-accuracy.openslo.yaml",
+      "old_path": "oya/marketplace/slos/revenue-share-accuracy.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cross_axis_contracts.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cross_axis_contracts.rs"
+      "new_path": "marketplace/observability/slos/revenue-share-clawback-accuracy.openslo.yaml",
+      "old_path": "oya/marketplace/slos/revenue-share-clawback-accuracy.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/cross_tenant_access_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/cross_tenant_access_gates.rs"
+      "new_path": "marketplace/observability/slos/settlement-replay-fidelity.openslo.yaml",
+      "old_path": "oya/marketplace/slos/settlement-replay-fidelity.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/data_class_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/data_class_gates.rs"
+      "new_path": "observability/observability/slos/alerting-fanout-latency.openslo.yaml",
+      "old_path": "oya/observability/slos/alerting-fanout-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/date_utils.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/date_utils.rs"
+      "new_path": "observability/observability/slos/observability-autosharding-events.openslo.yaml",
+      "old_path": "oya/observability/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/dependency_blessed_allowlist_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/dependency_blessed_allowlist_gate.rs"
+      "new_path": "observability/observability/slos/clickhouse-ingest-throughput.openslo.yaml",
+      "old_path": "oya/observability/slos/clickhouse-ingest-throughput.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/dependency_seam_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/dependency_seam_gates.rs"
+      "new_path": "observability/observability/slos/log-ingest-availability.openslo.yaml",
+      "old_path": "oya/observability/slos/log-ingest-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/design_spec_maturity_claims_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/design_spec_maturity_claims_gate.rs"
+      "new_path": "observability/observability/slos/metric-ingest-availability.openslo.yaml",
+      "old_path": "oya/observability/slos/metric-ingest-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/documentation_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/documentation_gates.rs"
+      "new_path": "observability/observability/slos/query-latency-logs.openslo.yaml",
+      "old_path": "oya/observability/slos/query-latency-logs.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/fd001_manifest_workspace_alignment_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/fd001_manifest_workspace_alignment_gate.rs"
+      "new_path": "observability/observability/slos/query-latency-prom.openslo.yaml",
+      "old_path": "oya/observability/slos/query-latency-prom.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/foundation_audit_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/foundation_audit_gates.rs"
+      "new_path": "observability/observability/slos/tail-sample-fidelity.openslo.yaml",
+      "old_path": "oya/observability/slos/tail-sample-fidelity.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/foundation_fixture.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/foundation_fixture.rs"
+      "new_path": "observability/observability/slos/trace-ingest-availability.openslo.yaml",
+      "old_path": "oya/observability/slos/trace-ingest-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/foundry_capability_schema_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/foundry_capability_schema_gates.rs"
+      "new_path": "flags/observability/slos/availability.openslo.yaml",
+      "old_path": "oya/oya-flags/slos/availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/foundry_eval_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/foundry_eval_gates.rs"
+      "new_path": "marketplace/observability/slos/plugin-app-store-autosharding-events.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/freshness_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/freshness_gate.rs"
+      "new_path": "marketplace/observability/slos/catalog-browse-availability.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/catalog-browse-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/glossary_cross_doc_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/glossary_cross_doc_gates.rs"
+      "new_path": "marketplace/observability/slos/catalog-browse-latency.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/catalog-browse-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/governance_advisory_lanes.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/governance_advisory_lanes.rs"
+      "new_path": "marketplace/observability/slos/per-plugin-rate-limit-correctness.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/per-plugin-rate-limit-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/governance_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/governance_gates.rs"
+      "new_path": "marketplace/observability/slos/plugin-install-availability.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/plugin-install-availability.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/honest_claims_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/honest_claims_gate.rs"
+      "new_path": "marketplace/observability/slos/plugin-install-latency.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/plugin-install-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/http_stack_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/http_stack_gate.rs"
+      "new_path": "marketplace/observability/slos/plugin-revoke-latency.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/plugin-revoke-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/hyperscaler_arch_invariants_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/hyperscaler_arch_invariants_gate.rs"
+      "new_path": "marketplace/observability/slos/subscription-billing-correctness.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/subscription-billing-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/hyperscaler_maturity_claims_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/hyperscaler_maturity_claims_gate.rs"
+      "new_path": "marketplace/observability/slos/vetting-pipeline-correctness.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/vetting-pipeline-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/json_scan.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/json_scan.rs"
+      "new_path": "marketplace/observability/slos/vetting-pipeline-throughput.openslo.yaml",
+      "old_path": "oya/plugin-app-store/slos/vetting-pipeline-throughput.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/korea_localization_evidence_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/korea_localization_evidence_gate.rs"
+      "new_path": "storage/observability/slos/recordings-autosharding-events.openslo.yaml",
+      "old_path": "oya/recordings/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/layered_architecture_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/layered_architecture_gates.rs"
+      "new_path": "storage/observability/slos/export-mp4-latency.openslo.yaml",
+      "old_path": "oya/recordings/slos/export-mp4-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/lib.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/lib.rs"
+      "new_path": "storage/observability/slos/export-transcript-pdf-latency.openslo.yaml",
+      "old_path": "oya/recordings/slos/export-transcript-pdf-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/loop_recovery_patterns_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/loop_recovery_patterns_gate.rs"
+      "new_path": "storage/observability/slos/legal-hold-chain-of-custody-correctness.openslo.yaml",
+      "old_path": "oya/recordings/slos/legal-hold-chain-of-custody-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/main.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/main.rs"
+      "new_path": "storage/observability/slos/legal-hold-engagement-latency.openslo.yaml",
+      "old_path": "oya/recordings/slos/legal-hold-engagement-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/masterplan_drift_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/masterplan_drift_gate.rs"
+      "new_path": "storage/observability/slos/playback-start-latency.openslo.yaml",
+      "old_path": "oya/recordings/slos/playback-start-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/openapi_rest_route_parity_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/openapi_rest_route_parity_gate.rs"
+      "new_path": "storage/observability/slos/recording-list-latency.openslo.yaml",
+      "old_path": "oya/recordings/slos/recording-list-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/path_format.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/path_format.rs"
+      "new_path": "storage/observability/slos/redaction-render-latency.openslo.yaml",
+      "old_path": "oya/recordings/slos/redaction-render-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/placeholder_debt_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/placeholder_debt_gates.rs"
+      "new_path": "storage/observability/slos/retention-policy-correctness.openslo.yaml",
+      "old_path": "oya/recordings/slos/retention-policy-correctness.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/planning_closure_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/planning_closure_gate.rs"
+      "new_path": "storage/observability/slos/transcript-render-latency.openslo.yaml",
+      "old_path": "oya/recordings/slos/transcript-render-latency.openslo.yaml"
     },
     {
-      "new_path": "marketplace/facade/dev-cli/src/planning_ssot_coverage_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/planning_ssot_coverage_gate.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/platform_substrate_defaults_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/platform_substrate_defaults_gate.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/pre_push_contract_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/pre_push_contract_gate.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/protection_context_match_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/protection_context_match_gate.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/quality_lane_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/quality_lane_gates.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/retired_vocabulary_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/retired_vocabulary_gate.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/runbook_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/runbook_gates.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/saga_shape_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/saga_shape_gate.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/scalability_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/scalability_gates.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/scalar_parse.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/scalar_parse.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/supply_chain_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/supply_chain_gates.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/team_ownership_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/team_ownership_gates.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/tier_a_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/tier_a_gates.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/typescript_workspace_gates.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/typescript_workspace_gates.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/workspace_hygiene_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/workspace_hygiene_gate.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/workspace_manifest.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/workspace_manifest.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/workspace_topology_gate.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/workspace_topology_gate.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/src/yaml_scan.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/src/yaml_scan.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/audit_chain_replay_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/audit_chain_replay_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/catalog_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/catalog_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/cross_tenant_access_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/cross_tenant_access_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/demo_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/demo_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/deployment_ops_contract.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/deployment_ops_contract.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/doc_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/doc_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/fd001_data_class_taxonomy.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fd001_data_class_taxonomy.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/fd001_manifest_workspace_alignment_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fd001_manifest_workspace_alignment_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/fixtures/board-sync/board-snapshot-forward-orphan.json",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/board-sync/board-snapshot-forward-orphan.json"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/fixtures/board-sync/board-snapshot-matching.json",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/board-sync/board-snapshot-matching.json"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/fixtures/board-sync/board-snapshot-reverse-orphan.json",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/board-sync/board-snapshot-reverse-orphan.json"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/fixtures/board-sync/masterplan-minimal.json",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/board-sync/masterplan-minimal.json"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/fixtures/missing-row-registry.json",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/fixtures/missing-row-registry.json"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/gate_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/gate_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/knowledge_graph_semantic.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/knowledge_graph_semantic.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/lint_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/lint_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/loop_recovery_patterns.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/loop_recovery_patterns.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/milestone_audit.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/milestone_audit.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/oya_verify_ci_mirror.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/oya_verify_ci_mirror.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/plan_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/plan_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/pr_traceability_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/pr_traceability_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/product_prd_json.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/product_prd_json.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/runbook_freshness_cli.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/runbook_freshness_cli.rs"
-    },
-    {
-      "new_path": "marketplace/facade/dev-cli/tests/supply_chain_adr0039.rs",
-      "old_path": "oya/developer-sdk/crates/oya-dev-cli/tests/supply_chain_adr0039.rs"
-    },
-    {
-      "new_path": "marketplace/core/doc-set-scaffold/BUCK",
-      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold/BUCK"
-    },
-    {
-      "new_path": "marketplace/core/doc-set-scaffold/Cargo.toml",
-      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold/Cargo.toml"
-    },
-    {
-      "new_path": "marketplace/core/doc-set-scaffold/src/lib.rs",
-      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold/src/lib.rs"
+      "new_path": "storage/observability/slos/transcript-search-latency.openslo.yaml",
+      "old_path": "oya/recordings/slos/transcript-search-latency.openslo.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"
