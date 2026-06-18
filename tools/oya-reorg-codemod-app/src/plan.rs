@@ -11,11 +11,14 @@
 //! 4. rewrite ALL `BUCK` labels + the moved BUCKs' own name/crate fields;
 //! 5. rewrite ALL `.rs` crate-ident references;
 //! 6. rewrite the root workspace members/exclude if needed;
-//! 7. `git mv` each crate dir old -> new (longest-path-first so nested moves are safe).
+//! 7. `git mv` each crate dir old -> new (longest-path-first so nested moves are safe);
+//! 8. `git mv` each NON-crate artifact (SLOs, catalog records) old -> new, content-preserving
+//!    (no in-file rewrite — these carry no cargo/buck/rust idents).
 //!
 //! Steps 3-6 edit files at their CURRENT (pre-move) locations; step 7 then relocates the dirs
-//! wholesale, carrying the already-rewritten manifests/sources with them. This ordering keeps
-//! the operation a single coherent transform and lets a `--dry-run` shadow copy prove it.
+//! wholesale, carrying the already-rewritten manifests/sources with them; step 8 co-moves the
+//! capability's non-crate artifacts wholesale. This ordering keeps the operation a single
+//! coherent transform and lets a `--dry-run` shadow copy prove it.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -79,6 +82,20 @@ pub fn apply_plan(
             });
         }
     }
+    // Pre-flight for NON-crate artifacts (a file OR a dir): source present, target free. Uses a
+    // path-exists check (not dir-only) because an artifact may be a single SLO/catalog file.
+    for a in &plan.artifacts {
+        if !path_exists(repo_root, &a.old_path) {
+            return Err(CodemodError::SourceMissing {
+                path: a.old_path.clone(),
+            });
+        }
+        if path_exists(repo_root, &a.new_path) {
+            return Err(CodemodError::TargetExists {
+                path: a.new_path.clone(),
+            });
+        }
+    }
 
     let by_old_path = plan.by_old_path();
     let by_old_name = plan.by_old_cargo_name();
@@ -136,6 +153,23 @@ pub fn apply_plan(
     for m in ordered {
         move_dir(repo_root, &m.old_path, &m.new_path, opts)?;
         outcome.dirs_moved.push((m.old_path.clone(), m.new_path.clone()));
+    }
+
+    // --- Step 8: NON-crate artifact moves (SLOs, catalog records). Content-preserving wholesale
+    // `git mv` of each file/dir; `move_dir` mkdir -p's the parent + handles file AND dir sources.
+    // Longest old_path first so a nested artifact under another artifact moves safely. Appended to
+    // dirs_moved so total-accounting / the manifest see them. EMPTY artifacts => zero iterations
+    // => byte-identical to a pre-ArtifactMove apply (back-compat no-op). ---
+    let mut ordered_artifacts: Vec<&crate::model::ArtifactMove> = plan.artifacts.iter().collect();
+    ordered_artifacts.sort_by(|a, b| {
+        b.old_path
+            .len()
+            .cmp(&a.old_path.len())
+            .then(a.old_path.cmp(&b.old_path))
+    });
+    for a in ordered_artifacts {
+        move_dir(repo_root, &a.old_path, &a.new_path, opts)?;
+        outcome.dirs_moved.push((a.old_path.clone(), a.new_path.clone()));
     }
     outcome.dirs_moved.sort();
 
@@ -421,6 +455,12 @@ pub fn resolve_members(root_manifest_text: &str, repo_root: &Path) -> Vec<String
     resolve_member_dirs_from_str(root_manifest_text, repo_root).unwrap_or_default()
 }
 
+/// True if `rel` exists on disk (file OR directory) under `repo_root`. Used for the artifact
+/// pre-flight, where an artifact may be a single SLO/catalog file rather than a directory.
+fn path_exists(repo_root: &Path, rel: &str) -> bool {
+    repo_root.join(rel).exists()
+}
+
 fn move_dir(
     repo_root: &Path,
     old: &str,
@@ -552,5 +592,211 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
     fn parent_dir_handles_root_and_nested() {
         assert_eq!(parent_dir("Cargo.toml"), "");
         assert_eq!(parent_dir("a/b/Cargo.toml"), "a/b");
+    }
+
+    // --- ArtifactMove (PR-A) apply tests: NON-crate co-move (SLOs, catalog records) ---
+
+    use crate::model::{ArtifactMove, CrateMove, MovePlan};
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static ARTIFACT_TEST_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    fn artifact_tmp_root(tag: &str) -> PathBuf {
+        let unique = format!(
+            "oya-reorg-artifact-{}-{}-{}",
+            tag,
+            std::process::id(),
+            ARTIFACT_TEST_COUNTER.fetch_add(1, Ordering::Relaxed)
+        );
+        let root = std::env::temp_dir().join(unique);
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        root
+    }
+
+    fn wf(root: &Path, rel: &str, content: &str) {
+        let p = root.join(rel);
+        std::fs::create_dir_all(p.parent().unwrap()).unwrap();
+        std::fs::write(p, content).unwrap();
+    }
+
+    /// A minimal one-crate workspace plus a NON-crate SLO dir + a catalog file, so an artifact
+    /// co-move has something to move. `use_git_mv: false` => plain fs::rename (no git needed).
+    fn build_artifact_fixture(root: &Path) {
+        wf(
+            root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\", \"observability/*/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            root,
+            "crates/oya-observability-domain/Cargo.toml",
+            "[package]\nname = \"oya-observability-domain\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(
+            root,
+            "crates/oya-observability-domain/src/lib.rs",
+            "pub fn d() {}\n",
+        );
+        // NON-crate artifacts: an SLO dir (2 files) and a single catalog file.
+        wf(
+            root,
+            "oya/observability/slos/api-availability.openslo.yaml",
+            "apiVersion: openslo/v1\nkind: SLO\n",
+        );
+        wf(
+            root,
+            "oya/observability/slos/api-latency.openslo.yaml",
+            "apiVersion: openslo/v1\nkind: SLO\n",
+        );
+        wf(
+            root,
+            "registry/catalog/oya-observability-domain.yaml",
+            "crate_id: oya-observability-domain\n",
+        );
+    }
+
+    fn observability_plan_with_artifacts() -> MovePlan {
+        MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![CrateMove {
+                old_path: "crates/oya-observability-domain".to_string(),
+                new_path: "observability/core/domain".to_string(),
+                old_cargo_name: "oya-observability-domain".to_string(),
+                new_cargo_name: "observability-domain".to_string(),
+            }],
+            artifacts: vec![
+                ArtifactMove {
+                    old_path: "oya/observability/slos".to_string(),
+                    new_path: "observability/observability/slos".to_string(),
+                },
+                ArtifactMove {
+                    old_path: "registry/catalog/oya-observability-domain.yaml".to_string(),
+                    new_path: "registry/catalog/observability-domain.yaml".to_string(),
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn apply_co_moves_artifacts_and_records_them_in_dirs_moved() {
+        let root = artifact_tmp_root("apply");
+        build_artifact_fixture(&root);
+        let plan = observability_plan_with_artifacts();
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+
+        // (1) the DIR artifact moved wholesale: NEW descendants present, OLD dir gone.
+        assert!(root
+            .join("observability/observability/slos/api-availability.openslo.yaml")
+            .is_file());
+        assert!(root
+            .join("observability/observability/slos/api-latency.openslo.yaml")
+            .is_file());
+        assert!(!root.join("oya/observability/slos").exists());
+        // (2) the FILE artifact moved (content preserved, no in-file rewrite).
+        let cat = root.join("registry/catalog/observability-domain.yaml");
+        assert!(cat.is_file());
+        assert!(!root
+            .join("registry/catalog/oya-observability-domain.yaml")
+            .exists());
+        assert_eq!(
+            std::fs::read_to_string(&cat).unwrap(),
+            "crate_id: oya-observability-domain\n",
+            "artifact move is content-preserving (no rewrite of SLO/catalog YAML)"
+        );
+        // (3) the crate move also landed.
+        assert!(root.join("observability/core/domain/Cargo.toml").is_file());
+        // (4) CANARY: artifacts appear in dirs_moved (so total-accounting / the manifest see them).
+        //     This FAILS if step-8 is removed (artifacts would be absent from dirs_moved).
+        assert!(
+            outcome
+                .dirs_moved
+                .contains(&(
+                    "oya/observability/slos".to_string(),
+                    "observability/observability/slos".to_string()
+                )),
+            "step-8 must record the dir artifact in dirs_moved: {:?}",
+            outcome.dirs_moved
+        );
+        assert!(
+            outcome.dirs_moved.contains(&(
+                "registry/catalog/oya-observability-domain.yaml".to_string(),
+                "registry/catalog/observability-domain.yaml".to_string()
+            )),
+            "step-8 must record the file artifact in dirs_moved: {:?}",
+            outcome.dirs_moved
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn manifest_files_list_carries_artifact_pairs_for_a_real_move() {
+        // NON-VACUOUS CANARY: build the manifest `files` list EXACTLY as `cmd_manifest` does
+        // (file_level_manifest merged with artifact_file_pairs over the candidate POST-move tree),
+        // and assert the artifact pairs are PRESENT. This FAILS if the manifest-merge of
+        // artifact_file_pairs is removed (the artifact pairs would vanish from `files`).
+        let plan = observability_plan_with_artifacts();
+        // Candidate POST-move tracked tree: NEW paths present, OLD paths gone.
+        let tracked = vec![
+            "observability/core/domain/Cargo.toml".to_string(),
+            "observability/core/domain/src/lib.rs".to_string(),
+            "observability/observability/slos/api-availability.openslo.yaml".to_string(),
+            "observability/observability/slos/api-latency.openslo.yaml".to_string(),
+            "registry/catalog/observability-domain.yaml".to_string(),
+        ];
+        let mut files: std::collections::BTreeMap<String, String> =
+            plan.file_level_manifest(&tracked).into_iter().collect();
+        for (old, new) in plan.artifact_file_pairs(&tracked) {
+            files.insert(old, new);
+        }
+        // crate file pair is present (sanity)...
+        assert_eq!(
+            files.get("crates/oya-observability-domain/src/lib.rs"),
+            Some(&"observability/core/domain/src/lib.rs".to_string())
+        );
+        // ...AND the artifact pairs are present (the canary).
+        assert_eq!(
+            files.get("oya/observability/slos/api-availability.openslo.yaml"),
+            Some(&"observability/observability/slos/api-availability.openslo.yaml".to_string()),
+            "dir-artifact descendant must be in the manifest files list"
+        );
+        assert_eq!(
+            files.get("registry/catalog/oya-observability-domain.yaml"),
+            Some(&"registry/catalog/observability-domain.yaml".to_string()),
+            "file-artifact must be in the manifest files list"
+        );
+    }
+
+    #[test]
+    fn apply_with_empty_artifacts_is_byte_identical_no_op_for_the_artifact_step() {
+        // BACK-COMPAT: a plan with the SAME crate move but NO artifacts moves ONLY the crate and
+        // records ONLY the crate in dirs_moved — provably identical to a pre-ArtifactMove apply.
+        let root = artifact_tmp_root("noop");
+        build_artifact_fixture(&root);
+        let mut plan = observability_plan_with_artifacts();
+        plan.artifacts.clear();
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
+
+        // the crate moved...
+        assert!(root.join("observability/core/domain/Cargo.toml").is_file());
+        // ...but the artifacts did NOT (no artifact step fired).
+        assert!(root.join("oya/observability/slos").is_dir());
+        assert!(root
+            .join("registry/catalog/oya-observability-domain.yaml")
+            .is_file());
+        // dirs_moved carries the crate ONLY.
+        assert_eq!(
+            outcome.dirs_moved,
+            vec![(
+                "crates/oya-observability-domain".to_string(),
+                "observability/core/domain".to_string()
+            )],
+            "empty artifacts => dirs_moved is the crate move alone (back-compat no-op)"
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
     }
 }
