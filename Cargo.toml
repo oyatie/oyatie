@@ -139,6 +139,7 @@ exclude = [
   "cell/observability",
   "gateway/observability",
   "flags/observability",
+  "marketplace/observability",
 ]
 resolver = "2"
 
