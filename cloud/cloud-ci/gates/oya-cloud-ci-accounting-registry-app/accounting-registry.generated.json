@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18527,
-    "source_inputs_digest": "fnv1a64:56c9fa664d3a809d"
+    "source_inputs_digest": "fnv1a64:60f2fe30820aceb5"
   },
   "rows": [
     {
@@ -371260,7 +371260,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": "ADR-0562",
+      "justification_ref": "ADR-0139",
       "owner": "OWNERS:specs",
       "path": "specs/reorg/move-manifest.generated.json",
       "reachable_from": [
@@ -371282,7 +371282,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0139",
       "owner": "OWNERS:specs",
       "path": "specs/reorg/slo-catalog-backfill-move-plan.json",
       "reachable_from": [
@@ -371296,7 +371296,7 @@
         "ttl_class": "spec"
       },
       "unit_class": "spec",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
