@@ -2440,10 +2440,10 @@
       ]
     },
     {
-      "key": "oya-cloud-marketplace-domain",
+      "key": "marketplace-cloud-domain",
       "context": "cloud",
       "role": "domain",
-      "capability": "cloud-marketplace",
+      "capability": "marketplace",
       "plane": "control",
       "slo": "local-foundation-no-runtime-slo",
       "data_classes_owned": [
@@ -2467,10 +2467,10 @@
       ]
     },
     {
-      "key": "oya-cloud-marketplace-kernel",
+      "key": "marketplace-cloud-kernel",
       "context": "cloud",
       "role": "kernel",
-      "capability": "cloud-marketplace",
+      "capability": "marketplace",
       "plane": "control",
       "slo": "local-foundation-no-runtime-slo",
       "data_classes_owned": [
@@ -4106,10 +4106,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-dev-cli",
+      "key": "marketplace-dev-cli",
       "context": "tooling",
       "role": "runtime",
-      "capability": "dev",
+      "capability": "marketplace",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -6426,10 +6426,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-marketplace-doc-set-scaffold",
+      "key": "marketplace-doc-set-scaffold",
       "context": "marketplace",
       "role": "app",
-      "capability": "doc-set-scaffold",
+      "capability": "marketplace",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [
@@ -8254,10 +8254,10 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-plugin-marketplace-kernel",
+      "key": "marketplace-plugin-kernel",
       "context": "saas",
       "role": "kernel",
-      "capability": "saas-plugin-marketplace",
+      "capability": "marketplace",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [

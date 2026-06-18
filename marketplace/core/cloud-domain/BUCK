@@ -1,0 +1,27 @@
+rust_library(
+    name = "marketplace-cloud-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "marketplace_cloud_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
+        "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
+        "//cell/core/region:cell-region",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "marketplace-cloud-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "marketplace_cloud_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-billing/crates/oya-cloud-billing-domain:oya-cloud-billing-domain",
+        "//cloud/cloud-billing/crates/oya-metering-domain:oya-metering-domain",
+        "//cell/core/region:cell-region",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

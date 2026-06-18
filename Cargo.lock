@@ -3214,6 +3214,127 @@ dependencies = [
 ]
 
 [[package]]
+name = "marketplace-cloud-domain"
+version = "0.1.0"
+dependencies = [
+ "cell-region",
+ "oya-cloud-billing-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
+]
+
+[[package]]
+name = "marketplace-cloud-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "marketplace-dev-cli"
+version = "0.1.0"
+dependencies = [
+ "messaging-domain",
+ "messaging-file-adapter",
+ "oya-application-app",
+ "oya-audit-chain-domain",
+ "oya-audit-chain-file-adapter",
+ "oya-check-a11y-discipline",
+ "oya-check-active-artifact-contract",
+ "oya-check-adr-citation",
+ "oya-check-adr-index",
+ "oya-check-aspirational-enforcement",
+ "oya-check-audit-chain-seal-coverage",
+ "oya-check-authority-cohesion",
+ "oya-check-authz-tier-discipline",
+ "oya-check-backup-retention-discipline",
+ "oya-check-benchmark",
+ "oya-check-brand-residue",
+ "oya-check-cedar-fragment-coverage",
+ "oya-check-claim-ceiling",
+ "oya-check-client-stack-discipline",
+ "oya-check-codeowners-mirror",
+ "oya-check-cohesion",
+ "oya-check-compliance-evidence-coverage",
+ "oya-check-cursor-pagination-coverage",
+ "oya-check-data-class",
+ "oya-check-dependency-seam",
+ "oya-check-doc-axis",
+ "oya-check-doc-catalog",
+ "oya-check-documentation-system",
+ "oya-check-event-schema-versioning",
+ "oya-check-glossary-coverage",
+ "oya-check-glossary-vocabulary",
+ "oya-check-high-risk-auto-decision-refusal",
+ "oya-check-honest-claims",
+ "oya-check-i18n-coverage",
+ "oya-check-iac-tier-discipline",
+ "oya-check-id-discipline",
+ "oya-check-idempotency-key-coverage",
+ "oya-check-image-signing-discipline",
+ "oya-check-layered-architecture-discipline",
+ "oya-check-license-policy",
+ "oya-check-metric-cardinality",
+ "oya-check-mobile-native",
+ "oya-check-no-grouping",
+ "oya-check-olap-tier-discipline",
+ "oya-check-ontology-projection-coverage",
+ "oya-check-openapi-rest-route-parity",
+ "oya-check-otel-trace-propagation",
+ "oya-check-perf-budget",
+ "oya-check-placeholder-debt",
+ "oya-check-pr-traceability",
+ "oya-check-pre-push",
+ "oya-check-protection-context-match",
+ "oya-check-quality-lane",
+ "oya-check-raci-coverage",
+ "oya-check-readme-coverage",
+ "oya-check-realtime-transport-tier",
+ "oya-check-release-pack",
+ "oya-check-retired-vocabulary",
+ "oya-check-rpo-rto-coverage",
+ "oya-check-runbook-freshness",
+ "oya-check-runbook-index",
+ "oya-check-shardability",
+ "oya-check-slo-coverage",
+ "oya-check-slsa-l3-evidence-grounded",
+ "oya-check-statelessness",
+ "oya-check-supply-chain",
+ "oya-check-tenant-cost-labels-coverage",
+ "oya-check-typescript-workspace",
+ "oya-check-vector-store-discipline",
+ "oya-check-vendor-lockin-discipline",
+ "oya-check-vendor-recency",
+ "oya-check-wasm-runtime-discipline",
+ "oya-cloud-ci-freshness-app",
+ "oya-data-boundary-kernel",
+ "oya-governance-banned-primitives-kernel",
+ "oya-governance-gate-catalog-domain",
+ "oya-intelligence-api-semver-domain",
+ "oya-intelligence-architecture-map-app",
+ "oya-intelligence-bypass-domain",
+ "oya-intelligence-cargo-prefix-domain",
+ "oya-intelligence-catalog-domain",
+ "oya-intelligence-evidence-file-adapter",
+ "oya-intelligence-mdbook-domain",
+ "oya-intelligence-openapi-domain",
+ "oya-intelligence-run-domain",
+ "oya-intelligence-run-file-adapter",
+ "oya-intelligence-step-domain",
+ "oya-intelligence-step-file-adapter",
+ "oya-secrets-domain",
+ "oya-secrets-file-adapter",
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "marketplace-doc-set-scaffold"
+version = "0.1.0"
+
+[[package]]
+name = "marketplace-plugin-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "matchers"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5020,20 +5141,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-marketplace-domain"
-version = "0.1.0"
-dependencies = [
- "cell-region",
- "oya-cloud-billing-domain",
- "oya-data-boundary-kernel",
- "oya-metering-domain",
-]
-
-[[package]]
-name = "oya-cloud-marketplace-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-cloud-network-adapter-oci"
 version = "0.1.0"
 dependencies = [
@@ -5683,105 +5790,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-dev-cli"
-version = "0.1.0"
-dependencies = [
- "messaging-domain",
- "messaging-file-adapter",
- "oya-application-app",
- "oya-audit-chain-domain",
- "oya-audit-chain-file-adapter",
- "oya-check-a11y-discipline",
- "oya-check-active-artifact-contract",
- "oya-check-adr-citation",
- "oya-check-adr-index",
- "oya-check-aspirational-enforcement",
- "oya-check-audit-chain-seal-coverage",
- "oya-check-authority-cohesion",
- "oya-check-authz-tier-discipline",
- "oya-check-backup-retention-discipline",
- "oya-check-benchmark",
- "oya-check-brand-residue",
- "oya-check-cedar-fragment-coverage",
- "oya-check-claim-ceiling",
- "oya-check-client-stack-discipline",
- "oya-check-codeowners-mirror",
- "oya-check-cohesion",
- "oya-check-compliance-evidence-coverage",
- "oya-check-cursor-pagination-coverage",
- "oya-check-data-class",
- "oya-check-dependency-seam",
- "oya-check-doc-axis",
- "oya-check-doc-catalog",
- "oya-check-documentation-system",
- "oya-check-event-schema-versioning",
- "oya-check-glossary-coverage",
- "oya-check-glossary-vocabulary",
- "oya-check-high-risk-auto-decision-refusal",
- "oya-check-honest-claims",
- "oya-check-i18n-coverage",
- "oya-check-iac-tier-discipline",
- "oya-check-id-discipline",
- "oya-check-idempotency-key-coverage",
- "oya-check-image-signing-discipline",
- "oya-check-layered-architecture-discipline",
- "oya-check-license-policy",
- "oya-check-metric-cardinality",
- "oya-check-mobile-native",
- "oya-check-no-grouping",
- "oya-check-olap-tier-discipline",
- "oya-check-ontology-projection-coverage",
- "oya-check-openapi-rest-route-parity",
- "oya-check-otel-trace-propagation",
- "oya-check-perf-budget",
- "oya-check-placeholder-debt",
- "oya-check-pr-traceability",
- "oya-check-pre-push",
- "oya-check-protection-context-match",
- "oya-check-quality-lane",
- "oya-check-raci-coverage",
- "oya-check-readme-coverage",
- "oya-check-realtime-transport-tier",
- "oya-check-release-pack",
- "oya-check-retired-vocabulary",
- "oya-check-rpo-rto-coverage",
- "oya-check-runbook-freshness",
- "oya-check-runbook-index",
- "oya-check-shardability",
- "oya-check-slo-coverage",
- "oya-check-slsa-l3-evidence-grounded",
- "oya-check-statelessness",
- "oya-check-supply-chain",
- "oya-check-tenant-cost-labels-coverage",
- "oya-check-typescript-workspace",
- "oya-check-vector-store-discipline",
- "oya-check-vendor-lockin-discipline",
- "oya-check-vendor-recency",
- "oya-check-wasm-runtime-discipline",
- "oya-cloud-ci-freshness-app",
- "oya-data-boundary-kernel",
- "oya-governance-banned-primitives-kernel",
- "oya-governance-gate-catalog-domain",
- "oya-intelligence-api-semver-domain",
- "oya-intelligence-architecture-map-app",
- "oya-intelligence-bypass-domain",
- "oya-intelligence-cargo-prefix-domain",
- "oya-intelligence-catalog-domain",
- "oya-intelligence-evidence-file-adapter",
- "oya-intelligence-mdbook-domain",
- "oya-intelligence-openapi-domain",
- "oya-intelligence-run-domain",
- "oya-intelligence-run-file-adapter",
- "oya-intelligence-step-domain",
- "oya-intelligence-step-file-adapter",
- "oya-secrets-domain",
- "oya-secrets-file-adapter",
- "oya-workspace-members-kernel",
- "serde_json",
- "sha2",
 ]
 
 [[package]]
@@ -7783,10 +7791,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-marketplace-doc-set-scaffold"
-version = "0.1.0"
-
-[[package]]
 name = "oya-meet-domain"
 version = "0.1.0"
 dependencies = [
@@ -8491,8 +8495,8 @@ dependencies = [
 name = "oya-saas-bench-app"
 version = "0.1.0"
 dependencies = [
+ "marketplace-plugin-kernel",
  "oya-saas-plugin-app",
- "oya-saas-plugin-marketplace-kernel",
  "oya-saas-workflow-app",
  "oya-saas-workflow-domain",
  "oya-saas-workflow-kernel",
@@ -8502,12 +8506,8 @@ dependencies = [
 name = "oya-saas-plugin-app"
 version = "0.1.0"
 dependencies = [
- "oya-saas-plugin-marketplace-kernel",
+ "marketplace-plugin-kernel",
 ]
-
-[[package]]
-name = "oya-saas-plugin-marketplace-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-saas-workflow-app"

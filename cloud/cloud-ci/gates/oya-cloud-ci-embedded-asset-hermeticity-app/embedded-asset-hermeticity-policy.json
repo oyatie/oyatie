@@ -7,7 +7,8 @@
     "oya",
     "libs",
     "tools",
-    "infra"
+    "infra",
+    "marketplace"
   ],
   "exclude_path_substrings": [
     "/target/",

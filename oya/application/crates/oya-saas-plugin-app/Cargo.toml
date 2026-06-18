@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-saas-plugin-marketplace-kernel = { path = "../../../../cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel" }
+marketplace-plugin-kernel = { path = "../../../../marketplace/core/plugin-kernel" }
 
 [lib]
 name = "oya_saas_plugin_app"
