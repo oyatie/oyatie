@@ -1252,9 +1252,9 @@ mod tests {
                 "forbidden_oya-vcs",
             ]
         );
-        // 8 carve-out rules, including the line-level palantir exemption + the oya-ci-config
+        // 9 carve-out rules, including the line-level palantir exemption + the oya-ci-config
         // deny-list SSOT path carve-out + the repo-root oya-ci.toml deny-list carve-out.
-        assert_eq!(cfg.vocab.carve_outs.len(), 8);
+        assert_eq!(cfg.vocab.carve_outs.len(), 9);
         assert!(cfg
             .vocab
             .carve_outs
