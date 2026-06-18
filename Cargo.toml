@@ -126,6 +126,19 @@ exclude = [
   # Buck2-only gate: has BUCK + src but no Cargo.toml by design, so the bare `gates/*`
   # glob would otherwise make cargo error trying to load it as a member.
   "cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app",
+  # Capability SLO homes (ADR-0139 SLO-home convention; doctrine-fix PR-B): each capability's
+  # promotion-gating SLOs live at `<cap>/observability/slos/*.openslo.yaml` — a NON-crate data
+  # subtree, no Cargo.toml. The `<cap>/*/*` member glob would otherwise match
+  # `<cap>/observability/slos` (the `*/*` = `observability/slos`) and make cargo error trying to
+  # read a member manifest that does not exist (same class as the buck2-only gate above). The
+  # observability/ subtree under each cap is OWNERS-covered (ADR-0555 breadth-unlimited) but is
+  # never a crate home, so excluding it is correct + future-proof.
+  "iac/observability",
+  "observability/observability",
+  "storage/observability",
+  "cell/observability",
+  "gateway/observability",
+  "flags/observability",
 ]
 resolver = "2"
 

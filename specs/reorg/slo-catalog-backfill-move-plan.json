@@ -1,0 +1,346 @@
+{
+  "capability": "slo-catalog-backfill",
+  "moves": [],
+  "artifacts": [
+    {
+      "old_path": "cloud/cloud-iac/slos/autosharding-events.openslo.yaml",
+      "new_path": "iac/observability/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-iac/slos/helm-chart-lint-correctness.openslo.yaml",
+      "new_path": "iac/observability/slos/helm-chart-lint-correctness.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-iac/slos/iac-apply-latency.openslo.yaml",
+      "new_path": "iac/observability/slos/iac-apply-latency.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-iac/slos/iac-render-latency.openslo.yaml",
+      "new_path": "iac/observability/slos/iac-render-latency.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-iac/slos/iac-rollback-latency.openslo.yaml",
+      "new_path": "iac/observability/slos/iac-rollback-latency.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-iac/slos/iac-validator-availability.openslo.yaml",
+      "new_path": "iac/observability/slos/iac-validator-availability.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-iac/slos/slsa-provenance-completeness.openslo.yaml",
+      "new_path": "iac/observability/slos/slsa-provenance-completeness.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/alerting-fanout-latency.openslo.yaml",
+      "new_path": "observability/observability/slos/alerting-fanout-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/autosharding-events.openslo.yaml",
+      "new_path": "observability/observability/slos/observability-autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/clickhouse-ingest-throughput.openslo.yaml",
+      "new_path": "observability/observability/slos/clickhouse-ingest-throughput.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/log-ingest-availability.openslo.yaml",
+      "new_path": "observability/observability/slos/log-ingest-availability.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/metric-ingest-availability.openslo.yaml",
+      "new_path": "observability/observability/slos/metric-ingest-availability.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/query-latency-logs.openslo.yaml",
+      "new_path": "observability/observability/slos/query-latency-logs.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/query-latency-prom.openslo.yaml",
+      "new_path": "observability/observability/slos/query-latency-prom.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/tail-sample-fidelity.openslo.yaml",
+      "new_path": "observability/observability/slos/tail-sample-fidelity.openslo.yaml"
+    },
+    {
+      "old_path": "oya/observability/slos/trace-ingest-availability.openslo.yaml",
+      "new_path": "observability/observability/slos/trace-ingest-availability.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/autosharding-events.openslo.yaml",
+      "new_path": "observability/observability/slos/diagnostics-autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/critical-result-notify-latency.openslo.yaml",
+      "new_path": "observability/observability/slos/critical-result-notify-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/diagnostic-report-issuance-latency.openslo.yaml",
+      "new_path": "observability/observability/slos/diagnostic-report-issuance-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/hl7v2-ingest-success.openslo.yaml",
+      "new_path": "observability/observability/slos/hl7v2-ingest-success.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/pathology-sign-out-to-delivery.openslo.yaml",
+      "new_path": "observability/observability/slos/pathology-sign-out-to-delivery.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/policy-decision-latency.openslo.yaml",
+      "new_path": "observability/observability/slos/policy-decision-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/reference-range-lookup-latency.openslo.yaml",
+      "new_path": "observability/observability/slos/reference-range-lookup-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/reflex-evaluation-latency.openslo.yaml",
+      "new_path": "observability/observability/slos/reflex-evaluation-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/diagnostics/slos/tat-dashboard-refresh.openslo.yaml",
+      "new_path": "observability/observability/slos/tat-dashboard-refresh.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-storage/slos/autosharding-events.openslo.yaml",
+      "new_path": "storage/observability/slos/cloud-storage-autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/autosharding-events.openslo.yaml",
+      "new_path": "storage/observability/slos/drive-autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/dlp-scan-correctness.openslo.yaml",
+      "new_path": "storage/observability/slos/dlp-scan-correctness.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/download-first-byte-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/download-first-byte-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/file-list-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/file-list-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/immutability-tier-correctness.openslo.yaml",
+      "new_path": "storage/observability/slos/immutability-tier-correctness.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/preview-render-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/preview-render-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/search-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/search-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/share-link-generation-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/share-link-generation-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/sync-delta-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/sync-delta-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/drive/slos/upload-multipart-throughput.openslo.yaml",
+      "new_path": "storage/observability/slos/upload-multipart-throughput.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/ai-inference-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/ai-inference-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/autosharding-events.openslo.yaml",
+      "new_path": "storage/observability/slos/imaging-autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/availability.openslo.yaml",
+      "new_path": "storage/observability/slos/availability.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/c-store-receive-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/c-store-receive-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/critical-result-notify-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/critical-result-notify-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/hanging-protocol-apply-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/hanging-protocol-apply-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/image-pull-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/image-pull-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/mpr-render-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/mpr-render-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/mwl-pull-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/mwl-pull-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/phi-audit-completeness.openslo.yaml",
+      "new_path": "storage/observability/slos/phi-audit-completeness.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/prior-fetch-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/prior-fetch-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/structured-report-save-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/structured-report-save-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/voice-recognition-partial-transcript-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/voice-recognition-partial-transcript-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/imaging/slos/worklist-load-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/worklist-load-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/autosharding-events.openslo.yaml",
+      "new_path": "storage/observability/slos/recordings-autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/export-mp4-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/export-mp4-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/export-transcript-pdf-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/export-transcript-pdf-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/legal-hold-chain-of-custody-correctness.openslo.yaml",
+      "new_path": "storage/observability/slos/legal-hold-chain-of-custody-correctness.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/legal-hold-engagement-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/legal-hold-engagement-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/playback-start-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/playback-start-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/recording-list-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/recording-list-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/redaction-render-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/redaction-render-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/retention-policy-correctness.openslo.yaml",
+      "new_path": "storage/observability/slos/retention-policy-correctness.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/transcript-render-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/transcript-render-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/recordings/slos/transcript-search-latency.openslo.yaml",
+      "new_path": "storage/observability/slos/transcript-search-latency.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cell-lifecycle/slos/cell-lifecycle.openslo.yaml",
+      "new_path": "cell/observability/slos/cell-lifecycle.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cell-rebalancer/slos/cell-rebalancer.openslo.yaml",
+      "new_path": "cell/observability/slos/cell-rebalancer.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/api-gateway.openslo.yaml",
+      "new_path": "gateway/observability/slos/api-gateway.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/autosharding-events.openslo.yaml",
+      "new_path": "gateway/observability/slos/api-gateway-autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/edge-availability.openslo.yaml",
+      "new_path": "gateway/observability/slos/edge-availability.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/edge-latency-p50.openslo.yaml",
+      "new_path": "gateway/observability/slos/edge-latency-p50.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/edge-latency-p95.openslo.yaml",
+      "new_path": "gateway/observability/slos/edge-latency-p95.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/edge-latency-p99.openslo.yaml",
+      "new_path": "gateway/observability/slos/edge-latency-p99.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/h3-negotiation-rate.openslo.yaml",
+      "new_path": "gateway/observability/slos/h3-negotiation-rate.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/pqc-negotiation-rate.openslo.yaml",
+      "new_path": "gateway/observability/slos/pqc-negotiation-rate.openslo.yaml"
+    },
+    {
+      "old_path": "oya/api-gateway/slos/tls-handshake-success.openslo.yaml",
+      "new_path": "gateway/observability/slos/tls-handshake-success.openslo.yaml"
+    },
+    {
+      "old_path": "oya/connector/slos/autosharding-events.openslo.yaml",
+      "new_path": "gateway/observability/slos/connector-autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/connector/slos/connector-availability.openslo.yaml",
+      "new_path": "gateway/observability/slos/connector-availability.openslo.yaml"
+    },
+    {
+      "old_path": "oya/connector/slos/connector-retirement.openslo.yaml",
+      "new_path": "gateway/observability/slos/connector-retirement.openslo.yaml"
+    },
+    {
+      "old_path": "oya/connector/slos/dlq-overflow-prevention.openslo.yaml",
+      "new_path": "gateway/observability/slos/dlq-overflow-prevention.openslo.yaml"
+    },
+    {
+      "old_path": "oya/connector/slos/oauth-token-health.openslo.yaml",
+      "new_path": "gateway/observability/slos/oauth-token-health.openslo.yaml"
+    },
+    {
+      "old_path": "oya/connector/slos/webhook-receiver-throughput.openslo.yaml",
+      "new_path": "gateway/observability/slos/webhook-receiver-throughput.openslo.yaml"
+    },
+    {
+      "old_path": "oya/feature-flags/slos/autosharding-events.openslo.yaml",
+      "new_path": "flags/observability/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "oya/feature-flags/slos/experiment-result-freshness.openslo.yaml",
+      "new_path": "flags/observability/slos/experiment-result-freshness.openslo.yaml"
+    },
+    {
+      "old_path": "oya/feature-flags/slos/feature-flags.openslo.yaml",
+      "new_path": "flags/observability/slos/feature-flags.openslo.yaml"
+    },
+    {
+      "old_path": "oya/feature-flags/slos/flag-eval-latency.openslo.yaml",
+      "new_path": "flags/observability/slos/flag-eval-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/feature-flags/slos/flag-state-propagation.openslo.yaml",
+      "new_path": "flags/observability/slos/flag-state-propagation.openslo.yaml"
+    },
+    {
+      "old_path": "oya/feature-flags/slos/killswitch-fire-latency.openslo.yaml",
+      "new_path": "flags/observability/slos/killswitch-fire-latency.openslo.yaml"
+    },
+    {
+      "old_path": "oya/oya-flags/slos/availability.openslo.yaml",
+      "new_path": "flags/observability/slos/availability.openslo.yaml"
+    }
+  ]
+}

@@ -114,7 +114,14 @@ impl MovePlan {
     ///   with NO other `old_path`/`new_path` ACROSS both `moves` and `artifacts` (no two sources
     ///   map in, no two map out — the cross-service SLO-name collision backstop, fail-closed).
     pub fn validate(&self) -> Result<(), CodemodError> {
-        if self.moves.is_empty() {
+        // A plan is empty only when it carries NEITHER crate moves NOR non-crate artifact
+        // co-moves. An artifact-ONLY plan (`moves: []`, `artifacts: [...]`) is well-formed:
+        // it is the PR-B backfill shape — relocating orphaned SLOs + re-keying catalog records
+        // for ALREADY-moved capabilities, where no crate moves in this PR. (PR-A added
+        // ArtifactMove but left this guard keyed on `moves` alone; the artifact-only design
+        // contract — design §PR-B "artifact-ONLY plans (zero crate moves)" — needs both sides
+        // empty to be the no-op the EmptyPlan error is meant to catch.)
+        if self.moves.is_empty() && self.artifacts.is_empty() {
             return Err(CodemodError::EmptyPlan);
         }
         let mut old_paths = BTreeSet::new();
@@ -982,6 +989,36 @@ mod tests {
             }],
         };
         assert!(plan.validate().is_ok(), "a well-formed artifact plan validates");
+    }
+
+    #[test]
+    fn validate_accepts_an_artifact_only_plan_with_no_crate_moves() {
+        // PR-B backfill shape: zero crate moves, artifact co-moves only (relocate orphaned SLOs
+        // + re-key catalog records for an ALREADY-moved capability). This MUST validate — the
+        // EmptyPlan guard fires only when BOTH sides are empty, not when `moves` alone is.
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/observability/slos".to_string(),
+                new_path: "observability/observability/slos".to_string(),
+            }],
+        };
+        assert!(
+            plan.validate().is_ok(),
+            "an artifact-only plan (moves: []) is the PR-B backfill shape and must validate"
+        );
+    }
+
+    #[test]
+    fn validate_rejects_a_plan_empty_on_both_sides() {
+        // The EmptyPlan no-op: neither crate moves NOR artifacts — nothing to do, fail-closed.
+        let plan = MovePlan {
+            capability: "x".to_string(),
+            moves: vec![],
+            artifacts: vec![],
+        };
+        assert!(matches!(plan.validate(), Err(CodemodError::EmptyPlan)));
     }
 
     #[test]
