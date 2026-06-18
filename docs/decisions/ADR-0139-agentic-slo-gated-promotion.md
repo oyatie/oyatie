@@ -269,6 +269,43 @@ artifacts are present. The actual SLO backfill (relocating the orphaned stems to
 `<capability>/observability/slos/`) and the catalog re-key are a SEPARATE follow-up (PR-B); this
 amendment + PR-A only establish the convention and the engine capability — NO SLOs are moved here.
 
+## Amendment — SLO backfill executed for the moved capabilities (2026-06-18, doctrine-fix PR-B)
+
+PR-B executes the backfill the PR-A amendment deferred: it relocates the orphaned
+`slos/*.openslo.yaml` of the already-moved capabilities from their dead legacy
+`{cloud,oya}/<service>/slos/` stems to the capability-rooted home
+`<capability>/observability/slos/` established above. The relocation is performed by the PR-A
+codemod `ArtifactMove` co-move (content-preserving wholesale `git mv`, no in-file rewrite), driven
+by a single committed artifact-only move plan.
+
+**Born record (verbatim path, ADR-0562 §10.x justification):** the committed plan is
+`specs/reorg/slo-catalog-backfill-move-plan.json`. It carries `moves: []` (zero crate moves) and
+`artifacts: [...]` (the SLO old→new path pairs). The move-manifest it regenerates
+(`specs/reorg/move-manifest.generated.json`) carries the file pairs so the ADR-0563 path-keyed
+relabel + the total-accounting baseline follow the relocated SLOs old→new (a baselined SLO row
+relabels to its new path, it is not read as new debt).
+
+**Engine note:** `MovePlan::validate` returned `EmptyPlan` when `moves` alone was empty, which
+blocked the artifact-only plan shape this PR needs; it now fails-closed only when BOTH `moves` AND
+`artifacts` are empty (the genuine no-op). An artifact-only plan is the canonical PR-B backfill
+shape.
+
+**Workspace note:** each `<capability>/observability` SLO-data subtree is added to the root
+`[workspace].exclude` (Cargo.toml) — the `<capability>/*/*` member glob would otherwise match
+`<capability>/observability/slos` (a non-crate dir with no `Cargo.toml`) and make cargo error, the
+same class as the existing buck2-only-gate exclude. OWNERS coverage is breadth-unlimited
+(ADR-0555), so the relocated SLOs stay owner-covered.
+
+**Relocated capability SLO homes (this PR; verbatim discovery roots):**
+`iac/observability/slos/`, `observability/observability/slos/`, `storage/observability/slos/`,
+`cell/observability/slos/`, `gateway/observability/slos/`, `flags/observability/slos/`. `compute`
+and `messaging` had zero orphaned SLOs; `marketplace` is excluded (its crate move has not landed
+in the workspace globs). Cross-service SLO-name collisions (only `autosharding-events.openslo.yaml`,
+which differs per service) were resolved by source-service prefix; `MovePlan::validate`
+dup-`new_path` fail-closed is the backstop. The catalog-record re-key remains a sequenced
+follow-up (the consolidated capabilities are a many-to-fewer mapping with no authoritative in-tree
+old→new manifest).
+
 ## References
 
 - ADR-0041: GitOps trunk-based + release-branch cut at tag (precedes; this ADR extends with per-component pointers).
