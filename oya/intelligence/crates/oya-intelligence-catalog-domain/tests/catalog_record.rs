@@ -45,6 +45,39 @@ fn catalog_record_validates_existing_registry_shape() {
 }
 
 #[test]
+fn catalog_record_accepts_de_branded_and_legacy_crate_ids() {
+    // De-brand transition (supersedes ADR-0017 oya- prefix enforcement):
+    // catalog crate-ids now mirror the live, de-branded workspace crate names
+    // (PR #749 re-key, e.g. live crate `marketplace/core/plugin-kernel`).
+    // PR-C2 has not disposed the still-`oya-` ids yet, so both are accepted.
+    for crate_id in [
+        "marketplace-plugin-kernel",
+        "observability-aggregate",
+        "iac-core-domain",
+        "oya-intelligence-capability-kernel",
+    ] {
+        let record = valid_record(crate_id)
+            .build()
+            .unwrap_or_else(|error| panic!("{crate_id} should be valid, got {error:?}"));
+        assert_eq!(record.crate_id.value, crate_id);
+    }
+}
+
+#[test]
+fn catalog_record_rejects_invalid_crate_id() {
+    for crate_id in ["", "-foo", "Foo", "foo_bar"] {
+        let invalid = CatalogRecordInput {
+            ..valid_record(crate_id)
+        };
+        assert_eq!(
+            invalid.build(),
+            Err(CatalogError::InvalidCrateId),
+            "{crate_id:?} should be rejected"
+        );
+    }
+}
+
+#[test]
 fn catalog_record_accepts_usecase_role() {
     let record = CatalogRecordInput {
         role: "usecase".into(),
