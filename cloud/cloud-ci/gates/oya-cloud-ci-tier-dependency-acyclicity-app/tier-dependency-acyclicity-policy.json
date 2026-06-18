@@ -23,7 +23,8 @@
     "cell/*/*",
     "gateway/*/*",
     "flags/*/*",
-    "marketplace/*/*"
+    "marketplace/*/*",
+    "compliance/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -41,7 +42,8 @@
     "cell",
     "gateway",
     "flags",
-    "marketplace"
+    "marketplace",
+    "compliance"
   ],
   "stratum_rank_order": [
     "S0",

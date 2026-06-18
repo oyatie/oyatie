@@ -117,6 +117,20 @@ members = [
   # explicit-path members); the crate-empty oya/plugin-app-store + the non-crate artifacts of the
   # absorbed dirs are not swept (no Cargo.toml) and are homed in phase-2 (task #62).
   "marketplace/*/*",
+  # Capability-first home (ADR-0562 strangler move 10): the `compliance` capability absorbs the
+  # former oya/compliance crates into compliance/{core,ports} (two faces). compliance is the
+  # compliance + governance-evidence substrate (dag_node compliance): the DLP / DSR / e-discovery /
+  # retention / retention-DSR / trust-portal DOMAIN crates ARE the substrate engine, so they home to
+  # core/, and the DSR cascade-execute USECASE crate is the inbound application port, so it homes to
+  # ports/. All seven crates are de-branded to the capability prefix (compliance-dlp / compliance-dsr
+  # / compliance-dsr-usecase / compliance-ediscovery / compliance-retention / compliance-retention-dsr
+  # / compliance-trust-portal), so each leaf segment stays a bare `*`. `compliance/*/*` covers all
+  # seven faces/leaves (compliance/core/{dlp,dsr,ediscovery,retention,retention-dsr,trust-portal} +
+  # compliance/ports/dsr-usecase) with one glob, satisfying ADR-0538's glob-only members contract (no
+  # explicit-path members); the co-moved compliance/observability/slos non-crate SLO subtree is
+  # excluded below (no Cargo.toml), and the absorbed dir's other non-crate artifacts are homed in
+  # phase-2 (task #62).
+  "compliance/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -140,6 +154,7 @@ exclude = [
   "gateway/observability",
   "flags/observability",
   "marketplace/observability",
+  "compliance/observability",
 ]
 resolver = "2"
 
