@@ -15,7 +15,10 @@
 //! The plan JSON shape:
 //!   { "capability": "iam",
 //!     "moves": [ { "old_path": "...", "new_path": "...",
-//!                  "old_cargo_name": "...", "new_cargo_name": "..." }, ... ] }
+//!                  "old_cargo_name": "...", "new_cargo_name": "..." }, ... ],
+//!     "artifacts": [ { "old_path": "...", "new_path": "..." }, ... ] }   // OPTIONAL
+//! `artifacts` (optional; absent => empty) are NON-crate co-moves — SLOs, catalog records —
+//! moved content-preserving (no in-file rewrite) alongside the capability's crate moves.
 
 #![forbid(unsafe_code)]
 
@@ -23,7 +26,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use oya_reorg_codemod_app::model::{
-    move_manifest_value, CodemodError, CrateMove, MovePlan,
+    move_manifest_value, ArtifactMove, CodemodError, CrateMove, MovePlan,
 };
 use oya_reorg_codemod_app::oracle;
 use oya_reorg_codemod_app::plan::{apply_plan, ApplyOptions};
@@ -97,9 +100,18 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
             let plan = load_plan(&path, false)?;
             plan.validate().map_err(|e: CodemodError| e.to_string())?;
             let tracked = git_ls_files(&repo_root)?;
+            // MERGE the NON-crate artifact file pairs into the `files` list (sorted + deduped via
+            // a BTreeMap keyed by old_path, the same canonical ordering the crate pairs carry) so
+            // ADR-0563's path-keyed relabel + the total-accounting follow co-moved artifacts.
+            // EMPTY artifacts => no extra pairs => byte-identical `files` to today (back-compat).
+            let mut merged: std::collections::BTreeMap<String, String> =
+                plan.file_level_manifest(&tracked).into_iter().collect();
+            for (old, new) in plan.artifact_file_pairs(&tracked) {
+                merged.insert(old, new);
+            }
             (
                 plan.capability.clone(),
-                plan.file_level_manifest(&tracked),
+                merged.into_iter().collect::<Vec<_>>(),
                 plan.crate_dir_pairs(&tracked),
                 plan.crate_ident_pairs(),
             )
@@ -257,7 +269,30 @@ fn load_plan(path: &Path, revert: bool) -> Result<MovePlan, String> {
             new_cargo_name: field(m, "new_cargo_name", idx)?,
         });
     }
-    let plan = MovePlan { capability, moves };
+    // Optional top-level `artifacts: [{old_path, new_path}]` — NON-crate co-moves (SLOs, catalog
+    // records). ABSENT => empty Vec (back-compatible with the committed 4-field marketplace plan
+    // shape, so existing plans parse + behave identically).
+    let artifacts = match value.get("artifacts") {
+        None => Vec::new(),
+        Some(arts_val) => {
+            let arts = arts_val
+                .as_array()
+                .ok_or("plan `artifacts` must be an array")?;
+            let mut out = Vec::with_capacity(arts.len());
+            for (idx, a) in arts.iter().enumerate() {
+                out.push(ArtifactMove {
+                    old_path: artifact_field(a, "old_path", idx)?,
+                    new_path: artifact_field(a, "new_path", idx)?,
+                });
+            }
+            out
+        }
+    };
+    let plan = MovePlan {
+        capability,
+        moves,
+        artifacts,
+    };
     Ok(if revert { plan.inverse() } else { plan })
 }
 
@@ -266,6 +301,13 @@ fn field(m: &Value, key: &str, idx: usize) -> Result<String, String> {
         .and_then(Value::as_str)
         .map(str::to_string)
         .ok_or_else(|| format!("move[{idx}] missing string field {key:?}"))
+}
+
+fn artifact_field(a: &Value, key: &str, idx: usize) -> Result<String, String> {
+    a.get(key)
+        .and_then(Value::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| format!("artifact[{idx}] missing string field {key:?}"))
 }
 
 fn apply_outcome_json(o: &oya_reorg_codemod_app::plan::ApplyOutcome) -> Value {

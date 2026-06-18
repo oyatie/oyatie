@@ -162,6 +162,7 @@ fn capability_plan() -> MovePlan {
                 new_cargo_name: "cap-app".to_string(),
             },
         ],
+        artifacts: vec![],
     }
 }
 
@@ -357,6 +358,7 @@ fn validate_rejects_target_collision_before_any_move() {
                 new_cargo_name: "dupe".to_string(),
             },
         ],
+        artifacts: vec![],
     };
     let err = apply_plan(&root, &bad, &ApplyOptions { use_git_mv: false }).unwrap_err();
     assert!(err.to_string().contains("duplicate"), "fail-closed: {err}");
@@ -404,6 +406,7 @@ fn forward_move_prunes_emptied_members_glob_and_still_resolves() {
             old_cargo_name: "oya-cap-core".to_string(),
             new_cargo_name: "cap-core".to_string(),
         }],
+        artifacts: vec![],
     };
     let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
     assert!(outcome.root_workspace_changed);

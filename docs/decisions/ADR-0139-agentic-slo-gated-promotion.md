@@ -235,6 +235,40 @@ pub trait EligibilityLedgerWriter: Send + Sync + sealed::Sealed {
 - E2E rollback drill: induce a synthetic burn-rate breach on a canary cohort; verify production ref reverts within 1 minute; verify `rollback` record appended to ledger; verify Grafana OnCall incident raised.
 - `cargo run -p oya-dev-cli -- gate validate authority-cohesion` — exit 0; this ADR registered in the hyperscaler-gates registry under HG-OBS.
 
+## Amendment — SLO home convention under capability-first reorg (2026-06-17, doctrine-fix)
+
+The capability-first repo reorganization (ADR-0562) re-homes crates from `{cloud,oya}/...` to
+`<capability>/{core,ports,adapters,facade}/...`. Promotion-gating SLOs are NOT crates; this
+amendment records WHERE they live post-reorg so a capability move never strands them at a dead
+stem (one of the two HIGH cloud-native audit findings the doctrine-fix closes).
+
+**Convention (decided):** an SLO's home is **capability-rooted** at
+`<capability>/observability/slos/*.openslo.yaml`. Rationale: an SLO is per-SERVICE /
+per-promotion-unit, and post-reorg the **capability** is the ADR-0139 "component" /
+release-pointer unit. `<capability>/observability/` is a named, OWNERS-scoped sub-tree that is
+deliberately NOT under a `core/ports/adapters/facade` face fold — it carries non-crate DATA, not
+a crate. A multi-facade capability MAY later refine to
+`<capability>/observability/slos/<facade>/` without changing the discovery root.
+
+**Discovery root (forward-looking, not-yet-implemented):** the `SloTargetRepository` adapter
+named in this ADR is NOT yet implemented — only the kernel domain types exist (in the
+observability core-domain crate's `slo.rs` module). When it lands, its discovery root MUST derive
+from the capability registry's `absorbs_current_dirs` facet (the closed `capability-registry.json`
+spec is the single source of truth mapping each capability to the legacy `{cloud,oya}/...` dirs it
+absorbed), so the resolver enumerates `<capability>/observability/slos/` per registered capability
+rather than hard-coding paths. Until then this convention is uncommitted-in-code and cheap to set
+now.
+
+**Mechanical co-move (implemented in PR-A, engine only):** the reorg codemod
+(`tools/oya-reorg-codemod-app/`) gained an `ArtifactMove { old_path, new_path }` capability — a
+content-preserving wholesale `git mv` of NON-crate capability artifacts (SLO dirs/files, catalog
+records) that travel WITH a capability move but carry no cargo/buck/rust identifiers to rewrite
+(ADR-0563 §C2 content-preserving mover). It is INERT for existing plans: a `MovePlan` with no
+`artifacts` behaves byte-identically to before, and the move-manifest is byte-identical when no
+artifacts are present. The actual SLO backfill (relocating the orphaned stems to
+`<capability>/observability/slos/`) and the catalog re-key are a SEPARATE follow-up (PR-B); this
+amendment + PR-A only establish the convention and the engine capability — NO SLOs are moved here.
+
 ## References
 
 - ADR-0041: GitOps trunk-based + release-branch cut at tag (precedes; this ADR extends with per-component pointers).
@@ -248,6 +282,8 @@ pub trait EligibilityLedgerWriter: Send + Sync + sealed::Sealed {
 - ADR-0116: Retire external agent-coordination tooling (oya vcs primitives used throughout).
 - ADR-0123: Hyperscaler maturity claim gate (HG-OBS gate registers here).
 - ADR-0131: Per-microservice flat layout (this ADR's artifacts ship under that convention).
+- ADR-0562: Capability-first repo organization + closed capability registry (the reorg the SLO-home convention amendment serves; the registry's `absorbs_current_dirs` facet is the discovery-root source of truth).
+- ADR-0563: Rename-aware path-keyed CI baseline relabel (§C2 content-preserving mover; the reorg codemod's `ArtifactMove` co-move is content-preserving in that sense).
 - Google SRE Workbook, ch. 5 "Alerting on SLOs" — multi-window multi-burn-rate canonical model. Betsy Beyer et al., O'Reilly 2018.
 - OpenSLO spec — `openslo.com`, version 1.0.
 - OpenTelemetry semantic conventions — `opentelemetry.io`.

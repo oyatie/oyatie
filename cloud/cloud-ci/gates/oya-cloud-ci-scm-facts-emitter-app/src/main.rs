@@ -2279,6 +2279,7 @@ mod tests {
                 old_cargo_name: "oya-cloud-observability-domain".to_owned(),
                 new_cargo_name: "observability-core-aggregate".to_owned(),
             }],
+            artifacts: vec![],
         }
     }
 

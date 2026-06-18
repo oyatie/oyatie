@@ -31,6 +31,19 @@ impl CrateMove {
     }
 }
 
+/// A NON-crate capability artifact's wholesale move: a file or directory that travels WITH a
+/// capability move but carries no cargo/buck/rust identifiers to rewrite (e.g. promotion-gating
+/// SLOs `<cap>/observability/slos/*.openslo.yaml`, sell-catalog records). Paths are
+/// repo-relative, forward-slash, no trailing slash — same shape as [`CrateMove`] paths. The
+/// engine moves these content-preserving (`git mv` wholesale, no in-file rewrite), so an
+/// orphaned SLO stem is co-moved to the live capability stem instead of being stranded at a dead
+/// path (the doctrine-fix this enables; see ADR-0139 SLO-home convention + ADR-0563 §C2).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ArtifactMove {
+    pub old_path: String,
+    pub new_path: String,
+}
+
 /// A capability move: a total, ordered set of crate moves applied as one atomic unit.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MovePlan {
@@ -38,11 +51,16 @@ pub struct MovePlan {
     /// only for the emitted mapping + reporting; never feeds a transform.
     pub capability: String,
     pub moves: Vec<CrateMove>,
+    /// NON-crate artifacts co-moved with this capability (SLOs, catalog records). Default
+    /// EMPTY: a plan without artifacts behaves byte-identically to a pre-ArtifactMove plan
+    /// (back-compat no-op — the marketplace plan's 4-field shape has no `artifacts`).
+    pub artifacts: Vec<ArtifactMove>,
 }
 
 impl MovePlan {
-    /// The inverse plan: every move's old/new sides swapped. Applying the inverse to a tree
-    /// the forward plan produced restores it byte-identically (reversibility-by-construction).
+    /// The inverse plan: every move's old/new sides swapped (crate moves AND artifact moves).
+    /// Applying the inverse to a tree the forward plan produced restores it byte-identically
+    /// (reversibility-by-construction).
     pub fn inverse(&self) -> MovePlan {
         MovePlan {
             capability: self.capability.clone(),
@@ -54,6 +72,14 @@ impl MovePlan {
                     new_path: m.old_path.clone(),
                     old_cargo_name: m.new_cargo_name.clone(),
                     new_cargo_name: m.old_cargo_name.clone(),
+                })
+                .collect(),
+            artifacts: self
+                .artifacts
+                .iter()
+                .map(|a| ArtifactMove {
+                    old_path: a.new_path.clone(),
+                    new_path: a.old_path.clone(),
                 })
                 .collect(),
         }
@@ -83,7 +109,10 @@ impl MovePlan {
     ///   (a name/target collision the move would create);
     /// * no `new_path` nests inside another move's `new_path` in a way that would shadow it
     ///   (a target-path collision);
-    /// * paths are repo-relative + normalized (no `.`/`..`/leading-or-trailing slash).
+    /// * paths are repo-relative + normalized (no `.`/`..`/leading-or-trailing slash);
+    /// * each artifact `old_path`/`new_path` is a normalized repo-relative path AND collides
+    ///   with NO other `old_path`/`new_path` ACROSS both `moves` and `artifacts` (no two sources
+    ///   map in, no two map out — the cross-service SLO-name collision backstop, fail-closed).
     pub fn validate(&self) -> Result<(), CodemodError> {
         if self.moves.is_empty() {
             return Err(CodemodError::EmptyPlan);
@@ -123,6 +152,33 @@ impl MovePlan {
                 return Err(CodemodError::DuplicateKey {
                     kind: "new_cargo_name".to_string(),
                     value: m.new_cargo_name.clone(),
+                });
+            }
+        }
+        // Artifacts share the old_path/new_path collision spaces with crate moves: an artifact
+        // source that equals a crate source (or another artifact source) maps two things in;
+        // an artifact target that equals a crate target maps two things out. Both are
+        // non-deterministic destinations the engine cannot resolve — reject (the dup-new_path
+        // fail-closed is also the cross-service SLO-name-collision backstop, design §PR-B ⚠).
+        for a in &self.artifacts {
+            for (label, p) in [("old_path", &a.old_path), ("new_path", &a.new_path)] {
+                if !is_normalized_rel_path(p) {
+                    return Err(CodemodError::BadPath {
+                        which: format!("artifact {label}"),
+                        path: p.clone(),
+                    });
+                }
+            }
+            if !old_paths.insert(a.old_path.clone()) {
+                return Err(CodemodError::DuplicateKey {
+                    kind: "old_path".to_string(),
+                    value: a.old_path.clone(),
+                });
+            }
+            if !new_paths.insert(a.new_path.clone()) {
+                return Err(CodemodError::DuplicateKey {
+                    kind: "new_path".to_string(),
+                    value: a.new_path.clone(),
                 });
             }
         }
@@ -169,6 +225,39 @@ impl MovePlan {
             for path in tracked_paths {
                 if let Some(rel) = path.strip_prefix(&new_prefix) {
                     pairs.insert(format!("{}/{}", m.old_path, rel), path.clone());
+                }
+            }
+        }
+        pairs.into_iter().collect()
+    }
+
+    /// The FILE-level move pairs for the NON-crate [`ArtifactMove`]s, derived candidate-side the
+    /// same way [`file_level_manifest`] derives crate pairs (the post-move tree carries NEW
+    /// paths; OLD is gone). For each artifact:
+    /// * DIR artifact — enumerate strict descendants of `new_path` present in `tracked_paths`
+    ///   and map each back to `old_path/<rel>` (mirrors the crate-dir logic);
+    /// * FILE artifact — when `new_path` is present in `tracked_paths` AS AN EXACT path (a
+    ///   tracked file, not a dir), emit the single `(old_path, new_path)` pair directly.
+    ///
+    /// These pairs are MERGED into the manifest `files` list at the call site (alongside
+    /// [`file_level_manifest`]) so ADR-0563's path-keyed relabel + the total-accounting follow
+    /// co-moved artifacts. Sorted + deduplicated (BTreeMap keyed by old_path); `validate`
+    /// guarantees artifact-path injectivity across moves+artifacts, so a candidate path maps
+    /// under at most one artifact (and never collides with a crate pair).
+    pub fn artifact_file_pairs(&self, tracked_paths: &[String]) -> Vec<(String, String)> {
+        let mut pairs: BTreeMap<String, String> = BTreeMap::new();
+        for a in &self.artifacts {
+            // FILE artifact: new_path is itself a tracked path (exact match) — emit the pair.
+            let is_file = tracked_paths.iter().any(|p| p == &a.new_path);
+            if is_file {
+                pairs.insert(a.old_path.clone(), a.new_path.clone());
+                continue;
+            }
+            // DIR artifact: map each strict NEW-dir descendant back to old_path/<rel>.
+            let new_prefix = format!("{}/", a.new_path);
+            for path in tracked_paths {
+                if let Some(rel) = path.strip_prefix(&new_prefix) {
+                    pairs.insert(format!("{}/{}", a.old_path, rel), path.clone());
                 }
             }
         }
@@ -561,6 +650,7 @@ mod tests {
                 old_cargo_name: "oya-cloud-iam".to_string(),
                 new_cargo_name: "iam-core".to_string(),
             }],
+            artifacts: vec![],
         };
         let inv = plan.inverse();
         assert_eq!(inv.moves[0].old_path, "iam/core/iam");
@@ -589,6 +679,7 @@ mod tests {
                     new_cargo_name: "collide".to_string(),
                 },
             ],
+            artifacts: vec![],
         };
         assert!(matches!(
             plan.validate(),
@@ -614,6 +705,7 @@ mod tests {
                     new_cargo_name: "b".to_string(),
                 },
             ],
+            artifacts: vec![],
         };
         assert!(matches!(
             plan.validate(),
@@ -636,6 +728,7 @@ mod tests {
                 old_cargo_name: "oya-cloud-observability-domain".to_string(),
                 new_cargo_name: "observability-core-aggregate".to_string(),
             }],
+            artifacts: vec![],
         };
         // The candidate tracked set is the POST-move tree: NEW paths present, OLD path absent.
         let tracked = vec![
@@ -676,6 +769,7 @@ mod tests {
                 old_cargo_name: "oya-a".to_string(),
                 new_cargo_name: "x-core-a".to_string(),
             }],
+            artifacts: vec![],
         };
         assert!(plan.file_level_manifest(&[]).is_empty(), "no tracked => no pairs");
         // Only the OLD path tracked (move did not land) => still empty (new descendants absent).
@@ -706,6 +800,7 @@ mod tests {
                     new_cargo_name: "observability-core-ghost".to_string(),
                 },
             ],
+            artifacts: vec![],
         };
         let tracked = vec!["observability/core/aggregate/src/lib.rs".to_string()];
         assert_eq!(
@@ -736,6 +831,7 @@ mod tests {
                     new_cargo_name: "iam-app".to_string(),
                 },
             ],
+            artifacts: vec![],
         };
         assert_eq!(
             plan.crate_ident_pairs(),
@@ -780,6 +876,7 @@ mod tests {
                 old_cargo_name: "oya-cloud-iam".to_string(),
                 new_cargo_name: "iam-core".to_string(),
             }],
+            artifacts: vec![],
         };
         let mapping = plan.mapping();
         let row = &mapping.rows[0];
@@ -788,5 +885,207 @@ mod tests {
         assert_eq!(row.old_cargo_name, "oya-cloud-iam");
         assert_eq!(row.new_cargo_name, "iam-core");
         assert_eq!(row.buck_label, "//iam/core/iam:iam-core");
+    }
+
+    // --- ArtifactMove (PR-A): NON-crate co-move (SLOs, catalog records) ---
+
+    fn obs_crate_move() -> CrateMove {
+        CrateMove {
+            old_path: "oya/observability/crates/oya-observability-domain".to_string(),
+            new_path: "observability/core/domain".to_string(),
+            old_cargo_name: "oya-observability-domain".to_string(),
+            new_cargo_name: "observability-domain".to_string(),
+        }
+    }
+
+    #[test]
+    fn validate_rejects_artifact_old_path_colliding_with_a_crate_move() {
+        // An artifact whose OLD path equals a crate move's old_path maps two sources in — reject.
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![obs_crate_move()],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/observability/crates/oya-observability-domain".to_string(),
+                new_path: "observability/observability/slos".to_string(),
+            }],
+        };
+        assert!(
+            matches!(
+                plan.validate(),
+                Err(CodemodError::DuplicateKey { kind, .. }) if kind == "old_path"
+            ),
+            "artifact old_path colliding with a crate move must fail-closed"
+        );
+    }
+
+    #[test]
+    fn validate_rejects_artifact_new_path_colliding_with_another_artifact() {
+        // Two artifacts mapping to the SAME new_path (the cross-service SLO-name collision the
+        // design §PR-B ⚠ calls out) maps two things out — reject (dup-new_path backstop).
+        let plan = MovePlan {
+            capability: "storage".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/drive/crates/oya-drive-domain".to_string(),
+                new_path: "storage/core/drive-domain".to_string(),
+                old_cargo_name: "oya-drive-domain".to_string(),
+                new_cargo_name: "storage-drive-domain".to_string(),
+            }],
+            artifacts: vec![
+                ArtifactMove {
+                    old_path: "oya/drive/slos/autosharding-events.openslo.yaml".to_string(),
+                    new_path: "storage/observability/slos/autosharding-events.openslo.yaml"
+                        .to_string(),
+                },
+                ArtifactMove {
+                    old_path: "oya/imaging/slos/autosharding-events.openslo.yaml".to_string(),
+                    new_path: "storage/observability/slos/autosharding-events.openslo.yaml"
+                        .to_string(),
+                },
+            ],
+        };
+        assert!(
+            matches!(
+                plan.validate(),
+                Err(CodemodError::DuplicateKey { kind, .. }) if kind == "new_path"
+            ),
+            "two artifacts mapping to the same new_path must fail-closed"
+        );
+    }
+
+    #[test]
+    fn validate_rejects_non_normalized_artifact_path() {
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![obs_crate_move()],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/observability/slos".to_string(),
+                new_path: "observability/observability/slos/".to_string(), // trailing slash
+            }],
+        };
+        assert!(
+            matches!(
+                plan.validate(),
+                Err(CodemodError::BadPath { which, .. }) if which == "artifact new_path"
+            ),
+            "a non-normalized artifact path must fail-closed"
+        );
+    }
+
+    #[test]
+    fn validate_accepts_a_plan_with_well_formed_artifacts() {
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![obs_crate_move()],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/observability/slos".to_string(),
+                new_path: "observability/observability/slos".to_string(),
+            }],
+        };
+        assert!(plan.validate().is_ok(), "a well-formed artifact plan validates");
+    }
+
+    #[test]
+    fn inverse_round_trips_artifacts() {
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![obs_crate_move()],
+            artifacts: vec![
+                ArtifactMove {
+                    old_path: "oya/observability/slos".to_string(),
+                    new_path: "observability/observability/slos".to_string(),
+                },
+                ArtifactMove {
+                    old_path: "registry/catalog/oya-observability-domain.yaml".to_string(),
+                    new_path: "registry/catalog/observability-domain.yaml".to_string(),
+                },
+            ],
+        };
+        let inv = plan.inverse();
+        // every artifact side is swapped...
+        assert_eq!(inv.artifacts[0].old_path, "observability/observability/slos");
+        assert_eq!(inv.artifacts[0].new_path, "oya/observability/slos");
+        assert_eq!(
+            inv.artifacts[1].old_path,
+            "registry/catalog/observability-domain.yaml"
+        );
+        assert_eq!(
+            inv.artifacts[1].new_path,
+            "registry/catalog/oya-observability-domain.yaml"
+        );
+        // ...and inverse-of-inverse restores both moves AND artifacts identically.
+        let back = inv.inverse();
+        assert_eq!(back.artifacts, plan.artifacts);
+        assert_eq!(back.moves, plan.moves);
+    }
+
+    #[test]
+    fn artifact_file_pairs_dir_enumerates_descendants_and_file_emits_direct_pair() {
+        // A DIR artifact (SLO dir) enumerates strict NEW-dir descendants -> old/<rel>; a FILE
+        // artifact (catalog record) whose new_path is itself a tracked file emits the direct pair.
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![obs_crate_move()],
+            artifacts: vec![
+                // DIR artifact
+                ArtifactMove {
+                    old_path: "oya/observability/slos".to_string(),
+                    new_path: "observability/observability/slos".to_string(),
+                },
+                // FILE artifact (a single catalog record re-keyed/re-homed)
+                ArtifactMove {
+                    old_path: "registry/catalog/oya-observability-domain.yaml".to_string(),
+                    new_path: "registry/catalog/observability-domain.yaml".to_string(),
+                },
+            ],
+        };
+        // Candidate POST-move tree: NEW slo descendants + the NEW catalog file are present.
+        let tracked = vec![
+            "observability/observability/slos/api-availability.openslo.yaml".to_string(),
+            "observability/observability/slos/api-latency.openslo.yaml".to_string(),
+            "registry/catalog/observability-domain.yaml".to_string(),
+            // a NEW crate file (handled by file_level_manifest, NOT artifact_file_pairs) — absent here
+            "observability/observability/slos-extra/x.yaml".to_string(), // sibling, not a descendant
+        ];
+        let pairs = plan.artifact_file_pairs(&tracked);
+        assert_eq!(
+            pairs,
+            vec![
+                // dir descendants mapped back to old/<rel>, sorted by old
+                (
+                    "oya/observability/slos/api-availability.openslo.yaml".to_string(),
+                    "observability/observability/slos/api-availability.openslo.yaml".to_string(),
+                ),
+                (
+                    "oya/observability/slos/api-latency.openslo.yaml".to_string(),
+                    "observability/observability/slos/api-latency.openslo.yaml".to_string(),
+                ),
+                // single FILE artifact: direct (old, new) pair
+                (
+                    "registry/catalog/oya-observability-domain.yaml".to_string(),
+                    "registry/catalog/observability-domain.yaml".to_string(),
+                ),
+            ],
+            "dir enumerates descendants (old/<rel>); file emits the direct pair; sibling excluded"
+        );
+    }
+
+    #[test]
+    fn artifact_file_pairs_is_empty_when_no_artifacts() {
+        // BACK-COMPAT no-op: a plan with NO artifacts emits ZERO artifact pairs regardless of the
+        // candidate tree — so the manifest `files` list is byte-identical to a pre-ArtifactMove
+        // plan (the existing committed plans are provably unaffected).
+        let plan = MovePlan {
+            capability: "observability".to_string(),
+            moves: vec![obs_crate_move()],
+            artifacts: vec![],
+        };
+        let tracked = vec![
+            "observability/core/domain/src/lib.rs".to_string(),
+            "observability/observability/slos/api.openslo.yaml".to_string(),
+        ];
+        assert!(
+            plan.artifact_file_pairs(&tracked).is_empty(),
+            "no artifacts => no artifact pairs (back-compat no-op)"
+        );
     }
 }
