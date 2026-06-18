@@ -73,6 +73,10 @@
       "old_path": "registry/catalog/oya-cloud-observability-api.yaml"
     },
     {
+      "new_path": "registry/catalog/observability-aggregate.yaml",
+      "old_path": "registry/catalog/oya-cloud-observability-domain.yaml"
+    },
+    {
       "new_path": "registry/catalog/observability-kernel.yaml",
       "old_path": "registry/catalog/oya-cloud-observability-kernel.yaml"
     },

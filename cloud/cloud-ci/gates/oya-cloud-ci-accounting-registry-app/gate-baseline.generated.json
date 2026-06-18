@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:c8b848be5ecbf138",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:db84241d8de2f12b"
+    "source_inputs_digest": "fnv1a64:b3d1dcf29483cc86"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -50156,6 +50156,7 @@
           "registry/catalog/marketplace-plugin-kernel.yaml",
           "registry/catalog/messaging-domain.yaml",
           "registry/catalog/messaging-file-adapter.yaml",
+          "registry/catalog/observability-aggregate.yaml",
           "registry/catalog/observability-api.yaml",
           "registry/catalog/observability-domain.yaml",
           "registry/catalog/observability-kernel.yaml",
