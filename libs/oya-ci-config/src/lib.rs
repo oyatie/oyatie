@@ -575,6 +575,11 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
             "intentional historical archive of the dropped work",
         ),
         (
+            VocabCarveOutKind::PathPrefix,
+            "marketplace/facade/dev-cli/tests/",
+            "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — structural references to real contract paths, not brand residue; moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined",
+        ),
+        (
             VocabCarveOutKind::PathExact,
             "evidence/audit-chain.jsonl",
             "append-only audit chain — NEVER rewritten",
@@ -1247,9 +1252,9 @@ mod tests {
                 "forbidden_oya-vcs",
             ]
         );
-        // 8 carve-out rules, including the line-level palantir exemption + the oya-ci-config
+        // 9 carve-out rules, including the line-level palantir exemption + the oya-ci-config
         // deny-list SSOT path carve-out + the repo-root oya-ci.toml deny-list carve-out.
-        assert_eq!(cfg.vocab.carve_outs.len(), 8);
+        assert_eq!(cfg.vocab.carve_outs.len(), 9);
         assert!(cfg
             .vocab
             .carve_outs

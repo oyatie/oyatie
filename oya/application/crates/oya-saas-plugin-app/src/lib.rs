@@ -17,7 +17,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_saas_plugin_marketplace_kernel::{
+use marketplace_plugin_kernel::{
     MarketplaceError, MarketplaceRegistry, PluginManifestId, TrustTier,
 };
 
@@ -214,7 +214,7 @@ fn is_regional_pack(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_saas_plugin_marketplace_kernel::{PluginManifestRegister, Vertical};
+    use marketplace_plugin_kernel::{PluginManifestRegister, Vertical};
 
     fn registered_registry() -> MarketplaceRegistry {
         let mut reg = MarketplaceRegistry::default();

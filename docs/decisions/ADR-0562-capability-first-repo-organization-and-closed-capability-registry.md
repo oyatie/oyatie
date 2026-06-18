@@ -938,6 +938,126 @@ tracked, born-accounted artifact paths are `flags/core/server/Cargo.toml`, `flag
 `flags/OWNERS`, and the committed move-plan `specs/reorg/flags-move-plan.json` (reached by the
 existing ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.13 Ninth executed strangler move: `marketplace` capability (cloud/cloud-marketplace + oya/marketplace + oya/developer-sdk → marketplace/)
+
+The ninth REAL codemod run homes the `marketplace` capability's five crates from THREE source dirs
+(`cloud/cloud-marketplace/crates`, `oya/marketplace/crates`, `oya/developer-sdk/crates`) under the §3
+placement rule, across TWO faces (`core` + `facade`, no `ports`/`adapters`): the cloud marketplace
+domain homes to `marketplace/core/cloud-domain` (cargo `marketplace-cloud-domain`), the cloud
+marketplace kernel to `marketplace/core/cloud-kernel` (cargo `marketplace-cloud-kernel`), the SaaS
+plugin-marketplace kernel to `marketplace/core/plugin-kernel` (cargo `marketplace-plugin-kernel`), the
+marketplace doc-set-scaffold to `marketplace/core/doc-set-scaffold` (cargo
+`marketplace-doc-set-scaffold`), and the `oya` gate-runner developer CLI to `marketplace/facade/dev-cli`
+(cargo `marketplace-dev-cli`). The de-brand drops the `oya-cloud-marketplace-`, `oya-saas-plugin-`,
+`oya-marketplace-`, and `oya-dev-` forms to the capability slug `marketplace-`, matching the
+§10.5..§10.12 precedent. marketplace is the marketplace / plugin-app-store / SKU ENGINE (the
+`marketplace` dag node): a first-class cross-cutting sold-ness capability whose generated SKU/pricing
+sell-catalog VIEW is materialized as build output over face:facade crates — marketplace owns the
+marketplace ENGINE, not the catalog view.
+
+**Face reasoning — four core + one facade, no ports/adapters (§3 "by WHAT IT IS"):** the capability
+registry records marketplace as absorbing `cloud/cloud-marketplace`, `oya/marketplace`,
+`oya/plugin-app-store`, and `oya/developer-sdk`. The crate-empty `oya/plugin-app-store` dir holds ZERO
+crates (only non-crate artifacts: catalog, cedar, contracts, dashboards, IP journeys, runbooks, slos),
+so it contributes no crate to this move; its non-crate residue is a phase-2 concern (task #62) while
+the registry still ABSORBS it so it is accounted under `marketplace`. The four substrate engine crates
+(the cloud marketplace domain + kernel, the SaaS plugin-marketplace kernel, the doc-set-scaffold) ARE
+the marketplace substrate, so they home to `core/`. The fifth crate — the `oya` gate-runner developer
+CLI — is the SOLD developer-tooling surface (a very wide leaf consumer of ~90 governance/check libs);
+it is the sell-face of the developer-SDK product, so it homes to `facade/dev-cli`. Its `[[bin]]` name
+`oya` (and the `fake-cargo` / `fake-verify-command` test-fixture bins) are PRESERVED — the de-brand
+renames only the cargo PACKAGE name (`oya-dev-cli` → `marketplace-dev-cli`), not the `[[bin]] name`
+entries, so the gate-runner binary stays `oya` (its retirement is the `cli_surface_policy` /
+ADR-0532/0533 de-brand lane's scope, task #63, not this structural move). marketplace is therefore a
+four-core-plus-one-facade capability at this incremental stage; the missing `ports`/`adapters` faces
+would arrive only if the engine is later decomposed (acceptable per the crate-first strangler — a
+capability is "crate-homed" per move and "fully homed" after phase-2).
+
+**External dependents rewritten mechanically (ADR-0563):** exactly TWO first-party crates depend on
+the moved tree, both on the plugin-marketplace kernel: `cloud-billing`'s `oya-saas-bench-app` and
+`oya/application`'s `oya-saas-plugin-app`. The codemod rewrote each across all three surfaces — the
+Cargo path-dependency key + `path=` value (`oya-saas-plugin-marketplace-kernel` →
+`marketplace-plugin-kernel`, re-pathed to `marketplace/core/plugin-kernel`), the BUCK `//`-label
+(`//cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel:...` →
+`//marketplace/core/plugin-kernel:marketplace-plugin-kernel`), and the Rust `use`/path segment
+(`oya_saas_plugin_marketplace_kernel::` → `marketplace_plugin_kernel::`). The dev-cli move is a
+depth-3 → depth-2 re-depthing of its ~90 relative `path="../../.."` workspace deps, all rewritten by
+the codemod; `cargo metadata --locked` resolves clean and `buck2 build //marketplace/facade/dev-cli/...`
+succeeds. The resulting path + cargo name are distinct for all five moves (`MovePlan::validate`
+passes).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true`
+not null, `clean=true`). marketplace is NOT a violation source (zero entries in the acyclicity frozen
+baseline) and the moved crate dirs are not in the membership unmapped baseline, so both lints carry
+0 burn-down / 0 regression. The capability registry records `marketplace.absorbs_current_dirs` with
+the capability's own top-level slug `marketplace` plus the four absorbed source dirs (the self-slug
+is required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE marketplace/...`; the §10.7 flags
+lesson). The membership policy scan_roots + allowed_top_level_dirs gain `marketplace`, the acyclicity
+policy crate_root_globs gains `marketplace/*/*` + unclassified_roots gains `marketplace`, and the root
+workspace gains the `marketplace/*/*` member glob (one glob covers all five faces/leaves; ADR-0538
+glob-only contract).
+
+**Per-FILE total-accounting relabel (ADR-0563 §C2):** this move commits exactly ONE move-plan at
+`specs/reorg/marketplace-move-plan.json` (the codemod's `MovePlan` bijection), and the move-manifest at
+`specs/reorg/move-manifest.generated.json` is regenerated from it via `oya-reorg-codemod manifest
+--plan` (registry-drift byte-bound, committed==regenerated). The dev-cli crate carries accepted
+per-FILE `unjustified` total-accounting debt (its source/tests reference the gate-runner's own
+historical crate paths as STRING-LITERAL gate self-paths — deferred de-brand residue, task #63); the
+ADR-0563 §C2 per-FILE relabel (`relabel_existence_only_file_gate`) relabels these accepted-`unjustified`
+files old→new via the manifest `file_pairs` (P1-frozen + P2-exact-absent + P3-exact-present +
+injective; no content guard — sound because `unjustified` is registry-row-derived keyed by path), so
+total-accounting stays GREEN with no scrub and no manual signoff door.
+
+**Include-site embedded-asset hermeticity surfaces relabeled (ADR-0545, NOT engine-covered):** the
+dev-cli crate has `include_str!`/`include_bytes!` sites, so two FROZEN hermeticity surfaces (not
+covered by the rename-aware emitter — same manual-per-move class as the membership/acyclicity
+baselines) were moved with it: the embedded-asset-hermeticity policy's `scan_roots` gains
+`marketplace` (the include sites leave the scanned `oya` corpus → site-floor RED otherwise), and the
+embedded-asset-hermeticity baseline's skip-set keys for the relocated dev-cli sites
+(`tests/doc_cli.rs:1003` under `skip_non_literal_argument`; six `tests/gate_cli.rs` lines under
+`skip_no_owning_target`) were relabeled `oya/developer-sdk/crates/oya-dev-cli/` →
+`marketplace/facade/dev-cli/` (the path tail and line numbers are byte-identical; the set-equality
+test stays green).
+
+**Registry SSOT store de-branded in lockstep (registry/stores):** the five moved crates are
+registry-tracked, so each per-crate KEY in the registry SSOT store was renamed to its new crate id
+(capability `marketplace`) — internal JSON key edits, not separate tracked paths, so the renames
+de-brand without any reachability impact (the store FILE keeps its signed-off accounting status; its
+tracked path is NOT cited here, to preserve the founder one-way-door admission). The per-crate
+dependency-rationales store's `allowed_crates` references to the three crates that carry an
+allowlisted external dep (`bytes`, `serde_json`, `toml`) were renamed to the new crate ids in
+lockstep, keeping each list sorted.
+
+**Per-crate catalog/SLO records retained at old stems (crate-first incremental, task #62):** like the
+flags/cell/storage/gateway precedent, the per-crate `registry/catalog/*.yaml` SLO-catalog records for
+the moved crates STAY at their old stems and are homed in phase-2. They are accepted unreachable debt
+in the frozen merge-base total-accounting baseline, so leaving them in place is gate-green; RENAMING
+them would mint NEW unreachable tracked paths (the move-plan→manifest relabel only relocates files
+UNDER the moved crate dirs, not the sibling catalog records), which total-accounting blocks on. The
+slo-coverage gate stays green at the old stems.
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** the absorbed
+dirs (`cloud/cloud-marketplace/`, `oya/marketplace/`, `oya/developer-sdk/`, and the crate-empty
+`oya/plugin-app-store/`) also hold non-crate capability artifacts (contracts, slos, policy, cedar,
+runbooks, dashboards, IaC, IP journeys, decisions, the per-crate catalog records above). This
+crates-only strangler move homes the CRATES; the non-crate artifacts stay in place and are homed in
+phase-2 (task #62), so only the `crates/` subtrees are emptied. The deferred de-brand residue outside
+the moved crates (the `[[bin]] name = "oya"` gate-runner binary + `OYA_*` constants + the dev-cli
+source/test STRING-LITERAL gate self-paths) is the ADR-0532/0533 de-brand profile lane's scope (task
+#63), not this structural move; it is gate-green and non-corrupting at the buck label / cargo name
+level.
+
+**Born-accounting (ADR-0555):** the new crate dirs under `marketplace/core/` and `marketplace/facade/`
+are reached by the `marketplace/*/*` member glob + the `marketplace/*/*` acyclicity glob, and owned by
+the subtree `marketplace/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json`
+§10.13 entry. The move's tracked, born-accounted artifact roots are `marketplace/core/cloud-domain/`,
+`marketplace/core/cloud-kernel/`, `marketplace/core/plugin-kernel/`, `marketplace/core/doc-set-scaffold/`,
+and `marketplace/facade/dev-cli/` (each carrying its `Cargo.toml`, `BUCK`, and `src/` — and, for
+dev-cli, its `tests/` and `tests/fixtures/` — subtree), the subtree `marketplace/OWNERS`, and the
+committed move-plan `specs/reorg/marketplace-move-plan.json` (reached by the existing ADR-0563
+`specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

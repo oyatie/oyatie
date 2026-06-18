@@ -16,9 +16,7 @@
     "docs/MASTERPLAN.md#13-implementation-plan-index",
     "specs/masterplan.json",
     "specs/agent-durable-goal.json",
-    "specs/deployment-ops-contract.json",
-    ".omc/handoffs/2026-05-16-session-handoff.json",
-    ".omc/plans/milestones"
+    "specs/deployment-ops-contract.json"
   ],
   "audits_completed": [
     {

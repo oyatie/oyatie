@@ -77,6 +77,11 @@ value = "oya/intelligence/_legacy-foundry/"
 reason = "intentional historical archive of the dropped work"
 
 [[vocab.carve_outs]]
+kind = "path_prefix"
+value = "marketplace/facade/dev-cli/tests/"
+reason = "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — structural references to real contract paths, not brand residue; moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined"
+
+[[vocab.carve_outs]]
 kind = "path_exact"
 value = "evidence/audit-chain.jsonl"
 reason = "append-only audit chain — NEVER rewritten"

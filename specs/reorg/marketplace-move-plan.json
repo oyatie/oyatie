@@ -1,0 +1,35 @@
+{
+  "capability": "marketplace",
+  "moves": [
+    {
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-domain",
+      "new_path": "marketplace/core/cloud-domain",
+      "old_cargo_name": "oya-cloud-marketplace-domain",
+      "new_cargo_name": "marketplace-cloud-domain"
+    },
+    {
+      "old_path": "cloud/cloud-marketplace/crates/oya-cloud-marketplace-kernel",
+      "new_path": "marketplace/core/cloud-kernel",
+      "old_cargo_name": "oya-cloud-marketplace-kernel",
+      "new_cargo_name": "marketplace-cloud-kernel"
+    },
+    {
+      "old_path": "cloud/cloud-marketplace/crates/oya-saas-plugin-marketplace-kernel",
+      "new_path": "marketplace/core/plugin-kernel",
+      "old_cargo_name": "oya-saas-plugin-marketplace-kernel",
+      "new_cargo_name": "marketplace-plugin-kernel"
+    },
+    {
+      "old_path": "oya/developer-sdk/crates/oya-dev-cli",
+      "new_path": "marketplace/facade/dev-cli",
+      "old_cargo_name": "oya-dev-cli",
+      "new_cargo_name": "marketplace-dev-cli"
+    },
+    {
+      "old_path": "oya/marketplace/crates/oya-marketplace-doc-set-scaffold",
+      "new_path": "marketplace/core/doc-set-scaffold",
+      "old_cargo_name": "oya-marketplace-doc-set-scaffold",
+      "new_cargo_name": "marketplace-doc-set-scaffold"
+    }
+  ]
+}

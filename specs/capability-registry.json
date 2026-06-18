@@ -340,6 +340,7 @@
         "metering/billing"
       ],
       "absorbs_current_dirs": [
+        "marketplace",
         "cloud/cloud-marketplace",
         "oya/marketplace",
         "oya/plugin-app-store",
