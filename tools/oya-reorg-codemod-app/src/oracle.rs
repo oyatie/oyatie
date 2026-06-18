@@ -297,6 +297,7 @@ mod tests {
                 old_cargo_name: "oya-b".to_string(),
                 new_cargo_name: "demo-b".to_string(),
             }],
+            artifacts: vec![],
         };
         // members glob is crates/* which will NOT cover demo/core/b -> the engine must add it.
         let report = dry_run(&root, &plan, false, false).unwrap();
@@ -336,6 +337,7 @@ mod tests {
                 old_cargo_name: "oya-b".to_string(),
                 new_cargo_name: "demo-b".to_string(),
             }],
+            artifacts: vec![],
         };
         let report = dry_run(&root, &plan, false, false).unwrap();
         assert!(
