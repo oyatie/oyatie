@@ -4663,6 +4663,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-runner-disk-reclaim-app"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-cloud-ci-scm-facts-emitter-app"
 version = "0.1.0"
 dependencies = [
