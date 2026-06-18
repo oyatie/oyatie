@@ -4,10 +4,13 @@
 //! ZERO dependency on the buck-out cache. Replaces the two duplicated inline `sudo rm -rf …`
 //! blocks in `.github/workflows/oya-ci-required.yml`. Reads the data-driven policy
 //! (`runner-disk-reclaim-policy.json`), best-effort removes the profile's vendor preinstall
-//! dirs, logs structured disk-before/after, and asserts the post-reclaim free-disk floor:
+//! dirs, logs structured disk-before/after, and reports the post-reclaim free-disk floor:
 //!
 //!   * floor met    ⇒ exit 0, "FRIC-017 preflight ok: freed X, free=NgiB"
-//!   * floor missed ⇒ exit 3 (INFRA-RED), "FRIC-017 infra-red: free=NgiB < min=MgiB"
+//!   * floor missed (default / best-effort mode) ⇒ exit 0, "FRIC-017 infra-red: …" (signal
+//!     preserved in log; mirrors the old `|| true` semantics; prevents the preflight itself
+//!     from becoming a new false-RED)
+//!   * floor missed (--strict mode)              ⇒ exit 3, same INFRA-RED line
 //!   * usage error  ⇒ exit 2 (bad args / missing policy / malformed profile)
 //!
 //! LOCAL BRIDGE invocation per the founder cli_surface_policy: merge authority lives in the
@@ -74,6 +77,7 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
     let mut profile_id: Option<String> = None;
     let mut policy_path: PathBuf = PathBuf::from(DEFAULT_POLICY);
     let mut root: PathBuf = PathBuf::from("/");
+    let mut strict: bool = false;
 
     let mut it = args.into_iter();
     while let Some(arg) = it.next() {
@@ -86,6 +90,9 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             }
             "--root" => {
                 root = PathBuf::from(it.next().ok_or("--root requires a value")?);
+            }
+            "--strict" => {
+                strict = true;
             }
             other => return Err(format!("unknown argument `{other}`")),
         }
@@ -100,11 +107,15 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
     let report = run_reclaim(&RealDiskOps, &root, &profile)
         .map_err(|e| format!("free-disk stat failed (fail-loud): {e}"))?;
 
-    Ok(emit(&profile_id, &report))
+    Ok(emit(&profile_id, &report, strict))
 }
 
-/// Emit the structured report + return the exit code (0 ok, EXIT_INFRA_RED below floor).
-fn emit(profile_id: &str, report: &ReclaimReport) -> ExitCode {
+/// Emit the structured report + return the exit code.
+///
+/// Default (best-effort) mode: threshold-miss logs INFRA-RED but exits 0 — mirrors the old
+/// `|| true` semantics and prevents the preflight from becoming its own false-RED.
+/// `--strict` mode: threshold-miss exits `EXIT_INFRA_RED` (3) for downstream attribution.
+fn emit(profile_id: &str, report: &ReclaimReport, strict: bool) -> ExitCode {
     println!(
         "FRIC-017 disk-before: free={} bytes ({} GiB) profile={profile_id}",
         report.free_before,
@@ -115,6 +126,7 @@ fn emit(profile_id: &str, report: &ReclaimReport) -> ExitCode {
             DirOutcome::Removed => "removed".to_owned(),
             DirOutcome::Absent => "absent".to_owned(),
             DirOutcome::Failed(e) => format!("failed: {e}"),
+            DirOutcome::Rejected(reason) => format!("REJECTED (safety guard): {reason}"),
         };
         println!("FRIC-017 reclaim-dir: {dir} -> {label}");
     }
@@ -125,13 +137,20 @@ fn emit(profile_id: &str, report: &ReclaimReport) -> ExitCode {
     );
 
     if report.is_infra_red() {
+        // Always log the INFRA-RED signal so it is visible in the CI log for future
+        // required-context labeling — but only hard-fail when --strict is set.
         println!(
             "FRIC-017 infra-red: free={}giB < min={}giB (post-reclaim runner capacity insufficient; \
-             a downstream disk-exhaustion here is INFRA, not CODE)",
+             a downstream disk-exhaustion here is INFRA, not CODE{})",
             report.free_gib_after(),
-            report.min_free_gib_after
+            report.min_free_gib_after,
+            if strict { "; --strict: exiting 3" } else { "; best-effort mode: exiting 0" }
         );
-        ExitCode::from(EXIT_INFRA_RED)
+        if strict {
+            ExitCode::from(EXIT_INFRA_RED)
+        } else {
+            ExitCode::SUCCESS
+        }
     } else {
         println!(
             "FRIC-017 preflight ok: freed {} bytes ({} GiB), free={}giB (>= min={}giB)",
@@ -143,3 +162,4 @@ fn emit(profile_id: &str, report: &ReclaimReport) -> ExitCode {
         ExitCode::SUCCESS
     }
 }
+

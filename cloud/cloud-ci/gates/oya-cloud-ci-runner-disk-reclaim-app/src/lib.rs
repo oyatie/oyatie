@@ -124,6 +124,45 @@ pub enum DirOutcome {
     Absent,
     /// The dir was present but removal failed; the io error string is carried for the log.
     Failed(String),
+    /// The path was rejected by the safety guard before any fs operation (not absolute,
+    /// equals a filesystem root, or contains `..`). Never reaches `DiskOps::remove_dir_all`.
+    Rejected(String),
+}
+
+/// Safety guard: reject a reclaim path if it is (a) not absolute, (b) a filesystem root (`/`,
+/// `//`, etc.), or (c) contains any `..` component. Returns `Err(reason)` on a violation.
+///
+/// This hardens the engine against a future malformed policy edit — the committed policy's
+/// 5 vendor dirs are all safe absolute paths, so this guard only fires on policy bugs.
+pub fn validate_reclaim_dir(path: &Path) -> Result<(), String> {
+    if !path.is_absolute() {
+        return Err(format!(
+            "path `{}` is not absolute — refusing to reclaim a relative path",
+            path.display()
+        ));
+    }
+    // Reject pure filesystem roots: paths whose only component is the root itself.
+    // `components()` on `/` yields exactly one `RootDir` component with no `Normal` parts.
+    let has_normal = path
+        .components()
+        .any(|c| matches!(c, std::path::Component::Normal(_)));
+    if !has_normal {
+        return Err(format!(
+            "path `{}` is a filesystem root — refusing to reclaim a root dir",
+            path.display()
+        ));
+    }
+    // Reject any path that contains a `..` component (even after parsing).
+    if path
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err(format!(
+            "path `{}` contains `..` — refusing to reclaim a path with parent-dir traversal",
+            path.display()
+        ));
+    }
+    Ok(())
 }
 
 /// The result of a full reclaim run: per-dir outcomes + the before/after free-byte snapshots.
@@ -168,14 +207,19 @@ pub fn run_reclaim(
     let mut outcomes = Vec::with_capacity(profile.reclaim_dirs.len());
     for dir in &profile.reclaim_dirs {
         let path = Path::new(dir);
-        let outcome = if !path.exists() {
-            DirOutcome::Absent
-        } else {
-            match ops.remove_dir_all(path) {
-                Ok(()) => DirOutcome::Removed,
-                // A NotFound race ⇒ Absent (lost to a concurrent reaper, still a no-op success).
-                Err(e) if e.kind() == std::io::ErrorKind::NotFound => DirOutcome::Absent,
-                Err(e) => DirOutcome::Failed(e.to_string()),
+        let outcome = match validate_reclaim_dir(path) {
+            Err(reason) => DirOutcome::Rejected(reason),
+            Ok(()) => {
+                if !path.exists() {
+                    DirOutcome::Absent
+                } else {
+                    match ops.remove_dir_all(path) {
+                        Ok(()) => DirOutcome::Removed,
+                        // A NotFound race ⇒ Absent (lost to a concurrent reaper, still a no-op).
+                        Err(e) if e.kind() == std::io::ErrorKind::NotFound => DirOutcome::Absent,
+                        Err(e) => DirOutcome::Failed(e.to_string()),
+                    }
+                }
             }
         };
         outcomes.push((dir.clone(), outcome));
@@ -366,5 +410,67 @@ mod tests {
             min_free_gib_after: 10,
         };
         assert_eq!(report.freed_bytes(), 0);
+    }
+
+    // --- path-safety guard tests ---
+
+    #[test]
+    fn guard_accepts_safe_absolute_paths() {
+        assert!(validate_reclaim_dir(Path::new("/usr/share/dotnet")).is_ok());
+        assert!(validate_reclaim_dir(Path::new("/opt/hostedtoolcache/CodeQL")).is_ok());
+        assert!(validate_reclaim_dir(Path::new("/usr/local/lib/android")).is_ok());
+    }
+
+    #[test]
+    fn guard_rejects_relative_path() {
+        let err = validate_reclaim_dir(Path::new("usr/share/dotnet")).unwrap_err();
+        assert!(err.contains("not absolute"), "got: {err}");
+    }
+
+    #[test]
+    fn guard_rejects_filesystem_root() {
+        let err = validate_reclaim_dir(Path::new("/")).unwrap_err();
+        assert!(err.contains("filesystem root"), "got: {err}");
+        // Double-slash root variant.
+        let err2 = validate_reclaim_dir(Path::new("//")).unwrap_err();
+        assert!(err2.contains("filesystem root"), "got: {err2}");
+    }
+
+    #[test]
+    fn guard_rejects_dotdot_traversal() {
+        let err = validate_reclaim_dir(Path::new("/usr/share/../dotnet")).unwrap_err();
+        assert!(err.contains(".."), "got: {err}");
+        let err2 = validate_reclaim_dir(Path::new("/usr/share/dotnet/..")).unwrap_err();
+        assert!(err2.contains(".."), "got: {err2}");
+    }
+
+    #[test]
+    fn run_reclaim_rejects_bad_path_without_calling_remove() {
+        // A Rejected outcome must never reach DiskOps::remove_dir_all.
+        let prof = profile(&["/", "usr/share/dotnet", "/opt/ghc/../real"], 1);
+        let ops = FakeOps {
+            free: RefCell::new(vec![10 * GIB, 10 * GIB]),
+            removed: RefCell::new(Vec::new()),
+            fail_on: BTreeSet::new(),
+        };
+        let report = run_reclaim(&ops, Path::new("/"), &prof).expect("reclaim");
+        // All three are rejected.
+        assert!(
+            matches!(report.outcomes[0].1, DirOutcome::Rejected(_)),
+            "/ must be Rejected"
+        );
+        assert!(
+            matches!(report.outcomes[1].1, DirOutcome::Rejected(_)),
+            "relative must be Rejected"
+        );
+        assert!(
+            matches!(report.outcomes[2].1, DirOutcome::Rejected(_)),
+            "dotdot must be Rejected"
+        );
+        // remove_dir_all was never called.
+        assert!(
+            ops.removed.borrow().is_empty(),
+            "remove must not be called for rejected paths"
+        );
     }
 }

@@ -410,13 +410,17 @@ jobs:
         # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
         # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
         # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
-        # vendor preinstall dirs, logs structured disk-before/after, and asserts the post-reclaim
-        # floor (exit 3 + an INFRA-RED line if the runner is still too small — so a downstream
-        # disk-exhaustion is attributable to INFRA, not CODE). This single irreducible-glue
-        # invocation runs BEFORE the buck-out warm restore and depends on NO restored cache:
-        # buck2 cold-builds the tiny std+serde_json+libc bin from source. `sudo` keeps the
-        # root-owned vendor dirs removable.
-        run: sudo -E buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app:oya-cloud-ci-runner-disk-reclaim-bin -- --profile github-hosted-ubuntu-latest
+        # vendor preinstall dirs and logs structured disk-before/after. Default mode: threshold-
+        # miss logs an INFRA-RED signal line but exits 0 (mirrors old `|| true`; prevents the
+        # preflight from becoming its own false-RED while preserving the signal for future
+        # required-context labeling). Built as the runner user (buck2 on user PATH; daemon must
+        # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
+        run: |
+          # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
+          # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
+          # root solely to remove the root-owned vendor preinstall dirs).
+          BIN="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
+          sudo -E "$BIN" --profile github-hosted-ubuntu-latest
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
@@ -552,13 +556,17 @@ jobs:
         # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
         # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
         # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
-        # vendor preinstall dirs, logs structured disk-before/after, and asserts the post-reclaim
-        # floor (exit 3 + an INFRA-RED line if the runner is still too small — so a downstream
-        # disk-exhaustion is attributable to INFRA, not CODE). This single irreducible-glue
-        # invocation runs BEFORE the buck-out warm restore and depends on NO restored cache:
-        # buck2 cold-builds the tiny std+serde_json+libc bin from source. `sudo` keeps the
-        # root-owned vendor dirs removable.
-        run: sudo -E buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app:oya-cloud-ci-runner-disk-reclaim-bin -- --profile github-hosted-ubuntu-latest
+        # vendor preinstall dirs and logs structured disk-before/after. Default mode: threshold-
+        # miss logs an INFRA-RED signal line but exits 0 (mirrors old `|| true`; prevents the
+        # preflight from becoming its own false-RED while preserving the signal for future
+        # required-context labeling). Built as the runner user (buck2 on user PATH; daemon must
+        # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
+        run: |
+          # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
+          # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
+          # root solely to remove the root-owned vendor preinstall dirs).
+          BIN="$(buck2 build //cloud/cloud-ci/gates/oya-cloud-ci-runner-disk-reclaim-app:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
+          sudo -E "$BIN" --profile github-hosted-ubuntu-latest
       - name: Restore buck-out (read-only; dev-push is the sole writer)
         # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae
