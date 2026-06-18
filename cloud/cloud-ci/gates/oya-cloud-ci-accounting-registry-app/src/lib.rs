@@ -579,6 +579,14 @@ pub struct GateInputs<'a> {
     /// catalog identity from each file stem, and parses the top-level `slo:` value. The gate's
     /// `evaluate_keyed` reuses `oya_check_slo_coverage::validate_slo_coverage` per row.
     pub slo_coverage: &'a Value,
+    /// The catalog-liveness gate input: `{"rows":[{"crate_id", "source_path", "is_live",
+    /// "marker"}]}`. The producer expands the config-declared `[catalog_liveness]
+    /// .catalog_record_globs` against tracked paths, derives the catalog identity from each file
+    /// stem, resolves whether that identity is a LIVE workspace crate-id IN-PROCESS (via
+    /// `oya-workspace-members-kernel` + each member's `[package].name` — NO shell-out), and parses
+    /// the explicit non-live marker (`status:` value / `non_claims` no-crate). The gate's
+    /// `evaluate_keyed` is pure live-OR-marked policy.
+    pub catalog_liveness: &'a Value,
     /// The ADR-0538 workspace-glob-coverage gate input:
     /// `{"rows":[{"member_entry","is_glob"},{"crate_dir","covered","excluded"}]}`. The
     /// producer reads the root workspace entries and resolves covered dirs via
@@ -661,6 +669,11 @@ fn producer_face_keys(
         ),
         GateFace::SloCoverage => group_findings(
             oya_cloud_ci_slo_coverage_app::evaluate_keyed(inputs.slo_coverage)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+        GateFace::CatalogLiveness => group_findings(
+            oya_cloud_ci_catalog_liveness_app::evaluate_keyed(inputs.catalog_liveness)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
@@ -981,6 +994,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
+            catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,
@@ -1051,6 +1065,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
+            catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,
@@ -1118,6 +1133,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &cargo_face,
             slo_coverage: &empty_face,
+            catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,
@@ -1147,13 +1163,13 @@ mod tests {
                 "neutral gate findings leaked brand literal {needle:?}:\n{neutral_gates_json}"
             );
         }
-        // "Gates present-but-quiet" (ADR-0533 item 1): the gates are PRESENT (the 13 enabled
+        // "Gates present-but-quiet" (ADR-0533 item 1): the gates are PRESENT (the 14 enabled
         // gates still appear so the engine dispatches every KIND) but QUIET (each gate's code
         // object is empty — the neutral disposition stamps no codes).
         let neutral_gates = neutral_baseline["gates"]
             .as_object()
             .expect("neutral gates object");
-        assert_eq!(neutral_gates.len(), 13, "gates present (all 13 enabled)");
+        assert_eq!(neutral_gates.len(), 14, "gates present (all 14 enabled)");
         for (gate_id, codes) in neutral_gates {
             assert_eq!(
                 codes.as_object().map(|m| m.len()),
@@ -1172,6 +1188,7 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &cargo_face,
             slo_coverage: &empty_face,
+            catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,

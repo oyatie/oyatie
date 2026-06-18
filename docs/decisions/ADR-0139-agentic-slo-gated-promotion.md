@@ -306,6 +306,46 @@ dup-`new_path` fail-closed is the backstop. The catalog-record re-key remains a 
 follow-up (the consolidated capabilities are a many-to-fewer mapping with no authoritative in-tree
 old→new manifest).
 
+## Amendment — catalog-liveness gate enforces live-OR-explicitly-marked (2026-06-18, doctrine-fix PR-C3)
+
+PR-C3 makes the founder **live-OR-explicitly-marked** catalog policy mechanically enforced, the
+capstone of the doctrine-fix phase. Every `registry/catalog/<stem>.yaml` record is admissible iff
+its stem is a LIVE workspace crate-id OR it carries an explicit non-live marker
+(`status: retired-compatibility-row-no-crate` / `designed-ahead-row-no-crate` / `planned` /
+`aspirational`, or a `non_claims` entry stating no matching crate exists). PR-C1+PR-C2 brought the
+silently-stale set to zero; PR-C3 marks the last residual record
+(`registry/catalog/oya-cloud-dcops-domain.yaml`, whose crate consolidated into the de-branded
+`compute-dcops`) so the gate is born-blocking with an EMPTY frozen baseline — zero accepted debt.
+
+**New gate (born-blocking, pure evaluator):** `cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/`
+mirrors the `oya-cloud-ci-slo-coverage-app` pattern — the producer
+(`oya-cloud-ci-accounting-registry-app`) owns all I/O, resolves the LIVE workspace crate-id
+universe IN-PROCESS via `libs/oya-workspace-members-kernel` (NEVER a `cargo metadata` / `buck2`
+shell-out — all-CLI-retirement + hermetic) by reading each resolved member's `[package].name`, and
+emits `{"rows":[{"crate_id","source_path","is_live","marker"}]}`; the gate's pure `evaluate_keyed`
+applies only the boolean live-OR-marked policy. The de-brand path-as-namespace means the catalog
+crate_id matches the crate's `[package].name` (e.g. `compute/core/domain` → `compute-domain`), not
+the directory basename. Registered as `[[gates.enabled]] id="cloud-ci-catalog-liveness"` in
+`oya-ci.toml` with a `[catalog_liveness]` policy block reusing `catalog_record_globs` (born
+pack-shaped, policy-as-data); disposition codes are `frozen_empty` so any future silently-stale
+record is NEW debt the firewall blocks (it cannot be laundered into the baseline by regeneration).
+
+**Born record (verbatim paths, ADR-0555 total-accounting justification — same path-mention pattern
+ADR-0527 used for the slo-coverage gate so the new gate's source files are born JUSTIFIED, not new
+unjustified debt):** the new gate crate is
+`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/Cargo.toml`,
+`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/BUCK`,
+`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/OWNERS`,
+`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/src/lib.rs`, and
+`cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app/tests/catalog_liveness.rs`.
+
+**SLO-coverage composition:** `oya-cloud-ci-slo-coverage-app` is tightened to additionally require
+each row's crate_id be live-OR-marked (`slo_row_no_live_crate_unmarked`, also `frozen_empty`),
+closing the same false-green at the SLO surface — a valid `slo:` no longer excuses a stale record.
+The SLO home convention remains `<capability>/observability/slos/` per the PR-A/PR-B amendments
+above; the catalog-liveness predicate is the catalog→live half of the truth-down (the inverse
+live→catalog completeness gap is sequenced backlog).
+
 ## References
 
 - ADR-0041: GitOps trunk-based + release-branch cut at tag (precedes; this ADR extends with per-component pointers).

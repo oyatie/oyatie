@@ -62,7 +62,13 @@
     "cloud-ci-slo-coverage": {
       "slo_missing_or_blank_slo": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "slo_empty_crate_id": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "slo_no_catalog_records": {"mode": "baseline-block-on-new", "frozen_empty": true}
+      "slo_no_catalog_records": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "slo_row_no_live_crate_unmarked": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "an SLO catalog row names no live workspace crate and carries no explicit non-live marker (PR-C3 composed live-OR-marked predicate). A valid `slo:` does not excuse a silently-stale record: EITHER restore/rename the crate so its [package].name == the record stem, OR mark the record `status: retired-compatibility-row-no-crate` (or designed-ahead-row-no-crate / planned / aspirational)."}
+    },
+    "cloud-ci-catalog-liveness": {
+      "catalog_record_no_live_crate_unmarked": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "the catalog record names no live workspace crate and carries no explicit non-live marker. EITHER restore/rename the crate so its [package].name == the record stem (live), OR mark the record explicitly non-live: add `status: retired-compatibility-row-no-crate` (or `designed-ahead-row-no-crate` / `planned` / `aspirational`) per the founder live-OR-explicitly-marked policy. Silently-stale catalog rows are not admissible."},
+      "catalog_record_empty_crate_id": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "a catalog record resolved to an empty crate_id (malformed file stem). Fix the record's path/stem so it derives a non-empty crate identity."},
+      "catalog_no_records": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "the catalog-liveness face enumerated ZERO records. Confirm [catalog_liveness].catalog_record_globs points at the catalog source; an empty corpus is RED to prevent a false-green."}
     },
     "cloud-ci-workspace-glob-coverage": {
       "workspace_member_explicit_path": {"mode": "baseline-block-on-new", "frozen_empty": true},
