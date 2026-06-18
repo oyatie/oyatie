@@ -1124,10 +1124,21 @@ subtree is added to the root `[workspace].exclude` (the `compliance/*/*` member 
 match `compliance/observability/slos`, a non-crate dir with no `Cargo.toml`, and make cargo error — the
 existing per-cap SLO-exclude class). The slo-coverage gate stays green at the new home.
 
-**No catalog re-key (out of scope):** none of the seven crates have a `registry/catalog/*.yaml` record
-(they are part of the live→catalog completeness gap), so there is nothing to re-key; catalog-liveness
-is unaffected by this move and stays green. No catalog records are minted (creating them is out of
-scope).
+**Catalog re-key executed IN the move (same pattern as PR-C1 #749):** all seven crates have
+`registry/catalog/*.yaml` records carrying `slo:` rows (the original brief's "no records exist"
+assumption was wrong; verified post-codemod). After the crate rename (`oya-dlp-domain` →
+`compliance-dlp`, etc.), the pre-existing `registry/catalog/oya-*.yaml` filenames no longer match any
+live workspace `[package].name`, which would RED the `catalog-liveness` gate
+(`catalog_record_no_live_crate_unmarked`) and the `slo-coverage` gate
+(`slo_row_no_live_crate_unmarked`) for all seven records. The move-plan therefore carries seven
+additional `ArtifactMove` entries re-keying each record to the de-branded live crate-id filename
+(content-preserving `git mv`; no in-file rewrite needed because the file content does not embed the
+filename stem as a key): `registry/catalog/oya-dlp-domain.yaml` → `registry/catalog/compliance-dlp.yaml`,
+`oya-dsr-domain.yaml` → `compliance-dsr.yaml`, `oya-dsr-usecase.yaml` → `compliance-dsr-usecase.yaml`,
+`oya-ediscovery-domain.yaml` → `compliance-ediscovery.yaml`, `oya-retention-domain.yaml` →
+`compliance-retention.yaml`, `oya-retention-dsr-domain.yaml` → `compliance-retention-dsr.yaml`,
+`oya-trust-portal-domain.yaml` → `compliance-trust-portal.yaml`. Both gates stay green after the
+re-key (all seven records bind to a live workspace crate-id).
 
 **Non-crate capability artifacts retained in place (crate-first incremental, task #62):** the absorbed
 dir (`oya/compliance/`) also holds non-crate capability artifacts (contracts, policy, cedar, runbooks,
@@ -1143,9 +1154,13 @@ born-accounted artifact roots are `compliance/core/dlp/`, `compliance/core/dsr/`
 `compliance/core/ediscovery/`, `compliance/core/retention/`, `compliance/core/retention-dsr/`,
 `compliance/core/trust-portal/`, and `compliance/ports/dsr-usecase/` (each carrying its `Cargo.toml`,
 `BUCK`, and `src/` — and, for `compliance/ports/dsr-usecase`, its `tests/` subtree), the co-moved SLO
-subtree `compliance/observability/slos/`, the subtree `compliance/OWNERS`, and the committed move-plan
-`specs/reorg/compliance-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability
-prefix).
+subtree `compliance/observability/slos/`, the subtree `compliance/OWNERS`, the seven re-keyed catalog
+records `registry/catalog/compliance-dlp.yaml`, `registry/catalog/compliance-dsr.yaml`,
+`registry/catalog/compliance-dsr-usecase.yaml`, `registry/catalog/compliance-ediscovery.yaml`,
+`registry/catalog/compliance-retention.yaml`, `registry/catalog/compliance-retention-dsr.yaml`,
+and `registry/catalog/compliance-trust-portal.yaml` (reached by the existing `registry/catalog/`
+reachability prefix), and the committed move-plan `specs/reorg/compliance-move-plan.json` (reached by
+the existing ADR-0563 `specs/reorg/` reachability prefix).
 
 ## Consequences
 

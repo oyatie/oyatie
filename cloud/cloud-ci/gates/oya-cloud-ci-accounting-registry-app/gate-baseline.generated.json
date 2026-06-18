@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:c9798fad6106cd34",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:3622ff24895a8cd9"
+    "source_inputs_digest": "fnv1a64:7b895f2873221681"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -20962,13 +20962,6 @@
           "registry/catalog/cell-regional-pack-api.yaml",
           "registry/catalog/cell-regional-pack.yaml",
           "registry/catalog/cell-routing.yaml",
-          "registry/catalog/compliance-dlp.yaml",
-          "registry/catalog/compliance-dsr-usecase.yaml",
-          "registry/catalog/compliance-dsr.yaml",
-          "registry/catalog/compliance-ediscovery.yaml",
-          "registry/catalog/compliance-retention-dsr.yaml",
-          "registry/catalog/compliance-retention.yaml",
-          "registry/catalog/compliance-trust-portal.yaml",
           "registry/catalog/compute-aws-adapter.yaml",
           "registry/catalog/compute-domain.yaml",
           "registry/catalog/compute-functions-api.yaml",

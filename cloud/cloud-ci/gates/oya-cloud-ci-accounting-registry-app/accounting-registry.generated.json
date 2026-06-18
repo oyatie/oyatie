@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18420,
-    "source_inputs_digest": "fnv1a64:9ca6c4ae5fc50bb7"
+    "source_inputs_digest": "fnv1a64:8e0a34a80e6d1bc7"
   },
   "rows": [
     {
@@ -346209,7 +346209,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/compliance-dlp.yaml",
       "reachable_from": [],
@@ -346229,7 +346229,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/compliance-dsr-usecase.yaml",
       "reachable_from": [],
@@ -346249,7 +346249,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/compliance-dsr.yaml",
       "reachable_from": [],
@@ -346269,7 +346269,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/compliance-ediscovery.yaml",
       "reachable_from": [],
@@ -346289,7 +346289,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/compliance-retention-dsr.yaml",
       "reachable_from": [],
@@ -346309,7 +346309,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/compliance-retention.yaml",
       "reachable_from": [],
@@ -346329,7 +346329,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/compliance-trust-portal.yaml",
       "reachable_from": [],
