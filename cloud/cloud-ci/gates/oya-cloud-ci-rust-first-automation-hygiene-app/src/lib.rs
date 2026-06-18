@@ -13,10 +13,11 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use serde_json::{Value, json};
+use serde_yaml::Value as YamlValue;
 
 pub const GATE_ID: &str = "cloud-ci-rust-first-automation-hygiene";
 
-pub const VIOLATION_CODES: [&str; 7] = [
+pub const VIOLATION_CODES: [&str; 9] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -24,6 +25,12 @@ pub const VIOLATION_CODES: [&str; 7] = [
     "rust_first_automation_exception_stale",
     "rust_first_automation_observed_path_missing_field",
     "rust_first_automation_unregistered_non_rust_automation",
+    // Workflow-inline-shell dimension (pipeline-glue(a)): the extension-based file scan above is
+    // blind to shell that lives INSIDE GitHub workflow YAML `run:` steps (the file is a `.yml`,
+    // not a `.sh`). These two codes ratchet that surface shrink-only against a frozen keyed
+    // baseline of today's accepted legacy-bridge inline shell.
+    "rust_first_automation_unbaselined_workflow_inline_shell",
+    "rust_first_automation_workflow_inline_shell_baseline_stale",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -177,6 +184,238 @@ pub fn collect_observed_non_rust_automation(
     }
     rows.sort_by(|a, b| string_field(a, "path").cmp(&string_field(b, "path")));
     Ok(json!({ "rows": rows }))
+}
+
+// ───────────────────────────── workflow-inline-shell dimension ─────────────────────────────
+//
+// The extension-based file scan above counts non-Rust automation FILES. It is structurally blind
+// to shell that lives INSIDE a `.yml` workflow as a `run:` step: the file is a `.yml`, so the
+// extension scan never flags it, and the gate never parses the YAML body. pipeline-glue(a) closes
+// that blind spot by parsing the policy-declared workflow globs with a real YAML parser and
+// emitting one keyed observation per (file, job, step) that carries an inline `run:` block. The
+// keyed observations are ratcheted shrink-only against a FROZEN baseline (policy-as-data, born
+// pack-shaped) of today's accepted legacy-bridge inline shell.
+
+/// The stable key for a single inline-shell observation: `<workflow-relpath>::<job-id>::step-<N>`
+/// where `N` is the 0-based index of the step within its job's `steps` array. This is the finest
+/// defensible keyed unit (per file, per job, per step) so shrink is provable per-step and the
+/// total-accounting/ratchet machinery applies uniformly.
+fn workflow_shell_key(rel: &str, job: &str, step_index: usize) -> String {
+    format!("{rel}::{job}::step-{step_index}")
+}
+
+/// Count the inline-shell lines in a `run:` scalar. Block scalars (`run: |` / `run: >`) and
+/// single-line `run:` are both deserialized by serde_yaml into a plain string, so this is a simple
+/// non-empty-line count over the already-parsed value (no regex, no manual block-scalar handling).
+fn shell_line_count(run: &str) -> usize {
+    run.lines().filter(|line| !line.trim().is_empty()).count()
+}
+
+/// Glob-free workflow file collector: the policy declares explicit directories + extensions for the
+/// workflow surface (`scan.workflow_inline_shell.{roots,extensions}`); we walk each root and keep
+/// files whose extension is in the set. Read-only, deterministic (sorted), no temp files.
+fn collect_workflow_files(
+    repo_root: &Path,
+    roots: &[String],
+    extensions: &BTreeSet<String>,
+) -> Result<Vec<(PathBuf, String)>, ScanError> {
+    let mut files = Vec::new();
+    for root in roots {
+        let absolute = repo_root.join(root);
+        if !absolute.exists() {
+            continue;
+        }
+        for path in sorted_dir_entries(&absolute)? {
+            let metadata = fs::symlink_metadata(&path).map_err(|e| {
+                ScanError::Io(format!(
+                    "symlink_metadata {} during workflow scan: {e}",
+                    path.display()
+                ))
+            })?;
+            if metadata.file_type().is_symlink() || !metadata.is_file() {
+                continue;
+            }
+            if !has_non_rust_extension(&path, extensions) {
+                continue;
+            }
+            let rel = path
+                .strip_prefix(repo_root)
+                .map_err(|e| {
+                    ScanError::Io(format!("strip repo root from {}: {e}", path.display()))
+                })?
+                .to_string_lossy()
+                .replace('\\', "/");
+            files.push((path, rel));
+        }
+    }
+    files.sort_by(|a, b| a.1.cmp(&b.1));
+    Ok(files)
+}
+
+/// Extract every inline-shell step from a parsed workflow document. The shape is the GitHub Actions
+/// contract: `jobs.<job-id>.steps[]`, each step optionally carrying a string `run:`. Composite
+/// actions (`runs.steps[]`) are handled by the same traversal when the document carries a top-level
+/// `runs` mapping (`action.yml`). Steps without a `run:` (e.g. `uses:` action steps) are skipped.
+fn extract_inline_shell_steps(rel: &str, doc: &YamlValue, rows: &mut Vec<Value>) {
+    let mut record_steps = |job: &str, steps: &YamlValue| {
+        let Some(steps) = steps.as_sequence() else {
+            return;
+        };
+        for (index, step) in steps.iter().enumerate() {
+            let Some(run) = step.get("run").and_then(YamlValue::as_str) else {
+                continue;
+            };
+            rows.push(json!({
+                "key": workflow_shell_key(rel, job, index),
+                "file": rel,
+                "job": job,
+                "step_index": index,
+                "shell_lines": shell_line_count(run),
+            }));
+        }
+    };
+
+    if let Some(jobs) = doc.get("jobs").and_then(YamlValue::as_mapping) {
+        for (job_id, job) in jobs {
+            let job_name = job_id.as_str().unwrap_or("<job>");
+            if let Some(steps) = job.get("steps") {
+                record_steps(job_name, steps);
+            }
+        }
+    }
+
+    // Composite action surface: `runs.steps[]` under a single synthetic `runs` job key.
+    if let Some(steps) = doc.get("runs").and_then(|runs| runs.get("steps")) {
+        record_steps("runs", steps);
+    }
+}
+
+/// Collect the repo-local workflow inline-shell inventory described by the policy's
+/// `scan.workflow_inline_shell` block. Read-only, writes no temp files, deterministic order. When
+/// the dimension is disabled (or the block is absent) this returns an empty inventory so the gate
+/// stays a strict superset of its prior behavior.
+pub fn collect_observed_workflow_inline_shell(
+    repo_root: &Path,
+    policy: &Value,
+) -> Result<Value, ScanError> {
+    let block = policy.get("scan").and_then(|scan| scan.get("workflow_inline_shell"));
+    let enabled = block
+        .and_then(|block| block.get("enabled"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    if !enabled {
+        return Ok(json!({ "steps": [] }));
+    }
+
+    let roots = workflow_string_array(block, "roots")?;
+    let extensions = workflow_string_array(block, "extensions")?
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+
+    let mut rows = Vec::new();
+    for (path, rel) in collect_workflow_files(repo_root, &roots, &extensions)? {
+        let text = fs::read_to_string(&path)
+            .map_err(|e| ScanError::Io(format!("read workflow {}: {e}", path.display())))?;
+        let doc: YamlValue = serde_yaml::from_str(&text)
+            .map_err(|e| ScanError::Io(format!("parse workflow yaml {}: {e}", path.display())))?;
+        extract_inline_shell_steps(&rel, &doc, &mut rows);
+    }
+    rows.sort_by(|a, b| string_field(a, "key").cmp(&string_field(b, "key")));
+    Ok(json!({ "steps": rows }))
+}
+
+fn workflow_string_array(block: Option<&Value>, key: &str) -> Result<Vec<String>, ScanError> {
+    block
+        .and_then(|block| block.get(key))
+        .and_then(Value::as_array)
+        .ok_or_else(|| ScanError::MissingScanArray(format!("workflow_inline_shell.{key}")))?
+        .iter()
+        .map(|v| {
+            v.as_str()
+                .map(str::to_owned)
+                .ok_or_else(|| ScanError::MissingScanArray(format!("workflow_inline_shell.{key}")))
+        })
+        .collect()
+}
+
+/// The set of inline-shell keys observed in the live workflow corpus.
+fn observed_workflow_shell_keys(observed: &Value, findings: &mut BTreeSet<Finding>) -> BTreeSet<String> {
+    let mut keys = BTreeSet::new();
+    for row in observed
+        .get("steps")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        match string_field(row, "key").filter(|k| !k.is_empty()) {
+            Some(key) => {
+                keys.insert(key.to_owned());
+            }
+            None => {
+                findings.insert(Finding::new(
+                    "rust_first_automation_observed_path_missing_field",
+                    "<observed-workflow-step>",
+                    "observed workflow inline-shell row missing non-empty `key`",
+                ));
+            }
+        }
+    }
+    keys
+}
+
+/// The frozen baseline keys for the workflow-inline-shell code, read from the baseline face's
+/// `codes.rust_first_automation_unbaselined_workflow_inline_shell` array.
+fn baseline_workflow_shell_keys(baseline: &Value) -> BTreeSet<String> {
+    baseline
+        .get("codes")
+        .and_then(|codes| codes.get("rust_first_automation_unbaselined_workflow_inline_shell"))
+        .and_then(Value::as_array)
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Pure evaluator for the workflow-inline-shell dimension. `observed` is the scanner output shaped
+/// as `{ "steps": [{"key": "..."}] }`; `baseline` is the frozen keyed baseline face. Shrink-only:
+///   - any observed key NOT in the baseline ⇒ `rust_first_automation_unbaselined_workflow_inline_shell`
+///     (a NEW inline-shell step beyond the accepted legacy-bridge debt is born-blocking);
+///   - any baseline key NOT observed ⇒ `rust_first_automation_workflow_inline_shell_baseline_stale`
+///     (a retired step must shrink the baseline in the same PR, mirroring the file-scan stale code).
+pub fn evaluate_workflow_inline_shell_keyed(
+    observed: &Value,
+    baseline: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let baseline_keys = baseline_workflow_shell_keys(baseline);
+    let observed_keys = observed_workflow_shell_keys(observed, &mut findings);
+
+    for key in &observed_keys {
+        if !baseline_keys.contains(key) {
+            findings.insert(Finding::new(
+                "rust_first_automation_unbaselined_workflow_inline_shell",
+                key,
+                "new inline shell inside workflow YAML beyond the frozen legacy-bridge baseline; \
+                 productize it as a Rust/Buck2 step or extend the reviewed baseline (shrink-only)",
+            ));
+        }
+    }
+
+    for key in &baseline_keys {
+        if !observed_keys.contains(key) {
+            findings.insert(Finding::new(
+                "rust_first_automation_workflow_inline_shell_baseline_stale",
+                key,
+                "baselined workflow inline-shell step no longer exists; shrink the baseline in this PR",
+            ));
+        }
+    }
+
+    findings
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -453,5 +692,104 @@ mod tests {
             finding.code == "rust_first_automation_exception_missing_replacement_contract"
                 && finding.key == "scripts/legacy.sh"
         }));
+    }
+
+    // ───────────────── workflow-inline-shell evaluator unit tests (pipeline-glue(a)) ─────────────
+
+    fn shell_observed(keys: &[&str]) -> Value {
+        json!({"steps": keys.iter().map(|k| json!({"key": k})).collect::<Vec<_>>()})
+    }
+
+    fn shell_baseline(keys: &[&str]) -> Value {
+        json!({"codes": {
+            "rust_first_automation_unbaselined_workflow_inline_shell":
+                keys.iter().map(|k| json!(k)).collect::<Vec<_>>()
+        }})
+    }
+
+    #[test]
+    fn workflow_shell_corpus_equal_to_baseline_is_green() {
+        let findings = evaluate_workflow_inline_shell_keyed(
+            &shell_observed(&["a.yml::job::step-0", "a.yml::job::step-1"]),
+            &shell_baseline(&["a.yml::job::step-0", "a.yml::job::step-1"]),
+        );
+        assert!(findings.is_empty(), "{findings:#?}");
+    }
+
+    #[test]
+    fn workflow_shell_new_key_beyond_baseline_is_red() {
+        let findings = evaluate_workflow_inline_shell_keyed(
+            &shell_observed(&["a.yml::job::step-0", "a.yml::job::step-NEW"]),
+            &shell_baseline(&["a.yml::job::step-0"]),
+        );
+        assert!(findings.iter().any(|f| {
+            f.code == "rust_first_automation_unbaselined_workflow_inline_shell"
+                && f.key == "a.yml::job::step-NEW"
+        }));
+    }
+
+    #[test]
+    fn workflow_shell_retired_baselined_key_is_stale() {
+        let findings = evaluate_workflow_inline_shell_keyed(
+            &shell_observed(&[]),
+            &shell_baseline(&["a.yml::job::step-0"]),
+        );
+        assert!(findings.iter().any(|f| {
+            f.code == "rust_first_automation_workflow_inline_shell_baseline_stale"
+                && f.key == "a.yml::job::step-0"
+        }));
+    }
+
+    #[test]
+    fn shell_line_count_handles_block_and_single_line() {
+        assert_eq!(shell_line_count("echo hi"), 1);
+        assert_eq!(shell_line_count("set -e\n\necho a\necho b\n"), 3);
+    }
+
+    #[test]
+    fn extract_inline_shell_steps_skips_uses_and_keys_per_step() {
+        let doc: YamlValue = serde_yaml::from_str(
+            "jobs:\n  build:\n    steps:\n      - uses: actions/checkout@v4\n      - run: echo one\n      - run: |\n          echo two\n          echo three\n",
+        )
+        .unwrap();
+        let mut rows = Vec::new();
+        extract_inline_shell_steps(".github/workflows/x.yml", &doc, &mut rows);
+        let keys: Vec<&str> = rows.iter().filter_map(|r| r["key"].as_str()).collect();
+        // step-0 is the `uses:` step (no run) → skipped; step-1 and step-2 are run steps.
+        assert_eq!(
+            keys,
+            vec![
+                ".github/workflows/x.yml::build::step-1",
+                ".github/workflows/x.yml::build::step-2"
+            ]
+        );
+        assert_eq!(rows[1]["shell_lines"].as_u64(), Some(2));
+    }
+
+    #[test]
+    fn evaluator_only_emits_declared_violation_codes() {
+        // Guard against the workflow-shell + file-scan evaluators drifting from VIOLATION_CODES.
+        let declared: BTreeSet<&str> = VIOLATION_CODES.into_iter().collect();
+        let mut emitted: BTreeSet<String> = BTreeSet::new();
+        // File-scan codes.
+        for f in evaluate_keyed(
+            &json!({"gate_id": "wrong", "exceptions": [{"path": "x"}]}),
+            &observed(&["scripts/y.sh"]),
+        ) {
+            emitted.insert(f.code);
+        }
+        // Workflow-shell codes (both directions).
+        for f in evaluate_workflow_inline_shell_keyed(
+            &shell_observed(&["a::j::step-NEW"]),
+            &shell_baseline(&["a::j::step-OLD"]),
+        ) {
+            emitted.insert(f.code);
+        }
+        for code in &emitted {
+            assert!(
+                declared.contains(code.as_str()),
+                "evaluator emitted `{code}` which is not in VIOLATION_CODES"
+            );
+        }
     }
 }
