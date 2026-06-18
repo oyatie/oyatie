@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:c8b848be5ecbf138",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:88d0c4c072bb3e7a"
+    "source_inputs_digest": "fnv1a64:7b1d1d35605954d1"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -22117,6 +22117,7 @@
           "specs/proto/backbone/messenger/message_stream.proto",
           "specs/proto/backbone/social/BUCK",
           "specs/proto/backbone/social/social_post_composition.proto",
+          "specs/reorg/slo-catalog-backfill-move-plan.json",
           "specs/repo-hygiene-automation.json",
           "specs/score-cards.json",
           "specs/sovereign-cloud-air-gapped-canonical.json",
