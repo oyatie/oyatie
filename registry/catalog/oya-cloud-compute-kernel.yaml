@@ -5,10 +5,10 @@ plane: control
 slo: no-runtime-slo
 status: retired-compatibility-row-no-crate
 successor_catalogs:
-  - registry/catalog/oya-cloud-compute-domain.yaml
-  - registry/catalog/oya-cloud-compute-functions-api.yaml
-  - registry/catalog/oya-cloud-compute-k8s-api.yaml
-  - registry/catalog/oya-cloud-compute-vm-api.yaml
+  - registry/catalog/compute-domain.yaml
+  - registry/catalog/compute-functions-api.yaml
+  - registry/catalog/compute-k8s-api.yaml
+  - registry/catalog/compute-vm-api.yaml
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview

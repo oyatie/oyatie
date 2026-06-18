@@ -5,8 +5,8 @@ plane: control
 slo: no-runtime-slo
 status: retired-compatibility-row-no-crate
 successor_catalogs:
-  - registry/catalog/oya-cloud-marketplace-domain.yaml
-  - registry/catalog/oya-cloud-marketplace-kernel.yaml
+  - registry/catalog/marketplace-cloud-domain.yaml
+  - registry/catalog/marketplace-cloud-kernel.yaml
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview

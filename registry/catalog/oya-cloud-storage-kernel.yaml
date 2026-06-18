@@ -3,6 +3,7 @@ role: kernel
 capability: storage-kernel-retired
 plane: control
 slo: not-applicable-no-crate
+status: retired-compatibility-row-no-crate
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview

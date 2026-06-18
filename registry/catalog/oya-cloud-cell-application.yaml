@@ -5,8 +5,8 @@ plane: control
 slo: no-runtime-slo
 status: retired-compatibility-row-no-crate
 successor_catalogs:
-  - registry/catalog/oya-cloud-cell-app.yaml
-  - registry/catalog/oya-cell-domain.yaml
+  - registry/catalog/cell-bind-api.yaml
+  - registry/catalog/cell-routing.yaml
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview
