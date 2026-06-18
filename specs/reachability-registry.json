@@ -50,6 +50,10 @@
       "prefix": "compliance/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.15 ownership seed: the console capability tree's OWNERS marker (axis-cloud-platform), homed by the eleventh strangler move (oya/ops/crates docs-portal + workspace-shell cells → console/{ports,core,adapters,facade}/); breadth-unlimited (ADR-0555) so it covers the whole console subtree; the committed move-plan at specs/reorg/console-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "console/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },
