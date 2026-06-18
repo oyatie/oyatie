@@ -448,7 +448,91 @@
       ".codex",
       ".github/workflows",
       "cloud"
-    ]
+    ],
+    "workflow_inline_shell": {
+      "_comment": "pipeline-glue(a): the file-extension scan above is blind to shell that lives INSIDE workflow YAML `run:` steps (the file is `.yml`, not `.sh`). This dimension parses the declared workflow roots with a real YAML parser, emits one keyed observation per (file, job, step) carrying an inline `run:` block, and ratchets it shrink-only against the frozen keyed baseline face rust-first-automation-workflow-shell-baseline.json. New inline shell beyond baseline is born-blocking; a retired step must shrink the baseline in the same PR. Removing the shell itself (productizing it as a Rust/Buck2 step) is pipeline-glue(b).",
+      "enabled": true,
+      "extensions": [
+        ".yaml",
+        ".yml"
+      ],
+      "roots": [
+        ".github/workflows",
+        ".github/actions"
+      ]
+    }
   },
-  "schema_version": "1.0.0"
+  "schema_version": "1.1.0",
+  "workflow_inline_shell_baseline": {
+    "_comment": "FROZEN keyed baseline of TODAY's accepted legacy-bridge inline shell inside GitHub workflow YAML `run:` steps (pipeline-glue(a)). The file-extension scan (scan.non_rust_extensions over scan.roots) counts non-Rust automation FILES and is structurally blind to shell INSIDE a `.yml` (the file is a `.yml`, not a `.sh`). The scan.workflow_inline_shell dimension closes that blind spot: it parses the declared workflow roots with a real YAML parser and emits one keyed observation per (file, job, step) carrying an inline `run:` block. This baseline freezes that surface SHRINK-ONLY. Each key is `<workflow-relpath>::<job-id>::step-<N>` (N = 0-based step index within the job's `steps` array) -- the finest defensible per-(file,job,step) unit. The live-repo gate test asserts the MEASURED inline-shell key set equals codes.rust_first_automation_unbaselined_workflow_inline_shell EXACTLY (set equality): a NEW inline `run:` step beyond this baseline is born-blocking (rust_first_automation_unbaselined_workflow_inline_shell), a RETIRED step must shrink the baseline in the SAME PR (rust_first_automation_workflow_inline_shell_baseline_stale). Folded INTO this policy (an already-accounted gate face) rather than a new sibling JSON so adding the baseline creates ZERO new tracked accounting rows (no firewall ratchet growth). NOT producer-regenerated -- reviewed, hand-shrunk; anti-laundering is REVIEW-VISIBLE. REMOVING the shell itself (productizing each step as a Rust/Buck2 step) is pipeline-glue(b), a separate PR. FRIC-017: the FRIC-017 disk-reclaim `run:` blocks in oya-ci-required.yml are now COUNTED visible debt pending rust-first productization in pipeline-glue(b); the FRIC-017 ledger row stays OPEN.",
+    "_provenance": {
+      "authority": "pipeline-glue(a): rust-first ratchet workflow-inline-shell go-live; door:one-way",
+      "baseline_schema_version": 1,
+      "fric_017_note": "FRIC-017 disk-reclaim run-blocks are inside this counted set (oya-ci-required.yml); ledger row remains OPEN until pipeline-glue(b) productizes them in Rust/Buck2.",
+      "frozen_at": "2026-06-18",
+      "keys_by_file": {
+        ".github/workflows/cache-integrity-canary.yml": 12,
+        ".github/workflows/check-substrates.yml": 5,
+        ".github/workflows/docs-graph-drift.yml": 3,
+        ".github/workflows/oya-ci-required.yml": 32
+      },
+      "keys_total": 52
+    },
+    "codes": {
+      "rust_first_automation_unbaselined_workflow_inline_shell": [
+        ".github/workflows/cache-integrity-canary.yml::canary::step-1",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-10",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-11",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-12",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-2",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-3",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-4",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-5",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-6",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-7",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-8",
+        ".github/workflows/cache-integrity-canary.yml::canary::step-9",
+        ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::step-1",
+        ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::step-2",
+        ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::step-3",
+        ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::step-4",
+        ".github/workflows/check-substrates.yml::oya-check-substrate-dependency-dag-acyclicity::step-5",
+        ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-3",
+        ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-4",
+        ".github/workflows/docs-graph-drift.yml::docs-graph-drift::step-5",
+        ".github/workflows/oya-ci-required.yml::app-shell-codegen::step-1",
+        ".github/workflows/oya-ci-required.yml::app-shell-codegen::step-2",
+        ".github/workflows/oya-ci-required.yml::buck2::step-1",
+        ".github/workflows/oya-ci-required.yml::buck2::step-10",
+        ".github/workflows/oya-ci-required.yml::buck2::step-3",
+        ".github/workflows/oya-ci-required.yml::buck2::step-4",
+        ".github/workflows/oya-ci-required.yml::buck2::step-6",
+        ".github/workflows/oya-ci-required.yml::buck2::step-7",
+        ".github/workflows/oya-ci-required.yml::buck2::step-8",
+        ".github/workflows/oya-ci-required.yml::gate-affected-set::step-1",
+        ".github/workflows/oya-ci-required.yml::gate-affected-set::step-3",
+        ".github/workflows/oya-ci-required.yml::gate-affected-set::step-4",
+        ".github/workflows/oya-ci-required.yml::gate-affected-set::step-6",
+        ".github/workflows/oya-ci-required.yml::gate-affected-set::step-7",
+        ".github/workflows/oya-ci-required.yml::gate-affected-set::step-8",
+        ".github/workflows/oya-ci-required.yml::gate-affected-set::step-9",
+        ".github/workflows/oya-ci-required.yml::gate-cloud-ci-firewall::step-1",
+        ".github/workflows/oya-ci-required.yml::gate-cloud-ci-firewall::step-2",
+        ".github/workflows/oya-ci-required.yml::gate-cloud-ci-firewall::step-3",
+        ".github/workflows/oya-ci-required.yml::gate-freshness::step-1",
+        ".github/workflows/oya-ci-required.yml::gate-freshness::step-3",
+        ".github/workflows/oya-ci-required.yml::gate-freshness::step-4",
+        ".github/workflows/oya-ci-required.yml::gate-registry-drift::step-1",
+        ".github/workflows/oya-ci-required.yml::gate-registry-drift::step-2",
+        ".github/workflows/oya-ci-required.yml::gate::step-2",
+        ".github/workflows/oya-ci-required.yml::gate::step-3",
+        ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::step-1",
+        ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::step-3",
+        ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::step-4",
+        ".github/workflows/oya-ci-required.yml::oya-ci-required::step-0",
+        ".github/workflows/oya-ci-required.yml::producer-regen::step-1",
+        ".github/workflows/oya-ci-required.yml::producer-regen::step-2"
+      ]
+    }
+  }
 }
