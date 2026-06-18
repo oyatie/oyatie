@@ -346,6 +346,22 @@ The SLO home convention remains `<capability>/observability/slos/` per the PR-A/
 above; the catalog-liveness predicate is the catalog→live half of the truth-down (the inverse
 live→catalog completeness gap is sequenced backlog).
 
+## Amendment — first doctrine-clean in-move SLO co-move (2026-06-18, ADR-0562 §10.14 compliance move)
+
+The `compliance` capability strangler move (ADR-0562 §10.14) is the FIRST capability move to co-move
+its promotion-gating SLOs IN the same move rather than deferring them to a PR-B-style backfill. The
+upgraded move protocol folds the SLO co-move into the crate move: the move-plan
+`specs/reorg/compliance-move-plan.json` carries one `ArtifactMove`
+(`oya/compliance/slos` → `compliance/observability/slos`) alongside the seven crate moves, and the
+thirteen `*.openslo.yaml` are relocated content-preserving (wholesale `git mv`, no in-file rewrite) to
+the capability-rooted home `compliance/observability/slos/` established by the PR-A convention. The
+`compliance/observability` SLO-data subtree is added to the root `[workspace].exclude` (the
+`compliance/*/*` member glob would otherwise match the non-crate `compliance/observability/slos` dir);
+OWNERS coverage is breadth-unlimited (ADR-0555), so the relocated SLOs are owner-covered by
+`compliance/OWNERS`. This makes the convention's intended steady state — SLOs home WITH their
+capability — the per-move default; the PR-B backfill remains the one-time catch-up for the nine
+capabilities homed before the convention existed.
+
 ## References
 
 - ADR-0041: GitOps trunk-based + release-branch cut at tag (precedes; this ADR extends with per-component pointers).

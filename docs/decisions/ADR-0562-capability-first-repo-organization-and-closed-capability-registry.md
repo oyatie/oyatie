@@ -1060,6 +1060,108 @@ dev-cli, its `tests/` and `tests/fixtures/` — subtree), the subtree `marketpla
 committed move-plan `specs/reorg/marketplace-move-plan.json` (reached by the existing ADR-0563
 `specs/reorg/` reachability prefix).
 
+#### §10.14 Tenth executed strangler move: `compliance` capability (oya/compliance/crates → compliance/) — first doctrine-clean SLO co-move
+
+The tenth REAL codemod run homes the `compliance` capability's seven crates from one source dir
+(`oya/compliance/crates`) under the §3 placement rule, across TWO faces (`core` + `ports`, no
+`adapters`/`facade`): the DLP domain homes to `compliance/core/dlp` (cargo `compliance-dlp`), the DSR
+domain to `compliance/core/dsr` (cargo `compliance-dsr`), the e-discovery domain to
+`compliance/core/ediscovery` (cargo `compliance-ediscovery`), the retention domain to
+`compliance/core/retention` (cargo `compliance-retention`), the retention-DSR domain to
+`compliance/core/retention-dsr` (cargo `compliance-retention-dsr`), the trust-portal domain to
+`compliance/core/trust-portal` (cargo `compliance-trust-portal`), and the DSR cascade-execute usecase
+to `compliance/ports/dsr-usecase` (cargo `compliance-dsr-usecase`). The de-brand drops the legacy
+`oya-`/`-domain`/`-usecase` forms to the capability slug `compliance-`, matching the §10.5..§10.13
+precedent. compliance is the compliance + governance-evidence substrate (the `compliance` dag node):
+regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation.
+
+**Face reasoning — six core + one ports, no adapters/facade (§3 "by WHAT IT IS"):** the six DOMAIN
+crates (DLP, DSR, e-discovery, retention, retention-DSR, trust-portal) are the compliance substrate
+engine, so they home to `core/`; the DSR cascade-execute USECASE crate is the inbound application port
+(the use-case orchestration over the DSR domain), so it homes to `ports/` (a `ports/dsr-usecase → core/dsr`
+downward edge — the legal direction, the iac-rest / storage / cell precedent of §10.6/§10.9/§10.10).
+The missing `adapters`/`facade` faces would arrive only if the engine grows an external-system adapter
+or a sold surface (acceptable per the crate-first strangler — a capability is "crate-homed" per move
+and "fully homed" after phase-2).
+
+**Cross-capability dependency preserved (NOT broken, NOT duplicated):** `compliance/core/trust-portal`
+depends on the cloud-network residency domain (`cloud/cloud-network/crates/oya-residency-domain`), an
+edge that crosses out of the capability into a not-yet-moved capability. The codemod left the
+cross-capability dependency's package key, `path=`, BUCK `//`-label, and Rust `use` segment UNCHANGED
+(residency is not in this move's plan), so the edge keeps resolving against its current home; it will
+relabel to its capability-rooted form when the network capability is later homed — there is no
+duplicate residency crate and no broken edge (the cross-tree edge resolves under both `cargo metadata
+--locked` and `buck2 build //compliance/core/trust-portal/...`).
+
+**External dependents:** NONE. No first-party crate outside the seven depends on the moved tree (the
+only inbound edge is residency, which is OUTBOUND from compliance); the internal cross-crate edges
+(`dsr-usecase → dsr`, `ediscovery → retention`, `retention-dsr → retention`, `trust-portal → dsr`) were
+rewritten mechanically by the codemod across all three surfaces — the Cargo path-dependency key +
+`path=` recompute, the BUCK `//`-label, and the Rust `use`/path segment. The resulting path + cargo
+name are distinct for all seven moves (`MovePlan::validate` passes).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true`
+not null, `clean=true`). compliance is NOT a violation source (zero entries in the acyclicity frozen
+baseline) and the moved crate dirs are not in the membership unmapped baseline, so both lints carry
+0 burn-down / 0 regression. The capability registry records `compliance.absorbs_current_dirs` with the
+capability's own top-level slug `compliance` plus the absorbed source dirs (the self-slug is required
+or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE compliance/...`; the §10.12 flags lesson). The
+membership policy scan_roots + allowed_top_level_dirs gain `compliance`, the acyclicity policy
+crate_root_globs gains `compliance/*/*` + unclassified_roots gains `compliance`, and the root workspace
+gains the `compliance/*/*` member glob (one glob covers all seven faces/leaves; ADR-0538 glob-only
+contract).
+
+**SLO co-move executed IN the move (doctrine-clean, NOT deferred to phase-2):** unlike §10.5..§10.13
+(which homed crates only and left the per-capability SLOs for the PR-B backfill), this move co-moves the
+thirteen promotion-gating SLOs `oya/compliance/slos/*.openslo.yaml` → `compliance/observability/slos/`
+in the SAME move, via the codemod `ArtifactMove` (content-preserving wholesale `git mv`, no in-file
+rewrite), per the ADR-0139 SLO-home convention. The committed move-plan therefore carries one
+`ArtifactMove` (`oya/compliance/slos` → `compliance/observability/slos`) alongside the seven crate
+moves; the regenerated move-manifest carries the SLO file pairs so the ADR-0563 path-keyed relabel +
+the total-accounting baseline follow the relocated SLOs old→new. The `compliance/observability` SLO-data
+subtree is added to the root `[workspace].exclude` (the `compliance/*/*` member glob would otherwise
+match `compliance/observability/slos`, a non-crate dir with no `Cargo.toml`, and make cargo error — the
+existing per-cap SLO-exclude class). The slo-coverage gate stays green at the new home.
+
+**Catalog re-key executed IN the move (same pattern as PR-C1 #749):** all seven crates have
+`registry/catalog/*.yaml` records carrying `slo:` rows (the original brief's "no records exist"
+assumption was wrong; verified post-codemod). After the crate rename (`oya-dlp-domain` →
+`compliance-dlp`, etc.), the pre-existing `registry/catalog/oya-*.yaml` filenames no longer match any
+live workspace `[package].name`, which would RED the `catalog-liveness` gate
+(`catalog_record_no_live_crate_unmarked`) and the `slo-coverage` gate
+(`slo_row_no_live_crate_unmarked`) for all seven records. The move-plan therefore carries seven
+additional `ArtifactMove` entries re-keying each record to the de-branded live crate-id filename
+(content-preserving `git mv`; no in-file rewrite needed because the file content does not embed the
+filename stem as a key): `registry/catalog/oya-dlp-domain.yaml` → `registry/catalog/compliance-dlp.yaml`,
+`oya-dsr-domain.yaml` → `compliance-dsr.yaml`, `oya-dsr-usecase.yaml` → `compliance-dsr-usecase.yaml`,
+`oya-ediscovery-domain.yaml` → `compliance-ediscovery.yaml`, `oya-retention-domain.yaml` →
+`compliance-retention.yaml`, `oya-retention-dsr-domain.yaml` → `compliance-retention-dsr.yaml`,
+`oya-trust-portal-domain.yaml` → `compliance-trust-portal.yaml`. Both gates stay green after the
+re-key (all seven records bind to a live workspace crate-id).
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** the absorbed
+dir (`oya/compliance/`) also holds non-crate capability artifacts (contracts, policy, cedar, runbooks,
+dashboards, IaC, IP journeys, capabilities, scorecards, the manifest). This move homes the CRATES and
+co-moves the SLOs; the other non-crate artifacts stay in place and are homed in phase-2 (task #62).
+
+**Born-accounting (ADR-0555):** the seven new crate dirs under `compliance/core/` and
+`compliance/ports/` are reached by the `compliance/*/*` member glob + the `compliance/*/*` acyclicity
+glob, and owned by the subtree `compliance/OWNERS` (axis-cloud-platform) seeded via a
+`specs/reachability-registry.json` §10.14 entry; the same OWNERS marker is breadth-unlimited (ADR-0555)
+so it also covers the co-moved `compliance/observability/slos/` SLO subtree. The move's tracked,
+born-accounted artifact roots are `compliance/core/dlp/`, `compliance/core/dsr/`,
+`compliance/core/ediscovery/`, `compliance/core/retention/`, `compliance/core/retention-dsr/`,
+`compliance/core/trust-portal/`, and `compliance/ports/dsr-usecase/` (each carrying its `Cargo.toml`,
+`BUCK`, and `src/` — and, for `compliance/ports/dsr-usecase`, its `tests/` subtree), the co-moved SLO
+subtree `compliance/observability/slos/`, the subtree `compliance/OWNERS`, the seven re-keyed catalog
+records `registry/catalog/compliance-dlp.yaml`, `registry/catalog/compliance-dsr.yaml`,
+`registry/catalog/compliance-dsr-usecase.yaml`, `registry/catalog/compliance-ediscovery.yaml`,
+`registry/catalog/compliance-retention.yaml`, `registry/catalog/compliance-retention-dsr.yaml`,
+and `registry/catalog/compliance-trust-portal.yaml` (reached by the existing `registry/catalog/`
+reachability prefix), and the committed move-plan `specs/reorg/compliance-move-plan.json` (reached by
+the existing ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a
