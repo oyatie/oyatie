@@ -1267,6 +1267,122 @@ app, its `src/main.rs`), the subtree `console/OWNERS`, the nine re-keyed catalog
 reachability prefix), and the committed move-plan `specs/reorg/console-move-plan.json` (reached by the
 existing ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.16 Twelfth executed strangler move: `comms` capability (oya/mail + oya/messenger + oya/meet + oya/contact-center → comms/) — four-cell move with collision-aware per-service SLO co-move + catalog re-key
+
+The twelfth REAL codemod run homes the `comms` capability's sixteen crates from FOUR source dirs
+(`oya/mail/crates`, `oya/messenger/crates`, `oya/meet/crates`, `oya/contact-center/crates`) under the §3
+placement rule, across all FOUR faces (`core` + `ports` + `adapters` + `facade`), spread over FOUR product
+cells (`mail`, seven crates; `messenger`, seven crates; `meet`, one crate; `contact-center`, one crate).
+comms is the multi-channel communications plane (the `comms` dag node): email/mail, messenger, meet, and
+contact-center — the substrate notification engine plus the tenant communication surfaces.
+
+**Naming scheme (cargo == de-branded path-tail, all sixteen unique):** the mail and messenger cells carry a
+`mailbox-store` / `message-stream` bounded-context segment that would path-double under the capability slug,
+so the LEAF dir name encodes a compacted `<cell>-<context>-<role>` form to stay unique while keeping cargo ==
+path-tail. The scheme is path `comms/<face>/<leaf>` ↔ cargo `comms-<leaf>`, de-branded (the legacy
+`oya-mail-`/`oya-messenger-`/`oya-meet-`/`oya-contact-center-` forms drop to the `comms-` capability slug).
+The sixteen: the mail domain → `comms/core/mail-domain` (cargo `comms-mail-domain`), the mail mailbox-store
+usecase → `comms/core/mail-mailbox-usecase` (`comms-mail-mailbox-usecase`), the mail mailbox-store app →
+`comms/core/mail-mailbox-app` (`comms-mail-mailbox-app`), the mail mailbox-store api →
+`comms/ports/mail-mailbox-api` (`comms-mail-mailbox-api`), the mail mailbox-store postgres adapter →
+`comms/adapters/mail-mailbox-postgres` (`comms-mail-mailbox-postgres`), the mail mailbox-store grpc →
+`comms/facade/mail-mailbox-grpc` (`comms-mail-mailbox-grpc`), the mail mailbox-store rest →
+`comms/facade/mail-mailbox-rest` (`comms-mail-mailbox-rest`); the messenger domain →
+`comms/core/messenger-domain` (`comms-messenger-domain`), the messenger message-stream usecase →
+`comms/core/messenger-stream-usecase` (`comms-messenger-stream-usecase`), the messenger app →
+`comms/core/messenger-stream-app` (`comms-messenger-stream-app`), the messenger message-stream api →
+`comms/ports/messenger-stream-api` (`comms-messenger-stream-api`), the messenger message-stream postgres
+adapter → `comms/adapters/messenger-stream-postgres` (`comms-messenger-stream-postgres`), the messenger
+message-stream grpc → `comms/facade/messenger-stream-grpc` (`comms-messenger-stream-grpc`), the messenger
+message-stream rest → `comms/facade/messenger-stream-rest` (`comms-messenger-stream-rest`); the meet domain →
+`comms/core/meet-domain` (`comms-meet-domain`); and the contact-center voice-routing app →
+`comms/facade/contact-center-voice-routing` (`comms-contact-center-voice-routing`). All sixteen leaf dirs and
+all sixteen cargo names are distinct (`MovePlan::validate` passes), and each cargo name equals its de-branded
+path-tail EXACTLY (the target-parity + cargo-prefix relabel binding).
+
+**Face reasoning — ports/core/adapters/facade by WHAT EACH IS (§3), verified against the REAL dep
+direction:** each cell's `domain` crate carries the bounded-context types and homes to `core/` (the substrate
+engine surface); the `*-api` crate is the inbound application port (it carries only the shared
+protocol-parity kernel dep) so it homes to `ports/`; the `*-usecase` crate is the application use-case
+orchestration that depends inward on the domain + api, so it homes to `core/` (a legal `core → ports`
+downward hexagonal edge, the iac-rest / storage / cell / compliance / console precedent of
+§10.6/§10.9/§10.10/§10.14/§10.15); the `*-app` composition crate wires the adapter + api + usecase and homes
+to `core/` for the mail/messenger cells (the cell's substrate composition root, depending downward on its
+own `adapters/` postgres impl — an intra-capability `core → adapters` edge that, because all sixteen are ONE
+`comms` capability node, projects to a `comms → comms` self-edge and raises NO service→service / S-rank
+acyclicity violation); the `*-postgres` adapter projects the domain onto the postgres store and homes to
+`adapters/`; the `*-grpc` / `*-rest` framework boundaries home to `facade/` (the cell's delivery surface).
+The contact-center voice-routing `app` is the cell's sole crate — a delivery composition root with a custom
+`[[bin]]` — so it homes to `facade/`. The dep DAG is acyclic by construction, and because all sixteen are
+ONE `comms` capability node the intra-capability face edges raise no service→service / S-rank acyclicity
+violation (the §10.15 console precedent).
+
+**External dependents:** NONE. No first-party crate outside the sixteen depends on the moved tree, and there
+are no cross-capability outbound edges (the only outbound deps are the shared `libs/oya-data-boundary-kernel`
++ `libs/oya-shared-{postgres-command,protocol-parity,protocol-transport,transactional-outbox,hyperscaler-metrics}-kernel`,
+consumed from `libs/` — those stay in place, and their relative `path=`/BUCK `//`-label were recomputed by
+the codemod against the new homes). The internal cross-crate edges (the mail cell `mailbox-usecase →
+{domain,api}`, `mailbox-app → {postgres,api,usecase}`, `mailbox-grpc → {api,app}`, `mailbox-rest →
+{app,api,usecase}`; the symmetric messenger cell edges; meet-domain and contact-center-voice-routing have no
+intra-capability edges) were rewritten mechanically by the codemod across all three surfaces — the Cargo
+path-dependency key + `path=` recompute, the BUCK `//`-label, and the Rust `use`/path segment.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null,
+`clean=true`). comms is NOT a violation source (zero entries in the acyclicity frozen baseline) and the moved
+crate dirs are not in the membership unmapped baseline, so both lints carry 0 burn-down / 0 regression. The
+capability registry records `comms.absorbs_current_dirs` with the capability's own top-level slug `comms` (the
+self-slug is required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE comms/...`; the §10.12 flags lesson)
+plus the absorbed source dirs (the pre-existing seed `oya/comms-email` + `oya/emergency` are retained — both
+crate-empty — and are NOT a violation source; `oya/emergency` is NOT pre-reserved beyond the existing seed,
+pending the open healthcare-capability question). The membership policy scan_roots + allowed_top_level_dirs
+gain `comms`, the acyclicity policy crate_root_globs gains `comms/*/*` + unclassified_roots gains `comms`, and
+the root workspace gains the `comms/*/*` member glob (one glob covers all sixteen faces/leaves; ADR-0538
+glob-only contract).
+
+**SLO co-move executed IN the move (doctrine-clean, collision-aware per-service subdirs):** all four source
+dirs carry promotion-gating SLOs (`oya/mail/slos`, 11; `oya/messenger/slos`, 11; `oya/meet/slos`, 12;
+`oya/contact-center/slos`, 13 — 47 total). A FLAT merge into `comms/observability/slos/` would clash on the
+CONFIRMED cross-service basename collisions `autosharding-events.openslo.yaml` (all four), `availability.openslo.yaml`
+(meet + contact-center), and `search-latency.openslo.yaml` (mail + messenger) — `MovePlan::validate`'s
+dup-`new_path` fail-closed would fire. The move therefore co-moves each source SLO dir wholesale into a
+PER-SERVICE subdir (`comms/observability/slos/mail/`, `.../messenger/`, `.../meet/`, `.../contact-center/`)
+via four content-preserving dir `ArtifactMove`s — collision-free AND provenance-preserving (each SLO keeps its
+originating-service home). This is a deliberate, collision-driven deviation from the flat `<cap>/observability/slos/`
+layout of §10.5..§10.15 (which had no four-way basename clashes); the slo-coverage gate keys by catalog-record
+file stem, not SLO file path, so the nesting is gate-neutral.
+
+**Catalog re-key executed IN the move (same pattern as §10.14/§10.15):** all sixteen crates have
+`registry/catalog/*.yaml` records carrying `slo:` rows (verified pre-move — the gates, not a scout, are
+authoritative). After the crate rename, the legacy `oya-mail-*`/`oya-messenger-*`/`oya-meet-*`/`oya-contact-center-*`
+filenames no longer match any live workspace `[package].name`, which would RED the `catalog-liveness`
+(`catalog_record_no_live_crate_unmarked`) and `slo-coverage` (`slo_row_no_live_crate_unmarked`) gates for all
+sixteen records. The move-plan therefore carries sixteen additional file `ArtifactMove` entries re-keying each
+record to the de-branded live crate-id filename (content-preserving `git mv`; no in-file rewrite — the file
+content does not embed the filename stem as a key): each legacy record re-keys to
+`registry/catalog/comms-<leaf>.yaml`. Both gates stay green after the re-key (all sixteen records bind to a
+live workspace crate-id).
+
+**Custom bin de-brand (codemod gap #76, hand-patched):** the contact-center voice-routing app declares a custom
+`[[bin]]` / `rust_binary` named `oya-contact-center-voice-routing` (not the snake-mirror of the package name),
+which the codemod's `apply` does NOT auto-de-brand (it rewrites `[package].name`/`[lib].name`/deps/labels/idents
+only). The custom `[[bin]]` name (`Cargo.toml`), the `rust_binary` target name (`BUCK`), and the clap
+`#[command(name = ...)]` string literal (`src/main.rs`) were hand-de-branded to `comms-contact-center-voice-routing`,
+the end-state correct de-branded form (the `use oya_contact_center_voice_routing_app::...` lib-ident references
+are rewritten automatically by the codemod's rust-source pass to `comms_contact_center_voice_routing`).
+
+**Born-accounting (ADR-0555):** the sixteen new crate dirs under `comms/core/`, `comms/ports/`,
+`comms/adapters/`, and `comms/facade/` are reached by the `comms/*/*` member glob + the `comms/*/*` acyclicity
+glob, and owned by the subtree `comms/OWNERS` (axis-cloud-platform) seeded via a
+`specs/reachability-registry.json` §10.16 entry (breadth-unlimited per ADR-0555, covering the whole comms
+subtree including the co-moved per-service SLO subdirs). The move's tracked, born-accounted artifact roots are
+the sixteen crate dirs (each carrying its `Cargo.toml`, `BUCK`, and `src/` — and, for the contact-center
+voice-routing crate, its `src/main.rs` + `tests/`), the co-moved SLO subtree
+`comms/observability/slos/{mail,messenger,meet,contact-center}/`, the subtree `comms/OWNERS`, the sixteen
+re-keyed catalog records `registry/catalog/comms-*.yaml` (reached by the existing `registry/catalog/`
+reachability prefix), and the committed move-plan `specs/reorg/comms-move-plan.json` (reached by the existing
+ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

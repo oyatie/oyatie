@@ -148,6 +148,23 @@ members = [
   # members contract (no explicit-path members); the absorbed dir holds no SLO subtree (no co-move, no
   # observability exclude), and its other non-crate artifacts are homed in phase-2 (task #62).
   "console/*/*",
+  # Capability-first home (ADR-0562 strangler move 12): the `comms` capability absorbs the former
+  # oya/mail + oya/messenger + oya/meet + oya/contact-center crates into comms/{core,ports,adapters,
+  # facade} (all four faces), spread over FOUR product cells (mail, seven crates; messenger, seven
+  # crates; meet, one crate; contact-center, one crate). comms is the multi-channel communications
+  # plane (dag_node comms): email/mail, messenger, meet, and contact-center. Each crate is de-branded
+  # to the capability prefix with a role-suffixed leaf so cargo == path-tail stays unique across the
+  # four cells (comms-mail-domain / comms-mail-mailbox-usecase / comms-mail-mailbox-app /
+  # comms-mail-mailbox-api / comms-mail-mailbox-postgres / comms-mail-mailbox-grpc /
+  # comms-mail-mailbox-rest / comms-messenger-domain / comms-messenger-stream-usecase /
+  # comms-messenger-stream-app / comms-messenger-stream-api / comms-messenger-stream-postgres /
+  # comms-messenger-stream-grpc / comms-messenger-stream-rest / comms-meet-domain /
+  # comms-contact-center-voice-routing), so each leaf segment stays a bare `*`. `comms/*/*` covers all
+  # sixteen faces/leaves with one glob, satisfying ADR-0538's glob-only members contract (no
+  # explicit-path members); the co-moved comms/observability/slos non-crate SLO subtree (per-service
+  # subdirs mail/messenger/meet/contact-center, collision-avoiding) is excluded below (no Cargo.toml),
+  # and the absorbed dirs' other non-crate artifacts are homed in phase-2 (task #62).
+  "comms/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -172,6 +189,7 @@ exclude = [
   "flags/observability",
   "marketplace/observability",
   "compliance/observability",
+  "comms/observability",
 ]
 resolver = "2"
 

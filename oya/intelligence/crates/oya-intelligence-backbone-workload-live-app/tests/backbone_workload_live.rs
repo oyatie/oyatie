@@ -22,22 +22,22 @@ use oya_community_social_post_composition_api::{
     post_published_event_envelope,
 };
 use oya_community_social_post_composition_usecase::{compose_post, plan_story_purge};
-use oya_mail_mailbox_store_adapter_postgres::{
+use comms_mail_mailbox_postgres::{
     PersistMailMessageRecord, build_mail_message_write_batch,
 };
-use oya_mail_mailbox_store_api::{
+use comms_mail_mailbox_api::{
     AuthorizedMailContext, DmarcApiAction, DmarcApiPolicy, DmarcCheckRequest, MailApiContext,
     MailApiEnvelope, SubmitMessageRequest, message_sent_event_envelope,
 };
-use oya_mail_mailbox_store_usecase::submit_message;
-use oya_messenger_message_stream_adapter_postgres::{
+use comms_mail_mailbox_usecase::submit_message;
+use comms_messenger_stream_postgres::{
     PersistMessageRecord, build_message_write_batch,
 };
-use oya_messenger_message_stream_api::{
+use comms_messenger_stream_api::{
     AuthorizedMessengerContext, MessengerApiContext, MessengerApiEnvelope, SendMessageRequest,
     message_posted_event_envelope,
 };
-use oya_messenger_message_stream_usecase::send_message;
+use comms_messenger_stream_usecase::send_message;
 use oya_shared_postgres_command_adapter_sqlx::{
     SqlxPostgresBatchExecutor, SqlxPostgresCommandError, SqlxPostgresConnectionConfig,
 };
@@ -468,8 +468,8 @@ fn workload_tables() -> &'static [WorkloadTable] {
 
 fn workload_migrations() -> &'static [&'static str] {
     &[
-        oya_messenger_message_stream_adapter_postgres::MIGRATION_0001,
-        oya_mail_mailbox_store_adapter_postgres::MIGRATION_0001,
+        comms_messenger_stream_postgres::MIGRATION_0001,
+        comms_mail_mailbox_postgres::MIGRATION_0001,
         oya_community_social_post_composition_adapter_postgres::MIGRATION_0001,
         oya_community_post_store_adapter_postgres::MIGRATION_0001,
     ]

@@ -1,0 +1,183 @@
+{
+  "capability": "comms",
+  "moves": [
+    {
+      "old_path": "oya/mail/crates/oya-mail-domain",
+      "new_path": "comms/core/mail-domain",
+      "old_cargo_name": "oya-mail-domain",
+      "new_cargo_name": "comms-mail-domain"
+    },
+    {
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-usecase",
+      "new_path": "comms/core/mail-mailbox-usecase",
+      "old_cargo_name": "oya-mail-mailbox-store-usecase",
+      "new_cargo_name": "comms-mail-mailbox-usecase"
+    },
+    {
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-app",
+      "new_path": "comms/core/mail-mailbox-app",
+      "old_cargo_name": "oya-mail-mailbox-store-app",
+      "new_cargo_name": "comms-mail-mailbox-app"
+    },
+    {
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-api",
+      "new_path": "comms/ports/mail-mailbox-api",
+      "old_cargo_name": "oya-mail-mailbox-store-api",
+      "new_cargo_name": "comms-mail-mailbox-api"
+    },
+    {
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-adapter-postgres",
+      "new_path": "comms/adapters/mail-mailbox-postgres",
+      "old_cargo_name": "oya-mail-mailbox-store-adapter-postgres",
+      "new_cargo_name": "comms-mail-mailbox-postgres"
+    },
+    {
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-grpc",
+      "new_path": "comms/facade/mail-mailbox-grpc",
+      "old_cargo_name": "oya-mail-mailbox-store-grpc",
+      "new_cargo_name": "comms-mail-mailbox-grpc"
+    },
+    {
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-rest",
+      "new_path": "comms/facade/mail-mailbox-rest",
+      "old_cargo_name": "oya-mail-mailbox-store-rest",
+      "new_cargo_name": "comms-mail-mailbox-rest"
+    },
+    {
+      "old_path": "oya/messenger/crates/oya-messenger-domain",
+      "new_path": "comms/core/messenger-domain",
+      "old_cargo_name": "oya-messenger-domain",
+      "new_cargo_name": "comms-messenger-domain"
+    },
+    {
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-usecase",
+      "new_path": "comms/core/messenger-stream-usecase",
+      "old_cargo_name": "oya-messenger-message-stream-usecase",
+      "new_cargo_name": "comms-messenger-stream-usecase"
+    },
+    {
+      "old_path": "oya/messenger/crates/oya-messenger-app",
+      "new_path": "comms/core/messenger-stream-app",
+      "old_cargo_name": "oya-messenger-app",
+      "new_cargo_name": "comms-messenger-stream-app"
+    },
+    {
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-api",
+      "new_path": "comms/ports/messenger-stream-api",
+      "old_cargo_name": "oya-messenger-message-stream-api",
+      "new_cargo_name": "comms-messenger-stream-api"
+    },
+    {
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-adapter-postgres",
+      "new_path": "comms/adapters/messenger-stream-postgres",
+      "old_cargo_name": "oya-messenger-message-stream-adapter-postgres",
+      "new_cargo_name": "comms-messenger-stream-postgres"
+    },
+    {
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-grpc",
+      "new_path": "comms/facade/messenger-stream-grpc",
+      "old_cargo_name": "oya-messenger-message-stream-grpc",
+      "new_cargo_name": "comms-messenger-stream-grpc"
+    },
+    {
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-rest",
+      "new_path": "comms/facade/messenger-stream-rest",
+      "old_cargo_name": "oya-messenger-message-stream-rest",
+      "new_cargo_name": "comms-messenger-stream-rest"
+    },
+    {
+      "old_path": "oya/meet/crates/oya-meet-domain",
+      "new_path": "comms/core/meet-domain",
+      "old_cargo_name": "oya-meet-domain",
+      "new_cargo_name": "comms-meet-domain"
+    },
+    {
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app",
+      "new_path": "comms/facade/contact-center-voice-routing",
+      "old_cargo_name": "oya-contact-center-voice-routing-app",
+      "new_cargo_name": "comms-contact-center-voice-routing"
+    }
+  ],
+  "artifacts": [
+    {
+      "old_path": "oya/mail/slos",
+      "new_path": "comms/observability/slos/mail"
+    },
+    {
+      "old_path": "oya/messenger/slos",
+      "new_path": "comms/observability/slos/messenger"
+    },
+    {
+      "old_path": "oya/meet/slos",
+      "new_path": "comms/observability/slos/meet"
+    },
+    {
+      "old_path": "oya/contact-center/slos",
+      "new_path": "comms/observability/slos/contact-center"
+    },
+    {
+      "old_path": "registry/catalog/oya-mail-domain.yaml",
+      "new_path": "registry/catalog/comms-mail-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-mail-mailbox-store-usecase.yaml",
+      "new_path": "registry/catalog/comms-mail-mailbox-usecase.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-mail-mailbox-store-app.yaml",
+      "new_path": "registry/catalog/comms-mail-mailbox-app.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-mail-mailbox-store-api.yaml",
+      "new_path": "registry/catalog/comms-mail-mailbox-api.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-mail-mailbox-store-adapter-postgres.yaml",
+      "new_path": "registry/catalog/comms-mail-mailbox-postgres.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-mail-mailbox-store-grpc.yaml",
+      "new_path": "registry/catalog/comms-mail-mailbox-grpc.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-mail-mailbox-store-rest.yaml",
+      "new_path": "registry/catalog/comms-mail-mailbox-rest.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-messenger-domain.yaml",
+      "new_path": "registry/catalog/comms-messenger-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-messenger-message-stream-usecase.yaml",
+      "new_path": "registry/catalog/comms-messenger-stream-usecase.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-messenger-app.yaml",
+      "new_path": "registry/catalog/comms-messenger-stream-app.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-messenger-message-stream-api.yaml",
+      "new_path": "registry/catalog/comms-messenger-stream-api.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-messenger-message-stream-adapter-postgres.yaml",
+      "new_path": "registry/catalog/comms-messenger-stream-postgres.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-messenger-message-stream-grpc.yaml",
+      "new_path": "registry/catalog/comms-messenger-stream-grpc.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-messenger-message-stream-rest.yaml",
+      "new_path": "registry/catalog/comms-messenger-stream-rest.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-meet-domain.yaml",
+      "new_path": "registry/catalog/comms-meet-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-contact-center-voice-routing-app.yaml",
+      "new_path": "registry/catalog/comms-contact-center-voice-routing.yaml"
+    }
+  ]
+}

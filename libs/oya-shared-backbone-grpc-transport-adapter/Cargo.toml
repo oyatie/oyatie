@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-community-post-store-domain = { path = "../../oya/community/crates/oya-community-post-store-domain" }
-oya-mail-mailbox-store-api = { path = "../../oya/mail/crates/oya-mail-mailbox-store-api" }
+comms-mail-mailbox-api = { path = "../../comms/ports/mail-mailbox-api" }
 oya-shared-backbone-grpc-generated-adapter = { path = "../oya-shared-backbone-grpc-generated-adapter" }
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
 tonic = { workspace = true, features = ["router", "transport"] }

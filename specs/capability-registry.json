@@ -385,6 +385,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
+        "comms",
         "oya/comms-email",
         "oya/mail",
         "oya/messenger",

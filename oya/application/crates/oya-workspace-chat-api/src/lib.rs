@@ -12,7 +12,7 @@ pub use surface_kind::WorkspaceSurfaceKind;
 use std::collections::BTreeMap;
 
 use oya_data_boundary_kernel::parse_data_class_label;
-use oya_messenger_domain::{
+use comms_messenger_domain::{
     AttachmentRef, ChatChannel, ChatChannelCreate, ChatChannelKind, ChatError, ChatMessage,
     ChatMessageCreate, ChatParticipant, ChatParticipantRole, ChatSenderKind,
     workspace_chat_data_class_from_legacy,

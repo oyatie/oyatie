@@ -6,6 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//oya/meet/crates/oya-meet-domain:oya-meet-domain",
+        "//comms/core/meet-domain:comms-meet-domain",
     ],
 )

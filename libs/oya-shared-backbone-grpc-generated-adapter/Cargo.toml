@@ -9,16 +9,16 @@ build = "build.rs"
 
 [dependencies]
 oya-community-social-app = { path = "../../oya/community/crates/oya-community-social-app" }
-oya-messenger-app = { path = "../../oya/messenger/crates/oya-messenger-app" }
-oya-mail-mailbox-store-app = { path = "../../oya/mail/crates/oya-mail-mailbox-store-app" }
+comms-messenger-stream-app = { path = "../../comms/core/messenger-stream-app" }
+comms-mail-mailbox-app = { path = "../../comms/core/mail-mailbox-app" }
 oya-community-post-store-app = { path = "../../oya/community/crates/oya-community-post-store-app" }
 oya-community-post-store-api = { path = "../../oya/community/crates/oya-community-post-store-api" }
 oya-community-post-store-domain = { path = "../../oya/community/crates/oya-community-post-store-domain" }
 oya-community-post-store-grpc = { path = "../../oya/community/crates/oya-community-post-store-grpc" }
-oya-mail-mailbox-store-api = { path = "../../oya/mail/crates/oya-mail-mailbox-store-api" }
-oya-mail-mailbox-store-grpc = { path = "../../oya/mail/crates/oya-mail-mailbox-store-grpc" }
-oya-messenger-message-stream-api = { path = "../../oya/messenger/crates/oya-messenger-message-stream-api" }
-oya-messenger-message-stream-grpc = { path = "../../oya/messenger/crates/oya-messenger-message-stream-grpc" }
+comms-mail-mailbox-api = { path = "../../comms/ports/mail-mailbox-api" }
+comms-mail-mailbox-grpc = { path = "../../comms/facade/mail-mailbox-grpc" }
+comms-messenger-stream-api = { path = "../../comms/ports/messenger-stream-api" }
+comms-messenger-stream-grpc = { path = "../../comms/facade/messenger-stream-grpc" }
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
 oya-community-social-post-composition-api = { path = "../../oya/community/crates/oya-community-social-post-composition-api" }
 oya-community-social-post-composition-grpc = { path = "../../oya/community/crates/oya-community-social-post-composition-grpc" }

@@ -1,229 +1,705 @@
 {
-  "capability": "console",
+  "capability": "comms",
   "crate_dirs": [
     {
-      "new_path": "console/adapters/docs-portal-adapter",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-adapter"
+      "new_path": "comms/facade/contact-center-voice-routing",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app"
     },
     {
-      "new_path": "console/ports/docs-portal-kernel",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-kernel"
+      "new_path": "comms/core/mail-domain",
+      "old_path": "oya/mail/crates/oya-mail-domain"
     },
     {
-      "new_path": "console/facade/docs-portal-rest",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-rest"
+      "new_path": "comms/adapters/mail-mailbox-postgres",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-adapter-postgres"
     },
     {
-      "new_path": "console/core/docs-portal-usecase",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-usecase"
+      "new_path": "comms/ports/mail-mailbox-api",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-api"
     },
     {
-      "new_path": "console/adapters/workspace-shell-adapter",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-adapter"
+      "new_path": "comms/core/mail-mailbox-app",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-app"
     },
     {
-      "new_path": "console/facade/workspace-shell-app",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-app"
+      "new_path": "comms/facade/mail-mailbox-grpc",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-grpc"
     },
     {
-      "new_path": "console/ports/workspace-shell-kernel",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-kernel"
+      "new_path": "comms/facade/mail-mailbox-rest",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-rest"
     },
     {
-      "new_path": "console/facade/workspace-shell-rest",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-rest"
+      "new_path": "comms/core/mail-mailbox-usecase",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-usecase"
     },
     {
-      "new_path": "console/core/workspace-shell-usecase",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-usecase"
+      "new_path": "comms/core/meet-domain",
+      "old_path": "oya/meet/crates/oya-meet-domain"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-app",
+      "old_path": "oya/messenger/crates/oya-messenger-app"
+    },
+    {
+      "new_path": "comms/core/messenger-domain",
+      "old_path": "oya/messenger/crates/oya-messenger-domain"
+    },
+    {
+      "new_path": "comms/adapters/messenger-stream-postgres",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-adapter-postgres"
+    },
+    {
+      "new_path": "comms/ports/messenger-stream-api",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-api"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-grpc",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-grpc"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-rest",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-rest"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-usecase",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-usecase"
     }
   ],
   "crate_idents": [
     {
-      "new": "console-docs-portal-adapter",
-      "old": "oya-ops-docs-portal-adapter"
+      "new": "comms-contact-center-voice-routing",
+      "old": "oya-contact-center-voice-routing-app"
     },
     {
-      "new": "console-docs-portal-kernel",
-      "old": "oya-ops-docs-portal-kernel"
+      "new": "comms-mail-domain",
+      "old": "oya-mail-domain"
     },
     {
-      "new": "console-docs-portal-rest",
-      "old": "oya-ops-docs-portal-rest"
+      "new": "comms-mail-mailbox-postgres",
+      "old": "oya-mail-mailbox-store-adapter-postgres"
     },
     {
-      "new": "console-docs-portal-usecase",
-      "old": "oya-ops-docs-portal-usecase"
+      "new": "comms-mail-mailbox-api",
+      "old": "oya-mail-mailbox-store-api"
     },
     {
-      "new": "console-workspace-shell-adapter",
-      "old": "oya-ops-workspace-shell-adapter"
+      "new": "comms-mail-mailbox-app",
+      "old": "oya-mail-mailbox-store-app"
     },
     {
-      "new": "console-workspace-shell-app",
-      "old": "oya-ops-workspace-shell-app"
+      "new": "comms-mail-mailbox-grpc",
+      "old": "oya-mail-mailbox-store-grpc"
     },
     {
-      "new": "console-workspace-shell-kernel",
-      "old": "oya-ops-workspace-shell-kernel"
+      "new": "comms-mail-mailbox-rest",
+      "old": "oya-mail-mailbox-store-rest"
     },
     {
-      "new": "console-workspace-shell-rest",
-      "old": "oya-ops-workspace-shell-rest"
+      "new": "comms-mail-mailbox-usecase",
+      "old": "oya-mail-mailbox-store-usecase"
     },
     {
-      "new": "console-workspace-shell-usecase",
-      "old": "oya-ops-workspace-shell-usecase"
+      "new": "comms-meet-domain",
+      "old": "oya-meet-domain"
+    },
+    {
+      "new": "comms-messenger-stream-app",
+      "old": "oya-messenger-app"
+    },
+    {
+      "new": "comms-messenger-domain",
+      "old": "oya-messenger-domain"
+    },
+    {
+      "new": "comms-messenger-stream-postgres",
+      "old": "oya-messenger-message-stream-adapter-postgres"
+    },
+    {
+      "new": "comms-messenger-stream-api",
+      "old": "oya-messenger-message-stream-api"
+    },
+    {
+      "new": "comms-messenger-stream-grpc",
+      "old": "oya-messenger-message-stream-grpc"
+    },
+    {
+      "new": "comms-messenger-stream-rest",
+      "old": "oya-messenger-message-stream-rest"
+    },
+    {
+      "new": "comms-messenger-stream-usecase",
+      "old": "oya-messenger-message-stream-usecase"
     }
   ],
   "files": [
     {
-      "new_path": "console/adapters/docs-portal-adapter/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-adapter/BUCK"
+      "new_path": "comms/facade/contact-center-voice-routing/BUCK",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/BUCK"
     },
     {
-      "new_path": "console/adapters/docs-portal-adapter/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-adapter/Cargo.toml"
+      "new_path": "comms/facade/contact-center-voice-routing/Cargo.toml",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/Cargo.toml"
     },
     {
-      "new_path": "console/adapters/docs-portal-adapter/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-adapter/src/lib.rs"
+      "new_path": "comms/facade/contact-center-voice-routing/src/adapter/asyncapi.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/adapter/asyncapi.rs"
     },
     {
-      "new_path": "console/ports/docs-portal-kernel/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-kernel/BUCK"
+      "new_path": "comms/facade/contact-center-voice-routing/src/adapter/grpc.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/adapter/grpc.rs"
     },
     {
-      "new_path": "console/ports/docs-portal-kernel/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-kernel/Cargo.toml"
+      "new_path": "comms/facade/contact-center-voice-routing/src/adapter/http.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/adapter/http.rs"
     },
     {
-      "new_path": "console/ports/docs-portal-kernel/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-kernel/src/lib.rs"
+      "new_path": "comms/facade/contact-center-voice-routing/src/adapter/mod.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/adapter/mod.rs"
     },
     {
-      "new_path": "console/facade/docs-portal-rest/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-rest/BUCK"
+      "new_path": "comms/facade/contact-center-voice-routing/src/config.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/config.rs"
     },
     {
-      "new_path": "console/facade/docs-portal-rest/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-rest/Cargo.toml"
+      "new_path": "comms/facade/contact-center-voice-routing/src/domain/mod.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/domain/mod.rs"
     },
     {
-      "new_path": "console/facade/docs-portal-rest/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-rest/src/lib.rs"
+      "new_path": "comms/facade/contact-center-voice-routing/src/error.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/error.rs"
     },
     {
-      "new_path": "console/core/docs-portal-usecase/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-usecase/BUCK"
+      "new_path": "comms/facade/contact-center-voice-routing/src/lib.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/lib.rs"
     },
     {
-      "new_path": "console/core/docs-portal-usecase/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-usecase/Cargo.toml"
+      "new_path": "comms/facade/contact-center-voice-routing/src/main.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/main.rs"
     },
     {
-      "new_path": "console/core/docs-portal-usecase/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-docs-portal-usecase/src/lib.rs"
+      "new_path": "comms/facade/contact-center-voice-routing/src/usecase/mod.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/src/usecase/mod.rs"
     },
     {
-      "new_path": "console/adapters/workspace-shell-adapter/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-adapter/BUCK"
+      "new_path": "comms/facade/contact-center-voice-routing/tests/integration.rs",
+      "old_path": "oya/contact-center/crates/oya-contact-center-voice-routing-app/tests/integration.rs"
     },
     {
-      "new_path": "console/adapters/workspace-shell-adapter/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-adapter/Cargo.toml"
+      "new_path": "comms/observability/slos/contact-center/audit-emission-lag.openslo.yaml",
+      "old_path": "oya/contact-center/slos/audit-emission-lag.openslo.yaml"
     },
     {
-      "new_path": "console/adapters/workspace-shell-adapter/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-adapter/src/lib.rs"
+      "new_path": "comms/observability/slos/contact-center/autosharding-events.openslo.yaml",
+      "old_path": "oya/contact-center/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "console/facade/workspace-shell-app/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-app/BUCK"
+      "new_path": "comms/observability/slos/contact-center/availability.openslo.yaml",
+      "old_path": "oya/contact-center/slos/availability.openslo.yaml"
     },
     {
-      "new_path": "console/facade/workspace-shell-app/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-app/Cargo.toml"
+      "new_path": "comms/observability/slos/contact-center/local-agent-presence-freshness.openslo.yaml",
+      "old_path": "oya/contact-center/slos/local-agent-presence-freshness.openslo.yaml"
     },
     {
-      "new_path": "console/facade/workspace-shell-app/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-app/src/lib.rs"
+      "new_path": "comms/observability/slos/contact-center/local-call-drop-rate.openslo.yaml",
+      "old_path": "oya/contact-center/slos/local-call-drop-rate.openslo.yaml"
     },
     {
-      "new_path": "console/facade/workspace-shell-app/src/main.rs",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-app/src/main.rs"
+      "new_path": "comms/observability/slos/contact-center/local-callback-schedule-latency.openslo.yaml",
+      "old_path": "oya/contact-center/slos/local-callback-schedule-latency.openslo.yaml"
     },
     {
-      "new_path": "console/ports/workspace-shell-kernel/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-kernel/BUCK"
+      "new_path": "comms/observability/slos/contact-center/local-recording-consent-correctness.openslo.yaml",
+      "old_path": "oya/contact-center/slos/local-recording-consent-correctness.openslo.yaml"
     },
     {
-      "new_path": "console/ports/workspace-shell-kernel/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-kernel/Cargo.toml"
+      "new_path": "comms/observability/slos/contact-center/local-route-decision-latency.openslo.yaml",
+      "old_path": "oya/contact-center/slos/local-route-decision-latency.openslo.yaml"
     },
     {
-      "new_path": "console/ports/workspace-shell-kernel/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-kernel/src/lib.rs"
+      "new_path": "comms/observability/slos/contact-center/local-transfer-success.openslo.yaml",
+      "old_path": "oya/contact-center/slos/local-transfer-success.openslo.yaml"
     },
     {
-      "new_path": "console/facade/workspace-shell-rest/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-rest/BUCK"
+      "new_path": "comms/observability/slos/contact-center/policy-decision-latency.openslo.yaml",
+      "old_path": "oya/contact-center/slos/policy-decision-latency.openslo.yaml"
     },
     {
-      "new_path": "console/facade/workspace-shell-rest/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-rest/Cargo.toml"
+      "new_path": "comms/observability/slos/contact-center/read-latency.openslo.yaml",
+      "old_path": "oya/contact-center/slos/read-latency.openslo.yaml"
     },
     {
-      "new_path": "console/facade/workspace-shell-rest/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-rest/src/lib.rs"
+      "new_path": "comms/observability/slos/contact-center/replay-freshness.openslo.yaml",
+      "old_path": "oya/contact-center/slos/replay-freshness.openslo.yaml"
     },
     {
-      "new_path": "console/core/workspace-shell-usecase/BUCK",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-usecase/BUCK"
+      "new_path": "comms/observability/slos/contact-center/write-latency.openslo.yaml",
+      "old_path": "oya/contact-center/slos/write-latency.openslo.yaml"
     },
     {
-      "new_path": "console/core/workspace-shell-usecase/Cargo.toml",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-usecase/Cargo.toml"
+      "new_path": "comms/core/mail-domain/BUCK",
+      "old_path": "oya/mail/crates/oya-mail-domain/BUCK"
     },
     {
-      "new_path": "console/core/workspace-shell-usecase/src/lib.rs",
-      "old_path": "oya/ops/crates/oya-ops-workspace-shell-usecase/src/lib.rs"
+      "new_path": "comms/core/mail-domain/Cargo.toml",
+      "old_path": "oya/mail/crates/oya-mail-domain/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/console-docs-portal-adapter.yaml",
-      "old_path": "registry/catalog/oya-ops-docs-portal-adapter.yaml"
+      "new_path": "comms/core/mail-domain/src/dkim_canonicalization.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/src/dkim_canonicalization.rs"
     },
     {
-      "new_path": "registry/catalog/console-docs-portal-kernel.yaml",
-      "old_path": "registry/catalog/oya-ops-docs-portal-kernel.yaml"
+      "new_path": "comms/core/mail-domain/src/dkim_signing_input.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/src/dkim_signing_input.rs"
     },
     {
-      "new_path": "registry/catalog/console-docs-portal-rest.yaml",
-      "old_path": "registry/catalog/oya-ops-docs-portal-rest.yaml"
+      "new_path": "comms/core/mail-domain/src/governance.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/src/governance.rs"
     },
     {
-      "new_path": "registry/catalog/console-docs-portal-usecase.yaml",
-      "old_path": "registry/catalog/oya-ops-docs-portal-usecase.yaml"
+      "new_path": "comms/core/mail-domain/src/lib.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/console-workspace-shell-adapter.yaml",
-      "old_path": "registry/catalog/oya-ops-workspace-shell-adapter.yaml"
+      "new_path": "comms/core/mail-domain/src/sending_domain_authentication.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/src/sending_domain_authentication.rs"
     },
     {
-      "new_path": "registry/catalog/console-workspace-shell-app.yaml",
-      "old_path": "registry/catalog/oya-ops-workspace-shell-app.yaml"
+      "new_path": "comms/core/mail-domain/src/spf_alignment.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/src/spf_alignment.rs"
     },
     {
-      "new_path": "registry/catalog/console-workspace-shell-kernel.yaml",
-      "old_path": "registry/catalog/oya-ops-workspace-shell-kernel.yaml"
+      "new_path": "comms/core/mail-domain/src/thread_grouping.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/src/thread_grouping.rs"
     },
     {
-      "new_path": "registry/catalog/console-workspace-shell-rest.yaml",
-      "old_path": "registry/catalog/oya-ops-workspace-shell-rest.yaml"
+      "new_path": "comms/core/mail-domain/src/thread_state.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/src/thread_state.rs"
     },
     {
-      "new_path": "registry/catalog/console-workspace-shell-usecase.yaml",
-      "old_path": "registry/catalog/oya-ops-workspace-shell-usecase.yaml"
+      "new_path": "comms/core/mail-domain/tests/spf_dkim_signing_input_acceptance.rs",
+      "old_path": "oya/mail/crates/oya-mail-domain/tests/spf_dkim_signing_input_acceptance.rs"
+    },
+    {
+      "new_path": "comms/adapters/mail-mailbox-postgres/BUCK",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-adapter-postgres/BUCK"
+    },
+    {
+      "new_path": "comms/adapters/mail-mailbox-postgres/Cargo.toml",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-adapter-postgres/Cargo.toml"
+    },
+    {
+      "new_path": "comms/adapters/mail-mailbox-postgres/migrations/0001_mailbox_store.sql",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-adapter-postgres/migrations/0001_mailbox_store.sql"
+    },
+    {
+      "new_path": "comms/adapters/mail-mailbox-postgres/src/lib.rs",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-adapter-postgres/src/lib.rs"
+    },
+    {
+      "new_path": "comms/ports/mail-mailbox-api/BUCK",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-api/BUCK"
+    },
+    {
+      "new_path": "comms/ports/mail-mailbox-api/Cargo.toml",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-api/Cargo.toml"
+    },
+    {
+      "new_path": "comms/ports/mail-mailbox-api/src/lib.rs",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-api/src/lib.rs"
+    },
+    {
+      "new_path": "comms/core/mail-mailbox-app/BUCK",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-app/BUCK"
+    },
+    {
+      "new_path": "comms/core/mail-mailbox-app/Cargo.toml",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-app/Cargo.toml"
+    },
+    {
+      "new_path": "comms/core/mail-mailbox-app/src/lib.rs",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-app/src/lib.rs"
+    },
+    {
+      "new_path": "comms/facade/mail-mailbox-grpc/BUCK",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-grpc/BUCK"
+    },
+    {
+      "new_path": "comms/facade/mail-mailbox-grpc/Cargo.toml",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-grpc/Cargo.toml"
+    },
+    {
+      "new_path": "comms/facade/mail-mailbox-grpc/src/lib.rs",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-grpc/src/lib.rs"
+    },
+    {
+      "new_path": "comms/facade/mail-mailbox-rest/BUCK",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-rest/BUCK"
+    },
+    {
+      "new_path": "comms/facade/mail-mailbox-rest/Cargo.toml",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-rest/Cargo.toml"
+    },
+    {
+      "new_path": "comms/facade/mail-mailbox-rest/src/lib.rs",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-rest/src/lib.rs"
+    },
+    {
+      "new_path": "comms/core/mail-mailbox-usecase/BUCK",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-usecase/BUCK"
+    },
+    {
+      "new_path": "comms/core/mail-mailbox-usecase/Cargo.toml",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-usecase/Cargo.toml"
+    },
+    {
+      "new_path": "comms/core/mail-mailbox-usecase/src/lib.rs",
+      "old_path": "oya/mail/crates/oya-mail-mailbox-store-usecase/src/lib.rs"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/autosharding-events.openslo.yaml",
+      "old_path": "oya/mail/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/dual-context-correctness.openslo.yaml",
+      "old_path": "oya/mail/slos/dual-context-correctness.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/ediscovery-export-freshness.openslo.yaml",
+      "old_path": "oya/mail/slos/ediscovery-export-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/inbound-receive-availability.openslo.yaml",
+      "old_path": "oya/mail/slos/inbound-receive-availability.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/inbox-open-latency.openslo.yaml",
+      "old_path": "oya/mail/slos/inbox-open-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/jmap-mailbox-fetch-latency.openslo.yaml",
+      "old_path": "oya/mail/slos/jmap-mailbox-fetch-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/legal-hold-engage-latency.openslo.yaml",
+      "old_path": "oya/mail/slos/legal-hold-engage-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/outbound-delivery-latency.openslo.yaml",
+      "old_path": "oya/mail/slos/outbound-delivery-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/search-latency.openslo.yaml",
+      "old_path": "oya/mail/slos/search-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/spam-classification-latency.openslo.yaml",
+      "old_path": "oya/mail/slos/spam-classification-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/mail/thread-render-latency.openslo.yaml",
+      "old_path": "oya/mail/slos/thread-render-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/core/meet-domain/BUCK",
+      "old_path": "oya/meet/crates/oya-meet-domain/BUCK"
+    },
+    {
+      "new_path": "comms/core/meet-domain/Cargo.toml",
+      "old_path": "oya/meet/crates/oya-meet-domain/Cargo.toml"
+    },
+    {
+      "new_path": "comms/core/meet-domain/src/lib.rs",
+      "old_path": "oya/meet/crates/oya-meet-domain/src/lib.rs"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/autosharding-events.openslo.yaml",
+      "old_path": "oya/meet/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/availability.openslo.yaml",
+      "old_path": "oya/meet/slos/availability.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/e2e-mls-handshake-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/e2e-mls-handshake-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/live-caption-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/live-caption-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/media-glass-to-glass-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/media-glass-to-glass-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/meeting-summary-post-end-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/meeting-summary-post-end-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/participant-join-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/participant-join-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/recording-start-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/recording-start-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/room-create-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/room-create-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/screen-share-start-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/screen-share-start-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/transcription-correctness-bound.openslo.yaml",
+      "old_path": "oya/meet/slos/transcription-correctness-bound.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/meet/webinar-fanout-latency.openslo.yaml",
+      "old_path": "oya/meet/slos/webinar-fanout-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-app/BUCK",
+      "old_path": "oya/messenger/crates/oya-messenger-app/BUCK"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-app/Cargo.toml",
+      "old_path": "oya/messenger/crates/oya-messenger-app/Cargo.toml"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-app/src/lib.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-app/src/lib.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/BUCK",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/BUCK"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/Cargo.toml",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/Cargo.toml"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/src/delivery_class.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/src/delivery_class.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/src/governance.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/src/governance.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/src/lib.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/src/lib.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/src/reaction.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/src/reaction.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/src/reaction_tally.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/src/reaction_tally.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/src/thread_lifecycle.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/src/thread_lifecycle.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/tests/reaction_tdd_red.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/tests/reaction_tdd_red.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-domain/tests/thread_lifecycle_tdd_red.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-domain/tests/thread_lifecycle_tdd_red.rs"
+    },
+    {
+      "new_path": "comms/adapters/messenger-stream-postgres/BUCK",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-adapter-postgres/BUCK"
+    },
+    {
+      "new_path": "comms/adapters/messenger-stream-postgres/Cargo.toml",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-adapter-postgres/Cargo.toml"
+    },
+    {
+      "new_path": "comms/adapters/messenger-stream-postgres/migrations/0001_message_stream.sql",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-adapter-postgres/migrations/0001_message_stream.sql"
+    },
+    {
+      "new_path": "comms/adapters/messenger-stream-postgres/src/lib.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-adapter-postgres/src/lib.rs"
+    },
+    {
+      "new_path": "comms/ports/messenger-stream-api/BUCK",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-api/BUCK"
+    },
+    {
+      "new_path": "comms/ports/messenger-stream-api/Cargo.toml",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-api/Cargo.toml"
+    },
+    {
+      "new_path": "comms/ports/messenger-stream-api/src/lib.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-api/src/lib.rs"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-grpc/BUCK",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-grpc/BUCK"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-grpc/Cargo.toml",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-grpc/Cargo.toml"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-grpc/src/lib.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-grpc/src/lib.rs"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-rest/BUCK",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-rest/BUCK"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-rest/Cargo.toml",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-rest/Cargo.toml"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-rest/src/lib.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-rest/src/lib.rs"
+    },
+    {
+      "new_path": "comms/facade/messenger-stream-rest/tests/list_messages_read_path.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-rest/tests/list_messages_read_path.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-usecase/BUCK",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-usecase/BUCK"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-usecase/Cargo.toml",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-usecase/Cargo.toml"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-usecase/src/delivery_receipt.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-usecase/src/delivery_receipt.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-usecase/src/lib.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-usecase/src/lib.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-usecase/src/mention_fanout.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-usecase/src/mention_fanout.rs"
+    },
+    {
+      "new_path": "comms/core/messenger-stream-usecase/tests/delivery_receipt_acceptance.rs",
+      "old_path": "oya/messenger/crates/oya-messenger-message-stream-usecase/tests/delivery_receipt_acceptance.rs"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/attachment-scan-freshness.openslo.yaml",
+      "old_path": "oya/messenger/slos/attachment-scan-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/autosharding-events.openslo.yaml",
+      "old_path": "oya/messenger/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/mention-fanout.openslo.yaml",
+      "old_path": "oya/messenger/slos/mention-fanout.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/message-send-availability.openslo.yaml",
+      "old_path": "oya/messenger/slos/message-send-availability.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/message-send-latency.openslo.yaml",
+      "old_path": "oya/messenger/slos/message-send-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/presence-propagation.openslo.yaml",
+      "old_path": "oya/messenger/slos/presence-propagation.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/read-receipt-fanout.openslo.yaml",
+      "old_path": "oya/messenger/slos/read-receipt-fanout.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/search-latency.openslo.yaml",
+      "old_path": "oya/messenger/slos/search-latency.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/voice-video-call-quality.openslo.yaml",
+      "old_path": "oya/messenger/slos/voice-video-call-quality.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/voice-video-call-setup.openslo.yaml",
+      "old_path": "oya/messenger/slos/voice-video-call-setup.openslo.yaml"
+    },
+    {
+      "new_path": "comms/observability/slos/messenger/websocket-fanout-latency.openslo.yaml",
+      "old_path": "oya/messenger/slos/websocket-fanout-latency.openslo.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-contact-center-voice-routing.yaml",
+      "old_path": "registry/catalog/oya-contact-center-voice-routing-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-mail-domain.yaml",
+      "old_path": "registry/catalog/oya-mail-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-mail-mailbox-postgres.yaml",
+      "old_path": "registry/catalog/oya-mail-mailbox-store-adapter-postgres.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-mail-mailbox-api.yaml",
+      "old_path": "registry/catalog/oya-mail-mailbox-store-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-mail-mailbox-app.yaml",
+      "old_path": "registry/catalog/oya-mail-mailbox-store-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-mail-mailbox-grpc.yaml",
+      "old_path": "registry/catalog/oya-mail-mailbox-store-grpc.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-mail-mailbox-rest.yaml",
+      "old_path": "registry/catalog/oya-mail-mailbox-store-rest.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-mail-mailbox-usecase.yaml",
+      "old_path": "registry/catalog/oya-mail-mailbox-store-usecase.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-meet-domain.yaml",
+      "old_path": "registry/catalog/oya-meet-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-messenger-stream-app.yaml",
+      "old_path": "registry/catalog/oya-messenger-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-messenger-domain.yaml",
+      "old_path": "registry/catalog/oya-messenger-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-messenger-stream-postgres.yaml",
+      "old_path": "registry/catalog/oya-messenger-message-stream-adapter-postgres.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-messenger-stream-api.yaml",
+      "old_path": "registry/catalog/oya-messenger-message-stream-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-messenger-stream-grpc.yaml",
+      "old_path": "registry/catalog/oya-messenger-message-stream-grpc.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-messenger-stream-rest.yaml",
+      "old_path": "registry/catalog/oya-messenger-message-stream-rest.yaml"
+    },
+    {
+      "new_path": "registry/catalog/comms-messenger-stream-usecase.yaml",
+      "old_path": "registry/catalog/oya-messenger-message-stream-usecase.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"
