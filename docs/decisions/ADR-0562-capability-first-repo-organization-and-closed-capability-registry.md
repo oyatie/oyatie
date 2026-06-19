@@ -1383,6 +1383,128 @@ re-keyed catalog records `registry/catalog/comms-*.yaml` (reached by the existin
 reachability prefix), and the committed move-plan `specs/reorg/comms-move-plan.json` (reached by the existing
 ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.17 Thirteenth executed strangler move: `k8s` capability (cloud/managed-k8s-* → k8s/) — four-cell move with collision-aware per-service SLO co-move + catalog re-key
+
+The thirteenth REAL codemod run homes the `k8s` capability's seventeen crates from FOUR source dirs
+(`cloud/managed-k8s-cluster-lifecycle/crates`, `cloud/managed-k8s-control-plane-host/crates`,
+`cloud/managed-k8s-sla-observability/crates`, `cloud/managed-k8s-tenant-quota/crates`) under the §3 placement
+rule, across all FOUR faces (`core` + `ports` + `adapters` + `facade`), spread over FOUR product cells
+(`cluster-lifecycle`, three crates; `control-plane-host`, five crates; `sla-observability`, four crates;
+`tenant-quota`, five crates). k8s is the managed-Kubernetes plane (the `control-plane` dag node): the SOLD
+managed-k8s product (facade) above the owned control-plane (core) — the kuberos→cloud-k8s ladder rung above
+`os/`. The crate-empty `cloud/cloud-k8s` dir (docs/IaC only, no `Cargo.toml`) is absorbed dir-slug-only — no
+crate, SLO, or global-catalog move from it (its local `cloud/cloud-k8s/catalog/` + `cloud/cloud-k8s/slos/` are
+NOT the global `registry/catalog/` and stay in place for phase-2).
+
+**Naming scheme (cargo == de-branded path-tail, all seventeen unique):** the console-proven scheme — path
+`k8s/<face>/<cell>-<role>` ↔ cargo `k8s-<cell>-<role>`, de-branded (the legacy `oya-managed-k8s-` form drops to
+the `k8s-` capability slug). A bare cell leaf would collide (each cell name repeats across faces and the
+`kernel`/`api`/`app`/`adapter-*` roles repeat across cells), so the leaf encodes `<cell>-<role>` to stay unique
+while keeping cargo == path-tail EXACTLY. The seventeen: cluster-lifecycle kernel →
+`k8s/core/cluster-lifecycle-kernel` (cargo `k8s-cluster-lifecycle-kernel`), api →
+`k8s/ports/cluster-lifecycle-api` (`k8s-cluster-lifecycle-api`), app → `k8s/facade/cluster-lifecycle-app`
+(`k8s-cluster-lifecycle-app`); control-plane-host kernel → `k8s/core/control-plane-host-kernel`
+(`k8s-control-plane-host-kernel`), api → `k8s/ports/control-plane-host-api` (`k8s-control-plane-host-api`),
+adapter-inmemory → `k8s/adapters/control-plane-host-adapter-inmemory`
+(`k8s-control-plane-host-adapter-inmemory`), adapter-capi → `k8s/adapters/control-plane-host-adapter-capi`
+(`k8s-control-plane-host-adapter-capi`), app → `k8s/facade/control-plane-host-app`
+(`k8s-control-plane-host-app`); sla-observability kernel → `k8s/core/sla-observability-kernel`
+(`k8s-sla-observability-kernel`), api → `k8s/ports/sla-observability-api` (`k8s-sla-observability-api`),
+adapter-inmemory → `k8s/adapters/sla-observability-adapter-inmemory`
+(`k8s-sla-observability-adapter-inmemory`), app → `k8s/facade/sla-observability-app`
+(`k8s-sla-observability-app`); tenant-quota kernel → `k8s/core/tenant-quota-kernel`
+(`k8s-tenant-quota-kernel`), api → `k8s/ports/tenant-quota-api` (`k8s-tenant-quota-api`), adapter-inmemory →
+`k8s/adapters/tenant-quota-adapter-inmemory` (`k8s-tenant-quota-adapter-inmemory`), adapter-cedar →
+`k8s/adapters/tenant-quota-adapter-cedar` (`k8s-tenant-quota-adapter-cedar`), and app →
+`k8s/facade/tenant-quota-app` (`k8s-tenant-quota-app`). All seventeen leaf dirs and all seventeen cargo names
+are distinct (`MovePlan::validate` passes), and each cargo name equals `k8s-` + its de-branded path-tail
+EXACTLY (the target-parity + cargo-prefix relabel binding).
+
+**Face reasoning — ports/core/adapters/facade by WHAT EACH IS (§3), verified against the REAL dep direction:**
+each cell's `kernel` crate carries the pure value objects / state machine and homes to `core/` (the substrate
+engine surface, std+serde only); the `*-api` crate is the inbound application port (the trait + DTO seam,
+path-dep inward on the kernel only) so it homes to `ports/`; the `adapter-*` crates project a port onto a
+backing impl (the control-plane-host capi/inmemory adapters, the sla-observability inmemory adapter, the
+tenant-quota inmemory/cedar adapters) and home to `adapters/`; the `*-app` composition roots wire api +
+adapter(s) + kernel into a delivery surface (axum admin/status API + a fail-closed `[[bin]]` for the three with
+a binary) and home to `facade/` — the SOLD managed-k8s product face. The cross-cell edges are all downward and
+acyclic: `cluster-lifecycle-api` (ports) → `tenant-quota-api` + `control-plane-host-api` (ports); the
+`cluster-lifecycle-app` (facade) → `tenant-quota-{kernel,adapter-inmemory}` + `control-plane-host-adapter-inmemory`
+(core/adapters); `sla-observability-app` (facade) → `control-plane-host-api` (ports) + (dev)
+`control-plane-host-adapter-inmemory` (adapters). The dep DAG is acyclic by construction, and because all
+seventeen are ONE `k8s` capability node the intra-capability face edges project to a `k8s → k8s` self-edge and
+raise NO service→service / S-rank acyclicity violation (the §10.15/§10.16 console/comms precedent).
+
+**Cross-capability dep (kept intact):** the `k8s-tenant-quota-adapter-cedar` crate has an OUTBOUND dep on
+`oya/identity` (the workload-authz-cedar adapter + workload-domain), reusing the Cedar RBAC substrate
+(ADR-0376/0183). `iam` is NOT yet homed, so this dep continues to point at the live `oya/identity/crates/...`
+path (the relative `path=` + BUCK `//`-label were recomputed by the codemod against the new
+`k8s/adapters/tenant-quota-adapter-cedar` home); it relabels when iam moves in a later strangler step. It is
+NOT broken or duplicated.
+
+**External dependents:** NONE. No first-party crate outside the seventeen depends on the moved tree (only the
+root `Cargo.toml` member glob referenced them, never as a dependency), and the only outbound cross-capability
+edge is the tenant-quota cedar→identity dep above. k8s is NOT a violation source (zero entries in the
+acyclicity frozen baseline) and the moved crate dirs are not in the membership unmapped baseline, so both lints
+carry 0 burn-down / 0 regression.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null,
+`clean=true`). The capability registry records `k8s.absorbs_current_dirs` with the capability's own top-level
+slug `k8s` (the self-slug is required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE k8s/...`; the
+§10.12/§10.16 flags/comms lesson) plus the absorbed source dirs (the four `cloud/managed-k8s-*` dirs + the
+crate-empty `cloud/cloud-k8s`, all pre-existing seeds, retained). The membership policy scan_roots +
+allowed_top_level_dirs gain `k8s`, the acyclicity policy crate_root_globs gains `k8s/*/*` + unclassified_roots
+gains `k8s`, and the root workspace gains the `k8s/*/*` member glob (one glob covers all seventeen
+faces/leaves; ADR-0538 glob-only contract).
+
+**SLO co-move executed IN the move (doctrine-clean, collision-aware per-service subdirs):** all four source
+dirs carry promotion-gating SLOs (`cloud/managed-k8s-cluster-lifecycle/slos`, 1;
+`cloud/managed-k8s-control-plane-host/slos`, 2; `cloud/managed-k8s-sla-observability/slos`, 2;
+`cloud/managed-k8s-tenant-quota/slos`, 1 — 6 total). A FLAT merge into `k8s/observability/slos/` would clash on
+the CONFIRMED cross-service basename collision `provisioning-latency.openslo.yaml` (control-plane-host +
+sla-observability) — `MovePlan::validate`'s dup-`new_path` fail-closed would fire. The move therefore co-moves
+each source SLO dir wholesale into a PER-SERVICE subdir (`k8s/observability/slos/cluster-lifecycle/`,
+`.../control-plane-host/`, `.../sla-observability/`, `.../tenant-quota/`) via four content-preserving dir
+`ArtifactMove`s — collision-free AND provenance-preserving. This mirrors the §10.16 comms per-service-subdir
+deviation; the slo-coverage gate keys by catalog-record file stem, not SLO file path, so the nesting is
+gate-neutral.
+
+**Catalog re-key executed IN the move (same pattern as §10.14..§10.16):** all seventeen crates have
+`registry/catalog/oya-managed-k8s-*.yaml` records. After the crate rename, the legacy filenames no longer match
+any live workspace `[package].name`, which would RED the `catalog-liveness`
+(`catalog_record_no_live_crate_unmarked`) and `slo-coverage` (`slo_row_no_live_crate_unmarked`) gates for all
+seventeen records. The move-plan therefore carries seventeen additional file `ArtifactMove` entries re-keying
+each record to the de-branded live crate-id filename `registry/catalog/k8s-<leaf>.yaml` (content-preserving
+`git mv`; no in-file rewrite). Both gates stay green after the re-key (all seventeen records bind to a live
+workspace crate-id).
+
+**Custom bin de-brand (codemod gap #76, hand-patched):** three of the four `*-app` crates declare a custom
+`[[bin]]` / `rust_binary` named `oya-managed-k8s-<cell>` (not the snake-mirror of the package name), which the
+codemod's `apply` does NOT auto-de-brand (it rewrites `[package].name`/`[lib].name`/deps/labels/idents only).
+The custom `[[bin]]` name (`Cargo.toml`) and the `rust_binary` target name (`BUCK`) for cluster-lifecycle-app,
+control-plane-host-app, and tenant-quota-app were hand-de-branded to `k8s-cluster-lifecycle`,
+`k8s-control-plane-host`, and `k8s-tenant-quota` (no `-bin` suffix needed — none collides with a package/lib
+name, unlike the §10.16 contact-center case). The sla-observability-app is lib-only (no `[[bin]]`). One
+tracing-directive string literal in `tenant-quota-app/src/main.rs` (`"oya_managed_k8s_tenant_quota=info"` — a
+crate-module log-target PREFIX, not a full crate ident, so the codemod's whole-ident rust-source pass left it)
+was hand-de-branded to `"k8s_tenant_quota=info"`. The forward-looking (non-emitter-bound, `non_claim`-marked)
+Prometheus metric names + job label in the co-moved SLOs and the stale old-crate-name references in three
+doc-comments / one Cargo.toml description were hand-de-branded to the `k8s-`/`k8s_` form so the moved tree is
+fully grep-clean of `oya-managed-k8s-`/`oya_managed_k8s_` tokens.
+
+**Born-accounting (ADR-0555):** the seventeen new crate dirs under `k8s/core/`, `k8s/ports/`, `k8s/adapters/`,
+and `k8s/facade/` are reached by the `k8s/*/*` member glob + the `k8s/*/*` acyclicity glob, and owned by the
+subtree `k8s/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.17 entry
+(breadth-unlimited per ADR-0555, covering the whole k8s subtree including the co-moved per-service SLO subdirs).
+The move's tracked, born-accounted artifact roots are the seventeen crate dirs (each carrying its `Cargo.toml`,
+`BUCK`, and `src/` — and, for the three crates with a binary + the tenant-quota-app, its `src/main.rs` +
+`tests/`), the co-moved SLO subtree
+`k8s/observability/slos/{cluster-lifecycle,control-plane-host,sla-observability,tenant-quota}/`, the subtree
+`k8s/OWNERS`, the seventeen re-keyed catalog records `registry/catalog/k8s-*.yaml` (reached by the existing
+`registry/catalog/` reachability prefix), and the committed move-plan `specs/reorg/k8s-move-plan.json` (reached
+by the existing ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a
