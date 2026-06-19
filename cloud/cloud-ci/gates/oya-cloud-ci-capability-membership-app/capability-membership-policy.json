@@ -24,7 +24,8 @@
     "flags",
     "marketplace",
     "compliance",
-    "console"
+    "console",
+    "comms"
   ],
   "meta_directories": [
     "kernel",
@@ -52,6 +53,7 @@
     "marketplace",
     "compliance",
     "console",
+    "comms",
     "cloud",
     "oya",
     "libs",

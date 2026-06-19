@@ -13,7 +13,7 @@ use std::future::Future;
 use std::sync::{Arc, Mutex};
 
 use oya_community_post_store_domain::{CommunityPost, VoteLedger};
-use oya_mail_mailbox_store_api::DmarcApiAction;
+use comms_mail_mailbox_api::DmarcApiAction;
 use oya_shared_backbone_grpc_generated_adapter::{
     GeneratedBackboneGrpcAdapterError, community, community_apply_action_generated_write_plan,
     community_cast_vote_generated_write_plan, community_create_post_generated_write_plan, mail,

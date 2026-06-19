@@ -30,10 +30,10 @@ use oya_community_social_post_composition_rest as social_rest;
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{HyperRuntimeError, ServerConfig, serve_listener};
-use oya_mail_mailbox_store_api::{DmarcApiAction, MailApiEnvelope};
-use oya_mail_mailbox_store_rest as mail_rest;
-use oya_messenger_message_stream_api::MessengerApiEnvelope;
-use oya_messenger_message_stream_rest as messenger_rest;
+use comms_mail_mailbox_api::{DmarcApiAction, MailApiEnvelope};
+use comms_mail_mailbox_rest as mail_rest;
+use comms_messenger_stream_api::MessengerApiEnvelope;
+use comms_messenger_stream_rest as messenger_rest;
 use oya_shared_postgres_command_kernel::{
     RecordingSqlBatchExecutor, SqlBatchExecutor, SqlExecutionPlan, SqlExecutionReport,
     TenantSqlContext,

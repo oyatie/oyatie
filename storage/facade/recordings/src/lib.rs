@@ -16,7 +16,7 @@ pub use fhir_resource_type::FhirResourceType;
 use std::collections::BTreeSet;
 
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_meet_domain::{RecordingAccessMode, RecordingRef, RecordingStatus};
+use comms_meet_domain::{RecordingAccessMode, RecordingRef, RecordingStatus};
 
 const RECORDING_ARCHIVE_SCHEMA_VERSION: u32 = 1;
 const RETENTION_POLICY_SCHEMA_VERSION: u32 = 1;
@@ -387,7 +387,7 @@ fn internal<T>(value: T) -> Classified<T> {
 mod tests {
     use super::*;
     use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_meet_domain::{RecordingRefCreate, RecordingStatus};
+    use comms_meet_domain::{RecordingRefCreate, RecordingStatus};
 
     fn recording(status: RecordingStatus) -> RecordingRef {
         RecordingRef::new(RecordingRefCreate {
