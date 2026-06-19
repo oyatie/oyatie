@@ -1,19 +1,19 @@
 //! Tenant-extraction middleware — Layer 4 infrastructure.
 //!
 //! Reads the `x-tenant-id` (or configured) request header, validates it via
-//! `oya_tenancy_kernel::TenantSlug`, and either:
+//! `tenancy_kernel::TenantSlug`, and either:
 //!   - injects the validated slug as a path-capture-style "tenant_id" key for
 //!     handlers, or
 //!   - short-circuits with HTTP 400 when the route requires a tenant and the
 //!     header is missing/invalid.
 //!
 //! Per ADR-0095 (Phase 7 of M01-P13-IP-002): grammar lives in
-//! `oya-tenancy-kernel`, not here. This middleware extracts; the kernel
+//! `tenancy-kernel`, not here. This middleware extracts; the kernel
 //! validates. Defense in depth — anyone who bypasses the middleware (e.g.,
 //! a test, a debug path) still cannot construct an invalid `TenantSlug`.
 
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
-use oya_tenancy_kernel::{TenantKernelError, TenantSlug};
+use tenancy_kernel::{TenantKernelError, TenantSlug};
 
 pub const TENANT_ID_HEADER: &str = "x-tenant-id";
 /// Path-captures key used to surface the validated tenant id to handlers.
@@ -123,7 +123,7 @@ mod tests {
     use super::*;
     use oya_http_middleware_kernel::MiddlewareChain;
     use oya_http_router_kernel::HttpMethod;
-    use oya_tenancy_kernel::TENANT_SLUG_MAX_LEN;
+    use tenancy_kernel::TENANT_SLUG_MAX_LEN;
     use std::collections::BTreeMap;
 
     fn req(headers: &[(&str, &str)]) -> HttpRequest {

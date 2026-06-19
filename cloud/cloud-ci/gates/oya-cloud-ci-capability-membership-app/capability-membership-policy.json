@@ -26,7 +26,8 @@
     "compliance",
     "console",
     "comms",
-    "k8s"
+    "k8s",
+    "tenancy"
   ],
   "meta_directories": [
     "kernel",
@@ -56,6 +57,7 @@
     "console",
     "comms",
     "k8s",
+    "tenancy",
     "cloud",
     "oya",
     "libs",

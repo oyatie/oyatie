@@ -187,6 +187,25 @@ members = [
   # other non-crate artifacts are homed in phase-2 (task #62). cloud/cloud-k8s is crate-empty
   # (docs/IaC only) and is absorbed dir-slug-only (no crate move).
   "k8s/*/*",
+  # Capability-first home (ADR-0562 strangler move 14): the `tenancy` capability absorbs the
+  # former cloud/tenancy/crates into tenancy/{core,ports,adapters} across three faces (core,
+  # ports, adapters; no facade — tenant management IS the substrate). The seventeen crates spread
+  # over core (fourteen: kernel/domain + the cell-assignment/dsr-cascade/isolation-policy/
+  # lifecycle-locks/sub-scope-registry kernels + kyb-kyc-verifier + the tenant-lifecycle
+  # domain/kernel/usecase triad + the dr-pairing/per-tenant-quota/reserved-namespace usecases),
+  # ports (two: api + cli), and adapters (one: data-residency-enforcer). Each crate is de-branded
+  # to the capability prefix with a leaf naming so cargo == path-tail stays unique (tenancy-kernel /
+  # tenancy-domain / tenancy-cell-assignment / tenancy-dsr-cascade / tenancy-isolation-policy /
+  # tenancy-lifecycle-locks / tenancy-sub-scope-registry / tenancy-kyb-kyc-verifier /
+  # tenancy-tenant-lifecycle-domain / tenancy-tenant-lifecycle-kernel /
+  # tenancy-tenant-lifecycle-usecase / tenancy-dr-pairing / tenancy-per-tenant-quota /
+  # tenancy-reserved-namespace / tenancy-api / tenancy-cli / tenancy-data-residency-enforcer), so
+  # each leaf segment stays a bare `*`. `tenancy/*/*` covers all seventeen faces/leaves with one
+  # glob, satisfying ADR-0538's glob-only members contract (no explicit-path members); the co-moved
+  # tenancy/observability/slos non-crate SLO subtree (flat — single source dir, no basename
+  # collision) is excluded below (no Cargo.toml), and the absorbed dir's other non-crate artifacts
+  # are homed in phase-2 (task #62).
+  "tenancy/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -213,6 +232,7 @@ exclude = [
   "compliance/observability",
   "comms/observability",
   "k8s/observability",
+  "tenancy/observability",
 ]
 resolver = "2"
 

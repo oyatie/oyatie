@@ -1,0 +1,15 @@
+[package]
+name = "tenancy-per-tenant-quota"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "tenancy_per_tenant_quota"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

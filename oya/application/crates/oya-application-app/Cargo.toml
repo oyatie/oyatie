@@ -28,7 +28,7 @@ observability-domain = { path = "../../../../observability/core/domain" }
 oya-policy-cedar-domain = { path = "../../../policy/crates/oya-policy-cedar-domain" }
 messaging-domain = { path = "../../../../messaging/core/domain" }
 oya-secrets-domain = { path = "../../../../cloud/cloud-secrets/crates/oya-secrets-domain" }
-oya-tenancy-domain = { path = "../../../../cloud/tenancy/crates/oya-tenancy-domain" }
+tenancy-domain = { path = "../../../../tenancy/core/domain" }
 
 [lib]
 name = "oya_application_app"
