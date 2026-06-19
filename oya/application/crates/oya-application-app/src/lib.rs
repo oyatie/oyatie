@@ -62,8 +62,8 @@ use observability_domain::{
     InvocationTraceResult, NoopCapabilityInvocationTraceObserver,
     telemetry_data_classifications_label,
 };
-pub use oya_ontology_domain::PropertyTier;
-use oya_ontology_domain::{ObjectEntity, ObjectGraphError, ObjectProperty};
+pub use data_ontology_domain::PropertyTier;
+use data_ontology_domain::{ObjectEntity, ObjectGraphError, ObjectProperty};
 pub use oya_policy_cedar_domain::{
     AuthorizationDecision, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion,
 };

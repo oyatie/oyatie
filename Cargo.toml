@@ -224,6 +224,15 @@ members = [
   # no basename collision) is excluded below (no Cargo.toml), and the absorbed dir's other non-crate
   # artifacts are homed in phase-2 (task #62).
   "audit/*/*",
+  # data capability (MOVE-16, ADR-0562): homes cloud/cloud-data + oya/{ontology,search,analytics,
+  # data-pipeline,data-warehouse} → data/{core,ports,facade}/<leaf> (23 crates: core 18 / ports 2 /
+  # facade 5). The de-branded cargo name == data-<leaf> path-tail, so each leaf segment stays a bare
+  # `*`. `data/*/*` covers all twenty-three faces/leaves with one glob, satisfying ADR-0538's
+  # glob-only members contract (no explicit-path members); the co-moved data/observability/slos
+  # non-crate SLO subtree (per-service subdirs — six source dirs carry cross-service basename
+  # collisions, e.g. autosharding-events/availability/read-latency/write-latency) is excluded below
+  # (no Cargo.toml), and the absorbed dirs' other non-crate artifacts are homed in phase-2 (task #62).
+  "data/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -252,6 +261,7 @@ exclude = [
   "k8s/observability",
   "tenancy/observability",
   "audit/observability",
+  "data/observability",
 ]
 resolver = "2"
 

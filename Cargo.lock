@@ -1731,10 +1731,208 @@ dependencies = [
 ]
 
 [[package]]
+name = "data-analytics-api"
+version = "0.1.0"
+dependencies = [
+ "data-analytics-domain",
+ "data-analytics-usecase",
+ "oya-shared-olap-client-kernel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "data-analytics-app"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "data-analytics-api",
+ "data-analytics-domain",
+ "data-analytics-usecase",
+ "oya-shared-olap-clickhouse-adapter",
+ "oya-shared-olap-client-kernel",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "data-analytics-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-olap-client-kernel",
+ "serde",
+]
+
+[[package]]
+name = "data-analytics-tenant-bootstrap"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "data-analytics-domain",
+ "oya-shared-olap-clickhouse-adapter",
+ "oya-shared-olap-client-kernel",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "data-analytics-usecase"
+version = "0.1.0"
+dependencies = [
+ "data-analytics-domain",
+ "oya-shared-olap-client-kernel",
+ "serde",
+]
+
+[[package]]
+name = "data-cloud-domain"
+version = "0.1.0"
+dependencies = [
+ "cell-region",
+ "compute-resource",
+ "oya-cloud-kms-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "data-cloud-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "data-encoding"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4ae5f15dda3c708c0ade84bfee31ccab44a3da4f88015ed22f63732abe300c8"
+
+[[package]]
+name = "data-ontology-api"
+version = "0.1.0"
+dependencies = [
+ "data-ontology-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "data-ontology-domain"
+version = "0.1.0"
+dependencies = [
+ "data-ontology-kernel",
+]
+
+[[package]]
+name = "data-ontology-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "data-ontology-query-engine-domain"
+version = "0.1.0"
+dependencies = [
+ "data-ontology-kernel",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "data-ontology-query-engine-usecase"
+version = "0.1.0"
+dependencies = [
+ "data-ontology-kernel",
+ "data-ontology-query-engine-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "data-ontology-scorecards-resolver"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "data-pipeline-lineage-replay-service"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "data-search-crawler"
+version = "0.1.0"
+
+[[package]]
+name = "data-search-index-inverted"
+version = "0.1.0"
+dependencies = [
+ "data-search-crawler",
+ "data-search-parser",
+]
+
+[[package]]
+name = "data-search-index-vector"
+version = "0.1.0"
+dependencies = [
+ "data-search-crawler",
+ "data-search-parser",
+ "serde_json",
+]
+
+[[package]]
+name = "data-search-parser"
+version = "0.1.0"
+dependencies = [
+ "data-search-crawler",
+]
+
+[[package]]
+name = "data-search-query"
+version = "0.1.0"
+
+[[package]]
+name = "data-search-rag"
+version = "0.1.0"
+dependencies = [
+ "data-search-query",
+ "data-search-rank",
+ "data-search-serp",
+]
+
+[[package]]
+name = "data-search-rank"
+version = "0.1.0"
+dependencies = [
+ "data-search-query",
+]
+
+[[package]]
+name = "data-search-serp"
+version = "0.1.0"
+dependencies = [
+ "data-search-query",
+ "data-search-rank",
+]
+
+[[package]]
+name = "data-warehouse-tenant-olap-service"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "der"
@@ -4298,70 +4496,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-analytics-api"
-version = "0.1.0"
-dependencies = [
- "oya-analytics-domain",
- "oya-analytics-usecase",
- "oya-shared-olap-client-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-analytics-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "oya-analytics-api",
- "oya-analytics-domain",
- "oya-analytics-usecase",
- "oya-shared-olap-clickhouse-adapter",
- "oya-shared-olap-client-kernel",
- "serde",
- "serde_json",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-analytics-domain"
-version = "0.1.0"
-dependencies = [
- "oya-shared-olap-client-kernel",
- "serde",
-]
-
-[[package]]
-name = "oya-analytics-tenant-bootstrap-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "oya-analytics-domain",
- "oya-shared-olap-clickhouse-adapter",
- "oya-shared-olap-client-kernel",
- "serde",
- "serde_json",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-analytics-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-analytics-domain",
- "oya-shared-olap-client-kernel",
- "serde",
-]
-
-[[package]]
 name = "oya-application-app"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
  "cell-regional-pack",
  "cell-routing",
+ "data-ontology-domain",
  "messaging-domain",
  "observability-domain",
  "observability-tracing-adapter",
@@ -4377,7 +4518,6 @@ dependencies = [
  "oya-intelligence-policy-domain",
  "oya-intelligence-run-domain",
  "oya-intelligence-step-domain",
- "oya-ontology-domain",
  "oya-policy-cedar-domain",
  "oya-residency-domain",
  "oya-secrets-domain",
@@ -5190,21 +5330,6 @@ version = "0.1.0"
 dependencies = [
  "serde_json",
 ]
-
-[[package]]
-name = "oya-cloud-data-domain"
-version = "0.1.0"
-dependencies = [
- "cell-region",
- "compute-resource",
- "oya-cloud-kms-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-data-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-cloud-finops-api"
@@ -6198,17 +6323,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-data-pipeline-lineage-replay-service"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "oya-data-sql-adapter-sqlx"
 version = "0.1.0"
 dependencies = [
@@ -6224,17 +6338,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "oya-data-warehouse-tenant-olap-service"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -8141,45 +8244,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ontology-api"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-ontology-domain",
-]
-
-[[package]]
-name = "oya-ontology-domain"
-version = "0.1.0"
-dependencies = [
- "oya-ontology-kernel",
-]
-
-[[package]]
-name = "oya-ontology-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-ontology-query-engine-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-ontology-kernel",
-]
-
-[[package]]
-name = "oya-ontology-query-engine-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-ontology-kernel",
- "oya-ontology-query-engine-domain",
-]
-
-[[package]]
 name = "oya-payments-adapter-adyen"
 version = "0.1.0"
 dependencies = [
@@ -8509,14 +8573,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-resolve-scorecards-app"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "oya-saas-bench-app"
 version = "0.1.0"
 dependencies = [
@@ -8552,62 +8608,6 @@ dependencies = [
 [[package]]
 name = "oya-saas-workflow-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-search-crawler-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-search-index-inverted-domain"
-version = "0.1.0"
-dependencies = [
- "oya-search-crawler-domain",
- "oya-search-parser-domain",
-]
-
-[[package]]
-name = "oya-search-index-vector-domain"
-version = "0.1.0"
-dependencies = [
- "oya-search-crawler-domain",
- "oya-search-parser-domain",
- "serde_json",
-]
-
-[[package]]
-name = "oya-search-parser-domain"
-version = "0.1.0"
-dependencies = [
- "oya-search-crawler-domain",
-]
-
-[[package]]
-name = "oya-search-query-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-search-rag-domain"
-version = "0.1.0"
-dependencies = [
- "oya-search-query-domain",
- "oya-search-rank-domain",
- "oya-search-serp-domain",
-]
-
-[[package]]
-name = "oya-search-rank-domain"
-version = "0.1.0"
-dependencies = [
- "oya-search-query-domain",
-]
-
-[[package]]
-name = "oya-search-serp-domain"
-version = "0.1.0"
-dependencies = [
- "oya-search-query-domain",
- "oya-search-rank-domain",
-]
 
 [[package]]
 name = "oya-secrets-domain"
