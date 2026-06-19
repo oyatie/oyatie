@@ -356,6 +356,7 @@
         "console shell"
       ],
       "absorbs_current_dirs": [
+        "console",
         "oya/app-shell-frontend",
         "oya/ops-dashboard-control-center",
         "oya/ops"
