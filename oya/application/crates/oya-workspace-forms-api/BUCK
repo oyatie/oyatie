@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//oya/forms/crates/oya-forms-domain:oya-forms-domain",
+        "//workflow/facade/forms-domain:workflow-forms-domain",
     ],
 )
 
@@ -19,6 +19,6 @@ rust_test(
     deps = [
         ":oya-workspace-forms-api",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//oya/forms/crates/oya-forms-domain:oya-forms-domain",
+        "//workflow/facade/forms-domain:workflow-forms-domain",
     ],
 )

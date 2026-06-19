@@ -30,7 +30,8 @@
     "k8s/*/*",
     "tenancy/*/*",
     "audit/*/*",
-    "data/*/*"
+    "data/*/*",
+    "workflow/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -55,7 +56,8 @@
     "k8s",
     "tenancy",
     "audit",
-    "data"
+    "data",
+    "workflow"
   ],
   "stratum_rank_order": [
     "S0",

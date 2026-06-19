@@ -29,7 +29,8 @@
     "k8s",
     "tenancy",
     "audit",
-    "data"
+    "data",
+    "workflow"
   ],
   "meta_directories": [
     "kernel",
@@ -62,6 +63,7 @@
     "tenancy",
     "audit",
     "data",
+    "workflow",
     "cloud",
     "oya",
     "libs",
