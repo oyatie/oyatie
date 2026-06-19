@@ -1873,6 +1873,127 @@ the co-moved per-service SLO subdirs `data/observability/slos/<service>/*.opensl
 `registry/catalog/` reachability prefix), and the committed move-plan `specs/reorg/data-move-plan.json` (reached
 by the existing ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.21 Seventeenth executed strangler move: `workflow` capability (oya/{workflow-engine,workflow-studio,tasks,forms}/crates → workflow/) — four-source-dir mixed substrate/product move with per-service SLO co-move + catalog re-key
+
+The seventeenth REAL codemod run homes the `workflow` capability's forty-eight crates from FOUR source dirs
+(`oya/workflow-engine/crates`, `oya/workflow-studio/crates`, `oya/tasks/crates`, `oya/forms/crates`) under the §3
+placement rule, across FOUR faces (`core` 12 / `ports` 16 / `adapters` 11 / `facade` 9). workflow is the
+orchestration substrate (the `workflow-engine` ADR-0280 dag node): the engine's FOUR hexagonal sub-domains —
+event-bus, execution-engine, state-machine, trigger-orchestrator (each a kernel/domain/usecase core + api/rest/sdk/
+worker ports + adapter/adapter-{broker,postgres} adapters cell) — plus the studio DSL/canvas authoring surfaces, the
+saas-workflow product, and the tasks + forms product domains — a MIXED substrate/product capability (hence a facade
+face exists, like §10.20 data).
+
+**Count reconciliation (47-in-design-mapping vs 48-source-Cargo.toml):** the move-time design-mapping estimate
+enumerated forty-seven crates; the four source dirs hold forty-eight `Cargo.toml` (workflow-engine 42 + workflow-studio
+4 + tasks 1 + forms 1). The reconciliation: every one of the forty-eight source crates is enumerated and homed (no
+crate left behind). The undercounted leaf is one event-bus broker adapter — the engine's event-bus cell carries SEVEN
+adapters (the generic `adapter` base + SIX broker variants `adapter-{kafka,nats,pulsar,redpanda,valkey,postgres}`); the
+abbreviated design list named only the five message-broker variants (kafka/nats/pulsar/redpanda/valkey) and the generic
+base, omitting `oya-workflow-engine-event-bus-adapter-postgres` (the postgres outbox/event-store adapter), which is a
+`adapter-postgres` clean-arch role → `workflow/adapters/event-bus-postgres` (`workflow-event-bus-postgres`), homed like
+its six sibling event-bus adapters. All forty-eight are accounted for by clean-arch role.
+
+**Naming scheme (cargo == de-branded path-tail, all forty-eight unique):** the proven console/k8s/audit/data scheme —
+path `workflow/<face>/<cell>-<role>` ↔ cargo `workflow-<cell>-<role>`, de-branded (the legacy
+`oya-workflow-engine-`/`oya-workflow-studio-`/`oya-saas-workflow-`/`oya-` forms all drop to the `workflow-` capability
+slug). Because the four engine sub-domain cells repeat the same role inventory (kernel/domain/usecase/api/rest/sdk/
+worker/adapter), the cell name is the disambiguating leaf prefix: e.g. `event-bus-kernel` / `execution-engine-kernel` /
+`state-machine-kernel` / `trigger-orchestrator-kernel` stay distinct. The broker adapters de-brand to
+`workflow/adapters/<cell>-<broker>` (`workflow-event-bus-kafka`, `workflow-execution-engine-postgres`,
+`workflow-state-machine-postgres`, …) and the generic base adapter keeps `<cell>-adapter`
+(`workflow-event-bus-adapter`). The studio cells drop the `-domain`/`-kernel` role suffix to the cell name
+(`studio-dsl-emitter`, `studio-dsl-loader`, `studio-policy-preview`, `studio-visual-canvas`); the saas product keeps its
+kernel/domain/app role (`saas-kernel`, `saas-domain`, `saas-app`); tasks/forms keep their `-domain` role
+(`tasks-domain`, `forms-domain`). All forty-eight leaf dirs and cargo names are distinct (`MovePlan::validate` passes),
+and each cargo name equals `workflow-` + its de-branded path-tail EXACTLY.
+
+**Face reasoning — ports/core/adapters/facade by WHAT EACH IS (§3), verified against REAL dep direction (the three
+move-time open questions, RESOLVED with dep evidence):**
+
+1. **Engine `*-app` composition-wiring crates (event-bus-app, execution-engine-app, trigger-orchestrator-app) →
+`ports/`.** Dep evidence (read `Cargo.toml` + `BUCK` + `src/`): each is a pure `[lib]` (no `[[bin]]`, only `lib.rs`)
+that depends ONLY on its own cell's boundary siblings — `event-bus-app → {event-bus-sdk, event-bus-worker}`,
+`execution-engine-app → {execution-engine-adapter, -rest, -sdk, -worker}`, `trigger-orchestrator-app →
+{trigger-orchestrator-rest, -sdk, -worker}`. They aggregate the cell's deployable boundary surface (rest+sdk+worker are
+all ports). They are NOT sold (substrate engine, so NOT facade) and NOT a stable trait seam either, but the brief's
+primary placement (ports = boundary) is the least-inverting organizational home: app sits adjacent to the rest/sdk/worker
+it wires. The one cross-face edge (`execution-engine-app → execution-engine-adapter`, a ports→adapters edge) raises NO
+acyclicity violation because the whole `workflow/` root is an `unclassified_root` (every intra-`workflow` face edge
+projects to a `workflow → workflow` self-edge; the §10.15..§10.20 precedent) and the crate→crate edge set is byte-identical
+pre/post-move (the codemod only changes paths, never deps).
+
+2. **Event-bus broker adapters (event-bus-{kafka,nats,pulsar,redpanda,valkey,postgres}) → `workflow/adapters/event-bus-<broker>`.**
+Dep evidence: each broker adapter depends ONLY on `oya-workflow-engine-event-bus-adapter` (the generic adapter, which
+depends on `event-bus-api`, a workflow port). They implement WORKFLOW's OWN event-bus adapter trait, NOT the already-homed
+`messaging` capability's port — ZERO dep on any `messaging/` crate (grep-verified). DEFAULT placement applies: they are
+workflow's event-bus brokers, homed in `workflow/adapters/`, NOT re-homed cross-capability to messaging. (Future-consolidation
+flag: if a later move proves these brokers SHOULD implement messaging's port, they can be re-homed then; the evidence here is
+unambiguous — no messaging-port dependency exists, so a cross-cap move now would be speculative.)
+
+3. **tasks/forms cross-cap deps confirmed → belong in workflow.** Dep evidence: `oya-tasks-domain` depends on
+`oya-intelligence-capability-domain` (the `intelligence` capability, still at its pre-move `oya/intelligence/crates/` home in
+this branch tip) + `libs/oya-data-boundary-kernel` (a shared lib, below all capabilities); `oya-forms-domain` depends on
+`libs/oya-data-boundary-kernel` only. Both are workflow's task/form PRODUCT domains (the workplace task tracker + form builder
+surfaces), so they home to `workflow/facade/{tasks,forms}-domain`. The cross-cap `tasks → intelligence` edge is PRESERVED
+intact (the codemod left its path/`//`-label unchanged because intelligence has not moved in this PR; relabel-on-future-move,
+the §10.19 cross-capability-edge precedent), and the `libs/` edges keep pointing at the live unchanged `libs/` homes (the legal
+below-all-capabilities `base/`-class direction).
+
+The kernel/domain/usecase engine crates of all four cells → `core/` (the engine we RUN); the api/rest/sdk/worker boundary
+crates → `ports/` (the stable seam); the generic + provider adapters → `adapters/` (transient-infra impls); the studio +
+saas + tasks + forms product surfaces → `facade/` (the surfaces we SELL). The acyclicity gate classifies the whole
+`workflow/` root as an `unclassified_root`, so it enforces NO core/ports/adapters/facade SUB-tier edge.
+
+**No custom bins (#76):** all forty-eight moved crates are pure `[lib]` crates (no `[[bin]]` anywhere in the four source
+dirs, grep-verified), so the §10.13/§10.20 custom-bin de-brand step is a no-op for this move.
+
+**External dependents (rewritten):** exactly TWO first-party crates outside the forty-eight depend on the moved tree —
+`cloud/cloud-billing/crates/oya-saas-bench-app` (→ `oya-saas-workflow-{kernel,domain,app}`, the SaaS benchmark harness) and
+`oya/application/crates/oya-workspace-forms-api` (→ `oya-forms-domain`, the workspace forms API surface). The codemod rewrote
+each one's `Cargo.toml` path-dep, `BUCK` `//`-label, and `use`-ident references to the new
+`workflow/facade/saas-{kernel,domain,app}` and `workflow/facade/forms-domain` homes. A grep + uquery of the whole tree
+confirmed no other external dependent. workflow is NOT a violation source (zero entries in the acyclicity frozen baseline)
+and the moved crate dirs are not in the membership unmapped baseline, so both lints carry 0 burn-down / 0 regression.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run (`cargo metadata` +
+`buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null, `clean=true`). The capability
+registry records `workflow.absorbs_current_dirs` with the capability's own top-level slug `workflow` (the self-slug is
+required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE workflow/...`; the §10.12/§10.16..§10.20 lesson) plus the four
+absorbed source dirs (the pre-existing seeds, retained). The membership policy scan_roots + allowed_top_level_dirs gain
+`workflow`, the acyclicity policy crate_root_globs gains `workflow/*/*` + unclassified_roots gains `workflow`, and the root
+workspace gains the `workflow/*/*` member glob (one glob covers all forty-eight faces/leaves; ADR-0538 glob-only contract)
+with `workflow/observability` added to the exclude list (the non-crate SLO subtree).
+
+**SLO co-move executed IN the move (doctrine-clean, per-service subdirs — collision):** all four source dirs carry
+promotion-gating SLOs — thirty-five `.openslo.yaml` files total (workflow-engine 7 + workflow-studio 8 + tasks 10 + forms 10).
+The four source dirs carry ONE cross-service basename collision (`autosharding-events.openslo.yaml`, present in all four), so
+a flat merge would clobber. Following the §10.16/§10.17/§10.20 multi-service precedent, the thirty-five SLOs co-move via
+thirty-five content-preserving file `ArtifactMove`s into PER-SERVICE subdirs
+`workflow/observability/slos/{workflow-engine,workflow-studio,tasks,forms}/` — collision-free AND provenance-preserving. The
+SLOs' `metadata.name` + Prometheus metric labels keep their legacy `oya-*`/`oya_*` tokens (RUNTIME-emitted metric identifiers
+bound to live service emission code, not structural reorg tokens — the ADR-0532/0533 de-brand-profile lane's scope, not this
+structural move). The slo-coverage gate keys by catalog-record file stem, not SLO file path, so the home is gate-neutral.
+
+**Catalog re-key executed IN the move (same pattern as §10.14..§10.20):** all forty-eight moved crates have a
+`registry/catalog/oya-*.yaml` record. After the crate rename the forty-eight legacy filenames no longer match any live
+workspace `[package].name`, which would RED `catalog-liveness` and `slo-coverage`. The move-plan therefore carries forty-eight
+additional file `ArtifactMove` entries re-keying each record to the de-branded live crate-id filename
+`registry/catalog/workflow-<leaf>.yaml` (content-preserving `git mv`; no in-file rewrite — the records carry no embedded
+package-name field, only facets; the internal `capability:` facet is content-preserved, no gate keys on it). Both gates stay
+green after the re-key (all forty-eight records bind to a live workspace crate-id).
+
+**Born-accounting (ADR-0555):** the forty-eight new crate dirs under `workflow/core/`, `workflow/ports/`,
+`workflow/adapters/`, and `workflow/facade/` are reached by the `workflow/*/*` member glob + the `workflow/*/*` acyclicity
+glob, and owned by the subtree `workflow/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.21
+entry (breadth-unlimited per ADR-0555, covering the whole workflow subtree including the co-moved per-service SLO subdirs). The
+move's tracked, born-accounted artifact roots are the forty-eight crate dirs (each carrying its `Cargo.toml`, `BUCK`, and
+`src/` — and, for the crates carrying integration/foundation tests, their `tests/`), the co-moved per-service SLO subdirs
+`workflow/observability/slos/<service>/*.openslo.yaml`, the subtree `workflow/OWNERS`, the forty-eight re-keyed catalog records
+`registry/catalog/workflow-*.yaml` (reached by the existing `registry/catalog/` reachability prefix), and the committed
+move-plan `specs/reorg/workflow-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability prefix). Per the
+one-plan-per-PR contract the spent `specs/reorg/data-move-plan.json` (the §10.20 move-plan) is removed.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

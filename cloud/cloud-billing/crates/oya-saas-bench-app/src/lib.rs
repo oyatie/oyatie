@@ -1,6 +1,6 @@
 //! SaaS bench application — end-to-end harness driving the M03-P04 preview.
 //!
-//! Composes [`oya_saas_workflow_app::WorkflowEngine`] with
+//! Composes [`workflow_saas_app::WorkflowEngine`] with
 //! [`marketplace_plugin_kernel::MarketplaceRegistry`] +
 //! [`oya_saas_plugin_app::PluginRuntime`] to exercise the full
 //! `definition.publish` -> `run.start` -> `plugin.invocation` -> `run.complete`
@@ -18,11 +18,11 @@ use oya_saas_plugin_app::{
 use marketplace_plugin_kernel::{
     MarketplaceListingPublish, MarketplaceRegistry, PluginManifestRegister, TrustTier, Vertical,
 };
-use oya_saas_workflow_app::{
+use workflow_saas_app::{
     PublishDefinitionInput, PublishStepInput, StartRunInput, WorkflowAppError, WorkflowEngine,
     WorkflowSloCounters,
 };
-use oya_saas_workflow_kernel::{
+use workflow_saas_kernel::{
     WorkflowEventKind, WorkflowRunId, WorkflowRunState, WorkflowStepId, WorkflowStepKind,
 };
 
@@ -169,7 +169,7 @@ impl SaasBench {
             self.engine
                 .snapshot(&run_id)
                 .ok_or(BenchError::Workflow(WorkflowAppError::Domain(
-                    oya_saas_workflow_domain::WorkflowDomainError::UnknownRun,
+                    workflow_saas_domain::WorkflowDomainError::UnknownRun,
                 )))?;
         Ok(BenchOutcome {
             counters: self.engine.counters(&scenario.tenant_id),
