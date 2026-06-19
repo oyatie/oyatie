@@ -25,7 +25,8 @@
     "marketplace",
     "compliance",
     "console",
-    "comms"
+    "comms",
+    "k8s"
   ],
   "meta_directories": [
     "kernel",
@@ -54,6 +55,7 @@
     "compliance",
     "console",
     "comms",
+    "k8s",
     "cloud",
     "oya",
     "libs",
