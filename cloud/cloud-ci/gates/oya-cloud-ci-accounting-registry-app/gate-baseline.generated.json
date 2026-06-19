@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:c9798fad6106cd34",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:14166bc72cc46849"
+    "source_inputs_digest": "fnv1a64:b74d74669e4e415c"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5050,7 +5050,6 @@
           "oya/identity/crates/oya-identity-workload-rest",
           "oya/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter",
           "oya/intelligence/crates/oya-intelligence-api",
-          "oya/intelligence/crates/oya-intelligence-backbone-workload-live-app",
           "oya/intelligence/crates/oya-intelligence-openapi-domain",
           "oya/intelligence/crates/oya-intelligence-provider-pool-app",
           "tools/oya-adapter-substitution-test-app",
