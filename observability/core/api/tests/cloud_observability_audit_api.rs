@@ -2,7 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_audit_chain_domain::{AuditChain, Plane};
+use audit_chain_domain::{AuditChain, Plane};
 use observability_api::{
     CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE, CloudObservabilityApiAuthorization,
     CloudObservabilityApiBoundaryContext, CloudObservabilityApiError,

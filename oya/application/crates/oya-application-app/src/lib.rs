@@ -7,7 +7,7 @@ pub use product_catalog::{ProductCatalogError, ProductEntry, ProductId, ProductM
 
 use std::{collections::BTreeMap, fmt, sync::Arc};
 
-pub use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
+pub use audit_chain_domain::{AuditChain, AuditEvent, Plane};
 use cell_routing::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
 use oya_check_cost_budget::{
     BudgetCeiling, BudgetError, BudgetLedger, BudgetScope, BudgetSnapshot, BudgetWarning,
@@ -348,11 +348,11 @@ pub enum FoundationError {
     /// The variants of `AuditChainError` (`EmptyTenantId`,
     /// `TenantShardMismatch`, etc.) propagate to this app boundary so callers
     /// can pattern-match the failure mode rather than seeing a silent panic.
-    AuditChainAppendFailed(oya_audit_chain_domain::AuditChainError),
+    AuditChainAppendFailed(audit_chain_domain::AuditChainError),
 }
 
-impl From<oya_audit_chain_domain::AuditChainError> for FoundationError {
-    fn from(error: oya_audit_chain_domain::AuditChainError) -> Self {
+impl From<audit_chain_domain::AuditChainError> for FoundationError {
+    fn from(error: audit_chain_domain::AuditChainError) -> Self {
         Self::AuditChainAppendFailed(error)
     }
 }
