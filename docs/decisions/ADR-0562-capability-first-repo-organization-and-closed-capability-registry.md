@@ -1505,6 +1505,126 @@ The move's tracked, born-accounted artifact roots are the seventeen crate dirs (
 `registry/catalog/` reachability prefix), and the committed move-plan `specs/reorg/k8s-move-plan.json` (reached
 by the existing ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.18 Fourteenth executed strangler move: `tenancy` capability (cloud/tenancy/crates → tenancy/) — substrate three-face move (no facade) with flat SLO co-move + catalog re-key
+
+The fourteenth REAL codemod run homes the `tenancy` capability's seventeen crates from ONE source dir
+(`cloud/tenancy/crates`) under the §3 placement rule, across THREE faces (`core` + `ports` + `adapters`) with
+NO `facade` — tenant management IS the substrate (the `tenancy` dag node, a control-plane substrate), not a
+sold product surface, so there is no facade face to home. tenancy is the structural multi-tenancy substrate:
+tenant lifecycle + home-cell resolution + tenant-as-universal-scoping-primitive (ADR-0244), the scoping
+primitive every other capability binds against.
+
+**Naming scheme (cargo == de-branded path-tail, all seventeen unique):** the proven scheme — path
+`tenancy/<face>/<leaf>` ↔ cargo `tenancy-<leaf>`, de-branded (the legacy `oya-tenancy-`/`oya-tenant-` forms
+drop to the `tenancy-` capability slug, and the redundant `-kernel`/`-domain`/`-usecase`/`-adapter` ROLE suffix
+on the source dir name is dropped from the leaf where the role is already implied by the face placement, while
+the three tenant-lifecycle crates KEEP their `-domain`/`-kernel`/`-usecase` role suffix to stay distinct from
+each other under one cell). The seventeen: kernel → `tenancy/core/kernel` (cargo `tenancy-kernel`), domain →
+`tenancy/core/domain` (`tenancy-domain`), cell-assignment-kernel → `tenancy/core/cell-assignment`
+(`tenancy-cell-assignment`), dsr-cascade-kernel → `tenancy/core/dsr-cascade` (`tenancy-dsr-cascade`),
+isolation-policy-kernel → `tenancy/core/isolation-policy` (`tenancy-isolation-policy`), lifecycle-locks-kernel →
+`tenancy/core/lifecycle-locks` (`tenancy-lifecycle-locks`), sub-scope-registry-kernel →
+`tenancy/core/sub-scope-registry` (`tenancy-sub-scope-registry`), kyb-kyc-verifier-domain →
+`tenancy/core/kyb-kyc-verifier` (`tenancy-kyb-kyc-verifier`), tenant-lifecycle-domain →
+`tenancy/core/tenant-lifecycle-domain` (`tenancy-tenant-lifecycle-domain`), tenant-lifecycle-kernel →
+`tenancy/core/tenant-lifecycle-kernel` (`tenancy-tenant-lifecycle-kernel`), tenant-lifecycle-usecase →
+`tenancy/core/tenant-lifecycle-usecase` (`tenancy-tenant-lifecycle-usecase`), dr-pairing-usecase →
+`tenancy/core/dr-pairing` (`tenancy-dr-pairing`), per-tenant-quota-usecase → `tenancy/core/per-tenant-quota`
+(`tenancy-per-tenant-quota`), reserved-namespace-usecase → `tenancy/core/reserved-namespace`
+(`tenancy-reserved-namespace`), api → `tenancy/ports/api` (`tenancy-api`), the tenant CLI →
+`tenancy/ports/cli` (`tenancy-cli`), and the data-residency-enforcer-adapter →
+`tenancy/adapters/data-residency-enforcer` (`tenancy-data-residency-enforcer`). All seventeen leaf dirs and all
+seventeen cargo names are distinct (`MovePlan::validate` passes), and each cargo name equals `tenancy-` + its
+de-branded path-tail EXACTLY (the target-parity + cargo-prefix relabel binding).
+
+**Face reasoning — ports/core/adapters by WHAT EACH IS (§3), verified against the REAL dep direction:** the
+kernel/domain crates carry pure value objects, the TenantSlug grammar (ADR-0095), and the multi-tenancy state
+machines and home to `core/` (the substrate engine surface, std+serde only); the five `*-kernel` cells
+(cell-assignment, dsr-cascade, isolation-policy, lifecycle-locks, sub-scope-registry), the kyb-kyc-verifier
+domain, and the tenant-lifecycle domain/kernel/usecase triad + the dr-pairing/per-tenant-quota/reserved-namespace
+usecases are all pure substrate logic with no inbound transport seam, so they home to `core/`; the `api` crate
+is the inbound application port (the trait + DTO seam, path-dep inward on `tenancy-domain` only) so it homes to
+`ports/`; the tenant `cli` is a thin tenant-facing delivery port (clap-only, no domain dep) and homes to
+`ports/`; the `data-residency-enforcer-adapter` projects a residency-enforcement port onto a backing impl and
+homes to `adapters/`. The intra-capability edges are all downward and acyclic: `tenancy-api` (ports) →
+`tenancy-domain` (core); `tenancy-tenant-lifecycle-usecase` (core) → `tenancy-tenant-lifecycle-domain` +
+`tenancy-tenant-lifecycle-kernel` (core). The dep DAG is acyclic by construction, and because all seventeen are
+ONE `tenancy` capability node the intra-capability face edges project to a `tenancy → tenancy` self-edge and
+raise NO service→service / S-rank acyclicity violation (the §10.15/§10.16/§10.17 console/comms/k8s precedent).
+
+**Cross-capability dep (kept intact):** `tenancy-api` (ports) and `tenancy-domain` (core) both have an OUTBOUND
+dep on `oya-residency-domain` (the data-residency value objects living in the `cloud-network` capability, which
+is NOT yet homed). The dep continues to point at the live `cloud/cloud-network/crates/oya-residency-domain`
+path (the relative `path=` + BUCK `//`-label were recomputed by the codemod against the new `tenancy/ports/api`
+and `tenancy/core/domain` homes); it relabels when the network/residency capability moves in a later strangler
+step. It is NOT broken or duplicated. (`tenancy-domain` also depends on `libs/oya-data-boundary-kernel`, and the
+tenant-lifecycle triad on `libs/oya-shared-platform-contracts-kernel` + `libs/oya-shared-resource-provider-contract-kernel`
+— both `libs/` deps were relative-path-recomputed and stay pointing at the live `libs/` homes, the legal
+below-all-capabilities `base/`-class direction.)
+
+**External dependents (rewritten):** TWO first-party crates outside the seventeen depend on the moved tree —
+`oya/application/crates/oya-application-app` depends on `tenancy-domain` (the application composition root) and
+`libs/oya-http-tenant-middleware-infrastructure` depends on `tenancy-kernel` (the TenantSlug grammar consumer,
+ADR-0095). The codemod rewrote both dependents' `Cargo.toml` path-deps, `BUCK` `//`-labels, and `use`-ident
+references (`oya_tenancy_domain` → `tenancy_domain`, `oya_tenancy_kernel` → `tenancy_kernel`) to the new homes.
+tenancy is NOT a violation source (zero entries in the acyclicity frozen baseline) and the moved crate dirs are
+not in the membership unmapped baseline, so both lints carry 0 burn-down / 0 regression.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null,
+`clean=true`). The capability registry records `tenancy.absorbs_current_dirs` with the capability's own
+top-level slug `tenancy` (the self-slug is required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE
+tenancy/...`; the §10.12/§10.16/§10.17 flags/comms/k8s lesson) plus the absorbed source dir `cloud/tenancy` (the
+pre-existing seed, retained). The membership policy scan_roots + allowed_top_level_dirs gain `tenancy`, the
+acyclicity policy crate_root_globs gains `tenancy/*/*` + unclassified_roots gains `tenancy`, and the root
+workspace gains the `tenancy/*/*` member glob (one glob covers all seventeen faces/leaves; ADR-0538 glob-only
+contract).
+
+**SLO co-move executed IN the move (doctrine-clean, flat — no collision):** the single source dir carries five
+promotion-gating SLOs (`cloud/tenancy/slos/{autosharding-events,availability,correctness,freshness,latency}.openslo.yaml`).
+Because there is exactly ONE source SLO dir, a flat merge into `tenancy/observability/slos/` has no cross-service
+basename collision (unlike the §10.16/§10.17 comms/k8s multi-service cases that needed per-service subdirs), so
+the five SLOs co-move via five content-preserving file `ArtifactMove`s into the flat
+`tenancy/observability/slos/` dir — collision-free AND provenance-preserving. The slo-coverage gate keys by
+catalog-record file stem, not SLO file path, so the home is gate-neutral.
+
+**Catalog re-key executed IN the move (same pattern as §10.14..§10.17):** fifteen of the seventeen crates have a
+`registry/catalog/oya-tenancy-*.yaml` / `registry/catalog/oya-tenant-cli.yaml` record (the two
+tenant-lifecycle-domain and tenant-lifecycle-usecase crates have NO pre-existing record — none is invented this
+move). After the crate rename, the fifteen legacy filenames no longer match any live workspace `[package].name`,
+which would RED the `catalog-liveness` (`catalog_record_no_live_crate_unmarked`) and `slo-coverage`
+(`slo_row_no_live_crate_unmarked`) gates. The move-plan therefore carries fifteen additional file
+`ArtifactMove` entries re-keying each record to the de-branded live crate-id filename
+`registry/catalog/tenancy-<leaf>.yaml` (content-preserving `git mv`; no in-file rewrite — the records carry no
+embedded package-name field, only `context`/`role`/`capability` facets). Both gates stay green after the re-key
+(all fifteen records bind to a live workspace crate-id; the two record-less crates raise no orphan record).
+
+**Custom bin name (codemod gap #76, retirement-marked CLI, brand preserved):** the tenant `cli` crate declares
+a custom `[[bin]] name = "oya-tenant"` + `default-run = "oya-tenant"` (`Cargo.toml`), a matching `rust_binary`
+target name `oya-tenant` (`BUCK`), which the codemod's `apply` does NOT auto-de-brand (it rewrites
+`[package].name`/`[lib].name`/deps/labels/idents only; the package de-brands to `tenancy-cli` and the BUCK
+`CARGO_PKG_NAME` env was rewritten to `tenancy-cli` automatically). The `oya-tenant` bin/binary NAME is
+DELIBERATELY PRESERVED: it is the Tier-A semver-protected tenant-facing binary distributed as `oya-tenant` to
+external artifact channels (Homebrew, apt, winget, ghcr) per ADR-0167, and the design-sweep mapping marked it
+for preservation. The flags §10.12 precedent established that a preserved branded bin name is gate-green
+(`[[bin]] name = "oya-flags"` was kept as deferred de-brand-profile residue, ADR-0532/0533 lane), so preserving
+`oya-tenant` is the gate-green AND distribution-stable choice — and it is a retirement-marked, local-bridge-only
+CLI (never merge authority, per the all-CLI-retirement directive), so its command name is not a structural
+identifier the reorg owns. The retirement marker on the crate is retained. The bin name de-brand is the
+ADR-0532/0533 de-brand-profile lane's scope (task #63), not this structural move.
+
+**Born-accounting (ADR-0555):** the seventeen new crate dirs under `tenancy/core/`, `tenancy/ports/`, and
+`tenancy/adapters/` are reached by the `tenancy/*/*` member glob + the `tenancy/*/*` acyclicity glob, and owned
+by the subtree `tenancy/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.18
+entry (breadth-unlimited per ADR-0555, covering the whole tenancy subtree including the co-moved flat SLO dir).
+The move's tracked, born-accounted artifact roots are the seventeen crate dirs (each carrying its `Cargo.toml`,
+`BUCK`, and `src/` — and, for the `api` + `tenant-lifecycle-usecase` crates, their `tests/`; for the `cli`
+crate, its `src/main.rs`), the co-moved flat SLO dir
+`tenancy/observability/slos/{autosharding-events,availability,correctness,freshness,latency}.openslo.yaml`, the
+subtree `tenancy/OWNERS`, the fifteen re-keyed catalog records `registry/catalog/tenancy-*.yaml` (reached by the
+existing `registry/catalog/` reachability prefix), and the committed move-plan
+`specs/reorg/tenancy-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

@@ -27,7 +27,8 @@
     "compliance/*/*",
     "console/*/*",
     "comms/*/*",
-    "k8s/*/*"
+    "k8s/*/*",
+    "tenancy/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -49,7 +50,8 @@
     "compliance",
     "console",
     "comms",
-    "k8s"
+    "k8s",
+    "tenancy"
   ],
   "stratum_rank_order": [
     "S0",

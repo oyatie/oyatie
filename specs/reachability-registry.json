@@ -62,6 +62,10 @@
       "prefix": "k8s/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.18 ownership seed: the tenancy capability tree's OWNERS marker (axis-cloud-platform), homed by the fourteenth strangler move (cloud/tenancy/crates → tenancy/{core,ports,adapters}/, NO facade — tenant management IS the substrate); breadth-unlimited (ADR-0555) so it covers the whole tenancy subtree, including the co-moved tenancy/observability/slos/ flat SLO dir (ADR-0139 SLO-home convention, flat because the single source dir cloud/tenancy/slos carries no cross-service basename collision) and the fifteen re-keyed registry/catalog/tenancy-*.yaml records (reached by the existing registry/catalog/ prefix; the two crates with no pre-existing catalog record — tenant-lifecycle-domain, tenant-lifecycle-usecase — get no record this move); the committed move-plan at specs/reorg/tenancy-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "tenancy/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },

@@ -1,0 +1,20 @@
+[package]
+name = "tenancy-tenant-lifecycle-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "tenancy_tenant_lifecycle_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
+oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
+serde = { workspace = true }
+
+[lints]
+workspace = true
