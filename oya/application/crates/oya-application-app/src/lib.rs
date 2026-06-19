@@ -74,8 +74,8 @@ use oya_residency_domain::{
     RegionRef, RegionRefCreate, infer_region_jurisdiction_label, parse_residency_class_label,
 };
 use oya_secrets_domain::SecretRef;
-pub use oya_tenancy_domain::Tenant;
-use oya_tenancy_domain::TenantError;
+pub use tenancy_domain::Tenant;
+use tenancy_domain::TenantError;
 
 const FOUNDATION_LOCAL_PROVIDER_ID: &str = "foundation-local";
 const FOUNDATION_LOCAL_MODEL_REF: &str = "foundation-app";

@@ -1,465 +1,453 @@
 {
-  "capability": "k8s",
+  "capability": "tenancy",
   "crate_dirs": [
     {
-      "new_path": "k8s/ports/cluster-lifecycle-api",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-api"
+      "new_path": "tenancy/ports/api",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-api"
     },
     {
-      "new_path": "k8s/facade/cluster-lifecycle-app",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-app"
+      "new_path": "tenancy/core/cell-assignment",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-cell-assignment-kernel"
     },
     {
-      "new_path": "k8s/core/cluster-lifecycle-kernel",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel"
+      "new_path": "tenancy/adapters/data-residency-enforcer",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-data-residency-enforcer-adapter"
     },
     {
-      "new_path": "k8s/adapters/control-plane-host-adapter-capi",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi"
+      "new_path": "tenancy/core/domain",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-domain"
     },
     {
-      "new_path": "k8s/adapters/control-plane-host-adapter-inmemory",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-inmemory"
+      "new_path": "tenancy/core/dr-pairing",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-dr-pairing-usecase"
     },
     {
-      "new_path": "k8s/ports/control-plane-host-api",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api"
+      "new_path": "tenancy/core/dsr-cascade",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-dsr-cascade-kernel"
     },
     {
-      "new_path": "k8s/facade/control-plane-host-app",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app"
+      "new_path": "tenancy/core/isolation-policy",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-isolation-policy-kernel"
     },
     {
-      "new_path": "k8s/core/control-plane-host-kernel",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel"
+      "new_path": "tenancy/core/kernel",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel"
     },
     {
-      "new_path": "k8s/adapters/sla-observability-adapter-inmemory",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-adapter-inmemory"
+      "new_path": "tenancy/core/kyb-kyc-verifier",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kyb-kyc-verifier-domain"
     },
     {
-      "new_path": "k8s/ports/sla-observability-api",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api"
+      "new_path": "tenancy/core/lifecycle-locks",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-lifecycle-locks-kernel"
     },
     {
-      "new_path": "k8s/facade/sla-observability-app",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-app"
+      "new_path": "tenancy/core/per-tenant-quota",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase"
     },
     {
-      "new_path": "k8s/core/sla-observability-kernel",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel"
+      "new_path": "tenancy/core/reserved-namespace",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase"
     },
     {
-      "new_path": "k8s/adapters/tenant-quota-adapter-cedar",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-cedar"
+      "new_path": "tenancy/core/sub-scope-registry",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel"
     },
     {
-      "new_path": "k8s/adapters/tenant-quota-adapter-inmemory",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-inmemory"
+      "new_path": "tenancy/core/tenant-lifecycle-domain",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain"
     },
     {
-      "new_path": "k8s/ports/tenant-quota-api",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api"
+      "new_path": "tenancy/core/tenant-lifecycle-kernel",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel"
     },
     {
-      "new_path": "k8s/facade/tenant-quota-app",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app"
+      "new_path": "tenancy/core/tenant-lifecycle-usecase",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase"
     },
     {
-      "new_path": "k8s/core/tenant-quota-kernel",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel"
+      "new_path": "tenancy/ports/cli",
+      "old_path": "cloud/tenancy/crates/oya-tenant-cli"
     }
   ],
   "crate_idents": [
     {
-      "new": "k8s-cluster-lifecycle-api",
-      "old": "oya-managed-k8s-cluster-lifecycle-api"
+      "new": "tenancy-api",
+      "old": "oya-tenancy-api"
     },
     {
-      "new": "k8s-cluster-lifecycle-app",
-      "old": "oya-managed-k8s-cluster-lifecycle-app"
+      "new": "tenancy-cell-assignment",
+      "old": "oya-tenancy-cell-assignment-kernel"
     },
     {
-      "new": "k8s-cluster-lifecycle-kernel",
-      "old": "oya-managed-k8s-cluster-lifecycle-kernel"
+      "new": "tenancy-data-residency-enforcer",
+      "old": "oya-tenancy-data-residency-enforcer-adapter"
     },
     {
-      "new": "k8s-control-plane-host-adapter-capi",
-      "old": "oya-managed-k8s-control-plane-host-adapter-capi"
+      "new": "tenancy-domain",
+      "old": "oya-tenancy-domain"
     },
     {
-      "new": "k8s-control-plane-host-adapter-inmemory",
-      "old": "oya-managed-k8s-control-plane-host-adapter-inmemory"
+      "new": "tenancy-dr-pairing",
+      "old": "oya-tenancy-dr-pairing-usecase"
     },
     {
-      "new": "k8s-control-plane-host-api",
-      "old": "oya-managed-k8s-control-plane-host-api"
+      "new": "tenancy-dsr-cascade",
+      "old": "oya-tenancy-dsr-cascade-kernel"
     },
     {
-      "new": "k8s-control-plane-host-app",
-      "old": "oya-managed-k8s-control-plane-host-app"
+      "new": "tenancy-isolation-policy",
+      "old": "oya-tenancy-isolation-policy-kernel"
     },
     {
-      "new": "k8s-control-plane-host-kernel",
-      "old": "oya-managed-k8s-control-plane-host-kernel"
+      "new": "tenancy-kernel",
+      "old": "oya-tenancy-kernel"
     },
     {
-      "new": "k8s-sla-observability-adapter-inmemory",
-      "old": "oya-managed-k8s-sla-observability-adapter-inmemory"
+      "new": "tenancy-kyb-kyc-verifier",
+      "old": "oya-tenancy-kyb-kyc-verifier-domain"
     },
     {
-      "new": "k8s-sla-observability-api",
-      "old": "oya-managed-k8s-sla-observability-api"
+      "new": "tenancy-lifecycle-locks",
+      "old": "oya-tenancy-lifecycle-locks-kernel"
     },
     {
-      "new": "k8s-sla-observability-app",
-      "old": "oya-managed-k8s-sla-observability-app"
+      "new": "tenancy-per-tenant-quota",
+      "old": "oya-tenancy-per-tenant-quota-usecase"
     },
     {
-      "new": "k8s-sla-observability-kernel",
-      "old": "oya-managed-k8s-sla-observability-kernel"
+      "new": "tenancy-reserved-namespace",
+      "old": "oya-tenancy-reserved-namespace-usecase"
     },
     {
-      "new": "k8s-tenant-quota-adapter-cedar",
-      "old": "oya-managed-k8s-tenant-quota-adapter-cedar"
+      "new": "tenancy-sub-scope-registry",
+      "old": "oya-tenancy-sub-scope-registry-kernel"
     },
     {
-      "new": "k8s-tenant-quota-adapter-inmemory",
-      "old": "oya-managed-k8s-tenant-quota-adapter-inmemory"
+      "new": "tenancy-tenant-lifecycle-domain",
+      "old": "oya-tenancy-tenant-lifecycle-domain"
     },
     {
-      "new": "k8s-tenant-quota-api",
-      "old": "oya-managed-k8s-tenant-quota-api"
+      "new": "tenancy-tenant-lifecycle-kernel",
+      "old": "oya-tenancy-tenant-lifecycle-kernel"
     },
     {
-      "new": "k8s-tenant-quota-app",
-      "old": "oya-managed-k8s-tenant-quota-app"
+      "new": "tenancy-tenant-lifecycle-usecase",
+      "old": "oya-tenancy-tenant-lifecycle-usecase"
     },
     {
-      "new": "k8s-tenant-quota-kernel",
-      "old": "oya-managed-k8s-tenant-quota-kernel"
+      "new": "tenancy-cli",
+      "old": "oya-tenant-cli"
     }
   ],
   "files": [
     {
-      "new_path": "k8s/ports/cluster-lifecycle-api/BUCK",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-api/BUCK"
+      "new_path": "tenancy/ports/api/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-api/BUCK"
     },
     {
-      "new_path": "k8s/ports/cluster-lifecycle-api/Cargo.toml",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-api/Cargo.toml"
+      "new_path": "tenancy/ports/api/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-api/Cargo.toml"
     },
     {
-      "new_path": "k8s/ports/cluster-lifecycle-api/src/lib.rs",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-api/src/lib.rs"
+      "new_path": "tenancy/ports/api/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-api/src/lib.rs"
     },
     {
-      "new_path": "k8s/facade/cluster-lifecycle-app/BUCK",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-app/BUCK"
+      "new_path": "tenancy/ports/api/tests/tenant_create_api.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-api/tests/tenant_create_api.rs"
     },
     {
-      "new_path": "k8s/facade/cluster-lifecycle-app/Cargo.toml",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-app/Cargo.toml"
+      "new_path": "tenancy/core/cell-assignment/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-cell-assignment-kernel/BUCK"
     },
     {
-      "new_path": "k8s/facade/cluster-lifecycle-app/src/lib.rs",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-app/src/lib.rs"
+      "new_path": "tenancy/core/cell-assignment/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-cell-assignment-kernel/Cargo.toml"
     },
     {
-      "new_path": "k8s/facade/cluster-lifecycle-app/src/main.rs",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-app/src/main.rs"
+      "new_path": "tenancy/core/cell-assignment/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-cell-assignment-kernel/src/lib.rs"
     },
     {
-      "new_path": "k8s/core/cluster-lifecycle-kernel/BUCK",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/BUCK"
+      "new_path": "tenancy/adapters/data-residency-enforcer/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-data-residency-enforcer-adapter/BUCK"
     },
     {
-      "new_path": "k8s/core/cluster-lifecycle-kernel/Cargo.toml",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/Cargo.toml"
+      "new_path": "tenancy/adapters/data-residency-enforcer/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-data-residency-enforcer-adapter/Cargo.toml"
     },
     {
-      "new_path": "k8s/core/cluster-lifecycle-kernel/src/lib.rs",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/src/lib.rs"
+      "new_path": "tenancy/adapters/data-residency-enforcer/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-data-residency-enforcer-adapter/src/lib.rs"
     },
     {
-      "new_path": "k8s/observability/slos/cluster-lifecycle/create-admission-latency.openslo.yaml",
-      "old_path": "cloud/managed-k8s-cluster-lifecycle/slos/create-admission-latency.openslo.yaml"
+      "new_path": "tenancy/core/domain/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-domain/BUCK"
     },
     {
-      "new_path": "k8s/adapters/control-plane-host-adapter-capi/BUCK",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi/BUCK"
+      "new_path": "tenancy/core/domain/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-domain/Cargo.toml"
     },
     {
-      "new_path": "k8s/adapters/control-plane-host-adapter-capi/Cargo.toml",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi/Cargo.toml"
+      "new_path": "tenancy/core/domain/src/design_partner_status.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-domain/src/design_partner_status.rs"
     },
     {
-      "new_path": "k8s/adapters/control-plane-host-adapter-capi/src/lib.rs",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs"
+      "new_path": "tenancy/core/domain/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-domain/src/lib.rs"
     },
     {
-      "new_path": "k8s/adapters/control-plane-host-adapter-inmemory/BUCK",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-inmemory/BUCK"
+      "new_path": "tenancy/core/dr-pairing/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-dr-pairing-usecase/BUCK"
     },
     {
-      "new_path": "k8s/adapters/control-plane-host-adapter-inmemory/Cargo.toml",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-inmemory/Cargo.toml"
+      "new_path": "tenancy/core/dr-pairing/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-dr-pairing-usecase/Cargo.toml"
     },
     {
-      "new_path": "k8s/adapters/control-plane-host-adapter-inmemory/src/lib.rs",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-adapter-inmemory/src/lib.rs"
+      "new_path": "tenancy/core/dr-pairing/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-dr-pairing-usecase/src/lib.rs"
     },
     {
-      "new_path": "k8s/ports/control-plane-host-api/BUCK",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api/BUCK"
+      "new_path": "tenancy/core/dsr-cascade/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-dsr-cascade-kernel/BUCK"
     },
     {
-      "new_path": "k8s/ports/control-plane-host-api/Cargo.toml",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api/Cargo.toml"
+      "new_path": "tenancy/core/dsr-cascade/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-dsr-cascade-kernel/Cargo.toml"
     },
     {
-      "new_path": "k8s/ports/control-plane-host-api/src/lib.rs",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-api/src/lib.rs"
+      "new_path": "tenancy/core/dsr-cascade/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-dsr-cascade-kernel/src/lib.rs"
     },
     {
-      "new_path": "k8s/facade/control-plane-host-app/BUCK",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app/BUCK"
+      "new_path": "tenancy/core/isolation-policy/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-isolation-policy-kernel/BUCK"
     },
     {
-      "new_path": "k8s/facade/control-plane-host-app/Cargo.toml",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app/Cargo.toml"
+      "new_path": "tenancy/core/isolation-policy/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-isolation-policy-kernel/Cargo.toml"
     },
     {
-      "new_path": "k8s/facade/control-plane-host-app/src/lib.rs",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app/src/lib.rs"
+      "new_path": "tenancy/core/isolation-policy/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-isolation-policy-kernel/src/lib.rs"
     },
     {
-      "new_path": "k8s/facade/control-plane-host-app/src/main.rs",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app/src/main.rs"
+      "new_path": "tenancy/core/kernel/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel/BUCK"
     },
     {
-      "new_path": "k8s/facade/control-plane-host-app/tests/acceptance.rs",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-app/tests/acceptance.rs"
+      "new_path": "tenancy/core/kernel/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel/Cargo.toml"
     },
     {
-      "new_path": "k8s/core/control-plane-host-kernel/BUCK",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel/BUCK"
+      "new_path": "tenancy/core/kernel/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel/src/lib.rs"
     },
     {
-      "new_path": "k8s/core/control-plane-host-kernel/Cargo.toml",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel/Cargo.toml"
+      "new_path": "tenancy/core/kernel/src/tier_status.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel/src/tier_status.rs"
     },
     {
-      "new_path": "k8s/core/control-plane-host-kernel/src/lib.rs",
-      "old_path": "cloud/managed-k8s-control-plane-host/crates/oya-managed-k8s-control-plane-host-kernel/src/lib.rs"
+      "new_path": "tenancy/core/kyb-kyc-verifier/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kyb-kyc-verifier-domain/BUCK"
     },
     {
-      "new_path": "k8s/observability/slos/control-plane-host/availability.openslo.yaml",
-      "old_path": "cloud/managed-k8s-control-plane-host/slos/availability.openslo.yaml"
+      "new_path": "tenancy/core/kyb-kyc-verifier/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kyb-kyc-verifier-domain/Cargo.toml"
     },
     {
-      "new_path": "k8s/observability/slos/control-plane-host/provisioning-latency.openslo.yaml",
-      "old_path": "cloud/managed-k8s-control-plane-host/slos/provisioning-latency.openslo.yaml"
+      "new_path": "tenancy/core/kyb-kyc-verifier/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-kyb-kyc-verifier-domain/src/lib.rs"
     },
     {
-      "new_path": "k8s/adapters/sla-observability-adapter-inmemory/BUCK",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-adapter-inmemory/BUCK"
+      "new_path": "tenancy/core/lifecycle-locks/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-lifecycle-locks-kernel/BUCK"
     },
     {
-      "new_path": "k8s/adapters/sla-observability-adapter-inmemory/Cargo.toml",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-adapter-inmemory/Cargo.toml"
+      "new_path": "tenancy/core/lifecycle-locks/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-lifecycle-locks-kernel/Cargo.toml"
     },
     {
-      "new_path": "k8s/adapters/sla-observability-adapter-inmemory/src/lib.rs",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-adapter-inmemory/src/lib.rs"
+      "new_path": "tenancy/core/lifecycle-locks/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-lifecycle-locks-kernel/src/lib.rs"
     },
     {
-      "new_path": "k8s/ports/sla-observability-api/BUCK",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api/BUCK"
+      "new_path": "tenancy/core/per-tenant-quota/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase/BUCK"
     },
     {
-      "new_path": "k8s/ports/sla-observability-api/Cargo.toml",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api/Cargo.toml"
+      "new_path": "tenancy/core/per-tenant-quota/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase/Cargo.toml"
     },
     {
-      "new_path": "k8s/ports/sla-observability-api/src/lib.rs",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-api/src/lib.rs"
+      "new_path": "tenancy/core/per-tenant-quota/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase/src/lib.rs"
     },
     {
-      "new_path": "k8s/facade/sla-observability-app/BUCK",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-app/BUCK"
+      "new_path": "tenancy/core/reserved-namespace/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase/BUCK"
     },
     {
-      "new_path": "k8s/facade/sla-observability-app/Cargo.toml",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-app/Cargo.toml"
+      "new_path": "tenancy/core/reserved-namespace/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase/Cargo.toml"
     },
     {
-      "new_path": "k8s/facade/sla-observability-app/src/lib.rs",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-app/src/lib.rs"
+      "new_path": "tenancy/core/reserved-namespace/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase/src/lib.rs"
     },
     {
-      "new_path": "k8s/core/sla-observability-kernel/BUCK",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel/BUCK"
+      "new_path": "tenancy/core/sub-scope-registry/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel/BUCK"
     },
     {
-      "new_path": "k8s/core/sla-observability-kernel/Cargo.toml",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel/Cargo.toml"
+      "new_path": "tenancy/core/sub-scope-registry/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel/Cargo.toml"
     },
     {
-      "new_path": "k8s/core/sla-observability-kernel/src/lib.rs",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel/src/lib.rs"
+      "new_path": "tenancy/core/sub-scope-registry/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel/src/lib.rs"
     },
     {
-      "new_path": "k8s/core/sla-observability-kernel/tests/mwmb_acceptance.rs",
-      "old_path": "cloud/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel/tests/mwmb_acceptance.rs"
+      "new_path": "tenancy/core/tenant-lifecycle-domain/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain/BUCK"
     },
     {
-      "new_path": "k8s/observability/slos/sla-observability/managed-cluster-availability.openslo.yaml",
-      "old_path": "cloud/managed-k8s-sla-observability/slos/managed-cluster-availability.openslo.yaml"
+      "new_path": "tenancy/core/tenant-lifecycle-domain/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain/Cargo.toml"
     },
     {
-      "new_path": "k8s/observability/slos/sla-observability/provisioning-latency.openslo.yaml",
-      "old_path": "cloud/managed-k8s-sla-observability/slos/provisioning-latency.openslo.yaml"
+      "new_path": "tenancy/core/tenant-lifecycle-domain/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain/src/lib.rs"
     },
     {
-      "new_path": "k8s/adapters/tenant-quota-adapter-cedar/BUCK",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-cedar/BUCK"
+      "new_path": "tenancy/core/tenant-lifecycle-kernel/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel/BUCK"
     },
     {
-      "new_path": "k8s/adapters/tenant-quota-adapter-cedar/Cargo.toml",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-cedar/Cargo.toml"
+      "new_path": "tenancy/core/tenant-lifecycle-kernel/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel/Cargo.toml"
     },
     {
-      "new_path": "k8s/adapters/tenant-quota-adapter-cedar/src/lib.rs",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-cedar/src/lib.rs"
+      "new_path": "tenancy/core/tenant-lifecycle-kernel/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel/src/lib.rs"
     },
     {
-      "new_path": "k8s/adapters/tenant-quota-adapter-inmemory/BUCK",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-inmemory/BUCK"
+      "new_path": "tenancy/core/tenant-lifecycle-usecase/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/BUCK"
     },
     {
-      "new_path": "k8s/adapters/tenant-quota-adapter-inmemory/Cargo.toml",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-inmemory/Cargo.toml"
+      "new_path": "tenancy/core/tenant-lifecycle-usecase/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/Cargo.toml"
     },
     {
-      "new_path": "k8s/adapters/tenant-quota-adapter-inmemory/src/lib.rs",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-inmemory/src/lib.rs"
+      "new_path": "tenancy/core/tenant-lifecycle-usecase/src/lib.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/src/lib.rs"
     },
     {
-      "new_path": "k8s/ports/tenant-quota-api/BUCK",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api/BUCK"
+      "new_path": "tenancy/core/tenant-lifecycle-usecase/src/reconcile.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/src/reconcile.rs"
     },
     {
-      "new_path": "k8s/ports/tenant-quota-api/Cargo.toml",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api/Cargo.toml"
+      "new_path": "tenancy/core/tenant-lifecycle-usecase/tests/conformance.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/tests/conformance.rs"
     },
     {
-      "new_path": "k8s/ports/tenant-quota-api/src/lib.rs",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api/src/lib.rs"
+      "new_path": "tenancy/core/tenant-lifecycle-usecase/tests/reconcile.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/tests/reconcile.rs"
     },
     {
-      "new_path": "k8s/facade/tenant-quota-app/BUCK",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app/BUCK"
+      "new_path": "tenancy/ports/cli/BUCK",
+      "old_path": "cloud/tenancy/crates/oya-tenant-cli/BUCK"
     },
     {
-      "new_path": "k8s/facade/tenant-quota-app/Cargo.toml",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app/Cargo.toml"
+      "new_path": "tenancy/ports/cli/Cargo.toml",
+      "old_path": "cloud/tenancy/crates/oya-tenant-cli/Cargo.toml"
     },
     {
-      "new_path": "k8s/facade/tenant-quota-app/src/lib.rs",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs"
+      "new_path": "tenancy/ports/cli/src/main.rs",
+      "old_path": "cloud/tenancy/crates/oya-tenant-cli/src/main.rs"
     },
     {
-      "new_path": "k8s/facade/tenant-quota-app/src/main.rs",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app/src/main.rs"
+      "new_path": "tenancy/observability/slos/autosharding-events.openslo.yaml",
+      "old_path": "cloud/tenancy/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "k8s/facade/tenant-quota-app/tests/acceptance.rs",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app/tests/acceptance.rs"
+      "new_path": "tenancy/observability/slos/availability.openslo.yaml",
+      "old_path": "cloud/tenancy/slos/availability.openslo.yaml"
     },
     {
-      "new_path": "k8s/core/tenant-quota-kernel/BUCK",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/BUCK"
+      "new_path": "tenancy/observability/slos/correctness.openslo.yaml",
+      "old_path": "cloud/tenancy/slos/correctness.openslo.yaml"
     },
     {
-      "new_path": "k8s/core/tenant-quota-kernel/Cargo.toml",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/Cargo.toml"
+      "new_path": "tenancy/observability/slos/freshness.openslo.yaml",
+      "old_path": "cloud/tenancy/slos/freshness.openslo.yaml"
     },
     {
-      "new_path": "k8s/core/tenant-quota-kernel/src/lib.rs",
-      "old_path": "cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs"
+      "new_path": "tenancy/observability/slos/latency.openslo.yaml",
+      "old_path": "cloud/tenancy/slos/latency.openslo.yaml"
     },
     {
-      "new_path": "k8s/observability/slos/tenant-quota/quota-decision-latency.openslo.yaml",
-      "old_path": "cloud/managed-k8s-tenant-quota/slos/quota-decision-latency.openslo.yaml"
+      "new_path": "registry/catalog/tenancy-api.yaml",
+      "old_path": "registry/catalog/oya-tenancy-api.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-cluster-lifecycle-api.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-cluster-lifecycle-api.yaml"
+      "new_path": "registry/catalog/tenancy-cell-assignment.yaml",
+      "old_path": "registry/catalog/oya-tenancy-cell-assignment-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-cluster-lifecycle-app.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-cluster-lifecycle-app.yaml"
+      "new_path": "registry/catalog/tenancy-data-residency-enforcer.yaml",
+      "old_path": "registry/catalog/oya-tenancy-data-residency-enforcer-adapter.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-cluster-lifecycle-kernel.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-cluster-lifecycle-kernel.yaml"
+      "new_path": "registry/catalog/tenancy-domain.yaml",
+      "old_path": "registry/catalog/oya-tenancy-domain.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-control-plane-host-adapter-capi.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-control-plane-host-adapter-capi.yaml"
+      "new_path": "registry/catalog/tenancy-dr-pairing.yaml",
+      "old_path": "registry/catalog/oya-tenancy-dr-pairing-usecase.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-control-plane-host-adapter-inmemory.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-control-plane-host-adapter-inmemory.yaml"
+      "new_path": "registry/catalog/tenancy-dsr-cascade.yaml",
+      "old_path": "registry/catalog/oya-tenancy-dsr-cascade-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-control-plane-host-api.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-control-plane-host-api.yaml"
+      "new_path": "registry/catalog/tenancy-isolation-policy.yaml",
+      "old_path": "registry/catalog/oya-tenancy-isolation-policy-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-control-plane-host-app.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-control-plane-host-app.yaml"
+      "new_path": "registry/catalog/tenancy-kernel.yaml",
+      "old_path": "registry/catalog/oya-tenancy-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-control-plane-host-kernel.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-control-plane-host-kernel.yaml"
+      "new_path": "registry/catalog/tenancy-kyb-kyc-verifier.yaml",
+      "old_path": "registry/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-sla-observability-adapter-inmemory.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-sla-observability-adapter-inmemory.yaml"
+      "new_path": "registry/catalog/tenancy-lifecycle-locks.yaml",
+      "old_path": "registry/catalog/oya-tenancy-lifecycle-locks-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-sla-observability-api.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-sla-observability-api.yaml"
+      "new_path": "registry/catalog/tenancy-per-tenant-quota.yaml",
+      "old_path": "registry/catalog/oya-tenancy-per-tenant-quota-usecase.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-sla-observability-app.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-sla-observability-app.yaml"
+      "new_path": "registry/catalog/tenancy-reserved-namespace.yaml",
+      "old_path": "registry/catalog/oya-tenancy-reserved-namespace-usecase.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-sla-observability-kernel.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-sla-observability-kernel.yaml"
+      "new_path": "registry/catalog/tenancy-sub-scope-registry.yaml",
+      "old_path": "registry/catalog/oya-tenancy-sub-scope-registry-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-tenant-quota-adapter-cedar.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-tenant-quota-adapter-cedar.yaml"
+      "new_path": "registry/catalog/tenancy-tenant-lifecycle-kernel.yaml",
+      "old_path": "registry/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/k8s-tenant-quota-adapter-inmemory.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-tenant-quota-adapter-inmemory.yaml"
-    },
-    {
-      "new_path": "registry/catalog/k8s-tenant-quota-api.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-tenant-quota-api.yaml"
-    },
-    {
-      "new_path": "registry/catalog/k8s-tenant-quota-app.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-tenant-quota-app.yaml"
-    },
-    {
-      "new_path": "registry/catalog/k8s-tenant-quota-kernel.yaml",
-      "old_path": "registry/catalog/oya-managed-k8s-tenant-quota-kernel.yaml"
+      "new_path": "registry/catalog/tenancy-cli.yaml",
+      "old_path": "registry/catalog/oya-tenant-cli.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

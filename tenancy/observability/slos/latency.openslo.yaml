@@ -1,0 +1,38 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: tenancy-latency
+  displayName: "tenancy — validate-path p99 latency ≤ 5ms"
+  labels:
+    microservice: tenancy
+    sli: latency
+    pack: pack-kr
+    data_classes: BEHAVIORAL_TENANT_PRODUCT
+spec:
+  service: tenancy
+  description: |
+    Validate-path p99 latency. PRD performance target: ≤ 5ms p99.
+    Cache-hit fast path; cache-miss fallback to Postgres ≤ 20ms.
+  indicator:
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(http_request_duration_seconds_bucket{job="tenancy-tenant-lifecycle-rest",route="/api/v1/tenants/.+",le="0.005"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(http_request_duration_seconds_count{job="tenancy-tenant-lifecycle-rest",route="/api/v1/tenants/.+"}[5m]))
+  objectives:
+    - displayName: "99% of validate requests complete ≤ 5ms (rolling 7d)"
+      target: 0.99
+  timeWindow:
+    - duration: 7d
+      isRolling: true
+  budgetingMethod: Occurrences

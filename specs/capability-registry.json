@@ -120,6 +120,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
+        "tenancy",
         "cloud/tenancy"
       ],
       "dag_node": "tenancy"
