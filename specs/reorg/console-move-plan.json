@@ -1,0 +1,97 @@
+{
+  "capability": "console",
+  "moves": [
+    {
+      "old_path": "oya/ops/crates/oya-ops-docs-portal-kernel",
+      "new_path": "console/ports/docs-portal-kernel",
+      "old_cargo_name": "oya-ops-docs-portal-kernel",
+      "new_cargo_name": "console-docs-portal-kernel"
+    },
+    {
+      "old_path": "oya/ops/crates/oya-ops-docs-portal-usecase",
+      "new_path": "console/core/docs-portal-usecase",
+      "old_cargo_name": "oya-ops-docs-portal-usecase",
+      "new_cargo_name": "console-docs-portal-usecase"
+    },
+    {
+      "old_path": "oya/ops/crates/oya-ops-docs-portal-adapter",
+      "new_path": "console/adapters/docs-portal-adapter",
+      "old_cargo_name": "oya-ops-docs-portal-adapter",
+      "new_cargo_name": "console-docs-portal-adapter"
+    },
+    {
+      "old_path": "oya/ops/crates/oya-ops-docs-portal-rest",
+      "new_path": "console/facade/docs-portal-rest",
+      "old_cargo_name": "oya-ops-docs-portal-rest",
+      "new_cargo_name": "console-docs-portal-rest"
+    },
+    {
+      "old_path": "oya/ops/crates/oya-ops-workspace-shell-kernel",
+      "new_path": "console/ports/workspace-shell-kernel",
+      "old_cargo_name": "oya-ops-workspace-shell-kernel",
+      "new_cargo_name": "console-workspace-shell-kernel"
+    },
+    {
+      "old_path": "oya/ops/crates/oya-ops-workspace-shell-usecase",
+      "new_path": "console/core/workspace-shell-usecase",
+      "old_cargo_name": "oya-ops-workspace-shell-usecase",
+      "new_cargo_name": "console-workspace-shell-usecase"
+    },
+    {
+      "old_path": "oya/ops/crates/oya-ops-workspace-shell-adapter",
+      "new_path": "console/adapters/workspace-shell-adapter",
+      "old_cargo_name": "oya-ops-workspace-shell-adapter",
+      "new_cargo_name": "console-workspace-shell-adapter"
+    },
+    {
+      "old_path": "oya/ops/crates/oya-ops-workspace-shell-rest",
+      "new_path": "console/facade/workspace-shell-rest",
+      "old_cargo_name": "oya-ops-workspace-shell-rest",
+      "new_cargo_name": "console-workspace-shell-rest"
+    },
+    {
+      "old_path": "oya/ops/crates/oya-ops-workspace-shell-app",
+      "new_path": "console/facade/workspace-shell-app",
+      "old_cargo_name": "oya-ops-workspace-shell-app",
+      "new_cargo_name": "console-workspace-shell-app"
+    }
+  ],
+  "artifacts": [
+    {
+      "old_path": "registry/catalog/oya-ops-docs-portal-kernel.yaml",
+      "new_path": "registry/catalog/console-docs-portal-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-ops-docs-portal-usecase.yaml",
+      "new_path": "registry/catalog/console-docs-portal-usecase.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-ops-docs-portal-adapter.yaml",
+      "new_path": "registry/catalog/console-docs-portal-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-ops-docs-portal-rest.yaml",
+      "new_path": "registry/catalog/console-docs-portal-rest.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-ops-workspace-shell-kernel.yaml",
+      "new_path": "registry/catalog/console-workspace-shell-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-ops-workspace-shell-usecase.yaml",
+      "new_path": "registry/catalog/console-workspace-shell-usecase.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-ops-workspace-shell-adapter.yaml",
+      "new_path": "registry/catalog/console-workspace-shell-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-ops-workspace-shell-rest.yaml",
+      "new_path": "registry/catalog/console-workspace-shell-rest.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-ops-workspace-shell-app.yaml",
+      "new_path": "registry/catalog/console-workspace-shell-app.yaml"
+    }
+  ]
+}

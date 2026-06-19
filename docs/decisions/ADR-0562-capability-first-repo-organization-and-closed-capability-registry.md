@@ -1162,6 +1162,111 @@ and `registry/catalog/compliance-trust-portal.yaml` (reached by the existing `re
 reachability prefix), and the committed move-plan `specs/reorg/compliance-move-plan.json` (reached by
 the existing ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.15 Eleventh executed strangler move: `console` capability (oya/ops/crates → console/) — four-face cell move with catalog re-key
+
+The eleventh REAL codemod run homes the `console` capability's nine crates from one source dir
+(`oya/ops/crates`) under the §3 placement rule, across all FOUR faces (`ports` + `core` + `adapters` +
+`facade`), spread over TWO product cells (`docs-portal`, four crates; `workspace-shell`, five crates).
+console is the operator/tenant console-shell substrate (the `console` dag node): one platform-owned
+shell that mounts every product surface, the sole token broker, replacing the operator CLIs. The two
+cells are the ops live-introspection docs portal (ADR-0066) and the ops workspace shell (ADR-0067) that
+mounts every ops µservice's surface.
+
+**Naming scheme (cargo == de-branded path-tail, all nine unique):** two crates share a cell name
+(`docs-portal`, `workspace-shell`) across faces, so the LEAF dir name encodes the role to stay unique
+while keeping cargo == path-tail. The scheme is path `console/<face>/<cell>-<role>` ↔ cargo
+`console-<cell>-<role>`, de-branded (the legacy `oya-`/`ops-` forms drop to the `console-` capability
+slug). The nine: the docs-portal kernel → `console/ports/docs-portal-kernel`
+(cargo `console-docs-portal-kernel`), the docs-portal usecase → `console/core/docs-portal-usecase`
+(`console-docs-portal-usecase`), the docs-portal adapter → `console/adapters/docs-portal-adapter`
+(`console-docs-portal-adapter`), the docs-portal rest → `console/facade/docs-portal-rest`
+(`console-docs-portal-rest`); the workspace-shell kernel → `console/ports/workspace-shell-kernel`
+(`console-workspace-shell-kernel`), the workspace-shell usecase → `console/core/workspace-shell-usecase`
+(`console-workspace-shell-usecase`), the workspace-shell adapter → `console/adapters/workspace-shell-adapter`
+(`console-workspace-shell-adapter`), the workspace-shell rest → `console/facade/workspace-shell-rest`
+(`console-workspace-shell-rest`), and the workspace-shell app (composition root) →
+`console/facade/workspace-shell-app` (`console-workspace-shell-app`). All nine leaf dirs and all nine
+cargo names are distinct (`MovePlan::validate` passes), and each cargo name equals its de-branded
+path-tail EXACTLY (the target-parity + cargo-prefix relabel binding).
+
+**Face reasoning — ports/core/adapters/facade by WHAT EACH IS (§3), verified against the REAL dep
+direction (NOT the design-sweep's inverted kernel→ports/usecase→core gloss):** the per-cell `kernel`
+crate carries ZERO dependencies and is self-described as the "port traits + types" layer (it DEFINES
+the `ManifestPort`/`LiveFeedPort`/`SurfaceCatalogPort` boundary traits + the domain types, with "no
+outbound I/O, no framework deps; adapter + runtime crates implement the ports"), so each kernel homes to
+`ports/` (the boundary the rest of the cell depends INWARD on). The per-cell `usecase` crate is the
+application use-case orchestration layer that "depends only inward on the kernel", so it homes to
+`core/`. This is the hexagonal direction, NOT an inversion: the application core (`core/<cell>-usecase`)
+depends on the port abstractions (`ports/<cell>-kernel`) it orchestrates — a `core → ports` edge that
+is the legal downward direction (the iac-rest / storage / cell / compliance precedent of
+§10.6/§10.9/§10.10/§10.14). The `adapter` crate projects the kernel types onto the OpenAPI wire schema,
+so it homes to `adapters/`; the `rest` crate is the framework-free REST boundary and the `app` crate is
+the hyper composition root, so both home to `facade/` (the cell's delivery surface). The dep DAG is
+acyclic by construction (kernel ← usecase ← adapter ← rest ← app, all pointing toward the kernel
+boundary), and because all nine are ONE `console` capability node the intra-capability face edges raise
+no service→service / S-rank acyclicity violation.
+
+**External dependents:** NONE. No first-party crate outside the nine depends on the moved tree, and
+there are no cross-capability outbound edges (the only outbound deps are the shared HTTP substrate
+`libs/oya-http-{router,middleware}-kernel` + `libs/oya-http-runtime-hyper-adapter`, consumed from
+`libs/` by the workspace-shell app — those stay in place, and their relative `path=`/BUCK `//`-label
+were recomputed by the codemod against the new app home). The internal cross-crate edges
+(`docs-portal-usecase → docs-portal-kernel`, `docs-portal-adapter → docs-portal-kernel`,
+`docs-portal-rest → {adapter,usecase,kernel}`, and the symmetric workspace-shell edges plus
+`workspace-shell-app → {kernel,usecase,adapter,rest}`) were rewritten mechanically by the codemod across
+all three surfaces — the Cargo path-dependency key + `path=` recompute, the BUCK `//`-label, and the
+Rust `use`/path segment.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true`
+not null, `clean=true`). console is NOT a violation source (zero entries in the acyclicity frozen
+baseline) and the moved crate dirs are not in the membership unmapped baseline, so both lints carry
+0 burn-down / 0 regression. The capability registry records `console.absorbs_current_dirs` with the
+capability's own top-level slug `console` (the self-slug is required or the membership gate REDs
+`MEM-NEW-UNMAPPED-CRATE console/...`; the §10.12 flags lesson) plus the absorbed source dirs. The
+membership policy scan_roots + allowed_top_level_dirs gain `console`, the acyclicity policy
+crate_root_globs gains `console/*/*` + unclassified_roots gains `console`, and the root workspace gains
+the `console/*/*` member glob (one glob covers all nine faces/leaves; ADR-0538 glob-only contract). No
+SLO subtree exists under the absorbed source dir, so there is NO SLO co-move and NO
+`console/observability` exclude (unlike §10.14).
+
+**Catalog re-key executed IN the move (same pattern as §10.14):** all nine crates have
+`registry/catalog/*.yaml` records carrying `slo:` rows (the original brief's scout "no records exist"
+assumption was wrong; verified pre-move — the gates, not the scout, are authoritative). After the crate
+rename, the pre-existing legacy `registry/catalog/*.yaml` filenames no longer match any live workspace
+`[package].name`, which would RED the `catalog-liveness` gate (`catalog_record_no_live_crate_unmarked`)
+and the `slo-coverage` gate (`slo_row_no_live_crate_unmarked`) for all nine records. The move-plan
+therefore carries nine additional `ArtifactMove` entries re-keying each record to the de-branded live
+crate-id filename (content-preserving `git mv`; no in-file rewrite needed because the file content does
+not embed the filename stem as a key): each legacy `oya-ops-<cell>-<role>.yaml` re-keys to
+`registry/catalog/console-<cell>-<role>.yaml`. Both gates stay green after the re-key (all nine records
+bind to a live workspace crate-id).
+
+**Non-crate capability artifacts retained in place (crate-first incremental, task #62):** this move homes
+the CRATES and re-keys the catalog records; any other non-crate artifacts of the absorbed dir stay in
+place and are homed in phase-2 (task #62).
+
+**Born-accounting (ADR-0555):** the nine new crate dirs under `console/ports/`, `console/core/`,
+`console/adapters/`, and `console/facade/` are reached by the `console/*/*` member glob + the
+`console/*/*` acyclicity glob, and owned by the subtree `console/OWNERS` (axis-cloud-platform) seeded via
+a `specs/reachability-registry.json` §10.15 entry (breadth-unlimited per ADR-0555, covering the whole
+console subtree). The move's tracked, born-accounted artifact roots are
+`console/ports/docs-portal-kernel/`, `console/core/docs-portal-usecase/`,
+`console/adapters/docs-portal-adapter/`, `console/facade/docs-portal-rest/`,
+`console/ports/workspace-shell-kernel/`, `console/core/workspace-shell-usecase/`,
+`console/adapters/workspace-shell-adapter/`, `console/facade/workspace-shell-rest/`, and
+`console/facade/workspace-shell-app/` (each carrying its `Cargo.toml`, `BUCK`, and `src/` — and, for the
+app, its `src/main.rs`), the subtree `console/OWNERS`, the nine re-keyed catalog records
+`registry/catalog/console-docs-portal-kernel.yaml`, `registry/catalog/console-docs-portal-usecase.yaml`,
+`registry/catalog/console-docs-portal-adapter.yaml`, `registry/catalog/console-docs-portal-rest.yaml`,
+`registry/catalog/console-workspace-shell-kernel.yaml`,
+`registry/catalog/console-workspace-shell-usecase.yaml`,
+`registry/catalog/console-workspace-shell-adapter.yaml`,
+`registry/catalog/console-workspace-shell-rest.yaml`, and
+`registry/catalog/console-workspace-shell-app.yaml` (reached by the existing `registry/catalog/`
+reachability prefix), and the committed move-plan `specs/reorg/console-move-plan.json` (reached by the
+existing ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

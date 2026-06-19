@@ -131,6 +131,23 @@ members = [
   # excluded below (no Cargo.toml), and the absorbed dir's other non-crate artifacts are homed in
   # phase-2 (task #62).
   "compliance/*/*",
+  # Capability-first home (ADR-0562 strangler move 11): the `console` capability absorbs the former
+  # oya/ops crates into console/{ports,core,adapters,facade} (all four faces), spread over two product
+  # cells (docs-portal, four crates; workspace-shell, five crates). console is the operator/tenant
+  # console-shell substrate (dag_node console): the per-cell KERNEL crate defines the port traits +
+  # types (zero deps, the boundary the cell depends inward on), so it homes to ports/; the per-cell
+  # USECASE crate is the application use-case orchestration, so it homes to core/ (a legal core→ports
+  # downward edge — hexagonal, not an inversion); the ADAPTER crate projects kernel types onto the
+  # OpenAPI wire, so it homes to adapters/; the REST boundary + the app composition root home to
+  # facade/. Each crate is de-branded to the capability prefix with a role-suffixed leaf so cargo ==
+  # path-tail stays unique across the two shared cell names (console-docs-portal-kernel /
+  # console-docs-portal-usecase / console-docs-portal-adapter / console-docs-portal-rest /
+  # console-workspace-shell-kernel / console-workspace-shell-usecase / console-workspace-shell-adapter
+  # / console-workspace-shell-rest / console-workspace-shell-app), so each leaf segment stays a bare
+  # `*`. `console/*/*` covers all nine faces/leaves with one glob, satisfying ADR-0538's glob-only
+  # members contract (no explicit-path members); the absorbed dir holds no SLO subtree (no co-move, no
+  # observability exclude), and its other non-crate artifacts are homed in phase-2 (task #62).
+  "console/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]

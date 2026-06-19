@@ -24,7 +24,8 @@
     "gateway/*/*",
     "flags/*/*",
     "marketplace/*/*",
-    "compliance/*/*"
+    "compliance/*/*",
+    "console/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -43,7 +44,8 @@
     "gateway",
     "flags",
     "marketplace",
-    "compliance"
+    "compliance",
+    "console"
   ],
   "stratum_rank_order": [
     "S0",
