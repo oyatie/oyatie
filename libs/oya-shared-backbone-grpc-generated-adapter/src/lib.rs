@@ -67,8 +67,8 @@ pub enum GeneratedBackboneGrpcAdapterError {
         field: &'static str,
         value: i32,
     },
-    Messenger(oya_messenger_message_stream_grpc::MessengerGrpcError),
-    Mail(oya_mail_mailbox_store_grpc::MailGrpcError),
+    Messenger(comms_messenger_stream_grpc::MessengerGrpcError),
+    Mail(comms_mail_mailbox_grpc::MailGrpcError),
     Social(oya_community_social_post_composition_grpc::SocialGrpcError),
     Community(oya_community_post_store_grpc::CommunityGrpcError),
 }
@@ -77,10 +77,10 @@ pub fn messenger_post_message_generated_write_plan(
     tenant: TenantSqlContext,
     request: messenger::v1::PostMessageRequest,
 ) -> Result<
-    oya_messenger_message_stream_grpc::GrpcResponse<oya_messenger_app::MessengerWritePlan>,
+    comms_messenger_stream_grpc::GrpcResponse<comms_messenger_stream_app::MessengerWritePlan>,
     GeneratedBackboneGrpcAdapterError,
 > {
-    let context = oya_messenger_message_stream_api::AuthorizedMessengerContext {
+    let context = comms_messenger_stream_api::AuthorizedMessengerContext {
         context: messenger_context(request.context)?,
         scope_ref: request.scope_ref,
         principal_ref: request.principal_ref,
@@ -95,22 +95,22 @@ pub fn messenger_post_message_generated_write_plan(
             request: "PostMessageRequest",
             field: "envelope",
         })?;
-    let request = oya_messenger_message_stream_api::SendMessageRequest {
+    let request = comms_messenger_stream_api::SendMessageRequest {
         message_id: request.message_id,
         channel_id: request.channel_id,
         author_ref: request.author_ref,
         envelope: match envelope {
             messenger::v1::messenger_envelope::Envelope::PersonalE2eEnvelopeRef(envelope_ref) => {
-                oya_messenger_message_stream_api::MessengerApiEnvelope::PersonalE2e { envelope_ref }
+                comms_messenger_stream_api::MessengerApiEnvelope::PersonalE2e { envelope_ref }
             }
             messenger::v1::messenger_envelope::Envelope::TenantDek(tenant_dek) => {
-                oya_messenger_message_stream_api::MessengerApiEnvelope::TenantDek {
+                comms_messenger_stream_api::MessengerApiEnvelope::TenantDek {
                     dek_ref: tenant_dek.dek_ref,
                     four_eyes: tenant_dek.four_eyes,
                 }
             }
             messenger::v1::messenger_envelope::Envelope::CrossOrg(cross_org) => {
-                oya_messenger_message_stream_api::MessengerApiEnvelope::CrossOrg {
+                comms_messenger_stream_api::MessengerApiEnvelope::CrossOrg {
                     local_dek_ref: cross_org.local_dek_ref,
                     partner_scope_ref: cross_org.partner_scope_ref,
                     partner_dek_ref: cross_org.partner_dek_ref,
@@ -122,7 +122,7 @@ pub fn messenger_post_message_generated_write_plan(
         legal_hold_ids: request.legal_hold_ids,
     };
 
-    oya_messenger_message_stream_grpc::post_message_write_plan(tenant, context, request)
+    comms_messenger_stream_grpc::post_message_write_plan(tenant, context, request)
         .map_err(GeneratedBackboneGrpcAdapterError::Messenger)
 }
 
@@ -130,10 +130,10 @@ pub fn mail_send_message_generated_write_plan(
     tenant: TenantSqlContext,
     request: mail::v1::SendMessageRequest,
 ) -> Result<
-    oya_mail_mailbox_store_grpc::GrpcResponse<oya_mail_mailbox_store_app::MailSubmissionPlan>,
+    comms_mail_mailbox_grpc::GrpcResponse<comms_mail_mailbox_app::MailSubmissionPlan>,
     GeneratedBackboneGrpcAdapterError,
 > {
-    let context = oya_mail_mailbox_store_api::AuthorizedMailContext {
+    let context = comms_mail_mailbox_api::AuthorizedMailContext {
         context: mail_context(request.context)?,
         scope_ref: request.scope_ref,
         principal_ref: request.principal_ref,
@@ -148,21 +148,21 @@ pub fn mail_send_message_generated_write_plan(
             request: "SendMessageRequest",
             field: "envelope",
         })?;
-    let request = oya_mail_mailbox_store_api::SubmitMessageRequest {
+    let request = comms_mail_mailbox_api::SubmitMessageRequest {
         message_id: request.message_id,
         mailbox_id: request.mailbox_id,
         subject_ref: request.subject_ref,
         envelope: match envelope {
             mail::v1::mail_envelope::Envelope::PersonalClientOnlyEnvelopeRef(envelope_ref) => {
-                oya_mail_mailbox_store_api::MailApiEnvelope::PersonalClientOnly { envelope_ref }
+                comms_mail_mailbox_api::MailApiEnvelope::PersonalClientOnly { envelope_ref }
             }
             mail::v1::mail_envelope::Envelope::TenantDek(tenant_dek) => {
-                oya_mail_mailbox_store_api::MailApiEnvelope::TenantDek {
+                comms_mail_mailbox_api::MailApiEnvelope::TenantDek {
                     dek_ref: tenant_dek.dek_ref,
                 }
             }
             mail::v1::mail_envelope::Envelope::Imported(imported) => {
-                oya_mail_mailbox_store_api::MailApiEnvelope::Imported {
+                comms_mail_mailbox_api::MailApiEnvelope::Imported {
                     source_hash: imported.source_hash,
                     evidence_ref: imported.evidence_ref,
                 }
@@ -172,7 +172,7 @@ pub fn mail_send_message_generated_write_plan(
         dmarc_check: request.dmarc_check.map(mail_dmarc_check).transpose()?,
     };
 
-    oya_mail_mailbox_store_grpc::send_message_write_plan(tenant, context, request)
+    comms_mail_mailbox_grpc::send_message_write_plan(tenant, context, request)
         .map_err(GeneratedBackboneGrpcAdapterError::Mail)
 }
 
@@ -288,12 +288,12 @@ pub fn community_apply_action_generated_write_plan(
 
 fn messenger_context(
     value: i32,
-) -> Result<oya_messenger_message_stream_api::MessengerApiContext, GeneratedBackboneGrpcAdapterError>
+) -> Result<comms_messenger_stream_api::MessengerApiContext, GeneratedBackboneGrpcAdapterError>
 {
     if value == messenger::v1::MessengerContextKind::Personal as i32 {
-        Ok(oya_messenger_message_stream_api::MessengerApiContext::Personal)
+        Ok(comms_messenger_stream_api::MessengerApiContext::Personal)
     } else if value == messenger::v1::MessengerContextKind::Work as i32 {
-        Ok(oya_messenger_message_stream_api::MessengerApiContext::Work)
+        Ok(comms_messenger_stream_api::MessengerApiContext::Work)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "PostMessageRequest",
@@ -305,11 +305,11 @@ fn messenger_context(
 
 fn mail_context(
     value: i32,
-) -> Result<oya_mail_mailbox_store_api::MailApiContext, GeneratedBackboneGrpcAdapterError> {
+) -> Result<comms_mail_mailbox_api::MailApiContext, GeneratedBackboneGrpcAdapterError> {
     if value == mail::v1::MailContextKind::Personal as i32 {
-        Ok(oya_mail_mailbox_store_api::MailApiContext::Personal)
+        Ok(comms_mail_mailbox_api::MailApiContext::Personal)
     } else if value == mail::v1::MailContextKind::Work as i32 {
-        Ok(oya_mail_mailbox_store_api::MailApiContext::Work)
+        Ok(comms_mail_mailbox_api::MailApiContext::Work)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "SendMessageRequest",
@@ -437,17 +437,17 @@ fn moderation_verb(
 
 fn mail_dmarc_check(
     check: mail::v1::DmarcCheck,
-) -> Result<oya_mail_mailbox_store_api::DmarcCheckRequest, GeneratedBackboneGrpcAdapterError> {
-    Ok(oya_mail_mailbox_store_api::DmarcCheckRequest {
+) -> Result<comms_mail_mailbox_api::DmarcCheckRequest, GeneratedBackboneGrpcAdapterError> {
+    Ok(comms_mail_mailbox_api::DmarcCheckRequest {
         domain_ref: check.domain_ref,
         spf_aligned: check.spf_aligned,
         dkim_aligned: check.dkim_aligned,
         policy: if check.policy == mail::v1::DmarcPolicy::None as i32 {
-            oya_mail_mailbox_store_api::DmarcApiPolicy::None
+            comms_mail_mailbox_api::DmarcApiPolicy::None
         } else if check.policy == mail::v1::DmarcPolicy::Quarantine as i32 {
-            oya_mail_mailbox_store_api::DmarcApiPolicy::Quarantine
+            comms_mail_mailbox_api::DmarcApiPolicy::Quarantine
         } else if check.policy == mail::v1::DmarcPolicy::Reject as i32 {
-            oya_mail_mailbox_store_api::DmarcApiPolicy::Reject
+            comms_mail_mailbox_api::DmarcApiPolicy::Reject
         } else {
             return Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
                 request: "DmarcCheck",

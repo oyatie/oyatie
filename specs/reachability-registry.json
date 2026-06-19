@@ -54,6 +54,10 @@
       "prefix": "console/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.16 ownership seed: the comms capability tree's OWNERS marker (axis-cloud-platform), homed by the twelfth strangler move (oya/mail + oya/messenger + oya/meet + oya/contact-center crates → comms/{core,ports,adapters,facade}/); breadth-unlimited (ADR-0555) so it covers the whole comms subtree, including the co-moved comms/observability/slos/{mail,messenger,meet,contact-center}/ per-service SLO subdirs (ADR-0139 SLO-home convention, per-service subdirs chosen to avoid the confirmed cross-service basename collisions autosharding-events/availability/search-latency) and the sixteen re-keyed registry/catalog/comms-*.yaml records (reached by the existing registry/catalog/ prefix); the committed move-plan at specs/reorg/comms-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "comms/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },
