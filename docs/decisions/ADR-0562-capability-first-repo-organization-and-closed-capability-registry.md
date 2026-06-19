@@ -1746,6 +1746,133 @@ records `registry/catalog/audit-*.yaml` (reached by the existing `registry/catal
 the committed move-plan `specs/reorg/audit-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/`
 reachability prefix).
 
+#### §10.20 Sixteenth executed strangler move: `data` capability (cloud/cloud-data + oya/{ontology,search,analytics,data-pipeline,data-warehouse} → data/) — mixed substrate/product six-source-dir move with per-service SLO co-move + catalog re-key
+
+The sixteenth REAL codemod run homes the `data` capability's twenty-three crates from SIX source dirs
+(`cloud/cloud-data/crates`, `oya/ontology/crates`, `oya/search/crates`, `oya/analytics/crates`,
+`oya/data-pipeline/crates`, `oya/data-warehouse/crates`) under the §3 placement rule, across THREE faces
+(`core` 16 / `ports` 2 / `facade` 5). data is the owned data plane (the `ontology` ADR-0280 dag node): the
+ontology object-graph + query engine (substrate), the search corpus engines (crawler/parser/index/query/rank/
+serp/rag), the OLTP/OLAP storage domain, and the analytics/pipeline/warehouse product surfaces — a MIXED
+substrate/product capability (hence a facade face exists, unlike the §10.18/§10.19 tenancy/audit pure-substrate
+moves).
+
+**Count reconciliation (22-in-design-mapping vs 23-source-Cargo.toml):** the design-mapping table enumerates
+twenty-two named crates; the six source dirs hold twenty-three `Cargo.toml`. The reconciliation: every one of the
+twenty-three source crates is enumerated and homed (no crate left behind). The brief's inline mapping table in
+fact lists all twenty-three (cloud-data 2 + ontology 6 + search 8 + analytics 5 + data-pipeline 1 +
+data-warehouse 1 = 23); the "22" is the upstream design-doc count, which omits one search-domain leaf
+(`search-rag-domain`, the RAG retrieval-augmentation cell) from its abbreviated list. `search-rag-domain` is a
+`*-domain` clean-arch role → `data/core/search-rag` (`data-search-rag`), homed like its seven sibling
+search-domain crates. All twenty-three are accounted for by clean-arch role (kernel/domain → core, api → ports,
+app/service/resolver → facade).
+
+**Naming scheme (cargo == de-branded path-tail, all twenty-three unique):** the proven console/k8s/audit scheme —
+path `data/<face>/<leaf>` ↔ cargo `data-<leaf>`, de-branded (the legacy `oya-cloud-data-`/`oya-ontology-`/
+`oya-search-`/`oya-analytics-`/`oya-data-pipeline-`/`oya-data-warehouse-` forms drop to the `data-` capability
+slug, and the `-domain` role suffix is dropped from the search cells whose leaf is the cell name). The
+twenty-three: cloud-data {kernel,domain} → `data/core/cloud-{kernel,domain}` (`data-cloud-kernel`,
+`data-cloud-domain`); ontology {kernel, domain, query-engine-domain, query-engine-usecase} →
+`data/core/ontology-{kernel,domain,query-engine-domain,query-engine-usecase}`, ontology api →
+`data/ports/ontology-api`, ontology resolve-scorecards-app → `data/facade/ontology-scorecards-resolver`
+(`data-ontology-scorecards-resolver`); the eight search `<x>-domain` crates →
+`data/core/search-<x>` (`data-search-{crawler,parser,index-inverted,index-vector,query,rank,serp,rag}`);
+analytics {domain,usecase} → `data/core/analytics-{domain,usecase}`, analytics api → `data/ports/analytics-api`,
+analytics app → `data/facade/analytics-app`, analytics tenant-bootstrap-app →
+`data/facade/analytics-tenant-bootstrap`; data-pipeline lineage-replay-service →
+`data/facade/pipeline-lineage-replay-service`; data-warehouse tenant-olap-service →
+`data/facade/warehouse-tenant-olap-service`. All twenty-three leaf dirs and cargo names are distinct
+(`MovePlan::validate` passes), and each cargo name equals `data-` + its de-branded path-tail EXACTLY (the
+target-parity + cargo-prefix relabel binding).
+
+**Face reasoning — ports/core/adapters/facade by WHAT EACH IS (§3), verified against REAL dep direction:** the
+kernel/domain/usecase engine crates (cloud-data, ontology core, the eight search-domain corpus engines, analytics
+domain/usecase) are pure substrate engine surfaces → `core/`; the `*-api` DTO/transport crates (ontology-api,
+analytics-api) are the port-payload seam → `ports/` (the §10.19 DTO-in-ports decision: a DTO travels WITH its
+port contract; ontology-api → ontology-domain and analytics-api → analytics-{domain,usecase} are legal
+`ports → core` edges); the composition-root app/service/resolver crates (ontology-scorecards-resolver,
+analytics-app, analytics-tenant-bootstrap, pipeline-lineage-replay-service, warehouse-tenant-olap-service) wire a
+deployable surface → `facade/` (`analytics-app → analytics-api` is a legal `facade → ports` edge). The
+acyclicity gate classifies the whole `data/` root as an `unclassified_root` (like every freshly-homed
+capability), so it enforces NO core/ports/facade SUB-tier edge — every intra-`data` face edge projects to a
+`data → data` self-edge and raises NO service→service / S-rank acyclicity violation (the §10.15..§10.19
+precedent).
+
+**OLAP libs (phase-2, NOT moved):** `libs/oya-shared-olap-client-kernel`, `libs/oya-shared-olap-clickhouse-adapter`,
+and `libs/oya-data-boundary-kernel` are libs/ frozen-baseline phase-2 strangler candidates and stay in `libs/`
+(out of this move's scope). Eight moved data crates consume them (cloud-data-domain, the four ontology core
+crates, and four analytics crates); the codemod recomputed the relative `path=` + the BUCK `//`-label against each
+crate's new `data/<face>/<leaf>` home so the edges keep pointing at the live (unchanged-path) `libs/` homes — the
+legal below-all-capabilities `base/`-class direction.
+
+**Violation edge (the historical `policy-engine → ontology` inversion):** the acyclicity DAG's
+`forbidden_edges_assertion` records the historical `policy-engine → ontology` inversion ADR-0280 closes (ontology
+depends on policy-engine for authorization; the reverse is forbidden). That assertion is keyed by ADR-0280
+DAG-NODE NAME (`ontology` → de-branded data node), NOT by crate path, so the path move leaves it untouched. The
+acyclicity GATE'S frozen baseline (`tier-dependency-acyclicity-baseline.json`) carries TWELVE known-debt
+violations (3 KMS→residency, 9 intelligence/billing→application/community) — NONE involve any moved data crate,
+and NO `policy-engine` crate has a code-level dep on any `ontology` crate (grep-verified empty). So there is no
+baseline subject to relabel for this move and the violation edge does NOT false-RED: the rename-aware engine's
+path-keyed relabel covers any moved-crate baseline subject by construction (here: the empty set), and the
+acyclicity gate is 0-regression because the moved crates are absent from both the frozen baseline and any live
+inversion.
+
+**External dependent (rewritten):** exactly ONE first-party crate outside the twenty-three depends on the moved
+tree — `oya/application/crates/oya-application-app` (→ `oya-ontology-domain`). The codemod rewrote its
+`Cargo.toml` path-dep, `BUCK` `//`-label, and `use`-ident references (`oya_ontology_domain` → `data_ontology_domain`)
+to the new `data/core/ontology-domain` home. A grep of the whole tree confirmed no other external dependent. data
+is NOT a violation source (zero entries in the acyclicity frozen baseline) and the moved crate dirs are not in
+the membership unmapped baseline, so both lints carry 0 burn-down / 0 regression.
+
+**Custom bins de-branded (#76):** five facade crates carry custom `[[bin]]` names (the codemod only auto-rewrites
+a bin name that equals `snake(old_cargo_name)`, so a custom kebab bin name is left for a manual de-brand, the
+§10.13 k8s precedent): `oya-resolve-scorecards` → `data-ontology-scorecards-resolver` (+ `default-run`),
+`oya-analytics-app` → `data-analytics-app`, `oya-analytics-tenant-bootstrap` → `data-analytics-tenant-bootstrap`,
+`oya-data-pipeline-service` → `data-pipeline-service`, `oya-data-warehouse-service` → `data-warehouse-service`,
+with the matching BUCK `rust_binary` target names de-branded in lockstep.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null,
+`clean=true`). The capability registry records `data.absorbs_current_dirs` with the capability's own top-level
+slug `data` (the self-slug is required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE data/...`; the
+§10.12/§10.16..§10.19 lesson) plus the six absorbed source dirs (the pre-existing seeds, retained). The
+membership policy scan_roots + allowed_top_level_dirs gain `data`, the acyclicity policy crate_root_globs gains
+`data/*/*` + unclassified_roots gains `data`, and the root workspace gains the `data/*/*` member glob (one glob
+covers all twenty-three faces/leaves; ADR-0538 glob-only contract) with `data/observability` added to the exclude
+list (the non-crate SLO subtree).
+
+**SLO co-move executed IN the move (doctrine-clean, per-service subdirs — collisions):** five of the six source
+dirs carry promotion-gating SLOs (search carries none) — fifty-nine `.openslo.yaml` files total. The six source
+dirs carry CROSS-SERVICE BASENAME COLLISIONS (`autosharding-events.openslo.yaml` ×5, `availability` ×2,
+`audit-emission-lag` ×2, `policy-decision-latency` ×2, `read-latency` ×2, `replay-freshness` ×2,
+`write-latency` ×2), so a flat merge would clobber. Following the §10.16/§10.17 comms/k8s multi-service
+precedent, the fifty-nine SLOs co-move via fifty-nine content-preserving file `ArtifactMove`s into PER-SERVICE
+subdirs `data/observability/slos/{cloud-data,ontology,analytics,data-pipeline,data-warehouse}/` — collision-free
+AND provenance-preserving. The SLOs' `metadata.name` + Prometheus metric labels keep their legacy
+`oya-*`/`oya_*` tokens (RUNTIME-emitted metric identifiers bound to live service emission code, not structural
+reorg tokens — the ADR-0532/0533 de-brand-profile lane's scope, not this structural move). The slo-coverage gate
+keys by catalog-record file stem, not SLO file path, so the home is gate-neutral.
+
+**Catalog re-key executed IN the move (same pattern as §10.14..§10.19):** all twenty-three moved crates have a
+`registry/catalog/oya-*.yaml` record. After the crate rename the twenty-three legacy filenames no longer match
+any live workspace `[package].name`, which would RED `catalog-liveness` and `slo-coverage`. The move-plan
+therefore carries twenty-three additional file `ArtifactMove` entries re-keying each record to the de-branded live
+crate-id filename `registry/catalog/data-<leaf>.yaml` (content-preserving `git mv`; no in-file rewrite — the
+records carry no embedded package-name field, only facets; the internal `capability:` facet is content-preserved,
+no gate keys on it). Both gates stay green after the re-key (all twenty-three records bind to a live workspace
+crate-id).
+
+**Born-accounting (ADR-0555):** the twenty-three new crate dirs under `data/core/`, `data/ports/`, and
+`data/facade/` are reached by the `data/*/*` member glob + the `data/*/*` acyclicity glob, and owned by the
+subtree `data/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.20 entry
+(breadth-unlimited per ADR-0555, covering the whole data subtree including the co-moved per-service SLO subdirs).
+The move's tracked, born-accounted artifact roots are the twenty-three crate dirs (each carrying its
+`Cargo.toml`, `BUCK`, and `src/` — and, for the crates carrying integration/foundation tests, their `tests/`),
+the co-moved per-service SLO subdirs `data/observability/slos/<service>/*.openslo.yaml`, the subtree
+`data/OWNERS`, the twenty-three re-keyed catalog records `registry/catalog/data-*.yaml` (reached by the existing
+`registry/catalog/` reachability prefix), and the committed move-plan `specs/reorg/data-move-plan.json` (reached
+by the existing ADR-0563 `specs/reorg/` reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

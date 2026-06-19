@@ -70,6 +70,10 @@
       "prefix": "audit/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.20 ownership seed: the data capability tree's OWNERS marker (axis-cloud-platform), homed by the sixteenth strangler move (cloud/cloud-data/crates + oya/ontology/crates + oya/search/crates + oya/analytics/crates + oya/data-pipeline/crates + oya/data-warehouse/crates → data/{core,ports,facade}/ — a mixed substrate/product capability, the owned data plane / ontology dag node, twenty-three crates across six source dirs); breadth-unlimited (ADR-0555) so it covers the whole data subtree, including the co-moved data/observability/slos/{cloud-data,ontology,analytics,data-pipeline,data-warehouse}/ per-service SLO subdirs (ADR-0139 SLO-home convention, per-service subdirs chosen to avoid the confirmed cross-service basename collisions autosharding-events/availability/audit-emission-lag/policy-decision-latency/read-latency/replay-freshness/write-latency across the six dirs; search carries no SLOs) and the twenty-three re-keyed registry/catalog/data-*.yaml records (reached by the existing registry/catalog/ prefix; every one of the twenty-three moved crates has a pre-existing catalog record, all re-keyed this move); the committed move-plan at specs/reorg/data-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "data/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },

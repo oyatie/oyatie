@@ -1,0 +1,473 @@
+{
+  "artifacts": [
+    {
+      "new_path": "data/observability/slos/cloud-data/autosharding-events.openslo.yaml",
+      "old_path": "cloud/cloud-data/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/ontology/action-invocation-availability.openslo.yaml",
+      "old_path": "oya/ontology/slos/action-invocation-availability.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/ontology/audit-chain-emission-completeness.openslo.yaml",
+      "old_path": "oya/ontology/slos/audit-chain-emission-completeness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/ontology/autosharding-events.openslo.yaml",
+      "old_path": "oya/ontology/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/ontology/dynamic-layer-freshness.openslo.yaml",
+      "old_path": "oya/ontology/slos/dynamic-layer-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/ontology/function-read-availability.openslo.yaml",
+      "old_path": "oya/ontology/slos/function-read-availability.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/ontology/function-read-latency.openslo.yaml",
+      "old_path": "oya/ontology/slos/function-read-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/ontology/read-path-library-freshness.openslo.yaml",
+      "old_path": "oya/ontology/slos/read-path-library-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/audit-log-query-cold-latency.openslo.yaml",
+      "old_path": "oya/analytics/slos/audit-log-query-cold-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/audit-log-query-latency.openslo.yaml",
+      "old_path": "oya/analytics/slos/audit-log-query-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/autosharding-events.openslo.yaml",
+      "old_path": "oya/analytics/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/billing-reconciliation.openslo.yaml",
+      "old_path": "oya/analytics/slos/billing-reconciliation.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/clickhouse-ingest-lag.openslo.yaml",
+      "old_path": "oya/analytics/slos/clickhouse-ingest-lag.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/clickhouse-query-latency.openslo.yaml",
+      "old_path": "oya/analytics/slos/clickhouse-query-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/cluster-availability.openslo.yaml",
+      "old_path": "oya/analytics/slos/cluster-availability.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/dashboard-api-latency.openslo.yaml",
+      "old_path": "oya/analytics/slos/dashboard-api-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/keeper-quorum-availability.openslo.yaml",
+      "old_path": "oya/analytics/slos/keeper-quorum-availability.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/regulator-export-success.openslo.yaml",
+      "old_path": "oya/analytics/slos/regulator-export-success.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/analytics/tenant-bootstrap-latency.openslo.yaml",
+      "old_path": "oya/analytics/slos/tenant-bootstrap-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/audit-emission-lag.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/audit-emission-lag.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/autosharding-events.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/availability.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/availability.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/local-deadletter-rate.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/local-deadletter-rate.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/local-ingest-freshness.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/local-ingest-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/local-lineage-capture.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/local-lineage-capture.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/local-quality-null-rate.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/local-quality-null-rate.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/local-schema-drift-latency.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/local-schema-drift-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/local-transform-latency.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/local-transform-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/policy-decision-latency.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/policy-decision-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/read-latency.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/read-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/replay-freshness.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/replay-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-pipeline/write-latency.openslo.yaml",
+      "old_path": "oya/data-pipeline/slos/write-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/audit-emission-lag.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/audit-emission-lag.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/auto-loader-ingest-throughput.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/auto-loader-ingest-throughput.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/autosharding-events.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/availability.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/availability.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/change-data-feed-lag.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/change-data-feed-lag.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/cmk-key-rotation-completion.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/cmk-key-rotation-completion.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/cost-budget-exhaustion-alert-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/cost-budget-exhaustion-alert-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/delta-write-commit-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/delta-write-commit-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/dlt-pipeline-freshness.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/dlt-pipeline-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/federated-query-overhead.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/federated-query-overhead.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/governed-share-consumer-lag.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/governed-share-consumer-lag.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/iceberg-snapshot-commit-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/iceberg-snapshot-commit-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/local-completeness.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/local-completeness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/local-freshness.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/local-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/local-lineage-capture-completeness.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/local-lineage-capture-completeness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/local-query-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/local-query-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/local-schema-drift-detection.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/local-schema-drift-detection.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/local-sla-tier-breach-alert.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/local-sla-tier-breach-alert.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/policy-decision-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/policy-decision-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/read-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/read-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/replay-freshness.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/replay-freshness.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/tenant-class-admission-decision-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/tenant-class-admission-decision-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/time-travel-resolution.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/time-travel-resolution.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/unity-catalog-namespace-resolve-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/unity-catalog-namespace-resolve-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/vector-search-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/vector-search-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/write-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/write-latency.openslo.yaml"
+    },
+    {
+      "new_path": "data/observability/slos/data-warehouse/zero-copy-clone-latency.openslo.yaml",
+      "old_path": "oya/data-warehouse/slos/zero-copy-clone-latency.openslo.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-cloud-kernel.yaml",
+      "old_path": "registry/catalog/oya-cloud-data-kernel.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-cloud-domain.yaml",
+      "old_path": "registry/catalog/oya-cloud-data-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-ontology-kernel.yaml",
+      "old_path": "registry/catalog/oya-ontology-kernel.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-ontology-domain.yaml",
+      "old_path": "registry/catalog/oya-ontology-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-ontology-query-engine-domain.yaml",
+      "old_path": "registry/catalog/oya-ontology-query-engine-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-ontology-query-engine-usecase.yaml",
+      "old_path": "registry/catalog/oya-ontology-query-engine-usecase.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-ontology-api.yaml",
+      "old_path": "registry/catalog/oya-ontology-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-ontology-scorecards-resolver.yaml",
+      "old_path": "registry/catalog/oya-resolve-scorecards-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-search-crawler.yaml",
+      "old_path": "registry/catalog/oya-search-crawler-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-search-parser.yaml",
+      "old_path": "registry/catalog/oya-search-parser-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-search-index-inverted.yaml",
+      "old_path": "registry/catalog/oya-search-index-inverted-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-search-index-vector.yaml",
+      "old_path": "registry/catalog/oya-search-index-vector-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-search-query.yaml",
+      "old_path": "registry/catalog/oya-search-query-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-search-rank.yaml",
+      "old_path": "registry/catalog/oya-search-rank-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-search-serp.yaml",
+      "old_path": "registry/catalog/oya-search-serp-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-search-rag.yaml",
+      "old_path": "registry/catalog/oya-search-rag-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-analytics-domain.yaml",
+      "old_path": "registry/catalog/oya-analytics-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-analytics-usecase.yaml",
+      "old_path": "registry/catalog/oya-analytics-usecase.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-analytics-api.yaml",
+      "old_path": "registry/catalog/oya-analytics-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-analytics-app.yaml",
+      "old_path": "registry/catalog/oya-analytics-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-analytics-tenant-bootstrap.yaml",
+      "old_path": "registry/catalog/oya-analytics-tenant-bootstrap-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-pipeline-lineage-replay-service.yaml",
+      "old_path": "registry/catalog/oya-data-pipeline-lineage-replay-service.yaml"
+    },
+    {
+      "new_path": "registry/catalog/data-warehouse-tenant-olap-service.yaml",
+      "old_path": "registry/catalog/oya-data-warehouse-tenant-olap-service.yaml"
+    }
+  ],
+  "capability": "data",
+  "moves": [
+    {
+      "new_cargo_name": "data-cloud-kernel",
+      "new_path": "data/core/cloud-kernel",
+      "old_cargo_name": "oya-cloud-data-kernel",
+      "old_path": "cloud/cloud-data/crates/oya-cloud-data-kernel"
+    },
+    {
+      "new_cargo_name": "data-cloud-domain",
+      "new_path": "data/core/cloud-domain",
+      "old_cargo_name": "oya-cloud-data-domain",
+      "old_path": "cloud/cloud-data/crates/oya-cloud-data-domain"
+    },
+    {
+      "new_cargo_name": "data-ontology-kernel",
+      "new_path": "data/core/ontology-kernel",
+      "old_cargo_name": "oya-ontology-kernel",
+      "old_path": "oya/ontology/crates/oya-ontology-kernel"
+    },
+    {
+      "new_cargo_name": "data-ontology-domain",
+      "new_path": "data/core/ontology-domain",
+      "old_cargo_name": "oya-ontology-domain",
+      "old_path": "oya/ontology/crates/oya-ontology-domain"
+    },
+    {
+      "new_cargo_name": "data-ontology-query-engine-domain",
+      "new_path": "data/core/ontology-query-engine-domain",
+      "old_cargo_name": "oya-ontology-query-engine-domain",
+      "old_path": "oya/ontology/crates/oya-ontology-query-engine-domain"
+    },
+    {
+      "new_cargo_name": "data-ontology-query-engine-usecase",
+      "new_path": "data/core/ontology-query-engine-usecase",
+      "old_cargo_name": "oya-ontology-query-engine-usecase",
+      "old_path": "oya/ontology/crates/oya-ontology-query-engine-usecase"
+    },
+    {
+      "new_cargo_name": "data-ontology-api",
+      "new_path": "data/ports/ontology-api",
+      "old_cargo_name": "oya-ontology-api",
+      "old_path": "oya/ontology/crates/oya-ontology-api"
+    },
+    {
+      "new_cargo_name": "data-ontology-scorecards-resolver",
+      "new_path": "data/facade/ontology-scorecards-resolver",
+      "old_cargo_name": "oya-resolve-scorecards-app",
+      "old_path": "oya/ontology/crates/oya-resolve-scorecards-app"
+    },
+    {
+      "new_cargo_name": "data-search-crawler",
+      "new_path": "data/core/search-crawler",
+      "old_cargo_name": "oya-search-crawler-domain",
+      "old_path": "oya/search/crates/oya-search-crawler-domain"
+    },
+    {
+      "new_cargo_name": "data-search-parser",
+      "new_path": "data/core/search-parser",
+      "old_cargo_name": "oya-search-parser-domain",
+      "old_path": "oya/search/crates/oya-search-parser-domain"
+    },
+    {
+      "new_cargo_name": "data-search-index-inverted",
+      "new_path": "data/core/search-index-inverted",
+      "old_cargo_name": "oya-search-index-inverted-domain",
+      "old_path": "oya/search/crates/oya-search-index-inverted-domain"
+    },
+    {
+      "new_cargo_name": "data-search-index-vector",
+      "new_path": "data/core/search-index-vector",
+      "old_cargo_name": "oya-search-index-vector-domain",
+      "old_path": "oya/search/crates/oya-search-index-vector-domain"
+    },
+    {
+      "new_cargo_name": "data-search-query",
+      "new_path": "data/core/search-query",
+      "old_cargo_name": "oya-search-query-domain",
+      "old_path": "oya/search/crates/oya-search-query-domain"
+    },
+    {
+      "new_cargo_name": "data-search-rank",
+      "new_path": "data/core/search-rank",
+      "old_cargo_name": "oya-search-rank-domain",
+      "old_path": "oya/search/crates/oya-search-rank-domain"
+    },
+    {
+      "new_cargo_name": "data-search-serp",
+      "new_path": "data/core/search-serp",
+      "old_cargo_name": "oya-search-serp-domain",
+      "old_path": "oya/search/crates/oya-search-serp-domain"
+    },
+    {
+      "new_cargo_name": "data-search-rag",
+      "new_path": "data/core/search-rag",
+      "old_cargo_name": "oya-search-rag-domain",
+      "old_path": "oya/search/crates/oya-search-rag-domain"
+    },
+    {
+      "new_cargo_name": "data-analytics-domain",
+      "new_path": "data/core/analytics-domain",
+      "old_cargo_name": "oya-analytics-domain",
+      "old_path": "oya/analytics/crates/oya-analytics-domain"
+    },
+    {
+      "new_cargo_name": "data-analytics-usecase",
+      "new_path": "data/core/analytics-usecase",
+      "old_cargo_name": "oya-analytics-usecase",
+      "old_path": "oya/analytics/crates/oya-analytics-usecase"
+    },
+    {
+      "new_cargo_name": "data-analytics-api",
+      "new_path": "data/ports/analytics-api",
+      "old_cargo_name": "oya-analytics-api",
+      "old_path": "oya/analytics/crates/oya-analytics-api"
+    },
+    {
+      "new_cargo_name": "data-analytics-app",
+      "new_path": "data/facade/analytics-app",
+      "old_cargo_name": "oya-analytics-app",
+      "old_path": "oya/analytics/crates/oya-analytics-app"
+    },
+    {
+      "new_cargo_name": "data-analytics-tenant-bootstrap",
+      "new_path": "data/facade/analytics-tenant-bootstrap",
+      "old_cargo_name": "oya-analytics-tenant-bootstrap-app",
+      "old_path": "oya/analytics/crates/oya-analytics-tenant-bootstrap-app"
+    },
+    {
+      "new_cargo_name": "data-pipeline-lineage-replay-service",
+      "new_path": "data/facade/pipeline-lineage-replay-service",
+      "old_cargo_name": "oya-data-pipeline-lineage-replay-service",
+      "old_path": "oya/data-pipeline/crates/oya-data-pipeline-lineage-replay-service"
+    },
+    {
+      "new_cargo_name": "data-warehouse-tenant-olap-service",
+      "new_path": "data/facade/warehouse-tenant-olap-service",
+      "old_cargo_name": "oya-data-warehouse-tenant-olap-service",
+      "old_path": "oya/data-warehouse/crates/oya-data-warehouse-tenant-olap-service"
+    }
+  ]
+}

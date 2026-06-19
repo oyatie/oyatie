@@ -28,7 +28,8 @@
     "comms",
     "k8s",
     "tenancy",
-    "audit"
+    "audit",
+    "data"
   ],
   "meta_directories": [
     "kernel",
@@ -60,6 +61,7 @@
     "k8s",
     "tenancy",
     "audit",
+    "data",
     "cloud",
     "oya",
     "libs",
