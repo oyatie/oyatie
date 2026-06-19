@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//oya/audit-chain/crates/oya-audit-chain-emission-api:oya-audit-chain-emission-api",
-        "//oya/audit-chain/crates/oya-audit-chain-emission-kernel:oya-audit-chain-emission-kernel",
+        "//audit/ports/emission-api:audit-emission-api",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
     ],
 )
 
@@ -18,7 +18,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-tenant-rbac-audit-chain-emission",
-        "//oya/audit-chain/crates/oya-audit-chain-emission-api:oya-audit-chain-emission-api",
-        "//oya/audit-chain/crates/oya-audit-chain-emission-kernel:oya-audit-chain-emission-kernel",
+        "//audit/ports/emission-api:audit-emission-api",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
     ],
 )
