@@ -74,6 +74,10 @@
       "prefix": "data/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.21 ownership seed: the workflow capability tree's OWNERS marker (axis-cloud-platform), homed by the seventeenth strangler move (oya/workflow-engine/crates + oya/workflow-studio/crates + oya/tasks/crates + oya/forms/crates → workflow/{core,ports,adapters,facade}/ — the orchestration substrate, the workflow-engine dag node, forty-eight crates across four source dirs; the engine's four hexagonal sub-domains event-bus/execution-engine/state-machine/trigger-orchestrator are core/ports/adapters substrate, the studio + saas + tasks + forms surfaces are facade products); breadth-unlimited (ADR-0555) so it covers the whole workflow subtree, including the co-moved workflow/observability/slos/{workflow-engine,workflow-studio,tasks,forms}/ per-service SLO subdirs (ADR-0139 SLO-home convention, per-service subdirs chosen to avoid the confirmed cross-service basename collision autosharding-events.openslo.yaml across all four source dirs) and the forty-eight re-keyed registry/catalog/workflow-*.yaml records (reached by the existing registry/catalog/ prefix; every one of the forty-eight moved crates has a pre-existing catalog record, all re-keyed this move); the committed move-plan at specs/reorg/workflow-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "workflow/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },

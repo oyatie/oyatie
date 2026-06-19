@@ -7,9 +7,9 @@ rust_library(
     deps = [
         "//marketplace/core/plugin-kernel:marketplace-plugin-kernel",
         "//oya/application/crates/oya-saas-plugin-app:oya-saas-plugin-app",
-        "//oya/workflow-engine/crates/oya-saas-workflow-app:oya-saas-workflow-app",
-        "//oya/workflow-engine/crates/oya-saas-workflow-domain:oya-saas-workflow-domain",
-        "//oya/workflow-engine/crates/oya-saas-workflow-kernel:oya-saas-workflow-kernel",
+        "//workflow/facade/saas-app:workflow-saas-app",
+        "//workflow/facade/saas-domain:workflow-saas-domain",
+        "//workflow/facade/saas-kernel:workflow-saas-kernel",
     ],
 )
 
@@ -22,8 +22,8 @@ rust_test(
     deps = [
         "//marketplace/core/plugin-kernel:marketplace-plugin-kernel",
         "//oya/application/crates/oya-saas-plugin-app:oya-saas-plugin-app",
-        "//oya/workflow-engine/crates/oya-saas-workflow-app:oya-saas-workflow-app",
-        "//oya/workflow-engine/crates/oya-saas-workflow-domain:oya-saas-workflow-domain",
-        "//oya/workflow-engine/crates/oya-saas-workflow-kernel:oya-saas-workflow-kernel",
+        "//workflow/facade/saas-app:workflow-saas-app",
+        "//workflow/facade/saas-domain:workflow-saas-domain",
+        "//workflow/facade/saas-kernel:workflow-saas-kernel",
     ],
 )

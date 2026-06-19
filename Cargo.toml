@@ -233,6 +233,17 @@ members = [
   # collisions, e.g. autosharding-events/availability/read-latency/write-latency) is excluded below
   # (no Cargo.toml), and the absorbed dirs' other non-crate artifacts are homed in phase-2 (task #62).
   "data/*/*",
+  # workflow capability (MOVE-17, ADR-0562): homes oya/{workflow-engine,workflow-studio,tasks,forms}/
+  # crates → workflow/{core,ports,adapters,facade}/<leaf> (48 crates: core 12 / ports 16 / adapters 11 /
+  # facade 9). The orchestration substrate's engine (four hexagonal sub-domains: event-bus, execution-
+  # engine, state-machine, trigger-orchestrator) is core/ports/adapters; the studio + saas + tasks +
+  # forms products are facade. The de-branded cargo name == workflow-<leaf> path-tail, so each leaf
+  # segment stays a bare `*`. `workflow/*/*` covers all forty-eight faces/leaves with one glob,
+  # satisfying ADR-0538's glob-only members contract (no explicit-path members); the co-moved
+  # workflow/observability/slos non-crate SLO subtree (per-service subdirs — the four source dirs carry
+  # the cross-service basename collision autosharding-events.openslo.yaml ×4) is excluded below (no
+  # Cargo.toml), and the absorbed dirs' other non-crate artifacts are homed in phase-2 (task #62).
+  "workflow/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -262,6 +273,7 @@ exclude = [
   "tenancy/observability",
   "audit/observability",
   "data/observability",
+  "workflow/observability",
 ]
 resolver = "2"
 

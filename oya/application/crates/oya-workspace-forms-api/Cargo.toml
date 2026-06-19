@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-forms-domain = { path = "../../../forms/crates/oya-forms-domain" }
+workflow-forms-domain = { path = "../../../../workflow/facade/forms-domain" }
 
 [lib]
 name = "oya_workspace_forms_api"
