@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 observability-aggregate = { path = "../aggregate" }
-oya-audit-chain-domain = { path = "../../../oya/audit-chain/crates/oya-audit-chain-domain" }
+audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
 oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
 

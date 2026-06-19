@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-audit-chain-emission-api = { path = "../../../audit-chain/crates/oya-audit-chain-emission-api" }
-oya-audit-chain-emission-kernel = { path = "../../../audit-chain/crates/oya-audit-chain-emission-kernel" }
+audit-emission-api = { path = "../../../../audit/ports/emission-api" }
+audit-emission-kernel = { path = "../../../../audit/ports/emission-kernel" }
 
 [lib]
 name = "oya_tenant_rbac_audit_chain_emission"

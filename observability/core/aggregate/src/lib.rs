@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
+use audit_chain_domain::{AuditChain, AuditEvent, Plane};
 use oya_cloud_iam_domain::IamRoleId;
 use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId};
@@ -1638,7 +1638,7 @@ fn is_ascii_token_with_slash(value: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use oya_audit_chain_domain::Plane;
+    use audit_chain_domain::Plane;
     use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
     use oya_residency_domain::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,

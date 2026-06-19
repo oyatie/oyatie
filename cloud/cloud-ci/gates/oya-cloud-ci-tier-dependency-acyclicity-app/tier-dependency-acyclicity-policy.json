@@ -28,7 +28,8 @@
     "console/*/*",
     "comms/*/*",
     "k8s/*/*",
-    "tenancy/*/*"
+    "tenancy/*/*",
+    "audit/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -51,7 +52,8 @@
     "console",
     "comms",
     "k8s",
-    "tenancy"
+    "tenancy",
+    "audit"
   ],
   "stratum_rank_order": [
     "S0",

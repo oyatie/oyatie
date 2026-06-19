@@ -1,453 +1,493 @@
 {
-  "capability": "tenancy",
+  "capability": "audit",
   "crate_dirs": [
     {
-      "new_path": "tenancy/ports/api",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-api"
+      "new_path": "audit/core/chain-domain",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-domain"
     },
     {
-      "new_path": "tenancy/core/cell-assignment",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-cell-assignment-kernel"
+      "new_path": "audit/ports/emission-api",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-api"
     },
     {
-      "new_path": "tenancy/adapters/data-residency-enforcer",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-data-residency-enforcer-adapter"
+      "new_path": "audit/core/emission-domain",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-domain"
     },
     {
-      "new_path": "tenancy/core/domain",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-domain"
+      "new_path": "audit/ports/emission-kernel",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-kernel"
     },
     {
-      "new_path": "tenancy/core/dr-pairing",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-dr-pairing-usecase"
+      "new_path": "audit/adapters/file",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-file-adapter"
     },
     {
-      "new_path": "tenancy/core/dsr-cascade",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-dsr-cascade-kernel"
+      "new_path": "audit/ports/query-api",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-api"
     },
     {
-      "new_path": "tenancy/core/isolation-policy",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-isolation-policy-kernel"
+      "new_path": "audit/core/query-domain",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-domain"
     },
     {
-      "new_path": "tenancy/core/kernel",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel"
+      "new_path": "audit/ports/query-kernel",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-kernel"
     },
     {
-      "new_path": "tenancy/core/kyb-kyc-verifier",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kyb-kyc-verifier-domain"
+      "new_path": "audit/ports/retention-cascade-api",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-api"
     },
     {
-      "new_path": "tenancy/core/lifecycle-locks",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-lifecycle-locks-kernel"
+      "new_path": "audit/core/retention-cascade-domain",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-domain"
     },
     {
-      "new_path": "tenancy/core/per-tenant-quota",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase"
+      "new_path": "audit/ports/retention-cascade-kernel",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-kernel"
     },
     {
-      "new_path": "tenancy/core/reserved-namespace",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase"
+      "new_path": "audit/ports/sealing-api",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-api"
     },
     {
-      "new_path": "tenancy/core/sub-scope-registry",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel"
+      "new_path": "audit/core/sealing-domain",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-domain"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-domain",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain"
+      "new_path": "audit/ports/sealing-kernel",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-kernel"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-kernel",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel"
+      "new_path": "audit/core/usecase",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-usecase"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-usecase",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase"
+      "new_path": "audit/ports/verification-api",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-api"
     },
     {
-      "new_path": "tenancy/ports/cli",
-      "old_path": "cloud/tenancy/crates/oya-tenant-cli"
+      "new_path": "audit/core/verification-domain",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-domain"
+    },
+    {
+      "new_path": "audit/ports/verification-kernel",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-kernel"
     }
   ],
   "crate_idents": [
     {
-      "new": "tenancy-api",
-      "old": "oya-tenancy-api"
+      "new": "audit-chain-domain",
+      "old": "oya-audit-chain-domain"
     },
     {
-      "new": "tenancy-cell-assignment",
-      "old": "oya-tenancy-cell-assignment-kernel"
+      "new": "audit-emission-api",
+      "old": "oya-audit-chain-emission-api"
     },
     {
-      "new": "tenancy-data-residency-enforcer",
-      "old": "oya-tenancy-data-residency-enforcer-adapter"
+      "new": "audit-emission-domain",
+      "old": "oya-audit-chain-emission-domain"
     },
     {
-      "new": "tenancy-domain",
-      "old": "oya-tenancy-domain"
+      "new": "audit-emission-kernel",
+      "old": "oya-audit-chain-emission-kernel"
     },
     {
-      "new": "tenancy-dr-pairing",
-      "old": "oya-tenancy-dr-pairing-usecase"
+      "new": "audit-file-adapter",
+      "old": "oya-audit-chain-file-adapter"
     },
     {
-      "new": "tenancy-dsr-cascade",
-      "old": "oya-tenancy-dsr-cascade-kernel"
+      "new": "audit-query-api",
+      "old": "oya-audit-chain-query-api"
     },
     {
-      "new": "tenancy-isolation-policy",
-      "old": "oya-tenancy-isolation-policy-kernel"
+      "new": "audit-query-domain",
+      "old": "oya-audit-chain-query-domain"
     },
     {
-      "new": "tenancy-kernel",
-      "old": "oya-tenancy-kernel"
+      "new": "audit-query-kernel",
+      "old": "oya-audit-chain-query-kernel"
     },
     {
-      "new": "tenancy-kyb-kyc-verifier",
-      "old": "oya-tenancy-kyb-kyc-verifier-domain"
+      "new": "audit-retention-cascade-api",
+      "old": "oya-audit-chain-retention-cascade-api"
     },
     {
-      "new": "tenancy-lifecycle-locks",
-      "old": "oya-tenancy-lifecycle-locks-kernel"
+      "new": "audit-retention-cascade-domain",
+      "old": "oya-audit-chain-retention-cascade-domain"
     },
     {
-      "new": "tenancy-per-tenant-quota",
-      "old": "oya-tenancy-per-tenant-quota-usecase"
+      "new": "audit-retention-cascade-kernel",
+      "old": "oya-audit-chain-retention-cascade-kernel"
     },
     {
-      "new": "tenancy-reserved-namespace",
-      "old": "oya-tenancy-reserved-namespace-usecase"
+      "new": "audit-sealing-api",
+      "old": "oya-audit-chain-sealing-api"
     },
     {
-      "new": "tenancy-sub-scope-registry",
-      "old": "oya-tenancy-sub-scope-registry-kernel"
+      "new": "audit-sealing-domain",
+      "old": "oya-audit-chain-sealing-domain"
     },
     {
-      "new": "tenancy-tenant-lifecycle-domain",
-      "old": "oya-tenancy-tenant-lifecycle-domain"
+      "new": "audit-sealing-kernel",
+      "old": "oya-audit-chain-sealing-kernel"
     },
     {
-      "new": "tenancy-tenant-lifecycle-kernel",
-      "old": "oya-tenancy-tenant-lifecycle-kernel"
+      "new": "audit-usecase",
+      "old": "oya-audit-chain-usecase"
     },
     {
-      "new": "tenancy-tenant-lifecycle-usecase",
-      "old": "oya-tenancy-tenant-lifecycle-usecase"
+      "new": "audit-verification-api",
+      "old": "oya-audit-chain-verification-api"
     },
     {
-      "new": "tenancy-cli",
-      "old": "oya-tenant-cli"
+      "new": "audit-verification-domain",
+      "old": "oya-audit-chain-verification-domain"
+    },
+    {
+      "new": "audit-verification-kernel",
+      "old": "oya-audit-chain-verification-kernel"
     }
   ],
   "files": [
     {
-      "new_path": "tenancy/ports/api/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-api/BUCK"
+      "new_path": "audit/core/chain-domain/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-domain/BUCK"
     },
     {
-      "new_path": "tenancy/ports/api/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-api/Cargo.toml"
+      "new_path": "audit/core/chain-domain/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-domain/Cargo.toml"
     },
     {
-      "new_path": "tenancy/ports/api/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-api/src/lib.rs"
+      "new_path": "audit/core/chain-domain/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-domain/src/lib.rs"
     },
     {
-      "new_path": "tenancy/ports/api/tests/tenant_create_api.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-api/tests/tenant_create_api.rs"
+      "new_path": "audit/core/chain-domain/src/merkle_tree.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-domain/src/merkle_tree.rs"
     },
     {
-      "new_path": "tenancy/core/cell-assignment/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-cell-assignment-kernel/BUCK"
+      "new_path": "audit/core/chain-domain/tests/ed25519_sign_verify.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-domain/tests/ed25519_sign_verify.rs"
     },
     {
-      "new_path": "tenancy/core/cell-assignment/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-cell-assignment-kernel/Cargo.toml"
+      "new_path": "audit/core/chain-domain/tests/merkle_chain.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-domain/tests/merkle_chain.rs"
     },
     {
-      "new_path": "tenancy/core/cell-assignment/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-cell-assignment-kernel/src/lib.rs"
+      "new_path": "audit/ports/emission-api/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-api/BUCK"
     },
     {
-      "new_path": "tenancy/adapters/data-residency-enforcer/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-data-residency-enforcer-adapter/BUCK"
+      "new_path": "audit/ports/emission-api/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-api/Cargo.toml"
     },
     {
-      "new_path": "tenancy/adapters/data-residency-enforcer/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-data-residency-enforcer-adapter/Cargo.toml"
+      "new_path": "audit/ports/emission-api/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-api/src/lib.rs"
     },
     {
-      "new_path": "tenancy/adapters/data-residency-enforcer/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-data-residency-enforcer-adapter/src/lib.rs"
+      "new_path": "audit/core/emission-domain/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-domain/BUCK"
     },
     {
-      "new_path": "tenancy/core/domain/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-domain/BUCK"
+      "new_path": "audit/core/emission-domain/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-domain/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/domain/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-domain/Cargo.toml"
+      "new_path": "audit/core/emission-domain/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-domain/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/domain/src/design_partner_status.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-domain/src/design_partner_status.rs"
+      "new_path": "audit/ports/emission-kernel/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-kernel/BUCK"
     },
     {
-      "new_path": "tenancy/core/domain/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-domain/src/lib.rs"
+      "new_path": "audit/ports/emission-kernel/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-kernel/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/dr-pairing/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-dr-pairing-usecase/BUCK"
+      "new_path": "audit/ports/emission-kernel/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-emission-kernel/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/dr-pairing/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-dr-pairing-usecase/Cargo.toml"
+      "new_path": "audit/adapters/file/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-file-adapter/BUCK"
     },
     {
-      "new_path": "tenancy/core/dr-pairing/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-dr-pairing-usecase/src/lib.rs"
+      "new_path": "audit/adapters/file/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-file-adapter/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/dsr-cascade/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-dsr-cascade-kernel/BUCK"
+      "new_path": "audit/adapters/file/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-file-adapter/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/dsr-cascade/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-dsr-cascade-kernel/Cargo.toml"
+      "new_path": "audit/adapters/file/tests/file_ledger.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-file-adapter/tests/file_ledger.rs"
     },
     {
-      "new_path": "tenancy/core/dsr-cascade/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-dsr-cascade-kernel/src/lib.rs"
+      "new_path": "audit/ports/query-api/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-api/BUCK"
     },
     {
-      "new_path": "tenancy/core/isolation-policy/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-isolation-policy-kernel/BUCK"
+      "new_path": "audit/ports/query-api/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-api/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/isolation-policy/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-isolation-policy-kernel/Cargo.toml"
+      "new_path": "audit/ports/query-api/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-api/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/isolation-policy/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-isolation-policy-kernel/src/lib.rs"
+      "new_path": "audit/core/query-domain/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-domain/BUCK"
     },
     {
-      "new_path": "tenancy/core/kernel/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel/BUCK"
+      "new_path": "audit/core/query-domain/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-domain/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/kernel/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel/Cargo.toml"
+      "new_path": "audit/core/query-domain/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-domain/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/kernel/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel/src/lib.rs"
+      "new_path": "audit/ports/query-kernel/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-kernel/BUCK"
     },
     {
-      "new_path": "tenancy/core/kernel/src/tier_status.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kernel/src/tier_status.rs"
+      "new_path": "audit/ports/query-kernel/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-kernel/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/kyb-kyc-verifier/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kyb-kyc-verifier-domain/BUCK"
+      "new_path": "audit/ports/query-kernel/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-query-kernel/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/kyb-kyc-verifier/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kyb-kyc-verifier-domain/Cargo.toml"
+      "new_path": "audit/ports/retention-cascade-api/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-api/BUCK"
     },
     {
-      "new_path": "tenancy/core/kyb-kyc-verifier/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-kyb-kyc-verifier-domain/src/lib.rs"
+      "new_path": "audit/ports/retention-cascade-api/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-api/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/lifecycle-locks/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-lifecycle-locks-kernel/BUCK"
+      "new_path": "audit/ports/retention-cascade-api/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-api/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/lifecycle-locks/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-lifecycle-locks-kernel/Cargo.toml"
+      "new_path": "audit/core/retention-cascade-domain/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-domain/BUCK"
     },
     {
-      "new_path": "tenancy/core/lifecycle-locks/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-lifecycle-locks-kernel/src/lib.rs"
+      "new_path": "audit/core/retention-cascade-domain/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-domain/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/per-tenant-quota/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase/BUCK"
+      "new_path": "audit/core/retention-cascade-domain/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-domain/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/per-tenant-quota/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase/Cargo.toml"
+      "new_path": "audit/ports/retention-cascade-kernel/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-kernel/BUCK"
     },
     {
-      "new_path": "tenancy/core/per-tenant-quota/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-per-tenant-quota-usecase/src/lib.rs"
+      "new_path": "audit/ports/retention-cascade-kernel/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-kernel/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/reserved-namespace/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase/BUCK"
+      "new_path": "audit/ports/retention-cascade-kernel/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-retention-cascade-kernel/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/reserved-namespace/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase/Cargo.toml"
+      "new_path": "audit/ports/sealing-api/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-api/BUCK"
     },
     {
-      "new_path": "tenancy/core/reserved-namespace/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-reserved-namespace-usecase/src/lib.rs"
+      "new_path": "audit/ports/sealing-api/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-api/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/sub-scope-registry/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel/BUCK"
+      "new_path": "audit/ports/sealing-api/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-api/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/sub-scope-registry/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel/Cargo.toml"
+      "new_path": "audit/core/sealing-domain/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-domain/BUCK"
     },
     {
-      "new_path": "tenancy/core/sub-scope-registry/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-sub-scope-registry-kernel/src/lib.rs"
+      "new_path": "audit/core/sealing-domain/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-domain/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-domain/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain/BUCK"
+      "new_path": "audit/core/sealing-domain/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-domain/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-domain/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain/Cargo.toml"
+      "new_path": "audit/ports/sealing-kernel/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-kernel/BUCK"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-domain/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-domain/src/lib.rs"
+      "new_path": "audit/ports/sealing-kernel/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-kernel/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-kernel/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel/BUCK"
+      "new_path": "audit/ports/sealing-kernel/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-sealing-kernel/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-kernel/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel/Cargo.toml"
+      "new_path": "audit/core/usecase/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-usecase/BUCK"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-kernel/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-kernel/src/lib.rs"
+      "new_path": "audit/core/usecase/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-usecase/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-usecase/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/BUCK"
+      "new_path": "audit/core/usecase/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-usecase/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-usecase/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/Cargo.toml"
+      "new_path": "audit/core/usecase/tests/audit_event_emit.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-usecase/tests/audit_event_emit.rs"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-usecase/src/lib.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/src/lib.rs"
+      "new_path": "audit/ports/verification-api/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-api/BUCK"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-usecase/src/reconcile.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/src/reconcile.rs"
+      "new_path": "audit/ports/verification-api/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-api/Cargo.toml"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-usecase/tests/conformance.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/tests/conformance.rs"
+      "new_path": "audit/ports/verification-api/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-api/src/lib.rs"
     },
     {
-      "new_path": "tenancy/core/tenant-lifecycle-usecase/tests/reconcile.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenancy-tenant-lifecycle-usecase/tests/reconcile.rs"
+      "new_path": "audit/core/verification-domain/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-domain/BUCK"
     },
     {
-      "new_path": "tenancy/ports/cli/BUCK",
-      "old_path": "cloud/tenancy/crates/oya-tenant-cli/BUCK"
+      "new_path": "audit/core/verification-domain/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-domain/Cargo.toml"
     },
     {
-      "new_path": "tenancy/ports/cli/Cargo.toml",
-      "old_path": "cloud/tenancy/crates/oya-tenant-cli/Cargo.toml"
+      "new_path": "audit/core/verification-domain/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-domain/src/lib.rs"
     },
     {
-      "new_path": "tenancy/ports/cli/src/main.rs",
-      "old_path": "cloud/tenancy/crates/oya-tenant-cli/src/main.rs"
+      "new_path": "audit/ports/verification-kernel/BUCK",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-kernel/BUCK"
     },
     {
-      "new_path": "tenancy/observability/slos/autosharding-events.openslo.yaml",
-      "old_path": "cloud/tenancy/slos/autosharding-events.openslo.yaml"
+      "new_path": "audit/ports/verification-kernel/Cargo.toml",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-kernel/Cargo.toml"
     },
     {
-      "new_path": "tenancy/observability/slos/availability.openslo.yaml",
-      "old_path": "cloud/tenancy/slos/availability.openslo.yaml"
+      "new_path": "audit/ports/verification-kernel/src/lib.rs",
+      "old_path": "oya/audit-chain/crates/oya-audit-chain-verification-kernel/src/lib.rs"
     },
     {
-      "new_path": "tenancy/observability/slos/correctness.openslo.yaml",
-      "old_path": "cloud/tenancy/slos/correctness.openslo.yaml"
+      "new_path": "audit/observability/slos/autosharding-events.openslo.yaml",
+      "old_path": "oya/audit-chain/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "tenancy/observability/slos/freshness.openslo.yaml",
-      "old_path": "cloud/tenancy/slos/freshness.openslo.yaml"
+      "new_path": "audit/observability/slos/chain-of-custody-integrity-correctness.openslo.yaml",
+      "old_path": "oya/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml"
     },
     {
-      "new_path": "tenancy/observability/slos/latency.openslo.yaml",
-      "old_path": "cloud/tenancy/slos/latency.openslo.yaml"
+      "new_path": "audit/observability/slos/evidence-export-freshness.openslo.yaml",
+      "old_path": "oya/audit-chain/slos/evidence-export-freshness.openslo.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-api.yaml",
-      "old_path": "registry/catalog/oya-tenancy-api.yaml"
+      "new_path": "audit/observability/slos/merkle-chain-verification-latency.openslo.yaml",
+      "old_path": "oya/audit-chain/slos/merkle-chain-verification-latency.openslo.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-cell-assignment.yaml",
-      "old_path": "registry/catalog/oya-tenancy-cell-assignment-kernel.yaml"
+      "new_path": "audit/observability/slos/seal-cycle-latency.openslo.yaml",
+      "old_path": "oya/audit-chain/slos/seal-cycle-latency.openslo.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-data-residency-enforcer.yaml",
-      "old_path": "registry/catalog/oya-tenancy-data-residency-enforcer-adapter.yaml"
+      "new_path": "audit/observability/slos/seal-storage-availability.openslo.yaml",
+      "old_path": "oya/audit-chain/slos/seal-storage-availability.openslo.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-domain.yaml",
-      "old_path": "registry/catalog/oya-tenancy-domain.yaml"
+      "new_path": "audit/observability/slos/seal-write-availability.openslo.yaml",
+      "old_path": "oya/audit-chain/slos/seal-write-availability.openslo.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-dr-pairing.yaml",
-      "old_path": "registry/catalog/oya-tenancy-dr-pairing-usecase.yaml"
+      "new_path": "audit/observability/slos/seal-write-latency.openslo.yaml",
+      "old_path": "oya/audit-chain/slos/seal-write-latency.openslo.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-dsr-cascade.yaml",
-      "old_path": "registry/catalog/oya-tenancy-dsr-cascade-kernel.yaml"
+      "new_path": "registry/catalog/audit-chain-domain.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-domain.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-isolation-policy.yaml",
-      "old_path": "registry/catalog/oya-tenancy-isolation-policy-kernel.yaml"
+      "new_path": "registry/catalog/audit-emission-api.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-emission-api.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-kernel.yaml",
-      "old_path": "registry/catalog/oya-tenancy-kernel.yaml"
+      "new_path": "registry/catalog/audit-emission-domain.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-emission-domain.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-kyb-kyc-verifier.yaml",
-      "old_path": "registry/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml"
+      "new_path": "registry/catalog/audit-emission-kernel.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-emission-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-lifecycle-locks.yaml",
-      "old_path": "registry/catalog/oya-tenancy-lifecycle-locks-kernel.yaml"
+      "new_path": "registry/catalog/audit-file-adapter.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-file-adapter.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-per-tenant-quota.yaml",
-      "old_path": "registry/catalog/oya-tenancy-per-tenant-quota-usecase.yaml"
+      "new_path": "registry/catalog/audit-query-api.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-query-api.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-reserved-namespace.yaml",
-      "old_path": "registry/catalog/oya-tenancy-reserved-namespace-usecase.yaml"
+      "new_path": "registry/catalog/audit-query-domain.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-query-domain.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-sub-scope-registry.yaml",
-      "old_path": "registry/catalog/oya-tenancy-sub-scope-registry-kernel.yaml"
+      "new_path": "registry/catalog/audit-query-kernel.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-query-kernel.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-tenant-lifecycle-kernel.yaml",
-      "old_path": "registry/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml"
+      "new_path": "registry/catalog/audit-retention-cascade-api.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-retention-cascade-api.yaml"
     },
     {
-      "new_path": "registry/catalog/tenancy-cli.yaml",
-      "old_path": "registry/catalog/oya-tenant-cli.yaml"
+      "new_path": "registry/catalog/audit-retention-cascade-domain.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-retention-cascade-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/audit-retention-cascade-kernel.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-retention-cascade-kernel.yaml"
+    },
+    {
+      "new_path": "registry/catalog/audit-sealing-api.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-sealing-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/audit-sealing-domain.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-sealing-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/audit-sealing-kernel.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-sealing-kernel.yaml"
+    },
+    {
+      "new_path": "registry/catalog/audit-usecase.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-usecase.yaml"
+    },
+    {
+      "new_path": "registry/catalog/audit-verification-api.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-verification-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/audit-verification-domain.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-verification-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/audit-verification-kernel.yaml",
+      "old_path": "registry/catalog/oya-audit-chain-verification-kernel.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

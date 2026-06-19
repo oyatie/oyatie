@@ -1625,6 +1625,127 @@ subtree `tenancy/OWNERS`, the fifteen re-keyed catalog records `registry/catalog
 existing `registry/catalog/` reachability prefix), and the committed move-plan
 `specs/reorg/tenancy-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability prefix).
 
+#### §10.19 Fifteenth executed strangler move: `audit` capability (oya/audit-chain/crates → audit/) — foundational-substrate three-face move (no facade) with flat SLO co-move + catalog re-key + cross-capability messaging edge preserved
+
+The fifteenth REAL codemod run homes the `audit` capability's eighteen crates from ONE source dir
+(`oya/audit-chain/crates`) under the §3 placement rule, across THREE faces (`core` + `ports` + `adapters`) with
+NO `facade` — the tamper-evident Merkle audit log IS the substrate (the S0 `audit-chain` dag node, the
+always-on/no-kill-switch chain-of-custody floor every other capability seals against), not a sold product
+surface, so there is no facade face to home. audit is the foundational evidence substrate: Ed25519-signed Merkle
+chains + the emission/query/retention/sealing/verification port-cells (ADR-0083 amendment).
+
+**Naming scheme (cargo == de-branded path-tail, all eighteen unique):** the proven console/k8s scheme — path
+`audit/<face>/<leaf>` ↔ cargo `audit-<leaf>`, de-branded (the legacy `oya-audit-chain-` form drops to the
+`audit-` capability slug and the redundant `chain` doubling is dropped from the middle, EXCEPT the central
+`chain-domain` crate which KEEPS `chain` as its cell name — both because the six external dependents already
+reference the de-branded `audit-chain-domain` id and because dropping it to `audit-domain` would collide with the
+five per-cell `*-domain` crates' role grammar). The eighteen: domain → `audit/core/chain-domain` (cargo
+`audit-chain-domain`), usecase → `audit/core/usecase` (`audit-usecase`), the five `<cell>-domain` crates →
+`audit/core/<cell>-domain` (`audit-emission-domain`, `audit-query-domain`, `audit-retention-cascade-domain`,
+`audit-sealing-domain`, `audit-verification-domain`), the five `<cell>-kernel` crates →
+`audit/ports/<cell>-kernel` (`audit-emission-kernel`, `audit-query-kernel`, `audit-retention-cascade-kernel`,
+`audit-sealing-kernel`, `audit-verification-kernel`), the five `<cell>-api` DTO crates →
+`audit/ports/<cell>-api` (`audit-emission-api`, `audit-query-api`, `audit-retention-cascade-api`,
+`audit-sealing-api`, `audit-verification-api`), and the file-adapter → `audit/adapters/file`
+(`audit-file-adapter`). The `-cascade` segment is RETAINED on the retention cell (the source crate is
+`retention-cascade`, a single cell name; dropping it would lose the cascade semantics and is not needed for
+uniqueness). All eighteen leaf dirs and all eighteen cargo names are distinct (`MovePlan::validate` passes), and
+each cargo name equals `audit-` + its de-branded path-tail EXACTLY (the target-parity + cargo-prefix relabel
+binding).
+
+**DTO-granularity decision (the open registry-granularity Q, resolved empirically):** the five `*-api` crates are
+request/response DTOs. They home to `ports/` alongside their sibling `*-kernel` port-trait crates, NOT to
+`core/`. Two of the five (`emission-api`, `sealing-api`) carry a path-dep INWARD on their own cell's `*-kernel`,
+so co-locating api+kernel in `ports/` keeps that edge a legal intra-face `ports → ports` edge; placing the api in
+`core/` would invert it to `core → ports`. The acyclicity gate classifies the whole `audit/` root as an
+`unclassified_root` (like every freshly-homed capability), so it enforces NO core/ports SUB-tier edge — both
+placements are 0-regression at the gate surface — but the ports home is the structurally honest one (a DTO is the
+shape of a port's payload, it travels WITH the port contract). All five api crates therefore home to `ports/`.
+
+**Face reasoning — ports/core/adapters by WHAT EACH IS (§3), verified against the REAL dep direction:** the
+`chain-domain` crate carries the Ed25519/Merkle value objects + the AuditChain state machine (std + ed25519-dalek
++ sha2), and the `usecase` crate carries the append/emit orchestration, both pure substrate engine surfaces →
+`core/`; the five `<cell>-domain` crates are pure per-cell validation/rules (envelope validation, query
+validation, retention rules, Merkle-math wrapper, proof/signature verification) with no inbound transport seam →
+`core/`; the five `<cell>-kernel` crates are port-only (pure types/traits, no I/O) → `ports/`; the five
+`<cell>-api` crates are the DTO payload seam → `ports/` (the DTO decision above); the `file` adapter projects the
+ledger persistence port onto a file backing impl → `adapters/`. The intra-capability edges are all downward and
+acyclic: `audit-emission-api`/`audit-sealing-api` (ports) → their `*-kernel` (ports); `audit-emission-domain` →
+`audit-emission-kernel` and `audit-sealing-domain` → `audit-sealing-kernel` (core → ports, the legal
+domain-implements-port direction); `audit-query-domain` → `audit-query-api`, `audit-retention-cascade-domain` →
+`audit-retention-cascade-api`, `audit-verification-domain` → `audit-verification-api` (core → ports);
+`audit-usecase` + `audit-file-adapter` + `audit-sealing-domain` + `audit-verification-domain` → `audit-chain-domain`
+(core/adapters → core). The dep DAG is acyclic by construction, and because all eighteen are ONE `audit`
+capability node the intra-capability face edges project to an `audit → audit` self-edge and raise NO
+service→service / S-rank acyclicity violation (the §10.15..§10.18 console/comms/k8s/tenancy precedent).
+
+**Cross-capability dep (kept intact — no inversion):** `audit-usecase` (core) has an OUTBOUND dep on
+`messaging-domain` (the already-homed `messaging/core/domain`, ADR-0280 messaging dag node). The codemod
+recomputed the relative `path=` (`../../../messaging/core/domain`) + the BUCK `//`-label against the new
+`audit/core/usecase` home; the edge continues to point at the live messaging crate, NOT broken or duplicated.
+Both `audit` and `messaging` are `unclassified_roots` at this stage of the strangler, so the
+`audit/* → messaging/*` edge is ALLOWED (every edge to/from an unclassified crate is allowed) and raises no
+S-rank inversion. (`audit-chain-domain`, `audit-usecase`, and `audit-file-adapter` also depend on
+`libs/oya-data-boundary-kernel` — relative-path-recomputed and stays pointing at the live `libs/` home, the legal
+below-all-capabilities `base/`-class direction.)
+
+**External dependents (rewritten):** SIX first-party crates outside the eighteen depend on the moved tree —
+`observability/core/aggregate` + `observability/core/api` (both → `audit-chain-domain`),
+`oya/intelligence/crates/oya-intelligence-cloud-mutation-domain` (→ `audit-chain-domain`),
+`oya/application/crates/oya-application-app` (→ `audit-chain-domain`), `marketplace/facade/dev-cli`
+(the dev-cli; → `audit-chain-domain` + `audit-file-adapter`), and
+`oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission` (→ `audit-emission-api` + `audit-emission-kernel`).
+The codemod rewrote all six dependents' `Cargo.toml` path-deps, `BUCK` `//`-labels, and `use`-ident references
+(`oya_audit_chain_domain` → `audit_chain_domain`, `oya_audit_chain_file_adapter` → `audit_file_adapter`,
+`oya_audit_chain_emission_api`/`_kernel` → `audit_emission_api`/`_kernel`) to the new homes. The UNRELATED
+`libs/oya-check-audit-chain-seal-coverage` crate (a different, non-moved crate) was correctly left untouched.
+audit is NOT a violation source (zero entries in the acyclicity frozen baseline) and the moved crate dirs are not
+in the membership unmapped baseline, so both lints carry 0 burn-down / 0 regression.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run
+(`cargo metadata` + `buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null,
+`clean=true`). The capability registry records `audit.absorbs_current_dirs` with the capability's own top-level
+slug `audit` (the self-slug is required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE audit/...`; the
+§10.12/§10.16..§10.18 lesson) plus the absorbed source dir `oya/audit-chain` (the pre-existing seed, retained).
+The membership policy scan_roots + allowed_top_level_dirs gain `audit`, the acyclicity policy crate_root_globs
+gains `audit/*/*` + unclassified_roots gains `audit`, and the root workspace gains the `audit/*/*` member glob
+(one glob covers all eighteen faces/leaves; ADR-0538 glob-only contract) with `audit/observability` added to the
+exclude list (the non-crate SLO subtree).
+
+**SLO co-move executed IN the move (doctrine-clean, flat — no collision):** the single source dir carries eight
+promotion-gating SLOs (`oya/audit-chain/slos/{autosharding-events,chain-of-custody-integrity-correctness,
+evidence-export-freshness,merkle-chain-verification-latency,seal-cycle-latency,seal-storage-availability,
+seal-write-availability,seal-write-latency}.openslo.yaml`). Because there is exactly ONE source SLO dir with eight
+unique basenames, a flat merge into `audit/observability/slos/` has no cross-service basename collision (unlike
+the §10.16/§10.17 comms/k8s multi-service cases that needed per-service subdirs), so the eight SLOs co-move via
+eight content-preserving file `ArtifactMove`s into the flat `audit/observability/slos/` dir — collision-free AND
+provenance-preserving. The SLOs' `metadata.name` + Prometheus metric labels keep their `oya-audit-chain`/
+`oya_audit_chain` tokens (those are RUNTIME-emitted metric identifiers bound to the live service emission code,
+not structural reorg tokens — de-branding them would orphan the SLO from its real metric and is the ADR-0532/0533
+de-brand-profile lane's scope, not this structural move). The slo-coverage gate keys by catalog-record file stem,
+not SLO file path, so the home is gate-neutral.
+
+**Catalog re-key executed IN the move (same pattern as §10.14..§10.18):** all eighteen moved crates have a
+`registry/catalog/oya-audit-chain-*.yaml` record (no record-less crate this move, unlike the §10.18 tenancy
+case). After the crate rename, the eighteen legacy filenames no longer match any live workspace `[package].name`,
+which would RED the `catalog-liveness` (`catalog_record_no_live_crate_unmarked`) and `slo-coverage`
+(`slo_row_no_live_crate_unmarked`) gates. The move-plan therefore carries eighteen additional file `ArtifactMove`
+entries re-keying each record to the de-branded live crate-id filename `registry/catalog/audit-<leaf>.yaml`
+(content-preserving `git mv`; no in-file rewrite — the records carry no embedded package-name field, only
+`context`/`role`/`capability` facets; the internal `capability: audit-chain` facet is left content-preserved, no
+gate keys on it). Both gates stay green after the re-key (all eighteen records bind to a live workspace crate-id).
+
+**Born-accounting (ADR-0555):** the eighteen new crate dirs under `audit/core/`, `audit/ports/`, and
+`audit/adapters/` are reached by the `audit/*/*` member glob + the `audit/*/*` acyclicity glob, and owned by the
+subtree `audit/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.19 entry
+(breadth-unlimited per ADR-0555, covering the whole audit subtree including the co-moved flat SLO dir). The
+move's tracked, born-accounted artifact roots are the eighteen crate dirs (each carrying its `Cargo.toml`,
+`BUCK`, and `src/` — and, for the `chain-domain`, `usecase`, and `file` crates, their `tests/`), the co-moved
+flat SLO dir `audit/observability/slos/*.openslo.yaml`, the subtree `audit/OWNERS`, the eighteen re-keyed catalog
+records `registry/catalog/audit-*.yaml` (reached by the existing `registry/catalog/` reachability prefix), and
+the committed move-plan `specs/reorg/audit-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/`
+reachability prefix).
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

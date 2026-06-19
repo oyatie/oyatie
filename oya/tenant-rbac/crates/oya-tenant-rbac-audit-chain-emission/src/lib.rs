@@ -8,8 +8,8 @@
 
 use std::collections::BTreeSet;
 
-use oya_audit_chain_emission_api::{AUDIT_EVENT_EMIT_SURFACE, AUDIT_EVENT_TOPIC};
-use oya_audit_chain_emission_kernel::ChainCoordinate;
+use audit_emission_api::{AUDIT_EVENT_EMIT_SURFACE, AUDIT_EVENT_TOPIC};
+use audit_emission_kernel::ChainCoordinate;
 
 const PLAN_NAME: &str = "tenant-rbac-audit-chain-emission";
 const SOURCE_PREFIX: &str = "https://audit.oyatie.com/tenant-rbac/";

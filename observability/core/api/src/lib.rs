@@ -5,7 +5,7 @@
 //! projection for the `cloud.observability.audit.read` surface before handing
 //! immutable reads to the Cloud observability kernel.
 
-use oya_audit_chain_domain::Plane;
+use audit_chain_domain::Plane;
 use observability_aggregate::{
     AuditReadRequest, AuditReadScope, CloudAuditOperation, CloudAuditRecord, CloudAuditTopic,
     CloudObservabilityCatalog, CloudObservabilityError,

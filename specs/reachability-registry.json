@@ -66,6 +66,10 @@
       "prefix": "tenancy/OWNERS"
     },
     {
+      "anchor": "ADR-0562 §10.19 ownership seed: the audit capability tree's OWNERS marker (axis-cloud-platform), homed by the fifteenth strangler move (oya/audit-chain/crates → audit/{core,ports,adapters}/, NO facade — the tamper-evident Merkle audit log IS the substrate, the S0 audit-chain dag node); breadth-unlimited (ADR-0555) so it covers the whole audit subtree, including the co-moved audit/observability/slos/ flat SLO dir (ADR-0139 SLO-home convention, flat because the single source dir oya/audit-chain/slos carries no cross-service basename collision among its eight openslo files) and the eighteen re-keyed registry/catalog/audit-*.yaml records (reached by the existing registry/catalog/ prefix; every one of the eighteen moved crates has a pre-existing catalog record, all re-keyed this move); the committed move-plan at specs/reorg/audit-move-plan.json is reached by the existing specs/reorg/ ADR-0563 prefix",
+      "prefix": "audit/OWNERS"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },

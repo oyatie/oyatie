@@ -10,7 +10,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
+use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
 use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };

@@ -7,7 +7,7 @@ use oya_application_app::{
     IdentityRegistration, McpAccessTokenClaims, McpDiscoveryRequest, OutboxPublish, Purpose,
     SubjectClass, TenantCapabilityGrant, TenantRegistration, TokenRequest,
 };
-use oya_audit_chain_file_adapter::FileAuditLedger;
+use audit_file_adapter::FileAuditLedger;
 use messaging_domain::Outbox;
 use messaging_file_adapter::FileOutboxStore;
 use oya_intelligence_evidence_file_adapter::FileEvidenceChainStore;

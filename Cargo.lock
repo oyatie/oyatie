@@ -476,6 +476,115 @@ dependencies = [
 ]
 
 [[package]]
+name = "audit-chain-domain"
+version = "0.2.0"
+dependencies = [
+ "ed25519-dalek",
+ "oya-data-boundary-kernel",
+ "sha2",
+]
+
+[[package]]
+name = "audit-emission-api"
+version = "0.1.0"
+dependencies = [
+ "audit-emission-kernel",
+]
+
+[[package]]
+name = "audit-emission-domain"
+version = "0.1.0"
+dependencies = [
+ "audit-emission-kernel",
+]
+
+[[package]]
+name = "audit-emission-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "audit-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "audit-query-api"
+version = "0.1.0"
+
+[[package]]
+name = "audit-query-domain"
+version = "0.1.0"
+dependencies = [
+ "audit-query-api",
+]
+
+[[package]]
+name = "audit-query-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "audit-retention-cascade-api"
+version = "0.1.0"
+
+[[package]]
+name = "audit-retention-cascade-domain"
+version = "0.1.0"
+dependencies = [
+ "audit-retention-cascade-api",
+]
+
+[[package]]
+name = "audit-retention-cascade-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "audit-sealing-api"
+version = "0.1.0"
+dependencies = [
+ "audit-sealing-kernel",
+]
+
+[[package]]
+name = "audit-sealing-domain"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "audit-sealing-kernel",
+]
+
+[[package]]
+name = "audit-sealing-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "audit-usecase"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "messaging-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "audit-verification-api"
+version = "0.1.0"
+
+[[package]]
+name = "audit-verification-domain"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "audit-verification-api",
+]
+
+[[package]]
+name = "audit-verification-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3683,11 +3792,11 @@ version = "0.1.0"
 name = "marketplace-dev-cli"
 version = "0.1.0"
 dependencies = [
+ "audit-chain-domain",
+ "audit-file-adapter",
  "messaging-domain",
  "messaging-file-adapter",
  "oya-application-app",
- "oya-audit-chain-domain",
- "oya-audit-chain-file-adapter",
  "oya-check-a11y-discipline",
  "oya-check-active-artifact-contract",
  "oya-check-adr-citation",
@@ -3971,10 +4080,10 @@ dependencies = [
 name = "observability-aggregate"
 version = "0.1.0"
 dependencies = [
+ "audit-chain-domain",
  "cell-region",
  "compute-resource",
  "observability-domain",
- "oya-audit-chain-domain",
  "oya-cloud-iam-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
@@ -3984,8 +4093,8 @@ dependencies = [
 name = "observability-api"
 version = "0.1.0"
 dependencies = [
+ "audit-chain-domain",
  "observability-aggregate",
- "oya-audit-chain-domain",
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
@@ -4250,12 +4359,12 @@ dependencies = [
 name = "oya-application-app"
 version = "0.1.0"
 dependencies = [
+ "audit-chain-domain",
  "cell-regional-pack",
  "cell-routing",
  "messaging-domain",
  "observability-domain",
  "observability-tracing-adapter",
- "oya-audit-chain-domain",
  "oya-check-cost-budget",
  "oya-data-boundary-kernel",
  "oya-governance-eval-domain",
@@ -4298,115 +4407,6 @@ version = "0.1.0"
 dependencies = [
  "serde_json",
 ]
-
-[[package]]
-name = "oya-audit-chain-domain"
-version = "0.2.0"
-dependencies = [
- "ed25519-dalek",
- "oya-data-boundary-kernel",
- "sha2",
-]
-
-[[package]]
-name = "oya-audit-chain-emission-api"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-emission-kernel",
-]
-
-[[package]]
-name = "oya-audit-chain-emission-domain"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-emission-kernel",
-]
-
-[[package]]
-name = "oya-audit-chain-emission-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-audit-chain-file-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-audit-chain-query-api"
-version = "0.1.0"
-
-[[package]]
-name = "oya-audit-chain-query-domain"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-query-api",
-]
-
-[[package]]
-name = "oya-audit-chain-query-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-audit-chain-retention-cascade-api"
-version = "0.1.0"
-
-[[package]]
-name = "oya-audit-chain-retention-cascade-domain"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-retention-cascade-api",
-]
-
-[[package]]
-name = "oya-audit-chain-retention-cascade-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-audit-chain-sealing-api"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-sealing-kernel",
-]
-
-[[package]]
-name = "oya-audit-chain-sealing-domain"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-domain",
- "oya-audit-chain-sealing-kernel",
-]
-
-[[package]]
-name = "oya-audit-chain-sealing-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-audit-chain-usecase"
-version = "0.1.0"
-dependencies = [
- "messaging-domain",
- "oya-audit-chain-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-audit-chain-verification-api"
-version = "0.1.0"
-
-[[package]]
-name = "oya-audit-chain-verification-domain"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-domain",
- "oya-audit-chain-verification-api",
-]
-
-[[package]]
-name = "oya-audit-chain-verification-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-authn-device-firmware"
@@ -7374,7 +7374,7 @@ dependencies = [
 name = "oya-intelligence-cloud-mutation-domain"
 version = "0.1.0"
 dependencies = [
- "oya-audit-chain-domain",
+ "audit-chain-domain",
  "oya-data-boundary-kernel",
  "oya-intelligence-capability-domain",
  "oya-intelligence-policy-domain",
@@ -9092,8 +9092,8 @@ dependencies = [
 name = "oya-tenant-rbac-audit-chain-emission"
 version = "0.1.0"
 dependencies = [
- "oya-audit-chain-emission-api",
- "oya-audit-chain-emission-kernel",
+ "audit-emission-api",
+ "audit-emission-kernel",
 ]
 
 [[package]]

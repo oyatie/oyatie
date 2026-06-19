@@ -206,6 +206,24 @@ members = [
   # collision) is excluded below (no Cargo.toml), and the absorbed dir's other non-crate artifacts
   # are homed in phase-2 (task #62).
   "tenancy/*/*",
+  # Capability-first home (ADR-0562 strangler move 15): the `audit` capability absorbs the former
+  # oya/audit-chain/crates into audit/{core,ports,adapters} across three faces (core, ports,
+  # adapters; no facade — the tamper-evident Merkle audit log IS the substrate, the S0 audit-chain
+  # dag node). The eighteen crates spread over core (seven: chain-domain + usecase + the
+  # emission/query/retention-cascade/sealing/verification domains), ports (ten: the
+  # emission/query/retention-cascade/sealing/verification kernels + their api DTO crates), and
+  # adapters (one: file). Each crate is de-branded to the capability prefix with a leaf naming so
+  # cargo == path-tail stays unique (audit-chain-domain / audit-usecase / audit-emission-kernel /
+  # audit-emission-api / audit-emission-domain / audit-query-kernel / audit-query-api /
+  # audit-query-domain / audit-retention-cascade-kernel / audit-retention-cascade-api /
+  # audit-retention-cascade-domain / audit-sealing-kernel / audit-sealing-api / audit-sealing-domain /
+  # audit-verification-kernel / audit-verification-api / audit-verification-domain /
+  # audit-file-adapter), so each leaf segment stays a bare `*`. `audit/*/*` covers all eighteen
+  # faces/leaves with one glob, satisfying ADR-0538's glob-only members contract (no explicit-path
+  # members); the co-moved audit/observability/slos non-crate SLO subtree (flat — single source dir,
+  # no basename collision) is excluded below (no Cargo.toml), and the absorbed dir's other non-crate
+  # artifacts are homed in phase-2 (task #62).
+  "audit/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -233,6 +251,7 @@ exclude = [
   "comms/observability",
   "k8s/observability",
   "tenancy/observability",
+  "audit/observability",
 ]
 resolver = "2"
 

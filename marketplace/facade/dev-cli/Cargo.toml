@@ -99,8 +99,8 @@ oya-check-layered-architecture-discipline = { path = "../../../libs/oya-check-la
 oya-check-client-stack-discipline = { path = "../../../libs/oya-check-client-stack-discipline" }
 oya-intelligence-step-file-adapter = { path = "../../../oya/intelligence/crates/oya-intelligence-step-file-adapter" }
 oya-intelligence-step-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-step-domain" }
-oya-audit-chain-domain = { path = "../../../oya/audit-chain/crates/oya-audit-chain-domain" }
-oya-audit-chain-file-adapter = { path = "../../../oya/audit-chain/crates/oya-audit-chain-file-adapter" }
+audit-chain-domain = { path = "../../../audit/core/chain-domain" }
+audit-file-adapter = { path = "../../../audit/adapters/file" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
 messaging-file-adapter = { path = "../../../messaging/adapters/file" }
 messaging-domain = { path = "../../../messaging/core/domain" }
