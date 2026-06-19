@@ -165,6 +165,28 @@ members = [
   # subdirs mail/messenger/meet/contact-center, collision-avoiding) is excluded below (no Cargo.toml),
   # and the absorbed dirs' other non-crate artifacts are homed in phase-2 (task #62).
   "comms/*/*",
+  # Capability-first home (ADR-0562 strangler move 13): the `k8s` capability absorbs the former
+  # cloud/managed-k8s-cluster-lifecycle + cloud/managed-k8s-control-plane-host +
+  # cloud/managed-k8s-sla-observability + cloud/managed-k8s-tenant-quota crates into
+  # k8s/{core,ports,adapters,facade} (all four faces), spread over FOUR product cells
+  # (cluster-lifecycle, three crates; control-plane-host, five crates; sla-observability, four
+  # crates; tenant-quota, five crates). k8s is the managed-Kubernetes plane (dag_node control-plane):
+  # the SOLD managed-k8s product (facade) above the owned control-plane (core). Each crate is
+  # de-branded to the capability prefix with a `<cell>-<role>` leaf so cargo == path-tail stays
+  # unique across the four cells (k8s-cluster-lifecycle-kernel / k8s-cluster-lifecycle-api /
+  # k8s-cluster-lifecycle-app / k8s-control-plane-host-kernel / k8s-control-plane-host-api /
+  # k8s-control-plane-host-adapter-inmemory / k8s-control-plane-host-adapter-capi /
+  # k8s-control-plane-host-app / k8s-sla-observability-kernel / k8s-sla-observability-api /
+  # k8s-sla-observability-adapter-inmemory / k8s-sla-observability-app / k8s-tenant-quota-kernel /
+  # k8s-tenant-quota-api / k8s-tenant-quota-adapter-inmemory / k8s-tenant-quota-adapter-cedar /
+  # k8s-tenant-quota-app), so each leaf segment stays a bare `*`. `k8s/*/*` covers all seventeen
+  # faces/leaves with one glob, satisfying ADR-0538's glob-only members contract (no explicit-path
+  # members); the co-moved k8s/observability/slos non-crate SLO subtree (per-service subdirs
+  # cluster-lifecycle/control-plane-host/sla-observability/tenant-quota, collision-avoiding for the
+  # shared provisioning-latency basename) is excluded below (no Cargo.toml), and the absorbed dirs'
+  # other non-crate artifacts are homed in phase-2 (task #62). cloud/cloud-k8s is crate-empty
+  # (docs/IaC only) and is absorbed dir-slug-only (no crate move).
+  "k8s/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -190,6 +212,7 @@ exclude = [
   "marketplace/observability",
   "compliance/observability",
   "comms/observability",
+  "k8s/observability",
 ]
 resolver = "2"
 

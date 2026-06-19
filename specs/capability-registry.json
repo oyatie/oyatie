@@ -216,6 +216,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
+        "k8s",
         "cloud/cloud-k8s",
         "cloud/managed-k8s-cluster-lifecycle",
         "cloud/managed-k8s-control-plane-host",
