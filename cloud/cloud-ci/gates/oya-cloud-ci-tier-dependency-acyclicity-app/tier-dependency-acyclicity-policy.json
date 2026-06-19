@@ -29,7 +29,8 @@
     "comms/*/*",
     "k8s/*/*",
     "tenancy/*/*",
-    "audit/*/*"
+    "audit/*/*",
+    "data/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -53,7 +54,8 @@
     "comms",
     "k8s",
     "tenancy",
-    "audit"
+    "audit",
+    "data"
   ],
   "stratum_rank_order": [
     "S0",

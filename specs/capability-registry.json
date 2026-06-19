@@ -173,6 +173,7 @@
         "data"
       ],
       "absorbs_current_dirs": [
+        "data",
         "cloud/cloud-data",
         "oya/ontology",
         "oya/data-pipeline",
