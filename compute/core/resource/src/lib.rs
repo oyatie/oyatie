@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use cell_region::{AzCode, CellId, RegionCode};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
+use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 const RESOURCE_SCHEMA_VERSION: u32 = 1;
 const RESOURCE_ID_PREFIX_OWNER: &str = "oya";
@@ -747,7 +747,7 @@ fn internal<T>(value: T) -> Classified<T> {
 
 #[cfg(test)]
 mod tests {
-    use oya_residency_domain::{
+    use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
 

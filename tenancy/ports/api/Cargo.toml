@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../network/core/residency" }
 tenancy-domain = { path = "../../core/domain" }
 
 [lib]

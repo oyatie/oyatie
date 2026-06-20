@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
         "//cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel:oya-cloud-kms-operator-kernel",
-        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//network/core/residency:network-residency",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "third-party//:futures",
         "third-party//:k8s-openapi",

@@ -11,7 +11,7 @@ cell-region = { path = "../../../../cell/core/region" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 
 [dev-dependencies]
-oya-residency-domain = { path = "../../../cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../../network/core/residency" }
 
 [lints]
 workspace = true

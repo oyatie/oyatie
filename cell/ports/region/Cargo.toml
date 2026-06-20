@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 cell-region = { path = "../../core/region" }
-oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../network/core/residency" }
 
 [lib]
 name = "cell_region_api"

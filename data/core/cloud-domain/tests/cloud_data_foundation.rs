@@ -4,7 +4,7 @@ use data_cloud_domain::{
     ReplicationMode, SchemaMigrationPolicy,
 };
 use oya_data_boundary_kernel::DataClass;
-use oya_residency_domain::{
+use network_residency::{
     PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     ResidencyClass,
 };

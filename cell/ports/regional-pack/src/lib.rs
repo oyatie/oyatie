@@ -9,7 +9,7 @@
 use std::collections::BTreeMap;
 
 use cell_regional_pack::{RegionalPack, RegionalPackError};
-use oya_residency_domain::{
+use network_residency::{
     RegionRef, RegionRefCreate, ResidencyClass, ResidencyError, TenantResidencyBindingCreate,
     TenantResidencyRegistry, infer_region_jurisdiction_label, parse_residency_class_label,
 };

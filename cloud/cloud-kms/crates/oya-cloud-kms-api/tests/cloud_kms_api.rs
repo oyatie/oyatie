@@ -15,7 +15,7 @@ use oya_cloud_kms_domain::{
     KmsKeyUsage, KmsRepo,
 };
 use oya_data_boundary_kernel::DataClass;
-use oya_residency_domain::ResidencyClass;
+use network_residency::ResidencyClass;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudKmsApiBoundaryContext {
     CloudKmsApiBoundaryContext {
