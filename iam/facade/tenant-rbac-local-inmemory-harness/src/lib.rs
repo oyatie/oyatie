@@ -12,8 +12,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_accounting_journal_app::AccountingPayrollPostingAuditEnvelope;
-use oya_accounting_journal_storage_adapter_inmemory::{
+use billing_accounting_app::AccountingPayrollPostingAuditEnvelope;
+use billing_accounting_storage_inmemory_adapter::{
     AccountingJournalStoragePort, AccountingStorageError, AccountingStoredRecord,
     InMemoryAccountingJournalStore,
 };

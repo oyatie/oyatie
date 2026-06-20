@@ -7,10 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-billing-domain = { path = "../../../cloud/cloud-billing/crates/oya-cloud-billing-domain" }
+billing-domain = { path = "../../../billing/core/billing" }
 cell-region = { path = "../../../cell/core/region" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
-oya-metering-domain = { path = "../../../cloud/cloud-billing/crates/oya-metering-domain" }
+billing-metering = { path = "../../../billing/core/metering" }
 
 [lib]
 name = "marketplace_cloud_domain"

@@ -33,7 +33,8 @@
     "workflow",
     "iam",
     "network",
-    "secrets"
+    "secrets",
+    "billing"
   ],
   "meta_directories": [
     "kernel",
@@ -70,6 +71,7 @@
     "iam",
     "network",
     "secrets",
+    "billing",
     "cloud",
     "oya",
     "libs",

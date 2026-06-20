@@ -10,10 +10,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_billing_domain::{BillingAccountId, CloudBillingError, CurrencyCode, Money};
+use billing_domain::{BillingAccountId, CloudBillingError, CurrencyCode, Money};
 use cell_region::RegionCode;
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_metering_domain::{
+use billing_metering::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
 };
 
@@ -1108,7 +1108,7 @@ fn financial<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_metering_domain::{MeterUnit, MeterUnitKind};
+    use billing_metering::{MeterUnit, MeterUnitKind};
 
     fn seller_application() -> SellerApplicationCreate {
         SellerApplicationCreate {

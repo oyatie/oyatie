@@ -1,385 +1,641 @@
 {
-  "capability": "secrets",
+  "capability": "billing",
   "crate_dirs": [
     {
-      "new_path": "secrets/adapters/kms-oci",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-oci"
+      "new_path": "billing/ports/tax-api",
+      "old_path": "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app"
     },
     {
-      "new_path": "secrets/adapters/kms-openbao",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao"
+      "new_path": "billing/facade/billing-service",
+      "old_path": "cloud/cloud-billing/crates/oya-billing"
     },
     {
-      "new_path": "secrets/ports/kms-api",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api"
+      "new_path": "billing/core/billing",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-domain"
     },
     {
-      "new_path": "secrets/core/kms-domain",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain"
+      "new_path": "billing/core/billing-kernel",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-kernel"
     },
     {
-      "new_path": "secrets/core/kms-enclave",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel"
+      "new_path": "billing/facade/meter-service",
+      "old_path": "cloud/cloud-billing/crates/oya-meter"
     },
     {
-      "new_path": "secrets/facade/kms-operator-app",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app"
+      "new_path": "billing/core/metering",
+      "old_path": "cloud/cloud-billing/crates/oya-metering-domain"
     },
     {
-      "new_path": "secrets/adapters/kms-operator-k8s",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter"
+      "new_path": "billing/facade/saas-bench",
+      "old_path": "cloud/cloud-billing/crates/oya-saas-bench-app"
     },
     {
-      "new_path": "secrets/core/kms-operator-kernel",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel"
+      "new_path": "billing/ports/finops-api",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-api"
     },
     {
-      "new_path": "secrets/core/domain",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain"
+      "new_path": "billing/core/finops",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-domain"
     },
     {
-      "new_path": "secrets/adapters/file",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter"
+      "new_path": "billing/core/finops-kernel",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel"
+    },
+    {
+      "new_path": "billing/facade/cost-service",
+      "old_path": "cloud/cloud-finops/crates/oya-cost"
+    },
+    {
+      "new_path": "billing/ports/accounting-api",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-api"
+    },
+    {
+      "new_path": "billing/core/accounting-app",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-app"
+    },
+    {
+      "new_path": "billing/core/accounting-journal",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain"
+    },
+    {
+      "new_path": "billing/adapters/accounting-http",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-infrastructure"
+    },
+    {
+      "new_path": "billing/adapters/accounting-storage-inmemory",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-storage-adapter-inmemory"
     }
   ],
   "crate_idents": [
     {
-      "new": "secrets-kms-oci",
-      "old": "oya-cloud-kms-adapter-oci"
+      "new": "billing-accounting-api",
+      "old": "oya-accounting-journal-api"
     },
     {
-      "new": "secrets-kms-openbao",
-      "old": "oya-cloud-kms-adapter-openbao"
+      "new": "billing-accounting-app",
+      "old": "oya-accounting-journal-app"
     },
     {
-      "new": "secrets-kms-api",
-      "old": "oya-cloud-kms-api"
+      "new": "billing-accounting-journal",
+      "old": "oya-accounting-journal-domain"
     },
     {
-      "new": "secrets-kms-domain",
-      "old": "oya-cloud-kms-domain"
+      "new": "billing-accounting-http-adapter",
+      "old": "oya-accounting-journal-infrastructure"
     },
     {
-      "new": "secrets-kms-enclave",
-      "old": "oya-cloud-kms-enclave-kernel"
+      "new": "billing-accounting-storage-inmemory-adapter",
+      "old": "oya-accounting-journal-storage-adapter-inmemory"
     },
     {
-      "new": "secrets-kms-operator-app",
-      "old": "oya-cloud-kms-operator-app"
+      "new": "billing-service",
+      "old": "oya-billing"
     },
     {
-      "new": "secrets-kms-operator-k8s",
-      "old": "oya-cloud-kms-operator-k8s-adapter"
+      "new": "billing-domain",
+      "old": "oya-cloud-billing-domain"
     },
     {
-      "new": "secrets-kms-operator-kernel",
-      "old": "oya-cloud-kms-operator-kernel"
+      "new": "billing-kernel",
+      "old": "oya-cloud-billing-kernel"
     },
     {
-      "new": "secrets-domain",
-      "old": "oya-secrets-domain"
+      "new": "billing-tax-api",
+      "old": "oya-cloud-billing-tax-app"
     },
     {
-      "new": "secrets-file",
-      "old": "oya-secrets-file-adapter"
+      "new": "billing-finops-api",
+      "old": "oya-cloud-finops-api"
+    },
+    {
+      "new": "billing-finops",
+      "old": "oya-cloud-finops-domain"
+    },
+    {
+      "new": "billing-finops-kernel",
+      "old": "oya-cloud-finops-kernel"
+    },
+    {
+      "new": "billing-cost-service",
+      "old": "oya-cost"
+    },
+    {
+      "new": "billing-meter-service",
+      "old": "oya-meter"
+    },
+    {
+      "new": "billing-metering",
+      "old": "oya-metering-domain"
+    },
+    {
+      "new": "billing-saas-bench",
+      "old": "oya-saas-bench-app"
     }
   ],
   "files": [
     {
-      "new_path": "secrets/adapters/kms-oci/BUCK",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-oci/BUCK"
+      "new_path": "billing/ports/tax-api/BUCK",
+      "old_path": "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app/BUCK"
     },
     {
-      "new_path": "secrets/adapters/kms-oci/Cargo.toml",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-oci/Cargo.toml"
+      "new_path": "billing/ports/tax-api/Cargo.toml",
+      "old_path": "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app/Cargo.toml"
     },
     {
-      "new_path": "secrets/adapters/kms-oci/src/lib.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-oci/src/lib.rs"
+      "new_path": "billing/ports/tax-api/src/lib.rs",
+      "old_path": "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app/src/lib.rs"
     },
     {
-      "new_path": "secrets/adapters/kms-openbao/BUCK",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/BUCK"
+      "new_path": "billing/ports/tax-api/tests/cloud_billing_invoice_api.rs",
+      "old_path": "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs"
     },
     {
-      "new_path": "secrets/adapters/kms-openbao/Cargo.toml",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/Cargo.toml"
+      "new_path": "billing/observability/slos/cloud-billing-tax/autosharding-events.openslo.yaml",
+      "old_path": "cloud/cloud-billing-tax/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "secrets/adapters/kms-openbao/src/lib.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/src/lib.rs"
+      "new_path": "billing/facade/billing-service/BUCK",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/BUCK"
     },
     {
-      "new_path": "secrets/adapters/kms-openbao/src/root_custody.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/src/root_custody.rs"
+      "new_path": "billing/facade/billing-service/Cargo.toml",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/Cargo.toml"
     },
     {
-      "new_path": "secrets/adapters/kms-openbao/tests/root_custody.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/tests/root_custody.rs"
+      "new_path": "billing/facade/billing-service/src/config.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/config.rs"
     },
     {
-      "new_path": "secrets/ports/kms-api/BUCK",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api/BUCK"
+      "new_path": "billing/facade/billing-service/src/grpc/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/grpc/mod.rs"
     },
     {
-      "new_path": "secrets/ports/kms-api/Cargo.toml",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api/Cargo.toml"
+      "new_path": "billing/facade/billing-service/src/invoicing/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/invoicing/mod.rs"
     },
     {
-      "new_path": "secrets/ports/kms-api/src/lib.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api/src/lib.rs"
+      "new_path": "billing/facade/billing-service/src/lib.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/lib.rs"
     },
     {
-      "new_path": "secrets/ports/kms-api/tests/cloud_kms_api.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api/tests/cloud_kms_api.rs"
+      "new_path": "billing/facade/billing-service/src/main.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/main.rs"
     },
     {
-      "new_path": "secrets/core/kms-domain/BUCK",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain/BUCK"
+      "new_path": "billing/facade/billing-service/src/money/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/money/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-domain/Cargo.toml",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain/Cargo.toml"
+      "new_path": "billing/facade/billing-service/src/observability/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/observability/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-domain/src/envelope_keys.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain/src/envelope_keys.rs"
+      "new_path": "billing/facade/billing-service/src/payment/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/payment/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-domain/src/lib.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain/src/lib.rs"
+      "new_path": "billing/facade/billing-service/src/pricing/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/pricing/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/BUCK",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/BUCK"
+      "new_path": "billing/facade/billing-service/src/rest/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/rest/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/Cargo.toml",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/Cargo.toml"
+      "new_path": "billing/facade/billing-service/src/storage/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/storage/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/src/chain.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/chain.rs"
+      "new_path": "billing/facade/billing-service/src/subscription/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-billing/src/subscription/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/src/dek_cache.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/dek_cache.rs"
+      "new_path": "billing/core/billing/BUCK",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-domain/BUCK"
     },
     {
-      "new_path": "secrets/core/kms-enclave/src/lib.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/lib.rs"
+      "new_path": "billing/core/billing/Cargo.toml",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-domain/Cargo.toml"
     },
     {
-      "new_path": "secrets/core/kms-enclave/src/material.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/material.rs"
+      "new_path": "billing/core/billing/src/lib.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-domain/src/lib.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/src/mlocked.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/mlocked.rs"
+      "new_path": "billing/core/billing/tests/cloud_billing_foundation.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/src/provenance.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/provenance.rs"
+      "new_path": "billing/core/billing/tests/invoice_lifecycle_transitions.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-domain/tests/invoice_lifecycle_transitions.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/src/shred.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/shred.rs"
+      "new_path": "billing/core/billing-kernel/BUCK",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-kernel/BUCK"
     },
     {
-      "new_path": "secrets/core/kms-enclave/src/token.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/token.rs"
+      "new_path": "billing/core/billing-kernel/Cargo.toml",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-kernel/Cargo.toml"
     },
     {
-      "new_path": "secrets/core/kms-enclave/tests/crypto_shred.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/crypto_shred.rs"
+      "new_path": "billing/core/billing-kernel/src/lib.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-kernel/src/lib.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/tests/envelope_round_trip.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/envelope_round_trip.rs"
+      "new_path": "billing/facade/meter-service/BUCK",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/BUCK"
     },
     {
-      "new_path": "secrets/core/kms-enclave/tests/one_way_door.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/one_way_door.rs"
+      "new_path": "billing/facade/meter-service/Cargo.toml",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/Cargo.toml"
     },
     {
-      "new_path": "secrets/core/kms-enclave/tests/rotation_decrypt_only.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/rotation_decrypt_only.rs"
+      "new_path": "billing/facade/meter-service/src/aggregation/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/aggregation/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-enclave/tests/static_stability.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/static_stability.rs"
+      "new_path": "billing/facade/meter-service/src/config.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/config.rs"
     },
     {
-      "new_path": "secrets/facade/kms-operator-app/BUCK",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/BUCK"
+      "new_path": "billing/facade/meter-service/src/grpc/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/grpc/mod.rs"
     },
     {
-      "new_path": "secrets/facade/kms-operator-app/Cargo.toml",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/Cargo.toml"
+      "new_path": "billing/facade/meter-service/src/ingest/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/ingest/mod.rs"
     },
     {
-      "new_path": "secrets/facade/kms-operator-app/src/lib.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/src/lib.rs"
+      "new_path": "billing/facade/meter-service/src/lib.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/lib.rs"
     },
     {
-      "new_path": "secrets/facade/kms-operator-app/src/main.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/src/main.rs"
+      "new_path": "billing/facade/meter-service/src/main.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/main.rs"
     },
     {
-      "new_path": "secrets/facade/kms-operator-app/tests/app.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/tests/app.rs"
+      "new_path": "billing/facade/meter-service/src/observability/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/observability/mod.rs"
     },
     {
-      "new_path": "secrets/adapters/kms-operator-k8s/BUCK",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/BUCK"
+      "new_path": "billing/facade/meter-service/src/pulsar/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/pulsar/mod.rs"
     },
     {
-      "new_path": "secrets/adapters/kms-operator-k8s/Cargo.toml",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/Cargo.toml"
+      "new_path": "billing/facade/meter-service/src/quota/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/quota/mod.rs"
     },
     {
-      "new_path": "secrets/adapters/kms-operator-k8s/src/lib.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/src/lib.rs"
+      "new_path": "billing/facade/meter-service/src/rest/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/rest/mod.rs"
     },
     {
-      "new_path": "secrets/adapters/kms-operator-k8s/tests/adapter.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/tests/adapter.rs"
+      "new_path": "billing/facade/meter-service/src/storage/mod.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-meter/src/storage/mod.rs"
     },
     {
-      "new_path": "secrets/core/kms-operator-kernel/BUCK",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/BUCK"
+      "new_path": "billing/core/metering/BUCK",
+      "old_path": "cloud/cloud-billing/crates/oya-metering-domain/BUCK"
     },
     {
-      "new_path": "secrets/core/kms-operator-kernel/Cargo.toml",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/Cargo.toml"
+      "new_path": "billing/core/metering/Cargo.toml",
+      "old_path": "cloud/cloud-billing/crates/oya-metering-domain/Cargo.toml"
     },
     {
-      "new_path": "secrets/core/kms-operator-kernel/src/lib.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/src/lib.rs"
+      "new_path": "billing/core/metering/src/lib.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-metering-domain/src/lib.rs"
     },
     {
-      "new_path": "secrets/core/kms-operator-kernel/tests/reconcile.rs",
-      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/tests/reconcile.rs"
+      "new_path": "billing/facade/saas-bench/BUCK",
+      "old_path": "cloud/cloud-billing/crates/oya-saas-bench-app/BUCK"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-kms/autosharding-events.openslo.yaml",
-      "old_path": "cloud/cloud-kms/slos/autosharding-events.openslo.yaml"
+      "new_path": "billing/facade/saas-bench/Cargo.toml",
+      "old_path": "cloud/cloud-billing/crates/oya-saas-bench-app/Cargo.toml"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-kms/kms-dek-cache-static-stability.openslo.yaml",
-      "old_path": "cloud/cloud-kms/slos/kms-dek-cache-static-stability.openslo.yaml"
+      "new_path": "billing/facade/saas-bench/src/lib.rs",
+      "old_path": "cloud/cloud-billing/crates/oya-saas-bench-app/src/lib.rs"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-kms/kms-envelope-wrap-latency-p99.openslo.yaml",
-      "old_path": "cloud/cloud-kms/slos/kms-envelope-wrap-latency-p99.openslo.yaml"
+      "new_path": "billing/observability/slos/cloud-billing/audit-chain-seal-latency.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/audit-chain-seal-latency.openslo.yaml"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-kms/kms-reconcile-convergence.openslo.yaml",
-      "old_path": "cloud/cloud-kms/slos/kms-reconcile-convergence.openslo.yaml"
+      "new_path": "billing/observability/slos/cloud-billing/autosharding-events.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/BUCK",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/BUCK"
+      "new_path": "billing/observability/slos/cloud-billing/cap-breach-detection-latency.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/cap-breach-detection-latency.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/Cargo.toml",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/Cargo.toml"
+      "new_path": "billing/observability/slos/cloud-billing/focus-export-completion-time.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/focus-export-completion-time.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/src/lease_lifecycle.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/src/lease_lifecycle.rs"
+      "new_path": "billing/observability/slos/cloud-billing/fx-lock-freshness.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/fx-lock-freshness.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/src/lib.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs"
+      "new_path": "billing/observability/slos/cloud-billing/invoice-generation-time.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/invoice-generation-time.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/src/zeroizing.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/src/zeroizing.rs"
+      "new_path": "billing/observability/slos/cloud-billing/metering-event-ingest-latency.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/metering-event-ingest-latency.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/tests/cloud_secret_foundation.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/tests/cloud_secret_foundation.rs"
+      "new_path": "billing/observability/slos/cloud-billing/rev-share-settlement-time.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/rev-share-settlement-time.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/tests/lease_lifecycle.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/tests/lease_lifecycle.rs"
+      "new_path": "billing/observability/slos/cloud-billing/seat-counting-availability.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/seat-counting-availability.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/tests/secret_reference_uri.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs"
+      "new_path": "billing/observability/slos/cloud-billing/tenant-class-read-api-latency.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/tenant-class-read-api-latency.openslo.yaml"
     },
     {
-      "new_path": "secrets/core/domain/tests/secret_vault.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_vault.rs"
+      "new_path": "billing/observability/slos/cloud-billing/usage-aggregation-time.openslo.yaml",
+      "old_path": "cloud/cloud-billing/slos/usage-aggregation-time.openslo.yaml"
     },
     {
-      "new_path": "secrets/adapters/file/BUCK",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/BUCK"
+      "new_path": "billing/ports/finops-api/BUCK",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-api/BUCK"
     },
     {
-      "new_path": "secrets/adapters/file/Cargo.toml",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/Cargo.toml"
+      "new_path": "billing/ports/finops-api/Cargo.toml",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-api/Cargo.toml"
     },
     {
-      "new_path": "secrets/adapters/file/src/lib.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/src/lib.rs"
+      "new_path": "billing/ports/finops-api/src/lib.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-api/src/lib.rs"
     },
     {
-      "new_path": "secrets/adapters/file/tests/file_secret_store.rs",
-      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/tests/file_secret_store.rs"
+      "new_path": "billing/ports/finops-api/tests/cloud_finops_report_api.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-api/tests/cloud_finops_report_api.rs"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml",
-      "old_path": "cloud/cloud-secrets/slos/audit-log-completeness.openslo.yaml"
+      "new_path": "billing/core/finops/BUCK",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-domain/BUCK"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-secrets/autosharding-events.openslo.yaml",
-      "old_path": "cloud/cloud-secrets/slos/autosharding-events.openslo.yaml"
+      "new_path": "billing/core/finops/Cargo.toml",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-domain/Cargo.toml"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml",
-      "old_path": "cloud/cloud-secrets/slos/hsm-availability.openslo.yaml"
+      "new_path": "billing/core/finops/src/lib.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-domain/src/lib.rs"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml",
-      "old_path": "cloud/cloud-secrets/slos/key-rotation-correctness.openslo.yaml"
+      "new_path": "billing/core/finops-kernel/BUCK",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel/BUCK"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml",
-      "old_path": "cloud/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml"
+      "new_path": "billing/core/finops-kernel/Cargo.toml",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel/Cargo.toml"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml",
-      "old_path": "cloud/cloud-secrets/slos/secret-resolve-latency.openslo.yaml"
+      "new_path": "billing/core/finops-kernel/src/accounting_period.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel/src/accounting_period.rs"
     },
     {
-      "new_path": "secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml",
-      "old_path": "cloud/cloud-secrets/slos/secret-write-latency.openslo.yaml"
+      "new_path": "billing/core/finops-kernel/src/finance.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel/src/finance.rs"
     },
     {
-      "new_path": "registry/catalog/secrets-kms-oci.yaml",
-      "old_path": "registry/catalog/oya-cloud-kms-adapter-oci.yaml"
+      "new_path": "billing/core/finops-kernel/src/finops_public.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel/src/finops_public.rs"
     },
     {
-      "new_path": "registry/catalog/secrets-kms-openbao.yaml",
-      "old_path": "registry/catalog/oya-cloud-kms-adapter-openbao.yaml"
+      "new_path": "billing/core/finops-kernel/src/lib.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/secrets-kms-api.yaml",
-      "old_path": "registry/catalog/oya-cloud-kms-api.yaml"
+      "new_path": "billing/core/finops-kernel/src/payroll_period.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel/src/payroll_period.rs"
     },
     {
-      "new_path": "registry/catalog/secrets-kms-domain.yaml",
-      "old_path": "registry/catalog/oya-cloud-kms-domain.yaml"
+      "new_path": "billing/core/finops-kernel/src/savings_portfolio.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel/src/savings_portfolio.rs"
     },
     {
-      "new_path": "registry/catalog/secrets-domain.yaml",
-      "old_path": "registry/catalog/oya-secrets-domain.yaml"
+      "new_path": "billing/facade/cost-service/BUCK",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/BUCK"
     },
     {
-      "new_path": "registry/catalog/secrets-file.yaml",
-      "old_path": "registry/catalog/oya-secrets-file-adapter.yaml"
+      "new_path": "billing/facade/cost-service/Cargo.toml",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/Cargo.toml"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/allocation/mod.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/allocation/mod.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/attribution/mod.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/attribution/mod.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/config.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/config.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/grpc/mod.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/grpc/mod.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/lib.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/lib.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/main.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/main.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/observability/mod.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/observability/mod.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/rest/mod.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/rest/mod.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/sli/mod.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/sli/mod.rs"
+    },
+    {
+      "new_path": "billing/facade/cost-service/src/storage/mod.rs",
+      "old_path": "cloud/cloud-finops/crates/oya-cost/src/storage/mod.rs"
+    },
+    {
+      "new_path": "billing/ports/accounting-api/BUCK",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-api/BUCK"
+    },
+    {
+      "new_path": "billing/ports/accounting-api/Cargo.toml",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-api/Cargo.toml"
+    },
+    {
+      "new_path": "billing/ports/accounting-api/src/lib.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-api/src/lib.rs"
+    },
+    {
+      "new_path": "billing/ports/accounting-api/tests/contracts.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-api/tests/contracts.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-app/BUCK",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-app/BUCK"
+    },
+    {
+      "new_path": "billing/core/accounting-app/Cargo.toml",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-app/Cargo.toml"
+    },
+    {
+      "new_path": "billing/core/accounting-app/src/lib.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-app/src/lib.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-app/tests/app_envelopes.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-app/tests/app_envelopes.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/BUCK",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/BUCK"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/Cargo.toml",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/Cargo.toml"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/src/lib.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/src/lib.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/tests/ap.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/tests/ap.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/tests/close.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/tests/close.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/tests/journal.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/tests/journal.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/tests/payroll_bridge.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/tests/payroll_bridge.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/tests/rulepack_manifest.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/tests/rulepack_manifest.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/tests/support.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/tests/support.rs"
+    },
+    {
+      "new_path": "billing/core/accounting-journal/tests/vat.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain/tests/vat.rs"
+    },
+    {
+      "new_path": "billing/adapters/accounting-http/BUCK",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-infrastructure/BUCK"
+    },
+    {
+      "new_path": "billing/adapters/accounting-http/Cargo.toml",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-infrastructure/Cargo.toml"
+    },
+    {
+      "new_path": "billing/adapters/accounting-http/src/lib.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-infrastructure/src/lib.rs"
+    },
+    {
+      "new_path": "billing/adapters/accounting-http/tests/runtime.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-infrastructure/tests/runtime.rs"
+    },
+    {
+      "new_path": "billing/adapters/accounting-storage-inmemory/BUCK",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-storage-adapter-inmemory/BUCK"
+    },
+    {
+      "new_path": "billing/adapters/accounting-storage-inmemory/Cargo.toml",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-storage-adapter-inmemory/Cargo.toml"
+    },
+    {
+      "new_path": "billing/adapters/accounting-storage-inmemory/src/lib.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-storage-adapter-inmemory/src/lib.rs"
+    },
+    {
+      "new_path": "billing/adapters/accounting-storage-inmemory/tests/storage.rs",
+      "old_path": "oya/accounting/crates/oya-accounting-journal-storage-adapter-inmemory/tests/storage.rs"
+    },
+    {
+      "new_path": "registry/catalog/billing-accounting-api.yaml",
+      "old_path": "registry/catalog/oya-accounting-journal-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-accounting-app.yaml",
+      "old_path": "registry/catalog/oya-accounting-journal-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-accounting-journal.yaml",
+      "old_path": "registry/catalog/oya-accounting-journal-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-accounting-http-adapter.yaml",
+      "old_path": "registry/catalog/oya-accounting-journal-infrastructure.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-accounting-storage-inmemory-adapter.yaml",
+      "old_path": "registry/catalog/oya-accounting-journal-storage-adapter-inmemory.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-service.yaml",
+      "old_path": "registry/catalog/oya-billing.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-domain.yaml",
+      "old_path": "registry/catalog/oya-cloud-billing-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-kernel.yaml",
+      "old_path": "registry/catalog/oya-cloud-billing-kernel.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-tax-api.yaml",
+      "old_path": "registry/catalog/oya-cloud-billing-tax-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-finops-api.yaml",
+      "old_path": "registry/catalog/oya-cloud-finops-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-finops.yaml",
+      "old_path": "registry/catalog/oya-cloud-finops-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-finops-kernel.yaml",
+      "old_path": "registry/catalog/oya-cloud-finops-kernel.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-cost-service.yaml",
+      "old_path": "registry/catalog/oya-cost.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-meter-service.yaml",
+      "old_path": "registry/catalog/oya-meter.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-metering.yaml",
+      "old_path": "registry/catalog/oya-metering-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/billing-saas-bench.yaml",
+      "old_path": "registry/catalog/oya-saas-bench-app.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"
