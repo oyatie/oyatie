@@ -5,13 +5,13 @@ version.workspace = true
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
-description = "Cedar RBAC adapter for managed-K8s tenant quota: reuses oya-identity-workload-authz-cedar-adapter. ADR-0376/0183."
+description = "Cedar RBAC adapter for managed-K8s tenant quota: reuses iam-identity-workload-authz-cedar. ADR-0376/0183."
 
 [dependencies]
 k8s-tenant-quota-api = { path = "../../ports/tenant-quota-api" }
 k8s-tenant-quota-kernel = { path = "../../core/tenant-quota-kernel" }
-oya-identity-workload-authz-cedar-adapter = { path = "../../../oya/identity/crates/oya-identity-workload-authz-cedar-adapter" }
-oya-identity-workload-domain = { path = "../../../oya/identity/crates/oya-identity-workload-domain" }
+iam-identity-workload-authz-cedar = { path = "../../../iam/adapters/identity-workload-authz-cedar" }
+iam-identity-workload-domain = { path = "../../../iam/core/identity-workload-domain" }
 cedar-policy = { workspace = true }
 serde = { workspace = true }
 

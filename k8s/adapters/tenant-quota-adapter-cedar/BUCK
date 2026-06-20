@@ -7,8 +7,8 @@ rust_library(
     deps = [
         "//k8s/ports/tenant-quota-api:k8s-tenant-quota-api",
         "//k8s/core/tenant-quota-kernel:k8s-tenant-quota-kernel",
-        "//oya/identity/crates/oya-identity-workload-authz-cedar-adapter:oya-identity-workload-authz-cedar-adapter",
-        "//oya/identity/crates/oya-identity-workload-domain:oya-identity-workload-domain",
+        "//iam/adapters/identity-workload-authz-cedar:iam-identity-workload-authz-cedar",
+        "//iam/core/identity-workload-domain:iam-identity-workload-domain",
         "third-party//:cedar-policy",
         "third-party//:serde",
     ],
@@ -23,8 +23,8 @@ rust_test(
     deps = [
         "//k8s/ports/tenant-quota-api:k8s-tenant-quota-api",
         "//k8s/core/tenant-quota-kernel:k8s-tenant-quota-kernel",
-        "//oya/identity/crates/oya-identity-workload-authz-cedar-adapter:oya-identity-workload-authz-cedar-adapter",
-        "//oya/identity/crates/oya-identity-workload-domain:oya-identity-workload-domain",
+        "//iam/adapters/identity-workload-authz-cedar:iam-identity-workload-authz-cedar",
+        "//iam/core/identity-workload-domain:iam-identity-workload-domain",
         "third-party//:cedar-policy",
         "third-party//:serde",
     ],

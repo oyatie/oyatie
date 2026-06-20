@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_iam_domain::IamRoleId;
+use iam_cloud_domain::IamRoleId;
 use oya_cloud_network_domain::SecurityGroupId;
 use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{

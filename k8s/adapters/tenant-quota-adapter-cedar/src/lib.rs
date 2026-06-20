@@ -25,11 +25,11 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_identity_workload_authz_cedar_adapter::{
+use iam_identity_workload_authz_cedar::{
     ActionCondition, CedarWorkloadAuthorizer, Policy, PrincipalCondition, ResourceCondition,
     WorkloadAuthorizer,
 };
-use oya_identity_workload_domain::{Action, AuthorizationRequest, Resource, WorkloadPrincipal};
+use iam_identity_workload_domain::{Action, AuthorizationRequest, Resource, WorkloadPrincipal};
 use k8s_tenant_quota_kernel::{RbacRole, TenantId};
 
 /// Errors from the Cedar RBAC authorizer.
@@ -173,7 +173,7 @@ impl QuotaRbacAuthorizer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_identity_workload_domain::WorkloadState;
+    use iam_identity_workload_domain::WorkloadState;
 
     fn active_principal(tenant: &str, scope: &str) -> WorkloadPrincipal {
         let mut p = WorkloadPrincipal::provision(tenant, "wl_admin_01", "cap.quota.admin")
