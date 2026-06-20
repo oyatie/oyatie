@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//cell/core/region:cell-region",
-        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//network/core/residency:network-residency",
     ],
 )
 
@@ -19,6 +19,6 @@ rust_test(
     deps = [
         ":cell-region-api",
         "//cell/core/region:cell-region",
-        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//network/core/residency:network-residency",
     ],
 )

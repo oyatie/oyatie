@@ -13,7 +13,7 @@ compute-resource = { path = "../../../compute/core/resource" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
 observability-domain = { path = "../domain" }
-oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../network/core/residency" }
 
 [lib]
 name = "observability_aggregate"

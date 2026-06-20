@@ -1271,7 +1271,7 @@ mod tests {
             tenant_id: "ten_unit".to_string(),
             name: "unit-assets".to_string(),
             region: "region-home".to_string(),
-            residency: oya_residency_domain::ResidencyClass::StrictHomeRegion,
+            residency: network_residency::ResidencyClass::StrictHomeRegion,
             tier: BucketTier::Standard,
             replication: ReplicationPolicyCreate::Regional,
             encryption: EncryptionMode::SseKms,

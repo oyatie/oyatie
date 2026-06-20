@@ -7,7 +7,7 @@ pub mod design_partner_status;
 pub use design_partner_status::{DesignPartnerStatus, DesignPartnerStatusError};
 
 use oya_data_boundary_kernel::{Classified, DataClass};
-use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
+use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Tenant {
@@ -64,7 +64,7 @@ impl Tenant {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_residency_domain::{
+    use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
 

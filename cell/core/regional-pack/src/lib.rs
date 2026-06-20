@@ -21,7 +21,7 @@ pub use pack_onboarding_phase::{
 };
 
 use oya_data_boundary_kernel::{Classified, DataClass};
-use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
+use network_residency::{ResidencyClass, parse_residency_class_label};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RegionalPack {

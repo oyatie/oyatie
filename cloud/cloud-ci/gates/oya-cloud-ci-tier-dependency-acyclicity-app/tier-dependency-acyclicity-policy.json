@@ -32,7 +32,8 @@
     "audit/*/*",
     "data/*/*",
     "workflow/*/*",
-    "iam/*/*"
+    "iam/*/*",
+    "network/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -59,7 +60,8 @@
     "audit",
     "data",
     "workflow",
-    "iam"
+    "iam",
+    "network"
   ],
   "stratum_rank_order": [
     "S0",

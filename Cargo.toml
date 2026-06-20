@@ -259,6 +259,22 @@ members = [
   # Cargo.toml), and the intentionally crate-free oya/oya-identity + oya/consent-graph dirs are homed
   # in phase-2 (task #62).
   "iam/*/*",
+  # network capability (MOVE-19, ADR-0562): homes cloud/cloud-network + cloud/cloud-network-dns
+  # crates → network/{core,ports,adapters}/<leaf> (7 crates: core 2 / ports 3 / adapters 2; no
+  # facade — the network + DNS substrate IS the engine we RUN, not a sold product surface). The
+  # network + DNS substrate: the cloud-network catalog/VPC/LB/route domain + the platform-wide
+  # ADR-0049 residency-class kernel are core; the vpc/lb/dns trait + DTO seams are ports; the
+  # oci + selfhosted transient provider impls are adapters. The de-branded cargo name ==
+  # network-<leaf> path-tail (the legacy oya-cloud-network-X / oya-residency-domain forms drop to
+  # the `network-` capability slug, role suffix dropped where the face implies it), so each leaf
+  # segment stays a bare `*`. `network/*/*` covers all seven faces/leaves with one glob, satisfying
+  # ADR-0538's glob-only members contract (no explicit-path members — the codemod-emitted literals
+  # are collapsed to this glob); the co-moved network/observability/slos non-crate SLO subtree
+  # (per-service subdirs cloud-network/cloud-network-dns, collision-avoiding for the shared
+  # autosharding-events.openslo.yaml basename across the two source dirs) is excluded below (no
+  # Cargo.toml), and the absorbed dirs' other non-crate artifacts (docs/PRD/IPs/contracts) are
+  # homed in phase-2 (task #62).
+  "network/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -290,6 +306,7 @@ exclude = [
   "data/observability",
   "workflow/observability",
   "iam/observability",
+  "network/observability",
 ]
 resolver = "2"
 

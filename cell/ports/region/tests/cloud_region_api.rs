@@ -12,7 +12,7 @@ use cell_region::{
     AzState, CellCapacity, CellUtilization, CloudAzCreate, CloudCellCreate, CloudCellState,
     CloudRegionCatalog, CloudRegionCreate, RegionState, TenantDensityClass,
 };
-use oya_residency_domain::ResidencyClass;
+use network_residency::ResidencyClass;
 
 #[test]
 fn openapi_runtime_binding_contracts_are_covered() {

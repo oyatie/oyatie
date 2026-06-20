@@ -31,7 +31,8 @@
     "audit",
     "data",
     "workflow",
-    "iam"
+    "iam",
+    "network"
   ],
   "meta_directories": [
     "kernel",
@@ -66,6 +67,7 @@
     "data",
     "workflow",
     "iam",
+    "network",
     "cloud",
     "oya",
     "libs",

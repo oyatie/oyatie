@@ -7,7 +7,7 @@ use cell_region::{
     AzState, CloudAz, CloudCell, CloudCellState, CloudRegion, CloudRegionCatalog, CloudRegionError,
     RegionCode, RegionState, TenantDensityClass,
 };
-use oya_residency_domain::ResidencyClass;
+use network_residency::ResidencyClass;
 
 pub const CLOUD_REGION_LIST_SURFACE: &str = "cloud.region.list";
 pub const CLOUD_AZ_LIST_SURFACE: &str = "cloud.az.list";

@@ -19,7 +19,7 @@ use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
 use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
-use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
+use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 const OBSERVABILITY_SCHEMA_VERSION: u32 = 1;
 const AUDIT_RECORD_SCHEMA_VERSION: u32 = 1;
@@ -1640,7 +1640,7 @@ fn is_ascii_token_with_slash(value: &str) -> bool {
 mod tests {
     use audit_chain_domain::Plane;
     use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
-    use oya_residency_domain::{
+    use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
 

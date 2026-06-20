@@ -10,7 +10,7 @@ license = "Apache-2.0"
 observability-aggregate = { path = "../aggregate" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
-oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../network/core/residency" }
 
 [lints]
 workspace = true

@@ -18,7 +18,7 @@ doctest = false
 oya-cloud-kms-operator-kernel = { path = "../oya-cloud-kms-operator-kernel" }
 oya-cloud-kms-domain = { path = "../oya-cloud-kms-domain" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-residency-domain = { path = "../../../cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../../network/core/residency" }
 futures = "0.3"
 kube = { workspace = true }
 kube-runtime = { workspace = true }

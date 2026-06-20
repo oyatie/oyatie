@@ -122,7 +122,13 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
         live_keys, baseline.keys,
         "the live violation set must equal the frozen baseline exactly"
     );
-    assert_eq!(baseline.keys.len(), 12, "the frozen baseline holds the 12 pre-move tier inversions");
+    assert_eq!(
+        baseline.keys.len(),
+        9,
+        "the frozen baseline holds 9 tier inversions (12 at birth, less the 3 cloud-kms -> residency \
+         S-RANK-INVERSIONs burned down by ADR-0562 move-19: oya-residency-domain left the cloud/ \
+         tier'd substrate root for the unclassified network/ capability home, so the inversion is fixed)"
+    );
 }
 
 /// A fixture-scoped policy: the live policy's rules + S-rank order, but a zero crate floor (the

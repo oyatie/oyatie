@@ -2096,6 +2096,111 @@ prefix), and the committed move-plan `specs/reorg/iam-move-plan.json` (reached b
 reachability prefix). Per the one-plan-per-PR contract the spent `specs/reorg/workflow-move-plan.json` (the §10.21 move-plan)
 is removed.
 
+#### §10.23 Nineteenth executed strangler move: `network` capability (cloud/cloud-network + cloud/cloud-network-dns/crates → network/) — two-source-dir network+DNS substrate move with the residency-domain inversion hub (~25 cross-capability dependents relabeled)
+
+The nineteenth REAL codemod run homes the `network` capability's seven crates from TWO source dirs
+(`cloud/cloud-network/crates`, `cloud/cloud-network-dns/crates`) under the §3 placement rule, across THREE faces
+(`core` 2 / `ports` 3 / `adapters` 2) with NO `facade` — the network + DNS substrate IS the engine we RUN (the
+`network` ADR-0280 dag node: service mesh / static-stable signed DNS snapshots / cell routing data plane), not a sold
+product surface, so there is no facade face to home. network is the network + DNS substrate: the cloud-network
+catalog/VPC/LB/route domain + the platform-wide ADR-0049 residency-class kernel + the vpc/lb/dns capability traits + the
+oci/selfhosted transient provider impls.
+
+**Substrate layering (the run face, §4 run seam; ports/adapters -> core, never inverted):** the `cloud-network` catalog/
+VPC/LB/route value-object domain (`oya-cloud-network-domain` -> `network/core/domain`) and the platform-wide ADR-0049
+residency-class kernel (`oya-residency-domain` -> `network/core/residency`) are the engine we RUN -> `core/`; the
+inbound vpc/lb/dns capability-trait + DTO seams (`oya-cloud-network-vpc-api` -> `network/ports/vpc`,
+`oya-cloud-network-lb-api` -> `network/ports/lb`, `oya-cloud-network-dns-api` -> `network/ports/dns`) are the port seam ->
+`ports/` (the `ports -> core` legal downward edge, the §10.18..§10.22 precedent: a port carries a DTO that travels with
+its contract and depends inward on the domain only); the transient infra backends (`oya-cloud-network-adapter-oci` ->
+`network/adapters/oci`, `oya-cloud-network-adapter-selfhosted` -> `network/adapters/selfhosted`) are `adapters/`. The
+dependency direction is ports/adapters -> core and never inverts (verified against the real Cargo + BUCK dep graph):
+`network-domain` (core) -> `network-residency` (core) + `cell-region` + `compute-resource` + `libs/oya-data-boundary-kernel`
+(all downward to lower capabilities / base-class libs); `network-residency` (core) -> `libs/oya-data-boundary-kernel` only
+(a zero-network-dep ADR-0049 kernel); each of vpc/lb/dns (ports) -> `network-domain` + `network-residency` (core) +
+`libs/`; each of oci/selfhosted (adapters) -> `network-domain` + `network-residency` (core) + `libs/`. After the move the
+strict layer invariant holds: **ZERO** `core->adapters`, `core->facade`, `ports->adapters`, `ports->facade` edges exist
+(verified by enumerating every `path = "../../{adapters,facade}/"` and any non-downward `..` edge in `network/core/*/
+Cargo.toml` and `network/ports/*/Cargo.toml` — both empty). The acyclicity gate does not yet mechanically enforce
+intra-capability face direction (its `owning_service()` recognizes only `cloud/`+`oya/` top-dirs -> every `network/...`
+endpoint projects to None and is dropped before classification, so it is STRUCTURALLY BLIND to a `network/*` face
+inversion, the §10.22 productized follow-up task #81); the invariant was verified by hand (path-dep + BUCK-label
+enumeration above). All seven crates are ONE `network` capability node, so every intra-network face edge projects to a
+`network -> network` self-edge and raises NO service->service / S-rank acyclicity violation.
+
+**Naming scheme (cargo == de-branded path-tail, all seven unique):** the proven scheme — path `network/<face>/<leaf>` ↔
+cargo `network-<leaf>`, de-branded (the legacy `oya-cloud-network-`/`oya-residency-` forms drop to the `network-`
+capability slug; the role suffix is dropped where the face implies it, and the source-dir cell discriminator is dropped
+since the face dir is NOT in the name and the leaves are already distinct). The seven: `oya-cloud-network-domain` ->
+`network/core/domain` (`network-domain`), `oya-residency-domain` -> `network/core/residency` (`network-residency`),
+`oya-cloud-network-vpc-api` -> `network/ports/vpc` (`network-vpc`), `oya-cloud-network-lb-api` -> `network/ports/lb`
+(`network-lb`), `oya-cloud-network-dns-api` -> `network/ports/dns` (`network-dns`), `oya-cloud-network-adapter-oci` ->
+`network/adapters/oci` (`network-oci`), `oya-cloud-network-adapter-selfhosted` -> `network/adapters/selfhosted`
+(`network-selfhosted`). All seven leaf dirs and cargo names are distinct (`MovePlan::validate` passes), and each cargo
+name equals `network-` + its de-branded path-tail EXACTLY (the target-parity + cargo-prefix relabel binding).
+
+**THE residency-domain inversion hub (~25 cross-capability dependents, the largest blast radius in the series):**
+`network-residency` (formerly `oya-residency-domain`, rust ident `oya_residency_domain` -> `network_residency`) is a
+platform-wide ADR-0049 residency-class kernel with zero network-specific deps and twenty-five EXTERNAL cross-capability
+dependents OUTSIDE the seven moved crates: `cell/core/{region,regional-pack,routing}` + `cell/ports/{region,regional-pack}`
+(5), `cloud/cloud-kms/crates/{oya-cloud-kms-api,oya-cloud-kms-domain,oya-cloud-kms-operator-k8s-adapter}` (3, still at
+`cloud/cloud-kms` until move-20), `compliance/core/trust-portal` (1), `compute/{adapters/aws,adapters/oci,core/domain,
+core/resource,facade/functions,facade/k8s,facade/vm}` (7), `data/core/cloud-domain` (1),
+`observability/core/{aggregate,api}` (2), `oya/application/crates/oya-application-app` (1), `storage/core/domain` +
+`storage/ports/{block-api,object-api}` (3), `tenancy/core/domain` + `tenancy/ports/api` (2). Plus `compute/core/domain`
+also depends on `network-domain`. The codemod rewrote every dependent's `Cargo.toml` path-dep, `BUCK` `//`-label, and
+`use`-ident references (`oya_residency_domain` -> `network_residency`, `oya_cloud_network_domain` -> `network_domain`)
+mechanically; `cargo metadata --locked` exits 0 and `buck2 targets //...` resolves post-move for the whole affected cone.
+residency's inbound edges are in the FROZEN acyclicity/total-accounting baselines; the ADR-0563 rename-aware engine
+relabels those baselined edges old->new from the committed move-plan->manifest, so the EXISTING violations relabel forward
+and this move introduces ZERO NEW violations (membership/acyclicity/total-accounting 0-NEW-regression). NOTE: residency is a
+genuine platform-wide cross-cutting kernel (ADR-0049) with no network-specific coupling; it is placed at
+`network/core/residency` per the closed capability-registry for this move, but its breadth (25 dependents across 9
+capabilities, zero network deps) flags it as a candidate for its own cross-cutting `base/`-class or `residency` capability
+home in a later registry-granularity refinement (recorded, not actioned this move).
+
+**Catalog re-key (7 of 7):** all seven moved crates carried a pre-existing `registry/catalog/<id>.yaml` record, each
+re-keyed by the codemod ArtifactMove to its de-branded `network-*` id (file rename, content-preserving — the records carry
+no embedded package-name field, only `context`/`role`/`capability` facets). No record is left at an old `oya-` stem; the
+catalog-liveness gate stays green (all seven bind to a live workspace crate-id).
+
+**SLO co-move (2, per-service subdirs — collision-avoiding):** both source dirs carry a promotion-gating SLO with the SAME
+basename `autosharding-events.openslo.yaml` (`cloud/cloud-network/slos/` + `cloud/cloud-network-dns/slos/`), a confirmed
+cross-service basename collision. They co-move via two content-preserving file `ArtifactMove`s into per-service subdirs
+`network/observability/slos/{cloud-network,cloud-network-dns}/autosharding-events.openslo.yaml` (the §10.16/§10.17/§10.20/
+§10.22 collision-aware pattern), so 2-in/2-out with neither lost nor shadowed. Both SLOs were already non-crate-resident at
+merge-base (RED-accepted-debt at the old paths), so the ADR-0563 rename-aware engine relabels them old->new; zero
+`*.openslo.yaml` remains at any old network source path.
+
+**Graph-invisible tests (0 in the affected cone):** all four moved crates that carry `tests/*.rs`
+(`network/core/domain`, `network/ports/vpc`, `network/ports/lb`, `network/ports/dns`) already had owning buck2 `rust_test`
+targets at merge-base (the codemod recomputed their `//`-label deps to the new homes); and every one of the twenty-five
+external dependents that carries `tests/*.rs` already has an owning `rust_test` target. The cone scan found ZERO
+graph-invisible `tests/*.rs` (the one unrelated graph-invisible test in `oya/application/.../oya-workspace-meet-api` does
+NOT depend on any of the seven network crates and is outside this move's affected-set — a pre-existing condition for a
+later lane). Nothing ignored, skipped, stubbed, or deleted.
+
+**Embedded-asset hermeticity (no change):** none of the seven moved crates uses `include_str!`/`include_bytes!` (verified
+by corpus grep), so the embedded-asset gate `scan_roots` is NOT extended to `network` (unlike §10.22's `iam`, which carried
+cedar include-sites) — moving from the `cloud` scan_root to the unscanned `network/` home loses zero coverage because there
+is no embedded asset to scan.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run (`cargo metadata` +
+`buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null, `clean=true`). The capability
+registry records `network.absorbs_current_dirs` with the capability's own top-level slug `network` (the self-slug is
+required or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE network/...`; the §10.12/§10.16..§10.22 lesson) plus the two
+absorbed source dirs `cloud/cloud-network` + `cloud/cloud-network-dns` (the pre-existing seeds, retained). The membership
+policy adds `network` to `scan_roots` + `allowed_top_level_dirs`; the acyclicity policy adds `network/*/*` to
+`crate_root_globs` + `network` to `unclassified_roots`; the root workspace members glob adds `network/*/*` (collapsing the
+codemod-emitted literals) with `network/observability` excluded (the non-crate SLO subtree). The move's tracked,
+born-accounted artifact roots are the seven crate dirs (each carrying its `Cargo.toml`, `BUCK`, `src/`, and, where present,
+`tests/`), the co-moved per-service SLO subdirs `network/observability/slos/<service>/autosharding-events.openslo.yaml`, the
+subtree `network/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.23 entry
+(breadth-unlimited per ADR-0555, covering the whole network subtree including the co-moved SLO subdirs), the seven re-keyed
+catalog records `registry/catalog/network-*.yaml` (reached by the existing `registry/catalog/` reachability prefix), and the
+committed move-plan `specs/reorg/network-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability
+prefix). Per the one-plan-per-PR contract the spent `specs/reorg/iam-move-plan.json` (the §10.22 move-plan) is removed.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

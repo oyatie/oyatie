@@ -939,8 +939,8 @@ name = "cell-region"
 version = "0.1.0"
 dependencies = [
  "cell-routing",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -948,15 +948,15 @@ name = "cell-region-api"
 version = "0.1.0"
 dependencies = [
  "cell-region",
- "oya-residency-domain",
+ "network-residency",
 ]
 
 [[package]]
 name = "cell-regional-pack"
 version = "0.1.0"
 dependencies = [
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -964,15 +964,15 @@ name = "cell-regional-pack-api"
 version = "0.1.0"
 dependencies = [
  "cell-regional-pack",
- "oya-residency-domain",
+ "network-residency",
 ]
 
 [[package]]
 name = "cell-routing"
 version = "0.1.0"
 dependencies = [
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1334,8 +1334,8 @@ name = "compliance-trust-portal"
 version = "0.1.0"
 dependencies = [
  "compliance-dsr",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1344,8 +1344,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1363,9 +1363,9 @@ dependencies = [
  "cell-region",
  "compute-resource",
  "iam-cloud-domain",
- "oya-cloud-network-domain",
+ "network-domain",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1374,8 +1374,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1384,8 +1384,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1394,8 +1394,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1403,8 +1403,8 @@ name = "compute-resource"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1413,8 +1413,8 @@ version = "0.1.0"
 dependencies = [
  "compute-domain",
  "compute-resource",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -1794,9 +1794,9 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "network-residency",
  "oya-cloud-kms-domain",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -4774,6 +4774,68 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 
 [[package]]
+name = "network-dns"
+version = "0.1.0"
+dependencies = [
+ "network-domain",
+ "network-residency",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "network-domain"
+version = "0.1.0"
+dependencies = [
+ "cell-region",
+ "compute-resource",
+ "network-residency",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "network-lb"
+version = "0.1.0"
+dependencies = [
+ "network-domain",
+ "network-residency",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "network-oci"
+version = "0.1.0"
+dependencies = [
+ "network-domain",
+ "network-residency",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "network-residency"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "network-selfhosted"
+version = "0.1.0"
+dependencies = [
+ "network-domain",
+ "network-residency",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "network-vpc"
+version = "0.1.0"
+dependencies = [
+ "network-domain",
+ "network-residency",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "new_debug_unreachable"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4864,9 +4926,9 @@ dependencies = [
  "cell-region",
  "compute-resource",
  "iam-cloud-domain",
+ "network-residency",
  "observability-domain",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -4874,9 +4936,9 @@ name = "observability-api"
 version = "0.1.0"
 dependencies = [
  "audit-chain-domain",
+ "network-residency",
  "observability-aggregate",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -5088,6 +5150,7 @@ dependencies = [
  "iam-identity-domain",
  "iam-policy-cedar-domain",
  "messaging-domain",
+ "network-residency",
  "observability-domain",
  "observability-tracing-adapter",
  "oya-check-cost-budget",
@@ -5101,7 +5164,6 @@ dependencies = [
  "oya-intelligence-policy-domain",
  "oya-intelligence-run-domain",
  "oya-intelligence-step-domain",
- "oya-residency-domain",
  "oya-secrets-domain",
  "tenancy-domain",
  "tracing",
@@ -6151,9 +6213,9 @@ name = "oya-cloud-kms-api"
 version = "0.1.0"
 dependencies = [
  "cell-region",
+ "network-residency",
  "oya-cloud-kms-domain",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -6162,8 +6224,8 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -6197,10 +6259,10 @@ dependencies = [
  "k8s-openapi",
  "kube",
  "kube-runtime",
+ "network-residency",
  "oya-cloud-kms-domain",
  "oya-cloud-kms-operator-kernel",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
  "serde",
  "serde_json",
  "tokio",
@@ -6212,61 +6274,6 @@ name = "oya-cloud-kms-operator-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "oya-cloud-network-adapter-oci"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-network-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-network-adapter-selfhosted"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-network-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-network-dns-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-network-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-network-domain"
-version = "0.1.0"
-dependencies = [
- "cell-region",
- "compute-resource",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-network-lb-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-network-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
-]
-
-[[package]]
-name = "oya-cloud-network-vpc-api"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-network-domain",
- "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -8883,13 +8890,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-residency-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "oya-saas-bench-app"
 version = "0.1.0"
 dependencies = [
@@ -11239,8 +11239,8 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 name = "storage-block-api"
 version = "0.1.0"
 dependencies = [
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
  "storage-domain",
 ]
 
@@ -11250,9 +11250,9 @@ version = "0.1.0"
 dependencies = [
  "cell-region",
  "compute-resource",
+ "network-residency",
  "oya-cloud-kms-domain",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]
@@ -11267,9 +11267,9 @@ name = "storage-object-api"
 version = "0.1.0"
 dependencies = [
  "compute-resource",
+ "network-residency",
  "oya-cloud-kms-domain",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
  "storage-domain",
 ]
 
@@ -11435,7 +11435,7 @@ dependencies = [
 name = "tenancy-api"
 version = "0.1.0"
 dependencies = [
- "oya-residency-domain",
+ "network-residency",
  "tenancy-domain",
 ]
 
@@ -11459,8 +11459,8 @@ version = "0.1.0"
 name = "tenancy-domain"
 version = "0.1.0"
 dependencies = [
+ "network-residency",
  "oya-data-boundary-kernel",
- "oya-residency-domain",
 ]
 
 [[package]]

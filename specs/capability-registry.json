@@ -237,6 +237,7 @@
         "network/DNS"
       ],
       "absorbs_current_dirs": [
+        "network",
         "cloud/cloud-network",
         "cloud/cloud-network-dns"
       ],

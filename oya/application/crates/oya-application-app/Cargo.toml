@@ -22,7 +22,7 @@ cell-routing = { path = "../../../../cell/core/routing" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 iam-identity-domain = { path = "../../../../iam/core/identity-domain" }
 cell-regional-pack = { path = "../../../../cell/core/regional-pack" }
-oya-residency-domain = { path = "../../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../../network/core/residency" }
 data-ontology-domain = { path = "../../../../data/core/ontology-domain" }
 observability-domain = { path = "../../../../observability/core/domain" }
 iam-policy-cedar-domain = { path = "../../../../iam/core/policy-cedar-domain" }

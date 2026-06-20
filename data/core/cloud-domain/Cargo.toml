@@ -11,7 +11,7 @@ oya-cloud-kms-domain = { path = "../../../cloud/cloud-kms/crates/oya-cloud-kms-d
 cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../../../compute/core/resource" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
-oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../network/core/residency" }
 
 [lib]
 name = "data_cloud_domain"
