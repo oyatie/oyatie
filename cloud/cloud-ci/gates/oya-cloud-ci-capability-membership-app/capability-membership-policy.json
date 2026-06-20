@@ -34,7 +34,8 @@
     "iam",
     "network",
     "secrets",
-    "billing"
+    "billing",
+    "intelligence"
   ],
   "meta_directories": [
     "kernel",
@@ -72,6 +73,7 @@
     "network",
     "secrets",
     "billing",
+    "intelligence",
     "cloud",
     "oya",
     "libs",

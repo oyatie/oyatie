@@ -311,6 +311,24 @@ members = [
   # basename across the two source dirs) is excluded below (no Cargo.toml), and the absorbed dirs' other
   # non-crate artifacts (manifest.json/docs/PRD/IPs/contracts/iac/catalog) are homed in phase-2 (task #62).
   "billing/*/*",
+  # ADR-0562 §10.26(a) move-22 sub-batch (a): the `intelligence` capability ROOT — established by this
+  # sub-batch, which homes the sixteen cloud-intelligence crates into intelligence/{core 4, adapters 10,
+  # facade 2} (ports/ receives crates in later sub-batches b-g). intelligence is the AI/intelligence
+  # substrate (OAuth subscription-pool request pipeline + proof layer + agentic capabilities). FACE per
+  # ENUMERATION (the acyclicity gate is BLIND to intelligence/* edges): the four kernels (seat-pool/
+  # tool-compat/translation/wire) are pure-serde leaves => core; the cedar/codex/gemini/openbao provider
+  # adapters + the clickhouse/valkey eventsinks + the claude-agent/codex vendor SDK transports +
+  # ops-infrastructure + the axum reverse-proxy `rest` (it depends on the concrete codex-adapter +
+  # gemini-adapter, so it is adapters — NOT ports; the suggested ports placement was a face inversion) are
+  # adapters; the `app` composition-root (the cloud-intelligence binary) + the `worker` are facade. ZERO
+  # core/ports->adapters edges (every intelligence/core/* + intelligence/ports/* Cargo.toml carries no
+  # ../../adapters or ../../facade dep). `intelligence/*/*` covers all sixteen faces/leaves with one glob
+  # (ADR-0538 glob-only members; the codemod-emitted literals are collapsed to this glob); the co-moved
+  # intelligence/observability/slos non-crate SLO subtree (flat — single source dir, no basename collision)
+  # is excluded by the no-Cargo.toml resolver rule, and the absorbed cloud-intelligence dir's other
+  # non-crate artifacts (manifest.json/docs/PRD/IPs/contracts/iac/k8s/policy/Dockerfile) + the remaining 126
+  # oya/intelligence crates are homed in later sub-batches / phase-2 (task #62).
+  "intelligence/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -345,6 +363,7 @@ exclude = [
   "network/observability",
   "secrets/observability",
   "billing/observability",
+  "intelligence/observability",
 ]
 resolver = "2"
 

@@ -3827,6 +3827,199 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "intelligence-authz-cedar-adapter",
+ "intelligence-eventsink-clickhouse-adapter",
+ "intelligence-eventsink-valkey-adapter",
+ "intelligence-kernel",
+ "intelligence-openbao-adapter",
+ "intelligence-rest",
+ "oya-shared-olap-clickhouse-adapter",
+ "reqwest 0.13.4",
+ "serde",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "intelligence-authz-cedar-adapter"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "intelligence-kernel",
+]
+
+[[package]]
+name = "intelligence-claude-agent-sdk"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "http 1.4.1",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-tungstenite",
+ "uuid",
+]
+
+[[package]]
+name = "intelligence-codex-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "httpmock",
+ "intelligence-kernel",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-codex-sdk"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
+name = "intelligence-eventsink-clickhouse-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-kernel",
+ "oya-shared-olap-clickhouse-adapter",
+ "oya-shared-olap-client-kernel",
+ "serde",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-eventsink-valkey-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-kernel",
+ "redis",
+ "serde",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-gemini-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "intelligence-translation-kernel",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-kernel"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "intelligence-openbao-adapter"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "httpmock",
+ "intelligence-kernel",
+ "intelligence-rest",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-ops-infrastructure"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "intelligence-rest"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "bytes",
+ "futures",
+ "http-body-util",
+ "httpmock",
+ "intelligence-codex-adapter",
+ "intelligence-gemini-adapter",
+ "intelligence-kernel",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-tool-compat-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "intelligence-translation-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "intelligence-wire-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "intelligence-worker"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "interpolator"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6025,199 +6218,6 @@ dependencies = [
 name = "oya-cloud-ci-workspace-glob-coverage-app"
 version = "0.1.0"
 dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "oya-cloud-intelligence-authz-cedar-adapter",
- "oya-cloud-intelligence-eventsink-clickhouse-adapter",
- "oya-cloud-intelligence-eventsink-valkey-adapter",
- "oya-cloud-intelligence-kernel",
- "oya-cloud-intelligence-openbao-adapter",
- "oya-cloud-intelligence-rest",
- "oya-shared-olap-clickhouse-adapter",
- "reqwest 0.13.4",
- "serde",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-authz-cedar-adapter"
-version = "0.1.0"
-dependencies = [
- "cedar-policy",
- "oya-cloud-intelligence-kernel",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-claude-agent-sdk"
-version = "0.1.0"
-dependencies = [
- "futures",
- "http 1.4.1",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-tungstenite",
- "uuid",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-codex-adapter"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "futures-core",
- "futures-util",
- "httpmock",
- "oya-cloud-intelligence-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-codex-sdk"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-eventsink-clickhouse-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-intelligence-kernel",
- "oya-shared-olap-clickhouse-adapter",
- "oya-shared-olap-client-kernel",
- "serde",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-eventsink-valkey-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-intelligence-kernel",
- "redis",
- "serde",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-gemini-adapter"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "futures-core",
- "futures-util",
- "oya-cloud-intelligence-translation-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-kernel"
-version = "0.1.0"
-dependencies = [
- "proptest",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-openbao-adapter"
-version = "0.1.0"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "httpmock",
- "oya-cloud-intelligence-kernel",
- "oya-cloud-intelligence-rest",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-ops-infrastructure"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-rest"
-version = "0.1.0"
-dependencies = [
- "axum",
- "bytes",
- "futures",
- "http-body-util",
- "httpmock",
- "oya-cloud-intelligence-codex-adapter",
- "oya-cloud-intelligence-gemini-adapter",
- "oya-cloud-intelligence-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-tool-compat-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-translation-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-wire-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-intelligence-worker"
-version = "0.1.0"
-dependencies = [
- "serde",
  "serde_json",
 ]
 
