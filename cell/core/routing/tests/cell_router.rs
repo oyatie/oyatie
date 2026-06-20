@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use cell_routing::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
-use oya_residency_domain::{
+use network_residency::{
     PerPackResidency, PerPackResidencyCreate, RegionJurisdiction, RegionRef, RegionRefCreate,
     RegulatorOverlay, RegulatorOverlayCreate, ResidencyClass,
 };

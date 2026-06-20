@@ -19,7 +19,7 @@ use storage_object_api::{
     put_cloud_storage_object_from_api,
 };
 use oya_data_boundary_kernel::DataClass;
-use oya_residency_domain::ResidencyClass;
+use network_residency::ResidencyClass;
 
 const BUCKET_ID: &str = "oya:cloud:region-home:ten_alpha:bucket:tenant-assets";
 const OBJECT_KEY: &str = "workspace/report.pdf";

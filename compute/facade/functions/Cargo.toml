@@ -12,7 +12,7 @@ compute-resource = { path = "../../core/resource" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
 
 [dev-dependencies]
-oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../network/core/residency" }
 
 [lib]
 name = "compute_functions_api"

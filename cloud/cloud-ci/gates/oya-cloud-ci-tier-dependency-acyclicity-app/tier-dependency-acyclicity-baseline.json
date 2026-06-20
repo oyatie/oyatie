@@ -5,18 +5,6 @@
   "burn_down_target": 0,
   "violations": [
     {
-      "code": "TDA-S-RANK-INVERSION",
-      "subject": "cloud/cloud-kms/crates/oya-cloud-kms-api -> cloud/cloud-network/crates/oya-residency-domain"
-    },
-    {
-      "code": "TDA-S-RANK-INVERSION",
-      "subject": "cloud/cloud-kms/crates/oya-cloud-kms-domain -> cloud/cloud-network/crates/oya-residency-domain"
-    },
-    {
-      "code": "TDA-S-RANK-INVERSION",
-      "subject": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter -> cloud/cloud-network/crates/oya-residency-domain"
-    },
-    {
       "code": "TDA-SUBSTRATE-UPWARD",
       "subject": "cloud/cloud-billing/crates/oya-saas-bench-app -> oya/application/crates/oya-saas-plugin-app"
     },

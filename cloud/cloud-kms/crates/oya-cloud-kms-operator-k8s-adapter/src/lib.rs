@@ -33,7 +33,7 @@ use oya_cloud_kms_operator_kernel::{
     ObservedState, ReadConsistency, ResidencyMode, SealingRoot, reconcile,
 };
 use oya_data_boundary_kernel::DataClass;
-use oya_residency_domain::ResidencyClass;
+use network_residency::ResidencyClass;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 use tracing::{error, info, warn};

@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//compute/core/domain:compute-domain",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//network/core/residency:network-residency",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
@@ -22,7 +22,7 @@ rust_test(
         ":compute-k8s-api",
         "//compute/core/domain:compute-domain",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
+        "//network/core/residency:network-residency",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )

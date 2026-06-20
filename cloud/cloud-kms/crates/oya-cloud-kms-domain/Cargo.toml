@@ -10,7 +10,7 @@ license = "Apache-2.0"
 cell-region = { path = "../../../../cell/core/region" }
 compute-resource = { path = "../../../../compute/core/resource" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-residency-domain = { path = "../../../cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../../network/core/residency" }
 
 [lib]
 name = "oya_cloud_kms_domain"

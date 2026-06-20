@@ -69,8 +69,8 @@ pub use iam_policy_cedar_domain::{
 };
 use iam_policy_cedar_domain::{AuthorizationQuery, AuthorizationSubject, PolicyError, PolicySet};
 use cell_regional_pack::{RegionalPack, RegionalPackError};
-pub use oya_residency_domain::ResidencyClass;
-use oya_residency_domain::{
+pub use network_residency::ResidencyClass;
+use network_residency::{
     RegionRef, RegionRefCreate, infer_region_jurisdiction_label, parse_residency_class_label,
 };
 use oya_secrets_domain::SecretRef;

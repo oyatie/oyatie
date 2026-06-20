@@ -17,7 +17,7 @@ compute-domain = { path = "../../core/domain" }
 [dev-dependencies]
 compute-resource = { path = "../../core/resource" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
-oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../network/core/residency" }
 
 [lints]
 workspace = true

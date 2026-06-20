@@ -15,7 +15,7 @@ use observability_aggregate::{
     ObservabilityResidency, ObservabilityResidencyCreate, ObservabilityResidencyState,
 };
 use oya_data_boundary_kernel::{DataClass, Purpose};
-use oya_residency_domain::ResidencyClass;
+use network_residency::ResidencyClass;
 
 const TENANT: &str = "ten_alpha";
 const REGION: &str = "region-home";

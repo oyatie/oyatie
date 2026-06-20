@@ -21,8 +21,8 @@ use cell_region::{AzCode, CellId, RegionCode};
 pub use compute_resource::{BucketTier, FilesystemTier, VolumeTier};
 use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-pub use oya_residency_domain::ResidencyClass;
-use oya_residency_domain::residency_class_allows_home_region_label;
+pub use network_residency::ResidencyClass;
+use network_residency::residency_class_allows_home_region_label;
 
 const STORAGE_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
@@ -1942,7 +1942,7 @@ fn internal<T>(value: T) -> Classified<T> {
 
 #[cfg(test)]
 mod tests {
-    use oya_residency_domain::{
+    use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
 

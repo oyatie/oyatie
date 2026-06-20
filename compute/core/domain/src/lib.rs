@@ -12,13 +12,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use iam_cloud_domain::IamRoleId;
-use oya_cloud_network_domain::SecurityGroupId;
+use network_domain::SecurityGroupId;
 use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{
     CloudResourceError, FunctionRuntime, InstanceFlavor, K8sFlavor, ResourceId, ResourceKind,
 };
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
+use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 const COMPUTE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_FUNCTION_COLD_START_BUDGET_MS: u32 = 1_000;
@@ -1582,7 +1582,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_residency_domain::{
+    use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
 

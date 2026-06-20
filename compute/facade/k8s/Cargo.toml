@@ -10,7 +10,7 @@ license = "Apache-2.0"
 compute-domain = { path = "../../core/domain" }
 compute-resource = { path = "../../core/resource" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
-oya-residency-domain = { path = "../../../cloud/cloud-network/crates/oya-residency-domain" }
+network-residency = { path = "../../../network/core/residency" }
 
 [lib]
 name = "compute_k8s_api"
