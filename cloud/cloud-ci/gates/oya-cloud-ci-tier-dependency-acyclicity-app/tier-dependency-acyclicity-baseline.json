@@ -6,10 +6,6 @@
   "violations": [
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "cloud/cloud-billing/crates/oya-saas-bench-app -> oya/application/crates/oya-saas-plugin-app"
-    },
-    {
-      "code": "TDA-SUBSTRATE-UPWARD",
       "subject": "oya/intelligence/crates/oya-intelligence-api -> oya/application/crates/oya-application-app"
     },
     {
