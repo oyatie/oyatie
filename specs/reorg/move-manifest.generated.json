@@ -1,1325 +1,2049 @@
 {
-  "capability": "workflow",
+  "capability": "iam",
   "crate_dirs": [
     {
-      "new_path": "workflow/facade/forms-domain",
-      "old_path": "oya/forms/crates/oya-forms-domain"
+      "new_path": "iam/adapters/cloud-oci",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-adapter-oci"
     },
     {
-      "new_path": "workflow/facade/tasks-domain",
-      "old_path": "oya/tasks/crates/oya-tasks-domain"
+      "new_path": "iam/adapters/cloud-selfhosted",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-adapter-selfhosted"
     },
     {
-      "new_path": "workflow/facade/saas-app",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-app"
+      "new_path": "iam/ports/cloud-api",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-api"
     },
     {
-      "new_path": "workflow/facade/saas-domain",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-domain"
+      "new_path": "iam/core/cloud-app",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-app"
     },
     {
-      "new_path": "workflow/facade/saas-kernel",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-kernel"
+      "new_path": "iam/core/cloud-domain",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-domain"
     },
     {
-      "new_path": "workflow/adapters/event-bus-adapter",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter"
+      "new_path": "iam/facade/cloud-pdp-app",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app"
     },
     {
-      "new_path": "workflow/adapters/event-bus-kafka",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-kafka"
+      "new_path": "iam/adapters/cloud-pdp-bundle-file",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-bundle-file-adapter"
     },
     {
-      "new_path": "workflow/adapters/event-bus-nats",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-nats"
+      "new_path": "iam/core/cloud-pdp-kernel",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-kernel"
     },
     {
-      "new_path": "workflow/adapters/event-bus-postgres",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-postgres"
+      "new_path": "iam/facade/identity-service",
+      "old_path": "oya/identity/crates/oya-identity"
     },
     {
-      "new_path": "workflow/adapters/event-bus-pulsar",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-pulsar"
+      "new_path": "iam/ports/identity-api",
+      "old_path": "oya/identity/crates/oya-identity-api"
     },
     {
-      "new_path": "workflow/adapters/event-bus-redpanda",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-redpanda"
+      "new_path": "iam/core/identity-domain",
+      "old_path": "oya/identity/crates/oya-identity-domain"
     },
     {
-      "new_path": "workflow/adapters/event-bus-valkey",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-valkey"
+      "new_path": "iam/core/identity-oidc-issuer-kernel",
+      "old_path": "oya/identity/crates/oya-identity-oidc-issuer-kernel"
     },
     {
-      "new_path": "workflow/ports/event-bus-api",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-api"
+      "new_path": "iam/core/identity-usecase",
+      "old_path": "oya/identity/crates/oya-identity-usecase"
     },
     {
-      "new_path": "workflow/ports/event-bus-app",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-app"
+      "new_path": "iam/ports/identity-workload-api",
+      "old_path": "oya/identity/crates/oya-identity-workload-api"
     },
     {
-      "new_path": "workflow/core/event-bus-domain",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-domain"
+      "new_path": "iam/facade/identity-workload-app",
+      "old_path": "oya/identity/crates/oya-identity-workload-app"
     },
     {
-      "new_path": "workflow/core/event-bus-kernel",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-kernel"
+      "new_path": "iam/adapters/identity-workload-authz-cedar",
+      "old_path": "oya/identity/crates/oya-identity-workload-authz-cedar-adapter"
     },
     {
-      "new_path": "workflow/ports/event-bus-rest",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-rest"
+      "new_path": "iam/core/identity-workload-domain",
+      "old_path": "oya/identity/crates/oya-identity-workload-domain"
     },
     {
-      "new_path": "workflow/ports/event-bus-sdk",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-sdk"
+      "new_path": "iam/adapters/identity-workload-oidc",
+      "old_path": "oya/identity/crates/oya-identity-workload-oidc-adapter"
     },
     {
-      "new_path": "workflow/core/event-bus-usecase",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-usecase"
+      "new_path": "iam/facade/identity-workload-rest",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest"
     },
     {
-      "new_path": "workflow/ports/event-bus-worker",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-worker"
+      "new_path": "iam/core/identity-workload-svid-kernel",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-kernel"
     },
     {
-      "new_path": "workflow/adapters/execution-engine-adapter",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter"
+      "new_path": "iam/adapters/identity-workload-svid-trustd",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-trustd-adapter"
     },
     {
-      "new_path": "workflow/adapters/execution-engine-postgres",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter-postgres"
+      "new_path": "iam/core/authn-device-firmware",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware"
     },
     {
-      "new_path": "workflow/ports/execution-engine-api",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-api"
+      "new_path": "iam/ports/policy-cedar-api",
+      "old_path": "oya/policy/crates/oya-policy-cedar-api"
     },
     {
-      "new_path": "workflow/ports/execution-engine-app",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-app"
+      "new_path": "iam/core/policy-cedar-domain",
+      "old_path": "oya/policy/crates/oya-policy-cedar-domain"
     },
     {
-      "new_path": "workflow/core/execution-engine-domain",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-domain"
+      "new_path": "iam/ports/tenant-rbac-api",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-api"
     },
     {
-      "new_path": "workflow/core/execution-engine-kernel",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-kernel"
+      "new_path": "iam/facade/tenant-rbac-app",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-app"
     },
     {
-      "new_path": "workflow/ports/execution-engine-rest",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-rest"
+      "new_path": "iam/core/tenant-rbac-audit-chain-emission",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission"
     },
     {
-      "new_path": "workflow/ports/execution-engine-sdk",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-sdk"
+      "new_path": "iam/facade/tenant-rbac-audit-chain-runtime-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-runtime-evidence"
     },
     {
-      "new_path": "workflow/core/execution-engine-usecase",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-usecase"
+      "new_path": "iam/core/tenant-rbac-auth-app",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app"
     },
     {
-      "new_path": "workflow/ports/execution-engine-worker",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-worker"
+      "new_path": "iam/facade/tenant-rbac-cloud-deployment-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-evidence"
     },
     {
-      "new_path": "workflow/adapters/state-machine-adapter",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-adapter"
+      "new_path": "iam/core/tenant-rbac-cloud-deployment-manifest",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest"
     },
     {
-      "new_path": "workflow/adapters/state-machine-postgres",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-adapter-postgres"
+      "new_path": "iam/facade/tenant-rbac-cloud-readiness-gate",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate"
     },
     {
-      "new_path": "workflow/ports/state-machine-api",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-api"
+      "new_path": "iam/facade/tenant-rbac-disbursement-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-disbursement-evidence"
     },
     {
-      "new_path": "workflow/core/state-machine-domain",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-domain"
+      "new_path": "iam/core/tenant-rbac-domain",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-domain"
     },
     {
-      "new_path": "workflow/core/state-machine-kernel",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-kernel"
+      "new_path": "iam/facade/tenant-rbac-erp-parity-map",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map"
     },
     {
-      "new_path": "workflow/core/state-machine-usecase",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-usecase"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-runtime-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-runtime-evidence"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-api",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-api"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-verification",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-app",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-app"
+      "new_path": "iam/facade/tenant-rbac-listener-gateway",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-gateway"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-domain",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-domain"
+      "new_path": "iam/facade/tenant-rbac-listener-runtime-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-runtime-evidence"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-kernel",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-kernel"
+      "new_path": "iam/facade/tenant-rbac-local-inmemory-harness",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-rest",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-rest"
+      "new_path": "iam/facade/tenant-rbac-local-runtime-composition",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-sdk",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-sdk"
+      "new_path": "iam/facade/tenant-rbac-postgres-rls-runtime-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-runtime-evidence"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-usecase",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-usecase"
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-storage",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-storage"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-worker",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-worker"
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-transaction-contract"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-emitter",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain"
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-write-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-loader",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-loader-domain"
+      "new_path": "iam/facade/tenant-rbac-slo-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-slo-evidence"
     },
     {
-      "new_path": "workflow/facade/studio-policy-preview",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-policy-preview-domain"
+      "new_path": "iam/facade/tenant-rbac-statutory-filing-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-statutory-filing-evidence"
     },
     {
-      "new_path": "workflow/facade/studio-visual-canvas",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-visual-canvas-kernel"
+      "new_path": "iam/adapters/tenant-rbac-storage-inmemory",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-admission-policy",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-admission-policy"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-autoscaling-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-autoscaling-contract"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-availability-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-availability-contract"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-cost-allocation-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-cost-allocation-contract"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-egress-policy-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-egress-policy-contract"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-image-provenance-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-image-provenance-contract"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-residency-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-residency-contract"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-resource-quota-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-resource-quota-contract"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-secret-boundary-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-secret-boundary-contract"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-workload-identity-contract",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-identity-contract"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-workload-manifest",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-tenant-workload-runtime-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-runtime-evidence"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-usecase",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-workflow-inmemory",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-workflow-runtime-evidence",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-runtime-evidence"
     }
   ],
   "crate_idents": [
     {
-      "new": "workflow-forms-domain",
-      "old": "oya-forms-domain"
+      "new": "iam-authn-device-firmware",
+      "old": "oya-authn-device-firmware"
     },
     {
-      "new": "workflow-saas-app",
-      "old": "oya-saas-workflow-app"
+      "new": "iam-cloud-oci",
+      "old": "oya-cloud-iam-adapter-oci"
     },
     {
-      "new": "workflow-saas-domain",
-      "old": "oya-saas-workflow-domain"
+      "new": "iam-cloud-selfhosted",
+      "old": "oya-cloud-iam-adapter-selfhosted"
     },
     {
-      "new": "workflow-saas-kernel",
-      "old": "oya-saas-workflow-kernel"
+      "new": "iam-cloud-api",
+      "old": "oya-cloud-iam-api"
     },
     {
-      "new": "workflow-tasks-domain",
-      "old": "oya-tasks-domain"
+      "new": "iam-cloud-app",
+      "old": "oya-cloud-iam-app"
     },
     {
-      "new": "workflow-event-bus-adapter",
-      "old": "oya-workflow-engine-event-bus-adapter"
+      "new": "iam-cloud-domain",
+      "old": "oya-cloud-iam-domain"
     },
     {
-      "new": "workflow-event-bus-kafka",
-      "old": "oya-workflow-engine-event-bus-adapter-kafka"
+      "new": "iam-cloud-pdp-app",
+      "old": "oya-cloud-iam-pdp-app"
     },
     {
-      "new": "workflow-event-bus-nats",
-      "old": "oya-workflow-engine-event-bus-adapter-nats"
+      "new": "iam-cloud-pdp-bundle-file",
+      "old": "oya-cloud-iam-pdp-bundle-file-adapter"
     },
     {
-      "new": "workflow-event-bus-postgres",
-      "old": "oya-workflow-engine-event-bus-adapter-postgres"
+      "new": "iam-cloud-pdp-kernel",
+      "old": "oya-cloud-iam-pdp-kernel"
     },
     {
-      "new": "workflow-event-bus-pulsar",
-      "old": "oya-workflow-engine-event-bus-adapter-pulsar"
+      "new": "iam-identity-service",
+      "old": "oya-identity"
     },
     {
-      "new": "workflow-event-bus-redpanda",
-      "old": "oya-workflow-engine-event-bus-adapter-redpanda"
+      "new": "iam-identity-api",
+      "old": "oya-identity-api"
     },
     {
-      "new": "workflow-event-bus-valkey",
-      "old": "oya-workflow-engine-event-bus-adapter-valkey"
+      "new": "iam-identity-domain",
+      "old": "oya-identity-domain"
     },
     {
-      "new": "workflow-event-bus-api",
-      "old": "oya-workflow-engine-event-bus-api"
+      "new": "iam-identity-oidc-issuer-kernel",
+      "old": "oya-identity-oidc-issuer-kernel"
     },
     {
-      "new": "workflow-event-bus-app",
-      "old": "oya-workflow-engine-event-bus-app"
+      "new": "iam-identity-usecase",
+      "old": "oya-identity-usecase"
     },
     {
-      "new": "workflow-event-bus-domain",
-      "old": "oya-workflow-engine-event-bus-domain"
+      "new": "iam-identity-workload-api",
+      "old": "oya-identity-workload-api"
     },
     {
-      "new": "workflow-event-bus-kernel",
-      "old": "oya-workflow-engine-event-bus-kernel"
+      "new": "iam-identity-workload-app",
+      "old": "oya-identity-workload-app"
     },
     {
-      "new": "workflow-event-bus-rest",
-      "old": "oya-workflow-engine-event-bus-rest"
+      "new": "iam-identity-workload-authz-cedar",
+      "old": "oya-identity-workload-authz-cedar-adapter"
     },
     {
-      "new": "workflow-event-bus-sdk",
-      "old": "oya-workflow-engine-event-bus-sdk"
+      "new": "iam-identity-workload-domain",
+      "old": "oya-identity-workload-domain"
     },
     {
-      "new": "workflow-event-bus-usecase",
-      "old": "oya-workflow-engine-event-bus-usecase"
+      "new": "iam-identity-workload-oidc",
+      "old": "oya-identity-workload-oidc-adapter"
     },
     {
-      "new": "workflow-event-bus-worker",
-      "old": "oya-workflow-engine-event-bus-worker"
+      "new": "iam-identity-workload-rest",
+      "old": "oya-identity-workload-rest"
     },
     {
-      "new": "workflow-execution-engine-adapter",
-      "old": "oya-workflow-engine-execution-engine-adapter"
+      "new": "iam-identity-workload-svid-kernel",
+      "old": "oya-identity-workload-svid-kernel"
     },
     {
-      "new": "workflow-execution-engine-postgres",
-      "old": "oya-workflow-engine-execution-engine-adapter-postgres"
+      "new": "iam-identity-workload-svid-trustd",
+      "old": "oya-identity-workload-svid-trustd-adapter"
     },
     {
-      "new": "workflow-execution-engine-api",
-      "old": "oya-workflow-engine-execution-engine-api"
+      "new": "iam-policy-cedar-api",
+      "old": "oya-policy-cedar-api"
     },
     {
-      "new": "workflow-execution-engine-app",
-      "old": "oya-workflow-engine-execution-engine-app"
+      "new": "iam-policy-cedar-domain",
+      "old": "oya-policy-cedar-domain"
     },
     {
-      "new": "workflow-execution-engine-domain",
-      "old": "oya-workflow-engine-execution-engine-domain"
+      "new": "iam-tenant-rbac-api",
+      "old": "oya-tenant-rbac-api"
     },
     {
-      "new": "workflow-execution-engine-kernel",
-      "old": "oya-workflow-engine-execution-engine-kernel"
+      "new": "iam-tenant-rbac-app",
+      "old": "oya-tenant-rbac-app"
     },
     {
-      "new": "workflow-execution-engine-rest",
-      "old": "oya-workflow-engine-execution-engine-rest"
+      "new": "iam-tenant-rbac-audit-chain-emission",
+      "old": "oya-tenant-rbac-audit-chain-emission"
     },
     {
-      "new": "workflow-execution-engine-sdk",
-      "old": "oya-workflow-engine-execution-engine-sdk"
+      "new": "iam-tenant-rbac-audit-chain-runtime-evidence",
+      "old": "oya-tenant-rbac-audit-chain-runtime-evidence"
     },
     {
-      "new": "workflow-execution-engine-usecase",
-      "old": "oya-workflow-engine-execution-engine-usecase"
+      "new": "iam-tenant-rbac-auth-app",
+      "old": "oya-tenant-rbac-auth-app"
     },
     {
-      "new": "workflow-execution-engine-worker",
-      "old": "oya-workflow-engine-execution-engine-worker"
+      "new": "iam-tenant-rbac-cloud-deployment-evidence",
+      "old": "oya-tenant-rbac-cloud-deployment-evidence"
     },
     {
-      "new": "workflow-state-machine-adapter",
-      "old": "oya-workflow-engine-state-machine-adapter"
+      "new": "iam-tenant-rbac-cloud-deployment-manifest",
+      "old": "oya-tenant-rbac-cloud-deployment-manifest"
     },
     {
-      "new": "workflow-state-machine-postgres",
-      "old": "oya-workflow-engine-state-machine-adapter-postgres"
+      "new": "iam-tenant-rbac-cloud-readiness-gate",
+      "old": "oya-tenant-rbac-cloud-readiness-gate"
     },
     {
-      "new": "workflow-state-machine-api",
-      "old": "oya-workflow-engine-state-machine-api"
+      "new": "iam-tenant-rbac-disbursement-evidence",
+      "old": "oya-tenant-rbac-disbursement-evidence"
     },
     {
-      "new": "workflow-state-machine-domain",
-      "old": "oya-workflow-engine-state-machine-domain"
+      "new": "iam-tenant-rbac-domain",
+      "old": "oya-tenant-rbac-domain"
     },
     {
-      "new": "workflow-state-machine-kernel",
-      "old": "oya-workflow-engine-state-machine-kernel"
+      "new": "iam-tenant-rbac-erp-parity-map",
+      "old": "oya-tenant-rbac-erp-parity-map"
     },
     {
-      "new": "workflow-state-machine-usecase",
-      "old": "oya-workflow-engine-state-machine-usecase"
+      "new": "iam-tenant-rbac-identity-provider-runtime-evidence",
+      "old": "oya-tenant-rbac-identity-provider-runtime-evidence"
     },
     {
-      "new": "workflow-trigger-orchestrator-api",
-      "old": "oya-workflow-engine-trigger-orchestrator-api"
+      "new": "iam-tenant-rbac-identity-provider-verification",
+      "old": "oya-tenant-rbac-identity-provider-verification"
     },
     {
-      "new": "workflow-trigger-orchestrator-app",
-      "old": "oya-workflow-engine-trigger-orchestrator-app"
+      "new": "iam-tenant-rbac-listener-gateway",
+      "old": "oya-tenant-rbac-listener-gateway"
     },
     {
-      "new": "workflow-trigger-orchestrator-domain",
-      "old": "oya-workflow-engine-trigger-orchestrator-domain"
+      "new": "iam-tenant-rbac-listener-runtime-evidence",
+      "old": "oya-tenant-rbac-listener-runtime-evidence"
     },
     {
-      "new": "workflow-trigger-orchestrator-kernel",
-      "old": "oya-workflow-engine-trigger-orchestrator-kernel"
+      "new": "iam-tenant-rbac-local-inmemory-harness",
+      "old": "oya-tenant-rbac-local-inmemory-harness"
     },
     {
-      "new": "workflow-trigger-orchestrator-rest",
-      "old": "oya-workflow-engine-trigger-orchestrator-rest"
+      "new": "iam-tenant-rbac-local-runtime-composition",
+      "old": "oya-tenant-rbac-local-runtime-composition"
     },
     {
-      "new": "workflow-trigger-orchestrator-sdk",
-      "old": "oya-workflow-engine-trigger-orchestrator-sdk"
+      "new": "iam-tenant-rbac-postgres-rls-runtime-evidence",
+      "old": "oya-tenant-rbac-postgres-rls-runtime-evidence"
     },
     {
-      "new": "workflow-trigger-orchestrator-usecase",
-      "old": "oya-workflow-engine-trigger-orchestrator-usecase"
+      "new": "iam-tenant-rbac-postgres-rls-storage",
+      "old": "oya-tenant-rbac-postgres-rls-storage"
     },
     {
-      "new": "workflow-trigger-orchestrator-worker",
-      "old": "oya-workflow-engine-trigger-orchestrator-worker"
+      "new": "iam-tenant-rbac-postgres-rls-transaction-contract",
+      "old": "oya-tenant-rbac-postgres-rls-transaction-contract"
     },
     {
-      "new": "workflow-studio-dsl-emitter",
-      "old": "oya-workflow-studio-dsl-emitter-domain"
+      "new": "iam-tenant-rbac-postgres-rls-write-contract",
+      "old": "oya-tenant-rbac-postgres-rls-write-contract"
     },
     {
-      "new": "workflow-studio-dsl-loader",
-      "old": "oya-workflow-studio-dsl-loader-domain"
+      "new": "iam-tenant-rbac-slo-evidence",
+      "old": "oya-tenant-rbac-slo-evidence"
     },
     {
-      "new": "workflow-studio-policy-preview",
-      "old": "oya-workflow-studio-policy-preview-domain"
+      "new": "iam-tenant-rbac-statutory-filing-evidence",
+      "old": "oya-tenant-rbac-statutory-filing-evidence"
     },
     {
-      "new": "workflow-studio-visual-canvas",
-      "old": "oya-workflow-studio-visual-canvas-kernel"
+      "new": "iam-tenant-rbac-storage-inmemory",
+      "old": "oya-tenant-rbac-storage-adapter-inmemory"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-admission-policy",
+      "old": "oya-tenant-rbac-tenant-admission-policy"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-autoscaling-contract",
+      "old": "oya-tenant-rbac-tenant-autoscaling-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-availability-contract",
+      "old": "oya-tenant-rbac-tenant-availability-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-cost-allocation-contract",
+      "old": "oya-tenant-rbac-tenant-cost-allocation-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-egress-policy-contract",
+      "old": "oya-tenant-rbac-tenant-egress-policy-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-image-provenance-contract",
+      "old": "oya-tenant-rbac-tenant-image-provenance-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-residency-contract",
+      "old": "oya-tenant-rbac-tenant-residency-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-resource-quota-contract",
+      "old": "oya-tenant-rbac-tenant-resource-quota-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-secret-boundary-contract",
+      "old": "oya-tenant-rbac-tenant-secret-boundary-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-workload-identity-contract",
+      "old": "oya-tenant-rbac-tenant-workload-identity-contract"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-workload-manifest",
+      "old": "oya-tenant-rbac-tenant-workload-manifest"
+    },
+    {
+      "new": "iam-tenant-rbac-tenant-workload-runtime-evidence",
+      "old": "oya-tenant-rbac-tenant-workload-runtime-evidence"
+    },
+    {
+      "new": "iam-tenant-rbac-usecase",
+      "old": "oya-tenant-rbac-usecase"
+    },
+    {
+      "new": "iam-tenant-rbac-workflow-inmemory",
+      "old": "oya-tenant-rbac-workflow-adapter-inmemory"
+    },
+    {
+      "new": "iam-tenant-rbac-workflow-runtime-evidence",
+      "old": "oya-tenant-rbac-workflow-runtime-evidence"
     }
   ],
   "files": [
     {
-      "new_path": "workflow/facade/forms-domain/BUCK",
-      "old_path": "oya/forms/crates/oya-forms-domain/BUCK"
+      "new_path": "iam/adapters/cloud-oci/BUCK",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-adapter-oci/BUCK"
     },
     {
-      "new_path": "workflow/facade/forms-domain/Cargo.toml",
-      "old_path": "oya/forms/crates/oya-forms-domain/Cargo.toml"
+      "new_path": "iam/adapters/cloud-oci/Cargo.toml",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-adapter-oci/Cargo.toml"
     },
     {
-      "new_path": "workflow/facade/forms-domain/src/lib.rs",
-      "old_path": "oya/forms/crates/oya-forms-domain/src/lib.rs"
+      "new_path": "iam/adapters/cloud-oci/src/lib.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-adapter-oci/src/lib.rs"
     },
     {
-      "new_path": "workflow/observability/slos/forms/accessibility-wcag-correctness.openslo.yaml",
-      "old_path": "oya/forms/slos/accessibility-wcag-correctness.openslo.yaml"
+      "new_path": "iam/adapters/cloud-selfhosted/BUCK",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-adapter-selfhosted/BUCK"
     },
     {
-      "new_path": "workflow/observability/slos/forms/ai-form-build-latency.openslo.yaml",
-      "old_path": "oya/forms/slos/ai-form-build-latency.openslo.yaml"
+      "new_path": "iam/adapters/cloud-selfhosted/Cargo.toml",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-adapter-selfhosted/Cargo.toml"
     },
     {
-      "new_path": "workflow/observability/slos/forms/analytics-render-latency.openslo.yaml",
-      "old_path": "oya/forms/slos/analytics-render-latency.openslo.yaml"
+      "new_path": "iam/adapters/cloud-selfhosted/src/lib.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-adapter-selfhosted/src/lib.rs"
     },
     {
-      "new_path": "workflow/observability/slos/forms/autosharding-events.openslo.yaml",
-      "old_path": "oya/forms/slos/autosharding-events.openslo.yaml"
+      "new_path": "iam/ports/cloud-api/BUCK",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-api/BUCK"
     },
     {
-      "new_path": "workflow/observability/slos/forms/bulk-distribute-latency.openslo.yaml",
-      "old_path": "oya/forms/slos/bulk-distribute-latency.openslo.yaml"
+      "new_path": "iam/ports/cloud-api/Cargo.toml",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-api/Cargo.toml"
     },
     {
-      "new_path": "workflow/observability/slos/forms/export-csv-latency.openslo.yaml",
-      "old_path": "oya/forms/slos/export-csv-latency.openslo.yaml"
+      "new_path": "iam/ports/cloud-api/src/lib.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-api/src/lib.rs"
     },
     {
-      "new_path": "workflow/observability/slos/forms/field-validate-latency.openslo.yaml",
-      "old_path": "oya/forms/slos/field-validate-latency.openslo.yaml"
+      "new_path": "iam/ports/cloud-api/tests/cloud_iam_api.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-api/tests/cloud_iam_api.rs"
     },
     {
-      "new_path": "workflow/observability/slos/forms/form-render-latency.openslo.yaml",
-      "old_path": "oya/forms/slos/form-render-latency.openslo.yaml"
+      "new_path": "iam/core/cloud-app/BUCK",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-app/BUCK"
     },
     {
-      "new_path": "workflow/observability/slos/forms/pii-encryption-correctness.openslo.yaml",
-      "old_path": "oya/forms/slos/pii-encryption-correctness.openslo.yaml"
+      "new_path": "iam/core/cloud-app/Cargo.toml",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-app/Cargo.toml"
     },
     {
-      "new_path": "workflow/observability/slos/forms/submission-latency.openslo.yaml",
-      "old_path": "oya/forms/slos/submission-latency.openslo.yaml"
+      "new_path": "iam/core/cloud-app/src/lib.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-app/src/lib.rs"
     },
     {
-      "new_path": "workflow/facade/tasks-domain/BUCK",
-      "old_path": "oya/tasks/crates/oya-tasks-domain/BUCK"
+      "new_path": "iam/core/cloud-app/tests/cedar_policy_bind.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-app/tests/cedar_policy_bind.rs"
     },
     {
-      "new_path": "workflow/facade/tasks-domain/Cargo.toml",
-      "old_path": "oya/tasks/crates/oya-tasks-domain/Cargo.toml"
+      "new_path": "iam/core/cloud-domain/BUCK",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-domain/BUCK"
     },
     {
-      "new_path": "workflow/facade/tasks-domain/src/lib.rs",
-      "old_path": "oya/tasks/crates/oya-tasks-domain/src/lib.rs"
+      "new_path": "iam/core/cloud-domain/Cargo.toml",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-domain/Cargo.toml"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/auto-assign-fairness-correctness.openslo.yaml",
-      "old_path": "oya/tasks/slos/auto-assign-fairness-correctness.openslo.yaml"
+      "new_path": "iam/core/cloud-domain/src/lib.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-domain/src/lib.rs"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/autosharding-events.openslo.yaml",
-      "old_path": "oya/tasks/slos/autosharding-events.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/BUCK",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/BUCK"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/bulk-update-latency.openslo.yaml",
-      "old_path": "oya/tasks/slos/bulk-update-latency.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/Cargo.toml",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/Cargo.toml"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/dependency-cycle-detection-correctness.openslo.yaml",
-      "old_path": "oya/tasks/slos/dependency-cycle-detection-correctness.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/build.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/build.rs"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/recurring-materialise-latency.openslo.yaml",
-      "old_path": "oya/tasks/slos/recurring-materialise-latency.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/cedar/platform-policies.cedar",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/cedar/platform-policies.cedar"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/search-latency.openslo.yaml",
-      "old_path": "oya/tasks/slos/search-latency.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/cedar/platform-templates.cedar",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/cedar/platform-templates.cedar"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/task-create-latency.openslo.yaml",
-      "old_path": "oya/tasks/slos/task-create-latency.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/cedar/platform.cedarschema",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/cedar/platform.cedarschema"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/task-list-render-latency.openslo.yaml",
-      "old_path": "oya/tasks/slos/task-list-render-latency.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/proto/cloud-iam-pdp.proto",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/proto/cloud-iam-pdp.proto"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/task-update-latency.openslo.yaml",
-      "old_path": "oya/tasks/slos/task-update-latency.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/src/audit.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/audit.rs"
     },
     {
-      "new_path": "workflow/observability/slos/tasks/webhook-fire-latency.openslo.yaml",
-      "old_path": "oya/tasks/slos/webhook-fire-latency.openslo.yaml"
+      "new_path": "iam/facade/cloud-pdp-app/src/client_cert_verifier.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/client_cert_verifier.rs"
     },
     {
-      "new_path": "workflow/facade/saas-app/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-app/BUCK"
+      "new_path": "iam/facade/cloud-pdp-app/src/grpc.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/grpc.rs"
     },
     {
-      "new_path": "workflow/facade/saas-app/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-app/Cargo.toml"
+      "new_path": "iam/facade/cloud-pdp-app/src/idgen.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/idgen.rs"
     },
     {
-      "new_path": "workflow/facade/saas-app/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-app/src/lib.rs"
+      "new_path": "iam/facade/cloud-pdp-app/src/lib.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/lib.rs"
     },
     {
-      "new_path": "workflow/facade/saas-domain/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-domain/BUCK"
+      "new_path": "iam/facade/cloud-pdp-app/src/main.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/main.rs"
     },
     {
-      "new_path": "workflow/facade/saas-domain/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-domain/Cargo.toml"
+      "new_path": "iam/facade/cloud-pdp-app/src/mtls.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/mtls.rs"
     },
     {
-      "new_path": "workflow/facade/saas-domain/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-domain/src/lib.rs"
+      "new_path": "iam/facade/cloud-pdp-app/src/mtls_transport.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/mtls_transport.rs"
     },
     {
-      "new_path": "workflow/facade/saas-kernel/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-kernel/BUCK"
+      "new_path": "iam/facade/cloud-pdp-app/src/observability.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/observability.rs"
     },
     {
-      "new_path": "workflow/facade/saas-kernel/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-kernel/Cargo.toml"
+      "new_path": "iam/facade/cloud-pdp-app/src/rest.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/rest.rs"
     },
     {
-      "new_path": "workflow/facade/saas-kernel/src/editor_action.rs",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-kernel/src/editor_action.rs"
+      "new_path": "iam/facade/cloud-pdp-app/src/server.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/server.rs"
     },
     {
-      "new_path": "workflow/facade/saas-kernel/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-kernel/src/lib.rs"
+      "new_path": "iam/facade/cloud-pdp-app/tests/common/mod.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/common/mod.rs"
     },
     {
-      "new_path": "workflow/facade/saas-kernel/src/priority.rs",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-kernel/src/priority.rs"
+      "new_path": "iam/facade/cloud-pdp-app/tests/e2e_live_socket.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/e2e_live_socket.rs"
     },
     {
-      "new_path": "workflow/facade/saas-kernel/src/trigger.rs",
-      "old_path": "oya/workflow-engine/crates/oya-saas-workflow-kernel/src/trigger.rs"
+      "new_path": "iam/facade/cloud-pdp-app/tests/grpc_contract.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/grpc_contract.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-kafka/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-kafka/BUCK"
+      "new_path": "iam/facade/cloud-pdp-app/tests/main_boot_closure.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/main_boot_closure.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-kafka/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-kafka/Cargo.toml"
+      "new_path": "iam/facade/cloud-pdp-app/tests/mtls_live_socket.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/mtls_live_socket.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-kafka/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-kafka/src/lib.rs"
+      "new_path": "iam/facade/cloud-pdp-app/tests/rest_contract.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/rest_contract.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-nats/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-nats/BUCK"
+      "new_path": "iam/facade/cloud-pdp-app/tests/seed_parity.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/seed_parity.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-nats/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-nats/Cargo.toml"
+      "new_path": "iam/adapters/cloud-pdp-bundle-file/BUCK",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-bundle-file-adapter/BUCK"
     },
     {
-      "new_path": "workflow/adapters/event-bus-nats/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-nats/src/lib.rs"
+      "new_path": "iam/adapters/cloud-pdp-bundle-file/Cargo.toml",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-bundle-file-adapter/Cargo.toml"
     },
     {
-      "new_path": "workflow/adapters/event-bus-postgres/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-postgres/BUCK"
+      "new_path": "iam/adapters/cloud-pdp-bundle-file/src/lib.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-bundle-file-adapter/src/lib.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-postgres/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-postgres/Cargo.toml"
+      "new_path": "iam/core/cloud-pdp-kernel/BUCK",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-kernel/BUCK"
     },
     {
-      "new_path": "workflow/adapters/event-bus-postgres/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-postgres/src/lib.rs"
+      "new_path": "iam/core/cloud-pdp-kernel/Cargo.toml",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-kernel/Cargo.toml"
     },
     {
-      "new_path": "workflow/adapters/event-bus-pulsar/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-pulsar/BUCK"
+      "new_path": "iam/core/cloud-pdp-kernel/src/lib.rs",
+      "old_path": "cloud/cloud-iam/crates/oya-cloud-iam-pdp-kernel/src/lib.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-pulsar/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-pulsar/Cargo.toml"
+      "new_path": "iam/observability/slos/cloud-iam/autosharding-events.openslo.yaml",
+      "old_path": "cloud/cloud-iam/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "workflow/adapters/event-bus-pulsar/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-pulsar/src/lib.rs"
+      "new_path": "iam/ports/identity-api/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-api/BUCK"
     },
     {
-      "new_path": "workflow/adapters/event-bus-redpanda/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-redpanda/BUCK"
+      "new_path": "iam/ports/identity-api/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-api/Cargo.toml"
     },
     {
-      "new_path": "workflow/adapters/event-bus-redpanda/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-redpanda/Cargo.toml"
+      "new_path": "iam/ports/identity-api/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-api/src/lib.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-redpanda/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-redpanda/src/lib.rs"
+      "new_path": "iam/ports/identity-api/tests/identity_user_upsert_api.rs",
+      "old_path": "oya/identity/crates/oya-identity-api/tests/identity_user_upsert_api.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-valkey/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-valkey/BUCK"
+      "new_path": "iam/core/identity-domain/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-domain/BUCK"
     },
     {
-      "new_path": "workflow/adapters/event-bus-valkey/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-valkey/Cargo.toml"
+      "new_path": "iam/core/identity-domain/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-domain/Cargo.toml"
     },
     {
-      "new_path": "workflow/adapters/event-bus-valkey/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter-valkey/src/lib.rs"
+      "new_path": "iam/core/identity-domain/src/credential_revocation.rs",
+      "old_path": "oya/identity/crates/oya-identity-domain/src/credential_revocation.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-adapter/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter/BUCK"
+      "new_path": "iam/core/identity-domain/src/hr_employee_status.rs",
+      "old_path": "oya/identity/crates/oya-identity-domain/src/hr_employee_status.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-adapter/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter/Cargo.toml"
+      "new_path": "iam/core/identity-domain/src/identity_employment_classification.rs",
+      "old_path": "oya/identity/crates/oya-identity-domain/src/identity_employment_classification.rs"
     },
     {
-      "new_path": "workflow/adapters/event-bus-adapter/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-adapter/src/lib.rs"
+      "new_path": "iam/core/identity-domain/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-domain/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/event-bus-api/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-api/BUCK"
+      "new_path": "iam/core/identity-domain/tests/credential_revocation.rs",
+      "old_path": "oya/identity/crates/oya-identity-domain/tests/credential_revocation.rs"
     },
     {
-      "new_path": "workflow/ports/event-bus-api/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-api/Cargo.toml"
+      "new_path": "iam/core/identity-domain/tests/sts_credentials.rs",
+      "old_path": "oya/identity/crates/oya-identity-domain/tests/sts_credentials.rs"
     },
     {
-      "new_path": "workflow/ports/event-bus-api/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-api/src/lib.rs"
+      "new_path": "iam/core/identity-oidc-issuer-kernel/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-oidc-issuer-kernel/BUCK"
     },
     {
-      "new_path": "workflow/ports/event-bus-app/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-app/BUCK"
+      "new_path": "iam/core/identity-oidc-issuer-kernel/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-oidc-issuer-kernel/Cargo.toml"
     },
     {
-      "new_path": "workflow/ports/event-bus-app/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-app/Cargo.toml"
+      "new_path": "iam/core/identity-oidc-issuer-kernel/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-oidc-issuer-kernel/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/event-bus-app/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-app/src/lib.rs"
+      "new_path": "iam/core/identity-oidc-issuer-kernel/tests/oidc_issuer_kernel.rs",
+      "old_path": "oya/identity/crates/oya-identity-oidc-issuer-kernel/tests/oidc_issuer_kernel.rs"
     },
     {
-      "new_path": "workflow/core/event-bus-domain/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-domain/BUCK"
+      "new_path": "iam/core/identity-usecase/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-usecase/BUCK"
     },
     {
-      "new_path": "workflow/core/event-bus-domain/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-domain/Cargo.toml"
+      "new_path": "iam/core/identity-usecase/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-usecase/Cargo.toml"
     },
     {
-      "new_path": "workflow/core/event-bus-domain/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-domain/src/lib.rs"
+      "new_path": "iam/core/identity-usecase/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-usecase/src/lib.rs"
     },
     {
-      "new_path": "workflow/core/event-bus-kernel/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-kernel/BUCK"
+      "new_path": "iam/core/identity-usecase/src/observability.rs",
+      "old_path": "oya/identity/crates/oya-identity-usecase/src/observability.rs"
     },
     {
-      "new_path": "workflow/core/event-bus-kernel/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-kernel/Cargo.toml"
+      "new_path": "iam/core/identity-usecase/tests/identity_token_issue.rs",
+      "old_path": "oya/identity/crates/oya-identity-usecase/tests/identity_token_issue.rs"
     },
     {
-      "new_path": "workflow/core/event-bus-kernel/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-kernel/src/lib.rs"
+      "new_path": "iam/core/identity-usecase/tests/observability.rs",
+      "old_path": "oya/identity/crates/oya-identity-usecase/tests/observability.rs"
     },
     {
-      "new_path": "workflow/ports/event-bus-rest/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-rest/BUCK"
+      "new_path": "iam/ports/identity-workload-api/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-workload-api/BUCK"
     },
     {
-      "new_path": "workflow/ports/event-bus-rest/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-rest/Cargo.toml"
+      "new_path": "iam/ports/identity-workload-api/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-workload-api/Cargo.toml"
     },
     {
-      "new_path": "workflow/ports/event-bus-rest/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-rest/src/lib.rs"
+      "new_path": "iam/ports/identity-workload-api/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-api/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/event-bus-sdk/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-sdk/BUCK"
+      "new_path": "iam/ports/identity-workload-api/tests/contracts.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-api/tests/contracts.rs"
     },
     {
-      "new_path": "workflow/ports/event-bus-sdk/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-sdk/Cargo.toml"
+      "new_path": "iam/facade/identity-workload-app/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-workload-app/BUCK"
     },
     {
-      "new_path": "workflow/ports/event-bus-sdk/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-sdk/src/lib.rs"
+      "new_path": "iam/facade/identity-workload-app/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-workload-app/Cargo.toml"
     },
     {
-      "new_path": "workflow/core/event-bus-usecase/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-usecase/BUCK"
+      "new_path": "iam/facade/identity-workload-app/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-app/src/lib.rs"
     },
     {
-      "new_path": "workflow/core/event-bus-usecase/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-usecase/Cargo.toml"
+      "new_path": "iam/facade/identity-workload-app/tests/acceptance.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-app/tests/acceptance.rs"
     },
     {
-      "new_path": "workflow/core/event-bus-usecase/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-usecase/src/lib.rs"
+      "new_path": "iam/adapters/identity-workload-authz-cedar/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-workload-authz-cedar-adapter/BUCK"
     },
     {
-      "new_path": "workflow/ports/event-bus-worker/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-worker/BUCK"
+      "new_path": "iam/adapters/identity-workload-authz-cedar/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-workload-authz-cedar-adapter/Cargo.toml"
     },
     {
-      "new_path": "workflow/ports/event-bus-worker/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-worker/Cargo.toml"
+      "new_path": "iam/adapters/identity-workload-authz-cedar/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-authz-cedar-adapter/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/event-bus-worker/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-event-bus-worker/src/lib.rs"
+      "new_path": "iam/adapters/identity-workload-authz-cedar/tests/authz_allow_deny.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-authz-cedar-adapter/tests/authz_allow_deny.rs"
     },
     {
-      "new_path": "workflow/adapters/execution-engine-postgres/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter-postgres/BUCK"
+      "new_path": "iam/core/identity-workload-domain/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-workload-domain/BUCK"
     },
     {
-      "new_path": "workflow/adapters/execution-engine-postgres/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter-postgres/Cargo.toml"
+      "new_path": "iam/core/identity-workload-domain/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-workload-domain/Cargo.toml"
     },
     {
-      "new_path": "workflow/adapters/execution-engine-postgres/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter-postgres/src/lib.rs"
+      "new_path": "iam/core/identity-workload-domain/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-domain/src/lib.rs"
     },
     {
-      "new_path": "workflow/adapters/execution-engine-adapter/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter/BUCK"
+      "new_path": "iam/core/identity-workload-domain/tests/workload_principal_lifecycle.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-domain/tests/workload_principal_lifecycle.rs"
     },
     {
-      "new_path": "workflow/adapters/execution-engine-adapter/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter/Cargo.toml"
+      "new_path": "iam/adapters/identity-workload-oidc/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-workload-oidc-adapter/BUCK"
     },
     {
-      "new_path": "workflow/adapters/execution-engine-adapter/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-adapter/src/lib.rs"
+      "new_path": "iam/adapters/identity-workload-oidc/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-workload-oidc-adapter/Cargo.toml"
     },
     {
-      "new_path": "workflow/ports/execution-engine-api/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-api/BUCK"
+      "new_path": "iam/adapters/identity-workload-oidc/src/eddsa.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-oidc-adapter/src/eddsa.rs"
     },
     {
-      "new_path": "workflow/ports/execution-engine-api/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-api/Cargo.toml"
+      "new_path": "iam/adapters/identity-workload-oidc/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-oidc-adapter/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/execution-engine-api/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-api/src/lib.rs"
+      "new_path": "iam/adapters/identity-workload-oidc/tests/token_validation.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-oidc-adapter/tests/token_validation.rs"
     },
     {
-      "new_path": "workflow/ports/execution-engine-app/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-app/BUCK"
+      "new_path": "iam/facade/identity-workload-rest/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/BUCK"
     },
     {
-      "new_path": "workflow/ports/execution-engine-app/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-app/Cargo.toml"
+      "new_path": "iam/facade/identity-workload-rest/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/Cargo.toml"
     },
     {
-      "new_path": "workflow/ports/execution-engine-app/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-app/src/lib.rs"
+      "new_path": "iam/facade/identity-workload-rest/build.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/build.rs"
     },
     {
-      "new_path": "workflow/core/execution-engine-domain/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-domain/BUCK"
+      "new_path": "iam/facade/identity-workload-rest/src/grpc/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/src/grpc/mod.rs"
     },
     {
-      "new_path": "workflow/core/execution-engine-domain/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-domain/Cargo.toml"
+      "new_path": "iam/facade/identity-workload-rest/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/src/lib.rs"
     },
     {
-      "new_path": "workflow/core/execution-engine-domain/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-domain/src/lib.rs"
+      "new_path": "iam/facade/identity-workload-rest/tests/common/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/tests/common/mod.rs"
     },
     {
-      "new_path": "workflow/core/execution-engine-kernel/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-kernel/BUCK"
+      "new_path": "iam/facade/identity-workload-rest/tests/coverage_gaps.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/tests/coverage_gaps.rs"
     },
     {
-      "new_path": "workflow/core/execution-engine-kernel/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-kernel/Cargo.toml"
+      "new_path": "iam/facade/identity-workload-rest/tests/grpc_authorize_deny.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/tests/grpc_authorize_deny.rs"
     },
     {
-      "new_path": "workflow/core/execution-engine-kernel/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-kernel/src/lib.rs"
+      "new_path": "iam/facade/identity-workload-rest/tests/rest_endpoints.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-rest/tests/rest_endpoints.rs"
     },
     {
-      "new_path": "workflow/ports/execution-engine-rest/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-rest/BUCK"
+      "new_path": "iam/core/identity-workload-svid-kernel/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-kernel/BUCK"
     },
     {
-      "new_path": "workflow/ports/execution-engine-rest/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-rest/Cargo.toml"
+      "new_path": "iam/core/identity-workload-svid-kernel/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-kernel/Cargo.toml"
     },
     {
-      "new_path": "workflow/ports/execution-engine-rest/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-rest/src/lib.rs"
+      "new_path": "iam/core/identity-workload-svid-kernel/OWNERS",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-kernel/OWNERS"
     },
     {
-      "new_path": "workflow/ports/execution-engine-sdk/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-sdk/BUCK"
+      "new_path": "iam/observability/slos/identity-workload-svid-kernel/workload-svid-issuance-availability.openslo.yaml",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-kernel/slos/workload-svid-issuance-availability.openslo.yaml"
     },
     {
-      "new_path": "workflow/ports/execution-engine-sdk/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-sdk/Cargo.toml"
+      "new_path": "iam/core/identity-workload-svid-kernel/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-kernel/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/execution-engine-sdk/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-sdk/src/lib.rs"
+      "new_path": "iam/adapters/identity-workload-svid-trustd/BUCK",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-trustd-adapter/BUCK"
     },
     {
-      "new_path": "workflow/core/execution-engine-usecase/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-usecase/BUCK"
+      "new_path": "iam/adapters/identity-workload-svid-trustd/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-trustd-adapter/Cargo.toml"
     },
     {
-      "new_path": "workflow/core/execution-engine-usecase/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-usecase/Cargo.toml"
+      "new_path": "iam/adapters/identity-workload-svid-trustd/OWNERS",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-trustd-adapter/OWNERS"
     },
     {
-      "new_path": "workflow/core/execution-engine-usecase/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-usecase/src/lib.rs"
+      "new_path": "iam/adapters/identity-workload-svid-trustd/src/leaf_der.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/leaf_der.rs"
     },
     {
-      "new_path": "workflow/ports/execution-engine-worker/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-worker/BUCK"
+      "new_path": "iam/adapters/identity-workload-svid-trustd/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/execution-engine-worker/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-worker/Cargo.toml"
+      "new_path": "iam/facade/identity-service/BUCK",
+      "old_path": "oya/identity/crates/oya-identity/BUCK"
     },
     {
-      "new_path": "workflow/ports/execution-engine-worker/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-execution-engine-worker/src/lib.rs"
+      "new_path": "iam/facade/identity-service/Cargo.toml",
+      "old_path": "oya/identity/crates/oya-identity/Cargo.toml"
     },
     {
-      "new_path": "workflow/adapters/state-machine-postgres/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-adapter-postgres/BUCK"
+      "new_path": "iam/facade/identity-service/src/auth/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/auth/mod.rs"
     },
     {
-      "new_path": "workflow/adapters/state-machine-postgres/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-adapter-postgres/Cargo.toml"
+      "new_path": "iam/facade/identity-service/src/config.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/config.rs"
     },
     {
-      "new_path": "workflow/adapters/state-machine-postgres/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-adapter-postgres/src/lib.rs"
+      "new_path": "iam/facade/identity-service/src/grpc/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/grpc/mod.rs"
     },
     {
-      "new_path": "workflow/adapters/state-machine-adapter/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-adapter/BUCK"
+      "new_path": "iam/facade/identity-service/src/lib.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/lib.rs"
     },
     {
-      "new_path": "workflow/adapters/state-machine-adapter/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-adapter/Cargo.toml"
+      "new_path": "iam/facade/identity-service/src/main.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/main.rs"
     },
     {
-      "new_path": "workflow/adapters/state-machine-adapter/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-adapter/src/lib.rs"
+      "new_path": "iam/facade/identity-service/src/oauth2/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/oauth2/mod.rs"
     },
     {
-      "new_path": "workflow/ports/state-machine-api/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-api/BUCK"
+      "new_path": "iam/facade/identity-service/src/observability/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/observability/mod.rs"
     },
     {
-      "new_path": "workflow/ports/state-machine-api/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-api/Cargo.toml"
+      "new_path": "iam/facade/identity-service/src/oidc/issuer.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/oidc/issuer.rs"
     },
     {
-      "new_path": "workflow/ports/state-machine-api/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-api/src/lib.rs"
+      "new_path": "iam/facade/identity-service/src/oidc/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/oidc/mod.rs"
     },
     {
-      "new_path": "workflow/core/state-machine-domain/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-domain/BUCK"
+      "new_path": "iam/facade/identity-service/src/realms/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/realms/mod.rs"
     },
     {
-      "new_path": "workflow/core/state-machine-domain/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-domain/Cargo.toml"
+      "new_path": "iam/facade/identity-service/src/rest/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/rest/mod.rs"
     },
     {
-      "new_path": "workflow/core/state-machine-domain/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-domain/src/lib.rs"
+      "new_path": "iam/facade/identity-service/src/server.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/server.rs"
     },
     {
-      "new_path": "workflow/core/state-machine-kernel/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-kernel/BUCK"
+      "new_path": "iam/facade/identity-service/src/storage/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/storage/mod.rs"
     },
     {
-      "new_path": "workflow/core/state-machine-kernel/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-kernel/Cargo.toml"
+      "new_path": "iam/facade/identity-service/src/users/mod.rs",
+      "old_path": "oya/identity/crates/oya-identity/src/users/mod.rs"
     },
     {
-      "new_path": "workflow/core/state-machine-kernel/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-kernel/src/lib.rs"
+      "new_path": "iam/facade/identity-service/tests/e2e_service.rs",
+      "old_path": "oya/identity/crates/oya-identity/tests/e2e_service.rs"
     },
     {
-      "new_path": "workflow/core/state-machine-usecase/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-usecase/BUCK"
+      "new_path": "iam/observability/slos/identity/aaguid-refresh-freshness.openslo.yaml",
+      "old_path": "oya/identity/slos/aaguid-refresh-freshness.openslo.yaml"
     },
     {
-      "new_path": "workflow/core/state-machine-usecase/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-usecase/Cargo.toml"
+      "new_path": "iam/observability/slos/identity/audit-emit-completeness.openslo.yaml",
+      "old_path": "oya/identity/slos/audit-emit-completeness.openslo.yaml"
     },
     {
-      "new_path": "workflow/core/state-machine-usecase/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-state-machine-usecase/src/lib.rs"
+      "new_path": "iam/observability/slos/identity/authorize-latency-p99.openslo.yaml",
+      "old_path": "oya/identity/slos/authorize-latency-p99.openslo.yaml"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-api/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-api/BUCK"
+      "new_path": "iam/observability/slos/identity/autosharding-events.openslo.yaml",
+      "old_path": "oya/identity/slos/autosharding-events.openslo.yaml"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-api/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-api/Cargo.toml"
+      "new_path": "iam/observability/slos/identity/decision-correctness.openslo.yaml",
+      "old_path": "oya/identity/slos/decision-correctness.openslo.yaml"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-api/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-api/src/lib.rs"
+      "new_path": "iam/observability/slos/identity/jwks-availability.openslo.yaml",
+      "old_path": "oya/identity/slos/jwks-availability.openslo.yaml"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-app/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-app/BUCK"
+      "new_path": "iam/observability/slos/identity/oidc-token-issue-latency.openslo.yaml",
+      "old_path": "oya/identity/slos/oidc-token-issue-latency.openslo.yaml"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-app/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-app/Cargo.toml"
+      "new_path": "iam/observability/slos/identity/oidc-token-verify-latency.openslo.yaml",
+      "old_path": "oya/identity/slos/oidc-token-verify-latency.openslo.yaml"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-app/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-app/src/lib.rs"
+      "new_path": "iam/observability/slos/identity/scim-availability.openslo.yaml",
+      "old_path": "oya/identity/slos/scim-availability.openslo.yaml"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-domain/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-domain/BUCK"
+      "new_path": "iam/observability/slos/identity/step-up-grant-latency.openslo.yaml",
+      "old_path": "oya/identity/slos/step-up-grant-latency.openslo.yaml"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-domain/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-domain/Cargo.toml"
+      "new_path": "iam/observability/slos/identity/validation-availability.openslo.yaml",
+      "old_path": "oya/identity/slos/validation-availability.openslo.yaml"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-domain/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-domain/src/lib.rs"
+      "new_path": "iam/observability/slos/identity/webauthn-authenticate-latency.openslo.yaml",
+      "old_path": "oya/identity/slos/webauthn-authenticate-latency.openslo.yaml"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-kernel/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-kernel/BUCK"
+      "new_path": "iam/observability/slos/identity/zitadel-instance-health.openslo.yaml",
+      "old_path": "oya/identity/slos/zitadel-instance-health.openslo.yaml"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-kernel/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-kernel/Cargo.toml"
+      "new_path": "iam/core/authn-device-firmware/BUCK",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/BUCK"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-kernel/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-kernel/src/lib.rs"
+      "new_path": "iam/core/authn-device-firmware/Cargo.toml",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/Cargo.toml"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-rest/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-rest/BUCK"
+      "new_path": "iam/core/authn-device-firmware/src/attestation/mod.rs",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/src/attestation/mod.rs"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-rest/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-rest/Cargo.toml"
+      "new_path": "iam/core/authn-device-firmware/src/config.rs",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/src/config.rs"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-rest/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-rest/src/lib.rs"
+      "new_path": "iam/core/authn-device-firmware/src/ctap2/mod.rs",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/src/ctap2/mod.rs"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-sdk/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-sdk/BUCK"
+      "new_path": "iam/core/authn-device-firmware/src/lib.rs",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-sdk/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-sdk/Cargo.toml"
+      "new_path": "iam/core/authn-device-firmware/src/observability/mod.rs",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/src/observability/mod.rs"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-sdk/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-sdk/src/lib.rs"
+      "new_path": "iam/core/authn-device-firmware/src/storage/mod.rs",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/src/storage/mod.rs"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-usecase/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-usecase/BUCK"
+      "new_path": "iam/core/authn-device-firmware/src/transport/mod.rs",
+      "old_path": "oya/oya-authn-device-firmware/crates/oya-authn-device-firmware/src/transport/mod.rs"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-usecase/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-usecase/Cargo.toml"
+      "new_path": "iam/ports/policy-cedar-api/BUCK",
+      "old_path": "oya/policy/crates/oya-policy-cedar-api/BUCK"
     },
     {
-      "new_path": "workflow/core/trigger-orchestrator-usecase/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-usecase/src/lib.rs"
+      "new_path": "iam/ports/policy-cedar-api/Cargo.toml",
+      "old_path": "oya/policy/crates/oya-policy-cedar-api/Cargo.toml"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-worker/BUCK",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-worker/BUCK"
+      "new_path": "iam/ports/policy-cedar-api/src/lib.rs",
+      "old_path": "oya/policy/crates/oya-policy-cedar-api/src/lib.rs"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-worker/Cargo.toml",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-worker/Cargo.toml"
+      "new_path": "iam/ports/policy-cedar-api/src/rest/mod.rs",
+      "old_path": "oya/policy/crates/oya-policy-cedar-api/src/rest/mod.rs"
     },
     {
-      "new_path": "workflow/ports/trigger-orchestrator-worker/src/lib.rs",
-      "old_path": "oya/workflow-engine/crates/oya-workflow-engine-trigger-orchestrator-worker/src/lib.rs"
+      "new_path": "iam/ports/policy-cedar-api/tests/cedar_policy_publish_api.rs",
+      "old_path": "oya/policy/crates/oya-policy-cedar-api/tests/cedar_policy_publish_api.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-engine/autosharding-events.openslo.yaml",
-      "old_path": "oya/workflow-engine/slos/autosharding-events.openslo.yaml"
+      "new_path": "iam/ports/policy-cedar-api/tests/rest_router.rs",
+      "old_path": "oya/policy/crates/oya-policy-cedar-api/tests/rest_router.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-engine/payload-bytes-budget-correctness.openslo.yaml",
-      "old_path": "oya/workflow-engine/slos/payload-bytes-budget-correctness.openslo.yaml"
+      "new_path": "iam/core/policy-cedar-domain/BUCK",
+      "old_path": "oya/policy/crates/oya-policy-cedar-domain/BUCK"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-engine/replay-determinism-correctness.openslo.yaml",
-      "old_path": "oya/workflow-engine/slos/replay-determinism-correctness.openslo.yaml"
+      "new_path": "iam/core/policy-cedar-domain/Cargo.toml",
+      "old_path": "oya/policy/crates/oya-policy-cedar-domain/Cargo.toml"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-engine/worker-poll-availability.openslo.yaml",
-      "old_path": "oya/workflow-engine/slos/worker-poll-availability.openslo.yaml"
+      "new_path": "iam/core/policy-cedar-domain/src/lib.rs",
+      "old_path": "oya/policy/crates/oya-policy-cedar-domain/src/lib.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-engine/workflow-completion-availability.openslo.yaml",
-      "old_path": "oya/workflow-engine/slos/workflow-completion-availability.openslo.yaml"
+      "new_path": "iam/core/policy-cedar-domain/src/obligations.rs",
+      "old_path": "oya/policy/crates/oya-policy-cedar-domain/src/obligations.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-engine/workflow-start-latency.openslo.yaml",
-      "old_path": "oya/workflow-engine/slos/workflow-start-latency.openslo.yaml"
+      "new_path": "iam/core/policy-cedar-domain/src/policy_diff.rs",
+      "old_path": "oya/policy/crates/oya-policy-cedar-domain/src/policy_diff.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-engine/workflow-step-execute-latency.openslo.yaml",
-      "old_path": "oya/workflow-engine/slos/workflow-step-execute-latency.openslo.yaml"
+      "new_path": "iam/ports/tenant-rbac-api/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-api/BUCK"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-emitter/BUCK",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain/BUCK"
+      "new_path": "iam/ports/tenant-rbac-api/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-api/Cargo.toml"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-emitter/Cargo.toml",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain/Cargo.toml"
+      "new_path": "iam/ports/tenant-rbac-api/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-api/src/lib.rs"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-emitter/src/lib.rs",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain/src/lib.rs"
+      "new_path": "iam/ports/tenant-rbac-api/tests/contracts.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-api/tests/contracts.rs"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-emitter/tests/graph_integrity.rs",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain/tests/graph_integrity.rs"
+      "new_path": "iam/facade/tenant-rbac-app/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-app/BUCK"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-emitter/tests/node_typology.rs",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain/tests/node_typology.rs"
+      "new_path": "iam/facade/tenant-rbac-app/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-app/Cargo.toml"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-emitter/tests/structural_validation.rs",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-emitter-domain/tests/structural_validation.rs"
+      "new_path": "iam/facade/tenant-rbac-app/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-app/src/lib.rs"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-loader/BUCK",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-loader-domain/BUCK"
+      "new_path": "iam/facade/tenant-rbac-app/tests/runtime.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-app/tests/runtime.rs"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-loader/Cargo.toml",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-loader-domain/Cargo.toml"
+      "new_path": "iam/core/tenant-rbac-audit-chain-emission/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission/BUCK"
     },
     {
-      "new_path": "workflow/facade/studio-dsl-loader/src/lib.rs",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-dsl-loader-domain/src/lib.rs"
+      "new_path": "iam/core/tenant-rbac-audit-chain-emission/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission/Cargo.toml"
     },
     {
-      "new_path": "workflow/facade/studio-policy-preview/BUCK",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-policy-preview-domain/BUCK"
+      "new_path": "iam/core/tenant-rbac-audit-chain-emission/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission/src/lib.rs"
     },
     {
-      "new_path": "workflow/facade/studio-policy-preview/Cargo.toml",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-policy-preview-domain/Cargo.toml"
+      "new_path": "iam/core/tenant-rbac-audit-chain-emission/tests/audit_chain_emission.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-emission/tests/audit_chain_emission.rs"
     },
     {
-      "new_path": "workflow/facade/studio-policy-preview/src/lib.rs",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-policy-preview-domain/src/lib.rs"
+      "new_path": "iam/facade/tenant-rbac-audit-chain-runtime-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-runtime-evidence/BUCK"
     },
     {
-      "new_path": "workflow/facade/studio-visual-canvas/BUCK",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-visual-canvas-kernel/BUCK"
+      "new_path": "iam/facade/tenant-rbac-audit-chain-runtime-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-runtime-evidence/Cargo.toml"
     },
     {
-      "new_path": "workflow/facade/studio-visual-canvas/Cargo.toml",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-visual-canvas-kernel/Cargo.toml"
+      "new_path": "iam/facade/tenant-rbac-audit-chain-runtime-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-runtime-evidence/src/lib.rs"
     },
     {
-      "new_path": "workflow/facade/studio-visual-canvas/src/lib.rs",
-      "old_path": "oya/workflow-studio/crates/oya-workflow-studio-visual-canvas-kernel/src/lib.rs"
+      "new_path": "iam/facade/tenant-rbac-audit-chain-runtime-evidence/tests/audit_chain_runtime_evidence.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-audit-chain-runtime-evidence/tests/audit_chain_runtime_evidence.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-studio/autosharding-events.openslo.yaml",
-      "old_path": "oya/workflow-studio/slos/autosharding-events.openslo.yaml"
+      "new_path": "iam/core/tenant-rbac-auth-app/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app/BUCK"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-studio/canvas-frame-time-p99.openslo.yaml",
-      "old_path": "oya/workflow-studio/slos/canvas-frame-time-p99.openslo.yaml"
+      "new_path": "iam/core/tenant-rbac-auth-app/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app/Cargo.toml"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-studio/collab-crdt-merge-latency.openslo.yaml",
-      "old_path": "oya/workflow-studio/slos/collab-crdt-merge-latency.openslo.yaml"
+      "new_path": "iam/core/tenant-rbac-auth-app/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app/src/lib.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-studio/collab-crdt-no-silent-loss.openslo.yaml",
-      "old_path": "oya/workflow-studio/slos/collab-crdt-no-silent-loss.openslo.yaml"
+      "new_path": "iam/core/tenant-rbac-auth-app/tests/auth_runtime.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-auth-app/tests/auth_runtime.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-studio/editor-rest-availability.openslo.yaml",
-      "old_path": "oya/workflow-studio/slos/editor-rest-availability.openslo.yaml"
+      "new_path": "iam/facade/tenant-rbac-cloud-deployment-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-evidence/BUCK"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-studio/editor-rest-latency.openslo.yaml",
-      "old_path": "oya/workflow-studio/slos/editor-rest-latency.openslo.yaml"
+      "new_path": "iam/facade/tenant-rbac-cloud-deployment-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-evidence/Cargo.toml"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-studio/editor-tti-cdn-availability.openslo.yaml",
-      "old_path": "oya/workflow-studio/slos/editor-tti-cdn-availability.openslo.yaml"
+      "new_path": "iam/facade/tenant-rbac-cloud-deployment-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-evidence/src/lib.rs"
     },
     {
-      "new_path": "workflow/observability/slos/workflow-studio/license-gate-cedar-availability.openslo.yaml",
-      "old_path": "oya/workflow-studio/slos/license-gate-cedar-availability.openslo.yaml"
+      "new_path": "iam/facade/tenant-rbac-cloud-deployment-evidence/tests/deployment_evidence.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-evidence/tests/deployment_evidence.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-forms-domain.yaml",
-      "old_path": "registry/catalog/oya-forms-domain.yaml"
+      "new_path": "iam/core/tenant-rbac-cloud-deployment-manifest/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-saas-app.yaml",
-      "old_path": "registry/catalog/oya-saas-workflow-app.yaml"
+      "new_path": "iam/core/tenant-rbac-cloud-deployment-manifest/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-saas-domain.yaml",
-      "old_path": "registry/catalog/oya-saas-workflow-domain.yaml"
+      "new_path": "iam/core/tenant-rbac-cloud-deployment-manifest/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-saas-kernel.yaml",
-      "old_path": "registry/catalog/oya-saas-workflow-kernel.yaml"
+      "new_path": "iam/core/tenant-rbac-cloud-deployment-manifest/tests/manifest.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-deployment-manifest/tests/manifest.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-tasks-domain.yaml",
-      "old_path": "registry/catalog/oya-tasks-domain.yaml"
+      "new_path": "iam/facade/tenant-rbac-cloud-readiness-gate/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-kafka.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-adapter-kafka.yaml"
+      "new_path": "iam/facade/tenant-rbac-cloud-readiness-gate/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-nats.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-adapter-nats.yaml"
+      "new_path": "iam/facade/tenant-rbac-cloud-readiness-gate/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-postgres.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-adapter-postgres.yaml"
+      "new_path": "iam/facade/tenant-rbac-cloud-readiness-gate/tests/readiness.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-cloud-readiness-gate/tests/readiness.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-pulsar.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-adapter-pulsar.yaml"
+      "new_path": "iam/facade/tenant-rbac-disbursement-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-disbursement-evidence/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-redpanda.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-adapter-redpanda.yaml"
+      "new_path": "iam/facade/tenant-rbac-disbursement-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-disbursement-evidence/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-valkey.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-adapter-valkey.yaml"
+      "new_path": "iam/facade/tenant-rbac-disbursement-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-disbursement-evidence/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-adapter.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-adapter.yaml"
+      "new_path": "iam/facade/tenant-rbac-disbursement-evidence/tests/disbursement.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-disbursement-evidence/tests/disbursement.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-api.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-api.yaml"
+      "new_path": "iam/core/tenant-rbac-domain/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-domain/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-app.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-app.yaml"
+      "new_path": "iam/core/tenant-rbac-domain/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-domain/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-domain.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-domain.yaml"
+      "new_path": "iam/core/tenant-rbac-domain/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-domain/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-kernel.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-kernel.yaml"
+      "new_path": "iam/core/tenant-rbac-domain/tests/group.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-domain/tests/group.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-rest.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-rest.yaml"
+      "new_path": "iam/core/tenant-rbac-domain/tests/incident.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-domain/tests/incident.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-sdk.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-sdk.yaml"
+      "new_path": "iam/core/tenant-rbac-domain/tests/policy.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-domain/tests/policy.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-usecase.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-usecase.yaml"
+      "new_path": "iam/core/tenant-rbac-domain/tests/workflow.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-domain/tests/workflow.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-event-bus-worker.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-event-bus-worker.yaml"
+      "new_path": "iam/facade/tenant-rbac-erp-parity-map/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-postgres.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-adapter-postgres.yaml"
+      "new_path": "iam/facade/tenant-rbac-erp-parity-map/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-adapter.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-adapter.yaml"
+      "new_path": "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-api.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-api.yaml"
+      "new_path": "iam/facade/tenant-rbac-erp-parity-map/tests/parity.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-erp-parity-map/tests/parity.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-app.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-app.yaml"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-runtime-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-runtime-evidence/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-domain.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-domain.yaml"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-runtime-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-runtime-evidence/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-kernel.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-kernel.yaml"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-runtime-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-runtime-evidence/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-rest.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-rest.yaml"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-runtime-evidence/tests/idp_runtime_evidence.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-runtime-evidence/tests/idp_runtime_evidence.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-sdk.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-sdk.yaml"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-verification/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-usecase.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-usecase.yaml"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-verification/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-execution-engine-worker.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-execution-engine-worker.yaml"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-verification/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-state-machine-postgres.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-state-machine-adapter-postgres.yaml"
+      "new_path": "iam/facade/tenant-rbac-identity-provider-verification/tests/identity_provider.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-identity-provider-verification/tests/identity_provider.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-state-machine-adapter.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-state-machine-adapter.yaml"
+      "new_path": "iam/facade/tenant-rbac-listener-gateway/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-gateway/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-state-machine-api.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-state-machine-api.yaml"
+      "new_path": "iam/facade/tenant-rbac-listener-gateway/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-gateway/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-state-machine-domain.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-state-machine-domain.yaml"
+      "new_path": "iam/facade/tenant-rbac-listener-gateway/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-gateway/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-state-machine-kernel.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-state-machine-kernel.yaml"
+      "new_path": "iam/facade/tenant-rbac-listener-gateway/tests/listener_gateway.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-gateway/tests/listener_gateway.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-state-machine-usecase.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-state-machine-usecase.yaml"
+      "new_path": "iam/facade/tenant-rbac-listener-runtime-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-runtime-evidence/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-trigger-orchestrator-api.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-trigger-orchestrator-api.yaml"
+      "new_path": "iam/facade/tenant-rbac-listener-runtime-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-runtime-evidence/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-trigger-orchestrator-app.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-trigger-orchestrator-app.yaml"
+      "new_path": "iam/facade/tenant-rbac-listener-runtime-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-runtime-evidence/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-trigger-orchestrator-domain.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-trigger-orchestrator-domain.yaml"
+      "new_path": "iam/facade/tenant-rbac-listener-runtime-evidence/tests/listener_runtime_evidence.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-listener-runtime-evidence/tests/listener_runtime_evidence.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-trigger-orchestrator-kernel.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-trigger-orchestrator-kernel.yaml"
+      "new_path": "iam/facade/tenant-rbac-local-inmemory-harness/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-trigger-orchestrator-rest.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-trigger-orchestrator-rest.yaml"
+      "new_path": "iam/facade/tenant-rbac-local-inmemory-harness/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-trigger-orchestrator-sdk.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-trigger-orchestrator-sdk.yaml"
+      "new_path": "iam/facade/tenant-rbac-local-inmemory-harness/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-trigger-orchestrator-usecase.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-trigger-orchestrator-usecase.yaml"
+      "new_path": "iam/facade/tenant-rbac-local-inmemory-harness/tests/harness.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-inmemory-harness/tests/harness.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-trigger-orchestrator-worker.yaml",
-      "old_path": "registry/catalog/oya-workflow-engine-trigger-orchestrator-worker.yaml"
+      "new_path": "iam/facade/tenant-rbac-local-runtime-composition/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition/BUCK"
     },
     {
-      "new_path": "registry/catalog/workflow-studio-dsl-emitter.yaml",
-      "old_path": "registry/catalog/oya-workflow-studio-dsl-emitter-domain.yaml"
+      "new_path": "iam/facade/tenant-rbac-local-runtime-composition/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/workflow-studio-dsl-loader.yaml",
-      "old_path": "registry/catalog/oya-workflow-studio-dsl-loader-domain.yaml"
+      "new_path": "iam/facade/tenant-rbac-local-runtime-composition/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition/src/lib.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-studio-policy-preview.yaml",
-      "old_path": "registry/catalog/oya-workflow-studio-policy-preview-domain.yaml"
+      "new_path": "iam/facade/tenant-rbac-local-runtime-composition/tests/composition.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-local-runtime-composition/tests/composition.rs"
     },
     {
-      "new_path": "registry/catalog/workflow-studio-visual-canvas.yaml",
-      "old_path": "registry/catalog/oya-workflow-studio-visual-canvas-kernel.yaml"
+      "new_path": "iam/facade/tenant-rbac-postgres-rls-runtime-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-runtime-evidence/BUCK"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-postgres-rls-runtime-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-runtime-evidence/Cargo.toml"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-postgres-rls-runtime-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-runtime-evidence/src/lib.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-postgres-rls-runtime-evidence/tests/runtime_evidence.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-runtime-evidence/tests/runtime_evidence.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-storage/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-storage/BUCK"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-storage/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-storage/Cargo.toml"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-storage/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-storage/src/lib.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-storage/tests/storage_plan.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-storage/tests/storage_plan.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-transaction-contract/BUCK"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-transaction-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-transaction-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract/tests/transaction_contract.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-transaction-contract/tests/transaction_contract.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-write-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract/BUCK"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-write-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-write-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-write-contract/tests/write_contract.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract/tests/write_contract.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-slo-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-slo-evidence/BUCK"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-slo-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-slo-evidence/Cargo.toml"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-slo-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-slo-evidence/src/lib.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-slo-evidence/tests/slo_evidence.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-slo-evidence/tests/slo_evidence.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-statutory-filing-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-statutory-filing-evidence/BUCK"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-statutory-filing-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-statutory-filing-evidence/Cargo.toml"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-statutory-filing-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-statutory-filing-evidence/src/lib.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-statutory-filing-evidence/tests/statutory_filing.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-statutory-filing-evidence/tests/statutory_filing.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-storage-inmemory/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/BUCK"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-storage-inmemory/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/Cargo.toml"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-storage-inmemory/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/src/lib.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-storage-inmemory/tests/storage.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-storage-adapter-inmemory/tests/storage.rs"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-admission-policy/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-admission-policy/BUCK"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-admission-policy/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-admission-policy/Cargo.toml"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-admission-policy/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-admission-policy/src/lib.rs"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-admission-policy/tests/admission_policy.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-admission-policy/tests/admission_policy.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-autoscaling-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-autoscaling-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-autoscaling-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-autoscaling-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-autoscaling-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-autoscaling-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-autoscaling-contract/tests/autoscaling.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-autoscaling-contract/tests/autoscaling.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-availability-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-availability-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-availability-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-availability-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-availability-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-availability-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-availability-contract/tests/availability.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-availability-contract/tests/availability.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-cost-allocation-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-cost-allocation-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-cost-allocation-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-cost-allocation-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-cost-allocation-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-cost-allocation-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-cost-allocation-contract/tests/cost_allocation.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-cost-allocation-contract/tests/cost_allocation.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-egress-policy-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-egress-policy-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-egress-policy-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-egress-policy-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-egress-policy-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-egress-policy-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-egress-policy-contract/tests/egress_policy.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-egress-policy-contract/tests/egress_policy.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-image-provenance-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-image-provenance-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-image-provenance-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-image-provenance-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-image-provenance-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-image-provenance-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-image-provenance-contract/tests/image_provenance.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-image-provenance-contract/tests/image_provenance.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-residency-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-residency-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-residency-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-residency-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-residency-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-residency-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-residency-contract/tests/residency.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-residency-contract/tests/residency.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-resource-quota-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-resource-quota-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-resource-quota-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-resource-quota-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-resource-quota-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-resource-quota-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-resource-quota-contract/tests/resource_quota.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-resource-quota-contract/tests/resource_quota.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-secret-boundary-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-secret-boundary-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-secret-boundary-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-secret-boundary-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-secret-boundary-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-secret-boundary-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-secret-boundary-contract/tests/secret_boundary.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-secret-boundary-contract/tests/secret_boundary.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-workload-identity-contract/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-identity-contract/BUCK"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-workload-identity-contract/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-identity-contract/Cargo.toml"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-workload-identity-contract/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-identity-contract/src/lib.rs"
+    },
+    {
+      "new_path": "iam/ports/tenant-rbac-tenant-workload-identity-contract/tests/workload_identity.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-identity-contract/tests/workload_identity.rs"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-workload-manifest/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest/BUCK"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-workload-manifest/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest/Cargo.toml"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-workload-manifest/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest/src/lib.rs"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-tenant-workload-manifest/tests/tenant_workload_manifest.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-manifest/tests/tenant_workload_manifest.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-tenant-workload-runtime-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-runtime-evidence/BUCK"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-tenant-workload-runtime-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-runtime-evidence/Cargo.toml"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-tenant-workload-runtime-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-runtime-evidence/src/lib.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-tenant-workload-runtime-evidence/tests/tenant_workload_runtime_evidence.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-tenant-workload-runtime-evidence/tests/tenant_workload_runtime_evidence.rs"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-usecase/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/BUCK"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-usecase/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/Cargo.toml"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-usecase/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/src/lib.rs"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-usecase/tests/incident.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/tests/incident.rs"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-usecase/tests/ops.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/tests/ops.rs"
+    },
+    {
+      "new_path": "iam/core/tenant-rbac-usecase/tests/workflow.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-usecase/tests/workflow.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-workflow-inmemory/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/BUCK"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-workflow-inmemory/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/Cargo.toml"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-workflow-inmemory/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/src/lib.rs"
+    },
+    {
+      "new_path": "iam/adapters/tenant-rbac-workflow-inmemory/tests/workflow.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-adapter-inmemory/tests/workflow.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-workflow-runtime-evidence/BUCK",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-runtime-evidence/BUCK"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-workflow-runtime-evidence/Cargo.toml",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-runtime-evidence/Cargo.toml"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-workflow-runtime-evidence/src/lib.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-runtime-evidence/src/lib.rs"
+    },
+    {
+      "new_path": "iam/facade/tenant-rbac-workflow-runtime-evidence/tests/workflow_runtime_evidence.rs",
+      "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-workflow-runtime-evidence/tests/workflow_runtime_evidence.rs"
+    },
+    {
+      "new_path": "iam/observability/slos/tenant-rbac/tenant-rbac-audit-emission-lag-p99.openslo.yaml",
+      "old_path": "oya/tenant-rbac/slos/tenant-rbac-audit-emission-lag-p99.openslo.yaml"
+    },
+    {
+      "new_path": "iam/observability/slos/tenant-rbac/tenant-rbac-availability.openslo.yaml",
+      "old_path": "oya/tenant-rbac/slos/tenant-rbac-availability.openslo.yaml"
+    },
+    {
+      "new_path": "iam/observability/slos/tenant-rbac/tenant-rbac-cloud-readiness-gate-correctness.openslo.yaml",
+      "old_path": "oya/tenant-rbac/slos/tenant-rbac-cloud-readiness-gate-correctness.openslo.yaml"
+    },
+    {
+      "new_path": "iam/observability/slos/tenant-rbac/tenant-rbac-latency-p99.openslo.yaml",
+      "old_path": "oya/tenant-rbac/slos/tenant-rbac-latency-p99.openslo.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-authn-device-firmware.yaml",
+      "old_path": "registry/catalog/oya-authn-device-firmware.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-cloud-oci.yaml",
+      "old_path": "registry/catalog/oya-cloud-iam-adapter-oci.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-cloud-selfhosted.yaml",
+      "old_path": "registry/catalog/oya-cloud-iam-adapter-selfhosted.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-cloud-api.yaml",
+      "old_path": "registry/catalog/oya-cloud-iam-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-cloud-app.yaml",
+      "old_path": "registry/catalog/oya-cloud-iam-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-cloud-domain.yaml",
+      "old_path": "registry/catalog/oya-cloud-iam-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-api.yaml",
+      "old_path": "registry/catalog/oya-identity-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-domain.yaml",
+      "old_path": "registry/catalog/oya-identity-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-oidc-issuer-kernel.yaml",
+      "old_path": "registry/catalog/oya-identity-oidc-issuer-kernel.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-usecase.yaml",
+      "old_path": "registry/catalog/oya-identity-usecase.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-workload-api.yaml",
+      "old_path": "registry/catalog/oya-identity-workload-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-workload-app.yaml",
+      "old_path": "registry/catalog/oya-identity-workload-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-workload-authz-cedar.yaml",
+      "old_path": "registry/catalog/oya-identity-workload-authz-cedar-adapter.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-workload-domain.yaml",
+      "old_path": "registry/catalog/oya-identity-workload-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-workload-oidc.yaml",
+      "old_path": "registry/catalog/oya-identity-workload-oidc-adapter.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-workload-rest.yaml",
+      "old_path": "registry/catalog/oya-identity-workload-rest.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-identity-service.yaml",
+      "old_path": "registry/catalog/oya-identity.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-policy-cedar-api.yaml",
+      "old_path": "registry/catalog/oya-policy-cedar-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-policy-cedar-domain.yaml",
+      "old_path": "registry/catalog/oya-policy-cedar-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-api.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-app.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-audit-chain-emission.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-audit-chain-emission.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-audit-chain-runtime-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-audit-chain-runtime-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-auth-app.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-auth-app.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-cloud-deployment-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-cloud-deployment-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-cloud-deployment-manifest.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-cloud-deployment-manifest.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-cloud-readiness-gate.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-cloud-readiness-gate.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-disbursement-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-disbursement-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-domain.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-erp-parity-map.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-erp-parity-map.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-identity-provider-runtime-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-identity-provider-runtime-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-identity-provider-verification.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-identity-provider-verification.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-listener-gateway.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-listener-gateway.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-listener-runtime-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-listener-runtime-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-local-inmemory-harness.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-local-inmemory-harness.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-local-runtime-composition.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-local-runtime-composition.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-postgres-rls-runtime-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-postgres-rls-runtime-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-postgres-rls-storage.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-postgres-rls-storage.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-postgres-rls-transaction-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-postgres-rls-transaction-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-postgres-rls-write-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-postgres-rls-write-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-slo-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-slo-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-statutory-filing-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-statutory-filing-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-storage-inmemory.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-storage-adapter-inmemory.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-admission-policy.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-admission-policy.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-autoscaling-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-autoscaling-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-availability-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-availability-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-cost-allocation-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-cost-allocation-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-egress-policy-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-egress-policy-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-image-provenance-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-image-provenance-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-residency-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-residency-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-resource-quota-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-resource-quota-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-secret-boundary-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-secret-boundary-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-workload-identity-contract.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-workload-identity-contract.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-workload-manifest.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-workload-manifest.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-tenant-workload-runtime-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-tenant-workload-runtime-evidence.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-usecase.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-usecase.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-workflow-inmemory.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-workflow-adapter-inmemory.yaml"
+    },
+    {
+      "new_path": "registry/catalog/iam-tenant-rbac-workflow-runtime-evidence.yaml",
+      "old_path": "registry/catalog/oya-tenant-rbac-workflow-runtime-evidence.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

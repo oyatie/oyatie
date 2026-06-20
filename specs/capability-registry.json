@@ -99,6 +99,7 @@
         "authorization"
       ],
       "absorbs_current_dirs": [
+        "iam",
         "cloud/cloud-iam",
         "oya/identity",
         "oya/oya-identity",

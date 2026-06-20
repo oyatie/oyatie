@@ -31,7 +31,8 @@
     "tenancy/*/*",
     "audit/*/*",
     "data/*/*",
-    "workflow/*/*"
+    "workflow/*/*",
+    "iam/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -57,7 +58,8 @@
     "tenancy",
     "audit",
     "data",
-    "workflow"
+    "workflow",
+    "iam"
   ],
   "stratum_rank_order": [
     "S0",

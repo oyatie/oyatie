@@ -30,7 +30,8 @@
     "tenancy",
     "audit",
     "data",
-    "workflow"
+    "workflow",
+    "iam"
   ],
   "meta_directories": [
     "kernel",
@@ -64,6 +65,7 @@
     "audit",
     "data",
     "workflow",
+    "iam",
     "cloud",
     "oya",
     "libs",

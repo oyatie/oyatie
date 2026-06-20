@@ -1,0 +1,32 @@
+[package]
+name = "iam-tenant-rbac-local-inmemory-harness"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-accounting-journal-app = { path = "../../../oya/accounting/crates/oya-accounting-journal-app" }
+oya-accounting-journal-storage-adapter-inmemory = { path = "../../../oya/accounting/crates/oya-accounting-journal-storage-adapter-inmemory" }
+iam-tenant-rbac-usecase = { path = "../../core/tenant-rbac-usecase" }
+iam-tenant-rbac-storage-inmemory = { path = "../../adapters/tenant-rbac-storage-inmemory" }
+iam-tenant-rbac-workflow-inmemory = { path = "../../adapters/tenant-rbac-workflow-inmemory" }
+oya-hr-employment-app = { path = "../../../oya/hr/crates/oya-hr-employment-app" }
+oya-hr-employment-storage-adapter-inmemory = { path = "../../../oya/hr/crates/oya-hr-employment-storage-adapter-inmemory" }
+oya-payroll-run-app = { path = "../../../oya/payroll/crates/oya-payroll-run-app" }
+oya-payroll-run-storage-adapter-inmemory = { path = "../../../oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory" }
+
+[dev-dependencies]
+oya-accounting-journal-domain = { path = "../../../oya/accounting/crates/oya-accounting-journal-domain" }
+iam-tenant-rbac-domain = { path = "../../core/tenant-rbac-domain" }
+oya-hr-employment-domain = { path = "../../../oya/hr/crates/oya-hr-employment-domain" }
+oya-payroll-run-domain = { path = "../../../oya/payroll/crates/oya-payroll-run-domain" }
+
+[lib]
+name = "iam_tenant_rbac_local_inmemory_harness"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-iam-domain = { path = "../../../cloud/cloud-iam/crates/oya-cloud-iam-domain" }
+iam-cloud-domain = { path = "../../../iam/core/cloud-domain" }
 cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../../../compute/core/resource" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }

@@ -69,6 +69,11 @@ pub fn apply_plan(
 ) -> Result<ApplyOutcome, CodemodError> {
     plan.validate()?;
 
+    // Build lookup maps up-front — needed by both the pre-flight artifact check and the
+    // rewrite/move steps below.
+    let by_old_path = plan.by_old_path();
+    let by_old_name = plan.by_old_cargo_name();
+
     // Pre-flight: sources present, targets free.
     for m in &plan.moves {
         if !dir_exists(repo_root, &m.old_path) {
@@ -84,6 +89,10 @@ pub fn apply_plan(
     }
     // Pre-flight for NON-crate artifacts (a file OR a dir): source present, target free. Uses a
     // path-exists check (not dir-only) because an artifact may be a single SLO/catalog file.
+    //
+    // Pre-flight runs BEFORE any moves, so we check old_path directly — even for artifacts
+    // nested inside a moving crate dir the file exists at old_path at this point.  The
+    // post-crate-move location is only needed in step 8 (after step 7 has relocated the crate).
     for a in &plan.artifacts {
         if !path_exists(repo_root, &a.old_path) {
             return Err(CodemodError::SourceMissing {
@@ -96,9 +105,6 @@ pub fn apply_plan(
             });
         }
     }
-
-    let by_old_path = plan.by_old_path();
-    let by_old_name = plan.by_old_cargo_name();
 
     // resolve_target: OLD repo-relative crate dir -> NEW dir (identity if unmoved).
     let resolve_target = |old: &str| -> Option<String> {
@@ -159,7 +165,12 @@ pub fn apply_plan(
     // `git mv` of each file/dir; `move_dir` mkdir -p's the parent + handles file AND dir sources.
     // Longest old_path first so a nested artifact under another artifact moves safely. Appended to
     // dirs_moved so total-accounting / the manifest see them. EMPTY artifacts => zero iterations
-    // => byte-identical to a pre-ArtifactMove apply (back-compat no-op). ---
+    // => byte-identical to a pre-ArtifactMove apply (back-compat no-op).
+    //
+    // NOTE: an artifact whose old_path is nested under a crate that step 7 already moved must be
+    // sourced from its post-crate-move location (`artifact_effective_source`). The dirs_moved
+    // record always uses a.old_path (the canonical plan-declared source) so the manifest relabel
+    // engine's old→new mapping stays stable regardless of where the artifact physically lived. ---
     let mut ordered_artifacts: Vec<&crate::model::ArtifactMove> = plan.artifacts.iter().collect();
     ordered_artifacts.sort_by(|a, b| {
         b.old_path
@@ -168,7 +179,8 @@ pub fn apply_plan(
             .then(a.old_path.cmp(&b.old_path))
     });
     for a in ordered_artifacts {
-        move_dir(repo_root, &a.old_path, &a.new_path, opts)?;
+        let effective_src = artifact_effective_source(a, &by_old_path);
+        move_dir(repo_root, &effective_src, &a.new_path, opts)?;
         outcome.dirs_moved.push((a.old_path.clone(), a.new_path.clone()));
     }
     outcome.dirs_moved.sort();
@@ -459,6 +471,45 @@ pub fn resolve_members(root_manifest_text: &str, repo_root: &Path) -> Vec<String
 /// pre-flight, where an artifact may be a single SLO/catalog file rather than a directory.
 fn path_exists(repo_root: &Path, rel: &str) -> bool {
     repo_root.join(rel).exists()
+}
+
+/// Resolve the effective step-8 source path for an artifact, accounting for the case where the
+/// artifact's `old_path` is nested inside a crate directory that step 7 has already relocated.
+///
+/// If `old_path` starts with `<crate.old_path>/` (i.e. is nested under a moving crate dir),
+/// the artifact will have been carried along to `<crate.new_path>/<suffix>` by step 7.
+/// In that case we return the post-crate-move location so step 8's `git mv` finds the file.
+///
+/// If `old_path` is NOT nested under any moving crate dir it is returned unchanged (the
+/// canonical case: stand-alone SLO/catalog files that live outside any crate tree).
+///
+/// When moving crates nest (e.g. both `oya/a` and `oya/a/b` move), step 7 relocates dirs
+/// LONGEST-old_path-first, so the inner crate's files end up under the INNER crate's new path.
+/// We must therefore select the LONGEST matching crate prefix here to mirror step 7 — picking
+/// the outer match would point at a path step 7 never created and abort step 8 mid-move.
+fn artifact_effective_source(
+    a: &crate::model::ArtifactMove,
+    by_old_path: &BTreeMap<&str, &CrateMove>,
+) -> String {
+    // Find the LONGEST moving-crate old_path that is a proper directory prefix of this
+    // artifact's old_path. The trailing '/' anchors a directory boundary (avoids e.g.
+    // "oya/foo" matching "oya/foobar/...").
+    let mut best: Option<(&str, &CrateMove)> = None;
+    for (crate_old, crate_move) in by_old_path {
+        let prefix_with_slash = format!("{}/", crate_old);
+        if a.old_path.starts_with(prefix_with_slash.as_str())
+            && best.map_or(true, |(b, _)| crate_old.len() > b.len())
+        {
+            best = Some((crate_old, crate_move));
+        }
+    }
+    match best {
+        Some((crate_old, crate_move)) => {
+            let suffix = &a.old_path[crate_old.len() + 1..];
+            format!("{}/{}", crate_move.new_path, suffix)
+        }
+        None => a.old_path.clone(),
+    }
 }
 
 fn move_dir(
@@ -767,6 +818,159 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             Some(&"registry/catalog/observability-domain.yaml".to_string()),
             "file-artifact must be in the manifest files list"
         );
+    }
+
+    /// An artifact whose old_path is nested inside a moving crate dir is carried by step 7 and
+    /// must be sourced from its post-crate-move location in step 8.  This test proves the codemod
+    /// succeeds (no SourceMissing error) and that the artifact lands at its declared new_path.
+    #[test]
+    fn apply_co_moves_artifact_nested_inside_moving_crate_dir() {
+        let root = artifact_tmp_root("nested");
+        // Workspace with one crate that contains an slos/ subdir (the nested artifact).
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"crates/*\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "crates/oya-svid-kernel/Cargo.toml",
+            "[package]\nname = \"oya-svid-kernel\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "crates/oya-svid-kernel/src/lib.rs", "pub fn f() {}\n");
+        // The SLO lives INSIDE the crate dir — exactly the iam svid-kernel scenario.
+        wf(
+            &root,
+            "crates/oya-svid-kernel/slos/svid-availability.openslo.yaml",
+            "apiVersion: openslo/v1\nkind: SLO\n",
+        );
+
+        let plan = MovePlan {
+            capability: "iam".to_string(),
+            moves: vec![CrateMove {
+                old_path: "crates/oya-svid-kernel".to_string(),
+                new_path: "iam/core/svid-kernel".to_string(),
+                old_cargo_name: "oya-svid-kernel".to_string(),
+                new_cargo_name: "iam-svid-kernel".to_string(),
+            }],
+            // old_path is nested under the crate dir — step 7 will carry it to the new crate
+            // location before step 8 runs.  The codemod must resolve the effective source.
+            artifacts: vec![ArtifactMove {
+                old_path: "crates/oya-svid-kernel/slos/svid-availability.openslo.yaml"
+                    .to_string(),
+                new_path: "iam/observability/slos/svid-kernel/svid-availability.openslo.yaml"
+                    .to_string(),
+            }],
+        };
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect("apply must succeed for artifact nested inside moving crate dir");
+
+        // Crate landed at new location.
+        assert!(root.join("iam/core/svid-kernel/Cargo.toml").is_file());
+        // Artifact landed at its declared new_path (NOT still inside the new crate dir).
+        assert!(
+            root.join("iam/observability/slos/svid-kernel/svid-availability.openslo.yaml")
+                .is_file(),
+            "artifact must land at new_path"
+        );
+        // Old crate dir is gone.
+        assert!(!root.join("crates/oya-svid-kernel").exists());
+        // Artifact is NOT left behind in the new crate dir (step 8 moved it out).
+        assert!(
+            !root
+                .join("iam/core/svid-kernel/slos/svid-availability.openslo.yaml")
+                .exists(),
+            "artifact must not remain inside the new crate dir after step 8"
+        );
+        // dirs_moved records the canonical old_path (not the effective source).
+        assert!(
+            outcome.dirs_moved.contains(&(
+                "crates/oya-svid-kernel/slos/svid-availability.openslo.yaml".to_string(),
+                "iam/observability/slos/svid-kernel/svid-availability.openslo.yaml".to_string(),
+            )),
+            "dirs_moved must use the canonical old_path for manifest relabel: {:?}",
+            outcome.dirs_moved
+        );
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn apply_resolves_artifact_under_inner_of_two_nested_moving_crates_by_longest_prefix() {
+        // REGRESSION (PR #763 re-review): when two moving crates NEST (`oya/a` and `oya/a/b`)
+        // and an artifact lives under the INNER crate, step 7 moves crates longest-old_path-first
+        // so the file ends up under the INNER crate's new path. artifact_effective_source must
+        // select the LONGEST matching crate prefix; picking the outer match points at a path that
+        // never exists and aborts step 8 mid-move.
+        let root = artifact_tmp_root("nested-pair");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"oya/a\", \"oya/a/b\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "oya/a/Cargo.toml",
+            "[package]\nname = \"oya-a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "oya/a/src/lib.rs", "pub fn a() {}\n");
+        wf(
+            &root,
+            "oya/a/b/Cargo.toml",
+            "[package]\nname = \"oya-a-b\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "oya/a/b/src/lib.rs", "pub fn b() {}\n");
+        // Artifact nested under the INNER crate (oya/a/b), so both crate prefixes match.
+        wf(
+            &root,
+            "oya/a/b/slos/x.openslo.yaml",
+            "apiVersion: openslo/v1\nkind: SLO\n",
+        );
+
+        let plan = MovePlan {
+            capability: "cap".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "oya/a".to_string(),
+                    new_path: "cap/core/a".to_string(),
+                    old_cargo_name: "oya-a".to_string(),
+                    new_cargo_name: "cap-a".to_string(),
+                },
+                CrateMove {
+                    old_path: "oya/a/b".to_string(),
+                    new_path: "cap/core/b".to_string(),
+                    old_cargo_name: "oya-a-b".to_string(),
+                    new_cargo_name: "cap-b".to_string(),
+                },
+            ],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/a/b/slos/x.openslo.yaml".to_string(),
+                new_path: "cap/observability/slos/x.openslo.yaml".to_string(),
+            }],
+        };
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect("apply must succeed when an artifact nests under the inner of two moving crates");
+
+        // Both crates landed.
+        assert!(root.join("cap/core/a/Cargo.toml").is_file());
+        assert!(root.join("cap/core/b/Cargo.toml").is_file());
+        // Artifact reached its declared destination (longest-prefix resolution found it under b).
+        assert!(
+            root.join("cap/observability/slos/x.openslo.yaml").is_file(),
+            "artifact must land at new_path via the INNER (longest) crate prefix"
+        );
+        // It was NOT left inside the inner crate's new dir, nor mis-sourced under the outer crate.
+        assert!(!root.join("cap/core/b/slos/x.openslo.yaml").exists());
+        assert!(!root.join("cap/core/a/b/slos/x.openslo.yaml").exists());
+        // dirs_moved still records the canonical old_path for the relabel engine.
+        assert!(outcome.dirs_moved.contains(&(
+            "oya/a/b/slos/x.openslo.yaml".to_string(),
+            "cap/observability/slos/x.openslo.yaml".to_string(),
+        )));
+
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]

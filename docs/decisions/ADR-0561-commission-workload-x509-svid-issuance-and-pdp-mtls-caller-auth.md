@@ -42,7 +42,7 @@ The platform already has the two halves needed to close it, on `dev`:
    join-token-gated `SecurityService::handle_certificate` minting path, an `IssuancePolicy` that
    already rejects CA-capable leaves, and a `TrustBundle` chain verifier. `SigningBackend` is the
    cutover seam (`InMemorySigner` today → cloud-kms later, ADR-0510).
-2. **A SPIFFE + tenant model** (`oya/identity/crates/oya-identity-workload-domain`): `TenantId`,
+2. **A SPIFFE + tenant model** (`iam/core/identity-workload-domain`): `TenantId`,
    `WorkloadPrincipal`, and a **tenant-rooted** `TrustDomain` (`spiffe://<tenant>`).
 
 This slice connects them: give the PDP **mTLS caller authentication via SPIFFE-style X.509-SVID,
@@ -252,24 +252,24 @@ requires every NEW tracked path be ADR-justified, owned, and reachable):
 
 New SVID kernel crate (owned by axis-identity, reachable via cargo-members):
 
-- oya/identity/crates/oya-identity-workload-svid-kernel/src/lib.rs
-- oya/identity/crates/oya-identity-workload-svid-kernel/Cargo.toml
-- oya/identity/crates/oya-identity-workload-svid-kernel/BUCK
-- oya/identity/crates/oya-identity-workload-svid-kernel/OWNERS
-- oya/identity/crates/oya-identity-workload-svid-kernel/slos/workload-svid-issuance-availability.openslo.yaml
+- iam/core/identity-workload-svid-kernel/src/lib.rs
+- iam/core/identity-workload-svid-kernel/Cargo.toml
+- iam/core/identity-workload-svid-kernel/BUCK
+- iam/core/identity-workload-svid-kernel/OWNERS
+- iam/observability/slos/identity-workload-svid-kernel/workload-svid-issuance-availability.openslo.yaml
 
 New SVID trustd adapter crate (owned by axis-identity, reachable via cargo-members):
 
-- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/lib.rs
-- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/leaf_codec.rs
-- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/Cargo.toml
-- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/BUCK
-- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/OWNERS
+- iam/adapters/identity-workload-svid-trustd/src/lib.rs
+- iam/adapters/identity-workload-svid-trustd/src/leaf_codec.rs
+- iam/adapters/identity-workload-svid-trustd/Cargo.toml
+- iam/adapters/identity-workload-svid-trustd/BUCK
+- iam/adapters/identity-workload-svid-trustd/OWNERS
 
 New PDP mTLS PEP module (owned by the existing cloud/cloud-iam OWNERS,
 axis-cloud-platform; reachable via cargo-members):
 
-- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/mtls.rs
+- iam/facade/cloud-pdp-app/src/mtls.rs
 
 The two new crate roots are owned by axis-identity (a born-at-creation OWNERS in
 each crate directory per ADR-0555) and reachable via the globbed Cargo workspace
@@ -289,7 +289,7 @@ Slice-1b-i (FRIC-1781510000) adds two new source files:
   registered as reached in specs/reachability-registry.json — which owns der.rs and
   pays down the crate's prior unowned debt (12 source files newly owned, zero new
   unowned). This OWNERS marker is justified by its citation here.
-- oya/identity/crates/oya-identity-workload-svid-trustd-adapter/src/leaf_der.rs —
+- iam/adapters/identity-workload-svid-trustd/src/leaf_der.rs —
   real leaf-DER parsing + signature verification (x509-parser, verify-aws). Its crate
   is already owned (axis-identity OWNERS from slice-1), so leaf_der.rs inherits it.
 
@@ -302,13 +302,13 @@ Slice-1b-ii (FRIC-1781490000) adds two new source files + one E2E test, all
 owned by the existing cloud/cloud-iam OWNERS (axis-cloud-platform) and reachable
 via cargo-members (they inherit the crate's accounting; no new unowned rows):
 
-- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/client_cert_verifier.rs — the
+- iam/facade/cloud-pdp-app/src/client_cert_verifier.rs — the
   rustls `ClientCertVerifier` deferring leaf trust to the SVID verifier (aws-lc-rs
   provider, NO ring; ADR-0506).
-- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/src/mtls_transport.rs — the
+- iam/facade/cloud-pdp-app/src/mtls_transport.rs — the
   one-acceptor mTLS transport (`MtlsContext`, the gRPC `Connected` peer-cert
   stream, the REST hyper-util accept loop).
-- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/mtls_live_socket.rs — the
+- iam/facade/cloud-pdp-app/tests/mtls_live_socket.rs — the
   five real-handshake RED fixtures + boot-refuse.
 
 The new third-party deps (rustls, tokio-rustls, hyper, hyper-util, tower,
@@ -323,7 +323,7 @@ inherits the PDP crate's accounting; no new unowned/OWNERS row). The from_path
 runtime source + the OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR knob + the main()/server.rs
 boot switch + the Helm SVID mount amend already-accounted files in place:
 
-- cloud/cloud-iam/crates/oya-cloud-iam-pdp-app/tests/main_boot_closure.rs — the
+- iam/facade/cloud-pdp-app/tests/main_boot_closure.rs — the
   production-path closure E2E (boot through `server::boot_from_config` from a real
   operator-shaped cert mount → trusted-SVID ALLOW + cross-tenant 403) plus the
   fail-closed RED fixtures (absent/empty mount → boot refusal; from_path unit

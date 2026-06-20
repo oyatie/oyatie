@@ -1994,6 +1994,108 @@ move's tracked, born-accounted artifact roots are the forty-eight crate dirs (ea
 move-plan `specs/reorg/workflow-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability prefix). Per the
 one-plan-per-PR contract the spent `specs/reorg/data-move-plan.json` (the §10.20 move-plan) is removed.
 
+#### §10.22 Eighteenth executed strangler move: `iam` capability (cloud/cloud-iam + oya/{identity,policy,tenant-rbac,oya-authn-device-firmware}/crates → iam/) — five-source-dir coarse identity+authz move with per-service SLO co-move + catalog re-key
+
+The eighteenth REAL codemod run homes the `iam` capability's sixty-three crates from FIVE source dirs
+(`cloud/cloud-iam/crates`, `oya/identity/crates`, `oya/policy/crates`, `oya/tenant-rbac/crates`,
+`oya/oya-authn-device-firmware/crates`) under the §3 placement rule, across all FOUR faces (`core` 18 / `ports` 16 /
+`adapters` 9 / `facade` 20). iam is the COARSE Conway-aligned identity + authorization capability (the `identity` +
+`policy-engine` ADR-0280 dag nodes collapsed per the founder coarse-capability ruling): the cloud IdP/PDP substrate
+(principals/STS/the embedded Cedar PDP/policy-bundle distribution/external-IdP federation), the Cedar policy plane, the
+tenant-RBAC authorization spine (RBAC+ABAC+PBAC), the product-shared human/workload identity plane (OIDC issuer / passkey RP
+/ SCIM / SPIFFE-SVID), and the device-firmware authenticator — a MIXED substrate/product capability with all four faces.
+
+**Substrate-vs-product layering (the heart of the move, §4 run/sell seam):** the cloud-iam IdP/PDP engine, the Cedar policy
+domain, the tenant-RBAC domain/usecase + zero-dep policy/manifest leaves, the workload domain/usecase/svid kernels, and the
+device-firmware domain are the engine we RUN → `core/`; the inbound API/DTO surfaces + the tenant-RBAC capability-trait
+contract crates (postgres-rls write/transaction + the ten tenant-`*`-contract crates) are the port seam → `ports/` (the
+DTO-travels-with-its-contract / `ports → core` legal downward edge, the §10.19/§10.20 precedent); the transient infra
+backends (cloud-iam OCI/selfhosted/pdp-bundle-file, the workload authz-cedar/oidc/svid-trustd adapters, the tenant-RBAC
+inmemory storage/workflow + postgres-rls storage impls) are `adapters/`; and the product-shared identity service (`oya-identity`
+bin), the workload REST surface, the PDP deployable (`oya-cloud-iam-pdp-app` bin), and the tenant-RBAC app + runtime-evidence
++ readiness-gate + listener + provider-verification product surfaces that CONSUME the substrate are the faces we SELL →
+`facade/`. The dependency direction is product/facade → ports → substrate/core and never inverts (verified against the
+real Cargo + BUCK dep graph). The two deployable bins (`oya-identity`, `oya-cloud-iam-pdp-app`) are facades; their
+facade→adapters edges (pdp-app → pdp-bundle-file/svid-trustd) are the documented universal composition-root exception
+(§10.6). `cloud-iam-app` homes to `core/` as the engine's usecase composition library (no adapter
+direct-deps; downstream-only edges to core and ports). `identity-workload-app` homes to `facade/` (NOT
+`core/`) — it directly depends on `adapters/identity-workload-oidc` and `adapters/identity-workload-authz-cedar`
+(concrete adapter impls), making it a composition root by the clean-architecture definition: it wires concrete
+adapters into the use-case flow. Composition roots belong in `facade/` (sanctioned §10.6 pattern, same as
+`cloud-pdp-app`). After this correction the strict layer invariant holds: **ZERO** `core→adapters`,
+`core→facade`, `ports→adapters`, `ports→facade` edges exist (verified by enumerating every `path =
+"../../{adapters,facade}/"` in `iam/core/*/Cargo.toml` and `iam/ports/*/Cargo.toml` — both empty). The two
+postgres-rls SQL contract crates (`tenant-rbac-postgres-rls-write-contract`,
+`tenant-rbac-postgres-rls-transaction-contract`) home to `adapters/` (NOT `ports/`) — write-contract depends
+on `adapters/tenant-rbac-postgres-rls-storage` (imports the concrete `TenantRbacPostgresRlsStoragePlan`) and
+derives its SQL statements ON the storage adapter, making it a derived artifact of the adapter cluster;
+transaction-contract depends on write-contract and inherits the same classification. Both belong with the
+postgres-rls storage adapter, so all four postgres-rls crates are co-located in `adapters/`. The acyclicity
+gate does not yet mechanically enforce intra-capability face direction (productized as a follow-up task #81);
+the invariant was verified by hand (path-dep + BUCK-label enumeration above). All sixty-three crates are ONE
+`iam` capability node, so every intra-iam face edge projects to an `iam → iam` self-edge and raises NO
+service→service / S-rank acyclicity violation (the §10.15..§10.21 precedent; the tier-dep gate's
+`owning_service()` None-projection drops every `iam/...`-endpoint edge before classification).
+
+**Naming scheme (cargo == de-branded path-tail, all sixty-three unique):** the proven scheme — path `iam/<face>/<leaf>` ↔
+cargo `iam-<leaf>`, de-branded (the legacy `oya-cloud-iam-`/`oya-identity-`/`oya-policy-`/`oya-tenant-rbac-`/
+`oya-authn-device-firmware` forms drop to the `iam-` capability slug; `oya-cloud-iam-X` de-dups to `iam-cloud-X` NOT
+`iam-cloud-iam-X` to avoid path-doubling, keeping the `cloud-` cell discriminator that distinguishes the cloud-iam substrate
+cell from the identity/tenant-rbac product cells). Examples: `oya-cloud-iam-api`→`iam-cloud-api`, `oya-cloud-iam-pdp-app`→
+`iam-cloud-pdp-app`, `oya-cloud-iam-adapter-oci`→`iam-cloud-oci`, `oya-identity`→`iam-identity-service`, `oya-identity-domain`→
+`iam-identity-domain`, `oya-policy-cedar-api`→`iam-policy-cedar-api`, `oya-tenant-rbac-domain`→`iam-tenant-rbac-domain`,
+`oya-authn-device-firmware`→`iam-authn-device-firmware`. All sixty-three leaf dirs and cargo names are distinct
+(`MovePlan::validate` passes), and each cargo name equals `iam-` + its de-branded path-tail EXACTLY (the target-parity +
+cargo-prefix relabel binding).
+
+**Catalog re-key (58 of 63):** fifty-eight of the sixty-three moved crates carried a pre-existing `registry/catalog/<id>.yaml`
+record, each re-keyed by the codemod ArtifactMove to its de-branded `iam-*` id (file rename, content-preserving). Five
+substrate crates (`oya-cloud-iam-pdp-kernel`, `oya-cloud-iam-pdp-app`, `oya-cloud-iam-pdp-bundle-file-adapter`,
+`oya-identity-workload-svid-kernel`, `oya-identity-workload-svid-trustd-adapter`) carry NO catalog record (pre-existing
+state, not introduced by this move); the catalog-liveness gate is live-OR-marked and these crates have neither a live nor a
+dead stale record, so it is 0-regression. No record is left at an old `oya-` stem.
+
+**SLO co-move (19):** nineteen SLOs co-move to `iam/observability/slos/<service>/` across four per-service subdirs
+(`cloud-iam` 1, `identity` 13, `tenant-rbac` 4, `identity-workload-svid-kernel` 1), per-service subdirs chosen to avoid the
+confirmed cross-service basename collision `autosharding-events.openslo.yaml` (present in both cloud-iam and identity). The
+`identity-workload-svid-kernel` SLO lived INSIDE its crate dir (`.../slos/`), so the crate move relocated it with the crate;
+it is then co-moved out to the observability home so ZERO crate-resident SLOs remain (the absolute ADR-0139 convention — all
+homed capabilities keep their SLOs at `<cap>/observability/slos/`). Zero `*.openslo.yaml` remains at any old iam source path.
+
+**Graph-invisible tests (5 found, 5 wired-live, 0 deleted):** the workload-app + workload-rest integration tests carried no
+owning buck2 `rust_test` target (`tests/acceptance.rs`; `tests/{rest_endpoints,grpc_authorize_deny,coverage_gaps}.rs` + the
+shared `tests/common/mod.rs` support module). All four test files were wired-live with real `rust_test` targets (the shared
+`common/mod.rs` co-listed in each rest target's srcs, the proven sibling pattern); none ignored, skipped, stubbed, or deleted
+— so the FULL-tier affected-set binding-workspace-coverage gate has zero graph-invisible `tests/*.rs` in the affected cone.
+
+**External dependents (4, rewritten):** exactly four first-party crates outside the sixty-three depend on the moved tree —
+`compute/core/domain` (→ cloud-iam-domain), `observability/core/aggregate` (→ cloud-iam-domain),
+`k8s/adapters/tenant-quota-adapter-cedar` (→ identity-workload-authz-cedar + identity-workload-domain), and
+`oya/application/crates/oya-application-app` (→ identity-domain + policy-cedar-domain). The codemod rewrote each one's
+`Cargo.toml` path-dep, `BUCK` `//`-label, and `use`-ident references to the new `iam/` homes; the two human-prose
+`description` mentions (k8s adapter + `libs/oya-shared-oidc-client-kernel`) were de-branded by hand (the codemod rewrites
+deps/labels/idents, not prose). A grep of the whole tree confirmed no other external dependent.
+
+**Embedded-asset hermeticity:** the one include-site in the corpus (`cloud-iam-pdp-app/tests/common/mod.rs`,
+`include_str!("../../cedar/…")` — hermetic in-crate relative paths) was scanned under the `cloud` scan_root pre-move; `iam`
+was added to the embedded-asset gate `scan_roots` so the site stays scanned at its new `iam/facade/cloud-pdp-app/` home (the
+cedar assets travel inside the crate and remain mapped by its BUCK `srcs` glob, so it stays GREEN with no baseline change).
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run (`cargo metadata` +
+`buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null, `clean=true`). The capability
+registry records `iam.absorbs_current_dirs` with the capability's own top-level slug `iam` (the self-slug is required or the
+membership gate REDs `MEM-NEW-UNMAPPED-CRATE iam/...`; the §10.12/§10.16..§10.21 lesson) plus the seven absorbed source dirs
+(the pre-existing seeds, retained — including the crate-free `oya/oya-identity` + `oya/consent-graph` phase-2 dirs). The
+membership policy adds `iam` to `scan_roots` + `allowed_top_level_dirs`; the acyclicity policy adds `iam/*/*` to
+`crate_root_globs` + `iam` to `unclassified_roots`; the root workspace members glob adds `iam/*/*` (collapsing the
+codemod-emitted literals) with `iam/observability` excluded (the non-crate SLO subtree). The move's tracked, born-accounted
+artifact roots are the sixty-three crate dirs (each carrying its `Cargo.toml`, `BUCK`, `src/`, and, where present, `tests/`),
+the co-moved per-service SLO subdirs `iam/observability/slos/<service>/*.openslo.yaml`, the subtree `iam/OWNERS`, the
+fifty-eight re-keyed catalog records `registry/catalog/iam-*.yaml` (reached by the existing `registry/catalog/` reachability
+prefix), and the committed move-plan `specs/reorg/iam-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/`
+reachability prefix). Per the one-plan-per-PR contract the spent `specs/reorg/workflow-move-plan.json` (the §10.21 move-plan)
+is removed.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

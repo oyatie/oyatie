@@ -26,7 +26,7 @@ pub use oya_governance_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
     REQUIRED_LINGUISTIC_COHORT_LOCALES,
 };
-use oya_identity_domain::{IdentityError, IdpBinding, Token, User, issue_token};
+use iam_identity_domain::{IdentityError, IdpBinding, Token, User, issue_token};
 use oya_intelligence_adapter_domain::{
     AdapterError, CostCeiling, InvocationPolicy, ProviderAuth, ProviderCallReceipt, ProviderId,
     ProviderMode, ProviderProfile, ProviderRoute, ProviderRoutePreference, ProviderRouteRequest,
@@ -64,10 +64,10 @@ use observability_domain::{
 };
 pub use data_ontology_domain::PropertyTier;
 use data_ontology_domain::{ObjectEntity, ObjectGraphError, ObjectProperty};
-pub use oya_policy_cedar_domain::{
+pub use iam_policy_cedar_domain::{
     AuthorizationDecision, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion,
 };
-use oya_policy_cedar_domain::{AuthorizationQuery, AuthorizationSubject, PolicyError, PolicySet};
+use iam_policy_cedar_domain::{AuthorizationQuery, AuthorizationSubject, PolicyError, PolicySet};
 use cell_regional_pack::{RegionalPack, RegionalPackError};
 pub use oya_residency_domain::ResidencyClass;
 use oya_residency_domain::{
@@ -759,7 +759,7 @@ impl Foundation {
     pub fn publish_policy(
         &mut self,
         version: PolicyVersion,
-    ) -> Result<oya_policy_cedar_domain::PublishedPolicy, FoundationError> {
+    ) -> Result<iam_policy_cedar_domain::PublishedPolicy, FoundationError> {
         let scope_tenant_id = match &version.scope {
             PolicyScope::Global => None,
             PolicyScope::Tenant(tenant_id) => Some(tenant_id.clone()),
