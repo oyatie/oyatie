@@ -18,7 +18,7 @@ doctest = false
 [dependencies]
 iam-identity-oidc-issuer-kernel = { path = "../../core/identity-oidc-issuer-kernel" }
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
-iam-identity-workload-app = { path = "../../core/identity-workload-app" }
+iam-identity-workload-app = { path = "../identity-workload-app" }
 iam-identity-workload-authz-cedar = { path = "../../adapters/identity-workload-authz-cedar" }
 iam-identity-workload-oidc = { path = "../../adapters/identity-workload-oidc" }
 iam-identity-workload-rest = { path = "../identity-workload-rest" }

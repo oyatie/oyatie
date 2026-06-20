@@ -17,7 +17,7 @@ build = "build.rs"
 [dependencies]
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-api = { path = "../../ports/identity-workload-api" }
-iam-identity-workload-app = { path = "../../core/identity-workload-app" }
+iam-identity-workload-app = { path = "../identity-workload-app" }
 iam-identity-workload-oidc = { path = "../../adapters/identity-workload-oidc" }
 iam-identity-workload-authz-cedar = { path = "../../adapters/identity-workload-authz-cedar" }
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync"] }

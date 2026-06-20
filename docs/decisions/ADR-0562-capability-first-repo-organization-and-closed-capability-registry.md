@@ -2017,12 +2017,25 @@ bin), the workload REST surface, the PDP deployable (`oya-cloud-iam-pdp-app` bin
 `facade/`. The dependency direction is product/facade → ports → substrate/core and never inverts (verified against the
 real Cargo + BUCK dep graph). The two deployable bins (`oya-identity`, `oya-cloud-iam-pdp-app`) are facades; their
 facade→adapters edges (pdp-app → pdp-bundle-file/svid-trustd) are the documented universal composition-root exception
-(§10.6). Two `*-app` composition LIBS (`cloud-iam-app`, `identity-workload-app`) home to `core/` as the engine's usecase
-layer beneath their facades; `identity-workload-app`'s downward edges onto its own `adapters/` oidc/authz-cedar impls are the
-accepted intra-capability `core → adapters` composition self-edge the §10.16 (comms) precedent established — because all
-sixty-three crates are ONE `iam` capability node, every intra-iam face edge projects to an `iam → iam` self-edge and raises
-NO service→service / S-rank acyclicity violation (the §10.15..§10.21 precedent; the tier-dep gate's `owning_service()`
-None-projection drops every `iam/...`-endpoint edge before classification).
+(§10.6). `cloud-iam-app` homes to `core/` as the engine's usecase composition library (no adapter
+direct-deps; downstream-only edges to core and ports). `identity-workload-app` homes to `facade/` (NOT
+`core/`) — it directly depends on `adapters/identity-workload-oidc` and `adapters/identity-workload-authz-cedar`
+(concrete adapter impls), making it a composition root by the clean-architecture definition: it wires concrete
+adapters into the use-case flow. Composition roots belong in `facade/` (sanctioned §10.6 pattern, same as
+`cloud-pdp-app`). After this correction the strict layer invariant holds: **ZERO** `core→adapters`,
+`core→facade`, `ports→adapters`, `ports→facade` edges exist (verified by enumerating every `path =
+"../../{adapters,facade}/"` in `iam/core/*/Cargo.toml` and `iam/ports/*/Cargo.toml` — both empty). The two
+postgres-rls SQL contract crates (`tenant-rbac-postgres-rls-write-contract`,
+`tenant-rbac-postgres-rls-transaction-contract`) home to `adapters/` (NOT `ports/`) — write-contract depends
+on `adapters/tenant-rbac-postgres-rls-storage` (imports the concrete `TenantRbacPostgresRlsStoragePlan`) and
+derives its SQL statements ON the storage adapter, making it a derived artifact of the adapter cluster;
+transaction-contract depends on write-contract and inherits the same classification. Both belong with the
+postgres-rls storage adapter, so all four postgres-rls crates are co-located in `adapters/`. The acyclicity
+gate does not yet mechanically enforce intra-capability face direction (productized as a follow-up task #81);
+the invariant was verified by hand (path-dep + BUCK-label enumeration above). All sixty-three crates are ONE
+`iam` capability node, so every intra-iam face edge projects to an `iam → iam` self-edge and raises NO
+service→service / S-rank acyclicity violation (the §10.15..§10.21 precedent; the tier-dep gate's
+`owning_service()` None-projection drops every `iam/...`-endpoint edge before classification).
 
 **Naming scheme (cargo == de-branded path-tail, all sixty-three unique):** the proven scheme — path `iam/<face>/<leaf>` ↔
 cargo `iam-<leaf>`, de-branded (the legacy `oya-cloud-iam-`/`oya-identity-`/`oya-policy-`/`oya-tenant-rbac-`/

@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18428,
-    "source_inputs_digest": "fnv1a64:5ffc4b9d6eca50f6"
+    "source_inputs_digest": "fnv1a64:5de3a6c91a3f77b0"
   },
   "rows": [
     {
@@ -137491,6 +137491,182 @@
       "dup_of": null,
       "justification_ref": null,
       "owner": "OWNERS:iam",
+      "path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract/BUCK",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract/Cargo.toml",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract/src/lib.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract/tests/transaction_contract.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/adapters/tenant-rbac-postgres-rls-write-contract/BUCK",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/adapters/tenant-rbac-postgres-rls-write-contract/Cargo.toml",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/adapters/tenant-rbac-postgres-rls-write-contract/src/lib.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/adapters/tenant-rbac-postgres-rls-write-contract/tests/write_contract.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
       "path": "iam/adapters/tenant-rbac-storage-inmemory/BUCK",
       "reachable_from": [
         "cargo-members"
@@ -138460,94 +138636,6 @@
       "justification_ref": null,
       "owner": "OWNERS:iam",
       "path": "iam/core/identity-usecase/tests/observability.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/core/identity-workload-app/BUCK",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/core/identity-workload-app/Cargo.toml",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/core/identity-workload-app/src/lib.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/core/identity-workload-app/tests/acceptance.rs",
       "reachable_from": [
         "cargo-members"
       ],
@@ -140496,6 +140584,94 @@
       },
       "unit_class": "code",
       "verdict": "KEEP"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/facade/identity-workload-app/BUCK",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/facade/identity-workload-app/Cargo.toml",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": true,
+        "ttl_class": "build_config"
+      },
+      "unit_class": "build_config",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/facade/identity-workload-app/src/lib.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
+    },
+    {
+      "_provenance": {
+        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
+        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
+      },
+      "dup_of": null,
+      "justification_ref": null,
+      "owner": "OWNERS:iam",
+      "path": "iam/facade/identity-workload-app/tests/acceptance.rs",
+      "reachable_from": [
+        "cargo-members"
+      ],
+      "tracked": true,
+      "ttl": {
+        "action": "report",
+        "budget_days": null,
+        "protected": false,
+        "ttl_class": "code"
+      },
+      "unit_class": "code",
+      "verdict": "RED"
     },
     {
       "_provenance": {
@@ -143044,182 +143220,6 @@
       "justification_ref": null,
       "owner": "OWNERS:iam",
       "path": "iam/ports/tenant-rbac-api/tests/contracts.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/ports/tenant-rbac-postgres-rls-transaction-contract/BUCK",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/ports/tenant-rbac-postgres-rls-transaction-contract/Cargo.toml",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/ports/tenant-rbac-postgres-rls-transaction-contract/src/lib.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/ports/tenant-rbac-postgres-rls-transaction-contract/tests/transaction_contract.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/ports/tenant-rbac-postgres-rls-write-contract/BUCK",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/ports/tenant-rbac-postgres-rls-write-contract/Cargo.toml",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": true,
-        "ttl_class": "build_config"
-      },
-      "unit_class": "build_config",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/ports/tenant-rbac-postgres-rls-write-contract/src/lib.rs",
-      "reachable_from": [
-        "cargo-members"
-      ],
-      "tracked": true,
-      "ttl": {
-        "action": "report",
-        "budget_days": null,
-        "protected": false,
-        "ttl_class": "code"
-      },
-      "unit_class": "code",
-      "verdict": "RED"
-    },
-    {
-      "_provenance": {
-        "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-        "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
-      },
-      "dup_of": null,
-      "justification_ref": null,
-      "owner": "OWNERS:iam",
-      "path": "iam/ports/tenant-rbac-postgres-rls-write-contract/tests/write_contract.rs",
       "reachable_from": [
         "cargo-members"
       ],

@@ -409,7 +409,7 @@
     },
     {
       "new_cargo_name": "iam-identity-workload-app",
-      "new_path": "iam/core/identity-workload-app",
+      "new_path": "iam/facade/identity-workload-app",
       "old_cargo_name": "oya-identity-workload-app",
       "old_path": "oya/identity/crates/oya-identity-workload-app"
     },
@@ -505,13 +505,13 @@
     },
     {
       "new_cargo_name": "iam-tenant-rbac-postgres-rls-write-contract",
-      "new_path": "iam/ports/tenant-rbac-postgres-rls-write-contract",
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-write-contract",
       "old_cargo_name": "oya-tenant-rbac-postgres-rls-write-contract",
       "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-write-contract"
     },
     {
       "new_cargo_name": "iam-tenant-rbac-postgres-rls-transaction-contract",
-      "new_path": "iam/ports/tenant-rbac-postgres-rls-transaction-contract",
+      "new_path": "iam/adapters/tenant-rbac-postgres-rls-transaction-contract",
       "old_cargo_name": "oya-tenant-rbac-postgres-rls-transaction-contract",
       "old_path": "oya/tenant-rbac/crates/oya-tenant-rbac-postgres-rls-transaction-contract"
     },

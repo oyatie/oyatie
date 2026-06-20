@@ -14,7 +14,7 @@ description = "Workload-identity service core (usecase layer): orchestrates the 
 # serde-free / thiserror-free, mirroring the domain + cedar-adapter siblings
 # (explicit error enums with hand-written Display/Error impls).
 [dependencies]
-iam-identity-workload-domain = { path = "../identity-workload-domain" }
+iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-oidc = { path = "../../adapters/identity-workload-oidc" }
 iam-identity-workload-authz-cedar = { path = "../../adapters/identity-workload-authz-cedar" }
 
