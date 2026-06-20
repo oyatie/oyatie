@@ -133,6 +133,7 @@
         "KMS"
       ],
       "absorbs_current_dirs": [
+        "secrets",
         "cloud/cloud-kms",
         "cloud/cloud-secrets"
       ],

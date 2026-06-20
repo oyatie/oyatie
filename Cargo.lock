@@ -1795,8 +1795,8 @@ dependencies = [
  "cell-region",
  "compute-resource",
  "network-residency",
- "oya-cloud-kms-domain",
  "oya-data-boundary-kernel",
+ "secrets-kms-domain",
 ]
 
 [[package]]
@@ -4660,9 +4660,9 @@ dependencies = [
  "oya-intelligence-run-file-adapter",
  "oya-intelligence-step-domain",
  "oya-intelligence-step-file-adapter",
- "oya-secrets-domain",
- "oya-secrets-file-adapter",
  "oya-workspace-members-kernel",
+ "secrets-domain",
+ "secrets-file",
  "serde_json",
  "sha2",
 ]
@@ -5164,7 +5164,7 @@ dependencies = [
  "oya-intelligence-policy-domain",
  "oya-intelligence-run-domain",
  "oya-intelligence-step-domain",
- "oya-secrets-domain",
+ "secrets-domain",
  "tenancy-domain",
  "tracing",
  "tracing-subscriber",
@@ -6187,93 +6187,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-kms-adapter-oci"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-kms-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-cloud-kms-adapter-openbao"
-version = "0.1.0"
-dependencies = [
- "base64 0.21.7",
- "oya-cloud-kms-domain",
- "oya-cloud-kms-enclave-kernel",
- "oya-data-boundary-kernel",
- "zeroize",
-]
-
-[[package]]
-name = "oya-cloud-kms-api"
-version = "0.1.0"
-dependencies = [
- "cell-region",
- "network-residency",
- "oya-cloud-kms-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-cloud-kms-domain"
-version = "0.1.0"
-dependencies = [
- "cell-region",
- "compute-resource",
- "network-residency",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-cloud-kms-enclave-kernel"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "libc",
- "oya-cloud-kms-domain",
- "zeroize",
-]
-
-[[package]]
-name = "oya-cloud-kms-operator-app"
-version = "0.1.0"
-dependencies = [
- "kube",
- "oya-cloud-kms-domain",
- "oya-cloud-kms-operator-k8s-adapter",
- "oya-cloud-kms-operator-kernel",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-cloud-kms-operator-k8s-adapter"
-version = "0.1.0"
-dependencies = [
- "futures",
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "network-residency",
- "oya-cloud-kms-domain",
- "oya-cloud-kms-operator-kernel",
- "oya-data-boundary-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-cloud-kms-operator-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
 ]
 
 [[package]]
@@ -7442,7 +7355,7 @@ dependencies = [
  "oya-check-cost-budget",
  "oya-data-boundary-kernel",
  "oya-intelligence-capability-domain",
- "oya-secrets-domain",
+ "secrets-domain",
 ]
 
 [[package]]
@@ -8905,22 +8818,6 @@ name = "oya-saas-plugin-app"
 version = "0.1.0"
 dependencies = [
  "marketplace-plugin-kernel",
-]
-
-[[package]]
-name = "oya-secrets-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-shared-platform-contracts-kernel",
- "zeroize",
-]
-
-[[package]]
-name = "oya-secrets-file-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-secrets-domain",
 ]
 
 [[package]]
@@ -10664,6 +10561,109 @@ dependencies = [
 ]
 
 [[package]]
+name = "secrets-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-shared-platform-contracts-kernel",
+ "zeroize",
+]
+
+[[package]]
+name = "secrets-file"
+version = "0.1.0"
+dependencies = [
+ "secrets-domain",
+]
+
+[[package]]
+name = "secrets-kms-api"
+version = "0.1.0"
+dependencies = [
+ "cell-region",
+ "network-residency",
+ "oya-data-boundary-kernel",
+ "secrets-kms-domain",
+]
+
+[[package]]
+name = "secrets-kms-domain"
+version = "0.1.0"
+dependencies = [
+ "cell-region",
+ "compute-resource",
+ "network-residency",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "secrets-kms-enclave"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "libc",
+ "secrets-kms-domain",
+ "zeroize",
+]
+
+[[package]]
+name = "secrets-kms-oci"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "secrets-kms-domain",
+]
+
+[[package]]
+name = "secrets-kms-openbao"
+version = "0.1.0"
+dependencies = [
+ "base64 0.21.7",
+ "oya-data-boundary-kernel",
+ "secrets-kms-domain",
+ "secrets-kms-enclave",
+ "zeroize",
+]
+
+[[package]]
+name = "secrets-kms-operator-app"
+version = "0.1.0"
+dependencies = [
+ "kube",
+ "secrets-kms-domain",
+ "secrets-kms-operator-k8s",
+ "secrets-kms-operator-kernel",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "secrets-kms-operator-k8s"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "network-residency",
+ "oya-data-boundary-kernel",
+ "secrets-kms-domain",
+ "secrets-kms-operator-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "secrets-kms-operator-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "security-framework"
 version = "3.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11251,8 +11251,8 @@ dependencies = [
  "cell-region",
  "compute-resource",
  "network-residency",
- "oya-cloud-kms-domain",
  "oya-data-boundary-kernel",
+ "secrets-kms-domain",
 ]
 
 [[package]]
@@ -11268,8 +11268,8 @@ version = "0.1.0"
 dependencies = [
  "compute-resource",
  "network-residency",
- "oya-cloud-kms-domain",
  "oya-data-boundary-kernel",
+ "secrets-kms-domain",
  "storage-domain",
 ]
 

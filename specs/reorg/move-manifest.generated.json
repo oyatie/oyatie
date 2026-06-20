@@ -1,201 +1,385 @@
 {
-  "capability": "network",
+  "capability": "secrets",
   "crate_dirs": [
     {
-      "new_path": "network/ports/dns",
-      "old_path": "cloud/cloud-network-dns/crates/oya-cloud-network-dns-api"
+      "new_path": "secrets/adapters/kms-oci",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-oci"
     },
     {
-      "new_path": "network/adapters/oci",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-adapter-oci"
+      "new_path": "secrets/adapters/kms-openbao",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao"
     },
     {
-      "new_path": "network/adapters/selfhosted",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-adapter-selfhosted"
+      "new_path": "secrets/ports/kms-api",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api"
     },
     {
-      "new_path": "network/core/domain",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-domain"
+      "new_path": "secrets/core/kms-domain",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain"
     },
     {
-      "new_path": "network/ports/lb",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-lb-api"
+      "new_path": "secrets/core/kms-enclave",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel"
     },
     {
-      "new_path": "network/ports/vpc",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-vpc-api"
+      "new_path": "secrets/facade/kms-operator-app",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app"
     },
     {
-      "new_path": "network/core/residency",
-      "old_path": "cloud/cloud-network/crates/oya-residency-domain"
+      "new_path": "secrets/adapters/kms-operator-k8s",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter"
+    },
+    {
+      "new_path": "secrets/core/kms-operator-kernel",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel"
+    },
+    {
+      "new_path": "secrets/core/domain",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain"
+    },
+    {
+      "new_path": "secrets/adapters/file",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter"
     }
   ],
   "crate_idents": [
     {
-      "new": "network-oci",
-      "old": "oya-cloud-network-adapter-oci"
+      "new": "secrets-kms-oci",
+      "old": "oya-cloud-kms-adapter-oci"
     },
     {
-      "new": "network-selfhosted",
-      "old": "oya-cloud-network-adapter-selfhosted"
+      "new": "secrets-kms-openbao",
+      "old": "oya-cloud-kms-adapter-openbao"
     },
     {
-      "new": "network-dns",
-      "old": "oya-cloud-network-dns-api"
+      "new": "secrets-kms-api",
+      "old": "oya-cloud-kms-api"
     },
     {
-      "new": "network-domain",
-      "old": "oya-cloud-network-domain"
+      "new": "secrets-kms-domain",
+      "old": "oya-cloud-kms-domain"
     },
     {
-      "new": "network-lb",
-      "old": "oya-cloud-network-lb-api"
+      "new": "secrets-kms-enclave",
+      "old": "oya-cloud-kms-enclave-kernel"
     },
     {
-      "new": "network-vpc",
-      "old": "oya-cloud-network-vpc-api"
+      "new": "secrets-kms-operator-app",
+      "old": "oya-cloud-kms-operator-app"
     },
     {
-      "new": "network-residency",
-      "old": "oya-residency-domain"
+      "new": "secrets-kms-operator-k8s",
+      "old": "oya-cloud-kms-operator-k8s-adapter"
+    },
+    {
+      "new": "secrets-kms-operator-kernel",
+      "old": "oya-cloud-kms-operator-kernel"
+    },
+    {
+      "new": "secrets-domain",
+      "old": "oya-secrets-domain"
+    },
+    {
+      "new": "secrets-file",
+      "old": "oya-secrets-file-adapter"
     }
   ],
   "files": [
     {
-      "new_path": "network/ports/dns/BUCK",
-      "old_path": "cloud/cloud-network-dns/crates/oya-cloud-network-dns-api/BUCK"
+      "new_path": "secrets/adapters/kms-oci/BUCK",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-oci/BUCK"
     },
     {
-      "new_path": "network/ports/dns/Cargo.toml",
-      "old_path": "cloud/cloud-network-dns/crates/oya-cloud-network-dns-api/Cargo.toml"
+      "new_path": "secrets/adapters/kms-oci/Cargo.toml",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-oci/Cargo.toml"
     },
     {
-      "new_path": "network/ports/dns/src/lib.rs",
-      "old_path": "cloud/cloud-network-dns/crates/oya-cloud-network-dns-api/src/lib.rs"
+      "new_path": "secrets/adapters/kms-oci/src/lib.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-oci/src/lib.rs"
     },
     {
-      "new_path": "network/ports/dns/tests/cloud_network_dns_api.rs",
-      "old_path": "cloud/cloud-network-dns/crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs"
+      "new_path": "secrets/adapters/kms-openbao/BUCK",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/BUCK"
     },
     {
-      "new_path": "network/observability/slos/cloud-network-dns/autosharding-events.openslo.yaml",
-      "old_path": "cloud/cloud-network-dns/slos/autosharding-events.openslo.yaml"
+      "new_path": "secrets/adapters/kms-openbao/Cargo.toml",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/Cargo.toml"
     },
     {
-      "new_path": "network/adapters/oci/BUCK",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-adapter-oci/BUCK"
+      "new_path": "secrets/adapters/kms-openbao/src/lib.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/src/lib.rs"
     },
     {
-      "new_path": "network/adapters/oci/Cargo.toml",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-adapter-oci/Cargo.toml"
+      "new_path": "secrets/adapters/kms-openbao/src/root_custody.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/src/root_custody.rs"
     },
     {
-      "new_path": "network/adapters/oci/src/lib.rs",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-adapter-oci/src/lib.rs"
+      "new_path": "secrets/adapters/kms-openbao/tests/root_custody.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-adapter-openbao/tests/root_custody.rs"
     },
     {
-      "new_path": "network/adapters/selfhosted/BUCK",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-adapter-selfhosted/BUCK"
+      "new_path": "secrets/ports/kms-api/BUCK",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api/BUCK"
     },
     {
-      "new_path": "network/adapters/selfhosted/Cargo.toml",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-adapter-selfhosted/Cargo.toml"
+      "new_path": "secrets/ports/kms-api/Cargo.toml",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api/Cargo.toml"
     },
     {
-      "new_path": "network/adapters/selfhosted/src/lib.rs",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-adapter-selfhosted/src/lib.rs"
+      "new_path": "secrets/ports/kms-api/src/lib.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api/src/lib.rs"
     },
     {
-      "new_path": "network/core/domain/BUCK",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-domain/BUCK"
+      "new_path": "secrets/ports/kms-api/tests/cloud_kms_api.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-api/tests/cloud_kms_api.rs"
     },
     {
-      "new_path": "network/core/domain/Cargo.toml",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-domain/Cargo.toml"
+      "new_path": "secrets/core/kms-domain/BUCK",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain/BUCK"
     },
     {
-      "new_path": "network/core/domain/src/lib.rs",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-domain/src/lib.rs"
+      "new_path": "secrets/core/kms-domain/Cargo.toml",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain/Cargo.toml"
     },
     {
-      "new_path": "network/core/domain/tests/cloud_network_dns_guardrails.rs",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-domain/tests/cloud_network_dns_guardrails.rs"
+      "new_path": "secrets/core/kms-domain/src/envelope_keys.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain/src/envelope_keys.rs"
     },
     {
-      "new_path": "network/ports/lb/BUCK",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-lb-api/BUCK"
+      "new_path": "secrets/core/kms-domain/src/lib.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-domain/src/lib.rs"
     },
     {
-      "new_path": "network/ports/lb/Cargo.toml",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-lb-api/Cargo.toml"
+      "new_path": "secrets/core/kms-enclave/BUCK",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/BUCK"
     },
     {
-      "new_path": "network/ports/lb/src/lib.rs",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-lb-api/src/lib.rs"
+      "new_path": "secrets/core/kms-enclave/Cargo.toml",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/Cargo.toml"
     },
     {
-      "new_path": "network/ports/lb/tests/cloud_network_lb_api.rs",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-lb-api/tests/cloud_network_lb_api.rs"
+      "new_path": "secrets/core/kms-enclave/src/chain.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/chain.rs"
     },
     {
-      "new_path": "network/ports/vpc/BUCK",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-vpc-api/BUCK"
+      "new_path": "secrets/core/kms-enclave/src/dek_cache.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/dek_cache.rs"
     },
     {
-      "new_path": "network/ports/vpc/Cargo.toml",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-vpc-api/Cargo.toml"
+      "new_path": "secrets/core/kms-enclave/src/lib.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/lib.rs"
     },
     {
-      "new_path": "network/ports/vpc/src/lib.rs",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-vpc-api/src/lib.rs"
+      "new_path": "secrets/core/kms-enclave/src/material.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/material.rs"
     },
     {
-      "new_path": "network/ports/vpc/tests/cloud_network_vpc_api.rs",
-      "old_path": "cloud/cloud-network/crates/oya-cloud-network-vpc-api/tests/cloud_network_vpc_api.rs"
+      "new_path": "secrets/core/kms-enclave/src/mlocked.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/mlocked.rs"
     },
     {
-      "new_path": "network/core/residency/BUCK",
-      "old_path": "cloud/cloud-network/crates/oya-residency-domain/BUCK"
+      "new_path": "secrets/core/kms-enclave/src/provenance.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/provenance.rs"
     },
     {
-      "new_path": "network/core/residency/Cargo.toml",
-      "old_path": "cloud/cloud-network/crates/oya-residency-domain/Cargo.toml"
+      "new_path": "secrets/core/kms-enclave/src/shred.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/shred.rs"
     },
     {
-      "new_path": "network/core/residency/src/lib.rs",
-      "old_path": "cloud/cloud-network/crates/oya-residency-domain/src/lib.rs"
+      "new_path": "secrets/core/kms-enclave/src/token.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/src/token.rs"
     },
     {
-      "new_path": "network/observability/slos/cloud-network/autosharding-events.openslo.yaml",
-      "old_path": "cloud/cloud-network/slos/autosharding-events.openslo.yaml"
+      "new_path": "secrets/core/kms-enclave/tests/crypto_shred.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/crypto_shred.rs"
     },
     {
-      "new_path": "registry/catalog/network-oci.yaml",
-      "old_path": "registry/catalog/oya-cloud-network-adapter-oci.yaml"
+      "new_path": "secrets/core/kms-enclave/tests/envelope_round_trip.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/envelope_round_trip.rs"
     },
     {
-      "new_path": "registry/catalog/network-selfhosted.yaml",
-      "old_path": "registry/catalog/oya-cloud-network-adapter-selfhosted.yaml"
+      "new_path": "secrets/core/kms-enclave/tests/one_way_door.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/one_way_door.rs"
     },
     {
-      "new_path": "registry/catalog/network-dns.yaml",
-      "old_path": "registry/catalog/oya-cloud-network-dns-api.yaml"
+      "new_path": "secrets/core/kms-enclave/tests/rotation_decrypt_only.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/rotation_decrypt_only.rs"
     },
     {
-      "new_path": "registry/catalog/network-domain.yaml",
-      "old_path": "registry/catalog/oya-cloud-network-domain.yaml"
+      "new_path": "secrets/core/kms-enclave/tests/static_stability.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-enclave-kernel/tests/static_stability.rs"
     },
     {
-      "new_path": "registry/catalog/network-lb.yaml",
-      "old_path": "registry/catalog/oya-cloud-network-lb-api.yaml"
+      "new_path": "secrets/facade/kms-operator-app/BUCK",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/BUCK"
     },
     {
-      "new_path": "registry/catalog/network-vpc.yaml",
-      "old_path": "registry/catalog/oya-cloud-network-vpc-api.yaml"
+      "new_path": "secrets/facade/kms-operator-app/Cargo.toml",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/Cargo.toml"
     },
     {
-      "new_path": "registry/catalog/network-residency.yaml",
-      "old_path": "registry/catalog/oya-residency-domain.yaml"
+      "new_path": "secrets/facade/kms-operator-app/src/lib.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/src/lib.rs"
+    },
+    {
+      "new_path": "secrets/facade/kms-operator-app/src/main.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/src/main.rs"
+    },
+    {
+      "new_path": "secrets/facade/kms-operator-app/tests/app.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-app/tests/app.rs"
+    },
+    {
+      "new_path": "secrets/adapters/kms-operator-k8s/BUCK",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/BUCK"
+    },
+    {
+      "new_path": "secrets/adapters/kms-operator-k8s/Cargo.toml",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/Cargo.toml"
+    },
+    {
+      "new_path": "secrets/adapters/kms-operator-k8s/src/lib.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/src/lib.rs"
+    },
+    {
+      "new_path": "secrets/adapters/kms-operator-k8s/tests/adapter.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/tests/adapter.rs"
+    },
+    {
+      "new_path": "secrets/core/kms-operator-kernel/BUCK",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/BUCK"
+    },
+    {
+      "new_path": "secrets/core/kms-operator-kernel/Cargo.toml",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/Cargo.toml"
+    },
+    {
+      "new_path": "secrets/core/kms-operator-kernel/src/lib.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/src/lib.rs"
+    },
+    {
+      "new_path": "secrets/core/kms-operator-kernel/tests/reconcile.rs",
+      "old_path": "cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/tests/reconcile.rs"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-kms/autosharding-events.openslo.yaml",
+      "old_path": "cloud/cloud-kms/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-kms/kms-dek-cache-static-stability.openslo.yaml",
+      "old_path": "cloud/cloud-kms/slos/kms-dek-cache-static-stability.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-kms/kms-envelope-wrap-latency-p99.openslo.yaml",
+      "old_path": "cloud/cloud-kms/slos/kms-envelope-wrap-latency-p99.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-kms/kms-reconcile-convergence.openslo.yaml",
+      "old_path": "cloud/cloud-kms/slos/kms-reconcile-convergence.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/core/domain/BUCK",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/BUCK"
+    },
+    {
+      "new_path": "secrets/core/domain/Cargo.toml",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/Cargo.toml"
+    },
+    {
+      "new_path": "secrets/core/domain/src/lease_lifecycle.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/src/lease_lifecycle.rs"
+    },
+    {
+      "new_path": "secrets/core/domain/src/lib.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs"
+    },
+    {
+      "new_path": "secrets/core/domain/src/zeroizing.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/src/zeroizing.rs"
+    },
+    {
+      "new_path": "secrets/core/domain/tests/cloud_secret_foundation.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/tests/cloud_secret_foundation.rs"
+    },
+    {
+      "new_path": "secrets/core/domain/tests/lease_lifecycle.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/tests/lease_lifecycle.rs"
+    },
+    {
+      "new_path": "secrets/core/domain/tests/secret_reference_uri.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs"
+    },
+    {
+      "new_path": "secrets/core/domain/tests/secret_vault.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_vault.rs"
+    },
+    {
+      "new_path": "secrets/adapters/file/BUCK",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/BUCK"
+    },
+    {
+      "new_path": "secrets/adapters/file/Cargo.toml",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/Cargo.toml"
+    },
+    {
+      "new_path": "secrets/adapters/file/src/lib.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/src/lib.rs"
+    },
+    {
+      "new_path": "secrets/adapters/file/tests/file_secret_store.rs",
+      "old_path": "cloud/cloud-secrets/crates/oya-secrets-file-adapter/tests/file_secret_store.rs"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml",
+      "old_path": "cloud/cloud-secrets/slos/audit-log-completeness.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-secrets/autosharding-events.openslo.yaml",
+      "old_path": "cloud/cloud-secrets/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml",
+      "old_path": "cloud/cloud-secrets/slos/hsm-availability.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml",
+      "old_path": "cloud/cloud-secrets/slos/key-rotation-correctness.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml",
+      "old_path": "cloud/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml",
+      "old_path": "cloud/cloud-secrets/slos/secret-resolve-latency.openslo.yaml"
+    },
+    {
+      "new_path": "secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml",
+      "old_path": "cloud/cloud-secrets/slos/secret-write-latency.openslo.yaml"
+    },
+    {
+      "new_path": "registry/catalog/secrets-kms-oci.yaml",
+      "old_path": "registry/catalog/oya-cloud-kms-adapter-oci.yaml"
+    },
+    {
+      "new_path": "registry/catalog/secrets-kms-openbao.yaml",
+      "old_path": "registry/catalog/oya-cloud-kms-adapter-openbao.yaml"
+    },
+    {
+      "new_path": "registry/catalog/secrets-kms-api.yaml",
+      "old_path": "registry/catalog/oya-cloud-kms-api.yaml"
+    },
+    {
+      "new_path": "registry/catalog/secrets-kms-domain.yaml",
+      "old_path": "registry/catalog/oya-cloud-kms-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/secrets-domain.yaml",
+      "old_path": "registry/catalog/oya-secrets-domain.yaml"
+    },
+    {
+      "new_path": "registry/catalog/secrets-file.yaml",
+      "old_path": "registry/catalog/oya-secrets-file-adapter.yaml"
     }
   ],
   "schema": "oya-ci/reorg-move-manifest/v1"

@@ -14,7 +14,7 @@ use oya_intelligence_adapter_domain::{
     SubscriptionBindingRegistry, ToolSchemaSet, invoke_provider_route, resolve_route,
 };
 use oya_intelligence_capability_domain::{AutonomyTier, Capability, CapabilityError};
-use oya_secrets_domain::SecretRef;
+use secrets_domain::SecretRef;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {

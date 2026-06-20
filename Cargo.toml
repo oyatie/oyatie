@@ -275,6 +275,24 @@ members = [
   # Cargo.toml), and the absorbed dirs' other non-crate artifacts (docs/PRD/IPs/contracts) are
   # homed in phase-2 (task #62).
   "network/*/*",
+  # secrets capability (MOVE-20, ADR-0562 §10.24): homes cloud/cloud-kms + cloud/cloud-secrets
+  # crates → secrets/{core,ports,adapters,facade}/<leaf> (10 crates: core 4 / ports 1 / adapters 4 /
+  # facade 1). secrets is KMS + secrets + the crypto root (recursion break #1): the cloud-kms key
+  # lifecycle domain + the enclave/operator kernels + the cloud-secrets value-object domain are core;
+  # the kms capability-trait + DTO seam is ports; the oci/openbao provider + operator-k8s + file
+  # transient infra impls are adapters; the kms-operator-app K8s operator composition root (wires the
+  # operator-k8s adapter + operator-kernel) is facade (the iam cloud-pdp-app §10.22 facade precedent: a
+  # deployable that depends on a concrete adapter belongs in facade/, NOT core/). The de-branded cargo
+  # name == secrets-<leaf> path-tail (the legacy oya-cloud-kms-X / oya-secrets-X forms drop to the
+  # `secrets-` capability slug; the face dir is NOT in the name and the leaves are already distinct), so
+  # each leaf segment stays a bare `*`. `secrets/*/*` covers all ten faces/leaves with one glob,
+  # satisfying ADR-0538's glob-only members contract (no explicit-path members — the codemod-emitted
+  # literals are collapsed to this glob); the co-moved secrets/observability/slos non-crate SLO subtree
+  # (per-service subdirs cloud-kms/cloud-secrets, collision-avoiding for the shared
+  # autosharding-events.openslo.yaml basename across the two source dirs) is excluded below (no
+  # Cargo.toml), and the absorbed dirs' other non-crate artifacts (manifest.json/docs/PRD/IPs/contracts)
+  # are homed in phase-2 (task #62).
+  "secrets/*/*",
 ]
 exclude = [
   # cloud/cloud-kernel is a SEPARATE no_std bare-metal workspace (its own [workspace]
@@ -307,6 +325,7 @@ exclude = [
   "workflow/observability",
   "iam/observability",
   "network/observability",
+  "secrets/observability",
 ]
 resolver = "2"
 

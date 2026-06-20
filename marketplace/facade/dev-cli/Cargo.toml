@@ -104,8 +104,8 @@ audit-file-adapter = { path = "../../../audit/adapters/file" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
 messaging-file-adapter = { path = "../../../messaging/adapters/file" }
 messaging-domain = { path = "../../../messaging/core/domain" }
-oya-secrets-file-adapter = { path = "../../../cloud/cloud-secrets/crates/oya-secrets-file-adapter" }
-oya-secrets-domain = { path = "../../../cloud/cloud-secrets/crates/oya-secrets-domain" }
+secrets-file = { path = "../../../secrets/adapters/file" }
+secrets-domain = { path = "../../../secrets/core/domain" }
 serde_json = { workspace = true }
 sha2 = "0.10"
 
