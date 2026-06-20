@@ -69,7 +69,7 @@ pub fn tenant_rbac_local_runtime_composition() -> TenantRbacLocalRuntimeComposit
             }),
     );
     routes.extend(
-        oya_accounting_journal_infrastructure::accounting_runtime_routes()
+        billing_accounting_http_adapter::accounting_runtime_routes()
             .into_iter()
             .map(|route| TenantRbacLocalRuntimeRoute {
                 service: "accounting",

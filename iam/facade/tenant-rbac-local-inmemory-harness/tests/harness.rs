@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_accounting_journal_app::record_payroll_posting;
-use oya_accounting_journal_domain::{JournalLineInput, PayrollPostingInput};
+use billing_accounting_app::record_payroll_posting;
+use billing_accounting_journal::{JournalLineInput, PayrollPostingInput};
 use oya_hr_employment_app::plan_leave_payroll_impact_envelope;
 use oya_hr_employment_domain::{
     LeaveDecision, LeavePayrollImpactInput, LeaveRoutingMode, PayrollImpactKind,

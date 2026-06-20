@@ -2333,6 +2333,176 @@ the existing `registry/catalog/` reachability prefix), and the committed move-pl
 #62), per the §10.5..§10.23 precedent. Per the one-plan-per-PR contract the spent `specs/reorg/network-move-plan.json` (the
 §10.23 move-plan) is removed.
 
+#### §10.25 Twenty-first executed strangler move: `billing` capability (cloud/cloud-billing + cloud/cloud-billing-tax + cloud/cloud-finops + oya/accounting/crates → billing/) — four-source-dir metering + billing + tax + finops/cost + accounting move across all four faces, the violation-source outbound edges relabeled, and the three facade service bins de-branded
+
+The twenty-first REAL codemod run homes the `billing` capability's sixteen crates from FOUR source dirs
+(`cloud/cloud-billing/crates`, `cloud/cloud-billing-tax/crates`, `cloud/cloud-finops/crates`, `oya/accounting/crates`) under
+the §3 placement rule, across ALL FOUR faces (`core` 7 / `ports` 3 / `adapters` 2 / `facade` 4). billing is the first-class
+cross-cutting SOLD-NESS capability (NOT a junk-drawer, per the §6.1 founder ruling): metering + billing + tax + FinOps/cost +
+accounting collapse into one home because they are one commercial concern (three-clock accrual/rating/invoicing, tax,
+cost-attribution). The cloud-billing tenant-guardrail/invoice/ledger domain + the metering meter-unit domain + the cloud-finops
+cost/savings domain + the accounting-journal double-entry domain + the billing/finops kernels + the accounting usecase
+orchestrator are the engines we RUN; the finops + accounting capability traits + DTO seams + the lib-only tax invoice/contract
+surface are the ports; the accounting-journal http-runtime + inmemory-storage backends are the transient infra; and the
+billing/meter/cost service deployables + the saas-bench harness are the sold/runnable facade.
+
+**Substrate layering (the run face, §4 run seam; ports/adapters/facade -> core, never inverted):** the cloud-billing
+tenant-guardrail/invoice/ledger domain (`oya-cloud-billing-domain` -> `billing/core/billing`, cargo `billing-domain`), the
+metering meter-unit domain (`oya-metering-domain` -> `billing/core/metering`, `billing-metering`), the cloud-finops cost domain
+(`oya-cloud-finops-domain` -> `billing/core/finops`, `billing-finops`), the accounting-journal double-entry domain
+(`oya-accounting-journal-domain` -> `billing/core/accounting-journal`, `billing-accounting-journal`), the two billing/finops
+kernels (`oya-cloud-billing-kernel` -> `billing/core/billing-kernel`, `billing-kernel`; `oya-cloud-finops-kernel` ->
+`billing/core/finops-kernel`, `billing-finops-kernel`), and the accounting usecase orchestrator
+(`oya-accounting-journal-app` -> `billing/core/accounting-app`, `billing-accounting-app`) are the engines we RUN -> `core/`;
+the inbound finops + accounting capability-trait + DTO seams (`oya-cloud-finops-api` -> `billing/ports/finops-api`,
+`billing-finops-api`; `oya-accounting-journal-api` -> `billing/ports/accounting-api`, `billing-accounting-api`) plus the
+lib-only tax invoice/contract surface (`oya-cloud-billing-tax-app` -> `billing/ports/tax-api`, `billing-tax-api`) are the port
+seams -> `ports/` (the `ports -> core` legal downward edge, the §10.18..§10.24 precedent: a port carries a DTO that travels
+with its contract and depends inward on the domain only); the transient infra backends
+(`oya-accounting-journal-infrastructure` -> `billing/adapters/accounting-http`, `billing-accounting-http-adapter`;
+`oya-accounting-journal-storage-adapter-inmemory` -> `billing/adapters/accounting-storage-inmemory`,
+`billing-accounting-storage-inmemory-adapter`) are `adapters/`; and the three service deployables + the benchmark harness
+(`oya-billing` -> `billing/facade/billing-service`, `billing-service`; `oya-meter` -> `billing/facade/meter-service`,
+`billing-meter-service`; `oya-cost` -> `billing/facade/cost-service`, `billing-cost-service`; `oya-saas-bench-app` ->
+`billing/facade/saas-bench`, `billing-saas-bench`) are the sold/runnable -> `facade/`. THE TWO FLAGGED-PLACEMENT DECISIONS,
+verified against the REAL Cargo + BUCK dep graph (NOT the designed-ahead table): (1) `oya-cloud-billing-tax-app` is placed in
+`ports/tax-api` NOT `facade/` because it is a `rust_library` (`crate_root = src/lib.rs`, NO `[[bin]]`/`main.rs`) with an
+EMPTY `[dependencies]` table — an API/contract surface (the invoice-API contract test exercises it), NOT a deployable that
+wires adapters; an "app"-suffixed name does not make it a facade. (2) `oya-accounting-journal-app` is placed in
+`core/accounting-app` NOT `facade/` because it is a `rust_library` (no bin) whose only deps are `libs/oya-data-boundary-kernel`
+(a base-class lib) + `billing-accounting-journal` (a sibling core domain) — pure orchestration/usecase logic with ZERO adapter
+dependency, so it is NOT a composition root and `core/` holds (the move-18 inversion lesson: a core crate depending on an
+adapter is forbidden — this crate has no such edge). The dependency direction is ports/adapters/facade -> core and never
+inverts (verified against the real Cargo + BUCK dep graph): `billing-domain` (core) -> `billing-metering` (sibling core) +
+`cell-region` + `compute-resource` + `libs/oya-data-boundary-kernel` (all downward); `billing-metering` (core) ->
+`libs/oya-data-boundary-kernel` only; `billing-finops` (core) -> `billing-domain` + `billing-metering` (sibling core) +
+`cell-region` + `compute-resource` + `libs/`; `billing-kernel`/`billing-finops-kernel` (core) -> nothing (zero-dep pure
+kernels); `billing-accounting-journal` (core) -> `libs/oya-data-boundary-kernel` only; `billing-accounting-app` (core) ->
+`libs/oya-data-boundary-kernel` + `billing-accounting-journal` (sibling core); `billing-finops-api` (ports) -> `billing-domain`
++ `billing-finops` + `billing-metering` (core) + `libs/`; `billing-accounting-api` (ports) -> `billing-accounting-journal`
+(core); `billing-tax-api` (ports) -> nothing; `billing-accounting-http-adapter` (adapter) -> `billing-accounting-api` (ports) +
+`billing-accounting-app` (core) + the http kernels/runtime libs; `billing-accounting-storage-inmemory-adapter` (adapter) ->
+`billing-accounting-app` (core); the facade services are self-contained deployables and `billing-saas-bench` (facade) ->
+`workflow-saas-{kernel,domain,app}` (other-cap facade) + `marketplace-plugin-kernel` (other-cap core) + `oya-saas-plugin-app`
+(oya/application, not-yet-moved). After the move the strict layer invariant holds: **ZERO** `core->adapters`, `core->facade`,
+`core->ports`, `ports->adapters`, `ports->facade`, `adapters->facade` edges exist (verified by enumerating every
+`path = "../../{adapters,facade,ports}/"` edge in `billing/core/*/Cargo.toml`, every `path = "../../{adapters,facade}/"` edge
+in `billing/ports/*/Cargo.toml`, and every `path = "../../facade/"` edge in `billing/adapters/*/Cargo.toml` — ALL empty; the
+SOLE non-downward edges in the whole capability are the legitimate facade->{core,ports,adapters} composition-root edges and the
+adapters->ports DTO-travels-with-its-contract downward edge). The acyclicity gate does not yet mechanically enforce
+intra-capability face direction (its `owning_service()` recognizes only `cloud/`+`oya/` top-dirs -> every `billing/...`
+endpoint projects to None and is dropped before classification, so it is STRUCTURALLY BLIND to a `billing/*` face inversion,
+the §10.22 productized follow-up task #81); the invariant was verified by hand (path-dep enumeration above). All sixteen
+crates are ONE `billing` capability node, so every intra-billing face edge projects to a `billing -> billing` self-edge and
+raises NO service->service / S-rank acyclicity violation.
+
+**Naming scheme (cargo == de-branded path-tail, all sixteen unique):** the proven scheme — path `billing/<face>/<leaf>` ↔
+cargo `billing-<leaf>`, de-branded (the legacy `oya-cloud-billing-`/`oya-cloud-finops-`/`oya-accounting-journal-`/`oya-`
+forms drop to the `billing-` capability slug; the role suffix is dropped where the face implies it, and the source-dir cell
+discriminator is dropped since the face dir is NOT in the name and the leaves are already distinct). All sixteen leaf dirs and
+cargo names are distinct (`MovePlan::validate` passes), and each cargo name equals `billing-` + its de-branded path-tail
+EXACTLY (the target-parity + cargo-prefix relabel binding) — e.g. `billing/core/billing` ↔ `billing-domain` (the leaf `billing`
+de-dups against the capability slug to the role-tail `domain`), `billing/facade/billing-service` ↔ `billing-service`,
+`billing/adapters/accounting-storage-inmemory` ↔ `billing-accounting-storage-inmemory-adapter`.
+
+**Custom-bin de-brand (3 facade service bins; the iam §10.22 precedent).** The three facade service crates each ship a
+`rust_binary` whose `[[bin]] name` + BUCK target carried the legacy `oya-` brand (`oya-billing`/`oya-billing-bin`,
+`oya-meter`/`oya-meter-bin`, `oya-cost`/`oya-cost-bin`); the codemod renames a moved crate's `[package].name` but PRESERVES a
+`-bin` sibling target + the `[[bin]].name` artifact name (the B1 silent-clobber guard), so these survive a bare move unchanged.
+A corpus grep confirmed NONE of the three bin artifact names is runtime-coupled (no k8s workload / PVC / mount-path / image /
+helm / iac / runbook reference to `oya-billing`/`oya-meter`/`oya-cost` as a binary), UNLIKE the §10.24 kms-operator runtime
+scheme that was deferred. They were therefore de-branded in lockstep with the package rename (the iam `iam-identity-service` /
+`iam-cloud-pdp-app` §10.22 precedent: `[[bin]].name` == package name, BUCK `rust_binary` name == `<package>-bin`):
+`billing-service`/`billing-service-bin`, `billing-meter-service`/`billing-meter-service-bin`,
+`billing-cost-service`/`billing-cost-service-bin`. No bin is left at an `oya-` stem; nothing runtime-coupled was touched.
+
+**Violation-source: outbound edges relabeled, ZERO new violations.** billing is a VIOLATION-SOURCE — `billing-domain` +
+`billing-finops` (core) carry outbound edges to `cell-region` (`cell/core/region`) + `compute-resource`
+(`compute/core/resource`), and `billing-saas-bench` (facade) carries outbound edges to `workflow-saas-{kernel,domain,app}`
+(workflow, moved), `marketplace-plugin-kernel` (marketplace, moved), and `oya-saas-plugin-app` (oya/application, still
+cloud/oya-tier'd, not-yet-moved); these edges are in the FROZEN acyclicity/total-accounting baselines. The ADR-0563
+rename-aware engine relabels those baselined edges old->new from the committed move-plan->manifest (`oya-cloud-billing-*` /
+`oya-cloud-finops-*` / `oya-accounting-journal-*` / `oya-metering-domain` / `oya-billing` / `oya-meter` / `oya-cost` /
+`oya-saas-bench-app` -> `billing-*` and the old crate paths -> the new `billing/*` homes). Because the targets
+(cell/compute/workflow/marketplace) live in acyclicity blind zones — and the one still-tier'd target `oya-saas-plugin-app` is
+unchanged on both ends — the relabeled edges relabel-forward OR burn down (the gate no longer detects a `billing/...`-endpoint
+edge once both ends project to None), EITHER outcome introducing ZERO NEW violations; the firewall GO-LIVE stays green (it
+fails-closed on baseline-staleness, which the rename-aware relabel prevents). Four external cross-capability dependents OUTSIDE
+the sixteen moved crates were rewritten mechanically by the codemod (Cargo path-dep + BUCK `//`-label + `use`-ident):
+`marketplace/core/cloud-domain` (-> billing-domain + billing-metering), `cell/core/capacity-commercial` (-> billing-domain +
+billing-metering), `iam/facade/tenant-rbac-local-inmemory-harness` (-> billing-accounting-app + billing-accounting-journal +
+billing-accounting-storage-inmemory-adapter), and `iam/facade/tenant-rbac-local-runtime-composition` (->
+billing-accounting-http-adapter). The lone LIVE path-string dependent — `marketplace/facade/dev-cli`'s
+`tests/fd001_data_class_taxonomy.rs`, which `fs::read`s the tax crate's `src/lib.rs` by repo-relative path — was relabeled
+old->new (`cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app/src/lib.rs` -> `billing/ports/tax-api/src/lib.rs`); the
+dev-cli supply-chain + loop-recovery gate SOURCES hardcode no billing/accounting crate id, and the
+`workspace_topology_gate`/`architecture_boundaries` references are hermetic SYNTHETIC scratch-tree fixtures (example crate
+names exercising the gate classifier), not live reads, so they neither break nor need relabel. `cargo metadata --locked` exits
+0 and `buck2 targets //...` resolves post-move for the whole affected cone.
+
+**Catalog re-key (16 of 16):** all sixteen moved crates carried a pre-existing gate-bound `registry/catalog/<id>.yaml`
+record, each re-keyed by the codemod ArtifactMove to its de-branded `billing-*` id (file rename, content-preserving — the
+records carry no embedded package-name field, only `context`/`role`/`capability`/`plane` facets keyed by filename). No record
+is left at an old `oya-` stem; the catalog-liveness gate (which scans ONLY `registry/catalog/*.yaml`) stays green (all sixteen
+bind to a live workspace crate-id). The SEPARATE `oya/accounting/catalog/*.yaml` product-catalog records (3 files, NOT scanned
+by the catalog-liveness gate) are non-crate artifacts of the `oya/accounting` source dir and stay behind for phase-2 (task
+#62), exactly like the absorbed dirs' manifest.json/docs/contracts.
+
+**SLO co-move (12, per-service subdirs — collision-avoiding):** two source dirs carry a promotion-gating SLO with the SAME
+basename `autosharding-events.openslo.yaml` (`cloud/cloud-billing/slos/` + `cloud/cloud-billing-tax/slos/`), a confirmed
+cross-service basename collision (cloud-finops + oya/accounting carry no SLO dir). All twelve SLOs (11 from cloud-billing:
+audit-chain-seal-latency, autosharding-events, cap-breach-detection-latency, focus-export-completion-time, fx-lock-freshness,
+invoice-generation-time, metering-event-ingest-latency, rev-share-settlement-time, seat-counting-availability,
+tenant-class-read-api-latency, usage-aggregation-time; 1 from cloud-billing-tax: autosharding-events) co-move via twelve
+content-preserving file `ArtifactMove`s into per-service subdirs
+`billing/observability/slos/{cloud-billing,cloud-billing-tax}/<basename>.openslo.yaml` (the §10.16/§10.17/§10.22/§10.24
+collision-aware pattern), so 12-in/12-out with neither lost nor shadowed. All twelve SLOs were already non-crate-resident at
+merge-base, so the ADR-0563 rename-aware engine relabels them old->new; zero `*.openslo.yaml` remains at any old billing source
+path.
+
+**Graph-invisible tests (2 found, both wired-live):** of the `tests/*.rs` across the sixteen moved crates, all but two
+already had owning buck2 `rust_test` targets at merge-base (the codemod recomputed their `//`-label deps to the new homes).
+The cone scan found TWO graph-invisible `tests/*.rs` in `billing/core/billing` (formerly `oya-cloud-billing-domain`):
+`tests/cloud_billing_foundation.rs` (157 lines, exercising `CloudBillingTenantGuardrail` invariants + the paid/trial billing
+component surface) and `tests/invoice_lifecycle_transitions.rs` (336 lines, originally a RED acceptance harness for
+`get_invoice`/idempotent-transition/credit-note behaviors — all since implemented, so the test is now GREEN). Both are real,
+valuable domain tests — they were WIRED-LIVE with new owning `rust_test` targets (`cloud-billing-foundation-test`,
+`invoice-lifecycle-transitions-test`; the latter carries the `billing-metering` + `oya-data-boundary-kernel` deps its `use`
+requires), compile post-move, and pass (10 sub-tests GREEN). Nothing ignored, skipped, stubbed, or deleted. Every one of the
+four external dependents that carries `tests/*.rs` already has an owning `rust_test` target.
+
+**Embedded-asset hermeticity (no change):** none of the sixteen moved crates uses `include_str!`/`include_bytes!` (verified by
+corpus grep), so the embedded-asset gate `scan_roots` is NOT extended to `billing` — moving from the `cloud`/`oya` scan_roots
+to the unscanned `billing/` home loses zero coverage because there is no embedded asset to scan (the §10.23/§10.24 pattern).
+
+**ADR-justification-source relabel (NO-OP this move).** Unlike §10.24's secrets (whose 13 operator/kms files were
+KEEP-justified by ADR-0543's verbatim-path "Governed surfaces" commissioning manifest, requiring an old->new ADR-body
+relabel), NONE of the sixteen billing crates' files carries an ADR commissioning/justification SOURCE: every moved-crate row in
+the accounting-registry has an EMPTY `justification_ref` (98 rows checked) and no ADR body lists a moved-crate file path as a
+KEEP-justification manifest. The only verbatim moved-crate path mentions in ADR-0562 are descriptive narration of PRIOR moves'
+dependent blast-radius (e.g. the cell-region move's §10.x list), which accurately describe the tree state at THAT move-time and
+are left as historical provenance. Total-accounting per-FILE `unjustified` relabel is therefore handled entirely by the
+ADR-0563 §C2 rename-aware engine (manifest file_pairs), no construction fix required.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run (`cargo metadata` +
+`buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null, `clean=true`). The capability
+registry records `billing.absorbs_current_dirs` with the capability's own top-level slug `billing` (the self-slug is required
+or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE billing/...`; the §10.12/§10.16..§10.24 lesson) plus the eight pre-seeded
+absorbed dirs (`cloud/cloud-billing` + `cloud/cloud-billing-tax` + `cloud/cloud-finops` + `oya/accounting` source dirs plus
+the four crate-empty phase-2 dirs `oya/oya-billing` + `oya/oya-meter` + `oya/oya-cost` + `oya/finops-portal`, retained). The
+membership policy adds `billing` to `scan_roots` + `allowed_top_level_dirs`; the acyclicity policy adds `billing/*/*` to
+`crate_root_globs` + `billing` to `unclassified_roots`; the root workspace members glob adds `billing/*/*` (collapsing the
+codemod-emitted literals) with `billing/observability` excluded (the non-crate SLO subtree). The move's tracked,
+born-accounted artifact roots are the sixteen crate dirs (each carrying its `Cargo.toml`, `BUCK`, `src/`, and, where present,
+`tests/`), the co-moved per-service SLO subdirs `billing/observability/slos/<service>/<basename>.openslo.yaml`, the subtree
+`billing/OWNERS` (axis-cloud-platform) seeded via a `specs/reachability-registry.json` §10.25 entry (breadth-unlimited per
+ADR-0555, covering the whole billing subtree including the co-moved SLO subdirs), the sixteen re-keyed catalog records
+`registry/catalog/billing-*.yaml` (reached by the existing `registry/catalog/` reachability prefix), and the committed
+move-plan `specs/reorg/billing-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability prefix). The
+absorbed dirs' other non-crate artifacts (`oya/accounting/catalog/` product-catalog, `cloud/cloud-billing/manifest.json` +
+`cloud/cloud-billing-tax/manifest.json`, docs/PRD/IPs/contracts/iac) are homed in phase-2 (task #62), per the §10.5..§10.24
+precedent. Per the one-plan-per-PR contract the spent `specs/reorg/secrets-move-plan.json` (the §10.24 move-plan) is removed.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a
