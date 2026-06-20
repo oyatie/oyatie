@@ -73,7 +73,7 @@ pub use network_residency::ResidencyClass;
 use network_residency::{
     RegionRef, RegionRefCreate, infer_region_jurisdiction_label, parse_residency_class_label,
 };
-use oya_secrets_domain::SecretRef;
+use secrets_domain::SecretRef;
 pub use tenancy_domain::Tenant;
 use tenancy_domain::TenantError;
 

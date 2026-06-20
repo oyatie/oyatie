@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//secrets/core/kms-domain:secrets-kms-domain",
         "//network/core/residency:network-residency",
         "//storage/core/domain:storage-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
@@ -21,7 +21,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//secrets/core/kms-domain:secrets-kms-domain",
         "//network/core/residency:network-residency",
         "//storage/core/domain:storage-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
@@ -37,7 +37,7 @@ rust_test(
     deps = [
         ":storage-object-api",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//secrets/core/kms-domain:secrets-kms-domain",
         "//network/core/residency:network-residency",
         "//storage/core/domain:storage-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",

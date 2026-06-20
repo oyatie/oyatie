@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_kms_domain::KmsPurpose;
+use secrets_kms_domain::KmsPurpose;
 use compute_resource::ResourceId;
 use storage_domain::{
     CloudStorageCatalog, CloudStorageError, ObjectCreate, ObjectEncryptionBindingCreate, ObjectKey,

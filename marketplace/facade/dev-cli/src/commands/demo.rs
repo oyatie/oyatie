@@ -15,8 +15,8 @@ use oya_intelligence_run_domain::RunLedger;
 use oya_intelligence_run_file_adapter::FileRunLedgerStore;
 use oya_intelligence_step_domain::StepLedger;
 use oya_intelligence_step_file_adapter::FileStepLedgerStore;
-use oya_secrets_domain::{SecretMaterial, SecretRef, SecretVault};
-use oya_secrets_file_adapter::FileSecretStore;
+use secrets_domain::{SecretMaterial, SecretRef, SecretVault};
+use secrets_file::FileSecretStore;
 
 use crate::foundation_fixture::{
     internal_privacy_data_class, internal_privacy_data_classes,

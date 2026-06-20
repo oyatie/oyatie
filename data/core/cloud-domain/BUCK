@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//secrets/core/kms-domain:secrets-kms-domain",
         "//network/core/residency:network-residency",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
@@ -22,7 +22,7 @@ rust_test(
     deps = [
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//secrets/core/kms-domain:secrets-kms-domain",
         "//network/core/residency:network-residency",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
@@ -38,7 +38,7 @@ rust_test(
         ":data-cloud-domain",
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-kms/crates/oya-cloud-kms-domain:oya-cloud-kms-domain",
+        "//secrets/core/kms-domain:secrets-kms-domain",
         "//network/core/residency:network-residency",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],

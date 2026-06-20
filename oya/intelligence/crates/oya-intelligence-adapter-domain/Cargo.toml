@@ -10,7 +10,7 @@ license = "Apache-2.0"
 oya-intelligence-capability-domain = { path = "../oya-intelligence-capability-domain" }
 oya-check-cost-budget = { path = "../../../../libs/oya-check-cost-budget" }
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-secrets-domain = { path = "../../../../cloud/cloud-secrets/crates/oya-secrets-domain" }
+secrets-domain = { path = "../../../../secrets/core/domain" }
 
 [lib]
 name = "oya_intelligence_adapter_domain"

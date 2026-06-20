@@ -13,7 +13,7 @@ use oya_data_boundary_kernel::{
     privacy_data_classes_from,
 };
 use oya_intelligence_capability_domain::Capability;
-use oya_secrets_domain::SecretRef;
+use secrets_domain::SecretRef;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum AdapterError {
