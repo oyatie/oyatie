@@ -43,10 +43,10 @@ Promote `oya-identity` to a runnable workload-identity service binary that compo
 existing workload-identity crates (domain, usecase, Cedar adapter, OIDC validation adapter,
 REST/gRPC delivery) behind one boot path:
 
-- `oya/identity/crates/oya-identity/src/server.rs` — the single composition root used by both
+- `iam/facade/identity-service/src/server.rs` — the single composition root used by both
   `main` and the E2E suite: fail-fast config -> JWKS/Cedar/seed load -> independently bound
   axum REST + tonic gRPC sockets with graceful SIGTERM drain (ADR-0083 Tier 3 panic-free boot).
-- `oya/identity/crates/oya-identity/src/oidc/issuer.rs` — the OIDC issuer DELIVERY surface over
+- `iam/facade/identity-service/src/oidc/issuer.rs` — the OIDC issuer DELIVERY surface over
   `oya-identity-oidc-issuer-kernel`: RFC 8414 discovery + RFC 7517 JWKS publication only,
   config-gated OFF unless a signing key is mounted. Signing custody is the `Es256FileSigner`
   ADR-0510 transient adapter behind the kernel `JwsSigner` port; the G02 cloud-kms adapter
@@ -55,7 +55,7 @@ REST/gRPC delivery) behind one boot path:
   this slice (the legacy webauthn module is deleted), so the service cannot act as a parallel
   human IdP. Human-OIDC-issuance expansion requires the ADR decomposing ADR-0536 D-1 plus
   founder ratification before it may land.
-- `oya/identity/crates/oya-identity/tests/e2e_service.rs` — live-socket E2E rung (AMENDMENT 7):
+- `iam/facade/identity-service/tests/e2e_service.rs` — live-socket E2E rung (AMENDMENT 7):
   real ES256 mint -> validate -> authorize over REST and gRPC with the fail-closed contract
   asserted (deny is 403 never 404; deny is a gRPC response value never an RPC error), SCIM
   guard refusal classes, and graceful-drain coverage through the production boot path.
@@ -67,9 +67,9 @@ denylist, Cedar action `identity.scim.Manage`, tenant binding) — fail-closed.
 
 ## Governed surfaces
 
-`oya/identity/crates/oya-identity/src/server.rs`
-`oya/identity/crates/oya-identity/src/oidc/issuer.rs`
-`oya/identity/crates/oya-identity/tests/e2e_service.rs`
+`iam/facade/identity-service/src/server.rs`
+`iam/facade/identity-service/src/oidc/issuer.rs`
+`iam/facade/identity-service/tests/e2e_service.rs`
 
 ## Consequences
 

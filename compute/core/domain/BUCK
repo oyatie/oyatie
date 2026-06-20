@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+        "//iam/core/cloud-domain:iam-cloud-domain",
         "//cloud/cloud-network/crates/oya-cloud-network-domain:oya-cloud-network-domain",
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
@@ -23,7 +23,7 @@ rust_test(
     deps = [
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+        "//iam/core/cloud-domain:iam-cloud-domain",
         "//cloud/cloud-network/crates/oya-cloud-network-domain:oya-cloud-network-domain",
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
@@ -40,7 +40,7 @@ rust_test(
         ":compute-domain",
         "//cell/core/region:cell-region",
         "//compute/core/resource:compute-resource",
-        "//cloud/cloud-iam/crates/oya-cloud-iam-domain:oya-cloud-iam-domain",
+        "//iam/core/cloud-domain:iam-cloud-domain",
         "//cloud/cloud-network/crates/oya-cloud-network-domain:oya-cloud-network-domain",
         "//cloud/cloud-network/crates/oya-residency-domain:oya-residency-domain",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
