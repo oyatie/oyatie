@@ -329,6 +329,7 @@
         "metering/billing"
       ],
       "absorbs_current_dirs": [
+        "billing",
         "cloud/cloud-billing",
         "cloud/cloud-billing-tax",
         "cloud/cloud-finops",

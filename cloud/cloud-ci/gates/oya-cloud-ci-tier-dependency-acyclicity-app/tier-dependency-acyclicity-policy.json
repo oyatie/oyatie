@@ -34,7 +34,8 @@
     "workflow/*/*",
     "iam/*/*",
     "network/*/*",
-    "secrets/*/*"
+    "secrets/*/*",
+    "billing/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -63,7 +64,8 @@
     "workflow",
     "iam",
     "network",
-    "secrets"
+    "secrets",
+    "billing"
   ],
   "stratum_rank_order": [
     "S0",

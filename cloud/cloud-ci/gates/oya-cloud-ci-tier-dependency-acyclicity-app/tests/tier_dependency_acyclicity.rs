@@ -124,10 +124,13 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
     );
     assert_eq!(
         baseline.keys.len(),
-        9,
-        "the frozen baseline holds 9 tier inversions (12 at birth, less the 3 cloud-kms -> residency \
+        8,
+        "the frozen baseline holds 8 tier inversions (12 at birth, less the 3 cloud-kms -> residency \
          S-RANK-INVERSIONs burned down by ADR-0562 move-19: oya-residency-domain left the cloud/ \
-         tier'd substrate root for the unclassified network/ capability home, so the inversion is fixed)"
+         tier'd substrate root for the unclassified network/ capability home; less the 1 \
+         oya-saas-bench-app -> oya-saas-plugin-app SUBSTRATE-UPWARD edge burned down by ADR-0562 \
+         move-21: oya-saas-bench-app left the cloud/ tier'd substrate root for the unclassified \
+         billing/ capability home, so that inversion left the classified graph)"
     );
 }
 

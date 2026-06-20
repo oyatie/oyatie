@@ -1,0 +1,216 @@
+{
+  "_comment": "ADR-0562 §10.25 move-21: home the `billing` capability (metering + billing + tax + finops/cost + accounting). SIXTEEN crates from FOUR source dirs (cloud/cloud-billing/crates, cloud/cloud-billing-tax/crates, cloud/cloud-finops/crates, oya/accounting/crates) across FOUR faces (core 7 / ports 3 / adapters 2 / facade 4). billing is the first-class cross-cutting sold-ness capability (NOT a junk-drawer). FACE DECISIONS verified by ACTUAL deps: (1) oya-cloud-billing-tax-app -> ports/tax-api because it is a lib-only crate (crate_root=src/lib.rs, NO [[bin]]/main.rs) with an EMPTY [dependencies] (no adapter wiring) — an API/contract surface, not a deployable; (2) oya-accounting-journal-app -> core/accounting-app because it is lib-only (no bin) and its only deps are libs/oya-data-boundary-kernel (base-class lib) + oya-accounting-journal-domain (sibling core) — pure orchestration/usecase logic with NO adapter dependency, so core/ holds (it is NOT a composition root). cargo == de-branded path-tail `billing-<leaf>` (face dir NOT in the name; the legacy oya-cloud-billing-/oya-cloud-finops-/oya-accounting-journal- forms drop to the billing- slug; the role suffix is dropped where the face implies it and the source-dir cell discriminator is dropped since leaves stay distinct). artifacts co-move the 12 promotion-gating SLOs into per-service subdirs billing/observability/slos/{cloud-billing,cloud-billing-tax}/ (collision-avoiding for the shared autosharding-events.openslo.yaml basename across cloud-billing + cloud-billing-tax) and re-key the 16 pre-existing registry/catalog records oya-* -> billing-* (all 16 moved crates carry exactly one gate-bound registry/catalog record). justification_ref: ADR-0562 §10.25; reachability seed: billing/OWNERS (specs/reachability-registry.json §10.25). Violation-source: billing's outbound edges (billing/finops domains -> cell-region/compute-resource; saas-bench -> workflow-saas-*/marketplace-plugin-kernel/oya-saas-plugin-app) relabel old->new via the ADR-0563 rename-aware engine; zero NEW violations. The oya/accounting/catalog/ product-catalog records + cloud-billing/cloud-billing-tax/cloud-finops manifest.json/docs/PRD/IPs/contracts/iac are non-crate artifacts homed in phase-2 (task #62), per the §10.5..§10.24 precedent.",
+  "capability": "billing",
+  "moves": [
+    {
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-kernel",
+      "new_path": "billing/core/billing-kernel",
+      "old_cargo_name": "oya-cloud-billing-kernel",
+      "new_cargo_name": "billing-kernel"
+    },
+    {
+      "old_path": "cloud/cloud-billing/crates/oya-cloud-billing-domain",
+      "new_path": "billing/core/billing",
+      "old_cargo_name": "oya-cloud-billing-domain",
+      "new_cargo_name": "billing-domain"
+    },
+    {
+      "old_path": "cloud/cloud-billing/crates/oya-metering-domain",
+      "new_path": "billing/core/metering",
+      "old_cargo_name": "oya-metering-domain",
+      "new_cargo_name": "billing-metering"
+    },
+    {
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-kernel",
+      "new_path": "billing/core/finops-kernel",
+      "old_cargo_name": "oya-cloud-finops-kernel",
+      "new_cargo_name": "billing-finops-kernel"
+    },
+    {
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-domain",
+      "new_path": "billing/core/finops",
+      "old_cargo_name": "oya-cloud-finops-domain",
+      "new_cargo_name": "billing-finops"
+    },
+    {
+      "old_path": "oya/accounting/crates/oya-accounting-journal-domain",
+      "new_path": "billing/core/accounting-journal",
+      "old_cargo_name": "oya-accounting-journal-domain",
+      "new_cargo_name": "billing-accounting-journal"
+    },
+    {
+      "old_path": "oya/accounting/crates/oya-accounting-journal-app",
+      "new_path": "billing/core/accounting-app",
+      "old_cargo_name": "oya-accounting-journal-app",
+      "new_cargo_name": "billing-accounting-app"
+    },
+    {
+      "old_path": "cloud/cloud-finops/crates/oya-cloud-finops-api",
+      "new_path": "billing/ports/finops-api",
+      "old_cargo_name": "oya-cloud-finops-api",
+      "new_cargo_name": "billing-finops-api"
+    },
+    {
+      "old_path": "oya/accounting/crates/oya-accounting-journal-api",
+      "new_path": "billing/ports/accounting-api",
+      "old_cargo_name": "oya-accounting-journal-api",
+      "new_cargo_name": "billing-accounting-api"
+    },
+    {
+      "old_path": "cloud/cloud-billing-tax/crates/oya-cloud-billing-tax-app",
+      "new_path": "billing/ports/tax-api",
+      "old_cargo_name": "oya-cloud-billing-tax-app",
+      "new_cargo_name": "billing-tax-api"
+    },
+    {
+      "old_path": "oya/accounting/crates/oya-accounting-journal-infrastructure",
+      "new_path": "billing/adapters/accounting-http",
+      "old_cargo_name": "oya-accounting-journal-infrastructure",
+      "new_cargo_name": "billing-accounting-http-adapter"
+    },
+    {
+      "old_path": "oya/accounting/crates/oya-accounting-journal-storage-adapter-inmemory",
+      "new_path": "billing/adapters/accounting-storage-inmemory",
+      "old_cargo_name": "oya-accounting-journal-storage-adapter-inmemory",
+      "new_cargo_name": "billing-accounting-storage-inmemory-adapter"
+    },
+    {
+      "old_path": "cloud/cloud-billing/crates/oya-billing",
+      "new_path": "billing/facade/billing-service",
+      "old_cargo_name": "oya-billing",
+      "new_cargo_name": "billing-service"
+    },
+    {
+      "old_path": "cloud/cloud-billing/crates/oya-meter",
+      "new_path": "billing/facade/meter-service",
+      "old_cargo_name": "oya-meter",
+      "new_cargo_name": "billing-meter-service"
+    },
+    {
+      "old_path": "cloud/cloud-finops/crates/oya-cost",
+      "new_path": "billing/facade/cost-service",
+      "old_cargo_name": "oya-cost",
+      "new_cargo_name": "billing-cost-service"
+    },
+    {
+      "old_path": "cloud/cloud-billing/crates/oya-saas-bench-app",
+      "new_path": "billing/facade/saas-bench",
+      "old_cargo_name": "oya-saas-bench-app",
+      "new_cargo_name": "billing-saas-bench"
+    }
+  ],
+  "artifacts": [
+    {
+      "old_path": "cloud/cloud-billing/slos/audit-chain-seal-latency.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/audit-chain-seal-latency.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/autosharding-events.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/cap-breach-detection-latency.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/cap-breach-detection-latency.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/focus-export-completion-time.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/focus-export-completion-time.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/fx-lock-freshness.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/fx-lock-freshness.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/invoice-generation-time.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/invoice-generation-time.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/metering-event-ingest-latency.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/metering-event-ingest-latency.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/rev-share-settlement-time.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/rev-share-settlement-time.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/seat-counting-availability.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/seat-counting-availability.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/tenant-class-read-api-latency.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/tenant-class-read-api-latency.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing/slos/usage-aggregation-time.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing/usage-aggregation-time.openslo.yaml"
+    },
+    {
+      "old_path": "cloud/cloud-billing-tax/slos/autosharding-events.openslo.yaml",
+      "new_path": "billing/observability/slos/cloud-billing-tax/autosharding-events.openslo.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-cloud-billing-kernel.yaml",
+      "new_path": "registry/catalog/billing-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-cloud-billing-domain.yaml",
+      "new_path": "registry/catalog/billing-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-metering-domain.yaml",
+      "new_path": "registry/catalog/billing-metering.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-cloud-finops-kernel.yaml",
+      "new_path": "registry/catalog/billing-finops-kernel.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-cloud-finops-domain.yaml",
+      "new_path": "registry/catalog/billing-finops.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-accounting-journal-domain.yaml",
+      "new_path": "registry/catalog/billing-accounting-journal.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-accounting-journal-app.yaml",
+      "new_path": "registry/catalog/billing-accounting-app.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-cloud-finops-api.yaml",
+      "new_path": "registry/catalog/billing-finops-api.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-accounting-journal-api.yaml",
+      "new_path": "registry/catalog/billing-accounting-api.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-cloud-billing-tax-app.yaml",
+      "new_path": "registry/catalog/billing-tax-api.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-accounting-journal-infrastructure.yaml",
+      "new_path": "registry/catalog/billing-accounting-http-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-accounting-journal-storage-adapter-inmemory.yaml",
+      "new_path": "registry/catalog/billing-accounting-storage-inmemory-adapter.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-billing.yaml",
+      "new_path": "registry/catalog/billing-service.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-meter.yaml",
+      "new_path": "registry/catalog/billing-meter-service.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-cost.yaml",
+      "new_path": "registry/catalog/billing-cost-service.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-saas-bench-app.yaml",
+      "new_path": "registry/catalog/billing-saas-bench.yaml"
+    }
+  ]
+}
