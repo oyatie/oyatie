@@ -2201,6 +2201,138 @@ catalog records `registry/catalog/network-*.yaml` (reached by the existing `regi
 committed move-plan `specs/reorg/network-move-plan.json` (reached by the existing ADR-0563 `specs/reorg/` reachability
 prefix). Per the one-plan-per-PR contract the spent `specs/reorg/iam-move-plan.json` (the §10.22 move-plan) is removed.
 
+#### §10.24 Twentieth executed strangler move: `secrets` capability (cloud/cloud-kms + cloud/cloud-secrets/crates → secrets/) — two-source-dir KMS + secrets + crypto-root move (recursion break #1) across all four faces, the operator facade composition root, and the violation-source outbound edges relabeled
+
+The twentieth REAL codemod run homes the `secrets` capability's ten crates from TWO source dirs
+(`cloud/cloud-kms/crates`, `cloud/cloud-secrets/crates`) under the §3 placement rule, across ALL FOUR faces
+(`core` 4 / `ports` 1 / `adapters` 4 / `facade` 1). secrets is KMS + secrets + THE crypto root (recursion break #1, the
+`cloud-secrets` ADR-0280 dag node): the cloud-kms tenant-scoped key-lifecycle / envelope-authorization domain + the enclave
+crypto kernel + the operator reconcile kernel + the cloud-secrets SecretReference value-object domain are the engines we RUN;
+the kms capability trait + DTO seam is the port; the oci/openbao provider backends + the operator-k8s reconciler adapter +
+the file secret-store adapter are the transient infra; and the K8s operator composition root is the deployable facade.
+
+**Substrate layering (the run face, §4 run seam; ports/adapters/facade -> core, never inverted):** the cloud-kms
+key-lifecycle domain (`oya-cloud-kms-domain` -> `secrets/core/kms-domain`), the enclave crypto kernel
+(`oya-cloud-kms-enclave-kernel` -> `secrets/core/kms-enclave`), the operator reconcile kernel
+(`oya-cloud-kms-operator-kernel` -> `secrets/core/kms-operator-kernel`), and the cloud-secrets SecretReference value-object
+domain (`oya-secrets-domain` -> `secrets/core/domain`) are the engines we RUN -> `core/`; the inbound kms capability-trait +
+DTO seam (`oya-cloud-kms-api` -> `secrets/ports/kms-api`) is the port seam -> `ports/` (the `ports -> core` legal downward
+edge, the §10.18..§10.23 precedent: a port carries a DTO that travels with its contract and depends inward on the domain
+only); the transient infra backends (`oya-cloud-kms-adapter-oci` -> `secrets/adapters/kms-oci`,
+`oya-cloud-kms-adapter-openbao` -> `secrets/adapters/kms-openbao`, `oya-cloud-kms-operator-k8s-adapter` ->
+`secrets/adapters/kms-operator-k8s`, `oya-secrets-file-adapter` -> `secrets/adapters/file`) are `adapters/`; and the K8s
+operator deployable (`oya-cloud-kms-operator-app` -> `secrets/facade/kms-operator-app`) is the composition root -> `facade/`.
+THE FACADE DECISION: `kms-operator-app` is a K8s operator/reconciler whose `Cargo.toml` depends on the CONCRETE
+`secrets-kms-operator-k8s` adapter (plus the `secrets-kms-domain` + `secrets-kms-operator-kernel` core kernels); a deployable
+that wires a concrete adapter is a composition root and BELONGS in `facade/`, EXACTLY the iam cloud-pdp-app §10.22 precedent —
+it is NOT pure substrate machinery, so `core/` would be a face inversion. The dependency direction is ports/adapters/facade
+-> core and never inverts (verified against the real Cargo + BUCK dep graph): `secrets-kms-domain` (core) -> `cell-region` +
+`compute-resource` + `network-residency` + `libs/oya-data-boundary-kernel` (all downward to lower capabilities / base-class
+libs); `secrets-kms-enclave` (core) -> `secrets-kms-domain` (sibling core); `secrets-kms-operator-kernel` (core) -> nothing
+(a zero-dep pure kernel); `secrets-domain` (core) -> `libs/oya-data-boundary-kernel` + `libs/oya-shared-platform-contracts-kernel`
+only; `secrets-kms-api` (ports) -> `secrets-kms-domain` (core) + `cell-region` + `network-residency` + `libs/`; each of
+kms-oci/kms-openbao/kms-operator-k8s/file (adapters) -> `secrets-{kms-domain,kms-enclave,kms-operator-kernel,domain}` (core) +
+`libs/` (+ `network-residency` for kms-operator-k8s); `secrets-kms-operator-app` (facade) -> `secrets-kms-domain` +
+`secrets-kms-operator-kernel` (core) + `secrets-kms-operator-k8s` (adapter, the legitimate facade->adapters composition-root
+edge). After the move the strict layer invariant holds: **ZERO** `core->adapters`, `core->facade`, `core->ports`,
+`ports->adapters`, `ports->facade`, `adapters->facade` edges exist (verified by enumerating every
+`path = "../../{adapters,facade}/"` and any non-downward `..` edge in `secrets/core/*/Cargo.toml` and
+`secrets/ports/*/Cargo.toml` — both empty — and confirming `adapters/*` carry no `->facade` edge; the SOLE non-downward edge
+in the whole capability is the legitimate `facade->adapters` composition-root edge). The acyclicity gate does not yet
+mechanically enforce intra-capability face direction (its `owning_service()` recognizes only `cloud/`+`oya/` top-dirs -> every
+`secrets/...` endpoint projects to None and is dropped before classification, so it is STRUCTURALLY BLIND to a `secrets/*`
+face inversion, the §10.22 productized follow-up task #81); the invariant was verified by hand (path-dep + BUCK-label
+enumeration above). All ten crates are ONE `secrets` capability node, so every intra-secrets face edge projects to a
+`secrets -> secrets` self-edge and raises NO service->service / S-rank acyclicity violation.
+
+**Naming scheme (cargo == de-branded path-tail, all ten unique):** the proven scheme — path `secrets/<face>/<leaf>` ↔
+cargo `secrets-<leaf>`, de-branded (the legacy `oya-cloud-kms-`/`oya-secrets-` forms drop to the `secrets-` capability slug;
+the role suffix is dropped where the face implies it, and the source-dir cell discriminator is dropped since the face dir is
+NOT in the name and the leaves are already distinct). The ten: `oya-cloud-kms-domain` -> `secrets/core/kms-domain`
+(`secrets-kms-domain`), `oya-cloud-kms-enclave-kernel` -> `secrets/core/kms-enclave` (`secrets-kms-enclave`),
+`oya-cloud-kms-operator-kernel` -> `secrets/core/kms-operator-kernel` (`secrets-kms-operator-kernel`), `oya-secrets-domain` ->
+`secrets/core/domain` (`secrets-domain`), `oya-cloud-kms-api` -> `secrets/ports/kms-api` (`secrets-kms-api`),
+`oya-cloud-kms-adapter-oci` -> `secrets/adapters/kms-oci` (`secrets-kms-oci`), `oya-cloud-kms-adapter-openbao` ->
+`secrets/adapters/kms-openbao` (`secrets-kms-openbao`), `oya-cloud-kms-operator-k8s-adapter` ->
+`secrets/adapters/kms-operator-k8s` (`secrets-kms-operator-k8s`), `oya-secrets-file-adapter` -> `secrets/adapters/file`
+(`secrets-file`), `oya-cloud-kms-operator-app` -> `secrets/facade/kms-operator-app` (`secrets-kms-operator-app`). All ten leaf
+dirs and cargo names are distinct (`MovePlan::validate` passes), and each cargo name equals `secrets-` + its de-branded
+path-tail EXACTLY (the target-parity + cargo-prefix relabel binding).
+
+**Violation-source: outbound edges relabeled, ZERO new violations.** secrets is a VIOLATION-SOURCE — `secrets-kms-domain`,
+`secrets-kms-api`, and `secrets-kms-operator-k8s` (core/ports/adapter) carry outbound edges to `network-residency`
+(`network/core/residency`, moved in §10.23), `cell-region` (`cell/core/region`), and `compute-resource`
+(`compute/core/resource`); these edges are in the FROZEN acyclicity/total-accounting baselines. The ADR-0563 rename-aware
+engine relabels those baselined edges old->new from the committed move-plan->manifest (`oya-cloud-kms-*`/`oya-secrets-*` ->
+`secrets-*` and the old `cloud/cloud-kms`/`cloud/cloud-secrets` crate paths -> the new `secrets/*` homes). Because the targets
+(network/cell/compute) live in acyclicity blind zones, the relabeled edges relabel-forward OR burn down (the gate no longer
+detects a `secrets/...`-endpoint edge once both ends project to None) — EITHER outcome introduces ZERO NEW violations and the
+firewall GO-LIVE stays green (it fails-closed on baseline-staleness, which the rename-aware relabel prevents). Six external
+cross-capability dependents OUTSIDE the ten moved crates were rewritten mechanically (Cargo path-dep + BUCK `//`-label +
+`use`-ident): `data/core/cloud-domain` (-> kms-domain), `storage/core/domain` + `storage/ports/object-api` (-> kms-domain),
+`oya/application/crates/oya-application-app` (-> secrets-domain), `oya/intelligence/crates/oya-intelligence-adapter-domain`
+(-> secrets-domain), and `marketplace/facade/dev-cli` (-> secrets-file + secrets-domain). `cargo metadata --locked` exits 0
+and `buck2 targets //...` resolves post-move for the whole affected cone.
+
+**Catalog re-key (6 of 10):** six of the ten moved crates carried a pre-existing `registry/catalog/<id>.yaml` record, each
+re-keyed by the codemod ArtifactMove to its de-branded `secrets-*` id (file rename, content-preserving — the records carry no
+embedded package-name field, only `context`/`role`/`capability` facets): `oya-cloud-kms-domain` -> `secrets-kms-domain`,
+`oya-cloud-kms-api` -> `secrets-kms-api`, `oya-cloud-kms-adapter-oci` -> `secrets-kms-oci`, `oya-cloud-kms-adapter-openbao` ->
+`secrets-kms-openbao`, `oya-secrets-domain` -> `secrets-domain`, `oya-secrets-file-adapter` -> `secrets-file`. The other four
+moved crates (kms-enclave, kms-operator-kernel, kms-operator-k8s, kms-operator-app) carry no catalog record (none existed at
+merge-base). No record is left at an old `oya-` stem; the catalog-liveness gate stays green (all six bind to a live workspace
+crate-id).
+
+**SLO co-move (11, per-service subdirs — collision-avoiding):** both source dirs carry a promotion-gating SLO with the SAME
+basename `autosharding-events.openslo.yaml` (`cloud/cloud-kms/slos/` + `cloud/cloud-secrets/slos/`), a confirmed
+cross-service basename collision. All eleven SLOs (4 from cloud-kms: autosharding-events, kms-dek-cache-static-stability,
+kms-envelope-wrap-latency-p99, kms-reconcile-convergence; 7 from cloud-secrets: audit-log-completeness, autosharding-events,
+hsm-availability, key-rotation-correctness, pki-cert-issuance-latency, secret-resolve-latency, secret-write-latency) co-move
+via eleven content-preserving file `ArtifactMove`s into per-service subdirs
+`secrets/observability/slos/{cloud-kms,cloud-secrets}/<basename>.openslo.yaml` (the §10.16/§10.17/§10.22/§10.23
+collision-aware pattern), so 11-in/11-out with neither lost nor shadowed. All eleven SLOs were already non-crate-resident at
+merge-base (RED-accepted-debt at the old paths), so the ADR-0563 rename-aware engine relabels them old->new; zero
+`*.openslo.yaml` remains at any old secrets source path.
+
+**Graph-invisible tests (2 found, both wired-live):** of the fifteen `tests/*.rs` across the ten moved crates, thirteen
+already had owning buck2 `rust_test` targets at merge-base (the codemod recomputed their `//`-label deps to the new homes).
+The cone scan found TWO graph-invisible `tests/*.rs` in `secrets/core/domain` (formerly `oya-secrets-domain`):
+`tests/cloud_secret_foundation.rs` (113 lines, exercising `evaluate_secret_bootstrap` + `SecretReference` invariants) and
+`tests/secret_vault.rs` (135 lines, exercising `SecretVault`/`SecretMaterial` no-debug-leak invariants). Both are real,
+valuable domain tests — they were WIRED-LIVE with new owning `rust_test` targets (`cloud-secret-foundation-test`,
+`secret-vault-test`; the latter carries the `oya-data-boundary-kernel` dep its `use` requires), compile post-move, and pass.
+Nothing ignored, skipped, stubbed, or deleted. Every one of the six external dependents that carries `tests/*.rs` already has
+an owning `rust_test` target.
+
+**Embedded-asset hermeticity (no change):** none of the ten moved crates uses `include_str!`/`include_bytes!` (verified by
+corpus grep), so the embedded-asset gate `scan_roots` is NOT extended to `secrets` (unlike §10.22's `iam`, which carried cedar
+include-sites) — moving from the `cloud` scan_root to the unscanned `secrets/` home loses zero coverage because there is no
+embedded asset to scan.
+
+**dev-cli supply-chain + loop-recovery (no validator trip):** `marketplace/facade/dev-cli` is a Cargo + BUCK dependent of
+secrets-domain + secrets-file (rewritten mechanically by the codemod); its supply-chain (`supply_chain_gates.rs`,
+`supply_chain_adr0039.rs`) and loop-recovery (`loop_recovery_patterns_gate.rs`, `loop_recovery_patterns.rs`) gate sources
+hardcode no kms/secrets crate id or path (the only "secret" tokens are the unrelated trivy `--scanners vuln,secret,license`
+config), so no de-branded `secrets-` id trips a validator; both gate test targets run green post-move.
+
+The move was performed by `oya-reorg-codemod-app` (NOT by hand), gated on the buck2-full-tree dry-run (`cargo metadata` +
+`buck2 targets //...` both resolved post-move on a shadow tree, `buck_ok=true` not null, `clean=true`). The capability
+registry records `secrets.absorbs_current_dirs` with the capability's own top-level slug `secrets` (the self-slug is required
+or the membership gate REDs `MEM-NEW-UNMAPPED-CRATE secrets/...`; the §10.12/§10.16..§10.23 lesson) plus the two absorbed
+source dirs `cloud/cloud-kms` + `cloud/cloud-secrets` (the pre-existing seeds, retained). The membership policy adds `secrets`
+to `scan_roots` + `allowed_top_level_dirs`; the acyclicity policy adds `secrets/*/*` to `crate_root_globs` + `secrets` to
+`unclassified_roots`; the root workspace members glob adds `secrets/*/*` (collapsing the codemod-emitted literals) with
+`secrets/observability` excluded (the non-crate SLO subtree). The move's tracked, born-accounted artifact roots are the ten
+crate dirs (each carrying its `Cargo.toml`, `BUCK`, `src/`, and, where present, `tests/`), the co-moved per-service SLO
+subdirs `secrets/observability/slos/<service>/<basename>.openslo.yaml`, the subtree `secrets/OWNERS` (axis-cloud-platform)
+seeded via a `specs/reachability-registry.json` §10.24 entry (breadth-unlimited per ADR-0555, covering the whole secrets
+subtree including the co-moved SLO subdirs), the six re-keyed catalog records `registry/catalog/secrets-*.yaml` (reached by
+the existing `registry/catalog/` reachability prefix), and the committed move-plan `specs/reorg/secrets-move-plan.json`
+(reached by the existing ADR-0563 `specs/reorg/` reachability prefix). The absorbed dirs' other non-crate artifacts
+(`cloud/cloud-kms/manifest.json` + `cloud/cloud-secrets/manifest.json`, docs/PRD/IPs/contracts) are homed in phase-2 (task
+#62), per the §10.5..§10.23 precedent. Per the one-plan-per-PR contract the spent `specs/reorg/network-move-plan.json` (the
+§10.23 move-plan) is removed.
+
 ## Consequences
 
 **Positive.** One home per capability (path = namespace = buck2 label root); the run/sell seam is a

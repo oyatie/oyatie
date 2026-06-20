@@ -44,28 +44,28 @@ Ship the cloud-kms operator as three single-concern crates plus GitOps surfaces:
 ## Governed surfaces
 
 `cloud/cloud-kms/OWNERS`
-`cloud/cloud-kms/crates/oya-cloud-kms-domain/src/lib.rs`
+`secrets/core/kms-domain/src/lib.rs`
 `cloud/cloud-kms/iac/k8s/helm/values.yaml`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/Cargo.toml`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/BUCK`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/src/lib.rs`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-kernel/tests/reconcile.rs`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/Cargo.toml`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/BUCK`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/src/lib.rs`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-k8s-adapter/tests/adapter.rs`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-app/Cargo.toml`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-app/BUCK`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-app/src/lib.rs`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-app/src/main.rs`
-`cloud/cloud-kms/crates/oya-cloud-kms-operator-app/tests/app.rs`
+`secrets/core/kms-operator-kernel/Cargo.toml`
+`secrets/core/kms-operator-kernel/BUCK`
+`secrets/core/kms-operator-kernel/src/lib.rs`
+`secrets/core/kms-operator-kernel/tests/reconcile.rs`
+`secrets/adapters/kms-operator-k8s/Cargo.toml`
+`secrets/adapters/kms-operator-k8s/BUCK`
+`secrets/adapters/kms-operator-k8s/src/lib.rs`
+`secrets/adapters/kms-operator-k8s/tests/adapter.rs`
+`secrets/facade/kms-operator-app/Cargo.toml`
+`secrets/facade/kms-operator-app/BUCK`
+`secrets/facade/kms-operator-app/src/lib.rs`
+`secrets/facade/kms-operator-app/src/main.rs`
+`secrets/facade/kms-operator-app/tests/app.rs`
 `cloud/cloud-kms/iac/k8s/helm/crds/kmskeyrings.kms.oyatie.com.yaml`
 `cloud/cloud-kms/iac/k8s/helm/crds/kmssealingroots.kms.oyatie.com.yaml`
 `cloud/cloud-kms/iac/k8s/helm/templates/operator-deployment.yaml`
 `cloud/cloud-kms/iac/k8s/helm/templates/operator-rbac.yaml`
 `cloud/cloud-kms/iac/k8s/helm/templates/operator-pdb.yaml`
 `cloud/cloud-kms/iac/k8s/helm/templates/operator-state-pvc.yaml`
-`cloud/cloud-kms/slos/kms-reconcile-convergence.openslo.yaml`
+`secrets/observability/slos/cloud-kms/kms-reconcile-convergence.openslo.yaml`
 `cloud/cloud-kms/runbooks/operator-stuck-reconcile.md`
 `evidence/multispectrum/g002-kms-operator-slice2-20260610-1781111229.json`
 
