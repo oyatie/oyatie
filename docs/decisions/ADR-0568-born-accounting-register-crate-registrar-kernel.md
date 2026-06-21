@@ -108,6 +108,11 @@ The following repo paths are governed by this ADR. The accounting gate validates
 justified (this ADR is the justification reference):
 
 ```
+libs/oya-crate-registrar-app/BUCK
+libs/oya-crate-registrar-app/Cargo.toml
+libs/oya-crate-registrar-app/OWNERS
+libs/oya-crate-registrar-app/src/lib.rs
+libs/oya-crate-registrar-app/src/tests.rs
 libs/oya-crate-registrar-kernel/BUCK
 libs/oya-crate-registrar-kernel/Cargo.toml
 libs/oya-crate-registrar-kernel/OWNERS

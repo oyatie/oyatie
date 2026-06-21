@@ -1,0 +1,402 @@
+//! RED/GREEN multi-layer tests for the three slice-2 writers.
+//!
+//! Each writer is covered by PURE-content tests (no filesystem — exercise the `compute_*` fn) plus
+//! a tmpfile round-trip test (exercise `apply_*` against a real on-disk file, asserting the
+//! idempotent no-op on re-apply). The matrix per writer: fresh-apply produces correct content;
+//! re-apply is byte-identical; the fail-closed refusal (unknown capability / brace-glob /
+//! missing-slo); and the #66 verbatim-append correctness (sorted + literal + idempotent).
+
+use super::*;
+use std::path::PathBuf;
+
+// ───────────────────────────── tmpdir helper ─────────────────────────────
+
+/// A unique scratch directory under the OS temp, removed on drop. Deterministic-enough for tests:
+/// keyed by a monotonically-increasing counter + the test thread name so parallel tests never
+/// collide. No external crate (std-only) to keep the writer dep tree minimal.
+struct TmpDir {
+    path: PathBuf,
+}
+
+impl TmpDir {
+    fn new(tag: &str) -> Self {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static COUNTER: AtomicU64 = AtomicU64::new(0);
+        let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+        let pid = std::process::id();
+        let path = std::env::temp_dir().join(format!("oya-registrar-writers-{tag}-{pid}-{n}"));
+        std::fs::create_dir_all(&path).expect("create tmpdir");
+        TmpDir { path }
+    }
+
+    fn write(&self, rel: &str, content: &str) {
+        let abs = self.path.join(rel);
+        if let Some(parent) = abs.parent() {
+            std::fs::create_dir_all(parent).expect("create parent");
+        }
+        std::fs::write(&abs, content).expect("write file");
+    }
+
+    fn read(&self, rel: &str) -> String {
+        std::fs::read_to_string(self.path.join(rel)).expect("read file")
+    }
+}
+
+impl Drop for TmpDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.path);
+    }
+}
+
+// ───────────────────────────── canonical-json fixture ─────────────────────────────
+
+/// A minimal capability-registry fixture with the two group key shapes the writer matches: a
+/// `meta_dir`-keyed group (`build/`) and a `capability`-keyed group (`data`). Already canonical.
+fn registry_fixture() -> String {
+    to_canonical_json(&serde_json::json!({
+        "closed": true,
+        "membership_lint_coverage": {
+            "absorbs_current_crate_globs": [
+                {
+                    "meta_dir": "build/",
+                    "globs": [
+                        "libs/oya-ci-config",
+                        "libs/oya-crate-registrar-kernel"
+                    ]
+                },
+                {
+                    "capability": "data",
+                    "globs": [
+                        "libs/oya-data-boundary-kernel"
+                    ]
+                }
+            ]
+        }
+    }))
+    .expect("fixture canonicalizes")
+}
+
+// ───────────────────────────── 1. capability_mapping (pure) ─────────────────────────────
+
+#[test]
+fn capability_fresh_apply_upserts_into_meta_dir_group() {
+    let current = registry_fixture();
+    let next =
+        capability_mapping::compute(&current, "libs/oya-crate-registrar-app", "build/").unwrap();
+    // The new dir is present, in the build/ group, sorted.
+    assert!(next.contains("libs/oya-crate-registrar-app"));
+    // Parse back and assert the group membership precisely.
+    let value: Value = serde_json::from_str(&next).unwrap();
+    let globs = value["membership_lint_coverage"]["absorbs_current_crate_globs"][0]["globs"]
+        .as_array()
+        .unwrap();
+    let strings: Vec<&str> = globs.iter().filter_map(Value::as_str).collect();
+    assert_eq!(
+        strings,
+        vec![
+            "libs/oya-ci-config",
+            "libs/oya-crate-registrar-app",
+            "libs/oya-crate-registrar-kernel"
+        ],
+        "the new dir is upserted sorted into the build/ group"
+    );
+    // The other (capability-keyed) group is untouched.
+    assert!(next.contains("libs/oya-data-boundary-kernel"));
+}
+
+#[test]
+fn capability_matches_capability_keyed_group() {
+    let current = registry_fixture();
+    let next =
+        capability_mapping::compute(&current, "libs/oya-data-pagination-kernel", "data").unwrap();
+    let value: Value = serde_json::from_str(&next).unwrap();
+    let globs = value["membership_lint_coverage"]["absorbs_current_crate_globs"][1]["globs"]
+        .as_array()
+        .unwrap();
+    let strings: Vec<&str> = globs.iter().filter_map(Value::as_str).collect();
+    assert_eq!(
+        strings,
+        vec!["libs/oya-data-boundary-kernel", "libs/oya-data-pagination-kernel"]
+    );
+}
+
+#[test]
+fn capability_reapply_is_byte_identical_noop() {
+    let current = registry_fixture();
+    let once =
+        capability_mapping::compute(&current, "libs/oya-crate-registrar-app", "build/").unwrap();
+    let twice =
+        capability_mapping::compute(&once, "libs/oya-crate-registrar-app", "build/").unwrap();
+    assert_eq!(once, twice, "re-applying the capability mapping is a no-op (byte-identical)");
+}
+
+#[test]
+fn capability_already_present_is_byte_identical_noop() {
+    let current = registry_fixture();
+    // libs/oya-crate-registrar-kernel is ALREADY in the build/ group — re-mapping it must produce
+    // bytes identical to the canonical re-serialization of the input.
+    let next =
+        capability_mapping::compute(&current, "libs/oya-crate-registrar-kernel", "build/").unwrap();
+    assert_eq!(next, current, "mapping an already-present dir is a byte-identical no-op");
+}
+
+#[test]
+fn capability_unknown_slug_rejected() {
+    let current = registry_fixture();
+    let err =
+        capability_mapping::compute(&current, "libs/oya-whatever-kernel", "totally-made-up")
+            .unwrap_err();
+    assert_eq!(
+        err,
+        WriterError::UnknownCapability("totally-made-up".to_owned()),
+        "a slug with no existing group is fail-closed rejected"
+    );
+}
+
+#[test]
+fn capability_output_is_canonical_json() {
+    let current = registry_fixture();
+    let next =
+        capability_mapping::compute(&current, "libs/oya-crate-registrar-app", "build/").unwrap();
+    // Canonical: re-canonicalizing the output yields the same bytes.
+    let value: Value = serde_json::from_str(&next).unwrap();
+    let recanon = to_canonical_json(&value).unwrap();
+    assert_eq!(next, recanon, "writer output is already canonical JSON (byte-stable)");
+}
+
+// ───────────────────────────── 1. capability_mapping (tmpfile round-trip) ─────────────────────────────
+
+#[test]
+fn capability_apply_roundtrip_and_idempotent() {
+    let tmp = TmpDir::new("cap");
+    tmp.write(capability_mapping::REGISTRY_PATH, &registry_fixture());
+
+    let wrote =
+        capability_mapping::apply(&tmp.path, "libs/oya-crate-registrar-app", "build/").unwrap();
+    assert!(wrote, "first apply writes the file");
+    let after_first = tmp.read(capability_mapping::REGISTRY_PATH);
+    assert!(after_first.contains("libs/oya-crate-registrar-app"));
+
+    // Re-apply: no write, file byte-identical.
+    let wrote_again =
+        capability_mapping::apply(&tmp.path, "libs/oya-crate-registrar-app", "build/").unwrap();
+    assert!(!wrote_again, "re-apply is a no-op (no write)");
+    assert_eq!(after_first, tmp.read(capability_mapping::REGISTRY_PATH));
+}
+
+// ───────────────────────────── 2. adr_governed_paths (pure) ─────────────────────────────
+
+const ADR_NO_BLOCK: &str = "---\nid: ADR-0568\n---\n\n# ADR-0568: scaffold\n\n## Context\n\nSome body.\n";
+
+#[test]
+fn adr_creates_block_when_absent() {
+    let paths = vec![
+        "libs/oya-crate-registrar-app/src/lib.rs".to_owned(),
+        "libs/oya-crate-registrar-app/Cargo.toml".to_owned(),
+        "libs/oya-crate-registrar-app/BUCK".to_owned(),
+    ];
+    let next = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap();
+    assert!(next.contains("## Governed surfaces"));
+    // The block lists each path verbatim, sorted (BUCK < Cargo.toml < src/lib.rs).
+    let block_start = next.find("## Governed surfaces").unwrap();
+    let block = &next[block_start..];
+    let buck = block.find("BUCK").unwrap();
+    let cargo = block.find("Cargo.toml").unwrap();
+    let lib = block.find("src/lib.rs").unwrap();
+    assert!(buck < cargo && cargo < lib, "paths are sorted in the block");
+    // The original body is preserved.
+    assert!(next.contains("## Context"));
+    assert!(next.contains("Some body."));
+}
+
+#[test]
+fn adr_upserts_into_existing_block_sorted_and_deduped() {
+    // An ADR that already governs two paths; append two more (one duplicate).
+    let current = "# ADR-0568\n\n## Governed surfaces\n\n```\nlibs/oya-crate-registrar-app/BUCK\nlibs/oya-crate-registrar-app/Cargo.toml\n```\n\n## Consequences\n\nbody\n";
+    let paths = vec![
+        "libs/oya-crate-registrar-app/Cargo.toml".to_owned(), // duplicate
+        "libs/oya-crate-registrar-app/OWNERS".to_owned(),
+        "libs/oya-crate-registrar-app/src/lib.rs".to_owned(),
+    ];
+    let next = adr_governed_paths::compute(current, &paths).unwrap();
+    let block_start = next.find("## Governed surfaces").unwrap();
+    // Slice from the heading to the trailing "## Consequences".
+    let consequences = next.find("## Consequences").unwrap();
+    let block = &next[block_start..consequences];
+    // Every expected path appears exactly once, sorted.
+    let expected = [
+        "libs/oya-crate-registrar-app/BUCK",
+        "libs/oya-crate-registrar-app/Cargo.toml",
+        "libs/oya-crate-registrar-app/OWNERS",
+        "libs/oya-crate-registrar-app/src/lib.rs",
+    ];
+    let mut last = 0;
+    for path in expected {
+        let at = block.find(path).unwrap_or_else(|| panic!("{path} present"));
+        assert!(at >= last, "{path} is in sorted order");
+        last = at;
+        // Exactly once (no duplicate Cargo.toml from the upsert).
+        assert_eq!(block.matches(path).count(), 1, "{path} appears exactly once");
+    }
+    // The trailing section survives.
+    assert!(next.contains("## Consequences"));
+    assert!(next.contains("body"));
+}
+
+#[test]
+fn adr_reapply_is_byte_identical_noop() {
+    let paths = vec![
+        "libs/oya-crate-registrar-app/src/lib.rs".to_owned(),
+        "libs/oya-crate-registrar-app/Cargo.toml".to_owned(),
+    ];
+    let once = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap();
+    let twice = adr_governed_paths::compute(&once, &paths).unwrap();
+    assert_eq!(once, twice, "re-applying the governed-path append is a no-op (byte-identical)");
+}
+
+#[test]
+fn adr_verbatim_paths_are_literal_no_globs() {
+    // The #66 fix in the affirmative: each path is emitted as a literal line — no brace-glob token.
+    let paths = vec![
+        "libs/oya-crate-registrar-app/src/lib.rs".to_owned(),
+        "libs/oya-crate-registrar-app/src/tests.rs".to_owned(),
+    ];
+    let next = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap();
+    assert!(next.contains("libs/oya-crate-registrar-app/src/lib.rs"));
+    assert!(next.contains("libs/oya-crate-registrar-app/src/tests.rs"));
+    // No brace-glob collapse anywhere in the block.
+    let block = &next[next.find("## Governed surfaces").unwrap()..];
+    assert!(!block.contains('{') && !block.contains('}'), "no brace-glob in the block: {block}");
+}
+
+#[test]
+fn adr_brace_glob_path_rejected() {
+    let paths = vec!["libs/oya-crate-registrar-app/src/{lib,tests}.rs".to_owned()];
+    let err = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap_err();
+    assert_eq!(
+        err,
+        WriterError::BraceGlobInGovernedPath(
+            "libs/oya-crate-registrar-app/src/{lib,tests}.rs".to_owned()
+        ),
+        "a brace-glob governed path is fail-closed rejected (#66 defense)"
+    );
+}
+
+#[test]
+fn adr_block_body_preserved_through_roundtrip_parse() {
+    // Verify the block we emit is exactly the shape resolve_justifications credits: a heading,
+    // a fenced block, one verbatim path per line. Re-parsing our own block recovers the paths.
+    let paths = vec![
+        "libs/oya-crate-registrar-app/BUCK".to_owned(),
+        "libs/oya-crate-registrar-app/Cargo.toml".to_owned(),
+    ];
+    let next = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap();
+    // Append the same paths again — the re-parse-merge must keep exactly those two.
+    let next2 = adr_governed_paths::compute(&next, &paths).unwrap();
+    assert_eq!(next, next2);
+    // The fenced block contains exactly the two lines (plus fences).
+    let start = next.find("```").unwrap() + 3;
+    let rest = &next[start..];
+    let close = rest.find("```").unwrap();
+    let body = rest[..close].trim();
+    let lines: Vec<&str> = body.lines().filter(|l| !l.trim().is_empty()).collect();
+    assert_eq!(
+        lines,
+        vec!["libs/oya-crate-registrar-app/BUCK", "libs/oya-crate-registrar-app/Cargo.toml"]
+    );
+}
+
+// ───────────────────────────── 2. adr_governed_paths (tmpfile round-trip) ─────────────────────────────
+
+#[test]
+fn adr_apply_roundtrip_and_idempotent() {
+    let tmp = TmpDir::new("adr");
+    let rel = "docs/decisions/ADR-0568-scaffold.md";
+    tmp.write(rel, ADR_NO_BLOCK);
+
+    let paths = vec![
+        "libs/oya-crate-registrar-app/BUCK".to_owned(),
+        "libs/oya-crate-registrar-app/Cargo.toml".to_owned(),
+    ];
+    let wrote = adr_governed_paths::apply(&tmp.path, rel, &paths).unwrap();
+    assert!(wrote, "first apply writes the ADR");
+    let after_first = tmp.read(rel);
+    assert!(after_first.contains("## Governed surfaces"));
+
+    let wrote_again = adr_governed_paths::apply(&tmp.path, rel, &paths).unwrap();
+    assert!(!wrote_again, "re-apply is a no-op (no write)");
+    assert_eq!(after_first, tmp.read(rel));
+}
+
+// ───────────────────────────── 3. catalog_yaml (pure) ─────────────────────────────
+
+#[test]
+fn catalog_fresh_render_has_required_fields() {
+    let yaml = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
+        .unwrap();
+    assert!(yaml.contains("plane: control"));
+    assert!(yaml.contains("slo: ga-control-plane"));
+    assert!(yaml.contains("capability: identity-domain"));
+    assert!(yaml.ends_with('\n'), "trailing newline");
+}
+
+#[test]
+fn catalog_reapply_is_byte_identical_noop() {
+    let once = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
+        .unwrap();
+    let twice = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
+        .unwrap();
+    assert_eq!(once, twice, "re-rendering the catalog is deterministic (byte-identical)");
+}
+
+#[test]
+fn catalog_missing_slo_rejected() {
+    let err = catalog_yaml::compute("iam/core/identity-domain", "control", "   ").unwrap_err();
+    assert_eq!(
+        err,
+        WriterError::MissingCatalogField("slo".to_owned()),
+        "an empty slo is fail-closed rejected (never defaulted)"
+    );
+}
+
+#[test]
+fn catalog_missing_plane_rejected() {
+    let err = catalog_yaml::compute("iam/core/identity-domain", "", "ga-control-plane").unwrap_err();
+    assert_eq!(err, WriterError::MissingCatalogField("plane".to_owned()));
+}
+
+#[test]
+fn catalog_path_derives_from_leaf() {
+    assert_eq!(
+        catalog_yaml::catalog_path("iam/core/identity-domain"),
+        "registry/catalog/identity-domain.yaml"
+    );
+}
+
+// ───────────────────────────── 3. catalog_yaml (tmpfile round-trip) ─────────────────────────────
+
+#[test]
+fn catalog_apply_roundtrip_and_idempotent() {
+    let tmp = TmpDir::new("cat");
+    let dir = "iam/core/identity-domain";
+    let rel = catalog_yaml::catalog_path(dir);
+
+    let wrote = catalog_yaml::apply(&tmp.path, dir, "control", "ga-control-plane").unwrap();
+    assert!(wrote, "first apply writes the catalog yaml");
+    let after_first = tmp.read(&rel);
+    assert!(after_first.contains("slo: ga-control-plane"));
+
+    let wrote_again = catalog_yaml::apply(&tmp.path, dir, "control", "ga-control-plane").unwrap();
+    assert!(!wrote_again, "re-apply is a no-op (no write)");
+    assert_eq!(after_first, tmp.read(&rel));
+}
+
+#[test]
+fn catalog_apply_missing_slo_rejected_before_write() {
+    let tmp = TmpDir::new("cat-bad");
+    let dir = "iam/core/identity-domain";
+    let err = catalog_yaml::apply(&tmp.path, dir, "control", "").unwrap_err();
+    assert_eq!(err, WriterError::MissingCatalogField("slo".to_owned()));
+    // No file was written.
+    assert!(!tmp.path.join(catalog_yaml::catalog_path(dir)).exists());
+}
