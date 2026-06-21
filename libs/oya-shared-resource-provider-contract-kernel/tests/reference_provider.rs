@@ -6,6 +6,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeMap;
+use std::future::Future;
+use std::pin::Pin;
 
 use oya_shared_resource_provider_contract_kernel::conformance::{
     ConformanceFixture, check_async_delete_operation, check_create_idempotency,
@@ -63,98 +65,110 @@ struct ReferenceProvider {
 impl ResourceProvider for ReferenceProvider {
     type Resource = Document;
 
-    fn create(
-        &mut self,
-        name: &ResourceName,
+    fn create<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
         resource: Document,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<CreateOutcome<Document>, ProviderError> {
-        let key = idempotency_key.as_str().to_owned();
-        if let Some(applied) = self.applied.get(&key) {
-            return match applied {
-                AppliedWrite::Create { name: n, payload }
-                    if *n == name.to_string() && *payload == resource =>
-                {
-                    Ok(CreateOutcome {
-                        resource: payload.clone(),
-                        replayed: true,
-                    })
-                }
-                _ => Err(ProviderError::IdempotencyKeyReuse { key }),
-            };
-        }
-        if self.items.contains_key(&name.to_string()) {
-            return Err(ProviderError::AlreadyExists {
-                name: name.to_string(),
-            });
-        }
-        self.items.insert(name.to_string(), resource.clone());
-        self.applied.insert(
-            key,
-            AppliedWrite::Create {
-                name: name.to_string(),
-                payload: resource.clone(),
-            },
-        );
-        Ok(CreateOutcome {
-            resource,
-            replayed: false,
-        })
-    }
-
-    fn put(
-        &mut self,
-        name: &ResourceName,
-        resource: Document,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<PutOutcome<Document>, ProviderError> {
-        let key = idempotency_key.as_str().to_owned();
-        if let Some(applied) = self.applied.get(&key) {
-            return match applied {
-                AppliedWrite::Put { name: n, payload }
-                    if *n == name.to_string() && *payload == resource =>
-                {
-                    Ok(PutOutcome {
-                        resource: payload.clone(),
-                        disposition: WriteDisposition::Replayed,
-                    })
-                }
-                _ => Err(ProviderError::IdempotencyKeyReuse { key }),
-            };
-        }
-        let disposition = if self.items.contains_key(&name.to_string()) {
-            WriteDisposition::Replaced
-        } else {
-            WriteDisposition::Created
-        };
-        self.items.insert(name.to_string(), resource.clone());
-        self.applied.insert(
-            key,
-            AppliedWrite::Put {
-                name: name.to_string(),
-                payload: resource.clone(),
-            },
-        );
-        Ok(PutOutcome {
-            resource,
-            disposition,
-        })
-    }
-
-    fn get(&self, name: &ResourceName) -> Result<Document, ProviderError> {
-        self.items
-            .get(&name.to_string())
-            .cloned()
-            .ok_or_else(|| ProviderError::NotFound {
-                name: name.to_string(),
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<CreateOutcome<Document>, ProviderError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            let key = idempotency_key.as_str().to_owned();
+            if let Some(applied) = self.applied.get(&key) {
+                return match applied {
+                    AppliedWrite::Create { name: n, payload }
+                        if *n == name.to_string() && *payload == resource =>
+                    {
+                        Ok(CreateOutcome {
+                            resource: payload.clone(),
+                            replayed: true,
+                        })
+                    }
+                    _ => Err(ProviderError::IdempotencyKeyReuse { key }),
+                };
+            }
+            if self.items.contains_key(&name.to_string()) {
+                return Err(ProviderError::AlreadyExists {
+                    name: name.to_string(),
+                });
+            }
+            self.items.insert(name.to_string(), resource.clone());
+            self.applied.insert(
+                key,
+                AppliedWrite::Create {
+                    name: name.to_string(),
+                    payload: resource.clone(),
+                },
+            );
+            Ok(CreateOutcome {
+                resource,
+                replayed: false,
             })
+        })
     }
 
-    fn list(
-        &self,
-        collection: &str,
-        request: &PageRequest,
-    ) -> Result<Page<ListEntry<Document>>, ProviderError> {
+    fn put<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
+        resource: Document,
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<PutOutcome<Document>, ProviderError>> + Send + 'a>> {
+        Box::pin(async move {
+            let key = idempotency_key.as_str().to_owned();
+            if let Some(applied) = self.applied.get(&key) {
+                return match applied {
+                    AppliedWrite::Put { name: n, payload }
+                        if *n == name.to_string() && *payload == resource =>
+                    {
+                        Ok(PutOutcome {
+                            resource: payload.clone(),
+                            disposition: WriteDisposition::Replayed,
+                        })
+                    }
+                    _ => Err(ProviderError::IdempotencyKeyReuse { key }),
+                };
+            }
+            let disposition = if self.items.contains_key(&name.to_string()) {
+                WriteDisposition::Replaced
+            } else {
+                WriteDisposition::Created
+            };
+            self.items.insert(name.to_string(), resource.clone());
+            self.applied.insert(
+                key,
+                AppliedWrite::Put {
+                    name: name.to_string(),
+                    payload: resource.clone(),
+                },
+            );
+            Ok(PutOutcome {
+                resource,
+                disposition,
+            })
+        })
+    }
+
+    fn get<'a>(
+        &'a self,
+        name: &'a ResourceName,
+    ) -> Pin<Box<dyn Future<Output = Result<Document, ProviderError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.items
+                .get(&name.to_string())
+                .cloned()
+                .ok_or_else(|| ProviderError::NotFound {
+                    name: name.to_string(),
+                })
+        })
+    }
+
+    fn list<'a>(
+        &'a self,
+        collection: &'a str,
+        request: &'a PageRequest,
+    ) -> Pin<Box<dyn Future<Output = Result<Page<ListEntry<Document>>, ProviderError>> + Send + 'a>>
+    {
+        Box::pin(async move {
         let prefix = format!("{collection}/");
         let start_at = request
             .page_token
@@ -193,92 +207,100 @@ impl ResourceProvider for ReferenceProvider {
             items,
             next_page_token,
         })
-    }
-
-    fn delete(
-        &mut self,
-        name: &ResourceName,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<Operation, ProviderError> {
-        let key = idempotency_key.as_str().to_owned();
-        if let Some(applied) = self.applied.get(&key) {
-            return match applied {
-                AppliedWrite::Delete {
-                    name: n,
-                    operation_name,
-                } if *n == name.to_string() => self.snapshot_operation(operation_name),
-                _ => Err(ProviderError::IdempotencyKeyReuse { key }),
-            };
-        }
-        if !self.items.contains_key(&name.to_string()) {
-            return Err(ProviderError::NotFound {
-                name: name.to_string(),
-            });
-        }
-        self.operation_seq += 1;
-        let operation_name = format!("operations/delete-{:06}", self.operation_seq);
-        self.operations.insert(
-            operation_name.clone(),
-            OperationState::Pending {
-                remaining_polls: 1,
-                target: name.to_string(),
-            },
-        );
-        self.applied.insert(
-            key,
-            AppliedWrite::Delete {
-                name: name.to_string(),
-                operation_name: operation_name.clone(),
-            },
-        );
-        Operation::pending(operation_name).map_err(|e| ProviderError::Internal {
-            message: e.to_string(),
         })
     }
 
-    fn poll_operation(&mut self, operation_name: &str) -> Result<Operation, ProviderError> {
-        let state = self
-            .operations
-            .get(operation_name)
-            .cloned()
-            .ok_or_else(|| ProviderError::NotFound {
-                name: operation_name.to_owned(),
-            })?;
-        match state {
-            OperationState::Pending {
-                remaining_polls,
-                target,
-            } => {
-                if remaining_polls > 1 {
+    fn delete<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>> {
+        Box::pin(async move {
+            let key = idempotency_key.as_str().to_owned();
+            if let Some(applied) = self.applied.get(&key) {
+                return match applied {
+                    AppliedWrite::Delete {
+                        name: n,
+                        operation_name,
+                    } if *n == name.to_string() => self.snapshot_operation(operation_name),
+                    _ => Err(ProviderError::IdempotencyKeyReuse { key }),
+                };
+            }
+            if !self.items.contains_key(&name.to_string()) {
+                return Err(ProviderError::NotFound {
+                    name: name.to_string(),
+                });
+            }
+            self.operation_seq += 1;
+            let operation_name = format!("operations/delete-{:06}", self.operation_seq);
+            self.operations.insert(
+                operation_name.clone(),
+                OperationState::Pending {
+                    remaining_polls: 1,
+                    target: name.to_string(),
+                },
+            );
+            self.applied.insert(
+                key,
+                AppliedWrite::Delete {
+                    name: name.to_string(),
+                    operation_name: operation_name.clone(),
+                },
+            );
+            Operation::pending(operation_name).map_err(|e| ProviderError::Internal {
+                message: e.to_string(),
+            })
+        })
+    }
+
+    fn poll_operation<'a>(
+        &'a mut self,
+        operation_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>> {
+        Box::pin(async move {
+            let state = self
+                .operations
+                .get(operation_name)
+                .cloned()
+                .ok_or_else(|| ProviderError::NotFound {
+                    name: operation_name.to_owned(),
+                })?;
+            match state {
+                OperationState::Pending {
+                    remaining_polls,
+                    target,
+                } => {
+                    if remaining_polls > 1 {
+                        self.operations.insert(
+                            operation_name.to_owned(),
+                            OperationState::Pending {
+                                remaining_polls: remaining_polls - 1,
+                                target,
+                            },
+                        );
+                        return Operation::pending(operation_name.to_owned()).map_err(|e| {
+                            ProviderError::Internal {
+                                message: e.to_string(),
+                            }
+                        });
+                    }
+                    self.items.remove(&target);
+                    let terminal = Operation::succeeded(
+                        operation_name.to_owned(),
+                        serde_json::json!({ "deleted": target }),
+                    )
+                    .map_err(|e| ProviderError::Internal {
+                        message: e.to_string(),
+                    })?;
                     self.operations.insert(
                         operation_name.to_owned(),
-                        OperationState::Pending {
-                            remaining_polls: remaining_polls - 1,
-                            target,
-                        },
+                        OperationState::Terminal(terminal.clone()),
                     );
-                    return Operation::pending(operation_name.to_owned()).map_err(|e| {
-                        ProviderError::Internal {
-                            message: e.to_string(),
-                        }
-                    });
+                    Ok(terminal)
                 }
-                self.items.remove(&target);
-                let terminal = Operation::succeeded(
-                    operation_name.to_owned(),
-                    serde_json::json!({ "deleted": target }),
-                )
-                .map_err(|e| ProviderError::Internal {
-                    message: e.to_string(),
-                })?;
-                self.operations.insert(
-                    operation_name.to_owned(),
-                    OperationState::Terminal(terminal.clone()),
-                );
-                Ok(terminal)
+                OperationState::Terminal(operation) => Ok(operation),
             }
-            OperationState::Terminal(operation) => Ok(operation),
-        }
+        })
     }
 }
 
@@ -318,34 +340,34 @@ impl ConformanceFixture for ReferenceFixture {
     }
 }
 
-#[test]
-fn reference_provider_passes_idempotent_put() {
-    check_idempotent_put(&ReferenceFixture).unwrap();
+#[tokio::test]
+async fn reference_provider_passes_idempotent_put() {
+    check_idempotent_put(&ReferenceFixture).await.unwrap();
 }
 
-#[test]
-fn reference_provider_passes_create_idempotency() {
-    check_create_idempotency(&ReferenceFixture).unwrap();
+#[tokio::test]
+async fn reference_provider_passes_create_idempotency() {
+    check_create_idempotency(&ReferenceFixture).await.unwrap();
 }
 
-#[test]
-fn reference_provider_passes_read_after_write() {
-    check_read_after_write(&ReferenceFixture).unwrap();
+#[tokio::test]
+async fn reference_provider_passes_read_after_write() {
+    check_read_after_write(&ReferenceFixture).await.unwrap();
 }
 
-#[test]
-fn reference_provider_passes_stable_pagination() {
-    check_stable_pagination(&ReferenceFixture).unwrap();
+#[tokio::test]
+async fn reference_provider_passes_stable_pagination() {
+    check_stable_pagination(&ReferenceFixture).await.unwrap();
 }
 
-#[test]
-fn reference_provider_passes_async_delete_operation() {
-    check_async_delete_operation(&ReferenceFixture).unwrap();
+#[tokio::test]
+async fn reference_provider_passes_async_delete_operation() {
+    check_async_delete_operation(&ReferenceFixture).await.unwrap();
 }
 
-#[test]
-fn reference_provider_passes_the_full_contract() {
-    let violations = run_all_checks(&ReferenceFixture);
+#[tokio::test]
+async fn reference_provider_passes_the_full_contract() {
+    let violations = run_all_checks(&ReferenceFixture).await;
     assert!(violations.is_empty(), "{violations:#?}");
 }
 
@@ -361,54 +383,64 @@ struct NonReplayingCreateProvider(ReferenceProvider);
 impl ResourceProvider for NonReplayingCreateProvider {
     type Resource = Document;
 
-    fn create(
-        &mut self,
-        name: &ResourceName,
+    fn create<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
         resource: Document,
-        _idempotency_key: &IdempotencyKey,
-    ) -> Result<CreateOutcome<Document>, ProviderError> {
-        if self.0.items.contains_key(&name.to_string()) {
-            return Err(ProviderError::AlreadyExists {
-                name: name.to_string(),
-            });
-        }
-        self.0.items.insert(name.to_string(), resource.clone());
-        Ok(CreateOutcome {
-            resource,
-            replayed: false,
+        _idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<CreateOutcome<Document>, ProviderError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            if self.0.items.contains_key(&name.to_string()) {
+                return Err(ProviderError::AlreadyExists {
+                    name: name.to_string(),
+                });
+            }
+            self.0.items.insert(name.to_string(), resource.clone());
+            Ok(CreateOutcome {
+                resource,
+                replayed: false,
+            })
         })
     }
 
-    fn put(
-        &mut self,
-        name: &ResourceName,
+    fn put<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
         resource: Document,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<PutOutcome<Document>, ProviderError> {
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<PutOutcome<Document>, ProviderError>> + Send + 'a>> {
         self.0.put(name, resource, idempotency_key)
     }
 
-    fn get(&self, name: &ResourceName) -> Result<Document, ProviderError> {
+    fn get<'a>(
+        &'a self,
+        name: &'a ResourceName,
+    ) -> Pin<Box<dyn Future<Output = Result<Document, ProviderError>> + Send + 'a>> {
         self.0.get(name)
     }
 
-    fn list(
-        &self,
-        collection: &str,
-        request: &PageRequest,
-    ) -> Result<Page<ListEntry<Document>>, ProviderError> {
+    fn list<'a>(
+        &'a self,
+        collection: &'a str,
+        request: &'a PageRequest,
+    ) -> Pin<Box<dyn Future<Output = Result<Page<ListEntry<Document>>, ProviderError>> + Send + 'a>>
+    {
         self.0.list(collection, request)
     }
 
-    fn delete(
-        &mut self,
-        name: &ResourceName,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<Operation, ProviderError> {
+    fn delete<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>> {
         self.0.delete(name, idempotency_key)
     }
 
-    fn poll_operation(&mut self, operation_name: &str) -> Result<Operation, ProviderError> {
+    fn poll_operation<'a>(
+        &'a mut self,
+        operation_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>> {
         self.0.poll_operation(operation_name)
     }
 }
@@ -431,9 +463,11 @@ impl ConformanceFixture for NonReplayingCreateFixture {
     }
 }
 
-#[test]
-fn harness_catches_create_that_does_not_replay() {
-    let violation = check_create_idempotency(&NonReplayingCreateFixture).unwrap_err();
+#[tokio::test]
+async fn harness_catches_create_that_does_not_replay() {
+    let violation = check_create_idempotency(&NonReplayingCreateFixture)
+        .await
+        .unwrap_err();
     assert_eq!(violation.check, "create_idempotency");
 }
 
@@ -445,54 +479,64 @@ struct MisreportingPutProvider(ReferenceProvider);
 impl ResourceProvider for MisreportingPutProvider {
     type Resource = Document;
 
-    fn create(
-        &mut self,
-        name: &ResourceName,
+    fn create<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
         resource: Document,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<CreateOutcome<Document>, ProviderError> {
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<CreateOutcome<Document>, ProviderError>> + Send + 'a>>
+    {
         self.0.create(name, resource, idempotency_key)
     }
 
-    fn put(
-        &mut self,
-        name: &ResourceName,
+    fn put<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
         resource: Document,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<PutOutcome<Document>, ProviderError> {
-        self.0.put(name, resource, idempotency_key).map(|outcome| {
-            if outcome.disposition == WriteDisposition::Replayed {
-                PutOutcome {
-                    resource: outcome.resource,
-                    disposition: WriteDisposition::Replaced,
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<PutOutcome<Document>, ProviderError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.0.put(name, resource, idempotency_key).await.map(|outcome| {
+                if outcome.disposition == WriteDisposition::Replayed {
+                    PutOutcome {
+                        resource: outcome.resource,
+                        disposition: WriteDisposition::Replaced,
+                    }
+                } else {
+                    outcome
                 }
-            } else {
-                outcome
-            }
+            })
         })
     }
 
-    fn get(&self, name: &ResourceName) -> Result<Document, ProviderError> {
+    fn get<'a>(
+        &'a self,
+        name: &'a ResourceName,
+    ) -> Pin<Box<dyn Future<Output = Result<Document, ProviderError>> + Send + 'a>> {
         self.0.get(name)
     }
 
-    fn list(
-        &self,
-        collection: &str,
-        request: &PageRequest,
-    ) -> Result<Page<ListEntry<Document>>, ProviderError> {
+    fn list<'a>(
+        &'a self,
+        collection: &'a str,
+        request: &'a PageRequest,
+    ) -> Pin<Box<dyn Future<Output = Result<Page<ListEntry<Document>>, ProviderError>> + Send + 'a>>
+    {
         self.0.list(collection, request)
     }
 
-    fn delete(
-        &mut self,
-        name: &ResourceName,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<Operation, ProviderError> {
+    fn delete<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>> {
         self.0.delete(name, idempotency_key)
     }
 
-    fn poll_operation(&mut self, operation_name: &str) -> Result<Operation, ProviderError> {
+    fn poll_operation<'a>(
+        &'a mut self,
+        operation_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>> {
         self.0.poll_operation(operation_name)
     }
 }
@@ -515,9 +559,11 @@ impl ConformanceFixture for MisreportingPutFixture {
     }
 }
 
-#[test]
-fn harness_catches_misreported_put_replay() {
-    let violation = check_idempotent_put(&MisreportingPutFixture).unwrap_err();
+#[tokio::test]
+async fn harness_catches_misreported_put_replay() {
+    let violation = check_idempotent_put(&MisreportingPutFixture)
+        .await
+        .unwrap_err();
     assert_eq!(violation.check, "idempotent_put");
     assert!(violation.detail.contains("replayed"), "{violation}");
 }

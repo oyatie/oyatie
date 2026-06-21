@@ -19,6 +19,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use core::future::Future;
+use core::pin::Pin;
 use std::fmt;
 
 use oya_shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleOperation};
@@ -80,47 +82,79 @@ impl std::error::Error for StoreError {}
 
 /// The lifecycle control plane's storage port: ordered keyed records with
 /// point get/put/remove and an ordered range scan (the owned oya-data
-/// shape). Synchronous and IO-free at this layer; adapters own transport.
+/// shape). Async (the durable backend performs real I/O) but IO-free at this
+/// layer; adapters own transport. Async is modelled with a return-position
+/// boxed future — `core::future::Future` + `core::pin::Pin` + `Box::pin`, no
+/// `async-trait` / `futures` dep — so the kernel stays dependency-free
+/// (kernel-purity gate, ADR-0547; ADR-0376 rejects async-trait for ports).
 pub trait TenantLifecycleStore {
     /// Point read of the tenant stored under `name` (`tenants/<id>`).
-    fn get_tenant(&self, name: &str) -> Result<Option<Tenant>, StoreError>;
+    fn get_tenant<'a>(
+        &'a self,
+        name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<Tenant>, StoreError>> + Send + 'a>>;
 
     /// Point write of `tenant` under `name`.
-    fn put_tenant(&mut self, name: &str, tenant: &Tenant) -> Result<(), StoreError>;
+    fn put_tenant<'a>(
+        &'a mut self,
+        name: &'a str,
+        tenant: &'a Tenant,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>>;
 
     /// Remove the tenant under `name` (no-op when absent).
-    fn remove_tenant(&mut self, name: &str) -> Result<(), StoreError>;
+    fn remove_tenant<'a>(
+        &'a mut self,
+        name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>>;
 
     /// Ordered scan of tenant records whose key starts with `prefix`,
     /// beginning at `start_at` (inclusive) when given, yielding at most
     /// `limit` entries in ascending key order. The order MUST be a stable
     /// total order over keys (AIP-158 pagination is built on it).
-    fn scan_tenants(
-        &self,
-        prefix: &str,
-        start_at: Option<&str>,
+    fn scan_tenants<'a>(
+        &'a self,
+        prefix: &'a str,
+        start_at: Option<&'a str>,
         limit: u32,
-    ) -> Result<Vec<(String, Tenant)>, StoreError>;
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<(String, Tenant)>, StoreError>> + Send + 'a>>;
+
+    // S-B: thread tenant_id (RLS scope) through the idempotency + operation
+    // ledger methods below so the durable sqlx adapter can key per-tenant. The
+    // call sites in the usecase lack tenant context today (the applied/operation
+    // tables are global), so S-A keeps them opaque-keyed; threading the scope is
+    // a separate, orthogonal change deferred to S-B with the real adapter.
 
     /// Point read of the idempotency dedup record for `key`.
-    fn get_applied(&self, key: &str) -> Result<Option<AppliedWriteRecord>, StoreError>;
+    fn get_applied<'a>(
+        &'a self,
+        key: &'a str, // S-B: thread tenant_id for RLS
+    ) -> Pin<Box<dyn Future<Output = Result<Option<AppliedWriteRecord>, StoreError>> + Send + 'a>>;
 
     /// Record what `key` was first applied to.
-    fn put_applied(&mut self, key: &str, record: &AppliedWriteRecord) -> Result<(), StoreError>;
+    fn put_applied<'a>(
+        &'a mut self,
+        key: &'a str, // S-B: thread tenant_id for RLS
+        record: &'a AppliedWriteRecord,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>>;
 
     /// Point read of the ledger entry for `operation_name`.
-    fn get_operation(&self, operation_name: &str) -> Result<Option<OperationRecord>, StoreError>;
+    fn get_operation<'a>(
+        &'a self,
+        operation_name: &'a str, // S-B: thread tenant_id for RLS
+    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>>;
 
     /// Write a ledger entry. Callers MUST never overwrite a terminal entry
     /// (the usecase layer enforces immutability before calling this).
-    fn put_operation(
-        &mut self,
-        operation_name: &str,
-        record: &OperationRecord,
-    ) -> Result<(), StoreError>;
+    fn put_operation<'a>(
+        &'a mut self,
+        operation_name: &'a str, // S-B: thread tenant_id for RLS
+        record: &'a OperationRecord,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>>;
 
     /// Next monotonic ledger ordinal, used to mint unique operation names.
-    fn next_operation_seq(&mut self) -> Result<u64, StoreError>;
+    fn next_operation_seq<'a>(
+        &'a mut self, // S-B: thread tenant_id for RLS
+    ) -> Pin<Box<dyn Future<Output = Result<u64, StoreError>> + Send + 'a>>;
 }
 
 #[cfg(test)]

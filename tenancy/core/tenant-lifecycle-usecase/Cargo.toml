@@ -18,5 +18,10 @@ tenancy-tenant-lifecycle-domain = { path = "../tenant-lifecycle-domain" }
 tenancy-tenant-lifecycle-kernel = { path = "../tenant-lifecycle-kernel" }
 serde_json = { workspace = true }
 
+# The provider/store ports are async (bare Pin<Box<dyn Future>>); the
+# conformance + reconcile integration tests `.await` them under #[tokio::test].
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+
 [lints]
 workspace = true

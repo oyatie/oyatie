@@ -43,44 +43,47 @@ fn new_user(name: &str) -> NewUser {
     }
 }
 
-#[test]
-fn create_then_get_user_roundtrips() {
+#[tokio::test]
+async fn create_then_get_user_roundtrips() {
     let s = srv();
     let u = s
         .create_user(&tenant(), new_user("alice"), 1_700_000_000)
+        .await
         .expect("create");
     assert_eq!(u.user_name, "alice");
-    let got = s.get_user(&tenant(), &u.id).expect("get");
+    let got = s.get_user(&tenant(), &u.id).await.expect("get");
     assert_eq!(got.id, u.id);
     assert!(got.meta.location.contains("/Users/"));
     assert!(got.meta.version.starts_with("W/\""));
     assert!(got.schemas.contains(&User::CORE_SCHEMA.to_owned()));
 }
 
-#[test]
-fn create_user_username_uniqueness() {
+#[tokio::test]
+async fn create_user_username_uniqueness() {
     let s = srv();
     s.create_user(&tenant(), new_user("bob"), 1_700_000_000)
+        .await
         .expect("create1");
     let err = s
         .create_user(&tenant(), new_user("bob"), 1_700_000_001)
+        .await
         .unwrap_err();
     assert_eq!(err.status, 409);
     assert_eq!(err.scim_type, Some(ScimType::Uniqueness));
 }
 
-#[test]
-fn create_user_requires_username() {
+#[tokio::test]
+async fn create_user_requires_username() {
     let s = srv();
     let mut nu = new_user("");
     nu.user_name = String::new();
-    let err = s.create_user(&tenant(), nu, 1_700_000_000).unwrap_err();
+    let err = s.create_user(&tenant(), nu, 1_700_000_000).await.unwrap_err();
     assert_eq!(err.status, 400);
     assert_eq!(err.scim_type, Some(ScimType::InvalidValue));
 }
 
-#[test]
-fn list_users_paginates() {
+#[tokio::test]
+async fn list_users_paginates() {
     let s = srv();
     for i in 0..5 {
         s.create_user(
@@ -88,6 +91,7 @@ fn list_users_paginates() {
             new_user(&format!("user{i}")),
             1_700_000_000 + i as i64,
         )
+        .await
         .expect("create");
     }
     let page1 = s
@@ -99,6 +103,7 @@ fn list_users_paginates() {
                 filter: None,
             },
         )
+        .await
         .expect("list");
     assert_eq!(page1.total_results, 5);
     assert_eq!(page1.resources.len(), 2);
@@ -112,13 +117,14 @@ fn list_users_paginates() {
                 filter: None,
             },
         )
+        .await
         .expect("list");
     assert_eq!(page2.resources.len(), 2);
     assert_eq!(page2.start_index, 3);
 }
 
-#[test]
-fn list_users_caps_items_per_page() {
+#[tokio::test]
+async fn list_users_caps_items_per_page() {
     let mut s = srv();
     s.max_items_per_page = 50;
     let r = s
@@ -130,15 +136,17 @@ fn list_users_caps_items_per_page() {
                 filter: None,
             },
         )
+        .await
         .expect("list");
     assert!(r.items_per_page <= 50);
 }
 
-#[test]
-fn patch_user_replaces_active() {
+#[tokio::test]
+async fn patch_user_replaces_active() {
     let s = srv();
     let u = s
         .create_user(&tenant(), new_user("carol"), 1_700_000_000)
+        .await
         .expect("create");
     let patched = s
         .patch_user(
@@ -154,15 +162,17 @@ fn patch_user_replaces_active() {
             },
             1_700_000_100,
         )
+        .await
         .expect("patch");
     assert!(!patched.active);
 }
 
-#[test]
-fn patch_user_unknown_path_returns_invalidpath() {
+#[tokio::test]
+async fn patch_user_unknown_path_returns_invalidpath() {
     let s = srv();
     let u = s
         .create_user(&tenant(), new_user("dave"), 1_700_000_000)
+        .await
         .expect("create");
     let err = s
         .patch_user(
@@ -178,32 +188,35 @@ fn patch_user_unknown_path_returns_invalidpath() {
             },
             1_700_000_100,
         )
+        .await
         .unwrap_err();
     assert_eq!(err.scim_type, Some(ScimType::InvalidPath));
 }
 
-#[test]
-fn delete_user_then_get_404s() {
+#[tokio::test]
+async fn delete_user_then_get_404s() {
     let s = srv();
     let u = s
         .create_user(&tenant(), new_user("eve"), 1_700_000_000)
+        .await
         .expect("create");
-    s.delete_user(&tenant(), &u.id).expect("delete");
-    let err = s.get_user(&tenant(), &u.id).unwrap_err();
+    s.delete_user(&tenant(), &u.id).await.expect("delete");
+    let err = s.get_user(&tenant(), &u.id).await.unwrap_err();
     assert_eq!(err.status, 404);
 }
 
-#[test]
-fn delete_unknown_user_404s() {
+#[tokio::test]
+async fn delete_unknown_user_404s() {
     let s = srv();
     let err = s
         .delete_user(&tenant(), &ScimId("missing".into()))
+        .await
         .unwrap_err();
     assert_eq!(err.status, 404);
 }
 
-#[test]
-fn create_group_then_patch_members() {
+#[tokio::test]
+async fn create_group_then_patch_members() {
     let s = srv();
     let g = s
         .create_group(
@@ -214,9 +227,11 @@ fn create_group_then_patch_members() {
             },
             1_700_000_000,
         )
+        .await
         .expect("create");
     let alice = s
         .create_user(&tenant(), new_user("alice"), 1_700_000_001)
+        .await
         .expect("u");
     let patched = s
         .patch_group(
@@ -232,34 +247,39 @@ fn create_group_then_patch_members() {
             },
             1_700_000_100,
         )
+        .await
         .expect("patch");
     assert_eq!(patched.members.len(), 1);
     assert_eq!(patched.members[0].value, alice.id);
 }
 
-#[test]
-fn replace_user_preserves_created_timestamp() {
+#[tokio::test]
+async fn replace_user_preserves_created_timestamp() {
     let s = srv();
     let u = s
         .create_user(&tenant(), new_user("frank"), 1_700_000_000)
+        .await
         .expect("create");
     let original_created = u.meta.created.clone();
     let mut nu = new_user("frank");
     nu.display_name = Some("Frank Renamed".into());
     let replaced = s
         .replace_user(&tenant(), &u.id, nu, 1_700_000_500)
+        .await
         .expect("replace");
     assert_eq!(replaced.meta.created, original_created);
     assert_ne!(replaced.meta.last_modified, original_created);
     assert_eq!(replaced.display_name.as_deref(), Some("Frank Renamed"));
 }
 
-#[test]
-fn filter_eq_matches_username() {
+#[tokio::test]
+async fn filter_eq_matches_username() {
     let s = srv();
     s.create_user(&tenant(), new_user("alice"), 1_700_000_000)
+        .await
         .expect("c");
     s.create_user(&tenant(), new_user("bob"), 1_700_000_001)
+        .await
         .expect("c");
     let r = s
         .list_users(
@@ -270,17 +290,20 @@ fn filter_eq_matches_username() {
                 filter: Some(r#"userName eq "alice""#.into()),
             },
         )
+        .await
         .expect("list");
     assert_eq!(r.total_results, 1);
     assert_eq!(r.resources[0].user_name, "alice");
 }
 
-#[test]
-fn filter_co_matches_substring() {
+#[tokio::test]
+async fn filter_co_matches_substring() {
     let s = srv();
     s.create_user(&tenant(), new_user("alice"), 1_700_000_000)
+        .await
         .expect("c");
     s.create_user(&tenant(), new_user("bob"), 1_700_000_001)
+        .await
         .expect("c");
     let r = s
         .list_users(
@@ -291,18 +314,22 @@ fn filter_co_matches_substring() {
                 filter: Some(r#"userName co "li""#.into()),
             },
         )
+        .await
         .expect("list");
     assert_eq!(r.total_results, 1);
 }
 
-#[test]
-fn filter_and_combines_conditions() {
+#[tokio::test]
+async fn filter_and_combines_conditions() {
     let s = srv();
     s.create_user(&tenant(), new_user("alice"), 1_700_000_000)
+        .await
         .expect("c");
     s.create_user(&tenant(), new_user("alex"), 1_700_000_001)
+        .await
         .expect("c");
     s.create_user(&tenant(), new_user("bob"), 1_700_000_002)
+        .await
         .expect("c");
     let r = s
         .list_users(
@@ -313,14 +340,16 @@ fn filter_and_combines_conditions() {
                 filter: Some(r#"userName sw "al" and active eq "true""#.into()),
             },
         )
+        .await
         .expect("list");
     assert_eq!(r.total_results, 2);
 }
 
-#[test]
-fn filter_pr_present() {
+#[tokio::test]
+async fn filter_pr_present() {
     let s = srv();
     s.create_user(&tenant(), new_user("alice"), 1_700_000_000)
+        .await
         .expect("c");
     let r = s
         .list_users(
@@ -331,6 +360,7 @@ fn filter_pr_present() {
                 filter: Some("userName pr".into()),
             },
         )
+        .await
         .expect("list");
     assert_eq!(r.total_results, 1);
 }
@@ -356,8 +386,8 @@ fn scim_error_envelope_serializes_per_rfc_7644() {
     assert!(s.contains("urn:ietf:params:scim:api:messages:2.0:Error"));
 }
 
-#[test]
-fn group_create_requires_displayname() {
+#[tokio::test]
+async fn group_create_requires_displayname() {
     let s = srv();
     let err = s
         .create_group(
@@ -368,15 +398,17 @@ fn group_create_requires_displayname() {
             },
             1_700_000_000,
         )
+        .await
         .unwrap_err();
     assert_eq!(err.status, 400);
 }
 
-#[test]
-fn patch_remove_email_by_value() {
+#[tokio::test]
+async fn patch_remove_email_by_value() {
     let s = srv();
     let u = s
         .create_user(&tenant(), new_user("alice"), 1_700_000_000)
+        .await
         .expect("c");
     let p = s
         .patch_user(
@@ -392,28 +424,31 @@ fn patch_remove_email_by_value() {
             },
             1_700_000_100,
         )
+        .await
         .expect("patch");
     assert!(p.emails.is_empty());
 }
 
-#[test]
-fn tenant_isolation_users_dont_leak_across_tenants() {
+#[tokio::test]
+async fn tenant_isolation_users_dont_leak_across_tenants() {
     let s = srv();
     let t1 = TenantId("tenant-1".into());
     let t2 = TenantId("tenant-2".into());
     s.create_user(&t1, new_user("alice"), 1_700_000_000)
+        .await
         .expect("c");
     s.create_user(&t2, new_user("alice"), 1_700_000_000)
+        .await
         .expect("c"); // same userName different tenant OK
-    let r1 = s.list_users(&t1, &ListQuery::default()).expect("list");
-    let r2 = s.list_users(&t2, &ListQuery::default()).expect("list");
+    let r1 = s.list_users(&t1, &ListQuery::default()).await.expect("list");
+    let r2 = s.list_users(&t2, &ListQuery::default()).await.expect("list");
     assert_eq!(r1.total_results, 1);
     assert_eq!(r2.total_results, 1);
     assert_ne!(r1.resources[0].id, r2.resources[0].id);
 }
 
-#[test]
-fn group_membership_query_does_not_break_users() {
+#[tokio::test]
+async fn group_membership_query_does_not_break_users() {
     let s = srv();
     let g = s
         .create_group(
@@ -428,8 +463,9 @@ fn group_membership_query_does_not_break_users() {
             },
             1_700_000_000,
         )
+        .await
         .expect("g");
-    let _: Group = s.get_group(&tenant(), &g.id).expect("get");
+    let _: Group = s.get_group(&tenant(), &g.id).await.expect("get");
 }
 
 #[test]
@@ -487,13 +523,14 @@ fn new_user_deserializes_rfc_7644_camelcase_wire_shape() {
     assert_eq!(group.display_name, "platform-admins");
 }
 
-#[test]
-fn user_response_serializes_display_name_as_camelcase() {
+#[tokio::test]
+async fn user_response_serializes_display_name_as_camelcase() {
     let s = srv();
     let mut input = new_user("amara@acme.example");
     input.display_name = Some("Amara A.".into());
     let user = s
         .create_user(&tenant(), input, 1_700_000_000)
+        .await
         .expect("create");
     let value = serde_json::to_value(&user).expect("serialize");
     assert_eq!(value["displayName"], "Amara A.");

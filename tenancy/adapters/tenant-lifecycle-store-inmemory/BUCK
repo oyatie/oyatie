@@ -20,5 +20,6 @@ rust_test(
         "//tenancy/core/tenant-lifecycle-kernel:tenancy-tenant-lifecycle-kernel",
         "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
         "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "third-party//:tokio",
     ],
 )

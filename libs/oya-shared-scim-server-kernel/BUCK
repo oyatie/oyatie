@@ -22,5 +22,6 @@ rust_test(
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:serde_json",
+        "third-party//:tokio",
     ],
 )
