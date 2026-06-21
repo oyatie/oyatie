@@ -64,6 +64,32 @@ fn next_key_after(key: &str) -> String {
     next
 }
 
+/// The RLS tenant scope a resource name belongs to. Lifecycle resources are
+/// `tenants/<id>`, so the resource id IS the tenant id; the applied-write and
+/// operation ledger rows for that tenant are scoped under it.
+fn tenant_scope_of(name: &ResourceName) -> &str {
+    name.resource_id()
+}
+
+/// Recover the RLS tenant scope from a minted operation name. Operation names
+/// are `operations/<tenant_id>/lifecycle-<seq>` (see [`mint_operation_name`]),
+/// so the tenant is the segment after `operations/`. Names without that shape
+/// (e.g. an unknown operation a client polls) yield `None`, which the caller
+/// maps to `NotFound`.
+fn tenant_scope_of_operation(operation_name: &str) -> Option<&str> {
+    operation_name
+        .strip_prefix("operations/")
+        .and_then(|rest| rest.split('/').next())
+        .filter(|tenant| !tenant.is_empty())
+}
+
+/// Mint the operation name for `tenant_id`'s `seq`-th lifecycle operation. The
+/// tenant id is embedded so `poll_operation` (which receives only the name) can
+/// recover the RLS scope without a separate lookup.
+fn mint_operation_name(tenant_id: &str, seq: u64) -> String {
+    format!("operations/{tenant_id}/lifecycle-{seq:06}")
+}
+
 fn validate_tenant(tenant: &Tenant) -> Result<(), ProviderError> {
     tenant.validate().map_err(|violations| {
         let details: Vec<String> = violations.iter().map(ToString::to_string).collect();
@@ -100,8 +126,14 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
         operation: TenantLifecycleOperation,
         idempotency_key: &IdempotencyKey,
     ) -> Result<Operation, ProviderError> {
+        let tenant_id = tenant_scope_of(name).to_owned();
         let key = idempotency_key.as_str().to_owned();
-        if let Some(applied) = self.store.get_applied(&key).await.map_err(store_error)? {
+        if let Some(applied) = self
+            .store
+            .get_applied(&tenant_id, &key)
+            .await
+            .map_err(store_error)?
+        {
             return match applied {
                 AppliedWriteRecord::Lifecycle {
                     name: applied_name,
@@ -109,7 +141,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
                     operation_name,
                 } if applied_name == name.to_string() && applied_operation == operation => self
                     .store
-                    .get_operation(&operation_name)
+                    .get_operation(&tenant_id, &operation_name)
                     .await
                     .map_err(store_error)?
                     .map(|record| record.operation)
@@ -130,11 +162,16 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
                 name: name.to_string(),
             });
         }
-        let seq = self.store.next_operation_seq().await.map_err(store_error)?;
-        let operation_name = format!("operations/lifecycle-{seq:06}");
+        let seq = self
+            .store
+            .next_operation_seq(&tenant_id)
+            .await
+            .map_err(store_error)?;
+        let operation_name = mint_operation_name(&tenant_id, seq);
         let pending = Operation::pending(operation_name.clone()).map_err(shape_error)?;
         self.store
             .put_operation(
+                &tenant_id,
                 &operation_name,
                 &OperationRecord {
                     operation: pending.clone(),
@@ -146,6 +183,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
             .map_err(store_error)?;
         self.store
             .put_applied(
+                &tenant_id,
                 &key,
                 &AppliedWriteRecord::Lifecycle {
                     name: name.to_string(),
@@ -176,6 +214,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
     /// terminal write per operation; terminal entries are never touched.
     async fn complete_operation(
         &mut self,
+        tenant_id: &str,
         operation_name: &str,
         record: OperationRecord,
     ) -> Result<Operation, ProviderError> {
@@ -237,6 +276,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
         };
         self.store
             .put_operation(
+                tenant_id,
                 operation_name,
                 &OperationRecord {
                     operation: terminal.clone(),
@@ -261,8 +301,14 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
     ) -> Pin<Box<dyn Future<Output = Result<CreateOutcome<Tenant>, ProviderError>> + Send + 'a>>
     {
         Box::pin(async move {
+            let tenant_id = tenant_scope_of(name).to_owned();
             let key = idempotency_key.as_str().to_owned();
-            if let Some(applied) = self.store.get_applied(&key).await.map_err(store_error)? {
+            if let Some(applied) = self
+                .store
+                .get_applied(&tenant_id, &key)
+                .await
+                .map_err(store_error)?
+            {
                 return match applied {
                     AppliedWriteRecord::Create {
                         name: applied_name,
@@ -302,6 +348,7 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
                 .map_err(store_error)?;
             self.store
                 .put_applied(
+                    &tenant_id,
                     &key,
                     &AppliedWriteRecord::Create {
                         name: name.to_string(),
@@ -324,8 +371,14 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
         idempotency_key: &'a IdempotencyKey,
     ) -> Pin<Box<dyn Future<Output = Result<PutOutcome<Tenant>, ProviderError>> + Send + 'a>> {
         Box::pin(async move {
+            let tenant_id = tenant_scope_of(name).to_owned();
             let key = idempotency_key.as_str().to_owned();
-            if let Some(applied) = self.store.get_applied(&key).await.map_err(store_error)? {
+            if let Some(applied) = self
+                .store
+                .get_applied(&tenant_id, &key)
+                .await
+                .map_err(store_error)?
+            {
                 return match applied {
                     AppliedWriteRecord::Put {
                         name: applied_name,
@@ -383,6 +436,7 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
                 .map_err(store_error)?;
             self.store
                 .put_applied(
+                    &tenant_id,
                     &key,
                     &AppliedWriteRecord::Put {
                         name: name.to_string(),
@@ -495,9 +549,16 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
         operation_name: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>> {
         Box::pin(async move {
+            // The minted operation name carries its tenant scope; a name without
+            // that shape can never have been issued, so it is simply not found.
+            let tenant_id = tenant_scope_of_operation(operation_name)
+                .ok_or_else(|| ProviderError::NotFound {
+                    name: operation_name.to_owned(),
+                })?
+                .to_owned();
             let record = self
                 .store
-                .get_operation(operation_name)
+                .get_operation(&tenant_id, operation_name)
                 .await
                 .map_err(store_error)?
                 .ok_or_else(|| ProviderError::NotFound {
@@ -506,7 +567,8 @@ impl<S: TenantLifecycleStore + Send + Sync> ResourceProvider for TenantLifecycle
             if record.operation.done {
                 return Ok(record.operation);
             }
-            self.complete_operation(operation_name, record).await
+            self.complete_operation(&tenant_id, operation_name, record)
+                .await
         })
     }
 }

@@ -86,6 +86,7 @@ impl TenantLifecycleStore for MemoryStore {
 
     fn get_applied<'a>(
         &'a self,
+        _tenant_id: &'a str,
         key: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<AppliedWriteRecord>, StoreError>> + Send + 'a>>
     {
@@ -94,6 +95,7 @@ impl TenantLifecycleStore for MemoryStore {
 
     fn put_applied<'a>(
         &'a mut self,
+        _tenant_id: &'a str,
         key: &'a str,
         record: &'a AppliedWriteRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
@@ -105,6 +107,7 @@ impl TenantLifecycleStore for MemoryStore {
 
     fn get_operation<'a>(
         &'a self,
+        _tenant_id: &'a str,
         operation_name: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
         Box::pin(async move { Ok(self.operations.get(operation_name).cloned()) })
@@ -112,6 +115,7 @@ impl TenantLifecycleStore for MemoryStore {
 
     fn put_operation<'a>(
         &'a mut self,
+        _tenant_id: &'a str,
         operation_name: &'a str,
         record: &'a OperationRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
@@ -124,6 +128,7 @@ impl TenantLifecycleStore for MemoryStore {
 
     fn next_operation_seq<'a>(
         &'a mut self,
+        _tenant_id: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<u64, StoreError>> + Send + 'a>> {
         Box::pin(async move {
             self.operation_seq += 1;

@@ -559,12 +559,22 @@ async fn lifecycle_replay_same_key_is_idempotent() {
 }
 
 /// Reusing an idempotency key with DIFFERENT parameters is rejected (HTTP 422
-/// IDEMPOTENCY_KEY_REUSE) — exercised on register where the body differs.
+/// IDEMPOTENCY_KEY_REUSE) — exercised on register where the body differs WITHIN
+/// the SAME tenant scope.
+///
+/// The idempotency-key namespace is PER-TENANT (matching the durable backend's
+/// `PRIMARY KEY (tenant_id, idempotency_key)`), so a key reused under a
+/// DIFFERENT tenant addresses an independent record and is NOT a reuse (see
+/// `register_same_key_different_tenant_is_independent`). Reuse is only a
+/// violation when the SAME tenant replays the key with a different body.
 #[tokio::test]
 async fn register_key_reuse_with_different_body_is_422() {
     let app = app();
     assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
-    // Same key, different tenant_id ⇒ key reuse with different params ⇒ 422.
+    // Same tenant + same key, but a DIFFERENT body ⇒ key reuse with different
+    // params ⇒ 422.
+    let mut different_body = register_body("acme");
+    different_body["display_name"] = serde_json::Value::String("Acme Renamed".to_owned());
     let resp = app
         .oneshot(
             Request::builder()
@@ -573,10 +583,24 @@ async fn register_key_reuse_with_different_body_is_422() {
                 .header("content-type", "application/json")
                 .header("idempotency-key", key(1))
                 .header("authorization", format!("Bearer {PLATFORM_TOKEN}"))
-                .body(Body::from(serde_json::to_vec(&register_body("different")).unwrap()))
+                .body(Body::from(serde_json::to_vec(&different_body).unwrap()))
                 .unwrap(),
         )
         .await
         .unwrap();
     assert_eq!(resp.status(), StatusCode::UNPROCESSABLE_ENTITY);
+}
+
+/// The SAME idempotency key under a DIFFERENT tenant is an INDEPENDENT record,
+/// not a reuse: the dedup namespace is per-tenant. Each registration succeeds
+/// (201) and creates its own tenant — proving no cross-tenant idempotency leak.
+#[tokio::test]
+async fn register_same_key_different_tenant_is_independent() {
+    let app = app();
+    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    // Same key, different tenant_id ⇒ independent dedup namespace ⇒ 201.
+    assert_eq!(
+        register(&app, "different", &key(1)).await.status(),
+        StatusCode::CREATED
+    );
 }

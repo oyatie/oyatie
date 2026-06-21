@@ -3783,6 +3783,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
+name = "identity-scim-store-postgres"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-scim-server-kernel",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "idna"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11557,6 +11570,20 @@ version = "0.1.0"
 dependencies = [
  "oya-shared-platform-contracts-kernel",
  "oya-shared-resource-provider-contract-kernel",
+ "tenancy-tenant-lifecycle-kernel",
+ "tokio",
+]
+
+[[package]]
+name = "tenancy-tenant-lifecycle-store-postgres"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-platform-contracts-kernel",
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-resource-provider-contract-kernel",
+ "serde",
+ "serde_json",
+ "sqlx",
  "tenancy-tenant-lifecycle-kernel",
  "tokio",
 ]

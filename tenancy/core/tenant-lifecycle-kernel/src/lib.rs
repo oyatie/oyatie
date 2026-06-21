@@ -118,42 +118,50 @@ pub trait TenantLifecycleStore {
         limit: u32,
     ) -> Pin<Box<dyn Future<Output = Result<Vec<(String, Tenant)>, StoreError>> + Send + 'a>>;
 
-    // S-B: thread tenant_id (RLS scope) through the idempotency + operation
-    // ledger methods below so the durable sqlx adapter can key per-tenant. The
-    // call sites in the usecase lack tenant context today (the applied/operation
-    // tables are global), so S-A keeps them opaque-keyed; threading the scope is
-    // a separate, orthogonal change deferred to S-B with the real adapter.
+    // S-B: tenant_id (RLS scope) is threaded through the idempotency + operation
+    // ledger methods below so the durable sqlx adapter can set the per-transaction
+    // tenant GUC (`oyatie.tenant_id`) before any tenant-scoped statement. The
+    // applied/operation tables are tenant-scoped (RLS RESTRICTIVE per tenant_id);
+    // the in-memory adapter ignores the scope (its maps are process-local) but
+    // accepts it so both adapters share one port.
 
-    /// Point read of the idempotency dedup record for `key`.
+    /// Point read of the idempotency dedup record for `key`, within `tenant_id`.
     fn get_applied<'a>(
         &'a self,
-        key: &'a str, // S-B: thread tenant_id for RLS
+        tenant_id: &'a str,
+        key: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<AppliedWriteRecord>, StoreError>> + Send + 'a>>;
 
-    /// Record what `key` was first applied to.
+    /// Record what `key` was first applied to, within `tenant_id`.
     fn put_applied<'a>(
         &'a mut self,
-        key: &'a str, // S-B: thread tenant_id for RLS
+        tenant_id: &'a str,
+        key: &'a str,
         record: &'a AppliedWriteRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>>;
 
-    /// Point read of the ledger entry for `operation_name`.
+    /// Point read of the ledger entry for `operation_name`, within `tenant_id`.
     fn get_operation<'a>(
         &'a self,
-        operation_name: &'a str, // S-B: thread tenant_id for RLS
+        tenant_id: &'a str,
+        operation_name: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>>;
 
-    /// Write a ledger entry. Callers MUST never overwrite a terminal entry
-    /// (the usecase layer enforces immutability before calling this).
+    /// Write a ledger entry within `tenant_id`. Callers MUST never overwrite a
+    /// terminal entry (the usecase layer enforces immutability before calling
+    /// this).
     fn put_operation<'a>(
         &'a mut self,
-        operation_name: &'a str, // S-B: thread tenant_id for RLS
+        tenant_id: &'a str,
+        operation_name: &'a str,
         record: &'a OperationRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>>;
 
-    /// Next monotonic ledger ordinal, used to mint unique operation names.
+    /// Next monotonic ledger ordinal for `tenant_id`, used to mint unique
+    /// operation names. The ordinal need only be unique within the tenant.
     fn next_operation_seq<'a>(
-        &'a mut self, // S-B: thread tenant_id for RLS
+        &'a mut self,
+        tenant_id: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<u64, StoreError>> + Send + 'a>>;
 }
 
