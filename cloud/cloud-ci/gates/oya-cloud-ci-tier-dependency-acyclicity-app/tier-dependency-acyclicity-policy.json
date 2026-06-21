@@ -35,7 +35,8 @@
     "iam/*/*",
     "network/*/*",
     "secrets/*/*",
-    "billing/*/*"
+    "billing/*/*",
+    "intelligence/*/*"
   ],
   "service_roots": [
     "cloud",
@@ -65,7 +66,8 @@
     "iam",
     "network",
     "secrets",
-    "billing"
+    "billing",
+    "intelligence"
   ],
   "stratum_rank_order": [
     "S0",

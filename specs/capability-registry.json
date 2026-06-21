@@ -275,6 +275,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
+        "intelligence",
         "cloud/cloud-intelligence",
         "oya/intelligence",
         "oya/detection"

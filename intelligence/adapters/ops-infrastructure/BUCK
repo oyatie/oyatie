@@ -1,0 +1,24 @@
+rust_library(
+    name = "intelligence-ops-infrastructure",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_ops_infrastructure",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "intelligence-ops-infrastructure-tests",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_ops_infrastructure_tests",
+    crate_root = "tests/xproxy_ops_readonly.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-ops-infrastructure",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
