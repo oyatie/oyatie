@@ -549,6 +549,7 @@
     "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app/tests/manifest_hygiene.rs",
     "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/BUCK",
     "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/Cargo.toml",
+    "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/OWNERS",
     "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/no-graphql-without-adr-policy.json",
     "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/src/lib.rs",
     "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/src/main.rs",
