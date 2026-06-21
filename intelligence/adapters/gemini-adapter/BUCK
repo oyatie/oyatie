@@ -1,0 +1,36 @@
+rust_library(
+    name = "intelligence-gemini-adapter",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_gemini_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/translation-kernel:intelligence-translation-kernel",
+        "third-party//:bytes",
+        "third-party//:futures-core",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tracing",
+    ],
+)
+
+rust_test(
+    name = "intelligence-gemini-adapter-tests",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_gemini_adapter_tests",
+    crate_root = "tests/gemini_adapter.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-gemini-adapter",
+        "//intelligence/core/translation-kernel:intelligence-translation-kernel",
+        "third-party//:bytes",
+        "third-party//:futures-core",
+        "third-party//:futures-util",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tracing",
+    ],
+)

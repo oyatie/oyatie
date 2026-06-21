@@ -49,16 +49,16 @@ fn capability_catalog_uses_policy_action_not_concrete_engine_action() {
 #[test]
 fn kernel_and_core_rest_tests_do_not_name_transient_secret_or_policy_engines() {
     let kernel_lib =
-        read("cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/src/lib.rs");
+        read("intelligence/core/kernel/src/lib.rs");
     let kernel_d7 = read(
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/d7_cross_tenant_forbid.rs",
+        "intelligence/core/kernel/tests/d7_cross_tenant_forbid.rs",
     );
     let kernel_refresh = read(
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-kernel/tests/refresh_failed_outcome.rs",
+        "intelligence/core/kernel/tests/refresh_failed_outcome.rs",
     );
-    let rest_cargo = read("cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/Cargo.toml");
+    let rest_cargo = read("intelligence/adapters/rest/Cargo.toml");
     let rest_d8 = read(
-        "cloud/cloud-intelligence/crates/oya-cloud-intelligence-rest/tests/d8_secret_provider_envelope_encryption.rs",
+        "intelligence/adapters/rest/tests/d8_secret_provider_envelope_encryption.rs",
     );
 
     assert_omits(
