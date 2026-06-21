@@ -93,6 +93,23 @@ pub fn resolve_committed_move_plan(repo_root: &Path) -> Result<Option<PathBuf>, 
     select_move_plan(&plans)
 }
 
+/// Resolve the EFFECTIVE plan path the `manifest` materialization should load, given an OPTIONAL
+/// explicit `--plan` and the committed candidate tree. This is the precedence the materialization
+/// runs verbatim; it lives here (not in `main.rs`) so the fail-closed wiring is unit-testable rather
+/// than reachable only through the binary:
+/// * the >1-committed-plan guard ([`resolve_committed_move_plan`]) runs FIRST and REGARDLESS of
+///   `--plan` — an ambiguous candidate tree is rejected even when a specific plan is named;
+/// * then `explicit.or(discovered)` — an explicit `--plan` wins over the single committed plan, and
+///   with no `--plan` the codemod itself SELECTS the single committed plan (the materialization is
+///   the authority), so a no-move PR (zero plans) still resolves to `None` (canonical empty manifest).
+pub fn resolve_effective_move_plan(
+    explicit: Option<PathBuf>,
+    repo_root: &Path,
+) -> Result<Option<PathBuf>, CodemodError> {
+    let discovered = resolve_committed_move_plan(repo_root)?;
+    Ok(explicit.or(discovered))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -171,6 +188,64 @@ mod tests {
         assert!(msg.contains("more than one"), "{msg}");
         assert!(msg.contains("billing-move-plan.json"), "{msg}");
         let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// MED-3 (#769 review): the materialization's plan-resolution precedence + fail-closed wiring
+    /// (formerly inline in `main.rs`, untested) is now a pure-lib function locked here against all
+    /// six (explicit Some/None) x (0/1/2 committed plans) combinations.
+    #[test]
+    fn effective_plan_precedence_and_fail_closed() {
+        let explicit = PathBuf::from("/some/where/explicit-move-plan.json");
+
+        // 0 committed plans.
+        let root0 = tmp_root("eff0");
+        // no `--plan`, no committed plan -> None (no-move PR, canonical empty manifest).
+        assert!(resolve_effective_move_plan(None, &root0).unwrap().is_none());
+        // explicit `--plan`, no committed plan -> the explicit path wins.
+        assert_eq!(
+            resolve_effective_move_plan(Some(explicit.clone()), &root0)
+                .unwrap()
+                .unwrap(),
+            explicit
+        );
+        let _ = std::fs::remove_dir_all(&root0);
+
+        // 1 committed plan.
+        let root1 = tmp_root("eff1");
+        write_plan(&root1, "billing-move-plan.json");
+        // no `--plan` -> the codemod SELECTS the single committed plan.
+        assert_eq!(
+            resolve_effective_move_plan(None, &root1)
+                .unwrap()
+                .unwrap()
+                .file_name()
+                .unwrap(),
+            "billing-move-plan.json"
+        );
+        // explicit `--plan` -> explicit WINS over the single committed plan (its presence is fine).
+        assert_eq!(
+            resolve_effective_move_plan(Some(explicit.clone()), &root1)
+                .unwrap()
+                .unwrap(),
+            explicit
+        );
+        let _ = std::fs::remove_dir_all(&root1);
+
+        // 2 committed plans -> FAIL-CLOSED regardless of `--plan` (ambiguous candidate tree).
+        let root2 = tmp_root("eff2");
+        write_plan(&root2, "billing-move-plan.json");
+        write_plan(&root2, "iam-move-plan.json");
+        assert!(matches!(
+            resolve_effective_move_plan(None, &root2),
+            Err(CodemodError::MultipleMovePlans { count: 2, .. })
+        ));
+        // The guard fires EVEN WITH an explicit `--plan` — naming one plan does not disambiguate the
+        // tree, so the materialization still refuses rather than silently first-winning.
+        assert!(matches!(
+            resolve_effective_move_plan(Some(explicit.clone()), &root2),
+            Err(CodemodError::MultipleMovePlans { count: 2, .. })
+        ));
+        let _ = std::fs::remove_dir_all(&root2);
     }
 
     #[test]

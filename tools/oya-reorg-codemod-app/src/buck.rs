@@ -178,15 +178,19 @@ fn matching_close_paren(text: &str, after_open: usize) -> Option<usize> {
 /// `//old_path:old_name`, also rewrite the target component to `new_name`.
 ///
 /// The source-path-literal rewrite (#63) handles the class the `//` label rewrite misses: a BUCK
-/// may reference a moved crate's sources through a repo-ROOTED (non-`//`) path STRING, e.g.
-/// `crate_root = "cloud/cloud-iac/crates/oya-x/tests/t.rs"` or a `mapped_srcs` value
-/// `"cloud/cloud-iac/crates/oya-x/tests/t.rs": "tests/t.rs"`. These are plain Starlark strings,
-/// not `//labels`, so when the dir moves they are left pointing at a now-dead path (a stale BUCK
-/// the build can no longer resolve). We rewrite a quoted literal whose value is exactly `old_path`
-/// or begins with `old_path/`, replacing only the `old_path` PREFIX with `new_path` and preserving
-/// the in-crate suffix. Anchoring on the OPENING quote (the char right before `old_path` must be
-/// `"`) excludes the `"//old_path..."` label form (there `old_path` is preceded by `//`, already
-/// handled above) and the package-relative `mapped_srcs` KEYS (which never embed the crate dir).
+/// may reference a path INSIDE a moved crate's dir through a repo-ROOTED (non-`//`) plain string,
+/// e.g. `crate_root = "cloud/cloud-iac/crates/oya-x/tests/t.rs"`, a `mapped_srcs` value
+/// `"cloud/cloud-iac/crates/oya-x/tests/t.rs": "tests/t.rs"`, or a `genrule` `cmd`/`data` entry
+/// naming a file under the crate. These are plain Starlark strings, not `//labels`, so when the dir
+/// moves they are left pointing at a now-dead path (a stale BUCK the build can no longer resolve).
+/// The rewrite is deliberately FIELD-AGNOSTIC: it updates EVERY quoted repo-rooted literal whose
+/// value is exactly `old_path` or begins with `old_path/`, in any attribute, replacing only the
+/// `old_path` PREFIX with `new_path` and preserving the in-crate suffix. Field-agnostic is the
+/// CORRECT scope, not an over-reach: any path UNDER the moved dir genuinely moved, so every
+/// reference to it (crate_root, a mapped_srcs value OR a repo-rooted key, a genrule cmd/data entry)
+/// must follow — narrowing to a fixed `{crate_root, mapped_srcs}` field set would strand the
+/// genrule/data references. See [`replace_source_path_literal`] for the exact boundary rules and the
+/// one accepted imprecision (a path embedded in a comment).
 pub fn rewrite_buck_labels(
     buck_text: &str,
     moves_by_old_path: &BTreeMap<&str, &CrateMove>,
@@ -218,18 +222,24 @@ pub fn rewrite_buck_labels(
     (out, changed)
 }
 
-/// Rewrite every quoted repo-rooted SOURCE-PATH literal whose value is exactly `old_path` or whose
-/// value begins with `old_path` + `/` — replacing only the `old_path` PREFIX with `new_path` and
-/// preserving the rest of the path. The match is anchored on the OPENING quote: the char before
-/// `old_path` must be `"` and the char after the matched `old_path` must be `/` (descendant) or `"`
-/// (the whole value), so:
+/// Rewrite every quoted repo-rooted literal whose value is exactly `old_path` or begins with
+/// `old_path` + `/` — replacing only the `old_path` PREFIX with `new_path` and preserving the rest.
+/// This is FIELD-AGNOSTIC by design (see [`rewrite_buck_labels`]): any quoted string naming a path
+/// under the moved dir is a reference that moved, so it is rewritten regardless of which attribute
+/// holds it (crate_root, a mapped_srcs value OR a repo-rooted key, a genrule cmd/data entry). The
+/// match is anchored on the OPENING quote: the char before `old_path` must be `"` and the char after
+/// the matched `old_path` must be `/` (descendant) or `"` (the whole value), so:
 /// * a `"//old_path:target"` LABEL is NOT matched (its `old_path` is preceded by `//`, already
 ///   rewritten by the label passes) — preventing a double rewrite;
 /// * a longer sibling dir literal `"old_path_extra/..."` is NOT matched (the boundary char after
 ///   `old_path` would be `_`, not `/` or `"`);
-/// * a package-relative `mapped_srcs` KEY (`"tests/x.rs"`) is NOT matched (it does not start with
-///   the moved crate dir).
-/// Returns whether any literal changed.
+/// * a PACKAGE-RELATIVE key/value (`"tests/x.rs"`) is NOT matched — NOT because keys are excluded,
+///   but because it does not start with the moved crate dir; a REPO-ROOTED key under the moved dir
+///   WOULD be (correctly) rewritten.
+///
+/// One accepted imprecision: a path under the moved dir embedded in a COMMENT is also rewritten.
+/// That is harmless — it keeps the comment accurate and still round-trips — and not worth a
+/// Starlark-aware parser to avoid. Returns whether any literal changed.
 fn replace_source_path_literal(haystack: &mut String, old_path: &str, new_path: &str) -> bool {
     if old_path.is_empty() || old_path == new_path {
         return false;
@@ -1006,6 +1016,62 @@ custom_rust_test(
         assert!(out.contains("\"cloud/a-extra/src/lib.rs\""), "sibling dir preserved: {out}");
         // the relative crate_root is package-relative, never a repo-rooted moved-dir literal.
         assert!(out.contains("crate_root = \"src/lib.rs\""), "relative root invariant: {out}");
+    }
+
+    /// #63 / #769 review (MED-1): the source-path-literal rewrite is deliberately FIELD-AGNOSTIC —
+    /// any quoted VALUE that begins with a path UNDER the moved dir is a reference that moved, so it
+    /// is rewritten regardless of the attribute that holds it (a `genrule`/`filegroup` `srcs` entry,
+    /// a Starlark variable), not only `crate_root`/`mapped_srcs`. Narrowing to a fixed field set
+    /// would STRAND these. A path NOT under the moved dir is left alone; the move round-trips
+    /// byte-identically. This pins the broad-but-correct scope the docstrings now describe honestly.
+    #[test]
+    fn source_path_literal_is_field_agnostic_for_paths_under_the_moved_dir() {
+        let text = r#"SEED = "cloud/cloud-iac/crates/oya-x/data/seed.json"
+
+genrule(
+    name = "gen",
+    srcs = [
+        "cloud/cloud-iac/crates/oya-x/data/seed.json",
+        "cloud/other/keep.json",
+    ],
+    cmd = "$(location //tools/gen:gen) > $OUT",
+)
+"#;
+        let m = cm(
+            "cloud/cloud-iac/crates/oya-x",
+            "iac/adapters/gen",
+            "oya-x",
+            "gen-adapter",
+        );
+        let mut by_old: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_old.insert("cloud/cloud-iac/crates/oya-x", &m);
+        let (out, changed) = rewrite_buck_labels(text, &by_old);
+        assert!(changed);
+        // A Starlark VARIABLE value under the moved dir is rewritten (NOT a crate_root/mapped_srcs).
+        assert!(
+            out.contains("SEED = \"iac/adapters/gen/data/seed.json\""),
+            "Starlark variable path under moved dir rewritten: {out}"
+        );
+        // A `genrule` `srcs` entry under the moved dir is rewritten too.
+        assert!(
+            out.contains("\"iac/adapters/gen/data/seed.json\""),
+            "genrule srcs path under moved dir rewritten: {out}"
+        );
+        // A path NOT under the moved dir is left untouched.
+        assert!(out.contains("\"cloud/other/keep.json\""), "unrelated path preserved: {out}");
+        assert!(!out.contains("cloud/cloud-iac/crates/oya-x"), "no stale old path: {out}");
+
+        // The move round-trips byte-identically through the inverse.
+        let inv = cm(
+            "iac/adapters/gen",
+            "cloud/cloud-iac/crates/oya-x",
+            "gen-adapter",
+            "oya-x",
+        );
+        let mut by_new: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_new.insert("iac/adapters/gen", &inv);
+        let (round, _c) = rewrite_buck_labels(&out, &by_new);
+        assert_eq!(round, text, "field-agnostic rewrite round-trips byte-identically");
     }
 
     /// MED-1: field-key anchoring. A `rust_test` with a quoted value matching the moving crate's

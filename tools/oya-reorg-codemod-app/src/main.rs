@@ -98,9 +98,8 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     // candidate tree is ambiguous full stop), and when no `--plan` is named the codemod itself
     // SELECTS the single committed plan — so the materialization is the authority and a no-move PR
     // (zero plans) still emits the canonical empty manifest.
-    let discovered = oya_reorg_codemod_app::resolve_committed_move_plan(&repo_root)
+    let plan_path = oya_reorg_codemod_app::resolve_effective_move_plan(plan_path, &repo_root)
         .map_err(|e: CodemodError| e.to_string())?;
-    let plan_path = plan_path.or(discovered);
 
     // The plan is OPTIONAL: a no-move PR has no plan and emits the canonical empty manifest.
     // When a plan IS supplied, validate fail-closed (its bijection back-guarantees the relabel

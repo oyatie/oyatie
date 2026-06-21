@@ -70,7 +70,10 @@ pub mod oracle;
 pub mod plan;
 pub mod rust_src;
 
-pub use manifest::{discover_committed_move_plans, resolve_committed_move_plan, select_move_plan};
+pub use manifest::{
+    discover_committed_move_plans, resolve_committed_move_plan, resolve_effective_move_plan,
+    select_move_plan,
+};
 pub use model::{
     move_manifest_value, CodemodError, CrateMove, Mapping, MappingRow, MovePlan,
     REORG_MOVE_MANIFEST_SCHEMA,
