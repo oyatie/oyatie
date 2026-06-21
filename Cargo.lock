@@ -11508,6 +11508,25 @@ name = "tenancy-sub-scope-registry"
 version = "0.1.0"
 
 [[package]]
+name = "tenancy-tenant-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "http-body-util",
+ "oya-shared-platform-contracts-kernel",
+ "oya-shared-resource-provider-contract-kernel",
+ "serde",
+ "serde_json",
+ "tenancy-tenant-lifecycle-kernel",
+ "tenancy-tenant-lifecycle-store-inmemory",
+ "tenancy-tenant-lifecycle-usecase",
+ "tokio",
+ "tower 0.4.13",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "tenancy-tenant-lifecycle-domain"
 version = "0.1.0"
 dependencies = [
@@ -11524,6 +11543,15 @@ dependencies = [
  "oya-shared-resource-provider-contract-kernel",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "tenancy-tenant-lifecycle-store-inmemory"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-platform-contracts-kernel",
+ "oya-shared-resource-provider-contract-kernel",
+ "tenancy-tenant-lifecycle-kernel",
 ]
 
 [[package]]
