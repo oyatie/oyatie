@@ -1,5 +1,5 @@
 ---
-id: ADR-0565
+id: ADR-0566
 title: "Authz-coverage gate (unauthenticated HTTP control-plane backstop)"
 status: Proposed
 planning_impact: false
@@ -18,7 +18,7 @@ related_specs:
 milestone: W0
 ---
 
-# ADR-0565: Authz-coverage gate (unauthenticated HTTP control-plane backstop)
+# ADR-0566: Authz-coverage gate (unauthenticated HTTP control-plane backstop)
 
 ## Status
 
