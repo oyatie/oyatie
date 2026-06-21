@@ -24,6 +24,40 @@ rust_test(
     ],
 )
 
+rust_binary(
+    name = "intelligence-codex-sdk-app-server-example",
+    srcs = glob(["examples/app_server.rs"]),
+    crate = "intelligence_codex_sdk_app_server_example",
+    crate_root = "examples/app_server.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "intelligence-codex-sdk-quickstart-example",
+    srcs = glob(["examples/quickstart.rs"]),
+    crate = "intelligence_codex_sdk_quickstart_example",
+    crate_root = "examples/quickstart.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+    ],
+)
+
+rust_binary(
+    name = "intelligence-codex-sdk-streaming-example",
+    srcs = glob(["examples/streaming.rs"]),
+    crate = "intelligence_codex_sdk_streaming_example",
+    crate_root = "examples/streaming.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+    ],
+)
+
 rust_test(
     name = "intelligence-codex-sdk-app-server-contract-test",
     srcs = glob(["tests/app_server_contract.rs"]),

@@ -121,6 +121,19 @@ rust_test(
     ],
 )
 
+rust_binary(
+    name = "intelligence-claude-agent-sdk-quick-start",
+    srcs = glob(["examples/quick_start.rs"]),
+    crate = "intelligence_claude_agent_sdk_quick_start",
+    crate_root = "examples/quick_start.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-claude-agent-sdk",
+        "third-party//:futures",
+        "third-party//:tokio",
+    ],
+)
+
 rust_test(
     name = "intelligence-claude-agent-sdk-callbacks-fake-cli-test",
     srcs = glob(["tests/callbacks_fake_cli.rs", "tests/support_fake_cli.rs"]),
