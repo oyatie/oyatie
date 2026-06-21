@@ -73,6 +73,47 @@ use serde_json::Value;
 /// [`CapabilitySet`] (group slugs) and the existing crate-glob membership.
 const CAPABILITY_REGISTRY_PATH: &str = "specs/capability-registry.json";
 
+/// The repo-relative dir the generated faces (scm-facts snapshot + producer faces) live beside.
+/// Identical to the producer's default `--out-dir` and the freshness gate's `FACES_DIR`.
+const FACES_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app";
+
+/// The committed scm-facts snapshot face name (the emitter's `--out`, the producer's `--scm-facts`).
+const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
+
+/// The repo-relative move-manifest the codemod's `manifest` subcommand emits and the emitter
+/// consumes (materialize.sh step 1 → step 2). A pure function of (committed plan + candidate tree).
+const MOVE_MANIFEST_PATH: &str = "specs/reorg/move-manifest.generated.json";
+
+/// The reorg move-plan glob a MOVE PR commits; the codemod's `--plan` input (first match only, per
+/// materialize.sh — exactly one plan is expected per move PR). A no-move run passes no `--plan`.
+const MOVE_PLAN_DIR: &str = "specs/reorg";
+
+/// The buck2 targets the [`Buck2RegenAdapter`] builds (mirroring materialize.sh's single
+/// `buck2 build … --show-output`). Target-name match (`parse_show_output_path`) maps each to its
+/// built-binary path — the same shape the freshness gate's `build_face_tools` uses.
+const EMITTER_TARGET: &str =
+    "//cloud/cloud-ci/gates/oya-cloud-ci-scm-facts-emitter-app:oya-cloud-ci-scm-facts-emitter-app";
+const PRODUCER_TARGET: &str =
+    "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin";
+const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
+
+/// The 6 producer faces the producer writes (and the byte-rediff re-renders), as
+/// `(file_name, --face name)`. The scm-facts snapshot is written by the emitter (re-rendered via a
+/// re-run emitter is overkill — the byte-rediff re-renders only the deterministic producer faces).
+const PRODUCER_FACES: [(&str, &str); 6] = [
+    ("accounting-registry.generated.json", "registry"),
+    ("ttl-policy.generated.json", "ttl-policy"),
+    ("decision-crosswalk.generated.json", "decision-crosswalk"),
+    ("enforcement-inventory.generated.json", "enforcement-inventory"),
+    ("enforcement-liveness.generated.json", "enforcement-liveness"),
+    ("gate-baseline.generated.json", "baseline"),
+];
+
+/// The human remediation command for a settle failure — the ONLY surviving role of the
+/// materialize-…sh string (the RegenPort replaces the shell pipeline NATIVELY in Rust; the .sh
+/// lives on solely as this fix-it hint, mirroring the freshness gate's `FACE_REMEDIATION_COMMAND`).
+const FACE_REMEDIATION_COMMAND: &str = "infra/ci/materialize-cloud-ci-generated-faces.sh .";
+
 /// The kind of edit an [`AppliedEdit`] records, mirroring the dispatched [`Edit`] variant.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppliedEditKind {
@@ -110,9 +151,28 @@ pub struct Outcome {
     /// The edits dispatched, in plan order (one per non-`FacesSettle` edit in the plan).
     pub applied: Vec<AppliedEdit>,
     /// `true` iff the plan included a `FacesSettle` edit — i.e. some SSOT was (or would be)
-    /// changed and the materialized faces must be re-settled. The orchestrator never runs
-    /// materialize (no buck2/shell here); it records the obligation for the caller / slice 3c.
+    /// changed and the materialized faces must be re-settled. [`register_crate`] never runs
+    /// materialize (no buck2/shell here); it records the obligation. [`register_crate_and_settle`]
+    /// (slice 3c) EXECUTES it via a [`RegenPort`] and records the result in [`Outcome::faces_settled`].
     pub requires_faces_settle: bool,
+    /// `Some` iff [`register_crate_and_settle`] actually ran the [`RegenPort`] to settle the faces
+    /// (i.e. `requires_faces_settle` was `true`). `None` for the subprocess-free [`register_crate`]
+    /// / [`register_crate_detailed`] path, and for a settle run whose plan recorded no obligation.
+    pub faces_settled: Option<FacesSettled>,
+}
+
+/// The result of executing the recorded `FacesSettle` obligation via a [`RegenPort`]: the generated
+/// faces re-written from the candidate tree plus the byte-rediff verdict.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FacesSettled {
+    /// The generated-face file names re-written by the regen run (the scm-facts snapshot + the
+    /// producer faces), sorted for a deterministic record.
+    pub faces_written: Vec<String>,
+    /// `true` iff every re-written face byte-matched a fresh per-face producer re-render
+    /// (`--stdout --face <name>`) — the drift byte-rediff. A mismatch fails closed with
+    /// [`RegisterError::DriftDetected`] BEFORE this is set, so on a returned [`Outcome`] this is
+    /// always `true`.
+    pub drift_clean: bool,
 }
 
 /// A typed refusal from [`register_crate`]. Fail-closed: the orchestrator never leaves a partial,
@@ -144,6 +204,18 @@ pub enum RegisterError {
     },
     /// A filesystem / git read the orchestrator's loaders need failed.
     Io(String),
+    /// The [`RegenPort`] failed to settle the generated faces (a buck2 build, the codemod manifest,
+    /// the scm-facts emitter, or the producer step). Carries the failing step's context plus the
+    /// subprocess stdout/stderr so the failure is diagnosable, not opaque (fail LOUD).
+    RegenFailed(String),
+    /// After a settle run, a generated face did NOT byte-match a fresh per-face producer re-render
+    /// (the drift byte-rediff). A mismatch means the just-written face is not the deterministic
+    /// function of the candidate tree the producer would emit — fail closed rather than commit a
+    /// face the registry-drift gate would then flag RED. Names the drifting face.
+    DriftDetected {
+        /// The generated-face file name whose on-disk bytes diverged from the fresh re-render.
+        face: String,
+    },
 }
 
 impl std::fmt::Display for RegisterError {
@@ -165,6 +237,14 @@ impl std::fmt::Display for RegisterError {
                  exist before its governed surfaces can be appended"
             ),
             RegisterError::Io(m) => write!(f, "register-crate io: {m}"),
+            RegisterError::RegenFailed(m) => write!(f, "register-crate faces-settle regen failed: {m}"),
+            RegisterError::DriftDetected { face } => write!(
+                f,
+                "register-crate faces-settle drift: re-written face {face:?} did not byte-match a \
+                 fresh producer re-render — the settled face is not the deterministic function of \
+                 the candidate tree the producer emits. Fix: re-run the settle from a clean tree; \
+                 remediation: {FACE_REMEDIATION_COMMAND}"
+            ),
         }
     }
 }
@@ -283,7 +363,386 @@ pub fn register_crate_detailed(repo_root: &Path, req: &RegisterCrateRequest) -> 
         }
     }
 
-    RegisterOutcome::Done(Outcome { applied, requires_faces_settle })
+    RegisterOutcome::Done(Outcome { applied, requires_faces_settle, faces_settled: None })
+}
+
+// ───────────────────────────── faces-settle (slice 3c) ─────────────────────────────
+
+/// How [`register_crate_and_settle`] self-validates the settled tree.
+///
+/// Slice 3c implements [`ValidationMode::Skip`] only: it applies the SSOT edits, executes the
+/// recorded `FacesSettle` obligation via the [`RegenPort`], and runs the byte-rediff drift check —
+/// no in-process gate evaluation. [`ValidationMode::MinimalSubset`] is the slot for slice 3d's
+/// crate-scoped before/after gate diff; until 3d wires it, it behaves IDENTICALLY to `Skip` (a
+/// documented no-op, never a panic — ADR-0083 Tier-3 forbids `unimplemented!`/`panic!` in prod).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ValidationMode {
+    /// Settle the faces (regen + byte-rediff) with NO in-process gate self-validation.
+    Skip,
+    /// Slice-3d slot: crate-scoped before/after gate self-validation. NOT YET WIRED — behaves
+    /// exactly like [`ValidationMode::Skip`] in slice 3c (no-op, never panics).
+    MinimalSubset,
+}
+
+/// The port [`register_crate_and_settle`] uses to EXECUTE the recorded `FacesSettle` obligation:
+/// regenerate the committed generated faces from the candidate tree. Injectable so unit tests run
+/// with NO buck2 ([`FakeRegenPort`]); the one production implementation is [`Buck2RegenAdapter`].
+///
+/// `regenerate` MUST write the REAL faces under [`FACES_DIR`] (the scm-facts snapshot + the 6
+/// producer faces) — register-crate is SETTLING (mutating on purpose), the inverse of the freshness
+/// gate's read-only temp routing. It returns the sorted file names it wrote so the caller can record
+/// them and run the byte-rediff over them.
+///
+/// `verify_drift` is the byte-rediff: it re-renders each producer face from the candidate tree and
+/// byte-compares to the just-written face, failing closed with [`RegisterError::DriftDetected`] on a
+/// mismatch. It lives on the port (not a free fn) so it is injectable — a unit test can drive the
+/// drift verdict via [`FakeRegenPort`] with NO buck2 (the byte-rediff re-runs the BUILT producer,
+/// which a unit test cannot).
+///
+/// # Errors
+/// [`RegisterError::RegenFailed`] on any step failure (build, codemod, emitter, producer), carrying
+/// the failing step's context + subprocess output. Never swallow a failure (fail LOUD).
+/// [`RegisterError::DriftDetected`] from `verify_drift` on a byte mismatch.
+pub trait RegenPort {
+    /// Regenerate the committed generated faces from the candidate tree at `repo_root`. Returns the
+    /// sorted generated-face file names written.
+    fn regenerate(&self, repo_root: &Path) -> Result<Vec<String>, RegisterError>;
+
+    /// The byte-rediff drift check: re-render each producer face from the candidate tree and
+    /// byte-compare to the just-written face on disk. `Ok(())` iff every face byte-matches.
+    fn verify_drift(&self, repo_root: &Path) -> Result<(), RegisterError>;
+}
+
+/// The production [`RegenPort`]: the NATIVE-in-Rust replacement for
+/// `infra/ci/materialize-cloud-ci-generated-faces.sh`. It subprocesses the BUILT binaries (codemod
+/// → emitter → producer, the load-bearing order) exactly as the canonical .sh does, never shelling
+/// to the .sh itself. This mirrors the doctrine-blessed precedent in
+/// `oya-cloud-ci-freshness-app::regenerate_faces_with_buck2` (lib.rs:726) — `Command::new` at the
+/// built-binary edge is the ESTABLISHED pattern, not a new CLI surface.
+///
+/// The CRITICAL inversion vs the freshness gate: that gate routes the emitter to a TEMP scm-facts
+/// path because `--verify` is contractually read-only; this adapter writes the REAL
+/// `<FACES_DIR>/scm-facts.generated.json` because settling MUTATES on purpose — a temp path would
+/// leave the committed snapshot stale → registry-drift RED in CI.
+///
+// IRREDUCIBLE-GLUE LEDGER (ADR-0523 item 2 / ADR-0525): git+buck2 at the graph edge
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Buck2RegenAdapter;
+
+impl RegenPort for Buck2RegenAdapter {
+    fn regenerate(&self, repo_root: &Path) -> Result<Vec<String>, RegisterError> {
+        let tools = build_face_tools(repo_root)?;
+
+        // 1. codemod(manifest): regenerate the committed move-manifest from the committed plan (if
+        //    any) + the candidate tree, so the emitter consumes a FRESH copy. ORDER is load-bearing
+        //    (materialize.sh step 1). A no-move run passes NO --plan (canonical empty manifest).
+        let manifest_out = repo_root.join(MOVE_MANIFEST_PATH);
+        let mut codemod = Command::new(&tools.codemod);
+        codemod.arg("manifest").args(["--repo-root"]).arg(repo_root);
+        if let Some(plan) = first_move_plan(repo_root)? {
+            codemod.args(["--plan"]).arg(plan);
+        }
+        codemod.args(["--out"]).arg(&manifest_out).current_dir(repo_root);
+        run_settle_status(&mut codemod, "codemod manifest")?;
+
+        // 2. emitter: write the REAL scm-facts snapshot (+ the frozen gate-baseline snapshot the
+        //    --merge-base-baseline flag materializes). Default --frozen-base-ref (origin/dev) — the
+        //    canonical materialize.sh passes no explicit --frozen-base-ref, so neither do we.
+        let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
+        run_settle_status(
+            Command::new(&tools.emitter)
+                .args(["--repo-root"])
+                .arg(repo_root)
+                .args(["--out"])
+                .arg(&scm_facts)
+                .arg("--merge-base-baseline")
+                .current_dir(repo_root),
+            "scm-facts emitter",
+        )?;
+
+        // 3. producer: regenerate the 6 producer faces from the just-written scm-facts. The emitter
+        //    MUST have succeeded first — a missing scm-facts is a HARD producer error (main.rs:84);
+        //    we never reach here on an emitter failure (step 2 propagates as RegenFailed).
+        run_settle_status(
+            Command::new(&tools.producer)
+                .args(["--repo-root"])
+                .arg(repo_root)
+                .args(["--scm-facts"])
+                .arg(&scm_facts)
+                .current_dir(repo_root),
+            "accounting-registry producer",
+        )?;
+
+        let mut written: Vec<String> = vec![SCM_FACTS_FACE.to_owned()];
+        for (file_name, _face) in PRODUCER_FACES {
+            written.push(file_name.to_owned());
+        }
+        written.sort();
+        Ok(written)
+    }
+
+    fn verify_drift(&self, repo_root: &Path) -> Result<(), RegisterError> {
+        // Re-build the tools (a warm buck2 cache makes the re-build a near-no-op) so the rediff
+        // stands alone — it does NOT depend on `regenerate` having stashed the built binaries. The
+        // scm-facts snapshot is the emitter's output (no per-face producer re-render), so the rediff
+        // covers only the 6 deterministic producer faces — exactly the faces a stale-tree mistake
+        // would corrupt. `write_face` and `--stdout` share `to_canonical_json`, so a match is exact.
+        let tools = build_face_tools(repo_root)?;
+        let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
+        for (file_name, face_name) in PRODUCER_FACES {
+            let rerender = run_settle_output(
+                Command::new(&tools.producer)
+                    .args(["--repo-root"])
+                    .arg(repo_root)
+                    .args(["--scm-facts"])
+                    .arg(&scm_facts)
+                    .args(["--stdout", "--face", face_name])
+                    .current_dir(repo_root),
+                &format!("byte-rediff re-render {file_name}"),
+            )?;
+            let on_disk_path = repo_root.join(FACES_DIR).join(file_name);
+            let on_disk = std::fs::read_to_string(&on_disk_path).map_err(|e| {
+                RegisterError::RegenFailed(format!(
+                    "read {} for byte-rediff: {e}",
+                    on_disk_path.display()
+                ))
+            })?;
+            if on_disk != rerender {
+                return Err(RegisterError::DriftDetected { face: file_name.to_owned() });
+            }
+        }
+        Ok(())
+    }
+}
+
+/// The built face-generation binaries the [`Buck2RegenAdapter`] subprocesses.
+struct FaceTools {
+    codemod: std::path::PathBuf,
+    emitter: std::path::PathBuf,
+    producer: std::path::PathBuf,
+}
+
+/// `buck2 build` the emitter, producer `-bin`, and codemod in ONE invocation with `--show-output`,
+/// then parse each output binary path by target-name match — mirroring the freshness gate's
+/// `build_face_tools` (lib.rs:941) and materialize.sh's single build call.
+///
+/// # Errors
+/// [`RegisterError::RegenFailed`] if the build fails or `--show-output` omits a target.
+fn build_face_tools(repo_root: &Path) -> Result<FaceTools, RegisterError> {
+    let output = run_settle_output(
+        Command::new("buck2")
+            .arg("build")
+            .arg(EMITTER_TARGET)
+            .arg(PRODUCER_TARGET)
+            .arg(CODEMOD_TARGET)
+            .arg("--show-output")
+            .current_dir(repo_root),
+        "buck2 build face tools",
+    )?;
+    let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
+    let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
+    let codemod = parse_show_output_path(repo_root, &output, CODEMOD_TARGET)?;
+    Ok(FaceTools { codemod, emitter, producer })
+}
+
+/// Parse a single `<target> <path>` line out of `buck2 build --show-output` by target-name match,
+/// resolving a relative path against `repo_root` (mirrors freshness `parse_show_output_path`:956).
+fn parse_show_output_path(
+    repo_root: &Path,
+    output: &str,
+    target: &str,
+) -> Result<std::path::PathBuf, RegisterError> {
+    for line in output.lines() {
+        let mut parts = line.split_whitespace();
+        let seen_target = parts.next().unwrap_or_default();
+        let path = parts.next().unwrap_or_default();
+        if seen_target.contains(target) && !path.is_empty() {
+            let path = std::path::PathBuf::from(path);
+            return Ok(if path.is_absolute() { path } else { repo_root.join(path) });
+        }
+    }
+    Err(RegisterError::RegenFailed(format!(
+        "buck2 --show-output did not include {target}"
+    )))
+}
+
+/// The first reorg move-plan under `specs/reorg/*-move-plan.json` (sorted), or `None` for a no-move
+/// run (the canonical empty-manifest path). Exactly one plan is expected per move PR (materialize.sh
+/// uses the first match; a multi-plan tree is a contributor error a move PR must avoid).
+///
+/// # Errors
+/// [`RegisterError::RegenFailed`] if the `specs/reorg` dir exists but is unreadable.
+fn first_move_plan(repo_root: &Path) -> Result<Option<std::path::PathBuf>, RegisterError> {
+    let dir = repo_root.join(MOVE_PLAN_DIR);
+    let entries = match std::fs::read_dir(&dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(RegisterError::RegenFailed(format!("read {}: {e}", dir.display()))),
+    };
+    let mut plans: Vec<std::path::PathBuf> = Vec::new();
+    for entry in entries {
+        let entry = entry
+            .map_err(|e| RegisterError::RegenFailed(format!("read entry in {}: {e}", dir.display())))?;
+        let path = entry.path();
+        let is_plan = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| n.ends_with("-move-plan.json"));
+        if is_plan {
+            plans.push(path);
+        }
+    }
+    plans.sort();
+    Ok(plans.into_iter().next())
+}
+
+/// Run a settle subprocess for its exit status, folding a non-zero exit (with stdout+stderr) into
+/// [`RegisterError::RegenFailed`]. Mirrors freshness `run_status`:1011.
+fn run_settle_status(command: &mut Command, step: &str) -> Result<(), RegisterError> {
+    let output = command
+        .output()
+        .map_err(|e| RegisterError::RegenFailed(format!("{step}: {e}")))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(settle_command_failed(step, &output))
+    }
+}
+
+/// Run a settle subprocess and capture its stdout (UTF-8), folding failure into
+/// [`RegisterError::RegenFailed`]. Mirrors freshness `run_output`:1000.
+fn run_settle_output(command: &mut Command, step: &str) -> Result<String, RegisterError> {
+    let output = command
+        .output()
+        .map_err(|e| RegisterError::RegenFailed(format!("{step}: {e}")))?;
+    if !output.status.success() {
+        return Err(settle_command_failed(step, &output));
+    }
+    String::from_utf8(output.stdout)
+        .map_err(|e| RegisterError::RegenFailed(format!("{step}: stdout was not UTF-8: {e}")))
+}
+
+/// Render a failed settle subprocess into a diagnosable [`RegisterError::RegenFailed`] (context +
+/// status + stdout + stderr — fail LOUD). Mirrors freshness `command_failed`:1022.
+fn settle_command_failed(step: &str, output: &std::process::Output) -> RegisterError {
+    RegisterError::RegenFailed(format!(
+        "{step} failed with status {}:\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    ))
+}
+
+/// Register a new crate's born-accounting AND settle the generated faces: apply the SSOT edits (the
+/// same dispatch [`register_crate_detailed`] runs), then — iff the plan recorded a `FacesSettle`
+/// obligation — EXECUTE it via `regen`, run the byte-rediff drift check, and record the result.
+///
+/// This is the slice-3c "close the loop" entrypoint: [`register_crate`] records but does NOT execute
+/// the obligation; this one executes it through an injectable [`RegenPort`] ([`Buck2RegenAdapter`]
+/// in production, [`FakeRegenPort`] in unit tests).
+///
+/// The byte-rediff drift check: for each producer face, re-run the BUILT producer `--stdout --face
+/// <name>` and byte-compare to the just-written face on disk (`write_face` and `--stdout` share the
+/// same `to_canonical_json`, so a match is exact). A mismatch fails closed with
+/// [`RegisterError::DriftDetected`] rather than commit a face the registry-drift gate would flag RED.
+///
+/// `validate` is [`ValidationMode::Skip`] for slice 3c (no in-process gate self-validation);
+/// [`ValidationMode::MinimalSubset`] is the slice-3d slot and currently behaves like `Skip`.
+///
+/// Fail-closed: a plan refusal, a writer/bridge failure, a regen failure
+/// ([`RegisterError::RegenFailed`]), or a drift mismatch ([`RegisterError::DriftDetected`]) aborts
+/// and returns a [`RegisterError`]. A no-obligation plan (`requires_faces_settle == false`) does NOT
+/// call `regen` and leaves [`Outcome::faces_settled`] `None`.
+///
+/// # Errors
+/// [`RegisterError`] on a plan/writer/bridge failure, a regen failure, or a drift mismatch.
+pub fn register_crate_and_settle(
+    repo_root: &Path,
+    req: &RegisterCrateRequest,
+    regen: &dyn RegenPort,
+    validate: ValidationMode,
+) -> Result<Outcome, RegisterError> {
+    // Slice 3d wires MinimalSubset; until then it is a documented no-op identical to Skip (no panic).
+    let _ = validate;
+
+    // Apply the SSOT edits via the existing subprocess-free dispatch (existing tests unbroken).
+    let mut outcome = match register_crate_detailed(repo_root, req) {
+        RegisterOutcome::Done(outcome) => outcome,
+        RegisterOutcome::Failed { error, .. } => return Err(error),
+    };
+
+    // Nothing changed ⇒ no obligation ⇒ no regen (faces_settled stays None).
+    if !outcome.requires_faces_settle {
+        return Ok(outcome);
+    }
+
+    // EXECUTE the recorded FacesSettle obligation: regen the committed faces from the candidate tree.
+    let faces_written = regen.regenerate(repo_root)?;
+
+    // Byte-rediff drift check: re-render each producer face and byte-compare to the just-written one.
+    regen.verify_drift(repo_root)?;
+
+    outcome.faces_settled = Some(FacesSettled { faces_written, drift_clean: true });
+    Ok(outcome)
+}
+
+/// A test-double [`RegenPort`] so unit tests exercise [`register_crate_and_settle`] with NO buck2.
+/// It records every `repo_root` it was asked to settle/verify, optionally simulates a regen failure,
+/// and optionally simulates a drift on a named face so a test can drive every settle path
+/// deterministically.
+///
+/// Gated behind `cfg(test)`: it is a test affordance, not a production surface (production uses
+/// [`Buck2RegenAdapter`] only).
+#[cfg(test)]
+pub struct FakeRegenPort {
+    /// If `true`, `regenerate` returns [`RegisterError::RegenFailed`] without touching the tree.
+    pub fail: bool,
+    /// The face file names `regenerate` claims to have written (returned on success).
+    pub faces_written: Vec<String>,
+    /// If `Some(face)`, `verify_drift` returns [`RegisterError::DriftDetected`] for that face.
+    pub drift_face: Option<String>,
+    /// `repo_root`s `regenerate` was called with, in order (so a test can assert it ran / did not).
+    pub regen_calls: std::cell::RefCell<Vec<std::path::PathBuf>>,
+    /// `repo_root`s `verify_drift` was called with, in order.
+    pub verify_calls: std::cell::RefCell<Vec<std::path::PathBuf>>,
+}
+
+#[cfg(test)]
+impl Default for FakeRegenPort {
+    fn default() -> Self {
+        Self {
+            fail: false,
+            faces_written: PRODUCER_FACES
+                .iter()
+                .map(|(file_name, _)| (*file_name).to_owned())
+                .chain(std::iter::once(SCM_FACTS_FACE.to_owned()))
+                .collect(),
+            drift_face: None,
+            regen_calls: std::cell::RefCell::new(Vec::new()),
+            verify_calls: std::cell::RefCell::new(Vec::new()),
+        }
+    }
+}
+
+#[cfg(test)]
+impl RegenPort for FakeRegenPort {
+    fn regenerate(&self, repo_root: &Path) -> Result<Vec<String>, RegisterError> {
+        self.regen_calls.borrow_mut().push(repo_root.to_path_buf());
+        if self.fail {
+            return Err(RegisterError::RegenFailed("fake regen failure".to_owned()));
+        }
+        let mut written = self.faces_written.clone();
+        written.sort();
+        Ok(written)
+    }
+
+    fn verify_drift(&self, repo_root: &Path) -> Result<(), RegisterError> {
+        self.verify_calls.borrow_mut().push(repo_root.to_path_buf());
+        match &self.drift_face {
+            Some(face) => Err(RegisterError::DriftDetected { face: face.clone() }),
+            None => Ok(()),
+        }
+    }
 }
 
 /// Dispatch a single [`Edit`] to its writer/bridge. Returns `Ok(Some(applied))` for a mutating
