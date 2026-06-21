@@ -35,10 +35,44 @@ pub const TTL_POLICY_JSON: &str = include_str!("ttl-policy.json");
 pub const PRODUCER_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app";
 
 /// A producer error. No panics escape the production path.
+///
+/// The first two variants cover the face-builders (policy parse + serialization). The last
+/// three cover the registration BRIDGES moved into this library (slice 2.5 — `fix_owners`,
+/// `fix_reachability`, `allocate_next_adr_id`): the bridges express filesystem failures
+/// ([`ProducerError::Io`]), input/shape/parse rejections ([`ProducerError::Validation`]),
+/// and refusal of an unsafe or already-applied registration ([`ProducerError::Refused`]).
+/// The thin CLI adapter maps these back to its own `CliError` so the binary's messages and
+/// exit semantics are unchanged (CLI surfaces are retirement-marked: the logic lives here,
+/// the binary is a transitional adapter).
 #[derive(Debug)]
 pub enum ProducerError {
     Policy(String),
     Serialize(String),
+    /// A filesystem read/write failed (the message already names the path + cause).
+    Io(String),
+    /// An input or on-disk artifact failed validation/shape/parse (bad `<dir>=<owner>`
+    /// spec, invalid OWNERS principal, malformed reachability registry, path traversal).
+    Validation(String),
+    /// A registration was REFUSED for a safety reason (OWNERS already exists, coverage over
+    /// the breadth bound, prefix already registered, self-validation did not take). The
+    /// message names the exact fix; refusal leaves NO residue (the bridges revert on refusal).
+    Refused(String),
+}
+
+impl ProducerError {
+    /// The bare message carried by a bridge-originated variant (`Io`/`Validation`/`Refused`),
+    /// WITHOUT the variant's Display prefix. The CLI adapter uses this to re-wrap the error in
+    /// its own `CliError::Io` so the binary's stderr stays byte-identical to before the
+    /// extraction. Returns `None` for the face-builder variants (`Policy`/`Serialize`), which
+    /// the adapter already routes through `CliError::Producer`.
+    pub fn bridge_message(&self) -> Option<&str> {
+        match self {
+            ProducerError::Io(message)
+            | ProducerError::Validation(message)
+            | ProducerError::Refused(message) => Some(message.as_str()),
+            ProducerError::Policy(_) | ProducerError::Serialize(_) => None,
+        }
+    }
 }
 
 impl std::fmt::Display for ProducerError {
@@ -46,6 +80,9 @@ impl std::fmt::Display for ProducerError {
         match self {
             ProducerError::Policy(message) => write!(f, "policy error: {message}"),
             ProducerError::Serialize(message) => write!(f, "serialize error: {message}"),
+            ProducerError::Io(message) => write!(f, "{message}"),
+            ProducerError::Validation(message) => write!(f, "{message}"),
+            ProducerError::Refused(message) => write!(f, "{message}"),
         }
     }
 }
@@ -896,6 +933,528 @@ pub fn to_canonical_json(value: &Value) -> Result<String, ProducerError> {
     Ok(text)
 }
 
+// ===========================================================================
+// Registration BRIDGES (slice 2.5: extracted from the binary as a LIBRARY API)
+//
+// These three functions were the producer's TRANSITIONAL registration bridges
+// (ADR-0555; cli_surface_policy: local bridge only, never merge authority — their
+// successors are the ADR-0548 D3 reconcilers). They were private in the binary, reachable
+// only via the retirement-marked `--fix-owners` / `--fix-reachability` / `--next-adr` CLI
+// flags. The future `register_crate` app (slice 3) calls them as LIBRARY functions (no
+// subprocess), so they live here as PUBLIC API. The logic is preserved EXACTLY; the only
+// change is the error type (`CliError` → [`ProducerError`]) and the bridges read the
+// tracked-paths universe as a `&[String]` slice (the binary's `ScmFacts` is binary-only).
+// ===========================================================================
+
+/// Read a file to a String, or the empty string on any error (the producer's tolerant
+/// corpus read — a missing ADR/registry sibling is the zero-config default, not a hard
+/// error). Mirrors the binary's `read_text` so the moved logic is byte-for-byte identical.
+fn read_text(path: &std::path::Path) -> String {
+    std::fs::read_to_string(path).unwrap_or_default()
+}
+
+/// The lines inside the leading `---` front-matter block.
+fn front_matter_lines(body: &str) -> Vec<&str> {
+    let mut lines = body.lines();
+    if lines.next().map(str::trim) != Some("---") {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    for line in lines {
+        if line.trim() == "---" {
+            break;
+        }
+        out.push(line.trim_start());
+    }
+    out
+}
+
+/// Read the value of a top-level YAML-ish front-matter scalar field (`key: value`).
+pub fn front_matter_field(body: &str, key: &str) -> Option<String> {
+    for line in front_matter_lines(body) {
+        if let Some(rest) = line.strip_prefix(&format!("{key}:")) {
+            let value = rest.trim().trim_matches('"').trim_matches('\'').trim();
+            if !value.is_empty() {
+                return Some(value.to_owned());
+            }
+        }
+    }
+    None
+}
+
+/// The `ADR-NNNN` decision id encoded by a decision FILENAME (`ADR-0001-title.md` ⇒
+/// `ADR-0001`). Names in any other shape contribute nothing.
+pub fn adr_id_from_filename(name: &str) -> Option<String> {
+    let rest = name.strip_prefix("ADR-")?;
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.len() == 4 {
+        Some(format!("ADR-{digits}"))
+    } else {
+        None
+    }
+}
+
+/// The numeric component of an `ADR-NNNN` decision id (allocator input). Ids in any
+/// other shape contribute nothing to the next-free-number derivation.
+pub fn adr_number(id: &str) -> Option<u32> {
+    let rest = id.strip_prefix("ADR-")?;
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.len() == 4 && digits.len() == rest.len() {
+        digits.parse().ok()
+    } else {
+        None
+    }
+}
+
+/// The next unallocated decision id, derived from the decisions directory (`adr_dir`).
+///
+/// STANDALONE allocator (slice 2.5): the highest decision number seen across BOTH the
+/// filename AND the front-matter `id:` of every decision file, plus one, formatted
+/// `ADR-{:04}`. This is the SINGLE allocator — the binary's `collect_crosswalk_inputs`
+/// calls it for `next_free_id`, and the `--next-adr` flag + `register_crate` (slice 3) call
+/// it directly. Read-only: it never writes. A missing/unreadable directory yields `ADR-0001`
+/// (max 0 + 1), the zero-config default. Lanes allocate by running this, never by convention.
+pub fn allocate_next_adr_id(adr_dir: &std::path::Path) -> Result<String, ProducerError> {
+    let mut max_decision_number: u32 = 0;
+    if let Ok(entries) = std::fs::read_dir(adr_dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if let Some(filename_id) = adr_id_from_filename(&name) {
+                if let Some(number) = adr_number(&filename_id) {
+                    max_decision_number = max_decision_number.max(number);
+                }
+                let body = read_text(&entry.path());
+                if let Some(front_id) = front_matter_field(&body, "id")
+                    && let Some(number) = adr_number(&front_id)
+                {
+                    max_decision_number = max_decision_number.max(number);
+                }
+            }
+        }
+    }
+    Ok(format!("ADR-{:04}", max_decision_number + 1))
+}
+
+/// An owner principal (one OWNERS line): a lowercase DNS-1123-label-shaped team
+/// identifier — `[a-z0-9]` plus interior `-`, 1..=63 chars (the K8s name shape; matches
+/// every live principal: `cloud-ci-platform`, `council-architecture`,
+/// `axis-cloud-platform`).
+pub fn is_valid_owner_principal(s: &str) -> bool {
+    let bytes = s.as_bytes();
+    if bytes.is_empty() || bytes.len() > 63 {
+        return false;
+    }
+    let alnum = |b: u8| b.is_ascii_lowercase() || b.is_ascii_digit();
+    alnum(bytes[0])
+        && alnum(bytes[bytes.len() - 1])
+        && bytes.iter().all(|&b| alnum(b) || b == b'-')
+}
+
+/// Parse OWNERS content against the minimal codified schema (ADR-0555 hardening,
+/// FRIC-1781400000 — codifies what the live corpus already does): each line, after
+/// trimming, is empty (ignored), a `#` comment (ignored), or an owner principal. A VALID
+/// file carries at least one principal and zero unparseable lines. Anything else —
+/// empty, comment-only, garbage, non-UTF-8 — is NOT ownership (fail-closed).
+fn parse_owners_content(text: &str) -> Result<Vec<String>, String> {
+    let mut principals = Vec::new();
+    for (idx, raw) in text.lines().enumerate() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if !is_valid_owner_principal(line) {
+            return Err(format!(
+                "line {}: {line:?} is not a valid owner principal (schema: one owner \
+                 principal per line — lowercase alphanumeric + interior hyphens, 1..=63 \
+                 chars, e.g. `cloud-ci-platform`; `#` comments and blank lines allowed)",
+                idx + 1
+            ));
+        }
+        principals.push(line.to_owned());
+    }
+    if principals.is_empty() {
+        return Err(
+            "zero owner principals (an empty or comment-only OWNERS file is NOT \
+             ownership — name at least one owning team, one principal per line)"
+            .to_owned(),
+        );
+    }
+    Ok(principals)
+}
+
+/// OWNERS-resolution integrity diagnostics (ADR-0555 hardening, FRIC-1781400000).
+/// These never grant or carry ownership themselves — they name the exact fix for each
+/// OWNERS file that failed the content schema or the breadth bound, so a FAIL is never
+/// a bare flag (founder directive: flagging/red-gating isn't enough).
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct OwnersIntegrity {
+    /// OWNERS file (repo-relative) -> the schema defect. Fail-closed: an invalid file is
+    /// NOT an ownership marker AND still poisons resolution at its directory (no
+    /// fall-through to a broader ancestor) — invalid content can never yield owned rows.
+    pub invalid: BTreeMap<String, String>,
+    /// OWNERS file (repo-relative) -> raw nearest-ancestor coverage, for files whose
+    /// coverage exceeds `[owners] max_paths_per_owners_file`. The first <bound> covered
+    /// paths (path-sorted) keep ownership; the excess stays UNOWNED.
+    pub over_broad: BTreeMap<String, usize>,
+}
+
+/// The outcome of OWNERS resolution: the per-path owner map plus integrity diagnostics.
+pub struct OwnersResolution {
+    pub by_path: BTreeMap<String, String>,
+    pub integrity: OwnersIntegrity,
+}
+
+fn nearest_ancestor(path: &str, dirs: &BTreeSet<String>) -> Option<String> {
+    let mut cursor = path;
+    while let Some((parent, _)) = cursor.rsplit_once('/') {
+        if dirs.contains(parent) {
+            return Some(parent.to_owned());
+        }
+        cursor = parent;
+    }
+    if dirs.contains("") {
+        return Some(String::new());
+    }
+    None
+}
+
+/// Resolve the nearest up-tree `OWNERS` file for each path. Ownership requires BOTH
+/// existence and valid content (ADR-0555 hardening, FRIC-1781400000): the file must
+/// parse to >=1 owner principal under `parse_owners_content`, and a single file's
+/// coverage is capped by `[owners] max_paths_per_owners_file` (excess stays unowned).
+/// With zero valid OWNERS files this returns an empty map (every row ⇒ unowned) — the
+/// gap is DATA (no OWNERS rows), not scanner code.
+pub fn resolve_owners(
+    repo_root: &std::path::Path,
+    paths: &[String],
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+) -> OwnersResolution {
+    let owners_file = cfg.owners.file_name.as_str();
+    let bound = usize::try_from(cfg.owners.max_paths_per_owners_file.get()).unwrap_or(usize::MAX);
+    // Every tracked OWNERS file is a resolution BOUNDARY (dir -> the file's repo-relative
+    // path); only the ones with schema-valid content GRANT ownership. An invalid file
+    // poisons its directory rather than falling through to a broader ancestor — fail-
+    // closed, so invalid content can never yield owned rows.
+    let mut owners_paths: BTreeMap<String, String> = BTreeMap::new();
+    for p in paths {
+        if p.as_str() == owners_file {
+            owners_paths.insert(String::new(), p.clone());
+        } else if p.ends_with(&format!("/{owners_file}"))
+            && let Some((dir, _)) = p.rsplit_once('/')
+        {
+            owners_paths.insert(dir.to_owned(), p.clone());
+        }
+    }
+
+    let mut integrity = OwnersIntegrity::default();
+    let mut valid_dirs: BTreeSet<String> = BTreeSet::new();
+    for (dir, rel) in &owners_paths {
+        let defect = match std::fs::read(repo_root.join(rel)) {
+            Err(e) => Some(format!("unreadable: {e}")),
+            Ok(bytes) => match String::from_utf8(bytes) {
+                Err(_) => Some("not UTF-8 text".to_owned()),
+                Ok(text) => parse_owners_content(&text).err(),
+            },
+        };
+        match defect {
+            Some(defect) => {
+                integrity.invalid.insert(rel.clone(), defect);
+            }
+            None => {
+                valid_dirs.insert(dir.clone());
+            }
+        }
+    }
+
+    let mut by_path = BTreeMap::new();
+    if owners_paths.is_empty() {
+        return OwnersResolution { by_path, integrity };
+    }
+
+    let all_dirs: BTreeSet<String> = owners_paths.keys().cloned().collect();
+    let mut covered: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for path in paths {
+        if let Some(owner_dir) = nearest_ancestor(path, &all_dirs)
+            && valid_dirs.contains(&owner_dir)
+        {
+            covered.entry(owner_dir).or_default().push(path.clone());
+        }
+    }
+
+    for (dir, mut dir_paths) in covered {
+        // Deterministic breadth accounting: path-sorted, so the SAME paths keep
+        // ownership on every regeneration (committed==regenerated holds).
+        dir_paths.sort();
+        if dir_paths.len() > bound {
+            integrity
+                .over_broad
+                .insert(owners_paths[&dir].clone(), dir_paths.len());
+            dir_paths.truncate(bound);
+        }
+        for p in dir_paths {
+            by_path.insert(p, format!("OWNERS:{dir}"));
+        }
+    }
+
+    OwnersResolution { by_path, integrity }
+}
+
+/// One reviewed reachability registration (ADR-0555): a dir prefix (MUST end with `/`) or
+/// an exact path, plus the non-empty `anchor` naming WHY the tree is reached. Registration
+/// is a review-visible design act recorded as DATA — the ADR-0551 trust class (same as
+/// ratchet-policy.json / gate-baseline.signoff.json) — never a silent exemption.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReachabilityRegistration {
+    pub prefix: String,
+    pub anchor: String,
+}
+
+/// Load + validate `specs/reachability-registry.json`. Fail-loud: a malformed file or an
+/// invalid entry (empty prefix, empty anchor) is a hard error naming the defect — never a
+/// silent empty registry. A MISSING file is the declared zero-config default (empty).
+pub fn load_reachability_registry(
+    path: &std::path::Path,
+) -> Result<Vec<ReachabilityRegistration>, ProducerError> {
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(ProducerError::Io(format!("{}: {e}", path.display()))),
+    };
+    let value: Value = serde_json::from_str(&text)
+        .map_err(|e| ProducerError::Validation(format!("{}: parse: {e}", path.display())))?;
+    let entries = value
+        .get("registered")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            ProducerError::Validation(format!(
+                "{}: missing 'registered' array (fail-loud: the reachability registry must \
+                 declare its entries explicitly)",
+                path.display()
+            ))
+        })?;
+    let mut out: Vec<ReachabilityRegistration> = Vec::with_capacity(entries.len());
+    for (index, entry) in entries.iter().enumerate() {
+        let prefix = entry
+            .get("prefix")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned();
+        let anchor = entry
+            .get("anchor")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned();
+        if prefix.is_empty() || anchor.trim().is_empty() {
+            return Err(ProducerError::Validation(format!(
+                "{}: registered[{index}] must carry a non-empty prefix AND a non-empty \
+                 anchor naming WHY the tree is reached (registration is a reviewed design \
+                 act, never a bare exemption)",
+                path.display()
+            )));
+        }
+        out.push(ReachabilityRegistration { prefix, anchor });
+    }
+    Ok(out)
+}
+
+/// Whether a tracked path is covered by a registration entry: dir prefixes (ending `/`)
+/// cover the subtree; any other entry is an EXACT path match. The trailing-`/` requirement
+/// prevents `docs/dec` from silently covering `docs/decisions-evil/...`.
+pub fn registration_matches(path: &str, prefix: &str) -> bool {
+    if prefix.ends_with('/') {
+        path.starts_with(prefix)
+    } else {
+        path == prefix
+    }
+}
+
+/// `fix-owners <dir>=<owner>` — the TRANSITIONAL ownership-registration bridge
+/// (ADR-0555; cli_surface_policy: local bridge only, never merge authority; successor =
+/// the ADR-0548 D3 reconcilers). The OWNER is the human design decision supplied as input;
+/// the bridge applies the exact edit (write `<dir>/OWNERS`) and SELF-VALIDATES by
+/// re-running the ownership derivation over the tracked universe (`tracked_paths`) plus the
+/// new file. Returns the success message; refusal leaves NO residue.
+pub fn fix_owners(
+    repo_root: &std::path::Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    tracked_paths: &[String],
+    spec: &str,
+) -> Result<String, ProducerError> {
+    let (dir, owner) = spec.split_once('=').ok_or_else(|| {
+        ProducerError::Validation(format!(
+            "--fix-owners expects <dir>=<owner> (the owner is YOUR design decision — \
+             this bridge applies it, it never invents one), got {spec:?}"
+        ))
+    })?;
+    let dir = dir.trim_end_matches('/');
+    let owner = owner.trim();
+    if dir.is_empty() || owner.is_empty() {
+        return Err(ProducerError::Validation(
+            "--fix-owners: both <dir> and <owner> must be non-empty".to_owned(),
+        ));
+    }
+    // ADR-0555 hardening (FRIC-1781400000): the bridge must EMIT valid schema content —
+    // an OWNERS file it writes that the resolver would reject is a self-defeating
+    // registration. Validate the principal before writing anything.
+    if !is_valid_owner_principal(owner) {
+        return Err(ProducerError::Validation(format!(
+            "--fix-owners: {owner:?} is not a valid owner principal (OWNERS schema: \
+             lowercase alphanumeric + interior hyphens, 1..=63 chars, e.g. \
+             `cloud-ci-platform`)"
+        )));
+    }
+    // <dir> must be a repo-relative path; reject absolute paths and `..` traversal so the
+    // local bridge cannot write an OWNERS file outside the repo (defence-in-depth — this is
+    // a local feedback bridge, never merge authority).
+    if dir.starts_with('/') || dir.split('/').any(|seg| seg == "..") {
+        return Err(ProducerError::Validation(format!(
+            "--fix-owners: <dir> must be a repo-relative path (no leading '/' or '..'): {dir:?}"
+        )));
+    }
+    if !repo_root.join(dir).is_dir() {
+        return Err(ProducerError::Validation(format!(
+            "--fix-owners: {dir} is not a directory under the repo root"
+        )));
+    }
+    let owners_file = cfg.owners.file_name.as_str();
+    let owners_rel = format!("{dir}/{owners_file}");
+    let owners_abs = repo_root.join(&owners_rel);
+    if owners_abs.exists() {
+        return Err(ProducerError::Refused(format!(
+            "--fix-owners: {owners_rel} already exists — extend it by hand (a reviewed \
+             edit), this bridge only seeds missing registrations"
+        )));
+    }
+    std::fs::write(&owners_abs, format!("{owner}\n"))
+        .map_err(|e| ProducerError::Io(format!("{owners_rel}: {e}")))?;
+
+    // SELF-VALIDATION: re-run the derivation over tracked ∪ {the new OWNERS file} and
+    // count the tracked paths that now ownership-resolve to this registration. The
+    // derivation is content-aware (ADR-0555 hardening), so this also proves the written
+    // file parses to the schema.
+    let mut universe = tracked_paths.to_vec();
+    if !universe.contains(&owners_rel) {
+        universe.push(owners_rel.clone());
+    }
+    let resolution = resolve_owners(repo_root, &universe, cfg);
+    // Breadth bound (FRIC-1781400000): refuse a registration whose coverage exceeds
+    // [owners] max_paths_per_owners_file — a single bulk OWNERS must not neuter a
+    // tree's unowned accounting. No residue on refusal.
+    if let Some(coverage) = resolution.integrity.over_broad.get(&owners_rel) {
+        let bound = cfg.owners.max_paths_per_owners_file;
+        let _ = std::fs::remove_file(&owners_abs);
+        return Err(ProducerError::Refused(format!(
+            "--fix-owners: {owners_rel} would cover {coverage} tracked paths, over the \
+             [owners] max_paths_per_owners_file bound ({bound}) — a single bulk \
+             registration cannot neuter a tree's unowned accounting (ADR-0555); reverted \
+             the written {owners_rel}. Exact fix: split the registration — add OWNERS \
+             files in child subtrees so no single file covers more than {bound} paths"
+        )));
+    }
+    let owners = resolution.by_path;
+    // Count only the PRE-EXISTING tracked paths the registration now covers (the new
+    // OWNERS file covering itself is not evidence of coverage).
+    let covered = owners
+        .iter()
+        .filter(|(path, resolved)| {
+            *path != &owners_rel
+                && path.starts_with(&format!("{dir}/"))
+                && *resolved == &format!("OWNERS:{dir}")
+        })
+        .count();
+    if covered == 0 {
+        // Self-validating-bridge contract: a registration that does not take leaves NO
+        // residue. Remove the file we just wrote before failing (best-effort; the error
+        // names the defect regardless).
+        let _ = std::fs::remove_file(&owners_abs);
+        return Err(ProducerError::Refused(format!(
+            "--fix-owners: self-validation FAILED — no tracked path under {dir}/ resolves \
+             to OWNERS:{dir} after the edit (the registration did not take; reverted the \
+             written {owners_rel})"
+        )));
+    }
+    Ok(format!(
+        "fix-owners: wrote {owners_rel} (owner: {owner}); self-validation: {covered} tracked \
+         path(s) under {dir}/ now ownership-resolve to OWNERS:{dir}. Next: git add \
+         {owners_rel}, then re-run infra/ci/materialize-cloud-ci-generated-faces.sh . and \
+         settle the regenerated faces (the settle protocol)."
+    ))
+}
+
+/// `fix-reachability <prefix>=<anchor>` — the TRANSITIONAL reachability-registration
+/// bridge (ADR-0555; cli_surface_policy: local bridge only, never merge authority;
+/// successor = the ADR-0548 D3 reconcilers). The ANCHOR (why this tree is reached) is the
+/// human design decision supplied as input; the bridge appends the reviewed registry entry
+/// and SELF-VALIDATES by re-loading the registry fail-loud and re-running the match. The
+/// coverage count is taken over `tracked_paths`. Returns the success message.
+pub fn fix_reachability(
+    repo_root: &std::path::Path,
+    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    tracked_paths: &[String],
+    spec: &str,
+) -> Result<String, ProducerError> {
+    let (prefix, anchor) = spec.split_once('=').ok_or_else(|| {
+        ProducerError::Validation(format!(
+            "--fix-reachability expects <prefix>=<anchor> (the anchor names WHY the tree \
+             is reached — YOUR design decision; this bridge applies it), got {spec:?}"
+        ))
+    })?;
+    let prefix = prefix.trim();
+    let anchor = anchor.trim();
+    if prefix.is_empty() || anchor.is_empty() {
+        return Err(ProducerError::Validation(
+            "--fix-reachability: both <prefix> and <anchor> must be non-empty".to_owned(),
+        ));
+    }
+    let registry_rel = cfg.reachability.registry.as_str();
+    let registry_abs = repo_root.join(registry_rel);
+    let mut entries = load_reachability_registry(&registry_abs)?;
+    if entries.iter().any(|entry| entry.prefix == prefix) {
+        return Err(ProducerError::Refused(format!(
+            "--fix-reachability: {prefix} is already registered in {registry_rel}"
+        )));
+    }
+    entries.push(ReachabilityRegistration {
+        prefix: prefix.to_owned(),
+        anchor: anchor.to_owned(),
+    });
+    entries.sort_by(|a, b| a.prefix.cmp(&b.prefix));
+
+    let registered: Vec<Value> = entries
+        .iter()
+        .map(|entry| serde_json::json!({ "prefix": entry.prefix, "anchor": entry.anchor }))
+        .collect();
+    let body = serde_json::json!({
+        "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act — the ADR-0551 trust class (same as ratchet-policy.json) — never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
+        "registered": registered,
+    });
+    let text = to_canonical_json(&body)?;
+    std::fs::write(&registry_abs, text)
+        .map_err(|e| ProducerError::Io(format!("{registry_rel}: {e}")))?;
+
+    // SELF-VALIDATION: the written registry must round-trip the fail-loud loader, and the
+    // new prefix is reported with its tracked coverage (0 is legal for a not-yet-committed
+    // artifact — the registration covers it the moment it is tracked).
+    let reloaded = load_reachability_registry(&registry_abs)?;
+    if !reloaded.iter().any(|entry| entry.prefix == prefix) {
+        return Err(ProducerError::Refused(format!(
+            "--fix-reachability: self-validation FAILED — {prefix} did not round-trip \
+             {registry_rel} (do not commit)"
+        )));
+    }
+    let covered = tracked_paths
+        .iter()
+        .filter(|path| registration_matches(path, prefix))
+        .count();
+    Ok(format!(
+        "fix-reachability: registered {prefix} in {registry_rel} (anchor: {anchor}); \
+         self-validation: round-trip OK, {covered} tracked path(s) currently covered. \
+         Next: git add {registry_rel}, then re-run \
+         infra/ci/materialize-cloud-ci-generated-faces.sh . and settle the regenerated \
+         faces (the settle protocol)."
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1207,5 +1766,230 @@ mod tests {
             br["keys"][0], "docs/products/foundry/PRD.md",
             "oyatie profile must flag the foundry residue (safety: unchanged)"
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // Registration BRIDGE tests (slice 2.5): the three functions extracted from the binary
+    // were previously reachable only via the CLI; these exercise them as the LIBRARY API the
+    // slice-3 register_crate app will call. std-only, each on a fresh tmpdir.
+    // -----------------------------------------------------------------------
+
+    /// A unique throwaway repo dir under the system temp dir (std-only; no tempfile dep).
+    fn unique_temp_repo() -> std::path::PathBuf {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static COUNTER: AtomicU64 = AtomicU64::new(0);
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
+        let dir = std::env::temp_dir().join(format!(
+            "oya-bornaccount-libtest-{}-{nanos}-{seq}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).expect("create temp repo");
+        dir
+    }
+
+    fn tracked(paths: &[&str]) -> Vec<String> {
+        paths.iter().map(|p| (*p).to_owned()).collect()
+    }
+
+    #[test]
+    fn fix_owners_applies_the_decided_edit_and_self_validates() {
+        let root = unique_temp_repo();
+        std::fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let scm = tracked(&["docs/decisions/ADR-0001-x.md"]);
+        let message = fix_owners(&root, &cfg, &scm, "docs/decisions=council-architecture")
+            .expect("fix applies");
+        assert!(message.contains("1 tracked path(s)"), "{message}");
+        assert_eq!(
+            std::fs::read_to_string(root.join("docs/decisions/OWNERS")).expect("read"),
+            "council-architecture\n"
+        );
+        // re-application refuses: an existing registration is extended by hand (reviewed).
+        assert!(fix_owners(&root, &cfg, &scm, "docs/decisions=council-architecture").is_err());
+        // the owner is a required DESIGN DECISION — a bare dir is refused.
+        assert!(fix_owners(&root, &cfg, &scm, "docs/decisions=").is_err());
+        // path traversal / absolute dirs are refused (the bridge cannot escape the repo).
+        assert!(fix_owners(&root, &cfg, &scm, "/etc=evil").is_err());
+        assert!(fix_owners(&root, &cfg, &scm, "../outside=evil").is_err());
+        // a self-validation failure (no tracked path under the dir) leaves no OWNERS residue.
+        std::fs::create_dir_all(root.join("empty-dir")).expect("create empty dir");
+        assert!(fix_owners(&root, &cfg, &scm, "empty-dir=team").is_err());
+        assert!(
+            !root.join("empty-dir/OWNERS").exists(),
+            "failed self-validation must remove the written OWNERS file"
+        );
+        std::fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn fix_owners_refuses_schema_invalid_and_over_broad_registrations() {
+        let root = unique_temp_repo();
+        std::fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let scm = tracked(&["docs/decisions/ADR-0001-x.md"]);
+
+        // A principal the resolver would reject must be refused BEFORE writing.
+        for hostile in ["Team Evil", "EVIL", "evil!", "a@b.example", "-x"] {
+            let err = fix_owners(&root, &cfg, &scm, &format!("docs/decisions={hostile}"))
+                .expect_err("schema-invalid principal must be refused");
+            assert!(
+                format!("{err:?}").contains("not a valid owner principal"),
+                "refusal must name the schema defect, got {err:?}"
+            );
+            assert!(
+                !root.join("docs/decisions/OWNERS").exists(),
+                "a refused registration must leave no OWNERS residue"
+            );
+        }
+
+        // The bulk-neuter shape: a registration covering more tracked paths than the
+        // bound is refused with the split-the-registration fix, and the written file is
+        // reverted.
+        let small_bound_cfg = oya_ci_config_kernel::OyaCiConfig::from_toml_str(
+            "[owners]\nmax_paths_per_owners_file = 3\n",
+        )
+        .expect("bound parses");
+        let bulk = tracked(&[
+            "docs/decisions/ADR-0001-a.md",
+            "docs/decisions/ADR-0002-b.md",
+            "docs/decisions/ADR-0003-c.md",
+            "docs/decisions/ADR-0004-d.md",
+        ]);
+        let err = fix_owners(
+            &root,
+            &small_bound_cfg,
+            &bulk,
+            "docs/decisions=council-architecture",
+        )
+        .expect_err("an over-broad registration must be refused");
+        let message = format!("{err:?}");
+        assert!(
+            message.contains("max_paths_per_owners_file") && message.contains("split"),
+            "refusal must name the bound and the split fix, got {message}"
+        );
+        assert!(
+            !root.join("docs/decisions/OWNERS").exists(),
+            "the over-broad OWNERS must be reverted (no residue)"
+        );
+
+        // Under the bound the same registration applies cleanly (the bound only catches
+        // bulk shapes, never legitimate trees).
+        let ok = fix_owners(
+            &root,
+            &small_bound_cfg,
+            &scm,
+            "docs/decisions=council-architecture",
+        )
+        .expect("a within-bound registration applies");
+        assert!(ok.contains("1 tracked path(s)"), "{ok}");
+
+        std::fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    #[test]
+    fn fix_reachability_appends_registers_sorts_and_round_trips() {
+        let root = unique_temp_repo();
+        std::fs::create_dir_all(root.join("specs")).expect("create specs");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let scm = tracked(&["specs/fixtures/x/tc-1.json"]);
+        let message = fix_reachability(
+            &root,
+            &cfg,
+            &scm,
+            "specs/fixtures/=gates' data-under-test, dir-loaded by gate tests",
+        )
+        .expect("fix applies");
+        assert!(message.contains("1 tracked path(s)"), "{message}");
+        // duplicate registration refused (idempotent-ish: a second identical prefix is a no-op error).
+        assert!(fix_reachability(&root, &cfg, &scm, "specs/fixtures/=again").is_err());
+        // the anchor is a required DESIGN DECISION — a bare prefix is refused.
+        assert!(fix_reachability(&root, &cfg, &scm, "third-party/=").is_err());
+
+        // Appending a SECOND, alphabetically-earlier prefix must sort it ahead in the
+        // canonical on-disk registry (the bridge sorts before writing).
+        fix_reachability(&root, &cfg, &scm, "evidence/=gate evidence corpus").expect("second");
+        let registry_abs = root.join(cfg.reachability.registry.as_str());
+        let entries = load_reachability_registry(&registry_abs).expect("registry round-trips");
+        let prefixes: Vec<&str> = entries.iter().map(|e| e.prefix.as_str()).collect();
+        assert_eq!(
+            prefixes,
+            vec!["evidence/", "specs/fixtures/"],
+            "registry entries must be prefix-sorted canonically"
+        );
+        std::fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// The standalone allocator must pick max+1 across BOTH the filename number AND the
+    /// front-matter `id:` — including the case where the front-matter id EXCEEDS the
+    /// filename number (the FRIC-1781320000 re-keying shape that must not be undercounted).
+    #[test]
+    fn allocate_next_adr_id_takes_max_over_filename_and_front_matter() {
+        let root = unique_temp_repo();
+        let decisions = root.join("docs/decisions");
+        std::fs::create_dir_all(&decisions).expect("create decisions dir");
+        // filename number 2, but front-matter id 9 (front-matter EXCEEDS filename) ⇒ max 9.
+        std::fs::write(
+            decisions.join("ADR-0002-mismatch.md"),
+            "---\nid: ADR-0009\nstatus: Proposed\n---\n",
+        )
+        .expect("write mismatched ADR");
+        // a plain filename-only ADR below the front-matter max.
+        std::fs::write(
+            decisions.join("ADR-0005-plain.md"),
+            "---\nstatus: Accepted\n---\n",
+        )
+        .expect("write plain ADR");
+        // a non-ADR file is ignored entirely.
+        std::fs::write(decisions.join("README.md"), "not an ADR\n").expect("write readme");
+
+        let next = allocate_next_adr_id(&decisions).expect("allocate");
+        assert_eq!(next, "ADR-0010", "max(filename 2,5; front-matter 9) + 1 = 10");
+
+        // An empty / missing decisions dir is the zero-config default (ADR-0001).
+        let empty = unique_temp_repo();
+        assert_eq!(
+            allocate_next_adr_id(&empty.join("docs/decisions")).expect("missing dir"),
+            "ADR-0001"
+        );
+
+        std::fs::remove_dir_all(root).expect("remove temp repo");
+        std::fs::remove_dir_all(empty).expect("remove empty");
+    }
+
+    /// The owner-principal grammar: every live principal shape is accepted; the obvious
+    /// hostile/garbage shapes are rejected (ADR-0555 hardening, FRIC-1781400000).
+    #[test]
+    fn owner_principal_schema_accepts_live_shapes_and_rejects_garbage() {
+        for valid in [
+            "cloud-ci-platform",
+            "council-architecture",
+            "axis-cloud-platform",
+            "team0",
+            "a",
+        ] {
+            assert!(is_valid_owner_principal(valid), "{valid:?} must be valid");
+        }
+        let too_long = "a".repeat(64);
+        for invalid in [
+            "",
+            "Team-Evil",
+            "EVIL",
+            "team evil",
+            "-leading-hyphen",
+            "trailing-hyphen-",
+            "dot.separated",
+            "email@example.com",
+            "tab\tseparated",
+            too_long.as_str(),
+        ] {
+            assert!(
+                !is_valid_owner_principal(invalid),
+                "{invalid:?} must be rejected"
+            );
+        }
     }
 }
