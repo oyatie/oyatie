@@ -53,12 +53,15 @@ impl Default for NamingPolicy {
     }
 }
 
-/// The 13-value canonical layer enum per ADR-0056 (amended by ADR-0105
-/// and ADR-0106).
+/// The 12-value canonical layer enum per ADR-0056 (amended by ADR-0105,
+/// ADR-0106, and ADR-0565).
 ///
 /// History:
 ///   2026-05-15 ADR-0105: added `api` (12 → 13).
 ///   2026-05-15 ADR-0106: renamed `application` → `usecase`.
+///   2026-06-21 ADR-0565: removed `graphql` (13 → 12). The owned stack
+///     carries NO GraphQL surface; de-blessing the role here makes this
+///     gate fail-CLOSED against any future `*-graphql` crate.
 ///   2026-05-15 ADR-0107 (Superseded by self): removed the
 ///     "tools/-implicit-app" carve-out. Every tools/ crate MUST take a
 ///     canonical layer suffix; binary tools use `-app`. The only
@@ -69,7 +72,7 @@ impl Default for NamingPolicy {
 ///   per-crate rename to `app` per ADR-0056 §"Concrete migration";
 ///   `test` was never in the canonical enum (test-only crates take
 ///   canonical layer suffixes like any other).
-pub const ALLOWED_ROLES: [&str; 13] = [
+pub const ALLOWED_ROLES: [&str; 12] = [
     "kernel",
     "domain",
     "usecase",
@@ -79,7 +82,6 @@ pub const ALLOWED_ROLES: [&str; 13] = [
     "cli",
     "rest",
     "grpc",
-    "graphql",
     "worker",
     "sdk",
     "api",
@@ -470,16 +472,21 @@ mod tests {
     }
 
     #[test]
-    fn allowed_roles_match_13_value_canonical_enum() {
+    fn allowed_roles_match_12_value_canonical_enum() {
         // Regression for ADR-0105 (added `api`) + ADR-0106 (renamed
-        // `application` → `usecase`). Old enum had 14 roles incl
-        // runtime+test; new canonical is 13 incl api+usecase.
-        assert_eq!(ALLOWED_ROLES.len(), 13);
+        // `application` → `usecase`) + ADR-0565 (removed `graphql`).
+        // Old enum had 14 roles incl runtime+test; ADR-0105/0106 gave 13
+        // incl api+usecase; ADR-0565 dropped graphql, leaving 12.
+        assert_eq!(ALLOWED_ROLES.len(), 12);
         assert!(ALLOWED_ROLES.contains(&"api"));
         assert!(ALLOWED_ROLES.contains(&"usecase"));
         assert!(!ALLOWED_ROLES.contains(&"application"));
         assert!(!ALLOWED_ROLES.contains(&"runtime"));
         assert!(!ALLOWED_ROLES.contains(&"test"));
+        // ADR-0565: the owned stack carries NO GraphQL surface, so the
+        // role is de-blessed; this keeps the naming gate fail-CLOSED
+        // against any future `*-graphql` crate.
+        assert!(!ALLOWED_ROLES.contains(&"graphql"));
     }
 
     #[test]

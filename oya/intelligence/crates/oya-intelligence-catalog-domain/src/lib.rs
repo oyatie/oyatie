@@ -299,7 +299,7 @@ fn parse_role(role: &str) -> Result<CatalogRole, CatalogError> {
         "domain" => Ok(CatalogRole::Domain),
         "usecase" => Ok(CatalogRole::Usecase),
         "app" | "application" => Ok(CatalogRole::App),
-        "api" | "rest" | "grpc" | "graphql" => Ok(CatalogRole::Api),
+        "api" | "rest" | "grpc" => Ok(CatalogRole::Api),
         "worker" => Ok(CatalogRole::Worker),
         "adapter" => Ok(CatalogRole::Adapter),
         "runtime" => Ok(CatalogRole::Runtime),

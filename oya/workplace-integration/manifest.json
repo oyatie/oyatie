@@ -39,7 +39,6 @@
         "infrastructure",
         "rest",
         "grpc",
-        "graphql",
         "worker",
         "cli",
         "sdk",

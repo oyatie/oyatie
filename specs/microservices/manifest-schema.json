@@ -83,7 +83,6 @@
           "cli",
           "rest",
           "grpc",
-          "graphql",
           "worker",
           "sdk",
           "usecase",

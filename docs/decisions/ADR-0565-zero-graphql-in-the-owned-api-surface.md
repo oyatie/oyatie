@@ -11,7 +11,7 @@ supersedes: []
 superseded_by: []
 amends:
   - ADR-0258-api-versioning-model.md (its hyperscaler-grade surface set listed GraphQL among the public REST/gRPC/AsyncAPI/GraphQL surfaces; that surface set drops GraphQL — the versioning model itself is unchanged for the remaining surfaces)
-  - ADR-0253-network-topology-edge-service-mesh.md (its D-14 multi-protocol API surface named GraphQL Federation v2 via a BFF tier; the BFF/GraphQL leg is dropped, the REST 3.2 + gRPC + AsyncAPI legs stand)
+  - ADR-0253-network-topology-edge-service-mesh.md (status Proposed, NOT Accepted — so this is a correction to a not-yet-ratified proposal, not an amendment of an accepted decision: its D-14 multi-protocol API surface named GraphQL Federation v2 via a BFF tier; the BFF/GraphQL leg is dropped, the REST 3.2 + gRPC + AsyncAPI legs stand)
   - ADR-0091-governance-write-gate-foundations.md (its transport-parity context and single-state-machine driver named GraphQL among the owned transports; the write-gate state machine itself is unchanged)
   - ADR-0051-mobile-and-native-client-strategy.md (its canonical-contracts clause named GraphQL among the contract families native clients consume; the REST/gRPC/Connect-protocol + mTLS gateway posture is unchanged)
   - ADR-0066-live-code-introspection-docs-portal.md (its extractor table listed `crates/*/schema.graphql` / `async-graphql`; its endpoint-coverage gate and portal surfaces enumerated GraphQL endpoints; its agent-readable manifest schema included `"graphql"` as an endpoint kind; the REST/gRPC/async extractor coverage posture is unchanged)
@@ -89,7 +89,10 @@ forbidden in the owned stack.
 
 ### Enforcement (recorded by THIS PR)
 
-This PR enforces the decision by deletion, not by flag:
+This PR enforces the decision by deletion and by de-blessing the vocabulary, not by flag. The
+enforcement is partial-by-design — it closes the crate-NAME axis now and stages the artifact-EXTENSION
+axis to issue #772 (see "Follow-up and staging" below); it does NOT claim the full reintroduction
+surface is sealed in this merge:
 
 - DELETED the husk crates `oya/intelligence/crates/oya-intelligence-api-graphql-kernel/` and
   `oya/intelligence/crates/oya-intelligence-api-graphql-adapter/` (whole directories, including their
@@ -104,13 +107,38 @@ This PR enforces the decision by deletion, not by flag:
   (masterplan, planning-closure, schema-registry, manifest-schema, platform-architecture,
   cloud-strangler-migration-target, root-hub-pointers, oyatie-doctrine, tasks/plan + tasks/todo) to
   declare the four-surface set and ZERO GraphQL.
+- DE-BLESSED `graphql` from the role/layer vocabulary SSOT: removed it from `allowed_roles` in
+  `oya-ci.toml`, from `ALLOWED_ROLES` in
+  `libs/oya-governance-predictable-naming-kernel/src/lib.rs` (13 → 12, with the parity test and the
+  bnf-layer-suffix gate doc updated in lockstep), from the `layers` enum in
+  `specs/microservices/manifest-schema.json`, from `canonical_enum` in `specs/crate-naming-audit.json`,
+  and from the only live manifest that still declared it (`oya/workplace-integration/manifest.json`).
+  Because the EXISTING predictable-naming gate reads `allowed_roles` as policy-as-data, this single
+  removal makes that gate fail-CLOSED against any future `*-graphql` crate as of this merge.
+- REMOVED the live `graphql` recognizers that mapped the role into a typed value: the
+  `"graphql" => CatalogRole::Api` arm in
+  `oya/intelligence/crates/oya-intelligence-catalog-domain/src/lib.rs`, the `"graphql"` valid
+  contract-extension match in `marketplace/facade/dev-cli/src/api_contract_registry.rs`, and the
+  `ArchitectureLayer::Graphql` variant (plus its array/slug/scaffold-count consumers) in
+  `data/facade/warehouse-tenant-olap-service/src/domain/mod.rs`.
 
-### Follow-up (tracked separately — NOT in this PR)
+### Follow-up and staging (what is DONE here vs. tracked separately)
 
-A reintroduction GATE — a cloud-ci check that fails closed on any new GraphQL library, `.graphql`/SDL
-artifact, or resolver appearing in the owned tree without an ADR that reverses ADR-0565 — is a
-separate follow-up the leader builds. This PR ships the DROP + the DOCTRINE + the SSOT update; the
-gate is the construction layer that prevents recurrence (enforcement-layering doctrine).
+The enforcement above is staged. Three items are explicitly NOT in this PR:
+
+- **Vocabulary de-blessing is DONE in this PR.** The role/layer enum SSOT no longer blesses `graphql`,
+  so the existing predictable-naming gate is fail-CLOSED against any new `*-graphql` crate as of this
+  merge. No follow-up is required for the crate-naming axis.
+- **The active `*.graphql`/SDL file-reintroduction gate is tracked as issue #772 (branch
+  `agent/no-graphql-gate`).** Interim gap: a `.graphql` file added to an EXISTING crate is not yet
+  auto-blocked until #772 lands — the de-blessing above only closes the crate-NAME axis, not the
+  artifact-EXTENSION axis.
+- **Removing the inert `**/*.graphql` glob from the BUCK generator
+  (`scripts/gen_first_party_buck.py`) requires an atomic full-tree regen** coupled to the
+  target-parity gate; it is a tracked corpus-wide sweep, NOT this PR. Without the generator fix any
+  manual BUCK-glob sweep is futile (the next regen would reintroduce the glob). The committed BUCK
+  files therefore still carry the inert glob; it is dead weight (the source files it would match were
+  deleted), not a live GraphQL surface.
 
 ## Rationale
 
