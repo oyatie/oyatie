@@ -1,0 +1,29 @@
+rust_library(
+    name = "oya-cloud-ci-register-crate-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_ci_register_crate_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//libs/oya-crate-registrar-app:oya-crate-registrar-app",
+        "//libs/oya-crate-registrar-kernel:oya-crate-registrar-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-register-crate-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_ci_register_crate_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//libs/oya-crate-registrar-app:oya-crate-registrar-app",
+        "//libs/oya-crate-registrar-kernel:oya-crate-registrar-kernel",
+        "third-party//:serde_json",
+    ],
+)
