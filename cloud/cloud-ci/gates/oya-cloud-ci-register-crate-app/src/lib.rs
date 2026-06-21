@@ -52,6 +52,14 @@ use oya_cloud_ci_accounting_registry_app::{
     ProducerError, adr_id_from_filename, fix_owners, fix_reachability, load_reachability_registry,
     resolve_owners,
 };
+// REUSE the membership-lint gate's home resolution (NOT a reimplementation). `homes_for` over
+// `parse_mapping` is the SINGLE source of "which home(s) does this crate map to?" — the same logic
+// the `oya-cloud-ci-capability-membership-app` gate BLOCKS on. Sharing it makes the orchestrator's
+// "already capability-mapped?" check drift-proof: it sees ALL four home sources (capability dir-
+// prefixes, app_products → meta:app/, meta_directory_absorbs → meta:kernel//os/, and the
+// `*`-suffix glob membership) exactly as the gate does, so it never emits a spurious mapping edit
+// that would DOUBLE-MAP a crate the gate then flags RED.
+use oya_cloud_ci_capability_membership_app::{Mapping, homes_for, parse_mapping};
 use oya_crate_registrar_app::{WriterError, adr_governed_paths, capability_mapping, catalog_yaml,
     workspace_member_glob};
 use oya_crate_registrar_kernel::{
@@ -232,7 +240,14 @@ pub enum RegisterOutcome {
 /// return `Failed` with an empty `applied` (nothing was written).
 #[must_use]
 pub fn register_crate_detailed(repo_root: &Path, req: &RegisterCrateRequest) -> RegisterOutcome {
-    let cfg = OyaCiConfig::default();
+    // Source the oya-ci policy from the REPO's `oya-ci.toml` (not the compiled-in oyatie default),
+    // mirroring the producer's loader — a non-oyatie adopter (neutral profile, custom
+    // `reachability.registry` / `justification.adr_dir` / `owners.file_name`) gets the right paths
+    // for every loader + bridge. Fail-closed on a malformed file (see [`load_config`]).
+    let cfg = match load_config(repo_root) {
+        Ok(c) => c,
+        Err(e) => return RegisterOutcome::Failed { error: e, applied: Vec::new() },
+    };
 
     // --- LOADERS: live SSOT snapshot the pure kernel consumes ---
     let capabilities = match load_capability_set(repo_root) {
@@ -284,6 +299,11 @@ fn dispatch_edit(
             // Producer bridge: `<dir>=<owner>`. fix_owners writes <dir>/OWNERS and self-validates.
             let spec = format!("{dir}={owner}");
             fix_owners(repo_root, cfg, tracked_paths, &spec)?;
+            // `changed: true` is HONEST here, not an assumption: `fix_owners` REFUSES (returns
+            // `ProducerError::Refused`, mapped to `Err` above) when `<dir>/OWNERS` already exists —
+            // it "only seeds missing registrations". So an `Ok` return ALWAYS means a new OWNERS
+            // file was written: there is no succeed-as-no-op path. (The kernel also only emits this
+            // edit when `owners_present == false`, so a re-run plans no OwnersWrite at all.)
             Ok(Some(AppliedEdit {
                 kind: AppliedEditKind::OwnersWrite,
                 path: format!("{dir}/{}", cfg.owners.file_name),
@@ -317,6 +337,10 @@ fn dispatch_edit(
             }))
         }
         Edit::CatalogYaml { dir, plane, slo } => {
+            // Judgment call 5b: the kernel emits CatalogYaml ONLY when the request carries a catalog
+            // spec. No catalog file ⇒ no slo-coverage / catalog-liveness row for this crate ⇒ no
+            // gate finding (those gates only evaluate rows that exist), so a catalog-less crate is
+            // correctly silent rather than RED.
             let changed = catalog_yaml::apply(repo_root, dir, plane, slo)?;
             Ok(Some(AppliedEdit {
                 kind: AppliedEditKind::CatalogYaml,
@@ -346,10 +370,40 @@ fn dispatch_edit(
 
 // ───────────────────────────── loaders (repo I/O) ─────────────────────────────
 
-/// Load the closed [`CapabilitySet`] from `specs/capability-registry.json`: the slug of every
-/// `membership_lint_coverage.absorbs_current_crate_globs` group (its `meta_dir` if present, else
-/// its `capability`). This is the SAME closed set the writer's `capability_mapping` validates
-/// against, so a capability the kernel accepts is one a writer can apply.
+/// Load the repo's `oya-ci.toml` policy (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3), mirroring the
+/// producer's loader (`oya-cloud-ci-accounting-registry-app::main::load_config`) so the orchestrator
+/// honours the SAME profile/paths the producer bridges do. The file is parsed by the CLOSED-schema
+/// loader; a malformed file / unknown key is a HARD error (fail LOUD, never silently revert to the
+/// oyatie default). Only file-NotFound falls back to the compiled-in bundled default (zero-config =
+/// today's first-party posture). This is the universality fix: a non-oyatie repo's custom
+/// `reachability.registry` / `justification.adr_dir` / `owners.file_name` are honoured, not the
+/// hardcoded oyatie profile that `OyaCiConfig::default()` returned.
+///
+/// # Errors
+/// [`RegisterError::Io`] on a malformed `oya-ci.toml` or a non-NotFound read failure.
+fn load_config(repo_root: &Path) -> Result<OyaCiConfig, RegisterError> {
+    let path = repo_root.join("oya-ci.toml");
+    match std::fs::read_to_string(&path) {
+        Ok(text) => OyaCiConfig::from_toml_str(&text)
+            .map_err(|e| RegisterError::Io(format!("{}: {e}", path.display()))),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(OyaCiConfig::bundled_default()),
+        Err(e) => Err(RegisterError::Io(format!("{}: {e}", path.display()))),
+    }
+}
+
+/// Load the closed [`CapabilitySet`] from `specs/capability-registry.json`: the set of capability
+/// slugs a human may pass as `req.capability`. Two slug classes, both bare (no `capability:`/`meta:`
+/// label prefix — the kernel compares `req.capability` by exact string):
+///   1. The WRITER-APPLIABLE slugs — every `membership_lint_coverage.absorbs_current_crate_globs`
+///      group's key (`meta_dir` if present, else `capability`). These are the only slugs the writer
+///      `capability_mapping::compute` can actually UPSERT a glob into, so a kernel-accepted slug in
+///      this class is one a `CapabilityMapping` edit can apply.
+///   2. The EXPRESSIBLE META homes — `app_products.meta_dir` (default `app/`) + each
+///      `meta_directory_absorbs[].meta_dir` (`kernel/`, `os/`). A crate that genuinely belongs under
+///      one of these is DIR-PREFIX mapped (so it is already-mapped and never drives a writer call),
+///      but the human must still be able to NAME its home — without these slugs the kernel would
+///      reject the only correct choice and force a wrong group. Including them gives a genuinely-
+///      unmapped meta crate a valid capability choice.
 ///
 /// # Errors
 /// [`RegisterError::Io`] if the registry is unreadable; the parse is fail-closed (a malformed
@@ -361,8 +415,10 @@ fn load_capability_set(repo_root: &Path) -> Result<CapabilitySet, RegisterError>
     let root: Value = serde_json::from_str(&text)
         .map_err(|e| RegisterError::Io(format!("parse {CAPABILITY_REGISTRY_PATH}: {e}")))?;
     let mut set = CapabilitySet::new();
-    if let Some(groups) = root
-        .get("membership_lint_coverage")
+    let coverage = root.get("membership_lint_coverage");
+
+    // 1. The writer-appliable slugs (absorbs_current_crate_globs group keys).
+    if let Some(groups) = coverage
         .and_then(|m| m.get("absorbs_current_crate_globs"))
         .and_then(Value::as_array)
     {
@@ -372,6 +428,23 @@ fn load_capability_set(repo_root: &Path) -> Result<CapabilitySet, RegisterError>
             }
         }
     }
+
+    // 2. The expressible meta homes: app_products → `app/`, meta_directory_absorbs → `kernel/`/`os/`.
+    if let Some(app) = coverage.and_then(|m| m.get("app_products")) {
+        let meta = app.get("meta_dir").and_then(Value::as_str).unwrap_or("app/");
+        set.insert(meta.to_owned());
+    }
+    if let Some(entries) = coverage
+        .and_then(|m| m.get("meta_directory_absorbs"))
+        .and_then(Value::as_array)
+    {
+        for entry in entries {
+            if let Some(meta) = entry.get("meta_dir").and_then(Value::as_str) {
+                set.insert(meta.to_owned());
+            }
+        }
+    }
+
     Ok(set)
 }
 
@@ -384,49 +457,32 @@ fn group_slug(group: &Value) -> Option<&str> {
         .or_else(|| group.get("capability").and_then(Value::as_str))
 }
 
-/// True iff `crate_dir` is already listed in ANY `absorbs_current_crate_globs` group's `globs`,
-/// OR is absorbed by a capability's `absorbs_current_dirs` path prefix (e.g. a crate under
-/// `cloud/cloud-ci/` is absorbed by the `ci` capability's `cloud/cloud-ci` dir entry — exactly
-/// the producer's own situation). Either makes the crate already capability-mapped.
-fn capability_already_mapped(repo_root: &Path, crate_dir: &str) -> Result<bool, RegisterError> {
+/// Parse the live registry into the membership gate's [`Mapping`] (the SAME parse the gate uses —
+/// reused, not reimplemented). A malformed registry is a fail-closed [`RegisterError::Io`] (the
+/// gate's own `MEM-POLICY-MALFORMED` message is carried through).
+fn load_mapping(repo_root: &Path) -> Result<Mapping, RegisterError> {
     let abs = repo_root.join(CAPABILITY_REGISTRY_PATH);
     let text = std::fs::read_to_string(&abs)
         .map_err(|e| RegisterError::Io(format!("read {CAPABILITY_REGISTRY_PATH}: {e}")))?;
     let root: Value = serde_json::from_str(&text)
         .map_err(|e| RegisterError::Io(format!("parse {CAPABILITY_REGISTRY_PATH}: {e}")))?;
+    parse_mapping(&root)
+        .map_err(|e| RegisterError::Io(format!("{CAPABILITY_REGISTRY_PATH}: {e}")))
+}
+
+/// True iff `crate_dir` already maps to at least one capability/meta home, computed by REUSING the
+/// membership-lint gate's `homes_for`/`parse_mapping` (NOT a divergent reimplementation). This sees
+/// every home source the gate enforces — `capabilities[].absorbs_current_dirs` dir-prefixes,
+/// `app_products.current_dirs` (→ `meta:app/`), `meta_directory_absorbs[].current_dirs`
+/// (→ `meta:kernel/`/`meta:os/`), and the `*`-suffix `absorbs_current_crate_globs` membership — so
+/// `capability_already_mapped(dir) == (homes_for(dir).len() >= 1)`. Sharing the gate's logic is the
+/// drift fix: the orchestrator never emits a spurious `CapabilityMapping` edit for a crate the gate
+/// considers mapped (under `oya/<app product>`, `cloud/cloud-kernel`, `cloud/cloud-os`, or a glob),
+/// which would otherwise DOUBLE-MAP it and turn the membership gate RED.
+fn capability_already_mapped(repo_root: &Path, crate_dir: &str) -> Result<bool, RegisterError> {
+    let mapping = load_mapping(repo_root)?;
     let normalized = crate_dir.trim_end_matches('/');
-
-    // 1. An explicit crate-glob membership entry (exact dir match in any group's globs).
-    if let Some(groups) = root
-        .get("membership_lint_coverage")
-        .and_then(|m| m.get("absorbs_current_crate_globs"))
-        .and_then(Value::as_array)
-    {
-        for group in groups {
-            if let Some(globs) = group.get("globs").and_then(Value::as_array)
-                && globs.iter().any(|g| g.as_str() == Some(normalized))
-            {
-                return Ok(true);
-            }
-        }
-    }
-
-    // 2. A capability dir-prefix absorption (the path is the namespace). A crate under a
-    //    capability's `absorbs_current_dirs` entry is mapped by its dir, not a crate-glob.
-    if let Some(caps) = root.get("capabilities").and_then(Value::as_array) {
-        for cap in caps {
-            if let Some(dirs) = cap.get("absorbs_current_dirs").and_then(Value::as_array) {
-                for dir in dirs.iter().filter_map(Value::as_str) {
-                    let dir = dir.trim_end_matches('/');
-                    if normalized == dir || normalized.starts_with(&format!("{dir}/")) {
-                        return Ok(true);
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(false)
+    Ok(!homes_for(&mapping, normalized).is_empty())
 }
 
 /// Build the [`CurrentState`] snapshot for `req` by reading the live SSOTs. The plan is the diff
@@ -480,8 +536,9 @@ fn load_current_state(
 
 /// True iff a schema-valid tracked OWNERS file ownership-resolves at least one path under `dir/`
 /// to `OWNERS:<dir>` (the producer's resolution semantics — existence AND valid content). The
-/// crate's own OWNERS file (if already tracked) is included in the universe so a just-seeded
-/// registration reads as present on a re-run.
+/// resolution runs over `tracked_paths` ALONE (the `git ls-files` universe): a just-seeded
+/// registration reads as present on a re-run only once its OWNERS file is staged into that tracked
+/// universe (the caller `git add`s it between runs); nothing is synthetically added here.
 fn owners_resolve_dir(
     repo_root: &Path,
     cfg: &OyaCiConfig,

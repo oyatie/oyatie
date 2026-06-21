@@ -72,26 +72,43 @@ fn unique_root(tag: &str) -> PathBuf {
 /// The new crate dir under test: a cloud-ci gate-tool crate (absorbed by the `cloud/cloud-ci` dir).
 const NEW_DIR: &str = "cloud/cloud-ci/gates/oya-cloud-ci-example-app";
 
-/// A minimal capability-registry: one crate-glob group (`build/`) for the closed CapabilitySet,
-/// plus a capability that absorbs `cloud/cloud-ci` (so the new gate crate is already
-/// capability-mapped by its dir — exactly the producer's situation).
+/// A minimal capability-registry mirroring the REAL schema the membership-lint gate's
+/// `parse_mapping` consumes (`capabilities[].name` + the full `membership_lint_coverage` block):
+///   - a crate-glob group (`build/`) with a `*`-suffix glob (`libs/oya-some-*`) for the closed
+///     CapabilitySet + the glob-membership path;
+///   - a capability (`ci`, by `name`) that absorbs `cloud/cloud-ci` so the new gate crate is already
+///     capability-mapped by its dir — exactly the producer's situation;
+///   - `app_products` (→ `meta:app/`) absorbing `oya/application`;
+///   - `meta_directory_absorbs` (→ `meta:kernel/`/`meta:os/`) absorbing `cloud/cloud-kernel` +
+///     `cloud/cloud-os`.
+///
+/// The orchestrator REUSES the gate's `parse_mapping`/`homes_for`, so this fixture must be the same
+/// shape the gate enforces (the drift the fix removes).
 fn capability_registry() -> &'static str {
     r#"{
   "capabilities": [
     {
-      "id": "ci",
+      "name": "ci",
       "absorbs_current_dirs": ["cloud/cloud-ci"]
     },
     {
-      "id": "data",
+      "name": "data",
       "absorbs_current_dirs": ["cloud/cloud-data"]
     }
   ],
   "membership_lint_coverage": {
+    "app_products": {
+      "meta_dir": "app/",
+      "current_dirs": ["oya/application"]
+    },
+    "meta_directory_absorbs": [
+      { "meta_dir": "kernel/", "current_dirs": ["cloud/cloud-kernel"] },
+      { "meta_dir": "os/", "current_dirs": ["cloud/cloud-os"] }
+    ],
     "absorbs_current_crate_globs": [
       {
         "meta_dir": "build/",
-        "globs": ["libs/oya-some-kernel"]
+        "globs": ["libs/oya-some-*"]
       },
       {
         "capability": "data",
@@ -388,5 +405,183 @@ fn detailed_reports_partial_application_on_dispatch_failure() {
             assert!(!kinds.contains(&AppliedEditKind::AdrGovernedPathAppend), "{kinds:?}");
         }
         RegisterOutcome::Done(_) => panic!("expected a dispatch failure"),
+    }
+}
+
+// ─────────────────────────── Issue B: membership-gate parity ───────────────────────────
+// `capability_already_mapped` REUSES the membership gate's `homes_for`, so it sees every home
+// source the gate enforces. A crate already mapped by a meta home (app_products → meta:app/,
+// meta_directory_absorbs → meta:kernel//os/) or by a `*`-suffix glob is correctly detected as
+// MAPPED — no spurious CapabilityMapping edit (which would DOUBLE-MAP it and turn the gate RED).
+#[test]
+fn meta_and_glob_homes_are_detected_as_already_mapped() {
+    let repo = fixture_tagged("meta-homes");
+
+    // app_products → meta:app/ : a crate under oya/application is already mapped.
+    assert!(
+        capability_already_mapped(&repo.root, "oya/application/some-crate").unwrap(),
+        "a crate under an app_products dir (→ meta:app/) must read as already mapped"
+    );
+    // meta_directory_absorbs → meta:kernel/ : a crate under cloud/cloud-kernel is already mapped.
+    assert!(
+        capability_already_mapped(&repo.root, "cloud/cloud-kernel/sub").unwrap(),
+        "a crate under a meta_directory_absorbs kernel/ dir must read as already mapped"
+    );
+    // meta_directory_absorbs → meta:os/ : a crate under cloud/cloud-os is already mapped.
+    assert!(
+        capability_already_mapped(&repo.root, "cloud/cloud-os/sub").unwrap(),
+        "a crate under a meta_directory_absorbs os/ dir must read as already mapped"
+    );
+    // capabilities[].absorbs_current_dirs : a crate under cloud/cloud-ci (the `ci` capability dir).
+    assert!(
+        capability_already_mapped(&repo.root, "cloud/cloud-ci/gates/x").unwrap(),
+        "a crate under a capability absorbs_current_dirs dir must read as already mapped"
+    );
+    // `*`-suffix glob membership : libs/oya-some-* is mapped via the build/ group's glob.
+    assert!(
+        capability_already_mapped(&repo.root, "libs/oya-some-widget").unwrap(),
+        "a crate matching a `*`-suffix crate-glob must read as already mapped (glob_match, not \
+         exact-string compare)"
+    );
+    // A genuinely-unmapped crate (no dir-prefix, no glob match) reads as NOT mapped.
+    assert!(
+        !capability_already_mapped(&repo.root, "libs/oya-brand-new-thing").unwrap(),
+        "a crate in no home must read as NOT mapped"
+    );
+}
+
+// The EXPRESSIBLE meta homes (app_products/meta_directory_absorbs slugs) join the CapabilitySet so
+// a genuinely-unmapped meta crate has a valid capability CHOICE (it is not forced into a wrong
+// group). The writer-appliable crate-glob slugs are still present too.
+#[test]
+fn capability_set_includes_expressible_meta_homes() {
+    let repo = fixture_tagged("cap-set");
+    let set = load_capability_set(&repo.root).unwrap();
+    // Writer-appliable crate-glob slugs.
+    assert!(set.contains("build/"), "build/ (crate-glob group) must be a valid capability: {set:?}");
+    assert!(set.contains("data"), "data (crate-glob group) must be a valid capability: {set:?}");
+    // Expressible meta homes.
+    assert!(set.contains("app/"), "app/ (app_products meta) must be expressible: {set:?}");
+    assert!(set.contains("kernel/"), "kernel/ (meta_directory_absorbs) must be expressible: {set:?}");
+    assert!(set.contains("os/"), "os/ (meta_directory_absorbs) must be expressible: {set:?}");
+}
+
+// Integration: registering a crate ALREADY home'd by a meta dir (oya/application → meta:app/) must
+// NOT emit a CapabilityMapping edit (the drift fix: the old exact-string/2-source check would have
+// missed the meta home and double-mapped it).
+#[test]
+fn meta_homed_crate_emits_no_capability_mapping_edit() {
+    let repo = fixture_tagged("meta-no-edit");
+    let app_dir = "oya/application/widget-app";
+    repo.write(&format!("{app_dir}/Cargo.toml"), "[package]\nname=\"widget-app\"\n");
+    repo.write(&format!("{app_dir}/src/lib.rs"), "//! widget\n");
+    // The members glob must cover the new dir so no WorkspaceMemberGlob edit/abort interferes.
+    repo.write(
+        "Cargo.toml",
+        "[workspace]\nresolver = \"2\"\nmembers = [\n    \"libs/oya-*\",\n    \"cloud/cloud-ci/gates/*\",\n    \"oya/application/*\",\n]\n\n\
+         [workspace.package]\nedition = \"2024\"\nversion = \"0.1.0\"\n",
+    );
+    run_git(&repo.root, &["add", "-A"]);
+
+    let req = RegisterCrateRequest {
+        crate_dir: app_dir.to_owned(),
+        // The human names the meta home; it is in the CapabilitySet so the kernel accepts it.
+        capability: "app/".to_owned(),
+        owning_adr: "ADR-0568".to_owned(),
+        owner: "cloud-ci-platform".to_owned(),
+        role: CrateRole::App,
+        has_lib: true,
+        has_test_code: true,
+        catalog: None,
+        extra_governed_paths: Vec::new(),
+    };
+    let outcome = register_crate(&repo.root, &req).unwrap();
+    let kinds: Vec<_> = outcome.applied.iter().map(|a| a.kind).collect();
+    assert!(
+        !kinds.contains(&AppliedEditKind::CapabilityMapping),
+        "a crate already home'd by a meta dir (oya/application → meta:app/) must NOT get a \
+         CapabilityMapping edit — that would DOUBLE-MAP it: {kinds:?}"
+    );
+}
+
+// ─────────────────────────── Issue C: non-oyatie oya-ci.toml ───────────────────────────
+// The orchestrator loads the repo's oya-ci.toml (not the compiled-in oyatie default). A non-oyatie
+// repo (neutral profile + custom reachability.registry / justification.adr_dir / owners.file_name)
+// has its loaders + bridges honour those custom paths, proving universality.
+#[test]
+fn honours_non_oyatie_oya_ci_toml() {
+    let repo = TmpRepo { root: unique_root("neutral-cfg") };
+    // A non-oyatie config: neutral profile, with custom non-oyatie SSOT paths.
+    repo.write(
+        "oya-ci.toml",
+        "profile = \"neutral\"\n\n\
+         [reachability]\nregistry = \"governance/reach.json\"\n\n\
+         [justification]\nadr_dir = \"governance/decisions\"\n\n\
+         [owners]\nfile_name = \"OWNERS\"\nmax_paths_per_owners_file = 4096\n",
+    );
+    // Registry + root manifest (oyatie-neutral paths still used for the capability registry, which
+    // is not config-driven — only reachability/justification/owners are exercised here).
+    repo.write("specs/capability-registry.json", capability_registry());
+    repo.write("Cargo.toml", root_cargo_toml());
+    // The ADR corpus + reachability registry live at the CUSTOM config paths, NOT the oyatie ones.
+    repo.write("governance/decisions/ADR-0568-born-accounting.md", stub_adr());
+    repo.write("governance/reach.json", reachability_registry());
+
+    let new_dir = "cloud/cloud-ci/gates/oya-cloud-ci-neutral-app";
+    repo.write(&format!("{new_dir}/Cargo.toml"), "[package]\nname=\"oya-cloud-ci-neutral-app\"\n");
+    repo.write(&format!("{new_dir}/src/lib.rs"), "//! neutral\n");
+    repo.git_add_all();
+
+    // A non-crate extra governed path → a ReachabilityEntry edit that must write the CUSTOM registry.
+    let extra = "specs/fixtures/neutral/case.json";
+    repo.write(extra, "{}\n");
+    run_git(&repo.root, &["add", "-A"]);
+
+    let req = RegisterCrateRequest {
+        crate_dir: new_dir.to_owned(),
+        capability: "build/".to_owned(),
+        owning_adr: "ADR-0568".to_owned(),
+        owner: "cloud-ci-platform".to_owned(),
+        role: CrateRole::App,
+        has_lib: true,
+        has_test_code: true,
+        catalog: None,
+        extra_governed_paths: vec![extra.to_owned()],
+    };
+    let outcome = register_crate(&repo.root, &req).unwrap();
+    let kinds: Vec<_> = outcome.applied.iter().map(|a| a.kind).collect();
+
+    // The ADR append resolved the owning ADR at the CUSTOM adr_dir (governance/decisions), proving
+    // justification.adr_dir was honoured (else AdrFileNotFound would have aborted).
+    assert!(kinds.contains(&AppliedEditKind::AdrGovernedPathAppend), "{kinds:?}");
+    let adr = repo.read("governance/decisions/ADR-0568-born-accounting.md");
+    assert!(adr.contains(&format!("{new_dir}/Cargo.toml")), "{adr}");
+
+    // The reachability entry was written to the CUSTOM registry path, proving reachability.registry
+    // was honoured (the oyatie default specs/reachability-registry.json was never created).
+    assert!(kinds.contains(&AppliedEditKind::ReachabilityEntry), "{kinds:?}");
+    let reach = repo.read("governance/reach.json");
+    assert!(reach.contains(extra), "custom reachability registry must carry the path: {reach}");
+    assert!(
+        !repo.exists("specs/reachability-registry.json"),
+        "the oyatie-default reachability registry must NOT be touched on a neutral-profile repo"
+    );
+}
+
+// A malformed oya-ci.toml fails CLOSED (loud), never silently reverting to the oyatie default.
+#[test]
+fn malformed_oya_ci_toml_fails_closed() {
+    let repo = fixture_tagged("malformed-cfg");
+    repo.write("oya-ci.toml", "this is = = not valid toml [[[\n");
+    run_git(&repo.root, &["add", "-A"]);
+
+    let req = base_request();
+    let err = register_crate(&repo.root, &req).unwrap_err();
+    match err {
+        RegisterError::Io(msg) => assert!(
+            msg.contains("oya-ci.toml"),
+            "a malformed config must fail closed naming oya-ci.toml, got {msg:?}"
+        ),
+        other => panic!("expected Io(malformed oya-ci.toml), got {other:?}"),
     }
 }
