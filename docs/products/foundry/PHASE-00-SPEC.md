@@ -1,7 +1,5 @@
 ---
 doc_status: published
-amended_by:
-  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (its transport-parity section named GraphQL in the Phase 00 scope alongside REST/SSE/WebSocket; GraphQL is dropped from the owned surface per ADR-0565 — the REST/SSE/WebSocket transport parity scope is unchanged)
 ---
 # Foundry Phase 00 Specification — Account-Auth Bootstrap
 
@@ -287,9 +285,9 @@ Validator: `validate-foundry-phase00-evidence.mjs`
 
 ### Transport Layer parity — P00-06
 
-**Requirement:** REST, gRPC, ~~GraphQL~~ [dropped per ADR-0565], WebSocket, SSE, Webhooks, and Kafka/MQ adapters call the same application/use-case ports or event ports.
+**Requirement:** REST, gRPC, GraphQL, WebSocket, SSE, Webhooks, and Kafka/MQ adapters call the same application/use-case ports or event ports.
 
-**Phase 00 scope:** REST/~~GraphQL~~ [dropped per ADR-0565]/SSE/WebSocket command input and status subscription foundations.
+**Phase 00 scope:** REST/GraphQL/SSE/WebSocket command input and status subscription foundations.
 
 **Phase 05 scope:** gRPC, Webhook, Kafka/MQ write-capable ops.
 

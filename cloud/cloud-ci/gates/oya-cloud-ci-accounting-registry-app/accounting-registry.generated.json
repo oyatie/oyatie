@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18451,
-    "source_inputs_digest": "fnv1a64:bb848470909dc8d3"
+    "source_inputs_digest": "fnv1a64:91f139f40975f92a"
   },
   "rows": [
     {
@@ -85767,7 +85767,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": "ADR-0565",
+      "justification_ref": null,
       "owner": null,
       "path": "docs/products/foundry/PHASE-00-SPEC.md",
       "reachable_from": [],
