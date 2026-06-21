@@ -119,7 +119,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Rust-native shared contract source paths that generate or validate REST/OpenAPI, gRPC/Protobuf, and event/AsyncAPI projections. GraphQL is NOT an owned contract surface per ADR-0564."
+          "description": "Rust-native shared contract source paths that generate or validate REST/OpenAPI, gRPC/Protobuf, and event/AsyncAPI projections. GraphQL is NOT an owned contract surface per ADR-0565."
         }
       }
     },

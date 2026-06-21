@@ -129,7 +129,7 @@
       "current_path": "/specs/api-contract-ssot-canonical.json",
       "kind": "spec",
       "migration_phase": "p-target",
-      "purpose": "API contract SSOT (CS-LAUNCH-API-CONTRACT-SSOT-001): one Rust-native source generating/validating REST(OpenAPI 3.2.0)+gRPC(proto3)+event(AsyncAPI 3.1.0)+realtime(SSE/WebSocket/gRPC-streaming); ZERO GraphQL per ADR-0564 (no husk, no generated BFF); api-contract-ssot-drift gate. Pulsar launch-primary; Kubewarden default. Target spec; no generators/runtime claimed.",
+      "purpose": "API contract SSOT (CS-LAUNCH-API-CONTRACT-SSOT-001): one Rust-native source generating/validating REST(OpenAPI 3.2.0)+gRPC(proto3)+event(AsyncAPI 3.1.0)+realtime(SSE/WebSocket/gRPC-streaming); ZERO GraphQL per ADR-0565 (no husk, no generated BFF); api-contract-ssot-drift gate. Pulsar launch-primary; Kubewarden default. Target spec; no generators/runtime claimed.",
       "target_path_after_md_retirement": "same"
     },
     "artifact_capabilities_registry": {

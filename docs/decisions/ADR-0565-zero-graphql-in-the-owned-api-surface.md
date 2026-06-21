@@ -1,5 +1,5 @@
 ---
-id: ADR-0564
+id: ADR-0565
 title: "Zero GraphQL in the owned API surface — the canonical surface set is REST + gRPC + async + realtime, and GraphQL returns only by an ADR that explicitly reverses this"
 status: Proposed
 planning_impact: true
@@ -24,7 +24,7 @@ related_specs:
 milestone: W0
 ---
 
-# ADR-0564: Zero GraphQL in the owned API surface
+# ADR-0565: Zero GraphQL in the owned API surface
 
 ## Status
 
@@ -101,7 +101,7 @@ This PR enforces the decision by deletion, not by flag:
 ### Follow-up (tracked separately — NOT in this PR)
 
 A reintroduction GATE — a cloud-ci check that fails closed on any new GraphQL library, `.graphql`/SDL
-artifact, or resolver appearing in the owned tree without an ADR that reverses ADR-0564 — is a
+artifact, or resolver appearing in the owned tree without an ADR that reverses ADR-0565 — is a
 separate follow-up the leader builds. This PR ships the DROP + the DOCTRINE + the SSOT update; the
 gate is the construction layer that prevents recurrence (enforcement-layering doctrine).
 

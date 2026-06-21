@@ -22,7 +22,7 @@
   "purpose": "Defines the per-service strangler-fig migration pattern, the parallel worktree-lane model, the per-migration Definition of Done, and the cutover/rollback criteria for moving existing FD-001 product microservices (enterprise/workflow/backbone) onto the greenfield cloud-* substrate behind contracts. The substrate itself is greenfield-built; this playbook governs the product-microservice migration. Honest non-claim: target playbook spec; no migration is executed here.",
   "per_service_pattern": {
     "steps": [
-      "1. seam: identify the service's public contract (OpenAPI 3.2.0 / proto3 / AsyncAPI 3.1.0) from the api-contract-ssot; freeze it as the migration boundary (ZERO GraphQL per ADR-0564)",
+      "1. seam: identify the service's public contract (OpenAPI 3.2.0 / proto3 / AsyncAPI 3.1.0) from the api-contract-ssot; freeze it as the migration boundary (ZERO GraphQL per ADR-0565)",
       "2. build ideal: implement the ideal target service (vertical-slice nesting microservices/<ms>/crates, ADR-0357) behind the SAME contract; Bazel build graph; Cedar-gated; OTel-instrumented",
       "3. facade: route through the Workflow/Ontology adapter layer (no direct cross-service calls); old and new both registered behind the contract facade",
       "4. shadow/canary: dual-run; one-cell canary + PRR (QK-04); compare old-vs-new on the contract",

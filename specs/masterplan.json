@@ -129,7 +129,7 @@
             "event/AsyncAPI",
             "realtime (SSE/WebSocket/gRPC-streaming) bindings"
           ],
-          "zero_graphql": "Per ADR-0564 the owned API surface carries NO GraphQL (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0564.",
+          "zero_graphql": "Per ADR-0565 the owned API surface carries NO GraphQL (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0565.",
           "requirement": "Every owned API surface (REST/OpenAPI, gRPC/Protobuf, event/AsyncAPI, realtime) must be generated or validated from the same shared Rust-native contract source; it must not become a separately hand-maintained schema."
         },
         "workload_specific_substrates": {

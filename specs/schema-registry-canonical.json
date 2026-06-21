@@ -32,7 +32,7 @@
     "Avro 1.x (legacy Kafka producers; new code uses proto3)",
     "JSON Schema (configuration documents, manifest schemas)"
   ],
-  "zero_graphql": "GraphQL SDL is NOT a supported schema kind in the owned stack per ADR-0564 (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0564.",
+  "zero_graphql": "GraphQL SDL is NOT a supported schema kind in the owned stack per ADR-0565 (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0565.",
   "subject_naming_convention": {
     "format": "<schema-kind>.<microservice>.<surface>.<event-class-or-resource>",
     "examples": [

@@ -8,8 +8,8 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 amended_by:
-  - ADR-0564-zero-graphql-in-the-owned-api-surface.md (drops GraphQL from this ADR's public surface set; the REST/gRPC/AsyncAPI surfaces + the versioning model itself are unchanged)
-related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0244, ADR-0250, ADR-0564]
+  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (drops GraphQL from this ADR's public surface set; the REST/gRPC/AsyncAPI surfaces + the versioning model itself are unchanged)
+related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0244, ADR-0250, ADR-0565]
 related_specs:
   - /specs/microservices/manifest-schema.json
   - /specs/hyperscaler-architecture-invariants.json

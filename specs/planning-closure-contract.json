@@ -164,7 +164,7 @@
           "event/AsyncAPI",
           "realtime (SSE/WebSocket/gRPC-streaming) bindings"
         ],
-        "graphql_policy": "GraphQL is NOT part of the owned API surface per ADR-0564 (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0564."
+        "graphql_policy": "GraphQL is NOT part of the owned API surface per ADR-0565 (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0565."
       },
       "required_hyperscaler_pattern_rules": [
         "slo_error_budget_gating",
