@@ -6166,6 +6166,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-cloud-ci-no-graphql-without-adr-app"
+version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "oya-cloud-ci-runner-disk-reclaim-app"
 version = "0.1.0"
 dependencies = [
