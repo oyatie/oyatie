@@ -26,7 +26,7 @@
 //! The drop PR leaves the tree GraphQL-free, so this gate ships born-blocking with an EMPTY baseline:
 //! there is no shrink-only legacy debt. Any NEW GraphQL artifact fails closed on arrival.
 //!
-//! ## ADR escape-hatch (allowlist-gated + ADR-validated; NOT a bare token match)
+//! ## ADR escape-hatch (allowlist-gated + ADR-validated; review-gated, NOT mechanically attacker-proof)
 //! GraphQL is admissible ONLY via a future ADR that explicitly reverses ADR-0565 (ADR-0565
 //! "Decision"). The gate honors that, but it does NOT trust any `ADR-NNNN` token a candidate file
 //! prints. A citation launders a forbidden artifact iff BOTH hold:
@@ -35,18 +35,28 @@
 //!    `ADR-05650`) CANNOT launder. A real reversal first adds its id to the policy (a reviewed DATA
 //!    change), and only then can a file cite it.
 //! 2. Defense in depth: the cited id RESOLVES to a real `docs/decisions/ADR-NNNN-*.md` whose
-//!    frontmatter `status` is `Accepted` and that supersedes/reverses the forbidding ADR (its
-//!    `supersedes`/`amends`/`reverses` frontmatter names the forbidding id, or its body cites the
-//!    forbidding id with a reverse/supersede verb). A Proposed/Draft ADR, a missing file, or an ADR
-//!    that does not actually reverse the ban does NOT launder — even if it is (mistakenly) allowlisted.
+//!    frontmatter `status` is `Accepted` and whose frontmatter `supersedes`/`amends`/`reverses` list
+//!    (parsed as a YAML list-or-scalar, not a body-anywhere match) names the forbidding ADR id. A
+//!    Proposed/Draft ADR, a missing file, an ADR that names the forbidding id only in `related:` or
+//!    prose, or an ADR that uses words like "not superseded" does NOT launder — even if it is
+//!    (mistakenly) allowlisted.
+//!
+//! **Security framing**: this escape-hatch is REVIEW-GATED and OWNERS-protected — not mechanically
+//! attacker-proof against an insider who controls both `authorizing_adrs` in the policy file AND the
+//! matching ADR in `docs/decisions`. The security posture is: (a) the policy file's `authorizing_adrs`
+//! requires an OWNERS-approved code review (architecture-council/founder sign-off), and (b) the ADR
+//! requires a separate code review in `docs/decisions`. An attacker with review authority over BOTH
+//! files could bypass the gate — the control is process, not cryptographic. For the zero-GraphQL
+//! doctrine this is sufficient: a legitimate reversal of ADR-0565 genuinely requires both an Accepted
+//! ADR and an allowlist edit; the gate validates both are present and coherent.
 //!
 //! The cited id is also always a DIFFERENT ADR than the forbidding ADR (`policy.forbidding_adr`), so a
 //! file can never launder itself by merely mentioning ADR-0565 (the rule it would be violating). The
 //! set of ids that satisfy BOTH conditions is computed ONCE by the collector (the only I/O) and
 //! carried in `observed.valid_authorizing_adrs`; the pure evaluator then admits a forbidden artifact
 //! only if it cites one of those validated ids. This is construction-over-flag: a real reversal is a
-//! reviewed ADR plus a reviewed policy allowlist edit, and the gate validates both — never a bare
-//! suppression comment.
+//! reviewed Accepted ADR plus a separately reviewed policy allowlist edit, and the gate validates both
+//! — never a bare suppression comment.
 //!
 //! ## Born pack-shaped
 //! The crate is a NEUTRAL engine. All repo-specifics — the forbidden crate set (exact + prefix
@@ -307,7 +317,21 @@ fn collect_manifest_paths(
         let file_type = entry
             .file_type()
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
-        if file_type.is_dir() {
+        // Follow symlinks to directories (file_type().is_dir() is false for symlink-to-dir, but
+        // symlinked workspace members ARE counted in the census floor, so their Cargo.toml deps
+        // must be scanned too). Use fs::metadata (which follows symlinks) to detect symlink-to-dir.
+        // Cycle protection: only follow if the resolved canonical path descends from `root` or
+        // is within the same filesystem — we bound the recursion depth by checking the entry is a
+        // symlink and using fs::metadata() for the dir check; the recursive call will skip
+        // already-visited paths via `is_skipped_dir` (VCS/build exclusion).
+        let is_dir = if file_type.is_dir() {
+            true
+        } else if file_type.is_symlink() {
+            fs::metadata(&path).map(|m| m.is_dir()).unwrap_or(false)
+        } else {
+            false
+        };
+        if is_dir {
             collect_manifest_paths(root, &path, excluded, out)?;
         } else if rel_str == "Cargo.toml" || rel_str.ends_with("/Cargo.toml") {
             out.push(rel_str);
@@ -460,36 +484,110 @@ fn adr_file_reverses_forbidding(
 }
 
 /// Pure predicate: does an ADR document `body` carry frontmatter `status: Accepted` (case-insensitive)
-/// AND name `forbidding` as a decision it reverses/supersedes? The reversal signal is either the
-/// `supersedes`/`amends`/`reverses` frontmatter listing the forbidding id, or the body citing the
-/// forbidding id alongside a reverse/supersede verb. Exposed for unit tests.
+/// AND list `forbidding` in its frontmatter `supersedes:`, `amends:`, or `reverses:` field (parsed as
+/// a YAML list-or-scalar)? The reversal is required STRUCTURALLY in the frontmatter — a body-anywhere
+/// mention of the forbidding id (in `related:`, in prose, or in a phrase like "has not been
+/// superseded") does NOT satisfy the requirement. This prevents an attacker from citing the forbidding
+/// ADR in an unrelated field and claiming the reversal was present. Exposed for unit tests.
 pub fn adr_is_accepted_and_reverses(body: &str, forbidding: &str) -> bool {
     if !adr_status_is_accepted(body) {
         return false;
     }
-    if !adr_citations(body).contains(forbidding) {
-        // It does not even mention the forbidding ADR — it cannot reverse it.
-        return false;
-    }
-    // A reverse/supersede verb must appear somewhere in the document (its frontmatter
-    // supersedes/amends/reverses list, or its prose). Combined with the structural requirement above
-    // (status Accepted + the forbidding id is cited), this is the reversal signal.
-    let lower = body.to_ascii_lowercase();
-    const VERBS: [&str; 3] = ["reverse", "supersed", "overturn"];
-    VERBS.iter().any(|v| lower.contains(v))
+    adr_frontmatter_reverses(body, forbidding)
 }
 
-/// Whether the ADR frontmatter declares `status: Accepted` (case-insensitive on the value). Reads only
-/// the first `status:` line (the canonical frontmatter field); a `> **Status:** ...` prose line is not
-/// the authority. A multi-value status (`Proposed | Accepted | ...`) only counts when the resolved
-/// single value is Accepted, so a not-yet-ratified `Proposed` does not launder.
+/// Whether the first `---`…`---` frontmatter block contains a `supersedes:`, `amends:`, or
+/// `reverses:` field whose value (list-or-scalar) includes `forbidding`. Accepts both:
+/// - Inline scalar:  `supersedes: ADR-0565`
+/// - YAML list item: `supersedes:\n  - ADR-0565`
+/// Values are compared case-sensitively (canonical `ADR-NNNN` form). A match in `related:` or
+/// any other frontmatter field does NOT satisfy the requirement.
+fn adr_frontmatter_reverses(body: &str, forbidding: &str) -> bool {
+    const REVERSAL_FIELDS: [&str; 3] = ["supersedes:", "amends:", "reverses:"];
+    let mut lines = body.lines();
+    // Skip the opening `---` (already validated by adr_status_is_accepted).
+    let first = lines.next().unwrap_or("").trim();
+    if first != "---" {
+        return false;
+    }
+    // Track whether we are currently inside a reversal field's multi-line list.
+    let mut in_reversal_list = false;
+    for line in lines {
+        let trimmed = line.trim();
+        if trimmed == "---" {
+            // End of frontmatter.
+            return false;
+        }
+        // A new top-level key (not indented, ends with `:` or `: value`) resets list context.
+        let is_top_level_key = !line.starts_with(' ') && !line.starts_with('\t') && trimmed.contains(':');
+        if is_top_level_key {
+            in_reversal_list = REVERSAL_FIELDS.iter().any(|f| trimmed.starts_with(f));
+            // Check for inline scalar: `supersedes: ADR-0565`
+            if in_reversal_list {
+                let field_end = trimmed.find(':').unwrap_or(0) + 1;
+                let scalar = trimmed[field_end..].trim();
+                // Strip optional surrounding quotes.
+                let scalar = scalar
+                    .strip_prefix('"').and_then(|s| s.strip_suffix('"'))
+                    .or_else(|| scalar.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
+                    .unwrap_or(scalar)
+                    .trim();
+                if scalar == forbidding {
+                    return true;
+                }
+            }
+            continue;
+        }
+        // Inside a reversal list — check for `- ADR-NNNN` list items.
+        if in_reversal_list {
+            let item = trimmed.strip_prefix("- ").unwrap_or("").trim();
+            // Strip optional quotes.
+            let item = item
+                .strip_prefix('"').and_then(|s| s.strip_suffix('"'))
+                .or_else(|| item.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
+                .unwrap_or(item)
+                .trim();
+            if item == forbidding {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Whether the ADR frontmatter declares `status: Accepted` (case-insensitive on the value). Only the
+/// FIRST `---`…`---` YAML frontmatter block is scanned — a `status:` line inside a fenced code block
+/// or prose section does NOT count as the frontmatter status field. Accepts both bare and quoted
+/// values (`status: Accepted` and `status: "Accepted"`). A multi-value status
+/// (`Proposed | Accepted | ...`) only counts when the resolved single value is Accepted, so a
+/// not-yet-ratified `Proposed` does not launder.
 fn adr_status_is_accepted(body: &str) -> bool {
-    for line in body.lines() {
-        let trimmed = line.trim_start();
+    // Locate the first `---`…`---` YAML frontmatter block. The opening `---` must be the very first
+    // line (standard Jekyll/Hugo convention). If no closing `---` is found, the entire header up to
+    // the first blank-or-body line is NOT treated as frontmatter — fail closed.
+    let mut lines = body.lines();
+    let first = lines.next().unwrap_or("").trim();
+    if first != "---" {
+        return false;
+    }
+    for line in lines {
+        let trimmed = line.trim();
+        if trimmed == "---" {
+            // End of frontmatter — status: field was not found.
+            return false;
+        }
         let Some(rest) = trimmed.strip_prefix("status:") else {
             continue;
         };
-        let value = rest.trim().to_ascii_lowercase();
+        let raw = rest.trim();
+        // Strip optional surrounding quotes (`"Accepted"` or `'Accepted'`).
+        let value = raw
+            .strip_prefix('"')
+            .and_then(|s| s.strip_suffix('"'))
+            .or_else(|| raw.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
+            .unwrap_or(raw)
+            .trim()
+            .to_ascii_lowercase();
         // A pipe-delimited status enum (`proposed | accepted | superseded`) is a TEMPLATE, not a
         // ratified value — it does not count as Accepted.
         if value.contains('|') {
@@ -585,9 +683,13 @@ pub fn parse_manifest_dep_names_with_workspace(
 ) -> BTreeSet<String> {
     let mut names = BTreeSet::new();
     let Ok(doc) = text.parse::<toml::Value>() else {
-        // A manifest that does not parse contributes no deps from this leg; the gate is not a TOML
-        // linter (manifest-hygiene owns that). Over-approximating here is unnecessary because a
-        // forbidden lib in a broken manifest would also break the build.
+        // FAIL-CLOSED on malformed TOML: fall back to a raw-text over-approximation. Scan for any
+        // forbidden crate name appearing as a word in the raw bytes. This avoids the fails-open
+        // vulnerability where a forbidden crate in an unparseable Cargo.toml passes GREEN because
+        // the empty set has no forbidden-name intersection. The raw scan is intentionally
+        // over-approximate (it may flag a crate name in a comment or string literal) — that is the
+        // correct bias for a fail-closed gate.
+        names.extend(raw_text_dep_names(text, workspace_deps));
         return names;
     };
     collect_dep_table_names(doc.get("dependencies"), workspace_deps, &mut names);
@@ -601,6 +703,59 @@ pub fn parse_manifest_dep_names_with_workspace(
         }
     }
     names
+}
+
+/// Raw-text fallback used when `parse_manifest_dep_names_with_workspace` receives a TOML file that
+/// fails to parse. Scans the raw text for any workspace-dep key that appears as a word boundary
+/// match, then resolves it through `workspace_deps` to the real crate name. Also scans for the
+/// real crate names directly. This is an OVER-APPROXIMATION (a name appearing in a comment or
+/// string value will be flagged) — the correct bias for a fail-closed gate. The caller is
+/// responsible for only invoking this on parse failure, not on valid TOML.
+fn raw_text_dep_names(text: &str, workspace_deps: &WorkspaceDeps) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    // Check every workspace dep key and its resolved real name.
+    for (key, real) in &workspace_deps.map {
+        if text_contains_word(text, key) || text_contains_word(text, real) {
+            names.insert(real.clone());
+        }
+    }
+    // Also scan for every crate name directly (covers non-workspace cases where the key IS the
+    // real name, and where there is no workspace deps table to resolve through).
+    for word in raw_crate_name_words(text) {
+        names.insert(word);
+    }
+    names
+}
+
+/// Yield every token from `text` that looks like a crate name (alphanumeric + `-` / `_`, length ≥ 2).
+/// Used by the raw-text fallback to extract candidate dep names from a malformed TOML manifest.
+fn raw_crate_name_words(text: &str) -> impl Iterator<Item = String> + '_ {
+    // Split on any character that is NOT alphanumeric, `-`, or `_`.
+    text.split(|c: char| !c.is_ascii_alphanumeric() && c != '-' && c != '_')
+        .filter(|s| s.len() >= 2 && s.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_'))
+        .map(str::to_owned)
+}
+
+/// Whether `text` contains `word` as a standalone token (surrounded by non-word chars or at
+/// string boundaries). Used by `raw_text_dep_names` to detect a specific crate name.
+fn text_contains_word(text: &str, word: &str) -> bool {
+    let mut start = 0;
+    while let Some(pos) = text[start..].find(word) {
+        let abs = start + pos;
+        let before_ok = abs == 0 || {
+            let b = text.as_bytes()[abs - 1];
+            !b.is_ascii_alphanumeric() && b != b'-' && b != b'_'
+        };
+        let after_ok = abs + word.len() >= text.len() || {
+            let b = text.as_bytes()[abs + word.len()];
+            !b.is_ascii_alphanumeric() && b != b'-' && b != b'_'
+        };
+        if before_ok && after_ok {
+            return true;
+        }
+        start = abs + 1;
+    }
+    false
 }
 
 /// Collect crate names from one dependency table into `names`. Resolution order per entry:
@@ -656,10 +811,15 @@ fn collect_lock_packages(root: &Path, forbidding_adr: Option<&str>) -> Result<Va
 }
 
 /// Parse the `name = "<crate>"` of every `[[package]]` entry in a `Cargo.lock`. Pure helper, exposed
-/// for tests. A lock that does not parse contributes no names (the build would also be broken).
+/// for tests. FAIL-CLOSED on malformed TOML: falls back to a raw-text scan for `name = "<word>"`
+/// patterns so a forbidden crate in an unparseable lock still produces findings rather than a
+/// silent false-green pass.
 pub fn parse_lock_package_names(text: &str) -> BTreeSet<String> {
     let mut names = BTreeSet::new();
     let Ok(doc) = text.parse::<toml::Value>() else {
+        // Raw-text fallback: scan for `name = "…"` value patterns. This is an over-approximation
+        // but correct bias (fail-closed). We extract quoted strings following `name =`.
+        names.extend(raw_lock_package_names(text));
         return names;
     };
     if let Some(packages) = doc.get("package").and_then(toml::Value::as_array) {
@@ -667,6 +827,32 @@ pub fn parse_lock_package_names(text: &str) -> BTreeSet<String> {
             if let Some(name) = pkg.get("name").and_then(toml::Value::as_str) {
                 names.insert(name.to_owned());
             }
+        }
+    }
+    names
+}
+
+/// Raw-text fallback for `parse_lock_package_names` when the lock file fails to parse as TOML.
+/// Scans for `name = "…"` patterns (the canonical Cargo.lock package name field) and extracts the
+/// quoted value. Over-approximates (a name in a comment would match) — correct bias for fail-closed.
+fn raw_lock_package_names(text: &str) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    for line in text.lines() {
+        let trimmed = line.trim();
+        // Match `name = "…"` or `name = '…'`
+        let Some(rest) = trimmed.strip_prefix("name") else { continue; };
+        let rest = rest.trim_start();
+        let Some(rest) = rest.strip_prefix('=') else { continue; };
+        let rest = rest.trim();
+        let value = if let Some(inner) = rest.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
+            inner
+        } else if let Some(inner) = rest.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')) {
+            inner
+        } else {
+            continue;
+        };
+        if !value.is_empty() {
+            names.insert(value.to_owned());
         }
     }
     names
@@ -700,7 +886,15 @@ fn collect_schema_files(
         let file_type = entry
             .file_type()
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
-        if file_type.is_dir() {
+        // Follow symlinks to directories — same rationale as collect_manifest_paths.
+        let is_dir = if file_type.is_dir() {
+            true
+        } else if file_type.is_symlink() {
+            fs::metadata(&path).map(|m| m.is_dir()).unwrap_or(false)
+        } else {
+            false
+        };
+        if is_dir {
             collect_schema_files(root, &path, exts, excluded, forbidding_adr, out)?;
         } else if has_graphql_ext(&rel_str, exts) {
             let body = fs::read_to_string(&path).unwrap_or_default();
@@ -1388,5 +1582,178 @@ version = "7.0.0"
         let projected: BTreeSet<String> =
             evaluate_keyed(&policy(), &obs).into_iter().map(|f| f.code).collect();
         assert_eq!(evaluate(&policy(), &obs).violations, projected);
+    }
+
+    // --- Fix 1: malformed-TOML fail-closed ---
+
+    #[test]
+    fn malformed_manifest_with_forbidden_crate_is_red() {
+        // Fix 1 RED: a Cargo.toml that fails to parse as TOML but contains "async-graphql" must
+        // NOT pass GREEN — the raw-text fallback must flag it.
+        let malformed = "THIS IS NOT TOML !!!\nasync-graphql = garbage [[\n";
+        let ws = WorkspaceDeps::default();
+        let names = parse_manifest_dep_names_with_workspace(malformed, &ws);
+        assert!(
+            names.contains("async-graphql"),
+            "malformed TOML with async-graphql in raw text must produce the name (fail-closed): {names:?}"
+        );
+    }
+
+    #[test]
+    fn malformed_manifest_without_forbidden_crate_is_green() {
+        // Fix 1 GREEN: a Cargo.toml that fails to parse but contains NO forbidden crate name must
+        // remain GREEN — the raw-text fallback must not over-block clean content.
+        let malformed = "THIS IS NOT TOML !!!\nserde = garbage [[\n";
+        let ws = WorkspaceDeps::default();
+        let names = parse_manifest_dep_names_with_workspace(malformed, &ws);
+        assert!(
+            !names.contains("async-graphql"),
+            "malformed TOML without async-graphql must not produce a false positive: {names:?}"
+        );
+    }
+
+    #[test]
+    fn malformed_lock_with_forbidden_crate_is_red() {
+        // Fix 1 RED: a Cargo.lock that fails to parse as TOML but contains a `name = "async-graphql"`
+        // line must NOT pass GREEN — the raw lock fallback must flag it.
+        let malformed = "version = BROKEN\n\n[[package]]\nname = \"async-graphql\"\nversion = \"7.0.0\"\n[[BROKEN\n";
+        let names = parse_lock_package_names(malformed);
+        assert!(
+            names.contains("async-graphql"),
+            "malformed Cargo.lock with async-graphql name line must produce the name (fail-closed): {names:?}"
+        );
+    }
+
+    #[test]
+    fn malformed_lock_without_forbidden_crate_is_green() {
+        // Fix 1 GREEN: a Cargo.lock that fails to parse but has no forbidden crate name must remain GREEN.
+        let malformed = "version = BROKEN\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.0\"\n[[BROKEN\n";
+        let names = parse_lock_package_names(malformed);
+        assert!(
+            !names.contains("async-graphql"),
+            "malformed Cargo.lock without async-graphql must not produce a false positive: {names:?}"
+        );
+    }
+
+    // --- Fix 3: adr_status_is_accepted bounded to frontmatter ---
+
+    #[test]
+    fn status_in_code_block_does_not_validate() {
+        // Fix 3 RED: a `status: Accepted` line INSIDE a fenced code block must NOT satisfy the
+        // frontmatter check — only the first `---`…`---` block is authoritative.
+        let body = "---\nid: ADR-0700\nstatus: Proposed\n---\n\n```yaml\nstatus: Accepted\n```\n";
+        assert!(
+            !adr_status_is_accepted(body),
+            "status: Accepted inside a code block must NOT validate: body={body:?}"
+        );
+    }
+
+    #[test]
+    fn status_in_prose_does_not_validate() {
+        // Fix 3 RED: a `status: Accepted` line in the prose body (after the closing `---`) must
+        // NOT satisfy the frontmatter check.
+        let body = "---\nid: ADR-0700\nstatus: Proposed\n---\n\nstatus: Accepted\n";
+        assert!(
+            !adr_status_is_accepted(body),
+            "status: Accepted in prose must NOT validate: body={body:?}"
+        );
+    }
+
+    #[test]
+    fn quoted_status_accepted_validates() {
+        // Fix 3 GREEN: `status: "Accepted"` (quoted value) must validate.
+        let body = "---\nid: ADR-0700\nstatus: \"Accepted\"\n---\n";
+        assert!(
+            adr_status_is_accepted(body),
+            "quoted status: \"Accepted\" must validate: body={body:?}"
+        );
+    }
+
+    #[test]
+    fn single_quoted_status_accepted_validates() {
+        let body = "---\nid: ADR-0700\nstatus: 'Accepted'\n---\n";
+        assert!(
+            adr_status_is_accepted(body),
+            "single-quoted status: 'Accepted' must validate: body={body:?}"
+        );
+    }
+
+    #[test]
+    fn status_accepted_case_insensitive_validates() {
+        // Case-insensitive: `status: accepted` (lowercase) must validate.
+        let body = "---\nid: ADR-0700\nstatus: accepted\n---\n";
+        assert!(adr_status_is_accepted(body), "lowercase 'accepted' must validate");
+    }
+
+    // --- Fix 4: adr_is_accepted_and_reverses requires structural supersedes in frontmatter ---
+
+    #[test]
+    fn forbidding_id_only_in_related_does_not_validate() {
+        // Fix 4 RED: an ADR that lists ADR-0565 only under `related:` (not supersedes/amends/reverses)
+        // must NOT validate as a reversal — even if the body also says "has not been superseded".
+        let body = "---\nid: ADR-0700\nstatus: Accepted\nrelated:\n  - ADR-0565\n---\n\nADR-0565 has not been superseded by this decision.\n";
+        assert!(
+            !adr_is_accepted_and_reverses(body, "ADR-0565"),
+            "forbidding id only in related: must NOT validate as reversal: body={body:?}"
+        );
+    }
+
+    #[test]
+    fn not_superseded_phrase_in_body_does_not_validate() {
+        // Fix 4 RED: a body containing "superseded" only as part of "has not been superseded" must
+        // NOT satisfy the reversal requirement (the supersedes: field is not present).
+        let body = "---\nid: ADR-0700\nstatus: Accepted\n---\n\nThis ADR has NOT superseded ADR-0565; ADR-0565 remains in effect.\n";
+        assert!(
+            !adr_is_accepted_and_reverses(body, "ADR-0565"),
+            "body-only superseded mention must NOT validate: body={body:?}"
+        );
+    }
+
+    #[test]
+    fn frontmatter_supersedes_list_validates() {
+        // Fix 4 GREEN: frontmatter `supersedes:\n  - ADR-0565` validates correctly.
+        let body = "---\nid: ADR-0700\nstatus: Accepted\nsupersedes:\n  - ADR-0565\n---\n";
+        assert!(adr_is_accepted_and_reverses(body, "ADR-0565"), "supersedes list must validate");
+    }
+
+    #[test]
+    fn frontmatter_amends_field_validates() {
+        // Fix 4 GREEN: `amends: ADR-0565` (inline scalar) validates.
+        let body = "---\nid: ADR-0700\nstatus: Accepted\namends: ADR-0565\n---\n";
+        assert!(adr_is_accepted_and_reverses(body, "ADR-0565"), "amends scalar must validate");
+    }
+
+    #[test]
+    fn frontmatter_reverses_field_validates() {
+        // Fix 4 GREEN: `reverses:\n  - ADR-0565` validates.
+        let body = "---\nid: ADR-0700\nstatus: Accepted\nreverses:\n  - ADR-0565\n---\n";
+        assert!(adr_is_accepted_and_reverses(body, "ADR-0565"), "reverses list must validate");
+    }
+
+    #[test]
+    fn frontmatter_supersedes_inline_scalar_validates() {
+        // Fix 4 GREEN: `supersedes: ADR-0565` (inline scalar, no list) validates.
+        let body = "---\nid: ADR-0700\nstatus: Accepted\nsupersedes: ADR-0565\n---\n";
+        assert!(adr_is_accepted_and_reverses(body, "ADR-0565"), "supersedes inline scalar must validate");
+    }
+
+    #[test]
+    fn existing_adr_status_accepted_test_still_passes() {
+        // Regression: the existing adr_status_accepted_requires_a_ratified_value test shape
+        // with frontmatter-bounded check.
+        assert!(adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Accepted\nsupersedes:\n  - ADR-0565\n---\nThis ADR reverses ADR-0565.\n",
+            "ADR-0565"
+        ));
+        // Proposed + supersedes list → still fails (wrong status).
+        assert!(!adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Proposed\nsupersedes:\n  - ADR-0565\n---\n",
+            "ADR-0565"
+        ));
+        // Accepted + no reversal field → fails.
+        assert!(!adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Accepted\n---\nUnrelated decision.\n",
+            "ADR-0565"
+        ));
     }
 }

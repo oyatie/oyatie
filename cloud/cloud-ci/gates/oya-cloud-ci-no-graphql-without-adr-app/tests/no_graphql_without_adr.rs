@@ -490,3 +490,102 @@ fn red_fixture_mentioning_only_forbidding_adr_does_not_self_launder() {
 
     fs::remove_dir_all(&root).expect("remove temp repo");
 }
+
+#[test]
+fn red_fixture_malformed_manifest_with_forbidden_crate() {
+    // Fix 1 RED, hermetic: a Cargo.toml that FAILS to parse as valid TOML but contains the text
+    // "async-graphql" must be caught by the raw-text fallback and the gate must be RED. This
+    // prevents the fails-open vulnerability where a forbidden crate in an unparseable manifest
+    // passes GREEN because the TOML parser returns an empty set.
+    let root = temp_repo();
+    // Write a clean member so the census floor is met.
+    write_member(
+        &root,
+        "core",
+        "[package]\nname = \"core\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = \"1\"\n",
+        None,
+    );
+    // Write a malformed Cargo.toml containing `async-graphql` in a non-member path.
+    write_file(
+        &root,
+        "services/broken/Cargo.toml",
+        "THIS IS NOT VALID TOML [[[\nasync-graphql = \"broken\"\n",
+    );
+
+    let policy = fixture_policy();
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    assert!(
+        findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB"),
+        "malformed Cargo.toml with async-graphql must be RED (fail-closed raw fallback): {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
+
+#[test]
+fn red_fixture_malformed_cargo_lock_with_forbidden_crate() {
+    // Fix 1 RED, hermetic: a Cargo.lock that FAILS to parse as valid TOML but contains a
+    // `name = "async-graphql"` line must be caught by the raw lock fallback and the gate must be RED.
+    let root = temp_repo();
+    write_member(
+        &root,
+        "core",
+        "[package]\nname = \"core\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = \"1\"\n",
+        None,
+    );
+    // Write a malformed Cargo.lock that contains the forbidden crate name.
+    write_file(
+        &root,
+        "Cargo.lock",
+        "version = BROKEN_NOT_TOML\n\n[[package]]\nname = \"async-graphql\"\nversion = \"7.0.0\"\n[[BROKEN\n",
+    );
+
+    let policy = fixture_policy();
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    assert!(
+        findings.iter().any(|f| f.code == "NGQL-LOCK-FORBIDDEN"),
+        "malformed Cargo.lock with async-graphql must be RED (fail-closed raw fallback): {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
+
+#[test]
+fn red_fixture_adr_only_in_related_field_does_not_reverse() {
+    // Fix 4 RED, hermetic: an escape-hatch ADR that lists the forbidding id only under `related:`
+    // (not `supersedes:`/`amends:`/`reverses:`) must NOT validate as a reversal. The gate must
+    // remain RED even if the ADR id is in the policy allowlist.
+    let root = temp_repo();
+    // Write an "authorizing" ADR that only lists ADR-0565 in `related:` + has body prose
+    // containing "has not been superseded" — the structural supersedes check must reject this.
+    write_file(
+        &root,
+        "docs/decisions/ADR-0700-not-a-reversal.md",
+        "---\nid: ADR-0700\nstatus: Accepted\nrelated:\n  - ADR-0565\n---\n\n# ADR-0700\n\nADR-0565 has not been superseded by this decision.\n",
+    );
+    write_member(
+        &root,
+        "studio-graphql",
+        "# Reintroduced per ADR-0700 (cites ADR-0565).\n[package]\nname = \"studio-graphql\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nasync-graphql = \"7\"\n",
+        None,
+    );
+
+    // Even with ADR-0700 in the allowlist, it does not validate as a reversal.
+    let policy = fixture_policy_allowing(&["ADR-0700"]);
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    assert!(
+        findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB"),
+        "ADR listed only in related: must NOT validate as reversal — gate must be RED: {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
