@@ -18,7 +18,6 @@ rust_library(
         "third-party//:tokio",
         "third-party//:tower",
         "third-party//:tracing",
-        # UNRESOLVED: httpmock ^0.7
     ],
 )
 
@@ -123,5 +122,68 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":intelligence-rest",
+    ],
+)
+
+rust_test(
+    name = "intelligence-rest-d3-anthropic-adapter-integration-test",
+    srcs = glob(["tests/d3_anthropic_adapter_integration.rs"]),
+    crate = "intelligence_rest_d3_anthropic_adapter_integration_test",
+    crate_root = "tests/d3_anthropic_adapter_integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-rest",
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:httpmock",
+        "third-party//:reqwest",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-rest-d3-singleflight-upstream-test",
+    srcs = glob(["tests/d3_singleflight_upstream.rs"]),
+    crate = "intelligence_rest_d3_singleflight_upstream_test",
+    crate_root = "tests/d3_singleflight_upstream.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-rest",
+        "third-party//:httpmock",
+        "third-party//:reqwest",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-rest-d3-sse-streaming-test",
+    srcs = glob(["tests/d3_sse_streaming.rs"]),
+    crate = "intelligence_rest_d3_sse_streaming_test",
+    crate_root = "tests/d3_sse_streaming.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-rest",
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:axum",
+        "third-party//:bytes",
+        "third-party//:futures",
+        "third-party//:httpmock",
+        "third-party//:reqwest",
+        "third-party//:tokio",
+        "third-party//:tower",
+    ],
+)
+
+rust_test(
+    name = "intelligence-rest-d5-hop-by-hop-filter-test",
+    srcs = glob(["tests/d5_hop_by_hop_filter.rs"]),
+    crate = "intelligence_rest_d5_hop_by_hop_filter_test",
+    crate_root = "tests/d5_hop_by_hop_filter.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-rest",
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:httpmock",
+        "third-party//:reqwest",
+        "third-party//:tokio",
     ],
 )
