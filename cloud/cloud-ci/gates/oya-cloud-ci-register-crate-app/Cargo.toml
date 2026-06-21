@@ -32,6 +32,10 @@ oya-ci-config-kernel = { path = "../../../../libs/oya-ci-config" }
 # SAME-LAYER on the cloud-ci producer: fix_owners / fix_reachability / allocate_next_adr_id /
 # resolve_owners / load_reachability_registry / adr_id_from_filename.
 oya-cloud-ci-accounting-registry-app = { path = "../oya-cloud-ci-accounting-registry-app" }
+# SAME-LAYER on the membership-lint gate: REUSE its parse_mapping/homes_for/glob_match so the
+# orchestrator's "is this crate already capability-mapped?" check is the SAME logic the gate
+# enforces — never a divergent reimplementation that double-maps a crate the gate then RED-flags.
+oya-cloud-ci-capability-membership-app = { path = "../oya-cloud-ci-capability-membership-app" }
 serde_json = { workspace = true }
 
 [lints]

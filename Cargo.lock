@@ -6180,6 +6180,7 @@ version = "0.1.0"
 dependencies = [
  "oya-ci-config-kernel",
  "oya-cloud-ci-accounting-registry-app",
+ "oya-cloud-ci-capability-membership-app",
  "oya-crate-registrar-app",
  "oya-crate-registrar-kernel",
  "serde_json",
