@@ -1,0 +1,34 @@
+{
+  "_comment": "no-graphql-without-adr gate policy (DATA, not code). ADR-0565 (founder 2026-06-21, door: one-way) removes ALL GraphQL from the owned API surface: the canonical surface set is REST + gRPC + AsyncAPI + realtime (SSE / WebSocket / gRPC-streaming). GraphQL is admissible ONLY via a future ADR that explicitly reverses ADR-0565. This gate is the enforcement half (the drop PR #775 is the construction): it fails CLOSED if the candidate tree reintroduces a GraphQL execution/parse library (in any member Cargo.toml dependency table) or a .graphql/.gql/.sdl schema file, in EITHER case WITHOUT the artifact referencing an authorizing (reversing) ADR id. CANDIDATE-TREE EVALUATION, NOT a frozen merge-base: the gate scans the live workspace manifests + a read-only file walk, so the verdict is identical at PR-tier and push-tier (avoiding the gate-baseline PR/push asymmetry false-green). FROZEN BASELINE = EMPTY (the tree is GraphQL-free post-drop). ALL repo-specifics are DATA here: a different repo adopts the gate by repointing forbidden_crates / schema_extensions / forbidding_adr / excluded_dirs.",
+  "gate_id": "cloud-ci-no-graphql-without-adr",
+  "schema_version": "1.0.0",
+  "forbidding_adr": "ADR-0565",
+  "min_expected_workspace_members": 100,
+  "forbidden_crates": [
+    {"crate": "async-graphql", "match": "prefix", "reason": "async-graphql + its siblings (async-graphql-actix-web, async-graphql-axum, async-graphql-warp, async-graphql-value, …) are a GraphQL execution/server runtime; ADR-0565 forbids GraphQL in the owned stack."},
+    {"crate": "async_graphql", "match": "prefix", "reason": "underscore spelling of the async-graphql family."},
+    {"crate": "juniper", "match": "prefix", "reason": "juniper + juniper_* are a GraphQL server runtime; ADR-0565 forbids GraphQL."},
+    {"crate": "graphql-parser", "match": "exact", "reason": "graphql-parser is a GraphQL query/schema parser; ADR-0565 forbids GraphQL."},
+    {"crate": "graphql_parser", "match": "exact", "reason": "underscore spelling of graphql-parser."},
+    {"crate": "graphql-client", "match": "prefix", "reason": "graphql-client + graphql_client_codegen are a GraphQL client/codegen; ADR-0565 forbids GraphQL."},
+    {"crate": "graphql_client", "match": "prefix", "reason": "underscore spelling of graphql-client."},
+    {"crate": "cynic", "match": "prefix", "reason": "cynic + cynic-codegen are a GraphQL client; ADR-0565 forbids GraphQL."},
+    {"crate": "apollo-", "match": "prefix", "reason": "apollo-router, apollo-compiler, apollo-parser, apollo-federation, … are GraphQL gateway/parser/federation libraries; ADR-0565 forbids GraphQL (no BFF/federation carve-out)."},
+    {"crate": "gql_client", "match": "exact", "reason": "gql_client is a GraphQL client; ADR-0565 forbids GraphQL."},
+    {"crate": "graphql-introspection-query", "match": "exact", "reason": "GraphQL introspection-query helper; ADR-0565 forbids GraphQL."}
+  ],
+  "schema_extensions": ["graphql", "gql", "sdl"],
+  "excluded_dirs": [
+    "third-party/",
+    ".git/"
+  ],
+  "product_contract": {
+    "candidate_tree_not_frozen_baseline": "The gate scans the CANDIDATE tree (live member Cargo.toml manifests + a read-only .graphql/.gql/.sdl walk), NOT a frozen merge-base baseline. A frozen-baseline predicate evaluated at PR-tier against the merge-base but at push-tier against the integrated tip is the PR/push baseline-asymmetry false-green (gate-baseline-pr-push-asymmetry memo): a GraphQL artifact added on dev between branch-point and merge would pass PR-tier and only fail on the integrated tip. Candidate-tree evaluation makes the verdict identical at both tiers.",
+    "frozen_baseline_empty": "The drop PR (#775 / ADR-0565) leaves the tree GraphQL-free, so this gate ships born-blocking with an EMPTY baseline: no shrink-only legacy debt. Any NEW GraphQL library or schema file fails closed on arrival.",
+    "adr_escape_hatch": "ADR-0565 admits GraphQL ONLY via a future ADR that explicitly reverses it. A forbidden artifact that REFERENCES an authorizing ADR id (an ADR-NNNN citation OTHER than forbidding_adr) is allowed. The citation must be a DIFFERENT ADR than the forbidding one so a file cannot self-launder by merely mentioning ADR-0565 (the rule it would be violating). The escape is construction-over-flag: a real reversal is a reviewed ADR, not a bare suppression comment.",
+    "pack_shaped": "forbidden_crates (exact + prefix), schema_extensions, forbidding_adr, excluded_dirs, and min_expected_workspace_members are DATA; the Rust engine hardcodes no crate name nor ADR id. A different repo adopts the gate by repointing this policy.",
+    "fail_closed": "A member-resolution error, an unreadable candidate tree, a policy gate_id mismatch, a malformed forbidden/extension list, or a too-small member census all fail CLOSED rather than silently passing as a false-green.",
+    "hermetic": "The collector is read-only fs over the candidate tree (workspace members via oya-workspace-members-kernel, no cargo/buck shell-out; a recursive file walk). No shell, no network, no VCS — runnable in any presubmit."
+  },
+  "purpose": "no-graphql-without-adr gate. Mechanically ENFORCES the ADR-0565 zero-GraphQL doctrine: no GraphQL execution/parse library and no .graphql/.gql/.sdl schema file may enter the candidate tree without referencing an authorizing (reversing) ADR. The canonical owned API surface is REST + gRPC + AsyncAPI + realtime."
+}

@@ -142,6 +142,31 @@ The enforcement above is staged. Three items are explicitly NOT in this PR:
   files therefore still carry the inert glob; it is dead weight (the source files it would match were
   deleted), not a live GraphQL surface.
 
+### Enforcement gate (LANDED — the artifact-EXTENSION axis #772 closes here)
+
+The active reintroduction gate this ADR deferred to issue #772 (branch `agent/no-graphql-gate`) is now
+LANDED. It is a born-blocking cloud-ci gate (enforcement-layering doctrine: the drop above is the
+construction, this gate is the recurrence backstop) that fails CLOSED if the CANDIDATE tree
+reintroduces — WITHOUT the artifact referencing an authorizing (reversing) ADR id — EITHER a GraphQL
+execution/parse library in any member `Cargo.toml` (the forbidden set is policy DATA: the async-graphql
+family, juniper, graphql-parser, graphql-client, cynic, apollo-*, …) OR a `.graphql`/`.gql`/`.sdl`
+GraphQL schema file. It evaluates the candidate tree directly (NOT a frozen merge-base baseline), so the
+verdict is identical at PR-tier and push-tier (avoiding the gate-baseline PR/push asymmetry false-green);
+the frozen baseline is EMPTY (the tree is GraphQL-free post-drop), so any new GraphQL artifact fails
+closed on arrival. The ADR escape-hatch is honored: an artifact citing an `ADR-NNNN` OTHER than this
+forbidding ADR-0565 is admitted (a file cannot self-launder by merely naming the rule it would be
+violating; it must cite the reversing decision). This also closes the artifact-EXTENSION axis the
+"Follow-up and staging" item above tracked as an interim gap.
+
+This ADR OWNS and JUSTIFIES the gate crate; its verbatim tracked paths are:
+`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/Cargo.toml`,
+`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/BUCK`,
+`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/OWNERS`,
+`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/no-graphql-without-adr-policy.json`,
+`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/src/lib.rs`,
+`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/src/main.rs`, and
+`cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app/tests/no_graphql_without_adr.rs`.
+
 ## Rationale
 
 - **The husk had zero benefit and violated the generated-SSOT rule.** A hand-authored stub with no
