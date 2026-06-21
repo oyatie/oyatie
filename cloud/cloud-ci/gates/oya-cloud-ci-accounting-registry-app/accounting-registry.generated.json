@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18463,
-    "source_inputs_digest": "fnv1a64:ec476f410a6f07af"
+    "source_inputs_digest": "fnv1a64:7dd0779437337d25"
   },
   "rows": [
     {
@@ -132487,7 +132487,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:iam",
       "path": "iam/adapters/identity-scim-store-postgres/BUCK",
       "reachable_from": [
@@ -132501,7 +132501,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -132509,7 +132509,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:iam",
       "path": "iam/adapters/identity-scim-store-postgres/Cargo.toml",
       "reachable_from": [
@@ -132523,7 +132523,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -132531,7 +132531,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:iam",
       "path": "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql",
       "reachable_from": [
@@ -132545,7 +132545,7 @@
         "ttl_class": "husk"
       },
       "unit_class": "husk",
-      "verdict": "RED"
+      "verdict": "ARCHIVE"
     },
     {
       "_provenance": {
@@ -132553,7 +132553,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:iam",
       "path": "iam/adapters/identity-scim-store-postgres/src/lib.rs",
       "reachable_from": [
@@ -132567,7 +132567,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -132575,7 +132575,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:iam",
       "path": "iam/adapters/identity-scim-store-postgres/tests/live_rls.rs",
       "reachable_from": [
@@ -132589,7 +132589,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -343426,7 +343426,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/identity-scim-store-postgres.yaml",
       "reachable_from": [
@@ -343440,7 +343440,7 @@
         "ttl_class": "registry"
       },
       "unit_class": "registry",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -355396,7 +355396,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:registry/catalog",
       "path": "registry/catalog/tenancy-tenant-lifecycle-store-postgres.yaml",
       "reachable_from": [
@@ -355410,7 +355410,7 @@
         "ttl_class": "registry"
       },
       "unit_class": "registry",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -370685,7 +370685,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:tenancy",
       "path": "tenancy/adapters/tenant-lifecycle-store-postgres/BUCK",
       "reachable_from": [
@@ -370699,7 +370699,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -370707,7 +370707,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:tenancy",
       "path": "tenancy/adapters/tenant-lifecycle-store-postgres/Cargo.toml",
       "reachable_from": [
@@ -370721,7 +370721,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -370729,7 +370729,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:tenancy",
       "path": "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql",
       "reachable_from": [
@@ -370743,7 +370743,7 @@
         "ttl_class": "husk"
       },
       "unit_class": "husk",
-      "verdict": "RED"
+      "verdict": "ARCHIVE"
     },
     {
       "_provenance": {
@@ -370751,7 +370751,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:tenancy",
       "path": "tenancy/adapters/tenant-lifecycle-store-postgres/src/lib.rs",
       "reachable_from": [
@@ -370765,7 +370765,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -370773,7 +370773,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0567",
       "owner": "OWNERS:tenancy",
       "path": "tenancy/adapters/tenant-lifecycle-store-postgres/tests/live_rls.rs",
       "reachable_from": [
@@ -370787,7 +370787,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {

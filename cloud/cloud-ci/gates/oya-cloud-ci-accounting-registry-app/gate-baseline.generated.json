@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:9eea24cacc7cc6a4"
+    "source_inputs_digest": "fnv1a64:dc9fb0f3bf98e1d2"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -10591,11 +10591,6 @@
           "iam/adapters/cloud-selfhosted/BUCK",
           "iam/adapters/cloud-selfhosted/Cargo.toml",
           "iam/adapters/cloud-selfhosted/src/lib.rs",
-          "iam/adapters/identity-scim-store-postgres/BUCK",
-          "iam/adapters/identity-scim-store-postgres/Cargo.toml",
-          "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql",
-          "iam/adapters/identity-scim-store-postgres/src/lib.rs",
-          "iam/adapters/identity-scim-store-postgres/tests/live_rls.rs",
           "iam/adapters/identity-workload-authz-cedar/BUCK",
           "iam/adapters/identity-workload-authz-cedar/Cargo.toml",
           "iam/adapters/identity-workload-authz-cedar/src/lib.rs",
@@ -20701,7 +20696,6 @@
           "registry/catalog/iam-tenant-rbac-usecase.yaml",
           "registry/catalog/iam-tenant-rbac-workflow-inmemory.yaml",
           "registry/catalog/iam-tenant-rbac-workflow-runtime-evidence.yaml",
-          "registry/catalog/identity-scim-store-postgres.yaml",
           "registry/catalog/intelligence-app.yaml",
           "registry/catalog/intelligence-authz-cedar-adapter.yaml",
           "registry/catalog/intelligence-codex-adapter.yaml",
@@ -21237,7 +21231,6 @@
           "registry/catalog/tenancy-reserved-namespace.yaml",
           "registry/catalog/tenancy-sub-scope-registry.yaml",
           "registry/catalog/tenancy-tenant-lifecycle-kernel.yaml",
-          "registry/catalog/tenancy-tenant-lifecycle-store-postgres.yaml",
           "registry/catalog/workflow-event-bus-adapter.yaml",
           "registry/catalog/workflow-event-bus-api.yaml",
           "registry/catalog/workflow-event-bus-app.yaml",
@@ -21783,11 +21776,6 @@
           "tenancy/adapters/data-residency-enforcer/BUCK",
           "tenancy/adapters/data-residency-enforcer/Cargo.toml",
           "tenancy/adapters/data-residency-enforcer/src/lib.rs",
-          "tenancy/adapters/tenant-lifecycle-store-postgres/BUCK",
-          "tenancy/adapters/tenant-lifecycle-store-postgres/Cargo.toml",
-          "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql",
-          "tenancy/adapters/tenant-lifecycle-store-postgres/src/lib.rs",
-          "tenancy/adapters/tenant-lifecycle-store-postgres/tests/live_rls.rs",
           "tenancy/core/cell-assignment/BUCK",
           "tenancy/core/cell-assignment/Cargo.toml",
           "tenancy/core/cell-assignment/src/lib.rs",
