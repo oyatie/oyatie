@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18451,
-    "source_inputs_digest": "fnv1a64:91f139f40975f92a"
+    "source_inputs_digest": "fnv1a64:c9a7d0d6abcd6d3c"
   },
   "rows": [
     {
@@ -60380,7 +60380,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0565",
       "owner": "OWNERS:data",
       "path": "data/facade/warehouse-tenant-olap-service/src/domain/mod.rs",
       "reachable_from": [
@@ -60394,7 +60394,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -154585,7 +154585,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0565",
       "owner": null,
       "path": "libs/oya-governance-predictable-naming-kernel/src/lib.rs",
       "reachable_from": [
@@ -154599,7 +154599,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "NEEDS-OWNER"
     },
     {
       "_provenance": {
@@ -161097,7 +161097,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0565",
       "owner": "OWNERS:marketplace",
       "path": "marketplace/facade/dev-cli/src/api_contract_registry.rs",
       "reachable_from": [
@@ -161111,7 +161111,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -248175,7 +248175,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0565",
       "owner": null,
       "path": "oya/intelligence/crates/oya-intelligence-catalog-domain/src/lib.rs",
       "reachable_from": [
@@ -248189,7 +248189,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "NEEDS-OWNER"
     },
     {
       "_provenance": {
@@ -337067,7 +337067,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0565",
       "owner": null,
       "path": "oya/workplace-integration/manifest.json",
       "reachable_from": [],
@@ -357980,7 +357980,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0565",
       "owner": null,
       "path": "scripts/gen_first_party_buck.py",
       "reachable_from": [],
