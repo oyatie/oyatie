@@ -16,6 +16,8 @@ owners:
 supersedes: []
 amends: []
 superseded_by: []
+amended_by:
+  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (D-14's multi-protocol surface drops the GraphQL Federation v2 / BFF leg; the REST 3.2 + gRPC + AsyncAPI legs stand)
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0010-regional-pack-architecture.md
@@ -46,6 +48,7 @@ related:
   - ADR-0247-self-hosting-self-modification-doctrine.md
   - ADR-0248-amazon-shape-cellular-architecture.md
   - ADR-0252-time-coordination-distributed-consistency.md
+  - ADR-0565-zero-graphql-in-the-owned-api-surface.md
 related_specs:
   - /specs/platform-architecture.json
   - /specs/network-topology.json
@@ -167,8 +170,7 @@ None of those ADRs defined:
 - the **migration path** from Cloudflare-hosted edge to self-hosted
   Pingora POPs that ADR-0211 (in-house tech stack policy) makes
   inevitable at scale;
-- the **HTTP API surface canonical** (REST 3.2 / GraphQL Federation
-  v2 / gRPC) at the public-facing edge.
+- the **HTTP API surface canonical** (REST 3.2 / gRPC) at the public-facing edge. <!-- GraphQL Federation v2 dropped per ADR-0565 (zero GraphQL in the owned API surface) -->
 
 This keystone closes those gaps.
 
@@ -743,7 +745,7 @@ GeoDNS routes clients per ADR-0241 DR + ADR-0049 residency.
   **planned outage** rather than a residency violation. The tenant's
   business continuity contract documents this tradeoff.
 
-### D-14. HTTP API surfaces — REST 3.2 + GraphQL Federation v2 + gRPC + AsyncAPI 3.1
+### D-14. HTTP API surfaces — REST 3.2 + gRPC + AsyncAPI 3.1 _(GraphQL Federation v2 dropped per ADR-0565)_
 
 Per oyatie canonical API spec authority:
 
@@ -752,11 +754,12 @@ Per oyatie canonical API spec authority:
   9457 (Problem Details for HTTP APIs) + standard `Accept-Version`
   header pattern. Cursor pagination per ADR-0150. Idempotency keys
   per ADR-0252.
-- **GraphQL Federation v2** via BFF (Backend-for-Frontend) tier for
+- ~~**GraphQL Federation v2** via BFF (Backend-for-Frontend) tier for
   rich UI surfaces (the Workflow Studio canvas, the Consumer Brand
   Surface dashboards). Apollo Federation v2 supergraph composes
-  per-µservice subgraphs. A future ADR (planned ADR-0254 or
-  ADR-0255 BFF pattern) defines the BFF placement.
+  per-µservice subgraphs.~~ **Dropped per ADR-0565** (zero GraphQL in
+  the owned API surface; rich-UI read-aggregation is served by
+  REST/gRPC composition, not a GraphQL BFF).
 - **gRPC** for high-throughput internal calls + low-latency RPCs
   between µservices. Per ADR-0145 direct-sibling-gRPC permitted.
   Protocol Buffers v3; per-µservice `contracts/proto/*.proto` files
@@ -767,8 +770,8 @@ Per oyatie canonical API spec authority:
   (per ADR-0149 boundary) for fan-out + by Kafka for ordered
   durable streams + by audit-chain for sealed evidence streams.
 - **No raw HTTP without one of the above.** Every public + tenant-
-  facing surface MUST declare its contract (OpenAPI / GraphQL SDL /
-  Proto / AsyncAPI). CI lane `oya-check-api-contract-presence`
+  facing surface MUST declare its contract (OpenAPI / Proto /
+  AsyncAPI; GraphQL SDL dropped per ADR-0565). CI lane `oya-check-api-contract-presence`
   enforces.
 - **No "internal-only" surfaces lack contracts.** Per ADR-0242
   oyatie-is-a-tenant doctrine; all surfaces have contracts.

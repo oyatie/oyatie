@@ -1,8 +1,8 @@
 //! M02-P04-IP-001 — REST transport kernel.
 //!
 //! Defines the canonical `UseCaseRequest`/`UseCaseResponse` traits + the
-//! canonical `AuditEvent` shape that every transport (REST/GraphQL/SSE/
-//! WebSocket) MUST project byte-identically (modulo transport metadata).
+//! canonical `AuditEvent` shape that every transport (REST/SSE/WebSocket)
+//! MUST project byte-identically (modulo transport metadata).
 //!
 //! Boundary: no I/O, std-only.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /

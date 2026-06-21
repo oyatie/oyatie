@@ -8,7 +8,7 @@
 //! (snake_case, no redundant `_gate` suffix because the path itself is
 //! `commands/gate/...`); handler `validate_architecture_boundaries`
 //! (snake_case verb). Conforms to ADR-0105/0106/0107 v4 BNF and the
-//! 13-value layer enum at
+//! 12-value layer enum at
 //! `crates/oya-governance-predictable-naming-kernel::ALLOWED_ROLES`.
 //!
 //! Validates four invariants from the legacy Python heredoc:

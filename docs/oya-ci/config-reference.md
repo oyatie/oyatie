@@ -22,7 +22,7 @@ policy is hardcoded in the producer.
 | Key | Default |
 |---|---|
 | `required_prefix` | `"oya-"` |
-| `allowed_roles` | the 13 canonical layer values: `kernel domain usecase app adapter infrastructure cli rest grpc graphql worker sdk api` |
+| `allowed_roles` | the 12 canonical layer values: `kernel domain usecase app adapter infrastructure cli rest grpc worker sdk api` (ADR-0565 removed `graphql`) |
 | `check_family_prefix` | `"oya-check-"` (self-layering check family — no declared role required) |
 | `backend_suffixes` | `fake inmemory aws oci gcp azure postgres redis sqlite` (the `*-adapter-<backend>` qualifier set) |
 | `doctrinal_carve_outs` | `["oya-tooling-agent-read"]` (names locked by a higher contract, exempt from the suffix rule) |

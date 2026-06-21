@@ -20,7 +20,7 @@
 //! module file `src/commands/submit.rs` (snake_case, no redundant
 //! `_command` suffix because it lives under `commands/`); handler
 //! `run` (snake_case verb). Conforms to ADR-0105 v4 BNF and the
-//! 13-value layer enum at
+//! 12-value layer enum at
 //! `crates/oya-governance-predictable-naming-kernel::ALLOWED_ROLES`.
 //!
 //! Tooling dependencies: this subcommand shells out to the repo-local

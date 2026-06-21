@@ -2,6 +2,8 @@
 id: ADR-0066
 status: accepted
 doc_status: published
+amended_by:
+  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (its extractor table listed `crates/*/schema.graphql` / `async-graphql` as a canonical source; its endpoint-coverage gate and portal surfaces enumerated GraphQL endpoints; its agent-readable manifest schema included `"graphql"` as an endpoint kind; GraphQL is dropped from the owned surface per ADR-0565 — the REST/gRPC/async extractor coverage posture is unchanged)
 ---
 
 # ADR-0066: Live code-introspection — docs portal reflects realtime project state with full endpoint / dep graph / dead-code coverage
@@ -17,7 +19,7 @@ doc_status: published
 
 ADR-0065 established docs as Leptos web pages + machine-readable co-emission, with markdown as the source-of-truth. That covers ~70% of the doc surface (ADRs / PRDs / microservice records / phase-specs / impl-plans / milestone READMEs).
 
-The remaining ~30% — and the highest-leverage portion — is **content that doesn't live in markdown at all**: REST/gRPC/GraphQL endpoints; cargo workspace dep graph; per-crate public API surfaces; live ICM phase-complete signals; active grit claims; CI fitness-lane state; dead-code / dead-file detection. This content is in code + telemetry, not docs.
+The remaining ~30% — and the highest-leverage portion — is **content that doesn't live in markdown at all**: REST/gRPC/~~GraphQL~~ [dropped per ADR-0565] endpoints; cargo workspace dep graph; per-crate public API surfaces; live ICM phase-complete signals; active grit claims; CI fitness-lane state; dead-code / dead-file detection. This content is in code + telemetry, not docs.
 
 Per user instruction 2026-05-13: "Interactive documentation with full visibility of the project realtime. Documentation should be automated so that it reflects the realtime state, all the endpoints are accounted for and all the dependency is mapped with no dead code or files."
 
@@ -39,7 +41,7 @@ Every fact in the docs portal MUST originate from a canonical extractor over one
 | `crates/*/src/**/*.rs` | `rustdoc --output-format=json` | Public API surface per crate (types, fns, traits, modules) |
 | `contracts/**/*.yaml` (OpenAPI) | `oapi-codegen` / `openapiv3` parse | REST endpoint inventory + request/response schemas |
 | `contracts/**/*.proto` | `prost-build` / `protoc --decode_raw` | gRPC service inventory + RPC methods |
-| `crates/*/schema.graphql` | `async-graphql` schema introspection | GraphQL type inventory |
+| ~~`crates/*/schema.graphql`~~ [dropped per ADR-0565] | ~~`async-graphql` schema introspection~~ [dropped per ADR-0565] | ~~GraphQL type inventory~~ [dropped per ADR-0565] |
 | `migrations/**/*.sql` | SQL AST (e.g., `sqlparser` Rust crate) | DB schema inventory + RLS posture |
 | `docs/**/*.md` frontmatter | `serde_yaml` parse | Structured doc records (per ADR-0065) |
 | `docs/localization-packs/<pack>/pack.yaml` | `serde_yaml` parse | Pack scope + regulatory bindings |
@@ -67,14 +69,14 @@ The daemon `oya-docs-watch` (M02-P21 scope) is a `worker` layer crate in `oya-do
 
 ### 3. Endpoint inventory — full coverage gate
 
-Every REST / gRPC / GraphQL endpoint defined anywhere in the workspace MUST appear in `docs/.generated/endpoints.json` and be navigable in the portal. CI lane `lean-a7-endpoint-coverage` (new; M02-P20 scope) enforces:
+Every REST / gRPC / ~~GraphQL~~ [dropped per ADR-0565] endpoint defined anywhere in the workspace MUST appear in `docs/.generated/endpoints.json` and be navigable in the portal. CI lane `lean-a7-endpoint-coverage` (new; M02-P20 scope) enforces:
 
 ```bash
 # Pseudo-algorithm
 endpoints_declared = extract_from(
   "contracts/**/*.yaml openapi",
   "contracts/**/*.proto grpc",
-  "crates/**/*.rs async-graphql schemas",
+  # "crates/**/*.rs async-graphql schemas",  # dropped per ADR-0565 — no GraphQL in the owned surface
   "crates/*/src/**/*.rs axum router declarations",   # axum #[routes] attribute scan via syn
   "crates/*/src/**/*.rs tonic Server::add_service",
 )
@@ -129,7 +131,7 @@ Per `feedback_autonomous_implementation_artifacts.md` ("stale information is rem
 | **Localization packs** | `/packs` | INDEX.md + per-pack overlay coverage stats |
 | **Per-pack** | `/packs/<code>` | Pack overview + manifest + regulatory bindings + per-µservice overlay status |
 | **Fitness lanes** | `/lanes` | Every lane in `registry/quality/lanes.yaml`; severity; status; last 10 CI runs (live from GH Actions) |
-| **Endpoints** | `/endpoints` | Full REST/gRPC/GraphQL inventory; filter by µservice/method/path |
+| **Endpoints** | `/endpoints` | Full REST/gRPC/~~GraphQL~~ [dropped per ADR-0565] inventory; filter by µservice/method/path |
 | **Dep graph** | `/dep-graph` | Interactive cargo dep graph (Cytoscape; like product-graph.html but at crate-level) |
 | **Dead-code** | `/dead-code` | Current dead-code/dead-file report (target: empty) |
 | **Live changes** | `/live` | SSE feed of recent commits + phase-complete events + grit done events |
@@ -162,7 +164,7 @@ Every page has a "View source" link showing the underlying canonical source (Rus
   "docs": [...],                            // per ADR-0065 §6
   "microservices": [...],                   // catalog with crate inventory per µservice
   "endpoints": [
-    { "kind": "rest" | "grpc" | "graphql", "method": "POST", "path": "/api/v1/...", "microservice": "...", "operation_id": "...", "request_schema_ref": "...", "response_schema_ref": "...", "auth": "..." }
+    { "kind": "rest" | "grpc" /* | "graphql" -- dropped per ADR-0565 */, "method": "POST", "path": "/api/v1/...", "microservice": "...", "operation_id": "...", "request_schema_ref": "...", "response_schema_ref": "...", "auth": "..." }
   ],
   "dep_graph": {
     "nodes": [{ "id": "oya-...-kernel", "layer": "kernel", "microservice": "..." }],

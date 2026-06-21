@@ -7,7 +7,9 @@ deciders: council-architecture, axis-foundry, axis-cloud, axis-all-microservices
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0244, ADR-0250]
+amended_by:
+  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (drops GraphQL from this ADR's public surface set; the REST/gRPC/AsyncAPI surfaces + the versioning model itself are unchanged)
+related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0244, ADR-0250, ADR-0565]
 related_specs:
   - /specs/microservices/manifest-schema.json
   - /specs/hyperscaler-architecture-invariants.json
@@ -25,11 +27,11 @@ authority_chain: council-architecture
 
 Accepted (2026-05-20). Tier-1 lockdown ADR. Closes the "API versioning model" gap left open by ADR-0037 (which set tier vocabulary but did not pin the canonical version-negotiation algorithm, the per-tenant pinning override, the per-µservice independent cadence, or the SDK auto-generation pipeline).
 
-This ADR is BINDING on every µservice that exposes a public REST/gRPC/AsyncAPI/GraphQL surface and on every internal mesh interface that crosses a µservice boundary.
+This ADR is BINDING on every µservice that exposes a public REST/gRPC/AsyncAPI/~~GraphQL~~ surface and on every internal mesh interface that crosses a µservice boundary. _(GraphQL dropped from the owned surface set per ADR-0565.)_
 
 ## Context
 
-oyatie ships a hyperscaler-grade API surface: the public REST/gRPC/GraphQL/AsyncAPI surface (Workspace, Cloud, Foundry, Verticals, Connect, Search) and the internal mesh surface (µservice ↔ µservice gRPC under mTLS, per ADR-0145). Both surfaces evolve continuously. Without a single canonical versioning model:
+oyatie ships a hyperscaler-grade API surface: the public REST/gRPC/~~GraphQL~~/AsyncAPI surface (Workspace, Cloud, Foundry, Verticals, Connect, Search; GraphQL dropped per ADR-0565) and the internal mesh surface (µservice ↔ µservice gRPC under mTLS, per ADR-0145). Both surfaces evolve continuously. Without a single canonical versioning model:
 
 1. Tenant SDKs and ISV integrations break silently when µservices ship breaking changes (violates `feedback_no_silent_regression`).
 2. Per-µservice teams invent ad-hoc conventions (URL versioning here, query-param versioning there, header versioning elsewhere), producing the per-axis-vocabulary fragmentation that ADR-0001 (cohesion thesis) forbids.
@@ -214,7 +216,7 @@ The contract artifact format is pinned at:
 - **OpenAPI 3.2.0** for REST surfaces (per `feedback_no_silent_regression`: schema-version-field bump is non-silent; 3.2.0 vs 3.1.0 vs 3.0.x is a known-version surface).
 - **Protocol Buffers proto3 + edition 2023** for gRPC surfaces.
 - **AsyncAPI 3.1.0** for event/topic surfaces.
-- **GraphQL October 2021 spec** for GraphQL surfaces.
+- ~~**GraphQL October 2021 spec** for GraphQL surfaces.~~ _(removed — no GraphQL surface per ADR-0565.)_
 
 The SDK release pipeline is gated by the `oya-check-sdk-contract-parity` lane: an SDK release is BLOCKED if any of the per-language SDKs would diverge from the contract source. This guarantees the SDK is a deterministic derivative of the contract, never a hand-edited drift.
 

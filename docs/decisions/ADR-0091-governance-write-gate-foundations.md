@@ -2,6 +2,8 @@
 id: ADR-0091
 status: accepted
 doc_status: published
+amended_by:
+  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (its transport-parity context and single-state-machine driver named GraphQL among the owned transports; GraphQL is dropped from the owned surface per ADR-0565 — the write-gate state machine itself is unchanged)
 ---
 
 # ADR-0091: Foundry write-gate foundations (Phase 05 contract)
@@ -21,7 +23,7 @@ Accepted (2026-05-14).
 
 ## Context
 
-M02-P04 ships the transport-parity layer (REST / GraphQL / SSE / WebSocket)
+M02-P04 ships the transport-parity layer (REST / ~~GraphQL~~ [dropped per ADR-0565] / SSE / WebSocket)
 for read paths. M02-P05 introduces the first write-capable transports
 (gRPC / Webhook / Kafka). Before any write transport lands, Foundry needs:
 
@@ -78,7 +80,7 @@ M02-P05 transport may execute a mutation without observing
 2. **Hyperscaler-grade governance** — Stripe/AWS-style four-eyes principle
    on every write surface; separation of duties is non-negotiable.
 3. **Single state machine** — exactly one source of truth across REST,
-   GraphQL, SSE, WebSocket, gRPC, Webhook, Kafka transports.
+   ~~GraphQL~~ [dropped per ADR-0565], SSE, WebSocket, gRPC, Webhook, Kafka transports.
 
 ## Alternatives Considered
 

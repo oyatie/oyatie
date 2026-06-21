@@ -2,6 +2,8 @@
 id: ADR-0051
 status: accepted
 doc_status: published
+amended_by:
+  - ADR-0565-zero-graphql-in-the-owned-api-surface.md (its canonical-contracts clause named GraphQL among the contract families native clients consume; GraphQL is dropped from the owned surface per ADR-0565 — the REST/gRPC/Connect-protocol + mTLS gateway posture is unchanged)
 ---
 
 # ADR-0051: Mobile and Native Client Strategy
@@ -49,7 +51,7 @@ All native shells render the `Oyatie` brand per ADR-0017. App-store identifiers 
 
 ### 5. Native shells consume the same canonical contracts
 
-Native clients consume the same OpenAPI / GraphQL / Connect-protocol contracts that web does, through the same gateway per ADR-0044 with mTLS device attestation. There is no native-only API. Per-product PRDs may define **client-only convenience endpoints** (e.g. push-notification token registration, offline-sync deltas), but those endpoints stay in the canonical contract registry per ADR-0011 and obey the Data Use Boundary per ADR-0008.
+Native clients consume the same OpenAPI / ~~GraphQL~~ [dropped per ADR-0565] / Connect-protocol contracts that web does, through the same gateway per ADR-0044 with mTLS device attestation. There is no native-only API. Per-product PRDs may define **client-only convenience endpoints** (e.g. push-notification token registration, offline-sync deltas), but those endpoints stay in the canonical contract registry per ADR-0011 and obey the Data Use Boundary per ADR-0008.
 
 ### 6. Per-pack store-policy + per-region distribution
 

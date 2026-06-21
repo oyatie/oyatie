@@ -7,8 +7,8 @@
 //! `lake-engine` sublayer that hosts the Delta / Iceberg / Hudi protocol
 //! writers. The `manifest.json` `layer_enum_conformance.declared_layers`
 //! list carries `lake-engine` as the 10th declared layer. The ADR-0105
-//! 13-layer enum (`crate::domain::ArchitectureLayer`) keeps the canonical
-//! enum closed at 13; `lake_engine` sits inside the adapter/worker/
+//! 12-layer enum (`crate::domain::ArchitectureLayer`) keeps the canonical
+//! enum closed at 12; `lake_engine` sits inside the adapter/worker/
 //! infrastructure stratum as an open-table substrate, not as a new
 //! top-level layer.
 //!

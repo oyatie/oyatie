@@ -25,7 +25,7 @@ path_excludes = ["third-party/", "docs/audit/"]
 
 [naming]
 required_prefix = "oya-"
-allowed_roles = ["kernel", "domain", "usecase", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "graphql", "worker", "sdk", "api"]
+allowed_roles = ["kernel", "domain", "usecase", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "worker", "sdk", "api"]
 check_family_prefix = "oya-check-"
 backend_suffixes = ["fake", "inmemory", "aws", "oci", "gcp", "azure", "postgres", "redis", "sqlite"]
 doctrinal_carve_outs = ["oya-tooling-agent-read"]
