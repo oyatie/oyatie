@@ -22,6 +22,10 @@
 
 #![forbid(unsafe_code)]
 
+use core::future::Future;
+use core::pin::Pin;
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 /// Tenant identifier — every SCIM request is tenant-scoped (URI segment
@@ -280,53 +284,75 @@ pub enum ScimType {
     Uniqueness,
 }
 
-/// The contract every SCIM µservice implements.
+/// The contract every SCIM µservice implements. Async (the durable store
+/// behind a server performs real I/O), modelled with return-position boxed
+/// futures — `core::future::Future` + `core::pin::Pin` + `Box::pin`, no
+/// `async-trait` / `futures` dep — so the kernel stays dependency-free.
 pub trait ScimServer: Send + Sync {
-    fn list_users(&self, tenant: &TenantId, q: &ListQuery)
-    -> Result<ListResponse<User>, ScimError>;
-    fn get_user(&self, tenant: &TenantId, id: &ScimId) -> Result<User, ScimError>;
-    fn create_user(
-        &self,
-        tenant: &TenantId,
+    fn list_users<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        q: &'a ListQuery,
+    ) -> Pin<Box<dyn Future<Output = Result<ListResponse<User>, ScimError>> + Send + 'a>>;
+    fn get_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>>;
+    fn create_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
         input: NewUser,
         now_unix: i64,
-    ) -> Result<User, ScimError>;
-    fn replace_user(
-        &self,
-        tenant: &TenantId,
-        id: &ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>>;
+    fn replace_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
         input: NewUser,
         now_unix: i64,
-    ) -> Result<User, ScimError>;
-    fn patch_user(
-        &self,
-        tenant: &TenantId,
-        id: &ScimId,
-        op: &PatchOp,
+    ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>>;
+    fn patch_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+        op: &'a PatchOp,
         now_unix: i64,
-    ) -> Result<User, ScimError>;
-    fn delete_user(&self, tenant: &TenantId, id: &ScimId) -> Result<(), ScimError>;
+    ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>>;
+    fn delete_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimError>> + Send + 'a>>;
 
-    fn list_groups(
-        &self,
-        tenant: &TenantId,
-        q: &ListQuery,
-    ) -> Result<ListResponse<Group>, ScimError>;
-    fn get_group(&self, tenant: &TenantId, id: &ScimId) -> Result<Group, ScimError>;
-    fn create_group(
-        &self,
-        tenant: &TenantId,
+    fn list_groups<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        q: &'a ListQuery,
+    ) -> Pin<Box<dyn Future<Output = Result<ListResponse<Group>, ScimError>> + Send + 'a>>;
+    fn get_group<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<Group, ScimError>> + Send + 'a>>;
+    fn create_group<'a>(
+        &'a self,
+        tenant: &'a TenantId,
         input: NewGroup,
         now_unix: i64,
-    ) -> Result<Group, ScimError>;
-    fn patch_group(
-        &self,
-        tenant: &TenantId,
-        id: &ScimId,
-        op: &PatchOp,
+    ) -> Pin<Box<dyn Future<Output = Result<Group, ScimError>> + Send + 'a>>;
+    fn patch_group<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+        op: &'a PatchOp,
         now_unix: i64,
-    ) -> Result<Group, ScimError>;
-    fn delete_group(&self, tenant: &TenantId, id: &ScimId) -> Result<(), ScimError>;
+    ) -> Pin<Box<dyn Future<Output = Result<Group, ScimError>> + Send + 'a>>;
+    fn delete_group<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimError>> + Send + 'a>>;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -389,20 +415,90 @@ pub struct NewGroup {
     pub members: Vec<GroupMembership>,
 }
 
-/// Pluggable user store.
+/// Store-port failure. A real durable backend (Postgres/oya-data) can fail on
+/// availability or integrity even for writes that are semantically valid, so
+/// the write paths (`put`/`delete`) surface a `Result` rather than pretending
+/// to be infallible. Reads keep returning `Option`/`Vec` (absence is not an
+/// error); a backend that wants to surface read failures can map them through
+/// the server layer in a later slice.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum ScimStoreError {
+    /// The backing store cannot serve the request right now.
+    Unavailable { detail: String },
+    /// A persisted record failed to decode / violated an invariant.
+    Corrupt { detail: String },
+}
+
+impl fmt::Display for ScimStoreError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unavailable { detail } => write!(f, "scim store unavailable: {detail}"),
+            Self::Corrupt { detail } => write!(f, "scim store record corrupt: {detail}"),
+        }
+    }
+}
+
+impl std::error::Error for ScimStoreError {}
+
+impl From<ScimStoreError> for ScimError {
+    fn from(error: ScimStoreError) -> Self {
+        // A store availability/integrity failure is a 500 on the SCIM surface
+        // (RFC 7644 §3.12): the request was well-formed; the backend failed.
+        ScimError::new(500, None, error.to_string())
+    }
+}
+
+/// Pluggable user store. Async (the durable backend performs real I/O),
+/// modelled with a return-position boxed future — `core::future::Future` +
+/// `core::pin::Pin` + `Box::pin`, no `async-trait` / `futures` dep — so the
+/// kernel stays dependency-free.
 pub trait UserStore: Send + Sync {
-    fn list(&self, tenant: &TenantId) -> Vec<User>;
-    fn get(&self, tenant: &TenantId, id: &ScimId) -> Option<User>;
-    fn put(&self, user: &User, tenant: &TenantId);
-    fn delete(&self, tenant: &TenantId, id: &ScimId);
-    fn find_by_user_name(&self, tenant: &TenantId, user_name: &str) -> Option<User>;
+    fn list<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+    ) -> Pin<Box<dyn Future<Output = Vec<User>> + Send + 'a>>;
+    fn get<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Option<User>> + Send + 'a>>;
+    fn put<'a>(
+        &'a self,
+        user: &'a User,
+        tenant: &'a TenantId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>>;
+    fn delete<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>>;
+    fn find_by_user_name<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        user_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Option<User>> + Send + 'a>>;
 }
 
 pub trait GroupStore: Send + Sync {
-    fn list(&self, tenant: &TenantId) -> Vec<Group>;
-    fn get(&self, tenant: &TenantId, id: &ScimId) -> Option<Group>;
-    fn put(&self, group: &Group, tenant: &TenantId);
-    fn delete(&self, tenant: &TenantId, id: &ScimId);
+    fn list<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+    ) -> Pin<Box<dyn Future<Output = Vec<Group>> + Send + 'a>>;
+    fn get<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Option<Group>> + Send + 'a>>;
+    fn put<'a>(
+        &'a self,
+        group: &'a Group,
+        tenant: &'a TenantId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>>;
+    fn delete<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>>;
 }
 
 #[derive(Default)]
@@ -411,46 +507,79 @@ pub struct InMemoryUserStore {
 }
 
 impl UserStore for InMemoryUserStore {
-    fn list(&self, tenant: &TenantId) -> Vec<User> {
-        self.inner
-            .lock()
-            .map(|g| {
-                g.iter()
-                    .filter(|(t, _)| t == tenant)
-                    .map(|(_, u)| u.clone())
-                    .collect()
-            })
-            .unwrap_or_default()
+    fn list<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+    ) -> Pin<Box<dyn Future<Output = Vec<User>> + Send + 'a>> {
+        Box::pin(async move {
+            self.inner
+                .lock()
+                .map(|g| {
+                    g.iter()
+                        .filter(|(t, _)| t == tenant)
+                        .map(|(_, u)| u.clone())
+                        .collect()
+                })
+                .unwrap_or_default()
+        })
     }
-    fn get(&self, tenant: &TenantId, id: &ScimId) -> Option<User> {
-        self.inner
-            .lock()
-            .ok()?
-            .iter()
-            .find(|(t, u)| t == tenant && u.id == *id)
-            .map(|(_, u)| u.clone())
+    fn get<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Option<User>> + Send + 'a>> {
+        Box::pin(async move {
+            self.inner
+                .lock()
+                .ok()?
+                .iter()
+                .find(|(t, u)| t == tenant && u.id == *id)
+                .map(|(_, u)| u.clone())
+        })
     }
-    fn put(&self, user: &User, tenant: &TenantId) {
-        if let Ok(mut g) = self.inner.lock() {
+    fn put<'a>(
+        &'a self,
+        user: &'a User,
+        tenant: &'a TenantId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            let mut g = self.inner.lock().map_err(|_| ScimStoreError::Corrupt {
+                detail: "user store lock poisoned".to_owned(),
+            })?;
             if let Some(slot) = g.iter_mut().find(|(t, u)| t == tenant && u.id == user.id) {
                 slot.1 = user.clone();
             } else {
                 g.push((tenant.clone(), user.clone()));
             }
-        }
+            Ok(())
+        })
     }
-    fn delete(&self, tenant: &TenantId, id: &ScimId) {
-        if let Ok(mut g) = self.inner.lock() {
+    fn delete<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            let mut g = self.inner.lock().map_err(|_| ScimStoreError::Corrupt {
+                detail: "user store lock poisoned".to_owned(),
+            })?;
             g.retain(|(t, u)| !(t == tenant && u.id == *id));
-        }
+            Ok(())
+        })
     }
-    fn find_by_user_name(&self, tenant: &TenantId, user_name: &str) -> Option<User> {
-        self.inner
-            .lock()
-            .ok()?
-            .iter()
-            .find(|(t, u)| t == tenant && u.user_name == user_name)
-            .map(|(_, u)| u.clone())
+    fn find_by_user_name<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        user_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Option<User>> + Send + 'a>> {
+        Box::pin(async move {
+            self.inner
+                .lock()
+                .ok()?
+                .iter()
+                .find(|(t, u)| t == tenant && u.user_name == user_name)
+                .map(|(_, u)| u.clone())
+        })
     }
 }
 
@@ -460,27 +589,45 @@ pub struct InMemoryGroupStore {
 }
 
 impl GroupStore for InMemoryGroupStore {
-    fn list(&self, tenant: &TenantId) -> Vec<Group> {
-        self.inner
-            .lock()
-            .map(|g| {
-                g.iter()
-                    .filter(|(t, _)| t == tenant)
-                    .map(|(_, gr)| gr.clone())
-                    .collect()
-            })
-            .unwrap_or_default()
+    fn list<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+    ) -> Pin<Box<dyn Future<Output = Vec<Group>> + Send + 'a>> {
+        Box::pin(async move {
+            self.inner
+                .lock()
+                .map(|g| {
+                    g.iter()
+                        .filter(|(t, _)| t == tenant)
+                        .map(|(_, gr)| gr.clone())
+                        .collect()
+                })
+                .unwrap_or_default()
+        })
     }
-    fn get(&self, tenant: &TenantId, id: &ScimId) -> Option<Group> {
-        self.inner
-            .lock()
-            .ok()?
-            .iter()
-            .find(|(t, gr)| t == tenant && gr.id == *id)
-            .map(|(_, gr)| gr.clone())
+    fn get<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Option<Group>> + Send + 'a>> {
+        Box::pin(async move {
+            self.inner
+                .lock()
+                .ok()?
+                .iter()
+                .find(|(t, gr)| t == tenant && gr.id == *id)
+                .map(|(_, gr)| gr.clone())
+        })
     }
-    fn put(&self, group: &Group, tenant: &TenantId) {
-        if let Ok(mut g) = self.inner.lock() {
+    fn put<'a>(
+        &'a self,
+        group: &'a Group,
+        tenant: &'a TenantId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            let mut g = self.inner.lock().map_err(|_| ScimStoreError::Corrupt {
+                detail: "group store lock poisoned".to_owned(),
+            })?;
             if let Some(slot) = g
                 .iter_mut()
                 .find(|(t, gr)| t == tenant && gr.id == group.id)
@@ -489,12 +636,21 @@ impl GroupStore for InMemoryGroupStore {
             } else {
                 g.push((tenant.clone(), group.clone()));
             }
-        }
+            Ok(())
+        })
     }
-    fn delete(&self, tenant: &TenantId, id: &ScimId) {
-        if let Ok(mut g) = self.inner.lock() {
+    fn delete<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            let mut g = self.inner.lock().map_err(|_| ScimStoreError::Corrupt {
+                detail: "group store lock poisoned".to_owned(),
+            })?;
             g.retain(|(t, gr)| !(t == tenant && gr.id == *id));
-        }
+            Ok(())
+        })
     }
 }
 
@@ -611,232 +767,277 @@ fn is_leap(y: i64) -> bool {
 }
 
 impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U, G, I> {
-    fn list_users(
-        &self,
-        tenant: &TenantId,
-        q: &ListQuery,
-    ) -> Result<ListResponse<User>, ScimError> {
-        let all = self.users.list(tenant);
-        let filtered = apply_user_filter(&all, q.filter.as_deref())?;
-        let total = filtered.len();
-        let per_page = q.items_per_page.min(self.max_items_per_page).max(1);
-        let start = q.start_index.saturating_sub(1);
-        let slice: Vec<User> = filtered.into_iter().skip(start).take(per_page).collect();
-        Ok(ListResponse {
-            schemas: vec![ListResponse::<User>::SCHEMA.to_owned()],
-            total_results: total,
-            resources: slice,
-            items_per_page: per_page,
-            start_index: q.start_index,
+    fn list_users<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        q: &'a ListQuery,
+    ) -> Pin<Box<dyn Future<Output = Result<ListResponse<User>, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            let all = self.users.list(tenant).await;
+            let filtered = apply_user_filter(&all, q.filter.as_deref())?;
+            let total = filtered.len();
+            let per_page = q.items_per_page.min(self.max_items_per_page).max(1);
+            let start = q.start_index.saturating_sub(1);
+            let slice: Vec<User> = filtered.into_iter().skip(start).take(per_page).collect();
+            Ok(ListResponse {
+                schemas: vec![ListResponse::<User>::SCHEMA.to_owned()],
+                total_results: total,
+                resources: slice,
+                items_per_page: per_page,
+                start_index: q.start_index,
+            })
         })
     }
 
-    fn get_user(&self, tenant: &TenantId, id: &ScimId) -> Result<User, ScimError> {
-        self.users
-            .get(tenant, id)
-            .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))
+    fn get_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.users
+                .get(tenant, id)
+                .await
+                .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))
+        })
     }
 
-    fn create_user(
-        &self,
-        tenant: &TenantId,
+    fn create_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
         input: NewUser,
         now_unix: i64,
-    ) -> Result<User, ScimError> {
-        if input.user_name.is_empty() {
-            return Err(ScimError::new(
-                400,
-                Some(ScimType::InvalidValue),
-                "userName is required",
-            ));
-        }
-        if self
-            .users
-            .find_by_user_name(tenant, &input.user_name)
-            .is_some()
-        {
-            return Err(ScimError::new(
-                409,
-                Some(ScimType::Uniqueness),
-                format!("userName '{}' already exists", input.user_name),
-            ));
-        }
-        let id = self.ids.next_id();
-        let etag = format!("{}{}", id.0, now_unix);
-        let user = User {
-            schemas: build_user_schemas(&input),
-            id: id.clone(),
-            external_id: input.external_id,
-            user_name: input.user_name,
-            name: input.name,
-            display_name: input.display_name,
-            active: input.active,
-            emails: input.emails,
-            groups: Vec::new(),
-            enterprise: input.enterprise,
-            oyatie: input.oyatie,
-            meta: self.user_meta(tenant, &id, now_unix, &etag),
-        };
-        self.users.put(&user, tenant);
-        Ok(user)
-    }
-
-    fn replace_user(
-        &self,
-        tenant: &TenantId,
-        id: &ScimId,
-        input: NewUser,
-        now_unix: i64,
-    ) -> Result<User, ScimError> {
-        let existing = self
-            .users
-            .get(tenant, id)
-            .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))?;
-        // Uniqueness only enforced if userName actually changed.
-        if input.user_name != existing.user_name
-            && self
+    ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            if input.user_name.is_empty() {
+                return Err(ScimError::new(
+                    400,
+                    Some(ScimType::InvalidValue),
+                    "userName is required",
+                ));
+            }
+            if self
                 .users
                 .find_by_user_name(tenant, &input.user_name)
+                .await
                 .is_some()
-        {
-            return Err(ScimError::new(
-                409,
-                Some(ScimType::Uniqueness),
-                format!("userName '{}' already exists", input.user_name),
-            ));
-        }
-        let etag = format!("{}{}", id.0, now_unix);
-        let mut user = User {
-            schemas: build_user_schemas(&input),
-            id: id.clone(),
-            external_id: input.external_id,
-            user_name: input.user_name,
-            name: input.name,
-            display_name: input.display_name,
-            active: input.active,
-            emails: input.emails,
-            groups: existing.groups, // preserve group memberships
-            enterprise: input.enterprise,
-            oyatie: input.oyatie,
-            meta: self.user_meta(tenant, id, now_unix, &etag),
-        };
-        // Preserve original created timestamp.
-        user.meta.created = existing.meta.created;
-        self.users.put(&user, tenant);
-        Ok(user)
-    }
-
-    fn patch_user(
-        &self,
-        tenant: &TenantId,
-        id: &ScimId,
-        op: &PatchOp,
-        now_unix: i64,
-    ) -> Result<User, ScimError> {
-        let mut user = self
-            .users
-            .get(tenant, id)
-            .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))?;
-        for o in &op.operations {
-            apply_patch_user(&mut user, o)?;
-        }
-        let etag = format!("{}{}", id.0, now_unix);
-        user.meta.last_modified = rfc3339(now_unix);
-        user.meta.version = format!("W/\"{etag}\"");
-        self.users.put(&user, tenant);
-        Ok(user)
-    }
-
-    fn delete_user(&self, tenant: &TenantId, id: &ScimId) -> Result<(), ScimError> {
-        if self.users.get(tenant, id).is_none() {
-            return Err(ScimError::new(
-                404,
-                None,
-                format!("user '{}' not found", id.0),
-            ));
-        }
-        self.users.delete(tenant, id);
-        Ok(())
-    }
-
-    fn list_groups(
-        &self,
-        tenant: &TenantId,
-        q: &ListQuery,
-    ) -> Result<ListResponse<Group>, ScimError> {
-        let all = self.groups.list(tenant);
-        let total = all.len();
-        let per_page = q.items_per_page.min(self.max_items_per_page).max(1);
-        let start = q.start_index.saturating_sub(1);
-        let slice: Vec<Group> = all.into_iter().skip(start).take(per_page).collect();
-        Ok(ListResponse {
-            schemas: vec![ListResponse::<Group>::SCHEMA.to_owned()],
-            total_results: total,
-            resources: slice,
-            items_per_page: per_page,
-            start_index: q.start_index,
+            {
+                return Err(ScimError::new(
+                    409,
+                    Some(ScimType::Uniqueness),
+                    format!("userName '{}' already exists", input.user_name),
+                ));
+            }
+            let id = self.ids.next_id();
+            let etag = format!("{}{}", id.0, now_unix);
+            let user = User {
+                schemas: build_user_schemas(&input),
+                id: id.clone(),
+                external_id: input.external_id,
+                user_name: input.user_name,
+                name: input.name,
+                display_name: input.display_name,
+                active: input.active,
+                emails: input.emails,
+                groups: Vec::new(),
+                enterprise: input.enterprise,
+                oyatie: input.oyatie,
+                meta: self.user_meta(tenant, &id, now_unix, &etag),
+            };
+            self.users.put(&user, tenant).await?;
+            Ok(user)
         })
     }
-    fn get_group(&self, tenant: &TenantId, id: &ScimId) -> Result<Group, ScimError> {
-        self.groups
-            .get(tenant, id)
-            .ok_or_else(|| ScimError::new(404, None, format!("group '{}' not found", id.0)))
+
+    fn replace_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+        input: NewUser,
+        now_unix: i64,
+    ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            let existing = self
+                .users
+                .get(tenant, id)
+                .await
+                .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))?;
+            // Uniqueness only enforced if userName actually changed.
+            if input.user_name != existing.user_name
+                && self
+                    .users
+                    .find_by_user_name(tenant, &input.user_name)
+                    .await
+                    .is_some()
+            {
+                return Err(ScimError::new(
+                    409,
+                    Some(ScimType::Uniqueness),
+                    format!("userName '{}' already exists", input.user_name),
+                ));
+            }
+            let etag = format!("{}{}", id.0, now_unix);
+            let mut user = User {
+                schemas: build_user_schemas(&input),
+                id: id.clone(),
+                external_id: input.external_id,
+                user_name: input.user_name,
+                name: input.name,
+                display_name: input.display_name,
+                active: input.active,
+                emails: input.emails,
+                groups: existing.groups, // preserve group memberships
+                enterprise: input.enterprise,
+                oyatie: input.oyatie,
+                meta: self.user_meta(tenant, id, now_unix, &etag),
+            };
+            // Preserve original created timestamp.
+            user.meta.created = existing.meta.created;
+            self.users.put(&user, tenant).await?;
+            Ok(user)
+        })
     }
-    fn create_group(
-        &self,
-        tenant: &TenantId,
+
+    fn patch_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+        op: &'a PatchOp,
+        now_unix: i64,
+    ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            let mut user = self
+                .users
+                .get(tenant, id)
+                .await
+                .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))?;
+            for o in &op.operations {
+                apply_patch_user(&mut user, o)?;
+            }
+            let etag = format!("{}{}", id.0, now_unix);
+            user.meta.last_modified = rfc3339(now_unix);
+            user.meta.version = format!("W/\"{etag}\"");
+            self.users.put(&user, tenant).await?;
+            Ok(user)
+        })
+    }
+
+    fn delete_user<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            if self.users.get(tenant, id).await.is_none() {
+                return Err(ScimError::new(
+                    404,
+                    None,
+                    format!("user '{}' not found", id.0),
+                ));
+            }
+            self.users.delete(tenant, id).await?;
+            Ok(())
+        })
+    }
+
+    fn list_groups<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        q: &'a ListQuery,
+    ) -> Pin<Box<dyn Future<Output = Result<ListResponse<Group>, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            let all = self.groups.list(tenant).await;
+            let total = all.len();
+            let per_page = q.items_per_page.min(self.max_items_per_page).max(1);
+            let start = q.start_index.saturating_sub(1);
+            let slice: Vec<Group> = all.into_iter().skip(start).take(per_page).collect();
+            Ok(ListResponse {
+                schemas: vec![ListResponse::<Group>::SCHEMA.to_owned()],
+                total_results: total,
+                resources: slice,
+                items_per_page: per_page,
+                start_index: q.start_index,
+            })
+        })
+    }
+    fn get_group<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<Group, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.groups
+                .get(tenant, id)
+                .await
+                .ok_or_else(|| ScimError::new(404, None, format!("group '{}' not found", id.0)))
+        })
+    }
+    fn create_group<'a>(
+        &'a self,
+        tenant: &'a TenantId,
         input: NewGroup,
         now_unix: i64,
-    ) -> Result<Group, ScimError> {
-        if input.display_name.is_empty() {
-            return Err(ScimError::new(
-                400,
-                Some(ScimType::InvalidValue),
-                "displayName is required",
-            ));
-        }
-        let id = self.ids.next_id();
-        let etag = format!("{}{}", id.0, now_unix);
-        let group = Group {
-            schemas: vec![Group::CORE_SCHEMA.to_owned()],
-            id: id.clone(),
-            display_name: input.display_name,
-            members: input.members,
-            meta: self.group_meta(tenant, &id, now_unix, &etag),
-        };
-        self.groups.put(&group, tenant);
-        Ok(group)
+    ) -> Pin<Box<dyn Future<Output = Result<Group, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            if input.display_name.is_empty() {
+                return Err(ScimError::new(
+                    400,
+                    Some(ScimType::InvalidValue),
+                    "displayName is required",
+                ));
+            }
+            let id = self.ids.next_id();
+            let etag = format!("{}{}", id.0, now_unix);
+            let group = Group {
+                schemas: vec![Group::CORE_SCHEMA.to_owned()],
+                id: id.clone(),
+                display_name: input.display_name,
+                members: input.members,
+                meta: self.group_meta(tenant, &id, now_unix, &etag),
+            };
+            self.groups.put(&group, tenant).await?;
+            Ok(group)
+        })
     }
-    fn patch_group(
-        &self,
-        tenant: &TenantId,
-        id: &ScimId,
-        op: &PatchOp,
+    fn patch_group<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+        op: &'a PatchOp,
         now_unix: i64,
-    ) -> Result<Group, ScimError> {
-        let mut group = self
-            .groups
-            .get(tenant, id)
-            .ok_or_else(|| ScimError::new(404, None, format!("group '{}' not found", id.0)))?;
-        for o in &op.operations {
-            apply_patch_group(&mut group, o)?;
-        }
-        let etag = format!("{}{}", id.0, now_unix);
-        group.meta.last_modified = rfc3339(now_unix);
-        group.meta.version = format!("W/\"{etag}\"");
-        self.groups.put(&group, tenant);
-        Ok(group)
+    ) -> Pin<Box<dyn Future<Output = Result<Group, ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            let mut group = self
+                .groups
+                .get(tenant, id)
+                .await
+                .ok_or_else(|| ScimError::new(404, None, format!("group '{}' not found", id.0)))?;
+            for o in &op.operations {
+                apply_patch_group(&mut group, o)?;
+            }
+            let etag = format!("{}{}", id.0, now_unix);
+            group.meta.last_modified = rfc3339(now_unix);
+            group.meta.version = format!("W/\"{etag}\"");
+            self.groups.put(&group, tenant).await?;
+            Ok(group)
+        })
     }
-    fn delete_group(&self, tenant: &TenantId, id: &ScimId) -> Result<(), ScimError> {
-        if self.groups.get(tenant, id).is_none() {
-            return Err(ScimError::new(
-                404,
-                None,
-                format!("group '{}' not found", id.0),
-            ));
-        }
-        self.groups.delete(tenant, id);
-        Ok(())
+    fn delete_group<'a>(
+        &'a self,
+        tenant: &'a TenantId,
+        id: &'a ScimId,
+    ) -> Pin<Box<dyn Future<Output = Result<(), ScimError>> + Send + 'a>> {
+        Box::pin(async move {
+            if self.groups.get(tenant, id).await.is_none() {
+                return Err(ScimError::new(
+                    404,
+                    None,
+                    format!("group '{}' not found", id.0),
+                ));
+            }
+            self.groups.delete(tenant, id).await?;
+            Ok(())
+        })
     }
 }
 

@@ -17,7 +17,10 @@ oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platfo
 oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
-tokio = { workspace = true }
+# "sync" adds tokio::sync::Mutex (the async composition-root lock held across
+# the now-async provider `.await`s); the workspace default already brings
+# rt-multi-thread/net/macros.
+tokio = { workspace = true, features = ["sync"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }

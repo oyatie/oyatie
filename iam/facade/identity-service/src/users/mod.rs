@@ -307,6 +307,7 @@ where
     match state
         .server
         .list_users(&TenantId(tenant), &page_query(&uri))
+        .await
     {
         Ok(listing) => Json(listing).into_response(),
         Err(error) => scim_error_response(error),
@@ -329,6 +330,7 @@ where
     match state
         .server
         .create_user(&TenantId(tenant), input, (state.now_provider)())
+        .await
     {
         Ok(user) => (StatusCode::CREATED, Json(user)).into_response(),
         Err(error) => scim_error_response(error),
@@ -347,7 +349,7 @@ where
     S: AuditSink + 'static,
 {
     guard!(state, headers, tenant);
-    match state.server.get_user(&TenantId(tenant), &ScimId(id)) {
+    match state.server.get_user(&TenantId(tenant), &ScimId(id)).await {
         Ok(user) => Json(user).into_response(),
         Err(error) => scim_error_response(error),
     }
@@ -366,12 +368,11 @@ where
     S: AuditSink + 'static,
 {
     guard!(state, headers, tenant);
-    match state.server.replace_user(
-        &TenantId(tenant),
-        &ScimId(id),
-        input,
-        (state.now_provider)(),
-    ) {
+    match state
+        .server
+        .replace_user(&TenantId(tenant), &ScimId(id), input, (state.now_provider)())
+        .await
+    {
         Ok(user) => Json(user).into_response(),
         Err(error) => scim_error_response(error),
     }
@@ -393,6 +394,7 @@ where
     match state
         .server
         .patch_user(&TenantId(tenant), &ScimId(id), &op, (state.now_provider)())
+        .await
     {
         Ok(user) => Json(user).into_response(),
         Err(error) => scim_error_response(error),
@@ -411,7 +413,11 @@ where
     S: AuditSink + 'static,
 {
     guard!(state, headers, tenant);
-    match state.server.delete_user(&TenantId(tenant), &ScimId(id)) {
+    match state
+        .server
+        .delete_user(&TenantId(tenant), &ScimId(id))
+        .await
+    {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(error) => scim_error_response(error),
     }
@@ -433,6 +439,7 @@ where
     match state
         .server
         .list_groups(&TenantId(tenant), &page_query(&uri))
+        .await
     {
         Ok(listing) => Json::<_>(listing).into_response(),
         Err(error) => scim_error_response(error),
@@ -455,6 +462,7 @@ where
     match state
         .server
         .create_group(&TenantId(tenant), input, (state.now_provider)())
+        .await
     {
         Ok(group) => (StatusCode::CREATED, Json(group)).into_response(),
         Err(error) => scim_error_response(error),
@@ -473,7 +481,7 @@ where
     S: AuditSink + 'static,
 {
     guard!(state, headers, tenant);
-    match state.server.get_group(&TenantId(tenant), &ScimId(id)) {
+    match state.server.get_group(&TenantId(tenant), &ScimId(id)).await {
         Ok(group) => Json(group).into_response(),
         Err(error) => scim_error_response(error),
     }
@@ -495,6 +503,7 @@ where
     match state
         .server
         .patch_group(&TenantId(tenant), &ScimId(id), &op, (state.now_provider)())
+        .await
     {
         Ok(group) => Json(group).into_response(),
         Err(error) => scim_error_response(error),
@@ -513,7 +522,11 @@ where
     S: AuditSink + 'static,
 {
     guard!(state, headers, tenant);
-    match state.server.delete_group(&TenantId(tenant), &ScimId(id)) {
+    match state
+        .server
+        .delete_group(&TenantId(tenant), &ScimId(id))
+        .await
+    {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(error) => scim_error_response(error),
     }

@@ -13,6 +13,8 @@ oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platfo
 
 [dev-dependencies]
 oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
+# Async store port: unit tests `.await` the boxed-future methods under #[tokio::test].
+tokio = { workspace = true, features = ["macros", "rt"] }
 
 [lib]
 name = "tenancy_tenant_lifecycle_store_inmemory"
