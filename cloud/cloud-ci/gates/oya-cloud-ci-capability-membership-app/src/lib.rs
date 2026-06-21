@@ -265,7 +265,13 @@ fn string_array(value: &Value, key: &str) -> Vec<String> {
 
 /// Parsed registry mapping DATA. Returns an Err string on any malformed required field so the
 /// evaluator emits `MEM-POLICY-MALFORMED` and fails CLOSED rather than silently dropping a check.
-struct Mapping {
+///
+/// `pub` (additive, same pattern as slice 2.5): the born-accounting register_crate ORCHESTRATOR
+/// (`oya-cloud-ci-register-crate-app`) reuses [`parse_mapping`] + [`homes_for`] verbatim so its
+/// "is this crate already capability-mapped?" check is DRIFT-PROOF — it never reimplements the home
+/// resolution this gate enforces. Fields stay private (the orchestrator treats `Mapping` as opaque,
+/// only passing it to [`homes_for`]).
+pub struct Mapping {
     /// (prefix dir, home label) pairs from absorbs_current_dirs + app_products + meta_directory_absorbs.
     dir_prefixes: Vec<(String, String)>,
     /// (glob, home label) pairs from absorbs_current_crate_globs (glob ends with `*` for stem-match).
@@ -274,7 +280,29 @@ struct Mapping {
     frozen: BTreeSet<String>,
 }
 
-fn parse_mapping(registry: &Value) -> Result<Mapping, String> {
+impl Mapping {
+    /// The distinct home labels this registry can express — every `capability:<name>` / `meta:<dir>`
+    /// a crate could be mapped to (from `dir_prefixes` ∪ `globs`). The born-accounting orchestrator
+    /// uses this as the CapabilitySet slug universe so a genuinely-unmapped crate has a valid home
+    /// choice (it must not be forced into a wrong group for lack of an expressible one).
+    #[must_use]
+    pub fn expressible_homes(&self) -> BTreeSet<String> {
+        self.dir_prefixes
+            .iter()
+            .chain(self.globs.iter())
+            .map(|(_, home)| home.clone())
+            .collect()
+    }
+}
+
+/// Parse the capability registry into the [`Mapping`] DATA the home resolution consumes.
+///
+/// `pub` so the born-accounting orchestrator reuses the SAME parse (no reimplementation / drift).
+///
+/// # Errors
+/// An `Err(String)` naming the malformed required field, so the evaluator emits `MEM-POLICY-MALFORMED`
+/// and fails CLOSED rather than silently dropping a check.
+pub fn parse_mapping(registry: &Value) -> Result<Mapping, String> {
     let mut dir_prefixes: Vec<(String, String)> = Vec::new();
     let mut globs: Vec<(String, String)> = Vec::new();
 
@@ -363,7 +391,11 @@ fn prefix_match(crate_dir: &str, entry: &str) -> bool {
 }
 
 /// True iff `crate_dir` matches `glob` (a `*`-suffixed stem match, else exact-or-subdir).
-fn glob_match(crate_dir: &str, glob: &str) -> bool {
+///
+/// `pub` so the born-accounting orchestrator's mapping check shares the EXACT glob semantics this
+/// gate enforces (a `*`-suffix stem match, not an exact-string compare) — the drift this fixes.
+#[must_use]
+pub fn glob_match(crate_dir: &str, glob: &str) -> bool {
     match glob.strip_suffix('*') {
         Some(stem) => crate_dir.starts_with(stem),
         None => prefix_match(crate_dir, glob),
@@ -371,7 +403,12 @@ fn glob_match(crate_dir: &str, glob: &str) -> bool {
 }
 
 /// All home labels a crate maps to (for the exactly-one check).
-fn homes_for(mapping: &Mapping, crate_dir: &str) -> Vec<String> {
+///
+/// `pub` so the born-accounting orchestrator reuses this verbatim: a crate is "already capability-
+/// mapped" iff `homes_for(&mapping, dir).len() >= 1`. Single source of home resolution → no drift
+/// between the gate that BLOCKS and the orchestrator that decides whether to emit a mapping edit.
+#[must_use]
+pub fn homes_for(mapping: &Mapping, crate_dir: &str) -> Vec<String> {
     let mut homes: Vec<String> = Vec::new();
     for (entry, home) in &mapping.dir_prefixes {
         if prefix_match(crate_dir, entry) {
