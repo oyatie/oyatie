@@ -2,16 +2,40 @@
 //!
 //! These drive the FULL HTTP surface end-to-end against the in-memory store,
 //! exercising the REAL tenancy lifecycle core (the contract FSM inside the
-//! usecase) — register lands a tenant in `Provisioning`, `:provision` drives
-//! it to `Active` through the operation ledger, and the read surface reflects
-//! every transition. No sockets are opened; the `axum::Router` is invoked via
-//! `tower::ServiceExt::oneshot`.
+//! usecase) AND the fail-closed authorization layer (the embedded Cedar PDP,
+//! AUTH-005): register lands a tenant in `Provisioning`, `:provision` drives
+//! it to `Active` through the operation ledger, and every route authenticates
+//! the verified bearer and authorizes it against the target tenant. No sockets
+//! are opened; the `axum::Router` is invoked via `tower::ServiceExt::oneshot`.
+//!
+//! Authorization model under test:
+//!   - platform-admin bearer (`PLATFORM_TOKEN`) → may register + list (no
+//!     tenant scope; per-tenant ops still deny);
+//!   - tenant-operator bearer (`OPERATOR_TOKEN`) + `x-oya-tenant` axis → may
+//!     administer ONLY the asserted tenant (cross-tenant + register/list deny);
+//!   - no/invalid bearer → 401 on every route.
 
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode};
 use http_body_util::BodyExt;
 use tenancy_tenant_lifecycle_app::build_inmemory_router;
 use tower::ServiceExt;
+
+/// The platform-admin bearer the test router is configured with.
+const PLATFORM_TOKEN: &str = "test-platform-admin-secret";
+/// The tenant-operator bearer the test router is configured with.
+const OPERATOR_TOKEN: &str = "test-tenant-operator-secret";
+
+/// Build a fully-authorized in-memory router (both credential classes
+/// configured). Panics only on an authz-bundle compile failure, which is a
+/// hard test failure (the embedded seed bundle must always compile).
+fn app() -> axum::Router {
+    build_inmemory_router(
+        Some(PLATFORM_TOKEN.to_owned()),
+        Some(OPERATOR_TOKEN.to_owned()),
+    )
+    .expect("embedded authz bundle must compile and strict-validate")
+}
 
 /// A distinct canonical-UUID idempotency key per call (AIP-155 client token).
 fn key(n: u8) -> String {
@@ -33,6 +57,7 @@ fn register_body(tenant_id: &str) -> serde_json::Value {
     })
 }
 
+/// Register a tenant as the platform admin (register is a platform-admin op).
 async fn register(app: &axum::Router, tenant_id: &str, idem: &str) -> axum::http::Response<Body> {
     app.clone()
         .oneshot(
@@ -41,6 +66,7 @@ async fn register(app: &axum::Router, tenant_id: &str, idem: &str) -> axum::http
                 .uri("/v1/tenants")
                 .header("content-type", "application/json")
                 .header("idempotency-key", idem)
+                .header("authorization", format!("Bearer {PLATFORM_TOKEN}"))
                 .body(Body::from(serde_json::to_vec(&register_body(tenant_id)).unwrap()))
                 .unwrap(),
         )
@@ -48,6 +74,8 @@ async fn register(app: &axum::Router, tenant_id: &str, idem: &str) -> axum::http
         .unwrap()
 }
 
+/// Drive a per-tenant lifecycle verb as the tenant operator scoped to
+/// `tenant_id` (the `x-oya-tenant` axis equals the target id).
 async fn lifecycle(
     app: &axum::Router,
     tenant_id: &str,
@@ -60,6 +88,8 @@ async fn lifecycle(
                 .method(Method::POST)
                 .uri(format!("/v1/tenants/{tenant_id}/{verb}"))
                 .header("idempotency-key", idem)
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", tenant_id)
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -67,6 +97,7 @@ async fn lifecycle(
         .unwrap()
 }
 
+/// Read a tenant's state as the tenant operator scoped to it.
 async fn get_state(app: &axum::Router, tenant_id: &str) -> (StatusCode, serde_json::Value) {
     let resp = app
         .clone()
@@ -74,6 +105,8 @@ async fn get_state(app: &axum::Router, tenant_id: &str) -> (StatusCode, serde_js
             Request::builder()
                 .method(Method::GET)
                 .uri(format!("/v1/tenants/{tenant_id}"))
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", tenant_id)
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -85,7 +118,7 @@ async fn get_state(app: &axum::Router, tenant_id: &str) -> (StatusCode, serde_js
 
 #[tokio::test]
 async fn healthz_returns_200() {
-    let app = build_inmemory_router();
+    let app = app();
     let resp = app
         .oneshot(
             Request::builder()
@@ -104,7 +137,7 @@ async fn healthz_returns_200() {
 /// state transition is observable on the read surface.
 #[tokio::test]
 async fn register_then_provision_drives_provisioning_to_active() {
-    let app = build_inmemory_router();
+    let app = app();
 
     // Register: a brand-new tenant is born in Provisioning.
     let resp = register(&app, "acme", &key(1)).await;
@@ -135,7 +168,7 @@ async fn register_then_provision_drives_provisioning_to_active() {
 /// resume -> retire, each a real contract transition.
 #[tokio::test]
 async fn full_lifecycle_transitions_over_http() {
-    let app = build_inmemory_router();
+    let app = app();
     assert_eq!(register(&app, "globex", &key(1)).await.status(), StatusCode::CREATED);
 
     assert_eq!(
@@ -158,6 +191,8 @@ async fn full_lifecycle_transitions_over_http() {
                 .method(Method::DELETE)
                 .uri("/v1/tenants/globex")
                 .header("idempotency-key", key(5))
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", "globex")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -169,16 +204,18 @@ async fn full_lifecycle_transitions_over_http() {
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
 
-/// Registration without an Idempotency-Key header is rejected.
+/// Registration without an Idempotency-Key header is rejected (authz passes
+/// first as the platform admin, then the missing key is a 400).
 #[tokio::test]
 async fn register_requires_idempotency_key() {
-    let app = build_inmemory_router();
+    let app = app();
     let resp = app
         .oneshot(
             Request::builder()
                 .method(Method::POST)
                 .uri("/v1/tenants")
                 .header("content-type", "application/json")
+                .header("authorization", format!("Bearer {PLATFORM_TOKEN}"))
                 .body(Body::from(serde_json::to_vec(&register_body("acme")).unwrap()))
                 .unwrap(),
         )
@@ -190,7 +227,7 @@ async fn register_requires_idempotency_key() {
 /// Re-registering with the SAME key + SAME body replays (idempotent), 200.
 #[tokio::test]
 async fn register_replay_is_idempotent() {
-    let app = build_inmemory_router();
+    let app = app();
     assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
     let resp = register(&app, "acme", &key(1)).await;
     assert_eq!(resp.status(), StatusCode::OK);
@@ -200,16 +237,17 @@ async fn register_replay_is_idempotent() {
 /// A NEW key onto an existing tenant id is a conflict (AlreadyExists).
 #[tokio::test]
 async fn register_existing_tenant_new_key_conflicts() {
-    let app = build_inmemory_router();
+    let app = app();
     assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
     let resp = register(&app, "acme", &key(2)).await;
     assert_eq!(resp.status(), StatusCode::CONFLICT);
 }
 
-/// Provisioning an unknown tenant is a 404.
+/// Provisioning an unknown tenant is a 404 (the operator IS authorized for the
+/// asserted tenant; the resource simply does not exist).
 #[tokio::test]
 async fn provision_unknown_tenant_returns_404() {
-    let app = build_inmemory_router();
+    let app = app();
     let resp = lifecycle(&app, "ghost", "provision", &key(1)).await;
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 }
@@ -218,7 +256,7 @@ async fn provision_unknown_tenant_returns_404() {
 /// FSM forbids Provisioning -> Suspended directly).
 #[tokio::test]
 async fn suspend_before_provision_is_conflict() {
-    let app = build_inmemory_router();
+    let app = app();
     assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
     let resp = lifecycle(&app, "acme", "suspend", &key(2)).await;
     assert_eq!(resp.status(), StatusCode::CONFLICT);
@@ -227,18 +265,18 @@ async fn suspend_before_provision_is_conflict() {
     assert_eq!(view["state"], "provisioning");
 }
 
-/// Reading an unregistered tenant is a 404.
+/// Reading an unregistered tenant is a 404 (authorized operator, missing tenant).
 #[tokio::test]
 async fn get_unknown_tenant_returns_404() {
-    let app = build_inmemory_router();
+    let app = app();
     let (status, _) = get_state(&app, "nobody").await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
 
-/// The list surface enumerates registered tenants.
+/// The list surface enumerates registered tenants (platform-admin only).
 #[tokio::test]
 async fn list_returns_registered_tenants() {
-    let app = build_inmemory_router();
+    let app = app();
     assert_eq!(register(&app, "alpha", &key(1)).await.status(), StatusCode::CREATED);
     assert_eq!(register(&app, "bravo", &key(2)).await.status(), StatusCode::CREATED);
 
@@ -247,6 +285,7 @@ async fn list_returns_registered_tenants() {
             Request::builder()
                 .method(Method::GET)
                 .uri("/v1/tenants")
+                .header("authorization", format!("Bearer {PLATFORM_TOKEN}"))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -261,4 +300,283 @@ async fn list_returns_registered_tenants() {
         .map(|t| t["tenant_id"].as_str().unwrap())
         .collect();
     assert_eq!(ids, vec!["alpha", "bravo"]);
+}
+
+// ============================================================
+// AUTH-005 — fail-closed authorization (the BLOCKING security fix)
+// ============================================================
+
+/// Every mutating route rejects an UNAUTHENTICATED request with 401 (no
+/// bearer at all). Register/provision/suspend/resume/retire are all covered.
+#[tokio::test]
+async fn unauthenticated_requests_are_401_on_every_mutating_route() {
+    let app = app();
+
+    // POST /v1/tenants (register) with no bearer.
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants")
+                .header("content-type", "application/json")
+                .header("idempotency-key", key(1))
+                .body(Body::from(serde_json::to_vec(&register_body("acme")).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED, "register must be 401");
+
+    // Per-tenant mutating verbs with no bearer.
+    for (method, uri) in [
+        (Method::POST, "/v1/tenants/acme/provision"),
+        (Method::POST, "/v1/tenants/acme/suspend"),
+        (Method::POST, "/v1/tenants/acme/resume"),
+        (Method::DELETE, "/v1/tenants/acme"),
+    ] {
+        let resp = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(method.clone())
+                    .uri(uri)
+                    .header("idempotency-key", key(2))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            resp.status(),
+            StatusCode::UNAUTHORIZED,
+            "{method} {uri} must be 401 unauthenticated",
+        );
+    }
+}
+
+/// The read route also rejects an unauthenticated caller (401) — reads are not
+/// public.
+#[tokio::test]
+async fn unauthenticated_read_is_401() {
+    let app = app();
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::GET)
+                .uri("/v1/tenants/acme")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+}
+
+/// CROSS-TENANT DENIAL (the headline finding): an operator authorized for
+/// tenant A is FORBIDDEN (403) from suspending OR retiring tenant B. The URL
+/// {id} alone never authorizes.
+#[tokio::test]
+async fn cross_tenant_operator_is_403_on_suspend_and_retire() {
+    let app = app();
+    // Both tenants exist and are active.
+    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(register(&app, "globex", &key(2)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        lifecycle(&app, "globex", "provision", &key(3)).await.status(),
+        StatusCode::OK
+    );
+
+    // Operator scoped to "acme" tries to suspend "globex": axis != target ⇒ 403.
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants/globex/suspend")
+                .header("idempotency-key", key(4))
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", "acme")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::FORBIDDEN, "cross-tenant suspend must be 403");
+
+    // ...and retiring "globex" while scoped to "acme" is likewise 403.
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::DELETE)
+                .uri("/v1/tenants/globex")
+                .header("idempotency-key", key(5))
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", "acme")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::FORBIDDEN, "cross-tenant retire must be 403");
+
+    // "globex" survived the cross-tenant retire attempt (still Active).
+    let (status, view) = get_state(&app, "globex").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(view["state"], "active");
+}
+
+/// A tenant-scoped operator may NOT register a tenant (platform-admin scope):
+/// 403, not a silent allow.
+#[tokio::test]
+async fn tenant_operator_cannot_register() {
+    let app = app();
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants")
+                .header("content-type", "application/json")
+                .header("idempotency-key", key(1))
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", "acme")
+                .body(Body::from(serde_json::to_vec(&register_body("acme")).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+}
+
+/// A tenant-scoped operator may NOT list tenants (the surface discloses all
+/// tenants): 403.
+#[tokio::test]
+async fn tenant_operator_cannot_list() {
+    let app = app();
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::GET)
+                .uri("/v1/tenants")
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", "acme")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+}
+
+/// An operator credential WITHOUT the tenant axis header cannot bind a tenant
+/// scope (the bearer alone never grants the tenant axis): 401.
+#[tokio::test]
+async fn operator_without_tenant_axis_is_401() {
+    let app = app();
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants/acme/provision")
+                .header("idempotency-key", key(1))
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+}
+
+/// A wrong/garbage bearer is rejected as unauthenticated (constant-time
+/// mismatch): 401.
+#[tokio::test]
+async fn wrong_bearer_is_401() {
+    let app = app();
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::DELETE)
+                .uri("/v1/tenants/acme")
+                .header("idempotency-key", key(1))
+                .header("authorization", "Bearer not-the-real-token")
+                .header("x-oya-tenant", "acme")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+}
+
+/// The platform admin may register but is NOT a tenant operator: a per-tenant
+/// op with the platform-admin bearer (no tenant axis) is denied (401/403, never
+/// allowed). This proves register-scope ≠ administer-scope.
+#[tokio::test]
+async fn platform_admin_is_not_a_tenant_operator() {
+    let app = app();
+    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants/acme/provision")
+                .header("idempotency-key", key(2))
+                .header("authorization", format!("Bearer {PLATFORM_TOKEN}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_ne!(
+        resp.status(),
+        StatusCode::OK,
+        "platform admin must not drive per-tenant lifecycle ops",
+    );
+    assert!(
+        resp.status() == StatusCode::FORBIDDEN || resp.status() == StatusCode::UNAUTHORIZED,
+        "expected 401/403, got {}",
+        resp.status(),
+    );
+}
+
+/// Replaying a mutating op after the tenant reached a terminal/idempotent
+/// outcome with the SAME key replays the original outcome (idempotency holds
+/// through the authz layer).
+#[tokio::test]
+async fn lifecycle_replay_same_key_is_idempotent() {
+    let app = app();
+    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    assert_eq!(
+        lifecycle(&app, "acme", "provision", &key(2)).await.status(),
+        StatusCode::OK
+    );
+    // Replay provision with the SAME key: idempotent replay, still 200 + Active.
+    let resp = lifecycle(&app, "acme", "provision", &key(2)).await;
+    assert_eq!(resp.status(), StatusCode::OK);
+    assert_eq!(body_json(resp.into_body()).await["state"], "active");
+}
+
+/// Reusing an idempotency key with DIFFERENT parameters is rejected (HTTP 422
+/// IDEMPOTENCY_KEY_REUSE) — exercised on register where the body differs.
+#[tokio::test]
+async fn register_key_reuse_with_different_body_is_422() {
+    let app = app();
+    assert_eq!(register(&app, "acme", &key(1)).await.status(), StatusCode::CREATED);
+    // Same key, different tenant_id ⇒ key reuse with different params ⇒ 422.
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/v1/tenants")
+                .header("content-type", "application/json")
+                .header("idempotency-key", key(1))
+                .header("authorization", format!("Bearer {PLATFORM_TOKEN}"))
+                .body(Body::from(serde_json::to_vec(&register_body("different")).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::UNPROCESSABLE_ENTITY);
 }

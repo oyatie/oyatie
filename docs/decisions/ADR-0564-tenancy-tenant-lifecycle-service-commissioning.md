@@ -11,7 +11,7 @@ supersedes: []
 superseded_by: []
 amends: []
 depends_on: [ADR-0550, ADR-0562]
-related: [ADR-0083, ADR-0105, ADR-0131, ADR-0476, ADR-0510, ADR-0541, ADR-0547, ADR-0553, ADR-0555, ADR-0559]
+related: [ADR-0083, ADR-0105, ADR-0131, ADR-0243, ADR-0476, ADR-0510, ADR-0536, ADR-0541, ADR-0547, ADR-0553, ADR-0555, ADR-0559, ADR-0562]
 related_specs: []
 milestone: W0
 ---
@@ -128,6 +128,69 @@ commissioned by this decision:
 `registry/catalog/tenancy-tenant-lifecycle-store-inmemory.yaml`,
 `registry/catalog/tenancy-tenant-lifecycle-app.yaml`.
 
+Files commissioned by the D7 authorization amendment (AUTH-005 BLOCKING fix):
+
+`tenancy/ports/tenant-lifecycle-authz/BUCK`,
+`tenancy/ports/tenant-lifecycle-authz/Cargo.toml`,
+`tenancy/ports/tenant-lifecycle-authz/src/lib.rs`,
+`tenancy/adapters/tenant-lifecycle-authz-pdp/BUCK`,
+`tenancy/adapters/tenant-lifecycle-authz-pdp/Cargo.toml`,
+`tenancy/adapters/tenant-lifecycle-authz-pdp/src/lib.rs`,
+`tenancy/adapters/tenant-lifecycle-authz-pdp/cedar/tenancy.cedarschema`,
+`tenancy/adapters/tenant-lifecycle-authz-pdp/cedar/tenancy-policies.cedar`,
+`registry/catalog/tenancy-tenant-lifecycle-authz-port.yaml`,
+`registry/catalog/tenancy-tenant-lifecycle-authz-pdp.yaml`.
+
+### D7 — Authorization posture (AUTH-005 BLOCKING fix; fail-closed, default-deny, dogfood cloud-iam PDP)
+
+An independent adversarial review found the D2 REST surface as first commissioned was an
+**unauthenticated, unauthorized multi-tenant control plane**: any network caller could register,
+suspend, or RETIRE (irreversible) any tenant by id, because handlers took the URL `{id}` straight
+from the path with zero authentication and zero authorization. This is a CRITICAL trust-boundary
+defect. This amendment closes it before the service can ship; the founder decision is to implement
+fail-closed authz NOW, dogfooding the in-repo cloud-iam PDP, with no default-allow path.
+
+**D7-a — Authz as a PORT the facade depends on (clean-arch faces, ADR-0131 / ADR-0562).** The
+authorization decision is a PORT (`tenancy/ports/tenant-lifecycle-authz`,
+`TenantLifecycleAuthorizer`); the facade (PEP) depends INWARD on the port, never on a concrete
+engine. The decision ADAPTER (`tenancy/adapters/tenant-lifecycle-authz-pdp`) implements the port by
+**dogfooding the repo's own embedded Cedar PDP substrate** — `oya-shared-pdp-kernel`'s
+`PolicyDecisionPoint` realized by `oya-shared-pdp-adapter-cedar`'s `CedarPdp` (ADR-0536 D-2;
+cloud-iam IS the IdP/PDP per ADR-0559). The tenancy service is therefore a Policy Enforcement Point
+over the SAME formally-verified Cedar engine cloud-iam ships, NOT a parallel authz stack. Face
+direction is enumerated clean: no `core`/`ports` crate path-depends on any `adapter`/`facade`, and
+the authz adapter has zero facade dependency.
+
+**D7-b — Full-spectrum Cedar authz (RBAC + ABAC + PBAC).** The tenancy authz bundle (embedded Cedar
+schema + policy seed in the adapter) is deny-by-default and forbid-overrides-permit. It carries a
+**structural cross-tenant forbid** (a tenant-scoped principal can never administer another tenant,
+whatever else is permitted), a **tenant-operator permit** (a principal whose proven tenant scope
+equals the target tenant may administer it), and **platform-admin permits** for register/list. The
+masterplan "RBAC" shorthand is read as full-spectrum Cedar-backed authz.
+
+**D7-c — Fail-closed enforcement matrix.** Every per-tenant op (read/provision/suspend/resume/retire)
+authorizes the VERIFIED caller against the TARGET `{id}` via the PDP — the URL `{id}` alone NEVER
+authorizes. `register` (POST /v1/tenants) and `list` (GET /v1/tenants, which discloses all tenants)
+require the platform-admin scope, a DISTINCT axis from any tenant scope. Outcomes:
+unauthenticated → **401**; authenticated-but-unauthorized (incl. cross-tenant, and any fail-closed
+engine refusal) → **403**. The verified bearer is compared constant-time (mirroring the established
+intelligence-REST `constant_time_eq` doctrine — no naive `==`), and the bearer ALONE never grants the
+tenant axis (a tenant operator must also assert its `x-oya-tenant` axis, bound only after the bearer
+is verified).
+
+**D7-d — Fail-closed boot (no default-allow, ever).** The composition root (`serve()`) REFUSES to
+serve when the embedded authz bundle cannot compile/strict-validate (`BootError::Authz`), so a
+misconfigured policy never degrades to default-allow, and when no bearer credential is configured at
+all (`BootError::NoCredentialConfigured`). There is no authorizer-less router overload — the only way
+to mount the routes is to supply a fail-closed authorizer.
+
+**D7-e — Poison-lock hardening + concurrency seam (review MED findings).** The provider lock recovers
+from poisoning via `PoisonError::into_inner` rather than propagating it, so one panicked handler can
+fail its own request without bricking the service (no single-panic DoS). The single coarse global
+lock is a documented, deliberate single-node bring-up seam: per-tenant / row-level concurrency moves
+into the persistent store adapter behind the unchanged `TenantLifecycleStore` port (D5), which owns
+the contention model.
+
 ## Precedent
 
 - **ADR-0559 / ADR-0553 service-commissioning pattern**: a runnable service in the ADR-0550
@@ -156,5 +219,11 @@ commissioned by this decision:
   each independently shippable.
 - The auth/onboarding audit's tenant-registration delivery-chain gap (rest/app crates MISSING) is
   closed for the register → provision → read path.
-- Deleting the two crates restores the prior state (two-way door); no consumer points at the
+- The AUTH-005 trust-boundary CRITICAL is closed (D7): the control plane is now fail-closed and
+  default-deny on every route — unauthenticated → 401, unauthorized/cross-tenant → 403 — dogfooding
+  the in-repo embedded Cedar PDP, with the binary refusing to serve without a valid authz provider.
+- The authz decision is a port with a Cedar-PDP adapter; the destination policy-store delivery
+  fabric (ADR-0536) swaps the seed bundle for content-addressed signed bundles behind the unchanged
+  port with no facade change.
+- Deleting the four crates restores the prior state (two-way door); no consumer points at the
   service yet.

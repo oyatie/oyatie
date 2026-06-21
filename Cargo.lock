@@ -11517,6 +11517,8 @@ dependencies = [
  "oya-shared-resource-provider-contract-kernel",
  "serde",
  "serde_json",
+ "tenancy-tenant-lifecycle-authz-pdp",
+ "tenancy-tenant-lifecycle-authz-port",
  "tenancy-tenant-lifecycle-kernel",
  "tenancy-tenant-lifecycle-store-inmemory",
  "tenancy-tenant-lifecycle-usecase",
@@ -11525,6 +11527,23 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
 ]
+
+[[package]]
+name = "tenancy-tenant-lifecycle-authz-pdp"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "oya-shared-pdp-adapter-cedar",
+ "oya-shared-pdp-kernel",
+ "oya-shared-platform-contracts-kernel",
+ "oya-shared-ulid-id-kernel",
+ "serde_json",
+ "tenancy-tenant-lifecycle-authz-port",
+]
+
+[[package]]
+name = "tenancy-tenant-lifecycle-authz-port"
+version = "0.1.0"
 
 [[package]]
 name = "tenancy-tenant-lifecycle-domain"

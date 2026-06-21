@@ -1,0 +1,16 @@
+[package]
+name = "tenancy-tenant-lifecycle-authz-port"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Authorization decision PORT for the tenant-lifecycle delivery surface (AUTH-005 / ADR-0564 D7): the TenantLifecycleAuthorizer trait + caller/action/decision value types the facade (PEP) depends on. Fail-closed, default-deny; zero adapter/facade dependency (the Cedar-backed PDP adapter and the axum facade depend inward on this port)."
+
+[lib]
+name = "tenancy_tenant_lifecycle_authz_port"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
