@@ -44,8 +44,8 @@ use oya_shared_platform_contracts_kernel::pdp::{
 use oya_shared_ulid_id_kernel::{IdGenerator, IdGeneratorError, Ulid};
 
 use tenancy_tenant_lifecycle_authz_port::{
-    AuthorizationDecision, AuthorizationQuery, AuthzError, TenantLifecycleAction,
-    TenantLifecycleAuthorizer,
+    AuthorizationDecision, AuthorizationOutcome, AuthorizationQuery, AuthzError,
+    TenantLifecycleAction, TenantLifecycleAuthorizer,
 };
 
 /// The embedded Cedar schema for the tenancy authz model.
@@ -175,7 +175,7 @@ impl PdpTenantLifecycleAuthorizer {
 fn decide(
     pdp: &CedarPdp,
     query: &AuthorizationQuery<'_>,
-) -> Result<AuthorizationDecision, AuthzError> {
+) -> Result<AuthorizationOutcome, AuthzError> {
     let caller = query.caller;
     let action_slug = query.action.slug();
 
@@ -253,10 +253,19 @@ fn decide(
     };
 
     match pdp.authorize(&request, &entities) {
-        Ok(outcome) => Ok(match outcome.response.decision {
-            Decision::Allow => AuthorizationDecision::Allow,
-            Decision::Deny => AuthorizationDecision::Deny,
-        }),
+        Ok(outcome) => {
+            let decision = match outcome.response.decision {
+                Decision::Allow => AuthorizationDecision::Allow,
+                Decision::Deny => AuthorizationDecision::Deny,
+            };
+            // Preserve the full audit record — NEVER discard it. The PEP
+            // emits a structured tracing event from these fields (AC-W-13).
+            Ok(AuthorizationOutcome {
+                decision,
+                decision_id: outcome.audit.decision_id,
+                determining_policy_ids: outcome.audit.determining_policy_ids,
+            })
+        }
         // Fail-closed: ANY engine refusal is a deny, surfaced as an error the
         // PEP enforces as a deny (never a bypass).
         Err(error) => Err(AuthzError::EngineRefused(error.to_string())),
@@ -280,7 +289,7 @@ impl TenantLifecycleAuthorizer for PdpTenantLifecycleAuthorizer {
     fn authorize(
         &self,
         query: &AuthorizationQuery<'_>,
-    ) -> Result<AuthorizationDecision, AuthzError> {
+    ) -> Result<AuthorizationOutcome, AuthzError> {
         decide(&self.pdp, query)
     }
 }
@@ -380,7 +389,7 @@ mod tests {
         caller: &CallerIdentity,
         action: TenantLifecycleAction,
         target: Option<&str>,
-    ) -> Result<AuthorizationDecision, AuthzError> {
+    ) -> Result<AuthorizationOutcome, AuthzError> {
         az.authorize(&AuthorizationQuery {
             caller,
             action,
@@ -406,9 +415,9 @@ mod tests {
             TenantLifecycleAction::Resume,
             TenantLifecycleAction::Retire,
         ] {
-            let decision = decide_action(&az, &caller, action, Some("acme")).unwrap();
+            let outcome = decide_action(&az, &caller, action, Some("acme")).unwrap();
             assert_eq!(
-                decision,
+                outcome.decision,
                 AuthorizationDecision::Allow,
                 "operator must administer own tenant for {action:?}",
             );
@@ -425,9 +434,9 @@ mod tests {
             TenantLifecycleAction::Suspend,
             TenantLifecycleAction::Retire,
         ] {
-            let decision = decide_action(&az, &caller, action, Some("globex")).unwrap();
+            let outcome = decide_action(&az, &caller, action, Some("globex")).unwrap();
             assert_eq!(
-                decision,
+                outcome.decision,
                 AuthorizationDecision::Deny,
                 "cross-tenant {action:?} must be denied",
             );
@@ -439,11 +448,15 @@ mod tests {
         let az = authorizer();
         let caller = tenant_caller("acme-operator", "acme");
         assert_eq!(
-            decide_action(&az, &caller, TenantLifecycleAction::Register, None).unwrap(),
+            decide_action(&az, &caller, TenantLifecycleAction::Register, None)
+                .unwrap()
+                .decision,
             AuthorizationDecision::Deny,
         );
         assert_eq!(
-            decide_action(&az, &caller, TenantLifecycleAction::List, None).unwrap(),
+            decide_action(&az, &caller, TenantLifecycleAction::List, None)
+                .unwrap()
+                .decision,
             AuthorizationDecision::Deny,
         );
     }
@@ -453,11 +466,15 @@ mod tests {
         let az = authorizer();
         let caller = platform_admin("platform-admin");
         assert_eq!(
-            decide_action(&az, &caller, TenantLifecycleAction::Register, None).unwrap(),
+            decide_action(&az, &caller, TenantLifecycleAction::Register, None)
+                .unwrap()
+                .decision,
             AuthorizationDecision::Allow,
         );
         assert_eq!(
-            decide_action(&az, &caller, TenantLifecycleAction::List, None).unwrap(),
+            decide_action(&az, &caller, TenantLifecycleAction::List, None)
+                .unwrap()
+                .decision,
             AuthorizationDecision::Allow,
         );
     }
@@ -494,13 +511,54 @@ mod tests {
             platform_admin: false,
         };
         assert_eq!(
-            decide_action(&az, &caller, TenantLifecycleAction::Register, None).unwrap(),
+            decide_action(&az, &caller, TenantLifecycleAction::Register, None)
+                .unwrap()
+                .decision,
             AuthorizationDecision::Deny,
         );
         assert!(matches!(
             decide_action(&az, &caller, TenantLifecycleAction::Read, Some("acme")),
             Err(AuthzError::InvalidQuery(_)),
         ));
+    }
+
+    // ── Audit record tests (AC-W-13) ──────────────────────────────────────────
+
+    #[test]
+    fn allow_outcome_carries_non_empty_decision_id_and_policy_ids() {
+        // Every ALLOW decision must produce a non-empty decision_id (the PDP-minted
+        // ULID) and at least one determining_policy_id (the permit that fired).
+        let az = authorizer();
+        let caller = tenant_caller("acme-operator", "acme");
+        let outcome =
+            decide_action(&az, &caller, TenantLifecycleAction::Read, Some("acme")).unwrap();
+        assert_eq!(outcome.decision, AuthorizationDecision::Allow);
+        assert!(
+            !outcome.decision_id.is_empty(),
+            "allow decision_id must be non-empty (AC-W-13)",
+        );
+        assert!(
+            !outcome.determining_policy_ids.is_empty(),
+            "allow must name the determining policy ids, got empty vec",
+        );
+    }
+
+    #[test]
+    fn deny_outcome_carries_non_empty_decision_id() {
+        // Every DENY decision — including a structural forbid — must produce a
+        // non-empty decision_id so the deny is attributable in the audit trail.
+        // determining_policy_ids may or may not be populated (deny-by-default has
+        // none; a forbid names the forbid policy id).
+        let az = authorizer();
+        let caller = tenant_caller("acme-operator", "acme");
+        // Cross-tenant deny: driven by the structural-tenant-isolation forbid.
+        let outcome =
+            decide_action(&az, &caller, TenantLifecycleAction::Read, Some("globex")).unwrap();
+        assert_eq!(outcome.decision, AuthorizationDecision::Deny);
+        assert!(
+            !outcome.decision_id.is_empty(),
+            "deny decision_id must be non-empty (AC-W-13)",
+        );
     }
 
     #[test]

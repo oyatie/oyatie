@@ -191,6 +191,26 @@ lock is a documented, deliberate single-node bring-up seam: per-tenant / row-lev
 into the persistent store adapter behind the unchanged `TenantLifecycleStore` port (D5), which owns
 the contention model.
 
+**D7-f — Authorization audit trail (AC-W-13).** The PDP adapter surfaces the full
+`AuthorizationOutcome { decision, decision_id, determining_policy_ids }` from `PdpOutcome.audit`
+back through the port trait. The PEP (`authorize()` in the facade) emits ONE structured `tracing`
+event per decision — `message = "tenancy.authz.decision"` with `decision_id`, `principal_id`,
+`action`, `target_tenant`, `decision`, and `determining_policy_ids` — for EVERY call, allow AND
+deny. No decision is ever silently discarded (AC-W-13: every Cedar decision is attributable via the
+PDP-minted ULID `decision_id`).
+
+> **SECURITY NOTE — self-asserted tenant axis (transitional debt, LOW / accepted):** The
+> `x-oya-tenant` header that binds a tenant-operator bearer to a specific tenant is
+> **self-asserted by the client under a shared operator secret**. The bearer verifies the operator
+> credential class only; the tenant axis it carries is not independently verified by a per-tenant
+> claim or mTLS certificate. A rogue operator who knows the shared secret can assert any tenant id.
+> This is **accepted transitional debt** for the single-operator bring-up phase. The destination
+> (ADR-0561) is a verified-claim / mTLS cutover where the tenant axis is bound cryptographically
+> (per-tenant mTLS cert or a JWT claim signed by the IdP) and the shared operator secret is retired.
+> Until that cutover, every tenant-operator request carries an un-verified tenant axis and must be
+> treated accordingly in threat models. No new work rides this transitional model without explicit
+> acknowledgment of this finding.
+
 ## Precedent
 
 - **ADR-0559 / ADR-0553 service-commissioning pattern**: a runnable service in the ADR-0550

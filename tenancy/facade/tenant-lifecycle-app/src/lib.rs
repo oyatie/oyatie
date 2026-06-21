@@ -62,8 +62,8 @@ use oya_shared_resource_provider_contract_kernel::{
     ResourceName, ResourceProvider,
 };
 use tenancy_tenant_lifecycle_authz_port::{
-    AuthorizationDecision, AuthorizationQuery, CallerIdentity, TenantLifecycleAction,
-    TenantLifecycleAuthorizer,
+    AuthorizationDecision, AuthorizationOutcome, AuthorizationQuery, CallerIdentity,
+    TenantLifecycleAction, TenantLifecycleAuthorizer,
 };
 use tenancy_tenant_lifecycle_authz_pdp::PdpTenantLifecycleAuthorizer;
 use tenancy_tenant_lifecycle_kernel::TenantLifecycleStore;
@@ -450,8 +450,14 @@ where
 }
 
 /// Enforce the authorization decision (the PEP). Authenticates the caller, asks
-/// the embedded PDP, and maps the outcome: unauthenticated → 401, deny (or any
-/// engine refusal) → 403 (fail-closed), allow → proceed.
+/// the embedded PDP, emits a structured audit record, and maps the outcome:
+/// unauthenticated → 401, deny (or any engine refusal) → 403 (fail-closed),
+/// allow → proceed.
+///
+/// Every decision — allow AND deny — emits ONE structured `tracing` event at
+/// INFO level with message `"tenancy.authz.decision"` (AC-W-13). The event
+/// carries the attributable fields from the [`AuthorizationOutcome`] returned
+/// by the PDP; discarding the outcome is a policy violation.
 fn authorize<S>(
     state: &AppState<S>,
     headers: &HeaderMap,
@@ -468,10 +474,41 @@ where
         target_tenant_id,
     };
     match state.authorizer.authorize(&query) {
-        Ok(AuthorizationDecision::Allow) => Ok(()),
-        // Authenticated-but-unauthorized, OR a fail-closed engine refusal:
-        // both are a 403 (the caller is known; they simply may not do this).
-        Ok(AuthorizationDecision::Deny) | Err(_) => Err(err(
+        Ok(AuthorizationOutcome {
+            decision,
+            decision_id,
+            determining_policy_ids,
+        }) => {
+            // Emit ONE structured audit record for EVERY decision (AC-W-13).
+            // Both allow and deny are audited — the audit trail is the forensic
+            // surface; a missing record for a deny is a security gap.
+            let decision_str = match decision {
+                AuthorizationDecision::Allow => "allow",
+                AuthorizationDecision::Deny => "deny",
+            };
+            tracing::info!(
+                message = "tenancy.authz.decision",
+                decision_id = %decision_id,
+                principal_id = %caller.principal_id,
+                action = %action.slug(),
+                target_tenant = ?target_tenant_id,
+                decision = %decision_str,
+                determining_policy_ids = ?determining_policy_ids,
+            );
+            if decision == AuthorizationDecision::Allow {
+                Ok(())
+            } else {
+                // Authenticated-but-unauthorized: 403 (the caller is known;
+                // they simply may not do this).
+                Err(err(
+                    StatusCode::FORBIDDEN,
+                    "PERMISSION_DENIED",
+                    "caller is not authorized for this tenant action",
+                ))
+            }
+        }
+        // Fail-closed engine refusal: treat as deny, surface as 403.
+        Err(_) => Err(err(
             StatusCode::FORBIDDEN,
             "PERMISSION_DENIED",
             "caller is not authorized for this tenant action",
@@ -527,14 +564,17 @@ pub async fn get_tenant<S>(
 where
     S: LifecycleStore,
 {
-    let name = tenant_name(&tenant_id)?;
-    // Per-tenant read: authorize the verified caller against the TARGET id.
+    // Per-tenant read: authorize the verified caller against the TARGET id
+    // BEFORE input validation — consistent with all mutating handlers so no
+    // validation signal (e.g. INVALID_TENANT_ID vs PERMISSION_DENIED) leaks
+    // information about resource existence to an unauthenticated caller.
     authorize(
         &state,
         &headers,
         TenantLifecycleAction::Read,
         Some(&tenant_id),
     )?;
+    let name = tenant_name(&tenant_id)?;
     let provider = state.lock();
     let tenant = provider.get(&name).map_err(map_provider_error)?;
     Ok(Json(TenantView::from(tenant)))

@@ -125,6 +125,27 @@ impl AuthorizationDecision {
     }
 }
 
+/// The attributable outcome returned by the authorizer: the decision plus the
+/// forensic fields needed for audit. Every call to `authorize` produces an
+/// [`AuthorizationOutcome`]; the PEP MUST emit a structured audit record from it
+/// (message `"tenancy.authz.decision"`) so EVERY decision — allow and deny — is
+/// traceable. Discarding the outcome fields is a policy violation (AC-W-13).
+///
+/// `decision_id` is a ULID minted by the backing PDP engine for this decision;
+/// `determining_policy_ids` are the Cedar policy ids that drove the outcome
+/// (empty on a deny-by-default where no policy matched).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AuthorizationOutcome {
+    pub decision: AuthorizationDecision,
+    /// Opaque, globally unique id for this decision (PDP-minted ULID).
+    /// Non-empty on every successful call. Key the audit trail on this id.
+    pub decision_id: String,
+    /// The Cedar policy ids that determined the outcome. Non-empty on an
+    /// explicit allow; may be empty on a deny-by-default (no matching permit)
+    /// but non-empty when a forbid drove the deny.
+    pub determining_policy_ids: Vec<String>,
+}
+
 /// Why the authorizer could not return a clean decision. EVERY variant is
 /// fail-closed: a PEP MUST treat an [`AuthzError`] as a deny.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -157,14 +178,21 @@ impl std::error::Error for AuthzError {}
 /// cross-tenant request (a caller scoped to tenant A acting on tenant B) MUST
 /// receive [`AuthorizationDecision::Deny`] regardless of any matching permit.
 pub trait TenantLifecycleAuthorizer: Send + Sync {
-    /// Decide one authorization query. `Ok(Deny)` and `Err(_)` are BOTH
-    /// refusals the PEP enforces; only `Ok(Allow)` permits the request.
+    /// Decide one authorization query. The returned [`AuthorizationOutcome`]
+    /// carries both the decision AND the forensic audit fields; the PEP MUST
+    /// emit a structured audit record from the outcome for EVERY call.
+    ///
+    /// `Ok(outcome)` where `outcome.decision == Deny` AND `Err(_)` are BOTH
+    /// refusals the PEP enforces; only `Ok(outcome)` where
+    /// `outcome.decision == Allow` permits the request.
     ///
     /// # Errors
     /// [`AuthzError`] when the query is malformed or the backing engine
     /// refuses — the PEP treats either as a deny (fail-closed).
-    fn authorize(&self, query: &AuthorizationQuery<'_>)
-    -> Result<AuthorizationDecision, AuthzError>;
+    fn authorize(
+        &self,
+        query: &AuthorizationQuery<'_>,
+    ) -> Result<AuthorizationOutcome, AuthzError>;
 }
 
 #[cfg(test)]
