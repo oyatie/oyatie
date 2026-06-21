@@ -16,6 +16,8 @@ owners:
 supersedes: []
 amends: []
 superseded_by: []
+amended_by:
+  - ADR-0564-zero-graphql-in-the-owned-api-surface.md (D-14's multi-protocol surface drops the GraphQL Federation v2 / BFF leg; the REST 3.2 + gRPC + AsyncAPI legs stand)
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0010-regional-pack-architecture.md
@@ -46,6 +48,7 @@ related:
   - ADR-0247-self-hosting-self-modification-doctrine.md
   - ADR-0248-amazon-shape-cellular-architecture.md
   - ADR-0252-time-coordination-distributed-consistency.md
+  - ADR-0564-zero-graphql-in-the-owned-api-surface.md
 related_specs:
   - /specs/platform-architecture.json
   - /specs/network-topology.json

@@ -104,7 +104,6 @@
         "contracts/openapi/**",
         "contracts/asyncapi/**",
         "contracts/**/*.proto",
-        "contracts/graphql/**",
         "contracts/contract-source/**",
         "docs/standards/idempotency-keys-canonical.md"
       ],
@@ -158,13 +157,14 @@
       "api_contract_single_source_of_truth": {
         "required": true,
         "authoring_model": "Rust-native TypeSpec-like shared contract source",
-        "forbidden_drift_mode": "manual parallel maintenance of REST/OpenAPI, gRPC/Protobuf, and GraphQL schemas",
+        "forbidden_drift_mode": "manual parallel maintenance of REST/OpenAPI, gRPC/Protobuf, and event/AsyncAPI schemas",
         "required_outputs": [
           "REST/OpenAPI",
           "gRPC/Protobuf",
-          "GraphQL SDL/resolver contracts"
+          "event/AsyncAPI",
+          "realtime (SSE/WebSocket/gRPC-streaming) bindings"
         ],
-        "graphql_policy": "GraphQL is first-class API support and must be generated or validated from the same shared source of truth as REST and gRPC."
+        "graphql_policy": "GraphQL is NOT part of the owned API surface per ADR-0564 (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0564."
       },
       "required_hyperscaler_pattern_rules": [
         "slo_error_budget_gating",

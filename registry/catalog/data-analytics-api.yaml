@@ -11,7 +11,6 @@ supply_chain: source-only
 non_claims:
   - no live HTTP server in this scaffolding (IP-015 deferred)
   - no gRPC server in this scaffolding
-  - no GraphQL resolver in this scaffolding
 traceability:
   source_adrs: [ADR-0083, ADR-0157, ADR-0193]
   ip_anchor: "IP-007,IP-008,IP-013,IP-015"
@@ -19,4 +18,3 @@ traceability:
     - microservices/analytics/contracts/openapi-v1.yaml
     - microservices/analytics/contracts/asyncapi-v1.yaml
     - microservices/analytics/contracts/analytics.proto
-    - microservices/analytics/contracts/graphql-v1.sdl

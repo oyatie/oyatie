@@ -9,7 +9,8 @@
     "ADR-0342 (API versioning hybrid date/semver)",
     "ADR-0094 (contract-first)",
     "ADR-0349/0359 (Jenkins CI runs the drift gate)",
-    "ADR-0358 (ideal roadmap)"
+    "ADR-0358 (ideal roadmap)",
+    "ADR-0564 (zero GraphQL in the owned API surface)"
   ],
   "related_specs": [
     "specs/schema-registry-canonical.json",
@@ -18,11 +19,15 @@
   ],
   "status": "Proposed-target",
   "date": "2026-05-25",
-  "title": "API contract single-source-of-truth — one Rust-native source generating/validating REST + gRPC + GraphQL",
-  "purpose": "Target spec for the shared Rust-native contract SSOT + drift gate. Every public/internal API surface (REST/OpenAPI 3.2.0, gRPC/proto3, GraphQL SDL) is GENERATED or VALIDATED from one shared Rust-native source of truth so the three surfaces can never drift. GraphQL is first-class but never hand-maintained — it is derived from the same source as REST and gRPC. Honest non-claim: this records the canonical contract-SSOT model + launch directives; it does not implement the generators, resolvers, brokers, adapters, or the runtime drift gate (those are downstream ChangeSets).",
+  "title": "API contract single-source-of-truth — one Rust-native source generating/validating REST + gRPC + async + realtime (ZERO GraphQL per ADR-0564)",
+  "zero_graphql": {
+    "decision": "ADR-0564 — the owned API surface carries NO GraphQL (no REST-named husk, no generated BFF). The canonical surface set is REST (OpenAPI) + gRPC (proto3) + event/async (AsyncAPI) + realtime (SSE one-way / WebSocket bidi / gRPC-streaming).",
+    "reintroduction_rule": "GraphQL is admissible ONLY via a future ADR that explicitly reverses ADR-0564. Absent that ADR, any GraphQL library, .graphql/SDL artifact, or resolver is forbidden in the owned stack (enforcement gate tracked as a separate follow-up)."
+  },
+  "purpose": "Target spec for the shared Rust-native contract SSOT + drift gate. Every public/internal API surface (REST/OpenAPI 3.2.0, gRPC/proto3, event/AsyncAPI 3.1.0, realtime SSE/WebSocket/gRPC-streaming) is GENERATED or VALIDATED from one shared Rust-native source of truth so the surfaces can never drift. GraphQL is NOT part of the owned surface set (ADR-0564). Honest non-claim: this records the canonical contract-SSOT model + launch directives; it does not implement the generators, brokers, adapters, or the runtime drift gate (those are downstream ChangeSets).",
   "single_source_of_truth": {
-    "form": "Rust-native typed contract definitions (the canonical source); OpenAPI 3.2.0 + proto3 + GraphQL SDL are projections generated/validated from it",
-    "principle": "one source mastered in exactly one place; the three wire surfaces are derived projections, never independently hand-edited (SSOT single-master).",
+    "form": "Rust-native typed contract definitions (the canonical source); OpenAPI 3.2.0 + proto3 + AsyncAPI 3.1.0 are projections generated/validated from it",
+    "principle": "one source mastered in exactly one place; the wire surfaces are derived projections, never independently hand-edited (SSOT single-master).",
     "surfaces": [
       {
         "surface": "rest",
@@ -35,15 +40,20 @@
         "derivation": "generated from the Rust source; tonic/prost adapters consume the generated bindings"
       },
       {
-        "surface": "graphql",
-        "artifact": "GraphQL SDL (.graphql) + resolver bindings",
-        "derivation": "FIRST-CLASS but generated/validated from the same Rust source; NO separately hand-maintained GraphQL schema"
+        "surface": "async",
+        "artifact": "AsyncAPI 3.1.0 (.yaml under contracts/asyncapi/<domain>/<name>-vN.yaml + .meta.yaml)",
+        "derivation": "generated/validated from the Rust source where events are typed; the event/messaging contract surface"
+      },
+      {
+        "surface": "realtime",
+        "artifact": "SSE (one-way server push), WebSocket (bidirectional), and gRPC-streaming bindings",
+        "derivation": "the realtime transports project the same Rust-native typed payloads as REST/gRPC; no separate hand-maintained schema"
       }
     ]
   },
   "drift_gate": {
     "name": "api-contract-ssot-drift (planned)",
-    "rule": "regenerate the three projections from the Rust source and diff against the committed contracts; any divergence (REST/gRPC/GraphQL out of sync with the source, or GraphQL hand-edited) fails the gate (lockfile-style, like cargo's Cargo.lock check).",
+    "rule": "regenerate the projections from the Rust source and diff against the committed contracts; any divergence (REST/gRPC/async out of sync with the source) fails the gate (lockfile-style, like cargo's Cargo.lock check).",
     "ci": "runs under Jenkins (ADR-0359) as a required check"
   },
   "messaging_directives": {
@@ -61,7 +71,7 @@
   },
   "non_claims": [
     "Records the canonical contract-SSOT model + launch directives only.",
-    "Does NOT implement the Rust-native generators, the OpenAPI/proto/GraphQL emitters, GraphQL resolvers, the drift gate runtime, message brokers, adapters, or admission controllers.",
+    "Does NOT implement the Rust-native generators, the OpenAPI/proto/AsyncAPI emitters, the realtime (SSE/WebSocket/gRPC-streaming) bindings, the drift gate runtime, message brokers, adapters, or admission controllers.",
     "No runtime, no production readiness; claims stay blocked_until_required_evidence_is_green."
   ]
 }

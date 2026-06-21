@@ -198,8 +198,7 @@
       },
       "non_claims": [
         "no live HTTP server in this scaffolding (IP-015 deferred)",
-        "no gRPC server in this scaffolding",
-        "no GraphQL resolver in this scaffolding"
+        "no gRPC server in this scaffolding"
       ]
     },
     {

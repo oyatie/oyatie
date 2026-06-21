@@ -7,7 +7,9 @@ deciders: council-architecture, axis-foundry, axis-cloud, axis-all-microservices
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0244, ADR-0250]
+amended_by:
+  - ADR-0564-zero-graphql-in-the-owned-api-surface.md (drops GraphQL from this ADR's public surface set; the REST/gRPC/AsyncAPI surfaces + the versioning model itself are unchanged)
+related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0244, ADR-0250, ADR-0564]
 related_specs:
   - /specs/microservices/manifest-schema.json
   - /specs/hyperscaler-architecture-invariants.json

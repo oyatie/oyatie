@@ -121,14 +121,16 @@
           "manual_parallel_schema_maintenance_forbidden": [
             "OpenAPI REST",
             "Protobuf gRPC",
-            "GraphQL SDL"
+            "AsyncAPI events"
           ],
           "generated_or_validated_artifacts": [
             "REST/OpenAPI",
             "gRPC/Protobuf",
-            "GraphQL SDL/resolver contracts"
+            "event/AsyncAPI",
+            "realtime (SSE/WebSocket/gRPC-streaming) bindings"
           ],
-          "requirement": "GraphQL must be generated or validated from the same shared Rust-native contract source as REST/OpenAPI and gRPC/Protobuf; it must not become a separately hand-maintained schema."
+          "zero_graphql": "Per ADR-0564 the owned API surface carries NO GraphQL (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0564.",
+          "requirement": "Every owned API surface (REST/OpenAPI, gRPC/Protobuf, event/AsyncAPI, realtime) must be generated or validated from the same shared Rust-native contract source; it must not become a separately hand-maintained schema."
         },
         "workload_specific_substrates": {
           "universal_defaults_forbidden": [

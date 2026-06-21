@@ -114,19 +114,12 @@
             "type": "string"
           }
         },
-        "graphql": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "GraphQL SDL/resolver contract projection paths generated or validated from the service shared contract source of truth."
-        },
         "source": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Rust-native shared contract source paths that generate or validate REST/OpenAPI, gRPC/Protobuf, and GraphQL projections."
+          "description": "Rust-native shared contract source paths that generate or validate REST/OpenAPI, gRPC/Protobuf, and event/AsyncAPI projections. GraphQL is NOT an owned contract surface per ADR-0564."
         }
       }
     },
