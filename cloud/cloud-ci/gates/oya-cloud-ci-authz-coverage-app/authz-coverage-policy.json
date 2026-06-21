@@ -1,0 +1,84 @@
+{
+  "_comment": "cloud-ci-authz-coverage gate policy (issue #770; AUTH-005 pipeline-as-product backstop). R0 pack-shaped DATA — all repo-specifics live here, the Rust engine is neutral. The gate detects axum Router control-plane surfaces (mutating route or per-resource path param) and requires fail-closed authz: a router-level auth layer (auth_layer_idents) OR every mutating handler invoking a recognized authz guard (authz_guard_idents). /healthz-style reads are exempt via exempt_path_substrings. Ratchets vs frozen_unauthenticated_surfaces (today's known surfaces) so the gate lands green and only NEW unauthenticated control planes block. The remediation doctrine is intelligence/adapters/rest + tenancy/facade/tenant-lifecycle-app.",
+  "gate_id": "cloud-ci-authz-coverage",
+  "schema_version": "1.0.0",
+  "min_expected_surfaces": 15,
+  "scan_roots": [
+    "billing",
+    "cloud",
+    "console",
+    "iac",
+    "iam",
+    "intelligence",
+    "k8s",
+    "libs",
+    "oya",
+    "tenancy"
+  ],
+  "excluded_dir_names": [
+    "target",
+    "third-party",
+    "node_modules",
+    ".git"
+  ],
+  "auth_layer_idents": [
+    "RequireAuth",
+    "RequireAuthorization",
+    "AuthLayer",
+    "AuthnLayer",
+    "AuthorizationLayer",
+    "require_principal",
+    "VerifiedPrincipal",
+    "PrincipalExtractor",
+    "TenantAuthLayer",
+    "BearerAuthLayer"
+  ],
+  "authz_guard_idents": [
+    "authorize",
+    "authorize_scim",
+    "guard!",
+    "admin_tenant_allowed",
+    "admin_bearer_allowed",
+    "authenticate_caller",
+    ".decide(",
+    "require_data_plane_bearer",
+    "require_bearer",
+    "require_admin",
+    "authorize_token_for",
+    "authorize_with_token",
+    "verify_principal",
+    "verified_principal",
+    "ensure_authorized",
+    "check_authz",
+    "constant_time_eq",
+    "verify_signature",
+    "verify_webhook_signature",
+    "verify_hmac"
+  ],
+  "exempt_path_substrings": [
+    "/healthz",
+    "/livez",
+    "/readyz",
+    "/readinessz",
+    "/livenessz",
+    "/health",
+    "/ready",
+    "/live",
+    "/metrics",
+    "/version",
+    "/.well-known/"
+  ],
+  "frozen_unauthenticated_surfaces": [
+    "k8s/facade/cluster-lifecycle-app/src/lib.rs::router@98",
+    "k8s/facade/control-plane-host-app/src/lib.rs::router@202",
+    "k8s/facade/tenant-quota-app/src/lib.rs::router@294",
+    "oya/ci-controller/crates/oya-ci-controller-app/src/lib.rs::router@438"
+  ],
+  "_frozen_baseline_note": "The currently-known unauthenticated HTTP control-plane surfaces as of issue #770 (born-baseline). Each is pre-existing debt owned by its capability team; this gate freezes them so it lands GREEN and blocks only NEW unauthenticated control planes. SHRINK-ONLY: when a surface is fixed (authz added) or removed, drop its key — a stale key self-cleans via AC-STALE-BASELINE. cluster-lifecycle does a header-trust tenant check (not a verified-principal authz decision); control-plane-host and tenant-quota derive no caller identity; ci-controller's /gate-run mutating route has no authz. Remediation per surface: see the doctrine in intelligence/adapters/rest + tenancy/facade/tenant-lifecycle-app.",
+  "product_contract": {
+    "born_blocking": "Born-blocking vs a frozen baseline of currently-known unauthenticated surfaces. The two reference surfaces (intelligence/adapters/rest, tenancy/facade/tenant-lifecycle-app) are GREEN by construction (they carry authz). Pre-existing unauthenticated surfaces are frozen in frozen_unauthenticated_surfaces (shrink-only). Only a NEW unauthenticated control plane blocks.",
+    "pack_shaped": "Neutral engine; every repo-specific is DATA in this file. A different repo adopts the gate by repointing the policy.",
+    "fail_closed": "No shell/network/VCS. A read-only walk of the candidate tree's Rust source. Malformed policy, gate-id mismatch, and a below-floor surface census all fail closed.",
+    "remediation_doctrine": "intelligence/adapters/rest/src/lib.rs (admin_tenant_allowed + PDP gate.decide + constant_time_eq) and tenancy/facade/tenant-lifecycle-app/src/lib.rs (authenticate_caller + authorize() per route)."
+  }
+}

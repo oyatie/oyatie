@@ -134,6 +134,7 @@ jobs:
           - { crate: oya-cloud-ci-kernel-purity-app,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
           - { crate: oya-cloud-ci-crypto-backend-purity-app,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
           - { crate: oya-cloud-ci-no-graphql-without-adr-app,  label: "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)" }
+          - { crate: oya-cloud-ci-authz-coverage-app,          label: "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)" }
           - { crate: oya-cloud-ci-generated-artifact-control-plane-app, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
           - { crate: oya-cloud-ci-cache-wiring-app,            label: "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)" }
           - { crate: oya-cloud-ci-substrate-dependency-dag-acyclicity-app, label: "gate · substrate-dependency-dag-acyclicity (ADR-0280 §D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)" }
