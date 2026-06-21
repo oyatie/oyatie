@@ -14,7 +14,7 @@ categories = ["development-tools"]
 [package.metadata.oya]
 microservice = "data-warehouse"
 bounded_context = "tenant-olap"
-architecture_layers = "ADR-0105-13-layer-enum-with-ADR-0106-usecase"
+architecture_layers = "ADR-0105-12-layer-enum-with-ADR-0106-usecase"
 contracts = ["openapi-v1", "grpc-v1", "asyncapi-v1"]
 scaffold_wave = "Wave-3-K"
 scaffold_agent = "codex-rust-src-scaffolds-w2"

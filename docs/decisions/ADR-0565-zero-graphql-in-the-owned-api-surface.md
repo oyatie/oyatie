@@ -128,7 +128,9 @@ The enforcement above is staged. Three items are explicitly NOT in this PR:
 
 - **Vocabulary de-blessing is DONE in this PR.** The role/layer enum SSOT no longer blesses `graphql`,
   so the existing predictable-naming gate is fail-CLOSED against any new `*-graphql` crate as of this
-  merge. No follow-up is required for the crate-naming axis.
+  merge. This also covers the tooling-tier metadata-layer check (`tools/oya-xtask-metadata-augment-app`
+  `LAYER_VALUES`) and the `oya/workplace-integration` manifest `layer_enum` justification string. No
+  follow-up is required for the crate-naming axis.
 - **The active `*.graphql`/SDL file-reintroduction gate is tracked as issue #772 (branch
   `agent/no-graphql-gate`).** Interim gap: a `.graphql` file added to an EXISTING crate is not yet
   auto-blocked until #772 lands — the de-blessing above only closes the crate-NAME axis, not the
