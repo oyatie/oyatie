@@ -1,0 +1,10 @@
+cloud-ci-platform
+
+# CRITICAL: edits to `authorizing_adrs` in no-graphql-without-adr-policy.json require
+# architecture-council / founder approval in addition to cloud-ci-platform review.
+# The `authorizing_adrs` allowlist is the mechanical backstop for the ADR-0565 zero-GraphQL
+# doctrine (founder directive 2026-06-21, door: one-way). Adding an id here permits a
+# GraphQL library or schema file to enter the owned stack — that decision requires an
+# Accepted ADR that reverses ADR-0565 AND explicit architecture-council/founder sign-off
+# on this file. cloud-ci-platform alone is NOT sufficient for `authorizing_adrs` edits.
+architecture-council

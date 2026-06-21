@@ -72,6 +72,7 @@ agent-wiring + catalog`.
 | `cloud-ci-canonical-json` | governance | standalone self-test (zero baseline) | `json_not_canonical` (born-blocking-empty), `json_parse_error` (born-blocking-empty), `json_duplicate_key` (born-blocking-empty) |
 | `cloud-ci-embedded-asset-hermeticity` | hermeticity | standalone self-test (own committed baseline) | `embedded_asset_unmapped_include` (born-blocking frozen-empty), `embedded_asset_policy_gate_id_mismatch` (frozen-empty); non-blocking skips: `skip_non_literal_argument`, `skip_absolute_literal`, `skip_build_output_path`, `skip_no_owning_target`, `skip_buck_unparseable` |
 | `cloud-ci-kernel-purity` | rust-cargo-workspace | standalone self-test (born-blocking, no baseline) | `KP-TRANSIENT-DEP-CARGO` (born-blocking-clean), `KP-TRANSIENT-DEP-BUCK` (born-blocking-clean), `KP-UNRESOLVED-PATH-DEP` (born-blocking-clean), `KP-STALE-EXCEPTION`, `KP-EMPTY-SCAN`, `KP-POLICY-GATE-ID-MISMATCH` |
+| `cloud-ci-no-graphql-without-adr` | governance | standalone self-test (candidate-tree, EMPTY frozen baseline) | `NGQL-FORBIDDEN-LIB` (born-blocking-empty), `NGQL-SCHEMA-FILE` (born-blocking-empty), `NGQL-LOCK-FORBIDDEN` (born-blocking-empty), `NGQL-EMPTY-SCAN`, `NGQL-POLICY-GATE-ID-MISMATCH`, `NGQL-POLICY-MALFORMED` |
 | `cloud-ci-affected-set` | buck2-workspace | binding workspace-coverage lane (ADR-0554: merge-base diff → `owner()`/`rdeps()` cone on `pull_request`; full workspace on `merge_group`/`push`/`dispatch`) | lane verdict = the buck2 build+test result of the decided set; REFUSE on owner-required files with no owning target; escape-trigger classes and EVERY derivation failure escalate fail-closed to FULL (never skip); the PR FULL tier is a BUILD-HEALTH RATCHET (D6) — blocks build REGRESSIONS vs the merge-base, grandfathers pre-existing build debt (no flag-day) |
 
 For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
@@ -176,6 +177,35 @@ to its ORIGINAL content (CRITICAL-A layer 2 rollback). A dep that IS used in sou
 is a build-dep, is optional, or is feature-backed is a design action, printed with a
 reason-specific next step but never auto-applied. The buck2 `rust_test` gate is the blocking
 backstop.
+
+`cloud-ci-no-graphql-without-adr` (ADR-0565) is likewise a standalone born-blocking self-test, NOT
+a producer-face gate. It enforces the founder zero-GraphQL doctrine: the canonical owned API surface
+is REST + gRPC + AsyncAPI + realtime (SSE / WebSocket / gRPC-streaming), and GraphQL returns ONLY by
+a future ADR that explicitly reverses ADR-0565. The drop PR (#775 / ADR-0565) deletes every GraphQL
+artifact; this gate is the enforcement half (enforcement-layering: the drop is construction, the gate
+is the recurrence backstop). It fails closed if the candidate tree reintroduces, WITHOUT citing an
+ALLOWLISTED + VALIDATED authorizing (reversing) ADR, ANY of: a GraphQL execution/parse library in
+ANY `Cargo.toml` in the tree (`async-graphql`, `juniper`, `graphql-parser`, `cynic`, `apollo-*`, …) —
+members AND non-members, resolving `[workspace.dependencies]` renames and `{ workspace = true }`
+inheritance; a forbidden GraphQL crate in the resolved `Cargo.lock` graph (`NGQL-LOCK-FORBIDDEN`, the
+transitive catch); or a `.graphql`/`.graphqls`/`.gql`/`.gqls`/`.sdl` schema file. It runs as its
+`oya-cloud-ci-no-graphql-without-adr-app-gate` buck2 `rust_test` (plus a labeled matrix check).
+CANDIDATE-TREE EVALUATION, NOT a frozen merge-base: the collector is a hermetic, read-only `fs` scan
+of EVERY `Cargo.toml` in the live tree + the `Cargo.lock` graph + a `.graphql`/`.graphqls`/`.gql`/
+`.gqls`/`.sdl` file walk (no `cargo`/`buck2` shell-out) — so the verdict is identical at PR-tier and
+push-tier, avoiding the gate-baseline-pr-push-asymmetry false-green (a GraphQL artifact added on dev
+between branch-point and merge cannot pass PR-tier and only fail on the integrated tip). The post-drop
+tree is GraphQL-free, so it ships born-blocking with an EMPTY frozen baseline: any new GraphQL library,
+schema file, or transitive lock crate fails closed on arrival. The ADR escape-hatch is NOT a bare-token
+match: a forbidden artifact launders ONLY by citing an `ADR-NNNN` that is BOTH enumerated in the policy
+`authorizing_adrs` allowlist (EMPTY today — nothing authorizes GraphQL) AND validated against the real
+`docs/decisions` tree (an Accepted ADR that reverses ADR-0565). So a fabricated/typo id (`ADR-9999`,
+`ADR-05650`) cannot launder, and a file can never self-launder by naming the forbidding ADR. KNOWN
+LIMITATION: an inline-SDL string literal / derive macro with no schema file is not caught by the
+schema-file walk, but any real GraphQL server needs a GraphQL library, which the manifest legs + the
+`Cargo.lock` leg DO catch. The forbidden crate set (exact + prefix), the schema extensions, the
+forbidding-ADR id, the `authorizing_adrs` allowlist, the `decisions_dir`, and the excluded dirs are all
+DATA in `no-graphql-without-adr-policy.json` (R0), so the gate runs on any repo by repointing the policy.
 
 ## Key shapes (what a `key` identifies)
 
