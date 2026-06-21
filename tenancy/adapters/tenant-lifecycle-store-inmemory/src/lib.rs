@@ -121,14 +121,21 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
 
     fn get_applied<'a>(
         &'a self,
+        _tenant_id: &'a str,
         key: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<AppliedWriteRecord>, StoreError>> + Send + 'a>>
     {
+        // The idempotency-key namespace is GLOBAL per the resource-provider
+        // contract (a key reused with different params is a reuse violation
+        // regardless of tenant). The tenant_id is threaded for the durable
+        // adapter's RLS GUC; the in-mem path keys by the opaque dedup key, so
+        // behaviour is identical to the pre-S-B store.
         Box::pin(async move { Ok(self.applied.get(key).cloned()) })
     }
 
     fn put_applied<'a>(
         &'a mut self,
+        _tenant_id: &'a str,
         key: &'a str,
         record: &'a AppliedWriteRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
@@ -140,6 +147,7 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
 
     fn get_operation<'a>(
         &'a self,
+        _tenant_id: &'a str,
         operation_name: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
         Box::pin(async move { Ok(self.operations.get(operation_name).cloned()) })
@@ -147,6 +155,7 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
 
     fn put_operation<'a>(
         &'a mut self,
+        _tenant_id: &'a str,
         operation_name: &'a str,
         record: &'a OperationRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
@@ -159,7 +168,10 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
 
     fn next_operation_seq<'a>(
         &'a mut self,
+        _tenant_id: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<u64, StoreError>> + Send + 'a>> {
+        // A single global monotonic counter is sufficient: the minted operation
+        // name embeds the tenant, so a globally-monotonic ordinal stays unique.
         Box::pin(async move {
             self.operation_seq = self.operation_seq.saturating_add(1);
             Ok(self.operation_seq)
@@ -232,8 +244,8 @@ mod tests {
     #[tokio::test]
     async fn operation_seq_is_strictly_monotonic() {
         let mut store = InMemoryTenantLifecycleStore::new();
-        let first = store.next_operation_seq().await.unwrap();
-        let second = store.next_operation_seq().await.unwrap();
+        let first = store.next_operation_seq("acme").await.unwrap();
+        let second = store.next_operation_seq("acme").await.unwrap();
         assert_eq!(first, 1);
         assert_eq!(second, 2);
     }
@@ -245,8 +257,11 @@ mod tests {
             name: "tenants/acme".to_owned(),
             tenant: tenant("acme"),
         };
-        store.put_applied("key-1", &record).await.unwrap();
-        assert_eq!(store.get_applied("key-1").await.unwrap(), Some(record));
+        store.put_applied("acme", "key-1", &record).await.unwrap();
+        assert_eq!(
+            store.get_applied("acme", "key-1").await.unwrap(),
+            Some(record)
+        );
 
         let op = OperationRecord {
             operation: Operation::pending("operations/lifecycle-000001").unwrap(),
@@ -254,15 +269,36 @@ mod tests {
             target: "tenants/acme".to_owned(),
         };
         store
-            .put_operation("operations/lifecycle-000001", &op)
+            .put_operation("acme", "operations/lifecycle-000001", &op)
             .await
             .unwrap();
         assert_eq!(
             store
-                .get_operation("operations/lifecycle-000001")
+                .get_operation("acme", "operations/lifecycle-000001")
                 .await
                 .unwrap(),
             Some(op)
+        );
+    }
+
+    #[tokio::test]
+    async fn applied_dedup_namespace_is_global_across_tenants() {
+        // The idempotency-key namespace is GLOBAL: the same key under two
+        // tenant scopes addresses the SAME dedup record (the resource-provider
+        // contract treats key reuse as a reuse violation regardless of tenant).
+        let mut store = InMemoryTenantLifecycleStore::new();
+        let record = AppliedWriteRecord::Create {
+            name: "tenants/acme".to_owned(),
+            tenant: tenant("acme"),
+        };
+        store
+            .put_applied("acme", "shared-key", &record)
+            .await
+            .unwrap();
+        // A different tenant scope sees the same globally-keyed record.
+        assert_eq!(
+            store.get_applied("beta", "shared-key").await.unwrap(),
+            Some(record)
         );
     }
 }

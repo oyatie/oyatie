@@ -1,0 +1,249 @@
+//! Env-gated LIVE Postgres integration tests for the durable tenant-lifecycle
+//! adapter. They run ONLY when `OYA_BACKBONE_LIVE_POSTGRES` is truthy AND a
+//! disposable database URL is supplied; otherwise every test returns cleanly so
+//! the always-on lane stays database-free (testing-standards-multilayer: the
+//! live tier is opt-in, not skipped silently in CI by accident).
+//!
+//! Required environment when enabled:
+//! - `OYA_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
+//! - `OYA_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
+//! - `OYA_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (a NON-superuser,
+//!                                    NON-BYPASSRLS role; the adapter's role)
+//!
+//! What they prove against a real database:
+//! 1. RLS cross-tenant denial — tenant A cannot read or overwrite tenant B's
+//!    aggregate / ledger rows (the per-tx GUC scopes every statement).
+//! 2. BYPASSRLS absent — the app role carries neither rolsuper nor rolbypassrls
+//!    (otherwise RLS is silently skipped).
+//! 3. Idempotency replay — the same operation/applied key yields a single
+//!    durable effect (ON CONFLICT DO NOTHING).
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_shared_platform_contracts_kernel::tenancy::{
+    IsolationPosture, Tenant, TenantLifecycleState,
+};
+use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
+use sqlx::{PgPool, Row, postgres::PgPoolOptions};
+use tenancy_tenant_lifecycle_kernel::{AppliedWriteRecord, TenantLifecycleStore};
+use tenancy_tenant_lifecycle_store_postgres::{
+    APPLIED_TABLE, OPERATIONS_TABLE, PgTenantLifecycleStore, SCHEMA_NAME, TENANTS_TABLE,
+};
+
+const ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
+const SETUP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
+const APP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
+const RUNTIME_ROLE: &str = "tenancy_lifecycle_runtime";
+
+fn enabled() -> bool {
+    std::env::var(ENABLE_ENV)
+        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .unwrap_or(false)
+}
+
+async fn pool(url: &str) -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(4)
+        .connect(url)
+        .await
+        .expect("connect to live Postgres")
+}
+
+fn tenant(id: &str) -> Tenant {
+    Tenant {
+        tenant_id: id.to_owned(),
+        display_name: format!("Tenant {id}"),
+        state: TenantLifecycleState::initial(),
+        isolation_posture: IsolationPosture::Pooled,
+        cell_id: "cell-live".to_owned(),
+        residency_zone: None,
+    }
+}
+
+/// Apply the durable schema and grant the app role table privileges. The
+/// migration SQL is the committed `migrations/0001_*.sql`; we re-derive the same
+/// statements here so the test is self-contained against a disposable database.
+async fn setup_schema(setup: &PgPool, app_role: &str) {
+    sqlx::query(&format!("DROP SCHEMA IF EXISTS {SCHEMA_NAME} CASCADE"))
+        .execute(setup)
+        .await
+        .unwrap();
+    let migration = include_str!("../migrations/0001_tenant_lifecycle_store.sql");
+    // The committed migration names the runtime role literally; run it verbatim
+    // so the RLS policy binds the real app role.
+    assert!(
+        migration.contains(RUNTIME_ROLE),
+        "migration must bind the runtime role"
+    );
+    for statement in migration.split(';') {
+        let trimmed = statement.trim();
+        if trimmed.is_empty() || trimmed.starts_with("--") {
+            continue;
+        }
+        // Skip the leading comment-only lines a statement may carry.
+        let sql: String = trimmed
+            .lines()
+            .filter(|l| !l.trim_start().starts_with("--"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        if sql.trim().is_empty() {
+            continue;
+        }
+        sqlx::query(&sql).execute(setup).await.unwrap_or_else(|e| {
+            panic!("migration statement failed: {sql}\n{e}");
+        });
+    }
+    for sql in [
+        format!("GRANT USAGE ON SCHEMA {SCHEMA_NAME} TO {app_role}"),
+        format!(
+            "GRANT SELECT, INSERT, UPDATE, DELETE ON {TENANTS_TABLE}, {APPLIED_TABLE}, {OPERATIONS_TABLE} TO {app_role}"
+        ),
+    ] {
+        sqlx::query(&sql).execute(setup).await.unwrap();
+    }
+}
+
+async fn current_role_flags(p: &PgPool) -> (String, bool, bool) {
+    let row = sqlx::query(
+        "SELECT current_user::text AS name, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user",
+    )
+    .fetch_one(p)
+    .await
+    .unwrap();
+    (
+        row.try_get("name").unwrap(),
+        row.try_get("rolsuper").unwrap(),
+        row.try_get("rolbypassrls").unwrap(),
+    )
+}
+
+#[tokio::test]
+async fn live_app_role_has_no_bypassrls() {
+    if !enabled() {
+        return;
+    }
+    let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
+    let app = pool(&app_url).await;
+    let (name, rolsuper, rolbypassrls) = current_role_flags(&app).await;
+    assert!(
+        !rolsuper && !rolbypassrls,
+        "app role {name} must NOT carry rolsuper/rolbypassrls (RLS would be skipped)"
+    );
+}
+
+#[tokio::test]
+async fn live_rls_denies_cross_tenant_read_and_write() {
+    if !enabled() {
+        return;
+    }
+    let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
+    let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
+    let setup = pool(&setup_url).await;
+    let app = pool(&app_url).await;
+    let (app_role, _, _) = current_role_flags(&app).await;
+    setup_schema(&setup, &app_role).await;
+
+    let mut store = PgTenantLifecycleStore::from_pool(app.clone());
+
+    // Tenant A writes its own aggregate; tenant B writes its own.
+    store
+        .put_tenant("tenants/alpha", &tenant("alpha"))
+        .await
+        .unwrap();
+    store
+        .put_tenant("tenants/beta", &tenant("beta"))
+        .await
+        .unwrap();
+
+    // Each tenant sees only its own row.
+    assert_eq!(
+        store.get_tenant("tenants/alpha").await.unwrap(),
+        Some(tenant("alpha"))
+    );
+    assert_eq!(
+        store.get_tenant("tenants/beta").await.unwrap(),
+        Some(tenant("beta"))
+    );
+
+    // Cross-tenant write attempt: under tenant A's GUC, an INSERT carrying
+    // tenant B's id is denied by the RESTRICTIVE WITH CHECK policy.
+    let mut tx = app.begin().await.unwrap();
+    sqlx::query(SET_LOCAL_TENANT_SQL)
+        .bind("alpha")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let cross = sqlx::query(&format!(
+        "INSERT INTO {TENANTS_TABLE} (tenant_id, resource_name, display_name, lifecycle_state, payload_json, schema_version, updated_at) VALUES ('beta', 'tenants/beta', 'x', 'x', '{{}}'::jsonb, 1, now())"
+    ))
+    .execute(&mut *tx)
+    .await;
+    assert!(
+        cross.is_err(),
+        "cross-tenant INSERT under tenant alpha's GUC must be denied by RLS"
+    );
+    let _ = tx.rollback().await;
+
+    // Cross-tenant read: under tenant A's GUC a direct select of tenant B's row
+    // returns nothing (USING clause filters it out).
+    let mut tx = app.begin().await.unwrap();
+    sqlx::query(SET_LOCAL_TENANT_SQL)
+        .bind("alpha")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let count: i64 = sqlx::query_scalar(&format!(
+        "SELECT count(*)::bigint FROM {TENANTS_TABLE} WHERE resource_name = 'tenants/beta'"
+    ))
+    .fetch_one(&mut *tx)
+    .await
+    .unwrap();
+    let _ = tx.rollback().await;
+    assert_eq!(count, 0, "tenant alpha must not see tenant beta's row");
+}
+
+#[tokio::test]
+async fn live_idempotency_replay_is_single_effect() {
+    if !enabled() {
+        return;
+    }
+    let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
+    let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
+    let setup = pool(&setup_url).await;
+    let app = pool(&app_url).await;
+    let (app_role, _, _) = current_role_flags(&app).await;
+    setup_schema(&setup, &app_role).await;
+
+    let mut store = PgTenantLifecycleStore::from_pool(app.clone());
+    let first = AppliedWriteRecord::Create {
+        name: "tenants/gamma".to_owned(),
+        tenant: tenant("gamma"),
+    };
+    let replay = AppliedWriteRecord::Create {
+        name: "tenants/gamma".to_owned(),
+        tenant: tenant("gamma-DIFFERENT"),
+    };
+
+    store.put_applied("gamma", "key-1", &first).await.unwrap();
+    // A replay under the same key is a no-op: the first record stays durable.
+    store.put_applied("gamma", "key-1", &replay).await.unwrap();
+    assert_eq!(
+        store.get_applied("gamma", "key-1").await.unwrap(),
+        Some(first)
+    );
+
+    // Exactly one row exists for that key.
+    let mut tx = app.begin().await.unwrap();
+    sqlx::query(SET_LOCAL_TENANT_SQL)
+        .bind("gamma")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let count: i64 = sqlx::query_scalar(&format!(
+        "SELECT count(*)::bigint FROM {APPLIED_TABLE} WHERE idempotency_key = 'key-1'"
+    ))
+    .fetch_one(&mut *tx)
+    .await
+    .unwrap();
+    let _ = tx.rollback().await;
+    assert_eq!(count, 1, "idempotency replay must yield exactly one row");
+}
