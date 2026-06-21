@@ -222,3 +222,21 @@ rust_test(
         "third-party//:tokio",
     ],
 )
+
+# Hermetic assistant-worker test (in-process Rust fake CLI via support_fake_cli;
+# replaced the retired external-script subprocess fake). Body is `network`-feature
+# gated to match production `run_assistant_worker`; under buck the network feature
+# is off so it compiles to an empty test crate, mirroring the network-gated
+# direct-connect tests, and runs fully when the network feature is enabled.
+rust_test(
+    name = "intelligence-claude-agent-sdk-assistant-worker-fake-cli-test",
+    srcs = glob(["tests/assistant_worker_fake_cli.rs", "tests/support_fake_cli.rs"]),
+    crate = "intelligence_claude_agent_sdk_assistant_worker_fake_cli_test",
+    crate_root = "tests/assistant_worker_fake_cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-claude-agent-sdk",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
