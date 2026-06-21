@@ -6747,6 +6747,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-crate-registrar-app"
+version = "0.1.0"
+dependencies = [
+ "oya-crate-registrar-kernel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-crate-registrar-kernel"
 version = "0.1.0"
 
