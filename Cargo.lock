@@ -6747,6 +6747,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-crate-registrar-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-crm-customer-engagement-domain"
 version = "0.1.0"
 dependencies = [
