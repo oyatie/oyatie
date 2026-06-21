@@ -153,14 +153,16 @@ fn red_on_synthetic_unauthenticated_router() {
         "surfaces_found": 1,
         "surfaces": [{
             "file": "synthetic/unauth.rs",
+            "scope": "build_router",
             "router_line": 1,
             "routes": [
-                { "path": "/things", "path_raw": "/things", "method": "post", "method_class": "mutating", "handler": "create_thing" },
-                { "path": "/things/{id}", "path_raw": "/things/{id}", "method": "delete", "method_class": "mutating", "handler": "delete_thing" },
-                { "path": "/healthz", "path_raw": "/healthz", "method": "get", "method_class": "non-mutating", "handler": "healthz" }
+                { "path": "/things", "path_raw": "/things", "method": "post", "method_class": "mutating", "handler": "create_thing", "surface_unclassified": false },
+                { "path": "/things/{id}", "path_raw": "/things/{id}", "method": "delete", "method_class": "mutating", "handler": "delete_thing", "surface_unclassified": false },
+                { "path": "/healthz", "path_raw": "/healthz", "method": "get", "method_class": "non-mutating", "handler": "healthz", "surface_unclassified": false }
             ],
             "has_auth_layer": false,
-            "handler_authz": { "create_thing": false, "delete_thing": false, "healthz": false }
+            "handler_authz": { "create_thing": false, "delete_thing": false, "healthz": false },
+            "unresolved_subrouters": []
         }]
     });
     let findings = evaluate_keyed(&policy, &observed);
@@ -168,11 +170,11 @@ fn red_on_synthetic_unauthenticated_router() {
         .iter()
         .find(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
         .expect("a synthetic unauthenticated mutating router must be RED");
-    // The key is now a stable signature (M2): file + ALL sorted (method, path) tuples (the whole
-    // router's identity, including the non-mutating /healthz), not `router@<line>`.
+    // The key is now a stable scope+signature (M2): file#scope + ALL sorted (method, path) tuples
+    // (the whole router's identity, including the non-mutating /healthz), not `router@<line>`.
     assert_eq!(
         hit.key,
-        "synthetic/unauth.rs::router[delete /things/{id}; get /healthz; post /things]"
+        "synthetic/unauth.rs#build_router::router[delete /things/{id}; get /healthz; post /things]"
     );
     assert!(hit.detail.contains("intelligence/adapters/rest"), "remediation points at the doctrine");
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -286,6 +288,135 @@ fn bypass_fixtures_fail_closed_end_to_end() {
     assert!(
         by_file("b3_comment.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
         "B3 comment-only-guard bypass must be RED end-to-end: {}",
+        render_findings(&findings)
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    let _ = fs::remove_dir_all(&base);
+}
+
+/// END-TO-END (PR #780 SECOND-PASS): the five reproduced surface-DISCOVERY bypasses + two false-cover
+/// CONTROLS + GREEN counterparts, run through the REAL filesystem collector + evaluator. The first
+/// fix closed within-surface gaps but surface DISCOVERY was still fail-OPEN: anchored on the literal
+/// `Router::new()` with a chain truncated at `.with_state(`. Each RED fixture below was empirically
+/// shown to PASS the gate on the pre-fix binary; each must now be RED. The CONTROLS prove the
+/// whole-token auth-layer/guard match has no false-cover; the GREEN fixtures prove legit covered
+/// routers still pass.
+#[test]
+fn second_pass_discovery_bypasses_fail_closed_end_to_end() {
+    use std::fs;
+
+    let base = std::env::temp_dir().join(format!(
+        "authz-coverage-s2-fixtures-{}-{}",
+        std::process::id(),
+        line!()
+    ));
+    let src = base.join("src");
+    fs::create_dir_all(&src).expect("create temp fixture dir");
+
+    // BLOCKER-1a: Router::default().route(...) — never produced by Router::new().
+    fs::write(
+        src.join("s1_default.rs"),
+        r#"async fn h() -> StatusCode { StatusCode::NO_CONTENT }
+           pub fn r() -> Router { Router::default().route("/v1/tenants/{id}", delete(h)).with_state(()) }"#,
+    )
+    .unwrap();
+    // BLOCKER-1b: route on a Router PARAMETER in a helper fn (no constructor here at all).
+    fs::write(
+        src.join("s1_param.rs"),
+        r#"async fn h() -> StatusCode { StatusCode::OK }
+           pub fn add(r: Router) -> Router { r.route("/admin/v1/create", post(h)) }"#,
+    )
+    .unwrap();
+    // BLOCKER-3: a route declared AFTER the `.with_state(` chain on a bound variable.
+    fs::write(
+        src.join("s3_after_state.rs"),
+        r#"async fn hz() -> StatusCode { StatusCode::OK }
+           async fn nuke() -> StatusCode { StatusCode::NO_CONTENT }
+           pub fn r() -> Router {
+               let b = Router::new().route("/healthz", get(hz)).with_state(());
+               b.route("/tenants/{id}", delete(nuke))
+           }"#,
+    )
+    .unwrap();
+    // BLOCKER-4 CONTROL: auth-layer substring (RequireAuthMetricsRecorder) must NOT false-cover.
+    fs::write(
+        src.join("s4_layer_substring.rs"),
+        r#"async fn create_thing() -> StatusCode { StatusCode::OK }
+           pub fn r() -> Router {
+               Router::new().route("/v1/things", post(create_thing)).layer(RequireAuthMetricsRecorder::new()).with_state(())
+           }"#,
+    )
+    .unwrap();
+    // BLOCKER-5 CONTROL: guard substring (unauthorized_response) must NOT false-cover.
+    fs::write(
+        src.join("s5_guard_substring.rs"),
+        r#"fn unauthorized_response() -> StatusCode { StatusCode::UNAUTHORIZED }
+           async fn nuke() -> StatusCode { let _ = unauthorized_response(); StatusCode::NO_CONTENT }
+           pub fn r() -> Router { Router::new().route("/v1/tenants/{id}", delete(nuke)).with_state(()) }"#,
+    )
+    .unwrap();
+    // Composition fail-closed: an unresolved .merge(subrouter()).
+    fs::write(
+        src.join("comp_merge.rs"),
+        r#"async fn hz() -> StatusCode { StatusCode::OK }
+           pub fn r() -> Router { Router::new().route("/healthz", get(hz)).merge(admin_subrouter()).with_state(()) }"#,
+    )
+    .unwrap();
+    // Owned-kernel POST (oya-http-router-kernel grammar) with no guard.
+    fs::write(
+        src.join("owned_post.rs"),
+        r#"fn build(router: &mut Router<SyncHandler>) -> Result<(), RouterError> {
+               router.route(HttpMethod::Post, "/admin/v1/provision", provision_handler)?;
+               Ok(())
+           }"#,
+    )
+    .unwrap();
+    // GREEN: a real RequireAuth layer + a real authorize() guard handler must PASS.
+    fs::write(
+        src.join("green_covered.rs"),
+        r#"async fn create_thing() -> StatusCode { StatusCode::OK }
+           async fn retire(headers: HeaderMap) -> StatusCode { authorize(&state, &headers, Action::Retire)?; StatusCode::NO_CONTENT }
+           pub fn layered() -> Router {
+               Router::new().route("/v1/things", post(create_thing)).layer(RequireAuth::new(v)).with_state(())
+           }
+           pub fn guarded() -> Router {
+               Router::new().route("/v1/tenants/{id}", delete(retire)).with_state(())
+           }"#,
+    )
+    .unwrap();
+
+    let root = repo_root();
+    let mut policy = load_policy(&root);
+    policy["scan_roots"] = json!(["src"]);
+    policy["frozen_unauthenticated_surfaces"] = json!([]);
+    policy["min_expected_surfaces"] = json!(0);
+
+    let observed = collect_surfaces(&base, &policy).expect("collect temp fixtures");
+    let findings = evaluate_keyed(&policy, &observed);
+    let red = |needle: &str, code: &str| {
+        findings.iter().any(|f| f.code == code && f.key.contains(needle))
+    };
+
+    assert!(red("s1_default.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-1 Router::default() bypass must be RED: {}", render_findings(&findings));
+    assert!(red("s1_param.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-2 Router-parameter helper bypass must be RED: {}", render_findings(&findings));
+    assert!(red("s3_after_state.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-3 route-after-with_state bypass must be RED: {}", render_findings(&findings));
+    assert!(red("s4_layer_substring.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-4 auth-layer substring must NOT false-cover (must be RED): {}", render_findings(&findings));
+    assert!(red("s5_guard_substring.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-5 guard substring must NOT false-cover (must be RED): {}", render_findings(&findings));
+    assert!(red("comp_merge.rs", "AC-UNRESOLVED-SUBROUTER"),
+        "unresolved .merge() composition must fail closed: {}", render_findings(&findings));
+    assert!(red("owned_post.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "owned-kernel POST with no guard must be RED: {}", render_findings(&findings));
+
+    // GREEN: neither covered router in green_covered.rs may produce any finding.
+    assert!(
+        !findings.iter().any(|f| f.key.contains("green_covered.rs")),
+        "a real RequireAuth layer + a real authorize() guard must PASS (no finding): {}",
         render_findings(&findings)
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);

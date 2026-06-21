@@ -60,10 +60,19 @@ in `cloud/cloud-ci/gates/oya-cloud-ci-authz-coverage-app/authz-coverage-policy.j
 
 ### D1 — What is a control-plane surface
 
-A Rust file constructing an axum `Router` (`Router::new()....route(path, METHOD(handler))`) is a
-surface. A surface is a CONTROL PLANE when any route is a **mutating** method
-(`post`/`put`/`patch`/`delete`) on a non-exempt path, or a per-resource path param
-(`{id}`/`{tenant_id}`/...) on a mutating method. `/healthz`-style unauthenticated reads are exempt
+Surface DISCOVERY is anchored on the **route-introduction call set** — `.route(` / `.route_service(`
+— **not** on a `Router::new()` constructor: a route cannot exist without one of those calls. Every
+such call in a file is found and attributed to its enclosing function scope, so a route is discovered
+regardless of how (or whether) a `Router::new()` / `Router::default()` / `Router::<S>::new()` / a
+`Router` **parameter** / an aliased binding / a builder-returned `Router` produced it, and regardless
+of whether it is declared before or **after** `.with_state(...)` (PR #780 second-pass BLOCKER-1/2/3;
+the first pass anchored on the literal `Router::new()` token with a chain truncated at `.with_state(`,
+which an adversarial re-review bypassed five ways). Two route grammars are classified: axum
+`.route(path, METHOD(handler))` and the owned `oya-http-router-kernel`
+`.route(HttpMethod::X, path, handler)`. A surface is a CONTROL PLANE when any route is a **mutating**
+method (`post`/`put`/`patch`/`delete`/`any` or `HttpMethod::POST/PUT/PATCH/DELETE`) on a non-exempt
+path, or a per-resource path param (`{id}`/`{tenant_id}`/...) on a mutating method, or any route the
+engine cannot fully classify (fail-closed, see D2a). `/healthz`-style unauthenticated reads are exempt
 via an explicit DATA allowlist (`exempt_path_substrings`), never code.
 
 ### D2 — Required authz coverage
@@ -84,39 +93,57 @@ A generic `.layer(DefaultBodyLimit::max(...))` is **not** an auth layer.
 ### D2a — Detection envelope (recognized shapes) + fail-closed backstop
 
 The detector is a textual matcher (no Rust-source AST kernel yet); it need not be perfect because
-its failure mode is **fail-closed**. The precise recognized envelope:
+its failure mode is **fail-closed** — including surface DISCOVERY itself (anchored on the
+route-introduction call set, so it does not miss a router shape it never imagined). The precise
+recognized envelope:
 
-- **Route paths**: a `"..."` string literal, or a `const`/`static NAME: &str = "..."` ident
-  resolved by file-local substitution (review bypass B1 — const-path routers were previously
-  invisible). Any path the engine cannot resolve to a concrete string (a non-literal expression
-  such as `&format!(...)`, or a const with no string-literal initializer) yields
-  `AC-UNRESOLVED-ROUTE-PATH`.
+- **Route grammars**: axum `.route(path, METHOD(handler))` and the owned `oya-http-router-kernel`
+  `.route(HttpMethod::X, path, handler)`. An `HttpMethod` method may be a literal `HttpMethod::X`
+  or a `const NAME: HttpMethod = HttpMethod::X;` resolved file-locally (a `const … = HttpMethod::Post`
+  must resolve, else a mutating route would be invisible — fail-closed `AC-UNCLASSIFIED-METHOD`).
+- **Route paths**: a `"..."`/raw-string (`r"..."`/`r#"..."#`) literal, or a `const`/`static
+  NAME: &str = "..."` ident resolved by file-local substitution (first-pass bypass B1). Any path the
+  engine cannot resolve to a concrete string (a non-literal expression such as `&format!(...)`, a
+  const with no string-literal initializer, a loop variable) yields `AC-UNRESOLVED-ROUTE-PATH`.
 - **Method routers**: inline `get/head/options/trace` (non-mutating), `post/put/patch/delete`
   (mutating), `any` (mutating), `on(MethodFilter::X, h)` / `on_service(MethodFilter::X, h)`
-  classified by the filter set (mutating if it names any POST/PUT/PATCH/DELETE or an unknown
-  filter; review bypass B2 — `on(MethodFilter::DELETE, h)` was previously invisible), and a
-  `MethodRouter` bound by `let m = METHOD(h);` resolved file-locally. Any method-router shape the
-  engine cannot classify (an unresolved variable, an unrecognized call) yields
-  `AC-UNCLASSIFIED-METHOD` and is treated as **potentially mutating**.
+  classified by the filter set (first-pass bypass B2), and a `MethodRouter` bound by
+  `let m = METHOD(h);` resolved file-locally. Any method-router shape the engine cannot classify
+  yields `AC-UNCLASSIFIED-METHOD` (potentially mutating).
+- **Whole call shape**: a `.route(`/`.route_service(` matching NEITHER grammar (a macro-shaped or
+  truncated/unbounded call) yields `AC-UNCLASSIFIED-SURFACE`. A `.merge(X)`/`.nest(p, X)`/
+  `.nest_service(...)` whose sub-router X the engine did not scan-and-clear yields
+  `AC-UNRESOLVED-SUBROUTER` — merged/nested content is NOT assumed covered.
+- **Auth-layer / guard matching is whole-token** (PR #780 second-pass BLOCKER-4/5): an auth-layer
+  ident must appear as a complete identifier token (so `RequireAuthMetricsRecorder` does NOT satisfy
+  `RequireAuth`), and a plain-ident guard must be a complete token followed by `(` (so
+  `unauthorized_response()` does NOT satisfy `authorize`).
 
-**The guarantee (precise):** any `.route(...)` the engine cannot prove is (a) non-mutating on a
-resolved path OR (b) authorization-covered produces a finding (RED) — it is never silently skipped.
-A router-level auth layer does not excuse an unresolved-path / unclassified-method route, because
-those are recognition failures, not coverage facts.
+**The guarantee (precise, NOT overstated):** any route-introduction the engine cannot FULLY classify
+— method, path, AND authz-coverage — produces a finding (RED); it is never silently skipped. A
+router-level auth layer does not excuse an unresolved-path / unclassified-method / unclassified-surface
+/ unresolved-subrouter route, because those are recognition failures, not coverage facts. The one
+deliberate non-finding boundary: a `.route(` whose arg-shape is indistinguishable from a same-named
+**domain/dispatch** method (`usecase.route(input)`, an enum `intent.route()`, a zero-arg `.route()`)
+is treated as a NON-route (dropped), which cannot hide an HTTP route because an HTTP route always
+carries a string-ish path or an `HttpMethod::` verb.
 
 ### D3 — Conservative in the SAFE direction
 
-Like the kernel-purity src-ident liveness probe, handler-body authz detection is a token
-over-approximation: a guard ident appearing in the **code-only** handler body counts as covered. It
-never invents a false UNAUTHENTICATED finding for a handler that genuinely calls a guard. The risk
-it trades away (a guard *function* named in code but on a never-taken branch) is acceptable — this
-gate stops the ZERO-authz class (the AUTH-005 exhibit had no guard token anywhere) plus the four
-idiomatic-axum bypasses the PR #780 review reproduced; the deeper call-graph proof is the
-audit-coverage gate's and human review's job. The honest claim is therefore **not** that an
-unauthenticated control plane is *impossible* to ship — a sufficiently exotic router shape outside
-the envelope, or a guard ident named-but-unreached, can still slip — but that any surface the
-matcher cannot positively classify as non-mutating-or-covered **fails the gate**, so the
-zero-authz / const-path / variable-method / comment-guard classes are mechanically blocked.
+Handler-body authz detection is a token over-approximation: a recognized guard ident invoked as a
+whole-token CALL in the **code-only** handler body (comments + string/char literals elided) counts as
+covered. It never invents a false UNAUTHENTICATED finding for a handler that genuinely calls a guard.
+The whole-token + call-shape match (second-pass BLOCKER-5) closes the substring false-cover
+(`unauthorized_response()` no longer satisfies `authorize`); the code-only view (first-pass B3)
+closes the comment/string false-cover. The residual risk it trades away — a guard *function* CALLED
+in code but on a never-taken branch — is acceptable; the deeper call-graph proof is the audit-coverage
+gate's and human review's job. The honest claim is therefore **not** that an unauthenticated control
+plane is *impossible* to ship — a guard ident CALLED but unreached can still slip, and the deliberate
+domain-method drop boundary (D2a) is a textual heuristic — but that surface DISCOVERY is fail-closed
+(anchored on the route-introduction call set) and any route-introduction the engine cannot positively
+classify as non-mutating-or-covered **fails the gate**, so the zero-authz / const-path /
+variable-method / on(MethodFilter) / comment-or-substring-guard / Router::default()-or-param /
+post-`.with_state()` / owned-kernel-POST / unresolved-composition classes are mechanically blocked.
 
 ### D4 — Ratchet vs a frozen baseline of currently-known surfaces
 
@@ -130,19 +157,31 @@ capability-membership / tier-acyclicity posture (born-green, enforce-no-regressi
 shrink-only — a fixed/removed surface drops its key, and a stale key self-cleans via
 `AC-STALE-BASELINE`.
 
-Baseline keys are **stable signatures** — `<file>::router[<sorted (method, route-path) tuples>]`,
-independent of line numbers and route-declaration order — so an unrelated edit that shifts a
-router's line no longer spuriously re-REDs a baselined surface (review M2). Re-baselining is
-**AUTOMATED**: the gate binary's `--write` (alias `--update-baseline`) regenerates
-`frozen_unauthenticated_surfaces` from the live tree (mirroring the kernel-purity `--fix` /
-arch-graph `--write` pattern); the baseline is never hand-edited. When the broadened detector
-surfaced pre-existing control planes that were previously invisible (the const-path
-identity-workload-rest router, the `&format!`-path SCIM router), each was either recognized as
-authz-covered (no baseline entry — e.g. the webhook gateway's `verify_any` signature check) or
-grandfathered into the frozen baseline with a per-surface justification in the policy
-`_frozen_baseline_note`. One genuine pre-existing gap is recorded there for escalation
-(identity-workload-rest `POST /principals/{id}:suspend|retire` performs no authz) — baselined so the
-gate stays green per the blocking-NEW contract, tracked for its owner to remediate.
+Baseline keys are **stable scope+signatures** —
+`<file>#<scope>::router[<sorted (method, route-path) tuples>]`, independent of line numbers and
+route-declaration order (review M2), with `<scope>` the enclosing-fn name so two route scopes in one
+file get distinct keys. Re-baselining is **AUTOMATED but SHRINK-ONLY** (PR #780 second-pass MAJOR-1):
+the gate binary's `--write` (alias `--update-baseline`) drops keys for fixed/removed surfaces but
+**refuses to absorb any key absent from the prior committed baseline** (a NEW unauthenticated control
+plane), exiting 2 and printing each new key; growing the baseline requires the explicit `--allow-new`
+flag (a reviewed grandfather). The CI matrix runs the gate's `rust_test` legs (a verdict assertion),
+NOT the binary with `--write`, so no automation can silently regrow the baseline. When the
+second-pass broadened discovery surfaced pre-existing control planes that were previously invisible
+(the owned-kernel `*_runtime_router` POST surfaces across billing/iam-tenant-rbac/hr/payroll, the
+intelligence compat APIs, the provider-pool reload, k8s facades, ci-controller), each was either
+recognized as authz-covered (no baseline entry — e.g. intelligence/adapters/rest, tenancy, and the
+webhook gateway's `verify_any` signature check) or grandfathered into the frozen baseline with a
+per-surface justification in the policy `_frozen_baseline_note`. The **ESCALATE list** (genuine
+pre-existing unauthenticated mutating control planes, baselined so the gate stays green per the
+blocking-NEW contract, tracked for their owners): billing/adapters/accounting-http,
+iam/facade/tenant-rbac-app, oya/hr employment-infrastructure, oya/payroll run-infrastructure,
+oya/intelligence anthropic-compat-api + openai-compat-api, oya/intelligence provider-pool-app
+`POST /internal/seats/reload`, iam/facade/identity-workload-rest `POST /tokens/validate` +
+`POST /principals/{id_and_verb}`, k8s control-plane-host / cluster-lifecycle / tenant-quota,
+oya/ci-controller `POST /gate-run`. A separate **covered-but-unprovable** set (handlers carry authz
+but a path/method the engine cannot resolve fails it closed — remediation is to make the path/method
+a literal/const, not to add authz): the identity-service SCIM `&format!`-path router, the
+workspace-shell const-path router, and the iac/provider-pool loop-variable registration calls.
 
 ### D5 — Hermetic, fail-closed
 
@@ -152,25 +191,35 @@ a gate-id mismatch, and a below-floor surface census all fail closed
 (`AC-POLICY-MALFORMED` / `AC-POLICY-GATE-ID-MISMATCH` / `AC-EMPTY-SCAN`). The blocking per-surface
 codes are `AC-UNAUTHENTICATED-CONTROL-PLANE` (a recognized mutating route, no detectable authz),
 `AC-UNRESOLVED-ROUTE-PATH` (a path the engine could not resolve to a concrete string — fail-closed),
-and `AC-UNCLASSIFIED-METHOD` (a method-router the engine could not classify — fail-closed, treated as
-potentially mutating); `AC-STALE-BASELINE` self-cleans a baseline key with no live finding. The
-structure scan runs against a length-preserving code-only mask of each file, so comment/string
-mentions of `Router::new()` / `.route(` (including the gate scanning its own source) never register
-as surfaces. `#![forbid(unsafe_code)]`; deterministic sorted output.
+`AC-UNCLASSIFIED-METHOD` (a method-router the engine could not classify — fail-closed, treated as
+potentially mutating), `AC-UNCLASSIFIED-SURFACE` (a `.route(`/`.route_service(` whose whole call shape
+matched neither route grammar — fail-closed), and `AC-UNRESOLVED-SUBROUTER` (a `.merge`/`.nest`
+sub-router the engine could not resolve to a scanned-and-cleared router — fail-closed composition);
+`AC-STALE-BASELINE` self-cleans a baseline key with no live finding. The structure scan runs against
+a length-preserving code-only mask of each file (raw-string aware, so `r#"..."#` content cannot
+desync the mask), so comment/string mentions of `.route(` (including the gate scanning its own source)
+never register as surfaces. `#![forbid(unsafe_code)]`; deterministic sorted output.
 
 ## Consequences
 
-- A NEW axum control plane with a mutating route and no detectable authz fails the
+- A NEW control plane (axum or owned-kernel) with a mutating route and no detectable authz fails the
   `cloud-ci-authz-coverage` lane, with a remediation pointer to the
   `intelligence/adapters/rest` + `tenancy/facade/tenant-lifecycle-app` doctrine. Within the
-  detection envelope (D2a) — including const-path routers, `on(MethodFilter)` shapes,
-  variable-bound method routers, and comment/string-stripped coverage — any surface the gate cannot
-  prove non-mutating-or-covered fails the lane, so the AUTH-005 zero-authz class and the four
-  reviewed idiomatic-axum bypasses are mechanically blocked. (This is a fail-closed textual
-  backstop, not a call-graph proof; see D3 for the precise, non-overstated guarantee.)
+  detection envelope (D2a) — route-introduction-anchored discovery, both route grammars, const-path
+  and raw-string-path resolution, `on(MethodFilter)` shapes, variable/const-bound methods,
+  whole-token auth-layer/guard matching, and fail-closed unresolved-path / unclassified-method /
+  unclassified-surface / unresolved-subrouter handling — any route-introduction the gate cannot prove
+  non-mutating-or-covered fails the lane, so the AUTH-005 zero-authz class plus the second-pass
+  bypasses (Router::default()/param, post-`.with_state()` route, substring auth-layer/guard) are
+  mechanically blocked. (This is a fail-closed textual backstop, not a call-graph proof; see D3 for
+  the precise, non-overstated guarantee, including the deliberate domain-method drop boundary.)
 - The two reference surfaces are GREEN by authz detection, not by exemption.
-- A surface that grows the frozen baseline (a new unauthenticated control plane) requires either
-  real authz before merge or — for an intentional, founder-signed exception — a baseline edit.
+- The broadened discovery surfaced a substantial ESCALATE list of genuine pre-existing unauthenticated
+  mutating control planes (D4) — grandfathered into the frozen baseline so the gate lands green, each
+  owned by its capability team for remediation.
+- A surface that grows the frozen baseline (a new unauthenticated control plane) requires real authz
+  before merge; the `--write` re-baseline is shrink-only and refuses new keys without `--allow-new`,
+  so a careless re-baseline cannot silently absorb a new gap.
 
 ## Alternatives considered
 
