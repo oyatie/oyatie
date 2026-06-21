@@ -92,6 +92,16 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     }
     let out = out.unwrap_or_else(|| repo_root.join(DEFAULT_MANIFEST_OUT));
 
+    // FAIL-CLOSED on a >1-committed-plan candidate tree (#65). A MOVE PR commits exactly one plan
+    // at `specs/reorg/<capability>-move-plan.json`; more than one is a contributor error the
+    // materialization must NOT silently first-win on. This guard runs REGARDLESS of `--plan` (the
+    // candidate tree is ambiguous full stop), and when no `--plan` is named the codemod itself
+    // SELECTS the single committed plan — so the materialization is the authority and a no-move PR
+    // (zero plans) still emits the canonical empty manifest.
+    let discovered = oya_reorg_codemod_app::resolve_committed_move_plan(&repo_root)
+        .map_err(|e: CodemodError| e.to_string())?;
+    let plan_path = plan_path.or(discovered);
+
     // The plan is OPTIONAL: a no-move PR has no plan and emits the canonical empty manifest.
     // When a plan IS supplied, validate fail-closed (its bijection back-guarantees the relabel
     // determinism) before deriving any pair.
