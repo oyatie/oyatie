@@ -108,6 +108,11 @@ The following repo paths are governed by this ADR. The accounting gate validates
 justified (this ADR is the justification reference):
 
 ```
+cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/BUCK
+cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/Cargo.toml
+cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/OWNERS
+cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/src/lib.rs
+cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app/src/tests.rs
 libs/oya-crate-registrar-app/BUCK
 libs/oya-crate-registrar-app/Cargo.toml
 libs/oya-crate-registrar-app/OWNERS
