@@ -3988,6 +3988,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-third-party-test-deps"
+version = "0.1.0"
+dependencies = [
+ "httpmock",
+ "proptest",
+]
+
+[[package]]
 name = "intelligence-tool-compat-kernel"
 version = "0.1.0"
 dependencies = [

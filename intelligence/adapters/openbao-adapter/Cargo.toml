@@ -34,7 +34,10 @@ tokio = { workspace = true, features = ["sync"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
-httpmock = "0.7"
+# default-features=false drops the optional `cookies` feature (basic-cookies /
+# lalrpop codegen, no buck2 fixup). Tests use only the generic header/path/body
+# matchers, never httpmock's cookie matcher.
+httpmock = { version = "0.7", default-features = false }
 serde_json.workspace = true
 
 [lints]

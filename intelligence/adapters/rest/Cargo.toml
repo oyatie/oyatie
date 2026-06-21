@@ -37,7 +37,11 @@ futures = { version = "0.3", default-features = false, features = ["alloc"] }
 [dev-dependencies]
 intelligence-kernel = { path = "../../core/kernel" }
 tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
-httpmock = "0.7"
+# default-features=false drops the optional `cookies` feature (basic-cookies /
+# lalrpop codegen, no buck2 fixup). Tests use only the generic header/path/body
+# matchers, never httpmock's cookie matcher. Keeps reindeer feature-unification
+# from re-enabling `cookies` for the vendored httpmock target.
+httpmock = { version = "0.7", default-features = false }
 serde_json.workspace = true
 tower = { version = "0.5", features = ["util"] }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
