@@ -201,7 +201,12 @@ async fn live_rls_denies_cross_tenant_read_and_write() {
     );
 
     // Cross-tenant write attempt: under tenant A's GUC, an INSERT carrying
-    // tenant B's id is denied by the RESTRICTIVE WITH CHECK policy.
+    // tenant B's id is denied by the PERMISSIVE policy's
+    // `WITH CHECK (tenant_id = current_setting('oyatie.tenant_id'))` — the row's
+    // tenant_id ('beta') does not equal the session GUC ('alpha'). The
+    // RESTRICTIVE require_tenant_guc policy is NOT what denies this case: the GUC
+    // IS set (to 'alpha'), so the restrictive WITH CHECK is satisfied; it is the
+    // permissive tenant-equality WITH CHECK that rejects the wrong-tenant row.
     let mut tx = app.begin().await.unwrap();
     sqlx::query(SET_LOCAL_TENANT_SQL)
         .bind("alpha")
@@ -282,4 +287,152 @@ async fn live_idempotency_replay_is_single_effect() {
     .unwrap();
     let _ = tx.rollback().await;
     assert_eq!(count, 1, "idempotency replay must yield exactly one row");
+}
+
+#[tokio::test]
+async fn live_rls_denies_cross_tenant_on_applied_and_operations() {
+    if !enabled() {
+        return;
+    }
+    let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
+    let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
+    let setup = pool(&setup_url).await;
+    let app = pool(&app_url).await;
+    let (app_role, _, _) = current_role_flags(&app).await;
+    setup_schema(&setup, &app_role).await;
+
+    let mut store = PgTenantLifecycleStore::from_pool(app.clone());
+
+    // Seed one applied-write + one operation row for tenant beta (via its own
+    // GUC), so we can prove tenant alpha can neither read nor overwrite them.
+    let beta_applied = AppliedWriteRecord::Create {
+        name: "tenants/beta".to_owned(),
+        tenant: tenant("beta"),
+    };
+    store
+        .put_applied("beta", "beta-key", &beta_applied)
+        .await
+        .unwrap();
+
+    // Cross-tenant READ of applied_writes: under alpha's GUC, beta's row is
+    // filtered out by the PERMISSIVE USING (tenant_id = GUC) clause.
+    let mut tx = app.begin().await.unwrap();
+    sqlx::query(SET_LOCAL_TENANT_SQL)
+        .bind("alpha")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let applied_count: i64 = sqlx::query_scalar(&format!(
+        "SELECT count(*)::bigint FROM {APPLIED_TABLE} WHERE idempotency_key = 'beta-key'"
+    ))
+    .fetch_one(&mut *tx)
+    .await
+    .unwrap();
+    let _ = tx.rollback().await;
+    assert_eq!(
+        applied_count, 0,
+        "tenant alpha must not see tenant beta's applied-write row"
+    );
+
+    // Cross-tenant INSERT into applied_writes: under alpha's GUC, a beta-scoped
+    // row is rejected by the PERMISSIVE WITH CHECK (tenant_id = GUC) — the row's
+    // tenant_id ('beta') does not equal the session GUC ('alpha').
+    let mut tx = app.begin().await.unwrap();
+    sqlx::query(SET_LOCAL_TENANT_SQL)
+        .bind("alpha")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let cross_applied = sqlx::query(&format!(
+        "INSERT INTO {APPLIED_TABLE} (tenant_id, idempotency_key, payload_json, schema_version, created_at) VALUES ('beta', 'x-key', '{{}}'::jsonb, 1, now())"
+    ))
+    .execute(&mut *tx)
+    .await;
+    assert!(
+        cross_applied.is_err(),
+        "cross-tenant applied_writes INSERT under alpha's GUC must be denied by the permissive WITH CHECK"
+    );
+    let _ = tx.rollback().await;
+
+    // Cross-tenant INSERT into operations: same permissive WITH CHECK denial.
+    let mut tx = app.begin().await.unwrap();
+    sqlx::query(SET_LOCAL_TENANT_SQL)
+        .bind("alpha")
+        .execute(&mut *tx)
+        .await
+        .unwrap();
+    let cross_op = sqlx::query(&format!(
+        "INSERT INTO {OPERATIONS_TABLE} (tenant_id, operation_name, operation_seq, payload_json, schema_version, created_at) VALUES ('beta', 'operations/beta/lifecycle-000001', 1, '{{}}'::jsonb, 1, now())"
+    ))
+    .execute(&mut *tx)
+    .await;
+    assert!(
+        cross_op.is_err(),
+        "cross-tenant operations INSERT under alpha's GUC must be denied by the permissive WITH CHECK"
+    );
+    let _ = tx.rollback().await;
+}
+
+#[tokio::test]
+async fn live_rls_unset_guc_denies_all_access() {
+    if !enabled() {
+        return;
+    }
+    let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
+    let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
+    let setup = pool(&setup_url).await;
+    let app = pool(&app_url).await;
+    let (app_role, _, _) = current_role_flags(&app).await;
+    setup_schema(&setup, &app_role).await;
+
+    let mut store = PgTenantLifecycleStore::from_pool(app.clone());
+    store
+        .put_tenant("tenants/delta", &tenant("delta"))
+        .await
+        .unwrap();
+
+    // With NO per-tx GUC set, the RESTRICTIVE require_tenant_guc policy hard-
+    // denies access: current_setting('oyatie.tenant_id', true) is NULL, so the
+    // restrictive USING/WITH CHECK fails and intersects to deny-all. Each table
+    // must return 0 rows on SELECT and reject INSERT — proving a missing
+    // SET_LOCAL_TENANT_SQL can never fall back to an open scan.
+    for (table, select_sql) in [
+        (
+            TENANTS_TABLE,
+            format!("SELECT count(*)::bigint FROM {TENANTS_TABLE}"),
+        ),
+        (
+            APPLIED_TABLE,
+            format!("SELECT count(*)::bigint FROM {APPLIED_TABLE}"),
+        ),
+        (
+            OPERATIONS_TABLE,
+            format!("SELECT count(*)::bigint FROM {OPERATIONS_TABLE}"),
+        ),
+    ] {
+        let mut tx = app.begin().await.unwrap();
+        // Deliberately do NOT set the tenant GUC.
+        let count: i64 = sqlx::query_scalar(&select_sql)
+            .fetch_one(&mut *tx)
+            .await
+            .unwrap();
+        let _ = tx.rollback().await;
+        assert_eq!(
+            count, 0,
+            "no GUC set: SELECT on {table} must return 0 rows (restrictive deny-all)"
+        );
+    }
+
+    // INSERT with no GUC set is rejected by the restrictive WITH CHECK.
+    let mut tx = app.begin().await.unwrap();
+    let insert = sqlx::query(&format!(
+        "INSERT INTO {TENANTS_TABLE} (tenant_id, resource_name, display_name, lifecycle_state, payload_json, schema_version, updated_at) VALUES ('delta', 'tenants/delta', 'x', 'x', '{{}}'::jsonb, 1, now())"
+    ))
+    .execute(&mut *tx)
+    .await;
+    assert!(
+        insert.is_err(),
+        "no GUC set: INSERT must be denied by the restrictive require_tenant_guc WITH CHECK"
+    );
+    let _ = tx.rollback().await;
 }
