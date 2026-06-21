@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:c9798fad6106cd34",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:bc6f3dcfb212e5cb"
+    "source_inputs_digest": "fnv1a64:3e792a7224d328e7"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -10970,7 +10970,6 @@
           "intelligence/adapters/claude-agent-sdk/tests/sessions_local_transcripts.rs",
           "intelligence/adapters/claude-agent-sdk/tests/settings_resolver.rs",
           "intelligence/adapters/claude-agent-sdk/tests/startup_fake_cli.rs",
-          "intelligence/adapters/claude-agent-sdk/tests/support_fake_cli.rs",
           "intelligence/adapters/codex-adapter/BUCK",
           "intelligence/adapters/codex-adapter/Cargo.toml",
           "intelligence/adapters/codex-adapter/src/lib.rs",
@@ -11043,9 +11042,6 @@
           "intelligence/observability/slos/end-to-end-latency.openslo.yaml",
           "intelligence/observability/slos/error-rate.openslo.yaml",
           "intelligence/observability/slos/ttft.openslo.yaml",
-          "intelligence/testing/third-party-test-deps/BUCK",
-          "intelligence/testing/third-party-test-deps/Cargo.toml",
-          "intelligence/testing/third-party-test-deps/src/lib.rs",
           "k8s/adapters/control-plane-host-adapter-capi/BUCK",
           "k8s/adapters/control-plane-host-adapter-capi/Cargo.toml",
           "k8s/adapters/control-plane-host-adapter-capi/src/lib.rs",

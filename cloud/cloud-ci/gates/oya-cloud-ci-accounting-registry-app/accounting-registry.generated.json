@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18436,
-    "source_inputs_digest": "fnv1a64:bfa38daf8278450d"
+    "source_inputs_digest": "fnv1a64:5dcf0c97238714af"
   },
   "rows": [
     {
@@ -141913,7 +141913,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:intelligence",
       "path": "intelligence/adapters/claude-agent-sdk/tests/support_fake_cli.rs",
       "reachable_from": [
@@ -141927,7 +141927,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -144257,7 +144257,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:intelligence",
       "path": "intelligence/testing/third-party-test-deps/BUCK",
       "reachable_from": [
@@ -144271,7 +144271,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -144279,7 +144279,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:intelligence",
       "path": "intelligence/testing/third-party-test-deps/Cargo.toml",
       "reachable_from": [
@@ -144293,7 +144293,7 @@
         "ttl_class": "build_config"
       },
       "unit_class": "build_config",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
@@ -144301,7 +144301,7 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0562",
       "owner": "OWNERS:intelligence",
       "path": "intelligence/testing/third-party-test-deps/src/lib.rs",
       "reachable_from": [
@@ -144315,7 +144315,7 @@
         "ttl_class": "code"
       },
       "unit_class": "code",
-      "verdict": "RED"
+      "verdict": "KEEP"
     },
     {
       "_provenance": {
