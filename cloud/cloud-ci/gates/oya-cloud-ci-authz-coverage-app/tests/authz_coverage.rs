@@ -148,15 +148,16 @@ fn reference_surfaces_are_recognized_as_covered() {
 fn red_on_synthetic_unauthenticated_router() {
     let policy = synthetic_policy(&repo_root());
     // A synthetic surface bypassing the filesystem: a POST + DELETE with no authz in either body.
+    // Routes carry the post-review observation shape (`method_class` + `path_raw`).
     let observed = json!({
         "surfaces_found": 1,
         "surfaces": [{
             "file": "synthetic/unauth.rs",
             "router_line": 1,
             "routes": [
-                { "path": "/things", "method": "post", "handler": "create_thing" },
-                { "path": "/things/{id}", "method": "delete", "handler": "delete_thing" },
-                { "path": "/healthz", "method": "get", "handler": "healthz" }
+                { "path": "/things", "path_raw": "/things", "method": "post", "method_class": "mutating", "handler": "create_thing" },
+                { "path": "/things/{id}", "path_raw": "/things/{id}", "method": "delete", "method_class": "mutating", "handler": "delete_thing" },
+                { "path": "/healthz", "path_raw": "/healthz", "method": "get", "method_class": "non-mutating", "handler": "healthz" }
             ],
             "has_auth_layer": false,
             "handler_authz": { "create_thing": false, "delete_thing": false, "healthz": false }
@@ -167,7 +168,12 @@ fn red_on_synthetic_unauthenticated_router() {
         .iter()
         .find(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
         .expect("a synthetic unauthenticated mutating router must be RED");
-    assert_eq!(hit.key, "synthetic/unauth.rs::router@1");
+    // The key is now a stable signature (M2): file + ALL sorted (method, path) tuples (the whole
+    // router's identity, including the non-mutating /healthz), not `router@<line>`.
+    assert_eq!(
+        hit.key,
+        "synthetic/unauth.rs::router[delete /things/{id}; get /healthz; post /things]"
+    );
     assert!(hit.detail.contains("intelligence/adapters/rest"), "remediation points at the doctrine");
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 }
@@ -182,8 +188,8 @@ fn exempt_health_endpoint_is_not_a_control_plane() {
             "file": "synthetic/health.rs",
             "router_line": 1,
             "routes": [
-                { "path": "/healthz", "method": "get", "handler": "healthz" },
-                { "path": "/metrics", "method": "get", "handler": "metrics" }
+                { "path": "/healthz", "path_raw": "/healthz", "method": "get", "method_class": "non-mutating", "handler": "healthz" },
+                { "path": "/metrics", "path_raw": "/metrics", "method": "get", "method_class": "non-mutating", "handler": "metrics" }
             ],
             "has_auth_layer": false,
             "handler_authz": { "healthz": false, "metrics": false }
@@ -194,4 +200,95 @@ fn exempt_health_endpoint_is_not_a_control_plane() {
         findings.is_empty(),
         "a read-only health/metrics router must be exempt, not a control plane: {findings:?}"
     );
+}
+
+/// END-TO-END (PR #780 review B1/B2/B3): write the four reproduced bypass fixtures into an isolated
+/// temp tree and run the REAL filesystem collector + evaluator over them; each must produce a finding
+/// (RED). This is the load-bearing proof that the collect->parse->evaluate path — not just the pure
+/// evaluator on hand-built JSON — fails closed on the idiomatic-axum bypasses. The temp tree is
+/// outside the repo scan roots, so it never pollutes the live gate.
+#[test]
+fn bypass_fixtures_fail_closed_end_to_end() {
+    use std::fs;
+
+    let base = std::env::temp_dir().join(format!(
+        "authz-coverage-fixtures-{}-{}",
+        std::process::id(),
+        // a per-test discriminator so parallel test bins don't collide
+        line!()
+    ));
+    let src = base.join("src");
+    fs::create_dir_all(&src).expect("create temp fixture dir");
+
+    // B1: const-path unauthenticated mutating route.
+    fs::write(
+        src.join("b1_const.rs"),
+        r#"const NUKE: &str = "/tenants/{id}";
+           async fn nuke() -> StatusCode { StatusCode::NO_CONTENT }
+           pub fn r() -> Router { Router::new().route(NUKE, delete(nuke)).with_state(()) }"#,
+    )
+    .unwrap();
+    // B2a: MethodRouter bound to a variable, unauthenticated.
+    fs::write(
+        src.join("b2_var.rs"),
+        r#"async fn del() -> StatusCode { StatusCode::NO_CONTENT }
+           pub fn r() -> Router { let m = delete(del); Router::new().route("/x/{id}", m).with_state(()) }"#,
+    )
+    .unwrap();
+    // B2b: on(MethodFilter::DELETE, h), unauthenticated.
+    fs::write(
+        src.join("b2_on.rs"),
+        r#"async fn del() -> StatusCode { StatusCode::NO_CONTENT }
+           pub fn r() -> Router { Router::new().route("/y/{id}", on(MethodFilter::DELETE, del)).with_state(()) }"#,
+    )
+    .unwrap();
+    // B3: comment-only "guard" handler.
+    fs::write(
+        src.join("b3_comment.rs"),
+        r#"async fn del() -> StatusCode {
+               // TODO: authorize() this later
+               StatusCode::NO_CONTENT
+           }
+           pub fn r() -> Router { Router::new().route("/z/{id}", delete(del)).with_state(()) }"#,
+    )
+    .unwrap();
+
+    // A policy whose scan root is the temp tree, with NO baseline + NO floor so each fixture is RED.
+    let root = repo_root();
+    let mut policy = load_policy(&root);
+    policy["scan_roots"] = json!(["src"]);
+    policy["frozen_unauthenticated_surfaces"] = json!([]);
+    policy["min_expected_surfaces"] = json!(0);
+
+    let observed = collect_surfaces(&base, &policy).expect("collect temp fixtures");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    let by_file = |needle: &str, code: &str| {
+        findings
+            .iter()
+            .any(|f| f.code == code && f.key.contains(needle))
+    };
+    assert!(
+        by_file("b1_const.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "B1 const-path bypass must be RED end-to-end: {}",
+        render_findings(&findings)
+    );
+    assert!(
+        by_file("b2_var.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "B2 MethodRouter-variable bypass must be RED end-to-end: {}",
+        render_findings(&findings)
+    );
+    assert!(
+        by_file("b2_on.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "B2 on(MethodFilter::DELETE) bypass must be RED end-to-end: {}",
+        render_findings(&findings)
+    );
+    assert!(
+        by_file("b3_comment.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "B3 comment-only-guard bypass must be RED end-to-end: {}",
+        render_findings(&findings)
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    let _ = fs::remove_dir_all(&base);
 }

@@ -53,7 +53,8 @@
     "constant_time_eq",
     "verify_signature",
     "verify_webhook_signature",
-    "verify_hmac"
+    "verify_hmac",
+    "verify_any"
   ],
   "exempt_path_substrings": [
     "/healthz",
@@ -69,12 +70,14 @@
     "/.well-known/"
   ],
   "frozen_unauthenticated_surfaces": [
-    "k8s/facade/cluster-lifecycle-app/src/lib.rs::router@98",
-    "k8s/facade/control-plane-host-app/src/lib.rs::router@202",
-    "k8s/facade/tenant-quota-app/src/lib.rs::router@294",
-    "oya/ci-controller/crates/oya-ci-controller-app/src/lib.rs::router@438"
+    "iam/facade/identity-service/src/users/mod.rs::router[delete <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Groups/{{id}}\")>; delete <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Users/{{id}}\")>; get <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Groups\")>; get <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Groups/{{id}}\")>; get <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Users\")>; get <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Users/{{id}}\")>; patch <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Groups/{{id}}\")>; patch <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Users/{{id}}\")>; post <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Groups\")>; post <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Users\")>; put <unresolved:&format!(\"{SCIM_BASE}/{{tenant}}/Users/{{id}}\")>]",
+    "iam/facade/identity-workload-rest/src/lib.rs::router[post /authorize; post /authorize-with-token; post /authorize:batch; post /principals/{id_and_verb}; post /tokens/validate]",
+    "k8s/facade/cluster-lifecycle-app/src/lib.rs::router[get /healthz; post /clusters]",
+    "k8s/facade/control-plane-host-app/src/lib.rs::router[get /healthz; post /admin/control-planes; post /admin/control-planes/status; post /admin/control-planes/teardown]",
+    "k8s/facade/tenant-quota-app/src/lib.rs::router[get /healthz; get /tenants/{id}/quota; get /tenants/{id}/usage; post /tenants/{id}/quota/check; put /tenants/{id}/quota]",
+    "oya/ci-controller/crates/oya-ci-controller-app/src/lib.rs::router[get /healthz; get /metrics; post /gate-run]"
   ],
-  "_frozen_baseline_note": "The currently-known unauthenticated HTTP control-plane surfaces as of issue #770 (born-baseline). Each is pre-existing debt owned by its capability team; this gate freezes them so it lands GREEN and blocks only NEW unauthenticated control planes. SHRINK-ONLY: when a surface is fixed (authz added) or removed, drop its key — a stale key self-cleans via AC-STALE-BASELINE. cluster-lifecycle does a header-trust tenant check (not a verified-principal authz decision); control-plane-host and tenant-quota derive no caller identity; ci-controller's /gate-run mutating route has no authz. Remediation per surface: see the doctrine in intelligence/adapters/rest + tenancy/facade/tenant-lifecycle-app.",
+  "_frozen_baseline_note": "Pre-existing unauthenticated / unprovable HTTP control-plane surfaces, FROZEN as of issue #770 and re-keyed by stable signature (file + sorted (method, route-path) tuples) after the PR #780 review broadened detection (const-path resolution, on(MethodFilter), comment/string-stripped coverage). Each is pre-existing debt owned by its capability team; the gate freezes them so it lands GREEN and blocks only NEW unauthenticated control planes. SHRINK-ONLY + AUTOMATED: regenerate via the gate binary `--write` (do not hand-edit); a fixed/removed surface drops its key and a stale key self-cleans via AC-STALE-BASELINE. Per-surface classification: (1) identity-service SCIM router — handlers ARE authz-covered (authorize_scim + authorize_token_for), but its routes use non-literal `&format!(\"{SCIM_BASE}/...\")` paths the engine cannot resolve to concrete strings, so it fails closed as AC-UNRESOLVED-ROUTE-PATH; grandfathered (covered-but-unprovable-path); remediation is to make the SCIM paths const/literal so the gate can prove coverage. (2) identity-workload-rest — /authorize, /authorize-with-token, /authorize:batch ARE covered (authorizer.authorize / authorize_with_token); but POST /tokens/validate (token validation, no Cedar authz decision) and POST /principals/{id}:suspend|retire (lifecycle_transition does NO caller-identity check) are genuinely uncovered — ESCALATE: a real pre-existing unauthenticated mutating control plane (workload lifecycle), tracked here so the gate is green, owned by iam for remediation. (3) k8s cluster-lifecycle — header-trust tenant check, not a verified-principal authz decision. (4) k8s control-plane-host + tenant-quota — derive no caller identity. (5) ci-controller /gate-run — no authz. NOTE: oya/ci-webhook-gateway POST /webhook/github is NOT baselined — it is covered by fail-closed signature verification (signature::verify_any, added to authz_guard_idents). Remediation per surface: see the doctrine in intelligence/adapters/rest + tenancy/facade/tenant-lifecycle-app.",
   "product_contract": {
     "born_blocking": "Born-blocking vs a frozen baseline of currently-known unauthenticated surfaces. The two reference surfaces (intelligence/adapters/rest, tenancy/facade/tenant-lifecycle-app) are GREEN by construction (they carry authz). Pre-existing unauthenticated surfaces are frozen in frozen_unauthenticated_surfaces (shrink-only). Only a NEW unauthenticated control plane blocks.",
     "pack_shaped": "Neutral engine; every repo-specific is DATA in this file. A different repo adopts the gate by repointing the policy.",

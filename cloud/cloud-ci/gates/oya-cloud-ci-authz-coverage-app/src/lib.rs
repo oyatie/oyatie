@@ -66,10 +66,24 @@
 //!   a filesystem; it applies the exempt/baseline DATA to the observed surfaces.
 //! - [`evaluate`] is the bare-code projection of [`evaluate_keyed`], the single source of the verdict.
 //!
+//! ## Fail-closed spine
+//! A textual matcher need not be perfect IF its failure mode is fail-closed. Any `.route(...)` the
+//! engine cannot PROVE is (a) non-mutating OR (b) authorization-covered produces a FINDING (RED),
+//! never a silent skip. Two backstops enforce this:
+//! - a `.route(` path the engine cannot resolve to a concrete string (a `const`/`static` it cannot
+//!   substitute, or any non-literal it does not understand) → `AC-UNRESOLVED-ROUTE-PATH`.
+//! - a `.route(`'s method-router the engine cannot classify (a `let`-bound variable it cannot
+//!   resolve, an unrecognized call) → `AC-UNCLASSIFIED-METHOD`, treated as potentially-mutating.
+//!
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `AC-UNAUTHENTICATED-CONTROL-PLANE` — a control-plane surface (mutating method and/or
 //!   per-resource path) has ≥1 mutating handler that derives no caller identity, and its key is not
 //!   in the frozen baseline (a NEW unauthenticated control plane).
+//! - `AC-UNRESOLVED-ROUTE-PATH` — a `.route(` path argument could not be resolved to a concrete
+//!   string (fail-closed: an unknown-authz control-plane surface), and its key is not baselined.
+//! - `AC-UNCLASSIFIED-METHOD` — a `.route(`'s method-router could not be classified (fail-closed:
+//!   treated as a potentially-mutating control plane requiring a guard), and it is uncovered +
+//!   not baselined.
 //! - `AC-STALE-BASELINE` — a frozen-baseline key matches no live finding (shrink-only self-clean).
 //! - `AC-EMPTY-SCAN` — fewer router surfaces than `min_expected_surfaces` (catches a broken
 //!   glob / CWD / collect that would otherwise be a false-green).
@@ -95,8 +109,10 @@ pub const REMEDIATION_DOCTRINE: &str =
      and tenancy/facade/tenant-lifecycle-app/src/lib.rs (authenticate_caller + authorize() per route)";
 
 /// The blocking + structural violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 5] = [
+pub const VIOLATION_CODES: [&str; 7] = [
     "AC-UNAUTHENTICATED-CONTROL-PLANE",
+    "AC-UNRESOLVED-ROUTE-PATH",
+    "AC-UNCLASSIFIED-METHOD",
     "AC-STALE-BASELINE",
     "AC-EMPTY-SCAN",
     "AC-POLICY-GATE-ID-MISMATCH",
@@ -105,11 +121,6 @@ pub const VIOLATION_CODES: [&str; 5] = [
 
 /// The sentinel key for codes that are policy-level rather than per-surface.
 const POLICY_KEY: &str = "<policy>";
-
-/// The mutating HTTP methods. A route bound to any of these is a write — the class this gate
-/// exists to protect. Held as a const (not policy) because the axum method-router fn names are a
-/// fixed library fact, not a repo choice.
-const MUTATING_METHODS: [&str; 4] = ["post", "put", "patch", "delete"];
 
 // ---------------------------------------------------------------------------
 // Collection (the only I/O; read-only)
@@ -221,12 +232,133 @@ fn collect_rs_files(
     Ok(())
 }
 
+/// How a `.route(...)` call's method-router argument classifies. The whole point of the gate is to
+/// treat anything it cannot PROVE non-mutating as a potential write. So the classification is
+/// fail-closed: a method-router shape the parser cannot recognize is `Unclassified`, which the
+/// evaluator treats as a potentially-mutating control plane requiring authz.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum MethodClass {
+    /// A recognized mutating HTTP method (post/put/patch/delete) — and `on`/`on_service`/`any` with
+    /// a mutating-or-unknown method filter. The string is the recognized method/shape label.
+    Mutating(String),
+    /// A recognized non-mutating HTTP method (get/head/options/trace) — and `on`/`on_service` with
+    /// an exclusively non-mutating filter. The string is the recognized method label.
+    NonMutating(String),
+    /// The method-router argument is bound to a variable, an unrecognized call, or otherwise cannot
+    /// be classified. FAIL-CLOSED: treated as a potentially-mutating control plane needing authz.
+    Unclassified(String),
+}
+
+impl MethodClass {
+    fn is_unclassified(&self) -> bool {
+        matches!(self, MethodClass::Unclassified(_))
+    }
+    /// The label string emitted for the route's `method` observation field.
+    fn label(&self) -> &str {
+        match self {
+            MethodClass::Mutating(s) | MethodClass::NonMutating(s) | MethodClass::Unclassified(s) => {
+                s
+            }
+        }
+    }
+    /// The discriminant string emitted for the route's `method_class` observation field.
+    fn discriminant(&self) -> &'static str {
+        match self {
+            MethodClass::Mutating(_) => "mutating",
+            MethodClass::NonMutating(_) => "non-mutating",
+            MethodClass::Unclassified(_) => "unclassified",
+        }
+    }
+}
+
+/// A `let NAME = METHOD(handler);` MethodRouter binding: its classified method + bound handler, so a
+/// variable-bound route (B2) is resolved to both its mutating-ness AND its handler for the guard probe.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct MethodBinding {
+    class: MethodClass,
+    handler: String,
+}
+
 /// A single parsed route within a builder chain.
+///
+/// `path` is the RESOLVED concrete route string (a literal, or a `const`/`static` ident substituted
+/// from the file's declarations) — `None` when the path argument cannot be resolved to a concrete
+/// string (fail-closed: such a route is an unknown-authz control-plane surface). `path_raw` is the
+/// raw argument text (the ident name or the literal) kept for the finding detail and stable keying.
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Route {
-    path: String,
-    method: String,
+    path: Option<String>,
+    path_raw: String,
+    method: MethodClass,
     handler: String,
+}
+
+/// Build a length-preserving CODE-STRUCTURE mask of `text`: line/block comment bytes and string/char
+/// literal CONTENT bytes are replaced with spaces, but the literal's delimiting quotes are KEPT and
+/// the byte length + newline positions are preserved. This lets the structural finders (`Router::new()`,
+/// `.route(`, method tokens, `const`/`let` keywords) `.find()` against the mask — so a `Router::new()`
+/// mention in a doc comment or a `find("Router::new()")` string literal never registers as a surface —
+/// while path/const VALUES are still read from the ORIGINAL `text` at the same offsets (the offsets
+/// align because masking is length-preserving). This is the file-wide analogue of [`code_only`] and
+/// closes the gate-scans-its-own-source / comment-mention false positives.
+fn mask_non_code(text: &str) -> String {
+    /// Blank a byte slice to spaces, preserving newlines (so line counting stays aligned).
+    fn blank_into(out: &mut Vec<u8>, slice: &[u8]) {
+        out.extend(slice.iter().map(|&b| if b == b'\n' { b'\n' } else { b' ' }));
+    }
+    let bytes = text.as_bytes();
+    let mut out: Vec<u8> = Vec::with_capacity(bytes.len());
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let c = bytes[i];
+        match c {
+            b'"' => {
+                // Keep the opening quote, blank the content, keep the closing quote.
+                let end = skip_string(bytes, i); // offset just past closing quote
+                out.push(b'"');
+                if end > i + 1 {
+                    // Content runs from i+1 to end-1 (end-1 is the closing quote).
+                    blank_into(&mut out, &bytes[i + 1..end - 1]);
+                    out.push(b'"');
+                }
+                i = end;
+                continue;
+            }
+            b'\'' => {
+                let end = skip_char_or_lifetime(bytes, i);
+                blank_into(&mut out, &bytes[i..end]);
+                i = end;
+                continue;
+            }
+            b'/' if i + 1 < bytes.len() && bytes[i + 1] == b'/' => {
+                let start = i;
+                while i < bytes.len() && bytes[i] != b'\n' {
+                    i += 1;
+                }
+                blank_into(&mut out, &bytes[start..i]);
+                continue;
+            }
+            b'/' if i + 1 < bytes.len() && bytes[i + 1] == b'*' => {
+                let start = i;
+                i += 2;
+                while i + 1 < bytes.len() && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
+                    i += 1;
+                }
+                let end = (i + 2).min(bytes.len());
+                blank_into(&mut out, &bytes[start..end]);
+                i = end;
+                continue;
+            }
+            _ => {
+                out.push(c);
+                i += 1;
+            }
+        }
+    }
+    // The mask is byte-for-byte length-aligned with `text`; it is valid UTF-8 because we only ever
+    // replaced bytes with ASCII space/newline or kept original bytes (multibyte sequences inside
+    // strings are blanked byte-wise to spaces, which is safe — they were content, not structure).
+    String::from_utf8(out).unwrap_or_else(|_| " ".repeat(text.len()))
 }
 
 /// Extract every `Router::new()....route(...)` surface from one file's source text.
@@ -239,6 +371,10 @@ struct Route {
 /// We scan the WHOLE remaining buffer for `.route(`/`.layer(` calls belonging to the chain; this
 /// over-includes at worst (a later sibling router's routes folded in), which only ever makes a
 /// surface look MORE covered or adds routes — never hides an unauthenticated mutating route.
+///
+/// Structure is searched against a length-preserving [`mask_non_code`] view (so comment/string
+/// mentions of `Router::new()`/`.route(` never register), while literal VALUES (paths, consts) are
+/// read from the original `text` at the aligned offsets.
 fn extract_surfaces(
     file: &str,
     text: &str,
@@ -246,23 +382,36 @@ fn extract_surfaces(
     authz_guard_idents: &[String],
 ) -> Vec<Value> {
     let mut out = Vec::new();
+    // Length-preserving code-structure mask: comment + string/char content blanked (quotes kept),
+    // offsets aligned with `text`. ALL structural `.find()` runs against `masked`; literal VALUES are
+    // read from `text` at the aligned offsets. This stops comment/string mentions of `Router::new()`
+    // / `.route(` (including this gate scanning its OWN source) from registering as surfaces.
+    let masked = mask_non_code(text);
+    let masked = masked.as_str();
     // Spans of `#[cfg(test)]`-gated code (test modules + test fns). A Router built inside one is a
     // TEST FIXTURE, not a production control plane (this gate's own RED/GREEN fixtures live in
     // `#[cfg(test)] mod tests`), so it is skipped — never frozen, never blocked.
-    let test_spans = cfg_test_spans(text);
+    let test_spans = cfg_test_spans(masked);
+    // File-level `const NAME: &str = "...";` / `static NAME: &str = "...";` map for B1 const-path
+    // resolution, and a `let m = METHOD(h);` binding map for B2 variable-method resolution. Both are
+    // computed once per file; route parsing substitutes from them and FAILS CLOSED when a path ident
+    // or method-router variable cannot be resolved. Decls are LOCATED in `masked`, VALUES read from `text`.
+    let str_consts = collect_str_consts(masked, text);
+    let method_bindings = collect_method_bindings(masked);
     let mut search_from = 0usize;
-    while let Some(rel) = text[search_from..].find("Router::new()") {
+    while let Some(rel) = masked[search_from..].find("Router::new()") {
         let start = search_from + rel;
         if test_spans.iter().any(|(lo, hi)| start >= *lo && start < *hi) {
             search_from = start + "Router::new()".len();
             continue;
         }
         let router_line = line_of(text, start);
-        let chain_end = chain_end_offset(text, start);
-        let chain = &text[start..chain_end];
+        let chain_end = chain_end_offset(masked, start);
+        let chain_masked = &masked[start..chain_end];
+        let chain_text = &text[start..chain_end];
 
-        let routes = parse_routes(chain);
-        let has_auth_layer = chain_has_auth_layer(chain, auth_layer_idents);
+        let routes = parse_routes(chain_masked, chain_text, &str_consts, &method_bindings);
+        let has_auth_layer = chain_has_auth_layer(chain_masked, auth_layer_idents);
 
         // Per-handler authz: for each handler bound in this surface, does its `fn` body anywhere in
         // the file invoke a recognized authz guard ident? Computed for all handlers (the evaluator
@@ -280,7 +429,13 @@ fn extract_surfaces(
         let routes_json: Vec<Value> = routes
             .iter()
             .map(|r| {
-                json!({ "path": r.path, "method": r.method, "handler": r.handler })
+                json!({
+                    "path": match &r.path { Some(p) => Value::from(p.as_str()), None => Value::Null },
+                    "path_raw": r.path_raw,
+                    "method": r.method.label(),
+                    "method_class": r.method.discriminant(),
+                    "handler": r.handler,
+                })
             })
             .collect();
 
@@ -385,42 +540,123 @@ fn chain_end_offset(text: &str, start: usize) -> usize {
     text.len()
 }
 
-/// Parse all `.route(...)` calls within a chain slice into `(path, method, handler)` triples.
-/// Tolerates whitespace/newlines between `.route(`, the path string, the method-router call, and
-/// the handler. Only the FIRST method-router call inside each `.route(` is taken (axum binds one
-/// method-router per route; `get(h).post(h2)` chained handlers are rare in this corpus and the
-/// first mutating one is sufficient to mark the surface as control-plane).
-fn parse_routes(chain: &str) -> Vec<Route> {
+/// Parse all `.route(...)` calls within a chain slice into [`Route`]s, FAIL-CLOSED.
+///
+/// For each `.route(`, the call's balanced-paren argument list is split at the top-level comma into
+/// the PATH arg and the METHOD-ROUTER arg:
+/// - The path arg is a `"..."` literal (taken verbatim) or an ident resolved from the file's
+///   `const`/`static &str` declarations (`str_consts`). An ident that resolves to no concrete
+///   string yields `path: None` (B1 fail-closed: an unresolvable control-plane path).
+/// - The method-router arg is classified via [`classify_method_router`], resolving a `let m =
+///   METHOD(h);` binding (`method_bindings`) when the arg is a bare ident (B2). A shape that cannot
+///   be classified yields `MethodClass::Unclassified` (B2 fail-closed).
+///
+/// A `.route(` whose arg list cannot be bounded (no balanced close) still emits an
+/// unresolved-path/unclassified route (fail-closed) so an invisible surface cannot result from a
+/// truncated chain.
+fn parse_routes(
+    chain_masked: &str,
+    chain_text: &str,
+    str_consts: &std::collections::BTreeMap<String, String>,
+    method_bindings: &std::collections::BTreeMap<String, MethodBinding>,
+) -> Vec<Route> {
     let mut routes = Vec::new();
     let mut from = 0usize;
     let marker = ".route(";
-    while let Some(rel) = chain[from..].find(marker) {
-        let open = from + rel + marker.len();
+    while let Some(rel) = chain_masked[from..].find(marker) {
+        let open = from + rel + marker.len(); // just past the `(`
         from = open;
-        // Find the path string literal: the next `"..."` after `.route(`.
-        let Some((path, after_path)) = next_string_literal(chain, open) else {
+        // Bound the route call to its balanced closing paren on the MASKED chain (so a `)` inside a
+        // string/comment does not mis-bound), then read the args from both views: structure from
+        // masked, the path literal VALUE from the original text (offsets align).
+        let Some(args_masked) = balanced_paren_body(chain_masked, open) else {
+            // A truncated `.route(` we cannot bound: fail closed — record an unresolved, potentially
+            // mutating route so the surface is never silently dropped.
+            routes.push(Route {
+                path: None,
+                path_raw: "<unparsed-route-args>".to_owned(),
+                method: MethodClass::Unclassified("<unparsed>".to_owned()),
+                handler: String::new(),
+            });
             continue;
         };
-        // Find the method-router call after the path: METHOD(handler).
-        if let Some((method, handler)) = next_method_router(chain, after_path) {
-            routes.push(Route { path, method, handler });
-        }
+        // Offset of the args within the chain (masked and text are byte-aligned).
+        let args_off = args_masked.as_ptr() as usize - chain_masked.as_ptr() as usize;
+        let args_len = args_masked.len();
+        let args_text = &chain_text[args_off..args_off + args_len];
+
+        let (path_arg_masked, method_arg_masked) = split_top_level_comma(args_masked);
+        let path_off = path_arg_masked.as_ptr() as usize - chain_masked.as_ptr() as usize;
+        let path_arg_text = &chain_text[path_off..path_off + path_arg_masked.len()];
+        // Resolve the path: structure (is it a literal vs ident) from masked, VALUE from text.
+        let (path, path_raw) = resolve_path_arg(path_arg_masked, path_arg_text, str_consts);
+        let _ = args_text; // method classification uses the masked arg (handler/method are idents).
+        let (method, handler) =
+            classify_method_router(method_arg_masked.unwrap_or(""), method_bindings);
+        routes.push(Route {
+            path,
+            path_raw,
+            method,
+            handler,
+        });
     }
     routes
 }
 
-/// From offset `from`, find the next `"..."` string literal; return its contents and the offset
-/// just past the closing quote. Handles escaped quotes inside the literal.
-fn next_string_literal(text: &str, from: usize) -> Option<(String, usize)> {
-    let bytes = text.as_bytes();
-    let mut i = from;
-    while i < bytes.len() && bytes[i] != b'"' {
-        i += 1;
+/// Resolve a `.route(` PATH argument to a concrete string. Structure (literal vs ident) is read from
+/// `arg_masked` (a `"..."` literal masks to `"   "` with quotes kept); the literal VALUE is read from
+/// `arg_text` (the original) at the aligned offset. A bare ident (`const`/`static`) is substituted
+/// from `str_consts`. Returns `(resolved, raw)` where `resolved` is `None` for an ident/expression
+/// that resolves to no concrete string (fail-closed). `raw` is the value/ident (for detail + key).
+fn resolve_path_arg(
+    arg_masked: &str,
+    arg_text: &str,
+    str_consts: &std::collections::BTreeMap<String, String>,
+) -> (Option<String>, String) {
+    let masked_trimmed = arg_masked.trim_start();
+    if masked_trimmed.starts_with('"') {
+        // String literal: read its value (escape-aware) from the ORIGINAL text at the same offset.
+        let lead = arg_text.len() - arg_text.trim_start().len();
+        if let Some((value, _)) = read_string_literal(&arg_text[lead..]) {
+            let raw = value.clone();
+            return (Some(value), raw);
+        }
     }
-    if i >= bytes.len() {
+    // Bare ident / path / expression: take the LAST `::`-segment as the const name
+    // (`crate::routes::FOO` -> `FOO`) and look it up. The ident is read from the masked arg (idents
+    // are code, unaffected by masking). A missing entry / non-ident expression is fail-closed (None).
+    let masked = masked_trimmed.trim();
+    let ident = masked.rsplit("::").next().unwrap_or(masked).trim();
+    let ident = ident.trim_end_matches(|c: char| !is_ident_char(c));
+    // Only treat it as a const lookup if the whole arg is a clean path-ident (no call/format!/etc.).
+    let is_clean_ident = !ident.is_empty()
+        && ident.chars().all(is_ident_char)
+        && masked.chars().all(|c| is_ident_char(c) || c == ':');
+    if is_clean_ident {
+        if let Some(value) = str_consts.get(ident) {
+            return (Some(value.clone()), ident.to_owned());
+        }
+        return (None, ident.to_owned());
+    }
+    // A non-literal, non-clean-ident path expression (e.g. `&format!(...)`): unresolved, fail-closed.
+    // Keep a short raw snippet (from the ORIGINAL text, normalized) for the finding/key stability.
+    let raw: String = arg_text
+        .trim()
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .take(48)
+        .collect();
+    (None, if raw.is_empty() { "<empty-path-arg>".to_owned() } else { raw })
+}
+
+/// Read a `"..."` string literal at the start of `text` (which must begin with `"`); return its
+/// unescaped contents and the offset just past the closing quote.
+fn read_string_literal(text: &str) -> Option<(String, usize)> {
+    let bytes = text.as_bytes();
+    if bytes.is_empty() || bytes[0] != b'"' {
         return None;
     }
-    i += 1; // past opening quote
+    let mut i = 1usize;
     let mut value = String::new();
     while i < bytes.len() {
         let c = bytes[i];
@@ -438,67 +674,348 @@ fn next_string_literal(text: &str, from: usize) -> Option<(String, usize)> {
     None
 }
 
-/// From offset `from`, find the next method-router call `IDENT(handler...)` where IDENT is an HTTP
-/// method (get/post/put/patch/delete/head/options/trace/any). Returns `(method, handler_ident)`.
-/// The handler ident is the first path-ish token inside the method call, with any `::<...>`
-/// turbofish stripped. Stops at the route's own closing — bounded by the next `.route(` or the end
-/// of the chain — so a method token from a LATER route is never misattributed.
-fn next_method_router(text: &str, from: usize) -> Option<(String, String)> {
-    let methods = [
-        "get", "post", "put", "patch", "delete", "head", "options", "trace", "any",
-    ];
-    // Bound the search to this route call: up to the next `.route(` or end of slice.
-    let bound = text[from..]
-        .find(".route(")
-        .map(|i| from + i)
-        .unwrap_or(text.len());
-    let window = &text[from..bound];
-    // Find the earliest method-router call in the window.
-    let mut best: Option<(usize, String)> = None;
-    for m in methods {
-        if let Some(idx) = find_call_ident(window, m) {
-            best = match best {
-                Some((b, _)) if b <= idx => best,
-                _ => Some((idx, m.to_owned())),
-            };
+/// Classify a `.route(`'s METHOD-ROUTER argument into a [`MethodClass`] + handler ident, FAIL-CLOSED.
+///
+/// Recognized shapes:
+/// - inline `get|head|options|trace(handler)` -> `NonMutating`
+/// - inline `post|put|patch|delete(handler)`  -> `Mutating`
+/// - `any(handler)`                            -> `Mutating` (any verb, includes writes)
+/// - `on(MethodFilter::X, handler)` / `on_service(MethodFilter::X, handler)` -> `Mutating` if the
+///   filter set contains any mutating-or-unknown method, else `NonMutating`
+/// - a bare ident bound by `let m = METHOD(h);` -> resolved via `method_bindings`
+///
+/// Anything else (an unbound variable, an unrecognized call) -> `Unclassified` (treated as a
+/// potentially-mutating control plane requiring authz).
+fn classify_method_router(
+    arg: &str,
+    method_bindings: &std::collections::BTreeMap<String, MethodBinding>,
+) -> (MethodClass, String) {
+    let trimmed = arg.trim();
+    // 1) on(...) / on_service(...) with a MethodFilter.
+    for shape in ["on_service", "on"] {
+        if let Some(rest) = strip_call(trimmed, shape) {
+            let class = classify_on_filter(rest, shape);
+            let handler = read_handler_after_filter(rest);
+            return (class, handler);
         }
     }
-    let (idx, method) = best?;
-    // The handler is the first token after the method's `(`.
-    let after_paren = idx + method.len();
-    // skip to `(`
-    let rest = &window[after_paren..];
-    let paren = rest.find('(')?;
-    let handler_start = after_paren + paren + 1;
-    let handler = read_path_ident(&window[handler_start..]);
-    if handler.is_empty() {
-        return None;
+    // 2) inline METHOD(handler).
+    let nonmut = ["get", "head", "options", "trace"];
+    let mutmeth = ["post", "put", "patch", "delete"];
+    for m in nonmut {
+        if let Some(rest) = strip_call(trimmed, m) {
+            return (MethodClass::NonMutating(m.to_owned()), read_path_ident(rest));
+        }
     }
-    Some((method, handler))
+    for m in mutmeth {
+        if let Some(rest) = strip_call(trimmed, m) {
+            return (MethodClass::Mutating(m.to_owned()), read_path_ident(rest));
+        }
+    }
+    if let Some(rest) = strip_call(trimmed, "any") {
+        // `any` accepts every verb, writes included.
+        return (MethodClass::Mutating("any".to_owned()), read_path_ident(rest));
+    }
+    // 3) a bare ident — a `let m = METHOD(h);` MethodRouter variable. Resolve via the binding map.
+    let ident = read_path_ident(trimmed);
+    if !ident.is_empty() && ident == trimmed.trim_end_matches(|c: char| !is_ident_char(c)) {
+        if let Some(bound) = method_bindings.get(&ident) {
+            // The binding carries both the method class and the handler ident, so a variable-bound
+            // mutating route is probed for its real handler's guard (not falsely flagged uncovered).
+            return (bound.class.clone(), bound.handler.clone());
+        }
+        // Unresolvable variable -> fail closed.
+        return (MethodClass::Unclassified(format!("var:{ident}")), String::new());
+    }
+    // 4) anything else -> fail closed.
+    (MethodClass::Unclassified("<unrecognized>".to_owned()), String::new())
 }
 
-/// Find the offset of `ident` used as a CALL (`ident(`), not as a substring of a longer ident.
-/// Requires a non-ident char (or start) before `ident` and a `(` (possibly after whitespace)
-/// after it. Returns the offset of the ident start.
-fn find_call_ident(text: &str, ident: &str) -> Option<usize> {
-    let bytes = text.as_bytes();
+/// If `text` begins with `ident` immediately followed (after optional whitespace) by `(`, return the
+/// slice just past that `(`; else None. Ensures `ident` is a whole call ident, not a prefix.
+fn strip_call<'a>(text: &'a str, ident: &str) -> Option<&'a str> {
+    let t = text.trim_start();
+    let rest = t.strip_prefix(ident)?;
+    // The char right after the ident must not be an ident char (so `on` != `onfoo`).
+    if let Some(c) = rest.chars().next() {
+        if is_ident_char(c) {
+            return None;
+        }
+    }
+    let rest = rest.trim_start();
+    rest.strip_prefix('(')
+}
+
+/// Classify an `on(...)` / `on_service(...)` argument list by its `MethodFilter::X` tokens. A filter
+/// set containing any mutating method (POST/PUT/PATCH/DELETE) — OR no recognized filter token at all
+/// (fail-closed: an unknown/computed filter) — is `Mutating`; an exclusively non-mutating set
+/// (GET/HEAD/OPTIONS/TRACE) is `NonMutating`.
+fn classify_on_filter(args: &str, shape: &str) -> MethodClass {
+    let mutating = ["POST", "PUT", "PATCH", "DELETE"];
+    let nonmut = ["GET", "HEAD", "OPTIONS", "TRACE"];
+    let mut saw_nonmut = false;
+    let mut saw_mut = false;
+    let mut saw_any_filter = false;
     let mut from = 0usize;
-    while let Some(rel) = text[from..].find(ident) {
-        let at = from + rel;
-        let before_ok = at == 0 || !is_ident_byte(bytes[at - 1]);
-        let after = at + ident.len();
-        // allow optional whitespace then `(`
-        let mut j = after;
-        while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\n' || bytes[j] == b'\t' || bytes[j] == b'\r') {
-            j += 1;
+    while let Some(rel) = args[from..].find("MethodFilter::") {
+        let at = from + rel + "MethodFilter::".len();
+        let tok = read_path_ident(&args[at..]);
+        from = at;
+        if tok.is_empty() {
+            continue;
         }
-        let after_ok = j < bytes.len() && bytes[j] == b'(';
-        if before_ok && after_ok {
-            return Some(at);
+        saw_any_filter = true;
+        if mutating.iter().any(|m| m.eq_ignore_ascii_case(&tok)) {
+            saw_mut = true;
+        } else if nonmut.iter().any(|m| m.eq_ignore_ascii_case(&tok)) {
+            saw_nonmut = true;
+        } else {
+            // Unknown filter token -> fail closed.
+            saw_mut = true;
         }
-        from = at + ident.len();
+    }
+    if !saw_any_filter {
+        // `on(filter_expr, h)` with a non-literal filter -> fail closed (potentially mutating).
+        return MethodClass::Unclassified(format!("{shape}(<dynamic-filter>)"));
+    }
+    if saw_mut {
+        MethodClass::Mutating(format!("{shape}(MethodFilter)"))
+    } else if saw_nonmut {
+        MethodClass::NonMutating(format!("{shape}(MethodFilter)"))
+    } else {
+        MethodClass::Unclassified(format!("{shape}(MethodFilter)"))
+    }
+}
+
+/// Read the handler ident from an `on(MethodFilter::X, handler)` argument list: the ident after the
+/// top-level comma. Returns empty if none found.
+fn read_handler_after_filter(args: &str) -> String {
+    let (_, after) = split_top_level_comma(args);
+    match after {
+        Some(a) => read_path_ident(a),
+        None => String::new(),
+    }
+}
+
+/// Whether `c` is a Rust identifier char.
+fn is_ident_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
+}
+
+/// Return the balanced-paren body starting just after an opening `(` at offset `open` (i.e. the
+/// slice between that `(` and its matching `)`), skipping string/char literals and line comments so
+/// a paren inside them does not throw off the balance. Returns None if no matching close is found.
+fn balanced_paren_body(text: &str, open: usize) -> Option<&str> {
+    let bytes = text.as_bytes();
+    let mut i = open;
+    let mut depth = 1i32; // we are already inside the first `(`
+    let body_start = open;
+    while i < bytes.len() {
+        let c = bytes[i];
+        match c {
+            b'(' => depth += 1,
+            b')' => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(&text[body_start..i]);
+                }
+            }
+            b'"' => {
+                i = skip_string(bytes, i);
+                continue;
+            }
+            b'\'' => {
+                i = skip_char_or_lifetime(bytes, i);
+                continue;
+            }
+            b'/' if i + 1 < bytes.len() && bytes[i + 1] == b'/' => {
+                while i < bytes.len() && bytes[i] != b'\n' {
+                    i += 1;
+                }
+                continue;
+            }
+            _ => {}
+        }
+        i += 1;
     }
     None
+}
+
+/// Split an argument list at its FIRST top-level comma (depth-0, outside strings/chars/comments).
+/// Returns `(first_arg, rest)` where `rest` is `None` when there is no top-level comma.
+fn split_top_level_comma(args: &str) -> (&str, Option<&str>) {
+    let bytes = args.as_bytes();
+    let mut depth = 0i32;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let c = bytes[i];
+        match c {
+            b'(' | b'[' | b'{' | b'<' => depth += 1,
+            b')' | b']' | b'}' | b'>' => depth -= 1,
+            b'"' => {
+                i = skip_string(bytes, i);
+                continue;
+            }
+            b'\'' => {
+                i = skip_char_or_lifetime(bytes, i);
+                continue;
+            }
+            b'/' if i + 1 < bytes.len() && bytes[i + 1] == b'/' => {
+                while i < bytes.len() && bytes[i] != b'\n' {
+                    i += 1;
+                }
+                continue;
+            }
+            b',' if depth == 0 => {
+                return (&args[..i], Some(&args[i + 1..]));
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    (args, None)
+}
+
+/// Collect `const NAME: &str = "...";` and `static NAME: &str = "...";` string declarations in the
+/// file into a `NAME -> value` map for const-path resolution (B1). Only string-literal initializers
+/// are captured; a `const NAME: &str = other_const;` (no literal) is intentionally NOT captured, so
+/// it resolves to fail-closed `None` at the route site.
+fn collect_str_consts(
+    masked: &str,
+    text: &str,
+) -> std::collections::BTreeMap<String, String> {
+    let mut out = std::collections::BTreeMap::new();
+    for kw in ["const ", "static "] {
+        let mut from = 0usize;
+        while let Some(rel) = masked[from..].find(kw) {
+            let at = from + rel;
+            from = at + kw.len();
+            // `const`/`static` must be a keyword boundary (preceded by start/non-ident).
+            let bytes = masked.as_bytes();
+            if at != 0 && is_ident_byte(bytes[at - 1]) {
+                continue;
+            }
+            // Read NAME up to `:` (structure from masked; the name is an ident, mask-safe).
+            let after_kw = at + kw.len();
+            let decl_masked = &masked[after_kw..];
+            let Some(colon) = decl_masked.find(':') else { continue };
+            let name = decl_masked[..colon].trim();
+            // `static mut` / generics make the name non-simple — require a plain ident.
+            let name = name.trim_start_matches("mut ").trim();
+            if name.is_empty() || !name.chars().all(is_ident_char) {
+                continue;
+            }
+            // Find the `=` (masked) then the first string literal before the terminating `;`. The
+            // initializer VALUE is read from the ORIGINAL text at the aligned offset.
+            let Some(eq) = decl_masked[colon..].find('=') else { continue };
+            let init_start = after_kw + colon + eq + 1;
+            let semi = masked[init_start..]
+                .find(';')
+                .map(|i| init_start + i)
+                .unwrap_or(masked.len());
+            let init_masked = masked[init_start..semi].trim_start();
+            // Only a direct string-literal initializer is captured (its masked form starts with `"`).
+            if init_masked.starts_with('"') {
+                let lead = (masked[init_start..semi].len())
+                    - (masked[init_start..semi].trim_start().len());
+                let init_text = &text[init_start + lead..semi];
+                if let Some((value, _)) = read_string_literal(init_text) {
+                    out.insert(name.to_owned(), value);
+                }
+            }
+        }
+    }
+    out
+}
+
+/// Collect `let NAME = METHOD(handler);` MethodRouter bindings in the file into a `NAME -> class`
+/// map for B2 variable-method resolution. Recognizes the same inline method shapes as
+/// [`classify_method_router`]; a binding to an unrecognized expression is omitted (so it resolves
+/// fail-closed at the route site). File-wide capture is a safe superset of per-fn capture: it can
+/// only ever make a binding RESOLVABLE; an unresolved binding still fails closed.
+fn collect_method_bindings(text: &str) -> std::collections::BTreeMap<String, MethodBinding> {
+    let mut out = std::collections::BTreeMap::new();
+    let empty: std::collections::BTreeMap<String, MethodBinding> = std::collections::BTreeMap::new();
+    let mut from = 0usize;
+    while let Some(rel) = text[from..].find("let ") {
+        let at = from + rel;
+        from = at + 4;
+        let bytes = text.as_bytes();
+        if at != 0 && is_ident_byte(bytes[at - 1]) {
+            continue;
+        }
+        let decl = &text[at + 4..];
+        let Some(eq) = decl.find('=') else { continue };
+        // The binding name is the ident before `=` (strip `mut`, type ascription).
+        let name_part = decl[..eq].trim();
+        let name_part = name_part.trim_start_matches("mut ").trim();
+        let name = name_part.split(':').next().unwrap_or(name_part).trim();
+        if name.is_empty() || !name.chars().all(is_ident_char) {
+            continue;
+        }
+        let init_start = eq + 1;
+        let semi = decl[init_start..].find(';').map(|i| init_start + i).unwrap_or(decl.len());
+        let init = decl[init_start..semi].trim();
+        let (class, handler) = classify_method_router(init, &empty);
+        // Only record a binding the RHS classified as a real method-router shape; an Unclassified RHS
+        // (e.g. `let x = compute();`) is not a method router and must not poison the map.
+        if !class.is_unclassified() {
+            out.insert(name.to_owned(), MethodBinding { class, handler });
+        }
+    }
+    out
+}
+
+/// Build a CODE-ONLY view of `body`: line comments (`// ..`), block comments (`/* .. */`),
+/// string/char literals are all elided to spaces (length-preserving is unnecessary; idents are what
+/// matter). Every other byte is kept verbatim. Used by the B3 guard probe so a guard ident inside a
+/// comment or string literal can never false-cover a handler — the ident must appear in real code.
+/// Reuses the same string/char skip machinery as [`brace_body`].
+fn code_only(body: &str) -> String {
+    let bytes = body.as_bytes();
+    let mut out = String::with_capacity(body.len());
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let c = bytes[i];
+        match c {
+            b'"' => {
+                let end = skip_string(bytes, i);
+                out.push(' ');
+                i = end;
+                continue;
+            }
+            b'\'' => {
+                let end = skip_char_or_lifetime(bytes, i);
+                // Preserve a lifetime's leading-tick-less ident bytes? No — a lifetime is not a
+                // guard ident; eliding it is safe. Push a space placeholder.
+                out.push(' ');
+                i = end;
+                continue;
+            }
+            b'/' if i + 1 < bytes.len() && bytes[i + 1] == b'/' => {
+                while i < bytes.len() && bytes[i] != b'\n' {
+                    i += 1;
+                }
+                continue;
+            }
+            b'/' if i + 1 < bytes.len() && bytes[i + 1] == b'*' => {
+                // Block comment: skip to the matching `*/` (non-nested is the common case; nested
+                // block comments are rare and over-skipping only ever ELIDES code, which is the safe
+                // direction — it can never invent a guard, only fail to find one in odd nesting).
+                i += 2;
+                while i + 1 < bytes.len() && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
+                    i += 1;
+                }
+                i = (i + 2).min(bytes.len());
+                continue;
+            }
+            _ => {
+                out.push(c as char);
+                i += 1;
+            }
+        }
+    }
+    out
 }
 
 /// Read a Rust path ident from the start of `text`, stopping at the first char that is not part of
@@ -600,12 +1117,18 @@ fn has_guard_rec(
         let after_ok = after_name >= bytes.len() || !is_ident_byte(bytes[after_name]);
         if before_ok && after_ok {
             if let Some(body) = brace_body(text, after_name) {
-                if guard_idents.iter().any(|g| body.contains(g.as_str())) {
+                // B3 FIX: the guard probe runs on a CODE-ONLY view of the body — comments and
+                // string/char literals elided — so a `// TODO: authorize()` comment or a
+                // `"authorize"` string literal can NEVER false-cover a handler that does no real
+                // authz. The guard ident must appear in genuine code.
+                let code = code_only(body);
+                if guard_idents.iter().any(|g| code.contains(g.as_str())) {
                     return true;
                 }
-                // No direct guard: follow up to one local delegate this body calls.
+                // No direct guard: follow up to one local delegate this body calls. Delegate calls
+                // are read from the same code-only view (a name in a comment/string is not a call).
                 if depth > 0 {
-                    for delegate in delegate_calls_in(body, handler) {
+                    for delegate in delegate_calls_in(&code, handler) {
                         if has_guard_rec(text, &delegate, guard_idents, depth - 1, seen) {
                             return true;
                         }
@@ -823,21 +1346,47 @@ fn has_path_param(path: &str) -> bool {
     path.contains('{') && path.contains('}')
 }
 
-/// The stable key for a surface finding: `<file>::router@<line>`. Stable across reorderings of the
-/// route list and independent of handler names, so a refactor that renames a handler but keeps the
-/// hole still matches its baseline entry (the surface is identified by file+router site).
-fn surface_key(file: &str, router_line: u64) -> String {
-    format!("{file}::router@{router_line}")
+/// The stable SIGNATURE key for a surface finding: `<file>::router[<m1 p1; m2 p2; ..>]` where the
+/// `(method, route-path)` tuples are sorted (M2). Independent of line numbers and route-declaration
+/// order, so an unrelated edit that shifts the router's line does NOT spuriously re-RED a baselined
+/// surface (the old `router@<line>` key did). A route's tuple uses its resolved path when known, its
+/// raw path arg (`const NAME`) when unresolved, prefixed by the method-class discriminant for an
+/// unclassified method-router. Handler names are excluded so a handler rename keeps the key stable.
+fn surface_signature_key(file: &str, routes: &[Value]) -> String {
+    let mut tuples: Vec<String> = routes
+        .iter()
+        .map(|r| {
+            let method = r.get("method").and_then(Value::as_str).unwrap_or("?");
+            let class = r.get("method_class").and_then(Value::as_str).unwrap_or("?");
+            let path = match r.get("path").and_then(Value::as_str) {
+                Some(p) => p.to_owned(),
+                None => format!(
+                    "<unresolved:{}>",
+                    r.get("path_raw").and_then(Value::as_str).unwrap_or("?")
+                ),
+            };
+            if class == "unclassified" {
+                format!("{class}:{method} {path}")
+            } else {
+                format!("{method} {path}")
+            }
+        })
+        .collect();
+    tuples.sort();
+    format!("{file}::router[{}]", tuples.join("; "))
 }
 
 /// Pure evaluator. `policy` is DATA (`authz-coverage-policy.json`); `observed` is the collected
 /// surface graph shaped by [`collect_surfaces`].
 ///
-/// For each surface: a route is a CONTROL-PLANE write iff it uses a mutating method on a non-exempt
-/// path, OR it is a mutating method on a per-resource path param. The surface is COVERED iff it has
-/// a recognized auth layer OR every mutating, non-exempt handler's body invokes a recognized authz
-/// guard. An uncovered control-plane surface whose key is NOT in the frozen baseline →
-/// `AC-UNAUTHENTICATED-CONTROL-PLANE`. Baseline keys with no live finding → `AC-STALE-BASELINE`.
+/// FAIL-CLOSED spine: a route makes its surface a CONTROL PLANE iff it is (a) a recognized mutating
+/// method on a non-exempt path, (b) an UNCLASSIFIED method-router (the engine could not prove it
+/// non-mutating), or (c) an UNRESOLVED path (the engine could not prove what surface it is). The
+/// surface is COVERED iff it has a recognized auth layer OR every such route's handler body invokes
+/// a recognized authz guard. An uncovered control-plane surface whose SIGNATURE key is NOT in the
+/// frozen baseline → a blocking finding: `AC-UNRESOLVED-ROUTE-PATH` if it has any unresolved path,
+/// `AC-UNCLASSIFIED-METHOD` if it has any unclassified method, else `AC-UNAUTHENTICATED-CONTROL-PLANE`.
+/// Baseline keys with no live finding → `AC-STALE-BASELINE`.
 pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
 
@@ -915,46 +1464,82 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         let has_auth_layer = surface.get("has_auth_layer").and_then(Value::as_bool).unwrap_or(false);
         let handler_authz = surface.get("handler_authz").and_then(Value::as_object);
 
-        // Collect the mutating, non-exempt handlers + whether the surface is a control plane.
+        // Walk the routes, fail-closed. A route makes the surface a CONTROL PLANE if it is mutating
+        // (on a non-exempt resolved path), unclassified (unknown method), or has an unresolved path.
         let mut is_control_plane = false;
-        let mut uncovered_handlers: Vec<(String, String, String)> = Vec::new(); // (method, path, handler)
+        let mut has_unresolved_path = false;
+        let mut has_unclassified_method = false;
+        // (label, path-display, handler) of every uncovered control-plane route.
+        let mut uncovered_handlers: Vec<(String, String, String)> = Vec::new();
         for route in &routes {
-            let path = route.get("path").and_then(Value::as_str).unwrap_or("");
+            let class = route.get("method_class").and_then(Value::as_str).unwrap_or("");
             let method = route.get("method").and_then(Value::as_str).unwrap_or("");
             let handler = route.get("handler").and_then(Value::as_str).unwrap_or("");
-            let is_mutating = MUTATING_METHODS.contains(&method);
-            // A per-resource path param on a mutating method is a control plane even if the
-            // generic mutating-method test already caught it; a per-resource GET is a sensitive
-            // read but this gate scopes to WRITES (the AUTH-005 class), so only mutating routes
-            // make the surface a control plane.
-            if !is_mutating {
+            let path_opt = route.get("path").and_then(Value::as_str);
+            let path_raw = route.get("path_raw").and_then(Value::as_str).unwrap_or("");
+
+            let is_mutating = class == "mutating";
+            let is_unclassified = class == "unclassified";
+            let path_unresolved = path_opt.is_none();
+
+            // A non-mutating, classified route on a RESOLVED path is the only safe (skippable) case.
+            if !is_mutating && !is_unclassified && !path_unresolved {
                 continue;
             }
-            if path_exempt(path, &exempt_substrings) {
+            // A resolved exempt-path read is exempt even if mutating (e.g. a `/metrics` push). An
+            // UNRESOLVED path cannot be proven exempt → never exempt (fail-closed). An unclassified
+            // method on an exempt resolved path is still potentially mutating, so do not exempt it.
+            if let Some(path) = path_opt
+                && !is_unclassified
+                && path_exempt(path, &exempt_substrings)
+            {
                 continue;
             }
+
             is_control_plane = true;
-            let _ = has_path_param(path); // documented signal; mutating already qualifies.
+            if path_unresolved {
+                has_unresolved_path = true;
+            }
+            if is_unclassified {
+                has_unclassified_method = true;
+            }
+            let _ = path_opt.map(has_path_param); // documented signal; mutating/unclassified qualifies.
+
             let covered = handler_authz
                 .and_then(|m| m.get(handler))
                 .and_then(Value::as_bool)
                 .unwrap_or(false);
             if !covered {
-                uncovered_handlers.push((method.to_owned(), path.to_owned(), handler.to_owned()));
+                let path_disp = match path_opt {
+                    Some(p) => p.to_owned(),
+                    None => format!("<unresolved path: {path_raw}>"),
+                };
+                let label = if is_unclassified {
+                    format!("UNCLASSIFIED-METHOD({method})")
+                } else {
+                    method.to_uppercase()
+                };
+                uncovered_handlers.push((label, path_disp, handler.to_owned()));
             }
         }
 
         if !is_control_plane {
             continue;
         }
-        // The surface is COVERED iff a router-level auth layer guards the whole chain OR every
-        // mutating handler is individually covered (no uncovered handler).
-        if has_auth_layer || uncovered_handlers.is_empty() {
+        // The surface is COVERED (skippable) iff it carries NO unresolved-path / unclassified-method
+        // route AND (a router-level auth layer guards the whole chain OR every control-plane route is
+        // individually covered). A router-level auth layer does NOT excuse an UNRESOLVED-PATH or
+        // UNCLASSIFIED-METHOD route — those are recognition failures, not coverage facts — so the
+        // structural fail-closed finding still fires.
+        if !has_unresolved_path
+            && !has_unclassified_method
+            && (has_auth_layer || uncovered_handlers.is_empty())
+        {
             continue;
         }
 
-        // An uncovered control-plane surface. Key it by file+router site.
-        let key = surface_key(file, router_line);
+        // An uncovered (or unparseable) control-plane surface. Key it by stable signature (M2).
+        let key = surface_signature_key(file, &routes);
         live_unauth_keys.insert(key.clone());
 
         // Frozen-baseline ratchet: a known pre-existing surface is ACCEPTED (no block).
@@ -964,16 +1549,34 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
 
         let holes = uncovered_handlers
             .iter()
-            .map(|(m, p, h)| format!("{} {p} -> {h}()", m.to_uppercase()))
+            .map(|(m, p, h)| format!("{m} {p} -> {h}()"))
             .collect::<Vec<_>>()
             .join("; ");
-        findings.insert(Finding::new(
-            "AC-UNAUTHENTICATED-CONTROL-PLANE",
-            &key,
-            format!(
-                "NEW unauthenticated HTTP control plane: the axum router at {file}:{router_line} mounts mutating route(s) [{holes}] whose handler(s) derive no caller identity (no recognized authz guard in the handler body and no router-level auth layer). Any network caller can invoke these writes. Add fail-closed authz before merge — see {REMEDIATION_DOCTRINE}. If a route is a genuinely unauthenticated read, declare its path in `exempt_path_substrings` (DATA)."
-            ),
-        ));
+        // Pick the most specific structural code: an unresolved path is the deepest recognition
+        // failure, then an unclassified method, else the plain unauthenticated control plane.
+        let (code, detail) = if has_unresolved_path {
+            (
+                "AC-UNRESOLVED-ROUTE-PATH",
+                format!(
+                    "UNRESOLVED route path (fail-closed): the axum router at {file}:{router_line} mounts a `.route(...)` whose path argument the gate could not resolve to a concrete string (a `const`/`static` it could not substitute, or a non-literal path expression). The gate cannot prove this surface is non-mutating or authz-covered, so it is treated as an unknown-authz control plane. Make the path a literal or a resolvable `const NAME: &str = \"...\";`, and add fail-closed authz — see {REMEDIATION_DOCTRINE}. Uncovered route(s): [{holes}]."
+                ),
+            )
+        } else if has_unclassified_method {
+            (
+                "AC-UNCLASSIFIED-METHOD",
+                format!(
+                    "UNCLASSIFIED method-router (fail-closed): the axum router at {file}:{router_line} mounts a `.route(...)` whose method-router the gate could not classify (a `let`-bound MethodRouter it could not resolve, or an unrecognized call shape). It is treated as a potentially-mutating control plane requiring authz. Use an inline `get/post/.../on(MethodFilter::X, h)` shape or ensure the binding is resolvable, and add fail-closed authz — see {REMEDIATION_DOCTRINE}. Uncovered route(s): [{holes}]."
+                ),
+            )
+        } else {
+            (
+                "AC-UNAUTHENTICATED-CONTROL-PLANE",
+                format!(
+                    "NEW unauthenticated HTTP control plane: the axum router at {file}:{router_line} mounts mutating route(s) [{holes}] whose handler(s) derive no caller identity (no recognized authz guard in the handler body and no router-level auth layer). Any network caller can invoke these writes. Add fail-closed authz before merge — see {REMEDIATION_DOCTRINE}. If a route is a genuinely unauthenticated read, declare its path in `exempt_path_substrings` (DATA)."
+                ),
+            )
+        };
+        findings.insert(Finding::new(code, &key, detail));
     }
 
     // Shrink-only self-clean: a frozen-baseline key with no live finding is stale.
@@ -995,6 +1598,33 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
 /// Bare-code projection of [`evaluate_keyed`]; the single source of truth for the verdict.
 pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     Report::from_findings(&evaluate_keyed(policy, observed))
+}
+
+/// The per-surface finding codes whose keys are the BASELINE vocabulary (file+signature keys). The
+/// policy-level codes (`AC-EMPTY-SCAN`, `AC-POLICY-*`, `AC-STALE-BASELINE`) are NOT baseline keys.
+pub const SURFACE_FINDING_CODES: [&str; 3] = [
+    "AC-UNAUTHENTICATED-CONTROL-PLANE",
+    "AC-UNRESOLVED-ROUTE-PATH",
+    "AC-UNCLASSIFIED-METHOD",
+];
+
+/// Regenerate the frozen-baseline signature keys from the live observation (the AUTOMATED property:
+/// re-baselining is mechanical, not hand-edited). Returns the sorted set of per-surface finding keys
+/// that the gate WOULD block against an EMPTY baseline — i.e. every currently-detected uncovered /
+/// unparseable control-plane surface. `--write` substitutes these into
+/// `frozen_unauthenticated_surfaces`, freezing today's surfaces so only NEW ones block.
+pub fn baseline_keys(policy: &Value, observed: &Value) -> Vec<String> {
+    // Evaluate against an empty baseline so every live surface produces its finding (and no
+    // stale-baseline noise). Then keep only the per-surface finding keys.
+    let mut p = policy.clone();
+    p["frozen_unauthenticated_surfaces"] = json!([]);
+    let mut keys: BTreeSet<String> = BTreeSet::new();
+    for finding in evaluate_keyed(&p, observed) {
+        if SURFACE_FINDING_CODES.contains(&finding.code.as_str()) {
+            keys.insert(finding.key);
+        }
+    }
+    keys.into_iter().collect()
 }
 
 /// Human-readable render of the findings. Never a bare FAIL — every finding prints its detail.
@@ -1198,17 +1828,15 @@ mod tests {
             }
         "#;
         let observed = observe(text);
-        let surface = observed["surfaces"].as_array().unwrap().first().unwrap();
-        let line = surface["router_line"].as_u64().unwrap();
-        let key = format!("fixture.rs::router@{line}");
-
-        // Without baseline ⇒ blocked.
-        assert!(
-            evaluate_keyed(&policy(), &observed)
-                .iter()
-                .any(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE" && f.key == key),
-            "an un-baselined unauthenticated surface blocks"
-        );
+        // The signature key is derived from the finding itself (M2: file + sorted (method,path)
+        // tuples, line-independent), not a `router@<line>` literal.
+        let blocked: Vec<Finding> = evaluate_keyed(&policy(), &observed)
+            .into_iter()
+            .filter(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
+            .collect();
+        assert_eq!(blocked.len(), 1, "an un-baselined unauthenticated surface blocks: {blocked:?}");
+        let key = blocked[0].key.clone();
+        assert_eq!(key, "fixture.rs::router[post /a]", "signature key is line-independent: {key}");
 
         // With the key frozen ⇒ accepted (no block), no stale-baseline (it is live).
         let mut p = policy();
@@ -1297,5 +1925,263 @@ mod tests {
             .map(|f| f.code)
             .collect();
         assert_eq!(evaluate(&policy(), &observed).violations, projected);
+    }
+
+    // =====================================================================
+    // Review B1/B2/B3 fail-closed fixtures. Each RED fixture is the adversarial
+    // bypass; each must now produce a finding (RED). Each GREEN fixture is the
+    // authenticated / resolvable counterpart and must PASS (no finding).
+    // =====================================================================
+
+    fn has_code(text: &str, code: &str) -> bool {
+        let observed = observe(text);
+        evaluate_keyed(&policy(), &observed).iter().any(|f| f.code == code)
+    }
+
+    fn is_green(text: &str) -> BTreeSet<Finding> {
+        let observed = observe(text);
+        evaluate_keyed(&policy(), &observed)
+    }
+
+    // ---- B1: const/static route path ----------------------------------------
+
+    // RED: a const-path unauthenticated mutating DELETE — the exact reproduced bypass. The path is
+    // a `const`, the engine resolves it, classifies the surface as a control plane, finds no guard.
+    const RED_B1_CONST_PATH: &str = r#"
+        const NUKE: &str = "/tenants/{id}";
+        async fn nuke_tenant() -> StatusCode { StatusCode::NO_CONTENT }
+        pub fn build_router() -> Router {
+            Router::new().route(NUKE, delete(nuke_tenant)).with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b1_const_path_unauthenticated_mutating_route_is_red() {
+        // Const resolves to a concrete path ⇒ classified as a control plane ⇒ uncovered ⇒ RED.
+        assert!(
+            has_code(RED_B1_CONST_PATH, "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            "a const-path unauthenticated DELETE must be RED: {:?}",
+            is_green(RED_B1_CONST_PATH)
+        );
+        // The resolved path appears in the route observation (proving const substitution).
+        let observed = observe(RED_B1_CONST_PATH);
+        let route = &observed["surfaces"][0]["routes"][0];
+        assert_eq!(route["path"], "/tenants/{id}", "const NUKE substituted to its value");
+        assert_eq!(route["method"], "delete");
+    }
+
+    // RED: an UNRESOLVABLE path (a const with no string-literal initializer) ⇒ fail-closed.
+    const RED_B1_UNRESOLVED_PATH: &str = r#"
+        const NUKE: &str = some_other_const();
+        async fn nuke_tenant() -> StatusCode { StatusCode::NO_CONTENT }
+        pub fn build_router() -> Router {
+            Router::new().route(NUKE, delete(nuke_tenant)).with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b1_unresolvable_path_fails_closed() {
+        assert!(
+            has_code(RED_B1_UNRESOLVED_PATH, "AC-UNRESOLVED-ROUTE-PATH"),
+            "an unresolvable route path must fail closed with AC-UNRESOLVED-ROUTE-PATH: {:?}",
+            is_green(RED_B1_UNRESOLVED_PATH)
+        );
+        let observed = observe(RED_B1_UNRESOLVED_PATH);
+        assert_eq!(observed["surfaces"][0]["routes"][0]["path"], Value::Null);
+    }
+
+    // GREEN: a resolvable-const path WITH a real guard in the handler body.
+    const GREEN_B1_CONST_PATH_GUARDED: &str = r#"
+        const NUKE: &str = "/tenants/{id}";
+        async fn nuke_tenant(headers: HeaderMap) -> StatusCode {
+            authorize(&state, &headers, Action::Retire)?;
+            StatusCode::NO_CONTENT
+        }
+        pub fn build_router() -> Router {
+            Router::new().route(NUKE, delete(nuke_tenant)).with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b1_const_path_with_guard_is_green() {
+        assert!(
+            is_green(GREEN_B1_CONST_PATH_GUARDED).is_empty(),
+            "a resolvable-const path with a real authorize() guard must PASS: {:?}",
+            is_green(GREEN_B1_CONST_PATH_GUARDED)
+        );
+    }
+
+    // ---- B2: non-METHOD(handler) method-router shapes ------------------------
+
+    // RED: a MethodRouter bound to a variable, unauthenticated. The engine resolves the binding to
+    // delete(h) (mutating) AND to its handler for the guard probe; the handler has no guard ⇒ RED.
+    const RED_B2_METHOD_VAR: &str = r#"
+        async fn delete_thing() -> StatusCode { StatusCode::NO_CONTENT }
+        pub fn build_router() -> Router {
+            let m = delete(delete_thing);
+            Router::new().route("/x/{id}", m).with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b2_method_router_variable_unauthenticated_is_red() {
+        assert!(
+            has_code(RED_B2_METHOD_VAR, "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            "a variable-bound delete() with no guard must be RED: {:?}",
+            is_green(RED_B2_METHOD_VAR)
+        );
+        // The binding resolved the method to `delete` (mutating), not unclassified.
+        let observed = observe(RED_B2_METHOD_VAR);
+        assert_eq!(observed["surfaces"][0]["routes"][0]["method_class"], "mutating");
+    }
+
+    // RED: a TRULY unresolvable method-router variable (bound to a non-method-router expression) ⇒
+    // fail-closed AC-UNCLASSIFIED-METHOD.
+    const RED_B2_UNCLASSIFIED_METHOD: &str = r#"
+        pub fn build_router() -> Router {
+            let m = build_method_router();
+            Router::new().route("/x/{id}", m).with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b2_unresolvable_method_router_fails_closed() {
+        assert!(
+            has_code(RED_B2_UNCLASSIFIED_METHOD, "AC-UNCLASSIFIED-METHOD"),
+            "an unresolvable method-router variable must fail closed: {:?}",
+            is_green(RED_B2_UNCLASSIFIED_METHOD)
+        );
+        assert_eq!(
+            observe(RED_B2_UNCLASSIFIED_METHOD)["surfaces"][0]["routes"][0]["method_class"],
+            "unclassified"
+        );
+    }
+
+    // RED: on(MethodFilter::DELETE, h) — the documented axum API — unauthenticated.
+    const RED_B2_ON_FILTER: &str = r#"
+        async fn delete_thing() -> StatusCode { StatusCode::NO_CONTENT }
+        pub fn build_router() -> Router {
+            Router::new()
+                .route("/x/{id}", on(MethodFilter::DELETE, delete_thing))
+                .with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b2_on_method_filter_delete_unauthenticated_is_red() {
+        assert!(
+            has_code(RED_B2_ON_FILTER, "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            "on(MethodFilter::DELETE, h) with no guard must be RED: {:?}",
+            is_green(RED_B2_ON_FILTER)
+        );
+        let observed = observe(RED_B2_ON_FILTER);
+        assert_eq!(observed["surfaces"][0]["routes"][0]["method_class"], "mutating");
+        assert_eq!(observed["surfaces"][0]["routes"][0]["handler"], "delete_thing");
+    }
+
+    // GREEN: on(MethodFilter::GET, h) is non-mutating ⇒ not a control plane.
+    const GREEN_B2_ON_FILTER_GET: &str = r#"
+        async fn read_thing() -> StatusCode { StatusCode::OK }
+        pub fn build_router() -> Router {
+            Router::new()
+                .route("/x/{id}", on(MethodFilter::GET, read_thing))
+                .with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b2_on_method_filter_get_is_green() {
+        assert!(
+            is_green(GREEN_B2_ON_FILTER_GET).is_empty(),
+            "on(MethodFilter::GET, h) is a read, not a control plane: {:?}",
+            is_green(GREEN_B2_ON_FILTER_GET)
+        );
+    }
+
+    // GREEN: a variable-bound delete WITH a guard in the handler.
+    const GREEN_B2_METHOD_VAR_GUARDED: &str = r#"
+        async fn delete_thing(headers: HeaderMap) -> StatusCode {
+            authorize(&state, &headers, Action::Delete)?;
+            StatusCode::NO_CONTENT
+        }
+        pub fn build_router() -> Router {
+            let m = delete(delete_thing);
+            Router::new().route("/x/{id}", m).with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b2_method_router_variable_with_guard_is_green() {
+        assert!(
+            is_green(GREEN_B2_METHOD_VAR_GUARDED).is_empty(),
+            "a variable-bound delete() whose handler calls authorize() must PASS: {:?}",
+            is_green(GREEN_B2_METHOD_VAR_GUARDED)
+        );
+    }
+
+    // ---- B3: comment/string-stripped coverage probe -------------------------
+
+    // RED: a handler whose ONLY "guard" is in a comment and a string literal. The code-only view
+    // strips both ⇒ no real guard ⇒ RED.
+    const RED_B3_COMMENT_ONLY_GUARD: &str = r#"
+        async fn delete_thing() -> StatusCode {
+            // TODO: call authorize() later once the PDP is wired
+            let msg = "should authorize before deleting";
+            StatusCode::NO_CONTENT
+        }
+        pub fn build_router() -> Router {
+            Router::new().route("/x/{id}", delete(delete_thing)).with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b3_comment_only_guard_fails_closed() {
+        assert!(
+            has_code(RED_B3_COMMENT_ONLY_GUARD, "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            "a guard ident only in a comment/string must NOT false-cover (must be RED): {:?}",
+            is_green(RED_B3_COMMENT_ONLY_GUARD)
+        );
+    }
+
+    // GREEN: the same handler with a REAL authorize() call in code ⇒ covered.
+    const GREEN_B3_REAL_GUARD: &str = r#"
+        async fn delete_thing(headers: HeaderMap) -> StatusCode {
+            // authorize first
+            authorize(&state, &headers, Action::Delete)?;
+            StatusCode::NO_CONTENT
+        }
+        pub fn build_router() -> Router {
+            Router::new().route("/x/{id}", delete(delete_thing)).with_state(())
+        }
+    "#;
+
+    #[test]
+    fn b3_real_guard_in_code_is_green() {
+        assert!(
+            is_green(GREEN_B3_REAL_GUARD).is_empty(),
+            "a real authorize() call in code (not just a comment) must PASS: {:?}",
+            is_green(GREEN_B3_REAL_GUARD)
+        );
+    }
+
+    // M2: the signature key is line-independent — inserting blank lines above the router must NOT
+    // change the finding key (the old router@<line> key would have changed).
+    #[test]
+    fn m2_signature_key_is_line_independent() {
+        let base = r#"
+            async fn a() -> StatusCode { StatusCode::OK }
+            pub fn r() -> Router { Router::new().route("/a", post(a)).with_state(()) }
+        "#;
+        let shifted = format!("\n\n\n\n{base}");
+        let k1 = evaluate_keyed(&policy(), &observe(base))
+            .into_iter()
+            .find(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
+            .map(|f| f.key);
+        let k2 = evaluate_keyed(&policy(), &observe(&shifted))
+            .into_iter()
+            .find(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
+            .map(|f| f.key);
+        assert_eq!(k1, k2, "the signature key must not depend on the router's line number");
+        assert_eq!(k1.as_deref(), Some("fixture.rs::router[post /a]"));
     }
 }

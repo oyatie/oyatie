@@ -3,18 +3,23 @@
 //! candidate tree and reports them with a remediation pointer to the fail-closed doctrine. The
 //! blocking buck2 `rust_test` gate is the backstop.
 //!
-//! Usage:
-//!   oya-cloud-ci-authz-coverage-app-bin [--repo-root <path>] [--policy <path>]
+//! `--write` (alias `--update-baseline`) regenerates the policy's `frozen_unauthenticated_surfaces`
+//! signature keys from the live tree (the AUTOMATED property: re-baselining is mechanical, not
+//! hand-edited — mirrors the kernel-purity `--fix` / arch-graph `--write` pattern). After a `--write`
+//! the gate is GREEN against the regenerated baseline; review the diff before committing.
 //!
-//! Exit codes: 0 = green (no new unauthenticated control plane); 1 = red findings remain;
-//! 2 = argument or collection error (fail-closed).
+//! Usage:
+//!   oya-cloud-ci-authz-coverage-app-bin [--repo-root <path>] [--policy <path>] [--write]
+//!
+//! Exit codes: 0 = green (no new unauthenticated control plane, or baseline regenerated); 1 = red
+//! findings remain; 2 = argument or collection error (fail-closed).
 #![forbid(unsafe_code)]
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use oya_cloud_ci_authz_coverage_app::{
-    Verdict, collect_surfaces, evaluate, evaluate_keyed, render_findings,
+    Verdict, baseline_keys, collect_surfaces, evaluate, evaluate_keyed, render_findings,
 };
 use serde_json::Value;
 
@@ -24,6 +29,7 @@ const DEFAULT_POLICY: &str =
 struct Args {
     repo_root: PathBuf,
     policy: Option<PathBuf>,
+    write: bool,
 }
 
 enum ParseOutcome {
@@ -56,7 +62,53 @@ fn main() -> ExitCode {
 fn run(args: &Args) -> Result<ExitCode, String> {
     let policy = load_policy(&args.repo_root, args.policy.as_deref())?;
     let observed = collect_surfaces(&args.repo_root, &policy).map_err(|e| e.to_string())?;
+
+    if args.write {
+        let path = policy_path(&args.repo_root, args.policy.as_deref());
+        let keys = baseline_keys(&policy, &observed);
+        write_baseline(&path, &keys)?;
+        println!(
+            "authz-coverage --write: regenerated frozen_unauthenticated_surfaces with {} key(s) in {}",
+            keys.len(),
+            path.display()
+        );
+        for key in &keys {
+            println!("  - {key}");
+        }
+        println!("Review the diff and commit; the gate is now GREEN against the regenerated baseline.");
+        // Re-load + re-evaluate so the printed verdict reflects the freshly written baseline.
+        let policy = load_policy(&args.repo_root, args.policy.as_deref())?;
+        return Ok(report(&policy, &observed));
+    }
+
     Ok(report(&policy, &observed))
+}
+
+/// Rewrite `frozen_unauthenticated_surfaces` in the policy JSON to `keys`, preserving every other
+/// field and a stable, pretty-printed shape. Read-modify-write of the on-disk policy DATA.
+fn write_baseline(path: &Path, keys: &[String]) -> Result<(), String> {
+    let text = std::fs::read_to_string(path)
+        .map_err(|e| format!("read policy {}: {e}", path.display()))?;
+    let mut policy: Value =
+        serde_json::from_str(&text).map_err(|e| format!("parse policy {}: {e}", path.display()))?;
+    let Some(obj) = policy.as_object_mut() else {
+        return Err(format!("policy {} is not a JSON object", path.display()));
+    };
+    obj.insert(
+        "frozen_unauthenticated_surfaces".to_owned(),
+        Value::from(keys.to_vec()),
+    );
+    let mut serialized = serde_json::to_string_pretty(&policy)
+        .map_err(|e| format!("serialize policy {}: {e}", path.display()))?;
+    serialized.push('\n');
+    std::fs::write(path, serialized).map_err(|e| format!("write policy {}: {e}", path.display()))
+}
+
+fn policy_path(repo_root: &Path, policy: Option<&Path>) -> PathBuf {
+    match policy {
+        Some(path) => path.to_path_buf(),
+        None => repo_root.join(DEFAULT_POLICY),
+    }
 }
 
 fn report(policy: &Value, observed: &Value) -> ExitCode {
@@ -70,10 +122,7 @@ fn report(policy: &Value, observed: &Value) -> ExitCode {
 }
 
 fn load_policy(repo_root: &Path, policy: Option<&Path>) -> Result<Value, String> {
-    let path = match policy {
-        Some(path) => path.to_path_buf(),
-        None => repo_root.join(DEFAULT_POLICY),
-    };
+    let path = policy_path(repo_root, policy);
     let text = std::fs::read_to_string(&path)
         .map_err(|e| format!("read policy {}: {e}", path.display()))?;
     serde_json::from_str(&text).map_err(|e| format!("parse policy {}: {e}", path.display()))
@@ -82,6 +131,7 @@ fn load_policy(repo_root: &Path, policy: Option<&Path>) -> Result<Value, String>
 fn parse_args(args: Vec<String>) -> ParseOutcome {
     let mut repo_root = PathBuf::from(".");
     let mut policy = None;
+    let mut write = false;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -101,6 +151,7 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
                 };
                 policy = Some(PathBuf::from(value));
             }
+            "--write" | "--update-baseline" => write = true,
             "--help" | "-h" => {
                 return ParseOutcome::Help;
             }
@@ -112,9 +163,14 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
             }
         }
     }
-    ParseOutcome::Run(Args { repo_root, policy })
+    ParseOutcome::Run(Args {
+        repo_root,
+        policy,
+        write,
+    })
 }
 
 fn usage() -> String {
-    "usage: oya-cloud-ci-authz-coverage-app-bin [--repo-root <path>] [--policy <path>]".to_owned()
+    "usage: oya-cloud-ci-authz-coverage-app-bin [--repo-root <path>] [--policy <path>] [--write]"
+        .to_owned()
 }
