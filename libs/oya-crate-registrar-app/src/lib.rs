@@ -3,12 +3,11 @@
 //! The I/O / adapter half of `register_crate`: the thin WRITERS that APPLY the kernel's typed
 //! [`Edit`](oya_crate_registrar_kernel::Edit)s to the born-accounting SSOTs on disk. The pure
 //! [`oya-crate-registrar-kernel`](oya_crate_registrar_kernel) computes an ordered
-//! [`RegistrationPlan`](oya_crate_registrar_kernel::RegistrationPlan); this crate turns three of
-//! those edits — the three NEW SSOT shapes the kernel introduces — into byte-stable file content.
-//! (The other edits reuse the producer's existing `--fix-owners`/`--fix-reachability`/`--next-adr`
-//! bridges and the workspace-member glob; those are wired in slice 3, not here.)
+//! [`RegistrationPlan`](oya_crate_registrar_kernel::RegistrationPlan); this crate turns the NEW
+//! SSOT-shape edits the kernel introduces into byte-stable file content (the remaining edits reuse
+//! the producer's existing `--fix-owners`/`--fix-reachability`/`--next-adr` bridges).
 //!
-//! ## The three writers
+//! ## The four writers
 //! - [`capability_mapping`] — [`Edit::CapabilityMapping`](oya_crate_registrar_kernel::Edit::CapabilityMapping):
 //!   upsert `<crate_dir>` into the matching `globs` list of `specs/capability-registry.json`'s
 //!   `membership_lint_coverage.absorbs_current_crate_globs` (closed-set validated — an unknown
@@ -21,6 +20,15 @@
 //! - [`catalog_yaml`] — [`Edit::CatalogYaml`](oya_crate_registrar_kernel::Edit::CatalogYaml):
 //!   render `registry/catalog/<leaf>.yaml` (schema-driven; the human-supplied `slo`/`plane` are
 //!   required — never silently defaulted, per ADR-0548 D2).
+//! - [`workspace_member_glob`] — [`Edit::WorkspaceMemberGlob`](oya_crate_registrar_kernel::Edit::WorkspaceMemberGlob):
+//!   a coverage VERIFIER, not a mutator. Under ADR-0538 the root `[workspace].members` array is
+//!   glob-only (the `cloud-ci-workspace-glob-coverage` gate makes a literal-path member a BLOCKING
+//!   violation) and the covering glob for each root is a human ADR decision (ADR-0568 D2). The edit
+//!   carries only a `dir` (no glob), so this writer can only CONFIRM coverage (no-op) or REFUSE
+//!   (fail-closed) — it never synthesizes a glob. Coverage is resolved purely through
+//!   `oya-workspace-members-kernel` (the single source of member-glob semantics), so `compute`
+//!   returns `current` byte-unchanged when covered and [`WriterError::WorkspaceMemberUncovered`]
+//!   otherwise.
 //!
 //! ## Pure-compute-then-tiny-apply + idempotent
 //! Every writer is split into a PURE `compute_*` function that takes the current file content (or
@@ -103,6 +111,14 @@ pub enum WriterError {
     /// markdown content into the fenced block or be non-idempotent (emit verbatim, parse trimmed),
     /// so the writer fails CLOSED rather than store it.
     MalformedGovernedPath(String),
+    /// The root `Cargo.toml` `[workspace]` manifest could not be parsed into its members/exclude
+    /// shape (a malformed manifest fails CLOSED — the member-glob writer never partial-writes).
+    WorkspaceManifest(String),
+    /// A `WorkspaceMemberGlob` edit named a crate dir that NO existing `[workspace].members` glob
+    /// covers. The writer fails CLOSED rather than synthesize a glob: a covering glob is a human
+    /// ADR decision (ADR-0538 glob-only members + ADR-0568 D2 "automation applies decisions, never
+    /// invents them"), and inventing one would also risk sweeping unintended sibling dirs.
+    WorkspaceMemberUncovered(String),
     /// A catalog render was requested with an empty `slo` or `plane` (never silently defaulted).
     MissingCatalogField(String),
     /// A catalog field (`slo`/`plane`) carried a value that is not a safe YAML scalar — a newline
@@ -131,6 +147,16 @@ impl std::fmt::Display for WriterError {
                 write!(
                     f,
                     "malformed governed path (newline, fence sequence, or surrounding whitespace): {p}"
+                )
+            }
+            WriterError::WorkspaceManifest(m) => {
+                write!(f, "root Cargo.toml workspace-manifest error: {m}")
+            }
+            WriterError::WorkspaceMemberUncovered(dir) => {
+                write!(
+                    f,
+                    "crate dir is not covered by any [workspace].members glob (no glob may be \
+                     synthesized — a covering glob is a human ADR-0538 decision): {dir}"
                 )
             }
             WriterError::MissingCatalogField(field) => {
@@ -636,6 +662,78 @@ pub mod catalog_yaml {
                 .map_err(|e| WriterError::Io(format!("create dir for {rel}: {e}")))?;
         }
         fs::write(&abs, &next).map_err(|e| WriterError::Io(format!("write {rel}: {e}")))?;
+        Ok(true)
+    }
+}
+
+// ───────────────────────────── 4. WorkspaceMemberGlobWriter ─────────────────────────────
+
+/// Verify (never synthesize) that the root `[workspace].members` globs cover a crate dir.
+pub mod workspace_member_glob {
+    use super::{Path, WriterError, fs};
+    use oya_workspace_members_kernel::{
+        WorkspaceManifestEntries, member_entries_cover_dir, workspace_manifest_entries_from_str,
+    };
+
+    /// The repo-relative path of the root workspace manifest.
+    pub const MANIFEST_PATH: &str = "Cargo.toml";
+
+    /// Compute the new root `Cargo.toml` content for ensuring `dir` is covered by a
+    /// `[workspace].members` glob. PURE — no I/O.
+    ///
+    /// Unlike the other three writers this is a coverage VERIFIER, not a mutator. The root members
+    /// array is glob-only by ADR-0538 (the `cloud-ci-workspace-glob-coverage` gate makes a literal
+    /// member a blocking violation) and each root's covering glob is a human ADR decision (ADR-0568
+    /// D2 — automation applies decisions, never invents them). The [`Edit::WorkspaceMemberGlob`]
+    /// edit carries only `dir` (no glob), so the only doctrine-clean outcomes are:
+    /// - `dir` IS already covered by an existing members glob (and not removed by an `exclude`
+    ///   subtree) → return `current` byte-unchanged (idempotent no-op; re-apply is byte-identical);
+    /// - `dir` is NOT covered → [`WriterError::WorkspaceMemberUncovered`] (fail-closed; the writer
+    ///   never widens the array, which could sweep unintended siblings and would forge a human
+    ///   glob/ADR decision).
+    ///
+    /// Coverage is resolved purely through `oya-workspace-members-kernel`
+    /// ([`member_entries_cover_dir`]) — the single source of `*`-per-component member-glob semantics
+    /// and `exclude`-subtree rules — so this writer never re-derives glob matching (no drift). The
+    /// filesystem `Cargo.toml`-presence check the kernel's full resolver applies is irrelevant here:
+    /// the edit is only emitted for a crate dir that genuinely exists with a manifest.
+    ///
+    /// # Errors
+    /// [`WriterError::WorkspaceManifest`] if the manifest lacks a parseable `[workspace]`
+    /// members/exclude shape (fail-closed); [`WriterError::WorkspaceMemberUncovered`] if no glob
+    /// covers `dir`.
+    pub fn compute(current: &str, dir: &str) -> Result<String, WriterError> {
+        let entries: WorkspaceManifestEntries = workspace_manifest_entries_from_str(current)
+            .map_err(|e| WriterError::WorkspaceManifest(e.to_string()))?;
+        let normalized = dir.trim_end_matches('/');
+        if member_entries_cover_dir(&entries, normalized) {
+            // Already covered: idempotent no-op (return the input verbatim — byte-identical
+            // re-apply, no serialization round-trip, no comment loss).
+            return Ok(current.to_owned());
+        }
+        Err(WriterError::WorkspaceMemberUncovered(normalized.to_owned()))
+    }
+
+    /// Apply the member-glob coverage check to the root `Cargo.toml` under `repo_root`. Reads the
+    /// manifest, calls [`compute`], and writes ONLY if the bytes changed (which, for a coverage
+    /// verifier, never happens — a covered dir yields byte-identical content and an uncovered dir
+    /// fails closed). Returns `false` when `dir` is already covered (the no-op success); never
+    /// returns `true` (this writer does not mutate the array) — see the module note on the
+    /// verifier-vs-mutator asymmetry.
+    ///
+    /// # Errors
+    /// [`WriterError::Io`] on a read failure, or any [`compute`] error (notably
+    /// [`WriterError::WorkspaceMemberUncovered`]).
+    pub fn apply(repo_root: &Path, dir: &str) -> Result<bool, WriterError> {
+        let abs = repo_root.join(MANIFEST_PATH);
+        let current = fs::read_to_string(&abs)
+            .map_err(|e| WriterError::Io(format!("read {MANIFEST_PATH}: {e}")))?;
+        let next = compute(&current, dir)?;
+        if next == current {
+            return Ok(false);
+        }
+        fs::write(&abs, &next)
+            .map_err(|e| WriterError::Io(format!("write {MANIFEST_PATH}: {e}")))?;
         Ok(true)
     }
 }

@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-crate-registrar-kernel:oya-crate-registrar-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
     ],
@@ -19,6 +20,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-crate-registrar-kernel:oya-crate-registrar-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde",
         "third-party//:serde_json",
     ],
