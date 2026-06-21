@@ -168,12 +168,25 @@ fn matching_close_paren(text: &str, after_open: usize) -> Option<usize> {
 }
 
 /// Rewrite, in ANY BUCK file, every ABSOLUTE label that points at a moved crate:
-/// `//old_path:old_target` -> `//new_path:new_target`. `moves_by_old_path` is keyed by the
-/// moved crate's OLD repo-relative dir. Returns `(new_text, changed)`.
+/// `//old_path:old_target` -> `//new_path:new_target`, AND every NON-`//` repo-rooted
+/// SOURCE-PATH LITERAL that points into a moved crate dir (`crate_root = "old_path/..."`,
+/// `mapped_srcs` VALUES `"old_path/..."`). `moves_by_old_path` is keyed by the moved crate's OLD
+/// repo-relative dir. Returns `(new_text, changed)`.
 ///
 /// We rewrite the full `//old_path:` prefix first (covers the common `name == target` and
 /// multi-target-in-package cases), then, for the canonical single-target label
 /// `//old_path:old_name`, also rewrite the target component to `new_name`.
+///
+/// The source-path-literal rewrite (#63) handles the class the `//` label rewrite misses: a BUCK
+/// may reference a moved crate's sources through a repo-ROOTED (non-`//`) path STRING, e.g.
+/// `crate_root = "cloud/cloud-iac/crates/oya-x/tests/t.rs"` or a `mapped_srcs` value
+/// `"cloud/cloud-iac/crates/oya-x/tests/t.rs": "tests/t.rs"`. These are plain Starlark strings,
+/// not `//labels`, so when the dir moves they are left pointing at a now-dead path (a stale BUCK
+/// the build can no longer resolve). We rewrite a quoted literal whose value is exactly `old_path`
+/// or begins with `old_path/`, replacing only the `old_path` PREFIX with `new_path` and preserving
+/// the in-crate suffix. Anchoring on the OPENING quote (the char right before `old_path` must be
+/// `"`) excludes the `"//old_path..."` label form (there `old_path` is preceded by `//`, already
+/// handled above) and the package-relative `mapped_srcs` KEYS (which never embed the crate dir).
 pub fn rewrite_buck_labels(
     buck_text: &str,
     moves_by_old_path: &BTreeMap<&str, &CrateMove>,
@@ -198,8 +211,58 @@ pub fn rewrite_buck_labels(
         let old_pkg = format!("//{old_path}");
         let new_pkg = format!("//{}", cm.new_path);
         changed |= replace_token_label(&mut out, &old_pkg, &new_pkg);
+        // NON-`//` repo-rooted source-path literal `"old_path"` / `"old_path/..."` (crate_root,
+        // mapped_srcs values) -> `"new_path"` / `"new_path/..."` (#63).
+        changed |= replace_source_path_literal(&mut out, old_path, &cm.new_path);
     }
     (out, changed)
+}
+
+/// Rewrite every quoted repo-rooted SOURCE-PATH literal whose value is exactly `old_path` or whose
+/// value begins with `old_path` + `/` — replacing only the `old_path` PREFIX with `new_path` and
+/// preserving the rest of the path. The match is anchored on the OPENING quote: the char before
+/// `old_path` must be `"` and the char after the matched `old_path` must be `/` (descendant) or `"`
+/// (the whole value), so:
+/// * a `"//old_path:target"` LABEL is NOT matched (its `old_path` is preceded by `//`, already
+///   rewritten by the label passes) — preventing a double rewrite;
+/// * a longer sibling dir literal `"old_path_extra/..."` is NOT matched (the boundary char after
+///   `old_path` would be `_`, not `/` or `"`);
+/// * a package-relative `mapped_srcs` KEY (`"tests/x.rs"`) is NOT matched (it does not start with
+///   the moved crate dir).
+/// Returns whether any literal changed.
+fn replace_source_path_literal(haystack: &mut String, old_path: &str, new_path: &str) -> bool {
+    if old_path.is_empty() || old_path == new_path {
+        return false;
+    }
+    let bytes = haystack.as_bytes();
+    let mut result = String::with_capacity(haystack.len());
+    let mut changed = false;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if haystack[i..].starts_with(old_path)
+            // preceded by an opening quote (excludes `//old_path` labels + mid-path occurrences).
+            && i > 0
+            && bytes[i - 1] == b'"'
+        {
+            let after = i + old_path.len();
+            // followed by a path boundary: `/` (descendant) or the closing `"` (the whole value).
+            let boundary_ok =
+                after < bytes.len() && (bytes[after] == b'/' || bytes[after] == b'"');
+            if boundary_ok {
+                result.push_str(new_path);
+                i = after;
+                changed = true;
+                continue;
+            }
+        }
+        let ch_len = utf8_len(bytes[i]);
+        result.push_str(&haystack[i..i + ch_len]);
+        i += ch_len;
+    }
+    if changed {
+        *haystack = result;
+    }
+    changed
 }
 
 /// Rewrite, anywhere in `haystack`, the value of a `key = "<old_value>"` field to
@@ -845,6 +908,104 @@ custom_rust_test(
         // (the prefixed pass never runs on it; the exact pass does not whole-token match either).
         assert!(out.contains("name = \"oya-x-foo\""), "custom macro name not prefix-rewritten: {out}");
         assert!(out.contains("crate = \"oya_x_foo\""), "custom macro crate not prefix-rewritten: {out}");
+    }
+
+    /// #63 (non-`//` sandbox source-path literals): a BUCK may reference a moved crate's sources
+    /// through a repo-ROOTED (non-`//`) path STRING — `crate_root = "old_path/.../t.rs"` and
+    /// `mapped_srcs` VALUES `"old_path/.../t.rs": "tests/t.rs"`. These are plain Starlark strings,
+    /// not `//labels`, so the label rewriter left them pointing at a now-dead path after the move.
+    /// The source-path-literal rewrite must repoint them (prefix only, in-crate suffix preserved),
+    /// must NOT double-rewrite the `//old_path:target` label form, must leave package-relative
+    /// `mapped_srcs` KEYS alone, and must round-trip byte-identically through the inverse.
+    #[test]
+    fn source_path_literals_in_crate_root_and_mapped_srcs_are_rewritten() {
+        // This is the iac/facade/app/BUCK shape: a moved crate's tests are referenced by a repo-
+        // rooted source path; the same path appears as a `//` label (already handled) and as bare
+        // path literals (the #63 class). The moving crate dir is cloud/cloud-iac/crates/oya-x.
+        let text = r#"rust_test(
+    name = "x-test",
+    crate = "x_test",
+    crate_root = "cloud/cloud-iac/crates/oya-x/tests/t.rs",
+    mapped_srcs = {
+        "tests/t.rs": "cloud/cloud-iac/crates/oya-x/tests/t.rs",
+        "//cloud/cloud-iac/crates/oya-x:x": "cloud/cloud-iac/crates/oya-x/data.json",
+    },
+    deps = ["//cloud/cloud-iac/crates/oya-x:oya-x"],
+)
+"#;
+        let m = cm(
+            "cloud/cloud-iac/crates/oya-x",
+            "iac/facade/app",
+            "oya-x",
+            "iac-app",
+        );
+        let mut by_old: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_old.insert("cloud/cloud-iac/crates/oya-x", &m);
+        let (out, changed) = rewrite_buck_labels(text, &by_old);
+        assert!(changed);
+
+        // crate_root repo-rooted literal repointed (prefix rewritten, suffix preserved).
+        assert!(
+            out.contains("crate_root = \"iac/facade/app/tests/t.rs\""),
+            "crate_root source-path literal rewritten: {out}"
+        );
+        // mapped_srcs VALUE (repo-rooted source) repointed; the package-relative KEY untouched.
+        assert!(
+            out.contains("\"tests/t.rs\": \"iac/facade/app/tests/t.rs\""),
+            "mapped_srcs value rewritten, key preserved: {out}"
+        );
+        assert!(
+            out.contains("\"iac/facade/app/data.json\""),
+            "exact-tail mapped_srcs value rewritten: {out}"
+        );
+        // The `//old:target` LABEL form is handled by the label passes (-> //new:target); the
+        // source-path rewrite must NOT also touch it (no double rewrite / no stale fragment).
+        assert!(
+            out.contains("\"//iac/facade/app:iac-app\""),
+            "self-target label rewritten by label pass: {out}"
+        );
+        assert!(
+            out.contains("\"//iac/facade/app:x\""),
+            "mapped_srcs key label rewritten by label pass: {out}"
+        );
+        // No stale old path anywhere.
+        assert!(!out.contains("cloud/cloud-iac/crates/oya-x"), "no stale old path: {out}");
+
+        // Inverse round-trips byte-identically.
+        let inv = cm(
+            "iac/facade/app",
+            "cloud/cloud-iac/crates/oya-x",
+            "iac-app",
+            "oya-x",
+        );
+        let mut by_new: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_new.insert("iac/facade/app", &inv);
+        let (round, _c) = rewrite_buck_labels(&out, &by_new);
+        assert_eq!(round, text, "inverse must round-trip the source-path literals byte-identically");
+    }
+
+    /// #63 boundary safety: a sibling dir whose name SHARES the moved crate's path as a non-`/`
+    /// prefix (`.../oya-x-extra/...`) must NOT be rewritten, and a moved-crate's OWN relative
+    /// `crate_root = "src/lib.rs"` (package-relative, move-invariant) must stay byte-identical.
+    #[test]
+    fn source_path_literal_respects_dir_boundary_and_relative_roots() {
+        let text = r#"rust_library(
+    name = "rel",
+    crate_root = "src/lib.rs",
+    srcs = ["cloud/a/src/lib.rs", "cloud/a-extra/src/lib.rs"],
+)
+"#;
+        let m = cm("cloud/a", "x/core/a", "oya-a", "a-core");
+        let mut by_old: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_old.insert("cloud/a", &m);
+        let (out, changed) = rewrite_buck_labels(text, &by_old);
+        assert!(changed, "the cloud/a source literal IS rewritten");
+        // cloud/a -> x/core/a (descendant boundary on `/`).
+        assert!(out.contains("\"x/core/a/src/lib.rs\""), "moved src rewritten: {out}");
+        // cloud/a-extra is a DIFFERENT dir (boundary char is `-`, not `/`) -> untouched.
+        assert!(out.contains("\"cloud/a-extra/src/lib.rs\""), "sibling dir preserved: {out}");
+        // the relative crate_root is package-relative, never a repo-rooted moved-dir literal.
+        assert!(out.contains("crate_root = \"src/lib.rs\""), "relative root invariant: {out}");
     }
 
     /// MED-1: field-key anchoring. A `rust_test` with a quoted value matching the moving crate's
