@@ -270,7 +270,8 @@ tracked, born-accounted paths are `tools/oya-reorg-codemod-app/Cargo.toml`,
 `tools/oya-reorg-codemod-app/src/lib.rs`, `tools/oya-reorg-codemod-app/src/model.rs`,
 `tools/oya-reorg-codemod-app/src/cargo.rs`, `tools/oya-reorg-codemod-app/src/buck.rs`,
 `tools/oya-reorg-codemod-app/src/rust_src.rs`, `tools/oya-reorg-codemod-app/src/plan.rs`,
-`tools/oya-reorg-codemod-app/src/oracle.rs`, `tools/oya-reorg-codemod-app/src/main.rs`,
+`tools/oya-reorg-codemod-app/src/oracle.rs`, `tools/oya-reorg-codemod-app/src/manifest.rs`,
+`tools/oya-reorg-codemod-app/src/main.rs`,
 `tools/oya-reorg-codemod-app/tests/fixture_roundtrip.rs`, and
 `registry/catalog/oya-reorg-codemod-app.yaml`.
 
