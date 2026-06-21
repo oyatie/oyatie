@@ -414,6 +414,10 @@ pub enum CodemodError {
     CargoUnresolved { message: String },
     /// `buck2 targets //...` did not resolve in the dry-run sandbox (fail-closed).
     BuckUnresolved { message: String },
+    /// More than one committed `specs/reorg/*-move-plan.json` exists in the candidate tree (#65).
+    /// A MOVE PR commits exactly one plan; >1 is a contributor error the manifest materialization
+    /// must fail-closed on rather than silently first-winning an arbitrary one.
+    MultipleMovePlans { count: usize, paths: Vec<String> },
 }
 
 impl fmt::Display for CodemodError {
@@ -452,6 +456,11 @@ impl fmt::Display for CodemodError {
             CodemodError::BuckUnresolved { message } => {
                 write!(f, "buck2 targets //... did not resolve (fail-closed): {message}")
             }
+            CodemodError::MultipleMovePlans { count, paths } => write!(
+                f,
+                "more than one committed move-plan in specs/reorg/ ({count}); a move PR commits \
+                 exactly one (fail-closed): {paths:?}"
+            ),
         }
     }
 }

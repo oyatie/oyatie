@@ -45,15 +45,20 @@ pub fn rewrite_moved_buck(buck_text: &str, cm: &CrateMove) -> (String, bool) {
     let kebab_set = collect_crate_set(buck_text, false);
     let snake_set = collect_crate_set(buck_text, true);
 
-    // 1. Exact whole-token rewrite of `name`/`crate` everywhere (lib/binary/test exact values,
-    //    same-package self-dep). This preserves the invariant that a `-bin` sibling target is
-    //    untouched (its quoted value never equals the bare crate name).
+    // 1. Exact whole-VALUE rewrite of the moved crate's own `name`/`crate` fields (lib/binary/test
+    //    exact values). FIELD-KEY-anchored, NOT a blind text replace: the `name` field carries the
+    //    KEBAB crate name and the `crate` field the SNAKE ident, so each field is mapped to its own
+    //    flavor's new value. This matters when kebab == snake (a single-token name like `iam`, the
+    //    #61 round-trip fix): a blind exact replace of `"iam"` would rewrite BOTH `name = "iam"` and
+    //    `crate = "iam"` to the SAME (kebab) new value, so the inverse (`iam` -> `oya-x`) could not
+    //    restore `crate = "oya_x"` (it produced `crate = "oya-x"`), breaking byte round-trip. Keying
+    //    on the field disambiguates: `name` -> kebab `new_name`, `crate` -> snake `new_ident`, even
+    //    when the old values are textually identical. A `-bin` sibling's `"oya-x-bin"` is never the
+    //    whole value `"oya-x"`, so the whole-value match still leaves it untouched.
     let mut out = buck_text.to_string();
     let mut changed = false;
-    changed |= replace_quoted_exact(&mut out, old_name, new_name);
-    if old_ident != *old_name {
-        changed |= replace_quoted_exact(&mut out, &old_ident, &new_ident);
-    }
+    changed |= rewrite_field_exact(&mut out, "name", old_name, new_name);
+    changed |= rewrite_field_exact(&mut out, "crate", &old_ident, &new_ident);
 
     // 2. Suffixed prefix rewrite, scoped to the `name`/`crate` FIELDS of `rust_test(...)` stanzas.
     //    A `rust_test` `name`/`crate` is `<crate-name><sep><suffix>` (e.g. `oya-x-unittest`,
@@ -163,12 +168,29 @@ fn matching_close_paren(text: &str, after_open: usize) -> Option<usize> {
 }
 
 /// Rewrite, in ANY BUCK file, every ABSOLUTE label that points at a moved crate:
-/// `//old_path:old_target` -> `//new_path:new_target`. `moves_by_old_path` is keyed by the
-/// moved crate's OLD repo-relative dir. Returns `(new_text, changed)`.
+/// `//old_path:old_target` -> `//new_path:new_target`, AND every NON-`//` repo-rooted
+/// SOURCE-PATH LITERAL that points into a moved crate dir (`crate_root = "old_path/..."`,
+/// `mapped_srcs` VALUES `"old_path/..."`). `moves_by_old_path` is keyed by the moved crate's OLD
+/// repo-relative dir. Returns `(new_text, changed)`.
 ///
 /// We rewrite the full `//old_path:` prefix first (covers the common `name == target` and
 /// multi-target-in-package cases), then, for the canonical single-target label
 /// `//old_path:old_name`, also rewrite the target component to `new_name`.
+///
+/// The source-path-literal rewrite (#63) handles the class the `//` label rewrite misses: a BUCK
+/// may reference a path INSIDE a moved crate's dir through a repo-ROOTED (non-`//`) plain string,
+/// e.g. `crate_root = "cloud/cloud-iac/crates/oya-x/tests/t.rs"`, a `mapped_srcs` value
+/// `"cloud/cloud-iac/crates/oya-x/tests/t.rs": "tests/t.rs"`, or a `genrule` `cmd`/`data` entry
+/// naming a file under the crate. These are plain Starlark strings, not `//labels`, so when the dir
+/// moves they are left pointing at a now-dead path (a stale BUCK the build can no longer resolve).
+/// The rewrite is deliberately FIELD-AGNOSTIC: it updates EVERY quoted repo-rooted literal whose
+/// value is exactly `old_path` or begins with `old_path/`, in any attribute, replacing only the
+/// `old_path` PREFIX with `new_path` and preserving the in-crate suffix. Field-agnostic is the
+/// CORRECT scope, not an over-reach: any path UNDER the moved dir genuinely moved, so every
+/// reference to it (crate_root, a mapped_srcs value OR a repo-rooted key, a genrule cmd/data entry)
+/// must follow — narrowing to a fixed `{crate_root, mapped_srcs}` field set would strand the
+/// genrule/data references. See [`replace_source_path_literal`] for the exact boundary rules and the
+/// one accepted imprecision (a path embedded in a comment).
 pub fn rewrite_buck_labels(
     buck_text: &str,
     moves_by_old_path: &BTreeMap<&str, &CrateMove>,
@@ -193,23 +215,123 @@ pub fn rewrite_buck_labels(
         let old_pkg = format!("//{old_path}");
         let new_pkg = format!("//{}", cm.new_path);
         changed |= replace_token_label(&mut out, &old_pkg, &new_pkg);
+        // NON-`//` repo-rooted literal `"old_path"` / `"old_path/..."` (ANY quoted value under the
+        // moved dir — crate_root, mapped_srcs, genrule cmd/data, Starlark vars) -> `"new_path..."`
+        // (#63; field-agnostic by design — see `replace_source_path_literal`).
+        changed |= replace_source_path_literal(&mut out, old_path, &cm.new_path);
     }
     (out, changed)
 }
 
-/// Replace every `"needle"` (the WHOLE quoted token, exactly) with `"replacement"`. Used for
-/// `name`/`crate` fields whose value IS the crate name (the `rust_library`/`rust_binary` case)
-/// and for the same-package self-dep. The quote-delimited match guarantees a longer sibling
-/// token (e.g. `"oya-x-bin"`) is never matched by the bare crate name `oya-x`.
-fn replace_quoted_exact(haystack: &mut String, needle: &str, replacement: &str) -> bool {
-    let from = format!("\"{needle}\"");
-    let to = format!("\"{replacement}\"");
-    if haystack.contains(&from) {
-        *haystack = haystack.replace(&from, &to);
-        true
-    } else {
-        false
+/// Rewrite every quoted repo-rooted literal whose value is exactly `old_path` or begins with
+/// `old_path` + `/` — replacing only the `old_path` PREFIX with `new_path` and preserving the rest.
+/// This is FIELD-AGNOSTIC by design (see [`rewrite_buck_labels`]): any quoted string naming a path
+/// under the moved dir is a reference that moved, so it is rewritten regardless of which attribute
+/// holds it (crate_root, a mapped_srcs value OR a repo-rooted key, a genrule cmd/data entry). The
+/// match is anchored on the OPENING quote: the char before `old_path` must be `"` and the char after
+/// the matched `old_path` must be `/` (descendant) or `"` (the whole value), so:
+/// * a `"//old_path:target"` LABEL is NOT matched (its `old_path` is preceded by `//`, already
+///   rewritten by the label passes) — preventing a double rewrite;
+/// * a longer sibling dir literal `"old_path_extra/..."` is NOT matched (the boundary char after
+///   `old_path` would be `_`, not `/` or `"`);
+/// * a PACKAGE-RELATIVE key/value (`"tests/x.rs"`) is NOT matched — NOT because keys are excluded,
+///   but because it does not start with the moved crate dir; a REPO-ROOTED key under the moved dir
+///   WOULD be (correctly) rewritten.
+///
+/// One accepted imprecision: a path under the moved dir embedded in a COMMENT is also rewritten.
+/// That is harmless — it keeps the comment accurate and still round-trips — and not worth a
+/// Starlark-aware parser to avoid. Returns whether any literal changed.
+fn replace_source_path_literal(haystack: &mut String, old_path: &str, new_path: &str) -> bool {
+    if old_path.is_empty() || old_path == new_path {
+        return false;
     }
+    let bytes = haystack.as_bytes();
+    let mut result = String::with_capacity(haystack.len());
+    let mut changed = false;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if haystack[i..].starts_with(old_path)
+            // preceded by an opening quote (excludes `//old_path` labels + mid-path occurrences).
+            && i > 0
+            && bytes[i - 1] == b'"'
+        {
+            let after = i + old_path.len();
+            // followed by a path boundary: `/` (descendant) or the closing `"` (the whole value).
+            let boundary_ok =
+                after < bytes.len() && (bytes[after] == b'/' || bytes[after] == b'"');
+            if boundary_ok {
+                result.push_str(new_path);
+                i = after;
+                changed = true;
+                continue;
+            }
+        }
+        let ch_len = utf8_len(bytes[i]);
+        result.push_str(&haystack[i..i + ch_len]);
+        i += ch_len;
+    }
+    if changed {
+        *haystack = result;
+    }
+    changed
+}
+
+/// Rewrite, anywhere in `haystack`, the value of a `key = "<old_value>"` field to
+/// `key = "<new_value>"` when the WHOLE quoted value equals `old_value` exactly. FIELD-KEY-anchored
+/// (the `key` must be a whole identifier on a non-identifier boundary, then ws* `=` ws* `"..."`), so
+/// only the named field is touched and a value that merely contains the crate name in another field
+/// (`crate_root`, `env`, a label inside `deps`) is left alone. The whole-VALUE equality guarantees a
+/// longer sibling token (`"oya-x-bin"`) is never matched by the bare crate name `oya-x`.
+///
+/// Keying on the field — rather than a blind quoted-token replace — is what makes the moved-crate
+/// `name` vs `crate` rename correct when the kebab name equals its snake ident (a single-token name,
+/// the #61 fix): `name` carries the kebab vocabulary and `crate` the snake, so each is mapped to its
+/// own new flavor even though the two old values are textually identical.
+fn rewrite_field_exact(haystack: &mut String, key: &str, old_value: &str, new_value: &str) -> bool {
+    if old_value.is_empty() || old_value == new_value {
+        return false;
+    }
+    let bytes = haystack.as_bytes();
+    let mut result = String::with_capacity(haystack.len());
+    let mut changed = false;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        // Anchor on the field key: `<key>` (whole ident) ws* `=` ws* `"`.
+        if haystack[i..].starts_with(key) && (i == 0 || !is_ident_char(bytes[i - 1])) {
+            let mut j = i + key.len();
+            while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\t') {
+                j += 1;
+            }
+            if j < bytes.len() && bytes[j] == b'=' {
+                let mut k = j + 1;
+                while k < bytes.len() && (bytes[k] == b' ' || bytes[k] == b'\t') {
+                    k += 1;
+                }
+                if k < bytes.len() && bytes[k] == b'"' {
+                    let val_start = k + 1;
+                    if let Some(end_rel) = haystack[val_start..].find('"') {
+                        let val = &haystack[val_start..val_start + end_rel];
+                        result.push_str(&haystack[i..val_start]); // field key + `= "` verbatim.
+                        if val == old_value {
+                            result.push_str(new_value);
+                            changed = true;
+                        } else {
+                            result.push_str(val);
+                        }
+                        i = val_start + end_rel; // resume at the closing quote.
+                        continue;
+                    }
+                }
+            }
+        }
+        let ch_len = utf8_len(bytes[i]);
+        result.push_str(&haystack[i..i + ch_len]);
+        i += ch_len;
+    }
+    if changed {
+        *haystack = result;
+    }
+    changed
 }
 
 /// Collect the package's defined crate set from `buck_text`: the `name` value of every
@@ -730,6 +852,51 @@ rust_test(
         assert_eq!(round, text, "inverse must round-trip byte-identically");
     }
 
+    /// #61 (single-token destination round-trip): when a destination cargo name is a single
+    /// hyphen-free token, its kebab name EQUALS its snake ident (`snake("iam") == "iam"`). The old
+    /// step-1 used a blind quoted-token replace and SKIPPED the snake pass when kebab == snake, so on
+    /// the INVERSE move (`iam` -> `oya-x`) the one exact pass rewrote BOTH `name = "iam"` AND
+    /// `crate = "iam"` to the kebab `oya-x`, producing `crate = "oya-x"` instead of `crate = "oya_x"`
+    /// — the tree could not round-trip byte-identically. The field-aware exact rewrite maps `name` to
+    /// the kebab and `crate` to the snake ident independently, so forward + inverse restore the bytes.
+    #[test]
+    fn single_token_destination_round_trips_name_and_crate() {
+        let text = r#"rust_library(
+    name = "oya-x",
+    crate = "oya_x",
+    crate_root = "src/lib.rs",
+    srcs = ["src/lib.rs"],
+)
+
+rust_binary(
+    name = "oya-x-bin",
+    crate = "oya_x_bin",
+    crate_root = "src/main.rs",
+    deps = [":oya-x"],
+)
+"#;
+        // Destination is a SINGLE hyphen-free token: kebab `iam` == snake `iam`.
+        let fwd_move = cm("cloud/c/oya-x", "iam/core/iam", "oya-x", "iam");
+        let (fwd, fwd_changed) = rewrite_moved_buck(text, &fwd_move);
+        assert!(fwd_changed);
+        // name -> kebab `iam`, crate -> snake `iam` (both are `iam` here, but via DIFFERENT flavors).
+        assert!(fwd.contains("name = \"iam\""), "lib name -> kebab: {fwd}");
+        assert!(fwd.contains("crate = \"iam\""), "lib crate -> snake: {fwd}");
+        // crate_root (a path) is move-invariant and never a crate-name field.
+        assert!(fwd.contains("crate_root = \"src/lib.rs\""), "{fwd}");
+        // the `-bin` sibling is a SEPARATE crate (its own move) — whole-value match leaves it.
+        assert!(fwd.contains("name = \"oya-x-bin\""), "bin sibling name preserved: {fwd}");
+        assert!(fwd.contains("crate = \"oya_x_bin\""), "bin sibling crate preserved: {fwd}");
+        // self-dep on the moved lib IS rewritten.
+        assert!(fwd.contains("deps = [\":iam\"]"), "self-dep rewritten: {fwd}");
+
+        // THE FIX: the inverse restores the bytes EXACTLY — in particular `crate = "oya_x"` (snake),
+        // NOT `crate = "oya-x"` (the kebab clobber the un-fixed code produced).
+        let inv = cm("iam/core/iam", "cloud/c/oya-x", "iam", "oya-x");
+        let (round, _c) = rewrite_moved_buck(&fwd, &inv);
+        assert_eq!(round, text, "single-token destination must round-trip byte-identically");
+    }
+
     /// MED-2 / LOW: a longer macro whose name merely ends in `rust_test` (e.g. `custom_rust_test(`)
     /// must NOT be treated as a `rust_test` stanza head, so its interior is not prefix-rewritten.
     #[test]
@@ -752,6 +919,160 @@ custom_rust_test(
         // (the prefixed pass never runs on it; the exact pass does not whole-token match either).
         assert!(out.contains("name = \"oya-x-foo\""), "custom macro name not prefix-rewritten: {out}");
         assert!(out.contains("crate = \"oya_x_foo\""), "custom macro crate not prefix-rewritten: {out}");
+    }
+
+    /// #63 (non-`//` sandbox source-path literals): a BUCK may reference a moved crate's sources
+    /// through a repo-ROOTED (non-`//`) path STRING — `crate_root = "old_path/.../t.rs"` and
+    /// `mapped_srcs` VALUES `"old_path/.../t.rs": "tests/t.rs"`. These are plain Starlark strings,
+    /// not `//labels`, so the label rewriter left them pointing at a now-dead path after the move.
+    /// The source-path-literal rewrite must repoint them (prefix only, in-crate suffix preserved),
+    /// must NOT double-rewrite the `//old_path:target` label form, must leave package-relative
+    /// `mapped_srcs` KEYS alone, and must round-trip byte-identically through the inverse.
+    #[test]
+    fn source_path_literals_in_crate_root_and_mapped_srcs_are_rewritten() {
+        // This is the iac/facade/app/BUCK shape: a moved crate's tests are referenced by a repo-
+        // rooted source path; the same path appears as a `//` label (already handled) and as bare
+        // path literals (the #63 class). The moving crate dir is cloud/cloud-iac/crates/oya-x.
+        let text = r#"rust_test(
+    name = "x-test",
+    crate = "x_test",
+    crate_root = "cloud/cloud-iac/crates/oya-x/tests/t.rs",
+    mapped_srcs = {
+        "tests/t.rs": "cloud/cloud-iac/crates/oya-x/tests/t.rs",
+        "//cloud/cloud-iac/crates/oya-x:x": "cloud/cloud-iac/crates/oya-x/data.json",
+    },
+    deps = ["//cloud/cloud-iac/crates/oya-x:oya-x"],
+)
+"#;
+        let m = cm(
+            "cloud/cloud-iac/crates/oya-x",
+            "iac/facade/app",
+            "oya-x",
+            "iac-app",
+        );
+        let mut by_old: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_old.insert("cloud/cloud-iac/crates/oya-x", &m);
+        let (out, changed) = rewrite_buck_labels(text, &by_old);
+        assert!(changed);
+
+        // crate_root repo-rooted literal repointed (prefix rewritten, suffix preserved).
+        assert!(
+            out.contains("crate_root = \"iac/facade/app/tests/t.rs\""),
+            "crate_root source-path literal rewritten: {out}"
+        );
+        // mapped_srcs VALUE (repo-rooted source) repointed; the package-relative KEY untouched.
+        assert!(
+            out.contains("\"tests/t.rs\": \"iac/facade/app/tests/t.rs\""),
+            "mapped_srcs value rewritten, key preserved: {out}"
+        );
+        assert!(
+            out.contains("\"iac/facade/app/data.json\""),
+            "exact-tail mapped_srcs value rewritten: {out}"
+        );
+        // The `//old:target` LABEL form is handled by the label passes (-> //new:target); the
+        // source-path rewrite must NOT also touch it (no double rewrite / no stale fragment).
+        assert!(
+            out.contains("\"//iac/facade/app:iac-app\""),
+            "self-target label rewritten by label pass: {out}"
+        );
+        assert!(
+            out.contains("\"//iac/facade/app:x\""),
+            "mapped_srcs key label rewritten by label pass: {out}"
+        );
+        // No stale old path anywhere.
+        assert!(!out.contains("cloud/cloud-iac/crates/oya-x"), "no stale old path: {out}");
+
+        // Inverse round-trips byte-identically.
+        let inv = cm(
+            "iac/facade/app",
+            "cloud/cloud-iac/crates/oya-x",
+            "iac-app",
+            "oya-x",
+        );
+        let mut by_new: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_new.insert("iac/facade/app", &inv);
+        let (round, _c) = rewrite_buck_labels(&out, &by_new);
+        assert_eq!(round, text, "inverse must round-trip the source-path literals byte-identically");
+    }
+
+    /// #63 boundary safety: a sibling dir whose name SHARES the moved crate's path as a non-`/`
+    /// prefix (`.../oya-x-extra/...`) must NOT be rewritten, and a moved-crate's OWN relative
+    /// `crate_root = "src/lib.rs"` (package-relative, move-invariant) must stay byte-identical.
+    #[test]
+    fn source_path_literal_respects_dir_boundary_and_relative_roots() {
+        let text = r#"rust_library(
+    name = "rel",
+    crate_root = "src/lib.rs",
+    srcs = ["cloud/a/src/lib.rs", "cloud/a-extra/src/lib.rs"],
+)
+"#;
+        let m = cm("cloud/a", "x/core/a", "oya-a", "a-core");
+        let mut by_old: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_old.insert("cloud/a", &m);
+        let (out, changed) = rewrite_buck_labels(text, &by_old);
+        assert!(changed, "the cloud/a source literal IS rewritten");
+        // cloud/a -> x/core/a (descendant boundary on `/`).
+        assert!(out.contains("\"x/core/a/src/lib.rs\""), "moved src rewritten: {out}");
+        // cloud/a-extra is a DIFFERENT dir (boundary char is `-`, not `/`) -> untouched.
+        assert!(out.contains("\"cloud/a-extra/src/lib.rs\""), "sibling dir preserved: {out}");
+        // the relative crate_root is package-relative, never a repo-rooted moved-dir literal.
+        assert!(out.contains("crate_root = \"src/lib.rs\""), "relative root invariant: {out}");
+    }
+
+    /// #63 / #769 review (MED-1): the source-path-literal rewrite is deliberately FIELD-AGNOSTIC —
+    /// any quoted VALUE that begins with a path UNDER the moved dir is a reference that moved, so it
+    /// is rewritten regardless of the attribute that holds it (a `genrule`/`filegroup` `srcs` entry,
+    /// a Starlark variable), not only `crate_root`/`mapped_srcs`. Narrowing to a fixed field set
+    /// would STRAND these. A path NOT under the moved dir is left alone; the move round-trips
+    /// byte-identically. This pins the broad-but-correct scope the docstrings now describe honestly.
+    #[test]
+    fn source_path_literal_is_field_agnostic_for_paths_under_the_moved_dir() {
+        let text = r#"SEED = "cloud/cloud-iac/crates/oya-x/data/seed.json"
+
+genrule(
+    name = "gen",
+    srcs = [
+        "cloud/cloud-iac/crates/oya-x/data/seed.json",
+        "cloud/other/keep.json",
+    ],
+    cmd = "$(location //tools/gen:gen) > $OUT",
+)
+"#;
+        let m = cm(
+            "cloud/cloud-iac/crates/oya-x",
+            "iac/adapters/gen",
+            "oya-x",
+            "gen-adapter",
+        );
+        let mut by_old: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_old.insert("cloud/cloud-iac/crates/oya-x", &m);
+        let (out, changed) = rewrite_buck_labels(text, &by_old);
+        assert!(changed);
+        // A Starlark VARIABLE value under the moved dir is rewritten (NOT a crate_root/mapped_srcs).
+        assert!(
+            out.contains("SEED = \"iac/adapters/gen/data/seed.json\""),
+            "Starlark variable path under moved dir rewritten: {out}"
+        );
+        // A `genrule` `srcs` entry under the moved dir is rewritten too.
+        assert!(
+            out.contains("\"iac/adapters/gen/data/seed.json\""),
+            "genrule srcs path under moved dir rewritten: {out}"
+        );
+        // A path NOT under the moved dir is left untouched.
+        assert!(out.contains("\"cloud/other/keep.json\""), "unrelated path preserved: {out}");
+        assert!(!out.contains("cloud/cloud-iac/crates/oya-x"), "no stale old path: {out}");
+
+        // The move round-trips byte-identically through the inverse.
+        let inv = cm(
+            "iac/adapters/gen",
+            "cloud/cloud-iac/crates/oya-x",
+            "gen-adapter",
+            "oya-x",
+        );
+        let mut by_new: BTreeMap<&str, &CrateMove> = BTreeMap::new();
+        by_new.insert("iac/adapters/gen", &inv);
+        let (round, _c) = rewrite_buck_labels(&out, &by_new);
+        assert_eq!(round, text, "field-agnostic rewrite round-trips byte-identically");
     }
 
     /// MED-1: field-key anchoring. A `rust_test` with a quoted value matching the moving crate's
