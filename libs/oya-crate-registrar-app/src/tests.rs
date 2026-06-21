@@ -306,6 +306,112 @@ fn adr_block_body_preserved_through_roundtrip_parse() {
     );
 }
 
+// ───────────────────────────── 2. adr_governed_paths (defect-driven RED tests) ─────────────────────────────
+
+#[test]
+fn adr_heading_with_no_fence_followed_by_foreign_code_block_is_not_hijacked() {
+    // DEFECT 1: `## Governed surfaces` has NO fence in its OWN section; a LATER `## Consequences`
+    // section owns a ```code``` block. The locator must NOT span across into that foreign block.
+    // After compute: the Consequences heading + its code block survive verbatim, the governed
+    // block is created in the Governed-surfaces section, and the foreign code lines are NOT
+    // credited as governed paths.
+    let current = "# ADR-0568\n\n## Governed surfaces\n\nNo paths yet.\n\n## Consequences\n\n```rust\nlet hijacked = true;\nfn foreign() {}\n```\n\nMore prose.\n";
+    let paths = vec!["libs/oya-crate-registrar-app/src/lib.rs".to_owned()];
+    let next = adr_governed_paths::compute(current, &paths).unwrap();
+
+    // The Consequences section + its foreign code block survive verbatim.
+    assert!(
+        next.contains("## Consequences\n\n```rust\nlet hijacked = true;\nfn foreign() {}\n```\n\nMore prose.\n"),
+        "the foreign Consequences code block must survive verbatim:\n{next}"
+    );
+    // Exactly one `## Governed surfaces` heading (no duplicate appended at EOF).
+    assert_eq!(
+        next.matches("## Governed surfaces").count(),
+        1,
+        "exactly one Governed surfaces heading:\n{next}"
+    );
+    // The governed path is credited.
+    assert!(next.contains("libs/oya-crate-registrar-app/src/lib.rs"));
+    // The foreign code lines are NOT credited as governed paths.
+    assert!(
+        !next.contains("\nlet hijacked = true;\nlibs")
+            && !next.contains("fn foreign() {}\nlibs"),
+        "foreign code lines must not be slurped as governed paths:\n{next}"
+    );
+    // Idempotent re-apply.
+    let again = adr_governed_paths::compute(&next, &paths).unwrap();
+    assert_eq!(next, again, "re-apply is byte-identical");
+    // The block lives in the Governed-surfaces section, BEFORE Consequences.
+    let gov = next.find("## Governed surfaces").unwrap();
+    let cons = next.find("## Consequences").unwrap();
+    let gov_block = &next[gov..cons];
+    assert!(
+        gov_block.contains("libs/oya-crate-registrar-app/src/lib.rs"),
+        "governed path is inside the Governed-surfaces section:\n{gov_block}"
+    );
+}
+
+#[test]
+fn adr_info_string_fence_existing_path_is_preserved() {
+    // DEFECT 2: the Governed-surfaces block opens with an info-string fence ```text. The existing
+    // path inside must be preserved (not dropped) on the next apply.
+    let current = "# ADR-0568\n\n## Governed surfaces\n\n```text\nlibs/oya-crate-registrar-app/BUCK\n```\n";
+    let paths = vec!["libs/oya-crate-registrar-app/Cargo.toml".to_owned()];
+    let next = adr_governed_paths::compute(current, &paths).unwrap();
+    assert!(
+        next.contains("libs/oya-crate-registrar-app/BUCK"),
+        "the existing path under an info-string fence is preserved:\n{next}"
+    );
+    assert!(next.contains("libs/oya-crate-registrar-app/Cargo.toml"));
+    // Re-emitted opening fence is bare (no info string) and idempotent.
+    let again = adr_governed_paths::compute(&next, &paths).unwrap();
+    assert_eq!(next, again, "re-apply is byte-identical");
+}
+
+#[test]
+fn adr_malformed_governed_path_whitespace_rejected() {
+    // DEFECT 4/6: leading/trailing whitespace is non-idempotent → fail-closed.
+    let paths = vec!["  libs/spaced  ".to_owned()];
+    let err = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap_err();
+    assert_eq!(err, WriterError::MalformedGovernedPath("  libs/spaced  ".to_owned()));
+}
+
+#[test]
+fn adr_malformed_governed_path_newline_rejected() {
+    let paths = vec!["libs/a\nlibs/b".to_owned()];
+    let err = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap_err();
+    assert_eq!(err, WriterError::MalformedGovernedPath("libs/a\nlibs/b".to_owned()));
+}
+
+#[test]
+fn adr_malformed_governed_path_fence_sequence_rejected() {
+    let paths = vec!["libs/a```evil".to_owned()];
+    let err = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap_err();
+    assert_eq!(err, WriterError::MalformedGovernedPath("libs/a```evil".to_owned()));
+}
+
+#[test]
+fn adr_legacy_suffix_heading_is_not_canonical_block() {
+    // DEFECT 5: `## Governed surfaces (legacy)` must NOT match the canonical heading. The heading
+    // is treated as absent → a real `## Governed surfaces` block is created and the `(legacy)` line
+    // is untouched.
+    let current = "# ADR-0568\n\n## Governed surfaces (legacy)\n\nold notes.\n";
+    let paths = vec!["libs/oya-crate-registrar-app/src/lib.rs".to_owned()];
+    let next = adr_governed_paths::compute(current, &paths).unwrap();
+    // The legacy line survives untouched.
+    assert!(next.contains("## Governed surfaces (legacy)"));
+    assert!(next.contains("old notes."));
+    // A real canonical `## Governed surfaces` block (with a trailing newline boundary) is created.
+    assert!(
+        next.contains("## Governed surfaces\n"),
+        "a canonical Governed surfaces heading line was created:\n{next}"
+    );
+    assert!(next.contains("libs/oya-crate-registrar-app/src/lib.rs"));
+    // Idempotent.
+    let again = adr_governed_paths::compute(&next, &paths).unwrap();
+    assert_eq!(next, again, "re-apply is byte-identical");
+}
+
 // ───────────────────────────── 2. adr_governed_paths (tmpfile round-trip) ─────────────────────────────
 
 #[test]
@@ -371,6 +477,38 @@ fn catalog_path_derives_from_leaf() {
         catalog_yaml::catalog_path("iam/core/identity-domain"),
         "registry/catalog/identity-domain.yaml"
     );
+}
+
+// ───────────────────────────── 3. catalog_yaml (defect-driven RED tests) ─────────────────────────────
+
+#[test]
+fn catalog_slo_with_newline_forging_keys_rejected() {
+    // DEFECT 3: a newline in `slo` forges a top-level YAML key → fail-closed InvalidCatalogField.
+    let err = catalog_yaml::compute(
+        "iam/core/identity-domain",
+        "control",
+        "ga\nmalicious: true",
+    )
+    .unwrap_err();
+    assert_eq!(err, WriterError::InvalidCatalogField("slo".to_owned()));
+}
+
+#[test]
+fn catalog_plane_with_yaml_map_metachars_rejected() {
+    // DEFECT 3: a value like `{flow: x}` changes the scalar into a YAML map → fail-closed.
+    let err = catalog_yaml::compute("iam/core/identity-domain", "{flow: x}", "ga-control-plane")
+        .unwrap_err();
+    assert_eq!(err, WriterError::InvalidCatalogField("plane".to_owned()));
+}
+
+#[test]
+fn catalog_normal_identifier_values_still_render() {
+    // DEFECT 3 positive: legit identifier-shaped values render fine.
+    let yaml = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
+        .unwrap();
+    assert!(yaml.contains("plane: control"));
+    assert!(yaml.contains("slo: ga-control-plane"));
+    assert!(yaml.contains("capability: identity-domain"));
 }
 
 // ───────────────────────────── 3. catalog_yaml (tmpfile round-trip) ─────────────────────────────

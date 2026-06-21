@@ -98,8 +98,18 @@ pub enum WriterError {
     /// A governed path contained brace-glob syntax (`{`/`}`) — the #66 trap. The kernel already
     /// rejects these; the writer re-checks so it can never be invoked with an unmatched token.
     BraceGlobInGovernedPath(String),
+    /// A governed path was not in clean normal form — it contained a newline (`\n`/`\r`), the fence
+    /// sequence ```` ``` ````, or leading/trailing whitespace. Such a value would either inject
+    /// markdown content into the fenced block or be non-idempotent (emit verbatim, parse trimmed),
+    /// so the writer fails CLOSED rather than store it.
+    MalformedGovernedPath(String),
     /// A catalog render was requested with an empty `slo` or `plane` (never silently defaulted).
     MissingCatalogField(String),
+    /// A catalog field (`slo`/`plane`) carried a value that is not a safe YAML scalar — a newline
+    /// (`\n`/`\r`), a tab, a YAML-significant metacharacter, or leading/trailing whitespace. Such a
+    /// value would forge YAML keys or change the scalar into a map/sequence, so the writer fails
+    /// CLOSED. The message names the offending field.
+    InvalidCatalogField(String),
     /// A JSON value could not be serialized to canonical form.
     Serialize(String),
     /// A filesystem read/write failed.
@@ -117,8 +127,20 @@ impl std::fmt::Display for WriterError {
             WriterError::BraceGlobInGovernedPath(p) => {
                 write!(f, "brace-glob in governed path (the #66 trap): {p}")
             }
+            WriterError::MalformedGovernedPath(p) => {
+                write!(
+                    f,
+                    "malformed governed path (newline, fence sequence, or surrounding whitespace): {p}"
+                )
+            }
             WriterError::MissingCatalogField(field) => {
                 write!(f, "catalog field is required and must not be empty: {field}")
+            }
+            WriterError::InvalidCatalogField(field) => {
+                write!(
+                    f,
+                    "catalog field is not a safe YAML scalar (newline/metachar/whitespace): {field}"
+                )
             }
             WriterError::Serialize(m) => write!(f, "canonical-json serialize error: {m}"),
             WriterError::Io(m) => write!(f, "writer io: {m}"),
@@ -258,6 +280,31 @@ pub mod adr_governed_paths {
     /// The fence delimiter for the path block.
     const FENCE: &str = "```";
 
+    /// True iff a line OPENS a fenced code block — its trimmed value starts with ```` ``` ````
+    /// (with or without an info string like ` ```text `). Used by the single shared line scanner so
+    /// the open-fence recognition cannot diverge between locating and extracting (the Defect-2 bug).
+    fn is_open_fence(line: &str) -> bool {
+        line.trim_start().starts_with(FENCE)
+    }
+
+    /// True iff a line CLOSES a fenced code block — its trimmed value is exactly ```` ``` ````
+    /// (no info string is permitted on a closing fence, per CommonMark).
+    fn is_close_fence(line: &str) -> bool {
+        line.trim() == FENCE
+    }
+
+    /// True iff a line is any markdown heading (its first non-space char is `#`) — the boundary that
+    /// ends the `## Governed surfaces` section.
+    fn is_heading_line(line: &str) -> bool {
+        line.trim_start().starts_with('#')
+    }
+
+    /// True iff a line is EXACTLY the canonical `## Governed surfaces` heading — a full-line match
+    /// (Defect 5: a prefix like `## Governed surfaces (legacy)` must NOT match).
+    fn is_governed_heading(line: &str) -> bool {
+        line.trim_end() == HEADING
+    }
+
     /// The repo-relative path of an ADR id's markdown file is resolved by the caller; the conventional
     /// shape is `docs/decisions/<id>-<slug>.md`. [`apply`] takes the full path so the writer stays
     /// repo-neutral about the slug.
@@ -265,19 +312,35 @@ pub mod adr_governed_paths {
     /// Compute the new ADR markdown content with `paths` upserted into the `## Governed surfaces`
     /// fenced block. PURE — no I/O. The block lists one VERBATIM tracked path per line, sorted +
     /// deduped (the canonical, byte-stable enumeration the producer's `resolve_justifications`
-    /// tokenizes and credits). If the heading + fence block is absent it is created, appended after
-    /// the existing body (with a single blank-line separator). If present, the existing literal paths
-    /// in the block are merged with `paths`, re-sorted, and the block is rewritten in place.
+    /// tokenizes and credits).
+    ///
+    /// Placement (all confined to the heading's OWN section — i.e. up to the next markdown heading
+    /// `#…` or EOF, so a foreign code block in a later section can never be hijacked, Defect 1):
+    /// - heading present WITH a fenced block in its section → the existing in-block paths are merged
+    ///   with `paths` and the block is rewritten IN PLACE (everything before/after, incl. later
+    ///   sections, is preserved verbatim);
+    /// - heading present WITHOUT a fence in its section → a fresh fenced block is INSERTED right
+    ///   after the heading line (no second heading, no EOF append);
+    /// - heading absent → `## Governed surfaces` + a fresh fenced block is appended at EOF, separated
+    ///   from the body by exactly one blank line.
     ///
     /// Idempotent: re-running with paths already present yields byte-identical content.
     ///
     /// # Errors
-    /// [`WriterError::BraceGlobInGovernedPath`] if any path carries brace-glob syntax (defensive —
-    /// the kernel already rejects these).
+    /// [`WriterError::BraceGlobInGovernedPath`] if any path carries brace-glob syntax (`{`/`}`);
+    /// [`WriterError::MalformedGovernedPath`] if any path carries a newline, the fence sequence
+    /// ```` ``` ````, or leading/trailing whitespace (defensive — the kernel already rejects these,
+    /// but the writer fails CLOSED so every stored path is in a clean normal form where emit==parse).
     pub fn compute(current: &str, paths: &[String]) -> Result<String, WriterError> {
         for p in paths {
             if has_brace_glob(p) {
                 return Err(WriterError::BraceGlobInGovernedPath(p.clone()));
+            }
+            // Fail-CLOSED: a newline would inject extra markdown lines, the fence sequence would
+            // forge a fence, and surrounding whitespace is non-idempotent (emit verbatim, parse
+            // trimmed). Reject so every stored path round-trips byte-for-byte.
+            if p != p.trim() || p.contains('\n') || p.contains('\r') || p.contains(FENCE) {
+                return Err(WriterError::MalformedGovernedPath(p.clone()));
             }
         }
 
@@ -286,24 +349,38 @@ pub mod adr_governed_paths {
         for p in paths {
             all.insert(p.clone());
         }
-        let block_body: String = all
-            .iter()
-            .map(|p| format!("{p}\n"))
-            .collect::<String>();
-        let new_block = format!("{HEADING}\n\n{FENCE}\n{block_body}{FENCE}\n");
+        let block_body: String = all.iter().map(|p| format!("{p}\n")).collect::<String>();
+        // The fenced block body (opening fence is always bare — no info string — so re-emit is
+        // canonical regardless of any info string the input used, Defect 2).
+        let fenced = format!("{FENCE}\n{block_body}{FENCE}\n");
 
-        match locate_block(current) {
-            Some((start, end)) => {
-                // Replace the existing heading..fence-close span with the rebuilt block. `end` is the
-                // byte index just past the closing fence line's trailing newline (or EOF).
-                let mut out = String::with_capacity(current.len() + block_body.len());
-                out.push_str(&current[..start]);
-                out.push_str(&new_block);
-                out.push_str(&current[end..]);
+        match locate_section(current) {
+            Some(section) => {
+                let mut out = String::with_capacity(current.len() + block_body.len() + fenced.len());
+                match section.fence {
+                    Some((open_start, close_end)) => {
+                        // Rewrite the existing fenced block in place; preserve everything outside it
+                        // (incl. the heading line and any later sections) verbatim.
+                        out.push_str(&current[..open_start]);
+                        out.push_str(&fenced);
+                        out.push_str(&current[close_end..]);
+                    }
+                    None => {
+                        // Heading present but no fence in its section: insert a fresh fenced block
+                        // immediately after the heading line, with a single blank-line separator.
+                        let at = section.heading_line_end;
+                        out.push_str(&current[..at]);
+                        out.push('\n');
+                        out.push_str(&fenced);
+                        out.push_str(&current[at..]);
+                    }
+                }
                 Ok(out)
             }
             None => {
-                // Append the block at EOF, separated from the existing body by exactly one blank line.
+                // Heading absent: append `## Governed surfaces` + a fresh block at EOF, separated
+                // from the existing body by exactly one blank line.
+                let new_block = format!("{HEADING}\n\n{fenced}");
                 let mut out = String::with_capacity(current.len() + new_block.len() + 2);
                 out.push_str(current);
                 if !current.is_empty() && !current.ends_with('\n') {
@@ -319,63 +396,128 @@ pub mod adr_governed_paths {
     }
 
     /// The verbatim paths already enumerated inside the `## Governed surfaces` fenced block, if the
-    /// block exists. Each non-empty trimmed line inside the fence is one path.
+    /// block exists in the heading's own section. Each non-empty trimmed line inside the fence is one
+    /// path. Shares [`locate_section`] so fence recognition can never diverge from the locator.
     fn existing_block_paths(current: &str) -> Vec<String> {
-        let Some((start, end)) = locate_block(current) else {
+        let Some(section) = locate_section(current) else {
             return Vec::new();
         };
-        let block = &current[start..end];
-        // Skip the heading line + the opening fence; collect lines until the closing fence.
-        let mut lines = block.lines();
+        let Some((open_start, close_end)) = section.fence else {
+            return Vec::new();
+        };
+        let block = &current[open_start..close_end];
         let mut paths = Vec::new();
-        let mut in_fence = false;
-        for line in lines.by_ref() {
-            let trimmed = line.trim();
-            if trimmed == FENCE {
-                if in_fence {
-                    break; // closing fence
-                }
-                in_fence = true;
+        let mut seen_open = false;
+        for line in block.lines() {
+            if !seen_open {
+                // The first line of the slice is the opening fence (possibly with an info string).
+                seen_open = true;
                 continue;
             }
-            if in_fence && !trimmed.is_empty() {
+            if is_close_fence(line) {
+                break;
+            }
+            let trimmed = line.trim();
+            if !trimmed.is_empty() {
                 paths.push(trimmed.to_owned());
             }
         }
         paths
     }
 
-    /// Locate the `## Governed surfaces` block: returns `(start, end)` byte offsets spanning from the
-    /// heading line through the line after the closing fence (or EOF). `None` if there is no heading
-    /// followed by an opening fence.
-    fn locate_block(current: &str) -> Option<(usize, usize)> {
-        let heading_at = find_heading(current)?;
-        // The opening fence must be the first fence line at/after the heading.
-        let after_heading = &current[heading_at..];
-        let rel_open = after_heading.find(FENCE)?;
-        let open_at = heading_at + rel_open;
-        // The closing fence is the next fence after the opening fence's own line.
-        let open_line_end = current[open_at..]
-            .find('\n')
-            .map(|n| open_at + n + 1)
-            .unwrap_or(current.len());
-        let rel_close = current[open_line_end..].find(FENCE)?;
-        let close_at = open_line_end + rel_close;
-        // End span = just past the closing fence line's trailing newline (or EOF).
-        let end = current[close_at..]
-            .find('\n')
-            .map(|n| close_at + n + 1)
-            .unwrap_or(current.len());
-        Some((heading_at, end))
+    /// The located `## Governed surfaces` section.
+    struct Section {
+        /// Byte offset just past the heading line's terminator (insertion point for a fresh fence).
+        heading_line_end: usize,
+        /// `(open_fence_start, close_fence_line_end)` byte offsets of the fenced block, when the
+        /// section contains one. `open_fence_start` is the byte offset of the opening fence line;
+        /// `close_fence_line_end` is just past the closing fence line's terminator (or EOF). `None`
+        /// when the section has no fence.
+        fence: Option<(usize, usize)>,
     }
 
-    /// The byte offset of the `## Governed surfaces` heading line, matched at the start of a line.
-    fn find_heading(current: &str) -> Option<usize> {
-        if current.starts_with(HEADING) {
-            return Some(0);
+    /// Locate the canonical `## Governed surfaces` section via a single line-based scan (Defect 5
+    /// full-line heading match), confined to the heading's OWN section — the scan for an opening
+    /// fence stops at the next markdown heading or EOF, so a foreign code block in a later section is
+    /// never reached (Defect 1). Returns `None` when the canonical heading is absent.
+    fn locate_section(current: &str) -> Option<Section> {
+        let mut heading_line_end: Option<usize> = None;
+        let mut fence: Option<(usize, usize)> = None;
+        let mut open: Option<usize> = None;
+        let mut offset = 0usize;
+
+        for line in LinesWithEnds::new(current) {
+            let line_start = offset;
+            let line_end = offset + line.len();
+            offset = line_end;
+            let content = line.strip_suffix('\n').map_or(line, |l| {
+                l.strip_suffix('\r').unwrap_or(l)
+            });
+
+            if heading_line_end.is_none() {
+                if is_governed_heading(content) {
+                    heading_line_end = Some(line_end);
+                }
+                continue;
+            }
+
+            // Inside the section. A new markdown heading ends the section.
+            if open.is_none() {
+                if is_heading_line(content) {
+                    break; // section ended before any fence
+                }
+                if is_open_fence(content) {
+                    open = Some(line_start);
+                }
+                continue;
+            }
+
+            // Inside the fenced block: look for the closing fence.
+            if is_close_fence(content) {
+                fence = Some((open.unwrap_or(line_start), line_end));
+                break;
+            }
         }
-        let needle = format!("\n{HEADING}");
-        current.find(&needle).map(|i| i + 1)
+
+        heading_line_end.map(|heading_line_end| Section {
+            heading_line_end,
+            fence,
+        })
+    }
+
+    /// Iterator over the lines of a string, each INCLUDING its `\n` terminator (the final line has
+    /// no terminator iff the string does not end in `\n`). Unlike `str::lines`, this preserves byte
+    /// lengths so the scanner's offsets reconstruct the input exactly.
+    struct LinesWithEnds<'a> {
+        rest: &'a str,
+    }
+
+    impl<'a> LinesWithEnds<'a> {
+        fn new(s: &'a str) -> Self {
+            LinesWithEnds { rest: s }
+        }
+    }
+
+    impl<'a> Iterator for LinesWithEnds<'a> {
+        type Item = &'a str;
+
+        fn next(&mut self) -> Option<&'a str> {
+            if self.rest.is_empty() {
+                return None;
+            }
+            match self.rest.find('\n') {
+                Some(i) => {
+                    let (line, rest) = self.rest.split_at(i + 1);
+                    self.rest = rest;
+                    Some(line)
+                }
+                None => {
+                    let line = self.rest;
+                    self.rest = "";
+                    Some(line)
+                }
+            }
+        }
     }
 
     /// Apply the governed-path append to the ADR markdown at `adr_path` under `repo_root`. Reads the
@@ -425,6 +567,16 @@ pub mod catalog_yaml {
         if slo.trim().is_empty() {
             return Err(WriterError::MissingCatalogField("slo".to_owned()));
         }
+        // Fail-CLOSED: each field is interpolated raw into the YAML, so a value carrying a newline
+        // (forges a top-level key), a YAML-significant metacharacter (turns the scalar into a
+        // map/sequence/anchor/etc.), or surrounding whitespace must be refused. Legit values are
+        // simple identifiers (plane=`control`, slo=`ga-control-plane`), so this rejects nothing real.
+        if !is_safe_yaml_scalar(plane) {
+            return Err(WriterError::InvalidCatalogField("plane".to_owned()));
+        }
+        if !is_safe_yaml_scalar(slo) {
+            return Err(WriterError::InvalidCatalogField("slo".to_owned()));
+        }
         let capability = crate_leaf(crate_dir);
         // The minimal valid catalog record the gates consume: a top-level `slo:` scalar (the
         // slo-coverage / catalog-liveness contract) plus the human-supplied `plane:` and the
@@ -433,6 +585,25 @@ pub mod catalog_yaml {
         Ok(format!(
             "capability: {capability}\nplane: {plane}\nslo: {slo}\n"
         ))
+    }
+
+    /// YAML-significant metacharacters that, interpolated raw into a `key: value` line, would
+    /// re-type the scalar (map/sequence/anchor/alias/tag/flow/quote/directive/comment) or otherwise
+    /// break the byte-stable single-line render.
+    const YAML_METACHARS: &[char] = &[
+        ':', '{', '}', '[', ']', ',', '&', '*', '!', '|', '>', '\'', '"', '%', '@', '`', '#',
+    ];
+
+    /// True iff `value` is a safe single-line YAML scalar: no newline/carriage-return/tab, no
+    /// YAML-significant metacharacter, and no leading/trailing whitespace. Fail-closed gate for the
+    /// human-supplied `plane`/`slo` so an attacker can never forge keys or change the scalar type.
+    fn is_safe_yaml_scalar(value: &str) -> bool {
+        if value != value.trim() {
+            return false;
+        }
+        !value
+            .chars()
+            .any(|c| c == '\n' || c == '\r' || c == '\t' || YAML_METACHARS.contains(&c))
     }
 
     /// The repo-relative catalog path for a crate dir: `registry/catalog/<leaf>.yaml`.
