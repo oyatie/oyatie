@@ -585,3 +585,179 @@ fn malformed_oya_ci_toml_fails_closed() {
         other => panic!("expected Io(malformed oya-ci.toml), got {other:?}"),
     }
 }
+
+// ─────────────────────────── slice 3c: register_crate_and_settle ───────────────────────────
+// These exercise the FacesSettle "close the loop" via the injectable RegenPort + a FakeRegenPort,
+// so they run with NO buck2 (the Buck2RegenAdapter path is covered by the buck2-gated integration
+// test below).
+
+// (3c-1) A real registration (FacesSettle obligation recorded) → register_crate_and_settle EXECUTES
+//        the RegenPort (regen + verify_drift both called) and records faces_settled with the written
+//        faces + a clean drift verdict.
+#[test]
+fn settle_runs_regen_and_marks_faces_settled() {
+    let repo = fixture_tagged("settle-runs");
+    let req = base_request();
+    let regen = FakeRegenPort::default();
+
+    let outcome =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap();
+
+    // The plan recorded a settle obligation AND the settle ran.
+    assert!(outcome.requires_faces_settle, "a real registration records a FacesSettle obligation");
+    let settled = outcome.faces_settled.expect("faces_settled must be Some after a settle run");
+    assert!(settled.drift_clean, "the fake reported no drift");
+    // The 6 producer faces + the scm-facts snapshot were recorded as written (sorted).
+    assert!(
+        settled.faces_written.contains(&"accounting-registry.generated.json".to_owned()),
+        "{:?}",
+        settled.faces_written
+    );
+    assert!(
+        settled.faces_written.contains(&"scm-facts.generated.json".to_owned()),
+        "{:?}",
+        settled.faces_written
+    );
+    assert_eq!(settled.faces_written.len(), 7, "{:?}", settled.faces_written);
+
+    // The RegenPort was actually driven: regenerate + verify_drift each ran exactly once, with the
+    // repo root.
+    assert_eq!(regen.regen_calls.borrow().as_slice(), std::slice::from_ref(&repo.root));
+    assert_eq!(regen.verify_calls.borrow().as_slice(), std::slice::from_ref(&repo.root));
+}
+
+// (3c-2) A RegenPort failure → RegenFailed (fail LOUD); verify_drift is NEVER reached.
+#[test]
+fn settle_propagates_regen_failure() {
+    let repo = fixture_tagged("settle-fail");
+    let req = base_request();
+    let regen = FakeRegenPort { fail: true, ..FakeRegenPort::default() };
+
+    let err =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap_err();
+    match err {
+        RegisterError::RegenFailed(msg) => {
+            assert!(msg.contains("fake regen failure"), "{msg}");
+        }
+        other => panic!("expected RegenFailed, got {other:?}"),
+    }
+    // regenerate ran (and failed); verify_drift was never reached (fail-closed short-circuit).
+    assert_eq!(regen.regen_calls.borrow().len(), 1);
+    assert!(regen.verify_calls.borrow().is_empty(), "verify_drift must not run after a regen failure");
+}
+
+// (3c-3) A drift mismatch → DriftDetected naming the drifting face (fail closed before recording a
+//        face the registry-drift gate would flag RED).
+#[test]
+fn settle_drift_mismatch_fails_closed() {
+    let repo = fixture_tagged("settle-drift");
+    let req = base_request();
+    let regen = FakeRegenPort {
+        drift_face: Some("ttl-policy.generated.json".to_owned()),
+        ..FakeRegenPort::default()
+    };
+
+    let err =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap_err();
+    match err {
+        RegisterError::DriftDetected { face } => {
+            assert_eq!(face, "ttl-policy.generated.json");
+        }
+        other => panic!("expected DriftDetected, got {other:?}"),
+    }
+    // regen ran, then verify_drift ran and reported drift — the obligation was NOT marked settled.
+    assert_eq!(regen.regen_calls.borrow().len(), 1);
+    assert_eq!(regen.verify_calls.borrow().len(), 1);
+}
+
+// (3c-4) A no-op re-run (requires_faces_settle == false) does NOT call the RegenPort and leaves
+//        faces_settled None — settling is only triggered by a recorded obligation.
+#[test]
+fn settle_skips_regen_when_no_obligation() {
+    let repo = fixture_tagged("settle-noop");
+    let req = base_request();
+
+    // First settle: a real registration that runs the (fake) regen.
+    let first_regen = FakeRegenPort::default();
+    let first =
+        register_crate_and_settle(&repo.root, &req, &first_regen, ValidationMode::Skip).unwrap();
+    assert!(first.faces_settled.is_some(), "the first registration settles the faces");
+    assert_eq!(first_regen.regen_calls.borrow().len(), 1);
+
+    // Re-stage the just-written SSOTs so the re-run reads them as already-registered.
+    run_git(&repo.root, &["add", "-A"]);
+
+    // Second settle: the plan is empty (idempotent) → NO obligation → regen never runs.
+    let second_regen = FakeRegenPort::default();
+    let second =
+        register_crate_and_settle(&repo.root, &req, &second_regen, ValidationMode::Skip).unwrap();
+    assert!(
+        !second.requires_faces_settle,
+        "a no-op re-run records no FacesSettle obligation"
+    );
+    assert!(second.faces_settled.is_none(), "no obligation ⇒ faces_settled stays None");
+    assert!(
+        second_regen.regen_calls.borrow().is_empty(),
+        "the RegenPort must NOT be called when there is no settle obligation"
+    );
+    assert!(second_regen.verify_calls.borrow().is_empty());
+}
+
+// (3c-5) MinimalSubset behaves identically to Skip in slice 3c (the slice-3d slot is a no-op until
+//        wired — never a panic, ADR-0083 Tier-3).
+#[test]
+fn minimal_subset_validation_mode_behaves_like_skip_in_3c() {
+    let repo = fixture_tagged("settle-minimal");
+    let req = base_request();
+    let regen = FakeRegenPort::default();
+
+    let outcome =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset).unwrap();
+    assert!(outcome.faces_settled.is_some(), "MinimalSubset still settles the faces in 3c");
+    assert_eq!(regen.regen_calls.borrow().len(), 1);
+    assert_eq!(regen.verify_calls.borrow().len(), 1);
+}
+
+// (3c-6, buck2-gated) The REAL Buck2RegenAdapter against the live checkout. Ignored by default so
+// the std-only unit CI never needs buck2; run explicitly with `--ignored` (buck2 pre-approved).
+//
+// NON-MUTATING by design: it exercises ONLY `Buck2RegenAdapter::verify_drift` — the byte-rediff —
+// which re-renders each producer face from the candidate tree and byte-compares to the COMMITTED
+// face WITHOUT writing anything. On a settled tree (origin/dev) the rediff is clean. This proves
+// the real `build_face_tools` (`buck2 build --show-output` parse) + the producer `--stdout --face`
+// path + the byte-compare all work against actual built binaries — the path FakeRegenPort stands in
+// for above — without seeding OWNERS/ADR into or otherwise mutating the live checkout (`regenerate`,
+// which DOES write the faces, is covered by the FakeRegenPort + materialize.sh verification instead).
+#[test]
+#[ignore = "requires buck2 + the full candidate tree; run explicitly when buck2 is available"]
+fn buck2_regen_adapter_byte_rediff_is_clean_on_settled_tree() {
+    // The byte-rediff runs against THIS repo checkout (a full tree with the buck2 targets + the
+    // committed settled faces) — the emitter/producer need the whole tracked tree.
+    let repo_root = repo_root_for_integration();
+    let regen = Buck2RegenAdapter;
+    match regen.verify_drift(&repo_root) {
+        Ok(()) => {}
+        Err(RegisterError::DriftDetected { face }) => {
+            panic!("committed face {face} drifted from a fresh re-render on a settled tree")
+        }
+        Err(e) => panic!("byte-rediff failed: {e}"),
+    }
+}
+
+#[cfg(test)]
+fn repo_root_for_integration() -> PathBuf {
+    // Discover the repo root by walking up from CWD until the FACES_DIR + buck2 root markers exist.
+    // `option_env!("CARGO_MANIFEST_DIR")` (set under cargo, absent under buck2) is a HINT only — we
+    // never `env!` it, so the buck2 unittest target compiles regardless. Used only by the
+    // #[ignore]d integration test, so a best-effort discovery is sufficient.
+    let start = option_env!("CARGO_MANIFEST_DIR")
+        .map(PathBuf::from)
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_else(|| PathBuf::from("."));
+    for dir in start.ancestors() {
+        if dir.join(super::FACES_DIR).is_dir() && dir.join(".buckconfig").exists() {
+            return dir.to_path_buf();
+        }
+    }
+    start
+}
