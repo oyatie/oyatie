@@ -1,10 +1,13 @@
-//! cloud-ci-no-graphql-without-adr gate binary (ADR-0565). It scans the CANDIDATE tree — the
-//! workspace member `Cargo.toml` manifests (resolved hermetically via oya-workspace-members-kernel,
-//! no shell-out) plus a read-only walk for `.graphql`/`.gql`/`.sdl` schema files — and FAILS iff a
-//! forbidden GraphQL library or schema file is present WITHOUT the artifact referencing an
-//! authorizing (reversing) ADR. It deliberately does NOT diff a frozen merge-base baseline (that is
-//! the PR/push baseline-asymmetry false-green); the candidate-tree verdict is identical at PR-tier
-//! and push-tier.
+//! cloud-ci-no-graphql-without-adr gate binary (ADR-0565). It scans the CANDIDATE tree — EVERY
+//! `Cargo.toml` in the tree (members AND non-members; resolving `[workspace.dependencies]` renames
+//! and `{ workspace = true }` inheritance), the resolved `Cargo.lock` graph (the transitive catch),
+//! plus a read-only walk for `.graphql`/`.graphqls`/`.gql`/`.gqls`/`.sdl` schema files — and FAILS iff
+//! a forbidden GraphQL library or schema file is present WITHOUT the artifact citing an ALLOWLISTED +
+//! VALIDATED authorizing (reversing) ADR (a `policy.authorizing_adrs` id backed by a real Accepted
+//! `docs/decisions` ADR that reverses the forbidding one). It deliberately does NOT diff a frozen
+//! merge-base baseline (that is the PR/push baseline-asymmetry false-green); the candidate-tree
+//! verdict is identical at PR-tier and push-tier. All I/O is hermetic read-only fs (no cargo/buck
+//! shell-out, no network, no VCS).
 //!
 //! Usage:
 //!   oya-cloud-ci-no-graphql-without-adr-app-bin [--repo-root <path>] [--policy <path>]

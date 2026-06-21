@@ -1,14 +1,25 @@
 // ADR-0565 cloud-ci-no-graphql-without-adr: born-blocking self-test over TODAY's real candidate
 // tree plus hermetic RED/GREEN fixtures. It asserts:
 //   * the LIVE post-drop worktree is born-blocking GREEN — the real candidate-tree collector finds
-//     zero GraphQL library (in any member Cargo.toml) and zero .graphql/.gql/.sdl schema file, so
-//     the frozen baseline is EMPTY and any NEW GraphQL artifact fails closed on arrival.
+//     zero GraphQL library (in ANY Cargo.toml), zero forbidden crate in Cargo.lock, and zero
+//     .graphql/.graphqls/.gql/.gqls/.sdl schema file, so the frozen baseline is EMPTY and any NEW
+//     GraphQL artifact fails closed on arrival.
 //   * a RED fixture (a synthetic candidate tree whose member Cargo.toml adds `async-graphql`) makes
 //     the gate FAIL — proving it genuinely catches a reintroduced lib, not an always-pass stub.
 //   * a RED fixture (a synthetic candidate tree with a new `.graphql` schema file, no ADR ref)
 //     makes the gate FAIL.
-//   * a GREEN fixture (the same forbidden artifacts but citing an authorizing/reversing ADR) makes
-//     the gate PASS — proving the ADR escape-hatch is live, not a no-op.
+//   * a RED fixture (`async-graphql` smuggled via a `[workspace.dependencies]` rename + a member
+//     `{ workspace = true }` inheritance) makes the gate FAIL — the workspace-rename backdoor.
+//   * a RED fixture (`async-graphql` in a NON-member `services/gw/Cargo.toml`) makes the gate FAIL —
+//     the LIB leg now scans EVERY Cargo.toml in the tree, not only resolved members.
+//   * a RED fixture (a `.graphqls` SDL file) makes the gate FAIL — the canonical SDL extension.
+//   * a RED fixture (a forbidden crate present ONLY in Cargo.lock) makes the gate FAIL — the
+//     transitive-reintroduction catch.
+//   * a RED fixture (citing a fabricated `# ADR-9999` token, no allowlist/validation) makes the gate
+//     FAIL — the escape-hatch is NOT a bare-token backdoor.
+//   * a GREEN fixture (forbidden artifacts citing an ALLOWLISTED id backed by a real Accepted
+//     reversing ADR in the temp tree's docs/decisions) makes the gate PASS — proving the escape-hatch
+//     is live AND that it requires real authorization, not a no-op nor a backdoor.
 //   * the committed policy gate_id matches the crate contract.
 // The fixtures drive the REAL collector (the only I/O) end-to-end over a temp workspace, so the
 // collector's hermetic fs scan + the pure evaluator are both exercised.
@@ -146,13 +157,47 @@ fn write_member(root: &Path, name: &str, manifest_body: &str, schema_body: Optio
     }
 }
 
+/// Write a file at `rel` (repo-relative to `root`), creating parent dirs.
+fn write_file(root: &Path, rel: &str, body: &str) {
+    let path = root.join(rel);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).expect("create parent dir");
+    }
+    fs::write(&path, body).expect("write file");
+}
+
+/// Overwrite the temp root `Cargo.toml` with a custom body (e.g. to add `[workspace.dependencies]`).
+fn write_root_manifest(root: &Path, body: &str) {
+    fs::write(root.join("Cargo.toml"), body).expect("write root manifest");
+}
+
+/// Write a real Accepted ADR that reverses the forbidding ADR into the temp tree's `docs/decisions`,
+/// so the gate's defense-in-depth validation resolves the cited id. The id `ADR-0700` is the test-only
+/// authorizing decision.
+fn write_authorizing_adr(root: &Path) {
+    write_file(
+        root,
+        "docs/decisions/ADR-0700-reintroduce-graphql.md",
+        "---\nid: ADR-0700\nstatus: Accepted\nsupersedes:\n  - ADR-0565\n---\n\n# ADR-0700: Reintroduce GraphQL\n\nThis decision reverses ADR-0565 and readmits a single generated GraphQL surface.\n",
+    );
+}
+
 /// A policy with the member floor lowered to 1 so the synthetic single-member fixtures meet it
 /// (the committed policy's 100 floor is a live-tree guard, not a fixture constraint). The policy is
 /// loaded from the REAL repo root (the committed file lives there, not in the temp fixture tree);
-/// everything else mirrors the committed policy.
+/// everything else mirrors the committed policy. `authorizing_adrs` stays EMPTY by default (matching
+/// the committed policy) — the GREEN escape-hatch fixture allowlists `ADR-0700` explicitly.
 fn fixture_policy() -> Value {
     let mut p = committed_policy(&repo_root());
     p["min_expected_workspace_members"] = Value::from(1u64);
+    p
+}
+
+/// As [`fixture_policy`] but allowlisting the given authorizing ADR ids — the policy a repo ships
+/// after an Accepted reversing ADR is enumerated.
+fn fixture_policy_allowing(ids: &[&str]) -> Value {
+    let mut p = fixture_policy();
+    p["authorizing_adrs"] = serde_json::json!(ids);
     p
 }
 
@@ -216,12 +261,14 @@ fn red_fixture_new_graphql_schema_file() {
 }
 
 #[test]
-fn green_fixture_adr_referenced_lib_and_schema() {
-    // GREEN, hermetic: the SAME forbidden artifacts (async-graphql dep + a .graphql file) but each
-    // citing an authorizing/reversing ADR (a DIFFERENT ADR than the forbidding ADR-0565). The
-    // escape-hatch admits them; the gate PASSES. Proves the escape is live, not a no-op, and that
-    // the gate genuinely distinguishes an authorized change from a bare reintroduction.
+fn green_fixture_allowlisted_and_validated_adr() {
+    // GREEN, hermetic: the SAME forbidden artifacts (async-graphql dep + a .graphql file) citing an
+    // authorizing id (ADR-0700) that is BOTH (1) in the policy `authorizing_adrs` allowlist AND
+    // (2) backed by a real Accepted ADR in the temp tree's docs/decisions that reverses ADR-0565. The
+    // escape-hatch admits them; the gate PASSES. Proves the escape is live AND requires REAL
+    // authorization — not a no-op, and not a bare-token backdoor.
     let root = temp_repo();
+    write_authorizing_adr(&root);
     write_member(
         &root,
         "studio-graphql",
@@ -229,19 +276,171 @@ fn green_fixture_adr_referenced_lib_and_schema() {
         Some("# Authorized by ADR-0700 (reverses ADR-0565).\ntype Query { ok: Boolean }\n"),
     );
 
-    let policy = fixture_policy();
+    let policy = fixture_policy_allowing(&["ADR-0700"]);
     let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
     let findings = evaluate_keyed(&policy, &observed);
 
     assert!(
         !findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB" || f.code == "NGQL-SCHEMA-FILE"),
-        "ADR-referenced GraphQL artifacts must be allowed: {findings:#?}"
+        "allowlisted+validated-ADR GraphQL artifacts must be allowed: {findings:#?}"
     );
     assert_eq!(
         evaluate(&policy, &observed).verdict,
         Verdict::Green,
-        "an authorized (ADR-referenced) change must be GREEN"
+        "an authorized (allowlisted + validated ADR) change must be GREEN"
     );
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
+
+#[test]
+fn red_fixture_fabricated_adr_token_does_not_launder() {
+    // RED, hermetic (CRITICAL backdoor): an async-graphql dep with a bare fabricated `# ADR-9999`
+    // comment and a `.graphql` file with a sibling `.adr` marker citing `ADR-1234` — NEITHER id is
+    // allowlisted nor backed by a real Accepted reversing ADR. The gate must be RED.
+    let root = temp_repo();
+    write_member(
+        &root,
+        "studio-graphql",
+        "# ADR-9999\n[package]\nname = \"studio-graphql\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nasync-graphql = \"7\"\n",
+        None,
+    );
+    // A real api.graphql + a sibling api.graphql.adr citing ADR-1234 — still not authorized.
+    write_file(&root, "crates/studio-graphql/api.graphql", "type Query { ok: Boolean }\n");
+    write_file(&root, "crates/studio-graphql/api.graphql.adr", "ADR-1234\n");
+
+    let policy = fixture_policy();
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    assert!(
+        findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB"),
+        "a fabricated ADR token must NOT launder a forbidden lib: {findings:#?}"
+    );
+    assert!(
+        findings.iter().any(|f| f.code == "NGQL-SCHEMA-FILE"),
+        "a sibling .adr marker citing an unvalidated id must NOT launder a schema file: {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
+
+#[test]
+fn red_fixture_workspace_dependencies_rename_smuggle() {
+    // RED, hermetic (CRITICAL backdoor): async-graphql smuggled via a root [workspace.dependencies]
+    // rename + a member `{ workspace = true }` inheritance. The collector must resolve the rename back
+    // to the real name and the gate must be RED.
+    let root = temp_repo();
+    write_root_manifest(
+        &root,
+        "[workspace]\nresolver = \"2\"\nmembers = [\"crates/*\"]\n\n[workspace.dependencies]\ngqlrt = { package = \"async-graphql\", version = \"7\" }\n",
+    );
+    write_member(
+        &root,
+        "gw",
+        "[package]\nname = \"gw\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\ngqlrt = { workspace = true }\n",
+        None,
+    );
+
+    let policy = fixture_policy();
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    assert!(
+        findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.ends_with("async-graphql")),
+        "a [workspace.dependencies] rename must be denied on the real name: {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
+
+#[test]
+fn red_fixture_non_member_cargo_toml() {
+    // RED, hermetic (MAJOR scope): async-graphql in a NON-member `services/gw/Cargo.toml` (the
+    // workspace globs `crates/*`, so `services/gw` is NOT a resolved member). The LIB leg now scans
+    // EVERY Cargo.toml in the tree, so the gate must be RED.
+    let root = temp_repo();
+    // A clean member so the census floor is met.
+    write_member(
+        &root,
+        "core",
+        "[package]\nname = \"core\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = \"1\"\n",
+        None,
+    );
+    // The forbidden dep in a NON-member dir.
+    write_file(
+        &root,
+        "services/gw/Cargo.toml",
+        "[package]\nname = \"gw\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nasync-graphql = \"7\"\n",
+    );
+
+    let policy = fixture_policy();
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    assert!(
+        findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB" && f.key.starts_with("services/gw/Cargo.toml")),
+        "a forbidden dep in a NON-member Cargo.toml must be RED: {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
+
+#[test]
+fn red_fixture_graphqls_sdl_extension() {
+    // RED, hermetic (MAJOR ext): a `schema.graphqls` (the canonical GraphQL SDL extension) file.
+    let root = temp_repo();
+    write_member(
+        &root,
+        "analytics-api",
+        "[package]\nname = \"analytics-api\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = \"1\"\n",
+        None,
+    );
+    write_file(&root, "crates/analytics-api/schema.graphqls", "type Query { ok: Boolean }\n");
+
+    let policy = fixture_policy();
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    assert!(
+        findings.iter().any(|f| f.code == "NGQL-SCHEMA-FILE" && f.key.ends_with("schema.graphqls")),
+        "a .graphqls SDL file must be RED: {findings:#?}"
+    );
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+
+    fs::remove_dir_all(&root).expect("remove temp repo");
+}
+
+#[test]
+fn red_fixture_transitive_crate_in_cargo_lock() {
+    // RED, hermetic (MAJOR transitive): a forbidden crate present ONLY in Cargo.lock (no manifest
+    // names it directly) must be RED — the transitive-reintroduction catch.
+    let root = temp_repo();
+    write_member(
+        &root,
+        "core",
+        "[package]\nname = \"core\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nserde = \"1\"\n",
+        None,
+    );
+    write_file(
+        &root,
+        "Cargo.lock",
+        "version = 4\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.150\"\n\n[[package]]\nname = \"async-graphql\"\nversion = \"7.0.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n",
+    );
+
+    let policy = fixture_policy();
+    let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
+    let findings = evaluate_keyed(&policy, &observed);
+
+    let f = findings
+        .iter()
+        .find(|f| f.code == "NGQL-LOCK-FORBIDDEN")
+        .unwrap_or_else(|| panic!("a transitive forbidden crate in Cargo.lock must be RED: {findings:#?}"));
+    assert_eq!(f.key, "Cargo.lock:async-graphql");
+    assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 
     fs::remove_dir_all(&root).expect("remove temp repo");
 }

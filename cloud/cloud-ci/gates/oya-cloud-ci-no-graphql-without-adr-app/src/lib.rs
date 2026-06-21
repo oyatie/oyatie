@@ -26,14 +26,27 @@
 //! The drop PR leaves the tree GraphQL-free, so this gate ships born-blocking with an EMPTY baseline:
 //! there is no shrink-only legacy debt. Any NEW GraphQL artifact fails closed on arrival.
 //!
-//! ## ADR escape-hatch
+//! ## ADR escape-hatch (allowlist-gated + ADR-validated; NOT a bare token match)
 //! GraphQL is admissible ONLY via a future ADR that explicitly reverses ADR-0565 (ADR-0565
-//! "Decision"). The gate honors that: a forbidden artifact that REFERENCES an accepted authorizing
-//! ADR id — an `ADR-NNNN` citation other than the forbidding ADR itself — is allowed. The reference
-//! must be a DIFFERENT ADR than the forbidding ADR (`policy.forbidding_adr`) so a file cannot launder
-//! itself by merely mentioning ADR-0565 (the rule it would be violating); it must cite the reversing
-//! decision. This is the construction-over-flag escape: a real reversal is a reviewed ADR, and the
-//! gate reads its citation, never a bare suppression comment.
+//! "Decision"). The gate honors that, but it does NOT trust any `ADR-NNNN` token a candidate file
+//! prints. A citation launders a forbidden artifact iff BOTH hold:
+//! 1. The cited id is in the policy `authorizing_adrs` ALLOWLIST. That list is EMPTY today — nothing
+//!    authorizes GraphQL — so an arbitrary, fabricated, or typo id (`ADR-9999`, `ADR-1234`,
+//!    `ADR-05650`) CANNOT launder. A real reversal first adds its id to the policy (a reviewed DATA
+//!    change), and only then can a file cite it.
+//! 2. Defense in depth: the cited id RESOLVES to a real `docs/decisions/ADR-NNNN-*.md` whose
+//!    frontmatter `status` is `Accepted` and that supersedes/reverses the forbidding ADR (its
+//!    `supersedes`/`amends`/`reverses` frontmatter names the forbidding id, or its body cites the
+//!    forbidding id with a reverse/supersede verb). A Proposed/Draft ADR, a missing file, or an ADR
+//!    that does not actually reverse the ban does NOT launder — even if it is (mistakenly) allowlisted.
+//!
+//! The cited id is also always a DIFFERENT ADR than the forbidding ADR (`policy.forbidding_adr`), so a
+//! file can never launder itself by merely mentioning ADR-0565 (the rule it would be violating). The
+//! set of ids that satisfy BOTH conditions is computed ONCE by the collector (the only I/O) and
+//! carried in `observed.valid_authorizing_adrs`; the pure evaluator then admits a forbidden artifact
+//! only if it cites one of those validated ids. This is construction-over-flag: a real reversal is a
+//! reviewed ADR plus a reviewed policy allowlist edit, and the gate validates both — never a bare
+//! suppression comment.
 //!
 //! ## Born pack-shaped
 //! The crate is a NEUTRAL engine. All repo-specifics — the forbidden crate set (exact + prefix
@@ -51,9 +64,13 @@
 //!
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `NGQL-FORBIDDEN-LIB`     — a GraphQL execution/parse library is declared in a `Cargo.toml`
-//!   dependency table without an authorizing ADR reference.
-//! - `NGQL-SCHEMA-FILE`       — a `.graphql`/`.gql`/`.sdl` GraphQL schema file is present without an
-//!   authorizing ADR reference.
+//!   dependency table (any manifest in the tree, including a `[workspace.dependencies]` rename)
+//!   without an allowlisted+validated authorizing ADR reference.
+//! - `NGQL-SCHEMA-FILE`       — a `.graphql`/`.gql`/`.graphqls`/`.gqls`/`.sdl` GraphQL schema file is
+//!   present without an allowlisted+validated authorizing ADR reference.
+//! - `NGQL-LOCK-FORBIDDEN`    — a forbidden GraphQL crate is present in the resolved `Cargo.lock`
+//!   graph (catches a transitive reintroduction no manifest names directly), without a tree-wide
+//!   allowlisted+validated authorizing ADR reference.
 //! - `NGQL-EMPTY-SCAN`        — the workspace member census is below the policy floor (catches a
 //!   broken CWD / member-glob that would otherwise be a silent false-green).
 //! - `NGQL-POLICY-GATE-ID-MISMATCH` — the policy `gate_id` is not [`GATE_ID`] (fail-closed).
@@ -75,9 +92,10 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-no-graphql-without-adr";
 
 /// The blocking + structural violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 5] = [
+pub const VIOLATION_CODES: [&str; 6] = [
     "NGQL-FORBIDDEN-LIB",
     "NGQL-SCHEMA-FILE",
+    "NGQL-LOCK-FORBIDDEN",
     "NGQL-EMPTY-SCAN",
     "NGQL-POLICY-GATE-ID-MISMATCH",
     "NGQL-POLICY-MALFORMED",
@@ -166,46 +184,64 @@ fn schema_extensions(policy: &Value) -> Option<Vec<String>> {
 
 /// Collect the candidate-tree GraphQL-artifact view the policy asks about.
 ///
-/// Two read-only scans of the candidate tree — NO shell, NO network, NO VCS:
-/// 1. Each resolved workspace member's `Cargo.toml`: its declared dependency-table crate names plus
-///    whether that manifest references an authorizing ADR.
-/// 2. A recursive walk for `.graphql`/`.gql`/`.sdl` schema files (skipping the policy-declared
-///    `excluded_dirs`, e.g. `third-party/`), each tagged with whether it references an authorizing
-///    ADR (in its own contents or in a sibling marker).
+/// Read-only scans of the candidate tree — NO shell, NO network, NO VCS:
+/// 0. The set of VALIDATED authorizing ADR ids: each id in the policy `authorizing_adrs` allowlist
+///    that also resolves to a real `docs/decisions/ADR-NNNN-*.md` whose frontmatter status is
+///    `Accepted` and that supersedes/reverses the forbidding ADR. A citation only launders an
+///    artifact if it names one of these ids (computed once here, the only I/O).
+/// 1. EVERY `Cargo.toml` in the candidate tree (NOT only resolved workspace members — a non-member
+///    dir or excluded nested workspace can still declare a forbidden dep): its declared
+///    dependency-table crate names — resolving `{ workspace = true }` inheritance back to the root
+///    `[workspace.dependencies]` (with `package = "<real>"` renames) — plus which authorizing ADR ids
+///    that manifest cites.
+/// 2. A recursive walk for `.graphql`/`.gql`/`.graphqls`/`.gqls`/`.sdl` schema files (skipping the
+///    policy-declared `excluded_dirs`, e.g. `third-party/`), each tagged with which authorizing ADR
+///    ids it cites (in its own contents or in a sibling `<file>.adr` marker).
+/// 3. The resolved `Cargo.lock` graph (if present): every package name, so a forbidden GraphQL crate
+///    pulled in transitively (named by no manifest directly) still fails closed.
 ///
 /// Emits:
 /// `{ "workspace_members_found": <usize>,
-///    "manifests": [ { "member_path", "deps":[<name>..], "references_authorizing_adr": <bool> } ],
-///    "schema_files": [ { "path", "references_authorizing_adr": <bool> } ] }`.
+///    "valid_authorizing_adrs": [<id>..],
+///    "manifests": [ { "member_path", "deps":[<name>..], "cited_adrs":[<id>..] } ],
+///    "schema_files": [ { "path", "cited_adrs":[<id>..] } ],
+///    "lock": { "present": <bool>, "packages": [<name>..], "cited_adrs":[<id>..] } }`.
 pub fn collect_graphql_artifacts(root: &Path, policy: &Value) -> Result<Value, CollectError> {
     let forbidding_adr = forbidding_adr(policy);
     let exts = schema_extensions(policy).unwrap_or_default();
     let excluded = excluded_dirs(policy);
 
-    // --- (1) member Cargo.toml manifests ---
+    // --- (0) validated authorizing-ADR allowlist (allowlist ∩ docs/decisions validation) ---
+    let valid_authorizing_adrs =
+        validated_authorizing_adrs(root, policy, forbidding_adr.as_deref())?;
+
+    // --- (1) EVERY Cargo.toml in the candidate tree (members AND non-members) ---
     let member_dirs =
         resolve_member_dirs(root).map_err(|error| CollectError::ResolveMembers(error.to_string()))?;
     let members_found = member_dirs.len();
+    let root_workspace_deps = read_root_workspace_deps(root)?;
+    let mut manifest_paths: Vec<String> = Vec::new();
+    collect_manifest_paths(root, root, &excluded, &mut manifest_paths)?;
+    manifest_paths.sort();
     let mut manifests = Vec::new();
-    for member_dir in &member_dirs {
-        let cargo_path = root.join(member_dir).join("Cargo.toml");
+    for rel in &manifest_paths {
+        let cargo_path = root.join(rel);
         let text = match fs::read_to_string(&cargo_path) {
             Ok(text) => text,
-            // A member dir without a readable Cargo.toml contributes no manifest row (the
-            // member resolver only returns dirs that hold one; a transient read miss is skipped
-            // rather than failing the whole scan, since the file-walk leg still covers schema
-            // files there).
             Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => continue,
             Err(e) => {
                 return Err(CollectError::Io(format!("read {}: {e}", cargo_path.display())));
             }
         };
-        let deps = parse_manifest_dep_names(&text);
-        let references_authorizing_adr = references_authorizing_adr(&text, forbidding_adr.as_deref());
+        let deps = parse_manifest_dep_names_with_workspace(&text, &root_workspace_deps);
+        let cited = cited_authorizing_adrs(&text, forbidding_adr.as_deref());
+        // Report the manifest's parent dir (matching the prior member-relative key shape:
+        // `<dir>/Cargo.toml`), so the finding key is `<dir>/Cargo.toml:<dep>`.
+        let member_path = rel.strip_suffix("/Cargo.toml").unwrap_or(rel);
         manifests.push(json!({
-            "member_path": member_dir,
+            "member_path": member_path,
             "deps": deps.into_iter().collect::<Vec<_>>(),
-            "references_authorizing_adr": references_authorizing_adr,
+            "cited_adrs": cited.into_iter().collect::<Vec<_>>(),
         }));
     }
 
@@ -219,11 +255,81 @@ pub fn collect_graphql_artifacts(root: &Path, policy: &Value) -> Result<Value, C
             .cmp(b.get("path").and_then(Value::as_str).unwrap_or_default())
     });
 
+    // --- (3) Cargo.lock resolved graph (transitive reintroduction catch) ---
+    let lock = collect_lock_packages(root, forbidding_adr.as_deref())?;
+
     Ok(json!({
         "workspace_members_found": members_found,
+        "valid_authorizing_adrs": valid_authorizing_adrs.into_iter().collect::<Vec<_>>(),
         "manifests": manifests,
         "schema_files": schema_files,
+        "lock": lock,
     }))
+}
+
+/// The root manifest `[workspace.dependencies]` table: dependency-key -> REAL crate name (honoring
+/// `package = "<real>"` renames). Empty if absent. A member's `{ workspace = true }` inheritance
+/// resolves THROUGH this table, so a forbidden lib renamed at the workspace seam (e.g.
+/// `gqlrt = { package = "async-graphql" }`) is denied on its real name even though the member only
+/// writes `gqlrt = { workspace = true }`.
+fn read_root_workspace_deps(root: &Path) -> Result<WorkspaceDeps, CollectError> {
+    let cargo_path = root.join("Cargo.toml");
+    let text = match fs::read_to_string(&cargo_path) {
+        Ok(text) => text,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(WorkspaceDeps::default()),
+        Err(e) => return Err(CollectError::Io(format!("read {}: {e}", cargo_path.display()))),
+    };
+    Ok(parse_root_workspace_deps(&text))
+}
+
+/// Recursively collect repo-relative `Cargo.toml` paths under `dir`, skipping the VCS dir, the
+/// `target`/`buck-out` build dirs, and any policy-`excluded` prefix. Read-only; missing dirs skipped.
+fn collect_manifest_paths(
+    root: &Path,
+    dir: &Path,
+    excluded: &[String],
+    out: &mut Vec<String>,
+) -> Result<(), CollectError> {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => return Err(CollectError::Io(format!("read dir {}: {e}", dir.display()))),
+    };
+    for entry in entries {
+        let entry =
+            entry.map_err(|e| CollectError::Io(format!("read entry in {}: {e}", dir.display())))?;
+        let path = entry.path();
+        let rel = path.strip_prefix(root).unwrap_or(&path);
+        let rel_str = rel.to_string_lossy().replace('\\', "/");
+        if is_skipped_dir(&rel_str, excluded) {
+            continue;
+        }
+        let file_type = entry
+            .file_type()
+            .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
+        if file_type.is_dir() {
+            collect_manifest_paths(root, &path, excluded, out)?;
+        } else if rel_str == "Cargo.toml" || rel_str.ends_with("/Cargo.toml") {
+            out.push(rel_str);
+        }
+    }
+    Ok(())
+}
+
+/// Whether a repo-relative path is in an always-skipped dir (VCS / build output) or under a
+/// policy-`excluded` prefix. Shared by every tree walk so the LIB leg, schema leg, and manifest leg
+/// all honor the same scope.
+fn is_skipped_dir(rel_str: &str, excluded: &[String]) -> bool {
+    const ALWAYS_SKIP: [&str; 3] = [".git", "target", "buck-out"];
+    if ALWAYS_SKIP
+        .iter()
+        .any(|d| rel_str == *d || rel_str.starts_with(&format!("{d}/")))
+    {
+        return true;
+    }
+    excluded
+        .iter()
+        .any(|ex| rel_str == *ex || rel_str.starts_with(&format!("{ex}/")))
 }
 
 /// The forbidding-ADR id (`policy.forbidding_adr`, e.g. `ADR-0565`) — the decision this gate enforces.
@@ -252,14 +358,146 @@ fn excluded_dirs(policy: &Value) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// Whether `text` references an AUTHORIZING ADR — an `ADR-NNNN` citation other than the forbidding
-/// ADR. The escape-hatch (ADR-0565: GraphQL admissible only via a reversing ADR): a file may carry
-/// GraphQL iff it cites the reversing decision. A mention of the forbidding ADR itself (the rule it
-/// would be violating) does NOT count — otherwise any file could self-launder by naming ADR-0565.
-fn references_authorizing_adr(text: &str, forbidding_adr: Option<&str>) -> bool {
+/// The `ADR-NNNN` ids `text` cites OTHER than the forbidding ADR (the rule the artifact would be
+/// violating — naming it can never self-launder). These are merely the CITED ids; whether any of them
+/// actually launders is decided later against the VALIDATED authorizing-ADR set (allowlist ∩ real
+/// Accepted-and-reversing ADR file). Citing an id is necessary but NOT sufficient for the escape-hatch.
+fn cited_authorizing_adrs(text: &str, forbidding_adr: Option<&str>) -> BTreeSet<String> {
     adr_citations(text)
         .into_iter()
-        .any(|cited| Some(cited.as_str()) != forbidding_adr)
+        .filter(|cited| Some(cited.as_str()) != forbidding_adr)
+        .collect()
+}
+
+/// The set of authorizing ADR ids that may launder a forbidden artifact: the policy `authorizing_adrs`
+/// allowlist INTERSECTED with the ids that pass defense-in-depth validation against the real
+/// `docs/decisions/` tree. Both conditions are required:
+/// - ALLOWLIST: only ids explicitly enumerated in `policy.authorizing_adrs` are eligible. That list is
+///   EMPTY today (nothing authorizes GraphQL), so a fabricated/typo id can never launder.
+/// - VALIDATION: the id must resolve to a real `docs/decisions/ADR-<id>-*.md` whose frontmatter
+///   `status` is `Accepted` (case-insensitive) and that supersedes/reverses the forbidding ADR (its
+///   `supersedes`/`amends`/`reverses` frontmatter, or its body, names the forbidding id with a
+///   reverse/supersede verb). The forbidding id itself is never eligible.
+///
+/// Returns the validated ids. A non-existent `docs/decisions/` dir yields an empty set (no id can be
+/// validated) — fail-closed, since with an empty allowlist there is nothing to validate anyway.
+fn validated_authorizing_adrs(
+    root: &Path,
+    policy: &Value,
+    forbidding_adr: Option<&str>,
+) -> Result<BTreeSet<String>, CollectError> {
+    let allowlist: Vec<String> = policy
+        .get("authorizing_adrs")
+        .and_then(Value::as_array)
+        .map(|list| {
+            list.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
+    if allowlist.is_empty() {
+        return Ok(BTreeSet::new());
+    }
+    let decisions_dir = policy
+        .get("decisions_dir")
+        .and_then(Value::as_str)
+        .unwrap_or("docs/decisions");
+    let dir = root.join(decisions_dir);
+    let mut validated = BTreeSet::new();
+    for id in allowlist {
+        if Some(id.as_str()) == forbidding_adr {
+            // The forbidding ADR can never authorize its own reversal.
+            continue;
+        }
+        let Some(forbidding) = forbidding_adr else {
+            continue;
+        };
+        if adr_file_reverses_forbidding(&dir, &id, forbidding)? {
+            validated.insert(id);
+        }
+    }
+    Ok(validated)
+}
+
+/// Whether the ADR with id `id` resolves, in `decisions_dir`, to a real `ADR-<id>-*.md` file whose
+/// frontmatter status is `Accepted` and that supersedes/reverses `forbidding`. Read-only; a missing
+/// file or dir is `false` (fail-closed). The file is `ADR-NNNN-*.md` (id then a `-`-separated slug).
+fn adr_file_reverses_forbidding(
+    decisions_dir: &Path,
+    id: &str,
+    forbidding: &str,
+) -> Result<bool, CollectError> {
+    let entries = match fs::read_dir(decisions_dir) {
+        Ok(entries) => entries,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(e) => {
+            return Err(CollectError::Io(format!(
+                "read dir {}: {e}",
+                decisions_dir.display()
+            )));
+        }
+    };
+    let prefix = format!("{id}-");
+    for entry in entries {
+        let entry = entry
+            .map_err(|e| CollectError::Io(format!("read entry in {}: {e}", decisions_dir.display())))?;
+        let name = entry.file_name();
+        let name = name.to_string_lossy();
+        if !(name.starts_with(&prefix) && name.ends_with(".md")) {
+            continue;
+        }
+        let body = match fs::read_to_string(entry.path()) {
+            Ok(body) => body,
+            Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => {
+                return Err(CollectError::Io(format!("read {}: {e}", entry.path().display())));
+            }
+        };
+        return Ok(adr_is_accepted_and_reverses(&body, forbidding));
+    }
+    Ok(false)
+}
+
+/// Pure predicate: does an ADR document `body` carry frontmatter `status: Accepted` (case-insensitive)
+/// AND name `forbidding` as a decision it reverses/supersedes? The reversal signal is either the
+/// `supersedes`/`amends`/`reverses` frontmatter listing the forbidding id, or the body citing the
+/// forbidding id alongside a reverse/supersede verb. Exposed for unit tests.
+pub fn adr_is_accepted_and_reverses(body: &str, forbidding: &str) -> bool {
+    if !adr_status_is_accepted(body) {
+        return false;
+    }
+    if !adr_citations(body).contains(forbidding) {
+        // It does not even mention the forbidding ADR — it cannot reverse it.
+        return false;
+    }
+    // A reverse/supersede verb must appear somewhere in the document (its frontmatter
+    // supersedes/amends/reverses list, or its prose). Combined with the structural requirement above
+    // (status Accepted + the forbidding id is cited), this is the reversal signal.
+    let lower = body.to_ascii_lowercase();
+    const VERBS: [&str; 3] = ["reverse", "supersed", "overturn"];
+    VERBS.iter().any(|v| lower.contains(v))
+}
+
+/// Whether the ADR frontmatter declares `status: Accepted` (case-insensitive on the value). Reads only
+/// the first `status:` line (the canonical frontmatter field); a `> **Status:** ...` prose line is not
+/// the authority. A multi-value status (`Proposed | Accepted | ...`) only counts when the resolved
+/// single value is Accepted, so a not-yet-ratified `Proposed` does not launder.
+fn adr_status_is_accepted(body: &str) -> bool {
+    for line in body.lines() {
+        let trimmed = line.trim_start();
+        let Some(rest) = trimmed.strip_prefix("status:") else {
+            continue;
+        };
+        let value = rest.trim().to_ascii_lowercase();
+        // A pipe-delimited status enum (`proposed | accepted | superseded`) is a TEMPLATE, not a
+        // ratified value — it does not count as Accepted.
+        if value.contains('|') {
+            return false;
+        }
+        return value == "accepted";
+    }
+    false
 }
 
 /// Extract every `ADR-NNNN` citation from `text` (4+ digits after `ADR-`). Deterministic, pure;
@@ -285,12 +523,66 @@ fn adr_citations(text: &str) -> BTreeSet<String> {
     out
 }
 
+/// The root `[workspace.dependencies]` table resolved to dependency-key -> REAL crate name (honoring
+/// `package = "<real>"`). A member's `{ workspace = true }` inheritance resolves through this map.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct WorkspaceDeps {
+    map: std::collections::BTreeMap<String, String>,
+}
+
+impl WorkspaceDeps {
+    /// The REAL crate name a workspace dependency key resolves to (the `package = "<real>"` rename if
+    /// present, else the key itself), or `None` if the key is not in `[workspace.dependencies]`.
+    fn real_name(&self, key: &str) -> Option<&str> {
+        self.map.get(key).map(String::as_str)
+    }
+}
+
+/// Parse the root manifest's `[workspace.dependencies]` table. Each entry maps its key to the REAL
+/// crate name: `gqlrt = { package = "async-graphql", version = "7" }` maps `gqlrt -> async-graphql`,
+/// so a forbidden lib renamed at the workspace seam is still denied on its real name. A bare
+/// `serde = "1"` maps `serde -> serde`. Pure helper, exposed for tests.
+pub fn parse_root_workspace_deps(text: &str) -> WorkspaceDeps {
+    let mut map = std::collections::BTreeMap::new();
+    let Ok(doc) = text.parse::<toml::Value>() else {
+        return WorkspaceDeps { map };
+    };
+    if let Some(table) = doc
+        .get("workspace")
+        .and_then(toml::Value::as_table)
+        .and_then(|w| w.get("dependencies"))
+        .and_then(toml::Value::as_table)
+    {
+        for (dep_key, spec) in table {
+            let real = spec
+                .as_table()
+                .and_then(|t| t.get("package").and_then(toml::Value::as_str))
+                .unwrap_or(dep_key.as_str());
+            map.insert(dep_key.clone(), real.to_owned());
+        }
+    }
+    WorkspaceDeps { map }
+}
+
+/// Parse the crate names declared in a `Cargo.toml`'s dependency tables WITHOUT workspace resolution.
+/// Convenience wrapper over [`parse_manifest_dep_names_with_workspace`] with an empty workspace table;
+/// `{ workspace = true }` entries resolve to their local key (no root to inherit from). Pure helper,
+/// exposed for tests.
+pub fn parse_manifest_dep_names(text: &str) -> BTreeSet<String> {
+    parse_manifest_dep_names_with_workspace(text, &WorkspaceDeps::default())
+}
+
 /// Parse the crate names declared in a `Cargo.toml`'s dependency tables —
 /// `[dependencies]`, `[dev-dependencies]`, `[build-dependencies]`, and the `[target.*.*]` variants.
-/// Honors `package = "<real>"` renames (denies on the REAL crate name, so a rename cannot smuggle a
-/// forbidden lib). dev-dependencies ARE scanned: a GraphQL lib reintroduced as a dev-dep is still a
-/// reintroduction of the surface ADR-0565 forbids. Pure helper, exposed for tests.
-pub fn parse_manifest_dep_names(text: &str) -> BTreeSet<String> {
+/// Honors `package = "<real>"` renames (denies on the REAL crate name) AND `{ workspace = true }`
+/// inheritance: a `{ workspace = true }` entry resolves through `workspace_deps` back to the root
+/// `[workspace.dependencies]` definition (including the root's `package =` rename), so a forbidden lib
+/// smuggled via the workspace seam is denied on its real name. dev-dependencies ARE scanned: a GraphQL
+/// lib reintroduced as a dev-dep is still a reintroduction of the surface ADR-0565 forbids.
+pub fn parse_manifest_dep_names_with_workspace(
+    text: &str,
+    workspace_deps: &WorkspaceDeps,
+) -> BTreeSet<String> {
     let mut names = BTreeSet::new();
     let Ok(doc) = text.parse::<toml::Value>() else {
         // A manifest that does not parse contributes no deps from this leg; the gate is not a TOML
@@ -298,36 +590,91 @@ pub fn parse_manifest_dep_names(text: &str) -> BTreeSet<String> {
         // forbidden lib in a broken manifest would also break the build.
         return names;
     };
-    collect_dep_table_names(doc.get("dependencies"), &mut names);
-    collect_dep_table_names(doc.get("dev-dependencies"), &mut names);
-    collect_dep_table_names(doc.get("build-dependencies"), &mut names);
+    collect_dep_table_names(doc.get("dependencies"), workspace_deps, &mut names);
+    collect_dep_table_names(doc.get("dev-dependencies"), workspace_deps, &mut names);
+    collect_dep_table_names(doc.get("build-dependencies"), workspace_deps, &mut names);
     if let Some(targets) = doc.get("target").and_then(toml::Value::as_table) {
         for target_cfg in targets.values() {
-            collect_dep_table_names(target_cfg.get("dependencies"), &mut names);
-            collect_dep_table_names(target_cfg.get("dev-dependencies"), &mut names);
-            collect_dep_table_names(target_cfg.get("build-dependencies"), &mut names);
+            collect_dep_table_names(target_cfg.get("dependencies"), workspace_deps, &mut names);
+            collect_dep_table_names(target_cfg.get("dev-dependencies"), workspace_deps, &mut names);
+            collect_dep_table_names(target_cfg.get("build-dependencies"), workspace_deps, &mut names);
         }
     }
     names
 }
 
-/// Collect crate names from one dependency table into `names`, honoring `package = "<real>"`.
-fn collect_dep_table_names(table: Option<&toml::Value>, names: &mut BTreeSet<String>) {
+/// Collect crate names from one dependency table into `names`. Resolution order per entry:
+/// 1. `{ workspace = true }` -> the REAL name the root `[workspace.dependencies]` key resolves to
+///    (the root's `package =` rename applies); if the key is not in the root table, fall back to the
+///    local key (a malformed manifest, but still denied on its written name).
+/// 2. `{ package = "<real>" }` -> the real crate name (a local rename).
+/// 3. otherwise -> the dependency key itself.
+fn collect_dep_table_names(
+    table: Option<&toml::Value>,
+    workspace_deps: &WorkspaceDeps,
+    names: &mut BTreeSet<String>,
+) {
     let Some(table) = table.and_then(toml::Value::as_table) else {
         return;
     };
     for (dep_key, spec) in table {
-        let real = spec
-            .as_table()
-            .and_then(|t| t.get("package").and_then(toml::Value::as_str))
-            .unwrap_or(dep_key.as_str());
+        let spec_table = spec.as_table();
+        let inherits_workspace = spec_table
+            .and_then(|t| t.get("workspace").and_then(toml::Value::as_bool))
+            == Some(true);
+        let real = if inherits_workspace {
+            workspace_deps.real_name(dep_key).unwrap_or(dep_key.as_str())
+        } else {
+            spec_table
+                .and_then(|t| t.get("package").and_then(toml::Value::as_str))
+                .unwrap_or(dep_key.as_str())
+        };
         names.insert(real.to_owned());
     }
 }
 
-/// Recursively walk `dir` collecting GraphQL schema files (by `exts`), skipping `excluded` directory
-/// prefixes (relative to `root`). Each row carries its repo-relative path and whether it (or a
-/// sibling `<file>.adr` marker) references an authorizing ADR. Read-only; missing dirs are skipped.
+/// Scan the resolved `Cargo.lock` for package names (the transitive-dep catch). Emits
+/// `{ "present": <bool>, "packages": [<name>..], "cited_adrs":[<id>..] }`. A missing lock is
+/// `present: false` with no packages (the manifest legs still cover declared deps). The lock's own
+/// citations (rare, but a generated header could carry one) feed the lock leg's escape-hatch.
+fn collect_lock_packages(root: &Path, forbidding_adr: Option<&str>) -> Result<Value, CollectError> {
+    let lock_path = root.join("Cargo.lock");
+    let text = match fs::read_to_string(&lock_path) {
+        Ok(text) => text,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(json!({ "present": false, "packages": [], "cited_adrs": [] }));
+        }
+        Err(e) => return Err(CollectError::Io(format!("read {}: {e}", lock_path.display()))),
+    };
+    let packages = parse_lock_package_names(&text);
+    let cited = cited_authorizing_adrs(&text, forbidding_adr);
+    Ok(json!({
+        "present": true,
+        "packages": packages.into_iter().collect::<Vec<_>>(),
+        "cited_adrs": cited.into_iter().collect::<Vec<_>>(),
+    }))
+}
+
+/// Parse the `name = "<crate>"` of every `[[package]]` entry in a `Cargo.lock`. Pure helper, exposed
+/// for tests. A lock that does not parse contributes no names (the build would also be broken).
+pub fn parse_lock_package_names(text: &str) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    let Ok(doc) = text.parse::<toml::Value>() else {
+        return names;
+    };
+    if let Some(packages) = doc.get("package").and_then(toml::Value::as_array) {
+        for pkg in packages {
+            if let Some(name) = pkg.get("name").and_then(toml::Value::as_str) {
+                names.insert(name.to_owned());
+            }
+        }
+    }
+    names
+}
+
+/// Recursively walk `dir` collecting GraphQL schema files (by `exts`), skipping the VCS/build dirs and
+/// `excluded` prefixes (relative to `root`). Each row carries its repo-relative path and the
+/// authorizing-ADR ids it (or a sibling `<file>.adr` marker) cites. Read-only; missing dirs skipped.
 fn collect_schema_files(
     root: &Path,
     dir: &Path,
@@ -346,12 +693,8 @@ fn collect_schema_files(
             entry.map_err(|e| CollectError::Io(format!("read entry in {}: {e}", dir.display())))?;
         let path = entry.path();
         let rel = path.strip_prefix(root).unwrap_or(&path);
-        let rel_str = rel.to_string_lossy();
-        // Skip the always-irrelevant VCS dir and any policy-excluded prefix.
-        if rel_str.starts_with(".git/") || rel_str == ".git" {
-            continue;
-        }
-        if excluded.iter().any(|ex| rel_str == *ex || rel_str.starts_with(&format!("{ex}/"))) {
+        let rel_str = rel.to_string_lossy().replace('\\', "/");
+        if is_skipped_dir(&rel_str, excluded) {
             continue;
         }
         let file_type = entry
@@ -368,12 +711,11 @@ fn collect_schema_files(
                 path.extension().and_then(|e| e.to_str()).unwrap_or("")
             ));
             let marker_body = fs::read_to_string(&marker).unwrap_or_default();
-            let references_authorizing_adr =
-                references_authorizing_adr(&body, forbidding_adr)
-                    || references_authorizing_adr(&marker_body, forbidding_adr);
+            let mut cited = cited_authorizing_adrs(&body, forbidding_adr);
+            cited.extend(cited_authorizing_adrs(&marker_body, forbidding_adr));
             out.push(json!({
                 "path": rel_str,
-                "references_authorizing_adr": references_authorizing_adr,
+                "cited_adrs": cited.into_iter().collect::<Vec<_>>(),
             }));
         }
     }
@@ -439,8 +781,9 @@ impl Report {
 /// Pure evaluator. `policy` is DATA (`no-graphql-without-adr-policy.json`); `observed` is the
 /// candidate-tree GraphQL-artifact view shaped by [`collect_graphql_artifacts`].
 ///
-/// RED iff the candidate tree carries a forbidden GraphQL library (in any member `Cargo.toml`) or a
-/// GraphQL schema file, in EITHER case WITHOUT the artifact referencing an authorizing ADR. The
+/// RED iff the candidate tree carries a forbidden GraphQL library (in ANY `Cargo.toml`), a forbidden
+/// crate in the resolved `Cargo.lock` graph, or a GraphQL schema file, in EVERY case WITHOUT the
+/// artifact citing an ALLOWLISTED + VALIDATED authorizing ADR (`observed.valid_authorizing_adrs`). The
 /// frozen baseline is EMPTY (the tree is GraphQL-free post-drop), so any such artifact fails closed.
 pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
@@ -511,7 +854,26 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         .and_then(Value::as_str)
         .unwrap_or("ADR-0565");
 
-    // --- forbidden GraphQL libraries in member Cargo.toml manifests ---
+    // The VALIDATED authorizing-ADR ids (allowlist ∩ real Accepted-and-reversing ADR file), computed
+    // by the collector. An artifact launders ONLY by citing one of these; a bare/fabricated/typo id
+    // is NOT in this set (and the set is empty today — nothing authorizes GraphQL).
+    let valid_authorizing: BTreeSet<&str> = observed
+        .get("valid_authorizing_adrs")
+        .and_then(Value::as_array)
+        .map(|arr| arr.iter().filter_map(Value::as_str).collect())
+        .unwrap_or_default();
+    let cites_validated = |cited_field: &Value| -> bool {
+        cited_field
+            .as_array()
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(Value::as_str)
+                    .any(|id| valid_authorizing.contains(id))
+            })
+            .unwrap_or(false)
+    };
+
+    // --- forbidden GraphQL libraries in ANY Cargo.toml in the candidate tree ---
     let manifests = observed
         .get("manifests")
         .and_then(Value::as_array)
@@ -522,9 +884,9 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             .get("member_path")
             .and_then(Value::as_str)
             .unwrap_or("<unknown-member>");
-        let references_adr = manifest
-            .get("references_authorizing_adr")
-            .and_then(Value::as_bool)
+        let launders = manifest
+            .get("cited_adrs")
+            .map(&cites_validated)
             .unwrap_or(false);
         let deps = manifest
             .get("deps")
@@ -535,8 +897,8 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             let Some(rule) = crate_rules.iter().find(|rule| rule.matches(dep)) else {
                 continue;
             };
-            if references_adr {
-                // Escape-hatch: this manifest cites a reversing/authorizing ADR — allowed.
+            if launders {
+                // Escape-hatch: this manifest cites an allowlisted, validated reversing ADR — allowed.
                 continue;
             }
             let match_note = if rule.prefix {
@@ -548,7 +910,7 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
                 "NGQL-FORBIDDEN-LIB",
                 &format!("{member_path}/Cargo.toml:{dep}"),
                 format!(
-                    "`{member_path}/Cargo.toml` declares the GraphQL library `{dep}`{match_note}, which {forbidding} forbids in the owned stack (the canonical API surface is REST + gRPC + AsyncAPI + realtime). Remove the dependency. GraphQL is admissible ONLY via a future ADR that explicitly reverses {forbidding}; if such an ADR is accepted, cite its id in this Cargo.toml to authorize the dependency."
+                    "`{member_path}/Cargo.toml` declares the GraphQL library `{dep}`{match_note}, which {forbidding} forbids in the owned stack (the canonical API surface is REST + gRPC + AsyncAPI + realtime). Remove the dependency. GraphQL is admissible ONLY via a future ADR that explicitly reverses {forbidding}; such an ADR must be Accepted in docs/decisions AND enumerated in the gate policy `authorizing_adrs` allowlist, after which citing its id in this Cargo.toml authorizes the dependency."
                 ),
             ));
         }
@@ -565,20 +927,50 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             .get("path")
             .and_then(Value::as_str)
             .unwrap_or("<unknown-path>");
-        let references_adr = file
-            .get("references_authorizing_adr")
-            .and_then(Value::as_bool)
-            .unwrap_or(false);
-        if references_adr {
+        let launders = file.get("cited_adrs").map(&cites_validated).unwrap_or(false);
+        if launders {
             continue;
         }
         findings.insert(Finding::new(
             "NGQL-SCHEMA-FILE",
             path,
             format!(
-                "`{path}` is a GraphQL schema file, which {forbidding} forbids in the owned stack (the canonical API surface is REST + gRPC + AsyncAPI + realtime). Remove the file. GraphQL is admissible ONLY via a future ADR that explicitly reverses {forbidding}; if such an ADR is accepted, cite its id in the schema file (or a sibling `{path}.adr` marker) to authorize it."
+                "`{path}` is a GraphQL schema file, which {forbidding} forbids in the owned stack (the canonical API surface is REST + gRPC + AsyncAPI + realtime). Remove the file. GraphQL is admissible ONLY via a future ADR that explicitly reverses {forbidding}; such an ADR must be Accepted in docs/decisions AND enumerated in the gate policy `authorizing_adrs` allowlist, after which citing its id in the schema file (or a sibling `{path}.adr` marker) authorizes it."
             ),
         ));
+    }
+
+    // --- forbidden GraphQL crates in the resolved Cargo.lock graph (transitive catch) ---
+    if let Some(lock) = observed.get("lock") {
+        let present = lock.get("present").and_then(Value::as_bool).unwrap_or(false);
+        if present {
+            let lock_launders = lock.get("cited_adrs").map(&cites_validated).unwrap_or(false);
+            let packages = lock
+                .get("packages")
+                .and_then(Value::as_array)
+                .map(|arr| arr.iter().filter_map(Value::as_str).collect::<Vec<_>>())
+                .unwrap_or_default();
+            for pkg in packages {
+                let Some(rule) = crate_rules.iter().find(|rule| rule.matches(pkg)) else {
+                    continue;
+                };
+                if lock_launders {
+                    continue;
+                }
+                let match_note = if rule.prefix {
+                    format!(" (matched the forbidden prefix `{}`)", rule.name)
+                } else {
+                    String::new()
+                };
+                findings.insert(Finding::new(
+                    "NGQL-LOCK-FORBIDDEN",
+                    &format!("Cargo.lock:{pkg}"),
+                    format!(
+                        "the resolved `Cargo.lock` graph contains the GraphQL crate `{pkg}`{match_note}, which {forbidding} forbids in the owned stack — even though no manifest names it directly, it is pulled in transitively. Remove the dependency edge that introduces it (run a fresh resolve after dropping it). GraphQL is admissible ONLY via a future ADR that explicitly reverses {forbidding}, Accepted in docs/decisions AND enumerated in the gate policy `authorizing_adrs` allowlist."
+                    ),
+                ));
+            }
+        }
     }
 
     findings
@@ -622,17 +1014,36 @@ mod tests {
                 {"crate": "cynic", "match": "exact"},
                 {"crate": "apollo-", "match": "prefix"}
             ],
-            "schema_extensions": ["graphql", "gql", "sdl"],
+            "schema_extensions": ["graphql", "graphqls", "gql", "gqls", "sdl"],
+            "authorizing_adrs": [],
             "excluded_dirs": ["third-party/"]
         })
     }
 
-    fn observed(members: u64, manifests: Value, schema_files: Value) -> Value {
+    /// As [`policy`] but with `authorizing_adrs` carrying `ADR-0700` (the test-only authorizing id).
+    /// The pure evaluator trusts `observed.valid_authorizing_adrs` for the escape-hatch; this policy
+    /// is what a repo would ship after an ADR-0700 reversal was Accepted and allowlisted.
+    fn policy_allowing(ids: &[&str]) -> Value {
+        let mut p = policy();
+        p["authorizing_adrs"] = json!(ids);
+        p
+    }
+
+    /// The full observed shape. `valid` is the set the COLLECTOR validated (allowlist ∩ real
+    /// Accepted-reversing ADR); the pure evaluator launders an artifact only if it cites one of these.
+    fn observed_full(members: u64, valid: &[&str], manifests: Value, schema_files: Value, lock: Value) -> Value {
         json!({
             "workspace_members_found": members,
+            "valid_authorizing_adrs": valid,
             "manifests": manifests,
             "schema_files": schema_files,
+            "lock": lock,
         })
+    }
+
+    /// Convenience: no validated authorizing ids, no lock packages.
+    fn observed(members: u64, manifests: Value, schema_files: Value) -> Value {
+        observed_full(members, &[], manifests, schema_files, json!({"present": false, "packages": [], "cited_adrs": []}))
     }
 
     #[test]
@@ -642,7 +1053,7 @@ mod tests {
             &policy(),
             &observed(
                 500,
-                json!([{"member_path": "cloud/iam/pdp", "deps": ["serde", "tokio"], "references_authorizing_adr": false}]),
+                json!([{"member_path": "cloud/iam/pdp", "deps": ["serde", "tokio"], "cited_adrs": []}]),
                 json!([]),
             ),
         );
@@ -656,7 +1067,7 @@ mod tests {
     fn red_when_a_cargo_toml_adds_async_graphql() {
         let observed = observed(
             500,
-            json!([{"member_path": "oya/studio/graphql", "deps": ["async-graphql", "serde"], "references_authorizing_adr": false}]),
+            json!([{"member_path": "oya/studio/graphql", "deps": ["async-graphql", "serde"], "cited_adrs": []}]),
             json!([]),
         );
         let findings = evaluate_keyed(&policy(), &observed);
@@ -674,7 +1085,7 @@ mod tests {
     fn red_on_a_prefixed_apollo_crate() {
         let observed = observed(
             500,
-            json!([{"member_path": "cloud/gw", "deps": ["apollo-router"], "references_authorizing_adr": false}]),
+            json!([{"member_path": "cloud/gw", "deps": ["apollo-router"], "cited_adrs": []}]),
             json!([]),
         );
         let findings = evaluate_keyed(&policy(), &observed);
@@ -689,7 +1100,7 @@ mod tests {
         let observed = observed(
             500,
             json!([]),
-            json!([{"path": "oya/analytics/contracts/graphql-v1.sdl", "references_authorizing_adr": false}]),
+            json!([{"path": "oya/analytics/contracts/graphql-v1.sdl", "cited_adrs": []}]),
         );
         let findings = evaluate_keyed(&policy(), &observed);
         let f = findings
@@ -701,39 +1112,112 @@ mod tests {
     }
 
     #[test]
-    fn green_when_a_forbidden_lib_references_an_authorizing_adr() {
-        // The escape-hatch: a manifest that cites a reversing/authorizing ADR (a DIFFERENT ADR than
-        // the forbidding one) is allowed to carry GraphQL.
+    fn green_when_a_forbidden_lib_cites_a_validated_authorizing_adr() {
+        // The escape-hatch: a manifest citing an ALLOWLISTED + VALIDATED reversing ADR is allowed.
+        // The collector put ADR-0700 in valid_authorizing_adrs (allowlist ∩ real Accepted reversal).
+        let observed = observed_full(
+            500,
+            &["ADR-0700"],
+            json!([{"member_path": "cloud/gw", "deps": ["async-graphql"], "cited_adrs": ["ADR-0700"]}]),
+            json!([]),
+            json!({"present": false, "packages": [], "cited_adrs": []}),
+        );
+        let findings = evaluate_keyed(&policy_allowing(&["ADR-0700"]), &observed);
+        assert!(
+            !findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB"),
+            "a validated-ADR-cited GraphQL lib must be allowed: {findings:?}"
+        );
+        assert_eq!(evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn green_when_a_schema_file_cites_a_validated_authorizing_adr() {
+        let observed = observed_full(
+            500,
+            &["ADR-0700"],
+            json!([]),
+            json!([{"path": "oya/analytics/contracts/graphql-v2.graphql", "cited_adrs": ["ADR-0700"]}]),
+            json!({"present": false, "packages": [], "cited_adrs": []}),
+        );
+        assert_eq!(evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict, Verdict::Green);
+    }
+
+    #[test]
+    fn red_when_a_lib_cites_an_unvalidated_adr_backdoor() {
+        // CRITICAL backdoor (the adversarial-review finding): citing an arbitrary/fabricated ADR token
+        // must NOT launder. The id is NOT in valid_authorizing_adrs (empty allowlist), so the gate is
+        // RED even though the manifest "cites" ADR-9999.
         let observed = observed(
             500,
-            json!([{"member_path": "cloud/gw", "deps": ["async-graphql"], "references_authorizing_adr": true}]),
+            json!([{"member_path": "cloud/gw", "deps": ["async-graphql"], "cited_adrs": ["ADR-9999"]}]),
             json!([]),
         );
         let findings = evaluate_keyed(&policy(), &observed);
         assert!(
-            !findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB"),
-            "an ADR-referenced GraphQL lib must be allowed: {findings:?}"
+            findings.iter().any(|f| f.code == "NGQL-FORBIDDEN-LIB"),
+            "citing an unvalidated/fabricated ADR must NOT launder: {findings:?}"
         );
-        assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Green);
+        assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Red);
     }
 
     #[test]
-    fn green_when_a_schema_file_references_an_authorizing_adr() {
+    fn red_when_a_schema_cites_an_unvalidated_adr_backdoor() {
         let observed = observed(
             500,
             json!([]),
-            json!([{"path": "oya/analytics/contracts/graphql-v2.graphql", "references_authorizing_adr": true}]),
+            json!([{"path": "api.graphql", "cited_adrs": ["ADR-1234"]}]),
         );
-        assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Green);
+        let findings = evaluate_keyed(&policy(), &observed);
+        assert!(
+            findings.iter().any(|f| f.code == "NGQL-SCHEMA-FILE"),
+            "a schema citing an unvalidated ADR must NOT launder: {findings:?}"
+        );
     }
 
     #[test]
     fn mentioning_only_the_forbidding_adr_does_not_self_launder() {
         // A file that cites ONLY the forbidding ADR (ADR-0565 — the rule it would be violating) does
-        // NOT escape: references_authorizing_adr is computed against the forbidding id.
-        assert!(!references_authorizing_adr("see ADR-0565", Some("ADR-0565")));
-        // Citing a DIFFERENT (reversing) ADR escapes.
-        assert!(references_authorizing_adr("reintroduced per ADR-0700 reversing ADR-0565", Some("ADR-0565")));
+        // NOT escape: cited_authorizing_adrs filters the forbidding id out.
+        assert!(cited_authorizing_adrs("see ADR-0565", Some("ADR-0565")).is_empty());
+        // Citing a DIFFERENT (reversing) id is collected (but still must be VALIDATED to launder).
+        assert!(
+            cited_authorizing_adrs("reintroduced per ADR-0700 reversing ADR-0565", Some("ADR-0565"))
+                .contains("ADR-0700")
+        );
+    }
+
+    #[test]
+    fn red_when_lock_carries_a_forbidden_crate_transitively() {
+        // A forbidden crate present ONLY in the resolved Cargo.lock graph (no manifest names it
+        // directly) must be RED — the transitive-reintroduction catch.
+        let observed = observed_full(
+            500,
+            &[],
+            json!([{"member_path": "cloud/gw", "deps": ["serde"], "cited_adrs": []}]),
+            json!([]),
+            json!({"present": true, "packages": ["serde", "tokio", "async-graphql"], "cited_adrs": []}),
+        );
+        let findings = evaluate_keyed(&policy(), &observed);
+        let f = findings
+            .iter()
+            .find(|f| f.code == "NGQL-LOCK-FORBIDDEN")
+            .unwrap_or_else(|| panic!("a forbidden lock crate must be RED: {findings:?}"));
+        assert_eq!(f.key, "Cargo.lock:async-graphql");
+        assert_eq!(evaluate(&policy(), &observed).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn lock_leg_honors_a_validated_authorizing_adr() {
+        // When the lock itself cites a validated authorizing ADR (rare; e.g. a generated lock header),
+        // the lock leg laundering applies — proving the escape-hatch is consistent across legs.
+        let observed = observed_full(
+            500,
+            &["ADR-0700"],
+            json!([]),
+            json!([]),
+            json!({"present": true, "packages": ["async-graphql"], "cited_adrs": ["ADR-0700"]}),
+        );
+        assert_eq!(evaluate(&policy_allowing(&["ADR-0700"]), &observed).verdict, Verdict::Green);
     }
 
     #[test]
@@ -800,6 +1284,73 @@ cynic = "3"
     }
 
     #[test]
+    fn workspace_dependency_rename_resolves_to_real_name() {
+        // CRITICAL backdoor: a forbidden lib smuggled via the root [workspace.dependencies] rename and
+        // a member `{ workspace = true }` inheritance must resolve to its REAL name.
+        let root = r#"
+[workspace]
+members = ["crates/*"]
+[workspace.dependencies]
+gqlrt = { package = "async-graphql", version = "7" }
+serde = "1"
+"#;
+        let ws = parse_root_workspace_deps(root);
+        let member = r#"
+[package]
+name = "gw"
+[dependencies]
+gqlrt = { workspace = true }
+serde = { workspace = true }
+"#;
+        let names = parse_manifest_dep_names_with_workspace(member, &ws);
+        assert!(
+            names.contains("async-graphql"),
+            "{{ workspace = true }} on a renamed workspace dep must resolve to the real name: {names:?}"
+        );
+        assert!(names.contains("serde"));
+        assert!(!names.contains("gqlrt"), "the workspace rename key must NOT be denied on: {names:?}");
+    }
+
+    #[test]
+    fn parse_lock_package_names_collects_every_package() {
+        let lock = r#"
+version = 4
+[[package]]
+name = "serde"
+version = "1.0.150"
+[[package]]
+name = "async-graphql"
+version = "7.0.0"
+"#;
+        let names = parse_lock_package_names(lock);
+        assert!(names.contains("serde"));
+        assert!(names.contains("async-graphql"));
+    }
+
+    #[test]
+    fn adr_status_accepted_requires_a_ratified_value() {
+        assert!(adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Accepted\nsupersedes:\n  - ADR-0565\n---\nThis ADR reverses ADR-0565.\n",
+            "ADR-0565"
+        ));
+        // A Proposed ADR does not launder even if it claims to reverse the ban.
+        assert!(!adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Proposed\n---\nThis ADR reverses ADR-0565.\n",
+            "ADR-0565"
+        ));
+        // An Accepted ADR that does not mention the forbidding id does not launder.
+        assert!(!adr_is_accepted_and_reverses(
+            "---\nid: ADR-0700\nstatus: Accepted\n---\nUnrelated decision.\n",
+            "ADR-0565"
+        ));
+        // A pipe-delimited status template is not a ratified value.
+        assert!(!adr_is_accepted_and_reverses(
+            "---\nstatus: Proposed | Accepted | Superseded\n---\nreverses ADR-0565\n",
+            "ADR-0565"
+        ));
+    }
+
+    #[test]
     fn adr_citations_requires_four_digits() {
         let cited = adr_citations("ADR-0565 and ADR-12 and ADR-0700 and ADR-1234");
         assert!(cited.contains("ADR-0565"));
@@ -810,11 +1361,29 @@ cynic = "3"
     }
 
     #[test]
+    fn typo_near_forbidding_id_does_not_launder() {
+        // `ADR-05650` (a typo of the forbidding ADR-0565) is a DIFFERENT id; it is collected as a
+        // citation but is not in the validated set, so it cannot launder.
+        let cited = cited_authorizing_adrs("authorized per ADR-05650", Some("ADR-0565"));
+        assert!(cited.contains("ADR-05650"), "the typo is a distinct citation: {cited:?}");
+        let observed = observed(
+            500,
+            json!([{"member_path": "cloud/gw", "deps": ["async-graphql"], "cited_adrs": ["ADR-05650"]}]),
+            json!([]),
+        );
+        assert_eq!(
+            evaluate(&policy(), &observed).verdict,
+            Verdict::Red,
+            "a typo id near the forbidding ADR must NOT launder"
+        );
+    }
+
+    #[test]
     fn evaluate_is_bare_projection_of_evaluate_keyed() {
         let obs = observed(
             500,
-            json!([{"member_path": "a", "deps": ["juniper"], "references_authorizing_adr": false}]),
-            json!([{"path": "b.graphql", "references_authorizing_adr": false}]),
+            json!([{"member_path": "a", "deps": ["juniper"], "cited_adrs": []}]),
+            json!([{"path": "b.graphql", "cited_adrs": []}]),
         );
         let projected: BTreeSet<String> =
             evaluate_keyed(&policy(), &obs).into_iter().map(|f| f.code).collect();
