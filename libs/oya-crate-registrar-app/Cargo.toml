@@ -19,6 +19,7 @@ doctest = false
 
 [dependencies]
 oya-crate-registrar-kernel = { path = "../oya-crate-registrar-kernel" }
+oya-workspace-members-kernel = { path = "../oya-workspace-members-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
