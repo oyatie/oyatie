@@ -35,10 +35,16 @@ use tenancy_tenant_lifecycle_kernel::{
 pub struct InMemoryTenantLifecycleStore {
     /// `tenants/<id>` -> tenant aggregate (tombstones retained as Retired).
     tenants: BTreeMap<String, Tenant>,
-    /// Idempotency dedup table: client-UUID key -> what it first applied to.
-    applied: BTreeMap<String, AppliedWriteRecord>,
-    /// AIP-151 operation ledger: `operations/...` -> ledger entry.
-    operations: BTreeMap<String, OperationRecord>,
+    /// Idempotency dedup table, keyed PER-TENANT by `(tenant_id, key)` — the
+    /// SAME multi-tenant shape as the durable backend's
+    /// `PRIMARY KEY (tenant_id, idempotency_key)`. A key reused under two
+    /// different tenants addresses two INDEPENDENT records; one tenant can never
+    /// read another tenant's applied record under a shared key.
+    applied: BTreeMap<(String, String), AppliedWriteRecord>,
+    /// AIP-151 operation ledger, keyed PER-TENANT by `(tenant_id,
+    /// operation_name)` — matching the durable backend's
+    /// `PRIMARY KEY (tenant_id, operation_name)`.
+    operations: BTreeMap<(String, String), OperationRecord>,
     /// Monotonic operation ordinal (mints unique operation names).
     operation_seq: u64,
 }
@@ -121,47 +127,60 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
 
     fn get_applied<'a>(
         &'a self,
-        _tenant_id: &'a str,
+        tenant_id: &'a str,
         key: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<AppliedWriteRecord>, StoreError>> + Send + 'a>>
     {
-        // The idempotency-key namespace is GLOBAL per the resource-provider
-        // contract (a key reused with different params is a reuse violation
-        // regardless of tenant). The tenant_id is threaded for the durable
-        // adapter's RLS GUC; the in-mem path keys by the opaque dedup key, so
-        // behaviour is identical to the pre-S-B store.
-        Box::pin(async move { Ok(self.applied.get(key).cloned()) })
+        // The idempotency dedup table is keyed PER-TENANT by `(tenant_id, key)`,
+        // matching the durable backend's `PRIMARY KEY (tenant_id,
+        // idempotency_key)`. Keying globally by `key` alone would let tenant B
+        // read tenant A's applied record under a shared key — a cross-tenant
+        // leak and a divergence from the durable shape.
+        Box::pin(async move {
+            Ok(self
+                .applied
+                .get(&(tenant_id.to_owned(), key.to_owned()))
+                .cloned())
+        })
     }
 
     fn put_applied<'a>(
         &'a mut self,
-        _tenant_id: &'a str,
+        tenant_id: &'a str,
         key: &'a str,
         record: &'a AppliedWriteRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
         Box::pin(async move {
-            self.applied.insert(key.to_owned(), record.clone());
+            self.applied
+                .insert((tenant_id.to_owned(), key.to_owned()), record.clone());
             Ok(())
         })
     }
 
     fn get_operation<'a>(
         &'a self,
-        _tenant_id: &'a str,
+        tenant_id: &'a str,
         operation_name: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
-        Box::pin(async move { Ok(self.operations.get(operation_name).cloned()) })
+        Box::pin(async move {
+            Ok(self
+                .operations
+                .get(&(tenant_id.to_owned(), operation_name.to_owned()))
+                .cloned())
+        })
     }
 
     fn put_operation<'a>(
         &'a mut self,
-        _tenant_id: &'a str,
+        tenant_id: &'a str,
         operation_name: &'a str,
         record: &'a OperationRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
         Box::pin(async move {
-            self.operations
-                .insert(operation_name.to_owned(), record.clone());
+            self.operations.insert(
+                (tenant_id.to_owned(), operation_name.to_owned()),
+                record.clone(),
+            );
             Ok(())
         })
     }
@@ -282,23 +301,76 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn applied_dedup_namespace_is_global_across_tenants() {
-        // The idempotency-key namespace is GLOBAL: the same key under two
-        // tenant scopes addresses the SAME dedup record (the resource-provider
-        // contract treats key reuse as a reuse violation regardless of tenant).
+    async fn applied_dedup_namespace_is_per_tenant() {
+        // The idempotency dedup table is keyed PER-TENANT by `(tenant_id, key)`,
+        // matching the durable backend's `PRIMARY KEY (tenant_id,
+        // idempotency_key)`. The SAME key under two tenant scopes addresses two
+        // INDEPENDENT records — tenant beta must NEVER read tenant acme's record
+        // under a shared key (no cross-tenant leak).
         let mut store = InMemoryTenantLifecycleStore::new();
-        let record = AppliedWriteRecord::Create {
+        let acme_record = AppliedWriteRecord::Create {
             name: "tenants/acme".to_owned(),
             tenant: tenant("acme"),
         };
+        let beta_record = AppliedWriteRecord::Create {
+            name: "tenants/beta".to_owned(),
+            tenant: tenant("beta"),
+        };
         store
-            .put_applied("acme", "shared-key", &record)
+            .put_applied("acme", "shared-key", &acme_record)
             .await
             .unwrap();
-        // A different tenant scope sees the same globally-keyed record.
+
+        // A different tenant scope does NOT see acme's record under the same key.
         assert_eq!(
             store.get_applied("beta", "shared-key").await.unwrap(),
-            Some(record)
+            None,
+            "tenant beta must not read tenant acme's applied record"
+        );
+
+        // Each tenant keeps its own independent record under the shared key.
+        store
+            .put_applied("beta", "shared-key", &beta_record)
+            .await
+            .unwrap();
+        assert_eq!(
+            store.get_applied("acme", "shared-key").await.unwrap(),
+            Some(acme_record)
+        );
+        assert_eq!(
+            store.get_applied("beta", "shared-key").await.unwrap(),
+            Some(beta_record)
+        );
+    }
+
+    #[tokio::test]
+    async fn operation_ledger_is_per_tenant() {
+        // The operation ledger is likewise keyed `(tenant_id, operation_name)`:
+        // the same operation_name under two tenants is two independent entries.
+        let mut store = InMemoryTenantLifecycleStore::new();
+        let op_acme = OperationRecord {
+            operation: Operation::pending("operations/acme/lifecycle-000001").unwrap(),
+            kind: TenantLifecycleOperation::Activate,
+            target: "tenants/acme".to_owned(),
+        };
+        store
+            .put_operation("acme", "operations/shared", &op_acme)
+            .await
+            .unwrap();
+        assert_eq!(
+            store
+                .get_operation("beta", "operations/shared")
+                .await
+                .unwrap(),
+            None,
+            "tenant beta must not read tenant acme's operation record"
+        );
+        assert_eq!(
+            store
+                .get_operation("acme", "operations/shared")
+                .await
+                .unwrap(),
+            Some(op_acme)
         );
     }
 }

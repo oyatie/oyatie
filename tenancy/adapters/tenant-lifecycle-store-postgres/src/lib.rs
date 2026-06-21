@@ -38,7 +38,7 @@
 use core::future::Future;
 use core::pin::Pin;
 
-use oya_shared_platform_contracts_kernel::tenancy::Tenant;
+use oya_shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleState};
 use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use tenancy_tenant_lifecycle_kernel::{
@@ -162,6 +162,21 @@ fn validate_database_url(database_url: &str) -> Result<(), PgStoreConnectError> 
     Ok(())
 }
 
+/// Reject an empty / whitespace-only tenant scope at the adapter boundary BEFORE
+/// it is bound into the per-transaction tenant GUC. An empty GUC would make the
+/// migration's restrictive `require_tenant_guc` policy deny every row (a silent
+/// deny-all), so a blank tenant is a contract violation we surface explicitly
+/// rather than emitting a `SET set_config('oyatie.tenant_id', '', true)` that
+/// produces an opaque empty result set.
+fn validate_tenant_id(tenant_id: &str) -> Result<(), StoreError> {
+    if tenant_id.trim().is_empty() {
+        return Err(StoreError::Corrupt {
+            detail: "tenant scope is empty".to_owned(),
+        });
+    }
+    Ok(())
+}
+
 impl TenantLifecycleStore for PgTenantLifecycleStore {
     fn get_tenant<'a>(
         &'a self,
@@ -217,7 +232,7 @@ impl TenantLifecycleStore for PgTenantLifecycleStore {
                 .bind(tenant_id)
                 .bind(name)
                 .bind(&tenant.display_name)
-                .bind(format!("{:?}", tenant.state))
+                .bind(tenant.state.slug())
                 .bind(&payload)
                 .bind(SCHEMA_VERSION)
                 .execute(&mut *tx)
@@ -309,6 +324,7 @@ impl TenantLifecycleStore for PgTenantLifecycleStore {
     ) -> Pin<Box<dyn Future<Output = Result<Option<AppliedWriteRecord>, StoreError>> + Send + 'a>>
     {
         Box::pin(async move {
+            validate_tenant_id(tenant_id)?;
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(tenant_id)
@@ -340,6 +356,7 @@ impl TenantLifecycleStore for PgTenantLifecycleStore {
         record: &'a AppliedWriteRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
         Box::pin(async move {
+            validate_tenant_id(tenant_id)?;
             let payload = encode(record)?;
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
@@ -368,6 +385,7 @@ impl TenantLifecycleStore for PgTenantLifecycleStore {
         operation_name: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
         Box::pin(async move {
+            validate_tenant_id(tenant_id)?;
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(tenant_id)
@@ -399,6 +417,7 @@ impl TenantLifecycleStore for PgTenantLifecycleStore {
         record: &'a OperationRecord,
     ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
         Box::pin(async move {
+            validate_tenant_id(tenant_id)?;
             let payload = encode(record)?;
             // The operation_seq is carried for ordering/observability; it is
             // derived from the minted name's trailing ordinal when present, else
@@ -429,6 +448,7 @@ impl TenantLifecycleStore for PgTenantLifecycleStore {
         tenant_id: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<u64, StoreError>> + Send + 'a>> {
         Box::pin(async move {
+            validate_tenant_id(tenant_id)?;
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(tenant_id)
@@ -568,5 +588,28 @@ mod tests {
             validate_database_url("postgres://u:p@localhost/db?sslmode=require"),
             Ok(())
         );
+    }
+
+    #[test]
+    fn validate_tenant_id_rejects_empty_or_blank() {
+        assert!(matches!(
+            validate_tenant_id(""),
+            Err(StoreError::Corrupt { .. })
+        ));
+        assert!(matches!(
+            validate_tenant_id("   "),
+            Err(StoreError::Corrupt { .. })
+        ));
+        assert_eq!(validate_tenant_id("acme"), Ok(()));
+    }
+
+    #[test]
+    fn lifecycle_state_slug_is_stable_snake_case() {
+        // The persisted lifecycle_state column uses the stable slug, NOT the
+        // Rust Debug formatting (which could drift from the contract).
+        assert_eq!(TenantLifecycleState::Provisioning.slug(), "provisioning");
+        assert_eq!(TenantLifecycleState::Active.slug(), "active");
+        assert_eq!(TenantLifecycleState::Suspended.slug(), "suspended");
+        assert_eq!(TenantLifecycleState::Retired.slug(), "retired");
     }
 }

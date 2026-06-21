@@ -13,6 +13,7 @@ oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres
 sqlx.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+tracing.workspace = true
 
 [dev-dependencies]
 # Live integration tests `.await` the boxed-future methods behind an env gate.

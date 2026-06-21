@@ -10,6 +10,7 @@ rust_library(
         "third-party//:sqlx",
         "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//:tracing",
     ],
 )
 
@@ -25,6 +26,7 @@ rust_test(
         "third-party//:sqlx",
         "third-party//:serde",
         "third-party//:serde_json",
+        "third-party//:tracing",
     ],
 )
 

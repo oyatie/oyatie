@@ -27,7 +27,12 @@ pub enum TenantLifecycleState {
 }
 
 impl TenantLifecycleState {
-    fn name(self) -> &'static str {
+    /// The stable, lowercase slug for this state. This is the canonical wire /
+    /// column serialization (matches the `snake_case` serde rename) — callers
+    /// MUST use it instead of `format!("{self:?}")`, whose output is a Rust
+    /// debug artifact that can silently drift from the persisted contract.
+    #[must_use]
+    pub fn slug(self) -> &'static str {
         match self {
             Self::Provisioning => "provisioning",
             Self::Active => "active",
@@ -95,7 +100,7 @@ impl TenantLifecycleOperation {
             (S::Suspended, Op::Resume) => Ok(S::Active),
             (S::Provisioning | S::Active | S::Suspended, Op::Retire) => Ok(S::Retired),
             (from, operation) => Err(ContractViolation::InvalidTransition {
-                from: from.name(),
+                from: from.slug(),
                 operation: operation.name(),
             }),
         }

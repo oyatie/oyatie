@@ -115,6 +115,18 @@ fn corrupt(detail: impl Into<String>) -> ScimStoreError {
     }
 }
 
+/// Reject an empty / whitespace-only tenant scope at the adapter boundary BEFORE
+/// it is bound into the per-transaction tenant GUC. An empty GUC makes the
+/// migration's restrictive `require_tenant_guc` policy deny every row (a silent
+/// deny-all), so a blank tenant is surfaced as a contract violation rather than
+/// binding `SET set_config('oyatie.tenant_id', '', true)`.
+fn validate_tenant(tenant: &TenantId) -> Result<(), ScimStoreError> {
+    if tenant.0.trim().is_empty() {
+        return Err(corrupt("tenant scope is empty"));
+    }
+    Ok(())
+}
+
 /// Real Postgres-backed SCIM [`UserStore`]: per-transaction tenant GUC + RLS
 /// isolation over a shared `sqlx::PgPool`. Reads return `None`/`Vec` on absence
 /// or backend failure (the port's read methods are infallible by shape; the
@@ -142,22 +154,47 @@ impl UserStore for PgScimUserStore {
         tenant: &'a TenantId,
     ) -> Pin<Box<dyn Future<Output = Vec<User>> + Send + 'a>> {
         Box::pin(async move {
-            let Ok(mut tx) = self.pool.begin().await else {
-                return Vec::new();
+            let mut tx = match self.pool.begin().await {
+                Ok(tx) => tx,
+                Err(error) => {
+                    tracing::warn!(
+                        target: "identity_scim_store",
+                        op = "user.list",
+                        %error,
+                        "begin tx failed; returning empty page"
+                    );
+                    return Vec::new();
+                }
             };
-            if sqlx::query(SET_LOCAL_TENANT_SQL)
+            if let Err(error) = sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&tenant.0)
                 .execute(&mut *tx)
                 .await
-                .is_err()
             {
+                tracing::warn!(
+                    target: "identity_scim_store",
+                    op = "user.list",
+                    %error,
+                    "set tenant GUC failed; returning empty page"
+                );
                 return Vec::new();
             }
-            let rows = sqlx::query(LIST_USERS_SQL)
+            let rows = match sqlx::query(LIST_USERS_SQL)
                 .bind(&tenant.0)
                 .fetch_all(&mut *tx)
                 .await
-                .unwrap_or_default();
+            {
+                Ok(rows) => rows,
+                Err(error) => {
+                    tracing::warn!(
+                        target: "identity_scim_store",
+                        op = "user.list",
+                        %error,
+                        "list query failed; returning empty page"
+                    );
+                    return Vec::new();
+                }
+            };
             let _ = tx.commit().await;
             rows.into_iter()
                 .filter_map(|row| row.try_get::<serde_json::Value, _>("payload_json").ok())
@@ -178,12 +215,23 @@ impl UserStore for PgScimUserStore {
                 .execute(&mut *tx)
                 .await
                 .ok()?;
-            let row = sqlx::query(GET_USER_SQL)
+            let row = match sqlx::query(GET_USER_SQL)
                 .bind(&tenant.0)
                 .bind(&id.0)
                 .fetch_optional(&mut *tx)
                 .await
-                .ok()?;
+            {
+                Ok(row) => row,
+                Err(error) => {
+                    tracing::warn!(
+                        target: "identity_scim_store",
+                        op = "user.get",
+                        %error,
+                        "get query failed; returning None"
+                    );
+                    return None;
+                }
+            };
             let _ = tx.commit().await;
             let payload: serde_json::Value = row?.try_get("payload_json").ok()?;
             decode_payload(payload)
@@ -196,8 +244,12 @@ impl UserStore for PgScimUserStore {
         tenant: &'a TenantId,
     ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>> {
         Box::pin(async move {
+            validate_tenant(tenant)?;
             let payload = serde_json::to_value(user).map_err(|e| corrupt(e.to_string()))?;
-            let external_id = user.external_id.clone().unwrap_or_default();
+            // external_id is OPTIONAL in SCIM (RFC 7643 §3.1): bind the payload's
+            // Option faithfully into the nullable column — NULL when absent,
+            // never coerced to "" (which would diverge from the payload).
+            let external_id: Option<&str> = user.external_id.as_deref();
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&tenant.0)
@@ -208,7 +260,7 @@ impl UserStore for PgScimUserStore {
                 .bind(&tenant.0)
                 .bind(&user.id.0)
                 .bind(&user.user_name)
-                .bind(&external_id)
+                .bind(external_id)
                 .bind(user.active)
                 .bind(&payload)
                 .bind(SCHEMA_VERSION)
@@ -226,6 +278,7 @@ impl UserStore for PgScimUserStore {
         id: &'a ScimId,
     ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>> {
         Box::pin(async move {
+            validate_tenant(tenant)?;
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&tenant.0)
@@ -255,12 +308,23 @@ impl UserStore for PgScimUserStore {
                 .execute(&mut *tx)
                 .await
                 .ok()?;
-            let row = sqlx::query(FIND_USER_BY_NAME_SQL)
+            let row = match sqlx::query(FIND_USER_BY_NAME_SQL)
                 .bind(&tenant.0)
                 .bind(user_name)
                 .fetch_optional(&mut *tx)
                 .await
-                .ok()?;
+            {
+                Ok(row) => row,
+                Err(error) => {
+                    tracing::warn!(
+                        target: "identity_scim_store",
+                        op = "user.find_by_user_name",
+                        %error,
+                        "find-by-user-name query failed; returning None"
+                    );
+                    return None;
+                }
+            };
             let _ = tx.commit().await;
             let payload: serde_json::Value = row?.try_get("payload_json").ok()?;
             decode_payload(payload)
@@ -287,22 +351,47 @@ impl GroupStore for PgScimGroupStore {
         tenant: &'a TenantId,
     ) -> Pin<Box<dyn Future<Output = Vec<Group>> + Send + 'a>> {
         Box::pin(async move {
-            let Ok(mut tx) = self.pool.begin().await else {
-                return Vec::new();
+            let mut tx = match self.pool.begin().await {
+                Ok(tx) => tx,
+                Err(error) => {
+                    tracing::warn!(
+                        target: "identity_scim_store",
+                        op = "group.list",
+                        %error,
+                        "begin tx failed; returning empty page"
+                    );
+                    return Vec::new();
+                }
             };
-            if sqlx::query(SET_LOCAL_TENANT_SQL)
+            if let Err(error) = sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&tenant.0)
                 .execute(&mut *tx)
                 .await
-                .is_err()
             {
+                tracing::warn!(
+                    target: "identity_scim_store",
+                    op = "group.list",
+                    %error,
+                    "set tenant GUC failed; returning empty page"
+                );
                 return Vec::new();
             }
-            let rows = sqlx::query(LIST_GROUPS_SQL)
+            let rows = match sqlx::query(LIST_GROUPS_SQL)
                 .bind(&tenant.0)
                 .fetch_all(&mut *tx)
                 .await
-                .unwrap_or_default();
+            {
+                Ok(rows) => rows,
+                Err(error) => {
+                    tracing::warn!(
+                        target: "identity_scim_store",
+                        op = "group.list",
+                        %error,
+                        "list query failed; returning empty page"
+                    );
+                    return Vec::new();
+                }
+            };
             let _ = tx.commit().await;
             rows.into_iter()
                 .filter_map(|row| row.try_get::<serde_json::Value, _>("payload_json").ok())
@@ -323,12 +412,23 @@ impl GroupStore for PgScimGroupStore {
                 .execute(&mut *tx)
                 .await
                 .ok()?;
-            let row = sqlx::query(GET_GROUP_SQL)
+            let row = match sqlx::query(GET_GROUP_SQL)
                 .bind(&tenant.0)
                 .bind(&id.0)
                 .fetch_optional(&mut *tx)
                 .await
-                .ok()?;
+            {
+                Ok(row) => row,
+                Err(error) => {
+                    tracing::warn!(
+                        target: "identity_scim_store",
+                        op = "group.get",
+                        %error,
+                        "get query failed; returning None"
+                    );
+                    return None;
+                }
+            };
             let _ = tx.commit().await;
             let payload: serde_json::Value = row?.try_get("payload_json").ok()?;
             decode_payload(payload)
@@ -341,6 +441,7 @@ impl GroupStore for PgScimGroupStore {
         tenant: &'a TenantId,
     ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>> {
         Box::pin(async move {
+            validate_tenant(tenant)?;
             let payload = serde_json::to_value(group).map_err(|e| corrupt(e.to_string()))?;
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
@@ -368,6 +469,7 @@ impl GroupStore for PgScimGroupStore {
         id: &'a ScimId,
     ) -> Pin<Box<dyn Future<Output = Result<(), ScimStoreError>> + Send + 'a>> {
         Box::pin(async move {
+            validate_tenant(tenant)?;
             let mut tx = self.pool.begin().await.map_err(store_unavailable)?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&tenant.0)
@@ -461,5 +563,18 @@ mod tests {
             validate_database_url("postgres://u:p@localhost/db?sslmode=require"),
             Ok(())
         );
+    }
+
+    #[test]
+    fn validate_tenant_rejects_empty_or_blank() {
+        assert!(matches!(
+            validate_tenant(&TenantId(String::new())),
+            Err(ScimStoreError::Corrupt { .. })
+        ));
+        assert!(matches!(
+            validate_tenant(&TenantId("   ".to_owned())),
+            Err(ScimStoreError::Corrupt { .. })
+        ));
+        assert_eq!(validate_tenant(&TenantId("acme".to_owned())), Ok(()));
     }
 }

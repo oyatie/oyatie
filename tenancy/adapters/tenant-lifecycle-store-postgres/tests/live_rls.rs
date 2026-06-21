@@ -59,6 +59,55 @@ fn tenant(id: &str) -> Tenant {
     }
 }
 
+/// Split a migration file into executable statements the way psql does: drop
+/// `--` line comments, then split on `;` only OUTSIDE single-quoted string
+/// literals. A naive `split(';')` is fragile — a `;` inside a comment or inside
+/// a quoted string (e.g. a COMMENT ON ... IS '...; ...') would shatter the
+/// statement — so this respects both.
+fn split_statements(migration: &str) -> Vec<String> {
+    // Strip `--` line comments first (no `--` appears inside our string
+    // literals, so a line-prefix scan is sufficient and mirrors psql intent).
+    let stripped: String = migration
+        .lines()
+        .map(|line| match line.find("--") {
+            Some(idx) => &line[..idx],
+            None => line,
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let mut statements = Vec::new();
+    let mut current = String::new();
+    let mut in_string = false;
+    let mut chars = stripped.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            '\'' if in_string && chars.peek() == Some(&'\'') => {
+                // Escaped quote ('') inside a string literal.
+                current.push(c);
+                current.push(chars.next().unwrap());
+            }
+            '\'' => {
+                in_string = !in_string;
+                current.push(c);
+            }
+            ';' if !in_string => {
+                let trimmed = current.trim();
+                if !trimmed.is_empty() {
+                    statements.push(trimmed.to_owned());
+                }
+                current.clear();
+            }
+            _ => current.push(c),
+        }
+    }
+    let trailing = current.trim();
+    if !trailing.is_empty() {
+        statements.push(trailing.to_owned());
+    }
+    statements
+}
+
 /// Apply the durable schema and grant the app role table privileges. The
 /// migration SQL is the committed `migrations/0001_*.sql`; we re-derive the same
 /// statements here so the test is self-contained against a disposable database.
@@ -74,20 +123,7 @@ async fn setup_schema(setup: &PgPool, app_role: &str) {
         migration.contains(RUNTIME_ROLE),
         "migration must bind the runtime role"
     );
-    for statement in migration.split(';') {
-        let trimmed = statement.trim();
-        if trimmed.is_empty() || trimmed.starts_with("--") {
-            continue;
-        }
-        // Skip the leading comment-only lines a statement may carry.
-        let sql: String = trimmed
-            .lines()
-            .filter(|l| !l.trim_start().starts_with("--"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        if sql.trim().is_empty() {
-            continue;
-        }
+    for sql in split_statements(migration) {
         sqlx::query(&sql).execute(setup).await.unwrap_or_else(|e| {
             panic!("migration statement failed: {sql}\n{e}");
         });
