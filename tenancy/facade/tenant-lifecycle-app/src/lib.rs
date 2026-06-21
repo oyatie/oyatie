@@ -507,12 +507,27 @@ where
                 ))
             }
         }
-        // Fail-closed engine refusal: treat as deny, surface as 403.
-        Err(_) => Err(err(
-            StatusCode::FORBIDDEN,
-            "PERMISSION_DENIED",
-            "caller is not authorized for this tenant action",
-        )),
+        // Fail-closed engine refusal: treat as deny, surface as 403. The PDP
+        // minted no decision id (it refused before deciding), but the deny still
+        // belongs on the forensic surface — emit it so a probe that induces
+        // engine refusals is never invisible (AC-W-13: every deny is audited).
+        Err(error) => {
+            tracing::warn!(
+                message = "tenancy.authz.decision",
+                decision_id = "",
+                principal_id = %caller.principal_id,
+                action = %action.slug(),
+                target_tenant = ?target_tenant_id,
+                decision = "deny",
+                reason = "engine-refused",
+                error = %error,
+            );
+            Err(err(
+                StatusCode::FORBIDDEN,
+                "PERMISSION_DENIED",
+                "caller is not authorized for this tenant action",
+            ))
+        }
     }
 }
 
