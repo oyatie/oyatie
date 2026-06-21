@@ -3202,6 +3202,10 @@ name = "iam-identity-oidc-issuer-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "iam-identity-scim-store-postgres"
+version = "0.1.0"
+
+[[package]]
 name = "iam-identity-service"
 version = "0.1.0"
 dependencies = [
@@ -11572,6 +11576,10 @@ dependencies = [
  "oya-shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-kernel",
 ]
+
+[[package]]
+name = "tenancy-tenant-lifecycle-store-postgres"
+version = "0.1.0"
 
 [[package]]
 name = "tenancy-tenant-lifecycle-usecase"
