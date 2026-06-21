@@ -129,7 +129,7 @@ fn encode<T: serde::Serialize>(value: &T) -> Result<serde_json::Value, StoreErro
 fn tenant_of_resource_name(resource_name: &str) -> Option<&str> {
     resource_name
         .strip_prefix(TENANT_COLLECTION_PREFIX)
-        .filter(|id| !id.is_empty() && !id.contains('/'))
+        .filter(|id| !id.trim().is_empty() && !id.contains('/'))
 }
 
 impl PgTenantLifecycleStore {
@@ -567,6 +567,10 @@ mod tests {
         assert_eq!(tenant_of_resource_name("tenants/"), None);
         assert_eq!(tenant_of_resource_name("tenants/a/b"), None);
         assert_eq!(tenant_of_resource_name("operations/x"), None);
+        // A whitespace-only id is rejected too, matching validate_tenant_id so a
+        // blank tenant can never bind an empty/whitespace GUC (fail-closed).
+        assert_eq!(tenant_of_resource_name("tenants/   "), None);
+        assert_eq!(tenant_of_resource_name("tenants/\t"), None);
     }
 
     #[test]

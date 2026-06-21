@@ -45,8 +45,12 @@ pub struct InMemoryTenantLifecycleStore {
     /// operation_name)` — matching the durable backend's
     /// `PRIMARY KEY (tenant_id, operation_name)`.
     operations: BTreeMap<(String, String), OperationRecord>,
-    /// Monotonic operation ordinal (mints unique operation names).
-    operation_seq: u64,
+    /// PER-TENANT monotonic operation ordinal, keyed by `tenant_id` — matching
+    /// the durable backend's per-tenant `max(operation_seq) + 1` derivation
+    /// (`NEXT_SEQ_SQL ... WHERE tenant_id = $1`). A global counter would diverge
+    /// from the durable value (tenant B's first seq would not be 1), so the
+    /// ordinal is namespaced per tenant for backend parity.
+    operation_seq: BTreeMap<String, u64>,
 }
 
 impl InMemoryTenantLifecycleStore {
@@ -187,13 +191,17 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
 
     fn next_operation_seq<'a>(
         &'a mut self,
-        _tenant_id: &'a str,
+        tenant_id: &'a str,
     ) -> Pin<Box<dyn Future<Output = Result<u64, StoreError>> + Send + 'a>> {
-        // A single global monotonic counter is sufficient: the minted operation
-        // name embeds the tenant, so a globally-monotonic ordinal stays unique.
+        // PER-TENANT monotonic ordinal, matching the durable backend's
+        // per-tenant `max(operation_seq) + 1` (NEXT_SEQ_SQL is scoped
+        // `WHERE tenant_id = $1`). Each tenant's first minted seq is 1, so the
+        // value parity holds across backends — a global counter would make
+        // tenant B start above 1 and diverge.
         Box::pin(async move {
-            self.operation_seq = self.operation_seq.saturating_add(1);
-            Ok(self.operation_seq)
+            let seq = self.operation_seq.entry(tenant_id.to_owned()).or_insert(0);
+            *seq = seq.saturating_add(1);
+            Ok(*seq)
         })
     }
 }
@@ -267,6 +275,24 @@ mod tests {
         let second = store.next_operation_seq("acme").await.unwrap();
         assert_eq!(first, 1);
         assert_eq!(second, 2);
+    }
+
+    #[tokio::test]
+    async fn operation_seq_is_per_tenant_for_durable_parity() {
+        // The ordinal is namespaced per tenant, matching the durable backend's
+        // per-tenant `max(operation_seq) + 1`: tenant beta's first seq is 1,
+        // independent of how many acme has minted (value parity, no global
+        // counter leak across tenants).
+        let mut store = InMemoryTenantLifecycleStore::new();
+        assert_eq!(store.next_operation_seq("acme").await.unwrap(), 1);
+        assert_eq!(store.next_operation_seq("acme").await.unwrap(), 2);
+        assert_eq!(
+            store.next_operation_seq("beta").await.unwrap(),
+            1,
+            "tenant beta's first ordinal must be 1, not continue acme's counter"
+        );
+        assert_eq!(store.next_operation_seq("acme").await.unwrap(), 3);
+        assert_eq!(store.next_operation_seq("beta").await.unwrap(), 2);
     }
 
     #[tokio::test]

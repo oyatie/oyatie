@@ -154,6 +154,12 @@ impl UserStore for PgScimUserStore {
         tenant: &'a TenantId,
     ) -> Pin<Box<dyn Future<Output = Vec<User>> + Send + 'a>> {
         Box::pin(async move {
+            // Fail-closed parity with the write methods: a blank tenant would
+            // bind an empty GUC (a silent deny-all), so short-circuit to an
+            // empty page before opening the tx / setting the GUC.
+            if validate_tenant(tenant).is_err() {
+                return Vec::new();
+            }
             let mut tx = match self.pool.begin().await {
                 Ok(tx) => tx,
                 Err(error) => {
@@ -209,6 +215,10 @@ impl UserStore for PgScimUserStore {
         id: &'a ScimId,
     ) -> Pin<Box<dyn Future<Output = Option<User>> + Send + 'a>> {
         Box::pin(async move {
+            // Fail-closed parity with the write methods: a blank tenant would
+            // bind an empty GUC (a silent deny-all), so short-circuit to None
+            // before opening the tx / setting the GUC.
+            validate_tenant(tenant).ok()?;
             let mut tx = self.pool.begin().await.ok()?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&tenant.0)
@@ -302,6 +312,10 @@ impl UserStore for PgScimUserStore {
         user_name: &'a str,
     ) -> Pin<Box<dyn Future<Output = Option<User>> + Send + 'a>> {
         Box::pin(async move {
+            // Fail-closed parity with the write methods: a blank tenant would
+            // bind an empty GUC (a silent deny-all), so short-circuit to None
+            // before opening the tx / setting the GUC.
+            validate_tenant(tenant).ok()?;
             let mut tx = self.pool.begin().await.ok()?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&tenant.0)
@@ -351,6 +365,12 @@ impl GroupStore for PgScimGroupStore {
         tenant: &'a TenantId,
     ) -> Pin<Box<dyn Future<Output = Vec<Group>> + Send + 'a>> {
         Box::pin(async move {
+            // Fail-closed parity with the write methods: a blank tenant would
+            // bind an empty GUC (a silent deny-all), so short-circuit to an
+            // empty page before opening the tx / setting the GUC.
+            if validate_tenant(tenant).is_err() {
+                return Vec::new();
+            }
             let mut tx = match self.pool.begin().await {
                 Ok(tx) => tx,
                 Err(error) => {
@@ -406,6 +426,10 @@ impl GroupStore for PgScimGroupStore {
         id: &'a ScimId,
     ) -> Pin<Box<dyn Future<Output = Option<Group>> + Send + 'a>> {
         Box::pin(async move {
+            // Fail-closed parity with the write methods: a blank tenant would
+            // bind an empty GUC (a silent deny-all), so short-circuit to None
+            // before opening the tx / setting the GUC.
+            validate_tenant(tenant).ok()?;
             let mut tx = self.pool.begin().await.ok()?;
             sqlx::query(SET_LOCAL_TENANT_SQL)
                 .bind(&tenant.0)
