@@ -3495,7 +3495,8 @@
               {
                 "id": "M02-P04-IP-001",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/IP-001-rest-graphql-transports.md",
-                "title": "REST + GraphQL API transports",
+                "title": "REST API transports",
+                "superseded_by_adr": "ADR-0565",
                 "status": "planning-closed-contract-authored",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",

@@ -12,6 +12,11 @@ superseded_by: []
 amends:
   - ADR-0258-api-versioning-model.md (its hyperscaler-grade surface set listed GraphQL among the public REST/gRPC/AsyncAPI/GraphQL surfaces; that surface set drops GraphQL — the versioning model itself is unchanged for the remaining surfaces)
   - ADR-0253-network-topology-edge-service-mesh.md (its D-14 multi-protocol API surface named GraphQL Federation v2 via a BFF tier; the BFF/GraphQL leg is dropped, the REST 3.2 + gRPC + AsyncAPI legs stand)
+  - ADR-0091-governance-write-gate-foundations.md (its transport-parity context and single-state-machine driver named GraphQL among the owned transports; the write-gate state machine itself is unchanged)
+  - ADR-0051-mobile-and-native-client-strategy.md (its canonical-contracts clause named GraphQL among the contract families native clients consume; the REST/gRPC/Connect-protocol + mTLS gateway posture is unchanged)
+  - ADR-0066-live-code-introspection-docs-portal.md (its extractor table listed `crates/*/schema.graphql` / `async-graphql`; its endpoint-coverage gate and portal surfaces enumerated GraphQL endpoints; its agent-readable manifest schema included `"graphql"` as an endpoint kind; the REST/gRPC/async extractor coverage posture is unchanged)
+  - docs/prds/workflow.md (its Bounded Contexts table named `studio-graphql` as a BC crate family; its horizontal-scalability section named `Studio REST/GraphQL` as a stateless-compatible layer; the studio-rest and studio-sdk BCs are unchanged)
+  - docs/products/foundry/PHASE-00-SPEC.md (its transport-parity section named GraphQL in the Phase 00 scope; the REST/SSE/WebSocket transport parity scope is unchanged)
 amended_by: []
 depends_on: [ADR-0358, ADR-0094]
 related: [ADR-0145, ADR-0150, ADR-0157, ADR-0193, ADR-0342, ADR-0512, ADR-0532, ADR-0536]

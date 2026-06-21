@@ -372,7 +372,7 @@
       "rule_id": "double-underscore-generated-component",
       "rule_kind": "path_component",
       "pattern": "__generated__",
-      "description": "Common GraphQL, Relay, and TypeScript generated output directory."
+      "description": "Common generated-client output directory (e.g. TypeScript clients; the __generated__ convention)."
     },
     {
       "rule_id": "generated-sources-component",
