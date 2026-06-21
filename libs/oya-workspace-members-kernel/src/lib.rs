@@ -137,10 +137,47 @@ fn string_array(value: Option<&toml::Value>) -> Option<Vec<String>> {
 }
 
 /// A directory is excluded if it equals an `exclude` entry or lives beneath one.
-fn is_excluded(dir: &str, exclude: &[String]) -> bool {
+#[must_use]
+pub fn is_excluded(dir: &str, exclude: &[String]) -> bool {
     exclude
         .iter()
         .any(|entry| dir == entry || dir.starts_with(&format!("{entry}/")))
+}
+
+/// True iff the `members` glob `pattern` covers the repo-relative directory `dir` by Cargo's
+/// member-glob shape — each `*` matches exactly one path component (never spanning `/`) and every
+/// segment is anchored. PURE string logic (no filesystem): unlike [`resolve_member_dirs_from_str`]
+/// this does NOT consult the tree, so it answers "could this pattern match this dir" rather than
+/// "does this concrete member exist". A caller that already knows `dir` is a real crate dir (it has
+/// a `Cargo.toml`) can therefore reuse this as a pure coverage predicate without re-deriving the
+/// `*`-per-component semantics (the workspace-members module is the single source of that truth).
+///
+/// `dir` and `pattern` are normalized by trimming any trailing `/`; a component count mismatch is an
+/// immediate non-match (a 2-segment glob can never cover a 3-segment dir, since `*` never spans `/`).
+#[must_use]
+pub fn pattern_covers_dir(pattern: &str, dir: &str) -> bool {
+    let pattern_segments: Vec<&str> = pattern.split('/').filter(|s| !s.is_empty()).collect();
+    let dir_segments: Vec<&str> = dir.split('/').filter(|s| !s.is_empty()).collect();
+    if pattern_segments.len() != dir_segments.len() {
+        return false;
+    }
+    pattern_segments
+        .iter()
+        .zip(dir_segments.iter())
+        .all(|(pat, name)| segment_matches(pat, name))
+}
+
+/// True iff `dir` is covered by `entries`: some `members` pattern covers it (via
+/// [`pattern_covers_dir`]) AND no `exclude` entry removes it (via [`is_excluded`]). PURE — mirrors
+/// the [`resolve_member_dirs_from_str`] coverage rule minus the filesystem `Cargo.toml`-presence
+/// check, which is irrelevant when the caller already knows `dir` is a real crate directory.
+#[must_use]
+pub fn member_entries_cover_dir(entries: &WorkspaceManifestEntries, dir: &str) -> bool {
+    entries
+        .members
+        .iter()
+        .any(|pattern| pattern_covers_dir(pattern, dir))
+        && !is_excluded(dir, &entries.exclude)
 }
 
 /// Expand one `members` pattern into the repo-relative directories that contain a
@@ -184,7 +221,8 @@ fn expand_pattern(repo_root: &Path, pattern: &str) -> Vec<String> {
 /// Match one path component against a single-segment glob containing zero or more `*`
 /// wildcards (each `*` matches any run of characters within the component). `*` matches
 /// the empty string, so `oya-*` matches `oya-`. Anchored at both ends.
-fn segment_matches(pattern: &str, name: &str) -> bool {
+#[must_use]
+pub fn segment_matches(pattern: &str, name: &str) -> bool {
     let parts: Vec<&str> = pattern.split('*').collect();
     // No wildcard -> exact match (callers only reach here when a `*` is present, but keep
     // the function total for reuse).
@@ -377,5 +415,39 @@ mod tests {
         let error = resolve_member_dirs_from_str("[package]\nname = \"x\"\n", &root)
             .expect_err("must reject non-workspace manifest");
         assert!(matches!(error, ResolveError::Shape(_)));
+    }
+
+    #[test]
+    fn pattern_covers_dir_honors_per_component_glob_semantics() {
+        // A narrowed leaf glob covers a matching leaf, never a sibling that fails the prefix.
+        assert!(pattern_covers_dir("libs/oya-*", "libs/oya-foo-kernel"));
+        assert!(!pattern_covers_dir("libs/oya-*", "libs/registry-drift"));
+        // `*` never spans `/`: a 2-segment glob cannot cover a 3-segment dir.
+        assert!(!pattern_covers_dir("libs/*", "libs/group/oya-nested-kernel"));
+        // A 3-segment capability glob covers a 3-segment face/leaf dir.
+        assert!(pattern_covers_dir("messaging/*/*", "messaging/core/domain"));
+        assert!(!pattern_covers_dir("messaging/*/*", "messaging/core"));
+        // Trailing slashes are normalized away on both sides.
+        assert!(pattern_covers_dir("libs/oya-*", "libs/oya-foo-kernel/"));
+    }
+
+    #[test]
+    fn member_entries_cover_dir_applies_excludes() {
+        let entries = WorkspaceManifestEntries {
+            members: vec!["cloud/*/crates/*".to_owned()],
+            exclude: vec!["cloud/cloud-kernel".to_owned()],
+        };
+        // Covered by the glob and not excluded.
+        assert!(member_entries_cover_dir(
+            &entries,
+            "cloud/cloud-data/crates/oya-data-kernel"
+        ));
+        // Matched by the glob but removed by the exclude subtree.
+        assert!(!member_entries_cover_dir(
+            &entries,
+            "cloud/cloud-kernel/crates/oya-kernel-frame-kernel"
+        ));
+        // Outside every members glob.
+        assert!(!member_entries_cover_dir(&entries, "libs/oya-foo-kernel"));
     }
 }

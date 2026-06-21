@@ -1,10 +1,13 @@
-//! RED/GREEN multi-layer tests for the three slice-2 writers.
+//! RED/GREEN multi-layer tests for the four registrar writers.
 //!
 //! Each writer is covered by PURE-content tests (no filesystem — exercise the `compute_*` fn) plus
 //! a tmpfile round-trip test (exercise `apply_*` against a real on-disk file, asserting the
 //! idempotent no-op on re-apply). The matrix per writer: fresh-apply produces correct content;
 //! re-apply is byte-identical; the fail-closed refusal (unknown capability / brace-glob /
-//! missing-slo); and the #66 verbatim-append correctness (sorted + literal + idempotent).
+//! missing-slo / uncovered-member); and the #66 verbatim-append correctness (sorted + literal +
+//! idempotent). The fourth (`workspace_member_glob`) is a coverage VERIFIER — its only outcomes are
+//! covered (byte-identical no-op) or fail-closed (no glob is ever synthesized), so its matrix is
+//! coverage-confirm / exclude-honoring / fail-closed-uncovered / malformed-manifest.
 
 use super::*;
 use std::path::PathBuf;
@@ -537,4 +540,147 @@ fn catalog_apply_missing_slo_rejected_before_write() {
     assert_eq!(err, WriterError::MissingCatalogField("slo".to_owned()));
     // No file was written.
     assert!(!tmp.path.join(catalog_yaml::catalog_path(dir)).exists());
+}
+
+// ───────────────────────────── 4. workspace_member_glob (pure) ─────────────────────────────
+
+/// A minimal root-workspace manifest fixture whose `members` are glob-only (ADR-0538) with a
+/// narrowed leaf glob (`libs/oya-*`), a bare-leaf glob (`libs/*`), a capability glob
+/// (`messaging/*/*`), and an `exclude` subtree. The comment is load-bearing — a re-serializing
+/// writer would lose it, which is exactly why the verifier returns `current` verbatim on no-op.
+const MANIFEST_FIXTURE: &str = "[workspace]\nmembers = [\n  # glob-only members (ADR-0538): zero edit to add a crate under an existing root.\n  \"libs/oya-*\",\n  \"cloud/cloud-ci/gates/*\",\n  \"messaging/*/*\",\n]\nexclude = [\n  \"messaging/observability\",\n]\nresolver = \"2\"\n";
+
+#[test]
+fn member_glob_covered_dir_is_byte_identical_noop() {
+    // `libs/oya-crate-registrar-app` is covered by `libs/oya-*` → return the manifest verbatim.
+    let next =
+        workspace_member_glob::compute(MANIFEST_FIXTURE, "libs/oya-crate-registrar-app").unwrap();
+    assert_eq!(
+        next, MANIFEST_FIXTURE,
+        "a covered dir yields the manifest byte-unchanged (comments preserved)"
+    );
+}
+
+#[test]
+fn member_glob_covered_by_bare_leaf_glob_noop() {
+    // A bare-`*` leaf glob (`cloud/cloud-ci/gates/*`) covers a non-oya-prefixed leaf.
+    let next =
+        workspace_member_glob::compute(MANIFEST_FIXTURE, "cloud/cloud-ci/gates/registry-drift")
+            .unwrap();
+    assert_eq!(next, MANIFEST_FIXTURE, "the bare-leaf glob covers the dir → no-op");
+}
+
+#[test]
+fn member_glob_covered_by_capability_glob_noop() {
+    // A 3-segment capability glob (`messaging/*/*`) covers a face/leaf dir.
+    let next =
+        workspace_member_glob::compute(MANIFEST_FIXTURE, "messaging/core/domain").unwrap();
+    assert_eq!(next, MANIFEST_FIXTURE);
+}
+
+#[test]
+fn member_glob_reapply_is_byte_identical_noop() {
+    let once =
+        workspace_member_glob::compute(MANIFEST_FIXTURE, "libs/oya-foo-kernel").unwrap();
+    let twice = workspace_member_glob::compute(&once, "libs/oya-foo-kernel").unwrap();
+    assert_eq!(once, twice, "re-applying the covered-dir check is a no-op (byte-identical)");
+    assert_eq!(once, MANIFEST_FIXTURE);
+}
+
+#[test]
+fn member_glob_uncovered_dir_is_fail_closed() {
+    // No members glob covers `apps/oya-thing-app` → the writer REFUSES (never synthesizes a glob).
+    let err = workspace_member_glob::compute(MANIFEST_FIXTURE, "apps/oya-thing-app").unwrap_err();
+    assert_eq!(
+        err,
+        WriterError::WorkspaceMemberUncovered("apps/oya-thing-app".to_owned()),
+        "an uncovered dir is fail-closed — a covering glob is a human ADR decision, never invented"
+    );
+}
+
+#[test]
+fn member_glob_excluded_subtree_is_uncovered() {
+    // `messaging/observability/...` matches `messaging/*/*` but is removed by the exclude subtree →
+    // not covered → fail-closed (the writer honors excludes via the workspace-members kernel).
+    let err =
+        workspace_member_glob::compute(MANIFEST_FIXTURE, "messaging/observability/tracing")
+            .unwrap_err();
+    assert_eq!(
+        err,
+        WriterError::WorkspaceMemberUncovered("messaging/observability/tracing".to_owned())
+    );
+}
+
+#[test]
+fn member_glob_oya_prefix_narrowing_rejects_non_oya_leaf() {
+    // `libs/oya-*` does NOT cover a non-oya-prefixed leaf — the writer must not pretend it does
+    // (that crate would fail the cargo-prefix gate; widening the glob is not the registrar's job).
+    let err = workspace_member_glob::compute(MANIFEST_FIXTURE, "libs/not-prefixed").unwrap_err();
+    assert_eq!(
+        err,
+        WriterError::WorkspaceMemberUncovered("libs/not-prefixed".to_owned())
+    );
+}
+
+#[test]
+fn member_glob_malformed_manifest_is_fail_closed() {
+    // A manifest with no `[workspace]` table is a typed fail-closed error (never a partial write).
+    let err = workspace_member_glob::compute("[package]\nname = \"x\"\n", "libs/oya-foo-kernel")
+        .unwrap_err();
+    assert!(
+        matches!(err, WriterError::WorkspaceManifest(_)),
+        "a malformed manifest is fail-closed, got {err:?}"
+    );
+}
+
+#[test]
+fn member_glob_unparseable_toml_is_fail_closed() {
+    let err =
+        workspace_member_glob::compute("this is = = not toml", "libs/oya-foo-kernel").unwrap_err();
+    assert!(matches!(err, WriterError::WorkspaceManifest(_)), "got {err:?}");
+}
+
+#[test]
+fn member_glob_trailing_slash_dir_is_normalized() {
+    // A trailing-slash dir is normalized before the coverage check (idempotent).
+    let next =
+        workspace_member_glob::compute(MANIFEST_FIXTURE, "libs/oya-foo-kernel/").unwrap();
+    assert_eq!(next, MANIFEST_FIXTURE);
+}
+
+// ───────────────────────────── 4. workspace_member_glob (tmpfile round-trip) ─────────────────────────────
+
+#[test]
+fn member_glob_apply_covered_is_noop_no_write() {
+    let tmp = TmpDir::new("wsm");
+    tmp.write(workspace_member_glob::MANIFEST_PATH, MANIFEST_FIXTURE);
+
+    // Covered dir → apply returns false (no write) and the file is byte-identical.
+    let wrote = workspace_member_glob::apply(&tmp.path, "libs/oya-crate-registrar-app").unwrap();
+    assert!(!wrote, "a covered dir is a no-op (no write)");
+    assert_eq!(
+        tmp.read(workspace_member_glob::MANIFEST_PATH),
+        MANIFEST_FIXTURE,
+        "the manifest is left byte-identical (comments intact)"
+    );
+
+    // Re-apply: still a no-op.
+    let wrote_again =
+        workspace_member_glob::apply(&tmp.path, "libs/oya-crate-registrar-app").unwrap();
+    assert!(!wrote_again, "re-apply is a no-op (no write)");
+    assert_eq!(tmp.read(workspace_member_glob::MANIFEST_PATH), MANIFEST_FIXTURE);
+}
+
+#[test]
+fn member_glob_apply_uncovered_is_fail_closed_no_write() {
+    let tmp = TmpDir::new("wsm-bad");
+    tmp.write(workspace_member_glob::MANIFEST_PATH, MANIFEST_FIXTURE);
+
+    let err = workspace_member_glob::apply(&tmp.path, "apps/oya-thing-app").unwrap_err();
+    assert_eq!(
+        err,
+        WriterError::WorkspaceMemberUncovered("apps/oya-thing-app".to_owned())
+    );
+    // The manifest is untouched (fail-closed, never a partial write).
+    assert_eq!(tmp.read(workspace_member_glob::MANIFEST_PATH), MANIFEST_FIXTURE);
 }
