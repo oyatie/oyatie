@@ -215,8 +215,9 @@ pub fn rewrite_buck_labels(
         let old_pkg = format!("//{old_path}");
         let new_pkg = format!("//{}", cm.new_path);
         changed |= replace_token_label(&mut out, &old_pkg, &new_pkg);
-        // NON-`//` repo-rooted source-path literal `"old_path"` / `"old_path/..."` (crate_root,
-        // mapped_srcs values) -> `"new_path"` / `"new_path/..."` (#63).
+        // NON-`//` repo-rooted literal `"old_path"` / `"old_path/..."` (ANY quoted value under the
+        // moved dir — crate_root, mapped_srcs, genrule cmd/data, Starlark vars) -> `"new_path..."`
+        // (#63; field-agnostic by design — see `replace_source_path_literal`).
         changed |= replace_source_path_literal(&mut out, old_path, &cm.new_path);
     }
     (out, changed)
