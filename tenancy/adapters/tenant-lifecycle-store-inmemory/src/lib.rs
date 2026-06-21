@@ -16,6 +16,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use core::future::Future;
+use core::pin::Pin;
 use std::collections::BTreeMap;
 
 use oya_shared_platform_contracts_kernel::tenancy::Tenant;
@@ -57,76 +59,111 @@ impl InMemoryTenantLifecycleStore {
 }
 
 impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
-    fn get_tenant(&self, name: &str) -> Result<Option<Tenant>, StoreError> {
-        Ok(self.tenants.get(name).cloned())
+    fn get_tenant<'a>(
+        &'a self,
+        name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<Tenant>, StoreError>> + Send + 'a>> {
+        Box::pin(async move { Ok(self.tenants.get(name).cloned()) })
     }
 
-    fn put_tenant(&mut self, name: &str, tenant: &Tenant) -> Result<(), StoreError> {
-        self.tenants.insert(name.to_owned(), tenant.clone());
-        Ok(())
+    fn put_tenant<'a>(
+        &'a mut self,
+        name: &'a str,
+        tenant: &'a Tenant,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.tenants.insert(name.to_owned(), tenant.clone());
+            Ok(())
+        })
     }
 
-    fn remove_tenant(&mut self, name: &str) -> Result<(), StoreError> {
-        self.tenants.remove(name);
-        Ok(())
+    fn remove_tenant<'a>(
+        &'a mut self,
+        name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.tenants.remove(name);
+            Ok(())
+        })
     }
 
-    fn scan_tenants(
-        &self,
-        prefix: &str,
-        start_at: Option<&str>,
+    fn scan_tenants<'a>(
+        &'a self,
+        prefix: &'a str,
+        start_at: Option<&'a str>,
         limit: u32,
-    ) -> Result<Vec<(String, Tenant)>, StoreError> {
-        // Ascending-key walk from the inclusive lower bound (the larger of
-        // `prefix` and `start_at`), stopping at the first key that escapes the
-        // prefix or once `limit` rows are gathered. BTreeMap ranges already
-        // yield a stable total order over keys (the AIP-158 requirement).
-        let lower = match start_at {
-            Some(start) if start >= prefix => start,
-            _ => prefix,
-        };
-        let mut out = Vec::new();
-        if limit == 0 {
-            return Ok(out);
-        }
-        for (key, tenant) in self.tenants.range(lower.to_owned()..) {
-            if !key.starts_with(prefix) {
-                break;
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<(String, Tenant)>, StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            // Ascending-key walk from the inclusive lower bound (the larger of
+            // `prefix` and `start_at`), stopping at the first key that escapes
+            // the prefix or once `limit` rows are gathered. BTreeMap ranges
+            // already yield a stable total order over keys (AIP-158).
+            let lower = match start_at {
+                Some(start) if start >= prefix => start,
+                _ => prefix,
+            };
+            let mut out = Vec::new();
+            if limit == 0 {
+                return Ok(out);
             }
-            out.push((key.clone(), tenant.clone()));
-            if out.len() as u32 == limit {
-                break;
+            for (key, tenant) in self.tenants.range(lower.to_owned()..) {
+                if !key.starts_with(prefix) {
+                    break;
+                }
+                out.push((key.clone(), tenant.clone()));
+                if out.len() as u32 == limit {
+                    break;
+                }
             }
-        }
-        Ok(out)
+            Ok(out)
+        })
     }
 
-    fn get_applied(&self, key: &str) -> Result<Option<AppliedWriteRecord>, StoreError> {
-        Ok(self.applied.get(key).cloned())
+    fn get_applied<'a>(
+        &'a self,
+        key: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<AppliedWriteRecord>, StoreError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(self.applied.get(key).cloned()) })
     }
 
-    fn put_applied(&mut self, key: &str, record: &AppliedWriteRecord) -> Result<(), StoreError> {
-        self.applied.insert(key.to_owned(), record.clone());
-        Ok(())
+    fn put_applied<'a>(
+        &'a mut self,
+        key: &'a str,
+        record: &'a AppliedWriteRecord,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.applied.insert(key.to_owned(), record.clone());
+            Ok(())
+        })
     }
 
-    fn get_operation(&self, operation_name: &str) -> Result<Option<OperationRecord>, StoreError> {
-        Ok(self.operations.get(operation_name).cloned())
+    fn get_operation<'a>(
+        &'a self,
+        operation_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
+        Box::pin(async move { Ok(self.operations.get(operation_name).cloned()) })
     }
 
-    fn put_operation(
-        &mut self,
-        operation_name: &str,
-        record: &OperationRecord,
-    ) -> Result<(), StoreError> {
-        self.operations
-            .insert(operation_name.to_owned(), record.clone());
-        Ok(())
+    fn put_operation<'a>(
+        &'a mut self,
+        operation_name: &'a str,
+        record: &'a OperationRecord,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.operations
+                .insert(operation_name.to_owned(), record.clone());
+            Ok(())
+        })
     }
 
-    fn next_operation_seq(&mut self) -> Result<u64, StoreError> {
-        self.operation_seq = self.operation_seq.saturating_add(1);
-        Ok(self.operation_seq)
+    fn next_operation_seq<'a>(
+        &'a mut self,
+    ) -> Pin<Box<dyn Future<Output = Result<u64, StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.operation_seq = self.operation_seq.saturating_add(1);
+            Ok(self.operation_seq)
+        })
     }
 }
 
@@ -150,67 +187,81 @@ mod tests {
         }
     }
 
-    #[test]
-    fn put_then_get_round_trips() {
+    #[tokio::test]
+    async fn put_then_get_round_trips() {
         let mut store = InMemoryTenantLifecycleStore::new();
-        store.put_tenant("tenants/acme", &tenant("acme")).unwrap();
+        store
+            .put_tenant("tenants/acme", &tenant("acme"))
+            .await
+            .unwrap();
         assert_eq!(
-            store.get_tenant("tenants/acme").unwrap(),
+            store.get_tenant("tenants/acme").await.unwrap(),
             Some(tenant("acme"))
         );
-        assert_eq!(store.get_tenant("tenants/ghost").unwrap(), None);
+        assert_eq!(store.get_tenant("tenants/ghost").await.unwrap(), None);
     }
 
-    #[test]
-    fn scan_is_ordered_prefix_bounded_and_paged() {
+    #[tokio::test]
+    async fn scan_is_ordered_prefix_bounded_and_paged() {
         let mut store = InMemoryTenantLifecycleStore::new();
         // Insert out of order; also a key OUTSIDE the prefix to prove bounding.
         for id in ["c", "a", "b"] {
             store
                 .put_tenant(&format!("tenants/{id}"), &tenant(id))
+                .await
                 .unwrap();
         }
         store
             .put_tenant("operations/lifecycle-1", &tenant("noise"))
+            .await
             .unwrap();
 
-        let page = store.scan_tenants("tenants/", None, 2).unwrap();
+        let page = store.scan_tenants("tenants/", None, 2).await.unwrap();
         let keys: Vec<_> = page.iter().map(|(k, _)| k.clone()).collect();
         assert_eq!(keys, vec!["tenants/a".to_owned(), "tenants/b".to_owned()]);
 
         // Resume strictly after the last returned key.
-        let next = store.scan_tenants("tenants/", Some("tenants/b\0"), 10).unwrap();
+        let next = store
+            .scan_tenants("tenants/", Some("tenants/b\0"), 10)
+            .await
+            .unwrap();
         let keys: Vec<_> = next.iter().map(|(k, _)| k.clone()).collect();
         assert_eq!(keys, vec!["tenants/c".to_owned()]);
     }
 
-    #[test]
-    fn operation_seq_is_strictly_monotonic() {
+    #[tokio::test]
+    async fn operation_seq_is_strictly_monotonic() {
         let mut store = InMemoryTenantLifecycleStore::new();
-        let first = store.next_operation_seq().unwrap();
-        let second = store.next_operation_seq().unwrap();
+        let first = store.next_operation_seq().await.unwrap();
+        let second = store.next_operation_seq().await.unwrap();
         assert_eq!(first, 1);
         assert_eq!(second, 2);
     }
 
-    #[test]
-    fn applied_and_operation_tables_round_trip() {
+    #[tokio::test]
+    async fn applied_and_operation_tables_round_trip() {
         let mut store = InMemoryTenantLifecycleStore::new();
         let record = AppliedWriteRecord::Create {
             name: "tenants/acme".to_owned(),
             tenant: tenant("acme"),
         };
-        store.put_applied("key-1", &record).unwrap();
-        assert_eq!(store.get_applied("key-1").unwrap(), Some(record));
+        store.put_applied("key-1", &record).await.unwrap();
+        assert_eq!(store.get_applied("key-1").await.unwrap(), Some(record));
 
         let op = OperationRecord {
             operation: Operation::pending("operations/lifecycle-000001").unwrap(),
             kind: TenantLifecycleOperation::Activate,
             target: "tenants/acme".to_owned(),
         };
-        store.put_operation("operations/lifecycle-000001", &op).unwrap();
+        store
+            .put_operation("operations/lifecycle-000001", &op)
+            .await
+            .unwrap();
         assert_eq!(
-            store.get_operation("operations/lifecycle-000001").unwrap(),
+            store
+                .get_operation("operations/lifecycle-000001")
+                .await
+                .unwrap(),
             Some(op)
         );
     }

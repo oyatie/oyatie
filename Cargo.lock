@@ -9075,6 +9075,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -9083,6 +9084,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -11556,6 +11558,7 @@ dependencies = [
  "oya-shared-platform-contracts-kernel",
  "oya-shared-resource-provider-contract-kernel",
  "tenancy-tenant-lifecycle-kernel",
+ "tokio",
 ]
 
 [[package]]
@@ -11567,6 +11570,7 @@ dependencies = [
  "serde_json",
  "tenancy-tenant-lifecycle-domain",
  "tenancy-tenant-lifecycle-kernel",
+ "tokio",
 ]
 
 [[package]]

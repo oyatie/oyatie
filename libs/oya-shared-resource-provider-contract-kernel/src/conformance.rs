@@ -73,7 +73,7 @@ pub trait ConformanceFixture {
 
 /// Idempotent PUT: a replay under the same key is a visible no-op; a new
 /// write under a new key replaces.
-pub fn check_idempotent_put<F: ConformanceFixture>(
+pub async fn check_idempotent_put<F: ConformanceFixture>(
     fixture: &F,
 ) -> Result<(), ConformanceViolation> {
     const CHECK: &str = "idempotent_put";
@@ -86,6 +86,7 @@ pub fn check_idempotent_put<F: ConformanceFixture>(
 
     let first = provider
         .put(&name, first_payload.clone(), &key_a)
+        .await
         .map_err(|e| violation(CHECK, format!("initial put failed: {e}")))?;
     if first.disposition != WriteDisposition::Created {
         return Err(violation(
@@ -99,6 +100,7 @@ pub fn check_idempotent_put<F: ConformanceFixture>(
 
     let replay = provider
         .put(&name, first_payload.clone(), &key_a)
+        .await
         .map_err(|e| violation(CHECK, format!("replayed put failed: {e}")))?;
     if replay.disposition != WriteDisposition::Replayed {
         return Err(violation(
@@ -120,6 +122,7 @@ pub fn check_idempotent_put<F: ConformanceFixture>(
     }
     let read = provider
         .get(&name)
+        .await
         .map_err(|e| violation(CHECK, format!("get after replay failed: {e}")))?;
     if read != first_payload {
         return Err(violation(CHECK, "replay mutated stored state".to_owned()));
@@ -127,6 +130,7 @@ pub fn check_idempotent_put<F: ConformanceFixture>(
 
     let replaced = provider
         .put(&name, second_payload.clone(), &key_b)
+        .await
         .map_err(|e| violation(CHECK, format!("replacing put failed: {e}")))?;
     if replaced.disposition != WriteDisposition::Replaced {
         return Err(violation(
@@ -139,6 +143,7 @@ pub fn check_idempotent_put<F: ConformanceFixture>(
     }
     let read = provider
         .get(&name)
+        .await
         .map_err(|e| violation(CHECK, format!("get after replace failed: {e}")))?;
     if read != second_payload {
         return Err(violation(
@@ -149,7 +154,7 @@ pub fn check_idempotent_put<F: ConformanceFixture>(
     Ok(())
 }
 
-fn list_all<P: ResourceProvider>(
+async fn list_all<P: ResourceProvider>(
     check: &'static str,
     provider: &P,
     collection: &str,
@@ -161,6 +166,7 @@ fn list_all<P: ResourceProvider>(
     for _ in 0..MAX_PAGE_WALK {
         let page = provider
             .list(collection, &request)
+            .await
             .map_err(|e| violation(check, format!("list failed: {e}")))?;
         if page.items.len() > page_size as usize {
             return Err(violation(
@@ -185,7 +191,7 @@ fn list_all<P: ResourceProvider>(
 
 /// No duplicate create under a client-UUID idempotency key; key reuse with
 /// different parameters and name reuse with a new key both fail.
-pub fn check_create_idempotency<F: ConformanceFixture>(
+pub async fn check_create_idempotency<F: ConformanceFixture>(
     fixture: &F,
 ) -> Result<(), ConformanceViolation> {
     const CHECK: &str = "create_idempotency";
@@ -198,6 +204,7 @@ pub fn check_create_idempotency<F: ConformanceFixture>(
 
     let created = provider
         .create(&name, payload.clone(), &key)
+        .await
         .map_err(|e| violation(CHECK, format!("initial create failed: {e}")))?;
     if created.replayed {
         return Err(violation(
@@ -206,12 +213,15 @@ pub fn check_create_idempotency<F: ConformanceFixture>(
         ));
     }
 
-    let replay = provider.create(&name, payload.clone(), &key).map_err(|e| {
-        violation(
-            CHECK,
-            format!("create retry under the same key failed: {e}"),
-        )
-    })?;
+    let replay = provider
+        .create(&name, payload.clone(), &key)
+        .await
+        .map_err(|e| {
+            violation(
+                CHECK,
+                format!("create retry under the same key failed: {e}"),
+            )
+        })?;
     if !replay.replayed || replay.resource != payload {
         return Err(violation(
             CHECK,
@@ -219,7 +229,7 @@ pub fn check_create_idempotency<F: ConformanceFixture>(
         ));
     }
 
-    match provider.create(&name, other_payload, &key) {
+    match provider.create(&name, other_payload, &key).await {
         Err(ProviderError::IdempotencyKeyReuse { .. }) => {}
         other => {
             return Err(violation(
@@ -231,7 +241,7 @@ pub fn check_create_idempotency<F: ConformanceFixture>(
         }
     }
 
-    match provider.create(&name, payload, &other_key) {
+    match provider.create(&name, payload, &other_key).await {
         Err(ProviderError::AlreadyExists { .. }) => {}
         other => {
             return Err(violation(
@@ -243,7 +253,7 @@ pub fn check_create_idempotency<F: ConformanceFixture>(
         }
     }
 
-    let all = list_all(CHECK, &provider, fixture.collection(), 10)?;
+    let all = list_all(CHECK, &provider, fixture.collection(), 10).await?;
     if all.len() != 1 {
         return Err(violation(
             CHECK,
@@ -258,7 +268,7 @@ pub fn check_create_idempotency<F: ConformanceFixture>(
 
 /// Read-after-write equality: a get immediately after a write returns
 /// exactly the written resource; unknown names are not-found.
-pub fn check_read_after_write<F: ConformanceFixture>(
+pub async fn check_read_after_write<F: ConformanceFixture>(
     fixture: &F,
 ) -> Result<(), ConformanceViolation> {
     const CHECK: &str = "read_after_write";
@@ -274,9 +284,11 @@ pub fn check_read_after_write<F: ConformanceFixture>(
             created_payload.clone(),
             &fixture.idempotency_key(1)?,
         )
+        .await
         .map_err(|e| violation(CHECK, format!("create failed: {e}")))?;
     let read = provider
         .get(&created_name)
+        .await
         .map_err(|e| violation(CHECK, format!("get after create failed: {e}")))?;
     if read != created_payload {
         return Err(violation(
@@ -287,9 +299,11 @@ pub fn check_read_after_write<F: ConformanceFixture>(
 
     provider
         .put(&put_name, put_payload.clone(), &fixture.idempotency_key(2)?)
+        .await
         .map_err(|e| violation(CHECK, format!("put failed: {e}")))?;
     let read = provider
         .get(&put_name)
+        .await
         .map_err(|e| violation(CHECK, format!("get after put failed: {e}")))?;
     if read != put_payload {
         return Err(violation(
@@ -298,7 +312,7 @@ pub fn check_read_after_write<F: ConformanceFixture>(
         ));
     }
 
-    match provider.get(&fixture.resource_name(99)?) {
+    match provider.get(&fixture.resource_name(99)?).await {
         Err(ProviderError::NotFound { .. }) => Ok(()),
         other => Err(violation(
             CHECK,
@@ -309,7 +323,7 @@ pub fn check_read_after_write<F: ConformanceFixture>(
 
 /// Stable pagination: every resource exactly once, in a stable total order,
 /// identical across repeated walks (AIP-158).
-pub fn check_stable_pagination<F: ConformanceFixture>(
+pub async fn check_stable_pagination<F: ConformanceFixture>(
     fixture: &F,
 ) -> Result<(), ConformanceViolation> {
     const CHECK: &str = "stable_pagination";
@@ -324,11 +338,12 @@ pub fn check_stable_pagination<F: ConformanceFixture>(
                 fixture.resource_payload(ordinal),
                 &fixture.idempotency_key(10 + ordinal)?,
             )
+            .await
             .map_err(|e| violation(CHECK, format!("seeding create failed: {e}")))?;
         expected_names.insert(name.to_string());
     }
 
-    let first_walk = list_all(CHECK, &provider, fixture.collection(), 3)?;
+    let first_walk = list_all(CHECK, &provider, fixture.collection(), 3).await?;
     let first_names: Vec<String> = first_walk.iter().map(|e| e.name.to_string()).collect();
     if first_names.len() as u32 != TOTAL {
         return Err(violation(
@@ -354,7 +369,7 @@ pub fn check_stable_pagination<F: ConformanceFixture>(
         ));
     }
 
-    let second_walk = list_all(CHECK, &provider, fixture.collection(), 3)?;
+    let second_walk = list_all(CHECK, &provider, fixture.collection(), 3).await?;
     let second_names: Vec<String> = second_walk.iter().map(|e| e.name.to_string()).collect();
     if second_names != first_names {
         return Err(violation(
@@ -367,7 +382,7 @@ pub fn check_stable_pagination<F: ConformanceFixture>(
 
 /// AIP-151 operation conformance for async deletes: pollable to terminal,
 /// immutable once done, idempotent under key replay.
-pub fn check_async_delete_operation<F: ConformanceFixture>(
+pub async fn check_async_delete_operation<F: ConformanceFixture>(
     fixture: &F,
 ) -> Result<(), ConformanceViolation> {
     const CHECK: &str = "async_operation";
@@ -379,11 +394,13 @@ pub fn check_async_delete_operation<F: ConformanceFixture>(
             fixture.resource_payload(1),
             &fixture.idempotency_key(1)?,
         )
+        .await
         .map_err(|e| violation(CHECK, format!("seeding create failed: {e}")))?;
 
     let delete_key = fixture.idempotency_key(2)?;
     let mut operation = provider
         .delete(&name, &delete_key)
+        .await
         .map_err(|e| violation(CHECK, format!("delete failed: {e}")))?;
     if !operation.name.starts_with(OPERATION_NAME_PREFIX) {
         return Err(violation(
@@ -410,6 +427,7 @@ pub fn check_async_delete_operation<F: ConformanceFixture>(
         polls += 1;
         operation = provider
             .poll_operation(&operation_name)
+            .await
             .map_err(|e| violation(CHECK, format!("poll failed: {e}")))?;
         operation
             .validate()
@@ -425,7 +443,7 @@ pub fn check_async_delete_operation<F: ConformanceFixture>(
         }
     }
 
-    match provider.get(&name) {
+    match provider.get(&name).await {
         Err(ProviderError::NotFound { .. }) => {}
         other => {
             return Err(violation(
@@ -437,6 +455,7 @@ pub fn check_async_delete_operation<F: ConformanceFixture>(
 
     let replay = provider
         .delete(&name, &delete_key)
+        .await
         .map_err(|e| violation(CHECK, format!("delete replay failed: {e}")))?;
     if replay.name != operation_name {
         return Err(violation(
@@ -450,6 +469,7 @@ pub fn check_async_delete_operation<F: ConformanceFixture>(
 
     let terminal = provider
         .poll_operation(&operation_name)
+        .await
         .map_err(|e| violation(CHECK, format!("terminal re-poll failed: {e}")))?;
     if !terminal.done || terminal.result != operation.result {
         return Err(violation(
@@ -458,7 +478,7 @@ pub fn check_async_delete_operation<F: ConformanceFixture>(
         ));
     }
 
-    match provider.poll_operation("operations/never-issued") {
+    match provider.poll_operation("operations/never-issued").await {
         Err(ProviderError::NotFound { .. }) => Ok(()),
         other => Err(violation(
             CHECK,
@@ -468,13 +488,13 @@ pub fn check_async_delete_operation<F: ConformanceFixture>(
 }
 
 /// Run the full contract; an empty vector means the provider conforms.
-pub fn run_all_checks<F: ConformanceFixture>(fixture: &F) -> Vec<ConformanceViolation> {
+pub async fn run_all_checks<F: ConformanceFixture>(fixture: &F) -> Vec<ConformanceViolation> {
     [
-        check_idempotent_put(fixture),
-        check_create_idempotency(fixture),
-        check_read_after_write(fixture),
-        check_stable_pagination(fixture),
-        check_async_delete_operation(fixture),
+        check_idempotent_put(fixture).await,
+        check_create_idempotency(fixture).await,
+        check_read_after_write(fixture).await,
+        check_stable_pagination(fixture).await,
+        check_async_delete_operation(fixture).await,
     ]
     .into_iter()
     .filter_map(Result::err)

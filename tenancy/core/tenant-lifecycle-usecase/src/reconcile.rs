@@ -74,12 +74,12 @@ fn state_name(state: TenantLifecycleState) -> &'static str {
     }
 }
 
-impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
+impl<S: TenantLifecycleStore + Send + Sync> TenantLifecycleProvider<S> {
     /// One level-triggered reconcile pass: observe, plan ONE step via the
     /// domain planner, request it through the AIP-151 ledger, and report.
     /// Pure function of (stored state, spec, ctx) — safe to re-run after a
     /// controller restart because every mutation key is derived, not drawn.
-    pub fn reconcile(
+    pub async fn reconcile(
         &mut self,
         name: &ResourceName,
         spec: &TenantSpec,
@@ -87,7 +87,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
     ) -> Result<ReconcileOutcome, ProviderError> {
         // Observe at STORE level so tombstones are visible: "never existed"
         // and "terminally retired" reconcile differently.
-        let observed = match self.observe_stored(name)? {
+        let observed = match self.observe_stored(name).await? {
             Some(tenant) => tenant,
             None => {
                 if spec.desired == DesiredTenantState::Retired {
@@ -98,7 +98,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
                     .map_err(|e| ProviderError::Internal {
                         message: e.to_string(),
                     })?;
-                self.create(name, tenant_from_spec(name, spec), &key)?;
+                self.create(name, tenant_from_spec(name, spec), &key).await?;
                 return Ok(ReconcileOutcome::Progressing {
                     detail: "created".to_owned(),
                 });
@@ -127,7 +127,7 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
                         .map_err(|e| ProviderError::Internal {
                             message: e.to_string(),
                         })?;
-                    self.put(name, declared, &key)?;
+                    self.put(name, declared, &key).await?;
                     return Ok(ReconcileOutcome::Progressing {
                         detail: "metadata-updated".to_owned(),
                     });
@@ -143,8 +143,8 @@ impl<S: TenantLifecycleStore> TenantLifecycleProvider<S> {
                         message: e.to_string(),
                     }
                 })?;
-                let requested = self.apply_lifecycle(name, operation, &key)?;
-                let polled = self.poll_operation(&requested.name)?;
+                let requested = self.apply_lifecycle(name, operation, &key).await?;
+                let polled = self.poll_operation(&requested.name).await?;
                 if !polled.done {
                     return Ok(ReconcileOutcome::Progressing {
                         detail: format!("operation {} pending", polled.name),

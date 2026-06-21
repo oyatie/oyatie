@@ -23,5 +23,11 @@ doctest = false
 serde = { workspace = true }
 serde_json = { workspace = true }
 
+# The library is async via bare Pin<Box<dyn Future>> (core only — no new lib
+# deps). The in-crate reference-provider integration test drives the async
+# conformance harness, so it needs a runtime to `.await` under `#[tokio::test]`.
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+
 [lints]
 workspace = true

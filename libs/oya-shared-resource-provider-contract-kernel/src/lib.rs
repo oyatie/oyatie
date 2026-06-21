@@ -29,6 +29,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use core::future::Future;
+use core::pin::Pin;
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
@@ -427,8 +429,12 @@ pub struct CreateOutcome<R> {
     pub replayed: bool, // data_class: INTERNAL_ONLY
 }
 
-/// The uniform resource-provider contract. Implementations are synchronous
-/// and in-process here (the kernel layer is IO-free); transport bindings
+/// The uniform resource-provider contract. Methods are async (the durable
+/// store behind a provider performs real I/O); the kernel itself stays
+/// IO-free and dependency-free by modelling async with a return-position
+/// boxed future — `core::future::Future` + `core::pin::Pin` + `Box::pin`, no
+/// `async-trait` / `futures` dep (ADR-0376 rejects async-trait for ports;
+/// the blessed `ProviderInvocationTransport` port shape). Transport bindings
 /// adapt this trait at their own layer.
 pub trait ResourceProvider {
     /// The resource payload type.
@@ -439,43 +445,55 @@ pub trait ResourceProvider {
     /// parameters MUST fail with [`ProviderError::IdempotencyKeyReuse`]; an
     /// existing name under a new key MUST fail with
     /// [`ProviderError::AlreadyExists`].
-    fn create(
-        &mut self,
-        name: &ResourceName,
+    fn create<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
         resource: Self::Resource,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<CreateOutcome<Self::Resource>, ProviderError>;
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<
+        Box<dyn Future<Output = Result<CreateOutcome<Self::Resource>, ProviderError>> + Send + 'a>,
+    >;
 
     /// Full-replace upsert of `name` (AIP-134). Replays under the same
     /// idempotency key MUST be no-ops returning the original outcome with
     /// [`WriteDisposition::Replayed`].
-    fn put(
-        &mut self,
-        name: &ResourceName,
+    fn put<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
         resource: Self::Resource,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<PutOutcome<Self::Resource>, ProviderError>;
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<
+        Box<dyn Future<Output = Result<PutOutcome<Self::Resource>, ProviderError>> + Send + 'a>,
+    >;
 
     /// Read `name`, exactly as last written.
-    fn get(&self, name: &ResourceName) -> Result<Self::Resource, ProviderError>;
+    fn get<'a>(
+        &'a self,
+        name: &'a ResourceName,
+    ) -> Pin<Box<dyn Future<Output = Result<Self::Resource, ProviderError>> + Send + 'a>>;
 
     /// List a `collection` page in a stable total order.
-    fn list(
-        &self,
-        collection: &str,
-        request: &PageRequest,
-    ) -> Result<Page<ListEntry<Self::Resource>>, ProviderError>;
+    fn list<'a>(
+        &'a self,
+        collection: &'a str,
+        request: &'a PageRequest,
+    ) -> Pin<
+        Box<dyn Future<Output = Result<Page<ListEntry<Self::Resource>>, ProviderError>> + Send + 'a>,
+    >;
 
     /// Async delete of `name`: returns an AIP-151 operation. Replays under
     /// the same idempotency key MUST return the SAME operation resource.
-    fn delete(
-        &mut self,
-        name: &ResourceName,
-        idempotency_key: &IdempotencyKey,
-    ) -> Result<Operation, ProviderError>;
+    fn delete<'a>(
+        &'a mut self,
+        name: &'a ResourceName,
+        idempotency_key: &'a IdempotencyKey,
+    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>>;
 
     /// Poll an operation by name. Terminal operations are immutable.
-    fn poll_operation(&mut self, operation_name: &str) -> Result<Operation, ProviderError>;
+    fn poll_operation<'a>(
+        &'a mut self,
+        operation_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Operation, ProviderError>> + Send + 'a>>;
 }
 
 #[cfg(test)]

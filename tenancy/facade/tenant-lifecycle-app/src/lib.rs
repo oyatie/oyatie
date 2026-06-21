@@ -45,7 +45,9 @@
 #![forbid(unsafe_code)]
 
 use std::fmt;
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::Arc;
+
+use tokio::sync::{Mutex, MutexGuard};
 
 use axum::Json;
 use axum::Router;
@@ -90,15 +92,23 @@ const ENV_TENANT_OPERATOR_TOKEN: &str = "TENANCY_TENANT_OPERATOR_TOKEN";
 const HEADER_TENANT_AXIS: &str = "x-oya-tenant";
 
 /// The storage-port bound a served lifecycle provider needs: the kernel store
-/// port, plus the thread/async-share markers axum handlers require.
-pub trait LifecycleStore: TenantLifecycleStore + Send + 'static {}
+/// port, plus the thread/async-share markers axum handlers require. `Sync` is
+/// required because the async `ResourceProvider` impl returns `&self`-borrowing
+/// boxed futures that must be `Send` (a `&S` is `Send` only when `S: Sync`).
+pub trait LifecycleStore: TenantLifecycleStore + Send + Sync + 'static {}
 
-impl<T> LifecycleStore for T where T: TenantLifecycleStore + Send + 'static {}
+impl<T> LifecycleStore for T where T: TenantLifecycleStore + Send + Sync + 'static {}
 
 /// The lifecycle provider behind a single composition-root lock.
 /// `ResourceProvider` mutations take `&mut self`; the lock makes the provider
 /// shareable across async axum handlers while keeping the operation ledger
 /// single-writer (so idempotency holds).
+///
+/// Uses `tokio::sync::Mutex` (NOT `std::sync::Mutex`): the now-async provider
+/// methods are `.await`ed while the guard is held, so the lock MUST be an async
+/// lock whose guard is `Send` and is designed to be held across await points
+/// (a `std::sync::MutexGuard` held across `.await` makes the handler future
+/// `!Send` and is a deadlock-class footgun).
 ///
 /// ## Concurrency seam (deliberate, single-node bring-up)
 ///
@@ -160,16 +170,14 @@ impl<S: LifecycleStore> AppState<S> {
         }
     }
 
-    /// Acquire the provider lock, RECOVERING from poisoning rather than
-    /// propagating it (poison-DoS hardening): a handler that panicked while
-    /// holding the lock must not brick every subsequent request. The contract
-    /// FSM mutates the in-memory ledger transactionally per call, so a recovered
-    /// guard observes a consistent prior state; one panicked request can fail,
-    /// but the service keeps serving (no single-panic denial of service).
-    fn lock(&self) -> MutexGuard<'_, TenantLifecycleProvider<S>> {
-        self.provider
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    /// Acquire the provider lock (async). `tokio::sync::Mutex` does NOT poison
+    /// on a panic-while-held (unlike `std::sync::Mutex`), so there is no
+    /// poison-recovery branch: a handler that panics simply releases the guard,
+    /// and the service keeps serving (no single-panic denial of service). The
+    /// contract FSM mutates the in-memory ledger transactionally per call, so
+    /// the next acquirer always observes a consistent prior state.
+    async fn lock(&self) -> MutexGuard<'_, TenantLifecycleProvider<S>> {
+        self.provider.lock().await
     }
 }
 
@@ -558,9 +566,10 @@ where
         cell_id: body.cell_id,
         residency_zone: body.residency_zone,
     };
-    let mut provider = state.lock();
+    let mut provider = state.lock().await;
     let outcome = provider
         .create(&name, tenant, &key)
+        .await
         .map_err(map_provider_error)?;
     let status = if outcome.replayed {
         StatusCode::OK
@@ -590,8 +599,8 @@ where
         Some(&tenant_id),
     )?;
     let name = tenant_name(&tenant_id)?;
-    let provider = state.lock();
-    let tenant = provider.get(&name).map_err(map_provider_error)?;
+    let provider = state.lock().await;
+    let tenant = provider.get(&name).await.map_err(map_provider_error)?;
     Ok(Json(TenantView::from(tenant)))
 }
 
@@ -615,9 +624,10 @@ where
             .map_err(|e| err(StatusCode::BAD_REQUEST, "INVALID_PAGE_TOKEN", e.to_string()))?;
         request = request.after(token);
     }
-    let provider = state.lock();
+    let provider = state.lock().await;
     let page = provider
         .list(TENANT_COLLECTION, &request)
+        .await
         .map_err(map_provider_error)?;
     Ok(Json(TenantListView {
         tenants: page
@@ -633,7 +643,7 @@ where
 /// tenant view. Starts the AIP-151 operation, polls it once (the in-memory
 /// provider completes synchronously on poll), and surfaces the converged
 /// tenant — or the terminal operation error mapped onto an HTTP status.
-fn run_lifecycle<S>(
+async fn run_lifecycle<S>(
     provider: &mut TenantLifecycleProvider<S>,
     name: &ResourceName,
     operation: TenantLifecycleOperation,
@@ -644,9 +654,11 @@ where
 {
     let started: Operation = provider
         .apply_lifecycle(name, operation, key)
+        .await
         .map_err(map_provider_error)?;
     let terminal = provider
         .poll_operation(&started.name)
+        .await
         .map_err(map_provider_error)?;
     match terminal.result {
         Some(OperationResult::Error(op_error)) => {
@@ -663,7 +675,7 @@ where
         }
         // Success (or, defensively, a re-read pending op): the observed state
         // is the authoritative outcome.
-        Some(OperationResult::Response(_)) | None => match provider.observe_stored(name) {
+        Some(OperationResult::Response(_)) | None => match provider.observe_stored(name).await {
             Ok(Some(tenant)) => Ok(tenant.state),
             Ok(None) => Err(err(
                 StatusCode::NOT_FOUND,
@@ -692,9 +704,9 @@ where
     )?;
     let key = idempotency_key(&headers)?;
     let name = tenant_name(&tenant_id)?;
-    let mut provider = state.lock();
-    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Activate, &key)?;
-    let tenant = provider.get(&name).map_err(map_provider_error)?;
+    let mut provider = state.lock().await;
+    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Activate, &key).await?;
+    let tenant = provider.get(&name).await.map_err(map_provider_error)?;
     Ok(Json(TenantView::from(tenant)))
 }
 
@@ -715,9 +727,9 @@ where
     )?;
     let key = idempotency_key(&headers)?;
     let name = tenant_name(&tenant_id)?;
-    let mut provider = state.lock();
-    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Suspend, &key)?;
-    let tenant = provider.get(&name).map_err(map_provider_error)?;
+    let mut provider = state.lock().await;
+    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Suspend, &key).await?;
+    let tenant = provider.get(&name).await.map_err(map_provider_error)?;
     Ok(Json(TenantView::from(tenant)))
 }
 
@@ -738,9 +750,9 @@ where
     )?;
     let key = idempotency_key(&headers)?;
     let name = tenant_name(&tenant_id)?;
-    let mut provider = state.lock();
-    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Resume, &key)?;
-    let tenant = provider.get(&name).map_err(map_provider_error)?;
+    let mut provider = state.lock().await;
+    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Resume, &key).await?;
+    let tenant = provider.get(&name).await.map_err(map_provider_error)?;
     Ok(Json(TenantView::from(tenant)))
 }
 
@@ -763,9 +775,9 @@ where
     )?;
     let key = idempotency_key(&headers)?;
     let name = tenant_name(&tenant_id)?;
-    let mut provider = state.lock();
+    let mut provider = state.lock().await;
     // Retire IS the delete transition: start + poll to terminal.
-    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Retire, &key)?;
+    run_lifecycle(&mut provider, &name, TenantLifecycleOperation::Retire, &key).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 

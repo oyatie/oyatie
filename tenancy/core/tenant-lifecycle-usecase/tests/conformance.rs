@@ -9,6 +9,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeMap;
+use std::future::Future;
+use std::pin::Pin;
 
 use oya_shared_platform_contracts_kernel::tenancy::{
     IsolationPosture, Tenant, TenantLifecycleOperation, TenantLifecycleState,
@@ -36,62 +38,97 @@ struct MemoryStore {
 }
 
 impl TenantLifecycleStore for MemoryStore {
-    fn get_tenant(&self, name: &str) -> Result<Option<Tenant>, StoreError> {
-        Ok(self.tenants.get(name).cloned())
+    fn get_tenant<'a>(
+        &'a self,
+        name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<Tenant>, StoreError>> + Send + 'a>> {
+        Box::pin(async move { Ok(self.tenants.get(name).cloned()) })
     }
 
-    fn put_tenant(&mut self, name: &str, tenant: &Tenant) -> Result<(), StoreError> {
-        self.tenants.insert(name.to_owned(), tenant.clone());
-        Ok(())
+    fn put_tenant<'a>(
+        &'a mut self,
+        name: &'a str,
+        tenant: &'a Tenant,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.tenants.insert(name.to_owned(), tenant.clone());
+            Ok(())
+        })
     }
 
-    fn remove_tenant(&mut self, name: &str) -> Result<(), StoreError> {
-        self.tenants.remove(name);
-        Ok(())
+    fn remove_tenant<'a>(
+        &'a mut self,
+        name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.tenants.remove(name);
+            Ok(())
+        })
     }
 
-    fn scan_tenants(
-        &self,
-        prefix: &str,
-        start_at: Option<&str>,
+    fn scan_tenants<'a>(
+        &'a self,
+        prefix: &'a str,
+        start_at: Option<&'a str>,
         limit: u32,
-    ) -> Result<Vec<(String, Tenant)>, StoreError> {
-        Ok(self
-            .tenants
-            .iter()
-            .filter(|(key, _)| key.starts_with(prefix))
-            .filter(|(key, _)| start_at.is_none_or(|start| key.as_str() >= start))
-            .take(limit as usize)
-            .map(|(key, tenant)| (key.clone(), tenant.clone()))
-            .collect())
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<(String, Tenant)>, StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            Ok(self
+                .tenants
+                .iter()
+                .filter(|(key, _)| key.starts_with(prefix))
+                .filter(|(key, _)| start_at.is_none_or(|start| key.as_str() >= start))
+                .take(limit as usize)
+                .map(|(key, tenant)| (key.clone(), tenant.clone()))
+                .collect())
+        })
     }
 
-    fn get_applied(&self, key: &str) -> Result<Option<AppliedWriteRecord>, StoreError> {
-        Ok(self.applied.get(key).cloned())
+    fn get_applied<'a>(
+        &'a self,
+        key: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<AppliedWriteRecord>, StoreError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(self.applied.get(key).cloned()) })
     }
 
-    fn put_applied(&mut self, key: &str, record: &AppliedWriteRecord) -> Result<(), StoreError> {
-        self.applied.insert(key.to_owned(), record.clone());
-        Ok(())
+    fn put_applied<'a>(
+        &'a mut self,
+        key: &'a str,
+        record: &'a AppliedWriteRecord,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.applied.insert(key.to_owned(), record.clone());
+            Ok(())
+        })
     }
 
-    fn get_operation(&self, operation_name: &str) -> Result<Option<OperationRecord>, StoreError> {
-        Ok(self.operations.get(operation_name).cloned())
+    fn get_operation<'a>(
+        &'a self,
+        operation_name: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<OperationRecord>, StoreError>> + Send + 'a>> {
+        Box::pin(async move { Ok(self.operations.get(operation_name).cloned()) })
     }
 
-    fn put_operation(
-        &mut self,
-        operation_name: &str,
-        record: &OperationRecord,
-    ) -> Result<(), StoreError> {
-        self.operations
-            .insert(operation_name.to_owned(), record.clone());
-        Ok(())
+    fn put_operation<'a>(
+        &'a mut self,
+        operation_name: &'a str,
+        record: &'a OperationRecord,
+    ) -> Pin<Box<dyn Future<Output = Result<(), StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.operations
+                .insert(operation_name.to_owned(), record.clone());
+            Ok(())
+        })
     }
 
-    fn next_operation_seq(&mut self) -> Result<u64, StoreError> {
-        self.operation_seq += 1;
-        Ok(self.operation_seq)
+    fn next_operation_seq<'a>(
+        &'a mut self,
+    ) -> Pin<Box<dyn Future<Output = Result<u64, StoreError>> + Send + 'a>> {
+        Box::pin(async move {
+            self.operation_seq += 1;
+            Ok(self.operation_seq)
+        })
     }
 }
 
@@ -120,34 +157,34 @@ impl ConformanceFixture for TenantFixture {
     }
 }
 
-#[test]
-fn lifecycle_provider_passes_idempotent_put() {
-    check_idempotent_put(&TenantFixture).unwrap();
+#[tokio::test]
+async fn lifecycle_provider_passes_idempotent_put() {
+    check_idempotent_put(&TenantFixture).await.unwrap();
 }
 
-#[test]
-fn lifecycle_provider_passes_create_idempotency() {
-    check_create_idempotency(&TenantFixture).unwrap();
+#[tokio::test]
+async fn lifecycle_provider_passes_create_idempotency() {
+    check_create_idempotency(&TenantFixture).await.unwrap();
 }
 
-#[test]
-fn lifecycle_provider_passes_read_after_write() {
-    check_read_after_write(&TenantFixture).unwrap();
+#[tokio::test]
+async fn lifecycle_provider_passes_read_after_write() {
+    check_read_after_write(&TenantFixture).await.unwrap();
 }
 
-#[test]
-fn lifecycle_provider_passes_stable_pagination() {
-    check_stable_pagination(&TenantFixture).unwrap();
+#[tokio::test]
+async fn lifecycle_provider_passes_stable_pagination() {
+    check_stable_pagination(&TenantFixture).await.unwrap();
 }
 
-#[test]
-fn lifecycle_provider_passes_async_delete_operation() {
-    check_async_delete_operation(&TenantFixture).unwrap();
+#[tokio::test]
+async fn lifecycle_provider_passes_async_delete_operation() {
+    check_async_delete_operation(&TenantFixture).await.unwrap();
 }
 
-#[test]
-fn lifecycle_provider_passes_the_full_contract() {
-    let violations = run_all_checks(&TenantFixture);
+#[tokio::test]
+async fn lifecycle_provider_passes_the_full_contract() {
+    let violations = run_all_checks(&TenantFixture).await;
     assert!(violations.is_empty(), "{violations:#?}");
 }
 
@@ -155,7 +192,7 @@ fn lifecycle_provider_passes_the_full_contract() {
 // Lifecycle-ledger behavior beyond the generic harness.
 // ---------------------------------------------------------------------------
 
-fn provider_with_tenant(name: &ResourceName) -> TenantLifecycleProvider<MemoryStore> {
+async fn provider_with_tenant(name: &ResourceName) -> TenantLifecycleProvider<MemoryStore> {
     let mut provider = TenantFixture.fresh_provider();
     provider
         .create(
@@ -163,70 +200,72 @@ fn provider_with_tenant(name: &ResourceName) -> TenantLifecycleProvider<MemorySt
             TenantFixture.resource_payload(1),
             &TenantFixture.idempotency_key(1).unwrap(),
         )
+        .await
         .unwrap();
     provider
 }
 
-fn drive_to_done(
+async fn drive_to_done(
     provider: &mut TenantLifecycleProvider<MemoryStore>,
     name: &ResourceName,
     operation: TenantLifecycleOperation,
     key_ordinal: u32,
 ) -> oya_shared_resource_provider_contract_kernel::Operation {
     let key = TenantFixture.idempotency_key(key_ordinal).unwrap();
-    let mut op = provider.apply_lifecycle(name, operation, &key).unwrap();
+    let mut op = provider.apply_lifecycle(name, operation, &key).await.unwrap();
     assert!(!op.done, "lifecycle operations start pending");
     while !op.done {
-        op = provider.poll_operation(&op.name.clone()).unwrap();
+        op = provider.poll_operation(&op.name.clone()).await.unwrap();
         op.validate().unwrap();
     }
     op
 }
 
-#[test]
-fn lifecycle_happy_path_walks_the_contract_state_machine() {
+#[tokio::test]
+async fn lifecycle_happy_path_walks_the_contract_state_machine() {
     let name = TenantFixture.resource_name(1).unwrap();
-    let mut provider = provider_with_tenant(&name);
+    let mut provider = provider_with_tenant(&name).await;
 
     let op = drive_to_done(
         &mut provider,
         &name,
         TenantLifecycleOperation::Activate,
         10,
-    );
+    )
+    .await;
     assert!(matches!(op.result, Some(OperationResult::Response(_))));
     assert_eq!(
-        provider.get(&name).unwrap().state,
+        provider.get(&name).await.unwrap().state,
         TenantLifecycleState::Active
     );
 
-    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Suspend, 11);
+    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Suspend, 11).await;
     assert_eq!(
-        provider.get(&name).unwrap().state,
+        provider.get(&name).await.unwrap().state,
         TenantLifecycleState::Suspended
     );
 
-    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Resume, 12);
+    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Resume, 12).await;
     assert_eq!(
-        provider.get(&name).unwrap().state,
+        provider.get(&name).await.unwrap().state,
         TenantLifecycleState::Active
     );
 
-    let op = drive_to_done(&mut provider, &name, TenantLifecycleOperation::Retire, 13);
+    let op = drive_to_done(&mut provider, &name, TenantLifecycleOperation::Retire, 13).await;
     assert!(matches!(op.result, Some(OperationResult::Response(_))));
     assert!(matches!(
-        provider.get(&name),
+        provider.get(&name).await,
         Err(ProviderError::NotFound { .. })
     ));
 }
 
-#[test]
-fn invalid_transition_completes_as_failed_precondition_and_changes_nothing() {
+#[tokio::test]
+async fn invalid_transition_completes_as_failed_precondition_and_changes_nothing() {
     let name = TenantFixture.resource_name(1).unwrap();
-    let mut provider = provider_with_tenant(&name);
+    let mut provider = provider_with_tenant(&name).await;
 
     // Suspend from Provisioning is not a legal contract transition.
-    let op = drive_to_done(&mut provider, &name, TenantLifecycleOperation::Suspend, 20);
+    let op = drive_to_done(&mut provider, &name, TenantLifecycleOperation::Suspend, 20).await;
     match &op.result {
         Some(OperationResult::Error(error)) => {
             assert_eq!(error.code, "failed_precondition", "{error:?}");
@@ -234,68 +273,75 @@ fn invalid_transition_completes_as_failed_precondition_and_changes_nothing() {
         other => panic!("expected a failed operation, got {other:?}"),
     }
     assert_eq!(
-        provider.get(&name).unwrap().state,
+        provider.get(&name).await.unwrap().state,
         TenantLifecycleState::initial(),
         "a failed transition must not move state"
     );
 }
 
-#[test]
-fn terminal_failed_operations_are_immutable_and_replayable() {
+#[tokio::test]
+async fn terminal_failed_operations_are_immutable_and_replayable() {
     let name = TenantFixture.resource_name(1).unwrap();
-    let mut provider = provider_with_tenant(&name);
+    let mut provider = provider_with_tenant(&name).await;
     let key = TenantFixture.idempotency_key(21).unwrap();
 
     let pending = provider
         .apply_lifecycle(&name, TenantLifecycleOperation::Suspend, &key)
+        .await
         .unwrap();
-    let failed = provider.poll_operation(&pending.name).unwrap();
+    let failed = provider.poll_operation(&pending.name).await.unwrap();
     assert!(failed.done);
 
     // Replay under the same key returns the SAME terminal operation.
     let replay = provider
         .apply_lifecycle(&name, TenantLifecycleOperation::Suspend, &key)
+        .await
         .unwrap();
     assert_eq!(replay, failed);
 
     // Re-polling a terminal entry never rewrites it — even after the tenant
     // becomes legally suspendable.
-    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Activate, 22);
-    let repoll = provider.poll_operation(&pending.name).unwrap();
+    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Activate, 22).await;
+    let repoll = provider.poll_operation(&pending.name).await.unwrap();
     assert_eq!(repoll, failed, "terminal operations are immutable");
 }
 
-#[test]
-fn idempotency_key_reuse_across_different_lifecycle_params_is_rejected() {
+#[tokio::test]
+async fn idempotency_key_reuse_across_different_lifecycle_params_is_rejected() {
     let name = TenantFixture.resource_name(1).unwrap();
-    let mut provider = provider_with_tenant(&name);
+    let mut provider = provider_with_tenant(&name).await;
     let key = TenantFixture.idempotency_key(23).unwrap();
 
     provider
         .apply_lifecycle(&name, TenantLifecycleOperation::Activate, &key)
+        .await
         .unwrap();
     assert!(matches!(
-        provider.apply_lifecycle(&name, TenantLifecycleOperation::Suspend, &key),
+        provider
+            .apply_lifecycle(&name, TenantLifecycleOperation::Suspend, &key)
+            .await,
         Err(ProviderError::IdempotencyKeyReuse { .. })
     ));
 }
 
-#[test]
-fn lifecycle_on_unknown_tenant_is_not_found() {
+#[tokio::test]
+async fn lifecycle_on_unknown_tenant_is_not_found() {
     let mut provider = TenantFixture.fresh_provider();
     let name = TenantFixture.resource_name(7).unwrap();
     assert!(matches!(
-        provider.apply_lifecycle(
-            &name,
-            TenantLifecycleOperation::Activate,
-            &TenantFixture.idempotency_key(30).unwrap(),
-        ),
+        provider
+            .apply_lifecycle(
+                &name,
+                TenantLifecycleOperation::Activate,
+                &TenantFixture.idempotency_key(30).unwrap(),
+            )
+            .await,
         Err(ProviderError::NotFound { .. })
     ));
 }
 
-#[test]
-fn create_rejects_non_initial_state_and_invalid_tenants() {
+#[tokio::test]
+async fn create_rejects_non_initial_state_and_invalid_tenants() {
     let mut provider = TenantFixture.fresh_provider();
     let name = TenantFixture.resource_name(1).unwrap();
 
@@ -304,7 +350,9 @@ fn create_rejects_non_initial_state_and_invalid_tenants() {
         ..TenantFixture.resource_payload(1)
     };
     assert!(matches!(
-        provider.create(&name, active, &TenantFixture.idempotency_key(40).unwrap()),
+        provider
+            .create(&name, active, &TenantFixture.idempotency_key(40).unwrap())
+            .await,
         Err(ProviderError::InvalidArgument { .. })
     ));
 
@@ -313,58 +361,66 @@ fn create_rejects_non_initial_state_and_invalid_tenants() {
         ..TenantFixture.resource_payload(1)
     };
     assert!(matches!(
-        provider.create(
-            &name,
-            malformed,
-            &TenantFixture.idempotency_key(41).unwrap()
-        ),
+        provider
+            .create(
+                &name,
+                malformed,
+                &TenantFixture.idempotency_key(41).unwrap()
+            )
+            .await,
         Err(ProviderError::InvalidArgument { .. })
     ));
 }
 
-#[test]
-fn retired_tombstones_refuse_put_and_create() {
+#[tokio::test]
+async fn retired_tombstones_refuse_put_and_create() {
     let name = TenantFixture.resource_name(1).unwrap();
-    let mut provider = provider_with_tenant(&name);
-    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Retire, 60);
+    let mut provider = provider_with_tenant(&name).await;
+    drive_to_done(&mut provider, &name, TenantLifecycleOperation::Retire, 60).await;
     assert!(matches!(
-        provider.get(&name),
+        provider.get(&name).await,
         Err(ProviderError::NotFound { .. })
     ));
 
     assert!(matches!(
-        provider.put(
-            &name,
-            TenantFixture.resource_payload(1),
-            &TenantFixture.idempotency_key(61).unwrap()
-        ),
+        provider
+            .put(
+                &name,
+                TenantFixture.resource_payload(1),
+                &TenantFixture.idempotency_key(61).unwrap()
+            )
+            .await,
         Err(ProviderError::FailedPrecondition { .. })
     ));
     assert!(matches!(
-        provider.create(
-            &name,
-            TenantFixture.resource_payload(1),
-            &TenantFixture.idempotency_key(62).unwrap()
-        ),
+        provider
+            .create(
+                &name,
+                TenantFixture.resource_payload(1),
+                &TenantFixture.idempotency_key(62).unwrap()
+            )
+            .await,
         Err(ProviderError::AlreadyExists { .. })
     ));
 }
 
-#[test]
-fn put_may_never_change_lifecycle_state() {
+#[tokio::test]
+async fn put_may_never_change_lifecycle_state() {
     let name = TenantFixture.resource_name(1).unwrap();
-    let mut provider = provider_with_tenant(&name);
+    let mut provider = provider_with_tenant(&name).await;
 
     let sneaky = Tenant {
         state: TenantLifecycleState::Active,
         ..TenantFixture.resource_payload(1)
     };
     assert!(matches!(
-        provider.put(&name, sneaky, &TenantFixture.idempotency_key(50).unwrap()),
+        provider
+            .put(&name, sneaky, &TenantFixture.idempotency_key(50).unwrap())
+            .await,
         Err(ProviderError::FailedPrecondition { .. })
     ));
     assert_eq!(
-        provider.get(&name).unwrap().state,
+        provider.get(&name).await.unwrap().state,
         TenantLifecycleState::initial()
     );
 }
