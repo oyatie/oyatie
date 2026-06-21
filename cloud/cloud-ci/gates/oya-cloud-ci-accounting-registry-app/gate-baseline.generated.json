@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:c9798fad6106cd34",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:3e792a7224d328e7"
+    "source_inputs_digest": "fnv1a64:198ca86babe51f80"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -49380,7 +49380,9 @@
           "registry/catalog/tenancy-per-tenant-quota.yaml",
           "registry/catalog/tenancy-reserved-namespace.yaml",
           "registry/catalog/tenancy-sub-scope-registry.yaml",
+          "registry/catalog/tenancy-tenant-lifecycle-app.yaml",
           "registry/catalog/tenancy-tenant-lifecycle-kernel.yaml",
+          "registry/catalog/tenancy-tenant-lifecycle-store-inmemory.yaml",
           "registry/catalog/workflow-event-bus-adapter.yaml",
           "registry/catalog/workflow-event-bus-api.yaml",
           "registry/catalog/workflow-event-bus-app.yaml",
