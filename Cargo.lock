@@ -6751,6 +6751,7 @@ name = "oya-crate-registrar-app"
 version = "0.1.0"
 dependencies = [
  "oya-crate-registrar-kernel",
+ "oya-workspace-members-kernel",
  "serde",
  "serde_json",
 ]
