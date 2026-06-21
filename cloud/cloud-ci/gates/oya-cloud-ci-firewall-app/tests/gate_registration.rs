@@ -20,14 +20,20 @@ use std::path::{Path, PathBuf};
 
 /// The crates under `cloud/cloud-ci/gates/` that are NOT gate lanes — they are the rust_binaries
 /// that EMIT the faces (registered in the workflow via a `run` step, not a `cargo test -p ...`
-/// gate lane). These are the intentional exclusions from the gate-registration invariant:
+/// gate lane) or the on-demand born-accounting orchestrator. These are the intentional exclusions
+/// from the gate-registration invariant:
 ///   - the accounting producer (emits the five accounting faces);
 ///   - the scm-facts emitter (the single out-of-graph git boundary that emits
-///     scm-facts.generated.json; OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5).
+///     scm-facts.generated.json; OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5);
+///   - the born-accounting register_crate ORCHESTRATOR (G011 slice 3b, ADR-0568): it MUTATES the
+///     source SSOTs (OWNERS/registry/ADR/catalog/reachability) to onboard a NEW crate. It is not a
+///     gate lane and not a face-emitter — it is invoked ON DEMAND to register a crate, never in the
+///     required fan-in (it would have nothing to assert and would mutate the tree under presubmit).
 const PRODUCER_CRATE: &str = "oya-cloud-ci-accounting-registry-app";
-const NON_GATE_CRATES: [&str; 2] = [
+const NON_GATE_CRATES: [&str; 3] = [
     "oya-cloud-ci-accounting-registry-app",
     "oya-cloud-ci-scm-facts-emitter-app",
+    "oya-cloud-ci-register-crate-app",
 ];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
