@@ -1,4 +1,6 @@
-use std::{fs, os::unix::fs::PermissionsExt};
+#[path = "support_fake_cli.rs"]
+mod support;
+use support::{expect_json_line, fake_cli, read_json_line, write_json_line};
 
 use intelligence_claude_agent_sdk::{
     ClaudeAgentOptions, FoldSessionSummaryOptions, ForkSessionOptions, GetSessionInfoOptions,
@@ -497,49 +499,49 @@ fn session_store_options_emit_mirror_and_reject_file_checkpointing() {
 
 #[tokio::test]
 async fn query_mirrors_transcript_frames_without_yielding_them() -> intelligence_claude_agent_sdk::Result<()> {
-    let dir = tempdir().unwrap();
     let config = tempdir().unwrap();
-    let script = dir.path().join("fake-claude-mirror.py");
-    fs::write(
-        &script,
-        r#"#!/usr/bin/env python3
-import json, os, sys
-assert "--session-mirror" in sys.argv
-init = json.loads(sys.stdin.readline())
-print(json.dumps({
-  "type": "control_response",
-  "response": {"subtype": "success", "request_id": init["request_id"], "response": {"ok": True}}
-}), flush=True)
-user = json.loads(sys.stdin.readline())
-projects = os.path.join(os.environ["CLAUDE_CONFIG_DIR"], "projects")
-path = os.path.join(projects, "myproj", "550e8400-e29b-41d4-a716-446655440010.jsonl")
-frame = {"type": "transcript_mirror", "filePath": path, "entries": [{"type": "user", "uuid": "u1", "sessionId": "550e8400-e29b-41d4-a716-446655440010", "message": {"content": user["message"]["content"]}}]}
-print(json.dumps(frame), flush=True)
-print(json.dumps({
-  "type": "assistant",
-  "session_id": "550e8400-e29b-41d4-a716-446655440010",
-  "message": {"model": "claude-test", "content": [{"type": "text", "text": "ok"}]}
-}), flush=True)
-print(json.dumps(frame), flush=True)
-print(json.dumps({
-  "type": "result",
-  "subtype": "success",
-  "duration_ms": 1,
-  "duration_api_ms": 1,
-  "is_error": False,
-  "num_turns": 1,
-  "session_id": "550e8400-e29b-41d4-a716-446655440010",
-  "result": "done"
-}), flush=True)
-"#,
-    )
-    .unwrap();
-    make_executable(&script);
-
+    let config_dir = config.path().to_string_lossy().into_owned();
     let store = InMemorySessionStore::default();
+    let store_clone = store.clone();
     let options = ClaudeAgentOptions::builder()
-        .cli_path(&script)
-        .env("CLAUDE_CONFIG_DIR", config.path().to_string_lossy())
+        .spawn_claude_code_process(fake_cli(move |mut r, mut w, opts| {
+            let store = store_clone.clone();
+            async move {
+                // The SDK must pass --session-mirror in args
+                assert!(opts.args.iter().any(|a| a == "--session-mirror"), "expected --session-mirror in args");
+                let init = expect_json_line(&mut r).await;
+                write_json_line(&mut w, &json!({
+                    "type":"control_response",
+                    "response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}
+                })).await;
+                let user = expect_json_line(&mut r).await;
+                let content = user["message"]["content"].clone();
+                // The filePath must be under CLAUDE_CONFIG_DIR/projects/<key>/<session>.jsonl
+                // so the SDK's file_path_to_session_key can parse it.
+                let config_dir = opts.env.get("CLAUDE_CONFIG_DIR").cloned()
+                    .expect("CLAUDE_CONFIG_DIR must be set in spawn env");
+                let file_path = format!("{}/projects/myproj/{}.jsonl", config_dir, SESSION_ID);
+                let frame = json!({
+                    "type":"transcript_mirror",
+                    "filePath": file_path,
+                    "entries":[{"type":"user","uuid":"u1","sessionId":SESSION_ID,"message":{"content":content}}]
+                });
+                write_json_line(&mut w, &frame).await;
+                write_json_line(&mut w, &json!({
+                    "type":"assistant","session_id":SESSION_ID,
+                    "message":{"model":"claude-test","content":[{"type":"text","text":"ok"}]}
+                })).await;
+                write_json_line(&mut w, &frame).await;
+                write_json_line(&mut w, &json!({
+                    "type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,
+                    "is_error":false,"num_turns":1,"session_id":SESSION_ID,"result":"done"
+                })).await;
+                // Wait for the SDK to process the mirror frames before the task exits
+                while read_json_line(&mut r).await.is_some() {}
+                drop(store);
+            }
+        }))
+        .env("CLAUDE_CONFIG_DIR", config_dir)
         .session_store(store.clone())
         .build();
     let mut stream = query("hello", options)?;
@@ -561,41 +563,7 @@ print(json.dumps({
 
 #[tokio::test]
 async fn resume_materializes_store_session_before_spawn() -> intelligence_claude_agent_sdk::Result<()> {
-    let dir = tempdir().unwrap();
     let project = tempdir().unwrap();
-    let script = dir.path().join("fake-claude-resume.py");
-    fs::write(
-        &script,
-        r#"#!/usr/bin/env python3
-import glob, json, os, sys
-resume = sys.argv[sys.argv.index("--resume") + 1]
-assert resume == "550e8400-e29b-41d4-a716-446655440010"
-config = os.environ["CLAUDE_CONFIG_DIR"]
-matches = glob.glob(os.path.join(config, "projects", "*", resume + ".jsonl"))
-assert matches, "materialized transcript missing"
-with open(matches[0], encoding="utf-8") as f:
-    assert "resume me" in f.read()
-init = json.loads(sys.stdin.readline())
-print(json.dumps({
-  "type": "control_response",
-  "response": {"subtype": "success", "request_id": init["request_id"], "response": {"ok": True}}
-}), flush=True)
-json.loads(sys.stdin.readline())
-print(json.dumps({
-  "type": "result",
-  "subtype": "success",
-  "duration_ms": 1,
-  "duration_api_ms": 1,
-  "is_error": False,
-  "num_turns": 1,
-  "session_id": resume,
-  "result": "resumed"
-}), flush=True)
-"#,
-    )
-    .unwrap();
-    make_executable(&script);
-
     let store = InMemorySessionStore::default();
     store
         .append(
@@ -610,7 +578,40 @@ print(json.dumps({
         .await?;
 
     let options = ClaudeAgentOptions::builder()
-        .cli_path(&script)
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, opts| async move {
+            // The SDK should pass --resume <SESSION_ID> in args
+            let resume_idx = opts.args.iter().position(|a| a == "--resume")
+                .expect("expected --resume in args");
+            let resume_id = opts.args[resume_idx + 1].clone();
+            assert_eq!(resume_id, SESSION_ID);
+            // The SDK should have materialized the transcript into CLAUDE_CONFIG_DIR/projects/<key>/<SESSION_ID>.jsonl
+            let config = opts.env.get("CLAUDE_CONFIG_DIR").cloned().unwrap_or_default();
+            let projects_dir = std::path::PathBuf::from(&config).join("projects");
+            let target_file = format!("{}.jsonl", SESSION_ID);
+            let mut found_path = None;
+            if let Ok(entries) = std::fs::read_dir(&projects_dir) {
+                for entry in entries.flatten() {
+                    let candidate = entry.path().join(&target_file);
+                    if candidate.exists() {
+                        found_path = Some(candidate);
+                        break;
+                    }
+                }
+            }
+            let found_path = found_path.expect("materialized transcript missing");
+            let contents = std::fs::read_to_string(&found_path).unwrap();
+            assert!(contents.contains("resume me"), "transcript does not contain 'resume me'");
+            let init = expect_json_line(&mut r).await;
+            write_json_line(&mut w, &json!({
+                "type":"control_response",
+                "response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}
+            })).await;
+            let _user = expect_json_line(&mut r).await;
+            write_json_line(&mut w, &json!({
+                "type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,
+                "is_error":false,"num_turns":1,"session_id":resume_id,"result":"resumed"
+            })).await;
+        }))
         .cwd(project.path())
         .session_store(store)
         .resume(SESSION_ID)
@@ -621,10 +622,4 @@ print(json.dumps({
         matches!(result, Message::Result(message) if message.result.as_deref() == Some("resumed"))
     );
     Ok(())
-}
-
-fn make_executable(path: &std::path::Path) {
-    let mut permissions = fs::metadata(path).unwrap().permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(path, permissions).unwrap();
 }

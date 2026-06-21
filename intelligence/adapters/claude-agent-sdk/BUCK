@@ -120,3 +120,92 @@ rust_test(
         "third-party//:tempfile",
     ],
 )
+
+rust_test(
+    name = "intelligence-claude-agent-sdk-callbacks-fake-cli-test",
+    srcs = glob(["tests/callbacks_fake_cli.rs", "tests/support_fake_cli.rs"]),
+    crate = "intelligence_claude_agent_sdk_callbacks_fake_cli_test",
+    crate_root = "tests/callbacks_fake_cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-claude-agent-sdk",
+        "third-party//:futures",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-claude-agent-sdk-client-fake-cli-test",
+    srcs = glob(["tests/client_fake_cli.rs", "tests/support_fake_cli.rs"]),
+    crate = "intelligence_claude_agent_sdk_client_fake_cli_test",
+    crate_root = "tests/client_fake_cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-claude-agent-sdk",
+        "third-party//:futures",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-claude-agent-sdk-query-fake-cli-test",
+    srcs = glob(["tests/query_fake_cli.rs", "tests/support_fake_cli.rs"]),
+    crate = "intelligence_claude_agent_sdk_query_fake_cli_test",
+    crate_root = "tests/query_fake_cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-claude-agent-sdk",
+        "third-party//:futures",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-claude-agent-sdk-sdk-mcp-fake-cli-test",
+    srcs = glob(["tests/sdk_mcp_fake_cli.rs", "tests/support_fake_cli.rs"]),
+    crate = "intelligence_claude_agent_sdk_sdk_mcp_fake_cli_test",
+    crate_root = "tests/sdk_mcp_fake_cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-claude-agent-sdk",
+        "third-party//:futures",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-claude-agent-sdk-session-store-test",
+    srcs = glob(["tests/session_store.rs", "tests/support_fake_cli.rs"]),
+    crate = "intelligence_claude_agent_sdk_session_store_test",
+    crate_root = "tests/session_store.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-claude-agent-sdk",
+        "third-party//:futures",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:tokio",
+        "third-party//:uuid",
+    ],
+)
+
+rust_test(
+    name = "intelligence-claude-agent-sdk-startup-fake-cli-test",
+    srcs = glob(["tests/startup_fake_cli.rs", "tests/support_fake_cli.rs"]),
+    crate = "intelligence_claude_agent_sdk_startup_fake_cli_test",
+    crate_root = "tests/startup_fake_cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-claude-agent-sdk",
+        "third-party//:futures",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+    ],
+)

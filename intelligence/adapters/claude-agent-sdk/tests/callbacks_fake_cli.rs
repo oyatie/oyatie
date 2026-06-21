@@ -1,4 +1,6 @@
-use std::{fs, os::unix::fs::PermissionsExt, path::PathBuf};
+#[path = "support_fake_cli.rs"]
+mod support;
+use support::{expect_json_line, fake_cli, write_json_line};
 
 use intelligence_claude_agent_sdk::{
     ClaudeAgentOptions, ClaudeSDKClient, ElicitationMode, ElicitationResult, HookInput,
@@ -6,58 +8,27 @@ use intelligence_claude_agent_sdk::{
 };
 use futures::StreamExt;
 use serde_json::json;
-use tempfile::{TempDir, tempdir};
 use tokio::time::{Duration, timeout};
-
-fn executable_script(name: &str, body: &str) -> (TempDir, PathBuf) {
-    let dir = tempdir().unwrap();
-    let script = dir.path().join(name);
-    fs::write(&script, body).unwrap();
-    let mut permissions = fs::metadata(&script).unwrap().permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&script, permissions).unwrap();
-    (dir, script)
-}
 
 #[tokio::test]
 async fn query_aborts_elicitation_callback_on_control_cancel_request() {
-    let (_dir, script) = executable_script(
-        "fake-elicitation-cancel.py",
-        r#"#!/usr/bin/env python3
-import json, sys, time
-init = json.loads(sys.stdin.readline())
-assert init["type"] == "control_request"
-assert init["request"]["subtype"] == "initialize"
-print(json.dumps({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":True}}}), flush=True)
-user = json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"elicit_cancel_1",
-  "request":{
-    "subtype":"elicitation",
-    "mcp_server_name":"github",
-    "message":"Authorize GitHub",
-    "mode":"form",
-    "elicitation_id":"elicit-cancel-1"
-  }
-}), flush=True)
-time.sleep(0.05)
-print(json.dumps({
-  "type":"control_cancel_request",
-  "request_id":"elicit_cancel_1"
-}), flush=True)
-response = json.loads(sys.stdin.readline())
-assert response["type"] == "control_response"
-assert response["response"]["subtype"] == "success"
-assert response["response"]["request_id"] == "elicit_cancel_1"
-assert response["response"]["response"]["action"] == "decline"
-print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":False,"num_turns":1,"session_id":"s","result":"elicitation-cancel-ok"}), flush=True)
-"#,
-    );
-
     let options = ClaudeAgentOptions::builder()
-        .cli_path(script)
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            assert_eq!(init["type"], "control_request");
+            assert_eq!(init["request"]["subtype"], "initialize");
+            write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}})).await;
+            let user = expect_json_line(&mut r).await;
+            assert_eq!(user["type"], "user");
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"elicit_cancel_1","request":{"subtype":"elicitation","mcp_server_name":"github","message":"Authorize GitHub","mode":"form","elicitation_id":"elicit-cancel-1"}})).await;
+            write_json_line(&mut w, &json!({"type":"control_cancel_request","request_id":"elicit_cancel_1"})).await;
+            let response = expect_json_line(&mut r).await;
+            assert_eq!(response["type"], "control_response");
+            assert_eq!(response["response"]["subtype"], "success");
+            assert_eq!(response["response"]["request_id"], "elicit_cancel_1");
+            assert_eq!(response["response"]["response"]["action"], "decline");
+            write_json_line(&mut w, &json!({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":false,"num_turns":1,"session_id":"s","result":"elicitation-cancel-ok"})).await;
+        }))
         .on_elicitation(|request, options| async move {
             assert_eq!(request.elicitation_id.as_deref(), Some("elicit-cancel-1"));
             let mut signal = options.signal;
@@ -79,43 +50,23 @@ print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_
 
 #[tokio::test]
 async fn client_aborts_elicitation_callback_on_control_cancel_request() {
-    let (_dir, script) = executable_script(
-        "fake-client-elicitation-cancel.py",
-        r#"#!/usr/bin/env python3
-import json, sys, time
-init = json.loads(sys.stdin.readline())
-assert init["type"] == "control_request"
-assert init["request"]["subtype"] == "initialize"
-print(json.dumps({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":True}}}), flush=True)
-user = json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"client_elicit_cancel_1",
-  "request":{
-    "subtype":"elicitation",
-    "mcp_server_name":"github",
-    "message":"Authorize GitHub",
-    "mode":"form",
-    "elicitation_id":"client-elicit-cancel-1"
-  }
-}), flush=True)
-time.sleep(0.05)
-print(json.dumps({
-  "type":"control_cancel_request",
-  "request_id":"client_elicit_cancel_1"
-}), flush=True)
-response = json.loads(sys.stdin.readline())
-assert response["type"] == "control_response"
-assert response["response"]["subtype"] == "success"
-assert response["response"]["request_id"] == "client_elicit_cancel_1"
-assert response["response"]["response"]["action"] == "decline"
-print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":False,"num_turns":1,"session_id":"s","result":"client-elicitation-cancel-ok"}), flush=True)
-"#,
-    );
-
     let options = ClaudeAgentOptions::builder()
-        .cli_path(script)
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            assert_eq!(init["type"], "control_request");
+            assert_eq!(init["request"]["subtype"], "initialize");
+            write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}})).await;
+            let user = expect_json_line(&mut r).await;
+            assert_eq!(user["type"], "user");
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"client_elicit_cancel_1","request":{"subtype":"elicitation","mcp_server_name":"github","message":"Authorize GitHub","mode":"form","elicitation_id":"client-elicit-cancel-1"}})).await;
+            write_json_line(&mut w, &json!({"type":"control_cancel_request","request_id":"client_elicit_cancel_1"})).await;
+            let response = expect_json_line(&mut r).await;
+            assert_eq!(response["type"], "control_response");
+            assert_eq!(response["response"]["subtype"], "success");
+            assert_eq!(response["response"]["request_id"], "client_elicit_cancel_1");
+            assert_eq!(response["response"]["response"]["action"], "decline");
+            write_json_line(&mut w, &json!({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":false,"num_turns":1,"session_id":"s","result":"client-elicitation-cancel-ok"})).await;
+        }))
         .on_elicitation(|request, options| async move {
             assert_eq!(
                 request.elicitation_id.as_deref(),
@@ -140,43 +91,23 @@ print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_
 
 #[tokio::test]
 async fn query_handles_on_elicitation_control_request() {
-    let (_dir, script) = executable_script(
-        "fake-elicitation-query.py",
-        r#"#!/usr/bin/env python3
-import json, sys
-init = json.loads(sys.stdin.readline())
-assert init["type"] == "control_request"
-assert init["request"]["subtype"] == "initialize"
-print(json.dumps({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":True}}}), flush=True)
-user = json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"elicit_req_1",
-  "request":{
-    "subtype":"elicitation",
-    "mcp_server_name":"github",
-    "message":"Authorize GitHub",
-    "mode":"form",
-    "requested_schema":{"type":"object","properties":{"account":{"type":"string"}}},
-    "title":"GitHub authorization",
-    "display_name":"GitHub",
-    "description":"Choose the account to authorize",
-    "elicitation_id":"elicit-1"
-  }
-}), flush=True)
-response = json.loads(sys.stdin.readline())
-assert response["type"] == "control_response"
-assert response["response"]["subtype"] == "success"
-assert response["response"]["request_id"] == "elicit_req_1"
-assert response["response"]["response"]["action"] == "accept"
-assert response["response"]["response"]["content"]["account"] == "octo"
-print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":False,"num_turns":1,"session_id":"s","result":"elicitation-ok"}), flush=True)
-"#,
-    );
-
     let options = ClaudeAgentOptions::builder()
-        .cli_path(script)
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            assert_eq!(init["type"], "control_request");
+            assert_eq!(init["request"]["subtype"], "initialize");
+            write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}})).await;
+            let user = expect_json_line(&mut r).await;
+            assert_eq!(user["type"], "user");
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"elicit_req_1","request":{"subtype":"elicitation","mcp_server_name":"github","message":"Authorize GitHub","mode":"form","requested_schema":{"type":"object","properties":{"account":{"type":"string"}}},"title":"GitHub authorization","display_name":"GitHub","description":"Choose the account to authorize","elicitation_id":"elicit-1"}})).await;
+            let response = expect_json_line(&mut r).await;
+            assert_eq!(response["type"], "control_response");
+            assert_eq!(response["response"]["subtype"], "success");
+            assert_eq!(response["response"]["request_id"], "elicit_req_1");
+            assert_eq!(response["response"]["response"]["action"], "accept");
+            assert_eq!(response["response"]["response"]["content"]["account"], "octo");
+            write_json_line(&mut w, &json!({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":false,"num_turns":1,"session_id":"s","result":"elicitation-ok"})).await;
+        }))
         .on_elicitation(|request, options| async move {
             assert_eq!(request.server_name, "github");
             assert_eq!(request.message, "Authorize GitHub");
@@ -204,39 +135,24 @@ print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_
 
 #[tokio::test]
 async fn client_declines_unhandled_elicitation_control_request_by_default() {
-    let (_dir, script) = executable_script(
-        "fake-elicitation-default.py",
-        r#"#!/usr/bin/env python3
-import json, sys
-init = json.loads(sys.stdin.readline())
-assert init["type"] == "control_request"
-assert init["request"]["subtype"] == "initialize"
-print(json.dumps({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":True}}}), flush=True)
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"elicit_req_default",
-  "request":{
-    "subtype":"elicitation",
-    "mcp_server_name":"github",
-    "message":"Authorize GitHub",
-    "mode":"url",
-    "url":"https://example.invalid/auth",
-    "elicitation_id":"elicit-default"
-  }
-}), flush=True)
-response = json.loads(sys.stdin.readline())
-assert response["type"] == "control_response"
-assert response["response"]["subtype"] == "success"
-assert response["response"]["request_id"] == "elicit_req_default"
-assert response["response"]["response"]["action"] == "decline"
-assert "content" not in response["response"]["response"]
-user = json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":False,"num_turns":1,"session_id":"s","result":"default-decline-ok"}), flush=True)
-"#,
-    );
-
-    let options = ClaudeAgentOptions::builder().cli_path(script).build();
+    let options = ClaudeAgentOptions::builder()
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            assert_eq!(init["type"], "control_request");
+            assert_eq!(init["request"]["subtype"], "initialize");
+            write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}})).await;
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"elicit_req_default","request":{"subtype":"elicitation","mcp_server_name":"github","message":"Authorize GitHub","mode":"url","url":"https://example.invalid/auth","elicitation_id":"elicit-default"}})).await;
+            let response = expect_json_line(&mut r).await;
+            assert_eq!(response["type"], "control_response");
+            assert_eq!(response["response"]["subtype"], "success");
+            assert_eq!(response["response"]["request_id"], "elicit_req_default");
+            assert_eq!(response["response"]["response"]["action"], "decline");
+            assert!(response["response"]["response"].get("content").is_none() || response["response"]["response"]["content"].is_null());
+            let user = expect_json_line(&mut r).await;
+            assert_eq!(user["type"], "user");
+            write_json_line(&mut w, &json!({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":false,"num_turns":1,"session_id":"s","result":"default-decline-ok"})).await;
+        }))
+        .build();
     let mut client = ClaudeSDKClient::new(options);
     client.connect(None).await.unwrap();
     client.query("after default decline").await.unwrap();
@@ -249,37 +165,20 @@ print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_
 
 #[tokio::test]
 async fn client_handles_can_use_tool_control_request() {
-    let (_dir, script) = executable_script(
-        "fake-permission.py",
-        r#"#!/usr/bin/env python3
-import json, sys
-init = json.loads(sys.stdin.readline())
-print(json.dumps({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}}), flush=True)
-user = json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"perm_1",
-  "request":{
-    "subtype":"can_use_tool",
-    "tool_name":"Write",
-    "input":{"file_path":"/system/config"},
-    "permission_suggestions": None,
-    "blocked_path": None,
-    "tool_use_id":"toolu_1"
-  }
-}), flush=True)
-permission = json.loads(sys.stdin.readline())
-assert permission["type"] == "control_response"
-assert permission["response"]["subtype"] == "success"
-assert permission["response"]["response"]["behavior"] == "allow"
-assert permission["response"]["response"]["updatedInput"]["file_path"] == "./sandbox/config"
-print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":False,"num_turns":1,"session_id":"s","result":"permission-ok"}), flush=True)
-"#,
-    );
-
     let options = ClaudeAgentOptions::builder()
-        .cli_path(script)
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}})).await;
+            let user = expect_json_line(&mut r).await;
+            assert_eq!(user["type"], "user");
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"perm_1","request":{"subtype":"can_use_tool","tool_name":"Write","input":{"file_path":"/system/config"},"permission_suggestions":null,"blocked_path":null,"tool_use_id":"toolu_1"}})).await;
+            let permission = expect_json_line(&mut r).await;
+            assert_eq!(permission["type"], "control_response");
+            assert_eq!(permission["response"]["subtype"], "success");
+            assert_eq!(permission["response"]["response"]["behavior"], "allow");
+            assert_eq!(permission["response"]["response"]["updatedInput"]["file_path"], "./sandbox/config");
+            write_json_line(&mut w, &json!({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":false,"num_turns":1,"session_id":"s","result":"permission-ok"})).await;
+        }))
         .can_use_tool(|request| async move {
             assert_eq!(request.tool_name, "Write");
             Ok(PermissionResult::allow_with_updated_input(json!({
@@ -298,44 +197,30 @@ print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_
 
 #[tokio::test]
 async fn query_handles_oauth_and_host_auth_token_refresh_control_requests() {
-    let (_dir, script) = executable_script(
-        "fake-auth-refresh.py",
-        r#"#!/usr/bin/env python3
-import json, os, sys
-assert os.environ["CLAUDE_CODE_SDK_HAS_OAUTH_REFRESH"] == "1"
-assert os.environ["CLAUDE_CODE_SDK_HAS_HOST_AUTH_REFRESH"] == "1"
-init = json.loads(sys.stdin.readline())
-assert init["type"] == "control_request"
-assert init["request"]["subtype"] == "initialize"
-print(json.dumps({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}}), flush=True)
-user = json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"oauth_refresh",
-  "request":{"subtype":"oauth_token_refresh"}
-}), flush=True)
-oauth = json.loads(sys.stdin.readline())
-assert oauth["type"] == "control_response"
-assert oauth["response"]["subtype"] == "success"
-assert oauth["response"]["request_id"] == "oauth_refresh"
-assert oauth["response"]["response"]["accessToken"] == "oauth-token"
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"host_auth_refresh",
-  "request":{"subtype":"host_auth_token_refresh"}
-}), flush=True)
-host_auth = json.loads(sys.stdin.readline())
-assert host_auth["type"] == "control_response"
-assert host_auth["response"]["subtype"] == "success"
-assert host_auth["response"]["request_id"] == "host_auth_refresh"
-assert host_auth["response"]["response"]["authToken"] is None
-print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":False,"num_turns":1,"session_id":"s","result":"auth-refresh-ok"}), flush=True)
-"#,
-    );
-
     let options = ClaudeAgentOptions::builder()
-        .cli_path(script)
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, opts| async move {
+            assert_eq!(opts.env.get("CLAUDE_CODE_SDK_HAS_OAUTH_REFRESH").map(String::as_str), Some("1"));
+            assert_eq!(opts.env.get("CLAUDE_CODE_SDK_HAS_HOST_AUTH_REFRESH").map(String::as_str), Some("1"));
+            let init = expect_json_line(&mut r).await;
+            assert_eq!(init["type"], "control_request");
+            assert_eq!(init["request"]["subtype"], "initialize");
+            write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}})).await;
+            let user = expect_json_line(&mut r).await;
+            assert_eq!(user["type"], "user");
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"oauth_refresh","request":{"subtype":"oauth_token_refresh"}})).await;
+            let oauth = expect_json_line(&mut r).await;
+            assert_eq!(oauth["type"], "control_response");
+            assert_eq!(oauth["response"]["subtype"], "success");
+            assert_eq!(oauth["response"]["request_id"], "oauth_refresh");
+            assert_eq!(oauth["response"]["response"]["accessToken"], "oauth-token");
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"host_auth_refresh","request":{"subtype":"host_auth_token_refresh"}})).await;
+            let host_auth = expect_json_line(&mut r).await;
+            assert_eq!(host_auth["type"], "control_response");
+            assert_eq!(host_auth["response"]["subtype"], "success");
+            assert_eq!(host_auth["response"]["request_id"], "host_auth_refresh");
+            assert!(host_auth["response"]["response"]["authToken"].is_null());
+            write_json_line(&mut w, &json!({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":false,"num_turns":1,"session_id":"s","result":"auth-refresh-ok"})).await;
+        }))
         .get_oauth_token(|options| async move {
             assert!(!options.signal.is_aborted());
             Ok(Some("oauth-token".into()))
@@ -355,38 +240,23 @@ print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_
 
 #[tokio::test]
 async fn query_handles_request_user_dialog_control_request() {
-    let (_dir, script) = executable_script(
-        "fake-user-dialog.py",
-        r#"#!/usr/bin/env python3
-import json, sys
-init = json.loads(sys.stdin.readline())
-assert init["type"] == "control_request"
-assert init["request"]["subtype"] == "initialize"
-print(json.dumps({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}}), flush=True)
-user = json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"dialog_req",
-  "request":{
-    "subtype":"request_user_dialog",
-    "dialog_kind":"computer_use_approval",
-    "payload":{"operation":"click","target":"Approve"},
-    "tool_use_id":"toolu_dialog"
-  }
-}), flush=True)
-dialog = json.loads(sys.stdin.readline())
-assert dialog["type"] == "control_response"
-assert dialog["response"]["subtype"] == "success"
-assert dialog["response"]["request_id"] == "dialog_req"
-assert dialog["response"]["response"]["decision"] == "approve"
-assert dialog["response"]["response"]["toolUseId"] == "toolu_dialog"
-print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":False,"num_turns":1,"session_id":"s","result":"dialog-ok"}), flush=True)
-"#,
-    );
-
     let options = ClaudeAgentOptions::builder()
-        .cli_path(script)
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            assert_eq!(init["type"], "control_request");
+            assert_eq!(init["request"]["subtype"], "initialize");
+            write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}})).await;
+            let user = expect_json_line(&mut r).await;
+            assert_eq!(user["type"], "user");
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"dialog_req","request":{"subtype":"request_user_dialog","dialog_kind":"computer_use_approval","payload":{"operation":"click","target":"Approve"},"tool_use_id":"toolu_dialog"}})).await;
+            let dialog = expect_json_line(&mut r).await;
+            assert_eq!(dialog["type"], "control_response");
+            assert_eq!(dialog["response"]["subtype"], "success");
+            assert_eq!(dialog["response"]["request_id"], "dialog_req");
+            assert_eq!(dialog["response"]["response"]["decision"], "approve");
+            assert_eq!(dialog["response"]["response"]["toolUseId"], "toolu_dialog");
+            write_json_line(&mut w, &json!({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":false,"num_turns":1,"session_id":"s","result":"dialog-ok"})).await;
+        }))
         .on_user_dialog(|request, options| async move {
             assert_eq!(request.dialog_kind, "computer_use_approval");
             assert_eq!(
@@ -414,49 +284,30 @@ print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_
 
 #[tokio::test]
 async fn client_registers_and_handles_hook_callbacks() {
-    let (_dir, script) = executable_script(
-        "fake-hook.py",
-        r#"#!/usr/bin/env python3
-import json, sys
-init = json.loads(sys.stdin.readline())
-hooks = init["request"]["hooks"]
-callback_id = hooks["PreToolUse"][0]["hookCallbackIds"][0]
-print(json.dumps({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}}), flush=True)
-print(json.dumps({
-  "type":"control_request",
-  "request_id":"hook_req",
-  "request":{
-    "subtype":"hook_callback",
-    "callback_id": callback_id,
-    "input":{
-      "hook_event_name":"PreToolUse",
-      "session_id":"s",
-      "transcript_path":"/tmp/transcript.jsonl",
-      "cwd":"/workspace",
-      "tool_name":"Bash",
-      "tool_input":{"command":"pwd"},
-      "tool_use_id":"toolu_hook"
-    },
-    "tool_use_id":"toolu_hook"
-  }
-}), flush=True)
-stored_user = None
-while True:
-    inbound = json.loads(sys.stdin.readline())
-    if inbound["type"] == "user":
-        stored_user = inbound
-        continue
-    hook_response = inbound
-    break
-assert hook_response["response"]["response"]["hookSpecificOutput"]["additionalContext"] == "checked"
-user = stored_user or json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":False,"num_turns":1,"session_id":"s","result":"hook-ok"}), flush=True)
-"#,
-    );
-
     let options = ClaudeAgentOptions::builder()
-        .cli_path(script)
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            let hooks = &init["request"]["hooks"];
+            let callback_id = hooks["PreToolUse"][0]["hookCallbackIds"][0].as_str().unwrap().to_owned();
+            write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}})).await;
+            write_json_line(&mut w, &json!({"type":"control_request","request_id":"hook_req","request":{"subtype":"hook_callback","callback_id":callback_id,"input":{"hook_event_name":"PreToolUse","session_id":"s","transcript_path":"/tmp/transcript.jsonl","cwd":"/workspace","tool_name":"Bash","tool_input":{"command":"pwd"},"tool_use_id":"toolu_hook"},"tool_use_id":"toolu_hook"}})).await;
+            // Drain until we get the hook control_response (user messages may arrive first)
+            let mut hook_response = None;
+            loop {
+                let inbound = expect_json_line(&mut r).await;
+                if inbound["type"] == "user" {
+                    continue;
+                }
+                hook_response = Some(inbound);
+                break;
+            }
+            let hook_response = hook_response.unwrap();
+            assert_eq!(hook_response["response"]["response"]["hookSpecificOutput"]["additionalContext"], "checked");
+            // consume any remaining user message
+            let user = expect_json_line(&mut r).await;
+            assert_eq!(user["type"], "user");
+            write_json_line(&mut w, &json!({"type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,"is_error":false,"num_turns":1,"session_id":"s","result":"hook-ok"})).await;
+        }))
         .hook(
             "PreToolUse",
             Some("Bash"),

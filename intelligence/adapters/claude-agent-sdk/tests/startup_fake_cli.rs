@@ -1,67 +1,59 @@
+#[path = "support_fake_cli.rs"]
+mod support;
+use support::{expect_json_line, fake_cli, read_json_line, write_json_line};
+
 use std::{
-    fs,
-    os::unix::fs::PermissionsExt,
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
 use intelligence_claude_agent_sdk::{ClaudeAgentOptions, Message, UserMessage, startup, startup_with_timeout};
 use futures::{StreamExt, stream};
-use tempfile::tempdir;
-
-fn write_executable(path: &std::path::Path, contents: &str) {
-    fs::write(path, contents).unwrap();
-    let mut permissions = fs::metadata(path).unwrap().permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(path, permissions).unwrap();
-}
+use serde_json::json;
 
 #[tokio::test]
 async fn startup_prewarms_before_prompt_and_streams_once_ready() {
-    let dir = tempdir().unwrap();
-    let script = dir.path().join("fake-claude-startup.py");
-    let initialized = dir.path().join("initialized.txt");
-    write_executable(
-        &script,
-        r#"#!/usr/bin/env python3
-import json, os, sys
-init = json.loads(sys.stdin.readline())
-assert init["type"] == "control_request"
-assert init["request"]["subtype"] == "initialize"
-with open(os.environ["INITIALIZED_MARKER"], "w") as marker:
-    marker.write("ready\n")
-    marker.flush()
-print(json.dumps({
-  "type": "control_response",
-  "response": {"subtype": "success", "request_id": init["request_id"], "response": {"ok": True}}
-}), flush=True)
-user = json.loads(sys.stdin.readline())
-assert user["type"] == "user"
-print(json.dumps({
-  "type": "assistant",
-  "session_id": "session-warm",
-  "message": {"model": "claude-test", "content": [{"type": "text", "text": user["message"]["content"]}]}
-}), flush=True)
-print(json.dumps({
-  "type": "result",
-  "subtype": "success",
-  "duration_ms": 1,
-  "duration_api_ms": 1,
-  "is_error": False,
-  "num_turns": 1,
-  "session_id": "session-warm",
-  "result": user["message"]["content"]
-}), flush=True)
-"#,
-    );
+    // The fake signals via a oneshot that it has sent the init response.
+    let (init_done_tx, init_done_rx) = tokio::sync::oneshot::channel::<()>();
+    let init_done_tx = Arc::new(Mutex::new(Some(init_done_tx)));
 
-    let mut options = ClaudeAgentOptions::builder().cli_path(&script).build();
-    options.env.insert(
-        "INITIALIZED_MARKER".into(),
-        initialized.to_string_lossy().into_owned(),
-    );
+    let options = ClaudeAgentOptions::builder()
+        .spawn_claude_code_process({
+            let init_done_tx = Arc::clone(&init_done_tx);
+            fake_cli(move |mut r, mut w, _| {
+                let init_done_tx = Arc::clone(&init_done_tx);
+                async move {
+                    let init = expect_json_line(&mut r).await;
+                    assert_eq!(init["type"], "control_request");
+                    assert_eq!(init["request"]["subtype"], "initialize");
+                    write_json_line(&mut w, &json!({
+                        "type":"control_response",
+                        "response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}
+                    })).await;
+                    // Signal that initialization response was sent
+                    if let Some(tx) = init_done_tx.lock().unwrap().take() {
+                        let _ = tx.send(());
+                    }
+                    let user = expect_json_line(&mut r).await;
+                    assert_eq!(user["type"], "user");
+                    let content = user["message"]["content"].as_str().unwrap_or("").to_owned();
+                    write_json_line(&mut w, &json!({
+                        "type":"assistant","session_id":"session-warm",
+                        "message":{"model":"claude-test","content":[{"type":"text","text":content}]}
+                    })).await;
+                    write_json_line(&mut w, &json!({
+                        "type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,
+                        "is_error":false,"num_turns":1,"session_id":"session-warm","result":content
+                    })).await;
+                }
+            })
+        })
+        .build();
     let mut warm = startup(options).await.unwrap();
 
-    assert_eq!(fs::read_to_string(initialized).unwrap(), "ready\n");
+    // startup() must have already received the init response before returning,
+    // so the oneshot must be receivable without blocking.
+    init_done_rx.await.expect("init response was not sent before startup() returned");
 
     let mut stream = warm.query("hello").unwrap();
     let first = stream.next().await.unwrap().unwrap();
@@ -74,32 +66,21 @@ print(json.dumps({
 
 #[tokio::test]
 async fn warm_query_can_only_be_used_once() {
-    let dir = tempdir().unwrap();
-    let script = dir.path().join("fake-claude-startup-once.py");
-    write_executable(
-        &script,
-        r#"#!/usr/bin/env python3
-import json, sys
-init = json.loads(sys.stdin.readline())
-print(json.dumps({
-  "type": "control_response",
-  "response": {"subtype": "success", "request_id": init["request_id"], "response": {"ok": True}}
-}), flush=True)
-user = json.loads(sys.stdin.readline())
-print(json.dumps({
-  "type": "result",
-  "subtype": "success",
-  "duration_ms": 1,
-  "duration_api_ms": 1,
-  "is_error": False,
-  "num_turns": 1,
-  "session_id": "session-once",
-  "result": user["message"]["content"]
-}), flush=True)
-"#,
-    );
-
-    let options = ClaudeAgentOptions::builder().cli_path(&script).build();
+    let options = ClaudeAgentOptions::builder()
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            write_json_line(&mut w, &json!({
+                "type":"control_response",
+                "response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}
+            })).await;
+            let user = expect_json_line(&mut r).await;
+            let content = user["message"]["content"].as_str().unwrap_or("").to_owned();
+            write_json_line(&mut w, &json!({
+                "type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,
+                "is_error":false,"num_turns":1,"session_id":"session-once","result":content
+            })).await;
+        }))
+        .build();
     let mut warm = startup(options).await.unwrap();
     let mut stream = warm.query("first").unwrap();
 
@@ -117,36 +98,25 @@ print(json.dumps({
 
 #[tokio::test]
 async fn warm_query_accepts_streaming_user_messages() {
-    let dir = tempdir().unwrap();
-    let script = dir.path().join("fake-claude-startup-stream.py");
-    write_executable(
-        &script,
-        r#"#!/usr/bin/env python3
-import json, sys
-init = json.loads(sys.stdin.readline())
-print(json.dumps({
-  "type": "control_response",
-  "response": {"subtype": "success", "request_id": init["request_id"], "response": {"ok": True}}
-}), flush=True)
-first = json.loads(sys.stdin.readline())
-second = json.loads(sys.stdin.readline())
-assert first["message"]["content"] == "warm context"
-assert first["shouldQuery"] == False
-assert second["message"]["content"] == "warm prompt"
-print(json.dumps({
-  "type": "result",
-  "subtype": "success",
-  "duration_ms": 1,
-  "duration_api_ms": 1,
-  "is_error": False,
-  "num_turns": 1,
-  "session_id": "session-warm-stream",
-  "result": second["message"]["content"]
-}), flush=True)
-"#,
-    );
-
-    let options = ClaudeAgentOptions::builder().cli_path(&script).build();
+    let options = ClaudeAgentOptions::builder()
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            let init = expect_json_line(&mut r).await;
+            write_json_line(&mut w, &json!({
+                "type":"control_response",
+                "response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}
+            })).await;
+            let first = expect_json_line(&mut r).await;
+            let second = expect_json_line(&mut r).await;
+            assert_eq!(first["message"]["content"], "warm context");
+            assert_eq!(first["shouldQuery"], false);
+            assert_eq!(second["message"]["content"], "warm prompt");
+            let result_text = second["message"]["content"].as_str().unwrap_or("").to_owned();
+            write_json_line(&mut w, &json!({
+                "type":"result","subtype":"success","duration_ms":1,"duration_api_ms":1,
+                "is_error":false,"num_turns":1,"session_id":"session-warm-stream","result":result_text
+            })).await;
+        }))
+        .build();
     let mut warm = startup(options).await.unwrap();
     let mut stream = warm
         .query_stream(stream::iter([
@@ -163,50 +133,53 @@ print(json.dumps({
 
 #[tokio::test]
 async fn warm_query_close_closes_stdin_without_prompt() {
-    let dir = tempdir().unwrap();
-    let script = dir.path().join("fake-claude-startup-close.py");
-    let closed = dir.path().join("closed.txt");
-    write_executable(
-        &script,
-        r#"#!/usr/bin/env python3
-import json, os, sys
-init = json.loads(sys.stdin.readline())
-print(json.dumps({
-  "type": "control_response",
-  "response": {"subtype": "success", "request_id": init["request_id"], "response": {"ok": True}}
-}), flush=True)
-for _ in sys.stdin:
-    pass
-open(os.environ["CLOSED_MARKER"], "w").write("closed\n")
-"#,
-    );
+    let (closed_tx, closed_rx) = tokio::sync::oneshot::channel::<()>();
+    let closed_tx = Arc::new(Mutex::new(Some(closed_tx)));
 
-    let mut options = ClaudeAgentOptions::builder().cli_path(&script).build();
-    options.env.insert(
-        "CLOSED_MARKER".into(),
-        closed.to_string_lossy().into_owned(),
-    );
+    let options = ClaudeAgentOptions::builder()
+        .spawn_claude_code_process({
+            let closed_tx = Arc::clone(&closed_tx);
+            fake_cli(move |mut r, mut w, _| {
+                let closed_tx = Arc::clone(&closed_tx);
+                async move {
+                    let init = expect_json_line(&mut r).await;
+                    write_json_line(&mut w, &json!({
+                        "type":"control_response",
+                        "response":{"subtype":"success","request_id":init["request_id"],"response":{"ok":true}}
+                    })).await;
+                    // Drain until EOF — SDK closes stdin on close()
+                    while read_json_line(&mut r).await.is_some() {}
+                    if let Some(tx) = closed_tx.lock().unwrap().take() {
+                        let _ = tx.send(());
+                    }
+                }
+            })
+        })
+        .build();
     let mut warm = startup(options).await.unwrap();
 
     warm.close().await.unwrap();
 
-    assert_eq!(fs::read_to_string(closed).unwrap(), "closed\n");
+    // close() awaits the wait future which resolves after the fake task exits;
+    // the fake task only exits after it drains EOF. So by the time close()
+    // returns, the signal must already be sent.
+    tokio::time::timeout(Duration::from_secs(1), closed_rx)
+        .await
+        .expect("stdin was not closed before close() returned")
+        .unwrap();
 }
 
 #[tokio::test]
 async fn startup_honors_initialize_timeout() {
-    let dir = tempdir().unwrap();
-    let script = dir.path().join("fake-claude-startup-timeout.py");
-    write_executable(
-        &script,
-        r#"#!/usr/bin/env python3
-import json, sys, time
-json.loads(sys.stdin.readline())
-time.sleep(1)
-"#,
-    );
-
-    let options = ClaudeAgentOptions::builder().cli_path(&script).build();
+    let options = ClaudeAgentOptions::builder()
+        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+            // Read the init line but never respond — simulates a hung CLI.
+            let _init = expect_json_line(&mut r).await;
+            // Hold the task open until the SDK drops us.
+            while read_json_line(&mut r).await.is_some() {}
+            drop(w);
+        }))
+        .build();
     let started = Instant::now();
     let error = match startup_with_timeout(options, Duration::from_millis(20)).await {
         Ok(_) => panic!("expected startup to time out"),
