@@ -65,7 +65,7 @@ Grouped by use-case subsystem:
 | Subsystem (target `src/<mod>/`) | Crates collapsed | Count |
 |---|---|---|
 | `account/` | `oya-intelligence-account-{adapter-inmemory,domain,kernel}` | 3 |
-| `api/` (HTTP/GraphQL/SSE/WS dispatch — internal mods, no separate crates) | `oya-intelligence-api`, `oya-intelligence-api-{graphql,rest,sse,websocket}-{adapter,kernel}` | 9 |
+| `api/` (HTTP/SSE/WS dispatch — internal mods, no separate crates) | `oya-intelligence-api`, `oya-intelligence-api-{rest,sse,websocket}-{adapter,kernel}` | 7 | (graphql adapter+kernel deleted per ADR-0565) |
 | `architecture_map/` | `oya-intelligence-architecture-map-{app,kernel}` | 2 |
 | `assist_draft/` | `oya-intelligence-assist-draft-{adapter,api,domain,kernel,rest,usecase,worker}` | 7 |
 | `attribution/` | `oya-intelligence-attribution-{adapter,app,domain,kernel,usecase,worker}` | 6 |
@@ -205,7 +205,7 @@ microservices/intelligence/
       openai.rs
       gemini.rs
     account/                          # Bucket A subsystem
-    api/                              # Bucket A: REST/GraphQL/SSE/WS handlers
+    api/                              # Bucket A: REST/SSE/WS handlers (GraphQL deleted per ADR-0565)
     architecture_map/
     assist_draft/
     attribution/
@@ -351,7 +351,7 @@ Person-weeks include implementation + tests + PR review + rebase friction.
 | A1 (eval/gating cluster)              | 26  | **2.5** | Largest LOC cluster; rich test surface |
 | A2 (agent workflow cluster)           | 21  | **2.0** | Touches RAG + MCP-gateway interfaces |
 | A3 (runtime/state cluster)            | 31  | **3.0** | Most files; subagent-runtime + supervisor are stateful |
-| A4 (surface/dashboard cluster)        | 16  | **1.5** | Mostly mechanical; HTTP/GraphQL handlers |
+| A4 (surface/dashboard cluster)        | 14  | **1.5** | Mostly mechanical; HTTP/SSE/WS handlers (GraphQL deleted per ADR-0565) |
 | B  (shared kernel collapse)           | 7   | **0.5** | Mechanical |
 | C  (multi-backend audit)              | 13  | **1.5** | Decision-heavy; per-crate rationale + duplicate audit |
 | D  (workspace cleanup + verification) | 5+  | **1.0** | BUCK rewrite + docs + CHANGELOG |

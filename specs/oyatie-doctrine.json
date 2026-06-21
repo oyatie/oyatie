@@ -197,7 +197,7 @@
       "2_human_edited_config": "TOML",
       "3_append_only_stream": "JSONL",
       "4_columnar_analytics_at_scale": "Parquet",
-      "5_ecosystem_required": "YAML (CI/K8s) | XML (SAML/SOAP/SVG) | CSV/TSV (tabular interchange) | INI (.editorconfig/.gitconfig) | Dockerfile | .proto/.graphql/.cedar/.fbs/.smithy",
+      "5_ecosystem_required": "YAML (CI/K8s) | XML (SAML/SOAP/SVG) | CSV/TSV (tabular interchange) | INI (.editorconfig/.gitconfig) | Dockerfile | .proto/.cedar/.fbs/.smithy",
       "6_runtime_wire_payload": "Protobuf / FlatBuffers / CBOR",
       "default": "JSON"
     },
@@ -240,7 +240,6 @@
       "ecosystem_required_examples": [
         "Dockerfile",
         ".proto",
-        ".graphql",
         ".cedar",
         ".fbs",
         ".smithy",

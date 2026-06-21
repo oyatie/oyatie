@@ -390,8 +390,8 @@ unused_imports = "allow"
 
 [workspace.metadata.oya]
 # v4.1 BNF registry: oya-<microservice>[-<bc>]-<layer> (flat catalog; no shared|vertical binary)
-# Layer enum (13 canonical values per ADR-0056 amended by ADR-0105 + ADR-0106):
-#   kernel|domain|usecase|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk|api
+# Layer enum (12 canonical values per ADR-0056 amended by ADR-0105 + ADR-0106 + ADR-0565):
+#   kernel|domain|usecase|app|adapter|infrastructure|cli|rest|grpc|worker|sdk|api
 # Adopted patterns (ADR-0105 §Adopted Patterns):
 #   oya-check-<feature>  — self-layering check family (the µservice IS the layer).
 #   *-adapter-<backend>  — backend-qualifier sub-suffix where backend ∈

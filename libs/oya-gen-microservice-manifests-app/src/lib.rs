@@ -76,7 +76,6 @@ pub const ALLOWED_LAYERS: &[&str] = &[
     "cli",
     "rest",
     "grpc",
-    "graphql",
     "worker",
     "sdk",
     "usecase",

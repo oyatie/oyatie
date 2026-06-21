@@ -57,7 +57,7 @@ fn is_api_contract_artifact(path: &Path) -> bool {
     if matches!(extension, "yaml" | "yml") && is_api_contract_metadata_path(path) {
         return false;
     }
-    matches!(extension, "yaml" | "yml" | "proto" | "graphql")
+    matches!(extension, "yaml" | "yml" | "proto")
 }
 
 pub(crate) fn is_api_contract_metadata_path(path: &Path) -> bool {

@@ -5,7 +5,7 @@ use toml_edit::DocumentMut;
 /// Required keys in [package.metadata.oya] per §3.0 schema (v4).
 const REQUIRED_KEYS: &[&str] = &["bounded_context", "kind", "layer", "purpose"];
 
-/// 12-value canonical layer enum per §2.2.
+/// Layer enum per §2.2 (graphql de-blessed, ADR-0565; pre-existing app/usecase/api drift tracked separately).
 const LAYER_VALUES: &[&str] = &[
     "kernel",
     "domain",
@@ -16,7 +16,6 @@ const LAYER_VALUES: &[&str] = &[
     "cli",
     "rest",
     "grpc",
-    "graphql",
     "worker",
     "sdk",
 ];

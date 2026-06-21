@@ -106,7 +106,6 @@
         "oya-intelligence-adapter-gemini-subscription-kernel",
         "oya-intelligence-adapter-openai-api-kernel",
         "oya-intelligence-adapter-openai-subscription-kernel",
-        "oya-intelligence-api-graphql-adapter",
         "oya-intelligence-api-rest-adapter",
         "oya-intelligence-api-rest-kernel",
         "oya-intelligence-api-semver-domain",

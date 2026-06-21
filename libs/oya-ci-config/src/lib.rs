@@ -437,6 +437,9 @@ fn default_required_prefix() -> String {
 }
 
 fn default_allowed_roles() -> Vec<String> {
+    // ADR-0565: `graphql` removed from the canonical role/layer vocabulary
+    // (13 → 12). Kept byte-for-byte aligned with `oya-ci.toml [naming]` and
+    // `oya_governance_predictable_naming_kernel::ALLOWED_ROLES`.
     [
         "kernel",
         "domain",
@@ -447,7 +450,6 @@ fn default_allowed_roles() -> Vec<String> {
         "cli",
         "rest",
         "grpc",
-        "graphql",
         "worker",
         "sdk",
         "api",
@@ -1288,10 +1290,12 @@ mod tests {
     fn bundled_default_matches_todays_naming_consts() {
         let cfg = OyaCiConfig::bundled_default();
         assert_eq!(cfg.naming.required_prefix, "oya-");
-        assert_eq!(cfg.naming.allowed_roles.len(), 13);
+        assert_eq!(cfg.naming.allowed_roles.len(), 12);
         assert!(cfg.naming.allowed_roles.contains(&"api".to_owned()));
         assert!(cfg.naming.allowed_roles.contains(&"usecase".to_owned()));
         assert!(!cfg.naming.allowed_roles.contains(&"runtime".to_owned()));
+        // ADR-0565: graphql is de-blessed from the canonical vocabulary.
+        assert!(!cfg.naming.allowed_roles.contains(&"graphql".to_owned()));
         assert_eq!(cfg.naming.check_family_prefix, "oya-check-");
         assert_eq!(cfg.naming.backend_suffixes.len(), 9);
         assert_eq!(

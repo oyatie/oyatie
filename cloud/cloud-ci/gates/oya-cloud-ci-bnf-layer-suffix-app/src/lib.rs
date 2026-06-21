@@ -1,8 +1,8 @@
 //! # cloud-ci-bnf-layer-suffix (§2.5#4 — MIG-PREREQ floor gate S1)
 //!
 //! Enforces the ADR-0056 BNF rule that every first-party `oya-*` crate's trailing
-//! dash-segment is one of the 13 canonical layer values
-//! (`kernel|domain|usecase|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk|api`).
+//! dash-segment is one of the 12 canonical layer values
+//! (`kernel|domain|usecase|app|adapter|infrastructure|cli|rest|grpc|worker|sdk|api`).
 //!
 //! ## Reuse, not re-derive (CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN Principle 1, shape a)
 //! The policy lives in the PURE, I/O-free `oya_governance_predictable_naming_kernel::check()`.

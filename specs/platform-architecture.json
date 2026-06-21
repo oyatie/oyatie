@@ -2256,7 +2256,7 @@
         "kubernetes_operators_are_implementation_mechanisms_not_api": true
       },
       "required_semantics": [
-        "contract-first REST/gRPC/GraphQL API projections from the shared Rust-native contract source",
+        "contract-first REST/gRPC/async API projections from the shared Rust-native contract source (ZERO GraphQL per ADR-0565)",
         "idempotency keys for mutating operations",
         "durable operation ids for create/update/delete",
         "resource registry write before backend execution claim",

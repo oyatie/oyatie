@@ -1622,11 +1622,6 @@
       "label": "oya-ontology-function-worker"
     },
     {
-      "id": "crates/oya-ontology-graphql",
-      "kind": "crate",
-      "label": "oya-ontology-graphql"
-    },
-    {
       "id": "crates/oya-ontology-link-adapter",
       "kind": "crate",
       "label": "oya-ontology-link-adapter"

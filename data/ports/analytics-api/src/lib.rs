@@ -21,11 +21,10 @@
 //! - `microservices/analytics/contracts/openapi-v1.yaml`
 //! - `microservices/analytics/contracts/asyncapi-v1.yaml`
 //! - `microservices/analytics/contracts/analytics.proto`
-//! - `microservices/analytics/contracts/graphql-v1.sdl`
 //!
 //! ## Honest-claims note
 //!
-//! non_claim: no live HTTP server, no gRPC server, no GraphQL resolver.
+//! non_claim: no live HTTP server, no gRPC server.
 
 // ADR-0083 Tier 3: tests may use unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]

@@ -1127,7 +1127,7 @@ mod tests {
                     "rule_id": "double-underscore-generated-component",
                     "rule_kind": "path_component",
                     "pattern": "__generated__",
-                    "description": "common GraphQL and TypeScript generated output directory"
+                    "description": "common generated-client output directory (e.g. TypeScript clients)"
                 },
                 {
                     "rule_id": "generated-sources-component",

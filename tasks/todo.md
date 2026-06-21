@@ -15,8 +15,8 @@ ADR decisions: `docs/decisions/`
 
 ## Phase 0 — shared cloud infrastructure
 
-- ⬜ CS-LAUNCH-API-CONTRACT-SSOT-001 — implement the shared Rust-native contract source of truth and drift gate for REST/OpenAPI, gRPC/Protobuf, and GraphQL SDL/resolver contracts.
-  - REQUIREMENT: GraphQL is first-class API support but must be generated or validated from the same shared source as REST and gRPC; no separately hand-maintained GraphQL schema.
+- ⬜ CS-LAUNCH-API-CONTRACT-SSOT-001 — implement the shared Rust-native contract source of truth and drift gate for REST/OpenAPI, gRPC/Protobuf, and event/AsyncAPI contracts plus realtime (SSE/WebSocket/gRPC-streaming) bindings.
+  - REQUIREMENT: ZERO GraphQL in the owned API surface per ADR-0565 (no husk, no generated BFF); reintroduction requires a future ADR that explicitly reverses ADR-0565.
   - REQUIREMENT: Apache Pulsar is launch-primary messaging/eventing; Apache Kafka, Redpanda, and RabbitMQ remain first-class adapters.
   - REQUIREMENT: Kubewarden is the default Kubernetes admission/policy substrate; Kyverno remains a first-class adapter.
   - NON-CLAIM: this planning row records launch directives only; it does not implement brokers, adapters, admission controllers, API generators, or drift gates.

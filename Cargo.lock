@@ -7477,21 +7477,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-intelligence-api-graphql-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-api-graphql-kernel",
- "oya-intelligence-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-api-graphql-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-api-rest-kernel",
-]
-
-[[package]]
 name = "oya-intelligence-api-rest-adapter"
 version = "0.1.0"
 dependencies = [

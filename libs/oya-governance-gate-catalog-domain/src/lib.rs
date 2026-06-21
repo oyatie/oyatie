@@ -7,8 +7,8 @@
 //! - Crate id `oya-governance-gate-catalog-domain` — `oya-` brand prefix
 //!   (ADR-0017 / MFL-0011), `foundry` axis (per ADR-0107 family table),
 //!   `gate-catalog` two-word subject (the gate-validate catalog), final
-//!   segment `domain` (∈ ALLOWED_ROLES per canonical 13-value layer enum at
-//!   `oya-governance-predictable-naming-kernel::ALLOWED_ROLES`).
+//!   segment `domain` (∈ ALLOWED_ROLES per canonical 12-value layer enum at
+//!   `oya-governance-predictable-naming-kernel::ALLOWED_ROLES`, post-ADR-0565).
 //! - Library identifier `oya_governance_gate_catalog_domain` —
 //!   snake_case mirror (ADR-0105 v4 BNF §2.2).
 //! - Public constants `AGGREGATED_VALIDATE_LANES` /
