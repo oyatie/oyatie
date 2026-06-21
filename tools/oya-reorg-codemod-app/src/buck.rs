@@ -45,15 +45,20 @@ pub fn rewrite_moved_buck(buck_text: &str, cm: &CrateMove) -> (String, bool) {
     let kebab_set = collect_crate_set(buck_text, false);
     let snake_set = collect_crate_set(buck_text, true);
 
-    // 1. Exact whole-token rewrite of `name`/`crate` everywhere (lib/binary/test exact values,
-    //    same-package self-dep). This preserves the invariant that a `-bin` sibling target is
-    //    untouched (its quoted value never equals the bare crate name).
+    // 1. Exact whole-VALUE rewrite of the moved crate's own `name`/`crate` fields (lib/binary/test
+    //    exact values). FIELD-KEY-anchored, NOT a blind text replace: the `name` field carries the
+    //    KEBAB crate name and the `crate` field the SNAKE ident, so each field is mapped to its own
+    //    flavor's new value. This matters when kebab == snake (a single-token name like `iam`, the
+    //    #61 round-trip fix): a blind exact replace of `"iam"` would rewrite BOTH `name = "iam"` and
+    //    `crate = "iam"` to the SAME (kebab) new value, so the inverse (`iam` -> `oya-x`) could not
+    //    restore `crate = "oya_x"` (it produced `crate = "oya-x"`), breaking byte round-trip. Keying
+    //    on the field disambiguates: `name` -> kebab `new_name`, `crate` -> snake `new_ident`, even
+    //    when the old values are textually identical. A `-bin` sibling's `"oya-x-bin"` is never the
+    //    whole value `"oya-x"`, so the whole-value match still leaves it untouched.
     let mut out = buck_text.to_string();
     let mut changed = false;
-    changed |= replace_quoted_exact(&mut out, old_name, new_name);
-    if old_ident != *old_name {
-        changed |= replace_quoted_exact(&mut out, &old_ident, &new_ident);
-    }
+    changed |= rewrite_field_exact(&mut out, "name", old_name, new_name);
+    changed |= rewrite_field_exact(&mut out, "crate", &old_ident, &new_ident);
 
     // 2. Suffixed prefix rewrite, scoped to the `name`/`crate` FIELDS of `rust_test(...)` stanzas.
     //    A `rust_test` `name`/`crate` is `<crate-name><sep><suffix>` (e.g. `oya-x-unittest`,
@@ -197,19 +202,62 @@ pub fn rewrite_buck_labels(
     (out, changed)
 }
 
-/// Replace every `"needle"` (the WHOLE quoted token, exactly) with `"replacement"`. Used for
-/// `name`/`crate` fields whose value IS the crate name (the `rust_library`/`rust_binary` case)
-/// and for the same-package self-dep. The quote-delimited match guarantees a longer sibling
-/// token (e.g. `"oya-x-bin"`) is never matched by the bare crate name `oya-x`.
-fn replace_quoted_exact(haystack: &mut String, needle: &str, replacement: &str) -> bool {
-    let from = format!("\"{needle}\"");
-    let to = format!("\"{replacement}\"");
-    if haystack.contains(&from) {
-        *haystack = haystack.replace(&from, &to);
-        true
-    } else {
-        false
+/// Rewrite, anywhere in `haystack`, the value of a `key = "<old_value>"` field to
+/// `key = "<new_value>"` when the WHOLE quoted value equals `old_value` exactly. FIELD-KEY-anchored
+/// (the `key` must be a whole identifier on a non-identifier boundary, then ws* `=` ws* `"..."`), so
+/// only the named field is touched and a value that merely contains the crate name in another field
+/// (`crate_root`, `env`, a label inside `deps`) is left alone. The whole-VALUE equality guarantees a
+/// longer sibling token (`"oya-x-bin"`) is never matched by the bare crate name `oya-x`.
+///
+/// Keying on the field — rather than a blind quoted-token replace — is what makes the moved-crate
+/// `name` vs `crate` rename correct when the kebab name equals its snake ident (a single-token name,
+/// the #61 fix): `name` carries the kebab vocabulary and `crate` the snake, so each is mapped to its
+/// own new flavor even though the two old values are textually identical.
+fn rewrite_field_exact(haystack: &mut String, key: &str, old_value: &str, new_value: &str) -> bool {
+    if old_value.is_empty() || old_value == new_value {
+        return false;
     }
+    let bytes = haystack.as_bytes();
+    let mut result = String::with_capacity(haystack.len());
+    let mut changed = false;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        // Anchor on the field key: `<key>` (whole ident) ws* `=` ws* `"`.
+        if haystack[i..].starts_with(key) && (i == 0 || !is_ident_char(bytes[i - 1])) {
+            let mut j = i + key.len();
+            while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\t') {
+                j += 1;
+            }
+            if j < bytes.len() && bytes[j] == b'=' {
+                let mut k = j + 1;
+                while k < bytes.len() && (bytes[k] == b' ' || bytes[k] == b'\t') {
+                    k += 1;
+                }
+                if k < bytes.len() && bytes[k] == b'"' {
+                    let val_start = k + 1;
+                    if let Some(end_rel) = haystack[val_start..].find('"') {
+                        let val = &haystack[val_start..val_start + end_rel];
+                        result.push_str(&haystack[i..val_start]); // field key + `= "` verbatim.
+                        if val == old_value {
+                            result.push_str(new_value);
+                            changed = true;
+                        } else {
+                            result.push_str(val);
+                        }
+                        i = val_start + end_rel; // resume at the closing quote.
+                        continue;
+                    }
+                }
+            }
+        }
+        let ch_len = utf8_len(bytes[i]);
+        result.push_str(&haystack[i..i + ch_len]);
+        i += ch_len;
+    }
+    if changed {
+        *haystack = result;
+    }
+    changed
 }
 
 /// Collect the package's defined crate set from `buck_text`: the `name` value of every
@@ -728,6 +776,51 @@ rust_test(
         let inv = cm("cap/core/new-x", "cloud/c/oya-x", "new-x", "oya-x");
         let (round, _c) = rewrite_moved_buck(&out, &inv);
         assert_eq!(round, text, "inverse must round-trip byte-identically");
+    }
+
+    /// #61 (single-token destination round-trip): when a destination cargo name is a single
+    /// hyphen-free token, its kebab name EQUALS its snake ident (`snake("iam") == "iam"`). The old
+    /// step-1 used a blind quoted-token replace and SKIPPED the snake pass when kebab == snake, so on
+    /// the INVERSE move (`iam` -> `oya-x`) the one exact pass rewrote BOTH `name = "iam"` AND
+    /// `crate = "iam"` to the kebab `oya-x`, producing `crate = "oya-x"` instead of `crate = "oya_x"`
+    /// — the tree could not round-trip byte-identically. The field-aware exact rewrite maps `name` to
+    /// the kebab and `crate` to the snake ident independently, so forward + inverse restore the bytes.
+    #[test]
+    fn single_token_destination_round_trips_name_and_crate() {
+        let text = r#"rust_library(
+    name = "oya-x",
+    crate = "oya_x",
+    crate_root = "src/lib.rs",
+    srcs = ["src/lib.rs"],
+)
+
+rust_binary(
+    name = "oya-x-bin",
+    crate = "oya_x_bin",
+    crate_root = "src/main.rs",
+    deps = [":oya-x"],
+)
+"#;
+        // Destination is a SINGLE hyphen-free token: kebab `iam` == snake `iam`.
+        let fwd_move = cm("cloud/c/oya-x", "iam/core/iam", "oya-x", "iam");
+        let (fwd, fwd_changed) = rewrite_moved_buck(text, &fwd_move);
+        assert!(fwd_changed);
+        // name -> kebab `iam`, crate -> snake `iam` (both are `iam` here, but via DIFFERENT flavors).
+        assert!(fwd.contains("name = \"iam\""), "lib name -> kebab: {fwd}");
+        assert!(fwd.contains("crate = \"iam\""), "lib crate -> snake: {fwd}");
+        // crate_root (a path) is move-invariant and never a crate-name field.
+        assert!(fwd.contains("crate_root = \"src/lib.rs\""), "{fwd}");
+        // the `-bin` sibling is a SEPARATE crate (its own move) — whole-value match leaves it.
+        assert!(fwd.contains("name = \"oya-x-bin\""), "bin sibling name preserved: {fwd}");
+        assert!(fwd.contains("crate = \"oya_x_bin\""), "bin sibling crate preserved: {fwd}");
+        // self-dep on the moved lib IS rewritten.
+        assert!(fwd.contains("deps = [\":iam\"]"), "self-dep rewritten: {fwd}");
+
+        // THE FIX: the inverse restores the bytes EXACTLY — in particular `crate = "oya_x"` (snake),
+        // NOT `crate = "oya-x"` (the kebab clobber the un-fixed code produced).
+        let inv = cm("iam/core/iam", "cloud/c/oya-x", "iam", "oya-x");
+        let (round, _c) = rewrite_moved_buck(&fwd, &inv);
+        assert_eq!(round, text, "single-token destination must round-trip byte-identically");
     }
 
     /// MED-2 / LOW: a longer macro whose name merely ends in `rust_test` (e.g. `custom_rust_test(`)
