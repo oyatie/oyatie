@@ -275,7 +275,10 @@ pub enum ValidationError {
 }
 
 /// True iff `s` is a valid OWNERS principal: 1..=63 chars, lowercase alphanumeric with interior
-/// (never leading/trailing/doubled) hyphens. Mirrors the producer's `is_valid_owner_principal`.
+/// (never leading/trailing/doubled) hyphens. Intentionally STRICTER than the producer's
+/// `is_valid_owner_principal` (accounting-registry-app `main.rs:2440`), which does not reject
+/// doubled hyphens. The stricter direction is safe: any owner the kernel accepts is also accepted
+/// by the producer; the kernel never emits an owner that would be rejected downstream.
 fn is_valid_owner_principal(s: &str) -> bool {
     if s.is_empty() || s.len() > 63 {
         return false;
@@ -473,9 +476,12 @@ pub fn plan_register_crate(
         }
     }
 
-    // MANDATORY last: settle faces whenever the plan changed anything AND the snapshot is not
-    // already settled. A pure no-op plan (nothing changed) needs no settle.
-    if changed && !current.faces_settled {
+    // MANDATORY last: settle faces whenever the plan emitted ANY mutating edit. Once `changed`
+    // is true the pre-plan settle state is irrelevant — any SSOT write invalidates the
+    // previously-settled faces (registry-drift goes stale). The no-op case (nothing changed) is
+    // the only safe skip; `current.faces_settled` must NOT gate this push: a tree that was
+    // byte-settled BEFORE the SSOT edits are applied will be dirty AFTER them.
+    if changed {
         edits.push(Edit::FacesSettle);
     }
 
@@ -848,5 +854,40 @@ mod tests {
         let plan = plan_register_crate(&req, &current, &caps()).unwrap();
         assert!(plan.is_empty());
         assert!(!plan.edits.iter().any(|e| matches!(e, Edit::FacesSettle)));
+    }
+
+    // RED (previously-untested quadrant): changed=true AND faces_settled=true MUST still emit
+    // FacesSettle as the last edit. A pre-settled tree that is MISSING an SSOT entry is the
+    // case that triggered the review finding: the snapshot was byte-settled BEFORE the SSOT
+    // edits are applied, but applying those edits dirties the producer's inputs → faces go
+    // stale → registry-drift RED next push. `faces_settled=true` must NOT suppress FacesSettle.
+    #[test]
+    fn settled_snapshot_with_missing_ssot_still_emits_faces_settle() {
+        let req = base_request();
+        // Capability mapping is missing; everything else (incl. a settled face snapshot) is done.
+        let current = CurrentState {
+            owners_present: true,
+            member_glob_covers: true,
+            capability_mapped: false, // one SSOT entry missing → changed=true
+            adr_governed_paths: base_governed_paths().into_iter().collect(),
+            faces_settled: true, // pre-settled — must NOT suppress the mandatory settle
+            ..CurrentState::default()
+        };
+        let plan = plan_register_crate(&req, &current, &caps()).unwrap();
+        assert!(!plan.is_empty(), "plan must not be empty when a SSOT entry is missing");
+        assert_eq!(
+            plan.edits.last(),
+            Some(&Edit::FacesSettle),
+            "FacesSettle must be the last edit even when faces_settled=true in the snapshot"
+        );
+        // Exactly: CapabilityMapping + FacesSettle.
+        assert_eq!(plan.edits.len(), 2, "expected CapabilityMapping + FacesSettle, got {:?}", plan.edits);
+        assert_eq!(
+            plan.edits[0],
+            Edit::CapabilityMapping {
+                dir: DIR.to_owned(),
+                capability: "build".to_owned(),
+            }
+        );
     }
 }
