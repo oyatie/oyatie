@@ -258,6 +258,10 @@
       "old_path": "cloud/cloud-intelligence/crates/oya-cloud-intelligence-claude-agent-sdk/tests/abort_error.rs"
     },
     {
+      "new_path": "intelligence/adapters/claude-agent-sdk/tests/assistant_worker_fake_cli.rs",
+      "old_path": "cloud/cloud-intelligence/crates/oya-cloud-intelligence-claude-agent-sdk/tests/assistant_worker_fake_cli.rs"
+    },
+    {
       "new_path": "intelligence/adapters/claude-agent-sdk/tests/callbacks_fake_cli.rs",
       "old_path": "cloud/cloud-intelligence/crates/oya-cloud-intelligence-claude-agent-sdk/tests/callbacks_fake_cli.rs"
     },

@@ -6875,6 +6875,7 @@
     "intelligence/adapters/claude-agent-sdk/src/tools.rs",
     "intelligence/adapters/claude-agent-sdk/src/transport.rs",
     "intelligence/adapters/claude-agent-sdk/tests/abort_error.rs",
+    "intelligence/adapters/claude-agent-sdk/tests/assistant_worker_fake_cli.rs",
     "intelligence/adapters/claude-agent-sdk/tests/callbacks_fake_cli.rs",
     "intelligence/adapters/claude-agent-sdk/tests/client_fake_cli.rs",
     "intelligence/adapters/claude-agent-sdk/tests/control_envelopes.rs",
