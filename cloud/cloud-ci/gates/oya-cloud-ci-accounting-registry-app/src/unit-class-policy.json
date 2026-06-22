@@ -1,12 +1,21 @@
 {
-  "$comment": "DATA-TABLED carve-outs for the accounting-registry producer (Linus: the exception lives in the table, never in the scanner). Each rule maps a path predicate to a unit_class; the FIRST matching rule (top-to-bottom) wins, so order is significant. The classifier in producer code has ZERO special-case branches — it only walks this table. Adding/removing a carve-out is a DATA edit here, re-runnable by the producer; the registry-drift test makes any hand-edit to the generated face RED. unit_class enum (PHASE-0-FIREWALL-PLAN §5.1): code|doc|spec|registry|evidence|vendor|build_config|generated|ephemeral|husk.",
+  "$comment": "DATA-TABLED carve-outs for the accounting-registry producer (Linus: the exception lives in the table, never in the scanner). Each rule maps a path predicate to a unit_class; the FIRST matching rule (top-to-bottom) wins, so order is significant. The classifier in producer code has ZERO special-case branches — it only walks this table. Adding/removing a carve-out is a DATA edit here, re-runnable by the producer; the registry-drift test makes any hand-edit to the generated face RED. unit_class enum (PHASE-0-FIREWALL-PLAN §5.1): code|doc|spec|registry|evidence|vendor|build_config|generated|ephemeral|husk|scratch. The `scratch` class is SHAPE-based (a build/test artifact identified by its name/location, NOT by registration) and drives the frozen_empty `scratch_artifact` code in cloud-ci-total-accounting: zero-tolerance, never grandfathered, and CANNOT be suppressed by registering owner/justification/reachability (that registration-laundering hole is exactly what the dedicated class closes). Scratch rules sit ABOVE the legitimate-class rules so a scratch shape wins regardless.",
   "match_kinds": {
     "prefix": "path starts with the given string",
     "suffix": "path ends with the given string (basename or extension)",
     "contains": "path contains the given substring",
-    "exact": "path equals the given string"
+    "exact": "path equals the given string",
+    "root_suffix": "path is at repo root (carries no '/' separator) AND ends with the given string",
+    "root_exact": "path is at repo root (carries no '/' separator) AND equals the given string"
   },
   "rules": [
+    { "id": "scratch-root-log",            "kind": "root_suffix", "value": ".log",                                       "unit_class": "scratch" },
+    { "id": "scratch-root-tmp",            "kind": "root_suffix", "value": ".tmp",                                       "unit_class": "scratch" },
+    { "id": "scratch-root-run-sh",         "kind": "root_suffix", "value": "run-slice.sh",                               "unit_class": "scratch" },
+    { "id": "scratch-root-retest-targets", "kind": "root_exact",  "value": "retest-targets.txt",                         "unit_class": "scratch" },
+    { "id": "scratch-kernel-conformance",  "kind": "contains",    "value": "cloud-kernel/out/conformance/",              "unit_class": "scratch" },
+    { "id": "scratch-kernel-stress",       "kind": "exact",       "value": "cloud/cloud-kernel/out/stress-summary.txt",  "unit_class": "scratch" },
+
     { "id": "ephemeral-omc-state",        "kind": "contains", "value": "/.omc/state/",          "unit_class": "ephemeral" },
     { "id": "ephemeral-omc-state-top",    "kind": "prefix",   "value": ".omc/state/",            "unit_class": "ephemeral" },
     { "id": "ephemeral-omc-sessions",     "kind": "prefix",   "value": ".omc/sessions/",         "unit_class": "ephemeral" },

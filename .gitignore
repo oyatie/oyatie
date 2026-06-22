@@ -80,6 +80,28 @@ test-results/
 # buck2 build output
 /buck-out/
 
+# Repo-root build/test SCRATCH artifacts (prevention layer; the cloud-ci-total-accounting
+# `scratch_artifact` frozen_empty code is the blocking backstop per enforcement-layering:
+# automation default + blocking backstop). These root-anchored patterns block the slice-NN
+# burndown / retest scratch class (#671 G011 residue) from being staged again. Root-anchored
+# so legitimately nested tracked files are untouched; force-add (`git add -f`) still routes
+# the file through the gate, which is the construction layer that makes scratch unmergeable.
+/*.log
+/run-*.sh
+/run-slice.sh
+/retest-targets.txt
+/slice*-*.log
+/slice*-*.txt
+
+# cloud-kernel QEMU/serial CONFORMANCE run output (build output, not evidence). The
+# crate-local cloud/cloud-kernel/.gitignore ignores top-level /out/*.log but NOT the
+# out/conformance/ subdir or the .txt report variants, which is how 50 conformance logs +
+# stress-summary.txt slipped in via the bulk kernel import (#640). The tracked /out/*.elf
+# carriers (include_bytes! build inputs) + musl-src/hello.c stay un-ignored in the crate
+# .gitignore; this only adds the run-output subtree.
+cloud/cloud-kernel/out/conformance/
+cloud/cloud-kernel/out/stress-summary.txt
+
 # Merge-base frozen-baseline snapshot (ADR-0551, FRIC-1781112000): a per-checkout derived
 # reference materialized by the scm-facts emitter from `git merge-base <base_ref> HEAD`.
 # It varies with the base branch position, so it can never be a committed face; CI
