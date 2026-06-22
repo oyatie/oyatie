@@ -48,3 +48,50 @@ resources:
   limits:
     cpu: 1000m
     memory: 512Mi
+
+# G002 slice-1b-iii-c (ADR-0561, ADR-0510): the in-cluster SVID-delivery operator
+# that PRODUCES + rotates the oya-cloud-iam-pdp-svid Secret the PDP mTLS PEP boots
+# from. Roots issuance on the trustd EcdsaP256 CA via the unchanged SigningBackend
+# seam (cloud-kms per-cell sealing-root swap deferred, ADR-0561 D4/D5).
+svidOperator:
+  enabled: true
+  name: oya-cloud-iam-pdp-svid-operator
+  cargoPackage: oya-cloud-iam-pdp-svid-operator
+  replicaCount: 1
+  # The namespace the projected oya-cloud-iam-pdp-svid Secret is written into.
+  watchedNamespace: cloud-iam
+  # The cell id forming the platform SVID authority
+  # (spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp). Release/cell automation
+  # must inject the real cell id; the empty default fail-closes the binary on boot.
+  cellId: ""
+  ttlSecs: 3600
+  rotationWindowSecs: 600
+  image:
+    registry: registry.oyatie.dev
+    repository: oya-cloud-iam-pdp-svid-operator
+    tag: "0.1.0"
+    digest: ""
+    pullPolicy: IfNotPresent
+    cosign:
+      required: true
+      policy: ADR-0181
+  serviceAccount:
+    name: oya-cloud-iam-pdp-svid-operator
+    automountToken: true
+    nonClaim: "operator writes only the oya-cloud-iam-pdp-svid Secret in its namespace and emits reconcile events"
+  # The cluster join token gating SVID issuance (operator-internal). Mounted from a
+  # pre-provisioned Secret; the binary fail-closes if it is empty.
+  joinToken:
+    secretName: oya-cloud-iam-pdp-svid-operator-join-token
+    secretKey: join-token
+  pdb:
+    # Single-replica operator: maxUnavailable lets node drains proceed (the pod
+    # reschedules) instead of wedging on minAvailable==replicaCount.
+    maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi

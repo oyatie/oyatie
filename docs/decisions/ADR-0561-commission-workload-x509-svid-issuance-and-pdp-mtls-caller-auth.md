@@ -340,3 +340,69 @@ adds no library surface.
 - **Negative / tracked**: a transitional trust-domain duality (D2, ledgered); real transport mTLS +
   real crypto deferred to slice-1b (D5); the leaf codec is a DER stand-in retired at cutover.
 - **Reversible**: two-way door — deleting the new crates + the PDP `mtls` module restores `dev`.
+
+## Governed surfaces
+
+Slice-1b-iii-c (FRIC-1781490000, the cert-delivery dimension) commissions the
+in-cluster SVID-delivery operator that PRODUCES the `oya-cloud-iam-pdp-svid`
+Secret the PDP mTLS PEP boots from — the single missing producer that closes the
+cert-delivery dimension of FRIC-1781490000 and unblocks G004. Each exact path
+below is its row's structural-accounting `justification_ref` (ADR-0555
+born-accounted-at-creation; total-accounting requires every NEW tracked path be
+ADR-justified, owned, and reachable). The operator roots issuance on the trustd
+`EcdsaP256` CA via the unchanged `SigningBackend` seam; the cloud-kms per-cell
+sealing-root swap stays DEFERRED behind that seam (D4/D5) — this slice closes the
+CERT-DELIVERY dimension only and makes no full-G002-completion claim.
+
+New SVID operator kernel crate (owned by axis-identity, reachable via cargo-members):
+
+- iam/core/identity-workload-svid-operator-kernel/src/lib.rs
+- iam/core/identity-workload-svid-operator-kernel/tests/reconcile.rs
+- iam/core/identity-workload-svid-operator-kernel/Cargo.toml
+- iam/core/identity-workload-svid-operator-kernel/BUCK
+- iam/core/identity-workload-svid-operator-kernel/OWNERS
+- iam/observability/slos/identity-workload-svid-operator-kernel/svid-delivery-availability.openslo.yaml
+
+New SVID operator kube-rs adapter crate (owned by axis-identity, reachable via cargo-members):
+
+- iam/adapters/identity-workload-svid-operator-k8s/src/lib.rs
+- iam/adapters/identity-workload-svid-operator-k8s/tests/adapter.rs
+- iam/adapters/identity-workload-svid-operator-k8s/Cargo.toml
+- iam/adapters/identity-workload-svid-operator-k8s/BUCK
+- iam/adapters/identity-workload-svid-operator-k8s/OWNERS
+
+New SVID operator app crate (owned by axis-identity, reachable via cargo-members):
+
+- iam/facade/identity-workload-svid-operator-app/src/lib.rs
+- iam/facade/identity-workload-svid-operator-app/src/main.rs
+- iam/facade/identity-workload-svid-operator-app/tests/app.rs
+- iam/facade/identity-workload-svid-operator-app/Cargo.toml
+- iam/facade/identity-workload-svid-operator-app/BUCK
+- iam/facade/identity-workload-svid-operator-app/OWNERS
+
+The three new crate roots are owned by axis-identity (a born-at-creation OWNERS in
+each crate directory per ADR-0555) and reachable via the globbed Cargo workspace
+membership (the `iam/*/*` member glob). The operator-kernel SLO at
+`iam/observability/slos/identity-workload-svid-operator-kernel/` is non-crate-resident
+(ADR-0139 SLO-home convention), so it carries an explicit reachability seed in
+`specs/reachability-registry.json` justified by this ADR.
+
+The keystone closure extends an already-accounted test file in place (no new
+accounting row): `iam/facade/cloud-pdp-app/tests/main_boot_closure.rs` gains the
+`operator_produced_secret_boots_pdp_and_yields_real_allow_deny_handshake` fixture —
+the PDP boots from OPERATOR-PRODUCED mTLS material and a caller SVID minted from
+the SAME operator CA yields a real rustls ALLOW (bound to its SVID tenant) +
+cross-tenant 403. The two new dev-deps (the operator k8s + kernel crates) ride the
+PDP crate's `[dev-dependencies]`; they are dev-only and add no library surface.
+
+The Helm operator Deployment + RBAC + PDB (Secret create/update/patch scoped to the
+`oya-cloud-iam-pdp-svid` Secret in the cloud-iam namespace) amend the existing
+cloud/cloud-iam Helm chart (owned by the existing cloud/cloud-iam OWNERS,
+axis-cloud-platform); the new templates carry no new crate accounting rows but ARE
+new tracked paths, so each is born-accounted here (this ADR is their
+`justification_ref`) and seeded reachable in `specs/reachability-registry.json`
+(the non-crate-resident Helm templates are NOT reached via cargo-members):
+
+- cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-deployment.yaml
+- cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-rbac.yaml
+- cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-pdb.yaml
