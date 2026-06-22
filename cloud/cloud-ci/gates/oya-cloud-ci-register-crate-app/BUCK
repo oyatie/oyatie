@@ -7,6 +7,9 @@ rust_library(
     deps = [
         "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app:oya-cloud-ci-capability-membership-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app:oya-cloud-ci-catalog-liveness-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app:oya-cloud-ci-total-accounting-app",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "//libs/oya-crate-registrar-app:oya-crate-registrar-app",
         "//libs/oya-crate-registrar-kernel:oya-crate-registrar-kernel",
@@ -23,6 +26,9 @@ rust_test(
     deps = [
         "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app",
         "//cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app:oya-cloud-ci-capability-membership-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app:oya-cloud-ci-catalog-liveness-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-slo-coverage-app:oya-cloud-ci-slo-coverage-app",
+        "//cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app:oya-cloud-ci-total-accounting-app",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "//libs/oya-crate-registrar-app:oya-crate-registrar-app",
         "//libs/oya-crate-registrar-kernel:oya-crate-registrar-kernel",
