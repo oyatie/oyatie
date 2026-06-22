@@ -145,7 +145,13 @@ rust_test(
     srcs = glob(["tests/main_boot_closure.rs", "tests/common/mod.rs", "cedar/**"]),
     crate_root = "tests/main_boot_closure.rs",
     visibility = ["PUBLIC"],
-    deps = _TEST_DEPS + ["third-party//:base64"],
+    deps = _TEST_DEPS + [
+        "third-party//:base64",
+        # Keystone (slice-1b-iii-c): boot the PDP from OPERATOR-PRODUCED mTLS
+        # material so the handshake closure roots on the live operator's Secret.
+        "//iam/adapters/identity-workload-svid-operator-k8s:iam-identity-workload-svid-operator-k8s",
+        "//iam/core/identity-workload-svid-operator-kernel:iam-identity-workload-svid-operator-kernel",
+    ],
 )
 
 rust_test(

@@ -1,0 +1,52 @@
+{{- if .Values.svidOperator.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.svidOperator.serviceAccount.name | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.svidOperator.name | quote }}
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/managed-by: Helm
+    oyatie.com/adr-0349: argocd-managed
+    oyatie.com/adr-0510: transient-svid-operator-kube-adapter
+  annotations:
+    oyatie.com/non-claim: {{ .Values.svidOperator.serviceAccount.nonClaim | quote }}
+automountServiceAccountToken: {{ .Values.svidOperator.serviceAccount.automountToken }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.svidOperator.name | quote }}
+  namespace: {{ .Values.svidOperator.watchedNamespace | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.svidOperator.name | quote }}
+    app.kubernetes.io/part-of: oyatie-microservices
+    oyatie.com/adr-0349: argocd-managed
+rules:
+  # The operator PRODUCES + rotates exactly the oya-cloud-iam-pdp-svid Secret. It
+  # needs watch/get to observe leaf expiry and create/update/patch to project the
+  # kubernetes.io/tls material. No other Secret and no delete (fail-closed scope).
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.svidOperator.name | quote }}
+  namespace: {{ .Values.svidOperator.watchedNamespace | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.svidOperator.name | quote }}
+    app.kubernetes.io/part-of: oyatie-microservices
+    oyatie.com/adr-0349: argocd-managed
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.svidOperator.serviceAccount.name | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.svidOperator.name | quote }}
+{{- end }}
