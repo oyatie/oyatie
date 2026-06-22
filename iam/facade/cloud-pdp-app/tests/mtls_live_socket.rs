@@ -103,7 +103,13 @@ fn issue_svid(
     (leaf, wl.private_key_der())
 }
 
-/// Mint the PDP server leaf (serverAuth + a DNS SAN the client checks).
+/// The PDP's own server SVID identity — the cell authority the PDP pins callers
+/// to is derived from this (`oyatie.cell-7`). Matches the operator-minted server
+/// SVID (`identity-workload-svid-operator-k8s`).
+const PDP_SERVER_SPIFFE: &str = "spiffe://oyatie.cell-7/platform/cloud-iam-pdp";
+
+/// Mint the PDP server leaf (serverAuth + a DNS SAN the client checks + the PDP
+/// SPIFFE URI SAN the cell pin is derived from — fidelity with the operator leaf).
 fn issue_server_leaf(
     svc: &mut SecurityService<EcdsaP256Signer>,
     ca_signer: &EcdsaP256Signer,
@@ -115,6 +121,8 @@ fn issue_server_leaf(
     let mut csr =
         CertificateSigningRequest::for_node("oya-cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
     csr.sans.dns_names.push("localhost".to_owned());
+    // The SPIFFE id the PDP's cell pin is derived from at boot.
+    csr.sans.uris.push(PDP_SERVER_SPIFFE.to_owned());
     let req = CertificateRequest {
         join_token: JOIN_TOKEN.to_string(),
         csr,
@@ -328,6 +336,59 @@ async fn trusted_svid_allows_and_binds_tenant() {
     handle.shutdown().await;
 }
 
+// Fixture 6 (G002/G004 #109): cell-authority pinning on a LIVE socket. A caller
+// SVID minted from the SAME trusted CA but rooted in a FOREIGN cell
+// (oyatie.cell-OTHER) reaches the handshake (it chains + verifies) but is DENIED
+// at the PEP with 403 — the cross-cell confusion guard. A same-cell SVID still
+// ALLOWs (non-regression of the live ALLOW path).
+#[tokio::test(flavor = "multi_thread")]
+async fn foreign_cell_svid_denied_on_live_socket() {
+    let (handle, mut svc, ca_signer, iat) = boot_mtls().await;
+
+    // Foreign-cell caller SVID (same trusted CA → handshake passes, cell differs).
+    let (foreign_leaf, foreign_key) = issue_svid(
+        &mut svc,
+        &ca_signer,
+        "spiffe://oyatie.cell-OTHER/tenant/ten_acme/wl",
+        iat,
+        10_000_000,
+    );
+    let (status, body) = post_authorize(
+        handle.rest_addr,
+        Some((foreign_leaf, foreign_key)),
+        &authorize_body("ten_acme"),
+    )
+    .await
+    .expect("handshake + request");
+    assert_eq!(
+        status, 403,
+        "foreign-cell SVID must be 403 (never 200/404) on the live socket: {body}"
+    );
+    assert!(
+        body.contains("caller_unauthenticated"),
+        "403 must carry the coarse caller-auth code (no cell leak), got {body}"
+    );
+
+    // Same-cell caller SVID → still reaches the decision (non-regression).
+    let (same_leaf, same_key) = issue_svid(
+        &mut svc,
+        &ca_signer,
+        "spiffe://oyatie.cell-7/tenant/ten_acme/wl",
+        iat,
+        10_000_000,
+    );
+    let (status, body) = post_authorize(
+        handle.rest_addr,
+        Some((same_leaf, same_key)),
+        &authorize_body("ten_acme"),
+    )
+    .await
+    .expect("handshake + request");
+    assert_eq!(status, 200, "same-cell SVID must still ALLOW: {body}");
+
+    handle.shutdown().await;
+}
+
 // Fixture 2: rogue (untrusted-CA) SVID -> handshake rejected, no decision.
 #[tokio::test(flavor = "multi_thread")]
 async fn rogue_svid_handshake_rejected() {
@@ -530,6 +591,72 @@ fn grpc_entities() -> Vec<proto::EntityRecord> {
                 .collect(),
         })
         .collect()
+}
+
+// Server-identity verification (G002/G004 #109, Fix 3). The keystone #793 live
+// fixtures use the `AcceptTrustdServer` bypass verifier, so a client verifying the
+// PDP's SERVER identity was untested. The PDP server leaf is a serverAuth cert (it
+// is NOT a caller leaf, so the caller-path `verify_peer` clientAuth gate does not
+// apply to it). This proves the load-bearing server-identity facts a real
+// client-side verifier checks: (a) the genuine PDP server leaf carries the EXPECTED
+// SPIFFE identity (`oya-cloud-iam-pdp` in `oyatie.cell-7`) and chains to the trusted
+// CA (its real signature verifies under the bundle's CA SPKI); (b) an IMPERSONATOR
+// presenting the same identity signed by a ROGUE CA the client does not trust does
+// NOT chain — a client verifying the server identity refuses a PDP impersonator.
+//
+// (A full custom rustls client-side `ServerCertVerifier` deferring to a serverAuth
+// trustd verifier on the live handshake is the proportionate residual; the server
+// identity + chain are the load-bearing checks, exercised here directly.)
+#[test]
+fn pdp_server_leaf_identity_is_correct_and_impersonator_does_not_chain() {
+    use iam_identity_workload_svid_kernel::SpiffeId;
+    use iam_identity_workload_svid_trustd::leaf_der;
+    use x509_parser::certificate::X509Certificate;
+    use x509_parser::prelude::FromDer;
+    use x509_parser::x509::SubjectPublicKeyInfo;
+
+    let iat = now_secs();
+    let (mut svc, ca_signer) = service();
+    let (server_leaf, _server_key) = issue_server_leaf(&mut svc, &ca_signer, iat, 10_000_000);
+    let trusted_ca_spki = svc.ca_certificate().public_key_der.clone();
+
+    // Verify a server leaf chains to a trusted CA SPKI by its real signature.
+    let chains_to = |leaf_der: &[u8], ca_spki: &[u8]| -> bool {
+        let Ok((rest, cert)) = X509Certificate::from_der(leaf_der) else {
+            return false;
+        };
+        if !rest.is_empty() {
+            return false;
+        }
+        match SubjectPublicKeyInfo::from_der(ca_spki) {
+            Ok((spki_rest, ca)) => spki_rest.is_empty() && cert.verify_signature(Some(&ca)).is_ok(),
+            Err(_) => false,
+        }
+    };
+
+    // (a) Genuine PDP: identity is the expected platform SVID + chains to the CA.
+    let uri = leaf_der::extract_single_uri_san(&server_leaf)
+        .expect("PDP server leaf carries its SPIFFE URI SAN");
+    assert_eq!(uri, PDP_SERVER_SPIFFE, "PDP server identity must be the expected platform SVID");
+    let id = SpiffeId::parse(&uri).expect("PDP server SPIFFE id parses");
+    assert_eq!(id.trust_domain_authority(), "oyatie.cell-7");
+    assert!(
+        chains_to(&server_leaf, &trusted_ca_spki),
+        "genuine PDP server leaf must chain to the trusted CA"
+    );
+
+    // (b) Impersonator: same identity, ROGUE CA → does NOT chain to the trusted CA.
+    let (mut rogue, rogue_signer) = service();
+    let (impostor_leaf, _k) = issue_server_leaf(&mut rogue, &rogue_signer, iat, 10_000_000);
+    assert_eq!(
+        leaf_der::extract_single_uri_san(&impostor_leaf).unwrap(),
+        PDP_SERVER_SPIFFE,
+        "impostor presents the same identity (so identity alone is not enough)"
+    );
+    assert!(
+        !chains_to(&impostor_leaf, &trusted_ca_spki),
+        "impersonator PDP server leaf must NOT chain to the trusted CA (refused)"
+    );
 }
 
 // Boot-refuse: an empty trust bundle is a fail-closed StartError::Mtls.

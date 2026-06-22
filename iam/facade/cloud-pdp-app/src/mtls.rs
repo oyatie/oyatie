@@ -25,6 +25,19 @@
 //! 4. SVID tenant ≠ requested tenant       → [`CallerAuthRejection::TenantMismatch`]
 //! 5. malformed requested tenant id        → [`CallerAuthRejection::MalformedRequestTenant`]
 //! 6. platform SVID asserting a tenant     → [`CallerAuthRejection::PlatformSvidCannotActAsTenant`]
+//! 7. SVID from a FOREIGN cell authority    → [`CallerAuthRejection::ForeignCell`]
+//!
+//! ## Cell-authority pinning (G002/G004 #109)
+//!
+//! A caller SVID names its cell in its trust-domain authority
+//! (`spiffe://oyatie.cell-<id>/...`). The PDP serves exactly ONE cell — its own,
+//! derived from its server SVID identity (`spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp`).
+//! A structurally-valid, correctly-signed SVID from a DIFFERENT cell must be
+//! rejected (cross-cell confusion if a CA ever spans cells): the PEP pins the
+//! caller's cell authority to its own and DENIES a foreign cell with
+//! [`CallerAuthRejection::ForeignCell`] (403, fail-closed). When the PDP has no
+//! derivable cell (plain-TCP boot / contract tests construct the PEP without one)
+//! the pin is absent and the legacy same-bundle behaviour stands.
 //!
 //! ## Fidelity boundary (ADR-0561 slice-1b deferral)
 //!
@@ -100,6 +113,15 @@ pub enum CallerAuthRejection {
     MalformedRequestTenant,
     /// A platform SVID tried to act as a tenant (it owns none).
     PlatformSvidCannotActAsTenant,
+    /// The caller SVID is rooted in a DIFFERENT cell than the PDP serves: even a
+    /// structurally-valid, correctly-signed SVID may not authorize a tenant in a
+    /// foreign cell (cross-cell confusion guard).
+    ForeignCell {
+        /// The cell authority the SVID carries.
+        svid_cell: String,
+        /// The cell authority the PDP expects (its own).
+        expected_cell: String,
+    },
 }
 
 impl CallerAuthRejection {
@@ -127,9 +149,9 @@ impl CallerAuthRejection {
                 "caller SVID is not trusted"
             }
             Self::ExpiredSvid => "caller SVID is expired",
-            Self::TenantMismatch { .. } | Self::PlatformSvidCannotActAsTenant => {
-                "caller is not authorized for the requested tenant"
-            }
+            Self::TenantMismatch { .. }
+            | Self::PlatformSvidCannotActAsTenant
+            | Self::ForeignCell { .. } => "caller is not authorized for the requested tenant",
             Self::MalformedRequestTenant => "requested tenant id is malformed",
         }
     }
@@ -153,6 +175,13 @@ impl std::fmt::Display for CallerAuthRejection {
             Self::PlatformSvidCannotActAsTenant => {
                 f.write_str("platform SVID cannot act as a tenant")
             }
+            Self::ForeignCell {
+                svid_cell,
+                expected_cell,
+            } => write!(
+                f,
+                "caller SVID cell '{svid_cell}' does not match the PDP cell '{expected_cell}'"
+            ),
         }
     }
 }
@@ -164,11 +193,16 @@ impl std::fmt::Display for CallerAuthRejection {
 /// the decision path must use in place of the caller-body tenant.
 pub struct SpiffeCallerAuth<'a, S: SigningBackend> {
     verifier: TrustdSvidVerifier<'a, S>,
+    /// The cell authority (`oyatie.cell-<id>`) the PDP serves, derived from its
+    /// own server SVID identity. `None` when no cell is derivable (plain-TCP
+    /// boot / contract tests) — then no cell pin is enforced.
+    expected_cell_authority: Option<String>,
 }
 
 impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
-    /// Build the PEP over a trust bundle, REFUSING (boot-fatal) when the bundle
-    /// is empty (missing/garbage).
+    /// Build the PEP over a trust bundle with NO cell pin, REFUSING (boot-fatal)
+    /// when the bundle is empty (missing/garbage). Used on the plain-TCP path and
+    /// by contract tests; the mTLS boot path uses [`Self::with_cell_pin`].
     ///
     /// # Errors
     /// [`MtlsBootError::TrustBundleEmpty`] when the bundle holds no anchors.
@@ -178,6 +212,28 @@ impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
         }
         Ok(Self {
             verifier: TrustdSvidVerifier::new(bundle),
+            expected_cell_authority: None,
+        })
+    }
+
+    /// Build the PEP over a trust bundle, pinning the caller's cell to
+    /// `expected_cell_authority` (the PDP's own cell, e.g. `oyatie.cell-7`). A
+    /// caller SVID rooted in any other cell is DENIED with
+    /// [`CallerAuthRejection::ForeignCell`]. REFUSES (boot-fatal) when the bundle
+    /// is empty.
+    ///
+    /// # Errors
+    /// [`MtlsBootError::TrustBundleEmpty`] when the bundle holds no anchors.
+    pub fn with_cell_pin(
+        bundle: &'a TrustBundle<S>,
+        expected_cell_authority: impl Into<String>,
+    ) -> Result<Self, MtlsBootError> {
+        if bundle.is_empty() {
+            return Err(MtlsBootError::TrustBundleEmpty);
+        }
+        Ok(Self {
+            verifier: TrustdSvidVerifier::new(bundle),
+            expected_cell_authority: Some(expected_cell_authority.into()),
         })
     }
 
@@ -217,6 +273,20 @@ impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
                 CallerAuthRejection::UntrustedSvid { detail }
             }
         })?;
+
+        // Reject path 7 (cell-authority pinning): even a structurally-valid,
+        // correctly-signed SVID must be rooted in the cell the PDP serves. A
+        // foreign cell is a fail-closed DENY (cross-cell confusion guard). No pin
+        // ⇒ legacy behaviour.
+        if let Some(expected) = &self.expected_cell_authority {
+            let svid_cell = svid.trust_domain_authority();
+            if svid_cell != expected.as_str() {
+                return Err(CallerAuthRejection::ForeignCell {
+                    svid_cell: svid_cell.to_string(),
+                    expected_cell: expected.clone(),
+                });
+            }
+        }
 
         // Reject path 5: the request-body tenant must itself be a valid id.
         let requested = TenantId::new(requested_tenant)
@@ -393,6 +463,69 @@ mod tests {
             }
         );
         assert_eq!(rej.to_grpc_status().code(), Code::PermissionDenied);
+    }
+
+    // RED-fixture: cell-authority pinning (G002/G004 #109). A correctly-signed,
+    // structurally-valid SVID from a FOREIGN cell is DENIED; the SAME-shape SVID
+    // in the PDP's own cell still ALLOWs (non-regression).
+    #[test]
+    fn foreign_cell_svid_denied_matching_cell_allowed() {
+        let (mut svc, ca_signer) = service();
+        // Both leaves chain to the SAME trusted CA (so the only difference is the
+        // cell authority in the path — this is the cross-cell confusion case).
+        let foreign = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-OTHER/tenant/ten_acme/wl",
+        );
+        let same = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-7/tenant/ten_acme/wl",
+        );
+        let bundle = trusted_bundle(&svc, &ca_signer);
+        // PDP pinned to its own cell (oyatie.cell-7).
+        let pep = SpiffeCallerAuth::with_cell_pin(&bundle, "oyatie.cell-7").unwrap();
+
+        // Foreign cell → DENY (403, PermissionDenied), even though signed + valid.
+        let rej = pep
+            .authenticate_caller(Some(&foreign), "ten_acme", 2_500)
+            .unwrap_err();
+        assert_eq!(
+            rej,
+            CallerAuthRejection::ForeignCell {
+                svid_cell: "oyatie.cell-OTHER".to_string(),
+                expected_cell: "oyatie.cell-7".to_string(),
+            }
+        );
+        assert_eq!(rej.to_grpc_status().code(), Code::PermissionDenied);
+        assert_eq!(rej.rest_status_code(), 403);
+        // Anti-enumeration: the coarse public message never leaks the cell.
+        assert!(!rej.public_message().contains("cell"));
+
+        // Same cell → still ALLOW, bound to the SVID tenant (non-regression).
+        let bound = pep
+            .authenticate_caller(Some(&same), "ten_acme", 2_500)
+            .unwrap();
+        assert_eq!(bound.as_str(), "ten_acme");
+    }
+
+    // Without a cell pin (the plain-TCP / contract-test PEP), a foreign-cell SVID
+    // is NOT rejected on the cell axis — the legacy same-bundle behaviour stands.
+    #[test]
+    fn no_cell_pin_does_not_reject_foreign_cell() {
+        let (mut svc, ca_signer) = service();
+        let foreign = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-OTHER/tenant/ten_acme/wl",
+        );
+        let bundle = trusted_bundle(&svc, &ca_signer);
+        let pep = SpiffeCallerAuth::new(&bundle).unwrap();
+        let bound = pep
+            .authenticate_caller(Some(&foreign), "ten_acme", 2_500)
+            .unwrap();
+        assert_eq!(bound.as_str(), "ten_acme");
     }
 
     // RED-fixture: issuance_policy_rejects_ca_leaf — regression guard that a

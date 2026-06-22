@@ -12,7 +12,12 @@
 //!      keys (AWS-LC ECDSA verify — a forged/rogue-CA leaf fails here);
 //!   3. it is within its validity window at `now` (an expired leaf is a distinct
 //!      DENY);
-//!   4. it carries EXACTLY ONE SPIFFE URI SAN (zero → unauthenticated, more than
+//!   4. it is a WORKLOAD leaf, not a CA: its basicConstraints `cA` is FALSE (a
+//!      CA-capable leaf must never authenticate as a workload — defence in depth
+//!      against a mis-issued or compromised CA presenting itself as a caller);
+//!   5. it carries the `clientAuth` Extended Key Usage (a caller leaf is a TLS
+//!      client; a leaf without clientAuth is not authorized for caller auth);
+//!   6. it carries EXACTLY ONE SPIFFE URI SAN (zero → unauthenticated, more than
 //!      one → ambiguous identity).
 //!
 //! The extracted URI is then handed to the kernel `SpiffeId` parser.
@@ -34,6 +39,12 @@ pub enum LeafVerifyError {
     UntrustedIssuer(String),
     /// The leaf was outside its validity window at the verification instant.
     Expired,
+    /// The leaf is CA-capable (basicConstraints `cA` TRUE) — a CA must never
+    /// authenticate as a workload caller (defence in depth).
+    CaCapableLeaf,
+    /// The leaf does not carry the `clientAuth` Extended Key Usage required of a
+    /// caller leaf (no EKU extension, or an EKU set without clientAuth).
+    MissingClientAuthEku,
     /// No SPIFFE URI SAN was present.
     NoUriSan,
     /// More than one URI SAN was present (a SVID carries exactly one).
@@ -44,8 +55,8 @@ pub enum LeafVerifyError {
 /// check validity at `now` (unix seconds), and return the SINGLE URI SAN string.
 ///
 /// Order of checks is fail-closed and deterministic: decode → signature/chain →
-/// validity → URI-SAN cardinality. The returned `String` is the raw URI the
-/// caller parses into a `SpiffeId`.
+/// validity → basicConstraints (not a CA) → clientAuth EKU → URI-SAN cardinality.
+/// The returned `String` is the raw URI the caller parses into a `SpiffeId`.
 ///
 /// # Errors
 /// [`LeafVerifyError`] for every reject path.
@@ -91,9 +102,57 @@ pub fn verify_leaf_der(
         return Err(LeafVerifyError::Expired);
     }
 
-    // 4. Extract the SINGLE URI SAN (the SPIFFE id carrier).
+    // 4. basicConstraints: a CALLER leaf must NOT be a CA. A `cA == true` leaf
+    //    (or a leaf whose basicConstraints extension is malformed/duplicated) is
+    //    rejected — a CA-capable certificate must never authenticate as a
+    //    workload caller, even if its chain + validity check out (defence in
+    //    depth against a mis-issued or compromised CA). Absence of the extension
+    //    means `cA` is FALSE (RFC 5280), which is acceptable for a leaf.
+    match cert.basic_constraints() {
+        Ok(Some(bc)) if bc.value.ca => return Err(LeafVerifyError::CaCapableLeaf),
+        Ok(_) => {}
+        Err(_) => return Err(LeafVerifyError::CaCapableLeaf),
+    }
+
+    // 5. Extended Key Usage: a caller leaf is a TLS client, so it MUST carry the
+    //    `clientAuth` EKU. A missing EKU extension, an EKU set without clientAuth,
+    //    or a malformed/duplicated EKU extension is rejected (fail-closed).
+    match cert.extended_key_usage() {
+        Ok(Some(eku)) if eku.value.client_auth => {}
+        Ok(_) => return Err(LeafVerifyError::MissingClientAuthEku),
+        Err(_) => return Err(LeafVerifyError::MissingClientAuthEku),
+    }
+
+    // 6. Extract the SINGLE URI SAN (the SPIFFE id carrier).
     let uris = uri_sans(&cert)?;
     match uris.as_slice() {
+        [] => Err(LeafVerifyError::NoUriSan),
+        [single] => Ok(single.clone()),
+        _ => Err(LeafVerifyError::AmbiguousUriSan),
+    }
+}
+
+/// Extract the SINGLE SPIFFE URI SAN from a leaf DER WITHOUT verifying its chain
+/// or validity. This is for material the caller already trusts and only needs to
+/// READ the identity of — specifically the PDP reading its OWN server leaf to
+/// derive its cell authority (the server leaf was already validated by rustls at
+/// boot). It is NOT a verification path: never use it on a presented peer leaf
+/// (use [`verify_leaf_der`] for that).
+///
+/// # Errors
+/// [`LeafVerifyError::Undecodable`] when the bytes do not parse as a single
+/// certificate; [`LeafVerifyError::NoUriSan`] / [`LeafVerifyError::AmbiguousUriSan`]
+/// when the leaf carries zero / more than one URI SAN.
+pub fn extract_single_uri_san(leaf_der: &[u8]) -> Result<String, LeafVerifyError> {
+    let (rest, cert) = X509Certificate::from_der(leaf_der)
+        .map_err(|e| LeafVerifyError::Undecodable(format!("DER parse failed: {e}")))?;
+    if !rest.is_empty() {
+        return Err(LeafVerifyError::Undecodable(format!(
+            "{} trailing bytes after the certificate",
+            rest.len()
+        )));
+    }
+    match uri_sans(&cert)?.as_slice() {
         [] => Err(LeafVerifyError::NoUriSan),
         [single] => Ok(single.clone()),
         _ => Err(LeafVerifyError::AmbiguousUriSan),
@@ -204,6 +263,87 @@ mod tests {
     fn undecodable_bytes_are_rejected() {
         let err = verify_leaf_der(b"not-a-der-cert", &[vec![1, 2, 3]], 2_500).unwrap_err();
         assert!(matches!(err, LeafVerifyError::Undecodable(_)));
+    }
+
+    #[test]
+    fn workload_leaf_carries_clientauth_and_is_not_ca() {
+        // Non-regression: a normal workload SVID leaf (for_workload ⇒ ClientAuth,
+        // basicConstraints cA FALSE) passes the new basicConstraints + EKU gates.
+        let (mut ca, sgn) = real_ca();
+        let (leaf, ca_spki) = issue(&mut ca, &sgn, URI);
+        assert_eq!(verify_leaf_der(&leaf, &[ca_spki], 2_500).unwrap(), URI);
+    }
+
+    #[test]
+    fn ca_capable_leaf_is_rejected() {
+        // A CA-capable cert (basicConstraints cA TRUE) signed by the TRUSTED CA,
+        // carrying a valid SPIFFE URI SAN, must NOT authenticate as a workload —
+        // defence in depth: a CA must never act as a caller.
+        use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
+        use oya_cloud_os_trustd_domain::x509::{
+            DistinguishedName, SubjectAltNames, Validity,
+        };
+        let (ca, sgn) = real_ca();
+        let leaf_signer = EcdsaP256Signer::generate().unwrap();
+        let ca_leaf = Certificate {
+            serial: 42,
+            subject: DistinguishedName::common("rogue-sub-ca"),
+            issuer: DistinguishedName::common("oyatie-cell-7-ca"),
+            validity: Validity { not_before: 1_000, not_after: 9_000 },
+            usage: CertUsage::CertificateAuthority,
+            sans: SubjectAltNames { uris: vec![URI.to_string()], ..Default::default() },
+            public_key_der: leaf_signer.public_key_spki_der(),
+            signature: vec![0x01],
+        };
+        let der_bytes =
+            der::encode_leaf_der(&ca_leaf, &leaf_signer, ca.certificate(), &sgn).unwrap();
+        let ca_spki = ca.certificate().public_key_der.clone();
+        assert_eq!(
+            verify_leaf_der(&der_bytes, &[ca_spki], 2_500).unwrap_err(),
+            LeafVerifyError::CaCapableLeaf
+        );
+    }
+
+    #[test]
+    fn leaf_without_clientauth_eku_is_rejected() {
+        // A serverAuth-only leaf (for_node ServerAuth ⇒ no clientAuth EKU) from the
+        // TRUSTED CA, carrying a SPIFFE URI SAN, must NOT authenticate as a caller.
+        use oya_cloud_os_trustd_domain::certificate::{CertUsage, Certificate};
+        use oya_cloud_os_trustd_domain::x509::{
+            DistinguishedName, SubjectAltNames, Validity,
+        };
+        let (ca, sgn) = real_ca();
+        let leaf_signer = EcdsaP256Signer::generate().unwrap();
+        let server_leaf = Certificate {
+            serial: 43,
+            subject: DistinguishedName::common("oya-cloud-iam-pdp"),
+            issuer: DistinguishedName::common("oyatie-cell-7-ca"),
+            validity: Validity { not_before: 1_000, not_after: 9_000 },
+            usage: CertUsage::ServerAuth,
+            sans: SubjectAltNames { uris: vec![URI.to_string()], ..Default::default() },
+            public_key_der: leaf_signer.public_key_spki_der(),
+            signature: vec![0x01],
+        };
+        let der_bytes =
+            der::encode_leaf_der(&server_leaf, &leaf_signer, ca.certificate(), &sgn).unwrap();
+        let ca_spki = ca.certificate().public_key_der.clone();
+        assert_eq!(
+            verify_leaf_der(&der_bytes, &[ca_spki], 2_500).unwrap_err(),
+            LeafVerifyError::MissingClientAuthEku
+        );
+    }
+
+    #[test]
+    fn extract_single_uri_san_reads_identity_without_verifying() {
+        // The cell-derivation read path: extract the URI SAN from a leaf without a
+        // chain/validity check (the PDP reading its own server leaf).
+        let (mut ca, sgn) = real_ca();
+        let (leaf, _ca_spki) = issue(&mut ca, &sgn, URI);
+        assert_eq!(extract_single_uri_san(&leaf).unwrap(), URI);
+        assert!(matches!(
+            extract_single_uri_san(b"not-a-der").unwrap_err(),
+            LeafVerifyError::Undecodable(_)
+        ));
     }
 
     #[test]

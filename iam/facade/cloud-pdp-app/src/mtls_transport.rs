@@ -51,6 +51,9 @@ use oya_cloud_os_trustd_domain::signer::EcdsaP256Signer;
 use oya_cloud_os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
 use oya_cloud_os_trustd_domain::TrustBundle;
 
+use iam_identity_workload_svid_kernel::SpiffeId;
+use iam_identity_workload_svid_trustd::leaf_der;
+
 use crate::client_cert_verifier::SvidClientCertVerifier;
 use crate::mtls::{MtlsBootError, SpiffeCallerAuth};
 
@@ -158,6 +161,11 @@ pub struct MtlsContext {
     bundle: Arc<TrustBundle<EcdsaP256Signer>>,
     server_chain: Vec<CertificateDer<'static>>,
     server_key_pkcs8_der: Vec<u8>,
+    /// The cell authority (`oyatie.cell-<id>`) the PDP serves, derived from its
+    /// OWN server leaf's SPIFFE id (`spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp`).
+    /// `None` when the server leaf carries no SPIFFE URI SAN (a legacy node-style
+    /// server cert) — then caller cell-pinning is not enforced.
+    expected_cell_authority: Option<String>,
 }
 
 impl MtlsContext {
@@ -176,11 +184,24 @@ impl MtlsContext {
         if bundle.is_empty() {
             return Err(MtlsBootError::TrustBundleEmpty);
         }
+        // Derive the PDP's OWN cell authority from its server leaf's SPIFFE id
+        // (the leaf is the existing source of truth; the operator mints it as
+        // `spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp`). The leaf has already
+        // been validated by rustls at boot, so we only READ its identity here. A
+        // server leaf with no SPIFFE URI SAN (a legacy node-style cert) yields no
+        // cell — caller cell-pinning is then absent (legacy behaviour), never a
+        // boot failure (this is additive hardening, not a new boot precondition).
+        let expected_cell_authority = server_chain_der
+            .first()
+            .and_then(|leaf| leaf_der::extract_single_uri_san(leaf).ok())
+            .and_then(|uri| SpiffeId::parse(&uri).ok())
+            .map(|id| id.trust_domain_authority().to_string());
         let server_chain = server_chain_der.into_iter().map(CertificateDer::from).collect();
         Ok(Self {
             bundle: Arc::new(bundle),
             server_chain,
             server_key_pkcs8_der,
+            expected_cell_authority,
         })
     }
 
@@ -224,6 +245,14 @@ impl MtlsContext {
     #[must_use]
     pub fn bundle(&self) -> Arc<TrustBundle<EcdsaP256Signer>> {
         Arc::clone(&self.bundle)
+    }
+
+    /// The PDP's own cell authority (`oyatie.cell-<id>`), derived from its server
+    /// leaf's SPIFFE id, used to pin a caller's cell. `None` when the server leaf
+    /// carries no SPIFFE URI SAN (legacy node-style cert).
+    #[must_use]
+    pub fn expected_cell_authority(&self) -> Option<&str> {
+        self.expected_cell_authority.as_deref()
     }
 
     /// Build the rustls [`TlsAcceptor`] (aws-lc-rs provider, NO ring) requiring a
@@ -434,14 +463,20 @@ fn ca_anchor_from_der(der: &[u8], path: &Path) -> Result<Certificate, MtlsMateri
     })
 }
 
-/// Build a [`SpiffeCallerAuth`] PEP borrowing `bundle` (boot-refuses empty).
+/// Build a [`SpiffeCallerAuth`] PEP borrowing `bundle` (boot-refuses empty),
+/// pinning the caller's cell to `expected_cell_authority` when one is supplied
+/// (the PDP's own cell). `None` ⇒ no cell pin (legacy behaviour).
 ///
 /// # Errors
-/// [`MtlsBootError::TrustBundleEmpty`] (delegated to [`SpiffeCallerAuth::new`]).
-pub fn pep_for(
-    bundle: &TrustBundle<EcdsaP256Signer>,
-) -> Result<SpiffeCallerAuth<'_, EcdsaP256Signer>, MtlsBootError> {
-    SpiffeCallerAuth::new(bundle)
+/// [`MtlsBootError::TrustBundleEmpty`] (delegated to the constructor).
+pub fn pep_for<'a>(
+    bundle: &'a TrustBundle<EcdsaP256Signer>,
+    expected_cell_authority: Option<&str>,
+) -> Result<SpiffeCallerAuth<'a, EcdsaP256Signer>, MtlsBootError> {
+    match expected_cell_authority {
+        Some(cell) => SpiffeCallerAuth::with_cell_pin(bundle, cell),
+        None => SpiffeCallerAuth::new(bundle),
+    }
 }
 
 // ===================================================================

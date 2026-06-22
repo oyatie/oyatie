@@ -80,6 +80,13 @@ fn refusal_response(error: &PdpError) -> Response {
 /// so the plain-TCP router (no layers) runs the legacy verbatim-tenant path.
 type CallerAuthBundle = Arc<TrustBundle<EcdsaP256Signer>>;
 
+/// The PDP's own cell authority (`oyatie.cell-<id>`), layered alongside the trust
+/// bundle so `authorize` can pin a caller's cell. Wrapped so its presence is an
+/// `Extension` distinct from the bundle; the inner `Option` is `None` when the
+/// server leaf carries no SPIFFE id (legacy node-style cert ⇒ no cell pin).
+#[derive(Clone)]
+struct CallerAuthCell(Option<String>);
+
 /// Current wall-clock as epoch seconds (clock-before-epoch ⇒ `0` ⇒ every SVID
 /// expired ⇒ fail-closed DENY, never a spurious accept).
 fn now_secs() -> u64 {
@@ -105,6 +112,7 @@ fn caller_auth_refusal(message: &str) -> Response {
 async fn authorize(
     State(state): State<Arc<PdpState>>,
     bundle: Option<Extension<CallerAuthBundle>>,
+    cell: Option<Extension<CallerAuthCell>>,
     peer: Option<Extension<PeerCertInfo>>,
     Json(mut body): Json<AuthorizeBody>,
 ) -> Response {
@@ -116,7 +124,13 @@ async fn authorize(
         let peer_leaf = peer
             .as_ref()
             .and_then(|Extension(info)| info.leaf_der.as_deref());
-        let pep = match SpiffeCallerAuth::new(&bundle) {
+        // Pin the caller's cell to the PDP's own when the mTLS layer carries it.
+        let expected_cell = cell.and_then(|Extension(c)| c.0);
+        let pep_result = match &expected_cell {
+            Some(cell) => SpiffeCallerAuth::with_cell_pin(&bundle, cell.as_str()),
+            None => SpiffeCallerAuth::new(&bundle),
+        };
+        let pep = match pep_result {
             Ok(pep) => pep,
             Err(err) => return caller_auth_refusal(&err.to_string()),
         };
@@ -177,13 +191,17 @@ pub fn build_router(state: Arc<PdpState>) -> Router {
         .with_state(state)
 }
 
-/// Build the REST router with the mTLS PEP enforced: the trust bundle is layered
-/// as an `Extension` so `authorize` authenticates the caller by its peer SVID and
+/// Build the REST router with the mTLS PEP enforced: the trust bundle (and the
+/// PDP's own cell authority, for caller cell-pinning) are layered as `Extension`s
+/// so `authorize` authenticates the caller by its peer SVID, pins its cell, and
 /// binds the tenant from the SVID path. The per-connection peer leaf is injected
 /// separately by the mTLS accept loop (`mtls_transport`).
 pub fn build_router_mtls(
     state: Arc<PdpState>,
     bundle: Arc<TrustBundle<EcdsaP256Signer>>,
+    expected_cell_authority: Option<String>,
 ) -> Router {
-    build_router(state).layer(Extension(bundle))
+    build_router(state)
+        .layer(Extension(CallerAuthCell(expected_cell_authority)))
+        .layer(Extension(bundle))
 }
