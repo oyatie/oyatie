@@ -9,15 +9,21 @@
 -- outbox), so an at-least-once relay over this CDC poll yields
 -- effectively-once delivery.
 --
--- HLC COMMIT ORDER: the W5 engine-native changefeed stamps each record with
--- an HLC commit timestamp; the transitional adapter synthesizes the same
--- (wall_nanos, logical) total order DB-side, because the kernel's fixed
--- 7-column insert supplies only the business columns. `commit_wall_nanos`
--- defaults from clock_timestamp() (the per-row physical commit instant) and
--- `commit_logical` is a strictly-increasing BIGSERIAL that breaks ties when
--- two rows land in the same wall nanosecond — so (commit_wall_nanos,
--- commit_logical) is a strict total order the poll's checkpoint advances
--- monotonically over, matching HlcTimestamp's (wall_nanos, logical) lexicographic order.
+-- CDC STREAM ORDER: the W5 engine-native changefeed orders records by a
+-- monotone resolved-offset cursor; the transitional adapter synthesizes the
+-- same strict total order DB-side from `commit_logical`, a global
+-- GENERATED ALWAYS AS IDENTITY (bigint) sequence. A single global IDENTITY is
+-- already a strict, unique, monotone total order over committed rows — so it
+-- IS the CDC stream position the poll's checkpoint advances over (the kernel
+-- StreamPosition), sufficient on its own. `commit_wall_nanos` defaults from
+-- clock_timestamp() and is the informational physical commit instant ONLY: it
+-- is deliberately NOT in the ORDER BY / WHERE / index ordering, because
+-- clock_timestamp() is non-monotone (NTP step-back or a long transaction can
+-- emit a later row with a smaller wall) and using it as the ordering key would
+-- silently skip a later row past the strictly-after filter (under-delivery,
+-- violating outbox at-least-once). The bigint sequence is carried WITHOUT
+-- narrowing as the kernel's u64 StreamPosition (never an HLC u32 logical tie
+-- counter, which would wrap a global sequence past ~4.3B rows).
 --
 -- Tenant isolation is enforced by ENABLE + FORCE ROW LEVEL SECURITY under TWO
 -- policies, keyed on the canonical session GUC
@@ -61,10 +67,15 @@ ALTER TABLE oya_data_outbox.outbox_events FORCE ROW LEVEL SECURITY;
 CREATE POLICY outbox_events_tenant_isolation ON oya_data_outbox.outbox_events AS PERMISSIVE FOR ALL TO oya_data_outbox_runtime USING (tenant_id = current_setting('oyatie.tenant_id', true)) WITH CHECK (tenant_id = current_setting('oyatie.tenant_id', true));
 CREATE POLICY outbox_events_require_tenant_guc ON oya_data_outbox.outbox_events AS RESTRICTIVE FOR ALL TO oya_data_outbox_runtime USING (current_setting('oyatie.tenant_id', true) IS NOT NULL AND current_setting('oyatie.tenant_id', true) <> '') WITH CHECK (current_setting('oyatie.tenant_id', true) IS NOT NULL AND current_setting('oyatie.tenant_id', true) <> '');
 
--- The CDC poll scans strictly-after the HLC checkpoint, tenant-scoped, ordered
--- by the (commit_wall_nanos, commit_logical) total order; this index serves
--- exactly that access path.
-CREATE INDEX IF NOT EXISTS outbox_events_commit_order
-    ON oya_data_outbox.outbox_events (tenant_id, commit_wall_nanos, commit_logical);
+-- Table privileges for the RLS-subject runtime role provisioned by
+-- 0000_runtime_role.sql: the CDC adapter only polls (SELECT) and producers only
+-- append (INSERT); outbox rows are immutable, so no UPDATE/DELETE is granted.
+GRANT SELECT, INSERT ON oya_data_outbox.outbox_events TO oya_data_outbox_runtime;
 
-COMMENT ON TABLE oya_data_outbox.outbox_events IS 'oya-data transactional-outbox / CDC change-stream events; tenant-scoped under oyatie.tenant_id, HLC-commit-ordered by (commit_wall_nanos, commit_logical).';
+-- The CDC poll scans strictly-after the commit_logical stream-position
+-- checkpoint, tenant-scoped, ordered solely by commit_logical (the monotone
+-- sequence IS the stream order); this index serves exactly that access path.
+CREATE INDEX IF NOT EXISTS outbox_events_commit_order
+    ON oya_data_outbox.outbox_events (tenant_id, commit_logical);
+
+COMMENT ON TABLE oya_data_outbox.outbox_events IS 'oya-data transactional-outbox / CDC change-stream events; tenant-scoped under oyatie.tenant_id, ordered by the monotone commit_logical stream position (commit_wall_nanos is informational only).';

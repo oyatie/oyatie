@@ -54,15 +54,27 @@ impls, matching the data SQL kernel/adapter split). Rows map to the kernel `Chan
 the assembled `ChangeBatch` is validated by the kernel's ordering/monotonicity invariants before
 return, so the adapter relies on the kernel invariant rather than re-checking ordering itself.
 
-### D2 — Fully parameterized, strictly-after-checkpoint, HLC-commit-ordered poll
+### D2 — Fully parameterized, strictly-after-checkpoint, stream-position-ordered poll
 
 The poll SELECTs over `oya_data_outbox.outbox_events`: tenant-scoped (`tenant_id = $1`), rows
-STRICTLY AFTER the `(wall, logical)` checkpoint via a Postgres row-value comparison
-(`(commit_wall_nanos, commit_logical) > ($2, $3)`), ordered by the HLC commit total order, limited
-(`LIMIT $4`). No tenant id, checkpoint component, or limit ever enters the SQL text — every dynamic
-input is a bound `$n` placeholder. The next checkpoint is the last delivered record's commit
-timestamp (at-least-once resumable; re-polling from the same checkpoint may re-deliver — D-13
-per-key ordering only).
+STRICTLY AFTER the monotone `commit_logical` stream-position checkpoint (`commit_logical > $2`),
+ordered SOLELY by `commit_logical` (`ORDER BY commit_logical`), limited (`LIMIT $3`). No tenant id,
+checkpoint position, or limit ever enters the SQL text — every dynamic input is a bound `$n`
+placeholder. The next checkpoint is the last delivered record's stream position (at-least-once
+resumable; re-polling from the same checkpoint may re-deliver — D-13 per-key ordering only).
+
+The checkpoint/resume position is a dedicated opaque monotone `StreamPosition` newtype on the
+kernel port (a CDC offset, NOT an HLC), sourced from the global `commit_logical`
+GENERATED-ALWAYS-AS-IDENTITY bigint sequence and carried as `u64` WITHOUT narrowing
+(security-audit amendment): a single global IDENTITY is already a strict, unique, monotone total
+order — so it is sufficient on its own. The earlier `(commit_wall_nanos, commit_logical)` ordering
+was corrected for two defects the audit found: (1) `commit_logical` narrowed into an HLC `u32`
+logical field would error past ~4.3B rows and wedge the poll forever (a u32 cannot carry the
+bigint sequence), and a global sequence is not a valid per-wall HLC tie-counter; (2) the
+non-monotone, statement-time `clock_timestamp()` wall as the primary sort/filter key could let an
+NTP step-back or long transaction emit a later row with a smaller wall, silently skipping it past
+the strictly-after filter (under-delivery, violating outbox at-least-once). `commit_wall_nanos` is
+retained as an informational `ChangeRecord` field only — never the order/checkpoint key.
 
 ### D3 — RLS tenant isolation (the load-bearing security property; ADR-0567 precedent)
 
@@ -73,15 +85,29 @@ mirrors the auth durable stores (ADR-0567) EXACTLY: ENABLE + FORCE ROW LEVEL SEC
 policies — a PERMISSIVE tenant-isolation policy (USING + WITH CHECK on the session GUC; required,
 because a RESTRICTIVE-only set is deny-all) AND a RESTRICTIVE policy that hard-denies any access
 when the GUC is unset or empty (so a missing per-tx scope can never fall through to an open scan).
-The runtime role carries no BYPASSRLS; a `CHECK (tenant_id <> '')` is defense-in-depth.
+Both policies scope `TO oya_data_outbox_runtime` — the production runtime role, NOT `PUBLIC`.
+
+The runtime-role CONTRACT ships IN the migration set (security-audit amendment):
+`0000_runtime_role.sql` (ordered first) idempotently creates `oya_data_outbox_runtime`
+(`NOLOGIN NOBYPASSRLS`, guarded by a `pg_roles` existence check since `CREATE ROLE` has no
+`IF NOT EXISTS`) and grants it `USAGE` on the schema; `0001_outbox_events.sql` grants it
+`SELECT, INSERT` on the table (the CDC poll only reads, producers only append; outbox rows are
+immutable so no `UPDATE/DELETE`). This closes the audit BLOCKER where the policies targeted a role
+that was never provisioned (undefined production RLS posture) while the live test validated a
+different target (`PUBLIC`). The env-gated live harness now applies the COMMITTED migrations
+verbatim, runs the poll AS `oya_data_outbox_runtime` (via `SET ROLE` on every pooled connection,
+the deploy contract being that the login role is a member of the runtime role), and asserts the app
+role lacks `rolbypassrls` (ADR-0567 D3) — so the test exercises the EXACT production policy set. The
+runtime role carries no BYPASSRLS or RLS would be silently skipped; a `CHECK (tenant_id <> '')` is
+defense-in-depth.
 
 ### D4 — Doctrine bar
 
 - **Clean-arch face-direction** (ADR-0131): the adapter depends inward on the kernel ports only.
 - **aws-lc-rs TLS only** (ADR-0506 crypto-backend-purity gate): zero `ring` activation.
 - **Tier-3** (ADR-0083): no `unwrap`/`expect`/`panic` in prod; `#![forbid(unsafe_code)]`;
-  fail-closed on a malformed row (a negative/out-of-range HLC component is a typed Adapter error,
-  never a silent coercion).
+  fail-closed on a malformed row (a negative `commit_logical` stream position or `commit_wall_nanos`
+  is a typed Adapter error, never a silent coercion).
 - **buck2 primary build** (founder directive): `rust_library` + `rust_test`, `migrations/**/*.sql`
   in the srcs glob.
 - **Naming** (ADR-0105 §Adopted Patterns): the backend qualifier is `postgres` — the external
@@ -97,11 +123,14 @@ trees). The crate's `.rs` sources are reachable via the `libs/oya-*` cargo-membe
 the non-crate `migrations/0001_outbox_events.sql` is reachable via that SAME member-dir prefix (the
 cargo-members reachability covers the whole member directory, not only Rust files). No catalog
 record is minted: the direct adapter peer `oya-data-sql-adapter-sqlx` carries none (the gate-tool
-default). Files commissioned by this decision:
+default). The runtime-role contract migration `0000_runtime_role.sql` is reachable via the SAME
+member-dir prefix and justified by this decision (security-audit amendment, see D3). Files
+commissioned by this decision:
 
 `libs/oya-data-outbox-adapter-postgres/BUCK`,
 `libs/oya-data-outbox-adapter-postgres/Cargo.toml`,
 `libs/oya-data-outbox-adapter-postgres/OWNERS`,
+`libs/oya-data-outbox-adapter-postgres/migrations/0000_runtime_role.sql`,
 `libs/oya-data-outbox-adapter-postgres/migrations/0001_outbox_events.sql`,
 `libs/oya-data-outbox-adapter-postgres/src/lib.rs`.
 
