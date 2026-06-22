@@ -703,19 +703,250 @@ fn settle_skips_regen_when_no_obligation() {
     assert!(second_regen.verify_calls.borrow().is_empty());
 }
 
-// (3c-5) MinimalSubset behaves identically to Skip in slice 3c (the slice-3d slot is a no-op until
-//        wired — never a panic, ADR-0083 Tier-3).
+// ─────────────────────────── slice 3d: fail-closed self-validation ───────────────────────────
+// MinimalSubset runs a crate-scoped SUBSET of gates' evaluate_keyed over the POST-settle faces and
+// REFUSES success if the just-registered crate would fail any of them. total-accounting +
+// capability-membership always; slo-coverage + catalog-liveness only when a CatalogYaml edit applied.
+// The subset is driven over the REAL gate evaluate_keyed: total-accounting reads an on-disk face,
+// capability-membership re-runs the gate's own collect, slo/catalog faces are injected via the
+// FakeRegenPort's gate_faces map (stdout-only producer faces — no buck2).
+
+/// The membership-gate policy the self-validation re-runs collect()+evaluate_keyed over. Mirrors the
+/// committed `capability-membership-policy.json` shape (gate_id + registry_path + scan_roots +
+/// allowed_top_level_dirs), with a `min_expected_crates` of 0 so the tiny fixture corpus does not
+/// trip MEM-EMPTY-SCAN (that finding is keyed `<policy>`, not the crate, so it would be filtered out
+/// anyway — but 0 keeps the fixture's intent crisp).
+fn membership_policy() -> &'static str {
+    r#"{
+  "gate_id": "cloud-ci-capability-membership",
+  "registry_path": "specs/capability-registry.json",
+  "scan_roots": ["cloud", "libs", "oya"],
+  "allowed_top_level_dirs": ["cloud", "libs", "oya", "specs", "docs", "registry"],
+  "min_expected_crates": 0
+}
+"#
+}
+
+/// Seed the on-disk faces the slice-3d self-validation reads directly (the committed total-accounting
+/// `registry` face + the membership-gate policy). `ta_rows` is the JSON body of the total-accounting
+/// face (`{"rows":[...], ...}`); pass `{}` / `{"rows":[]}` for a clean face. The slo/catalog faces are
+/// NOT seeded here — they are stdout-only producer faces injected via the FakeRegenPort.gate_faces map.
+fn seed_self_validation_faces(repo: &TmpRepo, ta_face: &str) {
+    repo.write(
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        ta_face,
+    );
+    repo.write(
+        "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json",
+        membership_policy(),
+    );
+}
+
+// (3d-1) A registration whose POST-settle faces are CLEAN (no crate-keyed finding) → MinimalSubset
+//        returns validation: Some with an EMPTY new_findings set (success). total-accounting +
+//        capability-membership run; slo/catalog do NOT (no CatalogYaml edit on the base request).
 #[test]
-fn minimal_subset_validation_mode_behaves_like_skip_in_3c() {
-    let repo = fixture_tagged("settle-minimal");
+fn self_validation_clean_crate_succeeds_with_empty_findings() {
+    let repo = fixture_tagged("sv-clean");
+    // A clean total-accounting face (no rows ⇒ no crate-keyed finding). The crate dir maps to the
+    // `ci` capability (cloud/cloud-ci absorbs it), so capability-membership emits no crate finding.
+    seed_self_validation_faces(&repo, "{\"rows\":[]}\n");
+    run_git(&repo.root, &["add", "-A"]);
+
     let req = base_request();
     let regen = FakeRegenPort::default();
 
     let outcome =
         register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset).unwrap();
-    assert!(outcome.faces_settled.is_some(), "MinimalSubset still settles the faces in 3c");
+
+    assert!(outcome.faces_settled.is_some(), "MinimalSubset still settles the faces");
+    let validation = outcome.validation.expect("MinimalSubset records a SelfValidation");
+    assert!(
+        validation.new_findings.is_empty(),
+        "a clean crate must produce NO crate-scoped findings: {:?}",
+        validation.new_findings
+    );
+    // The faces-settle path still ran (regen + verify_drift each once).
     assert_eq!(regen.regen_calls.borrow().len(), 1);
     assert_eq!(regen.verify_calls.borrow().len(), 1);
+    // No CatalogYaml edit ⇒ slo/catalog gate-input faces were NOT rendered.
+    assert!(
+        regen.gate_face_calls.borrow().is_empty(),
+        "slo/catalog faces must NOT be rendered without a CatalogYaml edit: {:?}",
+        regen.gate_face_calls.borrow()
+    );
+}
+
+// (3d-2) A REAL total-accounting evaluate_keyed finding keyed to a path UNDER the crate dir →
+//        SelfValidationFailed (fail-closed). The face is crafted so the gate's own evaluate_keyed
+//        emits an `unaccounted` finding keyed under the crate — the wiring is genuinely exercised.
+#[test]
+fn self_validation_crate_keyed_finding_fails_closed() {
+    let repo = fixture_tagged("sv-fail");
+    // A tracked path under the crate dir with NO accounting row ⇒ the REAL total-accounting
+    // evaluate_keyed emits `unaccounted` keyed to `<NEW_DIR>/orphan.rs` (a path under the crate).
+    let ta_face = format!(
+        "{{\"rows\":[],\"unaccounted_paths\":[\"{NEW_DIR}/orphan.rs\"]}}\n"
+    );
+    seed_self_validation_faces(&repo, &ta_face);
+    run_git(&repo.root, &["add", "-A"]);
+
+    let req = base_request();
+    let regen = FakeRegenPort::default();
+
+    let err =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset)
+            .unwrap_err();
+    match err {
+        RegisterError::SelfValidationFailed { findings } => {
+            assert!(
+                findings.iter().any(|finding| finding.gate
+                    == oya_cloud_ci_total_accounting_app::GATE_ID
+                    && finding.code == "unaccounted"
+                    && finding.key == format!("{NEW_DIR}/orphan.rs")),
+                "the crate-keyed total-accounting finding must be reported: {findings:?}"
+            );
+        }
+        other => panic!("expected SelfValidationFailed, got {other:?}"),
+    }
+}
+
+// (3d-3) Pre-existing corpus debt keyed to OTHER paths (outside the crate dir) → NOT flagged. Proves
+//        the crate-scope filter: the same real evaluate_keyed emits an `unaccounted` finding, but it
+//        is keyed to a foreign path and is correctly filtered out (not new for THIS crate).
+#[test]
+fn self_validation_ignores_pre_existing_debt_keyed_elsewhere() {
+    let repo = fixture_tagged("sv-foreign");
+    // An `unaccounted` finding keyed to a path OUTSIDE the crate dir (pre-existing frozen corpus
+    // debt). The real total-accounting evaluate_keyed emits it, but the crate-scope filter drops it.
+    let ta_face =
+        "{\"rows\":[],\"unaccounted_paths\":[\"some/other/unrelated/path.rs\"]}\n";
+    seed_self_validation_faces(&repo, ta_face);
+    run_git(&repo.root, &["add", "-A"]);
+
+    let req = base_request();
+    let regen = FakeRegenPort::default();
+
+    let outcome =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset).unwrap();
+    let validation = outcome.validation.expect("MinimalSubset records a SelfValidation");
+    assert!(
+        validation.new_findings.is_empty(),
+        "pre-existing debt keyed to OTHER paths must NOT be flagged for this crate: {:?}",
+        validation.new_findings
+    );
+}
+
+// (3d-4) CatalogYaml-conditional: the slo/catalog stdout-only faces are rendered (and their REAL
+//        evaluate_keyed driven) ONLY when a CatalogYaml edit was applied. A crate-keyed slo finding
+//        then fails closed; a foreign-keyed one is filtered out.
+#[test]
+fn self_validation_runs_slo_catalog_only_on_catalog_edit_and_scopes_them() {
+    let repo = fixture_tagged("sv-catalog");
+    seed_self_validation_faces(&repo, "{\"rows\":[]}\n");
+    run_git(&repo.root, &["add", "-A"]);
+
+    // A catalog-bearing request ⇒ a CatalogYaml edit IS applied ⇒ slo/catalog gates run.
+    let mut req = base_request();
+    req.catalog = Some(CatalogSpec { plane: "run".to_owned(), slo: "ga-control-plane".to_owned() });
+
+    let catalog_id = NEW_DIR.rsplit('/').next().unwrap();
+    // Inject crafted slo + catalog stdout-only faces. The slo face carries a row for the crate's
+    // catalog-id with a MISSING slo ⇒ the REAL slo-coverage evaluate_keyed emits
+    // `slo_missing_or_blank_slo` keyed to the crate-id. A SECOND row keyed elsewhere is filtered out.
+    let mut gate_faces = std::collections::BTreeMap::new();
+    gate_faces.insert(
+        "slo-coverage".to_owned(),
+        serde_json::json!({
+            "rows": [
+                { "crate_id": catalog_id, "slo": serde_json::Value::Null },
+                { "crate_id": "some-other-crate", "slo": serde_json::Value::Null }
+            ]
+        }),
+    );
+    // A clean catalog-liveness face for the crate (live row ⇒ no finding).
+    gate_faces.insert(
+        "catalog-liveness".to_owned(),
+        serde_json::json!({
+            "rows": [ { "crate_id": catalog_id, "is_live": true, "marker": serde_json::Value::Null } ]
+        }),
+    );
+    let regen = FakeRegenPort { gate_faces, ..FakeRegenPort::default() };
+
+    let err =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset)
+            .unwrap_err();
+    match err {
+        RegisterError::SelfValidationFailed { findings } => {
+            // The crate-keyed slo finding is reported.
+            assert!(
+                findings.iter().any(|finding| finding.gate
+                    == oya_cloud_ci_slo_coverage_app::GATE_ID
+                    && finding.code == "slo_missing_or_blank_slo"
+                    && finding.key == catalog_id),
+                "the crate-keyed slo-coverage finding must be reported: {findings:?}"
+            );
+            // The foreign-keyed slo row was filtered out.
+            assert!(
+                !findings.iter().any(|finding| finding.key == "some-other-crate"),
+                "a slo finding keyed to another crate must NOT be reported: {findings:?}"
+            );
+        }
+        other => panic!("expected SelfValidationFailed, got {other:?}"),
+    }
+    // Both stdout-only gate-input faces were rendered (slo + catalog), proving the CatalogYaml gate.
+    let calls = regen.gate_face_calls.borrow();
+    let faces: Vec<&str> = calls.iter().map(|(_, f)| f.as_str()).collect();
+    assert!(faces.contains(&"slo-coverage"), "slo-coverage face must be rendered: {faces:?}");
+    assert!(faces.contains(&"catalog-liveness"), "catalog-liveness face must be rendered: {faces:?}");
+}
+
+// (3d-5) ValidationMode::Skip continues to skip self-validation entirely (slice-3c backward compat):
+//        validation stays None and the slo/catalog gate-input faces are NEVER rendered.
+#[test]
+fn self_validation_skip_mode_records_none_and_makes_no_gate_calls() {
+    let repo = fixture_tagged("sv-skip");
+    // Seed a DIRTY total-accounting face: under MinimalSubset this would fail closed, but Skip must
+    // never even look at it (proving Skip makes no self-validation calls).
+    let ta_face = format!("{{\"rows\":[],\"unaccounted_paths\":[\"{NEW_DIR}/orphan.rs\"]}}\n");
+    seed_self_validation_faces(&repo, &ta_face);
+    run_git(&repo.root, &["add", "-A"]);
+
+    let req = base_request();
+    let regen = FakeRegenPort::default();
+
+    let outcome =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::Skip).unwrap();
+    assert!(outcome.faces_settled.is_some(), "Skip still settles the faces (3c behavior)");
+    assert!(
+        outcome.validation.is_none(),
+        "Skip records NO SelfValidation (backward compat): {:?}",
+        outcome.validation
+    );
+    assert!(
+        regen.gate_face_calls.borrow().is_empty(),
+        "Skip must make NO gate-input-face calls: {:?}",
+        regen.gate_face_calls.borrow()
+    );
+}
+
+// (3d-6) MinimalSubset still settles the faces (regen + verify_drift) before self-validating — the
+//        self-validation runs AFTER the settle so each gate evaluate_keyed sees the POST-settle faces.
+#[test]
+fn self_validation_runs_after_faces_settle() {
+    let repo = fixture_tagged("sv-after-settle");
+    seed_self_validation_faces(&repo, "{\"rows\":[]}\n");
+    run_git(&repo.root, &["add", "-A"]);
+
+    let req = base_request();
+    let regen = FakeRegenPort::default();
+
+    let outcome =
+        register_crate_and_settle(&repo.root, &req, &regen, ValidationMode::MinimalSubset).unwrap();
+    // The settle ran (regen + verify_drift each once) AND self-validation recorded a clean result.
+    assert_eq!(regen.regen_calls.borrow().len(), 1, "regen must run before self-validation");
+    assert_eq!(regen.verify_calls.borrow().len(), 1, "verify_drift must run before self-validation");
+    assert!(outcome.validation.is_some(), "self-validation ran after the settle");
 }
 
 // (3c-6, buck2-gated) The REAL Buck2RegenAdapter against the live checkout. Ignored by default so

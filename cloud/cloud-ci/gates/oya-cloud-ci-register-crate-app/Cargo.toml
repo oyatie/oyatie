@@ -36,6 +36,12 @@ oya-cloud-ci-accounting-registry-app = { path = "../oya-cloud-ci-accounting-regi
 # orchestrator's "is this crate already capability-mapped?" check is the SAME logic the gate
 # enforces — never a divergent reimplementation that double-maps a crate the gate then RED-flags.
 oya-cloud-ci-capability-membership-app = { path = "../oya-cloud-ci-capability-membership-app" }
+# SAME-LAYER on the slice-3d self-validation subset gates: drive each gate's pure `evaluate_keyed`
+# over the POST-settle faces so the just-registered crate is validated against the SAME gate logic CI
+# runs (cycle-free — these lib crates dep only serde_json / a downward libs/ crate, never back here).
+oya-cloud-ci-total-accounting-app = { path = "../oya-cloud-ci-total-accounting-app" }
+oya-cloud-ci-slo-coverage-app = { path = "../oya-cloud-ci-slo-coverage-app" }
+oya-cloud-ci-catalog-liveness-app = { path = "../oya-cloud-ci-catalog-liveness-app" }
 serde_json = { workspace = true }
 
 [lints]

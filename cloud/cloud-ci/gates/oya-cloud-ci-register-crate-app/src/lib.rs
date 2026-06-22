@@ -60,6 +60,11 @@ use oya_cloud_ci_accounting_registry_app::{
 // `*`-suffix glob membership) exactly as the gate does, so it never emits a spurious mapping edit
 // that would DOUBLE-MAP a crate the gate then flags RED.
 use oya_cloud_ci_capability_membership_app::{Mapping, homes_for, parse_mapping};
+// The slice-3d self-validation subset gates (total-accounting / slo-coverage / catalog-liveness) are
+// referenced by their full crate path in `run_self_validation` (no `use` needed) — each gate's pure
+// `evaluate_keyed` is driven over the POST-settle faces so the just-registered crate is validated
+// against the SAME gate logic CI runs (never a reimplementation). All three are cycle-free (they dep
+// only serde_json / a downward libs/ crate, never back to this orchestrator).
 use oya_crate_registrar_app::{WriterError, adr_governed_paths, capability_mapping, catalog_yaml,
     workspace_member_glob};
 use oya_crate_registrar_kernel::{
@@ -159,6 +164,12 @@ pub struct Outcome {
     /// (i.e. `requires_faces_settle` was `true`). `None` for the subprocess-free [`register_crate`]
     /// / [`register_crate_detailed`] path, and for a settle run whose plan recorded no obligation.
     pub faces_settled: Option<FacesSettled>,
+    /// `Some` iff [`register_crate_and_settle`] ran [`ValidationMode::MinimalSubset`] self-validation
+    /// (the slice-3d fail-closed subset gate check). On a returned [`Outcome`] the
+    /// [`SelfValidation::new_findings`] set is ALWAYS empty (a non-empty set fails closed with
+    /// [`RegisterError::SelfValidationFailed`] BEFORE this is recorded). `None` for
+    /// [`ValidationMode::Skip`] (slice-3c backward compat) and for the subprocess-free paths.
+    pub validation: Option<SelfValidation>,
 }
 
 /// The result of executing the recorded `FacesSettle` obligation via a [`RegenPort`]: the generated
@@ -173,6 +184,38 @@ pub struct FacesSettled {
     /// [`RegisterError::DriftDetected`] BEFORE this is set, so on a returned [`Outcome`] this is
     /// always `true`.
     pub drift_clean: bool,
+}
+
+/// One self-validation finding scoped to the just-registered crate, normalized across the gates'
+/// DIFFERING `Finding` types into a single common shape. Each gate's own `Finding` carries a
+/// different field set (total-accounting = `{code,key}`; capability-membership = `{code,key,detail}`;
+/// slo-coverage / catalog-liveness = `{code,key}`) — [`run_self_validation`] converts EACH into this
+/// common shape separately (it never assumes a shared `Finding` type), keeping `gate` so a refusal
+/// names WHICH gate flagged the crate.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ScopedFinding {
+    /// The gate that emitted the finding (a stable `&'static str` gate id, e.g. the gate's `GATE_ID`).
+    pub gate: &'static str,
+    /// The gate's bare violation `code`.
+    pub code: String,
+    /// The gate finding `key` (the offending unit: a registry row path, the crate dir, or the
+    /// catalog crate-id) — always scoped UNDER the just-registered crate by [`run_self_validation`].
+    pub key: String,
+}
+
+/// The result of [`ValidationMode::MinimalSubset`] self-validation: the crate-scoped findings the
+/// subset of gates' `evaluate_keyed` emitted for the JUST-registered crate, post-settle.
+///
+/// Because the crate is newly registered, ANY post-settle finding keyed under the crate's dir/paths
+/// is BY CONSTRUCTION new (pre-existing corpus debt is keyed to OTHER paths and is filtered out by
+/// the crate scope), so no before/after snapshot is needed — the crate scope IS the "new" filter.
+/// A NON-empty set fails closed ([`RegisterError::SelfValidationFailed`]); on a returned
+/// [`Outcome`] this set is therefore ALWAYS empty (success).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct SelfValidation {
+    /// The crate-scoped findings (empty on success). A non-empty set never reaches here — it fails
+    /// closed with [`RegisterError::SelfValidationFailed`] before the [`Outcome`] is built.
+    pub new_findings: BTreeSet<ScopedFinding>,
 }
 
 /// A typed refusal from [`register_crate`]. Fail-closed: the orchestrator never leaves a partial,
@@ -216,6 +259,15 @@ pub enum RegisterError {
         /// The generated-face file name whose on-disk bytes diverged from the fresh re-render.
         face: String,
     },
+    /// [`ValidationMode::MinimalSubset`] self-validation found that the JUST-registered crate would
+    /// fail a subset gate: running each gate's `evaluate_keyed` over the POST-settle faces emitted
+    /// at least one finding keyed UNDER the registered crate. Fail closed rather than report success
+    /// for a registration that just authored a crate the gates would then flag RED in CI. Carries the
+    /// crate-scoped findings (which gate + code + key) so the refusal is diagnosable.
+    SelfValidationFailed {
+        /// The crate-scoped findings the subset gates emitted for the just-registered crate.
+        findings: BTreeSet<ScopedFinding>,
+    },
 }
 
 impl std::fmt::Display for RegisterError {
@@ -245,6 +297,19 @@ impl std::fmt::Display for RegisterError {
                  the candidate tree the producer emits. Fix: re-run the settle from a clean tree; \
                  remediation: {FACE_REMEDIATION_COMMAND}"
             ),
+            RegisterError::SelfValidationFailed { findings } => {
+                write!(
+                    f,
+                    "register-crate self-validation refused: the just-registered crate would fail \
+                     {} subset gate finding(s) post-settle (fail-closed — registering a crate the \
+                     gates flag RED is never a success):",
+                    findings.len()
+                )?;
+                for finding in findings {
+                    write!(f, " [{}:{} key={}]", finding.gate, finding.code, finding.key)?;
+                }
+                Ok(())
+            }
         }
     }
 }
@@ -363,24 +428,33 @@ pub fn register_crate_detailed(repo_root: &Path, req: &RegisterCrateRequest) -> 
         }
     }
 
-    RegisterOutcome::Done(Outcome { applied, requires_faces_settle, faces_settled: None })
+    RegisterOutcome::Done(Outcome {
+        applied,
+        requires_faces_settle,
+        faces_settled: None,
+        validation: None,
+    })
 }
 
 // ───────────────────────────── faces-settle (slice 3c) ─────────────────────────────
 
 /// How [`register_crate_and_settle`] self-validates the settled tree.
 ///
-/// Slice 3c implements [`ValidationMode::Skip`] only: it applies the SSOT edits, executes the
-/// recorded `FacesSettle` obligation via the [`RegenPort`], and runs the byte-rediff drift check —
-/// no in-process gate evaluation. [`ValidationMode::MinimalSubset`] is the slot for slice 3d's
-/// crate-scoped before/after gate diff; until 3d wires it, it behaves IDENTICALLY to `Skip` (a
-/// documented no-op, never a panic — ADR-0083 Tier-3 forbids `unimplemented!`/`panic!` in prod).
+/// [`ValidationMode::Skip`] (slice 3c) applies the SSOT edits, executes the recorded `FacesSettle`
+/// obligation via the [`RegenPort`], and runs the byte-rediff drift check — no in-process gate
+/// evaluation. [`ValidationMode::MinimalSubset`] (slice 3d) adds FAIL-CLOSED self-validation: AFTER
+/// the faces settle, it runs a high-value SUBSET of gates' `evaluate_keyed` over the POST-settle faces
+/// and REFUSES success ([`RegisterError::SelfValidationFailed`]) if the just-registered crate would
+/// fail any of them (see [`run_self_validation`]). `Skip` stays backward-compatible (no self-validation,
+/// [`Outcome::validation`] = `None`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ValidationMode {
     /// Settle the faces (regen + byte-rediff) with NO in-process gate self-validation.
     Skip,
-    /// Slice-3d slot: crate-scoped before/after gate self-validation. NOT YET WIRED — behaves
-    /// exactly like [`ValidationMode::Skip`] in slice 3c (no-op, never panics).
+    /// Settle the faces, THEN run the slice-3d crate-scoped subset gate self-validation: refuse
+    /// success ([`RegisterError::SelfValidationFailed`]) if the just-registered crate would fail a
+    /// subset gate post-settle (total-accounting + capability-membership always; slo-coverage +
+    /// catalog-liveness when a catalog edit was applied).
     MinimalSubset,
 }
 
@@ -411,6 +485,20 @@ pub trait RegenPort {
     /// The byte-rediff drift check: re-render each producer face from the candidate tree and
     /// byte-compare to the just-written face on disk. `Ok(())` iff every face byte-matches.
     fn verify_drift(&self, repo_root: &Path) -> Result<(), RegisterError>;
+
+    /// Render a STDOUT-ONLY producer gate-input face (e.g. `slo-coverage` / `catalog-liveness`) as a
+    /// `Value`, for slice-3d self-validation. These faces are NOT written to disk — the producer
+    /// derives them via private `collect_*` fns and only emits them on `--stdout --face <name>` — so
+    /// self-validation cannot read them off the tree; it must drive the BUILT producer. The
+    /// production [`Buck2RegenAdapter`] runs `producer --stdout --face <face> --scm-facts <face>` over
+    /// the POST-settle scm-facts snapshot; [`FakeRegenPort`] injects a crafted face so unit tests
+    /// drive the REAL gate `evaluate_keyed` with NO buck2. The on-disk producer faces
+    /// (`accounting-registry.generated.json`) and the live-tree membership scan are read directly by
+    /// [`run_self_validation`], so they do NOT route through this method.
+    ///
+    /// # Errors
+    /// [`RegisterError::RegenFailed`] if the producer cannot render the face.
+    fn gate_input_face(&self, repo_root: &Path, face: &str) -> Result<Value, RegisterError>;
 }
 
 /// The production [`RegenPort`]: the NATIVE-in-Rust replacement for
@@ -512,6 +600,27 @@ impl RegenPort for Buck2RegenAdapter {
             }
         }
         Ok(())
+    }
+
+    fn gate_input_face(&self, repo_root: &Path, face: &str) -> Result<Value, RegisterError> {
+        // Render the stdout-only gate-input face from the POST-settle scm-facts snapshot. The
+        // emitter must already have written <FACES_DIR>/scm-facts.generated.json (regenerate runs
+        // before self-validation), so the producer reads a fresh declared input — no ambient git.
+        let tools = build_face_tools(repo_root)?;
+        let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
+        let rendered = run_settle_output(
+            Command::new(&tools.producer)
+                .args(["--repo-root"])
+                .arg(repo_root)
+                .args(["--scm-facts"])
+                .arg(&scm_facts)
+                .args(["--stdout", "--face", face])
+                .current_dir(repo_root),
+            &format!("self-validation gate-input face {face}"),
+        )?;
+        serde_json::from_str(&rendered).map_err(|e| {
+            RegisterError::RegenFailed(format!("parse gate-input face {face}: {e}"))
+        })
     }
 }
 
@@ -646,25 +755,26 @@ fn settle_command_failed(step: &str, output: &std::process::Output) -> RegisterE
 /// same `to_canonical_json`, so a match is exact). A mismatch fails closed with
 /// [`RegisterError::DriftDetected`] rather than commit a face the registry-drift gate would flag RED.
 ///
-/// `validate` is [`ValidationMode::Skip`] for slice 3c (no in-process gate self-validation);
-/// [`ValidationMode::MinimalSubset`] is the slice-3d slot and currently behaves like `Skip`.
+/// `validate` is [`ValidationMode::Skip`] for the slice-3c "just settle" path (no in-process gate
+/// self-validation); [`ValidationMode::MinimalSubset`] (slice 3d) additionally runs the crate-scoped
+/// subset gate self-validation over the POST-settle faces and fails closed
+/// ([`RegisterError::SelfValidationFailed`]) if the just-registered crate would fail a subset gate.
 ///
 /// Fail-closed: a plan refusal, a writer/bridge failure, a regen failure
-/// ([`RegisterError::RegenFailed`]), or a drift mismatch ([`RegisterError::DriftDetected`]) aborts
-/// and returns a [`RegisterError`]. A no-obligation plan (`requires_faces_settle == false`) does NOT
-/// call `regen` and leaves [`Outcome::faces_settled`] `None`.
+/// ([`RegisterError::RegenFailed`]), a drift mismatch ([`RegisterError::DriftDetected`]), or a
+/// self-validation finding ([`RegisterError::SelfValidationFailed`]) aborts and returns a
+/// [`RegisterError`]. A no-obligation plan (`requires_faces_settle == false`) does NOT call `regen`
+/// and leaves [`Outcome::faces_settled`] `None` (and self-validation is skipped — nothing changed).
 ///
 /// # Errors
-/// [`RegisterError`] on a plan/writer/bridge failure, a regen failure, or a drift mismatch.
+/// [`RegisterError`] on a plan/writer/bridge failure, a regen failure, a drift mismatch, or a
+/// self-validation finding.
 pub fn register_crate_and_settle(
     repo_root: &Path,
     req: &RegisterCrateRequest,
     regen: &dyn RegenPort,
     validate: ValidationMode,
 ) -> Result<Outcome, RegisterError> {
-    // Slice 3d wires MinimalSubset; until then it is a documented no-op identical to Skip (no panic).
-    let _ = validate;
-
     // Apply the SSOT edits via the existing subprocess-free dispatch (existing tests unbroken).
     let mut outcome = match register_crate_detailed(repo_root, req) {
         RegisterOutcome::Done(outcome) => outcome,
@@ -683,7 +793,170 @@ pub fn register_crate_and_settle(
     regen.verify_drift(repo_root)?;
 
     outcome.faces_settled = Some(FacesSettled { faces_written, drift_clean: true });
+
+    // Slice 3d: MinimalSubset runs the crate-scoped subset gate self-validation AFTER the faces are
+    // settled (so each gate's evaluate_keyed sees the POST-settle faces). Skip stays a no-op (3c
+    // backward compat). Fail-closed: a non-empty crate-scoped finding set refuses success.
+    if validate == ValidationMode::MinimalSubset {
+        let new_findings = run_self_validation(repo_root, req, &outcome, regen)?;
+        if !new_findings.is_empty() {
+            return Err(RegisterError::SelfValidationFailed { findings: new_findings });
+        }
+        outcome.validation = Some(SelfValidation { new_findings });
+    }
+
     Ok(outcome)
+}
+
+// ───────────────────────────── self-validation (slice 3d) ─────────────────────────────
+
+/// The committed total-accounting gate-input face FILE NAME (the producer's `registry` face) — the
+/// FIRST entry of [`PRODUCER_FACES`], written under [`FACES_DIR`]. Read directly off the POST-settle
+/// tree (no producer re-run needed: it is a committed face), so total-accounting self-validation needs
+/// NO buck2 in tests.
+const TOTAL_ACCOUNTING_FACE_FILE: &str = PRODUCER_FACES[0].0;
+
+/// The committed capability-membership gate policy (the `--policy` default the gate's main loads).
+/// Self-validation re-runs the gate's own `collect` (a live-tree scan) + `evaluate_keyed` over it.
+const MEMBERSHIP_POLICY_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app/capability-membership-policy.json";
+
+/// The stdout-only producer `--face` names for the slo-coverage / catalog-liveness gate inputs (NOT
+/// committed faces — rendered via [`RegenPort::gate_input_face`]). Run ONLY when a [`CatalogYaml`]
+/// edit was applied (a catalog-less crate has no slo/catalog row, so those gates are silent for it).
+const SLO_COVERAGE_FACE: &str = "slo-coverage";
+const CATALOG_LIVENESS_FACE: &str = "catalog-liveness";
+
+/// Run [`ValidationMode::MinimalSubset`] self-validation: run a high-value SUBSET of gates'
+/// `evaluate_keyed` over the POST-settle faces and collect ONLY the findings keyed UNDER the
+/// just-registered crate.
+///
+/// Crate-scoped == "new" (the design's endorsed simplification): because the crate is newly
+/// registered, ANY post-settle finding keyed under its dir/paths is BY CONSTRUCTION new — pre-existing
+/// corpus debt is keyed to OTHER paths and is filtered out by the crate scope — so NO before/after
+/// snapshot is needed (which also sidesteps the fact that the settle already overwrote the pre-edit
+/// faces). Each gate's `Finding` type DIFFERS (total-accounting = `{code,key}`; capability-membership
+/// = `{code,key,detail}`; slo-coverage / catalog-liveness = `{code,key}`) — each is converted into the
+/// common [`ScopedFinding`] separately; no shared `Finding` type is assumed.
+///
+/// The subset (firewall + the full-set crate-authoring gates are EXCLUDED per the design — firewall
+/// needs the merge-base frozen baseline that is CI-tier's authority; registry-drift is already covered
+/// by slice 3c's `verify_drift`):
+///   - total-accounting  — ALWAYS; on-disk `registry` face; keys = registry row paths under the crate.
+///   - capability-membership — ALWAYS; live-tree `collect` + `evaluate_keyed`; key == crate dir.
+///   - slo-coverage      — IFF a CatalogYaml edit applied; stdout-only face; key == catalog crate-id.
+///   - catalog-liveness  — IFF a CatalogYaml edit applied; stdout-only face; key == catalog crate-id.
+///
+/// # Errors
+/// [`RegisterError::Io`] on a face/policy read or parse failure, or [`RegisterError::RegenFailed`]
+/// from [`RegenPort::gate_input_face`] when a stdout-only face cannot be rendered. Fail-closed: a
+/// load failure refuses rather than silently passing self-validation.
+fn run_self_validation(
+    repo_root: &Path,
+    req: &RegisterCrateRequest,
+    outcome: &Outcome,
+    regen: &dyn RegenPort,
+) -> Result<BTreeSet<ScopedFinding>, RegisterError> {
+    let crate_dir = req.crate_dir.trim_end_matches('/').to_owned();
+    let mut findings: BTreeSet<ScopedFinding> = BTreeSet::new();
+
+    // 1. total-accounting — ALWAYS. Read the on-disk `registry` face; keys are registry row paths.
+    //    Scope to findings whose key is the crate dir OR a path under it (`<crate_dir>/...`).
+    let ta_face_rel = format!("{FACES_DIR}/{TOTAL_ACCOUNTING_FACE_FILE}");
+    let ta_face = load_committed_face(repo_root, &ta_face_rel)?;
+    for finding in oya_cloud_ci_total_accounting_app::evaluate_keyed(&ta_face) {
+        if key_under_crate(&finding.key, &crate_dir) {
+            findings.insert(ScopedFinding {
+                gate: oya_cloud_ci_total_accounting_app::GATE_ID,
+                code: finding.code,
+                key: finding.key,
+            });
+        }
+    }
+
+    // 2. capability-membership — ALWAYS. Re-run the gate's OWN collect (live-tree scan) +
+    //    evaluate_keyed over the committed policy. Scope to `key == crate_dir` (the gate keys a
+    //    crate finding by its dir).
+    let policy = load_committed_face(repo_root, MEMBERSHIP_POLICY_PATH)?;
+    let observed = oya_cloud_ci_capability_membership_app::collect(repo_root, &policy)
+        .map_err(|e| RegisterError::Io(format!("capability-membership collect: {e}")))?;
+    for finding in oya_cloud_ci_capability_membership_app::evaluate_keyed(&policy, &observed) {
+        if finding.key == crate_dir {
+            findings.insert(ScopedFinding {
+                gate: oya_cloud_ci_capability_membership_app::GATE_ID,
+                code: finding.code,
+                key: finding.key,
+            });
+        }
+    }
+
+    // 3 + 4. slo-coverage / catalog-liveness — ONLY iff a CatalogYaml edit was applied. The faces are
+    //    stdout-only (the producer derives them via private collect_* fns), so they are rendered via
+    //    the RegenPort. Scope to the crate's catalog crate-id (the catalog leaf), which is the gate
+    //    finding key for those gates.
+    if catalog_edit_applied(outcome) {
+        let catalog_id = catalog_crate_id(&crate_dir);
+
+        let slo_face = regen.gate_input_face(repo_root, SLO_COVERAGE_FACE)?;
+        for finding in oya_cloud_ci_slo_coverage_app::evaluate_keyed(&slo_face) {
+            if finding.key == catalog_id {
+                findings.insert(ScopedFinding {
+                    gate: oya_cloud_ci_slo_coverage_app::GATE_ID,
+                    code: finding.code,
+                    key: finding.key,
+                });
+            }
+        }
+
+        let catalog_face = regen.gate_input_face(repo_root, CATALOG_LIVENESS_FACE)?;
+        for finding in oya_cloud_ci_catalog_liveness_app::evaluate_keyed(&catalog_face) {
+            if finding.key == catalog_id {
+                findings.insert(ScopedFinding {
+                    gate: oya_cloud_ci_catalog_liveness_app::GATE_ID,
+                    code: finding.code,
+                    key: finding.key,
+                });
+            }
+        }
+    }
+
+    Ok(findings)
+}
+
+/// True iff `key` is the crate dir itself or a path strictly under it (`<crate_dir>/...`). The
+/// crate-scope filter that makes a post-settle finding "new" by construction (pre-existing debt is
+/// keyed to OTHER paths).
+fn key_under_crate(key: &str, crate_dir: &str) -> bool {
+    key == crate_dir || key.starts_with(&format!("{crate_dir}/"))
+}
+
+/// True iff the dispatched plan applied a [`AppliedEditKind::CatalogYaml`] edit — the condition under
+/// which the slo-coverage / catalog-liveness gates have a row for this crate (a catalog-less crate
+/// has no such row, so those gates are silent for it and must NOT be run).
+fn catalog_edit_applied(outcome: &Outcome) -> bool {
+    outcome
+        .applied
+        .iter()
+        .any(|a| a.kind == AppliedEditKind::CatalogYaml)
+}
+
+/// The catalog crate-id (the catalog leaf) for `crate_dir` — the file stem of the crate's
+/// `registry/catalog/<leaf>.yaml`, which is the `crate_id` key the slo-coverage / catalog-liveness
+/// gates emit. It is the last path segment of the crate dir (the producer's `file_stem` of the
+/// catalog source path), matching the catalog writer's `catalog_path` leaf.
+fn catalog_crate_id(crate_dir: &str) -> String {
+    crate_dir.rsplit('/').next().unwrap_or(crate_dir).to_owned()
+}
+
+/// Read + parse a committed JSON face / policy off the POST-settle tree. Fail-closed
+/// ([`RegisterError::Io`]) on a read or parse failure — self-validation never silently passes on a
+/// missing face.
+fn load_committed_face(repo_root: &Path, rel: &str) -> Result<Value, RegisterError> {
+    let abs = repo_root.join(rel);
+    let text = std::fs::read_to_string(&abs)
+        .map_err(|e| RegisterError::Io(format!("read {rel} for self-validation: {e}")))?;
+    serde_json::from_str(&text)
+        .map_err(|e| RegisterError::Io(format!("parse {rel} for self-validation: {e}")))
 }
 
 /// A test-double [`RegenPort`] so unit tests exercise [`register_crate_and_settle`] with NO buck2.
@@ -705,6 +978,14 @@ pub struct FakeRegenPort {
     pub regen_calls: std::cell::RefCell<Vec<std::path::PathBuf>>,
     /// `repo_root`s `verify_drift` was called with, in order.
     pub verify_calls: std::cell::RefCell<Vec<std::path::PathBuf>>,
+    /// The stdout-only gate-input faces `gate_input_face` returns, keyed by `--face` name (e.g.
+    /// `slo-coverage` / `catalog-liveness`). A test seeds CRAFTED faces so the REAL gate
+    /// `evaluate_keyed` is driven with NO buck2. A face name not present yields an empty `{"rows":[]}`
+    /// (a benign "no rows for this crate" input that emits no crate-keyed finding).
+    pub gate_faces: std::collections::BTreeMap<String, Value>,
+    /// The `(repo_root, face)` pairs `gate_input_face` was called with, in order (so a test can
+    /// assert WHICH stdout-only faces were rendered — e.g. that slo/catalog ran only on a catalog edit).
+    pub gate_face_calls: std::cell::RefCell<Vec<(std::path::PathBuf, String)>>,
 }
 
 #[cfg(test)]
@@ -720,6 +1001,8 @@ impl Default for FakeRegenPort {
             drift_face: None,
             regen_calls: std::cell::RefCell::new(Vec::new()),
             verify_calls: std::cell::RefCell::new(Vec::new()),
+            gate_faces: std::collections::BTreeMap::new(),
+            gate_face_calls: std::cell::RefCell::new(Vec::new()),
         }
     }
 }
@@ -742,6 +1025,17 @@ impl RegenPort for FakeRegenPort {
             Some(face) => Err(RegisterError::DriftDetected { face: face.clone() }),
             None => Ok(()),
         }
+    }
+
+    fn gate_input_face(&self, repo_root: &Path, face: &str) -> Result<Value, RegisterError> {
+        self.gate_face_calls
+            .borrow_mut()
+            .push((repo_root.to_path_buf(), face.to_owned()));
+        Ok(self
+            .gate_faces
+            .get(face)
+            .cloned()
+            .unwrap_or_else(|| serde_json::json!({ "rows": [] })))
     }
 }
 
