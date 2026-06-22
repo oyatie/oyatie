@@ -21,7 +21,6 @@
 
 use serde::{Deserialize, Serialize};
 
-use oya_data_sql_kernel::clock::HlcTimestamp;
 use oya_data_sql_kernel::{DataSqlError, SqlValue, Statement, WriteBatch};
 
 /// Default outbox insert, parameterized only — generic across services
@@ -93,18 +92,47 @@ pub fn with_outbox_event(
     WriteBatch::new(statements)
 }
 
-/// One observed change, stamped with its HLC commit timestamp. Shaped for
-/// the W5 engine's native changefeed records; the outbox-polling
-/// transitional adapter synthesizes the same shape.
+/// An opaque, strictly-monotone CDC stream position — a resumable changefeed
+/// offset, NOT a clock. The transitional Postgres adapter sources it from the
+/// table's global `commit_logical` IDENTITY sequence (a strict total order
+/// over committed rows); the W5 engine-native changefeed sources it from its
+/// own monotone resolved-timestamp/offset cursor. It is `u64` so the bigint
+/// sequence is carried WITHOUT narrowing (a CDC offset must never wrap or
+/// saturate the order key), and it is deliberately distinct from
+/// `HlcTimestamp`: a global sequence is not a per-wall HLC tie-counter, so
+/// using an HLC as the checkpoint key would misrepresent the offset semantics
+/// and force a lossy narrowing.
+#[derive(
+    Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Ord, PartialOrd, Serialize, Deserialize,
+)]
+#[serde(transparent)]
+pub struct StreamPosition(pub u64);
+
+impl StreamPosition {
+    /// The position before every real change (resume-from-the-beginning).
+    #[must_use]
+    pub fn zero() -> Self {
+        Self(0)
+    }
+}
+
+/// One observed change, ordered by its monotone CDC [`StreamPosition`]. Shaped
+/// for the W5 engine's native changefeed records; the outbox-polling
+/// transitional adapter synthesizes the same shape. `commit_wall_nanos` is the
+/// informational physical commit instant only — it is NEVER the order or
+/// checkpoint key (a non-monotone wall clock would silently skip later rows);
+/// `position` is the sole order/checkpoint key.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ChangeRecord {
-    pub tenant_id: String,              // data_class: TENANT_SCOPED
-    pub event_id: String,               // data_class: INTERNAL_ONLY
-    pub event_kind: String,             // data_class: INTERNAL_ONLY
-    pub aggregate_id: String,           // data_class: TENANT_SCOPED
-    pub commit_timestamp: HlcTimestamp, // data_class: INTERNAL_ONLY
-    pub payload: Vec<u8>,               // data_class: TENANT_SCOPED
+    pub tenant_id: String,        // data_class: TENANT_SCOPED
+    pub event_id: String,         // data_class: INTERNAL_ONLY
+    pub event_kind: String,       // data_class: INTERNAL_ONLY
+    pub aggregate_id: String,     // data_class: TENANT_SCOPED
+    pub position: StreamPosition, // data_class: INTERNAL_ONLY
+    /// Informational physical commit instant; NOT the ordering/checkpoint key.
+    pub commit_wall_nanos: u64, // data_class: INTERNAL_ONLY
+    pub payload: Vec<u8>,         // data_class: TENANT_SCOPED
 }
 
 /// A resumable page of changes. `resume_from` is the checkpoint to pass to
@@ -114,23 +142,24 @@ pub struct ChangeRecord {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ChangeBatch {
-    pub records: Vec<ChangeRecord>, // data_class: TENANT_SCOPED
-    pub resume_from: HlcTimestamp,  // data_class: INTERNAL_ONLY
+    pub records: Vec<ChangeRecord>,  // data_class: TENANT_SCOPED
+    pub resume_from: StreamPosition, // data_class: INTERNAL_ONLY
 }
 
 impl ChangeBatch {
-    /// Surface-all invariants: records sorted by commit timestamp and the
-    /// resume checkpoint not behind the last record.
+    /// Surface-all invariants: records strictly increasing by stream position
+    /// (a CDC offset is unique + monotone, so equal positions are also a
+    /// violation) and the resume checkpoint not behind the last record.
     pub fn validate(&self) -> Result<(), DataSqlError> {
         for window in self.records.windows(2) {
-            if window[0].commit_timestamp > window[1].commit_timestamp {
+            if window[0].position >= window[1].position {
                 return Err(DataSqlError::Adapter(
-                    "change records must be ordered by commit timestamp".to_owned(),
+                    "change records must be strictly increasing by stream position".to_owned(),
                 ));
             }
         }
         if let Some(last) = self.records.last()
-            && self.resume_from < last.commit_timestamp
+            && self.resume_from < last.position
         {
             return Err(DataSqlError::Adapter(
                 "resume checkpoint must not be behind the last delivered record".to_owned(),
@@ -141,13 +170,14 @@ impl ChangeBatch {
 }
 
 /// The CDC port (ADR-0536 D-10 change streams). W5: engine-native
-/// changefeed. Transitional: outbox polling. Consumers checkpoint with HLC
-/// timestamps and never observe which implementation serves them.
+/// changefeed. Transitional: outbox polling. Consumers checkpoint with an
+/// opaque monotone [`StreamPosition`] and never observe which implementation
+/// serves them.
 pub trait ChangeStreamSource {
     fn poll_changes(
         &mut self,
         tenant_id: &str,
-        checkpoint: HlcTimestamp,
+        checkpoint: StreamPosition,
         limit: usize,
     ) -> Result<ChangeBatch, DataSqlError>;
 }
@@ -161,7 +191,7 @@ pub struct RecordingChangeStream {
 
 impl RecordingChangeStream {
     pub fn new(mut records: Vec<ChangeRecord>) -> Self {
-        records.sort_by(|a, b| a.commit_timestamp.cmp(&b.commit_timestamp));
+        records.sort_by_key(|record| record.position);
         Self { records }
     }
 }
@@ -170,7 +200,7 @@ impl ChangeStreamSource for RecordingChangeStream {
     fn poll_changes(
         &mut self,
         tenant_id: &str,
-        checkpoint: HlcTimestamp,
+        checkpoint: StreamPosition,
         limit: usize,
     ) -> Result<ChangeBatch, DataSqlError> {
         if tenant_id.trim().is_empty() {
@@ -181,13 +211,13 @@ impl ChangeStreamSource for RecordingChangeStream {
         let records: Vec<ChangeRecord> = self
             .records
             .iter()
-            .filter(|record| record.tenant_id == tenant_id && record.commit_timestamp > checkpoint)
+            .filter(|record| record.tenant_id == tenant_id && record.position > checkpoint)
             .take(limit)
             .cloned()
             .collect();
         let resume_from = records
             .last()
-            .map_or(checkpoint, |record| record.commit_timestamp);
+            .map_or(checkpoint, |record| record.position);
         let batch = ChangeBatch {
             records,
             resume_from,
@@ -213,13 +243,16 @@ mod tests {
         }
     }
 
-    fn record(tenant: &str, event_id: &str, wall: u64) -> ChangeRecord {
+    fn record(tenant: &str, event_id: &str, position: u64) -> ChangeRecord {
         ChangeRecord {
             tenant_id: tenant.to_owned(),
             event_id: event_id.to_owned(),
             event_kind: "tenant.provisioned".to_owned(),
             aggregate_id: format!("tenants/{tenant}"),
-            commit_timestamp: HlcTimestamp::new(wall, 0),
+            position: StreamPosition(position),
+            // Informational only; deliberately NON-monotone relative to the
+            // position to prove ordering never reads the wall clock.
+            commit_wall_nanos: u64::MAX - position,
             payload: Vec::new(),
         }
     }
@@ -294,14 +327,36 @@ mod tests {
     fn change_batch_rejects_disorder_and_stale_checkpoints() {
         let disordered = ChangeBatch {
             records: vec![record("acme", "e2", 20), record("acme", "e1", 10)],
-            resume_from: HlcTimestamp::new(20, 0),
+            resume_from: StreamPosition(20),
         };
         assert!(disordered.validate().is_err());
+        // Equal positions are also a violation: a CDC offset is unique.
+        let duplicate_position = ChangeBatch {
+            records: vec![record("acme", "e1", 10), record("acme", "e1b", 10)],
+            resume_from: StreamPosition(10),
+        };
+        assert!(duplicate_position.validate().is_err());
         let stale_checkpoint = ChangeBatch {
             records: vec![record("acme", "e1", 10)],
-            resume_from: HlcTimestamp::new(5, 0),
+            resume_from: StreamPosition(5),
         };
         assert!(stale_checkpoint.validate().is_err());
+    }
+
+    #[test]
+    fn change_batch_position_above_u32_max_round_trips() {
+        // A global bigint sequence past u32::MAX must carry through the kernel
+        // shapes without narrowing or wrap (the MAJOR-1 boundary).
+        let big = u64::from(u32::MAX) + 1;
+        let records = vec![record("acme", "e-big", big)];
+        let batch = ChangeBatch {
+            records,
+            resume_from: StreamPosition(big),
+        };
+        batch.validate().unwrap();
+        assert_eq!(batch.records[0].position, StreamPosition(big));
+        let json = serde_json::to_string(&batch).unwrap();
+        assert_eq!(serde_json::from_str::<ChangeBatch>(&json).unwrap(), batch);
     }
 
     #[test]
@@ -311,13 +366,11 @@ mod tests {
             record("acme", "e1", 10),
             record("globex", "g1", 15),
         ]);
-        let batch = stream
-            .poll_changes("acme", HlcTimestamp::new(10, 0), 10)
-            .unwrap();
+        let batch = stream.poll_changes("acme", StreamPosition(10), 10).unwrap();
         // Strictly-after semantics: the checkpointed record is not redelivered.
         assert_eq!(batch.records.len(), 1);
         assert_eq!(batch.records[0].event_id, "e2");
-        assert_eq!(batch.resume_from, HlcTimestamp::new(20, 0));
+        assert_eq!(batch.resume_from, StreamPosition(20));
         // Cross-tenant records are never visible.
         assert!(batch.records.iter().all(|r| r.tenant_id == "acme"));
     }
@@ -329,7 +382,7 @@ mod tests {
             record("acme", "e2", 20),
             record("acme", "e3", 30),
         ]);
-        let mut checkpoint = HlcTimestamp::zero();
+        let mut checkpoint = StreamPosition::zero();
         let mut seen = Vec::new();
         loop {
             let batch = stream.poll_changes("acme", checkpoint, 1).unwrap();
@@ -345,7 +398,7 @@ mod tests {
     #[test]
     fn empty_poll_keeps_the_caller_checkpoint() {
         let mut stream = RecordingChangeStream::default();
-        let checkpoint = HlcTimestamp::new(42, 7);
+        let checkpoint = StreamPosition(42);
         let batch = stream.poll_changes("acme", checkpoint, 10).unwrap();
         assert!(batch.records.is_empty());
         assert_eq!(batch.resume_from, checkpoint);
