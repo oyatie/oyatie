@@ -20,7 +20,10 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use iam_cloud_pdp_app::PdpState;
+use iam_cloud_pdp_bundle_file::{BundleSignature, SignedPolicyBundleDoc};
 use iam_cloud_pdp_kernel::InMemoryDecisionAuditSink;
+use oya_shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
+use oya_shared_audit_event_kernel::{ChainSigner, encode_hex};
 use oya_shared_pdp_adapter_cedar::CedarPdp;
 use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyBundle, TemplateLink, TemplateSrc};
 use oya_shared_platform_contracts_kernel::pdp::{AuthorizationRequest, EntityRef, PolicyVersion};
@@ -208,7 +211,10 @@ pub fn seeded_state(links: Vec<TemplateLink>) -> (Arc<PdpState>, Arc<InMemoryDec
 }
 
 /// Write `contents` into a unique temp file and return its path (E2E bundle
-/// transport fixture — the ConfigMap stand-in).
+/// transport fixture — the ConfigMap stand-in). The contents are written
+/// VERBATIM — use [`signed_bundle_doc`] to wrap a serialized [`PolicyBundle`]
+/// in the signed envelope the file-store adapter requires, or pass raw bytes
+/// directly for malformed-envelope RED fixtures.
 pub fn temp_bundle_file(tag: &str, contents: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!(
         "oya-cloud-iam-pdp-e2e-{}-{tag}",
@@ -218,4 +224,65 @@ pub fn temp_bundle_file(tag: &str, contents: &str) -> PathBuf {
     let path = dir.join("bundle.json");
     std::fs::write(&path, contents).expect("write bundle");
     path
+}
+
+// =====================================================================
+// TEST-SIDE policy-bundle SIGNING fixtures (G004 bundle-signing slice).
+//
+// The file-store adapter verifies a SIGNED ENVELOPE against a trusted
+// public-key set BEFORE parsing the inner bundle. Production private-key
+// custody is a deferred founder-gated slice; these helpers are TEST-ONLY and
+// reuse the OWNED aws-lc-rs Ed25519 signer (ADR-0506, ring-free).
+// =====================================================================
+
+/// The stable key_id every test fixture signs under (and the trust dir trusts).
+pub const TEST_SIGNING_KEY_ID: &str = "test-policy-signing-key";
+
+/// One process-global test signer, so a bundle file written by one helper
+/// verifies against the trust dir written by another (they share this key).
+fn test_signer() -> &'static Ed25519ChainSigner {
+    use std::sync::OnceLock;
+    static SIGNER: OnceLock<Ed25519ChainSigner> = OnceLock::new();
+    SIGNER.get_or_init(|| {
+        Ed25519ChainSigner::generate(TEST_SIGNING_KEY_ID).expect("test signer keygen")
+    })
+}
+
+/// Wrap a serialized inner [`PolicyBundle`] in the signed envelope, detached-
+/// signed by the process-global test key. Sign==verify by construction: the
+/// signature covers the EXACT `inner_json` bytes embedded in the envelope.
+pub fn signed_bundle_doc(inner_json: &str) -> String {
+    let signer = test_signer();
+    let signature_hex = signer.sign_hex(inner_json.as_bytes()).expect("sign bundle");
+    let doc = SignedPolicyBundleDoc {
+        bundle: inner_json.to_owned(),
+        signatures: vec![BundleSignature {
+            key_id: TEST_SIGNING_KEY_ID.to_owned(),
+            public_key_hex: encode_hex(&signer.public_key_bytes()),
+            signature_hex,
+        }],
+    };
+    serde_json::to_string(&doc).expect("serialize signed envelope")
+}
+
+/// Provision a trust-anchor directory trusting the process-global test signing
+/// key (the `OYA_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR` stand-in). Returns the dir.
+///
+/// Each call writes a UNIQUE directory: parallel socket tests must not share one
+/// trust file (a concurrent read of a mid-write `.pub` yields truncated key
+/// bytes and a spurious signature rejection — the same isolation the bundle
+/// files already use). The signer is process-global, so every per-call trust dir
+/// trusts the SAME key the envelope is signed under.
+pub fn trust_dir(tag: &str) -> PathBuf {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static SEQ: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join(format!(
+        "oya-cloud-iam-pdp-trust-{}-{}-{tag}",
+        std::process::id(),
+        SEQ.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::create_dir_all(&dir).expect("trust dir");
+    let hex = encode_hex(&test_signer().public_key_bytes());
+    std::fs::write(dir.join(format!("{TEST_SIGNING_KEY_ID}.pub")), hex).expect("write trusted key");
+    dir.to_string_lossy().into_owned().into()
 }

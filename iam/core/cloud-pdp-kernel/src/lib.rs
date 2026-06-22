@@ -58,6 +58,12 @@ pub enum BundleStoreError {
     /// The store yielded bytes that do not form a valid [`PolicyBundle`]
     /// document (parse failure, unknown fields, invariant violations).
     Malformed { detail: String },
+    /// The signed-bundle envelope did not verify against the trusted
+    /// public-key set: missing/empty signatures, no signature from a trusted
+    /// key, or a signature that does not validate the stored inner bytes. The
+    /// inner bundle is NEVER parsed past this gate (fail-closed: an
+    /// unverifiable bundle can carry forged policy and must not load).
+    SignatureRejected { detail: String },
 }
 
 impl fmt::Display for BundleStoreError {
@@ -65,6 +71,9 @@ impl fmt::Display for BundleStoreError {
         match self {
             Self::Unavailable { detail } => write!(f, "policy-bundle store unavailable: {detail}"),
             Self::Malformed { detail } => write!(f, "policy bundle malformed: {detail}"),
+            Self::SignatureRejected { detail } => {
+                write!(f, "policy bundle signature rejected: {detail}")
+            }
         }
     }
 }
@@ -72,10 +81,14 @@ impl fmt::Display for BundleStoreError {
 impl std::error::Error for BundleStoreError {}
 
 /// The policy-store backend port: produce the complete bundle the PDP should
-/// serve. The bundle CARRIES its version token (content address upstream);
-/// signature verification before load is the distribution fabric's
-/// obligation at the store boundary (ADR-0536 D-2) and arrives with the
-/// bundle-distribution slice behind this same port.
+/// serve. The bundle CARRIES its version token (content address upstream).
+/// Signature verification before load is a STORE-SIDE obligation at this
+/// boundary (ADR-0536 D-2): the file-store adapter verifies a signed-bundle
+/// envelope against a trusted public-key set and refuses
+/// ([`BundleStoreError::SignatureRejected`]) before the inner bundle is ever
+/// parsed — the port shape is unchanged (still yields a verified
+/// [`PolicyBundle`]), so the CRD/operator store swaps the adapter behind it at
+/// W5 cutover without changing this contract.
 pub trait PolicyBundleStore: Send + Sync {
     /// Load the current bundle. Any error is fail-closed: boot refusal at
     /// start-up, keep-serving-the-old-bundle on reload.
@@ -172,6 +185,16 @@ pub const ENV_DECISION_CACHE_CAPACITY: &str = "OYA_CLOUD_IAM_PDP_DECISION_CACHE_
 /// this mount and refuses to boot (never plain TCP) if the material is
 /// absent/empty/malformed (G002 slice-1b-iii; ADR-0561).
 pub const ENV_MTLS_CERT_DIR: &str = "OYA_CLOUD_IAM_PDP_MTLS_CERT_DIR";
+/// `OYA_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR` — directory of trusted policy-bundle
+/// SIGNING public keys (Ed25519, hex per file; ConfigMap projection). The
+/// file-store adapter loads every key in this directory into the trusted set
+/// and verifies the signed-bundle envelope against it BEFORE parsing the inner
+/// bundle (G004 bundle-signing slice). This is REQUIRED with no default and
+/// fail-closed: an absent/empty value is a BOOT REFUSAL ([`ConfigError::Missing`]).
+/// A PDP that cannot prove which keys to trust must not serve a policy decision
+/// (mirrors the mTLS trust-root fail-closed precedent). The directory itself
+/// being absent/empty-of-keys is a load-time boot refusal in the adapter.
+pub const ENV_BUNDLE_TRUST_DIR: &str = "OYA_CLOUD_IAM_PDP_BUNDLE_TRUST_DIR";
 
 const DEFAULT_REST_ADDR: &str = "0.0.0.0:8080";
 const DEFAULT_GRPC_ADDR: &str = "0.0.0.0:8081";
@@ -211,6 +234,12 @@ impl std::error::Error for ConfigError {}
 pub struct PdpConfig {
     /// Path to the policy-bundle JSON document (ConfigMap mount in slice 1).
     pub bundle_path: String,
+    /// Directory of trusted policy-bundle signing public keys (Ed25519, hex).
+    /// REQUIRED (no default) and fail-closed: the file-store adapter verifies
+    /// the signed-bundle envelope against these keys before parsing the inner
+    /// bundle (G004 bundle-signing slice). An absent/empty value is a boot
+    /// refusal — a PDP that cannot prove which keys to trust must not serve.
+    pub bundle_trust_dir: String,
     /// REST (axum) bind address.
     pub rest_addr: String,
     /// gRPC (tonic) bind address.
@@ -240,6 +269,14 @@ impl PdpConfig {
                 variable: ENV_BUNDLE_PATH,
             })?
             .to_owned();
+        // Required, no default, fail-closed: an absent/empty trust anchor is a
+        // boot refusal (the mTLS trust-root precedent — a process that cannot
+        // prove which keys to trust must never serve a decision).
+        let bundle_trust_dir = get(ENV_BUNDLE_TRUST_DIR)
+            .ok_or(ConfigError::Missing {
+                variable: ENV_BUNDLE_TRUST_DIR,
+            })?
+            .to_owned();
         let rest_addr = get(ENV_REST_ADDR).unwrap_or(DEFAULT_REST_ADDR).to_owned();
         let grpc_addr = get(ENV_GRPC_ADDR).unwrap_or(DEFAULT_GRPC_ADDR).to_owned();
         let decision_cache_capacity = match get(ENV_DECISION_CACHE_CAPACITY) {
@@ -254,6 +291,7 @@ impl PdpConfig {
             .to_owned();
         Ok(Self {
             bundle_path,
+            bundle_trust_dir,
             rest_addr,
             grpc_addr,
             decision_cache_capacity,
@@ -283,12 +321,30 @@ mod tests {
                 ENV_BUNDLE_PATH.to_owned(),
                 "/etc/pdp/bundle.json".to_owned(),
             ),
+            (
+                ENV_BUNDLE_TRUST_DIR.to_owned(),
+                "/etc/pdp/trust".to_owned(),
+            ),
             (ENV_REST_ADDR.to_owned(), "127.0.0.1:9090".to_owned()),
             (ENV_GRPC_ADDR.to_owned(), "127.0.0.1:9091".to_owned()),
             (ENV_DECISION_CACHE_CAPACITY.to_owned(), "128".to_owned()),
             (
                 ENV_MTLS_CERT_DIR.to_owned(),
                 "/var/run/pdp/svid".to_owned(),
+            ),
+        ])
+    }
+
+    /// The minimal required set: both fail-closed required variables present.
+    fn required_vars() -> BTreeMap<String, String> {
+        BTreeMap::from([
+            (
+                ENV_BUNDLE_PATH.to_owned(),
+                "/etc/pdp/bundle.json".to_owned(),
+            ),
+            (
+                ENV_BUNDLE_TRUST_DIR.to_owned(),
+                "/etc/pdp/trust".to_owned(),
             ),
         ])
     }
@@ -300,6 +356,7 @@ mod tests {
             config,
             PdpConfig {
                 bundle_path: "/etc/pdp/bundle.json".to_owned(),
+                bundle_trust_dir: "/etc/pdp/trust".to_owned(),
                 rest_addr: "127.0.0.1:9090".to_owned(),
                 grpc_addr: "127.0.0.1:9091".to_owned(),
                 decision_cache_capacity: 128,
@@ -310,11 +367,7 @@ mod tests {
 
     #[test]
     fn config_defaults_addresses_and_cache_capacity() {
-        let vars = BTreeMap::from([(
-            ENV_BUNDLE_PATH.to_owned(),
-            "/etc/pdp/bundle.json".to_owned(),
-        )]);
-        let config = PdpConfig::from_lookup(&vars).unwrap();
+        let config = PdpConfig::from_lookup(&required_vars()).unwrap();
         assert_eq!(config.rest_addr, DEFAULT_REST_ADDR);
         assert_eq!(config.grpc_addr, DEFAULT_GRPC_ADDR);
         assert_eq!(
@@ -324,22 +377,46 @@ mod tests {
     }
 
     #[test]
-    fn mtls_cert_dir_resolves_present_and_defaults() {
-        // Present: the env value flows through verbatim.
-        let mut vars = BTreeMap::from([(
+    fn missing_bundle_trust_dir_is_refused() {
+        // The trust anchor is fail-closed required: bundle_path present but no
+        // trust dir => boot refusal (a PDP that cannot prove which keys to
+        // trust must never serve a decision).
+        let vars = BTreeMap::from([(
             ENV_BUNDLE_PATH.to_owned(),
             "/etc/pdp/bundle.json".to_owned(),
         )]);
+        let err = PdpConfig::from_lookup(&vars).unwrap_err();
+        assert_eq!(
+            err,
+            ConfigError::Missing {
+                variable: ENV_BUNDLE_TRUST_DIR
+            }
+        );
+        assert!(err.to_string().contains(ENV_BUNDLE_TRUST_DIR));
+    }
+
+    #[test]
+    fn empty_bundle_trust_dir_counts_as_unset() {
+        let mut vars = required_vars();
+        vars.insert(ENV_BUNDLE_TRUST_DIR.to_owned(), "  ".to_owned());
+        assert!(matches!(
+            PdpConfig::from_lookup(&vars),
+            Err(ConfigError::Missing {
+                variable: ENV_BUNDLE_TRUST_DIR
+            })
+        ));
+    }
+
+    #[test]
+    fn mtls_cert_dir_resolves_present_and_defaults() {
+        // Present: the env value flows through verbatim.
+        let mut vars = required_vars();
         vars.insert(ENV_MTLS_CERT_DIR.to_owned(), "/custom/svid/mount".to_owned());
         let config = PdpConfig::from_lookup(&vars).unwrap();
         assert_eq!(config.mtls_cert_dir, "/custom/svid/mount");
 
         // Absent: the twelve-factor default is the canonical mount path.
-        let defaulted = PdpConfig::from_lookup(&BTreeMap::from([(
-            ENV_BUNDLE_PATH.to_owned(),
-            "/etc/pdp/bundle.json".to_owned(),
-        )]))
-        .unwrap();
+        let defaulted = PdpConfig::from_lookup(&required_vars()).unwrap();
         assert_eq!(defaulted.mtls_cert_dir, DEFAULT_MTLS_CERT_DIR);
         assert_eq!(defaulted.mtls_cert_dir, "/etc/oya-cloud-iam-pdp/tls");
     }
@@ -389,6 +466,13 @@ mod tests {
         assert_eq!(
             malformed.to_string(),
             "policy bundle malformed: unknown field `policies`"
+        );
+        let rejected = BundleStoreError::SignatureRejected {
+            detail: "no trusted key signed the bundle".to_owned(),
+        };
+        assert_eq!(
+            rejected.to_string(),
+            "policy bundle signature rejected: no trusted key signed the bundle"
         );
     }
 

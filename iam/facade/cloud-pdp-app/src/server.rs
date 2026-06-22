@@ -110,7 +110,7 @@ impl ServiceHandle {
 /// [`StartError`] when the bundle cannot be loaded or rejected by the
 /// engine — the caller MUST refuse to serve.
 pub fn build_state(config: &PdpConfig) -> Result<Arc<PdpState>, StartError> {
-    let store = FilePolicyBundleStore::new(&config.bundle_path);
+    let store = FilePolicyBundleStore::new(&config.bundle_path, &config.bundle_trust_dir);
     let bundle = store.load().map_err(StartError::Bundle)?;
     let pdp = CedarPdp::load(
         &bundle,

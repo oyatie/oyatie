@@ -163,6 +163,9 @@ fn write_real_mount(
 fn config_for(bundle_path: &Path, mtls_cert_dir: &Path) -> PdpConfig {
     PdpConfig {
         bundle_path: bundle_path.to_string_lossy().into_owned(),
+        bundle_trust_dir: common::trust_dir("boot-closure")
+            .to_string_lossy()
+            .into_owned(),
         rest_addr: "127.0.0.1:0".to_owned(),
         grpc_addr: "127.0.0.1:0".to_owned(),
         decision_cache_capacity: 64,
@@ -290,10 +293,13 @@ fn authorize_body(tenant: &str) -> String {
     .to_string()
 }
 
-/// Write a unique seed bundle file (the ConfigMap stand-in) and return its path.
+/// Write a unique SIGNED seed bundle file (the ConfigMap stand-in) and return
+/// its path. The envelope is signed by the process-global test key the matching
+/// `config_for` trust dir trusts (G004 bundle-signing slice).
 fn seed_bundle_file(tag: &str) -> PathBuf {
     let seed = common::seed_bundle(common::SEED_VERSION, vec![]);
-    common::temp_bundle_file(tag, &serde_json::to_string(&seed).unwrap())
+    let inner = serde_json::to_string(&seed).unwrap();
+    common::temp_bundle_file(tag, &common::signed_bundle_doc(&inner))
 }
 
 // =====================================================================
