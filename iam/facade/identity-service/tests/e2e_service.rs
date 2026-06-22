@@ -379,11 +379,19 @@ async fn grpc_surface_returns_identical_decisions() {
 /// `buck2 test` leaves it unset, so the live test below skips cleanly (the
 /// DB-free lane stays the default).
 const LIVE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
-/// The runtime Postgres URL the facade's `server::start` reads — the SAME env
-/// name `select_scim_store_kind` is wired behind in production
-/// (`ENV_SCIM_DATABASE_URL`), so the live test exercises the real composition
-/// path (the durable SCIM-store branch in `start()`), not a parallel one.
-const LIVE_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
+
+/// The NON-SUPERUSER app-role Postgres URL for the live durability test.
+///
+/// Convention (mirrors `iam/adapters/identity-scim-store-postgres/tests/live_rls.rs`):
+///   - `OYA_BACKBONE_POSTGRES_URL`     = superuser / setup URL (CREATE ROLE, migrations)
+///   - `OYA_BACKBONE_POSTGRES_APP_URL` = non-superuser `identity_scim_runtime` role URL
+///
+/// The RLS-enforceability guard (`assert_rls_enforceable`) rejects superusers
+/// (`rolsuper = true`), so the live durability test MUST boot the service with
+/// the APP URL, not the setup URL. Using `start_with_scim_url` also avoids
+/// writing to the process-global env (`std::env::set_var`), which races with
+/// other parallel tokio tests.
+const LIVE_APP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
 
 /// Truthy-gate identical to the adapter's live tests.
 fn live_enabled() -> bool {
@@ -392,8 +400,44 @@ fn live_enabled() -> bool {
         .unwrap_or(false)
 }
 
-/// LIVE durability proof (env-gated): boot the REAL service (the same
-/// `server::start` path `main` uses) with `OYA_BACKBONE_POSTGRES_URL` set so the
+/// Boot the service with an explicit SCIM database URL (bypasses env read).
+/// Used by the live durability test to pass the app-role URL without racing the
+/// process-global env with other parallel tests.
+async fn boot_with_url(fixture: &SigningFixture, scim_url: Option<String>) -> server::ServiceHandle {
+    let dir = std::env::temp_dir().join(format!("oya-identity-e2e-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&dir).expect("temp dir");
+    let jwks_path = dir.join("jwks.json");
+    let cedar_path = dir.join("policies.cedar");
+    let seed_path = dir.join("principals.json");
+    std::fs::write(&jwks_path, &fixture.jwks_document).expect("write jwks");
+    std::fs::write(&cedar_path, CEDAR_POLICIES).expect("write cedar");
+    std::fs::write(&seed_path, PRINCIPAL_SEED).expect("write seed");
+
+    let signing_key_path = dir.join("signing-key.p8");
+    let signing_pkcs8 =
+        EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &SystemRandom::new())
+            .expect("issuer pkcs8");
+    std::fs::write(&signing_key_path, signing_pkcs8.as_ref()).expect("write signing key");
+
+    let config = Config {
+        rest_addr: "127.0.0.1:0".into(),
+        grpc_addr: "127.0.0.1:0".into(),
+        issuer: ISSUER.into(),
+        audience: AUDIENCE.into(),
+        jwks_path: jwks_path.to_string_lossy().into_owned(),
+        cedar_policy_path: cedar_path.to_string_lossy().into_owned(),
+        principals_path: Some(seed_path.to_string_lossy().into_owned()),
+        signing_key_path: Some(signing_key_path.to_string_lossy().into_owned()),
+        signing_kid: "oya-identity-e2e-k1".into(),
+    };
+    server::start_with_scim_url(&config, scim_url)
+        .await
+        .expect("service boots")
+}
+
+/// LIVE durability proof (env-gated): boot the REAL service via
+/// `server::start_with_scim_url` (the same composition path `start` delegates
+/// to) with the APP-ROLE Postgres URL (`OYA_BACKBONE_POSTGRES_APP_URL`) so the
 /// DURABLE Postgres SCIM stores are composed; POST a SCIM user; then boot a
 /// FRESH service over the SAME url and GET the user back — proving the write
 /// survived a full service rebuild (the property the in-memory store CANNOT
@@ -404,28 +448,39 @@ fn live_enabled() -> bool {
 /// INSERT/SELECT) is proven separately in the adapter's `tests/live_rls.rs` —
 /// not duplicated here.
 ///
-/// Skips cleanly with a stderr notice when `OYA_BACKBONE_LIVE_POSTGRES` is unset
-/// so the default `buck2 test` stays DB-free. No `env!` macro is used, so the
-/// target always compiles regardless of whether the env is present (as it would
-/// be absent in buck2's hermetic default lane).
+/// The test uses `OYA_BACKBONE_POSTGRES_APP_URL` (non-superuser role) rather
+/// than `OYA_BACKBONE_POSTGRES_URL` (superuser / setup URL) because the
+/// RLS-enforceability guard rejects superusers — booting with a superuser URL
+/// would cause `start_with_scim_url` to return `Err(StartError::Store(...))`.
+///
+/// Skips cleanly with a stderr notice when `OYA_BACKBONE_LIVE_POSTGRES` is
+/// unset so the default `buck2 test` stays DB-free. No `env!` macro is used,
+/// so the target always compiles regardless of whether the env is present.
 #[tokio::test(flavor = "multi_thread")]
 async fn live_durable_scim_store_persists_across_service_rebuild() {
     if !live_enabled() {
         eprintln!(
             "SKIP live_durable_scim_store_persists_across_service_rebuild: \
-             set {LIVE_ENV}=1 and {LIVE_URL_ENV}=<disposable pg url> \
-             (with the identity_scim migration applied) to run the durable tier"
+             set {LIVE_ENV}=1 and {LIVE_APP_URL_ENV}=<app-role pg url> \
+             (non-superuser identity_scim_runtime role, migration applied) \
+             to run the durable tier"
         );
         return;
     }
-    if std::env::var(LIVE_URL_ENV).ok().filter(|u| !u.trim().is_empty()).is_none() {
-        eprintln!(
-            "SKIP live_durable_scim_store_persists_across_service_rebuild: \
-             {LIVE_ENV} is set but {LIVE_URL_ENV} is missing — \
-             set {LIVE_URL_ENV}=<disposable pg url>"
-        );
-        return;
-    }
+    let app_url = match std::env::var(LIVE_APP_URL_ENV)
+        .ok()
+        .filter(|u| !u.trim().is_empty())
+    {
+        Some(u) => u,
+        None => {
+            eprintln!(
+                "SKIP live_durable_scim_store_persists_across_service_rebuild: \
+                 {LIVE_ENV} is set but {LIVE_APP_URL_ENV} is missing or empty — \
+                 set {LIVE_APP_URL_ENV}=<non-superuser identity_scim_runtime role url>"
+            );
+            return;
+        }
+    };
 
     // ONE signing fixture across both boots so the JWKS is identical: a token
     // minted now must validate against the freshly-rebuilt service.
@@ -443,7 +498,7 @@ async fn live_durable_scim_store_persists_across_service_rebuild() {
     let token = fixture.mint("wl_provisioner", "scim.manage");
 
     // Service #1: provision the user (durable store, born in Postgres).
-    let handle = boot(&fixture).await;
+    let handle = boot_with_url(&fixture, Some(app_url.clone())).await;
     let base = format!("http://{}", handle.rest_addr);
     let client = reqwest::Client::new();
     let response = client
@@ -466,7 +521,7 @@ async fn live_durable_scim_store_persists_across_service_rebuild() {
     // Service #2: a FRESH composition over the SAME backend. The earlier write
     // is only observable here if it was durably persisted (the in-memory store,
     // being per-process state, would 404).
-    let rebuilt = boot(&fixture).await;
+    let rebuilt = boot_with_url(&fixture, Some(app_url)).await;
     let base2 = format!("http://{}", rebuilt.rest_addr);
 
     let response = client

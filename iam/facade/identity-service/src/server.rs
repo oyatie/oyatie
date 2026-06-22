@@ -227,44 +227,31 @@ pub fn build_state(config: &Config) -> Result<Arc<AppState>, StartError> {
 
 /// Boot the service: build state, bind both listeners, spawn both servers.
 ///
+/// The store-selection/connect/RLS-guard block runs BEFORE either socket binds
+/// so a mis-provisioned DSN or bypass-capable role fails before any file
+/// descriptor is allocated.
+///
 /// # Errors
-/// Returns [`StartError`] when state composition or a bind fails.
+/// Returns [`StartError`] when state composition, the store guard, or a bind
+/// fails.
 pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
+    start_with_scim_url(config, std::env::var(ENV_SCIM_DATABASE_URL).ok()).await
+}
+
+/// Like [`start`] but accepts the SCIM database URL directly (bypassing the
+/// `OYA_BACKBONE_POSTGRES_URL` env read). Used by live E2E tests so they can
+/// pass the app-role URL (`OYA_BACKBONE_POSTGRES_APP_URL`) without writing to
+/// the process-global env and racing other parallel tokio tests.
+///
+/// # Errors
+/// Returns [`StartError`] when state composition, the store guard, or a bind
+/// fails.
+pub async fn start_with_scim_url(
+    config: &Config,
+    scim_database_url: Option<String>,
+) -> Result<ServiceHandle, StartError> {
     let state = build_state(config)?;
 
-    let rest_listener = TcpListener::bind(&config.rest_addr)
-        .await
-        .map_err(|source| StartError::Bind {
-            addr: config.rest_addr.clone(),
-            source,
-        })?;
-    let rest_addr = rest_listener
-        .local_addr()
-        .map_err(|source| StartError::Bind {
-            addr: config.rest_addr.clone(),
-            source,
-        })?;
-
-    let grpc_listener = TcpListener::bind(&config.grpc_addr)
-        .await
-        .map_err(|source| StartError::Bind {
-            addr: config.grpc_addr.clone(),
-            source,
-        })?;
-    let grpc_addr = grpc_listener
-        .local_addr()
-        .map_err(|source| StartError::Bind {
-            addr: config.grpc_addr.clone(),
-            source,
-        })?;
-    let grpc_incoming = TcpIncoming::from(grpc_listener).with_nodelay(Some(true));
-
-    let (shutdown_tx, shutdown_rx) = watch::channel(false);
-
-    let mut rest_router = rest::build_service_router(Arc::clone(&state));
-    if let Some(issuer_state) = build_issuer_state(config)? {
-        rest_router = rest_router.merge(build_issuer_router(issuer_state));
-    }
     // SCIM provisioning surface: same offline JWKS + issuer/audience material
     // as the authorize path, scim.manage scope required (fail-closed guard).
     //
@@ -278,10 +265,13 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
     //
     // Both plug in behind the UNCHANGED UserStore/GroupStore kernel ports, so
     // the owned-data cutover (G003) swaps the adapter with no change here.
+    //
+    // Guard runs BEFORE either TcpListener::bind so a broken DSN or
+    // bypass-capable role fails before any socket is allocated.
     let scim_base_url = format!("{}{}", config.issuer.trim_end_matches('/'), SCIM_BASE);
     let scim_validation = ValidationConfig::new(&config.issuer, &config.audience);
     let (scim_router, scim_store_kind) =
-        match select_scim_store_kind(std::env::var(ENV_SCIM_DATABASE_URL).ok()) {
+        match select_scim_store_kind(scim_database_url) {
             ScimStoreSelection::Postgres(url) => {
                 // FAIL-CLOSED: a connect failure or RLS-bypass role propagates;
                 // NEVER fall back to in-memory when a durable backend was
@@ -318,6 +308,40 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
                 (build_scim_router(scim_state), "inmemory")
             }
         };
+
+    let rest_listener = TcpListener::bind(&config.rest_addr)
+        .await
+        .map_err(|source| StartError::Bind {
+            addr: config.rest_addr.clone(),
+            source,
+        })?;
+    let rest_addr = rest_listener
+        .local_addr()
+        .map_err(|source| StartError::Bind {
+            addr: config.rest_addr.clone(),
+            source,
+        })?;
+
+    let grpc_listener = TcpListener::bind(&config.grpc_addr)
+        .await
+        .map_err(|source| StartError::Bind {
+            addr: config.grpc_addr.clone(),
+            source,
+        })?;
+    let grpc_addr = grpc_listener
+        .local_addr()
+        .map_err(|source| StartError::Bind {
+            addr: config.grpc_addr.clone(),
+            source,
+        })?;
+    let grpc_incoming = TcpIncoming::from(grpc_listener).with_nodelay(Some(true));
+
+    let (shutdown_tx, shutdown_rx) = watch::channel(false);
+
+    let mut rest_router = rest::build_service_router(Arc::clone(&state));
+    if let Some(issuer_state) = build_issuer_state(config)? {
+        rest_router = rest_router.merge(build_issuer_router(issuer_state));
+    }
     rest_router = rest_router.merge(scim_router);
     let mut rest_shutdown = shutdown_rx.clone();
     let rest_task = tokio::spawn(async move {

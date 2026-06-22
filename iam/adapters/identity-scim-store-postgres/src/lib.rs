@@ -89,10 +89,13 @@ pub enum PgScimConnectError {
     /// and tenant-lifecycle-store-postgres).
     RlsUnenforceable { role: String },
     /// The connected role is neither the RLS policy-subject role
-    /// (`RUNTIME_ROLE`) nor a member of it. Under FORCE RLS the tenant-isolation
-    /// policies would not apply to this role at all, causing deny-all (a safe
-    /// outage, not a data leak, but still a misconfiguration the adapter refuses
-    /// to serve). Full isolation requires membership in `RUNTIME_ROLE`.
+    /// (`RUNTIME_ROLE`) nor a member of it. The tenant-isolation policies would
+    /// not apply to this role, which — if the migration has applied
+    /// `FORCE ROW LEVEL SECURITY` — yields deny-all (a safe fail-closed outage,
+    /// not a data leak). The adapter refuses to serve in either case: a
+    /// misconfigured role must not slip through silently. Full isolation requires
+    /// membership in `RUNTIME_ROLE` AND the migration having applied
+    /// `FORCE ROW LEVEL SECURITY` on the relevant tables.
     RlsRoleMismatch { role: String, expected: String },
 }
 
@@ -182,11 +185,17 @@ pub async fn connect_pool(database_url: &str) -> Result<PgPool, PgScimConnectErr
 ///   provisioning migration has not run), or if a `SET ROLE` switch is detected.
 pub async fn assert_rls_enforceable(pool: &PgPool) -> Result<(), PgScimConnectError> {
     let row = sqlx::query(
-        // `pg_has_role(user, role, 'MEMBER')` returns true iff `user` is `role`
-        // itself or a (transitive) member of it — exactly the predicate for
-        // whether a `TO <role>` RLS policy applies to `current_user`. We use
-        // `'MEMBER'` (not `'USAGE'`) because RLS policy applicability is purely a
-        // role-membership question, not a schema/object privilege question.
+        // `pg_has_role(user, role, 'USAGE')` follows Postgres's own
+        // `has_privs_of_role` predicate: it returns true iff `user` IS `role` or
+        // inherits its privileges (transitive membership with INHERIT). This is
+        // exactly the predicate Postgres uses internally to decide whether a
+        // `TO <role>` RLS policy clause applies to the current user. We use
+        // `'USAGE'` rather than `'MEMBER'`: `'MEMBER'` tests bare set-membership
+        // and returns true even for NOINHERIT roles, but a NOINHERIT member does
+        // NOT inherit privileges and the policy would NOT apply to it — a
+        // NOINHERIT member would pass `'MEMBER'` while silently getting deny-all
+        // in practice. `'USAGE'` is the correct keyword for "this role's policies
+        // apply to me."
         //
         // We also fetch `session_user` to detect a `SET ROLE` switch: these
         // adapters never issue `SET ROLE`, so session_user must equal
@@ -194,7 +203,7 @@ pub async fn assert_rls_enforceable(pool: &PgPool) -> Result<(), PgScimConnectEr
         "SELECT current_user::text AS role_name, \
          session_user::text AS session_role, \
          rolsuper, rolbypassrls, \
-         pg_has_role(current_user, $1, 'MEMBER') AS is_runtime_member \
+         pg_has_role(current_user, $1, 'USAGE') AS is_runtime_member \
          FROM pg_roles WHERE rolname = current_user",
     )
     .bind(RUNTIME_ROLE)
@@ -241,8 +250,9 @@ pub async fn assert_rls_enforceable(pool: &PgPool) -> Result<(), PgScimConnectEr
 /// - `rolsuper || rolbypassrls` → [`PgScimConnectError::RlsUnenforceable`]
 ///   (bypass-capable role; the isolation guarantee is violated).
 /// - `!is_runtime_member` → [`PgScimConnectError::RlsRoleMismatch`]
-///   (non-member; under FORCE RLS the policies simply would not apply, yielding
-///   deny-all — a safe fail-closed outage, but still a misconfiguration).
+///   (non-member; when the migration's `FORCE ROW LEVEL SECURITY` is in effect
+///   the policies simply would not apply, yielding deny-all — a safe
+///   fail-closed outage, but still a misconfiguration we refuse to serve).
 ///
 /// Extracted from [`assert_rls_enforceable`] so the decision is covered by
 /// DB-free unit tests (mirrors the `select_scim_store_kind` extraction pattern
