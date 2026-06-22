@@ -11609,6 +11609,7 @@ dependencies = [
  "tenancy-tenant-lifecycle-authz-port",
  "tenancy-tenant-lifecycle-kernel",
  "tenancy-tenant-lifecycle-store-inmemory",
+ "tenancy-tenant-lifecycle-store-postgres",
  "tenancy-tenant-lifecycle-usecase",
  "tokio",
  "tower 0.4.13",

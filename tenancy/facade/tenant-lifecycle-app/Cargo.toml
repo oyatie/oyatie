@@ -11,6 +11,7 @@ description = "Composition root: tenant registration/lifecycle REST API (POST /v
 tenancy-tenant-lifecycle-usecase = { path = "../../core/tenant-lifecycle-usecase" }
 tenancy-tenant-lifecycle-kernel = { path = "../../core/tenant-lifecycle-kernel" }
 tenancy-tenant-lifecycle-store-inmemory = { path = "../../adapters/tenant-lifecycle-store-inmemory" }
+tenancy-tenant-lifecycle-store-postgres = { path = "../../adapters/tenant-lifecycle-store-postgres" }
 tenancy-tenant-lifecycle-authz-port = { path = "../../ports/tenant-lifecycle-authz" }
 tenancy-tenant-lifecycle-authz-pdp = { path = "../../adapters/tenant-lifecycle-authz-pdp" }
 oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
