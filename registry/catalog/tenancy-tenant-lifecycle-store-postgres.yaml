@@ -3,7 +3,7 @@ role: adapter
 capability: tenant-lifecycle-store-postgres
 plane: control
 slo: preview-control-plane
-data_classes_owned: [TENANT_SCOPED, INTERNAL_ONLY]
+data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: [AUDIT]
 api_stability: preview
 security_review: unreviewed
