@@ -956,6 +956,72 @@ fn step_up_forbid_still_allows_a_stepped_up_restricted_read() {
     assert_eq!(outcome.response.decision, Decision::Allow);
 }
 
+#[test]
+fn step_up_forbid_blocks_a_pbac_link_to_a_restricted_read() {
+    // MAJOR (G004 audit): a PBAC template-link must NOT defeat the global,
+    // security-critical step-up gate on restricted reads. This locks the
+    // template-link grant path specifically (the overlay path is locked by
+    // `tenant_overlay_permit_cannot_bypass_step_up_forbid`, and the
+    // template-link path against the STRUCTURAL forbid by
+    // `structural_forbid_overrides_misissued_cross_tenant_template_link`; this
+    // is the template-link path against the STEP-UP forbid). The gate is
+    // encoded as a FORBID (`forbid-restricted-read-without-step-up`), so even an
+    // explicit link granting bob (NO step_up_class) a read of the RESTRICTED
+    // acme-doc-1 stays denied — forbid overrides permit.
+    let link = TemplateLink {
+        template_id: TEMPLATE_ID.to_owned(),
+        link_id: "pbac-link-bob-restricted".to_owned(),
+        principal: entity_ref("OyaPlatform::Principal", "bob"),
+        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+    };
+    let pdp_restricted = pdp(vec![link]);
+    let denied = pdp_restricted
+        .authorize(
+            &request(
+                "req-pbac-restricted-deny",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(
+        denied.response.decision,
+        Decision::Deny,
+        "a PBAC template-link must not bypass the step-up forbid on restricted reads"
+    );
+
+    // The SAME link grants the NON-restricted acme-doc-2 (the legitimate link
+    // purpose is preserved — only the restricted-read security gate is
+    // non-bypassable).
+    let link_ok = TemplateLink {
+        template_id: TEMPLATE_ID.to_owned(),
+        link_id: "pbac-link-bob-restricted".to_owned(),
+        principal: entity_ref("OyaPlatform::Principal", "bob"),
+        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+    };
+    let pdp_ok = pdp(vec![link_ok]);
+    let allowed = pdp_ok
+        .authorize(
+            &request(
+                "req-pbac-restricted-ok",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(
+        allowed.response.decision,
+        Decision::Allow,
+        "the link still grants an ordinary (non-restricted) within-tenant read"
+    );
+}
+
 // ------------------------------------------------- zookie freshness ----
 
 #[test]
