@@ -146,10 +146,11 @@ impl std::error::Error for PgStoreConnectError {}
 /// connect-error vocabulary, preserving the pre-extraction fail-closed contract:
 /// - `Unenforceable` → [`PgStoreConnectError::RlsUnenforceable`];
 /// - `RoleMismatch` → [`PgStoreConnectError::RlsRoleMismatch`];
-/// - `RoleSwitchInEffect` → [`PgStoreConnectError::Sqlx`] (byte-identical to the
-///   detail string the method previously returned for a SET ROLE switch);
-/// - `ProbeFailed` → [`PgStoreConnectError::Sqlx`] (byte-identical to the prior
-///   `Sqlx(detail)` surface when the probe query/decode failed);
+/// - `RoleSwitchInEffect` → [`PgStoreConnectError::Sqlx`] (same fatal `Sqlx`
+///   variant as before; the detail string now comes from the shared kernel Display);
+/// - `ProbeFailed` → [`PgStoreConnectError::Sqlx`] (same fatal `Sqlx` variant
+///   preserved; detail string sourced from the shared kernel Display, not the prior
+///   adapter-local wording);
 /// - `RlsNotForced` / `GovernedTableMissing` → the new
 ///   [`PgStoreConnectError::RlsNotForcedOnTable`] (the #799 FORCE-RLS hardening).
 impl From<RlsEnforceabilityError> for PgStoreConnectError {

@@ -412,8 +412,10 @@ pub async fn assert_rls_enforceable(
 /// Map an sqlx probe failure (query or column decode) to a fail-closed
 /// [`RlsEnforceabilityError::ProbeFailed`]. The guard must never proceed on a
 /// probe it could not complete; each adapter maps `ProbeFailed` back to its own
-/// `Sqlx(detail)` surface, preserving the pre-extraction byte-identical
-/// behavior (e.g. when the runtime role does not yet exist in the database).
+/// `Sqlx(detail)` surface, preserving the same fatal `Sqlx` variant
+/// (refuse-to-serve unchanged); the detail string carries a fail-closed prefix
+/// sourced from the shared kernel Display, not the prior adapter-local wording
+/// (e.g. when the runtime role does not yet exist in the database).
 fn rls_probe_failed(error: sqlx::Error) -> RlsEnforceabilityError {
     RlsEnforceabilityError::ProbeFailed {
         detail: error.to_string(),

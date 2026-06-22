@@ -138,10 +138,11 @@ impl std::error::Error for PgScimConnectError {}
 /// connect-error vocabulary, preserving the pre-extraction fail-closed contract:
 /// - `Unenforceable` → [`PgScimConnectError::RlsUnenforceable`];
 /// - `RoleMismatch` → [`PgScimConnectError::RlsRoleMismatch`];
-/// - `RoleSwitchInEffect` → [`PgScimConnectError::Sqlx`] (byte-identical to the
-///   detail string the free fn previously returned for a SET ROLE switch);
-/// - `ProbeFailed` → [`PgScimConnectError::Sqlx`] (byte-identical to the prior
-///   `Sqlx(detail)` surface when the probe query/decode failed);
+/// - `RoleSwitchInEffect` → [`PgScimConnectError::Sqlx`] (same fatal `Sqlx`
+///   variant as before; the detail string now comes from the shared kernel Display);
+/// - `ProbeFailed` → [`PgScimConnectError::Sqlx`] (same fatal `Sqlx` variant
+///   preserved; detail string sourced from the shared kernel Display, not the prior
+///   adapter-local wording);
 /// - `RlsNotForced` / `GovernedTableMissing` → the new
 ///   [`PgScimConnectError::RlsNotForcedOnTable`] (the #799 FORCE-RLS hardening).
 impl From<RlsEnforceabilityError> for PgScimConnectError {
