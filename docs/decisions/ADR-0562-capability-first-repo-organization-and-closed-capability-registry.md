@@ -1384,6 +1384,43 @@ re-keyed catalog records `registry/catalog/comms-*.yaml` (reached by the existin
 reachability prefix), and the committed move-plan `specs/reorg/comms-move-plan.json` (reached by the existing
 ADR-0563 `specs/reorg/` reachability prefix).
 
+**§10.16.1 Wave-1 BUILD-slice decomposition: `comms/ports/meet-api` + `comms/core/meet-usecase` (the meet
+cloud-agnostic core slice):**
+The §10.16 move homed the meet cell AS-IS as a SINGLE `core` crate `comms/core/meet-domain`
+(`comms-meet-domain`) — the room/session lifecycle kernel, with the cloud-agnostic application layer
+(the persistence/identity seam port and the lifecycle usecase) deferred. The Wave-1 BUILD slice executes
+exactly that anticipated decomposition for the meet surface, mirroring the §10.12.1 flags precedent and the
+calendar core slice: it adds a SECOND `core`-face crate `comms/core/meet-usecase` (cargo
+`comms-meet-usecase`, lib `comms_meet_usecase`) and the meet PORT crate `comms/ports/meet-api` (cargo
+`comms-meet-api`, lib `comms_meet_api`). The port DEFINES the room/session-lifecycle seams concrete
+adapters implement LATER — the `MeetSessionStore` repository trait (clean-arch ports-in-core per ADR-0570;
+the storage-port trait is DEFINED in this `ports` crate, NEVER in an `adapters/` crate, so the
+port-placement gate stays green) plus the typed `OpenRoomRequest`/`JoinSessionRequest`/`CloseSessionRequest`
+commands and the REST/AsyncAPI/proto parity binding (mirroring messenger's binding discipline). The port
+also defines the fail-closed `AuthorizedMeetContext`: default-deny by construction (no anonymous
+constructor), admitting a lifecycle effect ONLY when a verified principal, a `tenant:`-scoped ref, a
+non-empty cloud-iam policy-decision ref, an idempotency key, and an audit-correlation id are ALL present
+(the founder new-HTTP-surface default-deny doctrine; any future facade MUST present a valid context before
+it touches tenant data). The usecase composes the open/join/close room invariants over
+`comms-meet-domain` + `comms-meet-api` with fail-closed authz at every entrypoint and a tenant-isolation
+guard across the request/aggregate boundary (defense in depth, independent of any backend RLS); it is PURE
+application logic with an in-memory `MeetSessionStore` test fake — NO persistence, cloud, identity, SFU/media
+routing, transcription, or durable-archive backend (those are DEFERRED adapter concerns behind the unchanged
+port traits). The new crates land under the existing `comms/*/*` member glob + `comms/*/*` acyclicity glob
+(NO root `members` edit; `root_workspace_changed = false`), are owned by the breadth-unlimited subtree
+`comms/OWNERS` (axis-cloud-platform), and add the intra-capability edges `core/meet-usecase → core/meet-domain`
+and `core/meet-usecase → ports/meet-api` (forward `core→core`/`core→ports` edges, no cycle). The new
+born-accounted tracked artifact paths are `comms/ports/meet-api/BUCK`, `comms/ports/meet-api/Cargo.toml`,
+`comms/ports/meet-api/src/lib.rs`, `comms/core/meet-usecase/BUCK`, `comms/core/meet-usecase/Cargo.toml`,
+`comms/core/meet-usecase/src/lib.rs`, `comms/core/meet-usecase/tests/room_session_lifecycle_acceptance.rs`,
+and the two new catalog records `registry/catalog/comms-meet-api.yaml` + `registry/catalog/comms-meet-usecase.yaml`
+(reached by the existing `registry/catalog/` reachability prefix) — each reached by the `comms/*/*` member
+glob (the crate paths) or that catalog prefix, owned by `comms/OWNERS` / `registry/catalog/OWNERS`, and
+JUSTIFIED BY THIS ADR (the accounting producer's justification resolver derives `justification_ref: ADR-0562`
+from each tracked path named verbatim here). The storage/cloud/identity ADAPTERS, the gRPC/REST facade, and
+the `adapters`/`facade` face dirs remain DEFERRED (the adapter-authoring lanes), consistent with the
+crate-first strangler "fully homed after phase-2" rule.
+
 #### §10.17 Thirteenth executed strangler move: `k8s` capability (cloud/managed-k8s-* → k8s/) — four-cell move with collision-aware per-service SLO co-move + catalog re-key
 
 The thirteenth REAL codemod run homes the `k8s` capability's seventeen crates from FOUR source dirs
