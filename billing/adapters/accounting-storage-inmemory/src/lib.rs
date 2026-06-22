@@ -18,29 +18,12 @@ use billing_accounting_app::{
     AccountingAuditEnvelope, AccountingPayrollPostingAuditEnvelope,
     AccountingWorkflowDispatchEnvelope,
 };
+use billing_accounting_journal::{
+    AccountingJournalStoragePort, AccountingStorageError, AccountingStoredRecord,
+    AccountingStoredRecordKind,
+};
 
 const IN_MEMORY_ACCOUNTING_STORAGE_LABEL: &str = "in-memory-accounting-reference";
-
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum AccountingStoredRecordKind {
-    JournalPostAudit,
-    PayrollPostingAudit,
-    VatWorkflowDispatch,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct AccountingStoredRecord {
-    pub kind: AccountingStoredRecordKind, // data_class: INTERNAL_ONLY
-    pub topic: String,                    // data_class: INTERNAL_ONLY
-    pub tenant_id: String,                // data_class: INTERNAL_ONLY
-    pub legal_entity_id: String,          // data_class: INTERNAL_ONLY
-    pub primary_ref: String,              // data_class: INTERNAL_ONLY
-    pub idempotency_key: String,          // data_class: INTERNAL_ONLY
-    pub payload_data_class: String,       // data_class: INTERNAL_ONLY
-    pub evidence_ref_count: usize,        // data_class: INTERNAL_ONLY
-    pub storage_backend: String,          // data_class: PUBLIC
-    pub schema_version: u32,              // data_class: PUBLIC
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AccountingStorageCapabilities {
@@ -53,26 +36,6 @@ pub struct AccountingStorageCapabilities {
     pub payroll_network_call_attached: bool,   // data_class: PUBLIC
     pub audit_chain_emission_attached: bool,   // data_class: PUBLIC
     pub schema_version: u32,                   // data_class: PUBLIC
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum AccountingStorageError {
-    DuplicateIdempotencyKey(String),
-    InvalidIdempotencyKey(String),
-    MissingRecord(String),
-}
-
-pub trait AccountingJournalStoragePort {
-    fn reserve_idempotency_key(&mut self, key: &str) -> Result<(), AccountingStorageError>;
-    fn put_record(&mut self, record: AccountingStoredRecord) -> Result<(), AccountingStorageError>;
-    fn get_record(&self, idempotency_key: &str) -> Option<&AccountingStoredRecord>;
-    fn require_record(
-        &self,
-        idempotency_key: &str,
-    ) -> Result<&AccountingStoredRecord, AccountingStorageError>;
-    fn list_records(&self) -> Vec<&AccountingStoredRecord>;
-    fn len(&self) -> usize;
-    fn is_empty(&self) -> bool;
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
