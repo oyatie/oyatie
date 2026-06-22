@@ -34,7 +34,7 @@ rust_test(
 
 rust_test(
     name = "tenancy-tenant-lifecycle-store-postgres-live",
-    srcs = ["tests/live_rls.rs", "migrations/0001_tenant_lifecycle_store.sql"],
+    srcs = ["tests/live_rls.rs", "migrations/0000_runtime_role.sql", "migrations/0001_tenant_lifecycle_store.sql"],
     crate = "tenancy_tenant_lifecycle_store_postgres_live",
     crate_root = "tests/live_rls.rs",
     visibility = ["PUBLIC"],

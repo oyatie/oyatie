@@ -22,7 +22,7 @@
 use oya_shared_platform_contracts_kernel::tenancy::{
     IsolationPosture, Tenant, TenantLifecycleState,
 };
-use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
+use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use tenancy_tenant_lifecycle_kernel::{AppliedWriteRecord, TenantLifecycleStore};
 use tenancy_tenant_lifecycle_store_postgres::{
@@ -60,83 +60,52 @@ fn tenant(id: &str) -> Tenant {
     }
 }
 
-/// Split a migration file into executable statements the way psql does: drop
-/// `--` line comments, then split on `;` only OUTSIDE single-quoted string
-/// literals. A naive `split(';')` is fragile — a `;` inside a comment or inside
-/// a quoted string (e.g. a COMMENT ON ... IS '...; ...') would shatter the
-/// statement — so this respects both.
-fn split_statements(migration: &str) -> Vec<String> {
-    // Strip `--` line comments first (no `--` appears inside our string
-    // literals, so a line-prefix scan is sufficient and mirrors psql intent).
-    let stripped: String = migration
-        .lines()
-        .map(|line| match line.find("--") {
-            Some(idx) => &line[..idx],
-            None => line,
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let mut statements = Vec::new();
-    let mut current = String::new();
-    let mut in_string = false;
-    let mut chars = stripped.chars().peekable();
-    while let Some(c) = chars.next() {
-        match c {
-            '\'' if in_string && chars.peek() == Some(&'\'') => {
-                // Escaped quote ('') inside a string literal.
-                current.push(c);
-                current.push(chars.next().unwrap());
-            }
-            '\'' => {
-                in_string = !in_string;
-                current.push(c);
-            }
-            ';' if !in_string => {
-                let trimmed = current.trim();
-                if !trimmed.is_empty() {
-                    statements.push(trimmed.to_owned());
-                }
-                current.clear();
-            }
-            _ => current.push(c),
-        }
-    }
-    let trailing = current.trim();
-    if !trailing.is_empty() {
-        statements.push(trailing.to_owned());
-    }
-    statements
-}
-
-/// Apply the durable schema and grant the app role table privileges. The
-/// migration SQL is the committed `migrations/0001_*.sql`; we re-derive the same
-/// statements here so the test is self-contained against a disposable database.
+/// Apply the durable schema and make the app role a USAGE-member of the runtime
+/// role. The migration SQL is the committed `migrations/0000_runtime_role.sql` +
+/// `migrations/0001_*.sql`, applied verbatim IN ORDER so the test path is the
+/// production schema byte-for-byte: 0000 provisions the `tenancy_lifecycle_runtime`
+/// role (NOLOGIN, NOBYPASSRLS) + schema + USAGE grant, then 0001 creates the
+/// tables, the `TO tenancy_lifecycle_runtime` RLS policies, and the per-table
+/// privilege grants to that role. 0000 MUST precede 0001 because every 0001
+/// `TO <role>` clause requires the role to already exist.
+///
+/// After applying, the app login is GRANTed membership in the runtime role
+/// (default INHERIT) — the deploy contract. Membership is what makes the
+/// `TO tenancy_lifecycle_runtime` policies apply to the app login AND makes the
+/// shared boot guard's `pg_has_role(current_user, 'tenancy_lifecycle_runtime',
+/// 'USAGE')` check pass; the app login inherits the schema USAGE + table grants
+/// transitively, so no direct grant to the app login is needed.
 async fn setup_schema(setup: &PgPool, app_role: &str) {
     sqlx::query(&format!("DROP SCHEMA IF EXISTS {SCHEMA_NAME} CASCADE"))
         .execute(setup)
         .await
         .unwrap();
-    let migration = include_str!("../migrations/0001_tenant_lifecycle_store.sql");
-    // The committed migration names the runtime role literally; run it verbatim
-    // so the RLS policy binds the real app role.
+    let role_migration = include_str!("../migrations/0000_runtime_role.sql");
+    let table_migration = include_str!("../migrations/0001_tenant_lifecycle_store.sql");
+    // The committed migrations name the runtime role literally; run them verbatim
+    // (0000 then 0001) so the RLS policy binds the real production role.
     assert!(
-        migration.contains(RUNTIME_ROLE),
-        "migration must bind the runtime role"
+        role_migration.contains(RUNTIME_ROLE),
+        "0000 migration must provision the runtime role"
     );
-    for sql in split_statements(migration) {
-        sqlx::query(&sql).execute(setup).await.unwrap_or_else(|e| {
-            panic!("migration statement failed: {sql}\n{e}");
-        });
+    assert!(
+        table_migration.contains(RUNTIME_ROLE),
+        "0001 migration must bind the runtime role"
+    );
+    for migration in [role_migration, table_migration] {
+        for sql in split_migration_statements(migration) {
+            sqlx::query(&sql).execute(setup).await.unwrap_or_else(|e| {
+                panic!("migration statement failed: {sql}\n{e}");
+            });
+        }
     }
-    for sql in [
-        format!("GRANT USAGE ON SCHEMA {SCHEMA_NAME} TO {app_role}"),
-        format!(
-            "GRANT SELECT, INSERT, UPDATE, DELETE ON {TENANTS_TABLE}, {APPLIED_TABLE}, {OPERATIONS_TABLE} TO {app_role}"
-        ),
-    ] {
-        sqlx::query(&sql).execute(setup).await.unwrap();
-    }
+    // Membership grant (default INHERIT): the app login becomes a USAGE-member of
+    // the runtime role, inheriting its schema USAGE + table privileges and making
+    // the `TO {RUNTIME_ROLE}` policies apply to it.
+    sqlx::query(&format!("GRANT {RUNTIME_ROLE} TO \"{app_role}\""))
+        .execute(setup)
+        .await
+        .unwrap();
 }
 
 async fn current_role_flags(p: &PgPool) -> (String, bool, bool) {

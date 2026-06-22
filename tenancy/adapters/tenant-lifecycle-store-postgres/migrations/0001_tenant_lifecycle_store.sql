@@ -73,3 +73,14 @@ ALTER TABLE tenancy_lifecycle.tenancy_lifecycle_operations FORCE ROW LEVEL SECUR
 CREATE POLICY tenancy_lifecycle_operations_tenant_isolation ON tenancy_lifecycle.tenancy_lifecycle_operations AS PERMISSIVE FOR ALL TO tenancy_lifecycle_runtime USING (tenant_id = current_setting('oyatie.tenant_id', true)) WITH CHECK (tenant_id = current_setting('oyatie.tenant_id', true));
 CREATE POLICY tenancy_lifecycle_operations_require_tenant_guc ON tenancy_lifecycle.tenancy_lifecycle_operations AS RESTRICTIVE FOR ALL TO tenancy_lifecycle_runtime USING (current_setting('oyatie.tenant_id', true) IS NOT NULL AND current_setting('oyatie.tenant_id', true) <> '') WITH CHECK (current_setting('oyatie.tenant_id', true) IS NOT NULL AND current_setting('oyatie.tenant_id', true) <> '');
 COMMENT ON TABLE tenancy_lifecycle.tenancy_lifecycle_operations IS 'Tenant lifecycle AIP-151 operation ledger; tenant-scoped under oyatie.tenant_id.';
+
+-- Table privileges for the RLS-subject runtime role provisioned by
+-- 0000_runtime_role.sql (the role MUST already exist — 0000 is applied first).
+-- The adapter performs the full tenant-scoped CRUD on all three tables (read +
+-- upsert the aggregate, append idempotency + operation-ledger rows, delete on
+-- retire), so all of SELECT/INSERT/UPDATE/DELETE is granted. The policies above
+-- still confine every row to the session-GUC tenant; these grants only admit the
+-- role to the relation, never widen its RLS scope.
+GRANT SELECT, INSERT, UPDATE, DELETE ON tenancy_lifecycle.tenancy_lifecycle_tenants TO tenancy_lifecycle_runtime;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tenancy_lifecycle.tenancy_lifecycle_applied_writes TO tenancy_lifecycle_runtime;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tenancy_lifecycle.tenancy_lifecycle_operations TO tenancy_lifecycle_runtime;

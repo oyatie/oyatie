@@ -64,3 +64,13 @@ ALTER TABLE identity_scim.identity_scim_groups FORCE ROW LEVEL SECURITY;
 CREATE POLICY identity_scim_groups_tenant_isolation ON identity_scim.identity_scim_groups AS PERMISSIVE FOR ALL TO identity_scim_runtime USING (tenant_id = current_setting('oyatie.tenant_id', true)) WITH CHECK (tenant_id = current_setting('oyatie.tenant_id', true));
 CREATE POLICY identity_scim_groups_require_tenant_guc ON identity_scim.identity_scim_groups AS RESTRICTIVE FOR ALL TO identity_scim_runtime USING (current_setting('oyatie.tenant_id', true) IS NOT NULL AND current_setting('oyatie.tenant_id', true) <> '') WITH CHECK (current_setting('oyatie.tenant_id', true) IS NOT NULL AND current_setting('oyatie.tenant_id', true) <> '');
 COMMENT ON TABLE identity_scim.identity_scim_groups IS 'SCIM identity group store; tenant-scoped under oyatie.tenant_id.';
+
+-- Table privileges for the RLS-subject runtime role provisioned by
+-- 0000_runtime_role.sql (the role MUST already exist — 0000 is applied first).
+-- The SCIM adapter performs the full tenant-scoped CRUD on both tables (create +
+-- replace + delete users/groups, read + list), so all of
+-- SELECT/INSERT/UPDATE/DELETE is granted. The policies above still confine every
+-- row to the session-GUC tenant; these grants only admit the role to the
+-- relation, never widen its RLS scope.
+GRANT SELECT, INSERT, UPDATE, DELETE ON identity_scim.identity_scim_users TO identity_scim_runtime;
+GRANT SELECT, INSERT, UPDATE, DELETE ON identity_scim.identity_scim_groups TO identity_scim_runtime;
