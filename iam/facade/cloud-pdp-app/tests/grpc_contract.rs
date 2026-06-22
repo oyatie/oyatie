@@ -94,6 +94,18 @@ fn proto_entities() -> Vec<proto::EntityRecord> {
             ],
             vec![proto_entity_ref("OyaPlatform::Tenant", "acme")],
         ),
+        // NON-restricted acme resource for ordinary read grants (PBAC); keeps
+        // them clear of the restricted-read step-up forbid.
+        proto_record(
+            proto_entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+            &[
+                ("tenant_id", "acme"),
+                ("resource_kind", "document"),
+                ("data_class", "internal"),
+                ("cell_id", "cell-001"),
+            ],
+            vec![proto_entity_ref("OyaPlatform::Tenant", "acme")],
+        ),
     ]
 }
 
@@ -101,16 +113,14 @@ fn authorize_request(
     request_id: &str,
     principal_id: &str,
     action: &str,
+    resource_id: &str,
 ) -> proto::AuthorizeRequest {
     proto::AuthorizeRequest {
         request_id: request_id.to_owned(),
         tenant_id: "acme".to_owned(),
         principal: Some(proto_entity_ref("OyaPlatform::Principal", principal_id)),
         action: action.to_owned(),
-        resource: Some(proto_entity_ref(
-            "OyaPlatform::TenantResource",
-            "acme-doc-1",
-        )),
+        resource: Some(proto_entity_ref("OyaPlatform::TenantResource", resource_id)),
         context: HashMap::new(),
         min_policy_version: String::new(),
         entities: proto_entities(),
@@ -126,6 +136,7 @@ async fn abac_allow_round_trips_with_zookie_echo() {
             "req-grpc-allow",
             "alice",
             "resource.read",
+            "acme-doc-1",
         )))
         .await
         .expect("an allow is a response")
@@ -152,6 +163,9 @@ async fn deny_is_a_decision_response_not_a_status_error() {
             "req-grpc-deny",
             "bob",
             "resource.read",
+            // acme-doc-2 is non-restricted: a clean deny-by-default (no permit,
+            // no forbid), so determining_policy_ids stays empty.
+            "acme-doc-2",
         )))
         .await
         .expect("a deny is a response, NOT an RPC error")
@@ -170,6 +184,7 @@ async fn pbac_link_decides_through_the_same_core() {
             "req-grpc-pbac",
             "bob",
             "resource.read",
+            "acme-doc-2",
         )))
         .await
         .expect("PBAC allow")
@@ -178,7 +193,7 @@ async fn pbac_link_decides_through_the_same_core() {
     assert!(
         response
             .determining_policy_ids
-            .contains(&"pbac-link-bob-acme-doc-1".to_owned()),
+            .contains(&"pbac-link-bob-acme-doc-2".to_owned()),
         "{response:?}"
     );
 }
@@ -187,7 +202,8 @@ async fn pbac_link_decides_through_the_same_core() {
 async fn missing_principal_fails_closed_invalid_argument() {
     let (state, sink) = seeded_state(vec![]);
     let service = CloudIamPdpService::new(state);
-    let mut request = authorize_request("req-grpc-no-principal", "alice", "resource.read");
+    let mut request =
+        authorize_request("req-grpc-no-principal", "alice", "resource.read", "acme-doc-1");
     request.principal = None;
     let status = service
         .authorize(Request::new(request))
@@ -201,7 +217,8 @@ async fn missing_principal_fails_closed_invalid_argument() {
 async fn unset_attribute_oneof_fails_closed() {
     let (state, _sink) = seeded_state(vec![]);
     let service = CloudIamPdpService::new(state);
-    let mut request = authorize_request("req-grpc-unset-attr", "alice", "resource.read");
+    let mut request =
+        authorize_request("req-grpc-unset-attr", "alice", "resource.read", "acme-doc-1");
     request
         .context
         .insert("channel".to_owned(), proto::AttributeValue { value: None });
@@ -221,6 +238,7 @@ async fn unknown_action_is_invalid_argument() {
             "req-grpc-unknown-action",
             "alice",
             "resource.delete",
+            "acme-doc-1",
         )))
         .await
         .expect_err("unmapped action must refuse");
@@ -231,7 +249,8 @@ async fn unknown_action_is_invalid_argument() {
 async fn stale_zookie_pin_is_failed_precondition() {
     let (state, _sink) = seeded_state(vec![]);
     let service = CloudIamPdpService::new(state);
-    let mut request = authorize_request("req-grpc-stale", "alice", "resource.read");
+    let mut request =
+        authorize_request("req-grpc-stale", "alice", "resource.read", "acme-doc-1");
     request.min_policy_version = "psv-000099".to_owned();
     let status = service
         .authorize(Request::new(request))

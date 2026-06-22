@@ -99,6 +99,13 @@ mod tests {
             version: PolicyVersion::new("psv-000001").unwrap(),
             schema_src: "schema".to_owned(),
             policies_src: "policies".to_owned(),
+            // A non-empty overlay proves the per-tenant field round-trips
+            // through the CLOSED schema (deny_unknown_fields) and the
+            // version-token re-validation path unchanged.
+            tenant_policies: BTreeMap::from([(
+                "acme".to_owned(),
+                "// acme overlay\n".to_owned(),
+            )]),
             templates: vec![TemplateSrc {
                 template_id: "pbac-resource-read-grant".to_owned(),
                 src: "template".to_owned(),

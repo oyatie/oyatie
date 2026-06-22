@@ -56,10 +56,19 @@ fn action_map() -> BTreeMap<String, String> {
 }
 
 fn locked_seed_bundle(version: &str, template_links: Vec<TemplateLink>) -> PolicyBundle {
+    locked_seed_bundle_with_overlays(version, template_links, BTreeMap::new())
+}
+
+fn locked_seed_bundle_with_overlays(
+    version: &str,
+    template_links: Vec<TemplateLink>,
+    tenant_policies: BTreeMap<String, String>,
+) -> PolicyBundle {
     PolicyBundle {
         version: PolicyVersion::new(version).unwrap(),
         schema_src: SCHEMA_SRC.to_owned(),
         policies_src: POLICIES_SRC.to_owned(),
+        tenant_policies,
         templates: vec![TemplateSrc {
             template_id: TEMPLATE_ID.to_owned(),
             src: TEMPLATE_SRC.to_owned(),
@@ -148,6 +157,34 @@ fn entity_slice() -> EntitySlice {
                     ("cell_id", "cell-001"),
                 ]),
                 parents: vec![entity_ref("OyaPlatform::Tenant", "acme")],
+            },
+            // A NON-restricted acme resource. Ordinary within-tenant read
+            // grants (PBAC links, tenant overlays, workload permits) target
+            // this doc so they exercise their real intent without colliding
+            // with the security-critical `forbid-restricted-read-without-step-up`
+            // gate (which only fires on data_class == "restricted").
+            EntityRecord {
+                uid: entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+                attributes: string_attrs(&[
+                    ("tenant_id", "acme"),
+                    ("resource_kind", "document"),
+                    ("data_class", "internal"),
+                    ("cell_id", "cell-001"),
+                ]),
+                parents: vec![entity_ref("OyaPlatform::Tenant", "acme")],
+            },
+            // A globex (foreign-tenant) resource: lets a cross-tenant read
+            // (acme principal -> globex resource) be exercised so the
+            // structural forbid can be proved as the runtime boundary.
+            EntityRecord {
+                uid: entity_ref("OyaPlatform::TenantResource", "globex-doc-1"),
+                attributes: string_attrs(&[
+                    ("tenant_id", "globex"),
+                    ("resource_kind", "document"),
+                    ("data_class", "internal"),
+                    ("cell_id", "cell-002"),
+                ]),
+                parents: vec![entity_ref("OyaPlatform::Tenant", "globex")],
             },
         ],
     }
@@ -266,11 +303,13 @@ fn abac_step_up_class_gates_restricted_reads() {
 
 #[test]
 fn pbac_template_link_grants_scoped_read() {
+    // acme-doc-2 is NON-restricted: this isolates the PBAC grant from the
+    // step-up forbid (which only gates restricted reads).
     let link = TemplateLink {
         template_id: TEMPLATE_ID.to_owned(),
-        link_id: "pbac-link-bob-doc1".to_owned(),
+        link_id: "pbac-link-bob-doc2".to_owned(),
         principal: entity_ref("OyaPlatform::Principal", "bob"),
-        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
     };
     // Without the link: deny-by-default (proved by the ABAC test above).
     let pdp = pdp(vec![link]);
@@ -281,7 +320,7 @@ fn pbac_template_link_grants_scoped_read() {
                 "acme",
                 entity_ref("OyaPlatform::Principal", "bob"),
                 "resource.read",
-                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
             ),
             &entity_slice(),
         )
@@ -289,7 +328,7 @@ fn pbac_template_link_grants_scoped_read() {
     assert_eq!(outcome.response.decision, Decision::Allow);
     assert_eq!(
         outcome.response.determining_policy_ids,
-        vec!["pbac-link-bob-doc1".to_owned()],
+        vec!["pbac-link-bob-doc2".to_owned()],
         "the allow is attributable to the template instantiation"
     );
 }
@@ -359,6 +398,630 @@ fn structural_forbid_overrides_misissued_cross_tenant_template_link() {
     );
 }
 
+// ------------------------------------------- per-tenant overlays (G004) ----
+
+/// A legitimate acme overlay: grant bob ReadResource, tenant-confined by the
+/// canonical same-tenant guard. Without it bob is deny-by-default (proved by
+/// `abac_step_up_class_gates_restricted_reads`).
+const ACME_OVERLAY_BOB_READ: &str = r#"
+@id("ovl-bob-read")
+permit (
+  principal == OyaPlatform::Principal::"bob",
+  action == OyaPlatform::Action::"ReadResource",
+  resource
+)
+when { principal.tenant_id == resource.tenant_id };
+"#;
+
+fn pdp_with_overlays(tenant_policies: BTreeMap<String, String>) -> CedarPdp {
+    CedarPdp::load(
+        &locked_seed_bundle_with_overlays("psv-000001", vec![], tenant_policies),
+        Arc::new(SeededIdGenerator::default()),
+        64,
+    )
+    .expect("bundle with overlays must load")
+}
+
+#[test]
+fn tenant_overlay_permit_applies_only_within_owning_tenant() {
+    let pdp = pdp_with_overlays(BTreeMap::from([(
+        "acme".to_owned(),
+        ACME_OVERLAY_BOB_READ.to_owned(),
+    )]));
+    // bob, an acme principal, reading a NON-restricted acme resource: the acme
+    // overlay grants it, attributed to the overlay's namespaced id. (acme-doc-2
+    // is non-restricted so the step-up forbid does not apply; the forbid's
+    // effect on a restricted read is proven by
+    // `tenant_overlay_permit_cannot_bypass_step_up_forbid`.)
+    let outcome = pdp
+        .authorize(
+            &request(
+                "req-ovl-1",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(outcome.response.decision, Decision::Allow);
+    assert_eq!(
+        outcome.response.determining_policy_ids,
+        vec!["acme/ovl-bob-read".to_owned()],
+        "the allow is attributable to the tenant-namespaced overlay policy"
+    );
+}
+
+#[test]
+fn tenant_overlay_does_not_leak_to_other_tenant() {
+    // The SAME acme overlay; a request whose SVID-bound tenant is globex must
+    // NOT see it (the selection is keyed by the request's own tenant_id).
+    let pdp = pdp_with_overlays(BTreeMap::from([(
+        "acme".to_owned(),
+        ACME_OVERLAY_BOB_READ.to_owned(),
+    )]));
+    let outcome = pdp
+        .authorize(
+            &request(
+                "req-ovl-2",
+                "globex",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(
+        outcome.response.decision,
+        Decision::Deny,
+        "globex must never be evaluated against acme's overlay"
+    );
+}
+
+#[test]
+fn fail_closed_default_deny_with_empty_overlays() {
+    // Empty tenant_policies + no global permit for bob: deny-by-default.
+    let pdp = pdp_with_overlays(BTreeMap::new());
+    let outcome = pdp
+        .authorize(
+            &request(
+                "req-ovl-3",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(outcome.response.decision, Decision::Deny);
+}
+
+#[test]
+fn malformed_tenant_overlay_rejects_whole_bundle_fail_closed() {
+    // An overlay that is not valid Cedar must reject the WHOLE bundle at load.
+    let result = CedarPdp::load(
+        &locked_seed_bundle_with_overlays(
+            "psv-000001",
+            vec![],
+            BTreeMap::from([(
+                "acme".to_owned(),
+                "permit (this is not cedar".to_owned(),
+            )]),
+        ),
+        Arc::new(SeededIdGenerator::default()),
+        64,
+    );
+    assert!(
+        matches!(result, Err(PdpError::BundleRejected { .. })),
+        "a malformed overlay must fail closed, got {:?}",
+        result.map(|_| "loaded")
+    );
+}
+
+#[test]
+fn tenant_overlay_authoring_cross_tenant_permit_is_rejected_at_load() {
+    // An acme overlay permit WITHOUT the same-tenant guard could grant across a
+    // tenant boundary — reject at LOAD so isolation is structural, not emergent.
+    let cross_tenant_permit = r#"
+@id("ovl-cross")
+permit (
+  principal is OyaPlatform::Principal,
+  action == OyaPlatform::Action::"ReadResource",
+  resource
+);
+"#;
+    let result = CedarPdp::load(
+        &locked_seed_bundle_with_overlays(
+            "psv-000001",
+            vec![],
+            BTreeMap::from([("acme".to_owned(), cross_tenant_permit.to_owned())]),
+        ),
+        Arc::new(SeededIdGenerator::default()),
+        64,
+    );
+    assert!(
+        matches!(result, Err(PdpError::BundleRejected { .. })),
+        "an overlay permit that is not tenant-confined must fail closed at load, got {:?}",
+        result.map(|_| "loaded")
+    );
+
+    // And an overlay that NAMES another tenant by literal is likewise rejected.
+    let foreign_literal_permit = r#"
+@id("ovl-foreign")
+permit (
+  principal is OyaPlatform::Principal,
+  action == OyaPlatform::Action::"ReadResource",
+  resource
+)
+when { resource.tenant_id == "globex" };
+"#;
+    let result = CedarPdp::load(
+        &locked_seed_bundle_with_overlays(
+            "psv-000001",
+            vec![],
+            BTreeMap::from([
+                ("acme".to_owned(), foreign_literal_permit.to_owned()),
+                ("globex".to_owned(), String::new()),
+            ]),
+        ),
+        Arc::new(SeededIdGenerator::default()),
+        64,
+    );
+    assert!(
+        matches!(result, Err(PdpError::BundleRejected { .. })),
+        "an overlay naming another known tenant must fail closed at load, got {:?}",
+        result.map(|_| "loaded")
+    );
+}
+
+#[test]
+fn tenant_overlay_cannot_escape_structural_forbid() {
+    // Even a same-tenant-guarded overlay grant cannot defeat the structural
+    // forbid: mallory is a globex principal mis-joined to the acme group; an
+    // acme overlay permitting mallory must still be denied cross-tenant.
+    let overlay = r#"
+@id("ovl-mallory")
+permit (
+  principal == OyaPlatform::Principal::"mallory",
+  action == OyaPlatform::Action::"ReadResource",
+  resource
+)
+when { principal.tenant_id == resource.tenant_id };
+"#;
+    let pdp = pdp_with_overlays(BTreeMap::from([(
+        "globex".to_owned(),
+        overlay.to_owned(),
+    )]));
+    let outcome = pdp
+        .authorize(
+            &request(
+                "req-ovl-forbid",
+                "globex",
+                entity_ref("OyaPlatform::Principal", "mallory"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(
+        outcome.response.decision,
+        Decision::Deny,
+        "the structural forbid overrides every overlay permit across a tenant boundary"
+    );
+}
+
+// -------------------- the REAL tenant-isolation boundary (G004 audit) ----
+//
+// The sole, formally-verified tenant-isolation boundary is the global
+// `structural-tenant-isolation` forbid (forbid-overrides-permit) over the
+// schema-required `tenant_id` attribute — NOT any load-time overlay check.
+// These tests lock that boundary directly so a maintainer cannot remove the
+// forbid (or weaken the schema) without a red suite.
+
+/// The 5 cross-tenant evasion permit shapes from the G004 security audit. Each
+/// carries the same-tenant equality as a NON-binding token (behind `||`, in an
+/// `unless`, behind `!`, etc.), so a substring/EST-presence detector would
+/// wrongly accept them. The sound detector REJECTS all 5 at load
+/// (`sound_detector_rejects_every_audit_evasion_overlay`); and even if one were
+/// admitted, the runtime forbid still denies the cross-tenant read
+/// (`structural_forbid_denies_cross_tenant_read_for_any_permit_shape`).
+const EVASION_PERMITS: &[(&str, &str)] = &[
+    (
+        "evasion-or-true",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           when { principal.tenant_id == resource.tenant_id || true };"#,
+    ),
+    (
+        "evasion-unless-true",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           when { principal.tenant_id == resource.tenant_id } unless { true };"#,
+    ),
+    (
+        "evasion-guard-in-unless",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           unless { principal.tenant_id == resource.tenant_id };"#,
+    ),
+    (
+        "evasion-negated",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           when { !(principal.tenant_id == resource.tenant_id) };"#,
+    ),
+    (
+        "evasion-or-tautology",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           when { (principal.tenant_id == resource.tenant_id) || (1 == 1) };"#,
+    ),
+];
+
+/// Legitimate, genuinely tenant-confined permit shapes the sound detector MUST
+/// keep accepting: canonical, operand-swapped, parenthesized (parens are
+/// transparent in the EST), and `&&`-nested.
+const LEGITIMATE_PERMITS: &[(&str, &str)] = &[
+    (
+        "ok-canonical",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           when { principal.tenant_id == resource.tenant_id };"#,
+    ),
+    (
+        "ok-operand-swap",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           when { resource.tenant_id == principal.tenant_id };"#,
+    ),
+    (
+        "ok-parenthesized",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           when { (principal.tenant_id == resource.tenant_id) };"#,
+    ),
+    (
+        "ok-and-nested",
+        r#"permit (principal, action == OyaPlatform::Action::"ReadResource", resource)
+           when { resource.resource_kind == "document" && principal.tenant_id == resource.tenant_id };"#,
+    ),
+];
+
+#[test]
+fn structural_forbid_present_in_every_per_tenant_merged_set() {
+    // Load benign overlays for BOTH tenants, then prove the structural forbid
+    // governs EACH per-tenant merged set: a cross-tenant read (acme principal
+    // -> globex resource) is denied AND the deny is attributed to the
+    // structural forbid, which can only be true if the forbid is present and
+    // armed in the per-tenant set actually evaluated.
+    let acme_overlay = r#"
+@id("ovl-acme-benign")
+permit (
+  principal == OyaPlatform::Principal::"bob",
+  action == OyaPlatform::Action::"ReadResource",
+  resource
+)
+when { principal.tenant_id == resource.tenant_id };
+"#;
+    let globex_overlay = r#"
+@id("ovl-globex-benign")
+permit (
+  principal == OyaPlatform::Principal::"mallory",
+  action == OyaPlatform::Action::"ReadResource",
+  resource
+)
+when { principal.tenant_id == resource.tenant_id };
+"#;
+    let pdp = pdp_with_overlays(BTreeMap::from([
+        ("acme".to_owned(), acme_overlay.to_owned()),
+        ("globex".to_owned(), globex_overlay.to_owned()),
+    ]));
+    // acme's merged set: bob (acme) reading a globex resource crosses the
+    // boundary and must be denied by the structural forbid.
+    let acme_outcome = pdp
+        .authorize(
+            &request(
+                "req-merged-acme",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "globex-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(acme_outcome.response.decision, Decision::Deny);
+    assert!(
+        acme_outcome
+            .response
+            .determining_policy_ids
+            .iter()
+            .any(|id| id == "structural-tenant-isolation"),
+        "the cross-tenant deny in acme's merged set must be attributed to the \
+         structural forbid (present + armed), got {:?}",
+        acme_outcome.response.determining_policy_ids
+    );
+    // globex's merged set: mallory (globex) reading an acme resource is the
+    // symmetric cross-tenant read; same forbid must govern.
+    let globex_outcome = pdp
+        .authorize(
+            &request(
+                "req-merged-globex",
+                "globex",
+                entity_ref("OyaPlatform::Principal", "mallory"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(globex_outcome.response.decision, Decision::Deny);
+    assert!(
+        globex_outcome
+            .response
+            .determining_policy_ids
+            .iter()
+            .any(|id| id == "structural-tenant-isolation"),
+        "the cross-tenant deny in globex's merged set must be attributed to the \
+         structural forbid (present + armed), got {:?}",
+        globex_outcome.response.determining_policy_ids
+    );
+}
+
+#[test]
+fn entity_slice_missing_tenant_id_is_rejected_by_schema_validation() {
+    // The structural forbid is only sound because the schema makes `tenant_id`
+    // a REQUIRED attribute on every principal/resource. Drop it from one
+    // entity and the slice must be rejected by schema validation (fail closed),
+    // never silently evaluated.
+    let mut slice = entity_slice();
+    // Strip tenant_id from the acme-doc-1 resource record.
+    let doc = slice
+        .entities
+        .iter_mut()
+        .find(|e| e.uid.entity_id == "acme-doc-1")
+        .expect("fixture must contain acme-doc-1");
+    doc.attributes.remove("tenant_id");
+    let pdp = pdp(vec![]);
+    let err = pdp
+        .authorize(
+            &request(
+                "req-missing-tid",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "alice"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &slice,
+        )
+        .unwrap_err();
+    assert!(
+        matches!(err, PdpError::Evaluation { .. }),
+        "an entity slice missing the schema-required tenant_id must be rejected, got {err:?}"
+    );
+}
+
+#[test]
+fn structural_forbid_denies_cross_tenant_read_for_any_permit_shape() {
+    // Prove the RUNTIME forbid is the boundary, independent of the load-time
+    // overlay detector: inject each audit evasion permit DIRECTLY into the
+    // GLOBAL policy set (bypassing the overlay path entirely), then show a
+    // cross-tenant read (bob@acme -> globex resource) is still denied. The
+    // forbid wins over every permit shape, so the boundary holds even if a
+    // detector were defeated.
+    for (id, body) in EVASION_PERMITS {
+        let mut bundle = locked_seed_bundle("psv-000001", vec![]);
+        bundle
+            .policies_src
+            .push_str(&format!("\n@id(\"{id}\")\n{body}\n"));
+        let pdp = CedarPdp::load(&bundle, Arc::new(SeededIdGenerator::default()), 64)
+            .unwrap_or_else(|e| panic!("global injection of {id} must still load: {e}"));
+        let outcome = pdp
+            .authorize(
+                &request(
+                    "req-evasion-global",
+                    "acme",
+                    entity_ref("OyaPlatform::Principal", "bob"),
+                    "resource.read",
+                    entity_ref("OyaPlatform::TenantResource", "globex-doc-1"),
+                ),
+                &entity_slice(),
+            )
+            .unwrap();
+        assert_eq!(
+            outcome.response.decision,
+            Decision::Deny,
+            "{id}: the structural forbid must deny the cross-tenant read whatever \
+             shape the permit takes"
+        );
+    }
+}
+
+#[test]
+fn sound_detector_rejects_every_audit_evasion_overlay() {
+    // Each evasion overlay carries the same-tenant equality as a NON-binding
+    // token (behind ||, in an unless, behind !, etc.). The sound load-time
+    // detector must REJECT all 5 — a non-binding accept-on-presence detector
+    // would (wrongly) admit them.
+    for (id, body) in EVASION_PERMITS {
+        let overlay = format!("@id(\"{id}\")\n{body}");
+        let result = CedarPdp::load(
+            &locked_seed_bundle_with_overlays(
+                "psv-000001",
+                vec![],
+                BTreeMap::from([("acme".to_owned(), overlay)]),
+            ),
+            Arc::new(SeededIdGenerator::default()),
+            64,
+        );
+        assert!(
+            matches!(result, Err(PdpError::BundleRejected { .. })),
+            "{id}: a non-binding same-tenant guard must be rejected at load, got {:?}",
+            result.map(|_| "loaded")
+        );
+    }
+}
+
+#[test]
+fn sound_detector_accepts_every_legitimate_overlay_shape() {
+    // The sound detector must keep accepting genuinely tenant-confined permits:
+    // canonical, operand-swapped, parenthesized, and &&-nested.
+    for (id, body) in LEGITIMATE_PERMITS {
+        let overlay = format!("@id(\"{id}\")\n{body}");
+        let result = CedarPdp::load(
+            &locked_seed_bundle_with_overlays(
+                "psv-000001",
+                vec![],
+                BTreeMap::from([("acme".to_owned(), overlay)]),
+            ),
+            Arc::new(SeededIdGenerator::default()),
+            64,
+        );
+        assert!(
+            result.is_ok(),
+            "{id}: a legitimately tenant-confined permit must load, got {:?}",
+            result.err()
+        );
+    }
+}
+
+#[test]
+fn tenant_overlay_permit_cannot_bypass_step_up_forbid() {
+    // MAJOR (G004 audit): an overlay `permit` must NOT defeat the global,
+    // security-critical step-up gate on restricted reads. The gate is encoded
+    // as a FORBID (`forbid-restricted-read-without-step-up`), so even a
+    // perfectly tenant-confined overlay permit cannot grant bob (NO
+    // step_up_class) a read of the RESTRICTED acme-doc-1. Forbid wins.
+    let overlay = r#"
+@id("ovl-bob-restricted")
+permit (
+  principal == OyaPlatform::Principal::"bob",
+  action == OyaPlatform::Action::"ReadResource",
+  resource
+)
+when { principal.tenant_id == resource.tenant_id };
+"#;
+    let pdp = pdp_with_overlays(BTreeMap::from([("acme".to_owned(), overlay.to_owned())]));
+    let outcome = pdp
+        .authorize(
+            &request(
+                "req-stepup-bypass",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(
+        outcome.response.decision,
+        Decision::Deny,
+        "an overlay permit must not bypass the step-up forbid on restricted reads"
+    );
+    // The SAME overlay grants the non-restricted acme-doc-2 (the legitimate
+    // overlay purpose is preserved — only the security gate is non-bypassable).
+    let allowed = pdp
+        .authorize(
+            &request(
+                "req-stepup-ok",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(
+        allowed.response.decision,
+        Decision::Allow,
+        "the overlay still grants an ordinary (non-restricted) within-tenant read"
+    );
+}
+
+#[test]
+fn step_up_forbid_still_allows_a_stepped_up_restricted_read() {
+    // The forbid's `unless` exception holds: alice (step_up_class "a") still
+    // reads the restricted acme-doc-1 — the gate denies only the non-stepped-up.
+    let pdp = pdp(vec![]);
+    let outcome = pdp
+        .authorize(
+            &request(
+                "req-stepup-allow",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "alice"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(outcome.response.decision, Decision::Allow);
+}
+
+#[test]
+fn step_up_forbid_blocks_a_pbac_link_to_a_restricted_read() {
+    // MAJOR (G004 audit): a PBAC template-link must NOT defeat the global,
+    // security-critical step-up gate on restricted reads. This locks the
+    // template-link grant path specifically (the overlay path is locked by
+    // `tenant_overlay_permit_cannot_bypass_step_up_forbid`, and the
+    // template-link path against the STRUCTURAL forbid by
+    // `structural_forbid_overrides_misissued_cross_tenant_template_link`; this
+    // is the template-link path against the STEP-UP forbid). The gate is
+    // encoded as a FORBID (`forbid-restricted-read-without-step-up`), so even an
+    // explicit link granting bob (NO step_up_class) a read of the RESTRICTED
+    // acme-doc-1 stays denied — forbid overrides permit.
+    let link = TemplateLink {
+        template_id: TEMPLATE_ID.to_owned(),
+        link_id: "pbac-link-bob-restricted".to_owned(),
+        principal: entity_ref("OyaPlatform::Principal", "bob"),
+        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+    };
+    let pdp_restricted = pdp(vec![link]);
+    let denied = pdp_restricted
+        .authorize(
+            &request(
+                "req-pbac-restricted-deny",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(
+        denied.response.decision,
+        Decision::Deny,
+        "a PBAC template-link must not bypass the step-up forbid on restricted reads"
+    );
+
+    // The SAME link grants the NON-restricted acme-doc-2 (the legitimate link
+    // purpose is preserved — only the restricted-read security gate is
+    // non-bypassable).
+    let link_ok = TemplateLink {
+        template_id: TEMPLATE_ID.to_owned(),
+        link_id: "pbac-link-bob-restricted".to_owned(),
+        principal: entity_ref("OyaPlatform::Principal", "bob"),
+        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+    };
+    let pdp_ok = pdp(vec![link_ok]);
+    let allowed = pdp_ok
+        .authorize(
+            &request(
+                "req-pbac-restricted-ok",
+                "acme",
+                entity_ref("OyaPlatform::Principal", "bob"),
+                "resource.read",
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+            ),
+            &entity_slice(),
+        )
+        .unwrap();
+    assert_eq!(
+        allowed.response.decision,
+        Decision::Allow,
+        "the link still grants an ordinary (non-restricted) within-tenant read"
+    );
+}
+
 // ------------------------------------------------- zookie freshness ----
 
 #[test]
@@ -414,11 +1077,13 @@ fn cache_replays_decision_content_with_fresh_decision_ids() {
 
 #[test]
 fn bundle_swap_revokes_immediately_and_disarms_prior_cache() {
+    // acme-doc-2 is non-restricted: the pre-swap grant is an ordinary read,
+    // isolated from the step-up forbid.
     let link = TemplateLink {
         template_id: TEMPLATE_ID.to_owned(),
-        link_id: "pbac-link-bob-doc1".to_owned(),
+        link_id: "pbac-link-bob-doc2".to_owned(),
         principal: entity_ref("OyaPlatform::Principal", "bob"),
-        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
     };
     let pdp = pdp(vec![link]);
     let req = request(
@@ -426,7 +1091,7 @@ fn bundle_swap_revokes_immediately_and_disarms_prior_cache() {
         "acme",
         entity_ref("OyaPlatform::Principal", "bob"),
         "resource.read",
-        entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+        entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
     );
     let before = pdp.authorize(&req, &entity_slice()).unwrap();
     assert_eq!(before.response.decision, Decision::Allow);
@@ -521,6 +1186,8 @@ fn obligations_ride_out_with_annotated_permits() {
         "\n@id(\"workload-read-grant\")\n@obligation(\"emit-step-up-audit\")\npermit (\n  principal is OyaPlatform::WorkloadIdentity,\n  action == OyaPlatform::Action::\"ReadResource\",\n  resource\n)\nwhen { principal.tenant_id == resource.tenant_id };\n",
     );
     let pdp = CedarPdp::load(&bundle, Arc::new(SeededIdGenerator::default()), 64).unwrap();
+    // acme-doc-2 is non-restricted: the obligation rides out on an ordinary
+    // grant, undisturbed by the step-up forbid.
     let outcome = pdp
         .authorize(
             &request(
@@ -528,7 +1195,7 @@ fn obligations_ride_out_with_annotated_permits() {
                 "acme",
                 entity_ref("OyaPlatform::WorkloadIdentity", "payments"),
                 "resource.read",
-                entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+                entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
             ),
             &entity_slice(),
         )
