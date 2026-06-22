@@ -47,6 +47,13 @@ pub const SCHEMA_NAME: &str = "identity_scim";
 pub const USERS_TABLE: &str = "identity_scim.identity_scim_users";
 pub const GROUPS_TABLE: &str = "identity_scim.identity_scim_groups";
 
+/// The tables whose ENABLE+FORCE RLS the boot guard verifies. This is the SINGLE
+/// list the runtime guard passes to `assert_rls_enforceable`; a unit test (see
+/// `governed_tables_match_migration_force_rls`) asserts it EXACTLY matches the
+/// set of tables `migrations/0001_*.sql` declares FORCE ROW LEVEL SECURITY, so a
+/// new FORCE'd table can never silently escape the guard's per-table coverage.
+pub const GOVERNED_TABLES: &[&str] = &[USERS_TABLE, GROUPS_TABLE];
+
 /// Current persisted-record schema version.
 pub const SCHEMA_VERSION: i32 = 1;
 
@@ -230,7 +237,7 @@ pub async fn assert_rls_enforceable(pool: &PgPool) -> Result<(), PgScimConnectEr
     // fail-closed connect-error contract. Still a FREE function taking `&PgPool`
     // (not a store method) because the SCIM surface composes TWO stores over a
     // single shared pool — the guard runs once against that pool.
-    assert_rls_enforceable_shared(pool, RUNTIME_ROLE, &[USERS_TABLE, GROUPS_TABLE])
+    assert_rls_enforceable_shared(pool, RUNTIME_ROLE, GOVERNED_TABLES)
         .await
         .map_err(PgScimConnectError::from)
 }
@@ -804,5 +811,27 @@ mod tests {
         // in exactly this role, so a drift would silently let a non-policy role
         // pass the guard while the policies never apply to it.
         assert_eq!(RUNTIME_ROLE, "identity_scim_runtime");
+    }
+
+    #[test]
+    fn governed_tables_match_migration_force_rls() {
+        // The boot guard verifies ENABLE+FORCE RLS for exactly GOVERNED_TABLES.
+        // If a dev FORCE-RLS'es a new table in the migration but forgets to add
+        // it here (or vice versa), tenant isolation would be silently unverified
+        // at boot. Asserting the SAME list the guard passes EXACTLY equals the
+        // migration's FORCE'd-table set makes that drift impossible. DB-free —
+        // pure string comparison, runs in the always-on unit lane.
+        use oya_shared_postgres_command_kernel::force_rls_tables;
+        let migration = include_str!("../migrations/0001_identity_scim_store.sql");
+        let mut from_migration = force_rls_tables(migration);
+        from_migration.sort();
+        let mut governed: Vec<String> =
+            GOVERNED_TABLES.iter().map(|t| (*t).to_owned()).collect();
+        governed.sort();
+        assert_eq!(
+            governed, from_migration,
+            "GOVERNED_TABLES must EXACTLY match the tables \
+             migrations/0001_identity_scim_store.sql FORCE-RLS'es"
+        );
     }
 }

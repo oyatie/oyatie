@@ -546,6 +546,49 @@ pub fn split_migration_statements(migration: &str) -> Vec<String> {
     statements
 }
 
+/// Extract the schema-qualified table names a migration declares under
+/// `ALTER TABLE <table> FORCE ROW LEVEL SECURITY` — pure string processing, no
+/// DB, no async.
+///
+/// This is the corpus-side half of the durable-adapter RLS guard: each adapter
+/// passes a `governed_tables` list to [`assert_rls_enforceable`] (in the sqlx
+/// adapter) so the boot guard verifies ENABLE+FORCE RLS per table. If a dev adds
+/// a FORCE-RLS'd table to the migration but forgets to add it to that list, the
+/// guard silently stops covering it — an invisible tenant-isolation gap. Adapters
+/// assert, in a DB-free unit test, that their `governed_tables` list EXACTLY
+/// matches `force_rls_tables(include_str!(...migration...))`, making that drift
+/// impossible.
+///
+/// Parsing reuses [`split_migration_statements`] (dollar-quote + single-quote +
+/// `--` comment aware) so commented-out or string-embedded clauses never match.
+/// Within each statement the match is case-insensitive on the
+/// `ALTER TABLE <table> FORCE ROW LEVEL SECURITY` shape; the
+/// `ENABLE ROW LEVEL SECURITY` variant is deliberately NOT returned (only FORCE
+/// guarantees the policies apply to the table owner). The table identifier is
+/// returned verbatim (schema-qualified, as written in the migration) so the
+/// comparison matches the adapter's schema-qualified table constants.
+pub fn force_rls_tables(migration: &str) -> Vec<String> {
+    let mut tables = Vec::new();
+    for statement in split_migration_statements(migration) {
+        // Collapse internal whitespace (the splitter already trimmed the ends)
+        // so a multi-line ALTER still matches the canonical clause shape.
+        let normalized = statement.split_whitespace().collect::<Vec<_>>().join(" ");
+        let upper = normalized.to_ascii_uppercase();
+        const PREFIX: &str = "ALTER TABLE ";
+        const SUFFIX: &str = " FORCE ROW LEVEL SECURITY";
+        if !upper.starts_with(PREFIX) || !upper.ends_with(SUFFIX) {
+            continue;
+        }
+        // The table identifier is the verbatim slice between the two clauses,
+        // preserving the original (case-sensitive, schema-qualified) name.
+        let table = normalized[PREFIX.len()..normalized.len() - SUFFIX.len()].trim();
+        if !table.is_empty() {
+            tables.push(table.to_owned());
+        }
+    }
+    tables
+}
+
 /// Pure RLS role-flag decision — no DB, no async, fully unit-testable.
 ///
 /// Returns `Ok(())` iff the role is safe to serve multi-tenant traffic:
@@ -931,5 +974,67 @@ GRANT USAGE ON SCHEMA tenancy_lifecycle TO tenancy_lifecycle_runtime;
         assert!(split_migration_statements("").is_empty());
         assert!(split_migration_statements("   \n  ").is_empty());
         assert!(split_migration_statements("-- just a comment\n").is_empty());
+    }
+
+    // --- force_rls_tables coverage-drift extraction tests --------------------
+    // These back the per-adapter consistency tests: the adapter's governed_tables
+    // list (the SAME list the boot guard passes) must EXACTLY match the set of
+    // tables its migration declares FORCE ROW LEVEL SECURITY, so a new FORCE'd
+    // table can never silently escape the guard's per-table coverage.
+
+    #[test]
+    fn force_rls_tables_returns_each_forced_table() {
+        let migration = "\
+CREATE TABLE s.a (id text);\n\
+ALTER TABLE s.a ENABLE ROW LEVEL SECURITY;\n\
+ALTER TABLE s.a FORCE ROW LEVEL SECURITY;\n\
+CREATE TABLE s.b (id text);\n\
+ALTER TABLE s.b ENABLE ROW LEVEL SECURITY;\n\
+ALTER TABLE s.b FORCE ROW LEVEL SECURITY;\n\
+CREATE TABLE s.c (id text);\n\
+ALTER TABLE s.c ENABLE ROW LEVEL SECURITY;\n\
+ALTER TABLE s.c FORCE ROW LEVEL SECURITY;\n";
+        assert_eq!(force_rls_tables(migration), vec!["s.a", "s.b", "s.c"]);
+    }
+
+    #[test]
+    fn force_rls_tables_excludes_enable_without_force() {
+        // ENABLE-only must NOT be returned: only FORCE guarantees the policies
+        // apply to the table owner.
+        let migration = "\
+ALTER TABLE s.enabled_only ENABLE ROW LEVEL SECURITY;\n\
+ALTER TABLE s.forced ENABLE ROW LEVEL SECURITY;\n\
+ALTER TABLE s.forced FORCE ROW LEVEL SECURITY;\n";
+        assert_eq!(force_rls_tables(migration), vec!["s.forced"]);
+    }
+
+    #[test]
+    fn force_rls_tables_ignores_commented_out_force() {
+        // The splitter strips `--` line comments, so a commented FORCE clause
+        // never registers as coverage.
+        let migration = "\
+ALTER TABLE s.live FORCE ROW LEVEL SECURITY;\n\
+-- ALTER TABLE s.dead FORCE ROW LEVEL SECURITY;\n";
+        assert_eq!(force_rls_tables(migration), vec!["s.live"]);
+    }
+
+    #[test]
+    fn force_rls_tables_is_case_insensitive_on_the_clause() {
+        let migration = "alter table s.lower force row level security;\n";
+        assert_eq!(force_rls_tables(migration), vec!["s.lower"]);
+    }
+
+    #[test]
+    fn force_rls_tables_handles_multiline_statement() {
+        // A FORCE clause spread across lines still matches once whitespace is
+        // normalized; the verbatim (schema-qualified) name is preserved.
+        let migration = "ALTER TABLE\n  s.multi\n  FORCE ROW LEVEL SECURITY;\n";
+        assert_eq!(force_rls_tables(migration), vec!["s.multi"]);
+    }
+
+    #[test]
+    fn force_rls_tables_empty_for_no_force_clauses() {
+        let migration = "CREATE TABLE s.a (id text);\nINSERT INTO s.a VALUES ('x');\n";
+        assert!(force_rls_tables(migration).is_empty());
     }
 }
