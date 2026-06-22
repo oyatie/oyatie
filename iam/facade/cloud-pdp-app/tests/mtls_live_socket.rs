@@ -133,6 +133,34 @@ fn issue_server_leaf(
     (leaf, srv.private_key_der())
 }
 
+/// Mint a PDP server leaf (serverAuth + a DNS SAN) carrying EXACTLY the supplied
+/// URI SANs (zero, one, many, or non-cell-rooted) — the knob the cell-pin
+/// boot-precondition fixtures vary. Returns (leaf_der, server_key_pkcs8_der).
+fn issue_server_leaf_with_uris(
+    svc: &mut SecurityService<EcdsaP256Signer>,
+    ca_signer: &EcdsaP256Signer,
+    iat: u64,
+    ttl: u64,
+    uris: &[&str],
+) -> (Vec<u8>, Vec<u8>) {
+    let srv = EcdsaP256Signer::generate().unwrap();
+    let key = KeyPair::new(srv.private_key_der(), srv.public_key_spki_der());
+    let mut csr =
+        CertificateSigningRequest::for_node("oya-cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
+    csr.sans.dns_names.push("localhost".to_owned());
+    for uri in uris {
+        csr.sans.uris.push((*uri).to_owned());
+    }
+    let req = CertificateRequest {
+        join_token: JOIN_TOKEN.to_string(),
+        csr,
+    };
+    let resp = svc.handle_certificate(&req, &key, iat).unwrap();
+    let leaf = der::encode_leaf_der(&resp.identity.certificate, &srv, svc.ca_certificate(), ca_signer)
+        .unwrap();
+    (leaf, srv.private_key_der())
+}
+
 fn config_for(bundle_path: &std::path::Path) -> PdpConfig {
     PdpConfig {
         bundle_path: bundle_path.to_string_lossy().into_owned(),
@@ -682,4 +710,140 @@ async fn empty_bundle_refuses_mtls_boot() {
     // variant exists + formats (the server.rs Mtls arm).
     let start_err = StartError::Mtls(iam_cloud_pdp_app::mtls::MtlsBootError::TrustBundleEmpty);
     assert!(start_err.to_string().contains("refusing to boot"));
+}
+
+// ==========================================================================
+// Cell-pin boot precondition (PR #796 MAJOR fail-open closure). Under mTLS the
+// operator ALWAYS mints a single cell-rooted server leaf, so the PDP's own cell
+// pin is MANDATORY: a server leaf from which it cannot be derived is a
+// FAIL-CLOSED boot refusal, NEVER a silent degrade to an unpinned (foreign-cell
+// reachable) serve. RED→GREEN fixtures (a)/(b)/(c)/(d).
+// ==========================================================================
+
+// (a) no-URI-SAN server leaf + MtlsContext::new → boot refusal.
+#[tokio::test(flavor = "multi_thread")]
+async fn cell_pin_boot_refuses_server_leaf_with_no_uri_san() {
+    let iat = now_secs();
+    let (mut svc, ca_signer) = service();
+    let (server_leaf, server_key) =
+        issue_server_leaf_with_uris(&mut svc, &ca_signer, iat, 10_000_000, &[]);
+    let bundle = trusted_bundle(&svc, &ca_signer);
+    let err = MtlsContext::new(bundle, vec![server_leaf], server_key)
+        .err()
+        .expect("a no-URI-SAN server leaf must boot-refuse (cell pin undeterminable)");
+    assert!(
+        matches!(
+            err,
+            iam_cloud_pdp_app::mtls::MtlsBootError::CellPinUndeterminable(_)
+        ),
+        "got {err:?}"
+    );
+}
+
+// (b) multi-URI-SAN server leaf + MtlsContext::new → boot refusal.
+#[tokio::test(flavor = "multi_thread")]
+async fn cell_pin_boot_refuses_server_leaf_with_multiple_uri_sans() {
+    let iat = now_secs();
+    let (mut svc, ca_signer) = service();
+    let (server_leaf, server_key) = issue_server_leaf_with_uris(
+        &mut svc,
+        &ca_signer,
+        iat,
+        10_000_000,
+        &[
+            "spiffe://oyatie.cell-7/platform/cloud-iam-pdp",
+            "spiffe://oyatie.cell-9/platform/cloud-iam-pdp",
+        ],
+    );
+    let bundle = trusted_bundle(&svc, &ca_signer);
+    let err = MtlsContext::new(bundle, vec![server_leaf], server_key)
+        .err()
+        .expect("a multi-URI-SAN server leaf is ambiguous → must boot-refuse");
+    assert!(
+        matches!(
+            err,
+            iam_cloud_pdp_app::mtls::MtlsBootError::CellPinUndeterminable(_)
+        ),
+        "got {err:?}"
+    );
+}
+
+// (c) malformed / non-cell-rooted URI server leaf + MtlsContext::new → boot refusal.
+#[tokio::test(flavor = "multi_thread")]
+async fn cell_pin_boot_refuses_non_cell_rooted_server_leaf() {
+    let iat = now_secs();
+    let (mut svc, ca_signer) = service();
+    // A structurally-valid URI that is NOT a cell-rooted SPIFFE id (no
+    // `oyatie.cell-<id>` authority): SpiffeId::parse must reject it.
+    let (server_leaf, server_key) = issue_server_leaf_with_uris(
+        &mut svc,
+        &ca_signer,
+        iat,
+        10_000_000,
+        &["spiffe://example.org/platform/cloud-iam-pdp"],
+    );
+    let bundle = trusted_bundle(&svc, &ca_signer);
+    let err = MtlsContext::new(bundle, vec![server_leaf], server_key)
+        .err()
+        .expect("a non-cell-rooted server SPIFFE id must boot-refuse");
+    assert!(
+        matches!(
+            err,
+            iam_cloud_pdp_app::mtls::MtlsBootError::CellPinUndeterminable(_)
+        ),
+        "got {err:?}"
+    );
+}
+
+// (d) THE reproduced bypass is CLOSED: a no-SAN server leaf under mTLS fails
+// closed all the way through `start_with_mtls`, so a foreign-cell caller can
+// NEVER reach Cedar (the socket never binds). Because MtlsContext::new refuses
+// to build the context, the boot cannot pass `Some(ctx)` to start_with_mtls —
+// the bypass surface (an unpinned mTLS serve) is structurally unreachable.
+#[tokio::test(flavor = "multi_thread")]
+async fn reproduced_no_san_bypass_is_closed_no_unpinned_mtls_serve() {
+    let iat = now_secs();
+    let (mut svc, ca_signer) = service();
+    let (no_san_server, server_key) =
+        issue_server_leaf_with_uris(&mut svc, &ca_signer, iat, 10_000_000, &[]);
+    let bundle = trusted_bundle(&svc, &ca_signer);
+
+    // The pre-fix bypass entry point: build an MtlsContext from a no-SAN server
+    // leaf. Pre-fix this SUCCEEDED with expected_cell_authority = None and the
+    // server then served mTLS WITHOUT a cell pin (foreign-cell SVIDs reached
+    // Cedar). Post-fix it FAILS CLOSED, so there is no unpinned context to serve.
+    let ctx_result = MtlsContext::new(bundle, vec![no_san_server], server_key);
+    assert!(
+        ctx_result.is_err(),
+        "the no-SAN bypass must be closed: MtlsContext::new must NOT yield an \
+         unpinned context that could serve a foreign-cell caller"
+    );
+    let err = ctx_result.err().unwrap();
+    assert!(
+        matches!(
+            err,
+            iam_cloud_pdp_app::mtls::MtlsBootError::CellPinUndeterminable(_)
+        ),
+        "got {err:?}"
+    );
+
+    // And the boot path surfaces it as a refusing-to-boot StartError::Mtls (exit
+    // non-zero in main) — never a served socket.
+    let start_err = StartError::Mtls(err);
+    assert!(start_err.to_string().contains("refusing to boot"));
+
+    // Non-regression: a PROPER cell-rooted server leaf (the operator's shape)
+    // still builds and boots mTLS (cell pin present, with-SAN happy path intact).
+    let (mut svc2, ca2) = service();
+    let (good_leaf, good_key) = issue_server_leaf_with_uris(
+        &mut svc2,
+        &ca2,
+        iat,
+        10_000_000,
+        &[PDP_SERVER_SPIFFE],
+    );
+    let bundle2 = trusted_bundle(&svc2, &ca2);
+    let ctx = MtlsContext::new(bundle2, vec![good_leaf], good_key)
+        .expect("the proper cell-rooted operator server leaf must still build");
+    assert_eq!(ctx.expected_cell_authority(), "oyatie.cell-7");
 }

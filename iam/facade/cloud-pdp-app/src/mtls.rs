@@ -67,6 +67,13 @@ pub enum MtlsBootError {
     /// leaf/key (malformed DER, key/cert mismatch, or no usable protocol
     /// version) — a server that cannot present its own identity must never boot.
     ServerConfig(String),
+    /// The PDP could not derive its OWN cell authority from its mTLS server leaf,
+    /// so caller cell-pinning could not be established. Under mTLS the cell pin is
+    /// MANDATORY (the operator always mints a single cell-rooted server leaf), so
+    /// an empty chain, a leaf with no / more than one URI SAN, or a URI that is
+    /// not a cell-rooted SPIFFE id is a FAIL-CLOSED boot refusal — never a silent
+    /// degrade to an unpinned (cell-isolation-disabled) serve.
+    CellPinUndeterminable(String),
 }
 
 impl std::fmt::Display for MtlsBootError {
@@ -78,6 +85,11 @@ impl std::fmt::Display for MtlsBootError {
             Self::ServerConfig(detail) => {
                 write!(f, "mTLS server config rejected, refusing to boot: {detail}")
             }
+            Self::CellPinUndeterminable(detail) => write!(
+                f,
+                "mTLS server leaf does not yield a cell-rooted SPIFFE identity, \
+                 refusing to boot (caller cell-pinning is mandatory under mTLS): {detail}"
+            ),
         }
     }
 }
@@ -510,10 +522,27 @@ mod tests {
         assert_eq!(bound.as_str(), "ten_acme");
     }
 
-    // Without a cell pin (the plain-TCP / contract-test PEP), a foreign-cell SVID
-    // is NOT rejected on the cell axis — the legacy same-bundle behaviour stands.
+    // INVERTED (was `no_cell_pin_does_not_reject_foreign_cell`, which BLESSED the
+    // MAJOR fail-open on PR #796): under mTLS a server leaf that yields no
+    // derivable cell pin is now a FAIL-CLOSED boot refusal, NOT a served no-pin
+    // PEP. `SpiffeCallerAuth::new` (the no-pin constructor) remains legitimate ONLY
+    // for the genuinely separate plain-TCP / contract-test path, which no foreign
+    // caller can reach over mTLS — because `MtlsContext::new` refuses to construct
+    // (and thus to serve) without a cell pin. The boot-refusal proofs for the
+    // no-SAN / multi-SAN / malformed-SAN mTLS server leaves live with
+    // `MtlsContext` in `tests/mtls_live_socket.rs`.
+    //
+    // This unit test pins the residual TRUE statement: the no-pin PEP itself does
+    // not enforce the cell axis (that is by design for plain-TCP), so the cell
+    // boundary MUST be enforced one layer up (the MtlsContext boot precondition) —
+    // which it now is, fail-closed.
     #[test]
-    fn no_cell_pin_does_not_reject_foreign_cell() {
+    fn no_pin_pep_is_plain_tcp_only_and_mtls_cannot_build_it_without_a_cell() {
+        use crate::mtls_transport::MtlsContext;
+        use oya_cloud_os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
+
+        // Residual TRUE fact: the no-pin PEP (plain-TCP path) does not reject on the
+        // cell axis. This is acceptable ONLY because mTLS can never reach it.
         let (mut svc, ca_signer) = service();
         let foreign = issue_leaf(
             &mut svc,
@@ -526,6 +555,31 @@ mod tests {
             .authenticate_caller(Some(&foreign), "ten_acme", 2_500)
             .unwrap();
         assert_eq!(bound.as_str(), "ten_acme");
+
+        // The closure: a no-URI-SAN mTLS server leaf can NEVER produce an
+        // (unpinned) MtlsContext — `MtlsContext::new` boot-refuses fail-closed, so
+        // the no-pin PEP above is unreachable over mTLS.
+        let (svc2, ca2) = service();
+        let no_san_server = {
+            let srv = EcdsaP256Signer::generate().unwrap();
+            let server_leaf = Certificate {
+                serial: 1,
+                subject: DistinguishedName::common("oya-cloud-iam-pdp"),
+                issuer: DistinguishedName::common("oyatie-cell-7-ca"),
+                validity: Validity { not_before: 1_000, not_after: 9_000 },
+                usage: CertUsage::ServerAuth,
+                sans: SubjectAltNames::default(), // NO URI SAN
+                public_key_der: srv.public_key_spki_der(),
+                signature: vec![0x01],
+            };
+            der::encode_leaf_der(&server_leaf, &srv, svc2.ca_certificate(), &ca2).unwrap()
+        };
+        let bundle2 = trusted_bundle(&svc2, &ca2);
+        let srv_key = EcdsaP256Signer::generate().unwrap().private_key_der();
+        let err = MtlsContext::new(bundle2, vec![no_san_server], srv_key)
+            .err()
+            .expect("a no-URI-SAN mTLS server leaf must boot-refuse, never serve unpinned");
+        assert!(matches!(err, MtlsBootError::CellPinUndeterminable(_)));
     }
 
     // RED-fixture: issuance_policy_rejects_ca_leaf — regression guard that a

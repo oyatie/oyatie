@@ -165,10 +165,25 @@ pub async fn start_with_mtls(
     };
     let bundle = mtls.as_ref().map(MtlsContext::bundle);
     // The PDP's own cell authority (derived from its server SVID) pins a caller's
-    // cell. `None` when no server-leaf SPIFFE id is present (legacy node cert).
+    // cell. ALWAYS present whenever an `MtlsContext` is in use: deriving it is a
+    // fail-closed boot precondition in `MtlsContext::new`, so an mTLS serve can
+    // NEVER run without the cell pin (belt-and-suspenders — this `Some(..)` is
+    // guaranteed by construction, never an unpinned mTLS serve).
     let expected_cell = mtls
         .as_ref()
-        .and_then(|ctx| ctx.expected_cell_authority().map(str::to_owned));
+        .map(|ctx| ctx.expected_cell_authority().to_owned());
+
+    // Belt-and-suspenders fail-closed gate: it is IMPOSSIBLE to serve mTLS
+    // without a derived cell pin. `MtlsContext::new` already guarantees the pin,
+    // so this can only fire on a future regression — and if it ever did, we
+    // boot-refuse rather than serve mTLS with cell-isolation silently disabled.
+    if mtls.is_some() && expected_cell.is_none() {
+        return Err(StartError::Mtls(MtlsBootError::CellPinUndeterminable(
+            "mTLS context present without a derived cell pin (cell-isolation would \
+             be disabled) — refusing to serve"
+                .to_string(),
+        )));
+    }
 
     let rest_listener = TcpListener::bind(&config.rest_addr)
         .await

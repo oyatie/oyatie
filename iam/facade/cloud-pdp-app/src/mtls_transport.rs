@@ -163,19 +163,32 @@ pub struct MtlsContext {
     server_key_pkcs8_der: Vec<u8>,
     /// The cell authority (`oyatie.cell-<id>`) the PDP serves, derived from its
     /// OWN server leaf's SPIFFE id (`spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp`).
-    /// `None` when the server leaf carries no SPIFFE URI SAN (a legacy node-style
-    /// server cert) — then caller cell-pinning is not enforced.
-    expected_cell_authority: Option<String>,
+    /// ALWAYS present: deriving it is a FAIL-CLOSED boot precondition under mTLS
+    /// ([`MtlsContext::new`] refuses to construct when it cannot be derived), so an
+    /// `MtlsContext` can never serve mTLS without enforcing caller cell-pinning.
+    expected_cell_authority: String,
 }
 
 impl MtlsContext {
     /// Build the mTLS context from a trust bundle, the PDP server leaf chain
     /// (DER), and the PDP server private key (PKCS#8 DER).
     ///
+    /// Deriving the PDP's OWN cell authority from its server leaf is a FAIL-CLOSED
+    /// boot precondition: under mTLS the operator ALWAYS mints a single
+    /// cell-rooted server leaf (`spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp`),
+    /// so the cell pin is MANDATORY. An empty chain, a leaf with no / more than one
+    /// URI SAN, or a URI that is not a cell-rooted SPIFFE id is a boot REFUSAL —
+    /// the PDP never serves mTLS without enforcing caller cell-pinning (that would
+    /// silently disable cell-isolation, letting a foreign-cell SVID reach Cedar).
+    ///
     /// # Errors
     /// [`MtlsBootError::TrustBundleEmpty`] when the bundle holds no anchors — a
     /// server that cannot prove a trust root must never accept a caller
     /// (boot-fatal, mirroring [`SpiffeCallerAuth::new`]).
+    /// [`MtlsBootError::CellPinUndeterminable`] when the server leaf does not yield
+    /// a single cell-rooted SPIFFE identity (no/multi URI SAN, malformed, or
+    /// non-cell-rooted) — the cell pin cannot be established, so the boot is
+    /// refused fail-closed.
     pub fn new(
         bundle: TrustBundle<EcdsaP256Signer>,
         server_chain_der: Vec<Vec<u8>>,
@@ -187,15 +200,23 @@ impl MtlsContext {
         // Derive the PDP's OWN cell authority from its server leaf's SPIFFE id
         // (the leaf is the existing source of truth; the operator mints it as
         // `spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp`). The leaf has already
-        // been validated by rustls at boot, so we only READ its identity here. A
-        // server leaf with no SPIFFE URI SAN (a legacy node-style cert) yields no
-        // cell — caller cell-pinning is then absent (legacy behaviour), never a
-        // boot failure (this is additive hardening, not a new boot precondition).
-        let expected_cell_authority = server_chain_der
-            .first()
-            .and_then(|leaf| leaf_der::extract_single_uri_san(leaf).ok())
-            .and_then(|uri| SpiffeId::parse(&uri).ok())
-            .map(|id| id.trust_domain_authority().to_string());
+        // been validated by rustls at boot, so we only READ its identity here —
+        // but READING it is MANDATORY and FAIL-CLOSED: every failure below is a
+        // boot refusal, never a silent `None` that would disable cell-pinning.
+        let leaf = server_chain_der.first().ok_or_else(|| {
+            MtlsBootError::CellPinUndeterminable("mTLS server leaf chain is empty".to_string())
+        })?;
+        let uri = leaf_der::extract_single_uri_san(leaf).map_err(|err| {
+            MtlsBootError::CellPinUndeterminable(format!(
+                "server leaf URI SAN unusable for cell derivation: {err:?}"
+            ))
+        })?;
+        let server_spiffe_id = SpiffeId::parse(&uri).map_err(|err| {
+            MtlsBootError::CellPinUndeterminable(format!(
+                "server leaf SPIFFE id is not cell-rooted: {err}"
+            ))
+        })?;
+        let expected_cell_authority = server_spiffe_id.trust_domain_authority().to_string();
         let server_chain = server_chain_der.into_iter().map(CertificateDer::from).collect();
         Ok(Self {
             bundle: Arc::new(bundle),
@@ -247,12 +268,12 @@ impl MtlsContext {
         Arc::clone(&self.bundle)
     }
 
-    /// The PDP's own cell authority (`oyatie.cell-<id>`), derived from its server
-    /// leaf's SPIFFE id, used to pin a caller's cell. `None` when the server leaf
-    /// carries no SPIFFE URI SAN (legacy node-style cert).
+    /// The PDP's own cell authority (`oyatie.cell-<id>`), derived (fail-closed at
+    /// construction) from its server leaf's SPIFFE id, used to pin a caller's
+    /// cell. ALWAYS present — an `MtlsContext` cannot exist without it.
     #[must_use]
-    pub fn expected_cell_authority(&self) -> Option<&str> {
-        self.expected_cell_authority.as_deref()
+    pub fn expected_cell_authority(&self) -> &str {
+        &self.expected_cell_authority
     }
 
     /// Build the rustls [`TlsAcceptor`] (aws-lc-rs provider, NO ring) requiring a
