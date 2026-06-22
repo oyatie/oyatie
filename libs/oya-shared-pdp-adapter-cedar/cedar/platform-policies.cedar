@@ -15,6 +15,25 @@ when {
   principal.tenant_id != resource.tenant_id
 };
 
+// Security-critical global gate, encoded as a FORBID so it cannot be bypassed.
+// Reading a restricted-classified resource WITHOUT an asserted step-up class
+// "a" is forbidden. Forbid-overrides-permit makes this unconditional: a
+// per-tenant overlay `permit` (or any future permit) can NEVER grant a
+// restricted read without step-up, because the union is permit-union and a
+// deny-by-OMISSION gate (the abac-step-up-restricted-read permit alone) would
+// otherwise be defeated by any overlay permit. The `unless` carries the sole
+// exception: a principal that HAS step_up_class "a". (step_up_class is optional
+// in the schema, so the `has` guard is load-bearing: a principal without the
+// attribute does not satisfy the unless and the read stays forbidden.)
+@id("forbid-restricted-read-without-step-up")
+forbid (
+  principal,
+  action == OyaPlatform::Action::"ReadResource",
+  resource
+)
+when { resource.data_class == "restricted" }
+unless { principal has step_up_class && principal.step_up_class == "a" };
+
 // RBAC example: group-based grant. Members of the tenant-admins group may
 // administer their own tenant (the when-clause keeps the grant tenant-scoped;
 // the structural forbid above backs it unconditionally).

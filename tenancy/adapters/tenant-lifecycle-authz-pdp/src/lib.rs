@@ -115,6 +115,7 @@ fn tenancy_bundle() -> Result<PolicyBundle, PdpError> {
         version,
         schema_src: SCHEMA_SRC.to_owned(),
         policies_src: POLICIES_SRC.to_owned(),
+        tenant_policies: BTreeMap::new(),
         templates: Vec::new(),
         template_links: Vec::new(),
         action_map,
