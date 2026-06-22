@@ -63,6 +63,7 @@ pub fn seed_bundle(version: &str, template_links: Vec<TemplateLink>) -> PolicyBu
         version: PolicyVersion::new(version).unwrap(),
         schema_src: SCHEMA_SRC.to_owned(),
         policies_src: POLICIES_SRC.to_owned(),
+        tenant_policies: BTreeMap::new(),
         templates: vec![TemplateSrc {
             template_id: TEMPLATE_ID.to_owned(),
             src: TEMPLATE_SRC.to_owned(),

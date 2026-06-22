@@ -35,9 +35,9 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex, RwLock};
 
 use cedar_policy::{
-    Authorizer, Context, Decision as CedarDecision, Entities, Entity, EntityId, EntityTypeName,
-    EntityUid, PolicyId, PolicySet, Request, RestrictedExpression, Schema, SlotId, Template,
-    ValidationMode, Validator,
+    Authorizer, Context, Decision as CedarDecision, Effect, Entities, Entity, EntityId,
+    EntityTypeName, EntityUid, PolicyId, PolicySet, Request, RestrictedExpression, Schema, SlotId,
+    Template, ValidationMode, Validator,
 };
 
 use oya_shared_pdp_kernel::{
@@ -56,9 +56,37 @@ const OBLIGATION_ANNOTATION: &str = "obligation";
 struct LoadedBundle {
     version: PolicyVersion,
     schema: Schema,
+    /// The global policy set (structural forbid + RBAC/ABAC/PBAC). Served to
+    /// any request whose tenant has no overlay.
     policy_set: PolicySet,
+    /// Per-tenant MERGED policy sets: `tenant_id` -> (global ∪ that tenant's
+    /// overlay). Built at compile so the request path stays a single
+    /// `is_authorized` over one `PolicySet` (ADR-0243: one decision
+    /// algorithm). A tenant absent from this map falls back to `policy_set`.
+    /// The merge is per-tenant, so one tenant's overlay can NEVER appear in
+    /// another tenant's set — isolation is structural at selection.
+    tenant_policy_sets: BTreeMap<String, PolicySet>,
     action_map: BTreeMap<String, String>,
 }
+
+impl LoadedBundle {
+    /// The policy set to decide `tenant_id` against: the per-tenant merged set
+    /// (global ∪ that tenant's overlay) when one exists, else the global set.
+    /// A tenant NEVER sees another tenant's overlay — the BTreeMap is keyed by
+    /// the owning tenant, so selection is structural.
+    fn policy_set_for(&self, tenant_id: &str) -> &PolicySet {
+        self.tenant_policy_sets
+            .get(tenant_id)
+            .unwrap_or(&self.policy_set)
+    }
+}
+
+/// Separator joining an overlay's owning tenant to its authored policy id when
+/// the overlay policy is merged into the per-tenant set. A global `@id` is a
+/// Cedar id which never contains `/` in the seed corpus; namespacing overlay
+/// ids this way keeps them disjoint from global ids and from each other, and a
+/// residual collision still fails closed via `PolicySet::add`.
+const OVERLAY_ID_SEP: &str = "/";
 
 /// The embedded Cedar PDP. One instance per process; the policy-store
 /// delivery fabric swaps bundles in place via [`CedarPdp::swap_bundle`].
@@ -172,12 +200,206 @@ fn compile(bundle: &PolicyBundle) -> Result<LoadedBundle, PdpError> {
             detail: format!("strict validation failed: {}", errors.join("; ")),
         });
     }
+    let known_tenants: HashSet<&str> = bundle
+        .tenant_policies
+        .keys()
+        .map(String::as_str)
+        .collect();
+    let mut tenant_policy_sets = BTreeMap::new();
+    for (tenant_id, overlay_src) in &bundle.tenant_policies {
+        let merged = compile_tenant_overlay(
+            tenant_id,
+            overlay_src,
+            &policy_set,
+            &schema,
+            &known_tenants,
+        )?;
+        tenant_policy_sets.insert(tenant_id.clone(), merged);
+    }
     Ok(LoadedBundle {
         version: bundle.version.clone(),
         schema,
         policy_set,
+        tenant_policy_sets,
         action_map: bundle.action_map.clone(),
     })
+}
+
+/// Compile one tenant overlay into a MERGED policy set `global ∪ overlay`,
+/// fail-closed on any overlay that is not strict-valid OR could grant across a
+/// tenant boundary. Overlay policy ids are namespaced by the owning tenant so
+/// they cannot collide with the global set or another overlay; a residual
+/// collision still fails closed via `PolicySet::add`.
+fn compile_tenant_overlay(
+    tenant_id: &str,
+    overlay_src: &str,
+    global: &PolicySet,
+    schema: &Schema,
+    known_tenants: &HashSet<&str>,
+) -> Result<PolicySet, PdpError> {
+    let parsed = PolicySet::from_str(overlay_src).map_err(|e| PdpError::BundleRejected {
+        detail: format!("tenant {tenant_id} overlay rejected: {e}"),
+    })?;
+    // Start from a clone of the global set so the structural forbid (and every
+    // global permit) is present in the per-tenant decision — ONE algorithm.
+    let mut merged = global.clone();
+    for policy in parsed.policies() {
+        // Re-key by the authored @id (stable attribution), then namespace by
+        // the owning tenant so an overlay id can never collide with a global
+        // id or another tenant's overlay id.
+        let authored = match policy.annotation("id") {
+            Some(id) => policy.new_id(PolicyId::new(id)),
+            None => policy.clone(),
+        };
+        // THE LOAD-BEARING INVARIANT: an overlay must not be able to grant
+        // across a tenant boundary. Reject at LOAD so isolation is structural,
+        // not merely emergent from the runtime forbid.
+        reject_cross_tenant_overlay_policy(tenant_id, &authored, known_tenants)?;
+        let namespaced_id = format!("{tenant_id}{OVERLAY_ID_SEP}{}", authored.id());
+        let namespaced = authored.new_id(PolicyId::new(&namespaced_id));
+        merged
+            .add(namespaced)
+            .map_err(|e| PdpError::BundleRejected {
+                detail: format!("tenant {tenant_id} overlay policy {namespaced_id} rejected: {e}"),
+            })?;
+    }
+    // Strict-validate the MERGED set so an overlay that is individually
+    // parseable but inconsistent with the schema (or the global set) fails
+    // closed before it can serve.
+    let validation = Validator::new(schema.clone()).validate(&merged, ValidationMode::Strict);
+    if !validation.validation_passed() {
+        let errors: Vec<String> = validation
+            .validation_errors()
+            .map(|e| e.to_string())
+            .collect();
+        return Err(PdpError::BundleRejected {
+            detail: format!(
+                "tenant {tenant_id} overlay strict validation failed: {}",
+                errors.join("; ")
+            ),
+        });
+    }
+    Ok(merged)
+}
+
+/// Reject (fail-closed `BundleRejected`) any overlay policy that could grant
+/// across a tenant boundary. Tenant identity in this model is an ATTRIBUTE
+/// (`principal.tenant_id` / `resource.tenant_id`) resolved from the per-request
+/// entity slice, NOT part of an entity uid — so a cross-tenant grant need carry
+/// no foreign tenant literal and no scope pin (e.g. `permit(...) when {true}`).
+/// The only sound, semantic-solver-free load invariant is a STRUCTURAL
+/// allowlist on the overlay's shape:
+///
+/// - a `forbid` can only deny — always safe;
+/// - a `permit` MUST carry the canonical same-tenant guard
+///   `principal.tenant_id == resource.tenant_id`, so every grant is confined
+///   to one tenant by construction.
+///
+/// A secondary denylist also rejects any policy whose EST text names a foreign
+/// tenant id as a string literal (belt-and-suspenders; the allowlist carries
+/// the invariant).
+fn reject_cross_tenant_overlay_policy(
+    tenant_id: &str,
+    policy: &cedar_policy::Policy,
+    known_tenants: &HashSet<&str>,
+) -> Result<(), PdpError> {
+    let json = policy.to_json().map_err(|e| PdpError::BundleRejected {
+        detail: format!("tenant {tenant_id} overlay policy {} not introspectable: {e}", policy.id()),
+    })?;
+    // Secondary denylist: a foreign tenant id appearing as a string literal is
+    // an unambiguous cross-tenant authoring smell — reject regardless of shape.
+    if let Some(foreign) = first_foreign_tenant_literal(&json, tenant_id, known_tenants) {
+        return Err(PdpError::BundleRejected {
+            detail: format!(
+                "tenant {tenant_id} overlay policy {} names foreign tenant {foreign:?} — \
+                 an overlay may never reference another tenant",
+                policy.id()
+            ),
+        });
+    }
+    // A forbid can only ever DENY; it cannot grant across (or within) a tenant.
+    if policy.effect() == Effect::Forbid {
+        return Ok(());
+    }
+    // A permit must be confined to its tenant by the canonical same-tenant
+    // guard, else it could grant across the tenant boundary.
+    if json_contains_same_tenant_guard(&json) {
+        Ok(())
+    } else {
+        Err(PdpError::BundleRejected {
+            detail: format!(
+                "tenant {tenant_id} overlay permit {} is not tenant-confined: every overlay \
+                 permit must carry the same-tenant guard \
+                 `principal.tenant_id == resource.tenant_id`",
+                policy.id()
+            ),
+        })
+    }
+}
+
+/// Recursively search the EST JSON for the canonical same-tenant guard:
+/// an `==` node whose two operands are BOTH a `tenant_id` attribute access,
+/// one on the `principal` var and one on the `resource` var (order-independent).
+fn json_contains_same_tenant_guard(node: &serde_json::Value) -> bool {
+    if let Some(eq) = node.get("==").and_then(serde_json::Value::as_object) {
+        let (Some(left), Some(right)) = (eq.get("left"), eq.get("right")) else {
+            return false;
+        };
+        let left_var = tenant_id_attr_access_var(left);
+        let right_var = tenant_id_attr_access_var(right);
+        if let (Some(l), Some(r)) = (left_var, right_var)
+            && ((l == "principal" && r == "resource") || (l == "resource" && r == "principal"))
+        {
+            return true;
+        }
+    }
+    match node {
+        serde_json::Value::Object(map) => {
+            map.values().any(json_contains_same_tenant_guard)
+        }
+        serde_json::Value::Array(items) => {
+            items.iter().any(json_contains_same_tenant_guard)
+        }
+        _ => false,
+    }
+}
+
+/// If `node` is an EST attribute access of the form
+/// `{ ".": { "left": { "Var": V }, "attr": "tenant_id" } }`, return `V`.
+fn tenant_id_attr_access_var(node: &serde_json::Value) -> Option<&str> {
+    let access = node.get(".").and_then(serde_json::Value::as_object)?;
+    if access.get("attr").and_then(serde_json::Value::as_str)? != "tenant_id" {
+        return None;
+    }
+    access
+        .get("left")?
+        .get("Var")
+        .and_then(serde_json::Value::as_str)
+}
+
+/// Recursively find the first EST string-literal value (`{ "Value": "<s>" }`)
+/// that equals a KNOWN tenant id other than `owning_tenant`. Returns the
+/// foreign tenant id when found.
+fn first_foreign_tenant_literal<'a>(
+    node: &'a serde_json::Value,
+    owning_tenant: &str,
+    known_tenants: &HashSet<&str>,
+) -> Option<&'a str> {
+    if let Some(serde_json::Value::String(s)) = node.get("Value")
+        && s.as_str() != owning_tenant
+        && known_tenants.contains(s.as_str())
+    {
+        return Some(s.as_str());
+    }
+    match node {
+        serde_json::Value::Object(map) => map
+            .values()
+            .find_map(|v| first_foreign_tenant_literal(v, owning_tenant, known_tenants)),
+        serde_json::Value::Array(items) => items
+            .iter()
+            .find_map(|v| first_foreign_tenant_literal(v, owning_tenant, known_tenants)),
+        _ => None,
+    }
 }
 
 fn entity_uid(entity_ref: &EntityRef) -> Result<EntityUid, PdpError> {
@@ -238,6 +460,7 @@ impl CedarPdp {
     fn evaluate(
         &self,
         state: &LoadedBundle,
+        policy_set: &PolicySet,
         request: &AuthorizationRequest,
         entities: &EntitySlice,
     ) -> Result<CachedDecision, PdpError> {
@@ -281,7 +504,7 @@ impl CedarPdp {
             })?;
         let response =
             self.authorizer
-                .is_authorized(&cedar_request, &state.policy_set, &cedar_entities);
+                .is_authorized(&cedar_request, policy_set, &cedar_entities);
         let decision = match response.decision() {
             CedarDecision::Allow => Decision::Allow,
             CedarDecision::Deny => Decision::Deny,
@@ -295,8 +518,11 @@ impl CedarPdp {
         let mut obligations = Vec::new();
         if decision.is_allow() {
             for policy_id in response.diagnostics().reason() {
-                let annotation = state
-                    .policy_set
+                // Look up obligations against the SAME set we evaluated (the
+                // per-tenant merged set when an overlay applied), never the
+                // global set — else an overlay permit's @obligation is silently
+                // dropped (a fail-open on obligation enforcement).
+                let annotation = policy_set
                     .policy(policy_id)
                     .and_then(|p| p.annotation(OBLIGATION_ANNOTATION));
                 if let Some(obligation_id) = annotation {
@@ -397,7 +623,12 @@ impl PolicyDecisionPoint for CedarPdp {
         if let Some(content) = cached {
             return self.outcome(request, &state.version, &content, true);
         }
-        let content = self.evaluate(&state, request, entities)?;
+        // Select the decision set by the SVID-bound tenant: the per-tenant
+        // merged set (global ∪ that tenant's overlay) when it exists, else the
+        // global set. A tenant can never be evaluated against another tenant's
+        // overlay (the selection is keyed by the request's own tenant_id).
+        let policy_set = state.policy_set_for(&request.tenant_id);
+        let content = self.evaluate(&state, policy_set, request, entities)?;
         {
             let mut cache = self.cache.lock().map_err(|_| PdpError::Evaluation {
                 detail: "decision cache lock poisoned".to_owned(),
