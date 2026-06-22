@@ -10,6 +10,7 @@
     "build_config": { "ttl_class": "build_config", "budget_days": null, "action": "report",  "protected": true  },
     "generated":    { "ttl_class": "generated",    "budget_days": null, "action": "report",  "protected": false },
     "ephemeral":    { "ttl_class": "ephemeral",    "budget_days": 2,    "action": "archive", "protected": false },
-    "husk":         { "ttl_class": "husk",         "budget_days": 14,   "action": "archive", "protected": false }
+    "husk":         { "ttl_class": "husk",         "budget_days": 14,   "action": "archive", "protected": false },
+    "scratch":      { "ttl_class": "scratch",      "budget_days": 0,    "action": "delete",  "protected": false }
   }
 }

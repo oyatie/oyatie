@@ -49,6 +49,12 @@
       "protected": true,
       "ttl_class": "registry"
     },
+    "scratch": {
+      "action": "delete",
+      "budget_days": 0,
+      "protected": false,
+      "ttl_class": "scratch"
+    },
     "spec": {
       "action": "report",
       "budget_days": null,
