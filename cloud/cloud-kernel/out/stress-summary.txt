@@ -1,9 +1,0 @@
-########## STRESS aarch64 talos  (10x -smp 4) ##########
-scripts/stress-smp.sh: line 8: 2: talos|demo
-########## STRESS aarch64 demo  (10x -smp 4) ##########
-scripts/stress-smp.sh: line 8: 2: talos|demo
-########## STRESS x86_64 talos  (10x -smp 4) ##########
-scripts/stress-smp.sh: line 8: 2: talos|demo
-########## STRESS x86_64 demo  (10x -smp 4) ##########
-scripts/stress-smp.sh: line 8: 2: talos|demo
-===== FULL SUMMARY =====

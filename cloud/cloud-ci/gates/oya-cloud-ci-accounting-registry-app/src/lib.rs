@@ -173,11 +173,18 @@ impl Policy {
     /// There are NO hard-coded carve-outs here — every exception is a row above.
     pub fn classify(&self, path: &str) -> &str {
         for rule in &self.rules {
+            // `root_*` kinds are generic predicates (NOT scratch special-cases): a path is
+            // "at repo root" iff it carries no `/` separator. They let the DATA table express
+            // root-anchored carve-outs (e.g. the scratch-artifact class) without a glob engine,
+            // keeping the classifier branch-per-KIND, never branch-per-path.
+            let is_root = !path.contains('/');
             let hit = match rule.kind.as_str() {
                 "prefix" => path.starts_with(&rule.value),
                 "suffix" => path.ends_with(&rule.value),
                 "contains" => path.contains(&rule.value),
                 "exact" => path == rule.value,
+                "root_suffix" => is_root && path.ends_with(&rule.value),
+                "root_exact" => is_root && path == rule.value,
                 _ => false,
             };
             if hit {

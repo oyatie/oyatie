@@ -13,6 +13,8 @@
 //! - `unreachable`     — `reachable_from` is empty / resolves to no live masterplan node
 //! - `no_ttl_class`    — row has no `ttl.ttl_class` (feeds Gate-3)
 //! - `registry_drift`  — committed registry != regenerated (hand-edit ⇒ RED)
+//! - `scratch_artifact`— row is unit_class `scratch` (build/test scratch by SHAPE, not
+//!   registration; frozen_empty zero-tolerance — cannot be laundered by owner/justification)
 //!
 //! The evaluator is pure: fixtures (data-under-test) drive it; there are no scanner
 //! special-cases. ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
@@ -26,14 +28,15 @@ use serde_json::Value;
 /// The gate id, matching the buck2 target + the §5.2 contract.
 pub const GATE_ID: &str = "cloud-ci-total-accounting";
 
-/// The six blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 6] = [
+/// The blocking codes, in canonical order. The fixtures pin exact subsets.
+pub const VIOLATION_CODES: [&str; 7] = [
     "unaccounted",
     "unowned",
     "unjustified",
     "unreachable",
     "no_ttl_class",
     "registry_drift",
+    "scratch_artifact",
 ];
 
 /// The gate report.
@@ -160,6 +163,16 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
 /// keyed by the row `path` (empty when absent — still a stable key for that row).
 fn evaluate_row(row: &Value, findings: &mut BTreeSet<Finding>) {
     let key = row.get("path").and_then(Value::as_str).unwrap_or("");
+
+    // scratch_artifact: a SHAPE-based class (build/test scratch identified by name/location
+    // via the producer's unit-class-policy DATA table, NOT by registration). This fires on the
+    // class alone, BEFORE any owner/justification/reachability check, so registering those
+    // fields CANNOT launder a scratch-shaped artifact past the gate — the registration-bypass
+    // hole the generic husk-block-on-new leaves open (ADR-0555; founder "impossible to commit
+    // scratch"). Disposition pins it frozen_empty ⇒ zero-tolerance, never grandfathered.
+    if row.get("unit_class").and_then(Value::as_str) == Some("scratch") {
+        findings.insert(Finding::new("scratch_artifact", key));
+    }
 
     // owner: null/empty ⇒ unowned
     if !field_non_empty_string(row, "owner") {
@@ -314,5 +327,37 @@ mod tests {
         // registry_drift
         assert!(evaluate(&json!({"registry_hand_edited":true,"rows":[]}))
             .violations.contains("registry_drift"));
+        // scratch_artifact (unit_class scratch fires regardless of other fields)
+        assert!(evaluate(&json!({"rows":[{"path":"x.log","unit_class":"scratch","owner":"o","justification_ref":"ADR-1","reachable_from":["masterplan"],"ttl":{"ttl_class":"scratch"}}]}))
+            .violations.contains("scratch_artifact"));
+    }
+
+    #[test]
+    fn scratch_artifact_cannot_be_laundered_by_registration() {
+        // The registration-bypass hole the generic husk-block-on-new leaves open: a scratch
+        // file that registers owner + resolving justification + reachability + ttl_class would
+        // emit ZERO of the per-row debt codes. The SHAPE-based scratch_artifact code closes it —
+        // it fires on unit_class alone, so a fully-registered scratch row is STILL RED and the
+        // ONLY violation is scratch_artifact (no unowned/unjustified/unreachable/no_ttl_class).
+        let fully_registered_scratch = json!({
+            "rows": [{
+                "path": "run-slice.sh",
+                "unit_class": "scratch",
+                "owner": "platform-ci",
+                "justification_ref": "ADR-0555",
+                "justification_resolves": true,
+                "reachable_from": ["specs/masterplan.json"],
+                "ttl": {"ttl_class": "scratch", "budget_days": 0, "action": "delete", "protected": false}
+            }]
+        });
+        let findings = evaluate_keyed(&fully_registered_scratch);
+        assert!(findings.contains(&Finding::new("scratch_artifact", "run-slice.sh")));
+        let codes: BTreeSet<String> = findings.iter().map(|f| f.code.clone()).collect();
+        assert_eq!(
+            codes,
+            BTreeSet::from(["scratch_artifact".to_owned()]),
+            "a fully-registered scratch row must fire ONLY scratch_artifact (registration cannot suppress the shape-based code, and cannot leave any other debt code)"
+        );
+        assert_eq!(evaluate(&fully_registered_scratch).verdict, Verdict::Red);
     }
 }
