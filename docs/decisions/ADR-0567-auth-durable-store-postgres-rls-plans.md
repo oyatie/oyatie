@@ -91,16 +91,36 @@ by this decision:
 
 `iam/adapters/identity-scim-store-postgres/BUCK`,
 `iam/adapters/identity-scim-store-postgres/Cargo.toml`,
+`iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql`,
 `iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql`,
 `iam/adapters/identity-scim-store-postgres/src/lib.rs`,
 `iam/adapters/identity-scim-store-postgres/tests/live_rls.rs`,
 `tenancy/adapters/tenant-lifecycle-store-postgres/BUCK`,
 `tenancy/adapters/tenant-lifecycle-store-postgres/Cargo.toml`,
+`tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql`,
 `tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql`,
 `tenancy/adapters/tenant-lifecycle-store-postgres/src/lib.rs`,
 `tenancy/adapters/tenant-lifecycle-store-postgres/tests/live_rls.rs`,
 `registry/catalog/identity-scim-store-postgres.yaml`,
 `registry/catalog/tenancy-tenant-lifecycle-store-postgres.yaml`.
+
+Amendment (task #113, runtime-role provisioning): the `0001` RLS policies scope `TO
+<runtime_role>` (NOT PUBLIC), so the role MUST pre-exist or the migration fails, and the shared
+boot guard requires the serving login to be a USAGE-member of that role. Each adapter therefore
+ships a runtime-role contract migration applied FIRST —
+`iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql` (idempotent
+`CREATE ROLE identity_scim_runtime NOLOGIN NOBYPASSRLS` + schema + `USAGE` grant) and
+`tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql`
+(`tenancy_lifecycle_runtime`), mirroring the oya-data outbox precedent (ADR-0569 D3/D5). Both new
+`0000_runtime_role.sql` paths are owned by the SAME `iam/OWNERS` / `tenancy/OWNERS` =
+`axis-cloud-platform` capability owner above (subtree coverage) and reachable via the adapter
+member-dir prefix; the per-table privilege grants to the runtime role live in `0001` alongside the
+tables they target. Live end-to-end verification is pending the live-PG CI lane (task #101,
+founder-gated/deferred); the SQL mirrors the proven outbox precedent. Note on
+`unit_class: husk` / `verdict: ARCHIVE` for these migration files: the accounting-registry
+reaper never fires on a file whose `reachable_from` is non-empty (archive-not-rm); the
+classification is inert-by-reachability — the same posture the outbox `0000_runtime_role.sql`
+carries — and requires no follow-up action.
 
 ## Precedent
 
