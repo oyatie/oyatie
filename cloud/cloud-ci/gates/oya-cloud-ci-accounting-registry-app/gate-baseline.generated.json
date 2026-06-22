@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:dc9fb0f3bf98e1d2"
+    "source_inputs_digest": "fnv1a64:6c7826ea94f95012"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5749,6 +5749,9 @@
           "cloud/cloud-iam/iac/k8s/helm/templates/configmap.yaml",
           "cloud/cloud-iam/iac/k8s/helm/templates/deployment.yaml",
           "cloud/cloud-iam/iac/k8s/helm/templates/service.yaml",
+          "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-deployment.yaml",
+          "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-pdb.yaml",
+          "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-rbac.yaml",
           "cloud/cloud-iam/iac/k8s/helm/values.yaml",
           "cloud/cloud-iam/manifest.json",
           "cloud/cloud-iam/migration-playbooks/from-okta-and-aws-iam.md",
@@ -36988,6 +36991,9 @@
           "cloud/cloud-iam/iac/k8s/helm/templates/configmap.yaml",
           "cloud/cloud-iam/iac/k8s/helm/templates/deployment.yaml",
           "cloud/cloud-iam/iac/k8s/helm/templates/service.yaml",
+          "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-deployment.yaml",
+          "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-pdb.yaml",
+          "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-rbac.yaml",
           "cloud/cloud-iam/iac/k8s/helm/values.yaml",
           "cloud/cloud-iam/manifest.json",
           "cloud/cloud-iam/migration-playbooks/from-okta-and-aws-iam.md",

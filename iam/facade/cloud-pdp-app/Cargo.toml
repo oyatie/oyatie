@@ -52,6 +52,11 @@ tonic-prost-build.workspace = true
 reqwest = { workspace = true }
 tower = { version = "0.5", default-features = false, features = ["util"] }
 http-body-util = { version = "0.1", default-features = false }
+# Keystone closure E2E (slice-1b-iii-c): drive the LIVE SVID-delivery operator's
+# issuance→Secret path so the PDP boots from OPERATOR-PRODUCED mTLS material (not
+# test-written), proving the operator closes the cert-delivery dimension. Dev-only.
+iam-identity-workload-svid-operator-k8s = { path = "../../adapters/identity-workload-svid-operator-k8s" }
+iam-identity-workload-svid-operator-kernel = { path = "../../core/identity-workload-svid-operator-kernel" }
 # Production-path closure E2E (slice-1b-iii): serialize real CA/leaf DER into the
 # operator-shaped kubernetes.io/tls PEM mount the production boot parses. Dev-only.
 base64 = { version = "0.22", default-features = false, features = ["std"] }

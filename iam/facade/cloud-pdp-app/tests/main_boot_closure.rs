@@ -500,3 +500,153 @@ fn from_path_garbage_pem_is_malformed() {
         "garbage CERTIFICATE body must be MalformedPem, got {err:?}"
     );
 }
+
+// =====================================================================
+// Fixture 4: KEYSTONE — the PDP boots from OPERATOR-PRODUCED material.
+// The mount is written by the live SVID-delivery operator's issuance→Secret path
+// (NOT hand-written by this test), and the caller SVID chains to the SAME CA the
+// operator delivered in ca.crt. THIS is what flips FRIC-1781490000 closed:
+// an operator-produced Secret yields a real ALLOW/deny mTLS handshake.
+// =====================================================================
+
+use iam_identity_workload_svid_operator_k8s::{
+    run_reconcile_once, SvidSecretMaterial, TrustdEcdsaIssuanceBackend,
+};
+use iam_identity_workload_svid_operator_kernel::{
+    Action, Clock as OperatorClock, DesiredState, ObservedState,
+};
+
+const OPERATOR_JOIN_TOKEN: &str = "clusterid.clustersecret";
+
+#[derive(Clone, Copy)]
+struct FixedOperatorClock {
+    now: u64,
+}
+
+impl OperatorClock for FixedOperatorClock {
+    fn now_epoch_seconds(&self) -> u64 {
+        self.now
+    }
+}
+
+/// Write the operator-produced PEM members to a mount dir the PDP boots from.
+fn write_operator_mount(tag: &str, material: &SvidSecretMaterial) -> PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "oya-cloud-iam-pdp-operator-{}-{tag}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    // The operator already emits PEM; write it verbatim (the on-mount shape).
+    std::fs::write(dir.join("tls.crt"), &material.tls_crt_pem).unwrap();
+    std::fs::write(dir.join("tls.key"), &material.tls_key_pem).unwrap();
+    std::fs::write(dir.join("ca.crt"), &material.ca_crt_pem).unwrap();
+    dir
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn operator_produced_secret_boots_pdp_and_yields_real_allow_deny_handshake() {
+    let iat = now_secs();
+
+    // 1. The LIVE operator mints the PDP server SVID Secret (cold-start Issue),
+    //    driving the SAME pure-kernel → trustd-issuer → kubernetes.io/tls path the
+    //    in-cluster operator runs. The mount is OPERATOR-PRODUCED, not test-written.
+    let mut backend = TrustdEcdsaIssuanceBackend::bootstrap(
+        "oyatie-cloud-iam-pdp-svid-ca",
+        OPERATOR_JOIN_TOKEN,
+        iat,
+        10_000_000,
+    )
+    .expect("operator CA bootstrap");
+    let desired = DesiredState {
+        spiffe_id: "spiffe://oyatie.cell-7/platform/cloud-iam-pdp".to_owned(),
+        ttl_secs: 10_000_000,
+        rotation_window_secs: 600,
+        secret_name: "oya-cloud-iam-pdp-svid".to_owned(),
+        secret_namespace: "cloud-iam".to_owned(),
+    };
+    let (report, material) = run_reconcile_once(
+        &ObservedState::absent(),
+        &desired,
+        &mut backend,
+        &FixedOperatorClock { now: iat },
+    )
+    .expect("operator reconcile issues on cold start");
+    assert!(
+        matches!(report.action, Action::Issue { .. }),
+        "cold start must be an Issue"
+    );
+    let material = material.expect("Issue must produce Secret material");
+    let mount = write_operator_mount("closure", &material);
+    let bundle_path = seed_bundle_file("operator-closure");
+
+    // 2. Boot the PDP through the PRODUCTION helper from the OPERATOR-produced mount.
+    let handle = server::boot_from_config(&config_for(&bundle_path, &mount))
+        .await
+        .expect("PDP must boot from the operator-produced Secret");
+
+    // 3. A caller SVID minted from the SAME operator CA (so it chains to the
+    //    delivered ca.crt) for ten_acme -> ALLOW, bound to the SVID tenant.
+    let (leaf, key) = backend
+        .issue_caller_svid(
+            "spiffe://oyatie.cell-7/tenant/ten_acme/wl",
+            10_000_000,
+            iat,
+        )
+        .expect("operator CA issues the caller SVID");
+    let (status, body) = post_authorize(
+        handle.rest_addr,
+        Some((leaf.clone(), key.clone())),
+        &authorize_body("ten_acme"),
+    )
+    .await
+    .expect("handshake + request");
+    assert_eq!(
+        status, 200,
+        "operator-delivered trust must ALLOW the trusted caller SVID: {body}"
+    );
+    assert!(
+        body.contains("\"decision\""),
+        "200 must carry a decision body, got {body}"
+    );
+
+    // 4. Cross-tenant: real SVID ten_acme, body ten_globex -> 403 (never 200/404).
+    let (status, body) = post_authorize(
+        handle.rest_addr,
+        Some((leaf, key)),
+        &authorize_body("ten_globex"),
+    )
+    .await
+    .expect("handshake + request");
+    assert_eq!(
+        status, 403,
+        "cross-tenant spoof must be 403 on the operator-booted PDP: {body}"
+    );
+
+    handle.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn pdp_fails_closed_when_operator_has_not_produced_the_secret() {
+    // The operator-produced Secret is the ONLY trust source: with no Secret yet
+    // (the operator has not run / the mount is absent), the PDP boot REFUSES —
+    // never falls back to plain TCP. This is the fail-closed guard for the
+    // cert-delivery dimension the operator owns.
+    let bundle_path = seed_bundle_file("operator-absent");
+    let absent = std::env::temp_dir().join(format!(
+        "oya-cloud-iam-pdp-operator-{}-absent-secret",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&absent);
+
+    let err = server::boot_from_config(&config_for(&bundle_path, &absent))
+        .await
+        .err()
+        .expect("absent operator Secret must be a boot refusal, never plain TCP");
+    assert!(
+        matches!(
+            err,
+            BootError::Material(MtlsMaterialError::MountUnreadable { .. })
+        ),
+        "absent operator Secret must be BootError::Material(MountUnreadable), got {err:?}"
+    );
+}
