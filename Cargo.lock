@@ -3139,6 +3139,8 @@ dependencies = [
  "iam-identity-workload-svid-operator-kernel",
  "iam-identity-workload-svid-trustd",
  "oya-cloud-os-trustd-domain",
+ "oya-shared-audit-digest-adapter-awslc",
+ "oya-shared-audit-event-kernel",
  "oya-shared-pdp-adapter-cedar",
  "oya-shared-pdp-kernel",
  "oya-shared-platform-contracts-kernel",
@@ -3165,8 +3167,11 @@ name = "iam-cloud-pdp-bundle-file"
 version = "0.1.0"
 dependencies = [
  "iam-cloud-pdp-kernel",
+ "oya-shared-audit-digest-adapter-awslc",
+ "oya-shared-audit-event-kernel",
  "oya-shared-pdp-kernel",
  "oya-shared-platform-contracts-kernel",
+ "serde",
  "serde_json",
 ]
 

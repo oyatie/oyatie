@@ -20,11 +20,14 @@ use iam_cloud_pdp_app::grpc::proto;
 use iam_cloud_pdp_app::server::{self, StartError};
 use iam_cloud_pdp_kernel::PdpConfig;
 
-use common::{entity_ref, entity_slice, request, seed_bundle, temp_bundle_file};
+use common::{
+    entity_ref, entity_slice, request, seed_bundle, signed_bundle_doc, temp_bundle_file, trust_dir,
+};
 
 fn config_for(bundle_path: &std::path::Path) -> PdpConfig {
     PdpConfig {
         bundle_path: bundle_path.to_string_lossy().into_owned(),
+        bundle_trust_dir: trust_dir("e2e").to_string_lossy().into_owned(),
         rest_addr: "127.0.0.1:0".to_owned(),
         grpc_addr: "127.0.0.1:0".to_owned(),
         decision_cache_capacity: 64,
@@ -35,7 +38,8 @@ fn config_for(bundle_path: &std::path::Path) -> PdpConfig {
 #[tokio::test(flavor = "multi_thread")]
 async fn serves_decisions_over_live_rest_and_grpc_sockets() {
     let bundle = seed_bundle(common::SEED_VERSION, vec![]);
-    let path = temp_bundle_file("green", &serde_json::to_string(&bundle).unwrap());
+    let inner = serde_json::to_string(&bundle).unwrap();
+    let path = temp_bundle_file("green", &signed_bundle_doc(&inner));
     let handle = server::start(&config_for(&path)).await.expect("boots");
     let base = format!("http://{}", handle.rest_addr);
     let client = reqwest::Client::new();
@@ -151,11 +155,81 @@ async fn malformed_bundle_json_refuses_boot() {
     assert!(matches!(err, StartError::Bundle(_)), "{err}");
 }
 
+// =====================================================================
+// G004 bundle-signing slice RED fixtures (verify-on-load fail-closed boot).
+// =====================================================================
+
+#[tokio::test(flavor = "multi_thread")]
+async fn unsigned_bundle_file_refuses_boot() {
+    // A well-formed bundle wrapped in an envelope with NO signatures: the boot
+    // must refuse (StartError::Bundle from SignatureRejected); no socket serves.
+    let bundle = seed_bundle(common::SEED_VERSION, vec![]);
+    let inner = serde_json::to_string(&bundle).unwrap();
+    let doc = serde_json::json!({ "bundle": inner, "signatures": [] });
+    let path = temp_bundle_file("red-unsigned", &doc.to_string());
+    let err = server::start(&config_for(&path))
+        .await
+        .err()
+        .expect("unsigned bundle must refuse boot");
+    assert!(matches!(err, StartError::Bundle(_)), "{err}");
+    assert!(err.to_string().contains("refusing to boot"), "{err}");
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn tampered_signed_bundle_file_refuses_boot() {
+    // Sign a bundle, then flip a byte of the embedded inner bytes after signing:
+    // verify fails -> boot refusal, never a serving socket.
+    let bundle = seed_bundle(common::SEED_VERSION, vec![]);
+    let inner = serde_json::to_string(&bundle).unwrap();
+    let signed = signed_bundle_doc(&inner);
+    let mut doc: serde_json::Value = serde_json::from_str(&signed).unwrap();
+    let mut tampered = doc["bundle"].as_str().unwrap().to_owned().into_bytes();
+    let idx = tampered.len() / 2;
+    tampered[idx] = if tampered[idx] == b'x' { b'y' } else { b'x' };
+    doc["bundle"] = serde_json::json!(String::from_utf8(tampered).unwrap());
+    let path = temp_bundle_file("red-tampered", &doc.to_string());
+    let err = server::start(&config_for(&path))
+        .await
+        .err()
+        .expect("tampered bundle must refuse boot");
+    assert!(matches!(err, StartError::Bundle(_)), "{err}");
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn empty_trust_anchor_refuses_boot() {
+    // A validly-signed bundle but an EMPTY trust anchor dir (no trusted keys):
+    // the PDP cannot prove which keys to trust -> boot refusal.
+    let bundle = seed_bundle(common::SEED_VERSION, vec![]);
+    let inner = serde_json::to_string(&bundle).unwrap();
+    let path = temp_bundle_file("red-empty-trust", &signed_bundle_doc(&inner));
+    let empty_trust = std::env::temp_dir().join(format!(
+        "oya-cloud-iam-pdp-empty-trust-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&empty_trust).unwrap();
+    let config = PdpConfig {
+        bundle_path: path.to_string_lossy().into_owned(),
+        bundle_trust_dir: empty_trust.to_string_lossy().into_owned(),
+        rest_addr: "127.0.0.1:0".to_owned(),
+        grpc_addr: "127.0.0.1:0".to_owned(),
+        decision_cache_capacity: 64,
+        mtls_cert_dir: "/etc/oya-cloud-iam-pdp/tls".to_owned(),
+    };
+    let err = server::start(&config)
+        .await
+        .err()
+        .expect("empty trust anchor must refuse boot");
+    assert!(matches!(err, StartError::Bundle(_)), "{err}");
+}
+
 #[tokio::test(flavor = "multi_thread")]
 async fn invalid_cedar_policy_text_refuses_boot() {
     let mut bundle = seed_bundle(common::SEED_VERSION, vec![]);
     bundle.policies_src = "permit (principal, action".to_owned();
-    let path = temp_bundle_file("red-cedar", &serde_json::to_string(&bundle).unwrap());
+    // SIGNED so it passes verify-on-load and fails INSIDE the verified region at
+    // Cedar compile (proves the signature gate does not mask policy-load checks).
+    let inner = serde_json::to_string(&bundle).unwrap();
+    let path = temp_bundle_file("red-cedar", &signed_bundle_doc(&inner));
     let err = server::start(&config_for(&path))
         .await
         .err()

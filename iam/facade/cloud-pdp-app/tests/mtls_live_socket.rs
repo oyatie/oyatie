@@ -164,6 +164,7 @@ fn issue_server_leaf_with_uris(
 fn config_for(bundle_path: &std::path::Path) -> PdpConfig {
     PdpConfig {
         bundle_path: bundle_path.to_string_lossy().into_owned(),
+        bundle_trust_dir: common::trust_dir("mtls").to_string_lossy().into_owned(),
         rest_addr: "127.0.0.1:0".to_owned(),
         grpc_addr: "127.0.0.1:0".to_owned(),
         decision_cache_capacity: 64,
@@ -312,7 +313,8 @@ async fn boot_mtls() -> (
     // concurrent read of a mid-write file is an EOF parse error at boot).
     static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let tag = format!("mtls-{}", SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
-    let path = common::temp_bundle_file(&tag, &serde_json::to_string(&seed).unwrap());
+    let inner = serde_json::to_string(&seed).unwrap();
+    let path = common::temp_bundle_file(&tag, &common::signed_bundle_doc(&inner));
     let handle = server::start_with_mtls(&config_for(&path), Some(ctx))
         .await
         .expect("mTLS boot");
