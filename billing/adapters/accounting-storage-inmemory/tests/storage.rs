@@ -4,11 +4,11 @@ use billing_accounting_app::{
     plan_vat_workflow, post_journal_with_audit, record_payroll_posting,
 };
 use billing_accounting_journal::{
+    AccountingJournalStoragePort, AccountingStorageError, AccountingStoredRecordKind,
     JournalLineInput, JournalPostInput, Jurisdiction, PayrollPostingInput, PeriodState,
     VatDeadlineInput,
 };
 use billing_accounting_storage_inmemory_adapter::{
-    AccountingJournalStoragePort, AccountingStorageError, AccountingStoredRecordKind,
     InMemoryAccountingJournalStore, accounting_storage_capabilities,
 };
 
