@@ -6,7 +6,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| "../..".to_string()));
     // Dual-mode proto resolution: the buck2 buildscript genrule copies the
     // contract INTO the manifest dir (`<manifest>/contracts/proto`), while the
-    // cargo layout reaches the shared contract at `<crate>/../../contracts/proto`.
+    // cargo layout reaches the shared contract at
+    // `<crate>/../../../oya/identity/contracts/proto` (post-Move-18 reorg: the
+    // proto moved from iam/contracts/proto to oya/identity/contracts/proto;
+    // three levels up from iam/facade/identity-workload-rest reaches repo root,
+    // then oya/identity/contracts/proto). Buck2 already references the correct
+    // location via `//oya/identity/contracts/proto:workload.proto` in the BUCK
+    // genrule and is unaffected. Only the cargo-fallback path needed correction.
     // Probe the in-manifest (buck2/hermetic) location first, then the cargo
     // workspace location, so one build.rs serves both build systems.
     let in_manifest = manifest_dir.join("contracts/proto");
@@ -14,11 +20,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         in_manifest
     } else if manifest_dir.join("Cargo.toml").exists() {
         // Cargo builds run from the real crate directory, where Cargo.toml is
-        // present and the shared contract lives two levels up. Buck's generated
-        // manifest dir does not include Cargo.toml; in that mode a missing
-        // in-manifest proto is a hermetic-input error and must not be masked by
-        // falling back to a host-relative path.
-        manifest_dir.join("../../contracts/proto")
+        // present and the shared contract lives three levels up (post-Move-18).
+        // Buck's generated manifest dir does not include Cargo.toml; in that
+        // mode a missing in-manifest proto is a hermetic-input error and must
+        // not be masked by falling back to a host-relative path.
+        manifest_dir.join("../../../oya/identity/contracts/proto")
     } else {
         return Err(format!(
             "buck manifest dir {} is missing contracts/proto/workload.proto",
