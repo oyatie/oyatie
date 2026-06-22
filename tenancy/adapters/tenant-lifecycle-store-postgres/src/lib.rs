@@ -53,6 +53,13 @@ pub const TENANTS_TABLE: &str = "tenancy_lifecycle.tenancy_lifecycle_tenants";
 pub const APPLIED_TABLE: &str = "tenancy_lifecycle.tenancy_lifecycle_applied_writes";
 pub const OPERATIONS_TABLE: &str = "tenancy_lifecycle.tenancy_lifecycle_operations";
 
+/// The tables whose ENABLE+FORCE RLS the boot guard verifies. This is the SINGLE
+/// list the runtime guard passes to `assert_rls_enforceable`; a unit test (see
+/// `governed_tables_match_migration_force_rls`) asserts it EXACTLY matches the
+/// set of tables `migrations/0001_*.sql` declares FORCE ROW LEVEL SECURITY, so a
+/// new FORCE'd table can never silently escape the guard's per-table coverage.
+pub const GOVERNED_TABLES: &[&str] = &[TENANTS_TABLE, APPLIED_TABLE, OPERATIONS_TABLE];
+
 /// The Postgres role that is the subject of the RLS policies in
 /// `migrations/0001_tenant_lifecycle_store.sql` (every `TO <role>` clause in
 /// that migration names this role). The serving connection's `current_user` MUST
@@ -277,13 +284,9 @@ impl PgTenantLifecycleStore {
         // session==current_user SET ROLE check + per-table ENABLE+FORCE RLS
         // check, mapped via `From<RlsEnforceabilityError>` to preserve this
         // adapter's fail-closed connect-error contract.
-        assert_rls_enforceable(
-            &self.pool,
-            RUNTIME_ROLE,
-            &[TENANTS_TABLE, APPLIED_TABLE, OPERATIONS_TABLE],
-        )
-        .await
-        .map_err(PgStoreConnectError::from)
+        assert_rls_enforceable(&self.pool, RUNTIME_ROLE, GOVERNED_TABLES)
+            .await
+            .map_err(PgStoreConnectError::from)
     }
 }
 
@@ -811,5 +814,27 @@ mod tests {
         assert_eq!(TenantLifecycleState::Active.slug(), "active");
         assert_eq!(TenantLifecycleState::Suspended.slug(), "suspended");
         assert_eq!(TenantLifecycleState::Retired.slug(), "retired");
+    }
+
+    #[test]
+    fn governed_tables_match_migration_force_rls() {
+        // The boot guard verifies ENABLE+FORCE RLS for exactly GOVERNED_TABLES.
+        // If a dev FORCE-RLS'es a new table in the migration but forgets to add
+        // it here (or vice versa), tenant isolation would be silently unverified
+        // at boot. Asserting the SAME list the guard passes EXACTLY equals the
+        // migration's FORCE'd-table set makes that drift impossible. DB-free —
+        // pure string comparison, runs in the always-on unit lane.
+        use oya_shared_postgres_command_kernel::force_rls_tables;
+        let migration = include_str!("../migrations/0001_tenant_lifecycle_store.sql");
+        let mut from_migration = force_rls_tables(migration);
+        from_migration.sort();
+        let mut governed: Vec<String> =
+            GOVERNED_TABLES.iter().map(|t| (*t).to_owned()).collect();
+        governed.sort();
+        assert_eq!(
+            governed, from_migration,
+            "GOVERNED_TABLES must EXACTLY match the tables \
+             migrations/0001_tenant_lifecycle_store.sql FORCE-RLS'es"
+        );
     }
 }
