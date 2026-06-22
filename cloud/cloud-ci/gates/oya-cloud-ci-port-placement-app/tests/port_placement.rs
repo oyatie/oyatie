@@ -93,8 +93,9 @@ fn policy_gate_id_matches_the_crate_contract() {
 #[test]
 fn frozen_baseline_captures_a_nonempty_set_of_existing_violations() {
     // After #116, billing is clean but the live corpus still carries pre-existing storage-port
-    // traits in adapter crates (tenant-rbac / session / secret-provider / kms-domain-repo). The
-    // frozen baseline MUST be non-empty (do NOT assume zero), and every entry must be {crate, trait}.
+    // traits in adapter crates (tenant-rbac / session / secret-provider / kms-domain-repo /
+    // payroll / hr). The frozen baseline MUST be non-empty (do NOT assume zero), and every entry
+    // must have {member_path, trait} keys.
     let root = repo_root();
     let baseline = load_json(&gate_dir(&root).join("port-placement-baseline.json"));
     let entries = baseline["baseline"].as_array().expect("baseline array");
@@ -103,8 +104,14 @@ fn frozen_baseline_captures_a_nonempty_set_of_existing_violations() {
         "the frozen baseline must capture the pre-existing port-in-adapter violations (not zero)"
     );
     for entry in entries {
-        assert!(entry["crate"].as_str().is_some(), "each entry has a crate: {entry}");
-        assert!(entry["trait"].as_str().is_some(), "each entry has a trait: {entry}");
+        assert!(
+            entry["member_path"].as_str().is_some(),
+            "each baseline entry must have a `member_path` key: {entry}"
+        );
+        assert!(
+            entry["trait"].as_str().is_some(),
+            "each baseline entry must have a `trait` key: {entry}"
+        );
     }
 }
 
@@ -213,7 +220,7 @@ fn red_repo_fixture_surfaces_port_in_adapter_from_disk() {
         .map(|f| f.key.clone())
         .collect();
     assert!(
-        keys.contains(&"foo-inmemory:FooStoragePort".to_owned()),
+        keys.contains(&"cap/adapters/foo-inmemory:FooStoragePort".to_owned()),
         "a storage-port trait defined in an adapter must be caught from disk: {keys:?}"
     );
     assert!(
@@ -243,7 +250,9 @@ fn green_when_existing_violation_is_baselined_and_red_when_new_one_appears() {
     let observed = collect_port_traits(root, &policy).expect("collect");
 
     // Baselining the existing violation -> GREEN (born-advisory).
-    let baseline = serde_json::json!({ "baseline": [{ "crate": "foo-inmemory", "trait": "FooStore" }] });
+    let baseline = serde_json::json!({
+        "baseline": [{ "member_path": "cap/adapters/foo-inmemory", "trait": "FooStore" }]
+    });
     assert_eq!(
         evaluate(&policy, &baseline, &observed).verdict,
         Verdict::Green,
@@ -259,9 +268,8 @@ fn green_when_existing_violation_is_baselined_and_red_when_new_one_appears() {
     let observed2 = collect_port_traits(root, &policy).expect("collect after planting");
     let findings = evaluate_keyed(&policy, &baseline, &observed2);
     assert!(
-        findings
-            .iter()
-            .any(|f| f.code == "PP-PORT-IN-ADAPTER" && f.key == "foo-inmemory:FooRepository"),
+        findings.iter().any(|f| f.code == "PP-PORT-IN-ADAPTER"
+            && f.key == "cap/adapters/foo-inmemory:FooRepository"),
         "a NEW port trait beyond the baseline must be RED: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &baseline, &observed2).verdict, Verdict::Red);

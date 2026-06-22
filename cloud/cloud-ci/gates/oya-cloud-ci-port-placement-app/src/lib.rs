@@ -119,19 +119,23 @@ struct TraitDef {
 
 /// Collect the adapter-defined `pub trait` set described by the policy.
 ///
-/// Enumerates workspace members, keeps those whose repo-relative path contains a forbidden
-/// layer-dir segment, and for each records every `pub trait <Name>` DEFINED in its `src/**/*.rs`.
-/// Emits `{ "member_crates_found": <usize>, "members": [ { "crate", "member_path", "traits":
+/// Enumerates workspace members, keeps those that are in a forbidden layer OR whose crate name
+/// (the final path segment) ends with a forbidden crate-name suffix, and for each records every
+/// `pub trait <Name>` DEFINED in its `src/**/*.rs`. Emits
+/// `{ "member_crates_found": <usize>, "members": [ { "crate", "member_path", "traits":
 /// [ { "name", "file" } ] } ] }`. Read-only.
 pub fn collect_port_traits(root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let forbidden = forbidden_layer_dirs(policy);
+    let forbidden_dirs = forbidden_layer_dirs(policy);
+    let forbidden_suffixes = forbidden_crate_name_suffixes(policy);
     let member_dirs =
         resolve_member_dirs(root).map_err(|error| CollectError::ResolveMembers(error.to_string()))?;
 
     let member_count = member_dirs.len();
     let mut members = Vec::new();
     for member_dir in &member_dirs {
-        if !path_in_forbidden_layer(member_dir, &forbidden) {
+        let in_forbidden_layer = path_in_forbidden_layer(member_dir, &forbidden_dirs);
+        let has_forbidden_suffix = crate_in_forbidden_layer(member_dir, &forbidden_suffixes);
+        if !in_forbidden_layer && !has_forbidden_suffix {
             continue;
         }
         let mut traits = collect_pub_traits(root, member_dir)?;
@@ -165,8 +169,20 @@ fn path_in_forbidden_layer(member_dir: &str, forbidden: &[String]) -> bool {
         .any(|segment| forbidden.iter().any(|f| f == segment))
 }
 
+/// True iff the crate name (last path segment of `member_dir`) ends with any of the
+/// `forbidden_crate_name_suffixes`. Catches adapter-NAMED crates that live outside a
+/// forbidden-layer directory (e.g. `oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory`
+/// is NOT under any `adapters/` segment but its crate name ends with `-adapter-inmemory`).
+fn crate_in_forbidden_layer(member_dir: &str, forbidden_suffixes: &[String]) -> bool {
+    let tail = crate_tail(member_dir);
+    forbidden_suffixes
+        .iter()
+        .any(|suffix| tail.ends_with(suffix.as_str()))
+}
+
 /// The crate-identifying tail of a member dir (`iam/adapters/tenant-rbac-storage-inmemory` ->
-/// `tenant-rbac-storage-inmemory`), used as the allowlist/baseline `crate` key.
+/// `tenant-rbac-storage-inmemory`). Used in the collected output `"crate"` field (human display
+/// only); the gate KEYS on `member_path`, not this tail.
 fn crate_tail(member_dir: &str) -> String {
     member_dir
         .rsplit('/')
@@ -392,43 +408,48 @@ impl Report {
     }
 }
 
-/// A single (crate, trait) identity — the key shape used by the allowlist, the baseline, and a
-/// PP-PORT-IN-ADAPTER finding.
+/// A single (member_path, trait) identity — the key shape used by the allowlist, the baseline,
+/// and a PP-PORT-IN-ADAPTER finding. Keyed on the full repo-relative crate directory rather than
+/// the crate-name tail to avoid false-GREEN masking when two sibling crates share the same tail
+/// (e.g. two `rest` crates in different capability trees would collide on `rest:SomeTrait` if
+/// keyed by tail; `intelligence/adapters/rest:SomeTrait` is unambiguous).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct PortKey {
-    crate_tail: String,
+    member_path: String,
     trait_name: String,
 }
 
 impl PortKey {
     fn as_string(&self) -> String {
-        format!("{}:{}", self.crate_tail, self.trait_name)
+        format!("{}:{}", self.member_path, self.trait_name)
     }
 }
 
-/// Parse a list of `{ "crate": .., "trait": .. }` entries (allowlist or baseline) from DATA.
-/// Returns Err with a human-readable message on any malformed entry so the evaluator can fail
-/// CLOSED instead of silently dropping rules.
+/// Parse a list of `{ "member_path": .., "trait": .. }` entries (allowlist or baseline) from
+/// DATA. Returns Err with a human-readable message on any malformed entry so the evaluator can
+/// fail CLOSED instead of silently dropping rules.
 fn parse_port_keys(value: Option<&Value>, label: &str) -> Result<Vec<PortKey>, String> {
     let Some(array) = value.and_then(Value::as_array) else {
         return Ok(Vec::new());
     };
     let mut out = Vec::new();
     for (i, entry) in array.iter().enumerate() {
-        let crate_tail = entry
-            .get("crate")
+        let member_path = entry
+            .get("member_path")
             .and_then(Value::as_str)
-            .ok_or_else(|| format!("{label}[{i}]: missing or non-string `crate` key"))?
+            .ok_or_else(|| format!("{label}[{i}]: missing or non-string `member_path` key"))?
             .to_owned();
         let trait_name = entry
             .get("trait")
             .and_then(Value::as_str)
             .ok_or_else(|| {
-                format!("{label}[{i}] (crate={crate_tail:?}): missing or non-string `trait` key")
+                format!(
+                    "{label}[{i}] (member_path={member_path:?}): missing or non-string `trait` key"
+                )
             })?
             .to_owned();
         out.push(PortKey {
-            crate_tail,
+            member_path,
             trait_name,
         });
     }
@@ -536,10 +557,10 @@ pub fn evaluate_keyed(policy: &Value, baseline: &Value, observed: &Value) -> BTr
         ));
     }
 
-    // The set of live (crate, trait) candidate violations: every port-suffix `pub trait` defined in
-    // a forbidden-layer crate.
+    // The set of live (member_path, trait) candidate violations: every port-suffix `pub trait`
+    // defined in a forbidden-layer or adapter-named crate.
     let mut live: BTreeSet<PortKey> = BTreeSet::new();
-    let mut live_files: std::collections::BTreeMap<PortKey, (String, String)> =
+    let mut live_files: std::collections::BTreeMap<PortKey, String> =
         std::collections::BTreeMap::new();
     let members = observed
         .get("members")
@@ -547,13 +568,13 @@ pub fn evaluate_keyed(policy: &Value, baseline: &Value, observed: &Value) -> BTr
         .cloned()
         .unwrap_or_default();
     for member in &members {
-        let Some(crate_tail) = member.get("crate").and_then(Value::as_str) else {
+        let crate_tail_display = member
+            .get("crate")
+            .and_then(Value::as_str)
+            .unwrap_or("<unknown>");
+        let Some(member_path) = member.get("member_path").and_then(Value::as_str) else {
             continue;
         };
-        let member_path = member
-            .get("member_path")
-            .and_then(Value::as_str)
-            .unwrap_or(crate_tail);
         let Some(traits) = member.get("traits").and_then(Value::as_array) else {
             continue;
         };
@@ -569,13 +590,13 @@ pub fn evaluate_keyed(policy: &Value, baseline: &Value, observed: &Value) -> BTr
                 .and_then(Value::as_str)
                 .unwrap_or(member_path);
             let key = PortKey {
-                crate_tail: crate_tail.to_owned(),
+                member_path: member_path.to_owned(),
                 trait_name: trait_name.to_owned(),
             };
             live.insert(key.clone());
             live_files
                 .entry(key)
-                .or_insert_with(|| (member_path.to_owned(), file.to_owned()));
+                .or_insert_with(|| format!("{} ({})", file, crate_tail_display));
         }
     }
 
@@ -587,19 +608,19 @@ pub fn evaluate_keyed(policy: &Value, baseline: &Value, observed: &Value) -> BTr
         if allowlist_set.contains(key) || baseline_set.contains(key) {
             continue;
         }
-        let (member_path, file) = live_files
+        let file_display = live_files
             .get(key)
             .cloned()
-            .unwrap_or_else(|| (key.crate_tail.clone(), key.crate_tail.clone()));
+            .unwrap_or_else(|| key.member_path.clone());
         let detail = format!(
             "storage-port trait `{}` is DEFINED in adapter crate `{}` ({}); a port belongs in a core/ports/kernel crate, not an adapter (ADR-0570; the #116 defect class)",
-            key.trait_name, key.crate_tail, file
+            key.trait_name, key.member_path, file_display
         );
         let action = format!(
             "DESIGN ACTION (not auto-applied): move `{}` and its port-definitional types out of `{}` into the sibling core/ports crate `{}` (mirror billing #802: the core OWNS the port, the adapter DEPENDS on core and IMPLEMENTS it). A full auto-move codemod is a noted follow-up.",
             key.trait_name,
-            member_path,
-            suggested_core_crate(&member_path)
+            key.member_path,
+            suggested_core_crate(&key.member_path)
         );
         findings.insert(
             Finding::new("PP-PORT-IN-ADAPTER", &key.as_string(), detail).with_action(action),
@@ -614,13 +635,13 @@ pub fn evaluate_keyed(policy: &Value, baseline: &Value, observed: &Value) -> BTr
                     "PP-STALE-BASELINE",
                     &key.as_string(),
                     format!(
-                        "baseline entry crate `{}` trait `{}` matches no live adapter-defined port trait; the violation was relocated — remove it from port-placement-baseline.json (the baseline is shrink-only)",
-                        key.crate_tail, key.trait_name
+                        "baseline entry `{}` trait `{}` matches no live adapter-defined port trait; the violation was relocated — remove it from port-placement-baseline.json (the baseline is shrink-only)",
+                        key.member_path, key.trait_name
                     ),
                 )
                 .with_action(format!(
-                    "Remove the {{\"crate\": \"{}\", \"trait\": \"{}\"}} entry from the frozen baseline.",
-                    key.crate_tail, key.trait_name
+                    "Remove the {{\"member_path\": \"{}\", \"trait\": \"{}\"}} entry from the frozen baseline.",
+                    key.member_path, key.trait_name
                 )),
             );
         }
@@ -634,13 +655,13 @@ pub fn evaluate_keyed(policy: &Value, baseline: &Value, observed: &Value) -> BTr
                     "PP-STALE-ALLOWLIST",
                     &key.as_string(),
                     format!(
-                        "allowlist entry crate `{}` trait `{}` matched no live finding; remove it (the allowlist is shrink-only)",
-                        key.crate_tail, key.trait_name
+                        "allowlist entry `{}` trait `{}` matched no live finding; remove it (the allowlist is shrink-only)",
+                        key.member_path, key.trait_name
                     ),
                 )
                 .with_action(format!(
-                    "Remove the {{\"crate\": \"{}\", \"trait\": \"{}\"}} entry from the policy allowlist.",
-                    key.crate_tail, key.trait_name
+                    "Remove the {{\"member_path\": \"{}\", \"trait\": \"{}\"}} entry from the policy allowlist.",
+                    key.member_path, key.trait_name
                 )),
             );
         }
@@ -716,6 +737,25 @@ fn forbidden_layer_dirs(policy: &Value) -> Vec<String> {
         .unwrap_or_default()
 }
 
+/// Read the optional `forbidden_crate_name_suffixes` array from policy DATA. When present, any
+/// crate whose name (last path segment) ends with one of these suffixes is treated as an adapter
+/// crate regardless of whether its path contains a forbidden layer-dir segment — this catches
+/// adapter-NAMED crates that live outside the canonical `adapters/` directory layout (e.g.
+/// `oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory`).
+fn forbidden_crate_name_suffixes(policy: &Value) -> Vec<String> {
+    policy
+        .get("forbidden_crate_name_suffixes")
+        .and_then(Value::as_array)
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -724,7 +764,7 @@ mod tests {
         json!({
             "gate_id": GATE_ID,
             "forbidden_layer_dirs": ["adapters"],
-            "port_name_suffixes": ["StoragePort", "Repository", "Store", "Repo", "Port"],
+            "port_name_suffixes": ["StoragePort", "Repository", "Store", "Repo"],
             "min_expected_member_crates": 1,
             "allowlist": []
         })
@@ -801,7 +841,7 @@ mod tests {
         assert!(
             findings
                 .iter()
-                .any(|f| f.code == "PP-PORT-IN-ADAPTER" && f.key == "foo-inmemory:FooStore"),
+                .any(|f| f.code == "PP-PORT-IN-ADAPTER" && f.key == "iam/adapters/foo-inmemory:FooStore"),
             "a port-named trait in an adapter must be flagged: {findings:#?}"
         );
         assert_eq!(evaluate(&policy(), &empty_baseline(), &observed).verdict, Verdict::Red);
@@ -830,7 +870,7 @@ mod tests {
     #[test]
     fn allowlisted_port_trait_is_clean() {
         let mut policy = policy();
-        policy["allowlist"] = json!([{ "crate": "foo-inmemory", "trait": "FooStore", "reason": "internal cursor" }]);
+        policy["allowlist"] = json!([{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore", "reason": "internal cursor" }]);
         let observed = observed_adapter(
             "foo-inmemory",
             "iam/adapters/foo-inmemory",
@@ -845,7 +885,7 @@ mod tests {
 
     #[test]
     fn baselined_existing_violation_is_not_red() {
-        let baseline = json!([{ "crate": "foo-inmemory", "trait": "FooStore" }]);
+        let baseline = json!([{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore" }]);
         let observed = observed_adapter(
             "foo-inmemory",
             "iam/adapters/foo-inmemory",
@@ -862,7 +902,8 @@ mod tests {
     #[test]
     fn new_violation_beyond_baseline_is_red() {
         // Baseline freezes FooStore; a NEW BarRepository in the same adapter is RED.
-        let baseline = json!([{ "crate": "foo-inmemory", "trait": "FooStore" }]);
+        let baseline =
+            json!([{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore" }]);
         let observed = observed_adapter(
             "foo-inmemory",
             "iam/adapters/foo-inmemory",
@@ -873,13 +914,14 @@ mod tests {
         );
         let findings = evaluate_keyed(&policy(), &baseline, &observed);
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "PP-PORT-IN-ADAPTER" && f.key == "foo-inmemory:BarRepository"),
+            findings.iter().any(|f| f.code == "PP-PORT-IN-ADAPTER"
+                && f.key == "iam/adapters/foo-inmemory:BarRepository"),
             "a NEW port trait beyond the baseline must be RED: {findings:#?}"
         );
         assert!(
-            !findings.iter().any(|f| f.key == "foo-inmemory:FooStore"),
+            !findings
+                .iter()
+                .any(|f| f.key == "iam/adapters/foo-inmemory:FooStore"),
             "the baselined trait must stay green: {findings:#?}"
         );
         assert_eq!(evaluate(&policy(), &baseline, &observed).verdict, Verdict::Red);
@@ -888,13 +930,13 @@ mod tests {
     #[test]
     fn relocated_baseline_entry_becomes_stale() {
         // Baseline freezes FooStore but the adapter no longer defines it -> PP-STALE-BASELINE.
-        let baseline = json!([{ "crate": "foo-inmemory", "trait": "FooStore" }]);
+        let baseline =
+            json!([{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore" }]);
         let observed = json!({ "member_crates_found": 1000, "members": [] });
         let findings = evaluate_keyed(&policy(), &baseline, &observed);
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "PP-STALE-BASELINE" && f.key == "foo-inmemory:FooStore"),
+            findings.iter().any(|f| f.code == "PP-STALE-BASELINE"
+                && f.key == "iam/adapters/foo-inmemory:FooStore"),
             "a relocated baseline entry must become PP-STALE-BASELINE: {findings:#?}"
         );
     }
@@ -902,13 +944,14 @@ mod tests {
     #[test]
     fn stale_allowlist_entry_is_reported() {
         let mut policy = policy();
-        policy["allowlist"] = json!([{ "crate": "ghost", "trait": "GhostStore", "reason": "x" }]);
+        policy["allowlist"] =
+            json!([{ "member_path": "cap/adapters/ghost", "trait": "GhostStore", "reason": "x" }]);
         let observed = json!({ "member_crates_found": 1000, "members": [] });
         let findings = evaluate_keyed(&policy, &empty_baseline(), &observed);
         assert!(
             findings
                 .iter()
-                .any(|f| f.code == "PP-STALE-ALLOWLIST" && f.key == "ghost:GhostStore"),
+                .any(|f| f.code == "PP-STALE-ALLOWLIST" && f.key == "cap/adapters/ghost:GhostStore"),
             "an unused allowlist entry must be PP-STALE-ALLOWLIST: {findings:#?}"
         );
     }
@@ -959,7 +1002,7 @@ mod tests {
 
     #[test]
     fn malformed_baseline_fails_closed() {
-        let baseline = json!([{ "crate": "x" }]); // missing `trait`
+        let baseline = json!([{ "member_path": "cap/adapters/x" }]); // missing `trait`
         let findings = evaluate_keyed(
             &policy(),
             &baseline,
@@ -971,7 +1014,10 @@ mod tests {
     #[test]
     fn baseline_object_form_is_accepted() {
         // The generated face carries a header object with a `baseline` array.
-        let baseline = json!({ "gate_id": GATE_ID, "baseline": [{ "crate": "foo-inmemory", "trait": "FooStore" }] });
+        let baseline = json!({
+            "gate_id": GATE_ID,
+            "baseline": [{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore" }]
+        });
         let observed = observed_adapter(
             "foo-inmemory",
             "iam/adapters/foo-inmemory",
@@ -1000,5 +1046,132 @@ mod tests {
             suggested_core_crate("iam/adapters/tenant-rbac-storage-inmemory"),
             "iam/core/<port-crate>"
         );
+    }
+
+    // --- FIX 1: adapter-NAMED crates (outside adapters/ dir) are caught ---
+
+    #[test]
+    fn adapter_named_crate_outside_adapters_dir_is_flagged() {
+        // A crate named `*-adapter-inmemory` that lives outside any `adapters/` segment must be
+        // caught by `forbidden_crate_name_suffixes` (FIX 1). This is the
+        // `oya-payroll-run-storage-adapter-inmemory` shape: not under `adapters/` but named
+        // `*-adapter-inmemory`.
+        let policy = json!({
+            "gate_id": GATE_ID,
+            "forbidden_layer_dirs": ["adapters"],
+            "forbidden_crate_name_suffixes": ["-adapter-inmemory"],
+            "port_name_suffixes": ["StoragePort", "Repository", "Store", "Repo"],
+            "min_expected_member_crates": 1,
+            "allowlist": []
+        });
+        let observed = json!({
+            "member_crates_found": 1000,
+            "members": [{
+                "crate": "oya-payroll-run-storage-adapter-inmemory",
+                "member_path": "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory",
+                "traits": [{ "name": "PayrollRunStoragePort",
+                             "file": "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory/src/lib.rs" }]
+            }]
+        });
+        let findings = evaluate_keyed(&policy, &empty_baseline(), &observed);
+        assert!(
+            findings.iter().any(|f| f.code == "PP-PORT-IN-ADAPTER"
+                && f.key
+                    == "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory:PayrollRunStoragePort"),
+            "adapter-named crate outside adapters/ must be flagged: {findings:#?}"
+        );
+        assert_eq!(evaluate(&policy, &empty_baseline(), &observed).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn crate_in_forbidden_layer_matches_suffix_not_substring() {
+        // Suffix check is applied to the TAIL (last segment) only — never a substring of an
+        // intermediate dir.
+        assert!(crate_in_forbidden_layer(
+            "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory",
+            &["-adapter-inmemory".to_owned()]
+        ));
+        // A crate in a dir that contains `-adapter-inmemory` as an INTERMEDIATE segment must not
+        // match — only the last segment is tested.
+        assert!(!crate_in_forbidden_layer(
+            "oya/payroll/crates-adapter-inmemory/payroll-run-core",
+            &["-adapter-inmemory".to_owned()]
+        ));
+        // A core crate must not match.
+        assert!(!crate_in_forbidden_layer(
+            "oya/payroll/crates/payroll-run-app",
+            &["-adapter-inmemory".to_owned()]
+        ));
+    }
+
+    // --- FIX 2: bare `Port` suffix is NOT in the default set ---
+
+    #[test]
+    fn behavioral_port_trait_is_not_flagged() {
+        // `ClockPort`, `ProviderAuthPort`, `OperatorAlertPort` etc. end in `Port` but are
+        // behavioral, not storage-shaped. With `Port` removed from port_name_suffixes (FIX 2)
+        // they must NOT be flagged.
+        let observed = observed_adapter(
+            "foo-adapter",
+            "iam/adapters/foo-adapter",
+            &[
+                ("ClockPort", "iam/adapters/foo-adapter/src/lib.rs"),
+                ("ProviderAuthPort", "iam/adapters/foo-adapter/src/lib.rs"),
+                ("OperatorAlertPort", "iam/adapters/foo-adapter/src/lib.rs"),
+            ],
+        );
+        // policy() uses suffixes without bare "Port"
+        let findings = evaluate_keyed(&policy(), &empty_baseline(), &observed);
+        assert!(
+            !findings.iter().any(|f| f.code == "PP-PORT-IN-ADAPTER"),
+            "behavioral *Port traits must NOT be flagged when `Port` is not in suffix set: {findings:#?}"
+        );
+        assert_eq!(evaluate(&policy(), &empty_baseline(), &observed).verdict, Verdict::Green);
+    }
+
+    // --- FIX 3: member_path key prevents same-tail collision masking ---
+
+    #[test]
+    fn same_crate_tail_different_member_path_no_collision() {
+        // Two sibling crates both named `rest` in different capability trees: one is baselined
+        // (intelligence/adapters/rest:SecretProviderStore), the other has a NEW violation
+        // (payments/adapters/rest:PaymentStore). The new one must surface as RED even though
+        // both crates share the tail `rest`. Under the old crate_tail key they would collide;
+        // under the member_path key they are distinct.
+        let baseline =
+            json!([{ "member_path": "intelligence/adapters/rest", "trait": "SecretProviderStore" }]);
+        let observed = json!({
+            "member_crates_found": 1000,
+            "members": [
+                {
+                    "crate": "rest",
+                    "member_path": "intelligence/adapters/rest",
+                    "traits": [{ "name": "SecretProviderStore",
+                                 "file": "intelligence/adapters/rest/src/lib.rs" }]
+                },
+                {
+                    "crate": "rest",
+                    "member_path": "payments/adapters/rest",
+                    "traits": [{ "name": "PaymentStore",
+                                 "file": "payments/adapters/rest/src/lib.rs" }]
+                }
+            ]
+        });
+        let findings = evaluate_keyed(&policy(), &baseline, &observed);
+        // The baselined one must stay green.
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.key == "intelligence/adapters/rest:SecretProviderStore"),
+            "the baselined entry must stay green: {findings:#?}"
+        );
+        // The NEW violation in the sibling `rest` crate must be RED.
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "PP-PORT-IN-ADAPTER" && f.key == "payments/adapters/rest:PaymentStore"),
+            "a NEW violation in a same-tail sibling crate must be RED: {findings:#?}"
+        );
+        assert_eq!(evaluate(&policy(), &baseline, &observed).verdict, Verdict::Red);
     }
 }
