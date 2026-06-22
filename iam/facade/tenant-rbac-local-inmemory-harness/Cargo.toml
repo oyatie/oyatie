@@ -8,6 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 billing-accounting-app = { path = "../../../billing/core/accounting-app" }
+billing-accounting-journal = { path = "../../../billing/core/accounting-journal" }
 billing-accounting-storage-inmemory-adapter = { path = "../../../billing/adapters/accounting-storage-inmemory" }
 iam-tenant-rbac-usecase = { path = "../../core/tenant-rbac-usecase" }
 iam-tenant-rbac-storage-inmemory = { path = "../../adapters/tenant-rbac-storage-inmemory" }
@@ -18,7 +19,6 @@ oya-payroll-run-app = { path = "../../../oya/payroll/crates/oya-payroll-run-app"
 oya-payroll-run-storage-adapter-inmemory = { path = "../../../oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory" }
 
 [dev-dependencies]
-billing-accounting-journal = { path = "../../../billing/core/accounting-journal" }
 iam-tenant-rbac-domain = { path = "../../core/tenant-rbac-domain" }
 oya-hr-employment-domain = { path = "../../../oya/hr/crates/oya-hr-employment-domain" }
 oya-payroll-run-domain = { path = "../../../oya/payroll/crates/oya-payroll-run-domain" }

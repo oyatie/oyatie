@@ -8,8 +8,6 @@ license = "Apache-2.0"
 
 [dependencies]
 billing-accounting-app = { path = "../../core/accounting-app" }
-
-[dev-dependencies]
 billing-accounting-journal = { path = "../../core/accounting-journal" }
 
 [lib]

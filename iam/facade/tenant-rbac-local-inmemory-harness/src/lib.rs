@@ -13,10 +13,10 @@
 #![forbid(unsafe_code)]
 
 use billing_accounting_app::AccountingPayrollPostingAuditEnvelope;
-use billing_accounting_storage_inmemory_adapter::{
+use billing_accounting_journal::{
     AccountingJournalStoragePort, AccountingStorageError, AccountingStoredRecord,
-    InMemoryAccountingJournalStore,
 };
+use billing_accounting_storage_inmemory_adapter::InMemoryAccountingJournalStore;
 use oya_hr_employment_app::HrLeavePayrollImpactEnvelope;
 use oya_hr_employment_storage_adapter_inmemory::{
     HrEmploymentStoragePort, HrStorageError, HrStoredRecord, InMemoryHrEmploymentStore,
