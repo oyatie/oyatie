@@ -904,6 +904,20 @@ fn classify_route_call(
                     surface_unclassified: false,
                 });
             }
+            // Fail-CLOSED: 3-arg owned-kernel-shaped call where arg2 is NOT a path-shaped
+            // literal/ident (e.g. `route.path` — a field access containing `.`). We know there
+            // ARE 3 args (after2.is_some()) and arg1 is a bare ident, so this is structurally a
+            // `.route(method, <non-literal-path>, handler)` call the engine cannot fully classify.
+            // Return AC-UNCLASSIFIED-SURFACE rather than dropping (which would be fail-open).
+            if after2.is_some() {
+                return Some(Route {
+                    path: None,
+                    path_raw: format!("<unclassified-field-path:{}>", arg2_m.trim()),
+                    method: MethodClass::Unclassified(format!("method-ident:{arg1_trim}")),
+                    handler: after2.map(handler_ident_of).unwrap_or_default(),
+                    surface_unclassified: true,
+                });
+            }
         }
     }
 
@@ -1908,8 +1922,34 @@ impl Report {
 
 /// Whether `path` is exempt (an unauthenticated read like `/healthz`) via the policy
 /// `exempt_path_substrings` allowlist.
+///
+/// Matching is segment-boundary aware: an exempt substring must appear at a path-segment boundary
+/// (preceded by `/` or start-of-string, followed by `/`, `?`, end-of-string, or end of a path
+/// parameter `}`). This prevents `/version` from matching `/policies/{id}/versions/{v}` — the
+/// `version` there is not the exempt health-probe segment `/version`. Plain contains() would silently
+/// exempt a real mutating control-plane surface whose path contains a non-exempt segment that
+/// happens to share a prefix with an exempt one (the BLOCKER root-cause for the Cedar publish port).
 fn path_exempt(path: &str, exempt_substrings: &[String]) -> bool {
-    exempt_substrings.iter().any(|s| path.contains(s.as_str()))
+    exempt_substrings.iter().any(|s| {
+        let sub = s.as_str();
+        let mut from = 0usize;
+        let path_b = path.as_bytes();
+        while from < path.len() {
+            let Some(rel) = path[from..].find(sub) else { break };
+            let at = from + rel;
+            // Preceded by '/' or start-of-string.
+            let before_ok = at == 0 || path_b.get(at - 1) == Some(&b'/');
+            // Followed by '/', '?', end-of-string, or '}' (end of path param like {version}).
+            let after = at + sub.len();
+            let after_ok = after >= path.len()
+                || matches!(path_b[after], b'/' | b'?' | b'}');
+            if before_ok && after_ok {
+                return true;
+            }
+            from = at + 1;
+        }
+        false
+    })
 }
 
 /// Whether a route's path carries a per-resource path param (`{...}`).
@@ -3160,6 +3200,26 @@ mod tests {
         );
     }
 
+    // RED: owned-kernel-SHAPED 3-arg `.route(method_var, field.path, handler)` where the path
+    // arg is a field access (contains `.`) — the engine cannot classify it into either grammar.
+    // Must fail-CLOSED as AC-UNCLASSIFIED-SURFACE rather than silently dropping (fail-open).
+    // This is the MAJOR fix: libs/oya-shared-backbone-rest-runtime-adapter uses exactly this shape.
+    const RED_OWNED_KERNEL_FIELD_PATH: &str = r#"
+        fn register(router: &mut Router<SyncHandler>, route: &RouteSpec, handler: SyncHandler) {
+            router.route(method, route.path, handler).expect("route");
+        }
+    "#;
+
+    #[test]
+    fn owned_kernel_field_path_fails_closed_as_unclassified_surface() {
+        assert!(
+            has_code(RED_OWNED_KERNEL_FIELD_PATH, "AC-UNCLASSIFIED-SURFACE"),
+            "a 3-arg .route(method_ident, field.path, handler) must fail-CLOSED as \
+             AC-UNCLASSIFIED-SURFACE, not silently drop (fail-open): {:?}",
+            is_green(RED_OWNED_KERNEL_FIELD_PATH)
+        );
+    }
+
     // ---- non-route-introduction `.route(` calls (domain/dispatch) must NOT register ---------------
 
     #[test]
@@ -3253,4 +3313,5 @@ mod tests {
         let (next3, _) = shrink_only_baseline(&p2, &observed, true);
         assert_eq!(next3, vec![live_key.to_owned()], "with --allow-new the new key is absorbed: {next3:?}");
     }
+
 }

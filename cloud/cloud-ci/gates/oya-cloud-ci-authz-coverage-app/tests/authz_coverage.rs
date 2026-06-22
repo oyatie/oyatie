@@ -386,6 +386,30 @@ fn second_pass_discovery_bypasses_fail_closed_end_to_end() {
     )
     .unwrap();
 
+    // MAJOR fix RED fixture: owned-kernel-SHAPED 3-arg call where arg2 is a field access
+    // (`route.path` contains `.` → not a literal/ident path). Must fail-CLOSED as
+    // AC-UNCLASSIFIED-SURFACE instead of silently dropping (fail-open). Reproduces the exact
+    // shape of libs/oya-shared-backbone-rest-runtime-adapter/src/lib.rs:503.
+    fs::write(
+        src.join("major_field_path.rs"),
+        r#"fn register(router: &mut Router<SyncHandler>, route: &RouteSpec, handler: SyncHandler) {
+               router.route(method, route.path, handler).expect("route");
+           }"#,
+    )
+    .unwrap();
+
+    // MINOR fix GREEN fixture: a router declared inside a `tests/` subdirectory must NOT be
+    // scanned (excluded_dir_names now includes "tests"). Create the dir one level under `src`
+    // — the walk will skip it entirely.
+    let tests_dir = src.join("tests");
+    fs::create_dir_all(&tests_dir).expect("create tests subdir");
+    fs::write(
+        tests_dir.join("integ.rs"),
+        r#"async fn h() -> StatusCode { StatusCode::NO_CONTENT }
+           pub fn test_router() -> Router { Router::new().route("/admin/v1/test", post(h)).with_state(()) }"#,
+    )
+    .unwrap();
+
     let root = repo_root();
     let mut policy = load_policy(&root);
     policy["scan_roots"] = json!(["src"]);
@@ -413,13 +437,27 @@ fn second_pass_discovery_bypasses_fail_closed_end_to_end() {
     assert!(red("owned_post.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
         "owned-kernel POST with no guard must be RED: {}", render_findings(&findings));
 
+    // MAJOR fix: 3-arg field-path call must fail-CLOSED as AC-UNCLASSIFIED-SURFACE.
+    assert!(red("major_field_path.rs", "AC-UNCLASSIFIED-SURFACE"),
+        "MAJOR fix: .route(method_var, field.path, handler) must fail-CLOSED AC-UNCLASSIFIED-SURFACE \
+         not silently drop: {}", render_findings(&findings));
+
     // GREEN: neither covered router in green_covered.rs may produce any finding.
     assert!(
         !findings.iter().any(|f| f.key.contains("green_covered.rs")),
         "a real RequireAuth layer + a real authorize() guard must PASS (no finding): {}",
         render_findings(&findings)
     );
+
+    // MINOR fix: routes inside a `tests/` subdirectory must NOT be scanned.
+    assert!(
+        !findings.iter().any(|f| f.key.contains("integ.rs")),
+        "MINOR fix: a router inside tests/ subdir must be excluded from scan (not flagged): {}",
+        render_findings(&findings)
+    );
+
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 
     let _ = fs::remove_dir_all(&base);
 }
+
