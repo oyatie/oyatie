@@ -11,10 +11,11 @@
 #![forbid(unsafe_code)]
 
 use oya_shared_postgres_command_kernel::{
-    PostgresPoolConfig, SET_LOCAL_TENANT_SQL, SqlCommand, SqlCommandError, SqlExecutionPlan,
-    SqlExecutionReport, SqlParam, SqlWriteBatch, TenantSqlContext,
+    PostgresPoolConfig, RLS_ROLE_PROBE_SQL, RLS_TABLE_FORCED_PROBE_SQL, RlsEnforceabilityError,
+    SET_LOCAL_TENANT_SQL, SqlCommand, SqlCommandError, SqlExecutionPlan, SqlExecutionReport,
+    SqlParam, SqlWriteBatch, TenantSqlContext, evaluate_rls_forced, evaluate_rls_role_flags,
 };
-use sqlx::{Executor, PgPool, Postgres, Transaction, postgres::PgPoolOptions};
+use sqlx::{Executor, PgPool, Postgres, Row, Transaction, postgres::PgPoolOptions};
 use std::{env, time::Duration};
 
 pub const LIVE_POSTGRES_ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
@@ -323,6 +324,109 @@ pub async fn run_live_postgres_rls_probe(
         (Ok(report), Ok(())) => Ok(report),
         (Err(error), _) => Err(error),
         (Ok(_), Err(error)) => Err(error),
+    }
+}
+
+/// Fail-closed boot guard for a multi-tenant Postgres store. Run AFTER connect
+/// but BEFORE serving, so a mis-provisioned database/role fails the service at
+/// boot rather than leaking at runtime. It asserts:
+///
+/// 1. the connected `current_user` cannot bypass RLS (no `rolsuper` /
+///    `rolbypassrls`) AND is a USAGE-member of `runtime_role` (the RLS
+///    policy-subject role), via [`RLS_ROLE_PROBE_SQL`] +
+///    [`evaluate_rls_role_flags`];
+/// 2. `session_user == current_user` (no `SET ROLE` switch — these adapters
+///    never issue one, so a mismatch means the wrong role would be checked);
+/// 3. every governed table has BOTH `ENABLE` and `FORCE ROW LEVEL SECURITY`,
+///    via [`RLS_TABLE_FORCED_PROBE_SQL`] + [`evaluate_rls_forced`].
+///
+/// `governed_tables` are SCHEMA-qualified (`"schema.table"`); each is split on
+/// the FIRST `.` into `nspname` + `relname`. A table absent from `pg_class`
+/// (migration not applied / name drift) yields
+/// [`RlsEnforceabilityError::GovernedTableMissing`].
+///
+/// This is the single shared SSOT behind the two adapters' ergonomic delegates
+/// (the tenancy store method and the SCIM free function). ADR-0083 Tier-3: no
+/// unwrap/expect/panic.
+///
+/// # Errors
+/// Any [`RlsEnforceabilityError`]; an underlying sqlx failure (probe query or
+/// column decode) is surfaced fail-closed as
+/// [`RlsEnforceabilityError::Unenforceable`] carrying the runtime role and the
+/// sqlx detail, so the caller never proceeds on a probe it could not complete.
+pub async fn assert_rls_enforceable(
+    pool: &PgPool,
+    runtime_role: &str,
+    governed_tables: &[&str],
+) -> Result<(), RlsEnforceabilityError> {
+    let row = sqlx::query(RLS_ROLE_PROBE_SQL)
+        .bind(runtime_role)
+        .fetch_one(pool)
+        .await
+        .map_err(rls_probe_failed)?;
+    let role_name: String = row.try_get("role_name").map_err(rls_probe_failed)?;
+    let session_role: String = row.try_get("session_role").map_err(rls_probe_failed)?;
+    let rolsuper: bool = row.try_get("rolsuper").map_err(rls_probe_failed)?;
+    let rolbypassrls: bool = row.try_get("rolbypassrls").map_err(rls_probe_failed)?;
+    let is_runtime_member: bool = row.try_get("is_runtime_member").map_err(rls_probe_failed)?;
+
+    // Defense-in-depth: these adapters never issue SET ROLE, so the pool's
+    // current_user must always equal session_user. Detect role-switch confusion
+    // early rather than checking the wrong role.
+    if session_role != role_name {
+        return Err(RlsEnforceabilityError::RoleSwitchInEffect {
+            session_role,
+            current_role: role_name,
+        });
+    }
+    evaluate_rls_role_flags(
+        &role_name,
+        runtime_role,
+        rolsuper,
+        rolbypassrls,
+        is_runtime_member,
+    )?;
+
+    for qualified_table in governed_tables {
+        let (schema, table) = split_qualified_table(qualified_table);
+        let probe = sqlx::query(RLS_TABLE_FORCED_PROBE_SQL)
+            .bind(schema)
+            .bind(table)
+            .fetch_optional(pool)
+            .await
+            .map_err(rls_probe_failed)?;
+        let Some(probe) = probe else {
+            return Err(RlsEnforceabilityError::GovernedTableMissing {
+                table: (*qualified_table).to_owned(),
+            });
+        };
+        let row_security: bool = probe.try_get("row_security").map_err(rls_probe_failed)?;
+        let force_row_security: bool = probe
+            .try_get("force_row_security")
+            .map_err(rls_probe_failed)?;
+        evaluate_rls_forced(qualified_table, row_security, force_row_security)?;
+    }
+    Ok(())
+}
+
+/// Map an sqlx probe failure (query or column decode) to a fail-closed
+/// [`RlsEnforceabilityError::ProbeFailed`]. The guard must never proceed on a
+/// probe it could not complete; each adapter maps `ProbeFailed` back to its own
+/// `Sqlx(detail)` surface, preserving the pre-extraction byte-identical
+/// behavior (e.g. when the runtime role does not yet exist in the database).
+fn rls_probe_failed(error: sqlx::Error) -> RlsEnforceabilityError {
+    RlsEnforceabilityError::ProbeFailed {
+        detail: error.to_string(),
+    }
+}
+
+/// Split a schema-qualified table name on the FIRST `.` into `(nspname,
+/// relname)`. A name without a `.` is treated as residing in the unspecified
+/// (empty) schema, which the probe will report as missing — fail-closed.
+fn split_qualified_table(qualified_table: &str) -> (&str, &str) {
+    match qualified_table.split_once('.') {
+        Some((schema, table)) => (schema, table),
+        None => ("", qualified_table),
     }
 }
 
@@ -761,6 +865,27 @@ mod tests {
         .unwrap();
 
         assert_eq!(config.pool.application_name, "oyatie-messenger");
+    }
+
+    #[test]
+    fn split_qualified_table_uses_first_dot_for_schema_and_table() {
+        assert_eq!(
+            split_qualified_table("tenancy_lifecycle.tenancy_lifecycle_tenants"),
+            ("tenancy_lifecycle", "tenancy_lifecycle_tenants")
+        );
+        assert_eq!(split_qualified_table("schema.a.b"), ("schema", "a.b"));
+        // A name with no schema qualifier is treated as the empty schema, which
+        // the probe reports as missing — fail-closed.
+        assert_eq!(split_qualified_table("bare_table"), ("", "bare_table"));
+    }
+
+    #[test]
+    fn rls_probe_failure_is_fail_closed_probe_failed() {
+        let mapped = rls_probe_failed(sqlx::Error::RowNotFound);
+        assert!(matches!(
+            mapped,
+            RlsEnforceabilityError::ProbeFailed { .. }
+        ));
     }
 
     #[test]

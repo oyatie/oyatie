@@ -34,7 +34,8 @@
 use core::future::Future;
 use core::pin::Pin;
 
-use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
+use oya_shared_postgres_command_adapter_sqlx::assert_rls_enforceable as assert_rls_enforceable_shared;
+use oya_shared_postgres_command_kernel::{RlsEnforceabilityError, SET_LOCAL_TENANT_SQL};
 use oya_shared_scim_server_kernel::{
     Group, GroupStore, ScimId, ScimStoreError, TenantId, User, UserStore,
 };
@@ -97,6 +98,10 @@ pub enum PgScimConnectError {
     /// membership in `RUNTIME_ROLE` AND the migration having applied
     /// `FORCE ROW LEVEL SECURITY` on the relevant tables.
     RlsRoleMismatch { role: String, expected: String },
+    /// A governed table is not under `ENABLE` + `FORCE ROW LEVEL SECURITY` (or
+    /// is missing entirely): the migration mis-applied or drifted, so tenant
+    /// isolation is not forced on that table. The adapter refuses to serve.
+    RlsNotForcedOnTable { table: String },
 }
 
 impl core::fmt::Display for PgScimConnectError {
@@ -117,11 +122,44 @@ impl core::fmt::Display for PgScimConnectError {
                  policy-subject role '{expected}'; tenant isolation policies \
                  would not apply — refusing to serve"
             ),
+            Self::RlsNotForcedOnTable { table } => write!(
+                f,
+                "governed table '{table}' is not under ENABLE+FORCE ROW LEVEL \
+                 SECURITY (migration mis-applied or drifted); tenant isolation \
+                 is not forced — refusing to serve"
+            ),
         }
     }
 }
 
 impl std::error::Error for PgScimConnectError {}
+
+/// Map the shared guard's [`RlsEnforceabilityError`] into this adapter's own
+/// connect-error vocabulary, preserving the pre-extraction fail-closed contract:
+/// - `Unenforceable` → [`PgScimConnectError::RlsUnenforceable`];
+/// - `RoleMismatch` → [`PgScimConnectError::RlsRoleMismatch`];
+/// - `RoleSwitchInEffect` → [`PgScimConnectError::Sqlx`] (byte-identical to the
+///   detail string the free fn previously returned for a SET ROLE switch);
+/// - `ProbeFailed` → [`PgScimConnectError::Sqlx`] (byte-identical to the prior
+///   `Sqlx(detail)` surface when the probe query/decode failed);
+/// - `RlsNotForced` / `GovernedTableMissing` → the new
+///   [`PgScimConnectError::RlsNotForcedOnTable`] (the #799 FORCE-RLS hardening).
+impl From<RlsEnforceabilityError> for PgScimConnectError {
+    fn from(error: RlsEnforceabilityError) -> Self {
+        match error {
+            RlsEnforceabilityError::Unenforceable { role } => Self::RlsUnenforceable { role },
+            RlsEnforceabilityError::RoleMismatch { role, expected } => {
+                Self::RlsRoleMismatch { role, expected }
+            }
+            RlsEnforceabilityError::RoleSwitchInEffect { .. }
+            | RlsEnforceabilityError::ProbeFailed { .. } => Self::Sqlx(error.to_string()),
+            RlsEnforceabilityError::RlsNotForced { table, .. }
+            | RlsEnforceabilityError::GovernedTableMissing { table } => {
+                Self::RlsNotForcedOnTable { table }
+            }
+        }
+    }
+}
 
 /// Reject an empty database URL before opening a pool (synchronous so the
 /// always-on unit lane can assert the guard without an async runtime).
@@ -184,97 +222,16 @@ pub async fn connect_pool(database_url: &str) -> Result<PgPool, PgScimConnectErr
 ///   (e.g. [`RUNTIME_ROLE`] does not yet exist in the database — the deferred
 ///   provisioning migration has not run), or if a `SET ROLE` switch is detected.
 pub async fn assert_rls_enforceable(pool: &PgPool) -> Result<(), PgScimConnectError> {
-    let row = sqlx::query(
-        // `pg_has_role(user, role, 'USAGE')` follows Postgres's own
-        // `has_privs_of_role` predicate: it returns true iff `user` IS `role` or
-        // inherits its privileges (transitive membership with INHERIT). This is
-        // exactly the predicate Postgres uses internally to decide whether a
-        // `TO <role>` RLS policy clause applies to the current user. We use
-        // `'USAGE'` rather than `'MEMBER'`: `'MEMBER'` tests bare set-membership
-        // and returns true even for NOINHERIT roles, but a NOINHERIT member does
-        // NOT inherit privileges and the policy would NOT apply to it — a
-        // NOINHERIT member would pass `'MEMBER'` while silently getting deny-all
-        // in practice. `'USAGE'` is the correct keyword for "this role's policies
-        // apply to me."
-        //
-        // We also fetch `session_user` to detect a `SET ROLE` switch: these
-        // adapters never issue `SET ROLE`, so session_user must equal
-        // current_user on every serving connection.
-        "SELECT current_user::text AS role_name, \
-         session_user::text AS session_role, \
-         rolsuper, rolbypassrls, \
-         pg_has_role(current_user, $1, 'USAGE') AS is_runtime_member \
-         FROM pg_roles WHERE rolname = current_user",
-    )
-    .bind(RUNTIME_ROLE)
-    .fetch_one(pool)
-    .await
-    .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
-    let role_name: String = row
-        .try_get("role_name")
-        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
-    let session_role: String = row
-        .try_get("session_role")
-        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
-    let rolsuper: bool = row
-        .try_get("rolsuper")
-        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
-    let rolbypassrls: bool = row
-        .try_get("rolbypassrls")
-        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
-    let is_runtime_member: bool = row
-        .try_get("is_runtime_member")
-        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
-    // Defense-in-depth: these adapters never issue SET ROLE, so the pool's
-    // current_user must always equal session_user. Detect role-switch confusion
-    // early rather than checking the wrong role.
-    if session_role != role_name {
-        return Err(PgScimConnectError::Sqlx(format!(
-            "session_user '{session_role}' != current_user '{role_name}': a \
-             SET ROLE switch is in effect; this adapter does not issue SET ROLE \
-             and cannot safely check the effective role"
-        )));
-    }
-    evaluate_rls_enforceability(&role_name, rolsuper, rolbypassrls, is_runtime_member)
-}
-
-/// Pure RLS-enforceability decision — no DB, no async, fully unit-testable.
-///
-/// Returns `Ok(())` iff the role is safe to serve multi-tenant traffic:
-/// - not a superuser (`rolsuper = false`),
-/// - not bypass-RLS capable (`rolbypassrls = false`), AND
-/// - is a member of the policy-subject role (`is_runtime_member = true`).
-///
-/// The three conditions map to two distinct error variants so callers and logs
-/// can distinguish a bypass risk (leak vector) from a membership gap (outage):
-/// - `rolsuper || rolbypassrls` → [`PgScimConnectError::RlsUnenforceable`]
-///   (bypass-capable role; the isolation guarantee is violated).
-/// - `!is_runtime_member` → [`PgScimConnectError::RlsRoleMismatch`]
-///   (non-member; when the migration's `FORCE ROW LEVEL SECURITY` is in effect
-///   the policies simply would not apply, yielding deny-all — a safe
-///   fail-closed outage, but still a misconfiguration we refuse to serve).
-///
-/// Extracted from [`assert_rls_enforceable`] so the decision is covered by
-/// DB-free unit tests (mirrors the `select_scim_store_kind` extraction pattern
-/// from the facade layer).
-fn evaluate_rls_enforceability(
-    role: &str,
-    rolsuper: bool,
-    rolbypassrls: bool,
-    is_runtime_member: bool,
-) -> Result<(), PgScimConnectError> {
-    if rolsuper || rolbypassrls {
-        return Err(PgScimConnectError::RlsUnenforceable {
-            role: role.to_owned(),
-        });
-    }
-    if !is_runtime_member {
-        return Err(PgScimConnectError::RlsRoleMismatch {
-            role: role.to_owned(),
-            expected: RUNTIME_ROLE.to_owned(),
-        });
-    }
-    Ok(())
+    // Thin delegate to the single shared boot guard (the #112 dedup): role
+    // bypass/membership probe ('USAGE' = has_privs_of_role) + the
+    // session==current_user SET ROLE check + per-table ENABLE+FORCE RLS check,
+    // mapped via `From<RlsEnforceabilityError>` to preserve this adapter's
+    // fail-closed connect-error contract. Still a FREE function taking `&PgPool`
+    // (not a store method) because the SCIM surface composes TWO stores over a
+    // single shared pool — the guard runs once against that pool.
+    assert_rls_enforceable_shared(pool, RUNTIME_ROLE, &[USERS_TABLE, GROUPS_TABLE])
+        .await
+        .map_err(PgScimConnectError::from)
 }
 
 /// Map an sqlx error to the kernel's write-store error vocabulary.
@@ -777,61 +734,65 @@ mod tests {
         assert_eq!(validate_tenant(&TenantId("acme".to_owned())), Ok(()));
     }
 
-    // --- DB-free evaluate_rls_enforceability predicate tests -----------------
-    // These cover all meaningful combinations of (rolsuper, rolbypassrls,
-    // is_runtime_member) without a database. This closes the regression hole
-    // where the live reject-tests self-skip when the env role isn't
-    // bypass-capable: the boolean DECISION is always tested here; only the SQL
-    // wiring into pg_roles / pg_has_role requires a live DB.
+    // --- RlsEnforceabilityError -> PgScimConnectError mapping -----------------
+    // The DB-free role/forced predicate decisions now live in the shared kernel
+    // (oya-shared-postgres-command-kernel); this adapter keeps only the THIN
+    // mapping that preserves its fail-closed connect-error contract.
 
     #[test]
-    fn rls_enforceability_superuser_is_rejected() {
+    fn rls_error_mapping_preserves_fail_closed_contract() {
         assert_eq!(
-            evaluate_rls_enforceability("pg_superuser", true, false, true),
-            Err(PgScimConnectError::RlsUnenforceable {
+            PgScimConnectError::from(RlsEnforceabilityError::Unenforceable {
                 role: "pg_superuser".to_owned()
-            })
+            }),
+            PgScimConnectError::RlsUnenforceable {
+                role: "pg_superuser".to_owned()
+            }
         );
-    }
-
-    #[test]
-    fn rls_enforceability_bypassrls_is_rejected() {
         assert_eq!(
-            evaluate_rls_enforceability("bypass_role", false, true, true),
-            Err(PgScimConnectError::RlsUnenforceable {
-                role: "bypass_role".to_owned()
-            })
-        );
-    }
-
-    #[test]
-    fn rls_enforceability_super_and_bypass_is_rejected_as_unenforceable() {
-        // Both flags set still classifies as the bypass risk (not a membership
-        // gap): the leak vector dominates the decision.
-        assert_eq!(
-            evaluate_rls_enforceability("both_flags", true, true, false),
-            Err(PgScimConnectError::RlsUnenforceable {
-                role: "both_flags".to_owned()
-            })
-        );
-    }
-
-    #[test]
-    fn rls_enforceability_non_member_is_role_mismatch() {
-        assert_eq!(
-            evaluate_rls_enforceability("some_role", false, false, false),
-            Err(PgScimConnectError::RlsRoleMismatch {
+            PgScimConnectError::from(RlsEnforceabilityError::RoleMismatch {
                 role: "some_role".to_owned(),
                 expected: RUNTIME_ROLE.to_owned(),
-            })
+            }),
+            PgScimConnectError::RlsRoleMismatch {
+                role: "some_role".to_owned(),
+                expected: RUNTIME_ROLE.to_owned(),
+            }
         );
-    }
-
-    #[test]
-    fn rls_enforceability_non_super_non_bypass_member_is_ok() {
+        // A SET ROLE switch and a probe failure both preserve today's `Sqlx`
+        // surface (not the structured RLS variants).
+        assert!(matches!(
+            PgScimConnectError::from(RlsEnforceabilityError::RoleSwitchInEffect {
+                session_role: "a".to_owned(),
+                current_role: "b".to_owned(),
+            }),
+            PgScimConnectError::Sqlx(_)
+        ));
+        assert!(matches!(
+            PgScimConnectError::from(RlsEnforceabilityError::ProbeFailed {
+                detail: "role does not exist".to_owned()
+            }),
+            PgScimConnectError::Sqlx(_)
+        ));
+        // The #799 FORCE-RLS hardening: a not-forced or missing governed table
+        // maps to the new RlsNotForcedOnTable variant.
         assert_eq!(
-            evaluate_rls_enforceability(RUNTIME_ROLE, false, false, true),
-            Ok(())
+            PgScimConnectError::from(RlsEnforceabilityError::RlsNotForced {
+                table: USERS_TABLE.to_owned(),
+                row_security: true,
+                force_row_security: false,
+            }),
+            PgScimConnectError::RlsNotForcedOnTable {
+                table: USERS_TABLE.to_owned()
+            }
+        );
+        assert_eq!(
+            PgScimConnectError::from(RlsEnforceabilityError::GovernedTableMissing {
+                table: GROUPS_TABLE.to_owned()
+            }),
+            PgScimConnectError::RlsNotForcedOnTable {
+                table: GROUPS_TABLE.to_owned()
+            }
         );
     }
 

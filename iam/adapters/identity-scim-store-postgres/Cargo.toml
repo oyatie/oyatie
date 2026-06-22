@@ -10,6 +10,7 @@ description = "Real async sqlx/Postgres SCIM UserStore/GroupStore adapters: per-
 [dependencies]
 oya-shared-scim-server-kernel = { path = "../../../libs/oya-shared-scim-server-kernel" }
 oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres-command-kernel" }
+oya-shared-postgres-command-adapter-sqlx = { path = "../../../libs/oya-shared-postgres-command-adapter-sqlx" }
 sqlx.workspace = true
 serde.workspace = true
 serde_json.workspace = true
