@@ -3827,6 +3827,7 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 name = "identity-scim-store-postgres"
 version = "0.1.0"
 dependencies = [
+ "oya-shared-postgres-command-adapter-sqlx",
  "oya-shared-postgres-command-kernel",
  "oya-shared-scim-server-kernel",
  "serde",
@@ -11670,6 +11671,7 @@ name = "tenancy-tenant-lifecycle-store-postgres"
 version = "0.1.0"
 dependencies = [
  "oya-shared-platform-contracts-kernel",
+ "oya-shared-postgres-command-adapter-sqlx",
  "oya-shared-postgres-command-kernel",
  "oya-shared-resource-provider-contract-kernel",
  "serde",

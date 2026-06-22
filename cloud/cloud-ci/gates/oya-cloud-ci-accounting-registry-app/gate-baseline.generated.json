@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:dc9fb0f3bf98e1d2"
+    "source_inputs_digest": "fnv1a64:42246260c61184f1"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -4941,7 +4941,6 @@
           "libs/oya-shared-backbone-grpc-generated-adapter",
           "libs/oya-shared-backbone-grpc-transport-adapter",
           "libs/oya-shared-backbone-rest-runtime-adapter",
-          "libs/oya-shared-postgres-command-adapter-sqlx",
           "libs/oya-shared-transactional-outbox-adapter-sqlx",
           "libs/oya-shared-transactional-outbox-poller-app",
           "libs/oya-shared-transactional-outbox-runtime-tokio-app",

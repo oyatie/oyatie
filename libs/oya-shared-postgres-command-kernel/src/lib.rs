@@ -8,6 +8,126 @@
 
 pub const SET_LOCAL_TENANT_SQL: &str = "SELECT set_config('oyatie.tenant_id', $1, true)";
 
+/// Probe the connected role's RLS-relevant flags + membership of the runtime
+/// (RLS policy-subject) role. `$1` binds the runtime role name.
+///
+/// `pg_has_role(user, role, 'USAGE')` follows Postgres's own
+/// `has_privs_of_role` predicate: it is true iff `user` IS `role` or inherits
+/// its privileges (transitive membership, respecting INHERIT). This is exactly
+/// the predicate Postgres uses internally to decide whether a `TO <role>` RLS
+/// policy clause applies to the current user. `'USAGE'` (NOT `'MEMBER'`) is the
+/// correct keyword: `'MEMBER'` tests bare set-membership and returns true even
+/// for a NOINHERIT member, which would silently get deny-all in practice; only
+/// `'USAGE'` answers "this role's policies apply to me". (See the Postgres
+/// `pg_has_role` docs: `USAGE` = `has_privs_of_role`, `MEMBER` =
+/// `is_member_of_role`.)
+///
+/// `session_user` is fetched so the executor can detect a `SET ROLE` switch:
+/// these adapters never issue `SET ROLE`, so `session_user` must equal
+/// `current_user` on every serving connection.
+pub const RLS_ROLE_PROBE_SQL: &str = "SELECT current_user::text AS role_name, \
+     session_user::text AS session_role, \
+     rolsuper, rolbypassrls, \
+     pg_has_role(current_user, $1, 'USAGE') AS is_runtime_member \
+     FROM pg_roles WHERE rolname = current_user";
+
+/// Probe whether a governed table has ROW LEVEL SECURITY enabled AND forced.
+/// `$1` binds the schema name (`nspname`), `$2` binds the table name
+/// (`relname`). Returns no row when the table does not exist.
+pub const RLS_TABLE_FORCED_PROBE_SQL: &str = "SELECT c.relrowsecurity AS row_security, \
+     c.relforcerowsecurity AS force_row_security \
+     FROM pg_class c JOIN pg_namespace n ON c.relnamespace = n.oid \
+     WHERE n.nspname = $1 AND c.relname = $2";
+
+/// A boot-time RLS-enforceability failure surfaced by the shared guard. Pure
+/// (no sqlx); the `&PgPool` executor lives in the sqlx adapter and maps these
+/// into each adapter's own connect-error vocabulary.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RlsEnforceabilityError {
+    /// The connected role carries `rolsuper` or `rolbypassrls`: either flag
+    /// silently skips Postgres RLS, turning tenant isolation into a no-op.
+    Unenforceable { role: String }, // data_class: INTERNAL_ONLY
+    /// The connected role is neither the policy-subject role nor a USAGE-member
+    /// of it: a `TO <role>` policy would not apply, yielding deny-all under
+    /// FORCE RLS (a safe outage, but still a misconfiguration).
+    RoleMismatch {
+        role: String,     // data_class: INTERNAL_ONLY
+        expected: String, // data_class: INTERNAL_ONLY
+    },
+    /// `session_user` differs from `current_user`: a `SET ROLE` switch is in
+    /// effect and the guard cannot safely check the effective role.
+    RoleSwitchInEffect {
+        session_role: String, // data_class: INTERNAL_ONLY
+        current_role: String, // data_class: INTERNAL_ONLY
+    },
+    /// A governed table does not have BOTH `ENABLE` and `FORCE ROW LEVEL
+    /// SECURITY`, so the table owner (or this role) could read rows without the
+    /// tenant-isolation policies applying.
+    RlsNotForced {
+        table: String, // data_class: INTERNAL_ONLY
+        row_security: bool,
+        force_row_security: bool,
+    },
+    /// A governed table is absent from `pg_class` (the migration has not run, or
+    /// the schema/table name drifted): the guard refuses to serve a store whose
+    /// isolation it cannot verify.
+    GovernedTableMissing { table: String }, // data_class: INTERNAL_ONLY
+    /// The probe query (or a column decode) failed before the guard could reach
+    /// a decision — e.g. the runtime role does not yet exist in the database.
+    /// Fail-closed: the caller must NOT proceed. Carries the underlying sqlx
+    /// detail so adapters can preserve their existing `Sqlx(detail)` surface.
+    ProbeFailed { detail: String }, // data_class: INTERNAL_ONLY
+}
+
+impl core::fmt::Display for RlsEnforceabilityError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Unenforceable { role } => write!(
+                f,
+                "runtime role '{role}' can bypass RLS (rolsuper/rolbypassrls); \
+                 refusing to serve a multi-tenant store"
+            ),
+            Self::RoleMismatch { role, expected } => write!(
+                f,
+                "connected role '{role}' is not a USAGE-member of the RLS \
+                 policy-subject role '{expected}'; tenant isolation policies \
+                 would not apply — refusing to serve"
+            ),
+            Self::RoleSwitchInEffect {
+                session_role,
+                current_role,
+            } => write!(
+                f,
+                "session_user '{session_role}' != current_user '{current_role}': \
+                 a SET ROLE switch is in effect; this adapter does not issue \
+                 SET ROLE and cannot safely check the effective role"
+            ),
+            Self::RlsNotForced {
+                table,
+                row_security,
+                force_row_security,
+            } => write!(
+                f,
+                "governed table '{table}' is not under ENABLE+FORCE ROW LEVEL \
+                 SECURITY (row_security={row_security}, \
+                 force_row_security={force_row_security}); refusing to serve a \
+                 multi-tenant store whose isolation is not forced"
+            ),
+            Self::GovernedTableMissing { table } => write!(
+                f,
+                "governed table '{table}' is missing from pg_class (migration \
+                 not applied or name drift); refusing to serve"
+            ),
+            Self::ProbeFailed { detail } => write!(
+                f,
+                "RLS-enforceability probe failed before a decision: {detail}"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for RlsEnforceabilityError {}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SqlCommandError {
     MissingTenantId,
@@ -341,6 +461,64 @@ fn require_non_empty_named(value: &str, error: SqlCommandError) -> Result<(), Sq
     }
 }
 
+/// Pure RLS role-flag decision — no DB, no async, fully unit-testable.
+///
+/// Returns `Ok(())` iff the role is safe to serve multi-tenant traffic:
+/// - not a superuser (`rolsuper = false`),
+/// - not bypass-RLS capable (`rolbypassrls = false`), AND
+/// - is a USAGE-member of the policy-subject role (`is_runtime_member = true`).
+///
+/// The three conditions map to two distinct error variants so callers and logs
+/// can distinguish a bypass risk (leak vector) from a membership gap (outage):
+/// - `rolsuper || rolbypassrls` → [`RlsEnforceabilityError::Unenforceable`]
+///   (bypass-capable role; the isolation guarantee is violated).
+/// - `!is_runtime_member` → [`RlsEnforceabilityError::RoleMismatch`]
+///   (non-member; under FORCE RLS the policies simply would not apply, yielding
+///   deny-all — a safe fail-closed outage, but still a misconfiguration).
+pub fn evaluate_rls_role_flags(
+    role: &str,
+    expected_role: &str,
+    rolsuper: bool,
+    rolbypassrls: bool,
+    is_runtime_member: bool,
+) -> Result<(), RlsEnforceabilityError> {
+    if rolsuper || rolbypassrls {
+        return Err(RlsEnforceabilityError::Unenforceable {
+            role: role.to_owned(),
+        });
+    }
+    if !is_runtime_member {
+        return Err(RlsEnforceabilityError::RoleMismatch {
+            role: role.to_owned(),
+            expected: expected_role.to_owned(),
+        });
+    }
+    Ok(())
+}
+
+/// Pure FORCE-RLS decision for one governed table — no DB, no async.
+///
+/// Returns `Ok(())` iff the table has BOTH `relrowsecurity` (ENABLE ROW LEVEL
+/// SECURITY) and `relforcerowsecurity` (FORCE ROW LEVEL SECURITY). FORCE is
+/// required so the policies apply even to the table owner; without it a
+/// privileged owner role would read every row. A table missing either flag
+/// yields [`RlsEnforceabilityError::RlsNotForced`].
+pub fn evaluate_rls_forced(
+    qualified_table: &str,
+    row_security: bool,
+    force_row_security: bool,
+) -> Result<(), RlsEnforceabilityError> {
+    if row_security && force_row_security {
+        Ok(())
+    } else {
+        Err(RlsEnforceabilityError::RlsNotForced {
+            table: qualified_table.to_owned(),
+            row_security,
+            force_row_security,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -482,6 +660,122 @@ mod tests {
         assert_eq!(
             report.executed_command_names,
             vec!["set_local_oyatie_tenant", "insert_message"]
+        );
+    }
+
+    // --- RLS-enforceability probe SQL shape ----------------------------------
+
+    #[test]
+    fn rls_role_probe_uses_usage_keyword_not_member() {
+        // The 'MEMBER'->'USAGE' correctness fix: RLS policy applicability is the
+        // has_privs_of_role (USAGE) question, not bare is_member_of_role (MEMBER).
+        assert!(
+            RLS_ROLE_PROBE_SQL.contains("pg_has_role(current_user, $1, 'USAGE')"),
+            "role probe must use the 'USAGE' (has_privs_of_role) keyword"
+        );
+        assert!(
+            !RLS_ROLE_PROBE_SQL.contains("'MEMBER'"),
+            "role probe must NOT use the 'MEMBER' (is_member_of_role) keyword"
+        );
+        assert!(RLS_ROLE_PROBE_SQL.contains("session_user"));
+        assert!(RLS_ROLE_PROBE_SQL.contains("rolsuper"));
+        assert!(RLS_ROLE_PROBE_SQL.contains("rolbypassrls"));
+    }
+
+    #[test]
+    fn rls_table_forced_probe_reads_relrowsecurity_and_force() {
+        assert!(RLS_TABLE_FORCED_PROBE_SQL.contains("c.relrowsecurity"));
+        assert!(RLS_TABLE_FORCED_PROBE_SQL.contains("c.relforcerowsecurity"));
+        assert!(RLS_TABLE_FORCED_PROBE_SQL.contains("n.nspname = $1"));
+        assert!(RLS_TABLE_FORCED_PROBE_SQL.contains("c.relname = $2"));
+    }
+
+    // --- DB-free evaluate_rls_role_flags predicate tests ---------------------
+    // These cover all meaningful combinations of (rolsuper, rolbypassrls,
+    // is_runtime_member) without a database. Only the SQL wiring into pg_roles /
+    // pg_has_role requires a live DB; the boolean DECISION is always tested here.
+
+    const EXPECTED_ROLE: &str = "tenancy_lifecycle_runtime";
+
+    #[test]
+    fn rls_role_flags_superuser_is_rejected_as_unenforceable() {
+        assert_eq!(
+            evaluate_rls_role_flags("pg_superuser", EXPECTED_ROLE, true, false, true),
+            Err(RlsEnforceabilityError::Unenforceable {
+                role: "pg_superuser".to_owned()
+            })
+        );
+    }
+
+    #[test]
+    fn rls_role_flags_bypassrls_is_rejected_as_unenforceable() {
+        assert_eq!(
+            evaluate_rls_role_flags("bypass_role", EXPECTED_ROLE, false, true, true),
+            Err(RlsEnforceabilityError::Unenforceable {
+                role: "bypass_role".to_owned()
+            })
+        );
+    }
+
+    #[test]
+    fn rls_role_flags_super_and_bypass_is_rejected_as_unenforceable() {
+        // Both flags set still classifies as the bypass risk (not a membership
+        // gap): the leak vector dominates the decision.
+        assert_eq!(
+            evaluate_rls_role_flags("both_flags", EXPECTED_ROLE, true, true, false),
+            Err(RlsEnforceabilityError::Unenforceable {
+                role: "both_flags".to_owned()
+            })
+        );
+    }
+
+    #[test]
+    fn rls_role_flags_non_member_is_role_mismatch() {
+        assert_eq!(
+            evaluate_rls_role_flags("some_role", EXPECTED_ROLE, false, false, false),
+            Err(RlsEnforceabilityError::RoleMismatch {
+                role: "some_role".to_owned(),
+                expected: EXPECTED_ROLE.to_owned(),
+            })
+        );
+    }
+
+    #[test]
+    fn rls_role_flags_non_super_non_bypass_member_is_ok() {
+        assert_eq!(
+            evaluate_rls_role_flags(EXPECTED_ROLE, EXPECTED_ROLE, false, false, true),
+            Ok(())
+        );
+    }
+
+    // --- DB-free evaluate_rls_forced predicate tests -------------------------
+
+    #[test]
+    fn rls_forced_enabled_and_forced_is_ok() {
+        assert_eq!(evaluate_rls_forced("schema.table", true, true), Ok(()));
+    }
+
+    #[test]
+    fn rls_forced_enabled_but_not_forced_is_rejected() {
+        assert_eq!(
+            evaluate_rls_forced("schema.table", true, false),
+            Err(RlsEnforceabilityError::RlsNotForced {
+                table: "schema.table".to_owned(),
+                row_security: true,
+                force_row_security: false,
+            })
+        );
+    }
+
+    #[test]
+    fn rls_forced_not_enabled_is_rejected() {
+        assert_eq!(
+            evaluate_rls_forced("schema.table", false, false),
+            Err(RlsEnforceabilityError::RlsNotForced {
+                table: "schema.table".to_owned(),
+                row_security: false,
+                force_row_security: false,
+            })
         );
     }
 }
