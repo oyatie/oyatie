@@ -18,6 +18,11 @@
 --      a row is visible only if the permissive policy admits it AND every
 --      restrictive policy admits it.
 --
+-- The policy-subject role in every `TO <role>` clause below is
+-- identity_scim_runtime — it MUST stay in lockstep with the `RUNTIME_ROLE`
+-- constant in src/lib.rs (the boot-time RLS-enforceability guard checks
+-- membership in exactly that role). Change both together.
+--
 -- The runtime role MUST NOT carry BYPASSRLS or RLS would be silently skipped.
 -- A CHECK (tenant_id <> '') on every tenant_id column is defense-in-depth so a
 -- blank tenant can never be persisted. userName uniqueness is per-tenant via

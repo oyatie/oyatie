@@ -36,8 +36,8 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, get, patch, post, put};
 
 use oya_shared_scim_server_kernel::{
-    CounterIdGen, InMemoryGroupStore, InMemoryUserStore, ListQuery, NewGroup, NewUser, PatchOp,
-    ReferenceScimServer, ScimError, ScimId, ScimServer, TenantId,
+    CounterIdGen, GroupStore, ListQuery, NewGroup, NewUser, PatchOp, ReferenceScimServer,
+    ScimError, ScimId, ScimServer, TenantId, UserStore,
 };
 
 use iam_identity_workload_app::{
@@ -55,33 +55,43 @@ pub const SCIM_MANAGE_SCOPE: &str = "scim.manage";
 pub const SCIM_BASE: &str = "/scim/v2";
 
 /// The composed SCIM surface state: the kernel reference server over the
-/// in-memory store ports + the offline token-validation material. Generic over
-/// the same four workload-identity ports as [`WorkloadAuthzState`] (mirroring
-/// the REST router) so tests drive an inspectable audit sink and the durable
-/// G03 stores swap in behind the same traits.
-pub struct ScimSurfaceState<R, D, A, S>
+/// [`UserStore`]/[`GroupStore`] PORTS + the offline token-validation material.
+/// Generic over the same four workload-identity ports as [`WorkloadAuthzState`]
+/// (mirroring the REST router) PLUS the two SCIM store ports `U`/`G`, so the
+/// composition root selects in-memory (dev) or the durable G005 Postgres stores
+/// behind the SAME traits — the kernel `ReferenceScimServer` and the
+/// `UserStore`/`GroupStore` ports are UNCHANGED (cutover litmus: the owned-data
+/// store swaps the adapter later with no change here).
+pub struct ScimSurfaceState<R, D, A, S, U, G>
 where
     R: WorkloadPrincipalRepository + Send + 'static,
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
-    server: ReferenceScimServer<InMemoryUserStore, InMemoryGroupStore, CounterIdGen>,
+    server: ReferenceScimServer<U, G, CounterIdGen>,
     jwks: Jwks,
     validation: ValidationConfig,
     now_provider: fn() -> i64,
     authz: Arc<WorkloadAuthzState<R, D, A, S>>,
 }
 
-impl<R, D, A, S> ScimSurfaceState<R, D, A, S>
+impl<R, D, A, S, U, G> ScimSurfaceState<R, D, A, S, U, G>
 where
     R: WorkloadPrincipalRepository + Send + 'static,
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
-    /// Assemble the surface. `base_url` is the externally visible SCIM base
-    /// (issuer + `/scim/v2`), used for `meta.location` URLs.
+    /// Assemble the surface over the supplied SCIM store ports. `base_url` is the
+    /// externally visible SCIM base (issuer + `/scim/v2`), used for
+    /// `meta.location` URLs. The composition root passes either the in-memory
+    /// stores (dev) or the durable Postgres stores (G005) — both satisfy the
+    /// `UserStore`/`GroupStore` ports, so this signature is store-agnostic.
     #[must_use]
     pub fn new(
         base_url: impl Into<String>,
@@ -89,14 +99,11 @@ where
         validation: ValidationConfig,
         now_provider: fn() -> i64,
         authz: Arc<WorkloadAuthzState<R, D, A, S>>,
+        users: U,
+        groups: G,
     ) -> Self {
         Self {
-            server: ReferenceScimServer::new(
-                InMemoryUserStore::default(),
-                InMemoryGroupStore::default(),
-                CounterIdGen::new(),
-                base_url,
-            ),
+            server: ReferenceScimServer::new(users, groups, CounterIdGen::new(), base_url),
             jwks,
             validation,
             now_provider,
@@ -106,7 +113,7 @@ where
 }
 
 /// Shared handle for the SCIM routes.
-pub type SharedScimState<R, D, A, S> = Arc<ScimSurfaceState<R, D, A, S>>;
+pub type SharedScimState<R, D, A, S, U, G> = Arc<ScimSurfaceState<R, D, A, S, U, G>>;
 
 // =====================================================================
 // Fail-closed Bearer guard
@@ -125,8 +132,8 @@ const SCIM_TENANT_RESOURCE_TYPE: &str = "ScimTenant";
 /// stage (`scim-guard` for a rejected credential, `scope-missing`,
 /// `tenant-mismatch`) — deliberately richer than the PEP's `token-rejected`
 /// record (`detail: None`) so forensics can tell WHICH surface refused.
-fn audit_guard_refusal<R, D, A, S>(
-    state: &ScimSurfaceState<R, D, A, S>,
+fn audit_guard_refusal<R, D, A, S, U, G>(
+    state: &ScimSurfaceState<R, D, A, S, U, G>,
     workload_id: Option<String>,
     outcome: &'static str,
     detail: &str,
@@ -136,6 +143,8 @@ fn audit_guard_refusal<R, D, A, S>(
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     state.authz.audit().record(
         AuditRecord::new(
@@ -153,8 +162,8 @@ fn audit_guard_refusal<R, D, A, S>(
 /// Exactly one audit record is emitted per credential-bearing guard run:
 /// pre-authorize refusals emit here, the PEP decision emits inside
 /// `authorize_token_for` (see the module-level audit section).
-fn authorize_scim<R, D, A, S>(
-    state: &ScimSurfaceState<R, D, A, S>,
+fn authorize_scim<R, D, A, S, U, G>(
+    state: &ScimSurfaceState<R, D, A, S, U, G>,
     headers: &HeaderMap,
     tenant: &str,
 ) -> Result<(), Response>
@@ -163,6 +172,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     let token = headers
         .get(axum::http::header::AUTHORIZATION)
@@ -291,8 +302,8 @@ macro_rules! guard {
     };
 }
 
-async fn list_users<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn list_users<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path(tenant): Path<String>,
     uri: Uri,
     headers: HeaderMap,
@@ -302,6 +313,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -314,8 +327,8 @@ where
     }
 }
 
-async fn create_user<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn create_user<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path(tenant): Path<String>,
     headers: HeaderMap,
     Json(input): Json<NewUser>,
@@ -325,6 +338,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -337,8 +352,8 @@ where
     }
 }
 
-async fn get_user<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn get_user<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Response
@@ -347,6 +362,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state.server.get_user(&TenantId(tenant), &ScimId(id)).await {
@@ -355,8 +372,8 @@ where
     }
 }
 
-async fn replace_user<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn replace_user<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
     Json(input): Json<NewUser>,
@@ -366,6 +383,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -378,8 +397,8 @@ where
     }
 }
 
-async fn patch_user<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn patch_user<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
     Json(op): Json<PatchOp>,
@@ -389,6 +408,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -401,8 +422,8 @@ where
     }
 }
 
-async fn delete_user<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn delete_user<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Response
@@ -411,6 +432,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -423,8 +446,8 @@ where
     }
 }
 
-async fn list_groups<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn list_groups<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path(tenant): Path<String>,
     uri: Uri,
     headers: HeaderMap,
@@ -434,6 +457,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -446,8 +471,8 @@ where
     }
 }
 
-async fn create_group<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn create_group<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path(tenant): Path<String>,
     headers: HeaderMap,
     Json(input): Json<NewGroup>,
@@ -457,6 +482,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -469,8 +496,8 @@ where
     }
 }
 
-async fn get_group<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn get_group<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Response
@@ -479,6 +506,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state.server.get_group(&TenantId(tenant), &ScimId(id)).await {
@@ -487,8 +516,8 @@ where
     }
 }
 
-async fn patch_group<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn patch_group<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
     Json(op): Json<PatchOp>,
@@ -498,6 +527,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -510,8 +541,8 @@ where
     }
 }
 
-async fn delete_group<R, D, A, S>(
-    State(state): State<SharedScimState<R, D, A, S>>,
+async fn delete_group<R, D, A, S, U, G>(
+    State(state): State<SharedScimState<R, D, A, S, U, G>>,
     Path((tenant, id)): Path<(String, String)>,
     headers: HeaderMap,
 ) -> Response
@@ -520,6 +551,8 @@ where
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     guard!(state, headers, tenant);
     match state
@@ -534,57 +567,59 @@ where
 
 /// Build the SCIM router (mounted at the service root; paths carry
 /// [`SCIM_BASE`]).
-pub fn build_scim_router<R, D, A, S>(state: SharedScimState<R, D, A, S>) -> Router
+pub fn build_scim_router<R, D, A, S, U, G>(state: SharedScimState<R, D, A, S, U, G>) -> Router
 where
     R: WorkloadPrincipalRepository + Send + 'static,
     D: RevocationDenylist + Send + 'static,
     A: WorkloadAuthorizer + Send + Sync + 'static,
     S: AuditSink + 'static,
+    U: UserStore + Send + Sync + 'static,
+    G: GroupStore + Send + Sync + 'static,
 {
     Router::new()
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users"),
-            get(list_users::<R, D, A, S>),
+            get(list_users::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users"),
-            post(create_user::<R, D, A, S>),
+            post(create_user::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            get(get_user::<R, D, A, S>),
+            get(get_user::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            put(replace_user::<R, D, A, S>),
+            put(replace_user::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            patch(patch_user::<R, D, A, S>),
+            patch(patch_user::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Users/{{id}}"),
-            delete(delete_user::<R, D, A, S>),
+            delete(delete_user::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups"),
-            get(list_groups::<R, D, A, S>),
+            get(list_groups::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups"),
-            post(create_group::<R, D, A, S>),
+            post(create_group::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            get(get_group::<R, D, A, S>),
+            get(get_group::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            patch(patch_group::<R, D, A, S>),
+            patch(patch_group::<R, D, A, S, U, G>),
         )
         .route(
             &format!("{SCIM_BASE}/{{tenant}}/Groups/{{id}}"),
-            delete(delete_group::<R, D, A, S>),
+            delete(delete_group::<R, D, A, S, U, G>),
         )
         .with_state(state)
 }
@@ -597,6 +632,7 @@ mod tests {
     use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
     use base64::Engine as _;
     use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+    use oya_shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
     use tower::ServiceExt as _;
 
     use iam_identity_workload_app::{
@@ -699,6 +735,8 @@ mod tests {
             ValidationConfig::new(ISSUER, AUDIENCE),
             || NOW,
             authz,
+            InMemoryUserStore::default(),
+            InMemoryGroupStore::default(),
         ));
         Fixture {
             router: build_scim_router(state),
