@@ -1,5 +1,5 @@
 [package]
-name = "oya-calendar-domain"
+name = "comms-calendar-usecase"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,10 +7,11 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+comms-calendar-domain = { path = "../calendar-domain" }
+comms-calendar-api = { path = "../../ports/calendar-api" }
 
 [lib]
-name = "oya_calendar_domain"
+name = "comms_calendar_usecase"
 path = "src/lib.rs"
 doctest = false
 

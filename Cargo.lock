@@ -1268,6 +1268,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "comms-calendar-api"
+version = "0.1.0"
+dependencies = [
+ "comms-calendar-domain",
+]
+
+[[package]]
+name = "comms-calendar-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "comms-calendar-usecase"
+version = "0.1.0"
+dependencies = [
+ "comms-calendar-api",
+ "comms-calendar-domain",
+]
+
+[[package]]
 name = "comms-contact-center-voice-routing"
 version = "0.1.0"
 dependencies = [
@@ -5553,13 +5575,6 @@ name = "oya-bus-boundary-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-messaging-substrate-kernel",
-]
-
-[[package]]
-name = "oya-calendar-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
