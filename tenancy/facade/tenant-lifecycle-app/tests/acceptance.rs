@@ -18,7 +18,7 @@
 use axum::body::Body;
 use axum::http::{Method, Request, StatusCode};
 use http_body_util::BodyExt;
-use tenancy_tenant_lifecycle_app::build_inmemory_router;
+use tenancy_tenant_lifecycle_app::{BootError, build_inmemory_router, build_postgres_router};
 use tower::ServiceExt;
 
 /// The platform-admin bearer the test router is configured with.
@@ -602,5 +602,140 @@ async fn register_same_key_different_tenant_is_independent() {
     assert_eq!(
         register(&app, "different", &key(1)).await.status(),
         StatusCode::CREATED
+    );
+}
+
+// ============================================================
+// G006 SLICE-1 — durable Postgres store wiring (composition root)
+// ============================================================
+
+/// Env that turns the live-Postgres tier ON (mirrors the durable adapter's
+/// `tests/live_rls.rs` gate). Default `buck2 test` leaves it unset, so the live
+/// test below skips cleanly (the DB-free lane stays the default).
+const LIVE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
+/// The runtime Postgres URL the facade's `serve()` reads — the SAME env name
+/// `build_postgres_router` is wired behind in production (`ENV_DATABASE_URL`),
+/// so the live test exercises the real composition path, not a parallel one.
+const LIVE_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
+
+/// Truthy-gate identical to the adapter's live tests.
+fn live_enabled() -> bool {
+    std::env::var(LIVE_ENV)
+        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .unwrap_or(false)
+}
+
+/// Build a fully-authorized DURABLE router over `url`. Panics on a connect
+/// failure (a hard test failure when the live tier is explicitly enabled).
+async fn pg_app(url: &str) -> axum::Router {
+    build_postgres_router(
+        url,
+        Some(PLATFORM_TOKEN.to_owned()),
+        Some(OPERATOR_TOKEN.to_owned()),
+    )
+    .await
+    .expect("durable router must compose against the live database")
+}
+
+/// Read a tenant via a SPECIFIC router instance (not the shared `app()`), so a
+/// freshly-rebuilt router can be checked against the same backend.
+async fn get_state_on(app: &axum::Router, tenant_id: &str) -> (StatusCode, serde_json::Value) {
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::GET)
+                .uri(format!("/v1/tenants/{tenant_id}"))
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", tenant_id)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let status = resp.status();
+    (status, body_json(resp.into_body()).await)
+}
+
+/// DB-free fail-closed wiring proof at the integration tier: an empty
+/// `DATABASE_URL` refuses to compose the durable router (maps
+/// `PgStoreConnectError::MissingDatabaseUrl` -> [`BootError::Store`]). No
+/// database is touched, so this runs in the default (DB-free) `buck2 test` lane
+/// and guards the same fail-closed contract from the acceptance target (the
+/// `src/lib.rs` unit lane asserts it in-crate; this proves it through the
+/// public crate boundary the binary uses).
+#[tokio::test]
+async fn build_postgres_router_empty_url_fails_closed() {
+    let result = build_postgres_router(
+        "",
+        Some(PLATFORM_TOKEN.to_owned()),
+        Some(OPERATOR_TOKEN.to_owned()),
+    )
+    .await;
+    assert!(
+        matches!(result, Err(BootError::Store(_))),
+        "empty DATABASE_URL must fail-close as BootError::Store, got {result:?}"
+    );
+}
+
+/// LIVE durability proof (env-gated): register a tenant through the REST surface
+/// on a durable router, then build a FRESH router over the SAME url and GET the
+/// tenant back — proving the write survived a router rebuild (the property the
+/// in-memory store CANNOT provide). Also asserts a different tenant scope reads
+/// a 404 (RLS isolates the durable row from another operator's scope).
+///
+/// Skips cleanly with a stderr notice when `OYA_BACKBONE_LIVE_POSTGRES` is unset
+/// so the default `buck2 test` stays DB-free. `option_env!` is used ONLY as a
+/// compile-time hint (never `env!`), so the buck2 target always compiles.
+#[tokio::test]
+async fn live_durable_store_persists_across_router_rebuild() {
+    if !live_enabled() {
+        eprintln!(
+            "SKIP live_durable_store_persists_across_router_rebuild: set {LIVE_ENV}=1 and \
+             {LIVE_URL_ENV}=<disposable pg url> to run the durable tier \
+             (manifest hint: {:?})",
+            option_env!("CARGO_MANIFEST_DIR")
+        );
+        return;
+    }
+    let url = std::env::var(LIVE_URL_ENV)
+        .unwrap_or_else(|_| panic!("{LIVE_URL_ENV} required when {LIVE_ENV} is enabled"));
+
+    // A unique tenant id per run so repeated live runs against the same database
+    // do not collide on the durable PRIMARY KEY.
+    let tenant_id = format!("g006-durable-{}", std::process::id());
+    let other_id = format!("g006-other-{}", std::process::id());
+
+    // Router #1: register the tenant (born Provisioning) via the REST surface.
+    let first = pg_app(&url).await;
+    let resp = register(&first, &tenant_id, &key(1)).await;
+    assert_eq!(
+        resp.status(),
+        StatusCode::CREATED,
+        "durable register must succeed"
+    );
+
+    // Router #2: a FRESH composition over the SAME url. The earlier write is
+    // only observable here if it was durably persisted (the in-memory store,
+    // being per-process state, would return 404).
+    let rebuilt = pg_app(&url).await;
+    let (status, view) = get_state_on(&rebuilt, &tenant_id).await;
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "durable tenant must survive a router rebuild"
+    );
+    assert_eq!(view["tenant_id"], tenant_id.as_str());
+    assert_eq!(view["state"], "provisioning");
+
+    // Cross-tenant isolation (RLS): an operator scoped to `other_id` must not be
+    // able to read `tenant_id` — the GET authorizes against the asserted axis,
+    // and the durable store's per-tx tenant GUC scopes the row, so it is a 404
+    // (not found within the other tenant's scope), never a leak.
+    let (cross_status, _) = get_state_on(&rebuilt, &other_id).await;
+    assert_eq!(
+        cross_status,
+        StatusCode::NOT_FOUND,
+        "a different tenant scope must not see the durable tenant's row"
     );
 }
