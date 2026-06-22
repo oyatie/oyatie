@@ -132,29 +132,50 @@ fn split_statements(migration: &str) -> Vec<String> {
     statements
 }
 
+/// Apply the durable schema and make the app role a USAGE-member of the runtime
+/// role. The migration SQL is the committed `migrations/0000_runtime_role.sql` +
+/// `migrations/0001_*.sql`, applied verbatim IN ORDER so the test path is the
+/// production schema byte-for-byte: 0000 provisions the `identity_scim_runtime`
+/// role (NOLOGIN, NOBYPASSRLS) + schema + USAGE grant, then 0001 creates the
+/// tables, the `TO identity_scim_runtime` RLS policies, and the per-table
+/// privilege grants to that role. 0000 MUST precede 0001 because every 0001
+/// `TO <role>` clause requires the role to already exist.
+///
+/// After applying, the app login is GRANTed membership in the runtime role
+/// (default INHERIT) — the deploy contract. Membership is what makes the
+/// `TO identity_scim_runtime` policies apply to the app login AND makes the
+/// shared boot guard's `pg_has_role(current_user, 'identity_scim_runtime',
+/// 'USAGE')` check pass; the app login inherits the schema USAGE + table grants
+/// transitively, so no direct grant to the app login is needed.
 async fn setup_schema(setup: &PgPool, app_role: &str) {
     sqlx::query(&format!("DROP SCHEMA IF EXISTS {SCHEMA_NAME} CASCADE"))
         .execute(setup)
         .await
         .unwrap();
-    let migration = include_str!("../migrations/0001_identity_scim_store.sql");
+    let role_migration = include_str!("../migrations/0000_runtime_role.sql");
+    let table_migration = include_str!("../migrations/0001_identity_scim_store.sql");
     assert!(
-        migration.contains(RUNTIME_ROLE),
-        "migration must bind the runtime role"
+        role_migration.contains(RUNTIME_ROLE),
+        "0000 migration must provision the runtime role"
     );
-    for sql in split_statements(migration) {
-        sqlx::query(&sql).execute(setup).await.unwrap_or_else(|e| {
-            panic!("migration statement failed: {sql}\n{e}");
-        });
+    assert!(
+        table_migration.contains(RUNTIME_ROLE),
+        "0001 migration must bind the runtime role"
+    );
+    for migration in [role_migration, table_migration] {
+        for sql in split_statements(migration) {
+            sqlx::query(&sql).execute(setup).await.unwrap_or_else(|e| {
+                panic!("migration statement failed: {sql}\n{e}");
+            });
+        }
     }
-    for sql in [
-        format!("GRANT USAGE ON SCHEMA {SCHEMA_NAME} TO {app_role}"),
-        format!(
-            "GRANT SELECT, INSERT, UPDATE, DELETE ON {USERS_TABLE}, {GROUPS_TABLE} TO {app_role}"
-        ),
-    ] {
-        sqlx::query(&sql).execute(setup).await.unwrap();
-    }
+    // Membership grant (default INHERIT): the app login becomes a USAGE-member of
+    // the runtime role, inheriting its schema USAGE + table privileges and making
+    // the `TO {RUNTIME_ROLE}` policies apply to it.
+    sqlx::query(&format!("GRANT {RUNTIME_ROLE} TO \"{app_role}\""))
+        .execute(setup)
+        .await
+        .unwrap();
 }
 
 async fn current_role_flags(p: &PgPool) -> (String, bool, bool) {

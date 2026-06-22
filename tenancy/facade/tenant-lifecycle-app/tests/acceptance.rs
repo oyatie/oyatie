@@ -613,10 +613,13 @@ async fn register_same_key_different_tenant_is_independent() {
 /// `tests/live_rls.rs` gate). Default `buck2 test` leaves it unset, so the live
 /// test below skips cleanly (the DB-free lane stays the default).
 const LIVE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
-/// The runtime Postgres URL the facade's `serve()` reads — the SAME env name
-/// `build_postgres_router` is wired behind in production (`ENV_DATABASE_URL`),
-/// so the live test exercises the real composition path, not a parallel one.
-const LIVE_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
+/// The runtime Postgres URL the durable router boots against. This MUST be the
+/// APP (non-superuser, NON-BYPASSRLS) role URL, NOT the SETUP superuser URL:
+/// `build_postgres_router` runs `assert_rls_enforceable`, which REJECTS a
+/// bypass-capable role with `PgStoreConnectError::RlsUnenforceable` (so a
+/// superuser URL would make `pg_app(...).expect(...)` panic, not skip). Mirrors
+/// the SCIM #799 fix and the adapter live tests' `OYA_BACKBONE_POSTGRES_APP_URL`.
+const LIVE_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
 
 /// Truthy-gate identical to the adapter's live tests.
 fn live_enabled() -> bool {
