@@ -794,11 +794,11 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
-      # Swatinem/rust-cache@v2.8.0 — caches ~/.cargo/registry + ~/.cargo/git + target/ so cold
+      # Swatinem/rust-cache@v2.9.1 — caches ~/.cargo/registry + ~/.cargo/git + target/ so cold
       # compiles (6 packages + their transitive deps) stay within the 40-minute timeout.
       # Keyed on rust-toolchain.toml + Cargo.lock; save-if=true so the cache warms on first run.
       # actions/cache@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: Swatinem/rust-cache@9bdfc2d56ad14da2b9f163d44c1fa0ff43c17e58
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
         with:
           save-if: ${{ github.ref == 'refs/heads/dev' }}
       - name: Pre-provision pinned Rust toolchain for cargo test
