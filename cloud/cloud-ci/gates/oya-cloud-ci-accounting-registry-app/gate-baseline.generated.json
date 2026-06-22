@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:57b81cb10b1c0f1f"
+    "source_inputs_digest": "fnv1a64:a3035ad17b21c565"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -7294,6 +7294,9 @@
           "comms/adapters/messenger-stream-postgres/Cargo.toml",
           "comms/adapters/messenger-stream-postgres/migrations/0001_message_stream.sql",
           "comms/adapters/messenger-stream-postgres/src/lib.rs",
+          "comms/core/calendar-domain/BUCK",
+          "comms/core/calendar-domain/Cargo.toml",
+          "comms/core/calendar-domain/src/lib.rs",
           "comms/core/mail-domain/BUCK",
           "comms/core/mail-domain/Cargo.toml",
           "comms/core/mail-domain/src/dkim_canonicalization.rs",
@@ -12474,9 +12477,6 @@
           "oya/calendar/contracts/asyncapi/calendar-events.yaml",
           "oya/calendar/contracts/openapi/calendar.yaml",
           "oya/calendar/contracts/proto/calendar.proto",
-          "oya/calendar/crates/oya-calendar-domain/BUCK",
-          "oya/calendar/crates/oya-calendar-domain/Cargo.toml",
-          "oya/calendar/crates/oya-calendar-domain/src/lib.rs",
           "oya/calendar/dashboards/availability-and-freebusy.json",
           "oya/calendar/dashboards/ics-import-export.json",
           "oya/calendar/dashboards/scheduling-pipeline.json",
@@ -20691,7 +20691,6 @@
           "registry/catalog/oya-address-book-domain.yaml",
           "registry/catalog/oya-application-app.yaml",
           "registry/catalog/oya-application-shell-frontend.yaml",
-          "registry/catalog/oya-calendar-domain.yaml",
           "registry/catalog/oya-check-a11y-discipline.yaml",
           "registry/catalog/oya-check-active-artifact-contract.yaml",
           "registry/catalog/oya-check-adr-citation.yaml",
@@ -28009,9 +28008,6 @@
           "oya/calendar/contracts/asyncapi/calendar-events.yaml",
           "oya/calendar/contracts/openapi/calendar.yaml",
           "oya/calendar/contracts/proto/calendar.proto",
-          "oya/calendar/crates/oya-calendar-domain/BUCK",
-          "oya/calendar/crates/oya-calendar-domain/Cargo.toml",
-          "oya/calendar/crates/oya-calendar-domain/src/lib.rs",
           "oya/calendar/dashboards/availability-and-freebusy.json",
           "oya/calendar/dashboards/ics-import-export.json",
           "oya/calendar/dashboards/scheduling-pipeline.json",
