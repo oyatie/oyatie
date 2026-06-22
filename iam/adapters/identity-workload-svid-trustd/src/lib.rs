@@ -209,6 +209,14 @@ fn map_leaf_err(err: LeafVerifyError) -> VerifyError {
             detail: format!("undecodable peer leaf: {detail}"),
         },
         LeafVerifyError::UntrustedIssuer(detail) => VerifyError::UntrustedIssuer { detail },
+        // A CA-capable leaf or a leaf missing the clientAuth EKU is a fail-closed
+        // untrusted deny: it presented material that is not a valid caller leaf.
+        LeafVerifyError::CaCapableLeaf => VerifyError::UntrustedIssuer {
+            detail: "peer leaf is CA-capable (basicConstraints cA TRUE); a CA must not authenticate as a workload".to_string(),
+        },
+        LeafVerifyError::MissingClientAuthEku => VerifyError::UntrustedIssuer {
+            detail: "peer leaf does not carry the clientAuth extended key usage required of a caller".to_string(),
+        },
     }
 }
 

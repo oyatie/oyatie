@@ -25,6 +25,19 @@
 //! 4. SVID tenant ≠ requested tenant       → [`CallerAuthRejection::TenantMismatch`]
 //! 5. malformed requested tenant id        → [`CallerAuthRejection::MalformedRequestTenant`]
 //! 6. platform SVID asserting a tenant     → [`CallerAuthRejection::PlatformSvidCannotActAsTenant`]
+//! 7. SVID from a FOREIGN cell authority    → [`CallerAuthRejection::ForeignCell`]
+//!
+//! ## Cell-authority pinning (G002/G004 #109)
+//!
+//! A caller SVID names its cell in its trust-domain authority
+//! (`spiffe://oyatie.cell-<id>/...`). The PDP serves exactly ONE cell — its own,
+//! derived from its server SVID identity (`spiffe://oyatie.cell-<id>/platform/cloud-iam-pdp`).
+//! A structurally-valid, correctly-signed SVID from a DIFFERENT cell must be
+//! rejected (cross-cell confusion if a CA ever spans cells): the PEP pins the
+//! caller's cell authority to its own and DENIES a foreign cell with
+//! [`CallerAuthRejection::ForeignCell`] (403, fail-closed). When the PDP has no
+//! derivable cell (plain-TCP boot / contract tests construct the PEP without one)
+//! the pin is absent and the legacy same-bundle behaviour stands.
 //!
 //! ## Fidelity boundary (ADR-0561 slice-1b deferral)
 //!
@@ -54,6 +67,13 @@ pub enum MtlsBootError {
     /// leaf/key (malformed DER, key/cert mismatch, or no usable protocol
     /// version) — a server that cannot present its own identity must never boot.
     ServerConfig(String),
+    /// The PDP could not derive its OWN cell authority from its mTLS server leaf,
+    /// so caller cell-pinning could not be established. Under mTLS the cell pin is
+    /// MANDATORY (the operator always mints a single cell-rooted server leaf), so
+    /// an empty chain, a leaf with no / more than one URI SAN, or a URI that is
+    /// not a cell-rooted SPIFFE id is a FAIL-CLOSED boot refusal — never a silent
+    /// degrade to an unpinned (cell-isolation-disabled) serve.
+    CellPinUndeterminable(String),
 }
 
 impl std::fmt::Display for MtlsBootError {
@@ -65,6 +85,11 @@ impl std::fmt::Display for MtlsBootError {
             Self::ServerConfig(detail) => {
                 write!(f, "mTLS server config rejected, refusing to boot: {detail}")
             }
+            Self::CellPinUndeterminable(detail) => write!(
+                f,
+                "mTLS server leaf does not yield a cell-rooted SPIFFE identity, \
+                 refusing to boot (caller cell-pinning is mandatory under mTLS): {detail}"
+            ),
         }
     }
 }
@@ -100,6 +125,15 @@ pub enum CallerAuthRejection {
     MalformedRequestTenant,
     /// A platform SVID tried to act as a tenant (it owns none).
     PlatformSvidCannotActAsTenant,
+    /// The caller SVID is rooted in a DIFFERENT cell than the PDP serves: even a
+    /// structurally-valid, correctly-signed SVID may not authorize a tenant in a
+    /// foreign cell (cross-cell confusion guard).
+    ForeignCell {
+        /// The cell authority the SVID carries.
+        svid_cell: String,
+        /// The cell authority the PDP expects (its own).
+        expected_cell: String,
+    },
 }
 
 impl CallerAuthRejection {
@@ -127,9 +161,9 @@ impl CallerAuthRejection {
                 "caller SVID is not trusted"
             }
             Self::ExpiredSvid => "caller SVID is expired",
-            Self::TenantMismatch { .. } | Self::PlatformSvidCannotActAsTenant => {
-                "caller is not authorized for the requested tenant"
-            }
+            Self::TenantMismatch { .. }
+            | Self::PlatformSvidCannotActAsTenant
+            | Self::ForeignCell { .. } => "caller is not authorized for the requested tenant",
             Self::MalformedRequestTenant => "requested tenant id is malformed",
         }
     }
@@ -153,6 +187,13 @@ impl std::fmt::Display for CallerAuthRejection {
             Self::PlatformSvidCannotActAsTenant => {
                 f.write_str("platform SVID cannot act as a tenant")
             }
+            Self::ForeignCell {
+                svid_cell,
+                expected_cell,
+            } => write!(
+                f,
+                "caller SVID cell '{svid_cell}' does not match the PDP cell '{expected_cell}'"
+            ),
         }
     }
 }
@@ -164,11 +205,16 @@ impl std::fmt::Display for CallerAuthRejection {
 /// the decision path must use in place of the caller-body tenant.
 pub struct SpiffeCallerAuth<'a, S: SigningBackend> {
     verifier: TrustdSvidVerifier<'a, S>,
+    /// The cell authority (`oyatie.cell-<id>`) the PDP serves, derived from its
+    /// own server SVID identity. `None` when no cell is derivable (plain-TCP
+    /// boot / contract tests) — then no cell pin is enforced.
+    expected_cell_authority: Option<String>,
 }
 
 impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
-    /// Build the PEP over a trust bundle, REFUSING (boot-fatal) when the bundle
-    /// is empty (missing/garbage).
+    /// Build the PEP over a trust bundle with NO cell pin, REFUSING (boot-fatal)
+    /// when the bundle is empty (missing/garbage). Used on the plain-TCP path and
+    /// by contract tests; the mTLS boot path uses [`Self::with_cell_pin`].
     ///
     /// # Errors
     /// [`MtlsBootError::TrustBundleEmpty`] when the bundle holds no anchors.
@@ -178,6 +224,28 @@ impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
         }
         Ok(Self {
             verifier: TrustdSvidVerifier::new(bundle),
+            expected_cell_authority: None,
+        })
+    }
+
+    /// Build the PEP over a trust bundle, pinning the caller's cell to
+    /// `expected_cell_authority` (the PDP's own cell, e.g. `oyatie.cell-7`). A
+    /// caller SVID rooted in any other cell is DENIED with
+    /// [`CallerAuthRejection::ForeignCell`]. REFUSES (boot-fatal) when the bundle
+    /// is empty.
+    ///
+    /// # Errors
+    /// [`MtlsBootError::TrustBundleEmpty`] when the bundle holds no anchors.
+    pub fn with_cell_pin(
+        bundle: &'a TrustBundle<S>,
+        expected_cell_authority: impl Into<String>,
+    ) -> Result<Self, MtlsBootError> {
+        if bundle.is_empty() {
+            return Err(MtlsBootError::TrustBundleEmpty);
+        }
+        Ok(Self {
+            verifier: TrustdSvidVerifier::new(bundle),
+            expected_cell_authority: Some(expected_cell_authority.into()),
         })
     }
 
@@ -217,6 +285,20 @@ impl<'a, S: SigningBackend> SpiffeCallerAuth<'a, S> {
                 CallerAuthRejection::UntrustedSvid { detail }
             }
         })?;
+
+        // Reject path 7 (cell-authority pinning): even a structurally-valid,
+        // correctly-signed SVID must be rooted in the cell the PDP serves. A
+        // foreign cell is a fail-closed DENY (cross-cell confusion guard). No pin
+        // ⇒ legacy behaviour.
+        if let Some(expected) = &self.expected_cell_authority {
+            let svid_cell = svid.trust_domain_authority();
+            if svid_cell != expected.as_str() {
+                return Err(CallerAuthRejection::ForeignCell {
+                    svid_cell: svid_cell.to_string(),
+                    expected_cell: expected.clone(),
+                });
+            }
+        }
 
         // Reject path 5: the request-body tenant must itself be a valid id.
         let requested = TenantId::new(requested_tenant)
@@ -393,6 +475,111 @@ mod tests {
             }
         );
         assert_eq!(rej.to_grpc_status().code(), Code::PermissionDenied);
+    }
+
+    // RED-fixture: cell-authority pinning (G002/G004 #109). A correctly-signed,
+    // structurally-valid SVID from a FOREIGN cell is DENIED; the SAME-shape SVID
+    // in the PDP's own cell still ALLOWs (non-regression).
+    #[test]
+    fn foreign_cell_svid_denied_matching_cell_allowed() {
+        let (mut svc, ca_signer) = service();
+        // Both leaves chain to the SAME trusted CA (so the only difference is the
+        // cell authority in the path — this is the cross-cell confusion case).
+        let foreign = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-OTHER/tenant/ten_acme/wl",
+        );
+        let same = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-7/tenant/ten_acme/wl",
+        );
+        let bundle = trusted_bundle(&svc, &ca_signer);
+        // PDP pinned to its own cell (oyatie.cell-7).
+        let pep = SpiffeCallerAuth::with_cell_pin(&bundle, "oyatie.cell-7").unwrap();
+
+        // Foreign cell → DENY (403, PermissionDenied), even though signed + valid.
+        let rej = pep
+            .authenticate_caller(Some(&foreign), "ten_acme", 2_500)
+            .unwrap_err();
+        assert_eq!(
+            rej,
+            CallerAuthRejection::ForeignCell {
+                svid_cell: "oyatie.cell-OTHER".to_string(),
+                expected_cell: "oyatie.cell-7".to_string(),
+            }
+        );
+        assert_eq!(rej.to_grpc_status().code(), Code::PermissionDenied);
+        assert_eq!(rej.rest_status_code(), 403);
+        // Anti-enumeration: the coarse public message never leaks the cell.
+        assert!(!rej.public_message().contains("cell"));
+
+        // Same cell → still ALLOW, bound to the SVID tenant (non-regression).
+        let bound = pep
+            .authenticate_caller(Some(&same), "ten_acme", 2_500)
+            .unwrap();
+        assert_eq!(bound.as_str(), "ten_acme");
+    }
+
+    // INVERTED (was `no_cell_pin_does_not_reject_foreign_cell`, which BLESSED the
+    // MAJOR fail-open on PR #796): under mTLS a server leaf that yields no
+    // derivable cell pin is now a FAIL-CLOSED boot refusal, NOT a served no-pin
+    // PEP. `SpiffeCallerAuth::new` (the no-pin constructor) remains legitimate ONLY
+    // for the genuinely separate plain-TCP / contract-test path, which no foreign
+    // caller can reach over mTLS — because `MtlsContext::new` refuses to construct
+    // (and thus to serve) without a cell pin. The boot-refusal proofs for the
+    // no-SAN / multi-SAN / malformed-SAN mTLS server leaves live with
+    // `MtlsContext` in `tests/mtls_live_socket.rs`.
+    //
+    // This unit test pins the residual TRUE statement: the no-pin PEP itself does
+    // not enforce the cell axis (that is by design for plain-TCP), so the cell
+    // boundary MUST be enforced one layer up (the MtlsContext boot precondition) —
+    // which it now is, fail-closed.
+    #[test]
+    fn no_pin_pep_is_plain_tcp_only_and_mtls_cannot_build_it_without_a_cell() {
+        use crate::mtls_transport::MtlsContext;
+        use oya_cloud_os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
+
+        // Residual TRUE fact: the no-pin PEP (plain-TCP path) does not reject on the
+        // cell axis. This is acceptable ONLY because mTLS can never reach it.
+        let (mut svc, ca_signer) = service();
+        let foreign = issue_leaf(
+            &mut svc,
+            &ca_signer,
+            "spiffe://oyatie.cell-OTHER/tenant/ten_acme/wl",
+        );
+        let bundle = trusted_bundle(&svc, &ca_signer);
+        let pep = SpiffeCallerAuth::new(&bundle).unwrap();
+        let bound = pep
+            .authenticate_caller(Some(&foreign), "ten_acme", 2_500)
+            .unwrap();
+        assert_eq!(bound.as_str(), "ten_acme");
+
+        // The closure: a no-URI-SAN mTLS server leaf can NEVER produce an
+        // (unpinned) MtlsContext — `MtlsContext::new` boot-refuses fail-closed, so
+        // the no-pin PEP above is unreachable over mTLS.
+        let (svc2, ca2) = service();
+        let no_san_server = {
+            let srv = EcdsaP256Signer::generate().unwrap();
+            let server_leaf = Certificate {
+                serial: 1,
+                subject: DistinguishedName::common("oya-cloud-iam-pdp"),
+                issuer: DistinguishedName::common("oyatie-cell-7-ca"),
+                validity: Validity { not_before: 1_000, not_after: 9_000 },
+                usage: CertUsage::ServerAuth,
+                sans: SubjectAltNames::default(), // NO URI SAN
+                public_key_der: srv.public_key_spki_der(),
+                signature: vec![0x01],
+            };
+            der::encode_leaf_der(&server_leaf, &srv, svc2.ca_certificate(), &ca2).unwrap()
+        };
+        let bundle2 = trusted_bundle(&svc2, &ca2);
+        let srv_key = EcdsaP256Signer::generate().unwrap().private_key_der();
+        let err = MtlsContext::new(bundle2, vec![no_san_server], srv_key)
+            .err()
+            .expect("a no-URI-SAN mTLS server leaf must boot-refuse, never serve unpinned");
+        assert!(matches!(err, MtlsBootError::CellPinUndeterminable(_)));
     }
 
     // RED-fixture: issuance_policy_rejects_ca_leaf — regression guard that a

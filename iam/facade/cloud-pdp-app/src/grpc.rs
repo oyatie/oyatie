@@ -56,6 +56,9 @@ pub use proto::cloud_iam_pdp_server::CloudIamPdpServer;
 pub struct CloudIamPdpService {
     state: Arc<PdpState>,
     bundle: Option<Arc<TrustBundle<EcdsaP256Signer>>>,
+    /// The PDP's own cell authority (`oyatie.cell-<id>`), used to pin a caller's
+    /// cell. `None` ⇒ no cell pin (legacy / server leaf without a SPIFFE id).
+    expected_cell_authority: Option<String>,
 }
 
 impl CloudIamPdpService {
@@ -66,18 +69,23 @@ impl CloudIamPdpService {
         Self {
             state,
             bundle: None,
+            expected_cell_authority: None,
         }
     }
 
-    /// Build the service with the mTLS PEP enforced over `bundle`.
+    /// Build the service with the mTLS PEP enforced over `bundle`, pinning the
+    /// caller's cell to `expected_cell_authority` when supplied (the PDP's own
+    /// cell, derived from its server SVID identity).
     #[must_use]
     pub fn with_caller_auth(
         state: Arc<PdpState>,
         bundle: Arc<TrustBundle<EcdsaP256Signer>>,
+        expected_cell_authority: Option<String>,
     ) -> Self {
         Self {
             state,
             bundle: Some(bundle),
+            expected_cell_authority,
         }
     }
 }
@@ -232,7 +240,11 @@ impl proto::cloud_iam_pdp_server::CloudIamPdp for CloudIamPdpService {
                 .extensions()
                 .get::<PeerCertInfo>()
                 .and_then(|info| info.leaf_der.as_deref());
-            let pep = SpiffeCallerAuth::new(bundle).map_err(|err| {
+            let pep = match &self.expected_cell_authority {
+                Some(cell) => SpiffeCallerAuth::with_cell_pin(bundle, cell.as_str()),
+                None => SpiffeCallerAuth::new(bundle),
+            }
+            .map_err(|err| {
                 // A serving process always has a non-empty bundle (boot-refuses
                 // otherwise); treat any deviation as fail-closed deny.
                 Status::new(tonic::Code::PermissionDenied, err.to_string())
@@ -310,6 +322,7 @@ where
 pub async fn serve_mtls<F, I>(
     state: Arc<PdpState>,
     bundle: Arc<TrustBundle<EcdsaP256Signer>>,
+    expected_cell_authority: Option<String>,
     incoming: I,
     shutdown: F,
 ) -> Result<(), tonic::transport::Error>
@@ -322,7 +335,9 @@ where
 {
     Server::builder()
         .add_service(CloudIamPdpServer::new(CloudIamPdpService::with_caller_auth(
-            state, bundle,
+            state,
+            bundle,
+            expected_cell_authority,
         )))
         .serve_with_incoming_shutdown(incoming, shutdown)
         .await
