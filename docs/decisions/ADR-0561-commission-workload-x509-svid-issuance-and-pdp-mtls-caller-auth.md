@@ -398,4 +398,11 @@ PDP crate's `[dev-dependencies]`; they are dev-only and add no library surface.
 The Helm operator Deployment + RBAC + PDB (Secret create/update/patch scoped to the
 `oya-cloud-iam-pdp-svid` Secret in the cloud-iam namespace) amend the existing
 cloud/cloud-iam Helm chart (owned by the existing cloud/cloud-iam OWNERS,
-axis-cloud-platform); the new templates carry no new crate accounting rows.
+axis-cloud-platform); the new templates carry no new crate accounting rows but ARE
+new tracked paths, so each is born-accounted here (this ADR is their
+`justification_ref`) and seeded reachable in `specs/reachability-registry.json`
+(the non-crate-resident Helm templates are NOT reached via cargo-members):
+
+- cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-deployment.yaml
+- cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-rbac.yaml
+- cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-pdb.yaml

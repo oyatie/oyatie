@@ -3,7 +3,7 @@
   "_provenance": {
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
     "row_count": 18506,
-    "source_inputs_digest": "fnv1a64:dbeb131bbd3d7e33"
+    "source_inputs_digest": "fnv1a64:e0afcd1962f167bc"
   },
   "rows": [
     {
@@ -19094,10 +19094,12 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0561",
       "owner": "OWNERS:cloud/cloud-iam",
       "path": "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-deployment.yaml",
-      "reachable_from": [],
+      "reachable_from": [
+        "reachability-registry"
+      ],
       "tracked": true,
       "ttl": {
         "action": "archive",
@@ -19106,7 +19108,7 @@
         "ttl_class": "husk"
       },
       "unit_class": "husk",
-      "verdict": "RED"
+      "verdict": "ARCHIVE"
     },
     {
       "_provenance": {
@@ -19114,10 +19116,12 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0561",
       "owner": "OWNERS:cloud/cloud-iam",
       "path": "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-pdb.yaml",
-      "reachable_from": [],
+      "reachable_from": [
+        "reachability-registry"
+      ],
       "tracked": true,
       "ttl": {
         "action": "archive",
@@ -19126,7 +19130,7 @@
         "ttl_class": "husk"
       },
       "unit_class": "husk",
-      "verdict": "RED"
+      "verdict": "ARCHIVE"
     },
     {
       "_provenance": {
@@ -19134,10 +19138,12 @@
         "source": "git ls-files × OWNERS × ADR-front-matter × specs × masterplan"
       },
       "dup_of": null,
-      "justification_ref": null,
+      "justification_ref": "ADR-0561",
       "owner": "OWNERS:cloud/cloud-iam",
       "path": "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-rbac.yaml",
-      "reachable_from": [],
+      "reachable_from": [
+        "reachability-registry"
+      ],
       "tracked": true,
       "ttl": {
         "action": "archive",
@@ -19146,7 +19152,7 @@
         "ttl_class": "husk"
       },
       "unit_class": "husk",
-      "verdict": "RED"
+      "verdict": "ARCHIVE"
     },
     {
       "_provenance": {
