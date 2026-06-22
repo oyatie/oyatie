@@ -81,6 +81,11 @@ pub enum PgStoreConnectError {
     MissingDatabaseUrl,
     /// The underlying sqlx pool failed to connect.
     Sqlx(String),
+    /// The connected role carries `rolsuper` or `rolbypassrls`, which means
+    /// Postgres RLS is silently skipped. Serving a multi-tenant store under
+    /// such a role is a tenant-isolation violation — the adapter REFUSES to
+    /// serve rather than allow isolation to be bypassed.
+    RlsUnenforceable { role: String },
 }
 
 impl core::fmt::Display for PgStoreConnectError {
@@ -88,6 +93,11 @@ impl core::fmt::Display for PgStoreConnectError {
         match self {
             Self::MissingDatabaseUrl => write!(f, "database url is empty"),
             Self::Sqlx(detail) => write!(f, "sqlx connect failed: {detail}"),
+            Self::RlsUnenforceable { role } => write!(
+                f,
+                "runtime role '{role}' can bypass RLS (rolsuper/rolbypassrls); \
+                 refusing to serve a multi-tenant store"
+            ),
         }
     }
 }
@@ -150,6 +160,42 @@ impl PgTenantLifecycleStore {
             .await
             .map_err(|error| PgStoreConnectError::Sqlx(error.to_string()))?;
         Ok(Self { pool })
+    }
+
+    /// Assert that the connected role cannot bypass RLS (`rolsuper` and
+    /// `rolbypassrls` must both be false). Call this from any composition root
+    /// that serves multi-tenant traffic AFTER [`connect`] but BEFORE accepting
+    /// requests — so a mis-provisioned role fails the service at boot rather
+    /// than silently skipping tenant isolation at runtime.
+    ///
+    /// This is intentionally a SEPARATE method from `connect` so that elevated
+    /// privileged callers (e.g. schema-setup / migration tooling) can connect
+    /// via [`from_pool`] without this check, while the serving path always
+    /// calls it.
+    ///
+    /// # Errors
+    /// [`PgStoreConnectError::RlsUnenforceable`] if the current role carries
+    /// `rolsuper` or `rolbypassrls`.
+    /// [`PgStoreConnectError::Sqlx`] if the `pg_roles` query fails.
+    pub async fn assert_rls_enforceable(&self) -> Result<(), PgStoreConnectError> {
+        let row = sqlx::query(
+            "SELECT current_user::text AS role_name, \
+             rolsuper, rolbypassrls \
+             FROM pg_roles WHERE rolname = current_user",
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
+        let role_name: String = row.try_get("role_name")
+            .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
+        let rolsuper: bool = row.try_get("rolsuper")
+            .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
+        let rolbypassrls: bool = row.try_get("rolbypassrls")
+            .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
+        if rolsuper || rolbypassrls {
+            return Err(PgStoreConnectError::RlsUnenforceable { role: role_name });
+        }
+        Ok(())
     }
 }
 

@@ -681,30 +681,45 @@ async fn build_postgres_router_empty_url_fails_closed() {
 /// LIVE durability proof (env-gated): register a tenant through the REST surface
 /// on a durable router, then build a FRESH router over the SAME url and GET the
 /// tenant back — proving the write survived a router rebuild (the property the
-/// in-memory store CANNOT provide). Also asserts a different tenant scope reads
-/// a 404 (RLS isolates the durable row from another operator's scope).
+/// in-memory store CANNOT provide). Also asserts the real facade-layer PEP
+/// cross-tenant deny: a verified operator whose `x-oya-tenant` axis does NOT
+/// match the target id receives **403 FORBIDDEN**, not 404 — the PEP denies
+/// it before the store is ever consulted. Store-layer RLS cross-tenant denial
+/// (unset-GUC deny-all, cross-tenant INSERT/SELECT) is proven separately in
+/// `tenancy/adapters/tenant-lifecycle-store-postgres/tests/live_rls.rs`.
 ///
-/// Skips cleanly with a stderr notice when `OYA_BACKBONE_LIVE_POSTGRES` is unset
-/// so the default `buck2 test` stays DB-free. `option_env!` is used ONLY as a
-/// compile-time hint (never `env!`), so the buck2 target always compiles.
+/// Skips cleanly with a stderr notice when `OYA_BACKBONE_LIVE_POSTGRES` is
+/// unset so the default `buck2 test` stays DB-free. The target never reads any
+/// env at compile time (no `env!` macro), so it always compiles regardless of
+/// whether `CARGO_MANIFEST_DIR` is set (as it would be absent in buck2).
 #[tokio::test]
 async fn live_durable_store_persists_across_router_rebuild() {
     if !live_enabled() {
         eprintln!(
-            "SKIP live_durable_store_persists_across_router_rebuild: set {LIVE_ENV}=1 and \
-             {LIVE_URL_ENV}=<disposable pg url> to run the durable tier \
-             (manifest hint: {:?})",
-            option_env!("CARGO_MANIFEST_DIR")
+            "SKIP live_durable_store_persists_across_router_rebuild: \
+             set {LIVE_ENV}=1 and {LIVE_URL_ENV}=<disposable pg url> \
+             to run the durable tier"
         );
         return;
     }
-    let url = std::env::var(LIVE_URL_ENV)
-        .unwrap_or_else(|_| panic!("{LIVE_URL_ENV} required when {LIVE_ENV} is enabled"));
+    let url = match std::env::var(LIVE_URL_ENV) {
+        Ok(u) => u,
+        Err(_) => {
+            eprintln!(
+                "SKIP live_durable_store_persists_across_router_rebuild: \
+                 {LIVE_ENV} is set but {LIVE_URL_ENV} is missing — \
+                 set {LIVE_URL_ENV}=<disposable pg url>"
+            );
+            return;
+        }
+    };
 
-    // A unique tenant id per run so repeated live runs against the same database
-    // do not collide on the durable PRIMARY KEY.
+    // A unique tenant id per run so repeated live runs against the same
+    // database do not collide on the durable PRIMARY KEY.
+    // key(1) is also safe to reuse across runs because the applied-writes PK
+    // is (tenant_id, idempotency_key) — uniqueness is provided transitively
+    // by the per-pid tenant_id.
     let tenant_id = format!("g006-durable-{}", std::process::id());
-    let other_id = format!("g006-other-{}", std::process::id());
 
     // Router #1: register the tenant (born Provisioning) via the REST surface.
     let first = pg_app(&url).await;
@@ -719,6 +734,9 @@ async fn live_durable_store_persists_across_router_rebuild() {
     // only observable here if it was durably persisted (the in-memory store,
     // being per-process state, would return 404).
     let rebuilt = pg_app(&url).await;
+
+    // Positive control: the owner operator (axis == tenant_id) can read its
+    // own tenant row on the fresh router.
     let (status, view) = get_state_on(&rebuilt, &tenant_id).await;
     assert_eq!(
         status,
@@ -728,14 +746,28 @@ async fn live_durable_store_persists_across_router_rebuild() {
     assert_eq!(view["tenant_id"], tenant_id.as_str());
     assert_eq!(view["state"], "provisioning");
 
-    // Cross-tenant isolation (RLS): an operator scoped to `other_id` must not be
-    // able to read `tenant_id` — the GET authorizes against the asserted axis,
-    // and the durable store's per-tx tenant GUC scopes the row, so it is a 404
-    // (not found within the other tenant's scope), never a leak.
-    let (cross_status, _) = get_state_on(&rebuilt, &other_id).await;
+    // Facade-layer PEP cross-tenant deny: issue GET /v1/tenants/{tenant_id}
+    // with OPERATOR_TOKEN but `x-oya-tenant` set to a DIFFERENT scope. The
+    // PEP checks axis (asserted tenant) against target (URL id) and denies
+    // when they differ → 403 FORBIDDEN. This is NOT a store-layer RLS test
+    // (store-layer RLS is proven in the adapter's live_rls.rs); it proves the
+    // PEP guards the facade before the store is ever reached.
+    let cross_resp = rebuilt
+        .clone()
+        .oneshot(
+            axum::http::Request::builder()
+                .method(axum::http::Method::GET)
+                .uri(format!("/v1/tenants/{tenant_id}"))
+                .header("authorization", format!("Bearer {OPERATOR_TOKEN}"))
+                .header("x-oya-tenant", "some-other-tenant")
+                .body(axum::body::Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
     assert_eq!(
-        cross_status,
-        StatusCode::NOT_FOUND,
-        "a different tenant scope must not see the durable tenant's row"
+        cross_resp.status(),
+        StatusCode::FORBIDDEN,
+        "operator with mismatched x-oya-tenant axis must be denied 403 by the PEP"
     );
 }

@@ -864,9 +864,10 @@ pub fn build_inmemory_router(
 ///
 /// # Errors
 /// - [`BootError::Store`] if the durable store cannot connect (empty URL or an
-///   sqlx connect failure). The caller MUST refuse to serve — there is NO
-///   fallback to in-memory (a silent durability downgrade is a data-loss
-///   anti-pattern).
+///   sqlx connect failure), or if the connected role carries `rolsuper` /
+///   `rolbypassrls` (which would silently bypass Postgres RLS and leak
+///   cross-tenant data). The caller MUST refuse to serve — there is NO fallback
+///   to in-memory (a silent durability downgrade is a data-loss anti-pattern).
 /// - [`BootError::Authz`] if the embedded tenancy authz bundle fails to compile
 ///   or strict-validate (no default-allow).
 pub async fn build_postgres_router(
@@ -875,6 +876,15 @@ pub async fn build_postgres_router(
     tenant_operator_token: Option<String>,
 ) -> Result<Router, BootError> {
     let store = PgTenantLifecycleStore::connect(database_url)
+        .await
+        .map_err(|e| BootError::Store(e.to_string()))?;
+    // Fail-closed isolation guard: refuse to serve if the connected role can
+    // bypass Postgres RLS (rolsuper or rolbypassrls). A bypass-capable role
+    // silently skips the per-transaction tenant GUC isolation, turning RLS
+    // into a no-op and enabling cross-tenant data leaks. This check runs at
+    // boot so a mis-provisioned DSN fails loudly rather than leaking quietly.
+    store
+        .assert_rls_enforceable()
         .await
         .map_err(|e| BootError::Store(e.to_string()))?;
     let authorizer = PdpTenantLifecycleAuthorizer::from_seed_bundle()
@@ -899,10 +909,11 @@ pub enum BootError {
     /// default-allow fallback when authz is unavailable.
     Authz(String),
     /// The durable tenant store could not be composed (empty/invalid
-    /// `DATABASE_URL` or an sqlx connect failure). The service REFUSES to serve
-    /// rather than silently downgrade to the in-memory store — a durability
-    /// downgrade behind a configured durable backend is a data-loss
-    /// anti-pattern, so the store error is fatal (fail-closed).
+    /// `DATABASE_URL`, an sqlx connect failure, or the connected role carries
+    /// `rolsuper`/`rolbypassrls` which would silently bypass Postgres RLS).
+    /// The service REFUSES to serve rather than silently downgrade to the
+    /// in-memory store or allow isolation to be bypassed — both are fatal
+    /// fail-closed conditions.
     Store(String),
     /// No bearer credential is configured at all (neither platform-admin nor
     /// tenant-operator). With no way to authenticate ANY caller the service
@@ -929,14 +940,41 @@ impl fmt::Display for BootError {
 
 impl std::error::Error for BootError {}
 
+/// The store backend selected by [`select_store_kind`] from the runtime config.
+///
+/// This enum is the authoritative decision socket: the no-fallback property
+/// (a configured Postgres URL must NEVER silently degrade to in-memory) is
+/// enforced structurally — only `None`/empty URL maps to `InMemory`.
+#[derive(Debug, PartialEq, Eq)]
+pub enum StoreSelection {
+    /// Durable Postgres store; the contained URL is non-empty.
+    Postgres(String),
+    /// In-memory store (single-node dev bring-up; no URL configured).
+    InMemory,
+}
+
+/// Pure store-selection function: maps the raw (pre-normalized) database URL
+/// option onto a [`StoreSelection`]. `None`, empty, or whitespace-only strings
+/// all select `InMemory`; any non-empty trimmed URL selects `Postgres`.
+///
+/// Extracted from `serve()` so the no-fallback decision can be unit-tested
+/// without a network, a runtime, or any side effects.
+pub fn select_store_kind(database_url: Option<String>) -> StoreSelection {
+    match normalize_token(database_url) {
+        Some(url) => StoreSelection::Postgres(url),
+        None => StoreSelection::InMemory,
+    }
+}
+
 /// Bind and serve the tenant lifecycle service on `listen_addr`, fail-closed.
 ///
 /// ## Store selection (12-factor composition-root config, NOT a CLI surface)
 ///   - `ENV_DATABASE_URL` (`OYA_BACKBONE_POSTGRES_URL`) present + non-empty →
 ///     the DURABLE [`PgTenantLifecycleStore`] is composed. If the connection
-///     fails the service REFUSES to serve ([`BootError::Store`]) — it NEVER
-///     falls back to in-memory, because a silent durability downgrade behind a
-///     configured durable backend is a data-loss anti-pattern.
+///     fails or the connected role can bypass RLS, the service REFUSES to serve
+///     ([`BootError::Store`]) — it NEVER falls back to in-memory, because a
+///     silent durability downgrade or isolation bypass is a data-loss /
+///     multi-tenancy-violation anti-pattern.
 ///   - absent / empty → the in-memory store (single-node dev bring-up).
 ///
 /// In both cases a persistent store plugs in behind the unchanged kernel port,
@@ -956,18 +994,14 @@ pub async fn serve(listen_addr: &str) -> Result<(), BootError> {
     if platform_admin_token.is_none() && tenant_operator_token.is_none() {
         return Err(BootError::NoCredentialConfigured);
     }
-    // Reuse the token-normalization rule for the URL: trim, treat empty/
-    // whitespace-only as unset, so a blank `OYA_BACKBONE_POSTGRES_URL` selects
-    // the dev in-memory path rather than fail-closing on an empty URL.
-    let database_url = normalize_token(std::env::var(ENV_DATABASE_URL).ok());
-    let (app, store_kind) = match database_url {
-        Some(url) => (
-            // FAIL-CLOSED: a connect failure propagates; NEVER fall back to
-            // in-memory when a durable backend was configured.
+    let (app, store_kind) = match select_store_kind(std::env::var(ENV_DATABASE_URL).ok()) {
+        StoreSelection::Postgres(url) => (
+            // FAIL-CLOSED: a connect failure or RLS-bypass role propagates;
+            // NEVER fall back to in-memory when a durable backend was configured.
             build_postgres_router(&url, platform_admin_token, tenant_operator_token).await?,
             "postgres",
         ),
-        None => (
+        StoreSelection::InMemory => (
             build_inmemory_router(platform_admin_token, tenant_operator_token)?,
             "inmemory",
         ),
@@ -1007,6 +1041,43 @@ mod tests {
         assert_eq!(view.state, TenantLifecycleState::Active);
         assert_eq!(view.residency_zone.as_deref(), Some("kr-seoul"));
     }
+
+    // --- select_store_kind unit tests (pure, no async, no DB) ----------------
+
+    #[test]
+    fn select_store_kind_non_empty_url_picks_postgres() {
+        assert_eq!(
+            select_store_kind(Some("postgres://host/db".to_owned())),
+            StoreSelection::Postgres("postgres://host/db".to_owned()),
+        );
+    }
+
+    #[test]
+    fn select_store_kind_none_picks_inmemory() {
+        assert_eq!(select_store_kind(None), StoreSelection::InMemory);
+    }
+
+    #[test]
+    fn select_store_kind_empty_string_picks_inmemory() {
+        // An empty DATABASE_URL is treated as "not configured" — the dev
+        // in-memory path, not a fail-closed error. This is the same rule
+        // normalize_token uses (trim + filter empty).
+        assert_eq!(
+            select_store_kind(Some(String::new())),
+            StoreSelection::InMemory,
+        );
+    }
+
+    #[test]
+    fn select_store_kind_whitespace_only_picks_inmemory() {
+        // Whitespace-only is also treated as "not configured".
+        assert_eq!(
+            select_store_kind(Some("   ".to_owned())),
+            StoreSelection::InMemory,
+        );
+    }
+
+    // --- DB-free fail-closed wiring proof ------------------------------------
 
     /// Fail-closed wiring proof WITHOUT a database: an empty `DATABASE_URL`
     /// maps from `PgStoreConnectError::MissingDatabaseUrl` to
