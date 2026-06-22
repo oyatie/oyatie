@@ -34,7 +34,7 @@ use std::env;
 
 use oya_data_outbox_kernel::{ChangeBatch, ChangeRecord, StreamPosition};
 use oya_data_sql_kernel::DataSqlError;
-use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
+use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
 use sqlx::pool::PoolConnectionMetadata;
 use sqlx::{PgPool, Postgres, Row, Transaction, postgres::PgPoolOptions, postgres::PgRow};
 
@@ -246,67 +246,6 @@ const LIVE_FIXTURE_ROWS: &[(&str, &str, &str)] = &[
     ("tenant-a", "a-evt-3", "a-idem-3"),
     ("tenant-b", "b-evt-1", "b-idem-1"),
 ];
-
-/// Split a migration file into executable statements the way psql does: drop
-/// `--` line comments, then split on `;` only OUTSIDE single-quoted string
-/// literals and OUTSIDE `$$`-quoted bodies (the runtime-role DO block). A naive
-/// `split(';')` shatters a DO $$ ... $$ block on its inner `;`.
-fn split_migration_statements(migration: &str) -> Vec<String> {
-    let stripped: String = migration
-        .lines()
-        .map(|line| match line.find("--") {
-            Some(idx) => &line[..idx],
-            None => line,
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let mut statements = Vec::new();
-    let mut current = String::new();
-    let mut in_string = false;
-    let mut in_dollar = false;
-    let bytes: Vec<char> = stripped.chars().collect();
-    let mut i = 0;
-    while i < bytes.len() {
-        let c = bytes[i];
-        if !in_string && c == '$' && i + 1 < bytes.len() && bytes[i + 1] == '$' {
-            in_dollar = !in_dollar;
-            current.push(c);
-            current.push('$');
-            i += 2;
-            continue;
-        }
-        if !in_dollar && c == '\'' {
-            // An escaped quote ('') stays inside the string.
-            if in_string && i + 1 < bytes.len() && bytes[i + 1] == '\'' {
-                current.push(c);
-                current.push('\'');
-                i += 2;
-                continue;
-            }
-            in_string = !in_string;
-            current.push(c);
-            i += 1;
-            continue;
-        }
-        if c == ';' && !in_string && !in_dollar {
-            let trimmed = current.trim();
-            if !trimmed.is_empty() {
-                statements.push(trimmed.to_owned());
-            }
-            current.clear();
-            i += 1;
-            continue;
-        }
-        current.push(c);
-        i += 1;
-    }
-    let trailing = current.trim();
-    if !trailing.is_empty() {
-        statements.push(trailing.to_owned());
-    }
-    statements
-}
 
 /// Read `(current_user, rolbypassrls)` for the connected role.
 async fn current_role_bypassrls(pool: &PgPool) -> Result<(String, bool), DataSqlError> {
@@ -586,7 +525,12 @@ mod tests {
 
     #[test]
     fn migration_statement_split_keeps_the_dollar_block_intact() {
-        // The runtime-role DO $$ ... $$ block must NOT shatter on its inner `;`.
+        // Call-site smoke test for the SHARED kernel splitter (#115 deduped the
+        // outbox's divergent copy): this crate's ACTUAL 0000 migration must split
+        // through `oya_shared_postgres_command_kernel::split_migration_statements`
+        // with the runtime-role DO $$ ... $$ block intact (not shattered on its
+        // inner `;`). The canonical impl + its dollar-quote regression tests now
+        // live in the kernel; this guards the outbox's specific migration text.
         let role_migration = include_str!("../migrations/0000_runtime_role.sql");
         let statements = split_migration_statements(role_migration);
         let do_block = statements
