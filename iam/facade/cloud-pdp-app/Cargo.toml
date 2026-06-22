@@ -60,6 +60,11 @@ iam-identity-workload-svid-operator-kernel = { path = "../../core/identity-workl
 # Production-path closure E2E (slice-1b-iii): serialize real CA/leaf DER into the
 # operator-shaped kubernetes.io/tls PEM mount the production boot parses. Dev-only.
 base64 = { version = "0.22", default-features = false, features = ["std"] }
+# G004 bundle-signing slice: the TEST-SIDE Ed25519 signer + envelope types to
+# write signed bundle fixtures and trust-anchor dirs (production key custody is a
+# deferred founder-gated slice). Dev-only — the lib never signs.
+oya-shared-audit-digest-adapter-awslc = { path = "../../../libs/oya-shared-audit-digest-adapter-awslc" }
+oya-shared-audit-event-kernel = { path = "../../../libs/oya-shared-audit-event-kernel" }
 
 [lib]
 name = "iam_cloud_pdp_app"

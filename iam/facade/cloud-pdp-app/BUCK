@@ -106,6 +106,10 @@ rust_test(
 _TEST_DEPS = [":iam-cloud-pdp-app"] + _DEPS + [
     "third-party//:http-body-util",
     "third-party//:tower",
+    # G004 bundle-signing slice: TEST-SIDE Ed25519 signer + envelope types used
+    # by tests/common to write signed bundle fixtures + trust-anchor dirs.
+    "//libs/oya-shared-audit-digest-adapter-awslc:oya-shared-audit-digest-adapter-awslc",
+    "//libs/oya-shared-audit-event-kernel:oya-shared-audit-event-kernel",
 ]
 
 rust_test(
