@@ -49,6 +49,14 @@ pub const GROUPS_TABLE: &str = "identity_scim.identity_scim_groups";
 /// Current persisted-record schema version.
 pub const SCHEMA_VERSION: i32 = 1;
 
+/// The Postgres role that is the subject of the RLS policies in
+/// `migrations/0001_identity_scim_store.sql` (every `TO <role>` clause in that
+/// migration names this role). The serving connection's `current_user` MUST be
+/// this role or a member of it for the tenant-isolation policies to apply.
+///
+/// MUST match the `TO <role>` clauses in the migration — change both together.
+pub const RUNTIME_ROLE: &str = "identity_scim_runtime";
+
 // --- User statements (tenant-scoped) ---------------------------------------
 const LIST_USERS_SQL: &str = "SELECT payload_json FROM identity_scim.identity_scim_users WHERE tenant_id = $1 ORDER BY scim_id ASC";
 const GET_USER_SQL: &str = "SELECT payload_json FROM identity_scim.identity_scim_users WHERE tenant_id = $1 AND scim_id = $2";
@@ -69,6 +77,23 @@ pub enum PgScimConnectError {
     MissingDatabaseUrl,
     /// The underlying sqlx pool failed to connect.
     Sqlx(String),
+    /// The connected role carries `rolsuper` or `rolbypassrls`, which means
+    /// Postgres RLS is silently skipped for that role. Serving a multi-tenant
+    /// store under such a role is a tenant-isolation risk — the adapter REFUSES
+    /// to serve rather than allow bypass.
+    ///
+    /// Note: this guard is necessary but not sufficient for full tenant
+    /// isolation. Full isolation additionally requires that `RUNTIME_ROLE`
+    /// exists provisioned with NOBYPASSRLS (the deferred
+    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox-adapter-postgres
+    /// and tenant-lifecycle-store-postgres).
+    RlsUnenforceable { role: String },
+    /// The connected role is neither the RLS policy-subject role
+    /// (`RUNTIME_ROLE`) nor a member of it. Under FORCE RLS the tenant-isolation
+    /// policies would not apply to this role at all, causing deny-all (a safe
+    /// outage, not a data leak, but still a misconfiguration the adapter refuses
+    /// to serve). Full isolation requires membership in `RUNTIME_ROLE`.
+    RlsRoleMismatch { role: String, expected: String },
 }
 
 impl core::fmt::Display for PgScimConnectError {
@@ -76,6 +101,19 @@ impl core::fmt::Display for PgScimConnectError {
         match self {
             Self::MissingDatabaseUrl => write!(f, "database url is empty"),
             Self::Sqlx(detail) => write!(f, "sqlx connect failed: {detail}"),
+            Self::RlsUnenforceable { role } => write!(
+                f,
+                "runtime role '{role}' can bypass RLS (rolsuper/rolbypassrls); \
+                 refusing to serve a multi-tenant store — full isolation also \
+                 requires the role to exist provisioned with NOBYPASSRLS \
+                 (see deferred 0000_runtime_role.sql)"
+            ),
+            Self::RlsRoleMismatch { role, expected } => write!(
+                f,
+                "connected role '{role}' is not a member of the RLS \
+                 policy-subject role '{expected}'; tenant isolation policies \
+                 would not apply — refusing to serve"
+            ),
         }
     }
 }
@@ -100,6 +138,133 @@ pub async fn connect_pool(database_url: &str) -> Result<PgPool, PgScimConnectErr
         .connect(database_url)
         .await
         .map_err(|error| PgScimConnectError::Sqlx(error.to_string()))
+}
+
+/// Assert that the connected role is safe for serving multi-tenant SCIM traffic:
+///
+/// 1. It must NOT carry `rolsuper` or `rolbypassrls` (either flag silently skips
+///    Postgres RLS, turning tenant isolation into a no-op).
+/// 2. It MUST be [`RUNTIME_ROLE`] or a member of it (a policy `TO r` only applies
+///    to the current user when that user is `r` or a member of `r`; a non-member
+///    role under FORCE RLS gets deny-all — a safe outage, but still a
+///    misconfiguration we refuse to serve).
+///
+/// Call this from the composition root that serves multi-tenant traffic AFTER
+/// [`connect_pool`] but BEFORE accepting requests, so a mis-provisioned role
+/// fails the service at boot rather than at runtime. It is a FREE function taking
+/// `&PgPool` (not a store method) because the SCIM surface composes TWO stores
+/// ([`PgScimUserStore`] + [`PgScimGroupStore`]) over a single shared pool — the
+/// guard runs once against that pool, not redundantly per store.
+///
+/// ## Note on `SET ROLE` / `current_user`
+///
+/// This check queries `current_user` (the active role, possibly changed by
+/// `SET ROLE`). It is valid here because these adapters never issue `SET ROLE`
+/// and use a homogeneous pool (every serving connection has the same login role,
+/// so `current_user == session_user` throughout). The query also asserts that
+/// invariant: if `session_user <> current_user`, a role switch is in effect and
+/// this function returns an error rather than checking the wrong role.
+///
+/// ## Guard scope
+///
+/// This guard is necessary but not sufficient for full tenant isolation. Full
+/// isolation additionally requires that [`RUNTIME_ROLE`] exists in the database,
+/// provisioned with `NOBYPASSRLS` (the deferred `0000_runtime_role.sql`
+/// follow-up, mirroring oya-data-outbox-adapter-postgres / tenant-lifecycle).
+///
+/// # Errors
+/// - [`PgScimConnectError::RlsUnenforceable`] if the current role carries
+///   `rolsuper` or `rolbypassrls`.
+/// - [`PgScimConnectError::RlsRoleMismatch`] if the current role is not a member
+///   of [`RUNTIME_ROLE`] (policies would not apply).
+/// - [`PgScimConnectError::Sqlx`] if the `pg_roles` / `pg_has_role` query fails
+///   (e.g. [`RUNTIME_ROLE`] does not yet exist in the database — the deferred
+///   provisioning migration has not run), or if a `SET ROLE` switch is detected.
+pub async fn assert_rls_enforceable(pool: &PgPool) -> Result<(), PgScimConnectError> {
+    let row = sqlx::query(
+        // `pg_has_role(user, role, 'MEMBER')` returns true iff `user` is `role`
+        // itself or a (transitive) member of it — exactly the predicate for
+        // whether a `TO <role>` RLS policy applies to `current_user`. We use
+        // `'MEMBER'` (not `'USAGE'`) because RLS policy applicability is purely a
+        // role-membership question, not a schema/object privilege question.
+        //
+        // We also fetch `session_user` to detect a `SET ROLE` switch: these
+        // adapters never issue `SET ROLE`, so session_user must equal
+        // current_user on every serving connection.
+        "SELECT current_user::text AS role_name, \
+         session_user::text AS session_role, \
+         rolsuper, rolbypassrls, \
+         pg_has_role(current_user, $1, 'MEMBER') AS is_runtime_member \
+         FROM pg_roles WHERE rolname = current_user",
+    )
+    .bind(RUNTIME_ROLE)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
+    let role_name: String = row
+        .try_get("role_name")
+        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
+    let session_role: String = row
+        .try_get("session_role")
+        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
+    let rolsuper: bool = row
+        .try_get("rolsuper")
+        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
+    let rolbypassrls: bool = row
+        .try_get("rolbypassrls")
+        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
+    let is_runtime_member: bool = row
+        .try_get("is_runtime_member")
+        .map_err(|e| PgScimConnectError::Sqlx(e.to_string()))?;
+    // Defense-in-depth: these adapters never issue SET ROLE, so the pool's
+    // current_user must always equal session_user. Detect role-switch confusion
+    // early rather than checking the wrong role.
+    if session_role != role_name {
+        return Err(PgScimConnectError::Sqlx(format!(
+            "session_user '{session_role}' != current_user '{role_name}': a \
+             SET ROLE switch is in effect; this adapter does not issue SET ROLE \
+             and cannot safely check the effective role"
+        )));
+    }
+    evaluate_rls_enforceability(&role_name, rolsuper, rolbypassrls, is_runtime_member)
+}
+
+/// Pure RLS-enforceability decision — no DB, no async, fully unit-testable.
+///
+/// Returns `Ok(())` iff the role is safe to serve multi-tenant traffic:
+/// - not a superuser (`rolsuper = false`),
+/// - not bypass-RLS capable (`rolbypassrls = false`), AND
+/// - is a member of the policy-subject role (`is_runtime_member = true`).
+///
+/// The three conditions map to two distinct error variants so callers and logs
+/// can distinguish a bypass risk (leak vector) from a membership gap (outage):
+/// - `rolsuper || rolbypassrls` → [`PgScimConnectError::RlsUnenforceable`]
+///   (bypass-capable role; the isolation guarantee is violated).
+/// - `!is_runtime_member` → [`PgScimConnectError::RlsRoleMismatch`]
+///   (non-member; under FORCE RLS the policies simply would not apply, yielding
+///   deny-all — a safe fail-closed outage, but still a misconfiguration).
+///
+/// Extracted from [`assert_rls_enforceable`] so the decision is covered by
+/// DB-free unit tests (mirrors the `select_scim_store_kind` extraction pattern
+/// from the facade layer).
+fn evaluate_rls_enforceability(
+    role: &str,
+    rolsuper: bool,
+    rolbypassrls: bool,
+    is_runtime_member: bool,
+) -> Result<(), PgScimConnectError> {
+    if rolsuper || rolbypassrls {
+        return Err(PgScimConnectError::RlsUnenforceable {
+            role: role.to_owned(),
+        });
+    }
+    if !is_runtime_member {
+        return Err(PgScimConnectError::RlsRoleMismatch {
+            role: role.to_owned(),
+            expected: RUNTIME_ROLE.to_owned(),
+        });
+    }
+    Ok(())
 }
 
 /// Map an sqlx error to the kernel's write-store error vocabulary.
@@ -600,5 +765,72 @@ mod tests {
             Err(ScimStoreError::Corrupt { .. })
         ));
         assert_eq!(validate_tenant(&TenantId("acme".to_owned())), Ok(()));
+    }
+
+    // --- DB-free evaluate_rls_enforceability predicate tests -----------------
+    // These cover all meaningful combinations of (rolsuper, rolbypassrls,
+    // is_runtime_member) without a database. This closes the regression hole
+    // where the live reject-tests self-skip when the env role isn't
+    // bypass-capable: the boolean DECISION is always tested here; only the SQL
+    // wiring into pg_roles / pg_has_role requires a live DB.
+
+    #[test]
+    fn rls_enforceability_superuser_is_rejected() {
+        assert_eq!(
+            evaluate_rls_enforceability("pg_superuser", true, false, true),
+            Err(PgScimConnectError::RlsUnenforceable {
+                role: "pg_superuser".to_owned()
+            })
+        );
+    }
+
+    #[test]
+    fn rls_enforceability_bypassrls_is_rejected() {
+        assert_eq!(
+            evaluate_rls_enforceability("bypass_role", false, true, true),
+            Err(PgScimConnectError::RlsUnenforceable {
+                role: "bypass_role".to_owned()
+            })
+        );
+    }
+
+    #[test]
+    fn rls_enforceability_super_and_bypass_is_rejected_as_unenforceable() {
+        // Both flags set still classifies as the bypass risk (not a membership
+        // gap): the leak vector dominates the decision.
+        assert_eq!(
+            evaluate_rls_enforceability("both_flags", true, true, false),
+            Err(PgScimConnectError::RlsUnenforceable {
+                role: "both_flags".to_owned()
+            })
+        );
+    }
+
+    #[test]
+    fn rls_enforceability_non_member_is_role_mismatch() {
+        assert_eq!(
+            evaluate_rls_enforceability("some_role", false, false, false),
+            Err(PgScimConnectError::RlsRoleMismatch {
+                role: "some_role".to_owned(),
+                expected: RUNTIME_ROLE.to_owned(),
+            })
+        );
+    }
+
+    #[test]
+    fn rls_enforceability_non_super_non_bypass_member_is_ok() {
+        assert_eq!(
+            evaluate_rls_enforceability(RUNTIME_ROLE, false, false, true),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn runtime_role_matches_migration_policy_subject() {
+        // The const MUST equal the `TO <role>` subject in
+        // migrations/0001_identity_scim_store.sql — the guard checks membership
+        // in exactly this role, so a drift would silently let a non-policy role
+        // pass the guard while the policies never apply to it.
+        assert_eq!(RUNTIME_ROLE, "identity_scim_runtime");
     }
 }

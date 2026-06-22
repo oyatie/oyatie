@@ -20,6 +20,10 @@ use iam_identity_workload_app::{InMemoryRevocationDenylist, InMemoryWorkloadPrin
 use iam_identity_workload_authz_cedar::{CedarAuthzError, CedarWorkloadAuthorizer};
 use iam_identity_workload_oidc::ValidationConfig;
 use iam_identity_workload_rest::WorkloadAuthzState;
+use identity_scim_store_postgres::{
+    PgScimGroupStore, PgScimUserStore, assert_rls_enforceable, connect_pool,
+};
+use oya_shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
 
 use crate::AppState;
 use crate::config::Config;
@@ -51,6 +55,20 @@ pub enum StartError {
         addr: String,
         source: std::io::Error,
     },
+    /// The durable SCIM store could not be composed: empty/invalid
+    /// `OYA_BACKBONE_POSTGRES_URL`, an sqlx connect failure, or the
+    /// RLS-enforceability guard fired (connected role carries
+    /// `rolsuper`/`rolbypassrls`, or is not a member of the
+    /// `identity_scim_runtime` policy-subject role). The service REFUSES to serve
+    /// rather than silently downgrade to the in-memory store or allow isolation
+    /// to be bypassed — there is NO fallback when a URL is configured.
+    ///
+    /// Note: the guard is necessary but not sufficient for full tenant
+    /// isolation; full isolation additionally requires that
+    /// `identity_scim_runtime` exists provisioned with NOBYPASSRLS (deferred
+    /// `0000_runtime_role.sql` follow-up, mirroring oya-data-outbox /
+    /// tenant-lifecycle).
+    Store(String),
 }
 
 impl fmt::Display for StartError {
@@ -62,11 +80,48 @@ impl fmt::Display for StartError {
             Self::Seed(err) => write!(f, "principal seed rejected: {err}"),
             Self::Issuer(err) => write!(f, "issuer signing setup rejected: {err:?}"),
             Self::Bind { addr, source } => write!(f, "cannot bind {addr}: {source}"),
+            Self::Store(err) => {
+                write!(f, "SCIM store unavailable, refusing to serve: {err}")
+            }
         }
     }
 }
 
 impl std::error::Error for StartError {}
+
+/// The SCIM store backend selected by [`select_scim_store_kind`] from the runtime
+/// config.
+///
+/// This enum is the authoritative decision socket: the no-fallback property (a
+/// configured Postgres URL must NEVER silently degrade to in-memory) is enforced
+/// structurally — only `None`/empty URL maps to `InMemory`.
+#[derive(Debug, PartialEq, Eq)]
+pub enum ScimStoreSelection {
+    /// Durable Postgres SCIM stores; the contained URL is non-empty.
+    Postgres(String),
+    /// In-memory SCIM stores (single-node dev bring-up; no URL configured).
+    InMemory,
+}
+
+/// `OYA_BACKBONE_POSTGRES_URL` — the durable SCIM store DSN (the SAME env name
+/// the tenancy facade reads for its store, so the backbone has one source of
+/// truth). Present + non-empty selects the durable Postgres SCIM stores; absent
+/// or empty selects the in-memory dev stores.
+pub const ENV_SCIM_DATABASE_URL: &str = "OYA_BACKBONE_POSTGRES_URL";
+
+/// Pure SCIM store-selection function: maps the raw (pre-normalized) database URL
+/// option onto a [`ScimStoreSelection`]. `None`, empty, or whitespace-only
+/// strings all select `InMemory`; any non-empty trimmed URL selects `Postgres`.
+///
+/// Extracted from [`start`] so the no-fallback decision can be unit-tested
+/// without a network, a runtime, or any side effects.
+#[must_use]
+pub fn select_scim_store_kind(database_url: Option<String>) -> ScimStoreSelection {
+    match database_url.map(|u| u.trim().to_owned()).filter(|u| !u.is_empty()) {
+        Some(url) => ScimStoreSelection::Postgres(url),
+        None => ScimStoreSelection::InMemory,
+    }
+}
 
 /// A running service: bound addresses plus the shutdown handle.
 pub struct ServiceHandle {
@@ -212,14 +267,58 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
     }
     // SCIM provisioning surface: same offline JWKS + issuer/audience material
     // as the authorize path, scim.manage scope required (fail-closed guard).
-    let scim_state = Arc::new(ScimSurfaceState::new(
-        format!("{}{}", config.issuer.trim_end_matches('/'), SCIM_BASE),
-        jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
-        ValidationConfig::new(&config.issuer, &config.audience),
-        default_now_epoch_seconds,
-        Arc::clone(&state),
-    ));
-    rest_router = rest_router.merge(build_scim_router(scim_state));
+    //
+    // Store selection (12-factor composition-root config, NOT a CLI surface):
+    //   - OYA_BACKBONE_POSTGRES_URL present + non-empty -> the DURABLE Postgres
+    //     SCIM stores are composed. If the connection fails or the
+    //     RLS-enforceability guard fires (bypass-capable role, or role not a
+    //     member of identity_scim_runtime), the service REFUSES to serve
+    //     (StartError::Store) — it NEVER falls back to in-memory.
+    //   - absent / empty -> the in-memory stores (single-node dev bring-up).
+    //
+    // Both plug in behind the UNCHANGED UserStore/GroupStore kernel ports, so
+    // the owned-data cutover (G003) swaps the adapter with no change here.
+    let scim_base_url = format!("{}{}", config.issuer.trim_end_matches('/'), SCIM_BASE);
+    let scim_validation = ValidationConfig::new(&config.issuer, &config.audience);
+    let (scim_router, scim_store_kind) =
+        match select_scim_store_kind(std::env::var(ENV_SCIM_DATABASE_URL).ok()) {
+            ScimStoreSelection::Postgres(url) => {
+                // FAIL-CLOSED: a connect failure or RLS-bypass role propagates;
+                // NEVER fall back to in-memory when a durable backend was
+                // configured. The composition root OWNS the shared pool (typed
+                // here so the sqlx dependency is named, not merely transitive)
+                // and runs the RLS-enforceability guard once over it.
+                let pool: sqlx::PgPool = connect_pool(&url)
+                    .await
+                    .map_err(|e| StartError::Store(e.to_string()))?;
+                assert_rls_enforceable(&pool)
+                    .await
+                    .map_err(|e| StartError::Store(e.to_string()))?;
+                let scim_state = Arc::new(ScimSurfaceState::new(
+                    scim_base_url,
+                    jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
+                    scim_validation,
+                    default_now_epoch_seconds,
+                    Arc::clone(&state),
+                    PgScimUserStore::from_pool(pool.clone()),
+                    PgScimGroupStore::from_pool(pool),
+                ));
+                (build_scim_router(scim_state), "postgres")
+            }
+            ScimStoreSelection::InMemory => {
+                let scim_state = Arc::new(ScimSurfaceState::new(
+                    scim_base_url,
+                    jwks_from_json(&read_file(&config.jwks_path)?).map_err(StartError::Jwks)?,
+                    scim_validation,
+                    default_now_epoch_seconds,
+                    Arc::clone(&state),
+                    InMemoryUserStore::default(),
+                    InMemoryGroupStore::default(),
+                ));
+                (build_scim_router(scim_state), "inmemory")
+            }
+        };
+    rest_router = rest_router.merge(scim_router);
     let mut rest_shutdown = shutdown_rx.clone();
     let rest_task = tokio::spawn(async move {
         let shutdown = async move {
@@ -243,7 +342,12 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
         }
     });
 
-    info!(rest = %rest_addr, grpc = %grpc_addr, "oya-identity serving");
+    info!(
+        rest = %rest_addr,
+        grpc = %grpc_addr,
+        scim_store = scim_store_kind,
+        "oya-identity serving"
+    );
     Ok(ServiceHandle {
         rest_addr,
         grpc_addr,
@@ -251,4 +355,72 @@ pub async fn start(config: &Config) -> Result<ServiceHandle, StartError> {
         rest_task,
         grpc_task,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- select_scim_store_kind unit tests (pure, no async, no DB) -----------
+
+    #[test]
+    fn select_scim_store_kind_non_empty_url_picks_postgres() {
+        assert_eq!(
+            select_scim_store_kind(Some("postgres://host/db".to_owned())),
+            ScimStoreSelection::Postgres("postgres://host/db".to_owned()),
+        );
+    }
+
+    #[test]
+    fn select_scim_store_kind_trims_surrounding_whitespace() {
+        // A non-empty URL with surrounding whitespace is trimmed, not rejected:
+        // the durable backend is still selected.
+        assert_eq!(
+            select_scim_store_kind(Some("  postgres://host/db  ".to_owned())),
+            ScimStoreSelection::Postgres("postgres://host/db".to_owned()),
+        );
+    }
+
+    #[test]
+    fn select_scim_store_kind_none_picks_inmemory() {
+        assert_eq!(select_scim_store_kind(None), ScimStoreSelection::InMemory);
+    }
+
+    #[test]
+    fn select_scim_store_kind_empty_string_picks_inmemory() {
+        // An empty OYA_BACKBONE_POSTGRES_URL is treated as "not configured" —
+        // the dev in-memory path, not a fail-closed error.
+        assert_eq!(
+            select_scim_store_kind(Some(String::new())),
+            ScimStoreSelection::InMemory,
+        );
+    }
+
+    #[test]
+    fn select_scim_store_kind_whitespace_only_picks_inmemory() {
+        assert_eq!(
+            select_scim_store_kind(Some("   ".to_owned())),
+            ScimStoreSelection::InMemory,
+        );
+    }
+
+    // --- DB-free fail-closed wiring proof ------------------------------------
+
+    /// Fail-closed wiring proof WITHOUT a database: the durable arm's FIRST step
+    /// (`connect_pool`) rejects an empty URL before any network, and the
+    /// composition root maps that into [`StartError::Store`]. This proves the
+    /// no-fallback contract for the empty-but-selected edge through the same
+    /// adapter call `start()` makes, without opening a socket. (A non-empty
+    /// `select_scim_store_kind` would route here; an empty one routes to
+    /// in-memory, so the `start()` env read can never reach this with "".)
+    #[tokio::test]
+    async fn durable_arm_empty_url_maps_to_start_error_store() {
+        let result = connect_pool("")
+            .await
+            .map_err(|e| StartError::Store(e.to_string()));
+        assert!(
+            matches!(result, Err(StartError::Store(_))),
+            "empty durable URL must fail-close as StartError::Store, got {result:?}"
+        );
+    }
 }
