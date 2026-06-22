@@ -3645,6 +3645,15 @@
       "status": "Proposed",
       "superseded_by": [],
       "supersedes": []
+    },
+    {
+      "id": "ADR-0571",
+      "in_masterplan": false,
+      "in_roadmap": false,
+      "in_spec": true,
+      "status": "Proposed",
+      "superseded_by": [],
+      "supersedes": []
     }
   ],
   "duplicate_ids": [],
@@ -3718,6 +3727,6 @@
     "ADR-0488"
   ],
   "id_mismatches": [],
-  "next_free_id": "ADR-0571",
+  "next_free_id": "ADR-0572",
   "phantom_citations": []
 }
