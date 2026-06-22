@@ -7377,6 +7377,7 @@
     "libs/oya-data-outbox-adapter-postgres/BUCK",
     "libs/oya-data-outbox-adapter-postgres/Cargo.toml",
     "libs/oya-data-outbox-adapter-postgres/OWNERS",
+    "libs/oya-data-outbox-adapter-postgres/migrations/0000_runtime_role.sql",
     "libs/oya-data-outbox-adapter-postgres/migrations/0001_outbox_events.sql",
     "libs/oya-data-outbox-adapter-postgres/src/lib.rs",
     "libs/oya-data-outbox-kernel/BUCK",
