@@ -164,6 +164,26 @@ pub async fn start_with_mtls(
         None => None,
     };
     let bundle = mtls.as_ref().map(MtlsContext::bundle);
+    // The PDP's own cell authority (derived from its server SVID) pins a caller's
+    // cell. ALWAYS present whenever an `MtlsContext` is in use: deriving it is a
+    // fail-closed boot precondition in `MtlsContext::new`, so an mTLS serve can
+    // NEVER run without the cell pin (belt-and-suspenders — this `Some(..)` is
+    // guaranteed by construction, never an unpinned mTLS serve).
+    let expected_cell = mtls
+        .as_ref()
+        .map(|ctx| ctx.expected_cell_authority().to_owned());
+
+    // Belt-and-suspenders fail-closed gate: it is IMPOSSIBLE to serve mTLS
+    // without a derived cell pin. `MtlsContext::new` already guarantees the pin,
+    // so this can only fire on a future regression — and if it ever did, we
+    // boot-refuse rather than serve mTLS with cell-isolation silently disabled.
+    if mtls.is_some() && expected_cell.is_none() {
+        return Err(StartError::Mtls(MtlsBootError::CellPinUndeterminable(
+            "mTLS context present without a derived cell pin (cell-isolation would \
+             be disabled) — refusing to serve"
+                .to_string(),
+        )));
+    }
 
     let rest_listener = TcpListener::bind(&config.rest_addr)
         .await
@@ -195,7 +215,8 @@ pub async fn start_with_mtls(
 
     let rest_task = match (acceptor.clone(), bundle.clone()) {
         (Some(acc), Some(bundle)) => {
-            let router = rest::build_router_mtls(Arc::clone(&state), bundle);
+            let router =
+                rest::build_router_mtls(Arc::clone(&state), bundle, expected_cell.clone());
             let mut rest_shutdown = shutdown_rx.clone();
             tokio::spawn(async move {
                 let shutdown = async move {
@@ -230,7 +251,9 @@ pub async fn start_with_mtls(
                     let _ = grpc_shutdown.changed().await;
                 };
                 let incoming = grpc_tls_incoming(grpc_listener, acc);
-                if let Err(err) = grpc::serve_mtls(state, bundle, incoming, shutdown).await {
+                if let Err(err) =
+                    grpc::serve_mtls(state, bundle, expected_cell, incoming, shutdown).await
+                {
                     error!(error = %err, "gRPC server exited with error");
                 }
             })

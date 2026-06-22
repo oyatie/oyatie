@@ -96,8 +96,15 @@ fn issue_svid(
     (leaf, wl.private_key_der())
 }
 
-/// Mint the PDP server leaf (serverAuth + a DNS SAN the client checks). Returns
-/// (leaf_der, key_pkcs8).
+/// The PDP server SVID identity the operator always mints — the cell pin
+/// (`oyatie.cell-7`) is derived from this at boot. Fidelity with the real
+/// operator leaf (`identity-workload-svid-operator-k8s::mint`).
+const PDP_SERVER_SPIFFE: &str = "spiffe://oyatie.cell-7/platform/cloud-iam-pdp";
+
+/// Mint the PDP server leaf (serverAuth + a DNS SAN the client checks + the
+/// cell-rooted PDP SPIFFE URI SAN the cell pin is derived from — fidelity with
+/// the operator leaf, without which the fail-closed cell-pin boot precondition
+/// correctly refuses to serve). Returns (leaf_der, key_pkcs8).
 fn issue_server_leaf(
     svc: &mut SecurityService<EcdsaP256Signer>,
     ca_signer: &EcdsaP256Signer,
@@ -109,6 +116,8 @@ fn issue_server_leaf(
     let mut csr =
         CertificateSigningRequest::for_node("oya-cloud-iam-pdp", &key, CertUsage::ServerAuth, ttl);
     csr.sans.dns_names.push("localhost".to_owned());
+    // The SPIFFE id the PDP's cell pin is derived from at boot (mandatory).
+    csr.sans.uris.push(PDP_SERVER_SPIFFE.to_owned());
     let req = CertificateRequest {
         join_token: JOIN_TOKEN.to_string(),
         csr,
