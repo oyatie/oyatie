@@ -116,7 +116,11 @@ ships a runtime-role contract migration applied FIRST —
 `axis-cloud-platform` capability owner above (subtree coverage) and reachable via the adapter
 member-dir prefix; the per-table privilege grants to the runtime role live in `0001` alongside the
 tables they target. Live end-to-end verification is pending the live-PG CI lane (task #101,
-founder-gated/deferred); the SQL mirrors the proven outbox precedent.
+founder-gated/deferred); the SQL mirrors the proven outbox precedent. Note on
+`unit_class: husk` / `verdict: ARCHIVE` for these migration files: the accounting-registry
+reaper never fires on a file whose `reachable_from` is non-empty (archive-not-rm); the
+classification is inert-by-reachability — the same posture the outbox `0000_runtime_role.sql`
+carries — and requires no follow-up action.
 
 ## Precedent
 

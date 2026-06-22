@@ -461,6 +461,90 @@ fn require_non_empty_named(value: &str, error: SqlCommandError) -> Result<(), Sq
     }
 }
 
+/// Split a Postgres migration file into executable statements, dollar-quote and
+/// single-quote aware.
+///
+/// Mimics the two-pass strategy psql uses:
+/// 1. Strip `--` line comments (a line-prefix scan is sufficient; none of our
+///    migration literals contain `--`).
+/// 2. Walk the remaining characters tracking:
+///    - `in_string`: toggled by unescaped `'`; an escaped quote (`''`) stays
+///      inside the string.
+///    - `in_dollar`: toggled by each `$$` pair. This is load-bearing for the
+///      `DO $$ BEGIN … END $$;` blocks used in the `0000_runtime_role.sql`
+///      migrations: those blocks contain inner `;` delimiters that a dollar-blind
+///      splitter would shatter, producing truncated fragments that Postgres rejects
+///      as syntax errors.
+///
+/// A `;` is only treated as a statement delimiter when BOTH `in_string` and
+/// `in_dollar` are false.
+///
+/// This is the **canonical shared implementation**; live-test harnesses that
+/// apply migration SQL MUST import this function rather than maintain their own
+/// copy (the dollar-blind copies in the original tenancy/SCIM live tests were
+/// the review BLOCKER caught in #801). The outbox adapter
+/// (`oya-data-outbox-adapter-postgres`) carries its own equivalent in
+/// `split_migration_statements`; that crate is tracked for harmonisation in #115.
+pub fn split_migration_statements(migration: &str) -> Vec<String> {
+    let stripped: String = migration
+        .lines()
+        .map(|line| match line.find("--") {
+            Some(idx) => &line[..idx],
+            None => line,
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let mut statements = Vec::new();
+    let mut current = String::new();
+    let mut in_string = false;
+    let mut in_dollar = false;
+    let bytes: Vec<char> = stripped.chars().collect();
+    let mut i = 0;
+    while i < bytes.len() {
+        let c = bytes[i];
+        // Dollar-quote toggle: $$ outside a single-quoted string toggles in_dollar.
+        if !in_string && c == '$' && i + 1 < bytes.len() && bytes[i + 1] == '$' {
+            in_dollar = !in_dollar;
+            current.push(c);
+            current.push('$');
+            i += 2;
+            continue;
+        }
+        // Single-quote toggle (only outside dollar-quoted blocks).
+        if !in_dollar && c == '\'' {
+            // Escaped quote ('') stays inside the string.
+            if in_string && i + 1 < bytes.len() && bytes[i + 1] == '\'' {
+                current.push(c);
+                current.push('\'');
+                i += 2;
+                continue;
+            }
+            in_string = !in_string;
+            current.push(c);
+            i += 1;
+            continue;
+        }
+        // Statement delimiter: only outside both quoting modes.
+        if c == ';' && !in_string && !in_dollar {
+            let trimmed = current.trim();
+            if !trimmed.is_empty() {
+                statements.push(trimmed.to_owned());
+            }
+            current.clear();
+            i += 1;
+            continue;
+        }
+        current.push(c);
+        i += 1;
+    }
+    let trailing = current.trim();
+    if !trailing.is_empty() {
+        statements.push(trailing.to_owned());
+    }
+    statements
+}
+
 /// Pure RLS role-flag decision — no DB, no async, fully unit-testable.
 ///
 /// Returns `Ok(())` iff the role is safe to serve multi-tenant traffic:
@@ -777,5 +861,74 @@ mod tests {
                 force_row_security: false,
             })
         );
+    }
+
+    // --- split_migration_statements dollar-quote regression tests ------------
+    // These guard the BLOCKER caught in #801 review: the dollar-blind copies of
+    // the splitter in the original tenancy/SCIM live_rls.rs harnesses split on
+    // the `;` INSIDE the `DO $$ BEGIN … END $$;` runtime-role block, emitting a
+    // truncated fragment that Postgres rejects as a syntax error. The fix is this
+    // shared dollar-aware implementation; these tests run in the always-on
+    // (DB-free) lane so they actually guard the bug.
+
+    /// The `0000_runtime_role.sql` pattern: a `DO $$ BEGIN … END $$;` block with
+    /// inner semicolons must emerge as ONE statement, not shattered fragments.
+    #[test]
+    fn split_migration_statements_keeps_dollar_block_intact() {
+        let migration = r#"
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tenancy_lifecycle_runtime') THEN
+        CREATE ROLE tenancy_lifecycle_runtime NOLOGIN NOBYPASSRLS;
+    END IF;
+END
+$$;
+CREATE SCHEMA IF NOT EXISTS tenancy_lifecycle;
+GRANT USAGE ON SCHEMA tenancy_lifecycle TO tenancy_lifecycle_runtime;
+"#;
+        let stmts = split_migration_statements(migration);
+        // Must be exactly 3 statements: DO block, CREATE SCHEMA, GRANT.
+        assert_eq!(
+            stmts.len(),
+            3,
+            "expected 3 statements (DO block, CREATE SCHEMA, GRANT), got {}: {stmts:?}",
+            stmts.len()
+        );
+        // The DO block must survive as one intact statement.
+        let do_block = stmts
+            .iter()
+            .find(|s| s.contains("DO $$"))
+            .expect("DO $$ block must survive splitting as one statement");
+        assert!(
+            do_block.contains("CREATE ROLE tenancy_lifecycle_runtime NOLOGIN NOBYPASSRLS"),
+            "CREATE ROLE must be inside the DO block, not a separate fragment"
+        );
+        assert!(do_block.contains("END IF"));
+        assert!(do_block.contains("NOBYPASSRLS"));
+        // The schema-create and grant are separate statements.
+        assert!(stmts.iter().any(|s| s.contains("CREATE SCHEMA IF NOT EXISTS tenancy_lifecycle")));
+        assert!(stmts.iter().any(|s| s.contains("GRANT USAGE ON SCHEMA tenancy_lifecycle")));
+    }
+
+    /// A plain single-table migration (no dollar quotes) still splits correctly —
+    /// the dollar-aware path is a strict superset of the single-quote-aware path.
+    #[test]
+    fn split_migration_statements_handles_single_quoted_comment_on() {
+        let migration = "CREATE TABLE t (id text PRIMARY KEY);\n\
+             COMMENT ON TABLE t IS 'tenant; scoped table';";
+        let stmts = split_migration_statements(migration);
+        assert_eq!(stmts.len(), 2, "expected 2 statements, got {}: {stmts:?}", stmts.len());
+        assert!(stmts[0].contains("CREATE TABLE"));
+        assert!(stmts[1].contains("COMMENT ON TABLE"));
+        // The semicolon inside the single-quoted string must NOT shatter the COMMENT.
+        assert!(stmts[1].contains("tenant; scoped table"));
+    }
+
+    /// Empty / whitespace-only / comment-only input produces no statements.
+    #[test]
+    fn split_migration_statements_empty_input_produces_no_statements() {
+        assert!(split_migration_statements("").is_empty());
+        assert!(split_migration_statements("   \n  ").is_empty());
+        assert!(split_migration_statements("-- just a comment\n").is_empty());
     }
 }

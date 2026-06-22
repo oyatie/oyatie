@@ -17,7 +17,7 @@
 //! 3. Per-tenant userName uniqueness round-trip + tenant-scoped CRUD.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
+use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
 use oya_shared_scim_server_kernel::{
     Group, GroupStore, Meta, ScimId, TenantId, User, UserStore,
 };
@@ -83,55 +83,6 @@ fn group(id: &str, display_name: &str) -> Group {
     }
 }
 
-/// Split a migration file into executable statements the way psql does: drop
-/// `--` line comments, then split on `;` only OUTSIDE single-quoted string
-/// literals. A naive `split(';')` is fragile — a `;` inside a comment or inside
-/// a quoted string (e.g. a COMMENT ON ... IS '...; ...') would shatter the
-/// statement — so this respects both.
-fn split_statements(migration: &str) -> Vec<String> {
-    // Strip `--` line comments first (no `--` appears inside our string
-    // literals, so a line-prefix scan is sufficient and mirrors psql intent).
-    let stripped: String = migration
-        .lines()
-        .map(|line| match line.find("--") {
-            Some(idx) => &line[..idx],
-            None => line,
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let mut statements = Vec::new();
-    let mut current = String::new();
-    let mut in_string = false;
-    let mut chars = stripped.chars().peekable();
-    while let Some(c) = chars.next() {
-        match c {
-            '\'' if in_string && chars.peek() == Some(&'\'') => {
-                // Escaped quote ('') inside a string literal.
-                current.push(c);
-                current.push(chars.next().unwrap());
-            }
-            '\'' => {
-                in_string = !in_string;
-                current.push(c);
-            }
-            ';' if !in_string => {
-                let trimmed = current.trim();
-                if !trimmed.is_empty() {
-                    statements.push(trimmed.to_owned());
-                }
-                current.clear();
-            }
-            _ => current.push(c),
-        }
-    }
-    let trailing = current.trim();
-    if !trailing.is_empty() {
-        statements.push(trailing.to_owned());
-    }
-    statements
-}
-
 /// Apply the durable schema and make the app role a USAGE-member of the runtime
 /// role. The migration SQL is the committed `migrations/0000_runtime_role.sql` +
 /// `migrations/0001_*.sql`, applied verbatim IN ORDER so the test path is the
@@ -163,7 +114,7 @@ async fn setup_schema(setup: &PgPool, app_role: &str) {
         "0001 migration must bind the runtime role"
     );
     for migration in [role_migration, table_migration] {
-        for sql in split_statements(migration) {
+        for sql in split_migration_statements(migration) {
             sqlx::query(&sql).execute(setup).await.unwrap_or_else(|e| {
                 panic!("migration statement failed: {sql}\n{e}");
             });
