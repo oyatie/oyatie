@@ -1,0 +1,12 @@
+{
+  "_comment": "Capability-first reorg strangler MOVE (wave1, ADR-0562/0563): home the single connect address-book domain crate from oya/connect/crates/oya-address-book-domain -> comms/core/connect-address-book-domain. The address-book is a multi-channel contacts/directory domain (contact cards + per-tenant directory + consent-gated cross-tenant exposure) that belongs to the `comms` communications plane (comms charter: email/mail, messenger, meet, notifications, contact-center; the contacts/directory adjunct is a comms-plane concern). comms is an ALREADY-ESTABLISHED capability (homed by move-12, #757): the `comms/*/*` workspace-members glob, the `comms` capability slug + allowed-top-level-dir in the membership policy, and the breadth-unlimited `comms/OWNERS` reachability seed (ADR-0555) ALL already cover this new path, so this lift requires ZERO members-array edit, ZERO registry edit, ZERO reachability edit, ZERO OWNERS edit (only faces+BUCK+lock touched per the move-then-build contract). The leaf is de-branded per ADR-0532/0533 (drop the oya- vendor prefix; cargo name connect-address-book-domain == path-tail; the `connect-` discriminator is retained to name the address-book's product origin and keep the leaf unique within comms). Sole dep is libs/oya-data-boundary-kernel (downward, safe — a libs/ kernel below every capability). oya/connect has NO governance md tree (no OWNERS, no docs, no ADR-bound catalog/SLO record under it — confirmed by git ls-files: only the 3 crate files), so the move conflict surface is minimal and NO artifacts co-move. oya/connect was the only crate under that dir; post-move the dir is empty (git tracks no empty dirs => no orphan, no inert path). The oya/connect app_products membership_lint_coverage entry becomes inert-but-harmless (a PRE-MOVE path with no crates, the established pattern for every prior absorbed dir e.g. oya/mail). VIOLATION-SOURCE: none — the sole outbound edge points DOWN to libs/oya-data-boundary-kernel; zero NEW acyclicity/total-accounting/membership violations (rename-aware engine, ADR-0563).",
+  "capability": "comms",
+  "moves": [
+    {
+      "old_path": "oya/connect/crates/oya-address-book-domain",
+      "new_path": "comms/core/connect-address-book-domain",
+      "old_cargo_name": "oya-address-book-domain",
+      "new_cargo_name": "connect-address-book-domain"
+    }
+  ]
+}
