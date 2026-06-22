@@ -941,6 +941,35 @@ tracked, born-accounted artifact paths are `flags/core/server/Cargo.toml`, `flag
 `flags/OWNERS`, and the committed move-plan `specs/reorg/flags-move-plan.json` (reached by the
 existing ADR-0563 `specs/reorg/` reachability prefix).
 
+**§10.12.1 Wave-1 BUILD-slice decomposition: `flags/core/evaluation-domain` (second core crate):**
+The §10.12 move homed the bundled server `flags/core/server` AS-IS (one core crate, all subsystems as
+internal-module stubs, the §877 "missing faces arrive only if the engine is later decomposed"
+forward-reference). The Wave-1 BUILD slice executes exactly that anticipated decomposition for the
+single highest-value, fully cloud-agnostic surface: the deterministic flag-evaluation ENGINE (rule
+targeting, percentage bucketing, variant resolution — the ADR-0481 `evaluation/mod.rs` TODO) is lifted
+OUT of the bundled server into a SECOND `core`-face crate `flags/core/evaluation-domain` (cargo
+`flags-evaluation-domain`, lib `flags_evaluation_domain`). The new crate is PURE: zero
+cloud/persistence/identity/runtime deps — it does NOT pull `tokio` and depends on nothing first-party;
+its evaluation is a pure function over `(Flag, EvaluationContext)`. The flag SOURCE and any
+cloud/storage/identity coupling are DEFERRED behind the crate's `FlagSource` port (clean-arch
+ports-in-core per ADR-0570; the port trait is DEFINED in this `core` crate, NEVER in an `adapters/`
+crate, so the port-placement gate stays green). The server's `evaluation/mod.rs` subsystem becomes a
+thin re-export SEAM over the domain engine, and `flags/core/server` gains a `flags-evaluation-domain`
+dependency edge (the first intra-capability edge: `core/server → core/evaluation-domain`, a forward
+`core→core` edge with no cycle). This stays within the §10.12 face model (still a single `core` face,
+now two leaves) and needs NO members edit: the existing `flags/*/*` member glob + `flags/*/*`
+acyclicity glob already cover `flags/core/evaluation-domain`, and `flags/OWNERS` (axis-cloud-platform)
+already owns the whole subtree (the §10.12 reachability seed is breadth-unlimited per ADR-0555). The
+slice also wires a `flags-server-unittest` `rust_test` target so the server's new seam test compiles
+under buck2 (ADR-0540 cargo/buck target parity). The new born-accounted tracked artifact paths are
+`flags/core/evaluation-domain/Cargo.toml`, `flags/core/evaluation-domain/BUCK`,
+`flags/core/evaluation-domain/src/lib.rs`, `flags/core/evaluation-domain/src/model.rs`,
+`flags/core/evaluation-domain/src/engine.rs`, `flags/core/evaluation-domain/src/bucket.rs`, and
+`flags/core/evaluation-domain/src/port.rs` (each reached by the `flags/*/*` member glob, owned by
+`flags/OWNERS`, justified by this ADR). The storage/cloud/identity ADAPTERS, the OFREP/gRPC/REST
+faces, and the `ports`/`adapters`/`facade` face dirs remain DEFERRED (phase-2 task #62 + the
+adapter-authoring lanes), consistent with the crate-first strangler "fully homed after phase-2" rule.
+
 #### §10.13 Ninth executed strangler move: `marketplace` capability (cloud/cloud-marketplace + oya/marketplace + oya/developer-sdk → marketplace/)
 
 The ninth REAL codemod run homes the `marketplace` capability's five crates from THREE source dirs
