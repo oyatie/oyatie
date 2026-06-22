@@ -863,11 +863,17 @@ pub fn build_inmemory_router(
 /// path; an absent token means that principal class cannot authenticate.
 ///
 /// # Errors
-/// - [`BootError::Store`] if the durable store cannot connect (empty URL or an
-///   sqlx connect failure), or if the connected role carries `rolsuper` /
-///   `rolbypassrls` (which would silently bypass Postgres RLS and leak
-///   cross-tenant data). The caller MUST refuse to serve — there is NO fallback
-///   to in-memory (a silent durability downgrade is a data-loss anti-pattern).
+/// - [`BootError::Store`] if the durable store cannot connect (empty URL or
+///   sqlx connect failure), or if the RLS-enforceability guard fires:
+///   - the connected role carries `rolsuper` or `rolbypassrls` (bypass-capable;
+///     the adapter refuses to serve), OR
+///   - the connected role is not a member of the `tenancy_lifecycle_runtime`
+///     policy-subject role (policies would not apply; deny-all outage).
+///   The caller MUST refuse to serve — there is NO fallback to in-memory.
+///   Note: the guard is necessary but not sufficient for full tenant isolation;
+///   full isolation additionally requires that `tenancy_lifecycle_runtime`
+///   exists provisioned with NOBYPASSRLS (deferred `0000_runtime_role.sql`,
+///   mirroring oya-data-outbox-adapter-postgres).
 /// - [`BootError::Authz`] if the embedded tenancy authz bundle fails to compile
 ///   or strict-validate (no default-allow).
 pub async fn build_postgres_router(
@@ -878,11 +884,15 @@ pub async fn build_postgres_router(
     let store = PgTenantLifecycleStore::connect(database_url)
         .await
         .map_err(|e| BootError::Store(e.to_string()))?;
-    // Fail-closed isolation guard: refuse to serve if the connected role can
-    // bypass Postgres RLS (rolsuper or rolbypassrls). A bypass-capable role
-    // silently skips the per-transaction tenant GUC isolation, turning RLS
-    // into a no-op and enabling cross-tenant data leaks. This check runs at
-    // boot so a mis-provisioned DSN fails loudly rather than leaking quietly.
+    // Fail-closed RLS-enforceability guard: refuse to serve if the connected
+    // role can bypass Postgres RLS (rolsuper or rolbypassrls), OR if it is
+    // not a member of the tenancy_lifecycle_runtime policy-subject role (in
+    // which case the tenant-isolation policies would not apply at all). This
+    // check runs at boot so a mis-provisioned DSN fails loudly.
+    //
+    // Guard scope: necessary but not sufficient for full isolation. Full
+    // isolation additionally requires tenancy_lifecycle_runtime to exist
+    // provisioned with NOBYPASSRLS (deferred 0000_runtime_role.sql follow-up).
     store
         .assert_rls_enforceable()
         .await
@@ -908,12 +918,17 @@ pub enum BootError {
     /// strict-validation failure). The service REFUSES to serve — there is no
     /// default-allow fallback when authz is unavailable.
     Authz(String),
-    /// The durable tenant store could not be composed (empty/invalid
-    /// `DATABASE_URL`, an sqlx connect failure, or the connected role carries
-    /// `rolsuper`/`rolbypassrls` which would silently bypass Postgres RLS).
+    /// The durable tenant store could not be composed: empty/invalid
+    /// `DATABASE_URL`, an sqlx connect failure, or the RLS-enforceability
+    /// guard fired (connected role carries `rolsuper`/`rolbypassrls`, or is
+    /// not a member of the `tenancy_lifecycle_runtime` policy-subject role).
     /// The service REFUSES to serve rather than silently downgrade to the
-    /// in-memory store or allow isolation to be bypassed — both are fatal
-    /// fail-closed conditions.
+    /// in-memory store or allow isolation to be bypassed.
+    ///
+    /// Note: the guard is necessary but not sufficient for full tenant
+    /// isolation; full isolation additionally requires that
+    /// `tenancy_lifecycle_runtime` exists provisioned with NOBYPASSRLS
+    /// (deferred `0000_runtime_role.sql` follow-up).
     Store(String),
     /// No bearer credential is configured at all (neither platform-admin nor
     /// tenant-operator). With no way to authenticate ANY caller the service
@@ -971,10 +986,12 @@ pub fn select_store_kind(database_url: Option<String>) -> StoreSelection {
 /// ## Store selection (12-factor composition-root config, NOT a CLI surface)
 ///   - `ENV_DATABASE_URL` (`OYA_BACKBONE_POSTGRES_URL`) present + non-empty →
 ///     the DURABLE [`PgTenantLifecycleStore`] is composed. If the connection
-///     fails or the connected role can bypass RLS, the service REFUSES to serve
-///     ([`BootError::Store`]) — it NEVER falls back to in-memory, because a
-///     silent durability downgrade or isolation bypass is a data-loss /
-///     multi-tenancy-violation anti-pattern.
+///     fails or the RLS-enforceability guard fires (bypass-capable role, or
+///     role not a member of `tenancy_lifecycle_runtime`), the service REFUSES
+///     to serve ([`BootError::Store`]) — it NEVER falls back to in-memory.
+///     Note: the guard is necessary but not sufficient for full isolation;
+///     full isolation requires `tenancy_lifecycle_runtime` to exist
+///     provisioned with NOBYPASSRLS (deferred `0000_runtime_role.sql`).
 ///   - absent / empty → the in-memory store (single-node dev bring-up).
 ///
 /// In both cases a persistent store plugs in behind the unchanged kernel port,

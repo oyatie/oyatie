@@ -19,6 +19,9 @@
 --      every restrictive policy admits it.
 --
 -- The runtime role MUST NOT carry BYPASSRLS or RLS would be silently skipped.
+-- The role name used in every `TO <role>` clause below is "tenancy_lifecycle_runtime";
+-- this name is mirrored in the adapter's RUNTIME_ROLE const
+-- (tenancy/adapters/tenant-lifecycle-store-postgres/src/lib.rs) — change both together.
 -- A CHECK (tenant_id <> '') on every tenant_id column is defense-in-depth so a
 -- blank tenant can never be persisted (and the empty-GUC restrictive guard can
 -- never be satisfied by a blank stored value). Idempotency-key replay is a
