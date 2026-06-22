@@ -26,7 +26,8 @@ use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use tenancy_tenant_lifecycle_kernel::{AppliedWriteRecord, TenantLifecycleStore};
 use tenancy_tenant_lifecycle_store_postgres::{
-    APPLIED_TABLE, OPERATIONS_TABLE, PgTenantLifecycleStore, SCHEMA_NAME, TENANTS_TABLE,
+    APPLIED_TABLE, OPERATIONS_TABLE, PgStoreConnectError, PgTenantLifecycleStore, SCHEMA_NAME,
+    TENANTS_TABLE,
 };
 
 const ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
@@ -435,4 +436,53 @@ async fn live_rls_unset_guc_denies_all_access() {
         "no GUC set: INSERT must be denied by the restrictive require_tenant_guc WITH CHECK"
     );
     let _ = tx.rollback().await;
+}
+
+/// `assert_rls_enforceable()` must REJECT a bypass-capable role (the setup /
+/// superuser pool) with `PgStoreConnectError::RlsUnenforceable`.
+/// Aligns with `live_app_role_has_no_bypassrls` — both prove the same
+/// invariant from different angles (raw pg_roles query vs. the adapter guard).
+#[tokio::test]
+async fn live_assert_rls_enforceable_rejects_bypass_capable_role() {
+    if !enabled() {
+        return;
+    }
+    let setup_url = std::env::var(SETUP_URL_ENV).expect("SETUP url required when enabled");
+    let setup = pool(&setup_url).await;
+    let (setup_role, rolsuper, rolbypassrls) = current_role_flags(&setup).await;
+    if !rolsuper && !rolbypassrls {
+        // The setup role in this environment happens not to be bypass-capable;
+        // skip rather than assert false things about it.
+        eprintln!(
+            "SKIP live_assert_rls_enforceable_rejects_bypass_capable_role: \
+             setup role '{setup_role}' does not carry rolsuper/rolbypassrls in \
+             this environment — test requires a bypass-capable setup role"
+        );
+        return;
+    }
+    let store = PgTenantLifecycleStore::from_pool(setup);
+    let result = store.assert_rls_enforceable().await;
+    assert!(
+        matches!(result, Err(PgStoreConnectError::RlsUnenforceable { .. })),
+        "bypass-capable role '{setup_role}' must be rejected by assert_rls_enforceable, \
+         got {result:?}"
+    );
+}
+
+/// `assert_rls_enforceable()` must PASS for the non-privileged app role.
+/// Complements `live_assert_rls_enforceable_rejects_bypass_capable_role` by
+/// proving the guard is not a false-positive that rejects all roles.
+#[tokio::test]
+async fn live_assert_rls_enforceable_passes_for_app_role() {
+    if !enabled() {
+        return;
+    }
+    let app_url = std::env::var(APP_URL_ENV).expect("APP url required when enabled");
+    let app = pool(&app_url).await;
+    let store = PgTenantLifecycleStore::from_pool(app);
+    let result = store.assert_rls_enforceable().await;
+    assert!(
+        result.is_ok(),
+        "non-privileged app role must pass assert_rls_enforceable, got {result:?}"
+    );
 }
