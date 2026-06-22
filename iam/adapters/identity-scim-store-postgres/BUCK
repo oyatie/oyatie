@@ -7,6 +7,7 @@ rust_library(
     deps = [
         "//libs/oya-shared-scim-server-kernel:oya-shared-scim-server-kernel",
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-postgres-command-adapter-sqlx:oya-shared-postgres-command-adapter-sqlx",
         "third-party//:sqlx",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -23,6 +24,7 @@ rust_test(
     deps = [
         "//libs/oya-shared-scim-server-kernel:oya-shared-scim-server-kernel",
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-postgres-command-adapter-sqlx:oya-shared-postgres-command-adapter-sqlx",
         "third-party//:sqlx",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -40,6 +42,7 @@ rust_test(
         ":identity-scim-store-postgres",
         "//libs/oya-shared-scim-server-kernel:oya-shared-scim-server-kernel",
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-postgres-command-adapter-sqlx:oya-shared-postgres-command-adapter-sqlx",
         "third-party//:sqlx",
         "third-party//:serde_json",
         "third-party//:tokio",

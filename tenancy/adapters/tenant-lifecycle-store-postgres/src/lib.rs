@@ -39,7 +39,8 @@ use core::future::Future;
 use core::pin::Pin;
 
 use oya_shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleState};
-use oya_shared_postgres_command_kernel::SET_LOCAL_TENANT_SQL;
+use oya_shared_postgres_command_adapter_sqlx::assert_rls_enforceable;
+use oya_shared_postgres_command_kernel::{RlsEnforceabilityError, SET_LOCAL_TENANT_SQL};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use tenancy_tenant_lifecycle_kernel::{
     AppliedWriteRecord, OperationRecord, StoreError, TenantLifecycleStore,
@@ -105,6 +106,10 @@ pub enum PgStoreConnectError {
     /// outage, not a data leak, but still a misconfiguration the adapter
     /// refuses to serve). Full isolation requires membership in `RUNTIME_ROLE`.
     RlsRoleMismatch { role: String, expected: String },
+    /// A governed table is not under `ENABLE` + `FORCE ROW LEVEL SECURITY` (or
+    /// is missing entirely): the migration mis-applied or drifted, so tenant
+    /// isolation is not forced on that table. The adapter refuses to serve.
+    RlsNotForcedOnTable { table: String },
 }
 
 impl core::fmt::Display for PgStoreConnectError {
@@ -125,11 +130,45 @@ impl core::fmt::Display for PgStoreConnectError {
                  policy-subject role '{expected}'; tenant isolation policies \
                  would not apply — refusing to serve"
             ),
+            Self::RlsNotForcedOnTable { table } => write!(
+                f,
+                "governed table '{table}' is not under ENABLE+FORCE ROW LEVEL \
+                 SECURITY (migration mis-applied or drifted); tenant isolation \
+                 is not forced — refusing to serve"
+            ),
         }
     }
 }
 
 impl std::error::Error for PgStoreConnectError {}
+
+/// Map the shared guard's [`RlsEnforceabilityError`] into this adapter's own
+/// connect-error vocabulary, preserving the pre-extraction fail-closed contract:
+/// - `Unenforceable` → [`PgStoreConnectError::RlsUnenforceable`];
+/// - `RoleMismatch` → [`PgStoreConnectError::RlsRoleMismatch`];
+/// - `RoleSwitchInEffect` → [`PgStoreConnectError::Sqlx`] (same fatal `Sqlx`
+///   variant as before; the detail string now comes from the shared kernel Display);
+/// - `ProbeFailed` → [`PgStoreConnectError::Sqlx`] (same fatal `Sqlx` variant
+///   preserved; detail string sourced from the shared kernel Display, not the prior
+///   adapter-local wording);
+/// - `RlsNotForced` / `GovernedTableMissing` → the new
+///   [`PgStoreConnectError::RlsNotForcedOnTable`] (the #799 FORCE-RLS hardening).
+impl From<RlsEnforceabilityError> for PgStoreConnectError {
+    fn from(error: RlsEnforceabilityError) -> Self {
+        match error {
+            RlsEnforceabilityError::Unenforceable { role } => Self::RlsUnenforceable { role },
+            RlsEnforceabilityError::RoleMismatch { role, expected } => {
+                Self::RlsRoleMismatch { role, expected }
+            }
+            RlsEnforceabilityError::RoleSwitchInEffect { .. }
+            | RlsEnforceabilityError::ProbeFailed { .. } => Self::Sqlx(error.to_string()),
+            RlsEnforceabilityError::RlsNotForced { table, .. }
+            | RlsEnforceabilityError::GovernedTableMissing { table } => {
+                Self::RlsNotForcedOnTable { table }
+            }
+        }
+    }
+}
 
 /// Real Postgres-backed [`TenantLifecycleStore`]: per-transaction tenant GUC +
 /// RLS isolation over a shared `sqlx::PgPool`.
@@ -233,48 +272,18 @@ impl PgTenantLifecycleStore {
     ///   fails (e.g. `RUNTIME_ROLE` does not yet exist in the database — the
     ///   deferred provisioning migration has not run).
     pub async fn assert_rls_enforceable(&self) -> Result<(), PgStoreConnectError> {
-        let row = sqlx::query(
-            // `pg_has_role(user, role, 'MEMBER')` returns true iff `user` is
-            // `role` itself or a (transitive) member of it — exactly the
-            // predicate for whether a `TO <role>` RLS policy applies to
-            // `current_user`. We use `'MEMBER'` (not `'USAGE'` or
-            // `'MEMBER, USAGE'`) because RLS policy applicability is purely a
-            // role-membership question, not a schema/object privilege question.
-            //
-            // We also fetch `session_user` to detect a `SET ROLE` switch:
-            // this adapter never issues `SET ROLE`, so session_user must equal
-            // current_user on every serving connection.
-            "SELECT current_user::text AS role_name, \
-             session_user::text AS session_role, \
-             rolsuper, rolbypassrls, \
-             pg_has_role(current_user, $1, 'MEMBER') AS is_runtime_member \
-             FROM pg_roles WHERE rolname = current_user",
+        // Thin delegate to the single shared boot guard (the #112 dedup): role
+        // bypass/membership probe ('USAGE' = has_privs_of_role) + the
+        // session==current_user SET ROLE check + per-table ENABLE+FORCE RLS
+        // check, mapped via `From<RlsEnforceabilityError>` to preserve this
+        // adapter's fail-closed connect-error contract.
+        assert_rls_enforceable(
+            &self.pool,
+            RUNTIME_ROLE,
+            &[TENANTS_TABLE, APPLIED_TABLE, OPERATIONS_TABLE],
         )
-        .bind(RUNTIME_ROLE)
-        .fetch_one(&self.pool)
         .await
-        .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
-        let role_name: String = row.try_get("role_name")
-            .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
-        let session_role: String = row.try_get("session_role")
-            .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
-        let rolsuper: bool = row.try_get("rolsuper")
-            .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
-        let rolbypassrls: bool = row.try_get("rolbypassrls")
-            .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
-        let is_runtime_member: bool = row.try_get("is_runtime_member")
-            .map_err(|e| PgStoreConnectError::Sqlx(e.to_string()))?;
-        // Defense-in-depth: this adapter never issues SET ROLE, so the pool's
-        // current_user must always equal session_user. Detect role-switch
-        // confusion early rather than checking the wrong role.
-        if session_role != role_name {
-            return Err(PgStoreConnectError::Sqlx(format!(
-                "session_user '{session_role}' != current_user '{role_name}': \
-                 a SET ROLE switch is in effect; this adapter does not issue \
-                 SET ROLE and cannot safely check the effective role"
-            )));
-        }
-        evaluate_rls_enforceability(&role_name, rolsuper, rolbypassrls, is_runtime_member)
+        .map_err(PgStoreConnectError::from)
     }
 }
 
@@ -283,44 +292,6 @@ impl PgTenantLifecycleStore {
 fn validate_database_url(database_url: &str) -> Result<(), PgStoreConnectError> {
     if database_url.trim().is_empty() {
         return Err(PgStoreConnectError::MissingDatabaseUrl);
-    }
-    Ok(())
-}
-
-/// Pure RLS-enforceability decision — no DB, no async, fully unit-testable.
-///
-/// Returns `Ok(())` iff the role is safe to serve multi-tenant traffic:
-/// - not a superuser (`rolsuper = false`),
-/// - not bypass-RLS capable (`rolbypassrls = false`), AND
-/// - is a member of the policy-subject role (`is_runtime_member = true`).
-///
-/// The three conditions map to two distinct error variants so callers and logs
-/// can distinguish a bypass risk (leak vector) from a membership gap (outage):
-/// - `rolsuper || rolbypassrls` → [`PgStoreConnectError::RlsUnenforceable`]
-///   (bypass-capable role; the isolation guarantee is violated).
-/// - `!is_runtime_member` → [`PgStoreConnectError::RlsRoleMismatch`]
-///   (non-member; under FORCE RLS the policies simply would not apply, yielding
-///   deny-all — a safe fail-closed outage, but still a misconfiguration).
-///
-/// Extracted from [`PgTenantLifecycleStore::assert_rls_enforceable`] so the
-/// decision is covered by DB-free unit tests (mirrors the `select_store_kind`
-/// extraction pattern from the facade layer).
-fn evaluate_rls_enforceability(
-    role: &str,
-    rolsuper: bool,
-    rolbypassrls: bool,
-    is_runtime_member: bool,
-) -> Result<(), PgStoreConnectError> {
-    if rolsuper || rolbypassrls {
-        return Err(PgStoreConnectError::RlsUnenforceable {
-            role: role.to_owned(),
-        });
-    }
-    if !is_runtime_member {
-        return Err(PgStoreConnectError::RlsRoleMismatch {
-            role: role.to_owned(),
-            expected: RUNTIME_ROLE.to_owned(),
-        });
     }
     Ok(())
 }
@@ -757,49 +728,65 @@ mod tests {
         );
     }
 
-    // --- DB-free evaluate_rls_enforceability predicate tests -----------------
-    // These tests cover all meaningful combinations of (rolsuper, rolbypassrls,
-    // is_runtime_member) without a database. This closes the regression hole
-    // where the live reject-tests self-skip when the env role isn't
-    // bypass-capable: the boolean DECISION is always tested here; only the SQL
-    // wiring into pg_roles / pg_has_role requires a live DB.
+    // --- RlsEnforceabilityError -> PgStoreConnectError mapping ----------------
+    // The DB-free role/forced predicate decisions now live in the shared kernel
+    // (oya-shared-postgres-command-kernel); this adapter keeps only the THIN
+    // mapping that preserves its fail-closed connect-error contract.
 
     #[test]
-    fn rls_enforceability_superuser_is_rejected() {
+    fn rls_error_mapping_preserves_fail_closed_contract() {
         assert_eq!(
-            evaluate_rls_enforceability("pg_superuser", true, false, true),
-            Err(PgStoreConnectError::RlsUnenforceable {
+            PgStoreConnectError::from(RlsEnforceabilityError::Unenforceable {
                 role: "pg_superuser".to_owned()
-            })
+            }),
+            PgStoreConnectError::RlsUnenforceable {
+                role: "pg_superuser".to_owned()
+            }
         );
-    }
-
-    #[test]
-    fn rls_enforceability_bypassrls_is_rejected() {
         assert_eq!(
-            evaluate_rls_enforceability("bypass_role", false, true, true),
-            Err(PgStoreConnectError::RlsUnenforceable {
-                role: "bypass_role".to_owned()
-            })
-        );
-    }
-
-    #[test]
-    fn rls_enforceability_non_member_is_role_mismatch() {
-        assert_eq!(
-            evaluate_rls_enforceability("some_role", false, false, false),
-            Err(PgStoreConnectError::RlsRoleMismatch {
+            PgStoreConnectError::from(RlsEnforceabilityError::RoleMismatch {
                 role: "some_role".to_owned(),
                 expected: RUNTIME_ROLE.to_owned(),
-            })
+            }),
+            PgStoreConnectError::RlsRoleMismatch {
+                role: "some_role".to_owned(),
+                expected: RUNTIME_ROLE.to_owned(),
+            }
         );
-    }
-
-    #[test]
-    fn rls_enforceability_non_super_non_bypass_member_is_ok() {
+        // A SET ROLE switch and a probe failure both preserve today's `Sqlx`
+        // surface (not the structured RLS variants).
+        assert!(matches!(
+            PgStoreConnectError::from(RlsEnforceabilityError::RoleSwitchInEffect {
+                session_role: "a".to_owned(),
+                current_role: "b".to_owned(),
+            }),
+            PgStoreConnectError::Sqlx(_)
+        ));
+        assert!(matches!(
+            PgStoreConnectError::from(RlsEnforceabilityError::ProbeFailed {
+                detail: "role does not exist".to_owned()
+            }),
+            PgStoreConnectError::Sqlx(_)
+        ));
+        // The #799 FORCE-RLS hardening: a not-forced or missing governed table
+        // maps to the new RlsNotForcedOnTable variant.
         assert_eq!(
-            evaluate_rls_enforceability(RUNTIME_ROLE, false, false, true),
-            Ok(())
+            PgStoreConnectError::from(RlsEnforceabilityError::RlsNotForced {
+                table: TENANTS_TABLE.to_owned(),
+                row_security: true,
+                force_row_security: false,
+            }),
+            PgStoreConnectError::RlsNotForcedOnTable {
+                table: TENANTS_TABLE.to_owned()
+            }
+        );
+        assert_eq!(
+            PgStoreConnectError::from(RlsEnforceabilityError::GovernedTableMissing {
+                table: APPLIED_TABLE.to_owned()
+            }),
+            PgStoreConnectError::RlsNotForcedOnTable {
+                table: APPLIED_TABLE.to_owned()
+            }
         );
     }
 
