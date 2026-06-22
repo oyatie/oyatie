@@ -129,9 +129,14 @@ pub struct PolicyBundle {
     /// Per-tenant policy overlays: `tenant_id` -> tenant-scoped Cedar policy
     /// source. The compiled overlay applies ONLY to decisions for its owning
     /// tenant (the SVID-bound `tenant_id`); it is NEVER visible to another
-    /// tenant's decisions. An overlay that could grant across a tenant
-    /// boundary is rejected AT LOAD so isolation stays structural, not merely
-    /// emergent from the runtime forbid. Defaults empty (`#[serde(default)]`),
+    /// tenant's decisions (selection is keyed by the request's own tenant_id).
+    /// Cross-tenant isolation for any overlay permit is enforced at RUNTIME by
+    /// the global `structural-tenant-isolation` forbid over the schema-required
+    /// `tenant_id` attribute (forbid-overrides-permit; arXiv 2403.04651) — that
+    /// forbid, not any load-time check, is the formally-verified isolation
+    /// boundary. Security-critical global gates (e.g. step-up on restricted
+    /// reads) are likewise encoded as forbids so an overlay permit cannot
+    /// bypass a deny-by-omission gate. Defaults empty (`#[serde(default)]`),
     /// so a flat bundle with no overlays still parses — backward compatible.
     #[serde(default)]
     pub tenant_policies: BTreeMap<String, String>, // data_class: TENANT_SCOPED

@@ -118,6 +118,19 @@ fn entities(schema: &Schema) -> Entities {
             ],
             &[r#"OyaPlatform::Tenant::"acme""#],
         ),
+        // A NON-restricted acme resource: ordinary read grants (e.g. PBAC
+        // links) target this so they exercise their intent without colliding
+        // with the security-critical step-up forbid (restricted-only).
+        string_entity(
+            r#"OyaPlatform::TenantResource::"acme-doc-2""#,
+            &[
+                ("tenant_id", "acme"),
+                ("resource_kind", "document"),
+                ("data_class", "internal"),
+                ("cell_id", "cell-001"),
+            ],
+            &[r#"OyaPlatform::Tenant::"acme""#],
+        ),
     ];
     Entities::from_entities(all, Some(schema)).expect("entities must validate against the schema")
 }
@@ -239,19 +252,45 @@ fn link(set: &mut PolicySet, link_id: &str, principal: &str, resource: &str) {
 #[test]
 fn pbac_template_link_grants_scoped_read() {
     let mut set = policy_set();
-    // Before linking: the workload cannot read (deny-by-default).
+    // acme-doc-2 is NON-restricted: this isolates the PBAC grant from the
+    // step-up forbid (restricted-only). Before linking: deny-by-default.
     assert_eq!(
         decide(
             &set,
             r#"OyaPlatform::WorkloadIdentity::"payments""#,
             r#"OyaPlatform::Action::"ReadResource""#,
-            r#"OyaPlatform::TenantResource::"acme-doc-1""#,
+            r#"OyaPlatform::TenantResource::"acme-doc-2""#,
         ),
         Decision::Deny
     );
     link(
         &mut set,
-        "pbac-link-payments-doc1",
+        "pbac-link-payments-doc2",
+        r#"OyaPlatform::WorkloadIdentity::"payments""#,
+        r#"OyaPlatform::TenantResource::"acme-doc-2""#,
+    );
+    assert_eq!(
+        decide(
+            &set,
+            r#"OyaPlatform::WorkloadIdentity::"payments""#,
+            r#"OyaPlatform::Action::"ReadResource""#,
+            r#"OyaPlatform::TenantResource::"acme-doc-2""#,
+        ),
+        Decision::Allow
+    );
+}
+
+#[test]
+fn step_up_forbid_blocks_a_pbac_link_to_a_restricted_read() {
+    // Security-critical global gate (G004 audit, MAJOR): a permit/template-link
+    // must NOT bypass the step-up gate on restricted reads. The gate is encoded
+    // as `forbid-restricted-read-without-step-up`, so even an explicit PBAC link
+    // granting `payments` (NO step_up_class) a read of the RESTRICTED acme-doc-1
+    // stays denied — forbid overrides permit.
+    let mut set = policy_set();
+    link(
+        &mut set,
+        "pbac-link-payments-restricted",
         r#"OyaPlatform::WorkloadIdentity::"payments""#,
         r#"OyaPlatform::TenantResource::"acme-doc-1""#,
     );
@@ -259,6 +298,18 @@ fn pbac_template_link_grants_scoped_read() {
         decide(
             &set,
             r#"OyaPlatform::WorkloadIdentity::"payments""#,
+            r#"OyaPlatform::Action::"ReadResource""#,
+            r#"OyaPlatform::TenantResource::"acme-doc-1""#,
+        ),
+        Decision::Deny,
+        "a PBAC link must not defeat the step-up forbid on restricted reads"
+    );
+    // alice (step_up_class "a") still reads the restricted doc — the unless
+    // exception holds, so the gate denies only the non-stepped-up.
+    assert_eq!(
+        decide(
+            &set,
+            r#"OyaPlatform::Principal::"alice""#,
             r#"OyaPlatform::Action::"ReadResource""#,
             r#"OyaPlatform::TenantResource::"acme-doc-1""#,
         ),

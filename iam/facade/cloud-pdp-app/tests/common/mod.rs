@@ -73,13 +73,16 @@ pub fn seed_bundle(version: &str, template_links: Vec<TemplateLink>) -> PolicyBu
     }
 }
 
-/// A PBAC link granting bob a scoped read on acme-doc-1.
+/// A PBAC link granting bob a scoped read on acme-doc-2 (NON-restricted): the
+/// link demonstrates an ordinary read grant, isolated from the step-up forbid
+/// (which gates restricted reads only). The restricted doc acme-doc-1 stays
+/// reserved for the ABAC step-up tests.
 pub fn bob_read_link() -> TemplateLink {
     TemplateLink {
         template_id: TEMPLATE_ID.to_owned(),
-        link_id: "pbac-link-bob-acme-doc-1".to_owned(),
+        link_id: "pbac-link-bob-acme-doc-2".to_owned(),
         principal: entity_ref("OyaPlatform::Principal", "bob"),
-        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+        resource: entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
     }
 }
 
@@ -148,6 +151,21 @@ pub fn entity_slice() -> EntitySlice {
                     ("tenant_id", "acme"),
                     ("resource_kind", "document"),
                     ("data_class", "restricted"),
+                    ("cell_id", "cell-001"),
+                ]),
+                parents: vec![entity_ref("OyaPlatform::Tenant", "acme")],
+            },
+            // A NON-restricted acme resource: ordinary read grants (PBAC links)
+            // target this so they exercise their intent without colliding with
+            // the security-critical step-up forbid (which gates restricted
+            // reads only). The restricted doc stays acme-doc-1 for the ABAC
+            // step-up tests.
+            EntityRecord {
+                uid: entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
+                attributes: string_attrs(&[
+                    ("tenant_id", "acme"),
+                    ("resource_kind", "document"),
+                    ("data_class", "internal"),
                     ("cell_id", "cell-001"),
                 ]),
                 parents: vec![entity_ref("OyaPlatform::Tenant", "acme")],

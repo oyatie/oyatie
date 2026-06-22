@@ -101,13 +101,17 @@ async fn rbac_group_admin_allow_is_attributable() {
 async fn deny_by_default_is_a_decision_not_an_error() {
     let (state, sink) = seeded_state(vec![]);
     let router = iam_cloud_pdp_app::rest::build_router(state);
-    // bob has no group, no step-up, no PBAC link: nothing permits.
+    // bob has no group, no step-up, no PBAC link: nothing permits. acme-doc-2
+    // is non-restricted, so this is a CLEAN deny-by-omission (no permit AND no
+    // forbid fires), keeping determining_policy_ids empty. (On the restricted
+    // acme-doc-1 the step-up forbid would fire and name itself — covered by the
+    // ABAC test below.)
     let body = authorize_body(&request(
         "req-default-deny",
         "acme",
         entity_ref("OyaPlatform::Principal", "bob"),
         "resource.read",
-        entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+        entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
     ));
     let (status, json) = post_authorize(router, &body).await;
     assert_eq!(status, StatusCode::OK, "a deny is a decision, not an error");
@@ -166,7 +170,7 @@ async fn pbac_template_link_grants_scoped_read() {
         "acme",
         entity_ref("OyaPlatform::Principal", "bob"),
         "resource.read",
-        entity_ref("OyaPlatform::TenantResource", "acme-doc-1"),
+        entity_ref("OyaPlatform::TenantResource", "acme-doc-2"),
     ));
     let (status, json) = post_authorize(router, &body).await;
     assert_eq!(status, StatusCode::OK);
@@ -176,7 +180,7 @@ async fn pbac_template_link_grants_scoped_read() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|id| id == "pbac-link-bob-acme-doc-1"),
+            .any(|id| id == "pbac-link-bob-acme-doc-2"),
         "PBAC allow must name the template link: {json}"
     );
 }

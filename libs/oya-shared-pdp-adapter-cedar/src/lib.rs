@@ -64,7 +64,10 @@ struct LoadedBundle {
     /// `is_authorized` over one `PolicySet` (ADR-0243: one decision
     /// algorithm). A tenant absent from this map falls back to `policy_set`.
     /// The merge is per-tenant, so one tenant's overlay can NEVER appear in
-    /// another tenant's set — isolation is structural at selection.
+    /// another tenant's set (overlay SELECTION is keyed by the owning tenant).
+    /// Note: cross-tenant GRANT isolation is a separate, stronger guarantee
+    /// enforced at runtime by the global `structural-tenant-isolation` forbid
+    /// present in every merged set — not by this selection keying.
     tenant_policy_sets: BTreeMap<String, PolicySet>,
     action_map: BTreeMap<String, String>,
 }
@@ -225,11 +228,16 @@ fn compile(bundle: &PolicyBundle) -> Result<LoadedBundle, PdpError> {
     })
 }
 
-/// Compile one tenant overlay into a MERGED policy set `global ∪ overlay`,
-/// fail-closed on any overlay that is not strict-valid OR could grant across a
-/// tenant boundary. Overlay policy ids are namespaced by the owning tenant so
-/// they cannot collide with the global set or another overlay; a residual
-/// collision still fails closed via `PolicySet::add`.
+/// Compile one tenant overlay into a MERGED policy set `global ∪ overlay`.
+/// Cross-tenant isolation in the merged set is enforced at RUNTIME by the
+/// global `structural-tenant-isolation` forbid (cloned in below) over the
+/// schema-required `tenant_id` attribute — forbid-overrides-permit makes that
+/// boundary unconditional for any overlay permit shape. The load-time
+/// `reject_cross_tenant_overlay_policy` check is defense-in-depth hygiene only,
+/// not the boundary. Overlays are still strict-validated as a merged set so a
+/// schema-inconsistent overlay fails closed. Overlay policy ids are namespaced
+/// by the owning tenant so they cannot collide with the global set or another
+/// overlay; a residual collision still fails closed via `PolicySet::add`.
 fn compile_tenant_overlay(
     tenant_id: &str,
     overlay_src: &str,
@@ -251,9 +259,13 @@ fn compile_tenant_overlay(
             Some(id) => policy.new_id(PolicyId::new(id)),
             None => policy.clone(),
         };
-        // THE LOAD-BEARING INVARIANT: an overlay must not be able to grant
-        // across a tenant boundary. Reject at LOAD so isolation is structural,
-        // not merely emergent from the runtime forbid.
+        // Defense-in-depth hygiene only — NOT the isolation boundary. The
+        // global `structural-tenant-isolation` forbid (cloned into this merged
+        // set just above) plus the schema-required `tenant_id` attribute are
+        // the sole, formally-verified tenant-isolation boundary
+        // (forbid-overrides-permit). This load-time check merely rejects
+        // obviously-misauthored overlays early; it adds nothing to that runtime
+        // guarantee and must never be relied on in its place.
         reject_cross_tenant_overlay_policy(tenant_id, &authored, known_tenants)?;
         let namespaced_id = format!("{tenant_id}{OVERLAY_ID_SEP}{}", authored.id());
         let namespaced = authored.new_id(PolicyId::new(&namespaced_id));
@@ -282,22 +294,28 @@ fn compile_tenant_overlay(
     Ok(merged)
 }
 
-/// Reject (fail-closed `BundleRejected`) any overlay policy that could grant
-/// across a tenant boundary. Tenant identity in this model is an ATTRIBUTE
-/// (`principal.tenant_id` / `resource.tenant_id`) resolved from the per-request
-/// entity slice, NOT part of an entity uid — so a cross-tenant grant need carry
-/// no foreign tenant literal and no scope pin (e.g. `permit(...) when {true}`).
-/// The only sound, semantic-solver-free load invariant is a STRUCTURAL
-/// allowlist on the overlay's shape:
+/// Best-effort, DEFENSE-IN-DEPTH load-time hygiene check on overlay policies.
 ///
-/// - a `forbid` can only deny — always safe;
-/// - a `permit` MUST carry the canonical same-tenant guard
-///   `principal.tenant_id == resource.tenant_id`, so every grant is confined
-///   to one tenant by construction.
+/// NOT THE TENANT-ISOLATION BOUNDARY. The sole, formally-verified
+/// tenant-isolation boundary is the global `structural-tenant-isolation`
+/// `forbid` (forbid-overrides-permit; arXiv 2403.04651) backed by the
+/// schema-required `tenant_id` attribute on every principal/resource. That
+/// forbid is cloned into EVERY per-tenant merged set, so it denies any
+/// cross-tenant grant whatever shape an overlay permit takes — this check
+/// contributes NOTHING to that runtime guarantee and must never be relied on
+/// in its place. It exists only to reject obviously-misauthored overlays
+/// early (fail-closed) and to keep a foreign-tenant-literal smell out of the
+/// corpus.
 ///
-/// A secondary denylist also rejects any policy whose EST text names a foreign
-/// tenant id as a string literal (belt-and-suspenders; the allowlist carries
-/// the invariant).
+/// What it rejects (fail-closed `BundleRejected`):
+/// - any policy whose EST names a KNOWN foreign tenant id as a string literal
+///   (an unambiguous cross-tenant authoring smell);
+/// - any `permit` that is not CONSERVATIVELY confined to its tenant by the
+///   canonical same-tenant guard `principal.tenant_id == resource.tenant_id`
+///   appearing as a TOP-LEVEL CONJUNCT of a `when` clause (see
+///   [`permit_is_tenant_confined`] for the exact, sound acceptance rule).
+///
+/// A `forbid` can only ever DENY, so it is always safe.
 fn reject_cross_tenant_overlay_policy(
     tenant_id: &str,
     policy: &cedar_policy::Policy,
@@ -306,8 +324,8 @@ fn reject_cross_tenant_overlay_policy(
     let json = policy.to_json().map_err(|e| PdpError::BundleRejected {
         detail: format!("tenant {tenant_id} overlay policy {} not introspectable: {e}", policy.id()),
     })?;
-    // Secondary denylist: a foreign tenant id appearing as a string literal is
-    // an unambiguous cross-tenant authoring smell — reject regardless of shape.
+    // A foreign tenant id appearing as a string literal is an unambiguous
+    // cross-tenant authoring smell — reject regardless of shape.
     if let Some(foreign) = first_foreign_tenant_literal(&json, tenant_id, known_tenants) {
         return Err(PdpError::BundleRejected {
             detail: format!(
@@ -321,47 +339,108 @@ fn reject_cross_tenant_overlay_policy(
     if policy.effect() == Effect::Forbid {
         return Ok(());
     }
-    // A permit must be confined to its tenant by the canonical same-tenant
-    // guard, else it could grant across the tenant boundary.
-    if json_contains_same_tenant_guard(&json) {
+    // A permit must be CONSERVATIVELY tenant-confined: the same-tenant guard
+    // must bind unconditionally as a top-level conjunct of a `when` clause and
+    // no `unless`/`||`/`!` may weaken or invert it. A non-binding occurrence
+    // (in an `unless`, behind `||`/`!`, or absent) is rejected fail-closed.
+    if permit_is_tenant_confined(&json) {
         Ok(())
     } else {
         Err(PdpError::BundleRejected {
             detail: format!(
                 "tenant {tenant_id} overlay permit {} is not tenant-confined: every overlay \
                  permit must carry the same-tenant guard \
-                 `principal.tenant_id == resource.tenant_id`",
+                 `principal.tenant_id == resource.tenant_id` as a top-level conjunct of a \
+                 `when` clause, with no `unless` clause and no enclosing `||`/`!`",
                 policy.id()
             ),
         })
     }
 }
 
-/// Recursively search the EST JSON for the canonical same-tenant guard:
-/// an `==` node whose two operands are BOTH a `tenant_id` attribute access,
-/// one on the `principal` var and one on the `resource` var (order-independent).
-fn json_contains_same_tenant_guard(node: &serde_json::Value) -> bool {
-    if let Some(eq) = node.get("==").and_then(serde_json::Value::as_object) {
-        let (Some(left), Some(right)) = (eq.get("left"), eq.get("right")) else {
+/// Sound, conservative, fail-closed check that a `permit` EST is confined to a
+/// single tenant by the same-tenant guard. Operates on the policy EST that
+/// cedar-policy emits via `Policy::to_json`:
+///
+/// ```text
+/// { "effect": "permit", ..., "conditions": [ { "kind": "when"|"unless", "body": <expr> }, ... ] }
+/// ```
+///
+/// A permit is accepted ONLY when BOTH hold:
+/// 1. it has NO `unless` clause (an `unless` can defeat any `when` guard), and
+/// 2. at least one `when` clause has the same-tenant equality as a member of
+///    its TOP-LEVEL CONJUNCTIVE SPINE — the leaves reached by descending only
+///    through `&&` nodes. The walk NEVER descends into `||`, `!`, or any other
+///    operator, so a guard buried under a disjunction/negation (where it does
+///    not unconditionally bind) is NOT accepted.
+///
+/// Cedar AND-s all `when` clauses together, so a guard that is an unconditional
+/// conjunct of any one `when` clause confines the whole permit. This rejects
+/// every known evasion shape (`|| true`, `unless { true }`, guard-in-`unless`,
+/// `!(guard)`, `guard || (1==1)`) while accepting the canonical, operand-
+/// swapped, parenthesized (parens are transparent in the EST), and
+/// `&&`-nested legitimate forms.
+fn permit_is_tenant_confined(policy_json: &serde_json::Value) -> bool {
+    let Some(conditions) = policy_json
+        .get("conditions")
+        .and_then(serde_json::Value::as_array)
+    else {
+        return false;
+    };
+    let mut has_binding_when = false;
+    for condition in conditions {
+        let kind = condition.get("kind").and_then(serde_json::Value::as_str);
+        let Some(body) = condition.get("body") else {
             return false;
         };
-        let left_var = tenant_id_attr_access_var(left);
-        let right_var = tenant_id_attr_access_var(right);
-        if let (Some(l), Some(r)) = (left_var, right_var)
-            && ((l == "principal" && r == "resource") || (l == "resource" && r == "principal"))
-        {
-            return true;
+        match kind {
+            // Any `unless` can flip the decision back to deny-by-omission for a
+            // matching principal, so we cannot soundly accept a permit that
+            // carries one. Fail closed.
+            Some("unless") => return false,
+            Some("when") => {
+                if conjunctive_spine_has_same_tenant_guard(body) {
+                    has_binding_when = true;
+                }
+            }
+            // Unknown condition kind — fail closed.
+            _ => return false,
         }
     }
-    match node {
-        serde_json::Value::Object(map) => {
-            map.values().any(json_contains_same_tenant_guard)
-        }
-        serde_json::Value::Array(items) => {
-            items.iter().any(json_contains_same_tenant_guard)
-        }
-        _ => false,
+    has_binding_when
+}
+
+/// True iff the same-tenant guard is a member of the top-level conjunctive
+/// spine of `expr`: recurse ONLY into `&&` operands, and at every leaf test
+/// for the canonical same-tenant equality. Never descends into `||`, `!`, or
+/// any other node, so a guard that does not unconditionally bind is not found.
+fn conjunctive_spine_has_same_tenant_guard(expr: &serde_json::Value) -> bool {
+    if let Some(and) = expr.get("&&").and_then(serde_json::Value::as_object) {
+        let left = and.get("left").is_some_and(conjunctive_spine_has_same_tenant_guard);
+        let right = and.get("right").is_some_and(conjunctive_spine_has_same_tenant_guard);
+        return left || right;
     }
+    is_same_tenant_equality(expr)
+}
+
+/// True iff `expr` is exactly the same-tenant equality
+/// `principal.tenant_id == resource.tenant_id` (either operand order):
+/// an `==` node whose two operands are BOTH a `tenant_id` attribute access,
+/// one on the `principal` var and one on the `resource` var.
+fn is_same_tenant_equality(expr: &serde_json::Value) -> bool {
+    let Some(eq) = expr.get("==").and_then(serde_json::Value::as_object) else {
+        return false;
+    };
+    let (Some(left), Some(right)) = (eq.get("left"), eq.get("right")) else {
+        return false;
+    };
+    let (Some(l), Some(r)) = (
+        tenant_id_attr_access_var(left),
+        tenant_id_attr_access_var(right),
+    ) else {
+        return false;
+    };
+    (l == "principal" && r == "resource") || (l == "resource" && r == "principal")
 }
 
 /// If `node` is an EST attribute access of the form
