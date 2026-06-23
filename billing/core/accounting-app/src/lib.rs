@@ -131,9 +131,11 @@ pub fn record_payroll_posting(
 
 fn journal_audit_envelope(journal: &JournalVoucher) -> AccountingAuditEnvelope {
     let tenant = journal.tenant_id.value.value.as_str();
-    // Body fingerprint over the financially-material, request-distinguishing
-    // fields. A changed body under the same (tenant, journal_id) yields a
-    // different fingerprint so a reused key with a mutated body is detectable.
+    // Body fingerprint over EVERY caller-mutable, financially-material field. A
+    // changed body under the same (tenant, journal_id) logical key yields a
+    // different fingerprint so the store rejects a reused key with a mutated body
+    // (ADR-0592). source_documents are caller-supplied and money-material, so
+    // they are part of the fingerprint.
     let mut fp_fields: Vec<String> = vec![
         tenant.to_owned(),
         journal.legal_entity_id.value.value.clone(),
@@ -143,6 +145,9 @@ fn journal_audit_envelope(journal: &JournalVoucher) -> AccountingAuditEnvelope {
         journal.total_debit_minor.value.to_string(),
         journal.total_credit_minor.value.to_string(),
     ];
+    for source in &journal.source_documents.value {
+        fp_fields.push(source.value.clone());
+    }
     for line in &journal.lines.value {
         fp_fields.push(line.account_code.value.clone());
         fp_fields.push(line.debit_minor.value.to_string());
@@ -156,15 +161,16 @@ fn journal_audit_envelope(journal: &JournalVoucher) -> AccountingAuditEnvelope {
         legal_entity_id: internal(journal.legal_entity_id.value.clone()),
         journal_id: internal(journal.journal_id.value.clone()),
         approval_evidence_ref: internal(journal.approval_evidence_ref.value.clone()),
-        // SECURITY (ADR-0592): tenant-scoped + body-fingerprinted. The prior key
+        // SECURITY (ADR-0592): tenant-scoped LOGICAL key. The prior key
         // `"{journal_id}:1:posted"` omitted the tenant, so two tenants posting
         // the same journal_id collided and one suppressed the other's audit
-        // record (cross-tenant money-integrity defect, AUTH-005 Wave-2b).
+        // record (cross-tenant money-integrity defect, AUTH-005 Wave-2b). The
+        // body fingerprint is a SEPARATE field, not part of the key, so the store
+        // can detect a changed body under a reused logical key.
         idempotency_key: internal(scoped_idempotency_key(
             tenant,
             "journal-posted",
             journal.journal_id.value.value.as_str(),
-            &fingerprint,
         )),
         body_fingerprint: internal(fingerprint),
         payload_data_class: internal(DataClass::Financial),
@@ -174,14 +180,21 @@ fn journal_audit_envelope(journal: &JournalVoucher) -> AccountingAuditEnvelope {
 
 fn vat_dispatch_envelope(workflow: &VatReturnWorkflow) -> AccountingWorkflowDispatchEnvelope {
     let tenant = workflow.tenant_id.value.value.as_str();
-    let fingerprint = idempotency_body_fingerprint(&[
-        tenant,
-        workflow.legal_entity_id.value.value.as_str(),
-        workflow.return_id.value.value.as_str(),
-        workflow.period.value.as_str(),
-        workflow.workflow_ref.value.value.as_str(),
-        workflow.hometax_export_hash.value.value.as_str(),
-    ]);
+    // Fingerprint over every caller-mutable field, including evidence_paths
+    // (ADR-0592): a changed evidence set under a reused key must be detectable.
+    let mut fp_fields: Vec<String> = vec![
+        tenant.to_owned(),
+        workflow.legal_entity_id.value.value.clone(),
+        workflow.return_id.value.value.clone(),
+        workflow.period.value.clone(),
+        workflow.workflow_ref.value.value.clone(),
+        workflow.hometax_export_hash.value.value.clone(),
+    ];
+    for evidence in &workflow.evidence_paths.value {
+        fp_fields.push(evidence.value.clone());
+    }
+    let fingerprint =
+        idempotency_body_fingerprint(&fp_fields.iter().map(String::as_str).collect::<Vec<_>>());
     AccountingWorkflowDispatchEnvelope {
         topic: internal(ACCOUNTING_VAT_WORKFLOW_TOPIC.to_owned()),
         tenant_id: internal(workflow.tenant_id.value.clone()),
@@ -191,13 +204,13 @@ fn vat_dispatch_envelope(workflow: &VatReturnWorkflow) -> AccountingWorkflowDisp
         hometax_export_hash: financial(workflow.hometax_export_hash.value.clone()),
         required_steps: internal(workflow.required_steps.value.clone()),
         evidence_refs: internal(workflow.evidence_paths.value.clone()),
-        // SECURITY (ADR-0592): already tenant-scoped; now also body-fingerprinted
-        // so a reused key with a mutated VAT body is distinguishable.
+        // SECURITY (ADR-0592): tenant-scoped LOGICAL key; the body fingerprint is
+        // a SEPARATE field so a reused key with a mutated VAT body is rejected at
+        // the store rather than landing in a different map slot.
         idempotency_key: internal(scoped_idempotency_key(
             tenant,
             "vat-workflow",
             workflow.return_id.value.value.as_str(),
-            &fingerprint,
         )),
         body_fingerprint: internal(fingerprint),
         payload_data_class: internal(DataClass::Financial),
@@ -209,11 +222,15 @@ fn payroll_posting_audit_envelope(
     evidence: &PayrollPostingEvidence,
 ) -> AccountingPayrollPostingAuditEnvelope {
     let tenant = evidence.journal.tenant_id.value.value.as_str();
+    // Fingerprint over every caller-mutable, money-material field: the approval
+    // evidence ref and per-line detail are included so a changed posting under a
+    // reused key is detected, not just a changed total (ADR-0592).
     let mut fp_fields: Vec<String> = vec![
         tenant.to_owned(),
         evidence.journal.legal_entity_id.value.value.clone(),
         evidence.journal.journal_id.value.value.clone(),
         evidence.journal.period.value.clone(),
+        evidence.journal.approval_evidence_ref.value.value.clone(),
         evidence.source_payroll_digest.value.value.clone(),
         evidence.reversal_path_ref.value.value.clone(),
         evidence.journal.total_debit_minor.value.to_string(),
@@ -221,6 +238,11 @@ fn payroll_posting_audit_envelope(
     ];
     for wage_ref in &evidence.wage_ledger_refs.value {
         fp_fields.push(wage_ref.value.clone());
+    }
+    for line in &evidence.journal.lines.value {
+        fp_fields.push(line.account_code.value.clone());
+        fp_fields.push(line.debit_minor.value.to_string());
+        fp_fields.push(line.credit_minor.value.to_string());
     }
     let fingerprint =
         idempotency_body_fingerprint(&fp_fields.iter().map(String::as_str).collect::<Vec<_>>());
@@ -233,12 +255,13 @@ fn payroll_posting_audit_envelope(
         approval_evidence_ref: internal(evidence.journal.approval_evidence_ref.value.clone()),
         reversal_path_ref: internal(evidence.reversal_path_ref.value.clone()),
         wage_ledger_refs: internal(evidence.wage_ledger_refs.value.clone()),
-        // SECURITY (ADR-0592): already tenant-scoped; now also body-fingerprinted.
+        // SECURITY (ADR-0592): tenant-scoped LOGICAL key; the body fingerprint is
+        // a SEPARATE field so a reused key with a mutated payroll body is rejected
+        // at the store rather than silently inserting a second record.
         idempotency_key: internal(scoped_idempotency_key(
             tenant,
             "payroll-posted",
             evidence.journal.journal_id.value.value.as_str(),
-            &fingerprint,
         )),
         body_fingerprint: internal(fingerprint),
         payload_data_class: internal(DataClass::Financial),

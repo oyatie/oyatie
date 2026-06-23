@@ -38,6 +38,14 @@ pub struct AccountingStorageCapabilities {
     pub schema_version: u32,                   // data_class: PUBLIC
 }
 
+/// In-memory reference store for accounting metadata records.
+///
+/// SECURITY (ADR-0592): the map is keyed by the LOGICAL idempotency key
+/// (`idem-v2:<tenant>:<scope>:<primary_ref>`), NOT by a fingerprinted key. The
+/// body fingerprint is persisted as a separate field on the record. This lets a
+/// changed body submitted under a reused logical key collide in the SAME map
+/// slot, where `put_record` compares fingerprints and refuses the mismatch —
+/// instead of landing in a different slot and silently inserting a second record.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct InMemoryAccountingJournalStore {
     records_by_idempotency_key: BTreeMap<String, AccountingStoredRecord>,

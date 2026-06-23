@@ -63,21 +63,33 @@ carrying a different body must be rejected, not silently de-duplicated.
 ## Decision
 
 1. **Tenant-scope every accounting idempotency key, tenant-id first.** Introduce a single-sourced
-   builder `scoped_idempotency_key(tenant_id, scope, primary_ref, body_fingerprint)` in the core
-   crate that emits `idem-v2:<tenant_id>:<scope>:<primary_ref>#<fingerprint>`. The tenant id is the
-   leading keyed component, so two tenants can never collide on a shared caller-chosen
-   `primary_ref`. All three builders (journal-post, VAT-dispatch, payroll-posting) now route through
-   it; the journal-post builder gains the previously-missing tenant scope.
+   builder `scoped_idempotency_key(tenant_id, scope, primary_ref)` in the core crate that emits the
+   *logical* key `idem-v2:<tenant_id>:<scope>:<primary_ref>`. The tenant id is the leading keyed
+   component, so two tenants can never collide on a shared caller-chosen `primary_ref`. All three
+   builders (journal-post, VAT-dispatch, payroll-posting) now route through it; the journal-post
+   builder gains the previously-missing tenant scope. The key encodes the LOGICAL identity of a
+   command and deliberately does NOT embed the body fingerprint (see Decision #3 for why).
 
-2. **Body-fingerprint every key.** Add a dependency-free, deterministic
+2. **Body-fingerprint every command as a SEPARATE field.** Add a dependency-free, deterministic
    `idempotency_body_fingerprint(&[&str])` in core (FNV-1a/64 over a length-prefixed canonical
-   encoding so field boundaries are unambiguous). Each envelope carries the fingerprint
-   (`body_fingerprint`), and the stored record persists it.
+   encoding so field boundaries are unambiguous). The fingerprint covers every caller-mutable,
+   money-material field of the command (journal: source_documents + per-line detail; VAT:
+   evidence_paths; payroll: approval_evidence_ref + per-line detail). Each envelope carries the
+   fingerprint as the SEPARATE `body_fingerprint` field, and the stored record persists it
+   independently of the key.
 
 3. **Distinguish a changed body from a replay at the store.** Add
-   `AccountingStorageError::IdempotencyKeyBodyMismatch { key, stored, candidate }`. On `put_record`,
-   a key that already exists with a *different* fingerprint is rejected as a body mismatch; an
-   identical fingerprint is the prior `DuplicateIdempotencyKey` replay behaviour.
+   `AccountingStorageError::IdempotencyKeyBodyMismatch { key, stored, candidate }`. The store keys on
+   the LOGICAL key only and persists the fingerprint as a separate record field. On `put_record`, a
+   logical key that already exists with a *different* fingerprint is rejected as a body mismatch; an
+   identical fingerprint is the prior `DuplicateIdempotencyKey` replay behaviour. The
+   `reserve_idempotency_key` reservation path also reserves by the logical key so reserve and commit
+   stay consistent. (The originally-authored shape embedded the fingerprint *inside* the key —
+   `...:<primary_ref>#<fingerprint>` — and keyed the store by that full string. Adversarial review
+   rejected it: a changed body produced a DIFFERENT map key, so `put_record` missed the prior record
+   and silently inserted a SECOND one — the body-mismatch branch was unreachable dead code, defeating
+   the silent-substitution / record-proliferation objective. Separating the logical key from the
+   fingerprint makes the check live.)
 
 The fingerprint is a **change-detection** mechanism for replay-vs-changed-body within the trusted
 app-layer construction path, not a collision-resistant MAC against an adversary who can choose both
@@ -108,9 +120,15 @@ in-sync, but no new accounting identity is born.
 - `accounting-storage-inmemory/tests/storage.rs::accounting_storage_same_journal_id_across_tenants_does_not_collide`
   — two tenants posting the same `journal_id` produce distinct keys and both records persist (RED
   before fix: keys collided, second persist was refused).
-- `accounting-storage-inmemory/tests/storage.rs::accounting_storage_same_key_changed_body_is_rejected`
-  — a reused key with a mutated body fingerprint is rejected as `IdempotencyKeyBodyMismatch`.
+- `accounting-storage-inmemory/tests/storage.rs::accounting_storage_same_logical_key_changed_body_is_rejected`
+  — drives the REAL app builder (`post_journal_with_audit`) twice with the same `journal_id` but a
+  changed line amount/total; the two envelopes share a logical key but differ in fingerprint, so the
+  second persist is rejected as `IdempotencyKeyBodyMismatch` and `store.len() == 1` (RED before fix:
+  the fingerprinted key landed the changed body in a different slot, growing `store.len()` to 2).
+- `accounting-storage-inmemory/tests/storage.rs::accounting_storage_same_logical_key_identical_body_is_idempotent`
+  — identical replay is refused as `DuplicateIdempotencyKey` with `store.len() == 1`.
 - `accounting-journal/tests/journal.rs` — fingerprint determinism, change-detection, length-prefix
-  field-boundary collision-resistance, and tenant-first key ordering.
-- `accounting-app/tests/app_envelopes.rs` and `accounting-http/tests/runtime.rs` updated to assert
-  the tenant-scoped + fingerprinted key shape.
+  field-boundary collision-resistance, and tenant-first LOGICAL key ordering.
+- `accounting-app/tests/app_envelopes.rs`, `accounting-api/tests/contracts.rs`, and
+  `accounting-http/tests/runtime.rs` updated to assert the tenant-scoped LOGICAL key shape (no
+  embedded fingerprint) plus a non-empty separate `body_fingerprint` field.

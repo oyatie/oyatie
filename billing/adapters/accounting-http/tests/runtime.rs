@@ -43,13 +43,15 @@ fn accounting_runtime_dispatches_journal_payroll_and_vat() {
         payroll_body["auditTopic"],
         "audit.accounting.payroll.posted"
     );
-    // SECURITY (ADR-0592): tenant-scoped + body-fingerprinted idempotency key.
+    // SECURITY (ADR-0592): tenant-scoped LOGICAL idempotency key surfaced in the
+    // 202 response. The body fingerprint is a separate field, NOT embedded in the
+    // key, so the surfaced key carries no `#<fingerprint>` suffix.
     let payroll_key = payroll_body["idempotencyKey"]
         .as_str()
         .expect("idempotency key string");
-    assert!(
-        payroll_key.starts_with("idem-v2:ten_acme:payroll-posted:jrn_payroll_2026_01#"),
-        "payroll idempotency key must be tenant-scoped + fingerprinted, got: {payroll_key}"
+    assert_eq!(
+        payroll_key, "idem-v2:ten_acme:payroll-posted:jrn_payroll_2026_01",
+        "payroll idempotency key must be the tenant-scoped logical key, got: {payroll_key}"
     );
 
     let vat = dispatch_accounting_request(mock_json_request(

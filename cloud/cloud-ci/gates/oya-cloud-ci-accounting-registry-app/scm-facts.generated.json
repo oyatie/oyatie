@@ -3814,6 +3814,7 @@
     "docs/decisions/ADR-0573-fail-closed-authz-for-cloud-kms-crypto-control-plane.md",
     "docs/decisions/ADR-0580-corpus-substrate-phase-minus-1-syn-extractor-spike.md",
     "docs/decisions/ADR-0581-fail-closed-authz-for-workload-principal-lifecycle-control-plane.md",
+    "docs/decisions/ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md",
     "docs/decisions/INDEX.md",
     "docs/decisions/OWNERS",
     "docs/decisions/README.md",

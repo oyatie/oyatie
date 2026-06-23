@@ -412,7 +412,7 @@ pub trait AccountingJournalStoragePort {
 /// omitted tenant scoping on the journal-post key) to v2 by ADR-0592.
 pub const IDEMPOTENCY_KEY_SCHEME: &str = "idem-v2";
 
-/// Build a tenant-scoped, body-fingerprinted idempotency key.
+/// Build a tenant-scoped *logical* idempotency key.
 ///
 /// SECURITY (ADR-0592, AUTH-005 Wave-2b): `tenant_id` is the FIRST keyed
 /// component so two tenants can never produce the same key for the same
@@ -420,17 +420,19 @@ pub const IDEMPOTENCY_KEY_SCHEME: &str = "idem-v2";
 /// tenant A posting `journal_id = X` would collide with tenant B's `X`, letting
 /// A's record suppress B's audit record (a cross-tenant money-integrity defect).
 ///
-/// `body_fingerprint` distinguishes a genuine replay (same key, same body) from
-/// a changed body submitted under a reused key, so the store can refuse the
-/// latter instead of silently treating it as an already-completed command.
+/// This key encodes the LOGICAL identity of a command — `(tenant, scope,
+/// primary_ref)` — and deliberately does NOT embed the body fingerprint. The
+/// fingerprint is carried as a SEPARATE field on the envelope/record so that the
+/// store keys on the logical identity and can compare fingerprints on a hit: a
+/// genuine replay (same logical key, same fingerprint) is a duplicate, while a
+/// reused logical key carrying a CHANGED fingerprint is a body mismatch that the
+/// store must refuse. Embedding the fingerprint in the key would make a changed
+/// body land in a *different* map slot, silently inserting a second record and
+/// rendering the body-mismatch check dead code (the original ADR-0592 defect
+/// caught in adversarial review).
 #[must_use]
-pub fn scoped_idempotency_key(
-    tenant_id: &str,
-    scope: &str,
-    primary_ref: &str,
-    body_fingerprint: &str,
-) -> String {
-    format!("{IDEMPOTENCY_KEY_SCHEME}:{tenant_id}:{scope}:{primary_ref}#{body_fingerprint}")
+pub fn scoped_idempotency_key(tenant_id: &str, scope: &str, primary_ref: &str) -> String {
+    format!("{IDEMPOTENCY_KEY_SCHEME}:{tenant_id}:{scope}:{primary_ref}")
 }
 
 /// Deterministic, dependency-free fingerprint over the request-body-distinguishing

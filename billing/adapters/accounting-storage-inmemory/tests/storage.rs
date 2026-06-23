@@ -138,48 +138,106 @@ fn accounting_storage_same_journal_id_across_tenants_does_not_collide() {
     assert_eq!(store.len(), 2, "both tenants' records must coexist");
 }
 
-/// RED (ADR-0592): a reused idempotency key carrying a CHANGED body must be
-/// rejected as a body mismatch, not silently accepted as a replay. We force a
-/// key reuse by constructing a record with the same key but a different body
-/// fingerprint, proving the store distinguishes a mutated command from a replay.
+/// RED (ADR-0592, AUTH-005 Wave-2b): the SAME logical command (same tenant +
+/// same caller-chosen `journal_id` + same scope) replayed with a CHANGED body
+/// must be rejected as a body mismatch, NOT silently inserted as a second record.
+///
+/// This drives the REAL app builder (`post_journal_with_audit`) TWICE with an
+/// identical journal_id but a changed line amount (and therefore a changed
+/// total) so the two envelopes share a logical idempotency key while carrying
+/// different fingerprints. The prior implementation embedded the fingerprint in
+/// the key, so the changed body produced a DIFFERENT map key and the second
+/// record was silently inserted (store.len() grew to 2) — the body-mismatch
+/// branch was dead code. The store must now key on the logical identity, detect
+/// the fingerprint difference, refuse it, and keep store.len() == 1.
 #[test]
-fn accounting_storage_same_key_changed_body_is_rejected() {
-    use billing_accounting_journal::{
-        AccountingJournalStoragePort, AccountingStoredRecord, AccountingStoredRecordKind,
-    };
-
+fn accounting_storage_same_logical_key_changed_body_is_rejected() {
     let mut store = InMemoryAccountingJournalStore::new();
-    let journal = post_journal_with_audit(journal_input()).expect("journal outcome");
+
+    let first_outcome = post_journal_with_audit(journal_input()).expect("first journal outcome");
     let first = store
-        .persist_journal_post_audit(&journal.audit_envelope)
+        .persist_journal_post_audit(&first_outcome.audit_envelope)
         .expect("first persist");
 
-    // Same key, different body fingerprint == a different command under a reused key.
-    let tampered = AccountingStoredRecord {
-        kind: AccountingStoredRecordKind::JournalPostAudit,
-        topic: first.topic.clone(),
-        tenant_id: first.tenant_id.clone(),
-        legal_entity_id: first.legal_entity_id.clone(),
-        primary_ref: first.primary_ref.clone(),
-        idempotency_key: first.idempotency_key.clone(),
-        body_fingerprint: format!("{}-tampered", first.body_fingerprint),
-        payload_data_class: first.payload_data_class.clone(),
-        evidence_ref_count: first.evidence_ref_count,
-        storage_backend: first.storage_backend.clone(),
-        schema_version: first.schema_version,
-    };
+    // Same tenant + same journal_id => same LOGICAL key, but a changed line
+    // amount => a different body fingerprint => a different command under a
+    // reused key.
+    let mut changed = journal_input();
+    changed.lines = vec![
+        JournalLineInput {
+            account_code: "EXP-WAGES".to_owned(),
+            debit_minor: 2_000_000,
+            credit_minor: 0,
+        },
+        JournalLineInput {
+            account_code: "LIAB-NETPAY".to_owned(),
+            debit_minor: 0,
+            credit_minor: 2_000_000,
+        },
+    ];
+    let changed_outcome = post_journal_with_audit(changed).expect("changed journal outcome");
+
+    // The logical idempotency key is identical across the two posts...
+    assert_eq!(
+        first_outcome.audit_envelope.idempotency_key.value,
+        changed_outcome.audit_envelope.idempotency_key.value,
+        "same tenant + journal_id must produce the same logical idempotency key"
+    );
+    // ...but the body fingerprint differs because the body changed.
+    assert_ne!(
+        first_outcome.audit_envelope.body_fingerprint.value,
+        changed_outcome.audit_envelope.body_fingerprint.value,
+        "a changed line amount must change the body fingerprint"
+    );
+
     let error = store
-        .put_record(tampered)
-        .expect_err("changed body under a reused key must be rejected");
+        .persist_journal_post_audit(&changed_outcome.audit_envelope)
+        .expect_err("changed body under a reused logical key must be rejected");
     assert_eq!(
         error,
         AccountingStorageError::IdempotencyKeyBodyMismatch {
             key: first.idempotency_key.clone(),
             stored: first.body_fingerprint.clone(),
-            candidate: format!("{}-tampered", first.body_fingerprint),
+            candidate: changed_outcome.audit_envelope.body_fingerprint.value.clone(),
         }
     );
-    assert_eq!(store.len(), 1, "tampered record must not be stored");
+    assert_eq!(
+        store.len(),
+        1,
+        "the changed-body record must NOT be inserted; store must not proliferate records"
+    );
+}
+
+/// Positive replay (ADR-0592): the SAME logical command replayed with an
+/// IDENTICAL body is an idempotent success path — refused as a plain duplicate,
+/// store stays at exactly one record (no proliferation).
+#[test]
+fn accounting_storage_same_logical_key_identical_body_is_idempotent() {
+    let mut store = InMemoryAccountingJournalStore::new();
+
+    let first_outcome = post_journal_with_audit(journal_input()).expect("first journal outcome");
+    store
+        .persist_journal_post_audit(&first_outcome.audit_envelope)
+        .expect("first persist");
+
+    // Re-derive the identical envelope from identical input: same logical key AND
+    // same fingerprint.
+    let replay_outcome = post_journal_with_audit(journal_input()).expect("replay journal outcome");
+    assert_eq!(
+        first_outcome.audit_envelope.idempotency_key.value,
+        replay_outcome.audit_envelope.idempotency_key.value
+    );
+    assert_eq!(
+        first_outcome.audit_envelope.body_fingerprint.value,
+        replay_outcome.audit_envelope.body_fingerprint.value
+    );
+
+    let key = replay_outcome.audit_envelope.idempotency_key.value.clone();
+    let error = store
+        .persist_journal_post_audit(&replay_outcome.audit_envelope)
+        .expect_err("identical replay is refused as a duplicate");
+    assert_eq!(error, AccountingStorageError::DuplicateIdempotencyKey(key));
+    assert_eq!(store.len(), 1, "idempotent replay must not add a record");
 }
 
 #[test]
