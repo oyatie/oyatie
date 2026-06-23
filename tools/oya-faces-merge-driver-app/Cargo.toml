@@ -1,0 +1,23 @@
+[package]
+name = "oya-faces-merge-driver-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_faces_merge_driver_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-faces-merge-driver"
+path = "src/main.rs"
+
+[dependencies]
+oya-cloud-ci-freshness-app = { path = "../../cloud/cloud-ci/gates/oya-cloud-ci-freshness-app" }
+serde_json = "1"
+
+[lints]
+workspace = true

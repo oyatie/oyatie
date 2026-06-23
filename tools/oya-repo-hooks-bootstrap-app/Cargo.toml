@@ -1,0 +1,23 @@
+[package]
+name = "oya-repo-hooks-bootstrap-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_repo_hooks_bootstrap_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-repo-hooks-bootstrap"
+path = "src/main.rs"
+
+[dependencies]
+oya-faces-merge-driver-app = { path = "../oya-faces-merge-driver-app" }
+serde_json = "1"
+
+[lints]
+workspace = true

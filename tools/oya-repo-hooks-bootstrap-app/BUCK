@@ -1,0 +1,49 @@
+rust_library(
+    name = "oya-repo-hooks-bootstrap-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_repo_hooks_bootstrap_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//tools/oya-faces-merge-driver-app:oya-faces-merge-driver-app",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-repo-hooks-bootstrap",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-repo-hooks-bootstrap-app",
+        "//tools/oya-faces-merge-driver-app:oya-faces-merge-driver-app",
+    ],
+)
+
+rust_test(
+    name = "oya-repo-hooks-bootstrap-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_repo_hooks_bootstrap_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//tools/oya-faces-merge-driver-app:oya-faces-merge-driver-app",
+        "third-party//:serde_json",
+    ],
+)
+
+# task #125 bootstrap idempotency: run `bootstrap` twice on a temp git repo; assert
+# merge.oya-faces.driver + core.hooksPath are set, the hook shims + .gitattributes glob block are
+# installed, and the SECOND run is a no-op (zero rewrites). std + git only — no buck2.
+rust_test(
+    name = "oya-repo-hooks-bootstrap-app-idempotent-fixtures",
+    srcs = ["tests/idempotent.rs"],
+    crate = "oya_repo_hooks_bootstrap_app_idempotent_fixtures",
+    crate_root = "tests/idempotent.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-repo-hooks-bootstrap-app",
+        "//tools/oya-faces-merge-driver-app:oya-faces-merge-driver-app",
+    ],
+)
