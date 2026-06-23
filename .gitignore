@@ -77,6 +77,23 @@ test-results/
 # *.generated.json ignore for exactly this path.
 !specs/reorg/move-manifest.generated.json
 
+# ADR-0595 de-commit class: the six cloud-ci accounting producer faces below are pure derivations
+# (git ls-files x OWNERS x ADR front-matter x specs, plus the gate-baseline ratchet keys). They
+# were the #1 merge-conflict / merge-queue friction because every PR re-materialized multi-MB
+# blobs. They are now DERIVED ON DEMAND (infra/ci/materialize-cloud-ci-generated-faces.sh) and
+# materialized out-of-graph for consumers; the freshness gate validates regenerate-success +
+# regenerate-twice determinism instead of byte parity, and the control-plane gate forbids
+# re-tracking them (materialization_mode: not-tracked-in-git). They are already covered by the
+# **/*.generated.json rule above and are intentionally NOT negated here (unlike move-manifest):
+#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json
+#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json
+#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json
+#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json
+#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json
+#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json
+# scm-facts.generated.json stays committed for now (declared hermetic input to ~20 gate tests;
+# its de-commit is a dedicated follow-up IP per the determination).
+
 # buck2 build output
 /buck-out/
 

@@ -6,8 +6,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use oya_cloud_ci_freshness_app::{
     FACE_SETTLE_PROTOCOL, Finding, FindingCode, LockPackage, MemberPackage,
-    check_repo_with_regenerated_faces, evaluate_face_freshness, evaluate_lock_freshness,
-    parse_lock_packages, parse_member_package_manifest, render_findings, render_remediation,
+    check_repo_with_regenerated_faces, evaluate_face_determinism, evaluate_face_freshness,
+    evaluate_lock_freshness, parse_lock_packages, parse_member_package_manifest,
+    read_decommitted_face_names, render_findings, render_remediation,
 };
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -131,7 +132,7 @@ fn face_freshness_is_green_when_committed_and_regenerated_bytes_match() {
     let committed = vec![("scm-facts.generated.json".to_owned(), "{ }\n".to_owned())];
     let regenerated = vec![("scm-facts.generated.json".to_owned(), "{ }\n".to_owned())];
 
-    assert!(evaluate_face_freshness(&committed, &regenerated).is_empty());
+    assert!(evaluate_face_freshness(&committed, &regenerated, &BTreeSet::new()).is_empty());
 }
 
 #[test]
@@ -139,7 +140,7 @@ fn face_freshness_reports_stale_generated_face() {
     let committed = vec![("scm-facts.generated.json".to_owned(), "old\n".to_owned())];
     let regenerated = vec![("scm-facts.generated.json".to_owned(), "new\n".to_owned())];
 
-    let findings = evaluate_face_freshness(&committed, &regenerated);
+    let findings = evaluate_face_freshness(&committed, &regenerated, &BTreeSet::new());
 
     assert_eq!(
         codes(&findings),
@@ -158,6 +159,140 @@ fn face_freshness_reports_stale_generated_face() {
             .contains("never mix content and regenerated faces in one commit")
     );
     assert!(findings[0].detail.contains("commit the faces-only diff"));
+}
+
+#[test]
+fn decommit_class_face_is_green_without_a_committed_copy() {
+    // ADR-0595: a de-commit-class face has no committed copy on disk but regenerates fine.
+    // The old "uncommitted generated face" stale clause must NOT fire for it.
+    let committed: Vec<(String, String)> = Vec::new();
+    let regenerated = vec![("ttl-policy.generated.json".to_owned(), "fresh\n".to_owned())];
+    let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
+
+    assert!(evaluate_face_freshness(&committed, &regenerated, &decommitted).is_empty());
+}
+
+#[test]
+fn decommit_class_face_does_not_require_byte_parity_when_a_stale_copy_lingers() {
+    // A lingering on-disk copy (e.g. a previous materialization) must not trigger byte parity
+    // for a de-commit-class face: the source of truth is the regeneration, not the disk bytes.
+    let committed = vec![("ttl-policy.generated.json".to_owned(), "lingering\n".to_owned())];
+    let regenerated = vec![("ttl-policy.generated.json".to_owned(), "fresh\n".to_owned())];
+    let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
+
+    assert!(evaluate_face_freshness(&committed, &regenerated, &decommitted).is_empty());
+}
+
+#[test]
+fn decommit_class_face_is_stale_when_regeneration_stops_producing_it() {
+    // A producer that silently stops emitting a declared de-commit-class face must RED — it has
+    // no committed copy to fall back on, so the gate is its only guard.
+    let committed: Vec<(String, String)> = Vec::new();
+    let regenerated: Vec<(String, String)> = Vec::new();
+    let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
+
+    let findings = evaluate_face_freshness(&committed, &regenerated, &decommitted);
+
+    assert_eq!(
+        codes(&findings),
+        BTreeSet::from([FindingCode::GeneratedFaceStale])
+    );
+    assert_eq!(findings[0].key, "ttl-policy.generated.json");
+    assert!(findings[0].detail.contains("was not produced by regeneration"));
+}
+
+#[test]
+fn committed_class_face_keeps_byte_parity_when_other_faces_are_decommitted() {
+    // Scope guard: de-committing one face must NOT weaken byte parity for a still-committed face.
+    let committed = vec![("move-manifest.generated.json".to_owned(), "old\n".to_owned())];
+    let regenerated = vec![("move-manifest.generated.json".to_owned(), "new\n".to_owned())];
+    let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
+
+    let findings = evaluate_face_freshness(&committed, &regenerated, &decommitted);
+
+    assert_eq!(
+        codes(&findings),
+        BTreeSet::from([FindingCode::GeneratedFaceStale])
+    );
+    assert_eq!(findings[0].key, "move-manifest.generated.json");
+    assert!(findings[0].detail.contains("differ from regenerated"));
+}
+
+#[test]
+fn decommit_exemption_matches_canonical_path_not_basename() {
+    // ADR-0595 security guard: the de-commit exemption must key on the CANONICAL FULL PATH, never
+    // the basename. A deceptive manifest row at a NON-canonical path that merely shares a basename
+    // with a still-committed face (here `scm-facts.generated.json`, which this PR keeps committed
+    // and byte-checked) must NOT retire that committed face's byte-parity. A legitimate canonical
+    // row is the positive control.
+    let root = fixture_root();
+    std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
+    let manifest = r#"{
+  "artifacts": [
+    {
+      "path": "foo/scm-facts.generated.json",
+      "materialization_mode": "not-tracked-in-git"
+    },
+    {
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json",
+      "materialization_mode": "not-tracked-in-git"
+    }
+  ]
+}"#;
+    std::fs::write(
+        root.join("registry/generated-artifact-control-plane.json"),
+        manifest,
+    )
+    .expect("write control-plane manifest");
+
+    let names = read_decommitted_face_names(&root);
+
+    // The deceptive non-canonical row must NOT exempt the real, still-committed scm-facts face:
+    // its basename must be absent so byte-parity continues to guard the committed face.
+    assert!(
+        !names.contains("scm-facts.generated.json"),
+        "non-canonical basename-colliding row must not retire the committed scm-facts byte-parity"
+    );
+    // Positive control: a legitimately de-committed canonical face IS exempted.
+    assert!(
+        names.contains("ttl-policy.generated.json"),
+        "a canonical-path de-commit row must be exempted by its basename"
+    );
+    assert_eq!(names.len(), 1, "only the canonical-path row may be exempted");
+}
+
+#[test]
+fn determinism_canary_is_green_for_byte_identical_regenerations() {
+    let first = vec![("ttl-policy.generated.json".to_owned(), "fresh\n".to_owned())];
+    let second = vec![("ttl-policy.generated.json".to_owned(), "fresh\n".to_owned())];
+    let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
+
+    assert!(evaluate_face_determinism(&first, &second, &decommitted).is_empty());
+}
+
+#[test]
+fn determinism_canary_reds_for_nondeterministic_regeneration() {
+    let first = vec![("ttl-policy.generated.json".to_owned(), "run-a\n".to_owned())];
+    let second = vec![("ttl-policy.generated.json".to_owned(), "run-b\n".to_owned())];
+    let decommitted = BTreeSet::from(["ttl-policy.generated.json".to_owned()]);
+
+    let findings = evaluate_face_determinism(&first, &second, &decommitted);
+
+    assert_eq!(
+        codes(&findings),
+        BTreeSet::from([FindingCode::GeneratedFaceStale])
+    );
+    assert_eq!(findings[0].key, "ttl-policy.generated.json");
+    assert!(findings[0].detail.contains("not deterministic"));
+}
+
+#[test]
+fn determinism_canary_ignores_committed_class_faces() {
+    // The determinism canary is scoped to de-commit-class faces only.
+    let first = vec![("move-manifest.generated.json".to_owned(), "a\n".to_owned())];
+    let second = vec![("move-manifest.generated.json".to_owned(), "b\n".to_owned())];
+
+    assert!(evaluate_face_determinism(&first, &second, &BTreeSet::new()).is_empty());
 }
 
 #[test]
