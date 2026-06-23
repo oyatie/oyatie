@@ -2,15 +2,30 @@
 //!
 //! This crate owns tenant/header/path/body normalization before handing typed
 //! requests to the Cloud KMS kernel.
+//!
+//! ## Modules
+//!
+//! - [`authz`] — fail-closed principal-verification + PDP authorization PORTS
+//!   for the crown-jewel KMS encrypt/decrypt control plane
+//!   (AUTH-005 / C5-crypto class / ADR-0573). The crypto op is unreachable
+//!   without a [`authz::VerifiedKmsPrincipal`] (unforgeable) and a passing PDP
+//!   [`authz::KmsCryptoAuthorizer`] decision.
+
+pub mod authz;
 
 use std::collections::BTreeMap;
 
+use authz::{
+    KmsCryptoAction, KmsCryptoAuthorizationError, KmsCryptoAuthzProvider, KmsCryptoResource,
+    VerifiedKmsPrincipal,
+};
+
+use cell_region::{CellId, RegionCode};
+use oya_data_boundary_kernel::parse_data_class_label;
 use secrets_kms_domain::{
     CloudKmsDirectory, CloudKmsError, KmsDecryptRequest, KmsEncryptRequest, KmsOperation,
     KmsPurpose, KmsRepo, KmsUseReceipt,
 };
-use cell_region::{CellId, RegionCode};
-use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_KMS_ENCRYPT_SURFACE: &str = "cloud.kms.encrypt";
 pub const CLOUD_KMS_DECRYPT_SURFACE: &str = "cloud.kms.decrypt";
@@ -23,6 +38,7 @@ pub const CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS: &[&str] =
 pub enum CloudKmsCryptoApiStatus {
     Ok,
     BadRequest,
+    Unauthorized,
     Forbidden,
     NotFound,
     Conflict,
@@ -34,6 +50,7 @@ impl CloudKmsCryptoApiStatus {
         match self {
             Self::Ok => 200,
             Self::BadRequest => 400,
+            Self::Unauthorized => 401,
             Self::Forbidden => 403,
             Self::NotFound => 404,
             Self::Conflict => 409,
@@ -55,6 +72,7 @@ pub enum CloudKmsApiErrorCode {
     BoundaryCellRegionMismatch,
     IdempotencyKeyEmpty,
     PathKeyIdEmpty,
+    PathKeyIdMalformed,
     KeyIdMismatch,
     TenantMismatch,
     PrincipalMismatch,
@@ -62,6 +80,10 @@ pub enum CloudKmsApiErrorCode {
     AuthorizationTenantMismatch,
     AuthorizationPrincipalMismatch,
     AuthorizationDenied,
+    PrincipalUnauthenticated,
+    VerifiedPrincipalMismatch,
+    VerifiedTenantMismatch,
+    CryptoAuthorizationDenied,
     IdempotencyKeyReused,
     DataClassInvalid,
     PurposeInvalid,
@@ -85,6 +107,7 @@ impl CloudKmsApiErrorCode {
             Self::BoundaryCellRegionMismatch => "CLOUD_KMS_BOUNDARY_CELL_REGION_MISMATCH",
             Self::IdempotencyKeyEmpty => "CLOUD_KMS_IDEMPOTENCY_KEY_EMPTY",
             Self::PathKeyIdEmpty => "CLOUD_KMS_PATH_KEY_ID_EMPTY",
+            Self::PathKeyIdMalformed => "CLOUD_KMS_PATH_KEY_ID_MALFORMED",
             Self::KeyIdMismatch => "CLOUD_KMS_KEY_ID_MISMATCH",
             Self::TenantMismatch => "CLOUD_KMS_TENANT_MISMATCH",
             Self::PrincipalMismatch => "CLOUD_KMS_PRINCIPAL_MISMATCH",
@@ -92,6 +115,10 @@ impl CloudKmsApiErrorCode {
             Self::AuthorizationTenantMismatch => "CLOUD_KMS_AUTHORIZATION_TENANT_MISMATCH",
             Self::AuthorizationPrincipalMismatch => "CLOUD_KMS_AUTHORIZATION_PRINCIPAL_MISMATCH",
             Self::AuthorizationDenied => "CLOUD_KMS_AUTHORIZATION_DENIED",
+            Self::PrincipalUnauthenticated => "CLOUD_KMS_PRINCIPAL_UNAUTHENTICATED",
+            Self::VerifiedPrincipalMismatch => "CLOUD_KMS_VERIFIED_PRINCIPAL_MISMATCH",
+            Self::VerifiedTenantMismatch => "CLOUD_KMS_VERIFIED_TENANT_MISMATCH",
+            Self::CryptoAuthorizationDenied => "CLOUD_KMS_CRYPTO_AUTHORIZATION_DENIED",
             Self::IdempotencyKeyReused => "CLOUD_KMS_IDEMPOTENCY_KEY_REUSED",
             Self::DataClassInvalid => "CLOUD_KMS_DATA_CLASS_INVALID",
             Self::PurposeInvalid => "CLOUD_KMS_PURPOSE_INVALID",
@@ -113,18 +140,41 @@ pub struct CloudKmsApiBoundaryContext {
     pub oyatie_version: String,  // data_class: PUBLIC
 }
 
+/// The caller-asserted principal identity carried alongside the request.
+///
+/// ## NOT an authority source
+///
+/// These fields are caller-supplied and therefore forgeable. They are used ONLY
+/// as a cross-check against the [`authz::VerifiedKmsPrincipal`] the
+/// [`authz::PrincipalVerifier`] bound from an unforgeable credential. A request
+/// whose asserted principal/tenant disagrees with the verified identity is
+/// rejected (`VerifiedPrincipalMismatch` / `VerifiedTenantMismatch`, 403). The
+/// verified principal — never these fields — is the authority for the audit
+/// record and the PDP decision.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudKmsApiPrincipal {
     pub tenant_id: String,    // data_class: INTERNAL_ONLY
     pub principal_id: String, // data_class: INTERNAL_ONLY
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CloudKmsApiAuthorization {
-    pub tenant_id: String,             // data_class: INTERNAL_ONLY
-    pub principal_id: String,          // data_class: INTERNAL_ONLY
-    pub decision_id: String,           // data_class: INTERNAL_ONLY
-    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
+/// A non-authoritative correlation hint carried alongside the request.
+///
+/// ## NOT an authorization grant (AUTH-005 / C5 remediation)
+///
+/// Before ADR-0573 this struct carried `{tenant_id, principal_id,
+/// allowed_surfaces}` and [`validate_authorization`] "authorized" a KMS crypto
+/// op by checking the caller-supplied `allowed_surfaces` contained the requested
+/// surface — a forgeable PDP bypass on the crown-jewel crypto surface. Those
+/// authority fields are REMOVED. The only remaining field, [`Self::decision_id`],
+/// is a correlation id echoed into telemetry; it confers NO authorization. The
+/// authorization decision is now made server-side by the
+/// [`authz::KmsCryptoAuthorizer`] PDP port over the VERIFIED principal and the
+/// trusted resource binding.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudKmsApiAuthorizationCorrelation {
+    /// Caller-supplied correlation id (e.g. an upstream PDP decision id). This is
+    /// telemetry/audit correlation ONLY — it is never treated as a grant.
+    pub decision_id: String, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -155,20 +205,20 @@ pub struct CloudKmsDecryptRequest {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudKmsEncryptApiRequest {
-    pub path_key_id: String,                     // data_class: INTERNAL_ONLY
-    pub boundary: CloudKmsApiBoundaryContext,    // data_class: INTERNAL_ONLY
-    pub principal: CloudKmsApiPrincipal,         // data_class: INTERNAL_ONLY
-    pub authorization: CloudKmsApiAuthorization, // data_class: INTERNAL_ONLY
-    pub body: CloudKmsEncryptRequest,            // data_class: INTERNAL_ONLY
+    pub path_key_id: String,                  // data_class: INTERNAL_ONLY
+    pub boundary: CloudKmsApiBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudKmsApiPrincipal,      // data_class: INTERNAL_ONLY (cross-check only)
+    pub correlation: CloudKmsApiAuthorizationCorrelation, // data_class: INTERNAL_ONLY (NOT a grant)
+    pub body: CloudKmsEncryptRequest,         // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudKmsDecryptApiRequest {
-    pub path_key_id: String,                     // data_class: INTERNAL_ONLY
-    pub boundary: CloudKmsApiBoundaryContext,    // data_class: INTERNAL_ONLY
-    pub principal: CloudKmsApiPrincipal,         // data_class: INTERNAL_ONLY
-    pub authorization: CloudKmsApiAuthorization, // data_class: INTERNAL_ONLY
-    pub body: CloudKmsDecryptRequest,            // data_class: INTERNAL_ONLY
+    pub path_key_id: String,                  // data_class: INTERNAL_ONLY
+    pub boundary: CloudKmsApiBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudKmsApiPrincipal,      // data_class: INTERNAL_ONLY (cross-check only)
+    pub correlation: CloudKmsApiAuthorizationCorrelation, // data_class: INTERNAL_ONLY (NOT a grant)
+    pub body: CloudKmsDecryptRequest,         // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -295,6 +345,12 @@ pub enum CloudKmsApiError {
     },
     EmptyIdempotencyKey,
     EmptyPathKeyId,
+    /// The path key id does not conform to the `kms/{region}/{tenant}/{name}` format.
+    /// This is an internal invariant violation — the key id was already validated
+    /// as non-empty; a parse failure here means the format contract is broken.
+    MalformedPathKeyId {
+        path_key_id: String, // data_class: INTERNAL_ONLY
+    },
     KeyIdMismatch {
         path_key_id: String, // data_class: INTERNAL_ONLY
         body_key_id: String, // data_class: INTERNAL_ONLY
@@ -310,16 +366,24 @@ pub enum CloudKmsApiError {
         body_tenant_id: String,      // data_class: INTERNAL_ONLY
         actor: String,               // data_class: INTERNAL_ONLY
     },
-    EmptyAuthorizationDecisionId,
-    AuthorizationTenantMismatch {
-        authorization_tenant_id: String, // data_class: INTERNAL_ONLY
-        principal_tenant_id: String,     // data_class: INTERNAL_ONLY
+    /// No verifiable credential was presented (fail-closed 401). The KMS crypto
+    /// op is unreachable without a verified principal.
+    PrincipalUnauthenticated,
+    /// The caller-asserted principal id disagrees with the verified principal
+    /// (fail-closed 403). The verified identity is authoritative.
+    VerifiedPrincipalMismatch {
+        verified_principal_id: String, // data_class: INTERNAL_ONLY
+        claimed_principal_id: String,  // data_class: INTERNAL_ONLY
     },
-    AuthorizationPrincipalMismatch {
-        authorization_principal_id: String, // data_class: INTERNAL_ONLY
-        principal_id: String,               // data_class: INTERNAL_ONLY
+    /// The caller-asserted tenant disagrees with the verified principal's tenant
+    /// (fail-closed 403). Cross-tenant access is denied on this axis.
+    VerifiedTenantMismatch {
+        verified_tenant_id: String, // data_class: INTERNAL_ONLY
+        claimed_tenant_id: String,  // data_class: INTERNAL_ONLY
     },
-    AuthorizationDenied {
+    /// The server-side PDP denied or refused the crypto op (fail-closed 403).
+    /// A PDP fault (timeout/network/unavailability) maps here as deny, NOT 500.
+    CryptoAuthorizationDenied {
         surface: String, // data_class: INTERNAL_ONLY
     },
     IdempotencyKeyReused {
@@ -338,6 +402,7 @@ impl CloudKmsApiError {
     pub fn crypto_status(&self) -> CloudKmsCryptoApiStatus {
         match self.status_kind() {
             CloudKmsApiStatusKind::BadRequest => CloudKmsCryptoApiStatus::BadRequest,
+            CloudKmsApiStatusKind::Unauthorized => CloudKmsCryptoApiStatus::Unauthorized,
             CloudKmsApiStatusKind::Forbidden => CloudKmsCryptoApiStatus::Forbidden,
             CloudKmsApiStatusKind::NotFound => CloudKmsCryptoApiStatus::NotFound,
             CloudKmsApiStatusKind::Conflict => CloudKmsCryptoApiStatus::Conflict,
@@ -368,25 +433,26 @@ impl CloudKmsApiError {
             }
             Self::EmptyIdempotencyKey => CloudKmsApiErrorCode::IdempotencyKeyEmpty,
             Self::EmptyPathKeyId => CloudKmsApiErrorCode::PathKeyIdEmpty,
+            Self::MalformedPathKeyId { .. } => CloudKmsApiErrorCode::PathKeyIdMalformed,
             Self::KeyIdMismatch { .. } => CloudKmsApiErrorCode::KeyIdMismatch,
             Self::TenantMismatch { .. } => CloudKmsApiErrorCode::TenantMismatch,
             Self::PrincipalMismatch { .. } => CloudKmsApiErrorCode::PrincipalMismatch,
-            Self::EmptyAuthorizationDecisionId => {
-                CloudKmsApiErrorCode::AuthorizationDecisionIdEmpty
+            Self::PrincipalUnauthenticated => CloudKmsApiErrorCode::PrincipalUnauthenticated,
+            Self::VerifiedPrincipalMismatch { .. } => {
+                CloudKmsApiErrorCode::VerifiedPrincipalMismatch
             }
-            Self::AuthorizationTenantMismatch { .. } => {
-                CloudKmsApiErrorCode::AuthorizationTenantMismatch
+            Self::VerifiedTenantMismatch { .. } => CloudKmsApiErrorCode::VerifiedTenantMismatch,
+            Self::CryptoAuthorizationDenied { .. } => {
+                CloudKmsApiErrorCode::CryptoAuthorizationDenied
             }
-            Self::AuthorizationPrincipalMismatch { .. } => {
-                CloudKmsApiErrorCode::AuthorizationPrincipalMismatch
-            }
-            Self::AuthorizationDenied { .. } => CloudKmsApiErrorCode::AuthorizationDenied,
             Self::IdempotencyKeyReused { .. } => CloudKmsApiErrorCode::IdempotencyKeyReused,
             Self::InvalidDataClassLabel { .. } => CloudKmsApiErrorCode::DataClassInvalid,
             Self::InvalidPurposeLabel { .. } => CloudKmsApiErrorCode::PurposeInvalid,
             Self::Kms(error) => match cloud_kms_status_kind(error) {
                 CloudKmsApiStatusKind::BadRequest => CloudKmsApiErrorCode::KmsInvalidRequest,
-                CloudKmsApiStatusKind::Forbidden => CloudKmsApiErrorCode::KmsForbidden,
+                CloudKmsApiStatusKind::Unauthorized | CloudKmsApiStatusKind::Forbidden => {
+                    CloudKmsApiErrorCode::KmsForbidden
+                }
                 CloudKmsApiStatusKind::NotFound => CloudKmsApiErrorCode::KmsNotFound,
                 CloudKmsApiStatusKind::Conflict => CloudKmsApiErrorCode::KmsConflict,
                 CloudKmsApiStatusKind::UnprocessableEntity => {
@@ -411,12 +477,12 @@ impl CloudKmsApiError {
 
     fn status_kind(&self) -> CloudKmsApiStatusKind {
         match self {
+            Self::PrincipalUnauthenticated => CloudKmsApiStatusKind::Unauthorized,
             Self::TenantMismatch { .. }
             | Self::PrincipalMismatch { .. }
-            | Self::EmptyAuthorizationDecisionId
-            | Self::AuthorizationTenantMismatch { .. }
-            | Self::AuthorizationPrincipalMismatch { .. }
-            | Self::AuthorizationDenied { .. } => CloudKmsApiStatusKind::Forbidden,
+            | Self::VerifiedPrincipalMismatch { .. }
+            | Self::VerifiedTenantMismatch { .. }
+            | Self::CryptoAuthorizationDenied { .. } => CloudKmsApiStatusKind::Forbidden,
             Self::IdempotencyKeyReused { .. } => CloudKmsApiStatusKind::UnprocessableEntity,
             Self::Kms(error) => cloud_kms_status_kind(error),
             Self::EmptyRequestId
@@ -430,6 +496,7 @@ impl CloudKmsApiError {
             | Self::BoundaryCellRegionMismatch { .. }
             | Self::EmptyIdempotencyKey
             | Self::EmptyPathKeyId
+            | Self::MalformedPathKeyId { .. }
             | Self::KeyIdMismatch { .. }
             | Self::InvalidDataClassLabel { .. }
             | Self::InvalidPurposeLabel { .. } => CloudKmsApiStatusKind::BadRequest,
@@ -457,6 +524,9 @@ impl CloudKmsApiError {
             }
             Self::EmptyIdempotencyKey => "Idempotency-Key header is required",
             Self::EmptyPathKeyId => "Path key id is required",
+            Self::MalformedPathKeyId { .. } => {
+                "Path key id must conform to kms/{region}/{tenant}/{name}"
+            }
             Self::KeyIdMismatch { .. } => "Path and body key ids must match",
             Self::TenantMismatch { .. } => {
                 "Tenant header must match authenticated principal and request body"
@@ -464,15 +534,17 @@ impl CloudKmsApiError {
             Self::PrincipalMismatch { .. } => {
                 "Authenticated principal must match the Cloud KMS actor"
             }
-            Self::EmptyAuthorizationDecisionId => "Authorization decision id is required",
-            Self::AuthorizationTenantMismatch { .. } => {
-                "Authorization decision tenant must match the authenticated principal"
+            Self::PrincipalUnauthenticated => {
+                "A verified caller credential is required for Cloud KMS crypto operations"
             }
-            Self::AuthorizationPrincipalMismatch { .. } => {
-                "Authorization decision principal must match the authenticated principal"
+            Self::VerifiedPrincipalMismatch { .. } => {
+                "Request principal id must match the verified caller principal"
             }
-            Self::AuthorizationDenied { .. } => {
-                "Authorization decision does not allow the requested Cloud KMS surface"
+            Self::VerifiedTenantMismatch { .. } => {
+                "Request tenant must match the verified caller tenant"
+            }
+            Self::CryptoAuthorizationDenied { .. } => {
+                "Cloud KMS authorization was denied by the policy decision point"
             }
             Self::IdempotencyKeyReused { .. } => {
                 "Idempotency key was already used with a different request"
@@ -515,6 +587,10 @@ impl CloudKmsApiError {
                 vec![detail("header.Idempotency-Key", "must be non-empty")]
             }
             Self::EmptyPathKeyId => vec![detail("path.key_id", "must be non-empty")],
+            Self::MalformedPathKeyId { .. } => vec![detail(
+                "path.key_id",
+                "must be kms/{region}/{tenant}/{name}",
+            )],
             Self::KeyIdMismatch { .. } => {
                 vec![detail("key_id", "path key_id and body key_id must match")]
             }
@@ -526,21 +602,21 @@ impl CloudKmsApiError {
                 "actor",
                 "authenticated subject must match body actor and tenant_id",
             )],
-            Self::EmptyAuthorizationDecisionId => vec![detail(
-                "authorization.decision_id",
-                "must be non-empty authorization evidence",
+            Self::PrincipalUnauthenticated => vec![detail(
+                "header.Authorization",
+                "a verified caller credential (bearer/mTLS) is required",
             )],
-            Self::AuthorizationTenantMismatch { .. } => vec![detail(
-                "authorization.tenant_id",
-                "must match the authenticated principal tenant",
+            Self::VerifiedPrincipalMismatch { .. } => vec![detail(
+                "principal.principal_id",
+                "must match the verified caller principal",
             )],
-            Self::AuthorizationPrincipalMismatch { .. } => vec![detail(
-                "authorization.principal_id",
-                "must match the authenticated principal id",
+            Self::VerifiedTenantMismatch { .. } => vec![detail(
+                "principal.tenant_id",
+                "must match the verified caller tenant",
             )],
-            Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include the requested Cloud KMS surface",
+            Self::CryptoAuthorizationDenied { .. } => vec![detail(
+                "authorization",
+                "policy decision point denied the requested Cloud KMS surface",
             )],
             Self::IdempotencyKeyReused { .. } => vec![detail(
                 "header.Idempotency-Key",
@@ -562,12 +638,19 @@ impl CloudKmsApiError {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum CloudKmsApiStatusKind {
     BadRequest,
+    Unauthorized,
     Forbidden,
     NotFound,
     Conflict,
     UnprocessableEntity,
 }
 
+/// Validate the request shape and consistency.
+///
+/// This performs only structural/consistency validation (boundary headers,
+/// path/body key binding, tenant/actor internal consistency). It does NOT
+/// perform authorization — authorization is the server-side PDP decision in
+/// [`authorize_cloud_kms_encrypt_from_api`] over the [`VerifiedKmsPrincipal`].
 pub fn validate_cloud_kms_encrypt_request(
     request: &CloudKmsEncryptApiRequest,
 ) -> Result<(), CloudKmsApiError> {
@@ -582,14 +665,12 @@ pub fn validate_cloud_kms_encrypt_request(
         &request.principal,
         &request.body.tenant_id,
         &request.body.actor,
-    )?;
-    validate_authorization(
-        &request.principal,
-        &request.authorization,
-        CLOUD_KMS_ENCRYPT_SURFACE,
     )
 }
 
+/// Validate the request shape and consistency (decrypt). See
+/// [`validate_cloud_kms_encrypt_request`]; authorization is the server-side PDP
+/// decision, not a request-shape check.
 pub fn validate_cloud_kms_decrypt_request(
     request: &CloudKmsDecryptApiRequest,
 ) -> Result<(), CloudKmsApiError> {
@@ -604,27 +685,62 @@ pub fn validate_cloud_kms_decrypt_request(
         &request.principal,
         &request.body.tenant_id,
         &request.body.actor,
-    )?;
-    validate_authorization(
-        &request.principal,
-        &request.authorization,
-        CLOUD_KMS_DECRYPT_SURFACE,
     )
 }
 
+/// Authorize and record a Cloud KMS encrypt receipt — fail-closed.
+///
+/// ## `verified` and `authz` — the fail-closed crypto gate (AUTH-005 / C5)
+///
+/// The crypto op is UNREACHABLE without a verified principal and a passing PDP
+/// decision:
+///
+/// 1. `verified: &VerifiedKmsPrincipal` is an unforgeable type minted only by a
+///    real [`authz::PrincipalVerifier`] (private fields, `pub(crate)`
+///    constructor). The edge MUST verify the caller credential and pass the
+///    resulting principal here; an unverified caller maps to
+///    [`CloudKmsApiError::PrincipalUnauthenticated`] (401) at the edge.
+/// 2. The verified identity is cross-checked against the caller-asserted
+///    `request.principal` and `request.body` — a mismatch is
+///    [`CloudKmsApiError::VerifiedPrincipalMismatch`] /
+///    [`CloudKmsApiError::VerifiedTenantMismatch`] (403). The caller-supplied
+///    fields NEVER override the verified identity.
+/// 3. The server-side PDP ([`authz::KmsCryptoAuthorizer`]) decides over a
+///    resource bound to the VERIFIED tenant + the TARGET key id (trusted source,
+///    no IDOR / no cross-tenant flattening). Deny or any PDP fault →
+///    [`CloudKmsApiError::CryptoAuthorizationDenied`] (403). The caller-supplied
+///    `allowed_surfaces` blob no longer exists and confers no authority.
+///
+/// All of this runs BEFORE the idempotency lookup and any directory mutation, so
+/// an unauthorized request never touches state.
 pub fn authorize_cloud_kms_encrypt_from_api(
+    verified: &VerifiedKmsPrincipal,
+    authz: &KmsCryptoAuthzProvider,
     directory: &mut CloudKmsDirectory,
     idempotency_ledger: &mut CloudKmsCryptoIdempotencyLedger,
     request: CloudKmsEncryptApiRequest,
 ) -> Result<CloudKmsCryptoSuccessResponse, CloudKmsApiError> {
     validate_cloud_kms_encrypt_request(&request)?;
-    validate_key_placement_boundary(directory, &request.path_key_id, &request.boundary)?;
-    let key = idempotency_key_for(
-        &request.boundary,
+    cross_check_verified_principal(
+        verified,
         &request.principal,
-        CLOUD_KMS_ENCRYPT_SURFACE,
-    );
-    let fingerprint = encrypt_fingerprint_for(&request);
+        &request.body.tenant_id,
+        &request.body.actor,
+    )?;
+    ensure_crypto_authorized(
+        authz,
+        verified,
+        &CloudKmsCryptoAuthzInputs {
+            path_key_id: &request.path_key_id,
+            action: KmsCryptoAction::Encrypt,
+            data_class: &request.body.data_class,
+            purpose: &request.body.purpose,
+            request_id: &request.boundary.request_id,
+        },
+    )?;
+    validate_key_placement_boundary(directory, &request.path_key_id, &request.boundary)?;
+    let key = idempotency_key_for(verified, CLOUD_KMS_ENCRYPT_SURFACE, &request.boundary);
+    let fingerprint = encrypt_fingerprint_for(verified, &request);
     if let Some(entry) = idempotency_ledger.entries.get(&key) {
         if entry.fingerprint == fingerprint {
             return entry.result.clone();
@@ -655,19 +771,43 @@ pub fn authorize_cloud_kms_encrypt_from_api(
     result
 }
 
+/// Authorize and record a Cloud KMS decrypt receipt — fail-closed.
+///
+/// Identical fail-closed gate to [`authorize_cloud_kms_encrypt_from_api`] but for
+/// the plaintext-revealing `cloud.kms.decrypt` action. Cross-tenant decrypt
+/// (verified tenant A targeting tenant B's key) is denied: the PDP resource is
+/// bound to the VERIFIED tenant + the TARGET key id, and the kernel additionally
+/// enforces `key.tenant == request.tenant` (`ResourceTenantMismatch`). Neither
+/// the caller-asserted tenant nor a forged `allowed_surfaces` blob can authorize
+/// the op.
 pub fn authorize_cloud_kms_decrypt_from_api(
+    verified: &VerifiedKmsPrincipal,
+    authz: &KmsCryptoAuthzProvider,
     directory: &mut CloudKmsDirectory,
     idempotency_ledger: &mut CloudKmsCryptoIdempotencyLedger,
     request: CloudKmsDecryptApiRequest,
 ) -> Result<CloudKmsCryptoSuccessResponse, CloudKmsApiError> {
     validate_cloud_kms_decrypt_request(&request)?;
-    validate_key_placement_boundary(directory, &request.path_key_id, &request.boundary)?;
-    let key = idempotency_key_for(
-        &request.boundary,
+    cross_check_verified_principal(
+        verified,
         &request.principal,
-        CLOUD_KMS_DECRYPT_SURFACE,
-    );
-    let fingerprint = decrypt_fingerprint_for(&request);
+        &request.body.tenant_id,
+        &request.body.actor,
+    )?;
+    ensure_crypto_authorized(
+        authz,
+        verified,
+        &CloudKmsCryptoAuthzInputs {
+            path_key_id: &request.path_key_id,
+            action: KmsCryptoAction::Decrypt,
+            data_class: &request.body.data_class,
+            purpose: &request.body.purpose,
+            request_id: &request.boundary.request_id,
+        },
+    )?;
+    validate_key_placement_boundary(directory, &request.path_key_id, &request.boundary)?;
+    let key = idempotency_key_for(verified, CLOUD_KMS_DECRYPT_SURFACE, &request.boundary);
+    let fingerprint = decrypt_fingerprint_for(verified, &request);
     if let Some(entry) = idempotency_ledger.entries.get(&key) {
         if entry.fingerprint == fingerprint {
             return entry.result.clone();
@@ -824,36 +964,96 @@ fn validate_principal_actor(
     Ok(())
 }
 
-fn validate_authorization(
+/// Cross-check the VERIFIED principal against the caller-asserted identity.
+///
+/// The verified principal (minted from an unforgeable credential) is
+/// authoritative. The caller-asserted `request.principal` and the `body` actor /
+/// tenant are forgeable inputs; if any of them disagrees with the verified
+/// identity the request is rejected (403) — the caller cannot substitute a
+/// different identity than the one the credential proves. This binds the receipt
+/// actor (which the kernel sets from `body.actor`) to the verified principal.
+fn cross_check_verified_principal(
+    verified: &VerifiedKmsPrincipal,
     principal: &CloudKmsApiPrincipal,
-    authorization: &CloudKmsApiAuthorization,
-    surface: &str,
+    body_tenant_id: &str,
+    body_actor: &str,
 ) -> Result<(), CloudKmsApiError> {
-    if authorization.decision_id.trim().is_empty() {
-        return Err(CloudKmsApiError::EmptyAuthorizationDecisionId);
-    }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(CloudKmsApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
+    if verified.tenant_id() != principal.tenant_id || verified.tenant_id() != body_tenant_id {
+        return Err(CloudKmsApiError::VerifiedTenantMismatch {
+            verified_tenant_id: verified.tenant_id().to_string(),
+            claimed_tenant_id: principal.tenant_id.clone(),
         });
     }
-    if authorization.principal_id != principal.principal_id {
-        return Err(CloudKmsApiError::AuthorizationPrincipalMismatch {
-            authorization_principal_id: authorization.principal_id.clone(),
-            principal_id: principal.principal_id.clone(),
-        });
-    }
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed_surface| allowed_surface == surface)
-    {
-        return Err(CloudKmsApiError::AuthorizationDenied {
-            surface: surface.to_string(),
+    if verified.principal_id() != principal.principal_id || verified.principal_id() != body_actor {
+        return Err(CloudKmsApiError::VerifiedPrincipalMismatch {
+            verified_principal_id: verified.principal_id().to_string(),
+            claimed_principal_id: principal.principal_id.clone(),
         });
     }
     Ok(())
+}
+
+/// Trusted inputs for the server-side PDP decision. Every authority-bearing field
+/// (tenant, principal) comes from the verified principal; `path_key_id` is the
+/// target key from the trusted path binding (format `kms/{region}/{tenant}/{name}`).
+struct CloudKmsCryptoAuthzInputs<'a> {
+    path_key_id: &'a str,
+    action: KmsCryptoAction,
+    data_class: &'a str,
+    purpose: &'a str,
+    request_id: &'a str,
+}
+
+/// Extract the tenant segment from a key path of the form `kms/{region}/{tenant}/{name}`.
+///
+/// The path is the TRUSTED authority for the target key's tenant — it comes from
+/// the request URL path binding, not from the caller-supplied body.  Using the
+/// caller's verified tenant instead (see pre-fix history) creates a cross-tenant
+/// key-id IDOR: the PDP sees "may `ten_alpha` access `ten_alpha`'s key?" even when
+/// the actual key belongs to `ten_beta`.
+fn key_tenant_from_path(path_key_id: &str) -> Result<&str, CloudKmsApiError> {
+    // Expected format: kms/{region}/{tenant}/{name}  (exactly 4 slash-delimited segments)
+    let parts: Vec<&str> = path_key_id.splitn(4, '/').collect();
+    match parts.as_slice() {
+        ["kms", _region, tenant, _name] if !tenant.is_empty() => Ok(tenant),
+        _ => Err(CloudKmsApiError::MalformedPathKeyId {
+            path_key_id: path_key_id.to_string(),
+        }),
+    }
+}
+
+/// Run the server-side PDP decision (fail-closed). The PDP resource is bound to
+/// the TARGET KEY's tenant (parsed from the trusted path binding `kms/{region}/{tenant}/{name}`)
+/// + the TARGET key id. It is NOT bound to the verified caller's tenant — doing so
+/// would create a cross-tenant IDOR: a `ten_alpha` principal targeting `ten_beta/key`
+/// would produce `{resource.tenant: ten_alpha}` which a same-tenant policy ALLOWS.
+/// By binding the target key's tenant, the PDP correctly sees "may `ten_alpha`
+/// access `ten_beta`'s key?" and a same-tenant policy DENIES at the authz layer.
+///
+/// A deny OR any PDP fault maps to [`CloudKmsApiError::CryptoAuthorizationDenied`]
+/// (403, NOT 500).
+fn ensure_crypto_authorized(
+    authz: &KmsCryptoAuthzProvider,
+    verified: &VerifiedKmsPrincipal,
+    inputs: &CloudKmsCryptoAuthzInputs<'_>,
+) -> Result<(), CloudKmsApiError> {
+    let target_tenant = key_tenant_from_path(inputs.path_key_id)?;
+    let resource = KmsCryptoResource {
+        tenant_id: target_tenant.to_string(),
+        key_id: inputs.path_key_id.to_string(),
+        action: inputs.action,
+        data_class: inputs.data_class.to_string(),
+        purpose: inputs.purpose.to_string(),
+        request_id: inputs.request_id.to_string(),
+    };
+    match authz.ensure_authorized(verified, &resource) {
+        Ok(()) => Ok(()),
+        Err(KmsCryptoAuthorizationError::Denied | KmsCryptoAuthorizationError::Refused) => {
+            Err(CloudKmsApiError::CryptoAuthorizationDenied {
+                surface: inputs.action.surface().to_string(),
+            })
+        }
+    }
 }
 
 fn encrypt_input(
@@ -917,19 +1117,22 @@ fn parse_api_purpose(label: String) -> Result<KmsPurpose, CloudKmsApiError> {
 }
 
 fn idempotency_key_for(
-    boundary: &CloudKmsApiBoundaryContext,
-    principal: &CloudKmsApiPrincipal,
+    verified: &VerifiedKmsPrincipal,
     surface: &str,
+    boundary: &CloudKmsApiBoundaryContext,
 ) -> CloudKmsIdempotencyLedgerKey {
     CloudKmsIdempotencyLedgerKey {
-        tenant_id: boundary.tenant_id.clone(),
-        principal_id: principal.principal_id.clone(),
+        tenant_id: verified.tenant_id().to_string(),
+        principal_id: verified.principal_id().to_string(),
         surface: surface.to_string(),
         idempotency_key: boundary.idempotency_key.clone(),
     }
 }
 
-fn encrypt_fingerprint_for(request: &CloudKmsEncryptApiRequest) -> CloudKmsRequestFingerprint {
+fn encrypt_fingerprint_for(
+    verified: &VerifiedKmsPrincipal,
+    request: &CloudKmsEncryptApiRequest,
+) -> CloudKmsRequestFingerprint {
     CloudKmsRequestFingerprint {
         canonical: [
             format!("path.key_id={}", request.path_key_id),
@@ -937,23 +1140,13 @@ fn encrypt_fingerprint_for(request: &CloudKmsEncryptApiRequest) -> CloudKmsReque
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("header.region={}", request.boundary.region),
             format!("header.cell_id={}", request.boundary.cell_id),
+            format!("verified.tenant_id={}", verified.tenant_id()),
+            format!("verified.principal_id={}", verified.principal_id()),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
             format!(
-                "authorization.tenant_id={}",
-                request.authorization.tenant_id
-            ),
-            format!(
-                "authorization.principal_id={}",
-                request.authorization.principal_id
-            ),
-            format!(
-                "authorization.decision_id={}",
-                request.authorization.decision_id
-            ),
-            format!(
-                "authorization.allowed_surfaces={}",
-                request.authorization.allowed_surfaces.join(",")
+                "correlation.decision_id={}",
+                request.correlation.decision_id
             ),
             format!("body.event_id={}", request.body.event_id),
             format!("body.key_id={}", request.body.key_id),
@@ -973,7 +1166,10 @@ fn encrypt_fingerprint_for(request: &CloudKmsEncryptApiRequest) -> CloudKmsReque
     }
 }
 
-fn decrypt_fingerprint_for(request: &CloudKmsDecryptApiRequest) -> CloudKmsRequestFingerprint {
+fn decrypt_fingerprint_for(
+    verified: &VerifiedKmsPrincipal,
+    request: &CloudKmsDecryptApiRequest,
+) -> CloudKmsRequestFingerprint {
     CloudKmsRequestFingerprint {
         canonical: [
             format!("path.key_id={}", request.path_key_id),
@@ -981,23 +1177,13 @@ fn decrypt_fingerprint_for(request: &CloudKmsDecryptApiRequest) -> CloudKmsReque
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("header.region={}", request.boundary.region),
             format!("header.cell_id={}", request.boundary.cell_id),
+            format!("verified.tenant_id={}", verified.tenant_id()),
+            format!("verified.principal_id={}", verified.principal_id()),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
             format!(
-                "authorization.tenant_id={}",
-                request.authorization.tenant_id
-            ),
-            format!(
-                "authorization.principal_id={}",
-                request.authorization.principal_id
-            ),
-            format!(
-                "authorization.decision_id={}",
-                request.authorization.decision_id
-            ),
-            format!(
-                "authorization.allowed_surfaces={}",
-                request.authorization.allowed_surfaces.join(",")
+                "correlation.decision_id={}",
+                request.correlation.decision_id
             ),
             format!("body.event_id={}", request.body.event_id),
             format!("body.key_id={}", request.body.key_id),
@@ -1097,7 +1283,9 @@ fn cloud_kms_status_kind(error: &CloudKmsError) -> CloudKmsApiStatusKind {
 fn cloud_kms_message(error: &CloudKmsError) -> &'static str {
     match cloud_kms_status_kind(error) {
         CloudKmsApiStatusKind::Conflict => "Cloud KMS resource already exists",
-        CloudKmsApiStatusKind::Forbidden => "Cloud KMS policy denied the request",
+        CloudKmsApiStatusKind::Unauthorized | CloudKmsApiStatusKind::Forbidden => {
+            "Cloud KMS policy denied the request"
+        }
         CloudKmsApiStatusKind::NotFound => "Cloud KMS key was not found",
         CloudKmsApiStatusKind::BadRequest => "Cloud KMS rejected the request shape",
         CloudKmsApiStatusKind::UnprocessableEntity => "Cloud KMS rejected request idempotency",
@@ -1192,8 +1380,8 @@ pub fn negotiate_cloud_kms_api_version(
 #[cfg(test)]
 mod version_negotiation_tests {
     use super::{
-        negotiate_cloud_kms_api_version, CloudKmsApiError, CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION,
-        CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS,
+        CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION, CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS,
+        CloudKmsApiError, negotiate_cloud_kms_api_version,
     };
 
     #[test]
