@@ -73,37 +73,7 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "scripts/agent-pre-push-validate.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "scripts/asyncapi-lint.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/branch-protection-apply.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/build/build-and-push-cloud-intelligence.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/check-sequential-pr-merge-conflicts.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/ci/oya-ci-post.sh",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
       "status": "temporary_legacy_bridge"
@@ -116,12 +86,6 @@
     },
     {
       "path": "scripts/emit_rust_tests.py",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/evidence-secret-scan.sh",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
       "status": "temporary_legacy_bridge"
@@ -145,73 +109,7 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "scripts/github-actions-required-secrets-check.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/hooks/pre-push.sh",
-      "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
-      "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/install-trivy-ci.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/onprem-bring-up.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/onprem-host-decommission.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/pr-review-workflow-pr-head-check.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "scripts/proto-lint.mjs",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/reject-placeholder-digests.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/reject-public-dev-domains.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/reject-retired-grouping-wording.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/repair-sequential-pr-queue.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/supply-chain-adr0039.sh",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
       "status": "temporary_legacy_bridge"
@@ -253,49 +151,7 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "scripts/tests/github-actions-required-secrets-check.test.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "scripts/tests/governance-hooks-retired-vcs-surfaces.test.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/tests/pr-review-workflow-pr-head-check.test.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/tests/reject-placeholder-digests.test.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/tests/reject-public-dev-domains.test.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/tests/reject-retired-grouping-wording.test.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/tests/trigger-next-queue-automerge-required-contexts.test.sh",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "scripts/trigger-next-queue-automerge.sh",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
       "status": "temporary_legacy_bridge"
@@ -332,12 +188,6 @@
     },
     {
       "path": "tools/completions/bash/_oya",
-      "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
-      "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
-      "path": "tools/governance/adr-0221-governance-gates.sh",
       "reason": "Legacy automation bridge retained as explicit shrinkable debt under the Rust-first pipeline productization ratchet.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate, reusable pipeline product capability, or Kubernetes-native controller contract.",
       "status": "temporary_legacy_bridge"
