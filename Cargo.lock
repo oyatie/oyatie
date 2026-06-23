@@ -1765,11 +1765,10 @@ dependencies = [
 name = "corpus-extract"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "corpus-core",
  "oya-workspace-members-kernel",
  "quote",
- "serde",
- "serde_json",
  "syn 2.0.117",
 ]
 
