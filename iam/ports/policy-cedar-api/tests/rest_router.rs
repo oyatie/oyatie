@@ -8,6 +8,12 @@
 //! asserting HTTP status + JSON body shape.  No business logic lives here;
 //! the boundary-fn integration tests in `cedar_policy_publish_api.rs` cover
 //! the domain rules end-to-end.
+//!
+//! The router is fail-closed by construction (task #124 / ADR-0572): every
+//! router is built with a REQUIRED authz provider (a constant-time bearer
+//! principal verifier + a PDP authorizer port), and the happy-path requests
+//! present a valid `Authorization: Bearer` credential.  The AUTH-005 security
+//! tests at the bottom prove the self-attestation bypass is closed.
 
 use std::sync::Arc;
 
@@ -17,6 +23,10 @@ use http_body_util::BodyExt as _;
 use serde_json::{Value, json};
 use tower::ServiceExt as _;
 
+use iam_policy_cedar_api::authz::{
+    CedarPolicyAuthzProvider, ConfiguredBearerPrincipalVerifier, PublishAuthorizationError,
+    PublishAuthorizer, PublishResource, VerifiedPrincipal,
+};
 use iam_policy_cedar_api::rest::{CedarPolicyRestState, build_router};
 
 // ── Test constants ──────────────────────────────────────────────────────────
@@ -29,12 +39,68 @@ const PRINCIPAL_ID: &str = "usr_platform_admin";
 const DECISION_ID: &str = "authz_cedar_publish_001";
 const POLICY_ID: &str = "pol_tenant_admin";
 const VERSION: &str = "1.0.0";
+const BEARER_SECRET: &str = "s3cr3t-cedar-publish-token";
+const BEARER_HEADER: &str = "Bearer s3cr3t-cedar-publish-token";
+
+// ── Test authz provider ───────────────────────────────────────────────────────
+
+/// A [`PublishAuthorizer`] that allows publish only when the verified
+/// principal's tenant owns the resource tenant (so cross-tenant / wrong-resource
+/// is a 403). The PDP decision asserts the tenant axis.
+struct PlatformTenantAuthorizer;
+
+impl PublishAuthorizer for PlatformTenantAuthorizer {
+    fn ensure_authorized(
+        &self,
+        principal: &VerifiedPrincipal,
+        resource: &PublishResource,
+    ) -> Result<(), PublishAuthorizationError> {
+        if principal.tenant_id == TENANT_ID && resource.tenant_id == TENANT_ID {
+            Ok(())
+        } else {
+            Err(PublishAuthorizationError::Denied)
+        }
+    }
+}
+
+/// A [`PublishAuthorizer`] that denies everything (default-deny).
+struct DenyAllAuthorizer;
+
+impl PublishAuthorizer for DenyAllAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &PublishResource,
+    ) -> Result<(), PublishAuthorizationError> {
+        Err(PublishAuthorizationError::Denied)
+    }
+}
+
+/// Build an authz provider whose bearer verifier binds the platform principal,
+/// paired with the supplied authorizer.
+fn authz_provider(authorizer: Arc<dyn PublishAuthorizer>) -> CedarPolicyAuthzProvider {
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID, PRINCIPAL_TENANT_ID)
+            .expect("bearer verifier constructs with a non-empty secret"),
+    );
+    CedarPolicyAuthzProvider::new(verifier, authorizer)
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-/// Build a fresh router with default (empty) state.
+/// Build a fresh router with default (empty) state and the platform authorizer.
 fn fresh_router() -> axum::Router {
-    let state = Arc::new(CedarPolicyRestState::default());
+    let state = Arc::new(CedarPolicyRestState::with_authz(authz_provider(Arc::new(
+        PlatformTenantAuthorizer,
+    ))));
+    build_router(state)
+}
+
+/// Build a router whose authorizer denies every request (for 403 tests).
+fn deny_all_router() -> axum::Router {
+    let state = Arc::new(CedarPolicyRestState::with_authz(authz_provider(Arc::new(
+        DenyAllAuthorizer,
+    ))));
     build_router(state)
 }
 
@@ -63,6 +129,7 @@ async fn post_publish_with_overrides(
 
     // Default headers — only included when not overridden.
     let defaults: &[(&str, &str)] = &[
+        ("authorization", BEARER_HEADER),
         ("x-request-id", REQUEST_ID),
         ("x-tenant-id", TENANT_ID),
         ("idempotency-key", IDEMPOTENCY_KEY),
@@ -112,12 +179,12 @@ async fn post_publish_with_overrides(
     (status, json)
 }
 
-/// Default valid request body.
+/// Default valid request body (tenant-scoped to the platform tenant).
 fn valid_body(policy_id: &str, version: &str) -> Value {
     json!({
         "policy_id": policy_id,
         "version": version,
-        "scope": { "kind": "tenant", "tenant_id": "ten_alpha" },
+        "scope": { "kind": "tenant", "tenant_id": "ten_platform" },
         "supersedes": null,
         "rules": [{
             "effect": "allow",
@@ -145,7 +212,7 @@ async fn publish_happy_path_returns_201_created() {
     assert_eq!(body["data"]["policy_id"], POLICY_ID);
     assert_eq!(body["data"]["version"], VERSION);
     assert_eq!(body["data"]["scope"]["kind"], "tenant");
-    assert_eq!(body["data"]["scope"]["tenant_id"], "ten_alpha");
+    assert_eq!(body["data"]["scope"]["tenant_id"], "ten_platform");
     assert_eq!(body["data"]["rules"][0]["effect"], "allow");
     assert_eq!(body["data"]["schema_version"], 1);
     assert_eq!(body["metadata"]["request_id"], REQUEST_ID);
@@ -156,7 +223,9 @@ async fn publish_happy_path_returns_201_created() {
 #[tokio::test]
 async fn publish_idempotent_replay_returns_201_same_body() {
     // Use shared state so the second POST sees the ledger entry from the first.
-    let state = Arc::new(CedarPolicyRestState::default());
+    let state = Arc::new(CedarPolicyRestState::with_authz(authz_provider(Arc::new(
+        PlatformTenantAuthorizer,
+    ))));
     let router = build_router(state);
 
     let body = valid_body(POLICY_ID, VERSION);
@@ -187,26 +256,9 @@ async fn publish_path_body_policy_id_mismatch_returns_400() {
 }
 
 #[tokio::test]
-async fn publish_missing_principal_id_returns_401() {
-    let (status, resp_body) = post_publish_with_overrides(
-        fresh_router(),
-        POLICY_ID,
-        VERSION,
-        valid_body(POLICY_ID, VERSION),
-        &[("x-principal-id", "")],
-    )
-    .await;
-
-    assert_eq!(status, StatusCode::UNAUTHORIZED);
-    assert_eq!(
-        resp_body["error"]["code"],
-        "CEDAR_POLICY_PRINCIPAL_ID_EMPTY"
-    );
-}
-
-#[tokio::test]
 async fn publish_authorization_denied_returns_403() {
-    // Surface not in the allowed list.
+    // Surface not in the allowed list (legacy self-attested authz cross-check
+    // still runs as defense-in-depth after the PDP gate passes).
     let (status, resp_body) = post_publish_with_overrides(
         fresh_router(),
         POLICY_ID,
@@ -225,7 +277,9 @@ async fn publish_authorization_denied_returns_403() {
 
 #[tokio::test]
 async fn publish_duplicate_version_returns_409_conflict() {
-    let state = Arc::new(CedarPolicyRestState::default());
+    let state = Arc::new(CedarPolicyRestState::with_authz(authz_provider(Arc::new(
+        PlatformTenantAuthorizer,
+    ))));
     let router = build_router(state);
     let body = valid_body(POLICY_ID, VERSION);
 
@@ -252,7 +306,9 @@ async fn publish_duplicate_version_returns_409_conflict() {
 
 #[tokio::test]
 async fn publish_reused_idempotency_key_with_changed_body_returns_422() {
-    let state = Arc::new(CedarPolicyRestState::default());
+    let state = Arc::new(CedarPolicyRestState::with_authz(authz_provider(Arc::new(
+        PlatformTenantAuthorizer,
+    ))));
     let router = build_router(state);
 
     // First publish succeeds.
@@ -318,5 +374,141 @@ async fn publish_missing_request_id_header_returns_400() {
     assert_eq!(
         resp_body["error"]["code"],
         "CEDAR_POLICY_REQUEST_ID_EMPTY"
+    );
+}
+
+// ── AUTH-005 security tests (task #124 / ADR-0572) ─────────────────────────────
+//
+// These prove the unauthenticated-control-plane bypass is closed: the verified
+// principal — not the self-attested headers — gates the publish.
+
+#[tokio::test]
+async fn publish_without_bearer_returns_401() {
+    // No Authorization header at all → unauthenticated → 401.
+    let (status, resp_body) = post_publish_with_overrides(
+        fresh_router(),
+        POLICY_ID,
+        VERSION,
+        valid_body(POLICY_ID, VERSION),
+        &[("authorization", "")],
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(
+        resp_body["error"]["code"],
+        "CEDAR_POLICY_PRINCIPAL_UNVERIFIED"
+    );
+}
+
+#[tokio::test]
+async fn publish_with_wrong_bearer_returns_401() {
+    // A presented but invalid bearer → unauthenticated → 401 (constant-time
+    // compare; never naive ==).
+    let (status, resp_body) = post_publish_with_overrides(
+        fresh_router(),
+        POLICY_ID,
+        VERSION,
+        valid_body(POLICY_ID, VERSION),
+        &[("authorization", "Bearer not-the-real-token")],
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(
+        resp_body["error"]["code"],
+        "CEDAR_POLICY_PRINCIPAL_UNVERIFIED"
+    );
+}
+
+#[tokio::test]
+async fn self_attested_headers_without_verified_principal_returns_401_not_ok() {
+    // THE BYPASS PROOF: an attacker sets ALL the x-principal-*/x-authorization-*
+    // headers consistently (which the legacy validate_authorization accepted),
+    // but presents NO verified credential. This MUST be 401, NOT 201/Ok.
+    let attacker_headers: &[(&str, &str)] = &[
+        ("authorization", ""), // no credential
+        ("x-principal-id", "usr_attacker"),
+        ("x-principal-tenant-id", "ten_platform"),
+        ("x-authorization-decision-id", "authz_forged_001"),
+        ("x-authorization-tenant-id", "ten_platform"),
+        ("x-authorization-principal-id", "usr_attacker"),
+        ("x-authorization-surfaces", "cedar.policy.publish"),
+    ];
+
+    let (status, resp_body) = post_publish_with_overrides(
+        fresh_router(),
+        POLICY_ID,
+        VERSION,
+        valid_body(POLICY_ID, VERSION),
+        attacker_headers,
+    )
+    .await;
+
+    assert_eq!(
+        status,
+        StatusCode::UNAUTHORIZED,
+        "self-attested headers without a verified principal must be 401, not Ok"
+    );
+    assert_eq!(
+        resp_body["error"]["code"],
+        "CEDAR_POLICY_PRINCIPAL_UNVERIFIED"
+    );
+}
+
+#[tokio::test]
+async fn publish_verified_principal_acting_as_other_tenant_returns_403() {
+    // Verified principal is bound to ten_platform, but the request claims a
+    // different operator tenant (x-tenant-id). The cross-tenant guard denies
+    // with 403 — a verified principal of tenant A may not operate as tenant B.
+    let (status, resp_body) = post_publish_with_overrides(
+        fresh_router(),
+        POLICY_ID,
+        VERSION,
+        valid_body(POLICY_ID, VERSION),
+        &[("x-tenant-id", "ten_other")],
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(
+        resp_body["error"]["code"],
+        "CEDAR_POLICY_PUBLISH_FORBIDDEN"
+    );
+}
+
+#[tokio::test]
+async fn cross_tenant_publish_attempt_is_denied_by_pdp() {
+    // Principal of ten_platform attempts to publish a policy SCOPED to a
+    // different tenant (ten_victim). The PDP authorizer keys on the resource
+    // tenant and denies (403) — cross-tenant publish is forbidden.
+    let mut body = valid_body(POLICY_ID, VERSION);
+    body["scope"] = json!({ "kind": "tenant", "tenant_id": "ten_victim" });
+
+    let (status, resp_body) =
+        post_publish(fresh_router(), POLICY_ID, VERSION, body).await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(
+        resp_body["error"]["code"],
+        "CEDAR_POLICY_PUBLISH_FORBIDDEN"
+    );
+}
+
+#[tokio::test]
+async fn publish_authenticated_but_pdp_denies_returns_403() {
+    // Valid bearer (authenticated) but the PDP authorizer denies → 403.
+    let (status, resp_body) = post_publish(
+        deny_all_router(),
+        POLICY_ID,
+        VERSION,
+        valid_body(POLICY_ID, VERSION),
+    )
+    .await;
+
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(
+        resp_body["error"]["code"],
+        "CEDAR_POLICY_PUBLISH_FORBIDDEN"
     );
 }
