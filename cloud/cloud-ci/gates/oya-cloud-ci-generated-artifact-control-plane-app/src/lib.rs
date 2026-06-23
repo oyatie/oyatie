@@ -53,6 +53,18 @@ const MATERIALIZATION_MODES: [&str; 6] = [
 /// from `generated_artifact_declared_path_not_tracked`.
 const NOT_TRACKED_IN_GIT_MODE: &str = "not-tracked-in-git";
 
+/// Materialization modes whose SEMANTICS is "the artifact is absent from the committed tree and
+/// derived on demand" (the de-commit class). A frozen-reference/baseline artifact declared in any
+/// of these modes is the #828 deadlock defect, because the firewall ratchet materializes the
+/// frozen reference from the committed git blob at the merge-base (`git show <merge_base>:<path>`)
+/// and a de-committed path makes that blob empty. This is DATA: extend the list, not the predicate,
+/// when a new derive-on-demand mode is added.
+const DECOMMIT_MATERIALIZATION_MODES: [&str; 1] = [NOT_TRACKED_IN_GIT_MODE];
+
+fn is_decommit_materialization_mode(mode: &str) -> bool {
+    DECOMMIT_MATERIALIZATION_MODES.contains(&mode)
+}
+
 const MERGE_POLICIES: [&str; 5] = [
     "normal-source-merge",
     "append-only-union-with-invariant-check",
@@ -1000,11 +1012,94 @@ fn parse_declared_artifacts(
     declared
 }
 
+/// Extract the firewall FROZEN-REFERENCE face paths from one or more parsed `ratchet-policy.json`
+/// values. The frozen-reference set is the authoritative, repo-agnostic signal for "this path is
+/// materialized from the merge-base git blob": the firewall ratchet (`oya-cloud-ci-firewall-app`)
+/// and the scm-facts emitter resolve the baseline via `git show <merge_base>:<frozen_reference.
+/// face_path>` (ADR-0551). The function reads `frozen_reference.face_path`, tolerating either a
+/// single `frozen_reference` object or an array of them so adopters can declare multiple frozen
+/// baselines. It carries NO hardcoded oyatie path — the set is pure data from the policy files.
+pub fn frozen_reference_face_paths<'a, I>(ratchet_policies: I) -> BTreeSet<String>
+where
+    I: IntoIterator<Item = &'a Value>,
+{
+    let mut paths = BTreeSet::new();
+    for policy in ratchet_policies {
+        let Some(frozen) = policy.get("frozen_reference") else {
+            continue;
+        };
+        match frozen {
+            Value::Array(entries) => {
+                for entry in entries {
+                    if let Some(face_path) = required_str(entry, "face_path") {
+                        paths.insert(face_path.to_owned());
+                    }
+                }
+            }
+            _ => {
+                if let Some(face_path) = required_str(frozen, "face_path") {
+                    paths.insert(face_path.to_owned());
+                }
+            }
+        }
+    }
+    paths
+}
+
+/// Make-it-impossible guard for the #828 dev-wide deadlock class. A firewall FROZEN-REFERENCE /
+/// baseline artifact is materialized from the committed git blob at the merge-base (`git show
+/// <merge_base>:<face_path>`, ADR-0551). De-committing it (declaring it with a derive-on-demand /
+/// de-commit `materialization_mode`) empties the ratchet baseline at the merge-base, so every
+/// pre-existing repo-wide debt item reads as a NEW regression on every broad-affected-set PR — the
+/// #828 dev regression, hotfixed by #830. This rule fires `frozen_reference_artifact_must_stay_
+/// committed` when a declared artifact whose `path` is a frozen reference is declared with a
+/// de-commit mode. The frozen-reference set is supplied as DATA by the caller (from
+/// `frozen_reference_face_paths` over the repo's `ratchet-policy.json` files), so the predicate has
+/// no hardcoded paths and works on any repo with its own ratchet policy + control-plane manifest.
+pub fn frozen_reference_decommit_findings(
+    manifest: &Value,
+    frozen_reference_paths: &BTreeSet<String>,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    if frozen_reference_paths.is_empty() {
+        return findings;
+    }
+    let declared = parse_declared_artifacts(manifest, &mut BTreeSet::new());
+    for artifact in &declared {
+        if frozen_reference_paths.contains(&artifact.path)
+            && is_decommit_materialization_mode(&artifact.materialization_mode)
+        {
+            findings.insert(Finding::new(
+                "frozen_reference_artifact_must_stay_committed",
+                &artifact.artifact_id,
+            ));
+        }
+    }
+    findings
+}
+
 /// Productized predicate: every tracked generated output matched by the repo-declared
 /// `generated_path_rules` must be declared, and every declared generated artifact must carry
 /// enough policy for a controller/merge queue to know who owns it, how it materializes, and why
 /// broad merge drivers are not authority.
+///
+/// This is the frozen-reference-unaware entry point retained for callers without a ratchet policy
+/// (e.g. the diff-policy bridge). Pass the ratchet policies to
+/// [`evaluate_keyed_with_frozen_references`] to additionally enforce the #828 make-it-impossible
+/// guard.
 pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> {
+    evaluate_keyed_with_frozen_references(manifest, scm_facts, &BTreeSet::new())
+}
+
+/// Frozen-reference-aware evaluation. Runs the full control-plane predicate AND the #828
+/// make-it-impossible guard ([`frozen_reference_decommit_findings`]) over the supplied
+/// frozen-reference path set (derived from the repo's `ratchet-policy.json` data via
+/// [`frozen_reference_face_paths`]).
+pub fn evaluate_keyed_with_frozen_references(
+    manifest: &Value,
+    scm_facts: &Value,
+    frozen_reference_paths: &BTreeSet<String>,
+) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
     let generated_path_rules = parse_generated_path_rules(manifest, &mut findings);
     let declared = parse_declared_artifacts(manifest, &mut findings);
@@ -1084,11 +1179,31 @@ pub fn evaluate_keyed(manifest: &Value, scm_facts: &Value) -> BTreeSet<Finding> 
         }
     }
 
+    // #828 make-it-impossible guard: a frozen-reference/baseline artifact materialized from the
+    // merge-base git blob must NEVER be declared with a de-commit materialization mode.
+    findings.extend(frozen_reference_decommit_findings(
+        manifest,
+        frozen_reference_paths,
+    ));
+
     findings
 }
 
+/// Frozen-reference-unaware verdict, retained for callers without a ratchet policy.
 pub fn evaluate(manifest: &Value, scm_facts: &Value) -> Report {
     let findings = evaluate_keyed(manifest, scm_facts);
+    Report::from_findings(&findings)
+}
+
+/// Frozen-reference-aware verdict. Folds the #828 make-it-impossible guard into the report so the
+/// gate fails RED when a firewall frozen reference is declared de-commit class.
+pub fn evaluate_with_frozen_references(
+    manifest: &Value,
+    scm_facts: &Value,
+    frozen_reference_paths: &BTreeSet<String>,
+) -> Report {
+    let findings =
+        evaluate_keyed_with_frozen_references(manifest, scm_facts, frozen_reference_paths);
     Report::from_findings(&findings)
 }
 
@@ -1568,6 +1683,145 @@ mod tests {
             finding.code == "generated_artifact_manifest_artifact_unknown_field"
                 && finding.key == "artifacts[0].extra"
         }));
+    }
+
+    fn ratchet_policy(face_path: &str) -> Value {
+        json!({
+            "base_ref": "origin/dev",
+            "frozen_reference": {
+                "face_path": face_path,
+                "out_path": "out/frozen.merge-base.generated.json"
+            }
+        })
+    }
+
+    fn frozen_set(face_paths: &[&str]) -> BTreeSet<String> {
+        let policies: Vec<Value> = face_paths.iter().map(|p| ratchet_policy(p)).collect();
+        frozen_reference_face_paths(&policies)
+    }
+
+    #[test]
+    fn frozen_reference_face_paths_extracts_single_object() {
+        let policy = ratchet_policy("out/gate-baseline.generated.json");
+        let paths = frozen_reference_face_paths(std::iter::once(&policy));
+        assert!(paths.contains("out/gate-baseline.generated.json"));
+        assert_eq!(paths.len(), 1);
+    }
+
+    #[test]
+    fn frozen_reference_face_paths_extracts_array_of_frozen_references() {
+        // Adopters may declare multiple frozen baselines; the set is pure data, not hardcoded.
+        let policy = json!({
+            "base_ref": "origin/main",
+            "frozen_reference": [
+                { "face_path": "a/baseline.generated.json", "out_path": "o/a.json" },
+                { "face_path": "b/baseline.generated.json", "out_path": "o/b.json" }
+            ]
+        });
+        let paths = frozen_reference_face_paths(std::iter::once(&policy));
+        assert!(paths.contains("a/baseline.generated.json"));
+        assert!(paths.contains("b/baseline.generated.json"));
+        assert_eq!(paths.len(), 2);
+    }
+
+    #[test]
+    fn frozen_reference_decommitted_is_red_the_828_class() {
+        // RED fixture (the #828 incident shape): the frozen-reference baseline face is declared
+        // de-commit class (not-tracked-in-git). De-committing it empties the merge-base ratchet
+        // baseline and deadlocks the merge queue. This MUST fail.
+        let mut baseline = artifact(
+            "cloud-ci-gate-baseline-ratchet-face",
+            "out/gate-baseline.generated.json",
+        );
+        baseline["materialization_mode"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![baseline]);
+        let scm_facts = scm(&[]);
+        let frozen = frozen_set(&["out/gate-baseline.generated.json"]);
+
+        let findings =
+            evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "frozen_reference_artifact_must_stay_committed"
+                    && finding.key == "cloud-ci-gate-baseline-ratchet-face"
+            }),
+            "de-committing a frozen reference must RED; findings: {findings:#?}"
+        );
+        assert_eq!(
+            evaluate_with_frozen_references(&manifest, &scm_facts, &frozen).verdict,
+            Verdict::Red
+        );
+    }
+
+    #[test]
+    fn frozen_reference_committed_with_decommitted_pure_views_is_green() {
+        // GREEN fixture (current dev state): the frozen-reference baseline stays committed
+        // (a non-de-commit materialization mode), while a sibling pure-view face is de-committed.
+        // The de-commit class is legitimate for pure-view faces and must NOT fire on them.
+        let mut baseline = artifact(
+            "cloud-ci-gate-baseline-ratchet-face",
+            "out/gate-baseline.generated.json",
+        );
+        baseline["materialization_mode"] = json!("merge-candidate-regenerated");
+        let mut pure_view = artifact("pure-view-face", "out/accounting-registry.generated.json");
+        pure_view["materialization_mode"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![baseline, pure_view]);
+        // Frozen baseline tracked (committed); the de-committed pure view is absent from scm.
+        let scm_facts = scm(&["out/gate-baseline.generated.json"]);
+        let frozen = frozen_set(&["out/gate-baseline.generated.json"]);
+
+        let findings =
+            evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.code == "frozen_reference_artifact_must_stay_committed"),
+            "committed frozen reference + de-committed pure view must not RED; findings: {findings:#?}"
+        );
+        assert_eq!(
+            evaluate_with_frozen_references(&manifest, &scm_facts, &frozen).verdict,
+            Verdict::Green
+        );
+    }
+
+    #[test]
+    fn decommitted_non_frozen_pure_view_is_not_a_frozen_reference_violation() {
+        // A de-committed face that is NOT a frozen reference is legitimate and must not fire the
+        // frozen-reference guard — the guard is scoped strictly to the frozen-reference set.
+        let mut pure_view = artifact("pure-view-face", "out/ttl-policy.generated.json");
+        pure_view["materialization_mode"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![pure_view]);
+        let scm_facts = scm(&[]);
+        let frozen = frozen_set(&["out/gate-baseline.generated.json"]);
+
+        let findings =
+            evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen);
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.code == "frozen_reference_artifact_must_stay_committed"),
+            "a de-committed non-frozen pure view must not fire the frozen-reference guard; findings: {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn frozen_reference_guard_is_inert_without_a_ratchet_policy() {
+        // Backward compatibility: the legacy frozen-reference-unaware entry point (empty frozen
+        // set) never fires the guard, so existing callers (e.g. the diff-policy bridge) are unchanged.
+        let mut baseline = artifact(
+            "cloud-ci-gate-baseline-ratchet-face",
+            "out/gate-baseline.generated.json",
+        );
+        baseline["materialization_mode"] = json!("not-tracked-in-git");
+        let manifest = manifest(vec![baseline]);
+        let scm_facts = scm(&[]);
+        let findings = evaluate_keyed(&manifest, &scm_facts);
+        assert!(
+            !findings
+                .iter()
+                .any(|finding| finding.code == "frozen_reference_artifact_must_stay_committed"),
+            "without a ratchet policy the guard must be inert; findings: {findings:#?}"
+        );
     }
 
     #[test]

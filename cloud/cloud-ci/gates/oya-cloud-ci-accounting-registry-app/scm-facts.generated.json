@@ -3817,6 +3817,7 @@
     "docs/decisions/ADR-0590-fail-closed-authz-cloud-observability-audit-read.md",
     "docs/decisions/ADR-0591-fail-closed-authz-for-cloud-finops-report-api.md",
     "docs/decisions/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
+    "docs/decisions/ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md",
     "docs/decisions/INDEX.md",
     "docs/decisions/OWNERS",
     "docs/decisions/README.md",
