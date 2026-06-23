@@ -7,15 +7,25 @@
 // adopting oya-ci.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
 use serde_json::{Value, json};
 
-use oya_cloud_ci_generated_artifact_control_plane_app::{Verdict, evaluate, evaluate_keyed};
+use oya_cloud_ci_generated_artifact_control_plane_app::{
+    Verdict, evaluate_keyed, evaluate_keyed_with_frozen_references, evaluate_with_frozen_references,
+    frozen_reference_face_paths,
+};
 
 const MANIFEST_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_MANIFEST";
 const SCM_FACTS_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_SCM_FACTS";
+// The firewall ratchet policy is the authoritative, repo-agnostic source of the frozen-reference
+// set (ADR-0551 `frozen_reference.face_path`). Adopters override the location; the default is the
+// committed oyatie firewall policy.
+const RATCHET_POLICY_ENV: &str = "OYA_CI_GENERATED_ARTIFACT_RATCHET_POLICY";
+const RATCHET_POLICY_DEFAULT_PATH: &str =
+    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/ratchet-policy.json";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -44,6 +54,11 @@ fn read_json(path: PathBuf) -> Value {
         .unwrap_or_else(|e| panic!("parse {} as JSON: {e}", path.display()))
 }
 
+fn live_frozen_reference_paths() -> BTreeSet<String> {
+    let ratchet_policy = read_json(input_path(RATCHET_POLICY_ENV, RATCHET_POLICY_DEFAULT_PATH));
+    frozen_reference_face_paths(std::iter::once(&ratchet_policy))
+}
+
 #[test]
 fn live_generated_artifacts_are_declared_in_the_control_plane() {
     let manifest = read_json(input_path(
@@ -54,12 +69,44 @@ fn live_generated_artifacts_are_declared_in_the_control_plane() {
         SCM_FACTS_ENV,
         "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
     ));
+    let frozen_reference_paths = live_frozen_reference_paths();
 
-    let findings = evaluate_keyed(&manifest, &scm_facts);
+    let findings =
+        evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen_reference_paths);
     assert_eq!(
-        evaluate(&manifest, &scm_facts).verdict,
+        evaluate_with_frozen_references(&manifest, &scm_facts, &frozen_reference_paths).verdict,
         Verdict::Green,
         "generated-artifact control-plane findings: {findings:#?}"
+    );
+}
+
+#[test]
+fn live_firewall_frozen_reference_must_stay_committed() {
+    // #828 make-it-impossible guard, evaluated live against the committed ratchet policy + manifest.
+    // The firewall frozen-reference face MUST NOT be declared de-commit class in the control plane:
+    // de-committing it empties the merge-base ratchet baseline (frozen_empty) and deadlocks the
+    // merge queue (the #828 dev regression, hotfixed by #830).
+    let manifest = read_json(input_path(
+        MANIFEST_ENV,
+        "registry/generated-artifact-control-plane.json",
+    ));
+    let scm_facts = read_json(input_path(
+        SCM_FACTS_ENV,
+        "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+    ));
+    let frozen_reference_paths = live_frozen_reference_paths();
+    assert!(
+        !frozen_reference_paths.is_empty(),
+        "ratchet policy must declare at least one frozen reference"
+    );
+
+    let findings =
+        evaluate_keyed_with_frozen_references(&manifest, &scm_facts, &frozen_reference_paths);
+    assert!(
+        !findings
+            .iter()
+            .any(|finding| finding.code == "frozen_reference_artifact_must_stay_committed"),
+        "a firewall frozen reference is declared de-commit class in the control plane; findings: {findings:#?}"
     );
 }
 

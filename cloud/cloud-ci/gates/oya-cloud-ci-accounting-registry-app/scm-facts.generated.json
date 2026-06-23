@@ -3823,6 +3823,7 @@
     "docs/decisions/ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md",
     "docs/decisions/ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md",
     "docs/decisions/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
+    "docs/decisions/ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md",
     "docs/decisions/INDEX.md",
     "docs/decisions/OWNERS",
     "docs/decisions/README.md",
