@@ -57,7 +57,7 @@
 /// drop-in alternate that consumes a verified peer leaf instead.  Any
 /// caller-asserted principal id travels alongside as a CROSS-CHECK only — never
 /// as proof of identity.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct CallerCredential {
     /// Raw `Authorization` header value (e.g. `"Bearer abc..."`), if present.
     pub authorization: Option<String>, // data_class: SECRET
@@ -65,6 +65,18 @@ pub struct CallerCredential {
     pub claimed_principal_id: String, // data_class: INTERNAL_ONLY
     /// The caller-asserted principal tenant (cross-check input).
     pub claimed_tenant_id: String, // data_class: INTERNAL_ONLY
+}
+
+/// Custom `Debug` that redacts the `authorization` field (data_class: SECRET) to
+/// prevent bearer tokens from appearing in logs, tracing spans, or panic output.
+impl std::fmt::Debug for CallerCredential {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CallerCredential")
+            .field("authorization", &"[REDACTED]")
+            .field("claimed_principal_id", &self.claimed_principal_id)
+            .field("claimed_tenant_id", &self.claimed_tenant_id)
+            .finish()
+    }
 }
 
 /// A principal whose identity has been verified from a caller credential.

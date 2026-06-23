@@ -72,6 +72,7 @@ pub enum CloudKmsApiErrorCode {
     BoundaryCellRegionMismatch,
     IdempotencyKeyEmpty,
     PathKeyIdEmpty,
+    PathKeyIdMalformed,
     KeyIdMismatch,
     TenantMismatch,
     PrincipalMismatch,
@@ -106,6 +107,7 @@ impl CloudKmsApiErrorCode {
             Self::BoundaryCellRegionMismatch => "CLOUD_KMS_BOUNDARY_CELL_REGION_MISMATCH",
             Self::IdempotencyKeyEmpty => "CLOUD_KMS_IDEMPOTENCY_KEY_EMPTY",
             Self::PathKeyIdEmpty => "CLOUD_KMS_PATH_KEY_ID_EMPTY",
+            Self::PathKeyIdMalformed => "CLOUD_KMS_PATH_KEY_ID_MALFORMED",
             Self::KeyIdMismatch => "CLOUD_KMS_KEY_ID_MISMATCH",
             Self::TenantMismatch => "CLOUD_KMS_TENANT_MISMATCH",
             Self::PrincipalMismatch => "CLOUD_KMS_PRINCIPAL_MISMATCH",
@@ -343,6 +345,12 @@ pub enum CloudKmsApiError {
     },
     EmptyIdempotencyKey,
     EmptyPathKeyId,
+    /// The path key id does not conform to the `kms/{region}/{tenant}/{name}` format.
+    /// This is an internal invariant violation — the key id was already validated
+    /// as non-empty; a parse failure here means the format contract is broken.
+    MalformedPathKeyId {
+        path_key_id: String, // data_class: INTERNAL_ONLY
+    },
     KeyIdMismatch {
         path_key_id: String, // data_class: INTERNAL_ONLY
         body_key_id: String, // data_class: INTERNAL_ONLY
@@ -425,6 +433,7 @@ impl CloudKmsApiError {
             }
             Self::EmptyIdempotencyKey => CloudKmsApiErrorCode::IdempotencyKeyEmpty,
             Self::EmptyPathKeyId => CloudKmsApiErrorCode::PathKeyIdEmpty,
+            Self::MalformedPathKeyId { .. } => CloudKmsApiErrorCode::PathKeyIdMalformed,
             Self::KeyIdMismatch { .. } => CloudKmsApiErrorCode::KeyIdMismatch,
             Self::TenantMismatch { .. } => CloudKmsApiErrorCode::TenantMismatch,
             Self::PrincipalMismatch { .. } => CloudKmsApiErrorCode::PrincipalMismatch,
@@ -487,6 +496,7 @@ impl CloudKmsApiError {
             | Self::BoundaryCellRegionMismatch { .. }
             | Self::EmptyIdempotencyKey
             | Self::EmptyPathKeyId
+            | Self::MalformedPathKeyId { .. }
             | Self::KeyIdMismatch { .. }
             | Self::InvalidDataClassLabel { .. }
             | Self::InvalidPurposeLabel { .. } => CloudKmsApiStatusKind::BadRequest,
@@ -514,6 +524,9 @@ impl CloudKmsApiError {
             }
             Self::EmptyIdempotencyKey => "Idempotency-Key header is required",
             Self::EmptyPathKeyId => "Path key id is required",
+            Self::MalformedPathKeyId { .. } => {
+                "Path key id must conform to kms/{region}/{tenant}/{name}"
+            }
             Self::KeyIdMismatch { .. } => "Path and body key ids must match",
             Self::TenantMismatch { .. } => {
                 "Tenant header must match authenticated principal and request body"
@@ -574,6 +587,10 @@ impl CloudKmsApiError {
                 vec![detail("header.Idempotency-Key", "must be non-empty")]
             }
             Self::EmptyPathKeyId => vec![detail("path.key_id", "must be non-empty")],
+            Self::MalformedPathKeyId { .. } => vec![detail(
+                "path.key_id",
+                "must be kms/{region}/{tenant}/{name}",
+            )],
             Self::KeyIdMismatch { .. } => {
                 vec![detail("key_id", "path key_id and body key_id must match")]
             }
@@ -978,7 +995,7 @@ fn cross_check_verified_principal(
 
 /// Trusted inputs for the server-side PDP decision. Every authority-bearing field
 /// (tenant, principal) comes from the verified principal; `path_key_id` is the
-/// target key from the trusted path binding.
+/// target key from the trusted path binding (format `kms/{region}/{tenant}/{name}`).
 struct CloudKmsCryptoAuthzInputs<'a> {
     path_key_id: &'a str,
     action: KmsCryptoAction,
@@ -987,17 +1004,42 @@ struct CloudKmsCryptoAuthzInputs<'a> {
     request_id: &'a str,
 }
 
+/// Extract the tenant segment from a key path of the form `kms/{region}/{tenant}/{name}`.
+///
+/// The path is the TRUSTED authority for the target key's tenant — it comes from
+/// the request URL path binding, not from the caller-supplied body.  Using the
+/// caller's verified tenant instead (see pre-fix history) creates a cross-tenant
+/// key-id IDOR: the PDP sees "may `ten_alpha` access `ten_alpha`'s key?" even when
+/// the actual key belongs to `ten_beta`.
+fn key_tenant_from_path(path_key_id: &str) -> Result<&str, CloudKmsApiError> {
+    // Expected format: kms/{region}/{tenant}/{name}  (exactly 4 slash-delimited segments)
+    let parts: Vec<&str> = path_key_id.splitn(4, '/').collect();
+    match parts.as_slice() {
+        ["kms", _region, tenant, _name] if !tenant.is_empty() => Ok(tenant),
+        _ => Err(CloudKmsApiError::MalformedPathKeyId {
+            path_key_id: path_key_id.to_string(),
+        }),
+    }
+}
+
 /// Run the server-side PDP decision (fail-closed). The PDP resource is bound to
-/// the VERIFIED tenant + the TARGET key id (no caller-supplied authority, no
-/// cross-tenant flattening, no key-id IDOR). A deny OR any PDP fault maps to
-/// [`CloudKmsApiError::CryptoAuthorizationDenied`] (403, NOT 500).
+/// the TARGET KEY's tenant (parsed from the trusted path binding `kms/{region}/{tenant}/{name}`)
+/// + the TARGET key id. It is NOT bound to the verified caller's tenant — doing so
+/// would create a cross-tenant IDOR: a `ten_alpha` principal targeting `ten_beta/key`
+/// would produce `{resource.tenant: ten_alpha}` which a same-tenant policy ALLOWS.
+/// By binding the target key's tenant, the PDP correctly sees "may `ten_alpha`
+/// access `ten_beta`'s key?" and a same-tenant policy DENIES at the authz layer.
+///
+/// A deny OR any PDP fault maps to [`CloudKmsApiError::CryptoAuthorizationDenied`]
+/// (403, NOT 500).
 fn ensure_crypto_authorized(
     authz: &KmsCryptoAuthzProvider,
     verified: &VerifiedKmsPrincipal,
     inputs: &CloudKmsCryptoAuthzInputs<'_>,
 ) -> Result<(), CloudKmsApiError> {
+    let target_tenant = key_tenant_from_path(inputs.path_key_id)?;
     let resource = KmsCryptoResource {
-        tenant_id: verified.tenant_id().to_string(),
+        tenant_id: target_tenant.to_string(),
         key_id: inputs.path_key_id.to_string(),
         action: inputs.action,
         data_class: inputs.data_class.to_string(),

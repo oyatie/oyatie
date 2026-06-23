@@ -713,11 +713,11 @@ fn decrypt_verified_principal_with_mismatched_claimed_tenant_returns_403() {
 #[test]
 fn decrypt_cross_tenant_key_denied_by_pdp_returns_403() {
     // RED-if-removed (BLAST-RADIUS proof): a verified ten_alpha principal targets
-    // a key owned by ten_beta. The PDP resource tenant is bound from the VERIFIED
-    // identity (ten_alpha), and the key target is ten_beta's. A SameTenantAuthorizer
-    // — which WOULD allow this principal for its own tenant — denies because the
-    // target key's tenant differs. This proves the resource is bound to the
-    // trusted source (verified tenant + target key), not flattened to caller input.
+    // a key owned by ten_beta. The PDP resource tenant is parsed from the TARGET
+    // KEY path ("ten_beta"), not from the verified principal's tenant ("ten_alpha").
+    // A SameTenantAuthorizer — which allows principal.tenant == resource.tenant —
+    // DENIES because "ten_alpha" != "ten_beta". Denial fires at the AUTHZ layer,
+    // before the kernel. This proves cross-tenant key access is blocked at the PDP.
     //
     // Register a ten_beta key in the directory.
     let mut directory = directory_with_key();
@@ -742,12 +742,15 @@ fn decrypt_cross_tenant_key_denied_by_pdp_returns_403() {
     let mut ledger = CloudKmsCryptoIdempotencyLedger::default();
 
     // The verified ten_alpha principal targets ten_beta's key. The body tenant is
-    // forged to ten_alpha so the verified-principal cross-check passes (the IDOR
-    // is in the key target, not the tenant claim). The SameTenantAuthorizer would
-    // ALLOW ten_alpha for resource.tenant_id == ten_alpha — and since the resource
-    // tenant is bound from the verified identity (ten_alpha), the PDP allows the
-    // tenant axis but the KERNEL denies cross-tenant key use. This proves no
-    // key-id IDOR: a verified caller cannot decrypt another tenant's key.
+    // ten_alpha so the verified-principal cross-check passes (the IDOR is in the
+    // key target, not the tenant claim). The SameTenantAuthorizer ALLOWS when
+    // resource.tenant_id == principal.tenant_id(), but now resource.tenant_id is
+    // parsed from the TARGET key path ("ten_beta"), NOT the verified caller's
+    // tenant ("ten_alpha"). So the PDP sees "may ten_alpha access ten_beta's key?"
+    // and DENIES — the rejection happens at the AUTHZ layer, before the kernel.
+    // RED-if-reverted: reverting ensure_crypto_authorized to use verified.tenant_id()
+    // makes this test fail (the PDP would allow "ten_alpha/ten_alpha" and the
+    // kernel ResourceTenantMismatch would fire instead).
     let request = CloudKmsDecryptApiRequest {
         path_key_id: "kms/region-home/ten_beta/object-key".to_string(),
         boundary: boundary_for("req-kms-idor", "idem-kms-idor"),
@@ -772,16 +775,17 @@ fn decrypt_cross_tenant_key_denied_by_pdp_returns_403() {
         &mut ledger,
         request,
     )
-    .expect_err("cross-tenant key target must be denied");
+    .expect_err("cross-tenant key target must be denied at PDP layer");
 
-    // The kernel's ResourceTenantMismatch (key tenant ten_beta != request tenant
-    // ten_alpha) maps to 403 Forbidden — the cross-tenant decrypt is deniable.
-    // (The denial is the security property; the idempotency ledger caching the
-    // failure result is the pre-existing post-gate behavior, not asserted here.)
+    // The PDP (SameTenantAuthorizer) sees resource.tenant_id == "ten_beta" while
+    // principal.tenant_id() == "ten_alpha" — DENIES. The boundary converts all
+    // authz denials to CryptoAuthorizationDenied (403). The kernel is never reached.
     assert_eq!(error.crypto_status_code(), 403);
     assert_eq!(
         error,
-        CloudKmsApiError::Kms(CloudKmsError::ResourceTenantMismatch)
+        CloudKmsApiError::CryptoAuthorizationDenied {
+            surface: "cloud.kms.decrypt".to_string(),
+        }
     );
     // No receipt was produced — no plaintext-revealing decrypt occurred.
     assert_eq!(directory.receipts().count(), 0);
