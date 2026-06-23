@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:74fa2c20bbfc500b"
+    "source_inputs_digest": "fnv1a64:c3d95d5b708358a5"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -5408,7 +5408,6 @@
           "cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/tests/enforcement_liveness.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/BUCK",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/Cargo.toml",
-          "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/gate-baseline.signoff.json",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/src/lib.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app/tests/gate_registration.rs",
           "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/BUCK",
@@ -10670,7 +10669,6 @@
           "iam/facade/identity-workload-rest/Cargo.toml",
           "iam/facade/identity-workload-rest/build.rs",
           "iam/facade/identity-workload-rest/src/grpc/mod.rs",
-          "iam/facade/identity-workload-rest/src/lib.rs",
           "iam/facade/identity-workload-rest/tests/common/mod.rs",
           "iam/facade/identity-workload-rest/tests/coverage_gaps.rs",
           "iam/facade/identity-workload-rest/tests/grpc_authorize_deny.rs",
@@ -10771,7 +10769,6 @@
           "iam/ports/identity-api/tests/identity_user_upsert_api.rs",
           "iam/ports/identity-workload-api/BUCK",
           "iam/ports/identity-workload-api/Cargo.toml",
-          "iam/ports/identity-workload-api/src/lib.rs",
           "iam/ports/identity-workload-api/tests/contracts.rs",
           "iam/ports/policy-cedar-api/BUCK",
           "iam/ports/policy-cedar-api/Cargo.toml",
