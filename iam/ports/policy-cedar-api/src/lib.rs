@@ -574,18 +574,54 @@ pub fn validate_cedar_policy_publish_request(
     Ok(())
 }
 
-/// Publish a Cedar policy version, requiring a verified caller principal as a
-/// **type-level precondition**. The `verified` token is only mintable by the
-/// [`crate::authz::PrincipalVerifier`] port, so no in-process caller can reach
-/// the mutation without first completing principal verification + PDP
-/// authorization. The REST handler is NOT the only guard; this boundary API
-/// enforces the same invariant for any future route or adapter that imports it.
+/// Publish a Cedar policy version.
+///
+/// ## `verified` — unforgeability and active cross-check
+///
+/// The first argument is a [`crate::authz::VerifiedPrincipal`].  This type has
+/// **private fields** and a `pub(crate)` constructor that only the
+/// [`crate::authz::PrincipalVerifier`] implementations in this crate can call.
+/// External crates cannot build one by struct literal or any public API — they
+/// must obtain it through a real verifier.  This is the compile-time guarantee
+/// that no in-process caller or future route can reach the mutation without
+/// completing principal verification and PDP authorization first.
+///
+/// Beyond the type-level gate, this function **actively cross-checks** the
+/// verified identity against the request's self-attested principal fields:
+/// - `request.principal.principal_id` must equal `verified.principal_id()`.
+/// - `request.principal.tenant_id` must equal `verified.tenant_id()`.
+///
+/// A mismatch means the caller forged or substituted a different identity in the
+/// request body than the one the verifier bound — it is rejected as
+/// `AuthorizationPrincipalMismatch` / `AuthorizationTenantMismatch` (Forbidden).
 pub fn publish_cedar_policy_from_api(
-    _verified: &crate::authz::VerifiedPrincipal,
+    verified: &crate::authz::VerifiedPrincipal,
     policies: &mut PolicySet,
     idempotency_ledger: &mut CedarPolicyPublishIdempotencyLedger,
     request: CedarPolicyPublishApiRequest,
 ) -> Result<CedarPolicyPublishSuccessResponse, CedarPolicyPublishApiError> {
+    // Cross-check: when the request asserts a non-empty principal id or tenant
+    // id, it MUST match the verified identity.  A mismatch means the caller
+    // forged or substituted a different identity in the request body — reject
+    // as Forbidden.  Empty fields are left to the downstream
+    // `validate_principal_binding` call, which returns the correct 401
+    // (`EmptyPrincipalId`) rather than 403 so the caller sees the right status.
+    if !request.principal.principal_id.is_empty()
+        && request.principal.principal_id != verified.principal_id()
+    {
+        return Err(CedarPolicyPublishApiError::AuthorizationPrincipalMismatch {
+            authorization_principal_id: verified.principal_id().to_string(),
+            principal_id: request.principal.principal_id.clone(),
+        });
+    }
+    if !request.principal.tenant_id.is_empty()
+        && request.principal.tenant_id != verified.tenant_id()
+    {
+        return Err(CedarPolicyPublishApiError::AuthorizationTenantMismatch {
+            authorization_tenant_id: verified.tenant_id().to_string(),
+            principal_tenant_id: request.principal.tenant_id.clone(),
+        });
+    }
     validate_cedar_policy_publish_request(&request)?;
     let key = idempotency_key_for(
         &request.boundary,

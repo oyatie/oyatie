@@ -18,7 +18,7 @@
       },
       {
         "date": "2026-06-23",
-        "authorized_by": "agent/auth-005-cedar-publish-authz (G004/AUTH-005 remediation, task #124)",
+        "authorized_by": "pending-founder-ratification (G004/AUTH-005 remediation, task #124; ADR-0572)",
         "rationale": "Admit ADR-0572 (Accepted) as unpropagated_decision. Every new Accepted ADR is born with in_spec=true/in_masterplan=false/in_roadmap=false — the same pattern as the 148 existing unpropagated ADRs (ADR-0280/0392/0510/0515 and the ADR-0516..0535 cluster, all admitted by prior signings). ADR-0572 records the fail-closed authz decision for the Cedar policy publish control plane (AUTH-005 remediation, task #124). Propagation to masterplan/roadmap is the converge-and-wire step that happens after the ADR is accepted, not as part of the security remediation PR. Firewall predicates byte-UNCHANGED.",
         "adr": "ADR-0572"
       },

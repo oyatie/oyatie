@@ -66,7 +66,7 @@ impl PublishAuthorizer for PlatformTenantAuthorizer {
         match &resource.scope {
             PublishScope::Tenant => {
                 // Tenant-scoped: principal must own the resource tenant.
-                if principal.tenant_id == TENANT_ID && resource.tenant_id == TENANT_ID {
+                if principal.tenant_id() == TENANT_ID && resource.tenant_id == TENANT_ID {
                     Ok(())
                 } else {
                     Err(PublishAuthorizationError::Denied)
@@ -76,7 +76,7 @@ impl PublishAuthorizer for PlatformTenantAuthorizer {
                 // Global-scoped: requires platform-admin authority (principal
                 // must be the platform tenant). A mere tenant-A admin sending
                 // scope:global must be denied by a tenant-A-only authorizer.
-                if principal.tenant_id == TENANT_ID {
+                if principal.tenant_id() == TENANT_ID {
                     Ok(())
                 } else {
                     Err(PublishAuthorizationError::Denied)
@@ -102,7 +102,7 @@ impl PublishAuthorizer for TenantOnlyAuthorizer {
         match &resource.scope {
             // Allow tenant-scoped publish for the platform tenant.
             PublishScope::Tenant
-                if principal.tenant_id == TENANT_ID && resource.tenant_id == TENANT_ID =>
+                if principal.tenant_id() == TENANT_ID && resource.tenant_id == TENANT_ID =>
             {
                 Ok(())
             }

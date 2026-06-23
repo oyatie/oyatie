@@ -369,8 +369,8 @@ async fn publish_handler(
     }
 
     // Use the VERIFIED identity for audit/binding (not the self-attested headers).
-    let principal_id = verified.principal_id.clone();
-    let principal_tenant_id = verified.tenant_id.clone();
+    let principal_id = verified.principal_id().to_string();
+    let principal_tenant_id = verified.tenant_id().to_string();
 
     // Extract authorization headers.
     let authz_decision_id = header_str(&headers, "x-authorization-decision-id");
@@ -470,16 +470,20 @@ fn enforce_publish_authz(
     verified: &VerifiedPrincipal,
     body: &PublishRequestBody,
 ) -> Result<(), Response> {
-    // (1) Cross-tenant guard — the verified tenant is authoritative. A caller
-    // attempting to act as a different operator or principal tenant is forbidden.
+    // (1) Cross-check — the verified identity is authoritative. A caller
+    // attempting to act as a different operator, principal, or tenant is forbidden.
+    let claimed_principal_id = header_str(headers, "x-principal-id");
     let claimed_principal_tenant_id = header_str(headers, "x-principal-tenant-id");
-    if !operator_tenant_id.is_empty() && operator_tenant_id != verified.tenant_id {
+    if !operator_tenant_id.is_empty() && operator_tenant_id != verified.tenant_id() {
         return Err(authorization_denied_response(request_id, "operator_tenant"));
     }
     if !claimed_principal_tenant_id.is_empty()
-        && claimed_principal_tenant_id != verified.tenant_id
+        && claimed_principal_tenant_id != verified.tenant_id()
     {
         return Err(authorization_denied_response(request_id, "principal_tenant"));
+    }
+    if !claimed_principal_id.is_empty() && claimed_principal_id != verified.principal_id() {
+        return Err(authorization_denied_response(request_id, "principal_id"));
     }
 
     // (2) Reject unrecognised scope kinds BEFORE the PDP so the domain
@@ -501,7 +505,7 @@ fn enforce_publish_authz(
     // platform-admin authority for it, not mere tenant-admin authority.
     // Flattening global → caller's own tenant would be a CRITICAL escalation:
     // it lets a tenant-A admin publish a policy that affects every tenant.
-    let resource = publish_resource(path_policy_id, body, &verified.tenant_id);
+    let resource = publish_resource(request_id, path_policy_id, body)?;
     state
         .authz
         .ensure_authorized(verified, &resource)
@@ -513,41 +517,43 @@ fn enforce_publish_authz(
 /// Build the [`PublishResource`] for the PDP decision, carrying the scope
 /// **explicitly** so the PDP sees the true blast radius of the action.
 ///
-/// - `scope.kind == "tenant"`: resource is `Tenant`-scoped; `tenant_id` is the
-///   scope tenant (so cross-tenant publish — principal A, scope tenant B — is
-///   denied by the PDP decision).
+/// - `scope.kind == "tenant"`: resource is `Tenant`-scoped; `tenant_id` MUST be
+///   present and non-empty (returns `Err(400)` otherwise — defaulting to the
+///   verified tenant would hide a caller mistake and present the wrong resource
+///   to the PDP). Cross-tenant publish — principal A, scope tenant B — is
+///   denied by the PDP decision.
 /// - `scope.kind == "global"` (or any other value): resource is `Global`;
 ///   `tenant_id` is empty. The PDP **must** key on `scope == Global` and
 ///   require platform-admin authority. A global policy affects ALL tenants and
 ///   MUST NOT be presented as a per-tenant resource (that would be the
 ///   CRITICAL escalation: tenant-A admin → platform-wide authz-policy control).
 fn publish_resource(
+    request_id: &str,
     policy_id: &str,
     body: &PublishRequestBody,
-    verified_tenant_id: &str,
-) -> PublishResource {
+) -> Result<PublishResource, Response> {
     match body.scope.kind.as_str() {
         "tenant" => {
             let tenant_id = body
                 .scope
                 .tenant_id
-                .clone()
+                .as_deref()
                 .filter(|t| !t.trim().is_empty())
-                .unwrap_or_else(|| verified_tenant_id.to_string());
-            PublishResource {
+                .ok_or_else(|| missing_scope_tenant_response(request_id))?;
+            Ok(PublishResource {
                 policy_id: policy_id.to_string(),
                 scope: PublishScope::Tenant,
-                tenant_id,
-            }
+                tenant_id: tenant_id.to_string(),
+            })
         }
         _ => {
             // Global (and any unrecognised variant) — blank tenant, Global scope.
             // The PDP must NOT authorize this as a per-tenant resource.
-            PublishResource {
+            Ok(PublishResource {
                 policy_id: policy_id.to_string(),
                 scope: PublishScope::Global,
                 tenant_id: String::new(),
-            }
+            })
         }
     }
 }
@@ -599,6 +605,27 @@ fn authorization_denied_response(request_id: &str, axis: &str) -> Response {
         },
     };
     (StatusCode::FORBIDDEN, Json(body)).into_response()
+}
+
+/// Build an HTTP 400 response for a tenant-scoped publish with no `tenant_id`.
+/// Defaulting to the verified tenant would hide a caller mistake and present
+/// the wrong resource to the PDP; reject explicitly as a bad request instead.
+fn missing_scope_tenant_response(request_id: &str) -> Response {
+    tracing::Span::current().record("cedar.policy.publish.status_code", 400u16);
+    let body = ErrorResponseDto {
+        error: ErrorBodyDto {
+            code: "CEDAR_POLICY_SCOPE_TENANT_MISSING".to_string(),
+            message: "Tenant-scoped policies require scope.tenant_id".to_string(),
+            message_localized: None,
+            request_id: request_id.to_string(),
+            details: vec![ErrorDetailDto {
+                field: "body.scope.tenant_id".to_string(),
+                issue: "must be present and non-empty for tenant scope".to_string(),
+            }],
+            retry_after_seconds: None,
+        },
+    };
+    (StatusCode::BAD_REQUEST, Json(body)).into_response()
 }
 
 /// Build an HTTP 400 response for an unrecognised scope kind. The router layer
