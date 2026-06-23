@@ -77,22 +77,35 @@ test-results/
 # *.generated.json ignore for exactly this path.
 !specs/reorg/move-manifest.generated.json
 
-# ADR-0595 de-commit class: the six cloud-ci accounting producer faces below are pure derivations
-# (git ls-files x OWNERS x ADR front-matter x specs, plus the gate-baseline ratchet keys). They
-# were the #1 merge-conflict / merge-queue friction because every PR re-materialized multi-MB
-# blobs. They are now DERIVED ON DEMAND (infra/ci/materialize-cloud-ci-generated-faces.sh) and
-# materialized out-of-graph for consumers; the freshness gate validates regenerate-success +
-# regenerate-twice determinism instead of byte parity, and the control-plane gate forbids
-# re-tracking them (materialization_mode: not-tracked-in-git). They are already covered by the
-# **/*.generated.json rule above and are intentionally NOT negated here (unlike move-manifest):
+# FROZEN-REFERENCE RATCHET BASELINE — MUST stay TRACKED (dev hotfix to #828/ADR-0595). The
+# gate-baseline face is NOT a pure view like the five faces below: it is the firewall ratchet's
+# frozen reference, materialized by the scm-facts emitter via `git show <merge-base>:<this-path>`
+# (oya-cloud-ci-scm-facts-emitter-app git_show_file). That merge-base materialization REQUIRES the
+# path to be a committed git blob on the main branch. #828 de-committed it, so at gate-time
+# `git cat-file -e <merge-base>:<path>` failed -> missing_at_merge_base=true -> empty frozen
+# baseline -> every pre-existing repo-wide debt item reported as a NEW regression on every
+# broad-affected-set PR. It is declared materialization_mode: merge-candidate-regenerated in
+# registry/generated-artifact-control-plane.json and byte-bound by freshness/registry-drift
+# committed==regenerated. Negate the broad *.generated.json ignore for exactly this path.
+!cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json
+
+# ADR-0595 de-commit class: the FIVE cloud-ci accounting producer faces below are pure derivations
+# (git ls-files x OWNERS x ADR front-matter x specs). They were the #1 merge-conflict /
+# merge-queue friction because every PR re-materialized multi-MB blobs. They are now DERIVED ON
+# DEMAND (infra/ci/materialize-cloud-ci-generated-faces.sh) and materialized out-of-graph for
+# consumers, whose gates re-derive content from the candidate tree; the freshness gate validates
+# regenerate-success + regenerate-twice determinism instead of byte parity, and the control-plane
+# gate forbids re-tracking them (materialization_mode: not-tracked-in-git). They are already
+# covered by the **/*.generated.json rule above and are intentionally NOT negated here (unlike
+# move-manifest and gate-baseline):
 #   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json
 #   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json
 #   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-inventory.generated.json
 #   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json
-#   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json
 #   cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/ttl-policy.generated.json
-# scm-facts.generated.json stays committed for now (declared hermetic input to ~20 gate tests;
-# its de-commit is a dedicated follow-up IP per the determination).
+# NOTE: gate-baseline.generated.json is NOT in this de-commit class — it is the frozen ratchet
+# baseline and stays tracked (negated above). scm-facts.generated.json stays committed for now
+# (declared hermetic input to ~20 gate tests; its de-commit is a dedicated follow-up IP).
 
 # buck2 build output
 /buck-out/
