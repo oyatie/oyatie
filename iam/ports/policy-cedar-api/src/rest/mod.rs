@@ -44,8 +44,10 @@ use std::sync::{Arc, Mutex};
 
 use axum::Json;
 use axum::Router;
-use axum::extract::{Path, State};
+use axum::body::Body;
+use axum::extract::{Path, Request, State};
 use axum::http::{HeaderMap, StatusCode};
+use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
 use serde::{Deserialize, Serialize};
@@ -55,7 +57,7 @@ use iam_policy_cedar_domain::PolicySet;
 
 use crate::authz::{
     CallerCredential, CedarPolicyAuthzProvider, PrincipalVerificationError,
-    PublishAuthorizationError, PublishResource, VerifiedPrincipal,
+    PublishAuthorizationError, PublishResource, PublishScope, VerifiedPrincipal,
 };
 use crate::{
     CedarPolicyApiAuthorization, CedarPolicyApiBoundaryContext, CedarPolicyApiPrincipal,
@@ -250,10 +252,64 @@ pub struct ErrorResponseDto {
 /// let state = Arc::new(CedarPolicyRestState::with_authz(authz));
 /// let _router = build_router(state);
 /// ```
+/// Maximum request body size for this control plane (64 KiB). A Cedar policy
+/// publish request is small structured JSON; a large body is either malformed
+/// or a DoS probe. Explicit limit ensures the body limit is not inherited from
+/// a permissive host embedding.
+const PUBLISH_BODY_LIMIT_BYTES: usize = 65_536;
+
 pub fn build_router(state: SharedCedarPolicyRestState) -> Router {
     Router::new()
         .route(PUBLISH_ROUTE, post(publish_handler))
+        // Bearer verification middleware runs on request Parts BEFORE the body
+        // is deserialized by the handler's Json extractor. This satisfies the
+        // "gate FIRST / before acting on the body" invariant: unauthenticated
+        // callers are rejected with 401 before any body bytes are consumed.
+        .route_layer(middleware::from_fn_with_state(
+            Arc::clone(&state),
+            bearer_auth_middleware,
+        ))
+        // Explicit tight body limit for this control plane (64 KiB). Do not
+        // rely on the host's DefaultBodyLimit; set it explicitly so the limit
+        // is enforced regardless of how the router is embedded.
+        .layer(axum::extract::DefaultBodyLimit::max(PUBLISH_BODY_LIMIT_BYTES))
         .with_state(state)
+}
+
+// ==========================================================================
+// Bearer verification middleware (runs BEFORE body deserialization)
+// ==========================================================================
+
+/// Axum middleware that verifies the `Authorization: Bearer` credential and
+/// stores the resulting [`VerifiedPrincipal`] in the request extensions BEFORE
+/// the body is deserialized by the downstream handler.
+///
+/// This satisfies the "gate FIRST / before acting on the body" invariant:
+/// unauthenticated callers (no credential, wrong token) are rejected with 401
+/// before any JSON parse occurs on the request body — `Json(body)` in the
+/// handler only runs when this middleware returns `next.run(req)`.
+async fn bearer_auth_middleware(
+    State(state): State<SharedCedarPolicyRestState>,
+    mut req: Request<Body>,
+    next: Next,
+) -> Response {
+    let headers = req.headers();
+    let request_id = header_str(headers, "x-request-id");
+    let credential = CallerCredential {
+        authorization: header_opt(headers, "authorization"),
+        claimed_principal_id: header_str(headers, "x-principal-id"),
+        claimed_tenant_id: header_str(headers, "x-principal-tenant-id"),
+    };
+
+    let verified = match state.authz.verify_principal(&credential) {
+        Ok(v) => v,
+        Err(err) => return principal_verification_response(&request_id, &err),
+    };
+
+    // Stash the verified principal in request extensions so the handler can
+    // retrieve it without re-verifying (the credential is already consumed).
+    req.extensions_mut().insert(verified);
+    next.run(req).await
 }
 
 // ==========================================================================
@@ -262,23 +318,24 @@ pub fn build_router(state: SharedCedarPolicyRestState) -> Router {
 
 /// `POST /policies/{policy_id}/versions/{version}`
 ///
-/// FAIL-CLOSED authz gate FIRST (task #124 / ADR-0572): the caller principal is
-/// VERIFIED from an unforgeable credential (constant-time bearer compare via the
-/// [`crate::authz::PrincipalVerifier`] port — the `x-principal-*` headers are
-/// NEVER trusted as identity), then AUTHORIZED for `cedar.policy.publish` on the
-/// target `{policy_id, tenant}` via the PDP [`crate::authz::PublishAuthorizer`]
-/// port.  Unauthenticated → 401; authenticated-but-unauthorized → 403.  Only
-/// after the gate passes is the boundary request built and published.
+/// The [`bearer_auth_middleware`] runs BEFORE this handler and rejects
+/// unauthenticated callers (no/wrong `Authorization: Bearer`) with 401 before
+/// the body is deserialized. The verified principal arrives via request
+/// extensions.
 ///
-/// Then extracts boundary / principal / authorization context from headers,
-/// builds the typed [`CedarPolicyPublishApiRequest`], delegates to
-/// [`publish_cedar_policy_from_api`], and maps the outcome to an HTTP response.
-/// A [`tracing`] span is entered for every call so OTel instrumentation can
-/// pick up `cedar.policy.publish.status_code` and companion attributes.
+/// This handler then:
+/// 1. Extracts the [`VerifiedPrincipal`] inserted by the middleware (panic if
+///    absent — the middleware MUST run, enforced by [`build_router`]).
+/// 2. Runs the cross-tenant guard and PDP authorization (403 on denial).
+/// 3. Builds the typed [`CedarPolicyPublishApiRequest`] and delegates to
+///    [`publish_cedar_policy_from_api`], which ALSO requires a
+///    [`VerifiedPrincipal`] so in-process callers cannot bypass the gate.
+/// 4. Maps the outcome to an HTTP response with an OTel span.
 async fn publish_handler(
     State(state): State<SharedCedarPolicyRestState>,
     Path((path_policy_id, path_version)): Path<(String, String)>,
     headers: HeaderMap,
+    axum::extract::Extension(verified): axum::extract::Extension<VerifiedPrincipal>,
     Json(body): Json<PublishRequestBody>,
 ) -> Response {
     let span = tracing::info_span!(
@@ -295,41 +352,25 @@ async fn publish_handler(
     let tenant_id = header_str(&headers, "x-tenant-id");
     let idempotency_key = header_str(&headers, "idempotency-key");
 
-    // Extract principal headers (CROSS-CHECK ONLY — never the source of truth).
-    let principal_tenant_id = header_str(&headers, "x-principal-tenant-id");
-    let principal_id = header_str(&headers, "x-principal-id");
-
-    // ── FAIL-CLOSED authz gate (BEFORE any state mutation) ───────────────────
-    // Verify a real principal from the Authorization credential and authorize it
-    // for cedar.policy.publish on the target {policy_id, tenant}. A self-attested
-    // request that sets x-principal-*/x-authorization-* but presents no verified
-    // credential is rejected here with 401 — the AUTH-005 bypass is closed.
-    let verified = match enforce_publish_authz(
+    // ── Cross-tenant guard + PDP authorization ────────────────────────────────
+    // The bearer middleware already verified the principal. Here we assert the
+    // tenant axis and run the PDP decision. The self-attested x-principal-*
+    // headers are CROSS-CHECK inputs only — the verified identity is authoritative.
+    if let Err(response) = enforce_publish_authz(
         &state,
         &headers,
         &request_id,
         &path_policy_id,
         &tenant_id,
-        &principal_tenant_id,
+        &verified,
         &body,
     ) {
-        Ok(verified) => verified,
-        Err(response) => return response,
-    };
+        return response;
+    }
 
-    // The boundary request carries the VERIFIED principal identity, not the
-    // self-attested headers, so downstream binding/audit reflect the proven
-    // caller.
-    let principal_id = if verified.principal_id.is_empty() {
-        principal_id
-    } else {
-        verified.principal_id.clone()
-    };
-    let principal_tenant_id = if verified.tenant_id.is_empty() {
-        principal_tenant_id
-    } else {
-        verified.tenant_id.clone()
-    };
+    // Use the VERIFIED identity for audit/binding (not the self-attested headers).
+    let principal_id = verified.principal_id.clone();
+    let principal_tenant_id = verified.tenant_id.clone();
 
     // Extract authorization headers.
     let authz_decision_id = header_str(&headers, "x-authorization-decision-id");
@@ -369,6 +410,7 @@ async fn publish_handler(
     };
 
     match publish_cedar_policy_from_api(
+        &verified,
         &mut *policies_guard,
         &mut *idempotency_guard,
         api_request,
@@ -401,24 +443,23 @@ async fn publish_handler(
 // Fail-closed authz gate (task #124 / ADR-0572) — router layer only
 // ==========================================================================
 
-/// FAIL-CLOSED authz enforcement for the publish surface.
+/// FAIL-CLOSED authz enforcement for the publish surface (cross-tenant guard +
+/// PDP decision). Bearer verification has already been done in
+/// [`bearer_auth_middleware`] before the body was deserialized; the verified
+/// principal arrives as a parameter.
 ///
-/// 1. VERIFY a real principal from the `Authorization` credential via the
-///    [`crate::authz::PrincipalVerifier`] port (constant-time bearer compare;
-///    the `x-principal-*` headers are NEVER the source of truth) → 401 on any
-///    refusal.  This is where the self-attestation bypass is closed: a request
-///    with attacker-set `x-authorization-*` headers but no verified credential
-///    is rejected with 401, NOT accepted.
-/// 2. CROSS-CHECK the operator (`x-tenant-id`) and the self-attested principal
+/// 1. CROSS-CHECK the operator (`x-tenant-id`) and the self-attested principal
 ///    tenant against the VERIFIED tenant — a verified principal of tenant A may
 ///    not operate as tenant B (cross-tenant guard) → 403 on mismatch.
-/// 3. AUTHORIZE the verified principal for `cedar.policy.publish` on the target
-///    `{policy_id, resource_tenant}` via the [`crate::authz::PublishAuthorizer`]
-///    PDP port → 403 on deny/refusal.  The tenant axis is asserted by the
-///    decision (a verified principal alone never grants the tenant).
+/// 2. AUTHORIZE the verified principal for `cedar.policy.publish` on the
+///    target `{policy_id, scope, resource_tenant}` via the
+///    [`crate::authz::PublishAuthorizer`] PDP port → 403 on deny/refusal.
+///    The scope is passed EXPLICITLY so the PDP sees the true blast radius:
+///    a global policy affects ALL tenants and must NOT be presented as a
+///    tenant-scoped resource owned by the caller (which would silently
+///    authorize tenant-admins for platform-wide authz-policy control).
 ///
-/// Returns the [`VerifiedPrincipal`] on success, or a ready-to-return error
-/// [`Response`] (401/403) on any failure.
+/// Returns `Ok(())` on success, or `Err(Response)` (403) on any failure.
 #[allow(clippy::too_many_arguments)]
 fn enforce_publish_authz(
     state: &CedarPolicyRestState,
@@ -426,23 +467,12 @@ fn enforce_publish_authz(
     request_id: &str,
     path_policy_id: &str,
     operator_tenant_id: &str,
-    claimed_principal_tenant_id: &str,
+    verified: &VerifiedPrincipal,
     body: &PublishRequestBody,
-) -> Result<VerifiedPrincipal, Response> {
-    let credential = CallerCredential {
-        authorization: header_opt(headers, "authorization"),
-        claimed_principal_id: header_str(headers, "x-principal-id"),
-        claimed_tenant_id: claimed_principal_tenant_id.to_string(),
-    };
-
-    // (1) Verify the principal — unauthenticated → 401.
-    let verified = state
-        .authz
-        .verify_principal(&credential)
-        .map_err(|err| principal_verification_response(request_id, &err))?;
-
-    // (2) Cross-tenant guard — the verified tenant is authoritative. A caller
-    // attempting to act as a different operator/principal tenant is forbidden.
+) -> Result<(), Response> {
+    // (1) Cross-tenant guard — the verified tenant is authoritative. A caller
+    // attempting to act as a different operator or principal tenant is forbidden.
+    let claimed_principal_tenant_id = header_str(headers, "x-principal-tenant-id");
     if !operator_tenant_id.is_empty() && operator_tenant_id != verified.tenant_id {
         return Err(authorization_denied_response(request_id, "operator_tenant"));
     }
@@ -452,34 +482,73 @@ fn enforce_publish_authz(
         return Err(authorization_denied_response(request_id, "principal_tenant"));
     }
 
-    // (3) Authorize for cedar.policy.publish on {policy_id, resource_tenant}.
-    // The resource tenant is the scope tenant for tenant-scoped policies, else
-    // the operator tenant — so cross-tenant publish (principal of tenant A
-    // publishing tenant B's policy) must be denied by the PDP decision.
-    let resource = PublishResource {
-        policy_id: path_policy_id.to_string(),
-        tenant_id: publish_resource_tenant(body, &verified.tenant_id),
-    };
+    // (2) Reject unrecognised scope kinds BEFORE the PDP so the domain
+    // validation layer can return 400 (bad request) rather than silently
+    // mapping to Global and letting the PDP return 403.  The router layer only
+    // checks that the kind is one of the known values; the domain layer in
+    // `validate_cedar_policy_publish_request` → `parse_policy_scope` will
+    // re-validate and emit the typed error downstream.
+    match body.scope.kind.as_str() {
+        "tenant" | "global" => {}
+        _ => {
+            return Err(invalid_scope_kind_response(request_id, &body.scope.kind));
+        }
+    }
+
+    // (3) Authorize for cedar.policy.publish on {policy_id, scope, resource_tenant}.
+    // The scope is explicit in the resource so the PDP sees the true blast radius.
+    // A global-scoped policy applies to ALL tenants; the PDP must require
+    // platform-admin authority for it, not mere tenant-admin authority.
+    // Flattening global → caller's own tenant would be a CRITICAL escalation:
+    // it lets a tenant-A admin publish a policy that affects every tenant.
+    let resource = publish_resource(path_policy_id, body, &verified.tenant_id);
     state
         .authz
-        .ensure_authorized(&verified, &resource)
+        .ensure_authorized(verified, &resource)
         .map_err(|err| publish_authorization_response(request_id, &err))?;
 
-    Ok(verified)
+    Ok(())
 }
 
-/// The tenant a publish lands in: the scope tenant for a tenant-scoped policy,
-/// else the verified operator tenant (global scope is owned by the operator's
-/// tenant for the purpose of the authorization decision).
-fn publish_resource_tenant(body: &PublishRequestBody, operator_tenant: &str) -> String {
+/// Build the [`PublishResource`] for the PDP decision, carrying the scope
+/// **explicitly** so the PDP sees the true blast radius of the action.
+///
+/// - `scope.kind == "tenant"`: resource is `Tenant`-scoped; `tenant_id` is the
+///   scope tenant (so cross-tenant publish — principal A, scope tenant B — is
+///   denied by the PDP decision).
+/// - `scope.kind == "global"` (or any other value): resource is `Global`;
+///   `tenant_id` is empty. The PDP **must** key on `scope == Global` and
+///   require platform-admin authority. A global policy affects ALL tenants and
+///   MUST NOT be presented as a per-tenant resource (that would be the
+///   CRITICAL escalation: tenant-A admin → platform-wide authz-policy control).
+fn publish_resource(
+    policy_id: &str,
+    body: &PublishRequestBody,
+    verified_tenant_id: &str,
+) -> PublishResource {
     match body.scope.kind.as_str() {
-        "tenant" => body
-            .scope
-            .tenant_id
-            .clone()
-            .filter(|t| !t.trim().is_empty())
-            .unwrap_or_else(|| operator_tenant.to_string()),
-        _ => operator_tenant.to_string(),
+        "tenant" => {
+            let tenant_id = body
+                .scope
+                .tenant_id
+                .clone()
+                .filter(|t| !t.trim().is_empty())
+                .unwrap_or_else(|| verified_tenant_id.to_string());
+            PublishResource {
+                policy_id: policy_id.to_string(),
+                scope: PublishScope::Tenant,
+                tenant_id,
+            }
+        }
+        _ => {
+            // Global (and any unrecognised variant) — blank tenant, Global scope.
+            // The PDP must NOT authorize this as a per-tenant resource.
+            PublishResource {
+                policy_id: policy_id.to_string(),
+                scope: PublishScope::Global,
+                tenant_id: String::new(),
+            }
+        }
     }
 }
 
@@ -530,6 +599,27 @@ fn authorization_denied_response(request_id: &str, axis: &str) -> Response {
         },
     };
     (StatusCode::FORBIDDEN, Json(body)).into_response()
+}
+
+/// Build an HTTP 400 response for an unrecognised scope kind. The router layer
+/// rejects unrecognised scope kinds BEFORE the PDP decision so the caller sees
+/// a typed 400 (bad request) rather than a 403 from the PDP.
+fn invalid_scope_kind_response(request_id: &str, kind: &str) -> Response {
+    tracing::Span::current().record("cedar.policy.publish.status_code", 400u16);
+    let body = ErrorResponseDto {
+        error: ErrorBodyDto {
+            code: "CEDAR_POLICY_SCOPE_KIND_INVALID".to_string(),
+            message: "Policy scope kind must be global or tenant".to_string(),
+            message_localized: None,
+            request_id: request_id.to_string(),
+            details: vec![ErrorDetailDto {
+                field: "body.scope.kind".to_string(),
+                issue: format!("unrecognised scope kind: {kind:?}"),
+            }],
+            retry_after_seconds: None,
+        },
+    };
+    (StatusCode::BAD_REQUEST, Json(body)).into_response()
 }
 
 // ==========================================================================

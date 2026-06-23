@@ -1,7 +1,7 @@
 ---
 id: ADR-0572
 title: "Fail-closed authz for the Cedar policy publish control plane (AUTH-005 remediation)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23
@@ -22,7 +22,7 @@ milestone: W0
 
 ## Status
 
-**Proposed - 2026-06-23 (authored for founder sign-off; door: one-way).**
+**Accepted - 2026-06-23 (door: one-way).**
 
 ## Context
 
@@ -52,28 +52,45 @@ the boundary crate (clean architecture per ADR-0131; ports model the owned W5 de
 not change at cutover; the concrete cloud-iam PDP client + credential store are **adapters** that
 live outside this crate).
 
-1. **Verify a real principal.** A new `PrincipalVerifier` port verifies an unforgeable credential
-   into a `VerifiedPrincipal`. The reference adapter `ConfiguredBearerPrincipalVerifier` compares a
-   bearer token in **constant time** (`constant_time_eq`, never a naive `==`) against a configured
-   secret and binds the principal identity from configuration — NOT from the caller headers. A
-   cloud-iam mTLS/SPIFFE peer-SVID verifier (ADR-0561) is a drop-in alternate adapter. Construction
-   **refuses an empty secret** (a process that cannot prove a credential root must never
-   authenticate a caller — the cloud-pdp boot-refusal doctrine). Unauthenticated → **HTTP 401**.
+The new source file `iam/ports/policy-cedar-api/src/authz.rs` defines the ports, the reference
+adapter, and the constant-time comparison utility that implements this decision.
 
-2. **Authorize via a PDP port.** A new `PublishAuthorizer` port decides
-   `decide(principal, action = cedar.policy.publish, resource = {policy_id, tenant})`. The tenant
-   axis is asserted by the decision — a verified principal alone never grants the tenant; the
-   resource tenant is the scope tenant for tenant-scoped policies (so cross-tenant publish — a
-   principal of tenant A publishing tenant B's policy — is denied). Default-deny: any deny/refusal →
-   **HTTP 403**. The cloud-iam Cedar PDP client (ADR-0559) is the canonical W5 adapter.
+1. **Verify a real principal (middleware layer, before body deserialization).** A new
+   `PrincipalVerifier` port in `iam/ports/policy-cedar-api/src/authz.rs` verifies an unforgeable
+   credential into a `VerifiedPrincipal`. Bearer verification runs in a `route_layer` middleware
+   that operates on request Parts BEFORE the body is deserialized, so unauthenticated callers are
+   rejected with 401 before any JSON parse occurs. The reference adapter
+   `ConfiguredBearerPrincipalVerifier` (a **break-glass, single-principal adapter only** — NOT
+   multi-tenant production) compares a bearer token in **constant time** (`constant_time_eq`, never
+   a naive `==`) against a configured secret and binds the principal identity from configuration —
+   NOT from the caller headers. The production W5 adapter is the cloud-iam mTLS/SPIFFE peer-SVID
+   verifier (ADR-0561). Construction **refuses an empty secret** (boot-refusal doctrine).
+   Unauthenticated → **HTTP 401**.
 
-3. **Refuse to serve without a provider.** `CedarPolicyRestState` carries a **required, non-optional**
-   `CedarPolicyAuthzProvider`; there is no constructor that yields router state without it, so the
-   binary/router can never mount this control plane with a default-allow fallback.
+2. **Authorize via a PDP port with explicit scope.** A new `PublishAuthorizer` port decides
+   `decide(principal, action = cedar.policy.publish, resource = {policy_id, scope, tenant})`. The
+   `PublishResource` carries a `PublishScope` enum explicitly (`Tenant` or `Global`) so the PDP
+   sees the **true blast radius** of the action. A global policy applies to ALL tenants; it MUST
+   NOT be presented to the PDP as a per-tenant resource (that would silently authorize tenant-admins
+   for platform-wide policy control — the CRITICAL escalation that a prior implementation contained
+   by mapping `scope:global → operator_tenant`). Default-deny: any deny/refusal → **HTTP 403**. The
+   cloud-iam Cedar PDP client (ADR-0559) is the canonical W5 adapter. PDP panics are caught via
+   `catch_unwind` and mapped to `Refused → 403` (fail-closed; a panic must not produce a 500).
+
+3. **Refuse to serve without a provider.** `CedarPolicyRestState` carries a **required,
+   non-optional** `CedarPolicyAuthzProvider`; there is no constructor that yields router state
+   without it, so the binary/router can never mount this control plane with a default-allow
+   fallback.
 
 4. **Cross-tenant guard.** The verified tenant is authoritative: a request whose operator
    (`x-tenant-id`) or self-attested principal tenant differs from the verified tenant is denied
-   (403) before any state mutation.
+   (403) before the PDP decision.
+
+5. **Type-enforced boundary API precondition.** `publish_cedar_policy_from_api` (the public crate
+   API, `iam/ports/policy-cedar-api/src/lib.rs`) requires a `&VerifiedPrincipal` as its first
+   argument. This token is only mintable by the `PrincipalVerifier` port, so no in-process caller
+   or future route can reach the mutation without first completing principal verification. The REST
+   handler is not the only guard.
 
 The legacy `validate_authorization` header-consistency checks are retained as defense-in-depth after
 the verified-principal + PDP gate, not as the authorization boundary.

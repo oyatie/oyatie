@@ -92,15 +92,43 @@ pub enum PublishAuthorizationError {
     Refused,
 }
 
-/// The resource a publish decision is made against: the target policy and the
-/// tenant whose policy store it lands in. The tenant axis is asserted by the
-/// authorizer — a verified principal alone never grants the tenant.
+/// The scope of a publish resource: whether it affects one specific tenant or
+/// all tenants (global / platform-level). This is carried explicitly so the
+/// PDP sees the **true blast radius** of the action, not a flattened
+/// per-tenant representation.
+///
+/// A global policy applies to EVERY tenant (see `PolicyScope::Global` in
+/// `iam-policy-cedar-domain`). Presenting it to the PDP as tenant-scoped with
+/// the caller's own tenant would silently authorize tenant-admins for
+/// platform-wide policy control — the CRITICAL escalation this enum prevents.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PublishScope {
+    /// The policy is scoped to a single tenant identified by `tenant_id` in
+    /// the enclosing [`PublishResource`].
+    Tenant,
+    /// The policy is global (applies to ALL tenants). The PDP must treat this
+    /// as a platform-level resource requiring platform-admin authority, NOT as
+    /// a resource belonging to any individual tenant.
+    Global,
+}
+
+/// The resource a publish decision is made against: the target policy, the
+/// scope (tenant vs. global/platform-level), and the tenant when
+/// tenant-scoped. The scope is **explicit** so the PDP sees the true blast
+/// radius. The tenant axis is asserted by the authorizer — a verified
+/// principal alone never grants the tenant.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PublishResource {
     /// The policy id being published (from the path/body, already bound equal).
     pub policy_id: String, // data_class: INTERNAL_ONLY
-    /// The tenant whose policy store the version lands in (the operator tenant
-    /// for global scope, the scope tenant for tenant scope).
+    /// Whether this publish affects a single tenant or all tenants (global).
+    /// The PDP MUST distinguish these: global publish requires platform-admin
+    /// authority, not mere tenant-admin authority.
+    pub scope: PublishScope, // data_class: INTERNAL_ONLY
+    /// The tenant whose policy store the version lands in. For
+    /// [`PublishScope::Tenant`] this is the scope tenant; for
+    /// [`PublishScope::Global`] this field is an empty string (the PDP must
+    /// key on `scope == Global`, not this field).
     pub tenant_id: String, // data_class: INTERNAL_ONLY
 }
 
@@ -177,6 +205,10 @@ impl CedarPolicyAuthzProvider {
     /// Authorize the verified principal for the publish resource via the PDP
     /// port. Default-deny / fail-closed.
     ///
+    /// A PDP panic is caught and mapped to [`PublishAuthorizationError::Refused`]
+    /// (a panic unwind to the caller would produce an uncontrolled 500, violating
+    /// the fail-closed requirement that any refusal MUST be a 403 deny).
+    ///
     /// # Errors
     /// [`PublishAuthorizationError`] — caller maps to HTTP 403.
     pub fn ensure_authorized(
@@ -184,13 +216,29 @@ impl CedarPolicyAuthzProvider {
         principal: &VerifiedPrincipal,
         resource: &PublishResource,
     ) -> Result<(), PublishAuthorizationError> {
-        self.authorizer.ensure_authorized(principal, resource)
+        // Catch authorizer panics so they map to Refused (fail-closed → 403),
+        // not an uncontrolled unwind that would produce a 500.
+        // AssertUnwindSafe: we never observe the authorizer again after a panic
+        // (the Arc is dropped), so it is safe to assert unwind-safety here.
+        let authorizer = std::sync::Arc::clone(&self.authorizer);
+        let principal = principal.clone();
+        let resource = resource.clone();
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(move || {
+            authorizer.ensure_authorized(&principal, &resource)
+        }))
+        .unwrap_or(Err(PublishAuthorizationError::Refused))
     }
 }
 
 /// Constant-time byte comparison (no early-exit) so a bearer compare cannot be
 /// timing-probed. Mirrors `intelligence/adapters/rest/src/lib.rs`
 /// `constant_time_eq` — NEVER use a naive `==` on secret material.
+///
+/// **Residual:** the length of both inputs is visible from the XOR seed
+/// (`a.len() ^ b.len()`), so an attacker who can probe many lengths still
+/// learns whether lengths match. This is the same residual as the repo
+/// reference and is accepted; in practice bearer tokens are fixed-length
+/// secrets. Use a MAC (HMAC-SHA256) if length-hiding is required.
 #[must_use]
 pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     let max_len = a.len().max(b.len());
@@ -207,11 +255,22 @@ pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 /// constant-time compare against a configured secret, then binds the principal
 /// identity from the configured mapping (NOT from the caller headers).
 ///
-/// This is the in-process, TLS-terminator-agnostic verify→bind→deny logic; a
-/// cloud-iam mTLS/SPIFFE peer-SVID verifier (ADR-0561) is the drop-in W5
-/// alternate. Construction REFUSES an empty bearer secret so a provider that
-/// cannot prove a credential root can never authenticate a caller (mirrors the
-/// cloud-pdp boot-refusal doctrine).
+/// ## ⚠ BREAK-GLASS ONLY — NOT multi-tenant production
+///
+/// This adapter binds ONE static `(principal_id, tenant_id)` pair to a single
+/// shared secret. It is suitable only as a **single-principal break-glass**
+/// credential (e.g. a deploy-time operator token for a single known tenant)
+/// or for integration tests. In multi-tenant production, every caller presents
+/// a distinct credential bound to their own tenant — a single shared secret
+/// cannot distinguish them, so all callers would be granted the same identity.
+///
+/// The production W5 adapter is the cloud-iam mTLS/SPIFFE peer-SVID verifier
+/// (ADR-0561), which derives the principal and tenant from the verified peer
+/// certificate, not from a configured mapping.
+///
+/// Construction REFUSES an empty bearer secret so a provider that cannot prove
+/// a credential root can never authenticate a caller (mirrors the cloud-pdp
+/// boot-refusal doctrine).
 pub struct ConfiguredBearerPrincipalVerifier {
     bearer_secret: String,            // data_class: SECRET
     bound_principal_id: String,       // data_class: INTERNAL_ONLY

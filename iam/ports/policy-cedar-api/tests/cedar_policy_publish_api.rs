@@ -7,7 +7,7 @@ use iam_policy_cedar_api::{
     CedarPolicyApiAuthorization, CedarPolicyApiBoundaryContext, CedarPolicyApiPrincipal,
     CedarPolicyPublishApiError, CedarPolicyPublishApiRequest, CedarPolicyPublishApiStatus,
     CedarPolicyPublishIdempotencyLedger, CedarPolicyPublishRequest, CedarPolicyRequiredAttribute,
-    CedarPolicyRuleRef, CedarPolicyScopeRef, publish_cedar_policy_from_api,
+    CedarPolicyRuleRef, CedarPolicyScopeRef, authz::VerifiedPrincipal, publish_cedar_policy_from_api,
 };
 use iam_policy_cedar_domain::{AuthorizationQuery, AuthorizationSubject, PolicySet};
 use std::collections::BTreeMap;
@@ -17,6 +17,16 @@ const IDEMPOTENCY_KEY: &str = "idem_cedar_policy_001";
 const OPERATOR_TENANT_ID: &str = "ten_platform";
 const POLICY_ID: &str = "pol_tenant_admin";
 const VERSION: &str = "1.0.0";
+
+/// Test helper: a pre-verified platform principal (the type-level precondition
+/// for `publish_cedar_policy_from_api`). In production this token is minted by
+/// the `PrincipalVerifier` port after credential verification.
+fn test_principal() -> VerifiedPrincipal {
+    VerifiedPrincipal {
+        principal_id: "usr_platform_admin".to_string(),
+        tenant_id: OPERATOR_TENANT_ID.to_string(),
+    }
+}
 
 #[test]
 fn cedar_policy_publish_contract_runtime_constants_are_covered() {
@@ -39,9 +49,9 @@ fn cedar_policy_publish_publishes_tenant_policy_and_replays_idempotently() {
     let mut idempotency = CedarPolicyPublishIdempotencyLedger::default();
     let request = policy_request(REQUEST_ID, IDEMPOTENCY_KEY, POLICY_ID, VERSION);
 
-    let first = publish_cedar_policy_from_api(&mut policies, &mut idempotency, request.clone())
+    let first = publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, request.clone())
         .expect("first policy publish succeeds");
-    let second = publish_cedar_policy_from_api(&mut policies, &mut idempotency, request)
+    let second = publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, request)
         .expect("same policy publish request replays");
 
     assert_eq!(first, second);
@@ -71,6 +81,7 @@ fn cedar_policy_publish_supports_supersedes_chain_for_new_semver_versions() {
     let mut policies = PolicySet::default();
     let mut idempotency = CedarPolicyPublishIdempotencyLedger::default();
     publish_cedar_policy_from_api(
+        &test_principal(),
         &mut policies,
         &mut idempotency,
         policy_request(
@@ -89,7 +100,7 @@ fn cedar_policy_publish_supports_supersedes_chain_for_new_semver_versions() {
         "1.1.0",
     );
     request.body.supersedes = Some(VERSION.to_string());
-    let response = publish_cedar_policy_from_api(&mut policies, &mut idempotency, request)
+    let response = publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, request)
         .expect("new version can supersede prior version");
 
     assert_eq!(response.data.version, "1.1.0");
@@ -112,7 +123,7 @@ fn cedar_policy_publish_supports_global_scope_without_tenant_binding() {
         tenant_id: None,
     };
 
-    let response = publish_cedar_policy_from_api(&mut policies, &mut idempotency, request)
+    let response = publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, request)
         .expect("global policy publish succeeds");
 
     assert_eq!(response.data.scope.kind, "global");
@@ -142,7 +153,7 @@ fn cedar_policy_publish_rejects_path_body_scope_and_effect_drift_before_kernel()
     );
     path_drift.body.policy_id = "pol_other".to_string();
 
-    let path_error = publish_cedar_policy_from_api(&mut policies, &mut idempotency, path_drift)
+    let path_error = publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, path_drift)
         .expect_err("path/body policy drift is rejected");
     assert!(matches!(
         path_error,
@@ -158,7 +169,7 @@ fn cedar_policy_publish_rejects_path_body_scope_and_effect_drift_before_kernel()
     );
     invalid_scope.body.scope.kind = "workspace".to_string();
     assert!(matches!(
-        publish_cedar_policy_from_api(&mut policies, &mut idempotency, invalid_scope),
+        publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, invalid_scope),
         Err(CedarPolicyPublishApiError::InvalidScopeKind { .. })
     ));
 
@@ -170,7 +181,7 @@ fn cedar_policy_publish_rejects_path_body_scope_and_effect_drift_before_kernel()
     );
     invalid_effect.body.rules[0].effect = "permit".to_string();
     assert!(matches!(
-        publish_cedar_policy_from_api(&mut policies, &mut idempotency, invalid_effect),
+        publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, invalid_effect),
         Err(CedarPolicyPublishApiError::InvalidRuleEffect { .. })
     ));
     assert!(idempotency.is_empty());
@@ -189,7 +200,7 @@ fn cedar_policy_publish_separates_missing_principal_from_denied_authorization() 
     unauthenticated.principal.principal_id.clear();
 
     let authn_error =
-        publish_cedar_policy_from_api(&mut policies, &mut idempotency, unauthenticated)
+        publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, unauthenticated)
             .expect_err("missing principal is authentication failure");
     assert_eq!(
         authn_error.cedar_policy_publish_status(),
@@ -203,7 +214,7 @@ fn cedar_policy_publish_separates_missing_principal_from_denied_authorization() 
         VERSION,
     );
     denied.authorization.allowed_surfaces = vec!["identity.user.upsert".to_string()];
-    let authz_error = publish_cedar_policy_from_api(&mut policies, &mut idempotency, denied)
+    let authz_error = publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, denied)
         .expect_err("missing cedar.policy.publish grant is authorization failure");
     assert!(
         matches!(authz_error, CedarPolicyPublishApiError::AuthorizationDenied { ref surface } if surface == CEDAR_POLICY_PUBLISH_SURFACE)
@@ -225,10 +236,11 @@ fn cedar_policy_publish_maps_duplicate_invalid_semver_empty_rules_and_reused_ide
         POLICY_ID,
         VERSION,
     );
-    publish_cedar_policy_from_api(&mut policies, &mut idempotency, request.clone())
+    publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, request.clone())
         .expect("first policy publish succeeds");
 
     let duplicate = publish_cedar_policy_from_api(
+        &test_principal(),
         &mut policies,
         &mut idempotency,
         policy_request(
@@ -252,7 +264,7 @@ fn cedar_policy_publish_maps_duplicate_invalid_semver_empty_rules_and_reused_ide
         "v1",
     );
     assert!(matches!(
-        publish_cedar_policy_from_api(&mut policies, &mut idempotency, invalid_semver),
+        publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, invalid_semver),
         Err(CedarPolicyPublishApiError::Policy(_))
     ));
 
@@ -264,12 +276,12 @@ fn cedar_policy_publish_maps_duplicate_invalid_semver_empty_rules_and_reused_ide
     );
     empty_rules.body.rules.clear();
     assert!(matches!(
-        publish_cedar_policy_from_api(&mut policies, &mut idempotency, empty_rules),
+        publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, empty_rules),
         Err(CedarPolicyPublishApiError::Policy(_))
     ));
 
     request.body.rules[0].action = "tenant.settings.read".to_string();
-    let reused = publish_cedar_policy_from_api(&mut policies, &mut idempotency, request)
+    let reused = publish_cedar_policy_from_api(&test_principal(), &mut policies, &mut idempotency, request)
         .expect_err("same idempotency key with changed body is rejected");
     assert_eq!(
         reused.cedar_policy_publish_status(),

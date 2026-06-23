@@ -25,7 +25,7 @@ use tower::ServiceExt as _;
 
 use iam_policy_cedar_api::authz::{
     CedarPolicyAuthzProvider, ConfiguredBearerPrincipalVerifier, PublishAuthorizationError,
-    PublishAuthorizer, PublishResource, VerifiedPrincipal,
+    PublishAuthorizer, PublishResource, PublishScope, VerifiedPrincipal,
 };
 use iam_policy_cedar_api::rest::{CedarPolicyRestState, build_router};
 
@@ -44,9 +44,17 @@ const BEARER_HEADER: &str = "Bearer s3cr3t-cedar-publish-token";
 
 // ── Test authz provider ───────────────────────────────────────────────────────
 
-/// A [`PublishAuthorizer`] that allows publish only when the verified
-/// principal's tenant owns the resource tenant (so cross-tenant / wrong-resource
-/// is a 403). The PDP decision asserts the tenant axis.
+/// A [`PublishAuthorizer`] that models a platform-admin PDP decision:
+/// - `Tenant`-scoped publish: allowed only when the verified principal's tenant
+///   owns the resource tenant (cross-tenant publish → denied).
+/// - `Global`-scoped publish: allowed only for the platform tenant principal
+///   (platform-admin authority required; a non-platform principal → denied).
+///
+/// This is the authorizer that proves the scope is **explicit** in the
+/// resource: the test `publish_global_scope_allowed_for_platform_admin` passes
+/// because the authorizer grants `Global`, while
+/// `publish_global_scope_denied_for_tenant_admin_returns_403` uses an
+/// authorizer that denies `Global` even when it would allow `Tenant`.
 struct PlatformTenantAuthorizer;
 
 impl PublishAuthorizer for PlatformTenantAuthorizer {
@@ -55,11 +63,66 @@ impl PublishAuthorizer for PlatformTenantAuthorizer {
         principal: &VerifiedPrincipal,
         resource: &PublishResource,
     ) -> Result<(), PublishAuthorizationError> {
-        if principal.tenant_id == TENANT_ID && resource.tenant_id == TENANT_ID {
-            Ok(())
-        } else {
-            Err(PublishAuthorizationError::Denied)
+        match &resource.scope {
+            PublishScope::Tenant => {
+                // Tenant-scoped: principal must own the resource tenant.
+                if principal.tenant_id == TENANT_ID && resource.tenant_id == TENANT_ID {
+                    Ok(())
+                } else {
+                    Err(PublishAuthorizationError::Denied)
+                }
+            }
+            PublishScope::Global => {
+                // Global-scoped: requires platform-admin authority (principal
+                // must be the platform tenant). A mere tenant-A admin sending
+                // scope:global must be denied by a tenant-A-only authorizer.
+                if principal.tenant_id == TENANT_ID {
+                    Ok(())
+                } else {
+                    Err(PublishAuthorizationError::Denied)
+                }
+            }
         }
+    }
+}
+
+/// A [`PublishAuthorizer`] that allows ONLY tenant-scoped publish for the
+/// platform tenant, but DENIES global-scoped publish entirely. Used to prove
+/// the CRITICAL fix: a principal of tenant-A sending `scope:global` is denied
+/// even when the same principal is allowed for tenant-A-scoped publish — i.e.,
+/// global publish is NOT silently authorized as a per-tenant resource.
+struct TenantOnlyAuthorizer;
+
+impl PublishAuthorizer for TenantOnlyAuthorizer {
+    fn ensure_authorized(
+        &self,
+        principal: &VerifiedPrincipal,
+        resource: &PublishResource,
+    ) -> Result<(), PublishAuthorizationError> {
+        match &resource.scope {
+            // Allow tenant-scoped publish for the platform tenant.
+            PublishScope::Tenant
+                if principal.tenant_id == TENANT_ID && resource.tenant_id == TENANT_ID =>
+            {
+                Ok(())
+            }
+            // Deny everything else — including Global, even for the platform tenant.
+            _ => Err(PublishAuthorizationError::Denied),
+        }
+    }
+}
+
+/// A [`PublishAuthorizer`] that panics on every call. Used to prove that a
+/// panicking PDP is mapped to 403 (fail-closed), not 500.
+struct PanicAuthorizer;
+
+impl PublishAuthorizer for PanicAuthorizer {
+    fn ensure_authorized(
+        &self,
+        _principal: &VerifiedPrincipal,
+        _resource: &PublishResource,
+    ) -> Result<(), PublishAuthorizationError> {
+        panic!("PDP panic: simulating an authorizer that panics");
     }
 }
 
@@ -100,6 +163,24 @@ fn fresh_router() -> axum::Router {
 fn deny_all_router() -> axum::Router {
     let state = Arc::new(CedarPolicyRestState::with_authz(authz_provider(Arc::new(
         DenyAllAuthorizer,
+    ))));
+    build_router(state)
+}
+
+/// Build a router whose authorizer allows tenant-scoped publish but DENIES
+/// global-scoped publish. Used for the CRITICAL escalation RED test.
+fn tenant_only_router() -> axum::Router {
+    let state = Arc::new(CedarPolicyRestState::with_authz(authz_provider(Arc::new(
+        TenantOnlyAuthorizer,
+    ))));
+    build_router(state)
+}
+
+/// Build a router whose authorizer panics on every call. Used to prove
+/// panicking PDP maps to 403 (fail-closed).
+fn panic_authorizer_router() -> axum::Router {
+    let state = Arc::new(CedarPolicyRestState::with_authz(authz_provider(Arc::new(
+        PanicAuthorizer,
     ))));
     build_router(state)
 }
@@ -257,21 +338,22 @@ async fn publish_path_body_policy_id_mismatch_returns_400() {
 
 #[tokio::test]
 async fn publish_authorization_denied_returns_403() {
-    // Surface not in the allowed list (legacy self-attested authz cross-check
-    // still runs as defense-in-depth after the PDP gate passes).
-    let (status, resp_body) = post_publish_with_overrides(
-        fresh_router(),
+    // Proves the PDP seam: the deny comes from the PDP authorizer (DenyAllAuthorizer
+    // via deny_all_router()), NOT from the legacy x-authorization-surfaces
+    // header-consistency check. A valid bearer is presented so the principal is
+    // verified; the deny is purely from the PDP decision.
+    let (status, resp_body) = post_publish(
+        deny_all_router(),
         POLICY_ID,
         VERSION,
         valid_body(POLICY_ID, VERSION),
-        &[("x-authorization-surfaces", "identity.user.upsert")],
     )
     .await;
 
     assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(
         resp_body["error"]["code"],
-        "CEDAR_POLICY_AUTHORIZATION_DENIED"
+        "CEDAR_POLICY_PUBLISH_FORBIDDEN"
     );
 }
 
@@ -498,6 +580,8 @@ async fn cross_tenant_publish_attempt_is_denied_by_pdp() {
 #[tokio::test]
 async fn publish_authenticated_but_pdp_denies_returns_403() {
     // Valid bearer (authenticated) but the PDP authorizer denies → 403.
+    // This proves the PDP seam (not legacy header checks): the deny comes from
+    // DenyAllAuthorizer which would otherwise pass header-consistency checks.
     let (status, resp_body) = post_publish(
         deny_all_router(),
         POLICY_ID,
@@ -511,4 +595,65 @@ async fn publish_authenticated_but_pdp_denies_returns_403() {
         resp_body["error"]["code"],
         "CEDAR_POLICY_PUBLISH_FORBIDDEN"
     );
+}
+
+// ── CRITICAL escalation RED test (task #124 / ADR-0572) ──────────────────────
+//
+// The CRITICAL fix: global-scope publish is presented to the PDP with
+// `PublishScope::Global`, NOT flattened to the caller's own tenant. A
+// tenant-admin who can publish tenant-scoped policies MUST NOT be able to
+// publish a global policy just by setting `scope:global`.
+
+#[tokio::test]
+async fn publish_global_scope_denied_for_tenant_admin_returns_403() {
+    // RED test for the CRITICAL cross-tenant escalation fix.
+    //
+    // Setup: TenantOnlyAuthorizer ALLOWS tenant-scoped publish for ten_platform
+    // but DENIES global-scoped publish (even for the same principal).
+    //
+    // Attack: a verified ten_platform principal sends scope:global. Before the
+    // fix, `publish_resource_tenant` mapped global → operator_tenant (ten_platform),
+    // so the PDP was asked about {policy_id, tenant=ten_platform} which the
+    // authorizer ALLOWS — granting platform-wide authz control. After the fix,
+    // the PDP is asked about {policy_id, scope=Global} which TenantOnlyAuthorizer
+    // DENIES → 403. This test FAILS if the global→own-tenant flattening returns.
+    let mut global_body = valid_body("pol_global_attack", VERSION);
+    global_body["policy_id"] = serde_json::json!("pol_global_attack");
+    global_body["scope"] = serde_json::json!({ "kind": "global" });
+
+    let (status, resp_body) = post_publish(
+        tenant_only_router(),
+        "pol_global_attack",
+        VERSION,
+        global_body,
+    )
+    .await;
+
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "global-scope publish must be denied by an authorizer that only allows tenant-scope: \
+         this FAILS if global is silently flattened to the caller's own tenant (the CRITICAL escalation)"
+    );
+    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
+}
+
+#[tokio::test]
+async fn publish_pdp_panic_returns_403_not_500() {
+    // MEDIUM fix: a panicking PDP must be caught and mapped to 403 (fail-closed)
+    // NOT an uncontrolled 500. This proves catch_unwind wraps the authorizer call.
+    let (status, resp_body) = post_publish(
+        panic_authorizer_router(),
+        POLICY_ID,
+        VERSION,
+        valid_body(POLICY_ID, VERSION),
+    )
+    .await;
+
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "a panicking PDP must fail-closed to 403, not an uncontrolled 500"
+    );
+    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
 }
