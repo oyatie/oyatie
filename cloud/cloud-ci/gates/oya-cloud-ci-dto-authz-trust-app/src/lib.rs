@@ -61,20 +61,26 @@
 //!     NO authorization verdict).
 //!   - A function that BOTH reads an authorization DTO AND calls a PDP port is GREEN: the PDP call
 //!     is the real decision; the DTO read is a redundant precondition, not the verdict.
-//!   - **Sibling-PDP-delegation (ADR-0591 split-decision), policy-gated GREEN**: when policy sets
-//!     `recognize_sibling_pdp_delegation: true`, a function that reads a caller-supplied
-//!     `*Authorization` DTO and makes NO in-body PDP call is GREEN if it is TRANSITIVELY REACHABLE,
-//!     via the same-file call graph, from a function that calls a `pdp_decision_idents` port in its
-//!     own body. This is the benign mirror of the documented opaque-helper limit: the authoritative
-//!     server-side PDP `ensure_authorized`/`decide` lives in the use-case root, which (directly or
-//!     through an intermediate validator — e.g. `generate_*_from_api` -> `validate_*_request` ->
-//!     `validate_authorization_correlation`) invokes the flagged function as a sub-step — a residual
-//!     NON-AUTHORITATIVE correlation-consistency cross-check (it NEVER grants). The recognition is
-//!     bound to the actual CALL GRAPH (a PDP-guarded path reaches the flagged fn), NOT type
-//!     coincidence, so an unrelated PDP call elsewhere in the file cannot launder a forgeable check.
-//!     LIMIT: deliberately routing a forgeable check through a PDP-calling caller that does not let
-//!     the PDP decide first is an intentional evasion (same residual class as the dead-code limit;
-//!     review owns it).
+//!
+//! ## Split-decision allowlist (the precise, non-launderable FP mechanism — NOT a heuristic)
+//! A SMALL number of genuine false positives are residual NON-AUTHORITATIVE
+//! correlation-consistency cross-checks (ADR-0591 split-decision): a function that reads a
+//! caller-supplied `*Authorization` DTO and only returns `Ok`/`Err` on internal consistency (it
+//! NEVER grants), while the AUTHORITATIVE server-side PDP `ensure_authorized`/`decide` that gates the
+//! operation lives elsewhere in the same use-case and dominates every path that reaches the flagged
+//! function. These are cleared by an EXPLICIT, CURATED `split_decision_allowlist` in policy DATA — a
+//! tiny hand-audited list, NOT a name-reachability heuristic. Each entry is the SAME exact-key shape
+//! as the baseline (`<file>#<fn>:<body_hash>`), so any body change re-flags it: the allowlist is
+//! shrink-only / non-launderable — it cannot suppress a DIFFERENT function that merely shares a name,
+//! and it cannot suppress a body edited after the human audit. An allowlist key that matches no live
+//! instance self-cleans via `DAT-STALE-SPLIT-DECISION-ALLOWLIST`.
+//!
+//! The earlier `recognize_sibling_pdp_delegation` name-reachability heuristic was REMOVED as UNSOUND:
+//! it suppressed by function-NAME call-graph reachability rather than by proving a PDP decision
+//! dominates the guarded operation, so a dead-code `if false { decide() }` PDP root + a call edge, a
+//! same-named overload in a DIFFERENT impl block reached from a PDP root, and a single-file
+//! `decide_access` bypass all laundered a genuinely-forgeable check to GREEN. The explicit allowlist
+//! suppresses ONLY the exact audited `file#fn:body_hash` bodies and nothing else.
 //!
 //! ## Baseline key: `<file>#<fn>:<body_hash>`
 //! A 32-hex-char FNV-1a body-content hash is appended to every baseline key so that a NEW function
@@ -110,6 +116,8 @@
 //!   decision (reads an authorization-DTO field + no PDP decision-port call), and its key is not in
 //!   the frozen baseline.
 //! - `DAT-STALE-BASELINE` — a frozen-baseline key matches no live instance (shrink-only self-clean).
+//! - `DAT-STALE-SPLIT-DECISION-ALLOWLIST` — a `split_decision_allowlist` key matches no live instance
+//!   (the audited body was fixed/removed/edited; remove or re-audit the entry — non-launderable).
 //! - `DAT-EMPTY-SCAN` — fewer functions scanned than `min_expected_functions` (catches a broken
 //!   glob / CWD / collect that would otherwise be a false-green).
 //! - `DAT-POLICY-GATE-ID-MISMATCH` — the policy `gate_id` is not [`GATE_ID`] (fail-closed).
@@ -138,16 +146,18 @@ pub const REMEDIATION_DOCTRINE: &str =
      authorization DTO/header as the verdict.";
 
 /// The blocking + structural violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 5] = [
+pub const VIOLATION_CODES: [&str; 6] = [
     "DAT-CALLER-SUPPLIED-AUTHZ-TRUST",
     "DAT-STALE-BASELINE",
+    "DAT-STALE-SPLIT-DECISION-ALLOWLIST",
     "DAT-EMPTY-SCAN",
     "DAT-POLICY-GATE-ID-MISMATCH",
     "DAT-POLICY-MALFORMED",
 ];
 
 /// The per-instance finding code whose keys are the BASELINE vocabulary. The policy-level codes
-/// (`DAT-EMPTY-SCAN`, `DAT-POLICY-*`, `DAT-STALE-BASELINE`) are NOT baseline keys.
+/// (`DAT-EMPTY-SCAN`, `DAT-POLICY-*`, `DAT-STALE-BASELINE`, `DAT-STALE-SPLIT-DECISION-ALLOWLIST`) are
+/// NOT baseline keys.
 pub const INSTANCE_FINDING_CODE: &str = "DAT-CALLER-SUPPLIED-AUTHZ-TRUST";
 
 /// The sentinel key for codes that are policy-level rather than per-instance.
@@ -286,21 +296,6 @@ struct SignatureConfig {
     /// since v2 FN-06 inversion). Kept in policy for signal narrative; Vec::contains /
     /// binary_search / is_superset evade an operator-based gate.
     self_compare_tokens: Vec<String>,
-    /// SIBLING-PDP-DELEGATION recognition (default OFF for portability). When true, a function that
-    /// reads a caller-supplied `*Authorization` DTO and makes NO in-body PDP call is NOT flagged IF it
-    /// is TRANSITIVELY REACHABLE, via the SAME-FILE call graph, from a function that DOES make a PDP
-    /// decision-port call in its own body. This models the ADR-0591 split-decision remediation: the
-    /// authoritative server-side PDP `decide`/`ensure_authorized` lives in the use-case root, which
-    /// (directly or through an intermediate validator) invokes the flagged function as a sub-step — a
-    /// residual NON-AUTHORITATIVE correlation-consistency cross-check ("they NEVER grant"). Transitive
-    /// because the real corpus chains `generate_*_from_api` (PDP) -> `validate_*_request` ->
-    /// `validate_authorization_correlation`. The recognition is bound to the actual CALL GRAPH (a
-    /// PDP-guarded path reaches the flagged fn), NOT to type coincidence, so an unrelated PDP call
-    /// elsewhere in the file cannot launder a forgeable check no PDP-guarded path reaches. Documented
-    /// LIMIT: deliberately routing a forgeable check through a PDP-calling caller that does NOT let
-    /// the PDP decide first is the same intentional-evasion residual as the dead-code limit (code
-    /// review owns it); for the dominant remediation corpus the call-graph bind is precise.
-    recognize_sibling_pdp_delegation: bool,
 }
 
 impl SignatureConfig {
@@ -345,10 +340,6 @@ impl SignatureConfig {
                 }
             },
             self_compare_tokens: string_list(policy, "self_compare_tokens"),
-            recognize_sibling_pdp_delegation: policy
-                .get("recognize_sibling_pdp_delegation")
-                .and_then(Value::as_bool)
-                .unwrap_or(false),
         }
     }
 }
@@ -365,62 +356,6 @@ fn extract_instances(file: &str, text: &str, cfg: &SignatureConfig) -> (Vec<Valu
     let comment_stripped = strip_comments_only(text);
     let test_spans = cfg_test_spans(masked);
     let fns = fn_decls(masked);
-
-    // SIBLING-PDP-DELEGATION (ADR-0591 split-decision recognition). Precompute, once per file, the
-    // set of function NAMES that are TRANSITIVELY REACHABLE (via the in-file call graph) from a
-    // PDP-guarded function — i.e. a function whose own body makes a PDP decision-port call. A flagged
-    // function reachable from such a root is a sub-step of a PDP-guarded use-case (the root lets the
-    // server-side PDP decide), so its residual non-authoritative correlation check is NOT the
-    // forged-blob antipattern. Transitivity matters: the real corpus chains
-    // generate_*_from_api (PDP) -> validate_*_request -> validate_authorization_correlation. Bound to
-    // the actual CALL GRAPH (not type coincidence), so an unrelated PDP call elsewhere in the file
-    // cannot launder a forgeable check that no PDP-guarded path reaches. Empty (no-op) unless the
-    // policy opts in via recognize_sibling_pdp_delegation.
-    let pdp_guarded_delegate_fns: BTreeSet<String> = if cfg.recognize_sibling_pdp_delegation {
-        // Production (non-test) function decls only.
-        let prod: Vec<&FnDecl> = fns
-            .iter()
-            .filter(|d| {
-                !test_spans
-                    .iter()
-                    .any(|(lo, hi)| d.body_open >= *lo && d.body_open < *hi)
-            })
-            .collect();
-        // Roots: functions that call a PDP decision-port ident in their own body.
-        let mut reachable: BTreeSet<String> = BTreeSet::new();
-        let mut frontier: Vec<String> = Vec::new();
-        for d in &prod {
-            let body = &masked[d.body_open..d.body_end];
-            if cfg
-                .pdp_decision_idents
-                .iter()
-                .any(|ident| body_calls_pdp(body, ident))
-            {
-                frontier.push(d.name.clone());
-            }
-        }
-        // BFS the in-file call graph: every callee of a reachable function is itself reachable. The
-        // ROOTS themselves are PDP-guarded (never flagged anyway); we mark their callees as
-        // delegated. A callee that is also a root simply re-expands (idempotent via `reachable`).
-        while let Some(caller_name) = frontier.pop() {
-            // Find every decl with this name (a file may overload across impls) and expand its callees.
-            for d in prod.iter().filter(|d| d.name == caller_name) {
-                let body = &masked[d.body_open..d.body_end];
-                for callee in &prod {
-                    if callee.name != caller_name
-                        && !reachable.contains(&callee.name)
-                        && body_calls_fn(body, &callee.name)
-                    {
-                        reachable.insert(callee.name.clone());
-                        frontier.push(callee.name.clone());
-                    }
-                }
-            }
-        }
-        reachable
-    } else {
-        BTreeSet::new()
-    };
 
     let mut out = Vec::new();
     let mut scanned: u64 = 0;
@@ -482,17 +417,11 @@ fn extract_instances(file: &str, text: &str, cfg: &SignatureConfig) -> (Vec<Valu
             continue;
         }
 
-        // SIBLING-PDP-DELEGATION (ADR-0591): if the policy opts in and this function is CALLED from a
-        // PDP-guarded caller in the same file, the authoritative decision is delegated to that caller
-        // (it lets the server-side PDP decide); this residual is a NON-AUTHORITATIVE correlation
-        // check, not the forged-blob antipattern. Bound to the actual call graph so an unrelated
-        // in-file PDP call cannot launder a forgeable check.
-        if cfg.recognize_sibling_pdp_delegation
-            && pdp_guarded_delegate_fns.contains(&decl.name)
-        {
-            continue;
-        }
-
+        // NOTE: genuine split-decision FALSE POSITIVES (a residual NON-AUTHORITATIVE correlation
+        // check whose authoritative PDP decision lives elsewhere in the use-case) are NOT suppressed
+        // here. The collector reports EVERY flagged instance with its exact `file#fn:body_hash` key;
+        // the EXPLICIT `split_decision_allowlist` in policy DATA suppresses ONLY the audited keys in
+        // the pure evaluator ([`evaluate_keyed`]). There is NO name-reachability heuristic.
         let key = instance_key(file, &decl.name, body);
         let signal = build_signal(
             has_dto_param,
@@ -619,29 +548,6 @@ fn signature_has_authz_dto_param(sig: &str, dto_suffixes: &[String]) -> bool {
     false
 }
 
-/// Whether a code-only `body` makes a whole-token CALL to a function named `name` — `name(`
-/// (whitespace tolerated before `(`), with a non-ident left boundary so `do_name(` / `xname(` do not
-/// match and a `.name(` method call on the same name is accepted (the leading `.` is a non-ident
-/// boundary). Used for SIBLING-PDP-DELEGATION call-graph binding.
-fn body_calls_fn(body: &str, name: &str) -> bool {
-    if name.is_empty() {
-        return false;
-    }
-    let bytes = body.as_bytes();
-    let mut from = 0usize;
-    while let Some(rel) = body[from..].find(name) {
-        let at = from + rel;
-        from = at + name.len();
-        let before_ok = at == 0 || !is_ident_byte(bytes[at - 1]);
-        let after = at + name.len();
-        let after_ok = body[after..].trim_start().starts_with('(');
-        if before_ok && after_ok {
-            return true;
-        }
-    }
-    false
-}
-
 /// Read a parameter TYPE expression starting just past the `:` — up to the next top-level comma
 /// (depth-aware over `<>`, `()`, `[]`), so a generic `Vec<Foo>` type is read whole.
 fn read_param_type(after_colon: &str) -> &str {
@@ -748,6 +654,7 @@ fn body_reads_field(body: &str, field: &str) -> bool {
 /// **Known limits (documented):**
 /// - Dead-code evasion: `if false { .decide() }` suppresses this check. No reachability analysis.
 /// - Wrong-receiver evasion: `other_svc.ensure_authorized()` on an unrelated receiver also suppresses.
+///
 /// Both are acceptable residuals for the dominant corpus shape this gate addresses.
 fn body_calls_pdp(body: &str, ident: &str) -> bool {
     // Pre-formed call tokens (those containing `(` or starting with `.`) are matched literally.
@@ -1274,6 +1181,13 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     let frozen_baseline: BTreeSet<String> =
         string_list(policy, "frozen_dto_authz_trust_instances").into_iter().collect();
 
+    // EXPLICIT split-decision allowlist (the precise, non-launderable FP mechanism — NOT a
+    // heuristic). Each key is the SAME `<file>#<fn>:<body_hash>` exact shape as the baseline, so any
+    // body change re-flags the function. A key here suppresses ONLY the exact audited body; it is a
+    // tiny curated list of genuine FALSE POSITIVES (residual non-authoritative correlation checks
+    // whose authoritative PDP decision dominates the operation elsewhere — ADR-0591 split-decision).
+    let split_decision_allowlist = split_decision_allowlist_keys(policy);
+
     let min_expected = policy
         .get("min_expected_functions")
         .and_then(Value::as_u64)
@@ -1317,6 +1231,14 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             .unwrap_or_else(|| format!("{file}#{fn_name}"));
         live_keys.insert(key.clone());
 
+        // EXPLICIT split-decision allowlist: an exact-key match suppresses ONLY this audited body.
+        // Non-launderable — a same-named overload, a different impl block, or any body edit produces
+        // a different key and is NOT suppressed. Checked before the frozen baseline; an allowlisted
+        // key is not also a baseline key (the two suppression sets are disjoint by construction).
+        if split_decision_allowlist.contains(&key) {
+            continue;
+        }
+
         if frozen_baseline.contains(&key) {
             continue;
         }
@@ -1341,7 +1263,46 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         }
     }
 
+    // SHRINK-ONLY self-clean for the explicit allowlist: an allowlist key matching no live instance
+    // means the audited body was fixed/removed/edited (a body edit changes the hash → a different
+    // key → no match), so the audit no longer applies. Surface it so the curated list cannot silently
+    // retain a key that suppresses nothing (and so a future body edit cannot ride an old audit).
+    for key in &split_decision_allowlist {
+        if !live_keys.contains(key) {
+            findings.insert(Finding::new(
+                "DAT-STALE-SPLIT-DECISION-ALLOWLIST",
+                key,
+                format!(
+                    "split-decision-allowlist key `{key}` matched no live caller-supplied-authz-trust finding (the audited body was fixed, removed, or edited — a body change re-keys it). Remove or re-audit the entry in `split_decision_allowlist`; the allowlist is exact-key and non-launderable."
+                ),
+            ));
+        }
+    }
+
     findings
+}
+
+/// The explicit, curated split-decision allowlist keys (`<file>#<fn>:<body_hash>`) read from policy
+/// DATA `split_decision_allowlist`. Each entry is `{ "key": "...", "justification": "..." }`; only
+/// the `key` is load-bearing for suppression (the justification documents the human audit). A bare
+/// string entry is also accepted for forward-compatibility. NOT a heuristic — an exact-key set.
+fn split_decision_allowlist_keys(policy: &Value) -> BTreeSet<String> {
+    policy
+        .get("split_decision_allowlist")
+        .and_then(Value::as_array)
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|entry| match entry {
+                    Value::String(s) => Some(s.clone()),
+                    Value::Object(_) => entry
+                        .get("key")
+                        .and_then(Value::as_str)
+                        .map(str::to_owned),
+                    _ => None,
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 /// Bare-code projection of [`evaluate_keyed`]; the single source of truth for the verdict.
@@ -1566,14 +1527,18 @@ mod tests {
         );
     }
 
-    // ADR-0591 split-decision: the authoritative PDP `ensure_authorized` lives in the use-case
-    // CALLER (`generate_report`), which CALLS `validate_authorization_correlation` (the residual
-    // NON-AUTHORITATIVE correlation-consistency check) BEFORE letting the PDP decide. The flagged
-    // function is a sub-step of the PDP-guarded use-case; the request wraps the Authorization DTO so
-    // the caller does NOT take it as a direct param (mirrors the real corpus shape).
-    const SIBLING_PDP_DELEGATION: &str = r#"
+    // ===================================================================================
+    // SPLIT-DECISION ALLOWLIST (the precise, non-launderable FP mechanism — NOT a heuristic)
+    // and the THREE RED regression PROBES that prove the removed name-reachability heuristic's
+    // bypasses are now FLAGGED.
+    // ===================================================================================
+
+    /// A genuine split-decision FP exhibit: a residual NON-AUTHORITATIVE correlation check that
+    /// reads an `*Authorization` DTO and only returns Ok/Err (never grants). With NO allowlist it is
+    /// flagged RED (the collector reports every flagged instance); the EXPLICIT allowlist clears the
+    /// exact audited key.
+    const SPLIT_DECISION_FP: &str = r#"
         struct CloudFooApiAuthorization { tenant_id: String, principal_id: String, decision_id: String }
-        struct CloudFooApiRequest { principal: Principal, authorization: CloudFooApiAuthorization }
         struct Principal { tenant_id: String, principal_id: String }
 
         fn validate_authorization_correlation(
@@ -1585,26 +1550,77 @@ mod tests {
             if authorization.principal_id != principal.principal_id { return Err(Error::PrincipalMismatch); }
             Ok(())
         }
-
-        fn generate_report(
-            verified: &VerifiedPrincipal,
-            authorizer: &dyn Authorizer,
-            request: CloudFooApiRequest,
-            resource: &Resource,
-        ) -> Result<(), Error> {
-            validate_authorization_correlation(&request.principal, &request.authorization)?;
-            authorizer.ensure_authorized(verified, resource)?;
-            Ok(())
-        }
     "#;
 
-    // The PDP-calling sibling must NOT launder a forgeable check it does NOT call. Here
-    // `guard_other` is PDP-guarded but does NOT invoke `validate_authorization` — the call-graph
-    // bind keeps the un-delegated `validate_authorization` RED.
-    const SIBLING_PDP_NO_CALL_EDGE: &str = r#"
-        struct CloudFooApiAuthorization { tenant_id: String, principal_id: String, allowed_surfaces: Vec<String> }
-        struct Principal { tenant_id: String, principal_id: String }
+    /// Derive the live key for the single flagged instance in `src` (empty baseline / allowlist).
+    fn first_live_key(src: &str) -> String {
+        let observed = observe(src);
+        observed["instances"][0]["key"]
+            .as_str()
+            .unwrap_or("")
+            .to_owned()
+    }
 
+    #[test]
+    fn split_decision_allowlist_clears_exact_audited_key() {
+        // With no allowlist the correlation check is flagged RED (every flagged instance is reported).
+        let observed = observe(SPLIT_DECISION_FP);
+        assert_eq!(
+            evaluate(&policy(), &observed).verdict,
+            Verdict::Red,
+            "without the explicit allowlist the correlation check must be flagged; observed={observed:#}"
+        );
+
+        // Adding the EXACT key to the explicit allowlist clears it (GREEN). The justification field
+        // is documentation; only the key is load-bearing.
+        let key = first_live_key(SPLIT_DECISION_FP);
+        let mut p = policy();
+        p["split_decision_allowlist"] = json!([
+            { "key": key, "justification": "ADR-0591 split-decision: authoritative PDP dominates; correlation-only, never grants." }
+        ]);
+        let report = evaluate(&p, &observe(SPLIT_DECISION_FP));
+        assert_eq!(
+            report.verdict,
+            Verdict::Green,
+            "an exact-key split-decision allowlist entry must clear the audited FP"
+        );
+        assert!(report.violations.is_empty());
+    }
+
+    #[test]
+    fn split_decision_allowlist_is_exact_key_and_non_launderable() {
+        // An allowlist key for a DIFFERENT body (one char of the hash flipped) must NOT suppress a
+        // live forgeable check — exact-key only.
+        let real_key = first_live_key(SPLIT_DECISION_FP);
+        let tampered = {
+            let mut k = real_key.clone();
+            // Flip the last hex nibble so the key no longer matches the live body hash.
+            let last = k.pop().unwrap_or('0');
+            let flipped = if last == '0' { '1' } else { '0' };
+            k.push(flipped);
+            k
+        };
+        let mut p = policy();
+        p["split_decision_allowlist"] = json!([{ "key": tampered, "justification": "wrong body hash" }]);
+        let report = evaluate(&p, &observe(SPLIT_DECISION_FP));
+        assert_eq!(
+            report.verdict,
+            Verdict::Red,
+            "a non-matching (tampered-hash) allowlist key must NOT launder a live forgeable check"
+        );
+        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+        // And the unused allowlist key self-cleans (it matched no live instance).
+        assert!(report.violations.contains("DAT-STALE-SPLIT-DECISION-ALLOWLIST"));
+    }
+
+    // ----- Probe A: dead-code PDP "root" + a call edge. Under the removed heuristic, a function whose
+    // body had a dead `if false { x.ensure_authorized(); }` became a PDP "root" and laundered every
+    // function it CALLED. The forgeable `validate_authorization` must now be FLAGGED (RED).
+    const PROBE_A_DEADCODE_PDP_ROOT_CALL_EDGE: &str = r#"
+        struct CloudFooApiAuthorization { tenant_id: String, allowed_surfaces: Vec<String> }
+        struct Principal { tenant_id: String }
+
+        // FORGEABLE: trusts the caller-supplied allowed_surfaces, no real PDP call.
         fn validate_authorization(
             principal: &Principal,
             authorization: &CloudFooApiAuthorization,
@@ -1615,108 +1631,135 @@ mod tests {
             Ok(())
         }
 
-        fn guard_other(verified: &VerifiedPrincipal, authorizer: &dyn Authorizer, resource: &Resource) -> Result<(), Error> {
-            authorizer.ensure_authorized(verified, resource)?;
+        // A fake "PDP root": the ensure_authorized call is DEAD (`if false`), but the removed
+        // name-reachability heuristic treated this fn as a root and laundered its callee.
+        fn unused_pdp_shim(x: &dyn Authorizer, principal: &Principal, authz: &CloudFooApiAuthorization) -> Result<(), Error> {
+            if false { x.ensure_authorized(); }
+            validate_authorization(principal, authz, "s")?;
             Ok(())
         }
     "#;
 
-    fn delegation_policy() -> Value {
-        let mut p = policy();
-        p["recognize_sibling_pdp_delegation"] = json!(true);
-        p
-    }
-
-    fn observe_with(src: &str, policy: &Value) -> Value {
-        let cfg = SignatureConfig::from_policy(policy);
-        let (instances, scanned) = extract_instances("src/lib.rs", src, &cfg);
-        json!({ "functions_scanned": scanned, "instances": instances })
-    }
-
     #[test]
-    fn sibling_pdp_delegation_is_green_when_enabled() {
-        let p = delegation_policy();
-        let observed = observe_with(SIBLING_PDP_DELEGATION, &p);
-        let report = evaluate(&p, &observed);
-        assert_eq!(
-            report.verdict,
-            Verdict::Green,
-            "ADR-0591 split-decision: a same-file same-DTO PDP sibling delegates the verdict; the correlation check must be GREEN; observed={observed:#}"
-        );
-        assert_eq!(observed["instances"].as_array().map(Vec::len).unwrap_or(0), 0);
-    }
-
-    #[test]
-    fn sibling_pdp_delegation_is_red_when_flag_disabled() {
-        // Default policy leaves the flag OFF — the conservative default: the correlation check is
-        // still flagged. This proves the flag is the lever (no silent envelope widening).
-        let observed = observe(SIBLING_PDP_DELEGATION);
+    fn probe_a_deadcode_pdp_root_call_edge_is_flagged_red() {
+        // Heuristic removed: the dead-code PDP "root" can no longer launder its callee. The forgeable
+        // validate_authorization is FLAGGED. (unused_pdp_shim itself contains the whole-token
+        // ensure_authorized call so it is GREEN by the documented dead-code limit — that is fine; the
+        // POINT is the forgeable callee is no longer laundered.)
+        let observed = observe(PROBE_A_DEADCODE_PDP_ROOT_CALL_EDGE);
         let report = evaluate(&policy(), &observed);
-        assert_eq!(report.verdict, Verdict::Red, "flag-off default must still flag; observed={observed:#}");
-        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
-    }
-
-    // ADR-0591 TRANSITIVE chain (the finops corpus shape): the PDP root
-    // (`generate_report`, calls ensure_authorized) calls an intermediate validator
-    // (`validate_request`), which in turn calls the flagged `validate_authorization_correlation`.
-    // The flagged fn is 2 hops from the PDP root — transitive reachability must reach it.
-    const SIBLING_PDP_TRANSITIVE: &str = r#"
-        struct CloudFooApiAuthorization { tenant_id: String, principal_id: String, decision_id: String }
-        struct CloudFooApiRequest { principal: Principal, authorization: CloudFooApiAuthorization }
-        struct Principal { tenant_id: String, principal_id: String }
-
-        fn validate_authorization_correlation(
-            principal: &Principal,
-            authorization: &CloudFooApiAuthorization,
-        ) -> Result<(), Error> {
-            if authorization.decision_id.trim().is_empty() { return Err(Error::Empty); }
-            if authorization.tenant_id != principal.tenant_id { return Err(Error::TenantMismatch); }
-            Ok(())
-        }
-
-        fn validate_request(request: &CloudFooApiRequest) -> Result<(), Error> {
-            validate_authorization_correlation(&request.principal, &request.authorization)?;
-            Ok(())
-        }
-
-        fn generate_report(
-            verified: &VerifiedPrincipal,
-            authorizer: &dyn Authorizer,
-            request: CloudFooApiRequest,
-            resource: &Resource,
-        ) -> Result<(), Error> {
-            validate_request(&request)?;
-            authorizer.ensure_authorized(verified, resource)?;
-            Ok(())
-        }
-    "#;
-
-    #[test]
-    fn sibling_pdp_transitive_chain_is_green_when_enabled() {
-        let p = delegation_policy();
-        let observed = observe_with(SIBLING_PDP_TRANSITIVE, &p);
-        let report = evaluate(&p, &observed);
-        assert_eq!(
-            report.verdict,
-            Verdict::Green,
-            "ADR-0591: a flagged fn 2 hops from a PDP root via an intermediate validator must be GREEN (transitive reachability); observed={observed:#}"
-        );
-        assert_eq!(observed["instances"].as_array().map(Vec::len).unwrap_or(0), 0);
-    }
-
-    #[test]
-    fn sibling_pdp_without_call_edge_does_not_launder() {
-        let p = delegation_policy();
-        let observed = observe_with(SIBLING_PDP_NO_CALL_EDGE, &p);
-        let report = evaluate(&p, &observed);
         assert_eq!(
             report.verdict,
             Verdict::Red,
-            "a PDP sibling that does NOT call the flagged fn must NOT launder it (call-graph bind); observed={observed:#}"
+            "Probe A: a dead-code PDP root must NOT launder the forgeable callee; observed={observed:#}"
         );
         assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
-        let flagged = observed["instances"][0]["fn"].as_str().unwrap_or("");
-        assert_eq!(flagged, "validate_authorization");
+        let flagged: Vec<&str> = observed["instances"]
+            .as_array()
+            .map(|a| a.iter().filter_map(|i| i["fn"].as_str()).collect())
+            .unwrap_or_default();
+        assert!(
+            flagged.contains(&"validate_authorization"),
+            "the forgeable validate_authorization must be flagged; flagged={flagged:?}"
+        );
+    }
+
+    // ----- Probe C: name-collision across impl blocks. A same-named `decide_access` exists in TWO
+    // impl blocks: one reachable from a real PDP root, one genuinely forgeable. Under the removed
+    // heuristic, NAME-SET membership laundered the unrelated forgeable overload. Both bodies that read
+    // the authz DTO without a PDP call must be FLAGGED now (name-set laundering is gone).
+    const PROBE_C_NAME_COLLISION_IMPL_BLOCKS: &str = r#"
+        struct CloudFooApiAuthorization { allowed_surfaces: Vec<String> }
+
+        struct Guarded;
+        impl Guarded {
+            // Reached from a real PDP root, but STILL forgeable on its own (reads authz DTO, no PDP).
+            fn decide_access(&self, authz: &CloudFooApiAuthorization, surface: &str) -> Result<(), Error> {
+                if !authz.allowed_surfaces.iter().any(|s| s == surface) { return Err(Error::Denied); }
+                Ok(())
+            }
+            fn root(&self, pdp: &dyn Authorizer, authz: &CloudFooApiAuthorization, principal: &Principal, resource: &Resource) -> Result<(), Error> {
+                pdp.ensure_authorized(principal, resource)?;
+                self.decide_access(authz, "s")?;
+                Ok(())
+            }
+        }
+
+        struct Unrelated;
+        impl Unrelated {
+            // A DIFFERENT impl's same-named overload — genuinely forgeable, reached from NO PDP root.
+            fn decide_access(&self, authz: &CloudFooApiAuthorization, surface: &str) -> Result<(), Error> {
+                if authz.allowed_surfaces.contains(&surface.to_owned()) { return Ok(()); }
+                Err(Error::Denied)
+            }
+        }
+    "#;
+
+    #[test]
+    fn probe_c_name_collision_across_impl_blocks_is_flagged_red() {
+        // Both decide_access bodies read the authz DTO with no PDP call. With the heuristic removed,
+        // NEITHER is laundered by name-set membership — both are flagged (two distinct keys).
+        let observed = observe(PROBE_C_NAME_COLLISION_IMPL_BLOCKS);
+        let report = evaluate(&policy(), &observed);
+        assert_eq!(
+            report.verdict,
+            Verdict::Red,
+            "Probe C: same-name across impl blocks must NOT launder the forgeable overload; observed={observed:#}"
+        );
+        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+        let n_decide_access = observed["instances"]
+            .as_array()
+            .map(|a| a.iter().filter(|i| i["fn"].as_str() == Some("decide_access")).count())
+            .unwrap_or(0);
+        assert_eq!(
+            n_decide_access, 2,
+            "both decide_access overloads (distinct bodies) must be flagged; observed={observed:#}"
+        );
+    }
+
+    // ----- Probe D (decisive): the single-file CLEAN-GREEN bypass. `decide_access` trusts
+    // `allowed_surfaces`; the public `entry` makes ITSELF a "PDP root" via a dead
+    // `if false { pdp.ensure_authorized(); }` and calls `decide_access`. Under the removed heuristic
+    // the whole file was `flagged=[] verdict=Green` while a forgeable check shipped. The forgeable
+    // `decide_access` must now be FLAGGED (RED).
+    const PROBE_D_SINGLE_FILE_CLEAN_GREEN_BYPASS: &str = r#"
+        struct CloudFooApiAuthorization { allowed_surfaces: Vec<String> }
+
+        // FORGEABLE: trusts caller-supplied allowed_surfaces; the decision IS this self-membership.
+        fn decide_access(authz: &CloudFooApiAuthorization, surface: &str) -> Result<(), Error> {
+            if authz.allowed_surfaces.iter().any(|s| s == surface) { return Ok(()); }
+            Err(Error::Denied)
+        }
+
+        // Public entry makes ITSELF a fake PDP root (dead ensure_authorized) and delegates to the
+        // forgeable check. No server-side PDP ever decides.
+        pub fn entry(pdp: &dyn Authorizer, authz: &CloudFooApiAuthorization, surface: &str) -> Result<(), Error> {
+            if false { pdp.ensure_authorized(); }
+            decide_access(authz, surface)
+        }
+    "#;
+
+    #[test]
+    fn probe_d_single_file_clean_green_bypass_is_flagged_red() {
+        // The decisive bypass: with the heuristic removed, `entry`'s dead PDP call cannot launder the
+        // forgeable `decide_access` it calls. `decide_access` is FLAGGED — the file is no longer a
+        // clean-green bypass.
+        let observed = observe(PROBE_D_SINGLE_FILE_CLEAN_GREEN_BYPASS);
+        let report = evaluate(&policy(), &observed);
+        assert_eq!(
+            report.verdict,
+            Verdict::Red,
+            "Probe D: a single-file self-rooted dead-PDP bypass must NOT ship clean-green; observed={observed:#}"
+        );
+        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+        let flagged: Vec<&str> = observed["instances"]
+            .as_array()
+            .map(|a| a.iter().filter_map(|i| i["fn"].as_str()).collect())
+            .unwrap_or_default();
+        assert!(
+            flagged.contains(&"decide_access"),
+            "the forgeable decide_access must be flagged; flagged={flagged:?}"
+        );
     }
 
     #[test]

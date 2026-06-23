@@ -105,27 +105,50 @@ GREEN — the gate never invents a false finding for a function that genuinely d
 function that BOTH reads an authorization DTO AND calls a PDP port is GREEN: the PDP call is the
 real decision, the DTO read is a redundant precondition.
 
-**v2.1 sibling-PDP-delegation recognition (ADR-0591 split-decision):** the AUTH-005 remediations
-landed a benign mirror of the opaque-helper limit — a use-case splits its authorization into (i) the
+**v2.2 split-decision allowlist (ADR-0591 split-decision) — the EXPLICIT, non-launderable FP
+mechanism that REPLACES the removed name-reachability heuristic:** the AUTH-005 remediations landed a
+benign mirror of the opaque-helper limit — a use-case splits its authorization into (i) the
 authoritative server-side PDP `ensure_authorized`/`decide` and (ii) a residual NON-AUTHORITATIVE
 correlation-consistency cross-check (a `*_correlation` function that reads the authorization DTO but
-"NEVER grants"). The per-function detector flags (ii) as a false positive because the PDP call lives
-in the use-case root. The policy flag `recognize_sibling_pdp_delegation` (DATA, default OFF for
-portability; ON in this repo) closes this: a flagged function is GREEN iff it is TRANSITIVELY
-REACHABLE, via the same-file call graph, from a function that calls a PDP decision-port ident in its
-own body (e.g. `generate_cloud_finops_report_from_api` → `validate_cloud_finops_report_request` →
-`validate_authorization_correlation`). The recognition is bound to the actual CALL GRAPH (a
-PDP-guarded path reaches the flagged fn), NOT type coincidence, so an unrelated in-file PDP call
-cannot launder a forgeable check no PDP-guarded path reaches. This eliminated the
-`billing/ports/finops-api` and `observability/core/api` correlation-check false positives that the
-rebase onto the AUTH-005 tip surfaced, WITHOUT growing the baseline (no `--allow-new`): the fix is in
-the engine, per the doctrine this gate exists to enforce, not a grandfathered instance.
+"NEVER grants"), plus a third FP shape: a no-verdict `*_fingerprint_for` SERIALIZER that folds the
+authorization fields into an idempotency-dedup fingerprint string (returns a struct, not a `Result`;
+makes no decision at all). The per-function detector flags all three because the authoritative PDP
+call lives elsewhere / there is no verdict.
+
+An earlier attempt (`recognize_sibling_pdp_delegation`, a policy-gated heuristic that marked a flagged
+function GREEN iff it was transitively reachable via the same-file call graph from a PDP-calling
+function) was **REMOVED as UNSOUND.** A hostile review proved empirically (via buck2 probes) that it
+suppressed by function-NAME reachability rather than by proving a PDP decision dominates the guarded
+operation, so three distinct bypasses laundered a genuinely-forgeable check to GREEN: (A) a dead-code
+`if false { x.ensure_authorized(); }` "PDP root" with a call edge to the forgeable fn; (C) a
+same-named overload in a DIFFERENT impl block where name-set membership laundered the unrelated
+forgeable overload; and (D) a single-file bypass where a public `entry` made ITSELF a PDP root via a
+dead `ensure_authorized` and called a forgeable `decide_access` — yielding `flagged=[] verdict=Green`
+while a forgeable check shipped. All three are now RED regression tests.
+
+The replacement is an **EXPLICIT, CURATED `split_decision_allowlist`** in policy DATA: a tiny
+hand-audited list, NOT a heuristic. Each entry is the SAME exact-key shape as the baseline
+(`<file>#<fn>:<body_hash>`), so any body change re-keys and re-flags it (`DAT-STALE-SPLIT-DECISION-ALLOWLIST`
+self-clean). It suppresses ONLY the exact audited body — it cannot suppress a different function that
+merely shares a name, nor a body edited after the audit. Each entry was hand-verified by tracing the
+call graph that an authoritative server-side PDP dominates every path to the function and that the
+function itself never grants. The five cleared entries:
+`audit/core/usecase` `validate_authorization` (PDP at `emit_audit_event_authorized`),
+`billing/ports/finops-api` `validate_authorization_correlation` (PDP at
+`generate_cloud_finops_report_from_api`), `observability/core/api`
+`cross_check_authorization_correlation` (PDP at `read_cloud_observability_audit_from_api`), and the
+two no-verdict fingerprint serializers `audit/core/usecase` `audit_event_emit_fingerprint_for` +
+`billing/ports/finops-api` `finops_report_fingerprint_for`. This cleared the FPs the rebase onto the
+AUTH-005 tip surfaced WITHOUT growing the baseline (no `--allow-new`) and WITHOUT any name-reachability
+suppression.
 
 Honest LIMITS (documented, not hidden):
 
 - **Dead-code evasion**: `if false { .decide() }` suppresses signal (b). The gate does not perform
   reachability analysis — a PDP ident in the code-only body marks the function GREEN regardless of
-  control flow. Code reviewers must catch intentional `if false { decide() }` suppressions.
+  control flow. Code reviewers must catch intentional `if false { decide() }` suppressions. (This is
+  why the name-reachability heuristic was unsound: it COMPOUNDED this limit into a launderable
+  call-graph suppression. The explicit exact-key allowlist does not.)
 - **Wrong-receiver evasion**: `other_svc.ensure_authorized()` on a different receiver also suppresses
   signal (b). Policy-keyed idents should be scoped to the owned PDP port shape.
 - (a) is the load-bearing precision lever: requiring an *authorization-DTO* / *authz-specific
@@ -135,10 +158,10 @@ Honest LIMITS (documented, not hidden):
   false-positive on retention/policy `decision_id` integrity checks.
 - Opaque-helper evasion: a handler that hides the same authz-decision behind a helper giving NO
   authorization-DTO signal is outside the envelope (human review + the authz-coverage gate own that).
-- Sibling-PDP-delegation evasion (the dual of v2.1's recognition): deliberately routing a forgeable
-  check through a PDP-calling caller that does NOT actually let the PDP decide first would be marked
-  GREEN by the call-graph bind. This is the same intentional-evasion residual class as the dead-code
-  limit (code review owns it); for the dominant remediation corpus the call-graph bind is precise.
+- Split-decision allowlist scope: the allowlist suppresses ONLY exact audited bodies. It cannot be
+  used to launder a forgeable check (a body edit re-keys it); a curator who allowlists a body that
+  DOES decide authorization is making an auditable, reviewable claim in policy DATA, not hiding behind
+  a heuristic.
 
 ### D3 — Born-blocking with a FROZEN, SHRINK-ONLY baseline (v2: body-hash keying)
 
@@ -147,8 +170,9 @@ The pre-existing instances are enumerated and FROZEN as known debt
 FNV-1a hash of the code-only masked function body is appended to the file+fn components). The
 baseline is **73 keys** on the rebased dev tip: it was re-anchored by a SHRINK-ONLY `--write` (no
 `--allow-new`, no firewall-door sign-off) after the rebase onto the AUTH-005 W2/W2b integration tip
-dropped the ~18 instances those PRs remediated and the v2.1 sibling-PDP-delegation fix cleared the 2
-split-decision false positives. This
+dropped the ~18 instances those PRs remediated; the 5 genuine false positives (3 split-decision
+correlation checks + 2 no-verdict fingerprint serializers) are cleared by the EXPLICIT exact-key
+`split_decision_allowlist` (NOT baselined, NOT laundered by a heuristic). This
 prevents a NEW function with the SAME name in a different `mod` (or a refactored body) from
 auto-laundering as a baselined instance (FN-02). A line shift with no body change does NOT change
 the key. An instance whose key is in the baseline is ACCEPTED (no block) — each owner's remediation
