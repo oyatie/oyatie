@@ -12,6 +12,16 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+mod authz;
+
+pub use authz::{
+    AUTHORIZATION_HEADER, AuthzProviderConfigError, CallerCredential,
+    ConfiguredBearerPrincipalVerifier, MoneyMutationAction, MoneyMutationAuthorizationError,
+    MoneyMutationAuthorizer, MoneyMutationResource, PayrollAuthzMiddleware, PayrollAuthzProvider,
+    PrincipalVerificationError, PrincipalVerifier, VERIFIED_TENANT_CAPTURE_KEY, VerifiedPrincipal,
+    action_for_template, constant_time_eq,
+};
+
 use std::time::Duration;
 
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
@@ -130,8 +140,19 @@ pub fn payroll_server_config() -> ServerConfig {
         .with_keepalive_timeout(Duration::from_secs(30))
 }
 
-pub fn payroll_runtime_chain() -> MiddlewareChain<HttpRequest, HttpResponse> {
-    MiddlewareChain::new()
+/// Build the runtime middleware chain with the AUTH-005 fail-closed authz
+/// middleware installed FIRST (ADR-0593). The [`PayrollAuthzMiddleware`] verifies
+/// the caller principal and runs the PDP decision on every money-mutation route
+/// BEFORE the terminal handler deserializes the body; it short-circuits 401/403.
+///
+/// There is NO zero-argument / default chain: the composition root MUST supply a
+/// [`PayrollAuthzProvider`] (verifier + PDP authorizer), so a money mutation can
+/// never be served without both ports running.
+#[must_use]
+pub fn payroll_runtime_chain(
+    provider: PayrollAuthzProvider,
+) -> MiddlewareChain<HttpRequest, HttpResponse> {
+    MiddlewareChain::new().push(Box::new(PayrollAuthzMiddleware::new(provider)))
 }
 
 pub fn payroll_runtime_router() -> Result<Router<SyncHandler>, PayrollRuntimeError> {
@@ -159,13 +180,46 @@ pub fn payroll_runtime_router() -> Result<Router<SyncHandler>, PayrollRuntimeErr
     Ok(router)
 }
 
-pub fn dispatch_payroll_request(request: HttpRequest) -> HttpResponse {
+/// Dispatch a payroll runtime request through the fail-closed authz chain
+/// (ADR-0593). The `provider` (principal verifier + PDP authorizer) is required —
+/// money-mutation routes are gated 401/403 before any handler runs. Health is
+/// passed through unauthenticated by the middleware.
+pub fn dispatch_payroll_request(
+    request: HttpRequest,
+    provider: PayrollAuthzProvider,
+) -> HttpResponse {
     match payroll_runtime_router() {
-        Ok(router) => dispatch_http(request, &router, &payroll_runtime_chain()),
+        Ok(router) => dispatch_http(request, &router, &payroll_runtime_chain(provider)),
         Err(error) => json_response(
             500,
             &ApiErrorEnvelope::validation("Payroll runtime router failed", Some(error.to_string())),
         ),
+    }
+}
+
+/// Cross-check that the body-claimed `tenant_id` equals the VERIFIED tenant the
+/// authz middleware injected into `path_captures`. A mismatch is a cross-tenant
+/// body substitution attempt (true blast radius): tenant A presenting a verified
+/// credential but a body naming tenant B. Fail-closed -> HTTP 403.
+///
+/// Returns `Err(403)` when the verified tenant is absent (the mutation reached a
+/// handler without passing the authz middleware — defense in depth) or differs
+/// from the body tenant.
+fn enforce_body_tenant_matches_verified(
+    req: &HttpRequest,
+    body_tenant_id: &str,
+) -> Result<(), HttpResponse> {
+    match req.path_captures.get(VERIFIED_TENANT_CAPTURE_KEY) {
+        Some(verified) if constant_time_eq(verified.as_bytes(), body_tenant_id.as_bytes()) => {
+            Ok(())
+        }
+        _ => Err(json_response(
+            403,
+            &ApiErrorEnvelope::validation(
+                "Payroll mutation tenant does not match the verified principal",
+                None,
+            ),
+        )),
     }
 }
 
@@ -179,6 +233,7 @@ impl oya_http_middleware_kernel::Handler for TrialCloseHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: PayrollTrialCloseRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome = close_trial_run(request.into_domain()).map_err(app_error_response)?;
         Ok(json_response(
             202,
@@ -198,6 +253,7 @@ impl oya_http_middleware_kernel::Handler for AccountingJournalDraftHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: PayrollJournalDraftRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome =
             prepare_accounting_dispatch(request.into_domain()).map_err(app_error_response)?;
         Ok(json_response(
@@ -218,6 +274,7 @@ impl oya_http_middleware_kernel::Handler for HrLeaveImpactIntakeHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: HrLeaveImpactIntakeRequest = parse_json(&req.body)?;
+        enforce_body_tenant_matches_verified(&req, &request.tenant_id)?;
         let outcome =
             prepare_hr_leave_impact_intake(request.into_domain()).map_err(app_error_response)?;
         Ok(json_response(
