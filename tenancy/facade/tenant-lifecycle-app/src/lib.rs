@@ -51,7 +51,8 @@ use tokio::sync::{Mutex, MutexGuard};
 
 use axum::Json;
 use axum::Router;
-use axum::extract::{Path, State};
+use axum::extract::{DefaultBodyLimit, FromRequestParts, Path, State};
+use axum::http::request::Parts;
 use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::routing::{delete, get, post};
 use serde::{Deserialize, Serialize};
@@ -75,6 +76,15 @@ use tenancy_tenant_lifecycle_usecase::{TENANT_COLLECTION, TenantLifecycleProvide
 
 /// The default page size used when a list request omits one.
 const DEFAULT_PAGE_SIZE: u32 = 50;
+
+/// Maximum accepted request-body size on the mutating routes (64 KiB). The
+/// tenant-register/lifecycle bodies are tiny structured JSON; a sane cap turns
+/// an oversized body into an early HTTP 413 (via [`DefaultBodyLimit`]) instead
+/// of unbounded buffering. Authn still runs FIRST (a `FromRequestParts`
+/// extractor precedes the `Json` body extractor), so an unauthenticated caller
+/// is rejected 401 before any body is read; the limit is the second backstop
+/// (a body-parse DoS surface defense). Mirrors the intelligence REST surface.
+const MAX_MUTATING_BODY_BYTES: usize = 64 * 1024;
 
 /// Env var carrying the platform-admin bearer token. A request presenting this
 /// token (constant-time verified) is a platform admin: it may register and list
@@ -571,27 +581,32 @@ where
     ))
 }
 
-/// Enforce the authorization decision (the PEP). Authenticates the caller, asks
-/// the embedded PDP, emits a structured audit record, and maps the outcome:
-/// unauthenticated → 401, deny (or any engine refusal) → 403 (fail-closed),
-/// allow → proceed.
+/// Enforce the authorization decision (the PEP) over an ALREADY-VERIFIED caller.
+/// Asks the embedded PDP, emits a structured audit record, and maps the outcome:
+/// deny (or any engine refusal) → 403 (fail-closed), allow → proceed.
+///
+/// The caller is authenticated UPSTREAM by the [`VerifiedCaller`]
+/// `FromRequestParts` extractor, which runs BEFORE the request body is parsed —
+/// so authn provably precedes body extraction (the C7/C8 authn-after-body fix).
+/// This step runs ONLY the PDP/audit decision, preserving the membership-bound
+/// axis, platform-admin path, deny-by-default, engine-refusal-as-deny, and the
+/// single `"tenancy.authz.decision"` audit record unchanged.
 ///
 /// Every decision — allow AND deny — emits ONE structured `tracing` event at
 /// INFO level with message `"tenancy.authz.decision"` (AC-W-13). The event
 /// carries the attributable fields from the [`AuthorizationOutcome`] returned
 /// by the PDP; discarding the outcome is a policy violation.
-fn authorize<S>(
+fn authorize_decision<S>(
     state: &AppState<S>,
-    headers: &HeaderMap,
+    caller: &CallerIdentity,
     action: TenantLifecycleAction,
     target_tenant_id: Option<&str>,
 ) -> Result<(), HandlerError>
 where
     S: LifecycleStore,
 {
-    let caller = authenticate_caller(state, headers)?;
     let query = AuthorizationQuery {
-        caller: &caller,
+        caller,
         action,
         target_tenant_id,
     };
@@ -654,12 +669,58 @@ where
 }
 
 // ============================================================
+// VerifiedCaller — authn-BEFORE-body extractor (the C7/C8 fix)
+// ============================================================
+
+/// A request extractor that authenticates the caller from the verified bearer
+/// credential (and membership-binds any operator tenant axis) over the request
+/// PARTS — i.e. BEFORE the request body is read.
+///
+/// ## Why this exists (the authn-after-body fix)
+///
+/// `FromRequestParts` extractors run BEFORE the body `FromRequest` extractor.
+/// Placing `VerifiedCaller` ahead of `Json(body)` in a handler signature
+/// therefore GUARANTEES authentication runs before the body is buffered or
+/// deserialized: an unauthenticated caller is short-circuited 401 (or a
+/// membership-denied operator 403) WITHOUT the body ever being parsed, closing
+/// the pre-auth body-parse / parser-attack DoS surface. (A `DefaultBodyLimit`
+/// on the route is the second backstop, capping body size to a 413.)
+///
+/// It carries the verified [`CallerIdentity`]; the handler then runs ONLY the
+/// PDP decision via [`authorize_decision`] against the action + target — the
+/// membership-bound axis, platform-admin path, audit, and fail-closed posture
+/// are all preserved unchanged.
+pub struct VerifiedCaller(pub CallerIdentity);
+
+impl<S> FromRequestParts<AppState<S>> for VerifiedCaller
+where
+    S: LifecycleStore,
+{
+    type Rejection = HandlerError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState<S>,
+    ) -> Result<Self, Self::Rejection> {
+        // Authenticate over the request HEADERS only (parts) — the body is not
+        // touched here, so authn provably precedes body extraction.
+        let caller = authenticate_caller(state, &parts.headers)?;
+        Ok(Self(caller))
+    }
+}
+
+// ============================================================
 // Handlers
 // ============================================================
 
 /// `POST /v1/tenants` — register a new tenant (born `Provisioning`).
+///
+/// `VerifiedCaller` (a `FromRequestParts` extractor) precedes `Json(body)` so
+/// authn runs BEFORE the body is buffered/parsed: an unauthenticated request is
+/// rejected 401 without the body ever being read (the authn-after-body fix).
 pub async fn register_tenant<S>(
     State(state): State<AppState<S>>,
+    VerifiedCaller(caller): VerifiedCaller,
     headers: HeaderMap,
     Json(body): Json<RegisterTenantBody>,
 ) -> Result<(StatusCode, Json<TenantView>), HandlerError>
@@ -667,8 +728,10 @@ where
     S: LifecycleStore,
 {
     // Register is a platform-admin control-plane op (no target tenant): a
-    // tenant-scoped caller can never reach it.
-    authorize(&state, &headers, TenantLifecycleAction::Register, None)?;
+    // tenant-scoped caller can never reach it. The caller is ALREADY verified
+    // by the `VerifiedCaller` extractor (which ran before this body was parsed);
+    // run only the PDP decision here.
+    authorize_decision(&state, &caller, TenantLifecycleAction::Register, None)?;
     let key = idempotency_key(&headers)?;
     let name = tenant_name(&body.tenant_id)?;
     let tenant = Tenant {
@@ -696,8 +759,8 @@ where
 /// `GET /v1/tenants/{id}` — read the tenant's current state.
 pub async fn get_tenant<S>(
     State(state): State<AppState<S>>,
+    VerifiedCaller(caller): VerifiedCaller,
     Path(tenant_id): Path<String>,
-    headers: HeaderMap,
 ) -> Result<Json<TenantView>, HandlerError>
 where
     S: LifecycleStore,
@@ -706,9 +769,9 @@ where
     // BEFORE input validation — consistent with all mutating handlers so no
     // validation signal (e.g. INVALID_TENANT_ID vs PERMISSION_DENIED) leaks
     // information about resource existence to an unauthenticated caller.
-    authorize(
+    authorize_decision(
         &state,
-        &headers,
+        &caller,
         TenantLifecycleAction::Read,
         Some(&tenant_id),
     )?;
@@ -721,14 +784,14 @@ where
 /// `GET /v1/tenants` — list tenants (AIP-158 paged).
 pub async fn list_tenants<S>(
     State(state): State<AppState<S>>,
-    headers: HeaderMap,
+    VerifiedCaller(caller): VerifiedCaller,
     uri: Uri,
 ) -> Result<Json<TenantListView>, HandlerError>
 where
     S: LifecycleStore,
 {
     // Listing discloses every tenant: platform-admin only (no target tenant).
-    authorize(&state, &headers, TenantLifecycleAction::List, None)?;
+    authorize_decision(&state, &caller, TenantLifecycleAction::List, None)?;
     let query = parse_list_query(&uri)?;
     let page_size = query.page_size.unwrap_or(DEFAULT_PAGE_SIZE);
     let mut request = PageRequest::first(page_size)
@@ -804,15 +867,16 @@ where
 /// `POST /v1/tenants/{id}/provision` — drive `Provisioning -> Active`.
 pub async fn provision_tenant<S>(
     State(state): State<AppState<S>>,
+    VerifiedCaller(caller): VerifiedCaller,
     Path(tenant_id): Path<String>,
     headers: HeaderMap,
 ) -> Result<Json<TenantView>, HandlerError>
 where
     S: LifecycleStore,
 {
-    authorize(
+    authorize_decision(
         &state,
-        &headers,
+        &caller,
         TenantLifecycleAction::Provision,
         Some(&tenant_id),
     )?;
@@ -827,15 +891,16 @@ where
 /// `POST /v1/tenants/{id}/suspend` — `Active -> Suspended`.
 pub async fn suspend_tenant<S>(
     State(state): State<AppState<S>>,
+    VerifiedCaller(caller): VerifiedCaller,
     Path(tenant_id): Path<String>,
     headers: HeaderMap,
 ) -> Result<Json<TenantView>, HandlerError>
 where
     S: LifecycleStore,
 {
-    authorize(
+    authorize_decision(
         &state,
-        &headers,
+        &caller,
         TenantLifecycleAction::Suspend,
         Some(&tenant_id),
     )?;
@@ -850,15 +915,16 @@ where
 /// `POST /v1/tenants/{id}/resume` — `Suspended -> Active`.
 pub async fn resume_tenant<S>(
     State(state): State<AppState<S>>,
+    VerifiedCaller(caller): VerifiedCaller,
     Path(tenant_id): Path<String>,
     headers: HeaderMap,
 ) -> Result<Json<TenantView>, HandlerError>
 where
     S: LifecycleStore,
 {
-    authorize(
+    authorize_decision(
         &state,
-        &headers,
+        &caller,
         TenantLifecycleAction::Resume,
         Some(&tenant_id),
     )?;
@@ -873,6 +939,7 @@ where
 /// `DELETE /v1/tenants/{id}` — retire (terminal; the id is never reused).
 pub async fn retire_tenant<S>(
     State(state): State<AppState<S>>,
+    VerifiedCaller(caller): VerifiedCaller,
     Path(tenant_id): Path<String>,
     headers: HeaderMap,
 ) -> Result<StatusCode, HandlerError>
@@ -881,9 +948,9 @@ where
 {
     // Retire is terminal and irreversible: authorize the verified caller
     // against the TARGET id before any FSM move.
-    authorize(
+    authorize_decision(
         &state,
-        &headers,
+        &caller,
         TenantLifecycleAction::Retire,
         Some(&tenant_id),
     )?;
@@ -934,6 +1001,11 @@ where
         .route("/v1/tenants/{id}/suspend", post(suspend_tenant::<S>))
         .route("/v1/tenants/{id}/resume", post(resume_tenant::<S>))
         .route("/healthz", get(healthz))
+        // Cap every request body to a sane bound (HTTP 413 past it). The body
+        // is never even read on an unauthenticated request (authn runs in the
+        // `VerifiedCaller` `FromRequestParts` extractor BEFORE body extraction);
+        // this limit is the second backstop against an oversized-body DoS.
+        .layer(DefaultBodyLimit::max(MAX_MUTATING_BODY_BYTES))
         .with_state(state)
 }
 
@@ -1044,6 +1116,12 @@ pub enum BootError {
     /// would deny every request — refuse to start rather than serve a control
     /// plane no one can ever drive (a misconfiguration, not a security posture).
     NoCredentialConfigured,
+    /// The platform-admin and tenant-operator bearer tokens are BOTH configured
+    /// and EQUAL. Because `authenticate_caller` checks the platform-admin token
+    /// first, a shared value would silently escalate every tenant operator to
+    /// platform-admin (a privilege escalation, not a valid posture). Refuse to
+    /// start — fail-closed at boot rather than serve an ambiguous credential.
+    AmbiguousCredential,
 }
 
 impl fmt::Display for BootError {
@@ -1057,6 +1135,12 @@ impl fmt::Display for BootError {
                 f,
                 "no bearer credential configured ({ENV_PLATFORM_ADMIN_TOKEN} / \
                  {ENV_TENANT_OPERATOR_TOKEN}); refusing to start"
+            ),
+            Self::AmbiguousCredential => write!(
+                f,
+                "{ENV_PLATFORM_ADMIN_TOKEN} and {ENV_TENANT_OPERATOR_TOKEN} are equal; a \
+                 shared token would silently escalate every tenant operator to \
+                 platform-admin — refusing to start"
             ),
         }
     }
@@ -1176,6 +1260,31 @@ pub fn select_store_kind(database_url: Option<String>) -> StoreSelection {
     }
 }
 
+/// Pure boot-time bearer-credential validation (no env, no I/O — unit-testable).
+///
+/// Fail-closed at boot in two cases:
+///   - NEITHER token is configured ⇒ [`BootError::NoCredentialConfigured`] (no
+///     caller could ever authenticate — a misconfiguration, not a posture);
+///   - BOTH tokens are configured AND EQUAL (constant-time compare) ⇒
+///     [`BootError::AmbiguousCredential`]. `authenticate_caller` checks the
+///     platform-admin token FIRST, so a shared value would silently escalate
+///     every tenant operator to platform-admin — refuse to start.
+///
+/// Tokens are expected pre-normalized (trimmed, empty→`None`); the equality
+/// check uses [`constant_time_eq`] so boot never leaks token content via timing.
+fn validate_credentials(
+    platform_admin_token: Option<&str>,
+    tenant_operator_token: Option<&str>,
+) -> Result<(), BootError> {
+    match (platform_admin_token, tenant_operator_token) {
+        (None, None) => Err(BootError::NoCredentialConfigured),
+        (Some(admin), Some(operator)) if constant_time_eq(admin.as_bytes(), operator.as_bytes()) => {
+            Err(BootError::AmbiguousCredential)
+        }
+        _ => Ok(()),
+    }
+}
+
 /// Bind and serve the tenant lifecycle service on `listen_addr`, fail-closed.
 ///
 /// ## Store selection (12-factor composition-root config, NOT a CLI surface)
@@ -1203,9 +1312,7 @@ pub fn select_store_kind(database_url: Option<String>) -> StoreSelection {
 pub async fn serve(listen_addr: &str) -> Result<(), BootError> {
     let platform_admin_token = normalize_token(std::env::var(ENV_PLATFORM_ADMIN_TOKEN).ok());
     let tenant_operator_token = normalize_token(std::env::var(ENV_TENANT_OPERATOR_TOKEN).ok());
-    if platform_admin_token.is_none() && tenant_operator_token.is_none() {
-        return Err(BootError::NoCredentialConfigured);
-    }
+    validate_credentials(platform_admin_token.as_deref(), tenant_operator_token.as_deref())?;
     // The server-side membership resolver (REQUIRED). Seeded from the operator
     // membership env var; an absent value yields an empty resolver (every
     // per-tenant op denies — default-deny, never self-attested).
@@ -1326,6 +1433,39 @@ mod tests {
             matches!(result, Err(BootError::Store(_))),
             "empty DATABASE_URL must fail-close as BootError::Store, got {result:?}"
         );
+    }
+
+    // --- validate_credentials (FIX 3: ambiguous-credential boot guard) -------
+
+    #[test]
+    fn validate_credentials_distinct_tokens_ok() {
+        assert!(validate_credentials(Some("admin-secret"), Some("operator-secret")).is_ok());
+    }
+
+    #[test]
+    fn validate_credentials_only_one_configured_ok() {
+        // A single principal class is a valid posture (the other simply can't
+        // authenticate); only ZERO-configured or EQUAL-both are boot errors.
+        assert!(validate_credentials(Some("admin-secret"), None).is_ok());
+        assert!(validate_credentials(None, Some("operator-secret")).is_ok());
+    }
+
+    #[test]
+    fn validate_credentials_none_configured_is_no_credential() {
+        assert!(matches!(
+            validate_credentials(None, None),
+            Err(BootError::NoCredentialConfigured)
+        ));
+    }
+
+    #[test]
+    fn validate_credentials_equal_tokens_is_ambiguous_credential() {
+        // A shared platform-admin/operator token would silently escalate every
+        // operator to platform-admin (admin is checked first) — refuse to boot.
+        assert!(matches!(
+            validate_credentials(Some("shared-secret"), Some("shared-secret")),
+            Err(BootError::AmbiguousCredential)
+        ));
     }
 
     #[test]
