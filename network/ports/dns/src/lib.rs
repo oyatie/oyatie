@@ -12,6 +12,15 @@ use network_domain::{
 };
 use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
+pub mod authz;
+
+pub use authz::{
+    AuthzProviderConfigError, CallerCredential, CloudNetworkDnsAuthzProvider,
+    ConfiguredBearerPrincipalVerifier, DnsZoneCreateAuthorizationError, DnsZoneCreateAuthorizer,
+    DnsZoneCreateResource, PrincipalVerificationError, PrincipalVerifier, VerifiedPrincipal,
+    constant_time_eq,
+};
+
 pub const CLOUD_NETWORK_DNS_ZONE_CREATE_SURFACE: &str = "cloud.network.dns.zone.create";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -48,9 +57,9 @@ pub enum CloudNetworkDnsApiErrorCode {
     PathZoneIdEmpty,
     ZoneIdMismatch,
     TenantMismatch,
-    AuthorizationDecisionIdEmpty,
-    AuthorizationTenantMismatch,
-    AuthorizationPrincipalMismatch,
+    CallerUnauthenticated,
+    VerifiedPrincipalMismatch,
+    VerifiedTenantMismatch,
     AuthorizationDenied,
     IdempotencyKeyReused,
     ZoneKindInvalid,
@@ -71,13 +80,9 @@ impl CloudNetworkDnsApiErrorCode {
             Self::PathZoneIdEmpty => "CLOUD_NETWORK_DNS_PATH_ZONE_ID_EMPTY",
             Self::ZoneIdMismatch => "CLOUD_NETWORK_DNS_ZONE_ID_MISMATCH",
             Self::TenantMismatch => "CLOUD_NETWORK_DNS_TENANT_MISMATCH",
-            Self::AuthorizationDecisionIdEmpty => {
-                "CLOUD_NETWORK_DNS_AUTHORIZATION_DECISION_ID_EMPTY"
-            }
-            Self::AuthorizationTenantMismatch => "CLOUD_NETWORK_DNS_AUTHORIZATION_TENANT_MISMATCH",
-            Self::AuthorizationPrincipalMismatch => {
-                "CLOUD_NETWORK_DNS_AUTHORIZATION_PRINCIPAL_MISMATCH"
-            }
+            Self::CallerUnauthenticated => "CLOUD_NETWORK_DNS_CALLER_UNAUTHENTICATED",
+            Self::VerifiedPrincipalMismatch => "CLOUD_NETWORK_DNS_VERIFIED_PRINCIPAL_MISMATCH",
+            Self::VerifiedTenantMismatch => "CLOUD_NETWORK_DNS_VERIFIED_TENANT_MISMATCH",
             Self::AuthorizationDenied => "CLOUD_NETWORK_DNS_AUTHORIZATION_DENIED",
             Self::IdempotencyKeyReused => "CLOUD_NETWORK_DNS_IDEMPOTENCY_KEY_REUSED",
             Self::ZoneKindInvalid => "CLOUD_NETWORK_DNS_ZONE_KIND_INVALID",
@@ -104,14 +109,6 @@ pub struct CloudNetworkDnsApiPrincipal {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CloudNetworkDnsApiAuthorization {
-    pub tenant_id: String,             // data_class: INTERNAL_ONLY
-    pub principal_id: String,          // data_class: INTERNAL_ONLY
-    pub decision_id: String,           // data_class: INTERNAL_ONLY
-    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudNetworkDnsZoneCreateRequest {
     pub resource_id: String,            // data_class: INTERNAL_ONLY
     pub tenant_id: String,              // data_class: INTERNAL_ONLY
@@ -129,7 +126,11 @@ pub struct CloudNetworkDnsZoneCreateApiRequest {
     pub path_zone_id: String,                        // data_class: INTERNAL_ONLY
     pub boundary: CloudNetworkDnsApiBoundaryContext, // data_class: INTERNAL_ONLY
     pub principal: CloudNetworkDnsApiPrincipal,      // data_class: INTERNAL_ONLY
-    pub authorization: CloudNetworkDnsApiAuthorization, // data_class: INTERNAL_ONLY
+    /// The caller credential (e.g. bearer token). The boundary verifies this via
+    /// the injected [`authz::PrincipalVerifier`]; the request-supplied
+    /// `principal` above is only ever a CROSS-CHECK against the verified
+    /// identity, never a grant. (C11 fix: a request blob never authorizes.)
+    pub credential: authz::CallerCredential, // data_class: SECRET
     pub body: CloudNetworkDnsZoneCreateRequest,      // data_class: INTERNAL_ONLY
 }
 
@@ -247,15 +248,22 @@ pub enum CloudNetworkDnsApiError {
         principal_tenant_id: String,
         body_tenant_id: String,
     },
-    EmptyAuthorizationDecisionId,
-    AuthorizationTenantMismatch {
-        authorization_tenant_id: String,
-        principal_tenant_id: String,
+    /// The caller credential did not verify (missing or invalid). 401.
+    CallerUnauthenticated,
+    /// The request-supplied principal id did not match the VERIFIED principal.
+    /// 403 (an authenticated caller cannot act as a different principal).
+    VerifiedPrincipalMismatch {
+        verified_principal_id: String,
+        request_principal_id: String,
     },
-    AuthorizationPrincipalMismatch {
-        authorization_principal_id: String,
-        principal_id: String,
+    /// The request/target tenant did not match the VERIFIED principal's tenant.
+    /// 403 (an authenticated caller cannot act on another tenant's resource).
+    VerifiedTenantMismatch {
+        verified_tenant_id: String,
+        request_tenant_id: String,
     },
+    /// The PDP denied or refused (fail-closed) the create on the target
+    /// resource. 403.
     AuthorizationDenied {
         surface: String,
     },
@@ -304,14 +312,12 @@ impl CloudNetworkDnsApiError {
             Self::EmptyPathZoneId => CloudNetworkDnsApiErrorCode::PathZoneIdEmpty,
             Self::ZoneIdMismatch { .. } => CloudNetworkDnsApiErrorCode::ZoneIdMismatch,
             Self::TenantMismatch { .. } => CloudNetworkDnsApiErrorCode::TenantMismatch,
-            Self::EmptyAuthorizationDecisionId => {
-                CloudNetworkDnsApiErrorCode::AuthorizationDecisionIdEmpty
+            Self::CallerUnauthenticated => CloudNetworkDnsApiErrorCode::CallerUnauthenticated,
+            Self::VerifiedPrincipalMismatch { .. } => {
+                CloudNetworkDnsApiErrorCode::VerifiedPrincipalMismatch
             }
-            Self::AuthorizationTenantMismatch { .. } => {
-                CloudNetworkDnsApiErrorCode::AuthorizationTenantMismatch
-            }
-            Self::AuthorizationPrincipalMismatch { .. } => {
-                CloudNetworkDnsApiErrorCode::AuthorizationPrincipalMismatch
+            Self::VerifiedTenantMismatch { .. } => {
+                CloudNetworkDnsApiErrorCode::VerifiedTenantMismatch
             }
             Self::AuthorizationDenied { .. } => CloudNetworkDnsApiErrorCode::AuthorizationDenied,
             Self::IdempotencyKeyReused { .. } => CloudNetworkDnsApiErrorCode::IdempotencyKeyReused,
@@ -353,11 +359,12 @@ impl CloudNetworkDnsApiError {
 
     fn status_kind(&self) -> CloudNetworkDnsApiStatusKind {
         match self {
-            Self::EmptyPrincipalId => CloudNetworkDnsApiStatusKind::Unauthorized,
+            Self::EmptyPrincipalId | Self::CallerUnauthenticated => {
+                CloudNetworkDnsApiStatusKind::Unauthorized
+            }
             Self::TenantMismatch { .. }
-            | Self::EmptyAuthorizationDecisionId
-            | Self::AuthorizationTenantMismatch { .. }
-            | Self::AuthorizationPrincipalMismatch { .. }
+            | Self::VerifiedPrincipalMismatch { .. }
+            | Self::VerifiedTenantMismatch { .. }
             | Self::AuthorizationDenied { .. } => CloudNetworkDnsApiStatusKind::Forbidden,
             Self::IdempotencyKeyReused { .. } => CloudNetworkDnsApiStatusKind::UnprocessableEntity,
             Self::Network(error) => cloud_network_status_kind(error),
@@ -382,15 +389,15 @@ impl CloudNetworkDnsApiError {
             Self::TenantMismatch { .. } => {
                 "Tenant header must match authenticated principal and request body"
             }
-            Self::EmptyAuthorizationDecisionId => "Authorization decision id is required",
-            Self::AuthorizationTenantMismatch { .. } => {
-                "Authorization decision tenant must match the authenticated principal"
+            Self::CallerUnauthenticated => "A verified caller credential is required",
+            Self::VerifiedPrincipalMismatch { .. } => {
+                "Request principal must match the verified caller identity"
             }
-            Self::AuthorizationPrincipalMismatch { .. } => {
-                "Authorization decision principal must match the authenticated principal"
+            Self::VerifiedTenantMismatch { .. } => {
+                "Request tenant must match the verified caller identity"
             }
             Self::AuthorizationDenied { .. } => {
-                "Authorization decision does not allow the requested Cloud Network DNS surface"
+                "The policy decision point denied the requested Cloud Network DNS surface"
             }
             Self::IdempotencyKeyReused { .. } => {
                 "Idempotency key was already used with a different request"
@@ -420,21 +427,21 @@ impl CloudNetworkDnsApiError {
                 "tenant_id",
                 "header tenant, principal tenant, and body tenant_id must match",
             )],
-            Self::EmptyAuthorizationDecisionId => vec![detail(
-                "authorization.decision_id",
-                "must be non-empty authorization evidence",
+            Self::CallerUnauthenticated => vec![detail(
+                "header.Authorization",
+                "must present a credential the policy decision point can verify",
             )],
-            Self::AuthorizationTenantMismatch { .. } => vec![detail(
-                "authorization.tenant_id",
-                "must match the authenticated principal tenant",
+            Self::VerifiedPrincipalMismatch { .. } => vec![detail(
+                "principal.principal_id",
+                "must equal the verified caller principal id",
             )],
-            Self::AuthorizationPrincipalMismatch { .. } => vec![detail(
-                "authorization.principal_id",
-                "must match the authenticated principal id",
+            Self::VerifiedTenantMismatch { .. } => vec![detail(
+                "tenant_id",
+                "must equal the verified caller tenant id",
             )],
             Self::AuthorizationDenied { .. } => vec![detail(
-                "authorization.allowed_surfaces",
-                "must include the requested Cloud Network DNS surface",
+                "authorization",
+                "the policy decision point must allow this principal/action/resource",
             )],
             Self::IdempotencyKeyReused { .. } => vec![detail(
                 "header.Idempotency-Key",
@@ -462,6 +469,12 @@ enum CloudNetworkDnsApiStatusKind {
     UnprocessableEntity,
 }
 
+/// Validate the request SHAPE (boundary headers, path/body id binding, tenant
+/// self-consistency). This does NOT authorize — authorization requires a
+/// verified credential and a PDP decision and lives in
+/// [`create_cloud_network_dns_zone_from_api`], which holds the injected
+/// [`authz::CloudNetworkDnsAuthzProvider`]. Shape validation alone NEVER grants
+/// the request.
 pub fn validate_cloud_network_dns_zone_create_request(
     request: &CloudNetworkDnsZoneCreateApiRequest,
 ) -> Result<(), CloudNetworkDnsApiError> {
@@ -471,20 +484,32 @@ pub fn validate_cloud_network_dns_zone_create_request(
         &request.boundary,
         &request.principal,
         &request.body.tenant_id,
-    )?;
-    validate_authorization(
-        &request.principal,
-        &request.authorization,
-        CLOUD_NETWORK_DNS_ZONE_CREATE_SURFACE,
     )
 }
 
+/// Create a Cloud Network DNS zone from an API request, FAIL-CLOSED.
+///
+/// The flow is (C11 fix; ADR-0587):
+/// 1. validate request shape (headers, id binding, tenant self-consistency);
+/// 2. VERIFY the caller credential via the injected provider → `401`
+///    ([`CloudNetworkDnsApiError::CallerUnauthenticated`]) on missing/invalid;
+/// 3. CROSS-CHECK the request principal/tenant against the verified identity →
+///    `403` on mismatch (a verified caller cannot act as another
+///    principal/tenant);
+/// 4. AUTHORIZE via the PDP against the TARGET `{tenant, dns_zone}` derived from
+///    the trusted body → `403` on deny/fault (fail-closed, never allow);
+/// 5. only then mutate the catalog.
+///
+/// The `authz_provider` is REQUIRED (non-optional): there is no code path to the
+/// mutation that skips the gate, and there is no default-allow provider.
 pub fn create_cloud_network_dns_zone_from_api(
     catalog: &mut CloudNetworkCatalog,
     idempotency_ledger: &mut CloudNetworkDnsZoneCreateIdempotencyLedger,
+    authz_provider: &authz::CloudNetworkDnsAuthzProvider,
     request: CloudNetworkDnsZoneCreateApiRequest,
 ) -> Result<CloudNetworkDnsZoneCreateSuccessResponse, CloudNetworkDnsApiError> {
     validate_cloud_network_dns_zone_create_request(&request)?;
+    authorize_request(authz_provider, &request)?;
     let key = idempotency_key_for(
         &request.boundary,
         &request.principal,
@@ -569,36 +594,57 @@ fn validate_tenant_binding(
     Ok(())
 }
 
-fn validate_authorization(
-    principal: &CloudNetworkDnsApiPrincipal,
-    authorization: &CloudNetworkDnsApiAuthorization,
-    surface: &str,
+/// FAIL-CLOSED authorization: verify the caller credential, cross-check the
+/// request principal/tenant against the verified identity, then ask the PDP for
+/// a decision against the TARGET resource (the trusted body tenant + path/body
+/// DNS zone id). No request-supplied blob authorizes anything.
+fn authorize_request(
+    authz_provider: &authz::CloudNetworkDnsAuthzProvider,
+    request: &CloudNetworkDnsZoneCreateApiRequest,
 ) -> Result<(), CloudNetworkDnsApiError> {
-    if authorization.decision_id.trim().is_empty() {
-        return Err(CloudNetworkDnsApiError::EmptyAuthorizationDecisionId);
-    }
-    if authorization.tenant_id != principal.tenant_id {
-        return Err(CloudNetworkDnsApiError::AuthorizationTenantMismatch {
-            authorization_tenant_id: authorization.tenant_id.clone(),
-            principal_tenant_id: principal.tenant_id.clone(),
+    // (2) Verify the caller credential. Missing/invalid → 401. The verified
+    // principal — never the request blob — is the source of truth.
+    let verified = authz_provider
+        .verify_principal(&request.credential)
+        .map_err(|error| match error {
+            authz::PrincipalVerificationError::MissingCredential
+            | authz::PrincipalVerificationError::InvalidCredential => {
+                CloudNetworkDnsApiError::CallerUnauthenticated
+            }
+        })?;
+
+    // (3) Cross-check the request-asserted principal/tenant against the verified
+    // identity. A verified caller cannot act as another principal or tenant.
+    if verified.principal_id() != request.principal.principal_id {
+        return Err(CloudNetworkDnsApiError::VerifiedPrincipalMismatch {
+            verified_principal_id: verified.principal_id().to_string(),
+            request_principal_id: request.principal.principal_id.clone(),
         });
     }
-    if authorization.principal_id != principal.principal_id {
-        return Err(CloudNetworkDnsApiError::AuthorizationPrincipalMismatch {
-            authorization_principal_id: authorization.principal_id.clone(),
-            principal_id: principal.principal_id.clone(),
+    if verified.tenant_id() != request.body.tenant_id {
+        return Err(CloudNetworkDnsApiError::VerifiedTenantMismatch {
+            verified_tenant_id: verified.tenant_id().to_string(),
+            request_tenant_id: request.body.tenant_id.clone(),
         });
     }
-    if !authorization
-        .allowed_surfaces
-        .iter()
-        .any(|allowed_surface| allowed_surface == surface)
-    {
-        return Err(CloudNetworkDnsApiError::AuthorizationDenied {
-            surface: surface.to_string(),
-        });
-    }
-    Ok(())
+
+    // (4) Ask the PDP for a decision against the TARGET resource. The tenant is
+    // the trusted body tenant (not a flattened caller tenant); a cross-tenant
+    // create is deniable here. Deny OR any fault → 403 (fail-closed).
+    let resource = authz::DnsZoneCreateResource {
+        tenant_id: request.body.tenant_id.clone(),
+        dns_zone_id: request.body.resource_id.clone(),
+    };
+    authz_provider
+        .ensure_authorized(&verified, &resource)
+        .map_err(|error| match error {
+            authz::DnsZoneCreateAuthorizationError::Denied
+            | authz::DnsZoneCreateAuthorizationError::Refused => {
+                CloudNetworkDnsApiError::AuthorizationDenied {
+                    surface: CLOUD_NETWORK_DNS_ZONE_CREATE_SURFACE.to_string(),
+                }
+            }
+        })
 }
 
 fn dns_zone_create_input(
@@ -653,22 +699,6 @@ fn dns_zone_create_fingerprint_for(
             format!("header.tenant_id={}", request.boundary.tenant_id),
             format!("principal.tenant_id={}", request.principal.tenant_id),
             format!("principal.principal_id={}", request.principal.principal_id),
-            format!(
-                "authorization.tenant_id={}",
-                request.authorization.tenant_id
-            ),
-            format!(
-                "authorization.principal_id={}",
-                request.authorization.principal_id
-            ),
-            format!(
-                "authorization.decision_id={}",
-                request.authorization.decision_id
-            ),
-            format!(
-                "authorization.allowed_surfaces={}",
-                request.authorization.allowed_surfaces.join(",")
-            ),
             format!("body.resource_id={}", request.body.resource_id),
             format!("body.tenant_id={}", request.body.tenant_id),
             format!("body.region={}", request.body.region),

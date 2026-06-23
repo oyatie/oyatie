@@ -3,14 +3,33 @@
 //! This crate owns CloudEvents envelope normalization, producer authorization,
 //! request fingerprint idempotency, platform audit-chain append, and eventing
 //! outbox publication for `audit.event.emit`.
+//!
+//! ## Fail-closed authorization (AUTH-005 / C15; ADR-0588)
+//!
+//! Emitting an audit record is a tamper-evidence-critical mutation. The ONLY
+//! public emit path is [`emit_audit_event_authorized`], which requires a
+//! verified producer principal ([`authz::VerifiedProducerPrincipal`], unforgeable
+//! by construction) and a server-side PDP authorization decision via the
+//! [`authz::AuditEmitAuthzProvider`] (default-deny / fail-closed). The
+//! caller-supplied [`AuditEventEmitAuthorization`] DTO is NO LONGER an
+//! authorization grant — its `decision_id` is demoted to a non-authoritative
+//! correlation hint and its other fields are cross-checked against the verified
+//! identity, never trusted to authorize. See [`authz`] for the full doctrine.
+
+pub mod authz;
 
 use std::collections::BTreeMap;
 
 use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
+use messaging_domain::{EventingError, Outbox, OutboxRecord};
 use oya_data_boundary_kernel::{
     DataClassification, Purpose, parse_data_class_label, parse_purpose_pascal_label,
 };
-use messaging_domain::{EventingError, Outbox, OutboxRecord};
+
+use authz::{
+    AuditEmitAuthorizationError, AuditEmitAuthzProvider, AuditEmitResource, AuditEmitScope,
+    VerifiedProducerPrincipal,
+};
 
 pub const AUDIT_EVENT_EMIT_SURFACE: &str = "audit.event.emit";
 pub const AUDIT_EVENT_TOPIC: &str = "oya.platform.audit";
@@ -54,6 +73,21 @@ pub struct AuditEventEmitEnvelopeContext {
     pub produced_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
 }
 
+/// Caller-supplied authorization correlation fields.
+///
+/// ## ⚠ NOT an authorization grant (ADR-0588 / AUTH-005 / C15)
+///
+/// Every field here is CALLER-SUPPLIED and is therefore NON-AUTHORITATIVE. None
+/// of `tenant_id`, `producer_id`, `decision_id`, or `allowed_surfaces` grants
+/// permission to emit an audit record. Authorization is made server-side by the
+/// [`authz::AuditEmitAuthzProvider`] in [`emit_audit_event_authorized`] from a
+/// VERIFIED principal + a PDP decision. These fields are retained only for
+/// fingerprint/correlation continuity:
+/// - `tenant_id` / `producer_id` are CROSS-CHECKED against the verified identity
+///   (a mismatch is rejected) but never confer authority on their own.
+/// - `decision_id` is a non-authoritative correlation hint for log joins.
+/// - `allowed_surfaces` is retained for request-fingerprint stability only; it
+///   is NEVER consulted to decide whether the emit is permitted.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AuditEventEmitAuthorization {
     pub tenant_id: String,             // data_class: INTERNAL_ONLY
@@ -203,6 +237,21 @@ pub enum AuditEventEmitAppError {
     AuthorizationDenied {
         surface: String,
     },
+    /// ADR-0588: the caller did not present a verifiable producer credential.
+    /// Maps to 401 (Unauthorized) — fail-closed: the audit record is never
+    /// emitted without a verified principal.
+    PrincipalUnverified,
+    /// ADR-0588: the verified principal's identity does not match the
+    /// envelope/payload's self-attested tenant or producer (substitution
+    /// attempt). Maps to 403 (Forbidden).
+    VerifiedPrincipalMismatch {
+        verified_id: String,
+        claimed_id: String,
+    },
+    /// ADR-0588: the server-side PDP denied (or refused, fail-closed) the verified
+    /// principal's request to emit for the target resource. Maps to 403
+    /// (Forbidden).
+    PdpAuthorizationDenied,
     EnvelopePayloadEventIdMismatch {
         envelope_event_id: String,
         payload_event_id: String,
@@ -247,10 +296,14 @@ impl From<AuditChainError> for AuditEventEmitAppError {
 impl AuditEventEmitAppError {
     pub fn audit_event_emit_status(&self) -> AuditEventEmitAppStatus {
         match self {
-            Self::EmptyProducerId => AuditEventEmitAppStatus::Unauthorized,
+            Self::EmptyProducerId | Self::PrincipalUnverified => {
+                AuditEventEmitAppStatus::Unauthorized
+            }
             Self::AuthorizationTenantMismatch { .. }
             | Self::AuthorizationProducerMismatch { .. }
             | Self::AuthorizationDenied { .. }
+            | Self::VerifiedPrincipalMismatch { .. }
+            | Self::PdpAuthorizationDenied
             | Self::EnvelopePayloadTenantMismatch { .. } => AuditEventEmitAppStatus::Forbidden,
             Self::IdempotencyKeyReused { .. }
             | Self::Eventing(EventingError::IdempotencyReplayMismatch)
@@ -304,7 +357,123 @@ pub fn validate_audit_event_emit_request(
     validate_envelope_payload_binding(&request.envelope, &request.payload)
 }
 
-pub fn emit_audit_event_from_app(
+/// FAIL-CLOSED audit-event emit boundary (ADR-0588 / AUTH-005 / C15).
+///
+/// This is the ONLY public path that appends to the platform audit chain. It is
+/// impossible to emit an audit record without:
+///
+/// 1. A **verified producer principal** — `verified` is an
+///    [`authz::VerifiedProducerPrincipal`], an UNFORGEABLE token (private fields,
+///    `pub(crate)` constructor) that external crates can only obtain by running a
+///    real [`authz::PrincipalVerifier`]. The composition root verifies the
+///    caller credential (bearer / mTLS-SVID) via
+///    [`authz::AuditEmitAuthzProvider::verify_principal`] and passes the result
+///    here. There is no code path to this function that skips verification.
+/// 2. An **active cross-check** of the verified identity against the request's
+///    self-attested envelope/payload tenant + producer. A mismatch means the
+///    caller fabricated a different identity in the body than the verifier bound
+///    — rejected as [`AuditEventEmitAppError::VerifiedPrincipalMismatch`] (403).
+/// 3. A **server-side PDP decision** — `authz.ensure_authorized(verified,
+///    resource)` for `action = audit.event.emit` on the TARGET
+///    `{tenant, surface, scope}`. The resource tenant is derived from the
+///    validated payload's TARGET tenant (a trusted source), NOT flattened to the
+///    caller's verified tenant, so a cross-tenant emit is deniable at the PDP
+///    (no IDOR). Default-deny: any deny or PDP fault maps to
+///    [`AuditEventEmitAppError::PdpAuthorizationDenied`] (403).
+///
+/// The caller-supplied [`AuditEventEmitAuthorization`] fields NEVER authorize;
+/// the audit record reflects the VERIFIED principal. The
+/// [`AuditEmitAuthzProvider`] is a REQUIRED, non-optional argument — there is no
+/// `Default` and no allow-all provider, so a boundary that cannot prove a
+/// credential root and reach a PDP can never emit.
+///
+/// # Errors
+/// - [`AuditEventEmitAppError::PrincipalUnverified`] — no/invalid credential (401).
+/// - [`AuditEventEmitAppError::VerifiedPrincipalMismatch`] — identity substitution (403).
+/// - [`AuditEventEmitAppError::PdpAuthorizationDenied`] — PDP deny / fault (403).
+/// - the validation and emission errors from the inner append path.
+pub fn emit_audit_event_authorized(
+    authz: &AuditEmitAuthzProvider,
+    verified: &VerifiedProducerPrincipal,
+    chain: &mut AuditChain,
+    outbox: &mut Outbox,
+    idempotency_ledger: &mut AuditEventEmitIdempotencyLedger,
+    request: AuditEventEmitAppRequest,
+) -> Result<AuditEventEmitSuccessResponse, AuditEventEmitAppError> {
+    // (1) Structural validation FIRST so malformed input is a 4xx before any
+    //     authz work (and so the cross-check below sees normalized fields).
+    validate_audit_event_emit_request(&request)?;
+
+    // (2) Cross-check the verified identity against the request's self-attested
+    //     envelope/payload tenant + producer. The verified identity is
+    //     AUTHORITATIVE; a non-matching self-attested field is a substitution
+    //     attempt → 403. (Empty fields are already rejected by
+    //     validate_envelope, so these are non-empty here.)
+    if request.envelope.producer_id != verified.producer_id() {
+        return Err(AuditEventEmitAppError::VerifiedPrincipalMismatch {
+            verified_id: verified.producer_id().to_string(),
+            claimed_id: request.envelope.producer_id.clone(),
+        });
+    }
+    if request.envelope.tenant_id != verified.tenant_id() {
+        return Err(AuditEventEmitAppError::VerifiedPrincipalMismatch {
+            verified_id: verified.tenant_id().to_string(),
+            claimed_id: request.envelope.tenant_id.clone(),
+        });
+    }
+
+    // (3) Server-side PDP authorization on the TARGET resource. The resource
+    //     tenant + surface come from the validated payload (the TARGET), not the
+    //     caller's verified tenant — so a cross-tenant emit (verified producer of
+    //     tenant A recording for tenant B) is deniable AT THE PDP (no IDOR). The
+    //     scope is explicit so the PDP sees the true blast radius: a
+    //     platform-level audit record requires platform-audit authority, not mere
+    //     tenant-producer authority.
+    let resource = audit_emit_resource(&request.payload);
+    authz
+        .ensure_authorized(verified, &resource)
+        .map_err(|err| match err {
+            // Both an explicit deny and a fail-closed refusal map to 403; the
+            // record is never emitted. (No catch_unwind: panic = "abort" defeats
+            // it; the adapter contract forbids panics — see authz module docs.)
+            AuditEmitAuthorizationError::Denied | AuditEmitAuthorizationError::Refused => {
+                AuditEventEmitAppError::PdpAuthorizationDenied
+            }
+        })?;
+
+    // (4) Gate passed — append. The append uses the VERIFIED principal's tenant
+    //     for the record's tenant attribution (already cross-checked equal to the
+    //     envelope/payload tenant above), so the recorded tenant is authoritative.
+    emit_audit_event_unauthorized_inner(chain, outbox, idempotency_ledger, request)
+}
+
+/// Derive the PDP resource from the validated TARGET payload. The tenant + surface
+/// are the event's TARGET (trusted, post-validation), never the caller's verified
+/// tenant. An empty payload tenant (a platform-lineage event) is presented as
+/// [`AuditEmitScope::Platform`] so the PDP requires platform-audit authority and a
+/// tenant producer cannot forge a platform-level record.
+fn audit_emit_resource(payload: &AuditEventEmitPayload) -> AuditEmitResource {
+    if payload.tenant_id.trim().is_empty() {
+        AuditEmitResource {
+            tenant_id: String::new(),
+            surface: payload.surface.clone(),
+            scope: AuditEmitScope::Platform,
+        }
+    } else {
+        AuditEmitResource {
+            tenant_id: payload.tenant_id.clone(),
+            surface: payload.surface.clone(),
+            scope: AuditEmitScope::Tenant,
+        }
+    }
+}
+
+/// RAW audit-chain append — runs AFTER the fail-closed authz gate in
+/// [`emit_audit_event_authorized`]. **`pub(crate)` only**: external crates cannot
+/// reach the mutation without passing through the verified-principal + PDP gate.
+/// The self-attested [`AuditEventEmitAuthorization`] is cross-checked for internal
+/// consistency only (`validate_authorization`); it confers NO authority.
+pub(crate) fn emit_audit_event_unauthorized_inner(
     chain: &mut AuditChain,
     outbox: &mut Outbox,
     idempotency_ledger: &mut AuditEventEmitIdempotencyLedger,
