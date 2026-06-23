@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:95907e9802809999"
+    "source_inputs_digest": "fnv1a64:08ebd8245fb05121"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -886,6 +886,7 @@
           "docs/decisions/ADR-0529-auto-advise-gate-governor-operational-at-gate-layer.md",
           "docs/decisions/ADR-0533-config-driven-public-boundary.md",
           "docs/decisions/ADR-0535-cross-product-versioning-release-governance.md",
+          "docs/decisions/ADR-0589-fail-closed-authz-for-dsr-erasure-cascade.md",
           "docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md",
           "docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md",
           "docs/foundry/foundry-pipeline-substrate-checkpoint-2026-05-20.md",
