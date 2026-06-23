@@ -6,6 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
         "third-party//:toml",
     ],
 )
@@ -38,6 +39,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
         "third-party//:toml",
     ],
 )
