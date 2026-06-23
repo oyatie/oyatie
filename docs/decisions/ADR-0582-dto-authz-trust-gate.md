@@ -1,5 +1,5 @@
 ---
-id: ADR-0581
+id: ADR-0582
 title: "DTO-authz-trust gate (caller-supplied authorization decision backstop)"
 status: Proposed
 planning_impact: false
@@ -17,7 +17,7 @@ related_specs:
 milestone: W0
 ---
 
-# ADR-0581: DTO-authz-trust gate (caller-supplied authorization decision backstop)
+# ADR-0582: DTO-authz-trust gate (caller-supplied authorization decision backstop)
 
 ## Status
 
@@ -66,47 +66,70 @@ against a frozen baseline.
 
 ### D1 — The antipattern, mechanically
 
-A function is a DTO-AUTHZ-TRUST instance iff ALL THREE hold over its CODE-ONLY body (comments and
+A function is a DTO-AUTHZ-TRUST instance iff BOTH hold over its CODE-ONLY body (comments and
 string/char literal CONTENT elided via a length-preserving mask, so a doc-comment mention never
-triggers):
+triggers). This is the **v2 two-signal heuristic** (v1 had a third self-compare precondition that
+was evadable by `Vec::contains` / `binary_search` / `is_superset`; v2 inverts it — FN-06):
 
 - **(a) it reads a CALLER-SUPPLIED authorization-decision field** — it takes a parameter whose type
   name tail ends with the policy `authorization_dto_type_suffixes` (default `Authorization` — the
-  forged blob), OR its body reads a `trigger_decision_field_idents` member (default `allowed_surfaces`
-  — an authz allow-list with no benign business meaning) off a binding, OR it reads an
-  `authorization_header_idents` (`x-authorization-*`);
-- **(b) the only "check" is self-comparison / equality / membership against the request** — the body
-  contains a `self_compare_tokens` operator (`==` / `!=` / `.iter().any(` / `.contains(`);
-- **(c) the body makes NO whole-token CALL to a `pdp_decision_idents` port** (`.decide(`,
-  `ensure_authorized`, `verify_principal`, `check_authz`, `ensure_authz`).
+  forged blob), OR its body reads a `trigger_decision_field_idents` member (`allowed_surfaces`,
+  `permitted_scopes`, `caller_roles`, `granted`, `allowed_actions` — authz allow-lists/grants with
+  no benign business meaning) off a binding, OR it reads an `authorization_header_idents`
+  (`x-authorization-decision-id`, `x-authorization-surfaces`, `x-authorization-principal-id`,
+  `x-authorization-tenant-id`) — detected in a comment-stripped string-preserving body view so
+  header names in string literals are found but header names only in comments are not (FP-01);
+- **(b) the body makes NO whole-token CALL to a `pdp_decision_idents` port** (`.decide(`,
+  `ensure_authorized`, `check_authz`, `ensure_authz`, `authorize_decision`, `pdp_decide`).
+
+**`verify_principal` is intentionally ABSENT from `pdp_decision_idents`** — it is an
+AUTHENTICATION step (verifies identity from an unforgeable credential), not an authorization
+decision. A function that calls `verify_principal` but self-compares the authz DTO is still flagged.
+The authorization decision requires a server-side PDP call (`ensure_authorized` / `.decide()`).
+
+Self-compare tokens (`==`, `!=`, `.iter().any(`, `.contains(`) are retained in policy as
+description-enrichment signals only — they annotate the finding narrative but are not a gate
+precondition (FN-06 inversion).
+
+Header detection runs on a comment-stripped but string-preserving view of the body (not the
+fully-masked body and not the raw original text), so header names in string literals trigger while
+header names only in comments do not (FP-01 fix).
+
+`#[cfg(not(test))]`-gated items are PRODUCTION code and are scanned. Only `#[cfg(test)]` positive
+predicates mark test-fixture blocks that are excluded (FN-05 fix).
 
 ### D2 — Conservative in the SAFE direction + honest limits
 
-For (c), a PDP-port call recognized as a whole-token CALL in the code-only body marks the function
+For (b), a PDP-port call recognized as a whole-token CALL in the code-only body marks the function
 GREEN — the gate never invents a false finding for a function that genuinely delegates to a PDP. A
-function that BOTH self-compares an authorization DTO AND calls a PDP port is GREEN: the PDP call is
-the real decision, the self-comparison is a redundant precondition.
+function that BOTH reads an authorization DTO AND calls a PDP port is GREEN: the PDP call is the
+real decision, the DTO read is a redundant precondition.
 
 Honest LIMITS (documented, not hidden):
 
-- The gate recognizes the dominant corpus shape: a synchronous `fn` with an `*Authorization` DTO
-  param (or an `allowed_surfaces` read) that self-compares. A handler that hides the same
-  self-comparison behind an opaque helper giving NO authorization-DTO signal is outside the envelope
-  (human review + the authz-coverage gate own that). This deliberate boundary keeps the baseline
-  meaningful and the false-positive rate near zero.
+- **Dead-code evasion**: `if false { .decide() }` suppresses signal (b). The gate does not perform
+  reachability analysis — a PDP ident in the code-only body marks the function GREEN regardless of
+  control flow. Code reviewers must catch intentional `if false { decide() }` suppressions.
+- **Wrong-receiver evasion**: `other_svc.ensure_authorized()` on a different receiver also suppresses
+  signal (b). Policy-keyed idents should be scoped to the owned PDP port shape.
 - (a) is the load-bearing precision lever: requiring an *authorization-DTO* / *authz-specific
   allow-list* signal (NOT just any `tenant_id` comparison) is what keeps benign tenant/path-binding
   validators GREEN. An overloaded field (`decision_id`, which also names retention/policy business
   keys) is a description-only corroborator, never a standalone trigger — so the gate does not
   false-positive on retention/policy `decision_id` integrity checks.
+- Opaque-helper evasion: a handler that hides the same authz-decision behind a helper giving NO
+  authorization-DTO signal is outside the envelope (human review + the authz-coverage gate own that).
 
-### D3 — Born-blocking with a FROZEN, SHRINK-ONLY baseline
+### D3 — Born-blocking with a FROZEN, SHRINK-ONLY baseline (v2: body-hash keying)
 
-The ~52 pre-existing instances are enumerated and FROZEN as known debt
-(`frozen_dto_authz_trust_instances`, keyed by stable `<file>#<fn>` so a line shift never re-REDs a
-baselined instance). An instance whose key is in the baseline is ACCEPTED (no block) — each owner's
-remediation over time. A NEW instance whose key is NOT in the baseline → RED. The baseline is
-shrink-only by construction (a fixed/removed instance drops its key); a stale key self-cleans via
+The ~92 pre-existing instances are enumerated and FROZEN as known debt
+(`frozen_dto_authz_trust_instances`, keyed by stable `<file>#<fn>:<body_hash>` — a 32-hex-char
+FNV-1a hash of the code-only masked function body is appended to the file+fn components). This
+prevents a NEW function with the SAME name in a different `mod` (or a refactored body) from
+auto-laundering as a baselined instance (FN-02). A line shift with no body change does NOT change
+the key. An instance whose key is in the baseline is ACCEPTED (no block) — each owner's remediation
+over time. A NEW instance whose key is NOT in the baseline → RED. The baseline is shrink-only by
+construction (a fixed/removed instance drops its key); a stale key self-cleans via
 `DAT-STALE-BASELINE`. AUTOMATED: re-baselining is mechanical via the gate binary `--write`
 (shrink-only; growing requires the explicit `--allow-new` flag, a reviewed grandfather).
 

@@ -3674,7 +3674,7 @@
       "supersedes": []
     },
     {
-      "id": "ADR-0581",
+      "id": "ADR-0582",
       "in_masterplan": false,
       "in_roadmap": false,
       "in_spec": true,
@@ -3754,6 +3754,6 @@
     "ADR-0488"
   ],
   "id_mismatches": [],
-  "next_free_id": "ADR-0582",
+  "next_free_id": "ADR-0583",
   "phantom_citations": []
 }
