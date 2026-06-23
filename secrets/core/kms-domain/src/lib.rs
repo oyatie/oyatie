@@ -535,10 +535,30 @@ pub struct CloudKmsDirectory {
 
 pub trait KmsRepo {
     fn create_key(&mut self, input: KmsKeyCreate) -> Result<KmsKey, CloudKmsError>;
+
+    /// Execute a KMS encrypt at the domain layer.
+    ///
+    /// # SECURITY — do NOT call directly from HTTP boundary code
+    ///
+    /// This method performs the domain-level crypto operation only.  It does NOT
+    /// verify principal identity and does NOT run a PDP authorization decision.
+    /// HTTP boundary code (i.e. `secrets/ports/kms-api`) MUST call
+    /// [`secrets_kms_api::authorize_cloud_kms_encrypt_from_api`] instead, which
+    /// enforces [`VerifiedKmsPrincipal`] + PDP [`KmsCryptoAuthorizer`] before
+    /// reaching this layer.  Direct callers bypass the entire AUTH-005 / ADR-0573
+    /// fail-closed seam and open a cross-tenant IDOR.
     fn authorize_encrypt(
         &mut self,
         input: KmsEncryptRequest,
     ) -> Result<KmsUseReceipt, CloudKmsError>;
+
+    /// Execute a KMS decrypt at the domain layer.
+    ///
+    /// # SECURITY — do NOT call directly from HTTP boundary code
+    ///
+    /// Same constraint as [`authorize_encrypt`]: this method carries no identity
+    /// or authorization guarantee.  HTTP boundary code MUST go through
+    /// [`secrets_kms_api::authorize_cloud_kms_decrypt_from_api`] (ADR-0573).
     fn authorize_decrypt(
         &mut self,
         input: KmsDecryptRequest,

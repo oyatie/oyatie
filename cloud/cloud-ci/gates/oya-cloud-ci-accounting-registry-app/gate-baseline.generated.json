@@ -5,7 +5,7 @@
     "config_digest": "fnv1a64:5a663b7cf0e326ef",
     "firewall_target": "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-app",
     "producer_target": "//cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app",
-    "source_inputs_digest": "fnv1a64:c3d95d5b708358a5"
+    "source_inputs_digest": "fnv1a64:95907e9802809999"
   },
   "gates": {
     "cloud-ci-automation-ratchet": {
@@ -21361,8 +21361,6 @@
           "secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml",
           "secrets/ports/kms-api/BUCK",
           "secrets/ports/kms-api/Cargo.toml",
-          "secrets/ports/kms-api/src/lib.rs",
-          "secrets/ports/kms-api/tests/cloud_kms_api.rs",
           "specs/agent-durable-goal.json",
           "specs/agent-operating-contract.json",
           "specs/agentic-slo-gated-promotion.json",
