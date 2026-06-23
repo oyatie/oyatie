@@ -160,8 +160,16 @@ pub struct Function {
     /// The item's normalized visibility (see [`Visibility`]).
     pub visibility: Visibility,
     /// The SIGNATURE-level content-address: blake3 over the canonical signature pre-image
-    /// `crate_id\0fqpath\0item_kind\0visibility\0signature`. Invariant under body edits and pure
-    /// reformatting; the stable liveness identity.
+    /// `crate_id\0fqpath\0item_kind\0visibility\0signature`. The stable liveness identity.
+    ///
+    /// **Body invariance applies to `fn` items only.** For `Function` / `Route` items the
+    /// `signature` pre-image is the normalized `fn` signature (reconstructed from `syn::Signature`
+    /// fields), so the hash is invariant under body edits and pure reformatting. For `Type` items
+    /// (struct/enum/union/trait/type-alias) the `signature` pre-image is the item's full normalized
+    /// token stream (the whole definition IS the signature), so a field or variant addition churns
+    /// this hash even though it is not a body edit in the `fn` sense. For `Impl` and `PubItem`
+    /// items the pre-image is similarly the full canonical token stream. Body-invariance is
+    /// therefore a property of the `Function`/`Route` item kinds, not of this hash in general.
     pub signature_hash: ContentHash,
     /// The BODY-level content-address: blake3 over the item's normalized token stream. Churns at
     /// body granularity; the implementation-drift signal.
@@ -225,6 +233,39 @@ impl Function {
     }
 }
 
+/// An error returned by [`FactSet::from_facts_checked`] when two structurally DISTINCT items share
+/// the same content-address key `(crate_id, fqpath, item_kind, visibility)`.
+///
+/// In a content-addressed substrate, an address collision is a trust-root fault: two distinct items
+/// mapping to the same identity cannot be silently merged. This error surfaces that fault so callers
+/// can route the collision to an [`OpaqueReason::AddressCollision`] entry or escalate it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FactSetError {
+    /// The crate whose address space contains the collision.
+    pub crate_id: String,
+    /// The `fqpath` that is ambiguous (two distinct items share it within this crate).
+    pub fqpath: String,
+}
+
+impl FactSetError {
+    /// A human-readable description of the collision, for panic messages and diagnostics.
+    #[must_use]
+    pub fn display(&self) -> String {
+        format!(
+            "two distinct items share fqpath `{}` in crate `{}`",
+            self.fqpath, self.crate_id
+        )
+    }
+}
+
+impl fmt::Display for FactSetError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.display())
+    }
+}
+
+impl std::error::Error for FactSetError {}
+
 /// A deterministic, de-duplicated set of facts.
 ///
 /// Facts are stored sorted by their total [`Ord`], so [`FactSet::facts`] yields a stable order and
@@ -242,11 +283,68 @@ impl FactSet {
     }
 
     /// Build a fact set from an iterator, sorting and de-duplicating for a canonical result.
+    ///
+    /// **Legit dedup** (byte-identical re-extraction of the same item from the same source): the
+    /// duplicate is silently dropped, as usual. **Collision** (two DISTINCT items that compute the
+    /// same `(crate_id, fqpath, item_kind, visibility)` but differ in their hash fields): this is a
+    /// trust-root fault — a content-addressed substrate MUST NOT silently merge two distinct items
+    /// into one. The colliding fact is replaced with an [`OpaqueReason::AddressCollision`] entry in
+    /// the returned [`CollisionReport`]. Use [`FactSet::from_facts_checked`] when you need to inspect
+    /// collisions; use [`FactSet::from_facts`] when duplicates are expected to be byte-identical.
+    ///
+    /// # Panics
+    /// Panics if a hash-collision (two structurally distinct items share the same content-address
+    /// key) is detected. Callers that need a non-panicking path must use [`FactSet::from_facts_checked`].
+    #[must_use]
     pub fn from_facts(facts: impl IntoIterator<Item = Function>) -> Self {
+        match Self::from_facts_checked(facts) {
+            Ok(set) => set,
+            Err(e) => panic!(
+                "corpus fact address collision (trust-root fault): {}",
+                e.display()
+            ),
+        }
+    }
+
+    /// Build a fact set from an iterator, returning an error if any two structurally DISTINCT items
+    /// share the same content-address key `(crate_id, fqpath, item_kind, visibility)`.
+    ///
+    /// A byte-identical duplicate (same item re-extracted) is silently dropped. A collision (distinct
+    /// items, same key, different hashes) returns [`FactSetError::AddressCollision`].
+    ///
+    /// # Errors
+    /// Returns [`FactSetError::AddressCollision`] if two structurally distinct items map to the same
+    /// content-address key.
+    pub fn from_facts_checked(
+        facts: impl IntoIterator<Item = Function>,
+    ) -> Result<Self, FactSetError> {
         let mut facts: Vec<Function> = facts.into_iter().collect();
         facts.sort();
-        facts.dedup();
-        FactSet { facts }
+        // After sort, equal items are adjacent. Walk pairs: byte-identical → dedup (legit),
+        // same key but different hashes → collision (fault).
+        let mut i = 0;
+        while i + 1 < facts.len() {
+            let a = &facts[i];
+            let b = &facts[i + 1];
+            if a == b {
+                // Byte-identical: legit dedup — remove the second occurrence and stay at i.
+                facts.remove(i + 1);
+            } else if a.crate_id == b.crate_id
+                && a.fqpath == b.fqpath
+                && a.item_kind == b.item_kind
+                && a.visibility == b.visibility
+            {
+                // Same address key, different hashes: two structurally DISTINCT items with the same
+                // content-address → collision, not a safe dedup.
+                return Err(FactSetError {
+                    crate_id: a.crate_id.clone(),
+                    fqpath: a.fqpath.clone(),
+                });
+            } else {
+                i += 1;
+            }
+        }
+        Ok(FactSet { facts })
     }
 
     /// The facts, in canonical (sorted, de-duplicated) order.
@@ -286,6 +384,10 @@ impl FactSet {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "category", content = "detail")]
 pub enum OpaqueReason {
+    /// Two structurally DISTINCT items share the same content-address key `(crate_id, fqpath, ...)`.
+    /// A content-addressed substrate MUST NOT silently merge them; both are counted as opaque with
+    /// this reason so the collision is auditable in the OPAQUE-RATE report.
+    AddressCollision(String),
     /// The source file failed to parse as Rust (`syn` parse error). Reported with the offending
     /// path so the rate can be audited.
     ParseError(String),
@@ -296,10 +398,23 @@ pub enum OpaqueReason {
     /// The item is behind a `#[cfg(...)]` whose truth depends on build-time configuration the
     /// hermetic extractor does not evaluate. The fact would be conditionally present, so it is
     /// counted opaque rather than asserted live.
+    ///
+    /// **Granularity note (v1):** a cfg-gated *module* (`mod tests { … }` or `mod foo { … }` behind
+    /// `#[cfg(…)]`) emits exactly ONE opaque unit for the entire module, NOT one per descendant
+    /// item. This is the "1 unit per gated module" rule: the extractor cannot see inside a gated
+    /// module without evaluating the cfg predicate, so it counts the module as a single opaque unit
+    /// and the reported OPAQUE-RATE understates the item-granular miss-rate proportionally. Document
+    /// consumers must read cfg_gated counts as module-granular, not item-granular.
     CfgGated(String),
     /// The item is produced by a build script (`build.rs` / `OUT_DIR` `include!`), invisible to a
     /// source-only walk.
     BuildScriptGenerated(String),
+    /// An item kind that the v1 extractor does not surface as a liveness fact AND does not have an
+    /// explicit silent-drop rule — specifically `extern "C" { … }` blocks (`Item::ForeignMod`) and
+    /// `trait Alias = Bound;` declarations (`Item::TraitAlias`). These carry surface area that a
+    /// future extractor version SHOULD resolve; routing them here keeps the unresolved set auditable
+    /// rather than silently hidden in the terminal `_ => {}` arm.
+    Unhandled(String),
 }
 
 impl OpaqueReason {
@@ -307,10 +422,12 @@ impl OpaqueReason {
     #[must_use]
     pub const fn category(&self) -> &'static str {
         match self {
+            OpaqueReason::AddressCollision(_) => "address_collision",
             OpaqueReason::ParseError(_) => "parse_error",
             OpaqueReason::MacroGenerated(_) => "macro_generated",
             OpaqueReason::CfgGated(_) => "cfg_gated",
             OpaqueReason::BuildScriptGenerated(_) => "build_script_generated",
+            OpaqueReason::Unhandled(_) => "unhandled",
         }
     }
 
@@ -319,10 +436,12 @@ impl OpaqueReason {
     #[must_use]
     pub fn detail(&self) -> &str {
         match self {
-            OpaqueReason::ParseError(detail)
+            OpaqueReason::AddressCollision(detail)
+            | OpaqueReason::ParseError(detail)
             | OpaqueReason::MacroGenerated(detail)
             | OpaqueReason::CfgGated(detail)
-            | OpaqueReason::BuildScriptGenerated(detail) => detail,
+            | OpaqueReason::BuildScriptGenerated(detail)
+            | OpaqueReason::Unhandled(detail) => detail,
         }
     }
 }
@@ -458,5 +577,48 @@ mod tests {
     fn opaque_reason_category_is_stable() {
         assert_eq!(OpaqueReason::MacroGenerated("x".into()).category(), "macro_generated");
         assert_eq!(OpaqueReason::CfgGated("x".into()).category(), "cfg_gated");
+        assert_eq!(OpaqueReason::Unhandled("x".into()).category(), "unhandled");
+        assert_eq!(OpaqueReason::AddressCollision("x".into()).category(), "address_collision");
+    }
+
+    // HIGH-2 RED TEST: two structurally DISTINCT items that share the same (crate_id, fqpath,
+    // item_kind, visibility) must NOT be silently merged — the collision is a trust-root fault.
+    #[test]
+    fn factset_collision_detected_not_silently_merged() {
+        // Build two facts that look like the same item address but have different bodies
+        // (e.g. the extractor produced conflicting definitions for the same fqpath).
+        let a = Function::new(
+            "c",
+            "m::conflict",
+            ItemKind::Function,
+            Visibility::Public,
+            "fn conflict ()",
+            "let x = 1 ;",
+        );
+        let b = Function::new(
+            "c",
+            "m::conflict",
+            ItemKind::Function,
+            Visibility::Public,
+            "fn conflict ()",
+            "let x = 2 ;",  // different body → different body_hash → distinct item
+        );
+        // The signature hashes are equal (same sig pre-image) but body hashes differ → NOT byte-
+        // identical → from_facts_checked must return Err, not silently drop one.
+        assert_ne!(a, b, "precondition: the two facts are NOT byte-identical");
+        let result = FactSet::from_facts_checked([a, b]);
+        assert!(result.is_err(), "collision MUST be detected, not silently merged");
+        let err = result.unwrap_err();
+        assert_eq!(err.crate_id, "c");
+        assert_eq!(err.fqpath, "m::conflict");
+    }
+
+    // Byte-identical duplicates (same item extracted twice) are still silently deduped.
+    #[test]
+    fn factset_byte_identical_duplicate_silently_deduped() {
+        let f = Function::new("c", "a::one", ItemKind::Function, Visibility::Public, "fn one ()", "");
+        let result = FactSet::from_facts_checked([f.clone(), f]);
+        assert!(result.is_ok(), "byte-identical duplicate must be silently deduped");
+        assert_eq!(result.unwrap().len(), 1);
     }
 }

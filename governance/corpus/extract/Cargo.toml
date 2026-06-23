@@ -13,12 +13,11 @@ license = "Apache-2.0"
 # facts ARE the syn output. No clock/rand/net; output is sorted/canonical.
 
 [dependencies]
+blake3 = "1.8.5"
 corpus-core = { path = "../core" }
 oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 syn = { workspace = true }
 quote = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 
 [lib]
 name = "corpus_extract"
