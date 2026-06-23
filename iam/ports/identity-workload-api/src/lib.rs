@@ -72,6 +72,19 @@ impl ApiErrorEnvelope {
         Self::new("TOKEN_INVALID", "workload token failed validation", details)
     }
 
+    /// `UNAUTHENTICATED` (HTTP 401) — the request carried no verified caller
+    /// credential. Used by the mutating lifecycle control plane (ADR-0581):
+    /// a caller must present an unforgeable credential before any mutation; a
+    /// self-attested header is never a credential.
+    #[must_use]
+    pub fn unauthorized(details: Option<String>) -> Self {
+        Self::new(
+            "UNAUTHENTICATED",
+            "a verified caller credential is required",
+            details,
+        )
+    }
+
     /// `FORBIDDEN` (HTTP 403) — the request authenticated but was denied by the
     /// authorization decision. Never a 404 (a deny must not leak existence).
     #[must_use]

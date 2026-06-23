@@ -106,7 +106,11 @@ impl SigningFixture {
             now + 300
         );
         let header = format!(r#"{{"alg":"ES256","typ":"JWT","kid":"{KID}"}}"#);
-        let signing_input = format!("{}.{}", b64url(header.as_bytes()), b64url(claims.as_bytes()));
+        let signing_input = format!(
+            "{}.{}",
+            b64url(header.as_bytes()),
+            b64url(claims.as_bytes())
+        );
         let signature = self
             .key_pair
             .sign(&self.rng, signing_input.as_bytes())
@@ -145,6 +149,9 @@ async fn boot(fixture: &SigningFixture) -> server::ServiceHandle {
         principals_path: Some(seed_path.to_string_lossy().into_owned()),
         signing_key_path: Some(signing_key_path.to_string_lossy().into_owned()),
         signing_kid: "oya-identity-e2e-k1".into(),
+        lifecycle_bearer: "e2e-lifecycle-bearer".into(),
+        lifecycle_caller_tenant: "ten_acme".into(),
+        lifecycle_caller_id: "e2e-control-plane".into(),
     };
     server::start(&config).await.expect("service boots")
 }
@@ -342,8 +349,7 @@ async fn grpc_surface_returns_identical_decisions() {
 
     // AuthorizeWithToken: ALLOW for the permitted principal, DENY (as a
     // response value, not an RPC error) for the scope-denied principal.
-    let mut authorizer =
-        proto::workload_authorizer_client::WorkloadAuthorizerClient::new(channel);
+    let mut authorizer = proto::workload_authorizer_client::WorkloadAuthorizerClient::new(channel);
     let request = |token: String| proto::AuthorizeWithTokenRequest {
         token,
         action: "cloud.kms.Decrypt".into(),
@@ -396,14 +402,22 @@ const LIVE_APP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_APP_URL";
 /// Truthy-gate identical to the adapter's live tests.
 fn live_enabled() -> bool {
     std::env::var(LIVE_ENV)
-        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .map(|v| {
+            matches!(
+                v.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
         .unwrap_or(false)
 }
 
 /// Boot the service with an explicit SCIM database URL (bypasses env read).
 /// Used by the live durability test to pass the app-role URL without racing the
 /// process-global env with other parallel tests.
-async fn boot_with_url(fixture: &SigningFixture, scim_url: Option<String>) -> server::ServiceHandle {
+async fn boot_with_url(
+    fixture: &SigningFixture,
+    scim_url: Option<String>,
+) -> server::ServiceHandle {
     let dir = std::env::temp_dir().join(format!("oya-identity-e2e-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&dir).expect("temp dir");
     let jwks_path = dir.join("jwks.json");
@@ -429,6 +443,9 @@ async fn boot_with_url(fixture: &SigningFixture, scim_url: Option<String>) -> se
         principals_path: Some(seed_path.to_string_lossy().into_owned()),
         signing_key_path: Some(signing_key_path.to_string_lossy().into_owned()),
         signing_kid: "oya-identity-e2e-k1".into(),
+        lifecycle_bearer: "e2e-lifecycle-bearer".into(),
+        lifecycle_caller_tenant: "ten_acme".into(),
+        lifecycle_caller_id: "e2e-control-plane".into(),
     };
     server::start_with_scim_url(&config, scim_url)
         .await

@@ -30,10 +30,23 @@ pub const ENV_SIGNING_KEY_PATH: &str = "OYA_IDENTITY_SIGNING_KEY_PATH";
 /// `OYA_IDENTITY_SIGNING_KID` — key id for the issuer signing key
 /// (default `oya-identity-k1`).
 pub const ENV_SIGNING_KID: &str = "OYA_IDENTITY_SIGNING_KID";
+/// `OYA_IDENTITY_LIFECYCLE_BEARER` — REQUIRED bearer credential the mutating
+/// principal-lifecycle control plane (`:suspend`/`:retire`) verifies in constant
+/// time before any mutation (ADR-0581 / AUTH-005). The binary REFUSES to start
+/// without it: there is no unauthenticated mutating control plane. Production
+/// custody moves behind the cloud-iam credential store / mTLS-SPIFFE adapter.
+pub const ENV_LIFECYCLE_BEARER: &str = "OYA_IDENTITY_LIFECYCLE_BEARER";
+/// `OYA_IDENTITY_LIFECYCLE_CALLER_TENANT` — the tenant the verified lifecycle
+/// caller acts within (REQUIRED; bound to the credential, never a header).
+pub const ENV_LIFECYCLE_CALLER_TENANT: &str = "OYA_IDENTITY_LIFECYCLE_CALLER_TENANT";
+/// `OYA_IDENTITY_LIFECYCLE_CALLER_ID` — a stable identity label for the verified
+/// lifecycle caller (default `lifecycle-control-plane`).
+pub const ENV_LIFECYCLE_CALLER_ID: &str = "OYA_IDENTITY_LIFECYCLE_CALLER_ID";
 
 const DEFAULT_REST_ADDR: &str = "0.0.0.0:8080";
 const DEFAULT_GRPC_ADDR: &str = "0.0.0.0:8081";
 const DEFAULT_SIGNING_KID: &str = "oya-identity-k1";
+const DEFAULT_LIFECYCLE_CALLER_ID: &str = "lifecycle-control-plane";
 
 /// Service configuration resolved from the environment.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -57,6 +70,14 @@ pub struct Config {
     pub signing_key_path: Option<String>,
     /// Key id for the issuer signing key.
     pub signing_kid: String,
+    /// REQUIRED bearer credential for the mutating lifecycle control plane
+    /// (`:suspend`/`:retire`). The binary refuses to start without it
+    /// (ADR-0581 / AUTH-005 — no unauthenticated mutating control plane).
+    pub lifecycle_bearer: String,
+    /// Tenant the verified lifecycle caller acts within (REQUIRED).
+    pub lifecycle_caller_tenant: String,
+    /// Stable identity label for the verified lifecycle caller.
+    pub lifecycle_caller_id: String,
 }
 
 /// A missing required environment variable.
@@ -108,6 +129,10 @@ impl Config {
             principals_path: optional(ENV_PRINCIPALS_PATH),
             signing_key_path: optional(ENV_SIGNING_KEY_PATH),
             signing_kid: optional(ENV_SIGNING_KID).unwrap_or_else(|| DEFAULT_SIGNING_KID.into()),
+            lifecycle_bearer: required(ENV_LIFECYCLE_BEARER)?,
+            lifecycle_caller_tenant: required(ENV_LIFECYCLE_CALLER_TENANT)?,
+            lifecycle_caller_id: optional(ENV_LIFECYCLE_CALLER_ID)
+                .unwrap_or_else(|| DEFAULT_LIFECYCLE_CALLER_ID.into()),
         })
     }
 }
@@ -125,6 +150,8 @@ mod tests {
             ENV_JWKS_PATH => Some("/etc/oya-identity/jwks.json".into()),
             ENV_CEDAR_POLICY_PATH => Some("/etc/oya-identity/policies.cedar".into()),
             ENV_PRINCIPALS_PATH => Some("/etc/oya-identity/principals.json".into()),
+            ENV_LIFECYCLE_BEARER => Some("super-secret-lifecycle-bearer".into()),
+            ENV_LIFECYCLE_CALLER_TENANT => Some("ten_platform".into()),
             _ => None,
         }
     }
@@ -142,6 +169,32 @@ mod tests {
             config.principals_path.as_deref(),
             Some("/etc/oya-identity/principals.json")
         );
+        assert_eq!(config.lifecycle_bearer, "super-secret-lifecycle-bearer");
+        assert_eq!(config.lifecycle_caller_tenant, "ten_platform");
+        assert_eq!(config.lifecycle_caller_id, DEFAULT_LIFECYCLE_CALLER_ID);
+    }
+
+    #[test]
+    fn refuses_missing_lifecycle_bearer() {
+        // AUTH-005: the mutating lifecycle control plane cannot be served without
+        // a verified-caller credential. A missing bearer must fail config load,
+        // so the binary refuses to start (no unauthenticated mutating control plane).
+        let err = Config::from_lookup(|key| match key {
+            ENV_LIFECYCLE_BEARER => None,
+            other => full_lookup(other),
+        })
+        .expect_err("must fail");
+        assert!(err.to_string().contains(ENV_LIFECYCLE_BEARER));
+    }
+
+    #[test]
+    fn refuses_missing_lifecycle_caller_tenant() {
+        let err = Config::from_lookup(|key| match key {
+            ENV_LIFECYCLE_CALLER_TENANT => None,
+            other => full_lookup(other),
+        })
+        .expect_err("must fail");
+        assert!(err.to_string().contains(ENV_LIFECYCLE_CALLER_TENANT));
     }
 
     #[test]
