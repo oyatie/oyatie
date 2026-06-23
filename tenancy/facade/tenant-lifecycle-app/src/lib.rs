@@ -65,7 +65,7 @@ use oya_shared_resource_provider_contract_kernel::{
 };
 use tenancy_tenant_lifecycle_authz_port::{
     AuthorizationDecision, AuthorizationOutcome, AuthorizationQuery, CallerIdentity,
-    TenantLifecycleAction, TenantLifecycleAuthorizer,
+    TenantLifecycleAction, TenantLifecycleAuthorizer, TenantMembershipResolver,
 };
 use tenancy_tenant_lifecycle_authz_pdp::PdpTenantLifecycleAuthorizer;
 use tenancy_tenant_lifecycle_kernel::TenantLifecycleStore;
@@ -83,11 +83,30 @@ const DEFAULT_PAGE_SIZE: u32 = 50;
 const ENV_PLATFORM_ADMIN_TOKEN: &str = "TENANCY_PLATFORM_ADMIN_TOKEN";
 
 /// Env var carrying the tenant-operator bearer token. A request presenting this
-/// token (constant-time verified) AND the `x-oya-tenant` axis header is a
-/// tenant operator scoped to that asserted tenant. The bearer alone NEVER
-/// grants the tenant axis — the header binds the axis only AFTER the bearer is
-/// verified, and the PDP then checks the axis against the target {id}.
+/// token (constant-time verified) is *some* tenant operator — but the bearer
+/// alone proves NEITHER which operator NOR which tenants it may act for (it is a
+/// SHARED credential). The verified operator's authorized tenants are resolved
+/// SERVER-SIDE from the [`TenantMembershipResolver`]; the `x-oya-tenant` header
+/// may at most SELECT among those assigned tenants. An operator can NEVER act for
+/// a tenant it is not a member of (the C7 self-attestation fix), and the PDP then
+/// backstops the membership-bound axis against the target {id}.
 const ENV_TENANT_OPERATOR_TOKEN: &str = "TENANCY_TENANT_OPERATOR_TOKEN";
+
+/// Env var carrying the comma-separated tenant-operator membership assignments
+/// for the seed in-memory [`TenantMembershipResolver`], as
+/// `operator_principal:tenantA|tenantB,operator2:tenantC`. The reference verifier
+/// binds ALL operators presenting the shared bearer to one stable operator
+/// principal id (`tenant-operator`); production swaps a per-credential verifier +
+/// a cloud-iam membership adapter behind the unchanged port. An absent/empty
+/// value means NO operator has any membership (every per-tenant op denies —
+/// default-deny, never an open surface).
+const ENV_TENANT_OPERATOR_MEMBERSHIPS: &str = "TENANCY_TENANT_OPERATOR_MEMBERSHIPS";
+
+/// The stable principal id the reference bearer-verifier binds every caller
+/// presenting the shared operator bearer to. Membership is resolved for THIS id.
+/// Production replaces the shared bearer with a per-operator verified credential
+/// (mTLS/SPIFFE/OIDC subject) whose subject is the membership key.
+const REFERENCE_OPERATOR_PRINCIPAL_ID: &str = "tenant-operator";
 
 /// Env var carrying the runtime Postgres connection URL for the durable
 /// tenant-lifecycle store. When present (non-empty) the composition root wires
@@ -135,6 +154,11 @@ pub type SharedProvider<S> = Arc<Mutex<TenantLifecycleProvider<S>>>;
 /// The authorization decision port shared across handlers (the PEP's PDP).
 pub type SharedAuthorizer = Arc<dyn TenantLifecycleAuthorizer>;
 
+/// The server-side membership-resolution port shared across handlers. REQUIRED —
+/// there is no "no resolver" variant; without it an operator's tenant axis could
+/// only be self-attested, which is exactly the C7 finding this fix closes.
+pub type SharedMembershipResolver = Arc<dyn TenantMembershipResolver>;
+
 /// Application state injected into every handler.
 pub struct AppState<S: LifecycleStore> {
     provider: SharedProvider<S>,
@@ -142,6 +166,10 @@ pub struct AppState<S: LifecycleStore> {
     /// "no authorizer" variant: a service with no authz provider must never be
     /// constructed (the composition root refuses to build one).
     authorizer: SharedAuthorizer,
+    /// The server-side tenant-membership resolver. REQUIRED — the verified
+    /// operator's authorized tenants are resolved HERE, never self-attested via
+    /// the `x-oya-tenant` header (the C7 fix). There is no "no resolver" variant.
+    membership: SharedMembershipResolver,
     /// Constant-time-verified platform-admin bearer token. `None` means no
     /// platform admin can authenticate (register/list deny-all), never an open
     /// surface.
@@ -156,6 +184,7 @@ impl<S: LifecycleStore> Clone for AppState<S> {
         Self {
             provider: Arc::clone(&self.provider),
             authorizer: Arc::clone(&self.authorizer),
+            membership: Arc::clone(&self.membership),
             platform_admin_token: self.platform_admin_token.clone(),
             tenant_operator_token: self.tenant_operator_token.clone(),
         }
@@ -170,12 +199,14 @@ impl<S: LifecycleStore> AppState<S> {
     pub fn new(
         provider: TenantLifecycleProvider<S>,
         authorizer: SharedAuthorizer,
+        membership: SharedMembershipResolver,
         platform_admin_token: Option<String>,
         tenant_operator_token: Option<String>,
     ) -> Self {
         Self {
             provider: Arc::new(Mutex::new(provider)),
             authorizer,
+            membership,
             platform_admin_token: normalize_token(platform_admin_token),
             tenant_operator_token: normalize_token(tenant_operator_token),
         }
@@ -415,15 +446,30 @@ fn tenant_name(tenant_id: &str) -> Result<ResourceName, HandlerError> {
 // Authentication + authorization (PEP)
 // ============================================================
 
-/// Authenticate the caller from the verified bearer credential, fail-closed.
+/// Authenticate the caller from the verified bearer credential, fail-closed,
+/// binding any tenant scope to SERVER-SIDE membership (never a self-attested
+/// header).
 ///
-/// Default-deny: a request with no matching bearer is UNAUTHENTICATED (401) —
-/// the bearer is the ONLY authentication boundary, and it alone grants no axis.
-/// A platform-admin bearer yields a platform-scoped caller (no tenant scope); a
-/// tenant-operator bearer yields a caller scoped to the `x-oya-tenant` axis the
-/// header asserts (bound only AFTER the bearer is verified). The URL `{id}` is
-/// never consulted here — it is the resource the authorizer checks the caller
-/// against, not a credential.
+/// Default-deny: a request with no matching bearer is UNAUTHENTICATED (401) — the
+/// bearer is the ONLY authentication boundary, and it alone grants no tenant
+/// axis. A platform-admin bearer yields a platform-scoped caller (no tenant
+/// scope).
+///
+/// ## The C7 fix — membership-bound operator scope
+///
+/// A tenant-operator bearer proves only that the caller is *some* operator; it is
+/// a SHARED credential and proves NOTHING about which tenants that operator may
+/// act for. The `x-oya-tenant` header therefore CANNOT grant a tenant axis. The
+/// PEP resolves the verified operator's ASSIGNED tenants from the server-side
+/// [`TenantMembershipResolver`] and binds the axis ONLY to a tenant in that set:
+///   - no `x-oya-tenant` header AND exactly one assigned tenant ⇒ bind to it;
+///   - `x-oya-tenant` present ⇒ SELECT it, but ONLY if it is in the assigned set;
+///     an unassigned selection is 403 (the operator has no authority over it);
+///   - no assigned tenants (unknown operator) ⇒ 403 (default-deny);
+///   - a membership-store fault ⇒ 403 (fail-closed).
+///
+/// The URL `{id}` is never consulted here — it is the resource the authorizer
+/// checks the membership-bound axis against, not a credential.
 fn authenticate_caller<S>(
     state: &AppState<S>,
     headers: &HeaderMap,
@@ -439,25 +485,82 @@ where
         });
     }
     if bearer_matches(headers, state.tenant_operator_token.as_deref()) {
-        // The verified operator asserts which tenant it acts as via the axis
-        // header. A missing axis = unauthenticated for tenant scope (the bearer
-        // alone never grants a tenant axis); the PDP would otherwise deny, but
-        // failing here keeps the 401/403 boundary crisp.
-        let Some(axis) = headers
+        // The verified operator's stable principal id is the membership key —
+        // derived from the credential (the reference verifier binds the shared
+        // bearer to one operator id), NEVER from a self-attested header.
+        let operator_id = REFERENCE_OPERATOR_PRINCIPAL_ID;
+
+        // Resolve the operator's ASSIGNED tenants SERVER-SIDE. A store fault is
+        // fail-closed (403): a membership outage never grants a tenant axis.
+        let assigned = state
+            .membership
+            .assigned_tenants(operator_id)
+            .map_err(|fault| {
+                tracing::warn!(
+                    message = "tenancy.membership.fault",
+                    operator_id = operator_id,
+                    error = %fault,
+                );
+                err(
+                    StatusCode::FORBIDDEN,
+                    "PERMISSION_DENIED",
+                    "tenant-operator membership could not be resolved",
+                )
+            })?;
+
+        // An operator with NO assigned tenants is denied every per-tenant op
+        // (default-deny; the shared bearer grants nothing on its own).
+        if assigned.is_empty() {
+            return Err(err(
+                StatusCode::FORBIDDEN,
+                "PERMISSION_DENIED",
+                "tenant-operator has no assigned tenants",
+            ));
+        }
+
+        // The header SELECTS among assigned tenants; it never grants one.
+        let selected = match headers
             .get(HEADER_TENANT_AXIS)
             .and_then(|value| value.to_str().ok())
             .map(str::trim)
             .filter(|axis| !axis.is_empty())
-        else {
-            return Err(err(
-                StatusCode::UNAUTHORIZED,
-                "UNAUTHENTICATED",
-                "tenant-operator credential requires an x-oya-tenant axis assertion",
-            ));
+        {
+            Some(requested) => {
+                // The selection MUST be a tenant the operator is assigned to.
+                // A request for an UNASSIGNED tenant (the C7 attack: selecting a
+                // victim tenant via the header) is forbidden — the bearer proves
+                // no authority over it.
+                if !assigned.iter().any(|t| t == requested) {
+                    return Err(err(
+                        StatusCode::FORBIDDEN,
+                        "PERMISSION_DENIED",
+                        "tenant-operator is not a member of the selected tenant",
+                    ));
+                }
+                requested.to_owned()
+            }
+            // No selection header: only unambiguous when the operator is assigned
+            // exactly one tenant. With several, the operator MUST disambiguate via
+            // a header (which is still constrained to the assigned set).
+            None => {
+                if assigned.len() == 1 {
+                    assigned[0].clone()
+                } else {
+                    return Err(err(
+                        StatusCode::BAD_REQUEST,
+                        "TENANT_SELECTION_REQUIRED",
+                        "tenant-operator is assigned multiple tenants; an x-oya-tenant \
+                         selection (within the assigned set) is required",
+                    ));
+                }
+            }
         };
+
         return Ok(CallerIdentity {
-            principal_id: format!("tenant-operator:{axis}"),
-            tenant_scope: Some(axis.to_owned()),
+            principal_id: format!("tenant-operator:{selected}"),
+            // The tenant axis is bound to a SERVER-SIDE-VERIFIED membership, not
+            // the raw header — the PDP then backstops it against the target {id}.
+            tenant_scope: Some(selected),
             platform_admin: false,
         });
     }
@@ -808,6 +911,7 @@ pub async fn healthz() -> StatusCode {
 pub fn build_router<S>(
     provider: TenantLifecycleProvider<S>,
     authorizer: SharedAuthorizer,
+    membership: SharedMembershipResolver,
     platform_admin_token: Option<String>,
     tenant_operator_token: Option<String>,
 ) -> Router
@@ -817,6 +921,7 @@ where
     let state = AppState::new(
         provider,
         authorizer,
+        membership,
         platform_admin_token,
         tenant_operator_token,
     );
@@ -841,6 +946,7 @@ where
 /// [`BootError::Authz`] if the embedded tenancy authz bundle fails to compile
 /// or strict-validate — the caller MUST refuse to serve (no default-allow).
 pub fn build_inmemory_router(
+    membership: SharedMembershipResolver,
     platform_admin_token: Option<String>,
     tenant_operator_token: Option<String>,
 ) -> Result<Router, BootError> {
@@ -849,6 +955,7 @@ pub fn build_inmemory_router(
     Ok(build_router(
         TenantLifecycleProvider::new(InMemoryTenantLifecycleStore::new()),
         Arc::new(authorizer),
+        membership,
         platform_admin_token,
         tenant_operator_token,
     ))
@@ -878,6 +985,7 @@ pub fn build_inmemory_router(
 ///   or strict-validate (no default-allow).
 pub async fn build_postgres_router(
     database_url: &str,
+    membership: SharedMembershipResolver,
     platform_admin_token: Option<String>,
     tenant_operator_token: Option<String>,
 ) -> Result<Router, BootError> {
@@ -902,6 +1010,7 @@ pub async fn build_postgres_router(
     Ok(build_router(
         TenantLifecycleProvider::new(store),
         Arc::new(authorizer),
+        membership,
         platform_admin_token,
         tenant_operator_token,
     ))
@@ -954,6 +1063,92 @@ impl fmt::Display for BootError {
 }
 
 impl std::error::Error for BootError {}
+
+// ============================================================
+// Reference in-memory membership resolver (composition-root adapter)
+// ============================================================
+
+/// Reference [`TenantMembershipResolver`] adapter: an in-memory map of operator
+/// principal id → assigned tenant ids, for single-node bring-up and tests. This
+/// is the SERVER-SIDE source of truth for which tenants an operator may act for;
+/// production swaps a cloud-iam / OIDC membership-store adapter behind the
+/// unchanged port. An operator absent from the map resolves to an EMPTY set
+/// (default-deny — every per-tenant op for that operator is forbidden).
+#[derive(Clone, Debug, Default)]
+pub struct InMemoryTenantMembershipResolver {
+    assignments: std::collections::BTreeMap<String, Vec<String>>,
+}
+
+impl InMemoryTenantMembershipResolver {
+    /// Build an empty resolver (no operator has any membership → all per-tenant
+    /// ops deny).
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Assign `tenant_ids` to `operator_principal_id` (builder-style).
+    #[must_use]
+    pub fn with_operator(
+        mut self,
+        operator_principal_id: impl Into<String>,
+        tenant_ids: impl IntoIterator<Item = String>,
+    ) -> Self {
+        self.assignments
+            .insert(operator_principal_id.into(), tenant_ids.into_iter().collect());
+        self
+    }
+
+    /// Parse the operator-membership env value into a resolver. The grammar is
+    /// `operator:tenantA|tenantB,operator2:tenantC`. A `None`/empty value yields
+    /// an empty resolver (default-deny); malformed entries are skipped (they
+    /// grant nothing — fail-closed). The reference verifier binds every operator
+    /// bearer to [`REFERENCE_OPERATOR_PRINCIPAL_ID`], so a value without an
+    /// explicit operator prefix (`tenantA|tenantB`) is assigned to that id.
+    #[must_use]
+    pub fn from_env(raw: Option<&str>) -> Self {
+        let mut resolver = Self::new();
+        let Some(raw) = raw.map(str::trim).filter(|s| !s.is_empty()) else {
+            return resolver;
+        };
+        for entry in raw.split(',').map(str::trim).filter(|e| !e.is_empty()) {
+            let (operator, tenants_raw) = match entry.split_once(':') {
+                Some((op, tenants)) => (op.trim().to_owned(), tenants),
+                // No explicit operator prefix: bind to the reference operator id.
+                None => (REFERENCE_OPERATOR_PRINCIPAL_ID.to_owned(), entry),
+            };
+            if operator.is_empty() {
+                continue;
+            }
+            let tenants: Vec<String> = tenants_raw
+                .split('|')
+                .map(str::trim)
+                .filter(|t| !t.is_empty())
+                .map(str::to_owned)
+                .collect();
+            if !tenants.is_empty() {
+                resolver.assignments.insert(operator, tenants);
+            }
+        }
+        resolver
+    }
+}
+
+impl TenantMembershipResolver for InMemoryTenantMembershipResolver {
+    fn assigned_tenants(
+        &self,
+        operator_principal_id: &str,
+    ) -> Result<Vec<String>, tenancy_tenant_lifecycle_authz_port::MembershipFault> {
+        // Unknown operator ⇒ empty set ⇒ default-deny. This adapter never faults
+        // (in-memory), so the fail-closed `Err` branch is exercised by production
+        // adapters; the contract is documented on the port.
+        Ok(self
+            .assignments
+            .get(operator_principal_id)
+            .cloned()
+            .unwrap_or_default())
+    }
+}
 
 /// The store backend selected by [`select_store_kind`] from the runtime config.
 ///
@@ -1011,15 +1206,31 @@ pub async fn serve(listen_addr: &str) -> Result<(), BootError> {
     if platform_admin_token.is_none() && tenant_operator_token.is_none() {
         return Err(BootError::NoCredentialConfigured);
     }
+    // The server-side membership resolver (REQUIRED). Seeded from the operator
+    // membership env var; an absent value yields an empty resolver (every
+    // per-tenant op denies — default-deny, never self-attested).
+    let membership: SharedMembershipResolver = Arc::new(InMemoryTenantMembershipResolver::from_env(
+        std::env::var(ENV_TENANT_OPERATOR_MEMBERSHIPS).ok().as_deref(),
+    ));
     let (app, store_kind) = match select_store_kind(std::env::var(ENV_DATABASE_URL).ok()) {
         StoreSelection::Postgres(url) => (
             // FAIL-CLOSED: a connect failure or RLS-bypass role propagates;
             // NEVER fall back to in-memory when a durable backend was configured.
-            build_postgres_router(&url, platform_admin_token, tenant_operator_token).await?,
+            build_postgres_router(
+                &url,
+                Arc::clone(&membership),
+                platform_admin_token,
+                tenant_operator_token,
+            )
+            .await?,
             "postgres",
         ),
         StoreSelection::InMemory => (
-            build_inmemory_router(platform_admin_token, tenant_operator_token)?,
+            build_inmemory_router(
+                Arc::clone(&membership),
+                platform_admin_token,
+                tenant_operator_token,
+            )?,
             "inmemory",
         ),
     };
@@ -1102,8 +1313,11 @@ mod tests {
     /// rather than silently degrading. No socket / no Postgres is touched.
     #[tokio::test]
     async fn build_postgres_router_empty_url_is_store_error() {
+        let membership: SharedMembershipResolver =
+            Arc::new(InMemoryTenantMembershipResolver::new());
         let result = build_postgres_router(
             "",
+            membership,
             Some("platform".to_owned()),
             Some("operator".to_owned()),
         )
@@ -1128,5 +1342,51 @@ mod tests {
             key: "k".to_owned(),
         });
         assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    }
+
+    // --- membership resolver (the C7 server-side binding) --------------------
+
+    #[test]
+    fn membership_resolver_unknown_operator_is_empty_default_deny() {
+        let resolver = InMemoryTenantMembershipResolver::new()
+            .with_operator("op-a", ["t1".to_owned(), "t2".to_owned()]);
+        // A known operator resolves its assigned set.
+        assert_eq!(
+            resolver.assigned_tenants("op-a").unwrap(),
+            vec!["t1".to_owned(), "t2".to_owned()]
+        );
+        // An UNKNOWN operator resolves to the empty set (default-deny), never a
+        // wildcard — the self-attested header can never grant a tenant.
+        assert!(resolver.assigned_tenants("op-unknown").unwrap().is_empty());
+    }
+
+    #[test]
+    fn membership_from_env_parses_grammar_and_defaults_to_reference_operator() {
+        // Explicit operator prefixes.
+        let resolver =
+            InMemoryTenantMembershipResolver::from_env(Some("op-a:t1|t2, op-b:t3"));
+        assert_eq!(
+            resolver.assigned_tenants("op-a").unwrap(),
+            vec!["t1".to_owned(), "t2".to_owned()]
+        );
+        assert_eq!(resolver.assigned_tenants("op-b").unwrap(), vec!["t3".to_owned()]);
+
+        // A bare `tenantA|tenantB` (no operator prefix) binds to the reference id.
+        let bare = InMemoryTenantMembershipResolver::from_env(Some("acme|globex"));
+        assert_eq!(
+            bare.assigned_tenants(REFERENCE_OPERATOR_PRINCIPAL_ID).unwrap(),
+            vec!["acme".to_owned(), "globex".to_owned()]
+        );
+
+        // None / empty / whitespace ⇒ empty resolver (default-deny, no allow-all).
+        for raw in [None, Some(""), Some("   ")] {
+            let r = InMemoryTenantMembershipResolver::from_env(raw);
+            assert!(
+                r.assigned_tenants(REFERENCE_OPERATOR_PRINCIPAL_ID)
+                    .unwrap()
+                    .is_empty(),
+                "empty/absent membership config must grant nothing, raw={raw:?}"
+            );
+        }
     }
 }
